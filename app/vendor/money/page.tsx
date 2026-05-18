@@ -434,69 +434,8 @@ function VendorMoneyInner() {
 
           {/* TAX TAB */}
           {tab==='TAX' && (
-            <div>
-              {/* FY selector */}
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                <p style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:200, letterSpacing:'0.22em', textTransform:'uppercase', color:'#888580', margin:0 }}>Financial Year</p>
-                <select value={selectedFY} onChange={e=>{ setSelectedFY(e.target.value); if(vendorId) fetch(`${API_BASE}/api/v2/vendor/gst-summary/${vendorId}?fy=${e.target.value}`).then(r=>r.json()).then(d=>{ if(d.success) setGstData(d.data); }); }} style={{ fontFamily:"'Jost',sans-serif", fontSize:11, fontWeight:300, color:'#111', background:'transparent', border:'0.5px solid #E2DED8', borderRadius:6, padding:'4px 8px', cursor:'pointer' }}>
-                  {[0,1,2].map(i=>{ const y=parseInt(currentFY.split('-')[0])-i; const fy=`${y}-${y+1}`; return <option key={fy} value={fy}>{`FY ${fy}`}</option>; })}
-                </select>
-              </div>
-
-              {!gstData || gstData.total_invoiced===0 ? (
-                <div style={{ paddingTop:40, textAlign:'center', fontFamily:"'Cormorant Garamond',serif", fontStyle:'italic', fontSize:18, color:'#888580' }}>
-                  No invoices found for {`FY ${selectedFY}`}.
-                </div>
-              ) : (
-                <>
-                  {/* Summary hero */}
-                  <div style={{ background:'#FFFFFF', border:'1px solid #E2DED8', borderRadius:14, padding:20, marginBottom:12 }}>
-                    <div style={{ display:'flex', justifyContent:'space-around', marginBottom:16 }}>
-                      {[{label:'Total Invoiced',val:gstData.total_invoiced},{label:'GST Collected',val:gstData.total_gst},{label:'TDS Deducted',val:gstData.total_tds}].map(s=>(
-                        <div key={s.label} style={{ textAlign:'center' }}>
-                          <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:300, color:'#111', margin:'0 0 3px' }}>{formatAmt(s.val)}</p>
-                          <p style={{ fontFamily:"'Jost',sans-serif", fontSize:8, fontWeight:200, letterSpacing:'0.15em', textTransform:'uppercase', color:'#888580', margin:0 }}>{s.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <button onClick={()=>window.open(`${API_BASE}/api/v2/vendor/gst-export/${vendorId}?fy=${selectedFY}`)} style={{ width:'100%', background:'transparent', color:'#111', border:'1px solid #E2DED8', borderRadius:8, fontFamily:"'Jost',sans-serif", fontWeight:200, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', padding:'12px 0', cursor:'pointer', touchAction:'manipulation' }}>
-                      Export for CA (.csv)
-                    </button>
-                  </div>
-
-                  {/* Quarterly breakdown */}
-                  <p style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:200, letterSpacing:'0.22em', textTransform:'uppercase', color:'#888580', margin:'0 0 10px' }}>Quarterly Breakdown</p>
-                  <div style={{ background:'#FFFFFF', border:'1px solid #E2DED8', borderRadius:14, marginBottom:16, overflow:'hidden' }}>
-                    {(gstData.quarterly||[]).map((q: any, i: number) => (
-                      <div key={q.label} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderBottom:i<3?'0.5px solid #E2DED8':'none' }}>
-                        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:300, color:'#111', margin:0 }}>{q.label}</p>
-                        <div style={{ textAlign:'right' }}>
-                          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:400, color:'#111', margin:'0 0 2px' }}>{formatAmt(q.invoiced)}</p>
-                          {q.gst>0&&<p style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:300, color:'#888580', margin:0 }}>GST {formatAmt(q.gst)}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* TDS per-client ledger */}
-                  {(gstData.tds_ledger||[]).length>0&&(
-                    <>
-                      <p style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:200, letterSpacing:'0.22em', textTransform:'uppercase', color:'#888580', margin:'0 0 10px' }}>TDS Ledger</p>
-                      <div style={{ background:'#FFFFFF', border:'1px solid #E2DED8', borderRadius:14, overflow:'hidden' }}>
-                        {(gstData.tds_ledger||[]).map((row: any, i: number) => (
-                          <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderBottom:i<gstData.tds_ledger.length-1?'0.5px solid #E2DED8':'none' }}>
-                            <div>
-                              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:300, color:'#111', margin:'0 0 2px' }}>{row.client_name}</p>
-                              <p style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:300, color:'#888580', margin:0 }}>TDS @ {row.tds_rate||10}% · {row.tds_deducted_by_client?'Deducted by client':'Self'}</p>
-                            </div>
-                            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:400, color:'#C9A84C', margin:0 }}>{formatAmt(row.tds_amount)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', padding: '0 40px', textAlign: 'center' }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontWeight: 300, fontSize: 22, color: '#888580', margin: '0 0 8px', lineHeight: 1.4 }}>Coming soon — your data is safe with us.</p>
             </div>
           )}
 
