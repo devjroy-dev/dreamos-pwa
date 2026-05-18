@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
@@ -38,7 +38,7 @@ export default function MakersPage() {
       const params = new URLSearchParams({ limit: '200' });
       if (search) params.set('search', search);
       if (filterTier !== 'all') params.set('tier', filterTier);
-      const r = await fetch(`${API}/api/v3/admin/makers?${params}`, { headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/makers?${params}`, { headers: H });
       const d = await r.json();
       if (d.success) setMakers(d.data || []);
     } finally { setLoading(false); }
@@ -47,28 +47,28 @@ export default function MakersPage() {
   useEffect(() => { const t = setTimeout(load, 300); return () => clearTimeout(t); }, [load]);
 
   async function updateMaker(id: string, patch: object) {
-    await fetch(`${API}/api/v3/admin/makers/${id}`, { method: 'PATCH', headers: H, body: JSON.stringify(patch) });
+    await fetch(`${API_BASE}/api/v3/admin/makers/${id}`, { method: 'PATCH', headers: H, body: JSON.stringify(patch) });
     setMakers(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
     setSelected(prev => prev?.id === id ? { ...prev, ...patch as any } : prev);
     setToast('Updated');
   }
 
   async function deleteMaker(id: string) {
-    await fetch(`${API}/api/v2/admin/vendors/${id}`, { method: 'DELETE', headers: H });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}`, { method: 'DELETE', headers: H });
     setMakers(prev => prev.filter(m => m.id !== id));
     setSelected(null); setDeleteConfirm(''); setDeleteInput('');
     setToast('Maker deleted');
   }
 
   async function approveAllImages(id: string) {
-    await fetch(`${API}/api/v3/admin/makers/${id}/approve-all-images`, { method: 'POST', headers: H });
+    await fetch(`${API_BASE}/api/v3/admin/makers/${id}/approve-all-images`, { method: 'POST', headers: H });
     setToast('All images approved');
   }
 
   async function sendWA(phone: string) {
     const msg = prompt('WhatsApp message:');
     if (!msg) return;
-    await fetch(`${API}/api/v3/admin/send-whatsapp`, { method: 'POST', headers: H, body: JSON.stringify({ phone, message: msg }) });
+    await fetch(`${API_BASE}/api/v3/admin/send-whatsapp`, { method: 'POST', headers: H, body: JSON.stringify({ phone, message: msg }) });
     setToast('WhatsApp sent');
   }
 

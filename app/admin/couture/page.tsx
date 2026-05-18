@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
@@ -26,7 +26,7 @@ export default function AdminCouturePage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/couture`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/couture`, { headers: h });
       const d = await r.json();
       setProducts(d.products || []);
     } finally { setLoading(false); }
@@ -39,7 +39,7 @@ export default function AdminCouturePage() {
     setCreating(true);
     try {
       const images = form.images.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 5);
-      const r = await fetch(`${API}/api/v2/admin/couture`, { method: 'POST', headers: h, body: JSON.stringify({ ...form, price: form.price ? parseInt(form.price) : null, images }) });
+      const r = await fetch(`${API_BASE}/api/v2/admin/couture`, { method: 'POST', headers: h, body: JSON.stringify({ ...form, price: form.price ? parseInt(form.price) : null, images }) });
       const d = await r.json();
       if (d.success) { setShowAdd(false); setForm({ designer_name: '', product_title: '', category: 'Lehenga', price: '', description: '', images: '' }); load(); showToast('Product added.'); }
     } finally { setCreating(false); }
@@ -48,12 +48,12 @@ export default function AdminCouturePage() {
   const toggle = async (id: string, field: 'is_featured' | 'is_active') => {
     const p = products.find(x => x.id === id);
     if (!p) return;
-    await fetch(`${API}/api/v2/admin/couture/${id}`, { method: 'PATCH', headers: h, body: JSON.stringify({ [field]: !p[field] }) });
+    await fetch(`${API_BASE}/api/v2/admin/couture/${id}`, { method: 'PATCH', headers: h, body: JSON.stringify({ [field]: !p[field] }) });
     setProducts(ps => ps.map(x => x.id === id ? { ...x, [field]: !p[field] } : x));
   };
 
   const del = async (id: string) => {
-    await fetch(`${API}/api/v2/admin/couture/${id}`, { method: 'DELETE', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/couture/${id}`, { method: 'DELETE', headers: h });
     setProducts(ps => ps.filter(x => x.id !== id));
     setConfirmDelete(null);
     showToast('Product removed.');

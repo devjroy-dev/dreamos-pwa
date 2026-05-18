@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 const h = { 'x-admin-password': PWD };
 
@@ -26,7 +26,7 @@ export default function AdminRevenuePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/api/v2/admin/revenue`, { headers: h })
+    fetch(`${API_BASE}/api/v2/admin/revenue`, { headers: h })
       .then(r => r.json())
       .then(d => { if (d.success) setData(d); })
       .finally(() => setLoading(false));

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 function fmtINR(n: number) { return '₹' + (n || 0).toLocaleString('en-IN'); }
@@ -35,7 +35,7 @@ export default function MoneyPage() {
   const [toast, setToast] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/api/v3/admin/money/overview`, { headers: H })
+    fetch(`${API_BASE}/api/v3/admin/money/overview`, { headers: H })
       .then(r => r.json())
       .then(d => { if (d.success) setData(d.data); setLoading(false); })
       .catch(() => setLoading(false));

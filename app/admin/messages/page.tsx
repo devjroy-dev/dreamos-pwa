@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
@@ -24,7 +24,7 @@ export default function MessagesPage() {
 
   const loadFlagged = useCallback(async () => {
     setLoading(true);
-    const r = await fetch(`${API}/api/v3/admin/messages/flagged`, { headers: H });
+    const r = await fetch(`${API_BASE}/api/v3/admin/messages/flagged`, { headers: H });
     const d = await r.json();
     if (d.success) setFlagged(d.data || []);
     setLoading(false);
@@ -32,7 +32,7 @@ export default function MessagesPage() {
 
   const loadThreads = useCallback(async () => {
     setLoading(true);
-    const r = await fetch(`${API}/api/v3/admin/messages/threads`, { headers: H });
+    const r = await fetch(`${API_BASE}/api/v3/admin/messages/threads`, { headers: H });
     const d = await r.json();
     if (d.success) setThreads(d.data || []);
     setLoading(false);

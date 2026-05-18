@@ -4,8 +4,8 @@
 // preview on the landing page. Vendors must be approved (is_approved = true).
 // Order matters — slot 1 shows first.
 import { useEffect, useState, useCallback } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H   = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 // Single interface covers both slotted and available states.
@@ -33,8 +33,8 @@ export default function PreviewVendorsPage() {
     setLoading(true);
     try {
       const [slotsRes, vendorsRes] = await Promise.all([
-        fetch(`${API}/api/v2/admin/preview-vendors`, { headers: H }),
-        fetch(`${API}/api/v3/admin/makers?limit=200`, { headers: H }),
+        fetch(`${API_BASE}/api/v2/admin/preview-vendors`, { headers: H }),
+        fetch(`${API_BASE}/api/v3/admin/makers?limit=200`, { headers: H }),
       ]);
       const slotsData   = await slotsRes.json();
       const vendorsData = await vendorsRes.json();
@@ -93,7 +93,7 @@ export default function PreviewVendorsPage() {
     setSaving(true);
     try {
       const ids = slots.filter(Boolean).map(v => v!.id);
-      const r = await fetch(`${API}/api/v2/admin/preview-vendors`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/preview-vendors`, {
         method: 'POST', headers: H,
         body: JSON.stringify({ vendor_ids: ids }),
       });

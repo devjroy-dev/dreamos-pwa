@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const HEADERS = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 interface HotDate {
@@ -68,7 +68,7 @@ export default function HotDatesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/hot-dates`, { headers: HEADERS });
+      const r = await fetch(`${API_BASE}/api/v2/admin/hot-dates`, { headers: HEADERS });
       const d = await r.json();
       if (d.success) setDates(d.data || []);
     } catch { showToast('Failed to load dates'); }
@@ -81,7 +81,7 @@ export default function HotDatesPage() {
     if (!newDate) return;
     setAdding(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/hot-dates`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/hot-dates`, {
         method: 'POST', headers: HEADERS,
         body: JSON.stringify({ date: newDate, label: newLabel || 'Vivah Muhurat', intensity: newIntensity }),
       });
@@ -97,7 +97,7 @@ export default function HotDatesPage() {
 
   const handleToggle = async (id: string, current: boolean) => {
     try {
-      const r = await fetch(`${API}/api/v2/admin/hot-dates/${id}`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/hot-dates/${id}`, {
         method: 'PATCH', headers: HEADERS,
         body: JSON.stringify({ active: !current }),
       });
@@ -108,7 +108,7 @@ export default function HotDatesPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const r = await fetch(`${API}/api/v2/admin/hot-dates/${id}`, { method: 'DELETE', headers: HEADERS });
+      const r = await fetch(`${API_BASE}/api/v2/admin/hot-dates/${id}`, { method: 'DELETE', headers: HEADERS });
       const d = await r.json();
       if (d.success) { setDates(prev => prev.filter(x => x.id !== id)); showToast('Deleted.'); }
       else showToast(d.error || 'Delete failed');
@@ -123,7 +123,7 @@ export default function HotDatesPage() {
     let added = 0;
     for (const date of rawDates) {
       try {
-        const r = await fetch(`${API}/api/v2/admin/hot-dates`, {
+        const r = await fetch(`${API_BASE}/api/v2/admin/hot-dates`, {
           method: 'POST', headers: HEADERS,
           body: JSON.stringify({ date, label: 'Vivah Muhurat', intensity: 'high' }),
         });

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const BACKEND = 'https://dream-wedding-production-89ae.up.railway.app';
 const ADMIN_PASSWORD = 'Mira@2551354';
 const SUPABASE_URL = 'https://nqcdfzbvlrcrjineoudp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xY2RmemJ2bHJjcmppbmVvdWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mjg3ODksImV4cCI6MjA5MTMwNDc4OX0.s01R0eSn67jKTevL_HGAubyXB2gXM_OlRTt2LBCMMA8';
@@ -62,7 +62,7 @@ async function uploadToSupabase(file: File, onProgress: (p: number) => void): Pr
   onProgress(40);
   const formData = new FormData();
   formData.append('file', new Blob([compressed], { type: 'image/jpeg' }), `cover_${Date.now()}.jpg`);
-  const res = await fetch(`${BACKEND}/api/v2/admin/cover-photos/upload`, {
+  const res = await fetch(`${API_BASE}/api/v2/admin/cover-photos/upload`, {
     method: 'POST',
     headers: { 'x-admin-password': ADMIN_PASSWORD },
     body: formData,
@@ -102,7 +102,7 @@ export default function AdminCoverPage() {
   const fetchPhotos = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${BACKEND}/api/v2/cover-photos`);
+      const r = await fetch(`${API_BASE}/api/v2/cover-photos`);
       const d = await r.json();
       setPhotos(d.photos || []);
     } catch (e) {
@@ -115,7 +115,7 @@ export default function AdminCoverPage() {
   const update = async (id: string, body: Partial<CoverPhoto>) => {
     setSaving(true);
     try {
-      await fetch(`${BACKEND}/api/v2/admin/cover-photos/${id}`, {
+      await fetch(`${API_BASE}/api/v2/admin/cover-photos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
         body: JSON.stringify(body),
@@ -128,7 +128,7 @@ export default function AdminCoverPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Remove this cover photo?')) return;
-    await fetch(`${BACKEND}/api/v2/admin/cover-photos/${id}`, {
+    await fetch(`${API_BASE}/api/v2/admin/cover-photos/${id}`, {
       method: 'DELETE',
       headers: { 'x-admin-password': ADMIN_PASSWORD },
     });
@@ -154,7 +154,7 @@ export default function AdminCoverPage() {
     if (!addForm.image_url) return;
     setSaving(true);
     try {
-      await fetch(`${BACKEND}/api/v2/admin/cover-photos`, {
+      await fetch(`${API_BASE}/api/v2/admin/cover-photos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
         body: JSON.stringify({ ...addForm, display_order: photos.length + 1 }),

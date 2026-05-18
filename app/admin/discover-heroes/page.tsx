@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const BACKEND = 'https://dream-wedding-production-89ae.up.railway.app';
 const ADMIN_PASSWORD = 'Mira@2551354';
 
 interface DiscoverHero {
@@ -57,7 +57,7 @@ async function uploadHero(file: File, onProgress: (p: number) => void): Promise<
   onProgress(40);
   const formData = new FormData();
   formData.append('file', new Blob([compressed], { type: 'image/jpeg' }), `hero_${Date.now()}.jpg`);
-  const res = await fetch(`${BACKEND}/api/v2/admin/discover-heroes/upload`, {
+  const res = await fetch(`${API_BASE}/api/v2/admin/discover-heroes/upload`, {
     method: 'POST',
     headers: { 'x-admin-password': ADMIN_PASSWORD },
     body: formData,
@@ -101,7 +101,7 @@ export default function AdminDiscoverHeroesPage() {
   const fetchHeroes = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${BACKEND}/api/v2/discover-heroes`);
+      const r = await fetch(`${API_BASE}/api/v2/discover-heroes`);
       const d = await r.json();
       // Accept either { success, data } or { heroes } shape
       setHeroes(d.data || d.heroes || []);
@@ -116,7 +116,7 @@ export default function AdminDiscoverHeroesPage() {
   const update = async (id: string, body: Partial<DiscoverHero>) => {
     setSaving(true);
     try {
-      await fetch(`${BACKEND}/api/v2/admin/discover-heroes/${id}`, {
+      await fetch(`${API_BASE}/api/v2/admin/discover-heroes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
         body: JSON.stringify(body),
@@ -129,7 +129,7 @@ export default function AdminDiscoverHeroesPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Remove this hero photo?')) return;
-    await fetch(`${BACKEND}/api/v2/admin/discover-heroes/${id}`, {
+    await fetch(`${API_BASE}/api/v2/admin/discover-heroes/${id}`, {
       method: 'DELETE',
       headers: { 'x-admin-password': ADMIN_PASSWORD },
     });
@@ -159,7 +159,7 @@ export default function AdminDiscoverHeroesPage() {
     }
     setSaving(true);
     try {
-      await fetch(`${BACKEND}/api/v2/admin/discover-heroes`, {
+      await fetch(`${API_BASE}/api/v2/admin/discover-heroes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
         body: JSON.stringify({
@@ -191,7 +191,7 @@ export default function AdminDiscoverHeroesPage() {
     setSavingOrder(true);
     try {
       await Promise.all(heroes.map((h, i) =>
-        fetch(`${BACKEND}/api/v2/admin/discover-heroes/${h.id}`, {
+        fetch(`${API_BASE}/api/v2/admin/discover-heroes/${h.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
           body: JSON.stringify({ display_order: i + 1 }),

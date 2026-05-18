@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; }`;
@@ -38,7 +38,7 @@ export default function AdminInvitesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/invites`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/invites`, { headers: h });
       const d = await r.json();
       setCodes(Array.isArray(d) ? d : d.codes || []);
     } finally { setLoading(false); }
@@ -50,7 +50,7 @@ export default function AdminInvitesPage() {
   const generate = async () => {
     setGenerating(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/invites/generate`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/invites/generate`, {
         method: 'POST', headers: h,
         body: JSON.stringify({ role, tier, expires_at: expires || null }),
       });
@@ -61,7 +61,7 @@ export default function AdminInvitesPage() {
 
   const revoke = async (id: string) => {
     if (!confirm('Revoke this invite code?')) return;
-    await fetch(`${API}/api/v2/admin/invites/${id}`, { method: 'DELETE', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/invites/${id}`, { method: 'DELETE', headers: h });
     showToast('Code revoked.');
     load();
   };

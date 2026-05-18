@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
@@ -26,7 +26,7 @@ export default function AdminPhotosPage() {
   const load = async (cat: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/photos?category=${cat}`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/photos?category=${cat}`, { headers: h });
       const d = await r.json();
       setPhotos(d.photos || []);
       if (d.counts) setCounts(d.counts);
@@ -36,14 +36,14 @@ export default function AdminPhotosPage() {
   useEffect(() => { load(tab); }, [tab]);
 
   const approve = async (id: string) => {
-    await fetch(`${API}/api/v2/admin/photos/${id}/approve`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/photos/${id}/approve`, { method: 'PATCH', headers: h });
     setPhotos(p => p.filter(x => x.id !== id));
     showToast('Photo approved.');
   };
 
   const reject = async () => {
     if (!rejectId) return;
-    await fetch(`${API}/api/v2/admin/photos/${rejectId}/reject`, { method: 'PATCH', headers: h, body: JSON.stringify({ reason: rejectReason }) });
+    await fetch(`${API_BASE}/api/v2/admin/photos/${rejectId}/reject`, { method: 'PATCH', headers: h, body: JSON.stringify({ reason: rejectReason }) });
     setPhotos(p => p.filter(x => x.id !== rejectId));
     setRejectId(null);
     setRejectReason('');

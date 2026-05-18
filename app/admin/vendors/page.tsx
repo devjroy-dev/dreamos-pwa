@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
@@ -26,7 +26,7 @@ export default function AdminVendorsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/vendors`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/vendors`, { headers: h });
       const d = await r.json();
       setVendors(d.vendors || []);
     } finally { setLoading(false); }
@@ -35,23 +35,23 @@ export default function AdminVendorsPage() {
   useEffect(() => { load(); }, []);
 
   const approve = async (id: string) => {
-    await fetch(`${API}/api/v2/admin/vendors/${id}/approve`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/approve`, { method: 'PATCH', headers: h });
     setVendors(v => v.map(x => x.id === id ? { ...x, is_approved: !x.is_approved } : x));
   };
 
   const changeTier = async (id: string, tier: string) => {
-    await fetch(`${API}/api/v2/admin/vendors/${id}/tier`, { method: 'PATCH', headers: h, body: JSON.stringify({ tier }) });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/tier`, { method: 'PATCH', headers: h, body: JSON.stringify({ tier }) });
     setVendors(v => v.map(x => x.id === id ? { ...x, tier } : x));
     showToast('Tier updated.');
   };
 
   const toggleDreamAi = async (id: string, access: boolean) => {
-    await fetch(`${API}/api/v2/admin/vendors/${id}/dreamai`, { method: 'PATCH', headers: h, body: JSON.stringify({ access: !access }) });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/dreamai`, { method: 'PATCH', headers: h, body: JSON.stringify({ access: !access }) });
     setVendors(v => v.map(x => x.id === id ? { ...x, dreamai_access: !access } : x));
   };
 
   const revoke = async (id: string) => {
-    await fetch(`${API}/api/v2/admin/vendors/${id}/revoke`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/revoke`, { method: 'PATCH', headers: h });
     setVendors(v => v.map(x => x.id === id ? { ...x, is_approved: false } : x));
     setConfirmRevoke(null);
     showToast('Access revoked.');
@@ -61,7 +61,7 @@ export default function AdminVendorsPage() {
     if (!form.business_name || !form.phone) return;
     setCreating(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/vendors/create`, { method: 'POST', headers: h, body: JSON.stringify(form) });
+      const r = await fetch(`${API_BASE}/api/v2/admin/vendors/create`, { method: 'POST', headers: h, body: JSON.stringify(form) });
       const d = await r.json();
       if (d.success) { setShowCreate(false); setForm({ business_name: '', category: 'Photographer', city: '', phone: '', tier: 'signature' }); load(); showToast('Maker created.'); }
       else showToast(d.error || 'Failed to create.');

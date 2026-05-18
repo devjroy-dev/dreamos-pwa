@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
@@ -25,7 +25,7 @@ export default function HealthPage() {
   async function ping() {
     setPinging(true); setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v3/admin/system/health`, { headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/system/health`, { headers: H });
       const d = await r.json();
       if (d.success) { setHealth(d.data); setLastChecked(new Date().toLocaleTimeString('en-IN')); }
     } catch { setToast('Health check failed'); } finally { setPinging(false); setLoading(false); }

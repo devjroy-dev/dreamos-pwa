@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 
 interface ExploringPhoto {
@@ -71,7 +71,7 @@ export default function ExploringPhotosAdmin() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/exploring-photos`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos`, {
         headers: { 'x-admin-password': PWD },
       });
       const d = await r.json();
@@ -94,7 +94,7 @@ export default function ExploringPhotosAdmin() {
       form.append('photo', new Blob([compressed], { type: 'image/jpeg' }), `exploring_${Date.now()}.jpg`);
       if (caption.trim()) form.append('caption', caption.trim());
       setUploadProgress(60);
-      const r = await fetch(`${API}/api/v2/admin/exploring-photos/upload`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos/upload`, {
         method: 'POST',
         headers: { 'x-admin-password': PWD },
         body: form,
@@ -122,7 +122,7 @@ export default function ExploringPhotosAdmin() {
 
   const toggleActive = async (photo: ExploringPhoto) => {
     try {
-      const r = await fetch(`${API}/api/v2/admin/exploring-photos/${photo.id}`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos/${photo.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': PWD },
         body: JSON.stringify({ active: !photo.active }),
@@ -149,7 +149,7 @@ export default function ExploringPhotosAdmin() {
     setSavingOrder(true);
     try {
       await Promise.all(photos.map((p, i) =>
-        fetch(`${API}/api/v2/admin/exploring-photos/${p.id}`, {
+        fetch(`${API_BASE}/api/v2/admin/exploring-photos/${p.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'x-admin-password': PWD },
           body: JSON.stringify({ display_order: i + 1 }),
@@ -163,7 +163,7 @@ export default function ExploringPhotosAdmin() {
 
   const deletePhoto = async (id: string) => {
     try {
-      const r = await fetch(`${API}/api/v2/admin/exploring-photos/${id}`, {
+      const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos/${id}`, {
         method: 'DELETE',
         headers: { 'x-admin-password': PWD },
       });

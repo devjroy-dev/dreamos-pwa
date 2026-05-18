@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
@@ -20,7 +20,7 @@ export default function FeaturedPage() {
   const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/api/v3/admin/makers?limit=200`, { headers: H })
+    fetch(`${API_BASE}/api/v3/admin/makers?limit=200`, { headers: H })
       .then(r => r.json())
       .then(d => {
         if (d.success) {
@@ -33,7 +33,7 @@ export default function FeaturedPage() {
   }, []);
 
   async function toggleFeatured(vendor: FeaturedVendor, currentlyFeatured: boolean) {
-    await fetch(`${API}/api/v3/admin/makers/${vendor.id}`, { method: 'PATCH', headers: H, body: JSON.stringify({ featured: !currentlyFeatured }) });
+    await fetch(`${API_BASE}/api/v3/admin/makers/${vendor.id}`, { method: 'PATCH', headers: H, body: JSON.stringify({ featured: !currentlyFeatured }) });
     if (currentlyFeatured) {
       setFeatured(prev => prev.filter(v => v.id !== vendor.id));
       setToast(`${vendor.name} removed from featured`);

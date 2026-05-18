@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
@@ -22,7 +22,7 @@ export default function AdminCollabPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/collab`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/collab`, { headers: h });
       const d = await r.json();
       setPosts(d.posts || []);
     } finally { setLoading(false); }
@@ -31,14 +31,14 @@ export default function AdminCollabPage() {
   useEffect(() => { load(); }, []);
 
   const toggleFlag = async (id: string) => {
-    await fetch(`${API}/api/v2/admin/collab/${id}/flag`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/collab/${id}/flag`, { method: 'PATCH', headers: h });
     setPosts(ps => ps.map(p => p.id === id ? { ...p, is_flagged: !p.is_flagged } : p));
     showToast('Flag updated.');
   };
 
   const close = async (id: string) => {
     if (!confirm('Close this collab post?')) return;
-    await fetch(`${API}/api/v2/admin/collab/${id}/close`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/collab/${id}/close`, { method: 'PATCH', headers: h });
     setPosts(ps => ps.map(p => p.id === id ? { ...p, status: 'closed' } : p));
     showToast('Post closed.');
   };

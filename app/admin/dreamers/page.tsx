@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
 
 function fmtDate(d: string) {
@@ -54,7 +54,7 @@ export default function DreamersPage() {
       const params = new URLSearchParams({ limit: '200' });
       if (search) params.set('search', search);
       if (filterTier !== 'all') params.set('tier', filterTier);
-      const r = await fetch(`${API}/api/v3/admin/dreamers?${params}`, { headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/dreamers?${params}`, { headers: H });
       const d = await r.json();
       if (d.success) setDreamers(d.data || []);
     } finally { setLoading(false); }
@@ -66,14 +66,14 @@ export default function DreamersPage() {
   }, [load]);
 
   async function updateDreamer(id: string, patch: object) {
-    await fetch(`${API}/api/v3/admin/dreamers/${id}`, { method: 'PATCH', headers: H, body: JSON.stringify(patch) });
+    await fetch(`${API_BASE}/api/v3/admin/dreamers/${id}`, { method: 'PATCH', headers: H, body: JSON.stringify(patch) });
     setDreamers(prev => prev.map(d => d.id === id ? { ...d, ...patch } : d));
     setSelected(prev => prev?.id === id ? { ...prev, ...patch as any } : prev);
     setToast('Updated');
   }
 
   async function deleteDreamer(id: string) {
-    await fetch(`${API}/api/v2/admin/couples/${id}`, { method: 'DELETE', headers: H });
+    await fetch(`${API_BASE}/api/v2/admin/couples/${id}`, { method: 'DELETE', headers: H });
     setDreamers(prev => prev.filter(d => d.id !== id));
     setSelected(null); setDeleteConfirm(''); setDeleteInput('');
     setToast('Dreamer deleted');
@@ -82,7 +82,7 @@ export default function DreamersPage() {
   async function sendWA(phone: string) {
     const msg = prompt('WhatsApp message to send:');
     if (!msg) return;
-    await fetch(`${API}/api/v3/admin/send-whatsapp`, { method: 'POST', headers: H, body: JSON.stringify({ phone, message: msg }) });
+    await fetch(`${API_BASE}/api/v3/admin/send-whatsapp`, { method: 'POST', headers: H, body: JSON.stringify({ phone, message: msg }) });
     setToast('WhatsApp sent');
   }
 

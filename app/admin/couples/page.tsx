@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const PWD = 'Mira@2551354';
 const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
@@ -26,7 +26,7 @@ export default function AdminCouplesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/couples`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/couples`, { headers: h });
       const d = await r.json();
       setCouples(d.couples || []);
     } finally { setLoading(false); }
@@ -35,13 +35,13 @@ export default function AdminCouplesPage() {
   useEffect(() => { load(); }, []);
 
   const changeTier = async (id: string, tier: string) => {
-    await fetch(`${API}/api/v2/admin/couples/${id}/tier`, { method: 'PATCH', headers: h, body: JSON.stringify({ tier }) });
+    await fetch(`${API_BASE}/api/v2/admin/couples/${id}/tier`, { method: 'PATCH', headers: h, body: JSON.stringify({ tier }) });
     setCouples(c => c.map(x => x.id === id ? { ...x, dreamer_type: tier } : x));
     showToast('Tier updated.');
   };
 
   const revoke = async (id: string) => {
-    await fetch(`${API}/api/v2/admin/couples/${id}/revoke`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/couples/${id}/revoke`, { method: 'PATCH', headers: h });
     setConfirmRevoke(null);
     showToast('Access revoked.');
     load();
@@ -51,7 +51,7 @@ export default function AdminCouplesPage() {
     if (!form.name || !form.phone) return;
     setCreating(true);
     try {
-      const r = await fetch(`${API}/api/v2/admin/couples/create`, { method: 'POST', headers: h, body: JSON.stringify(form) });
+      const r = await fetch(`${API_BASE}/api/v2/admin/couples/create`, { method: 'POST', headers: h, body: JSON.stringify(form) });
       const d = await r.json();
       if (d.success) { setShowCreate(false); setForm({ name: '', phone: '', partner_name: '', wedding_date: '', tier: 'lite' }); load(); showToast('Dreamer created.'); }
       else showToast(d.error || 'Failed.');
