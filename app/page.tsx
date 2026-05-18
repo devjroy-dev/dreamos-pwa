@@ -400,7 +400,7 @@ export default function Home() {
       const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
       const sessionData = {
         id: roleId, userId, vendorId: roleId,
-        phone: bare,
+        phone: '+91' + bare,
         pin_set: pinSet,
         name: d.name || null,
         vendorName: d.name || null,
