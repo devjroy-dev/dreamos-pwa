@@ -5,11 +5,9 @@ import { API_BASE } from '../lib/api';
 
 
 const FALLBACK_SLIDES: string[] = [
-  
-  
-  
-  
-  
+  'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_24-03-2026-22-59-53_f2tfsy',
 ];
 
 const MOTTO = 'Not just happily married. Getting married happily.';
@@ -234,9 +232,9 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch cover photos
-    fetch(`${API_BASE}/api/v2/cover-photos`)
+    fetch(`${API_BASE}/api/v2/landing-slides`)
       .then(r => r.json())
-      .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
+      .then(d => { if (d.slides?.length) setSlides(d.slides.map((p: any) => p.image_url)); })
       .catch(() => {});
     startCarousel();
     return () => {
@@ -255,25 +253,10 @@ export default function Home() {
     try {
       const r = await fetch(`${API_BASE}/api/v2/exploring-photos`);
       const d = await r.json();
-      if (d.success && d.photos?.length) {
+      if (d.ok && d.photos?.length) {
         setExploringPhotos(d.photos);
       } else {
-        // No curated editorial photos yet — fall back to vendor preview photos
-        const r2 = await fetch(`${API_BASE}/api/v2/preview-vendors`);
-        const d2 = await r2.json();
-        if (d2.success && d2.data?.length) {
-          const fallback = d2.data
-            .filter((v: PreviewVendor) => v.featured_photos?.[0] || v.portfolio_images?.[0])
-            .map((v: PreviewVendor, i: number) => ({
-              id: v.id,
-              image_url: v.featured_photos?.[0] || v.portfolio_images?.[0] || '',
-              display_order: i + 1,
-              caption: null,
-            }));
-          setExploringPhotos(fallback);
-        } else {
-          setExploringDone(true);
-        }
+        setExploringDone(true);
       }
     } catch { setExploringDone(true); }
     setLoadingPreview(false);
@@ -321,7 +304,7 @@ export default function Home() {
         payload.wedding_date_status = 'browsing';
       }
 
-      await fetch(`${API_BASE}/api/v2/waitlist`, {
+      await fetch(`${API_BASE}/api/v2/waitlist/signup`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -373,7 +356,7 @@ export default function Home() {
         body: JSON.stringify({ phone: bare }),
       });
       const d = await r.json();
-      if (!d.success) { showToast(d.error || 'Could not send code. Try again.'); return; }
+      if (!d.ok) { showToast(d.error || 'Could not send code. Try again.'); return; }
       setScreen(screen === 'signin_phone' ? 'signin_otp' : 'invite_otp');
     } catch { showToast('Could not send code. Try again.'); }
   };
@@ -390,7 +373,7 @@ export default function Home() {
         body: JSON.stringify({ phone: bare, code: otp.join('') }),
       });
       const d = await res.json();
-      if (!d.success) {
+      if (!d.ok) {
         const err = d.error || '';
         if (err.toLowerCase().includes('no account') || err.toLowerCase().includes('not found') || err.toLowerCase().includes('no vendor')) {
           setScreen('request_who');
@@ -401,33 +384,35 @@ export default function Home() {
         return;
       }
 
-      // d.vendor or d.user contains the record
-      const record = d.vendor || d.user;
-      if (!record) {
-        // Number not in system — send them to request an invite
+      const roleId = isVendor ? d.vendor_id : d.couple_id;
+      const userId = d.user_id;
+      const pinSet = !!d.pin_set;
+
+      if (!userId || !roleId) {
         setScreen('request_who');
         showToast('No account found. Request an invite to join.');
         return;
       }
 
+      if (d.access_token)  localStorage.setItem('access_token', d.access_token);
+      if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
+
       const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
-      const pinSet = !!record.pin_set;
       const sessionData = {
-        id: record.id, userId: record.id, vendorId: record.id,
+        id: roleId, userId, vendorId: roleId,
         phone: bare,
         pin_set: pinSet,
-        vendorName: record.name || null,
-        name: record.name || null,
-        category: record.category || null,
-        tier: record.tier || null,
-        dreamer_type: (record as any).dreamer_type || 'basic',
+        name: d.name || null,
+        vendorName: d.name || null,
+        category: d.category || null,
+        tier: d.tier || null,
+        dreamer_type: d.dreamer_type || 'basic',
       };
       localStorage.setItem(sessionKey, JSON.stringify(sessionData));
       localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
-      // For new vendors with no name — go through onboarding first
-      const vendorNeedsOnboarding = isVendor && !pinSet && !record.name;
-      // For new couples with no name — go through couple onboarding first
-      const coupleNeedsOnboarding = !isVendor && !pinSet && !record.name;
+
+      const vendorNeedsOnboarding = isVendor && !pinSet && !d.name;
+      const coupleNeedsOnboarding = !isVendor && !pinSet && !d.name;
       if (vendorNeedsOnboarding) {
         router.push('/vendor/onboarding');
       } else if (coupleNeedsOnboarding) {
@@ -445,27 +430,27 @@ export default function Home() {
     const isVendor = role === 'Maker';
     const bare = phone.replace(/\D/g, '').slice(-10);
     try {
-      const r = await fetch(`${API_BASE}/api/v2/auth/pin-status?userId=_&role=${isVendor ? 'vendor' : 'couple'}&phone=${bare}`);
+      const r = await fetch(`${API_BASE}/api/v2/auth/pin-status`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: '+91' + bare, role: isVendor ? 'vendor' : 'couple' }),
+      });
       const d = await r.json();
 
-      if (!d.userId || d.found === false) {
-        // Number not in system — send to request invite
+      if (!d.ok || !d.exists) {
         setScreen('request_who');
         showToast('No account found — request an invite to join.');
         return;
       }
 
-      if (d.pin_set && d.userId) {
-        // Has PIN — write session, go to pin-login
+      if (d.pin_set) {
         const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
-        const sd = { id: d.userId, userId: d.userId, vendorId: d.userId, phone: bare, pin_set: true };
+        const sd = { phone: bare, pin_set: true };
         localStorage.setItem(sessionKey, JSON.stringify(sd));
         localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
         router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login');
         return;
       }
 
-      // Account exists but no PIN — send OTP to complete setup
       sendOtp(phone);
     } catch {
       showToast('Could not connect. Try again.');

@@ -6,10 +6,9 @@ import { API_BASE } from '../../../lib/api';
 const GOLD = '#C9A84C';
 
 const FALLBACK_SLIDES: string[] = [
-  
-  
-  
-  
+  'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_24-03-2026-22-59-53_f2tfsy',
 ];
 
 const CATEGORIES = [
@@ -50,9 +49,9 @@ export default function VendorOnboardingPage() {
 
   // Fetch live cover photos
   useEffect(() => {
-    fetch(API_BASE + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/landing-slides')
       .then(r => r.json())
-      .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
+      .then(d => { if (d.slides?.length) setSlides(d.slides.map((p: any) => p.image_url)); })
       .catch(() => {});
     const t = setInterval(() => setSlide(p => (p + 1) % FALLBACK_SLIDES.length), 4500);
     return () => clearInterval(t);

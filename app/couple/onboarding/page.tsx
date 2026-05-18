@@ -20,10 +20,9 @@ import { useRouter } from 'next/navigation';
 const GOLD = '#C9A84C';
 
 const FALLBACK_SLIDES = [
-  'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=90&fit=crop',
-  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1200&q=90&fit=crop',
-  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&q=90&fit=crop',
-  'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1200&q=90&fit=crop',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_24-03-2026-22-59-53_f2tfsy',
 ];
 
 // Wedding date options
@@ -72,9 +71,9 @@ export default function CoupleOnboardingPage() {
 
   // Carousel + live cover photos
   useEffect(() => {
-    fetch(API_BASE + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/landing-slides')
       .then(r => r.json())
-      .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
+      .then(d => { if (d.slides?.length) setSlides(d.slides.map((p: any) => p.image_url)); })
       .catch(() => {});
     const t = setInterval(() => setSlide(p => (p + 1) % FALLBACK_SLIDES.length), 4500);
     return () => clearInterval(t);

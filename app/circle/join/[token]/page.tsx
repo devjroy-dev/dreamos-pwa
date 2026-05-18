@@ -47,9 +47,9 @@ export default function CircleJoinPage() {
 
   useEffect(() => {
     // Fetch cover photos — same catalogue as the main gate
-    fetch(`${API_BASE}/api/v2/cover-photos`)
+    fetch(`${API_BASE}/api/v2/landing-slides`)
       .then(r => r.json())
-      .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
+      .then(d => { if (d.slides?.length) setSlides(d.slides.map((p: any) => p.image_url)); })
       .catch(() => {});
     startCarousel();
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };

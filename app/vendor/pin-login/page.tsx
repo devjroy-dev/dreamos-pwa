@@ -5,10 +5,9 @@ import { API_BASE } from '../../../lib/api';
 
 const GOLD = '#C9A84C';
 const FALLBACK_SLIDES: string[] = [
-  
-  
-  
-  
+  'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_24-03-2026-22-59-53_f2tfsy',
 ];
 
 export default function VendorPinLoginPage() {
@@ -36,9 +35,9 @@ export default function VendorPinLoginPage() {
   // Fetch live cover photos
   const [slides, setSlides] = useState<string[]>(FALLBACK_SLIDES);
   useEffect(() => {
-    fetch(API_BASE + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/landing-slides')
       .then(r => r.json())
-      .then(d => { if (d.photos?.length) { setSlides(d.photos.map((p: any) => p.image_url)); } })
+      .then(d => { if (d.slides?.length) { setSlides(d.slides.map((p: any) => p.image_url)); } })
       .catch(() => {});
     const t = setInterval(() => setSlide(p => (p + 1) % slides.length), 4500);
     return () => clearInterval(t);
@@ -49,27 +48,27 @@ export default function VendorPinLoginPage() {
     setLoading(true);
     try {
       const session = JSON.parse(localStorage.getItem('vendor_web_session') || localStorage.getItem('vendor_session') || '{}');
-      const r = await fetch(API_BASE + '/api/v2/auth/verify-pin', {
+      const r = await fetch(API_BASE + '/api/v2/vendor/auth/pin-login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.vendorId || session.id, pin: pinStr, role: 'vendor', phone: session.phone }),
+        body: JSON.stringify({ phone: session.phone, pin: pinStr }),
       });
       const d = await r.json();
-      if (d.success) {
-        // Update session with real name and category from backend
+      if (d.ok) {
+        if (d.access_token)  localStorage.setItem('access_token', d.access_token);
+        if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
         try {
           const existing = JSON.parse(localStorage.getItem('vendor_web_session') || localStorage.getItem('vendor_session') || '{}');
           const updated = {
             ...existing,
-            vendorId: d.userId || existing.vendorId || existing.id,
-            id: d.userId || existing.id,
-            userId: d.userId || existing.userId,
+            vendorId: d.vendor_id || existing.vendorId || existing.id,
+            id: d.vendor_id || existing.id,
+            userId: d.user_id || existing.userId,
             vendorName: d.name || existing.vendorName || existing.name || '',
             name: d.name || existing.name || existing.vendorName || '',
             category: d.category || existing.category || '',
           };
           localStorage.setItem('vendor_web_session', JSON.stringify(updated));
           localStorage.setItem('vendor_session', JSON.stringify(updated));
-          // Update displayed name immediately
           if (d.name) setName(d.name);
         } catch {}
         router.replace('/vendor/today');

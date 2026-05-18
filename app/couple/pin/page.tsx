@@ -5,7 +5,11 @@ import { API_BASE } from '../../../lib/api';
 
 
 const GOLD = '#C9A84C';
-const FALLBACK_SLIDES: string[] = [];
+const FALLBACK_SLIDES: string[] = [
+  'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_24-03-2026-22-59-53_f2tfsy',
+];
 
 export default function CouplePinPage() {
   const router = useRouter();
@@ -31,9 +35,9 @@ export default function CouplePinPage() {
   }, []);
 
   useEffect(() => {
-    fetch(API_BASE + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/landing-slides')
       .then(r => r.json())
-      .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
+      .then(d => { if (d.slides?.length) setSlides(d.slides.map((p: any) => p.image_url)); })
       .catch(() => {});
     const t = setInterval(() => setSlide(p => (p + 1) % (slides.length || FALLBACK_SLIDES.length)), 4500);
     return () => clearInterval(t);
@@ -51,12 +55,14 @@ export default function CouplePinPage() {
     setLoading(true);
     try {
       const session = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
-      const r = await fetch(API_BASE + '/api/v2/auth/set-pin', {
+      const r = await fetch(API_BASE + '/api/v2/couple/auth/set-pin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: session.userId || session.id, pin: pinStr, role: 'couple', phone: session.phone }),
       });
       const d = await r.json();
-      if (d.success) {
+      if (d.ok) {
+        if (d.access_token)  localStorage.setItem('access_token', d.access_token);
+        if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
         const updated = { ...session, pin_set: true };
         localStorage.setItem('couple_web_session', JSON.stringify(updated));
         localStorage.setItem('couple_session', JSON.stringify(updated));
