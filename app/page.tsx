@@ -286,8 +286,8 @@ export default function Home() {
     try {
       const payload: any = {
         phone: '+91' + reqPhone.replace(/\D/g, ''),
-        instagram: reqInstagram || null,
-        role: role === 'Dreamer' ? 'dreamer' : 'maker',
+        instagram_handle: reqInstagram || null,
+        kind: role === 'Dreamer' ? 'dreamer' : 'maker',
         name: reqName || null,
       };
       if (role === 'Maker') {
