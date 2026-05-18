@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const RAILWAY_URL = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 function renderMarkdown(text: string): React.ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -211,7 +212,7 @@ function AddTaskSheet({ visible, onClose, userId, events, onSuccess }: {
   // Load My Vendors when sheet opens
   useEffect(() => {
     if (!visible || !userId) return;
-    fetch(`${RAILWAY_URL}/api/couple/vendors/${userId}`)
+    fetch(`${API_BASE}/api/couple/vendors/${userId}`)
       .then(r => r.json())
       .then(d => { if (Array.isArray(d?.data)) setMyVendors(d.data); })
       .catch(() => {});
@@ -222,7 +223,7 @@ function AddTaskSheet({ visible, onClose, userId, events, onSuccess }: {
     if (!taskTitle.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/checklist`, {
+      const res = await fetch(`${API_BASE}/api/couple/checklist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -364,7 +365,7 @@ function AddGuestSheet({ visible, onClose, userId, events, onSuccess }: {
     const eventInvites: Record<string, string> = {};
     selectedEvents.forEach(ev => { eventInvites[ev] = 'pending'; });
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/guests`, {
+      const res = await fetch(`${API_BASE}/api/couple/guests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -483,7 +484,7 @@ function AddEventSheet({ visible, onClose, userId, events, onSuccess }: {
     if (!eventName.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/events`, {
+      const res = await fetch(`${API_BASE}/api/couple/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -603,7 +604,7 @@ function AddBudgetSheet({ visible, onClose, userId, events, onSuccess }: {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const res = await fetch(`${RAILWAY_URL}/api/v2/couple/receipt-scan`, {
+      const res = await fetch(`${API_BASE}/api/v2/couple/receipt-scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_base64: base64, media_type: file.type || 'image/jpeg' }),
@@ -623,7 +624,7 @@ function AddBudgetSheet({ visible, onClose, userId, events, onSuccess }: {
     if (!vendorName.trim() || !purpose.trim() || !amount || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/expenses`, {
+      const res = await fetch(`${API_BASE}/api/couple/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -759,7 +760,7 @@ function ActionPreviewCard({ action, userId, onConfirm, onDismiss }: {
     if (!endpoint || executing) return;
     setExecuting(true);
     try {
-      const r = await fetch(`${RAILWAY_URL}${endpoint}`, {
+      const r = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, ...action.params }),
       });
@@ -800,7 +801,7 @@ function DreamAiSheet({
 
   useEffect(() => {
     if (!userId) return;
-    fetch(`${RAILWAY_URL}/api/v2/dreamai/couple-context/${userId}`)
+    fetch(`${API_BASE}/api/v2/dreamai/couple-context/${userId}`)
       .then(r => r.json()).then(setContext).catch(() => {});
   }, [userId]);
 
@@ -819,7 +820,7 @@ function DreamAiSheet({
     setMessages(prev => [...prev, { role: 'user', text: msg }]);
     setLoading(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userType: 'couple', message: msg, context }),
@@ -829,7 +830,7 @@ function DreamAiSheet({
 
       // If backend returned "Done." — retry once to get actual answer
       if (replyText.trim() === 'Done.' || replyText.trim() === 'Done') {
-        const retry = await fetch(`${RAILWAY_URL}/api/v2/dreamai/chat`, {
+        const retry = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, userType: 'couple', message: msg, context, history: [{ role: 'user', text: msg }] }),
@@ -886,7 +887,7 @@ function DreamAiSheet({
       });
       const mediaType = file.type || 'image/jpeg';
 
-      const res = await fetch(`${RAILWAY_URL}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1106,7 +1107,7 @@ function CreateExpenseSheet({ visible, onClose, userId, task, events, onSuccess 
     if (!amount || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/expenses`, {
+      const res = await fetch(`${API_BASE}/api/couple/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1209,7 +1210,7 @@ function TaskCard({ task, userId, events, onCompleted, onDeleted, onExpenseAdded
     if (isDone || completing) return;
     setCompleting(true);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/checklist/${task.id}`, {
+      await fetch(`${API_BASE}/api/couple/checklist/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_complete: true }),
@@ -1227,14 +1228,14 @@ function TaskCard({ task, userId, events, onCompleted, onDeleted, onExpenseAdded
     if (deleting) return;
     setDeleting(true);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/checklist/${task.id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/couple/checklist/${task.id}`, { method: 'DELETE' });
       onDeleted(task.id);
     } catch { showToast('Could not delete task'); setDeleting(false); }
   }
 
   async function handleMarkPending() {
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/checklist/${task.id}`, {
+      await fetch(`${API_BASE}/api/couple/checklist/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_complete: false, status: 'pending', completed_at: null }),
@@ -1459,7 +1460,7 @@ function EditTaskSheet({ visible, onClose, userId, task, events, onSuccess }: {
     if (!taskTitle.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/checklist/${task.id}`, {
+      const res = await fetch(`${API_BASE}/api/couple/checklist/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1552,16 +1553,16 @@ function TasksTab({ userId, events, onOpenDreamAi, refetch, onExpenseAdded }: {
   async function loadTasks(triggerSeedIfEmpty = false) {
     if (tasks.length === 0) setLoading(true);
     try {
-      const r = await fetch(`${RAILWAY_URL}/api/v2/couple/tasks/${userId}`);
+      const r = await fetch(`${API_BASE}/api/v2/couple/tasks/${userId}`);
       const d = await r.json();
       const taskList = Array.isArray(d) ? d : [];
       if (triggerSeedIfEmpty && taskList.length === 0) {
-        await fetch(`${RAILWAY_URL}/api/couple/checklist/seed/${userId}`, {
+        await fetch(`${API_BASE}/api/couple/checklist/seed/${userId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
         });
-        const r2 = await fetch(`${RAILWAY_URL}/api/v2/couple/tasks/${userId}`);
+        const r2 = await fetch(`${API_BASE}/api/v2/couple/tasks/${userId}`);
         const d2 = await r2.json();
         setTasks(Array.isArray(d2) ? d2 : []);
       } else {
@@ -1759,7 +1760,7 @@ async function openRazorpay({
 }) {
   const loaded = await loadRazorpayScript();
   if (!loaded) { onError('Payment service unavailable. Please try again.'); return; }
-  const orderRes = await fetch(`${RAILWAY_URL}/api/v2/razorpay/create-order`, {
+  const orderRes = await fetch(`${API_BASE}/api/v2/razorpay/create-order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amount, currency: 'INR', payment_type: paymentType, user_id: userId }),
@@ -1770,7 +1771,7 @@ async function openRazorpay({
     key: key_id, amount: amount * 100, currency: 'INR', order_id,
     name: 'The Dream Wedding', description: label, theme: { color: '#C9A84C' },
     handler: async (response: any) => {
-      const verifyRes = await fetch(`${RAILWAY_URL}/api/v2/razorpay/verify-payment`, {
+      const verifyRes = await fetch(`${API_BASE}/api/v2/razorpay/verify-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1895,11 +1896,11 @@ function BudgetSetupSheet({ visible, onClose, userId, currentTotal, onSaved }: {
     if (visible) {
       setStep('budget');
       setTotalVal(currentTotal > 0 ? String(currentTotal) : '');
-      fetch(`${RAILWAY_URL}/api/couple/budget-categories/${userId}`)
+      fetch(`${API_BASE}/api/couple/budget-categories/${userId}`)
         .then(r => r.json())
         .then(d => { if (d.success && d.data?.length > 0) setCategories(d.data); })
         .catch(() => {});
-      fetch(`${RAILWAY_URL}/api/v2/couple/profile/${userId}`)
+      fetch(`${API_BASE}/api/v2/couple/profile/${userId}`)
         .then(r => r.json())
         .then(d => { const wd = d.couple?.wedding_date || d.wedding_date; if (wd) setWeddingDate(wd); })
         .catch(() => {});
@@ -1938,12 +1939,12 @@ function BudgetSetupSheet({ visible, onClose, userId, currentTotal, onSaved }: {
     if (!total || saving) return;
     setSaving(true);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/budget/${userId}`, {
+      await fetch(`${API_BASE}/api/couple/budget/${userId}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ total_budget: total }),
       });
       if (categories.length > 0) {
-        await fetch(`${RAILWAY_URL}/api/couple/budget-categories/${userId}`, {
+        await fetch(`${API_BASE}/api/couple/budget-categories/${userId}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ categories }),
         });
@@ -2082,9 +2083,9 @@ function MoneyTab({ userId, dreamerType, onOpenDreamAi, refetch }: {
   function loadData() {
     setLoading(true);
     Promise.all([
-      fetch(`${RAILWAY_URL}/api/v2/couple/money/${userId}`).then(r => r.json()),
-      fetch(`${RAILWAY_URL}/api/couple/expenses/${userId}`).then(r => r.json()),
-      fetch(`${RAILWAY_URL}/api/couple/budget-categories/${userId}`).then(r => r.json()).catch(() => ({ success: false })),
+      fetch(`${API_BASE}/api/v2/couple/money/${userId}`).then(r => r.json()),
+      fetch(`${API_BASE}/api/couple/expenses/${userId}`).then(r => r.json()),
+      fetch(`${API_BASE}/api/couple/budget-categories/${userId}`).then(r => r.json()).catch(() => ({ success: false })),
     ]).then(([money, exps, cats]) => {
       if (cats?.success && cats.data?.length > 0) setBudgetCategories(cats.data);
       setData(money);
@@ -2107,14 +2108,14 @@ function MoneyTab({ userId, dreamerType, onOpenDreamAi, refetch }: {
     if (markingPaid) return;
     setMarkingPaid(expId);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/expenses/${expId}`, {
+      await fetch(`${API_BASE}/api/couple/expenses/${expId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payment_status: 'paid' }),
       });
       setAllExpenses(prev => prev.map(e => e.id === expId ? { ...e, status: 'paid', payment_status: 'paid' } : e));
       // Refresh money data so committed/paid totals update
-      fetch(`${RAILWAY_URL}/api/v2/couple/money/${userId}`).then(r => r.json()).then(setData).catch(() => {});
+      fetch(`${API_BASE}/api/v2/couple/money/${userId}`).then(r => r.json()).then(setData).catch(() => {});
       showToast('Marked as paid');
     } catch { showToast('Could not update'); }
     finally { setMarkingPaid(null); }
@@ -2122,9 +2123,9 @@ function MoneyTab({ userId, dreamerType, onOpenDreamAi, refetch }: {
 
   async function handleDeleteExpense(expId: string) {
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/expenses/${expId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/couple/expenses/${expId}`, { method: 'DELETE' });
       setAllExpenses(prev => prev.filter(e => e.id !== expId));
-      fetch(`${RAILWAY_URL}/api/v2/couple/money/${userId}`).then(r => r.json()).then(setData).catch(() => {});
+      fetch(`${API_BASE}/api/v2/couple/money/${userId}`).then(r => r.json()).then(setData).catch(() => {});
     } catch { showToast('Could not delete'); }
   }
 
@@ -2345,7 +2346,7 @@ function AddVendorSheet({ visible, onClose, userId, events, onSuccess }: {
     if (!name.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/vendors`, {
+      const res = await fetch(`${API_BASE}/api/couple/vendors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2562,7 +2563,7 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
   // Load message thread if TDW vendor
   useEffect(() => {
     if (!vendor.vendor_id) return;
-    fetch(`${RAILWAY_URL}/api/enquiries/couple/${userId}`)
+    fetch(`${API_BASE}/api/enquiries/couple/${userId}`)
       .then(r => r.json())
       .then(d => {
         const threads = d?.data || [];
@@ -2601,7 +2602,7 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
     }
     setStatus(newStatus);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/vendors/${vendor.id}`, {
+      await fetch(`${API_BASE}/api/couple/vendors/${vendor.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, event_id: eventId }),
@@ -2616,7 +2617,7 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
         );
         if (matching.length > 0) {
           await Promise.all(matching.map(e =>
-            fetch(`${RAILWAY_URL}/api/couple/expenses/${e.id}`, {
+            fetch(`${API_BASE}/api/couple/expenses/${e.id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ payment_status: 'paid' }),
@@ -2624,7 +2625,7 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
           ));
         } else if (vendor.quoted_total && vendor.quoted_total > 0) {
           // No expense rows exist — create one so Money tab reflects the payment
-          await fetch(`${RAILWAY_URL}/api/couple/expenses`, {
+          await fetch(`${API_BASE}/api/couple/expenses`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -2647,21 +2648,21 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
     setBookingSheetOpen(false);
     setStatus('booked');
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/vendors/${vendor.id}`, {
+      await fetch(`${API_BASE}/api/couple/vendors/${vendor.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'booked', event_id: pendingBookingEventId, quoted_total: total, events: eventNames || [] }),
       });
       onUpdated({ ...vendor, status: 'booked', quoted_total: total });
       if (advance > 0) {
-        await fetch(`${RAILWAY_URL}/api/couple/expenses`, {
+        await fetch(`${API_BASE}/api/couple/expenses`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ couple_id: userId, vendor_name: vendor.name, description: `Advance — ${vendor.category || 'vendor'}${eventNames.length ? ' · ' + eventNames.join(', ') : ''}`, actual_amount: advance, payment_status: 'paid', category: (vendor.category || 'other').toLowerCase(), event: 'General' }),
         });
       }
       const balance = total - advance;
       if (balance > 0) {
-        await fetch(`${RAILWAY_URL}/api/couple/expenses`, {
+        await fetch(`${API_BASE}/api/couple/expenses`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ couple_id: userId, vendor_name: vendor.name, description: `Balance — ${vendor.category || 'vendor'}`, actual_amount: balance, payment_status: 'committed', due_date: balanceDueDate || null, category: (vendor.category || 'other').toLowerCase(), event: 'General' }),
         });
@@ -2674,7 +2675,7 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
   async function handleSaveNotes() {
     setSavingNotes(true);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/vendors/${vendor.id}`, {
+      await fetch(`${API_BASE}/api/couple/vendors/${vendor.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
@@ -2688,7 +2689,7 @@ function VendorDetailSheet({ vendor, userId, allTasks, allExpenses, events, onCl
   async function handleDelete() {
     setDeleting(true);
     try {
-      await fetch(`${RAILWAY_URL}/api/couple/vendors/${vendor.id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/couple/vendors/${vendor.id}`, { method: 'DELETE' });
       onDeleted(vendor.id);
       handleClose();
     } catch { showToast('Could not delete'); setDeleting(false); }
@@ -2902,7 +2903,7 @@ function VendorsTab({ userId, allTasks, allExpenses, events, refetch, onMoneyRef
 
   function loadVendors() {
     setLoading(true);
-    fetch(`${RAILWAY_URL}/api/couple/vendors/${userId}`)
+    fetch(`${API_BASE}/api/couple/vendors/${userId}`)
       .then(r => r.json())
       .then(d => { setVendors(Array.isArray(d?.data) ? d.data : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -3037,14 +3038,14 @@ function PeopleTab({ userId, refetch }: { userId: string; refetch: number }) {
         return { name: parts[0] || '', phone: parts[1] || '', side: (parts[2] || 'bride').toLowerCase() };
       }).filter(r => r.name);
       if (rows.length === 0) { showMsg('No valid rows. Format: Name, Phone, Side'); return; }
-      const res = await fetch(`${RAILWAY_URL}/api/v2/couple/guests/bulk`, {
+      const res = await fetch(`${API_BASE}/api/v2/couple/guests/bulk`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, guests: rows }),
       });
       const json = await res.json();
       if (json.success) {
         showMsg(`Added ${json.added} guests${json.skipped > 0 ? `, ${json.skipped} skipped` : ''}`);
-        fetch(`${RAILWAY_URL}/api/v2/couple/guests/${userId}`).then(r => r.json()).then(d => { if (Array.isArray(d)) setGuests(d); });
+        fetch(`${API_BASE}/api/v2/couple/guests/${userId}`).then(r => r.json()).then(d => { if (Array.isArray(d)) setGuests(d); });
       } else { showMsg(json.error || 'Import failed'); }
     } catch { showMsg('Import failed'); }
     finally { setImporting(false); }
@@ -3055,7 +3056,7 @@ function PeopleTab({ userId, refetch }: { userId: string; refetch: number }) {
     setSending(true);
     try {
       const ids = selectMode && selectedGuests.size > 0 ? Array.from(selectedGuests) : [];
-      const res = await fetch(`${RAILWAY_URL}/api/v2/couple/guests/broadcast`, {
+      const res = await fetch(`${API_BASE}/api/v2/couple/guests/broadcast`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, guest_ids: ids, message: broadcastText }),
       });
@@ -3074,7 +3075,7 @@ function PeopleTab({ userId, refetch }: { userId: string; refetch: number }) {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${RAILWAY_URL}/api/v2/couple/guests/${userId}`)
+    fetch(`${API_BASE}/api/v2/couple/guests/${userId}`)
       .then(r => r.json())
       .then(d => { setGuests(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -3179,7 +3180,7 @@ function PeopleTab({ userId, refetch }: { userId: string; refetch: number }) {
                 ))}
                 {more > 0 && <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, color: '#8C8480' }}>+{more}</span>}
               </div>
-              <button onClick={async () => { if (!confirm('Remove ' + guest.name + ' from guest list?')) return; await fetch(`${RAILWAY_URL}/api/v2/couple/guests/${guest.id}`, { method: 'DELETE' }); setGuests(prev => prev.filter(g => g.id !== guest.id)); }} style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: 'none', border: '0.5px solid #E2DED8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation', color: '#C8C4BE', fontSize: 16 }}>&#215;</button>
+              <button onClick={async () => { if (!confirm('Remove ' + guest.name + ' from guest list?')) return; await fetch(`${API_BASE}/api/v2/couple/guests/${guest.id}`, { method: 'DELETE' }); setGuests(prev => prev.filter(g => g.id !== guest.id)); }} style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: 'none', border: '0.5px solid #E2DED8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation', color: '#C8C4BE', fontSize: 16 }}>&#215;</button>
             </div>
           );
         })
@@ -3295,7 +3296,7 @@ function EventDetailSheet({ event, allTasks, allGuests, allExpenses, allVendors,
     if (saving) return;
     setSaving(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/couple/events/${event.id}`, {
+      const res = await fetch(`${API_BASE}/api/couple/events/${event.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event_name: editName, event_date: editDate || null, venue: editVenue || null }),
@@ -3444,7 +3445,7 @@ function EventsTab({ userId, allTasks, allGuests, allExpenses, allVendors, refet
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${RAILWAY_URL}/api/v2/couple/events/${userId}`)
+    fetch(`${API_BASE}/api/v2/couple/events/${userId}`)
       .then(r => r.json())
       .then(d => { setEvents(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -3548,7 +3549,7 @@ function MuseTab({ userId }: { userId: string }) {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${RAILWAY_URL}/api/couple/muse/${userId}`)
+    fetch(`${API_BASE}/api/couple/muse/${userId}`)
       .then(r => r.json())
       .then(d => { setItems(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -3556,7 +3557,7 @@ function MuseTab({ userId }: { userId: string }) {
 
   async function handleRemove(id: string) {
     setRemoving(id);
-    await fetch(`${RAILWAY_URL}/api/couple/muse/${id}`, { method: 'DELETE' }).catch(() => {});
+    await fetch(`${API_BASE}/api/couple/muse/${id}`, { method: 'DELETE' }).catch(() => {});
     setItems(prev => prev.filter(i => i.id !== id));
     setRemoving(null);
   }
@@ -3698,14 +3699,14 @@ export default function CouplePlanPage() {
   useEffect(() => {
     if (!session?.id) return;
     const uid = session.id;
-    fetch(`${RAILWAY_URL}/api/v2/couple/tasks/${uid}`).then(r => r.json()).then(d => { if (Array.isArray(d)) setAllTasks(d); }).catch(() => {});
-    fetch(`${RAILWAY_URL}/api/couple/vendors/${uid}`).then(r => r.json()).then(d => { const rows = d.data || d; if (Array.isArray(rows)) setAllVendors(rows); }).catch(() => {});
-    fetch(`${RAILWAY_URL}/api/v2/couple/guests/${uid}`).then(r => r.json()).then(d => { if (Array.isArray(d)) setAllGuests(d); }).catch(() => {});
-    fetch(`${RAILWAY_URL}/api/couple/expenses/${uid}`).then(r => r.json()).then(d => {
+    fetch(`${API_BASE}/api/v2/couple/tasks/${uid}`).then(r => r.json()).then(d => { if (Array.isArray(d)) setAllTasks(d); }).catch(() => {});
+    fetch(`${API_BASE}/api/couple/vendors/${uid}`).then(r => r.json()).then(d => { const rows = d.data || d; if (Array.isArray(rows)) setAllVendors(rows); }).catch(() => {});
+    fetch(`${API_BASE}/api/v2/couple/guests/${uid}`).then(r => r.json()).then(d => { if (Array.isArray(d)) setAllGuests(d); }).catch(() => {});
+    fetch(`${API_BASE}/api/couple/expenses/${uid}`).then(r => r.json()).then(d => {
       const rows = (d?.data || d || []) as any[];
       setAllExpenses(rows.map((e: any) => ({ ...e, event_name: e.event || e.event_name || null, actual_amount: e.actual_amount || 0 })));
     }).catch(() => {});
-    fetch(`${RAILWAY_URL}/api/v2/couple/events/${uid}`).then(r => r.json()).then(d => {
+    fetch(`${API_BASE}/api/v2/couple/events/${uid}`).then(r => r.json()).then(d => {
       if (Array.isArray(d)) setAllEvents(d.map((ev: any) => ({ id: ev.id, name: ev.name })));
     }).catch(() => {});
   }, [session?.id]);

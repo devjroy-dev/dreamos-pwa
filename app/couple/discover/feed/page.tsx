@@ -6,8 +6,9 @@ import React, { useEffect, useState, useCallback, useRef, Suspense } from 'react
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SEED_VENDORS, type SeedVendor } from '@/lib/seed/discoverySeed';
 import { MessageCircle, Lock, Users } from 'lucide-react';
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 const haptic = (ms: number) => {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -26,7 +27,7 @@ const OVERLAY_DISMISS = 80;
 async function saveVendorToMuse(vendorId: string, userId: string | null): Promise<boolean> {
   if (!userId) return false;
   try {
-    const res = await fetch(`${API}/api/couple/muse/save`, {
+    const res = await fetch(`${API_BASE}/api/couple/muse/save`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ couple_id: userId, vendor_id: vendorId, event: 'general' }),
@@ -283,7 +284,7 @@ function DiscoveryFeedContent() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('https://dream-wedding-production-89ae.up.railway.app/api/vendors?limit=200');
+        const res = await fetch(`${API_BASE}/api/vendors?limit=200`);
         const json = await res.json();
         const raw: any[] = json.data || [];
         if (!Array.isArray(raw) || raw.length === 0) throw new Error('empty');

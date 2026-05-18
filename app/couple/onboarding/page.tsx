@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { CitySearchDropdown, ALL_CITIES } from '../../components/CitySearchDropdown';
+import { API_BASE } from '../../../lib/api';
 
 const INDIA_CITY_SET = new Set([
   'Delhi','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Udaipur','Pune','Ahmedabad',
@@ -15,7 +16,7 @@ const INDIA_CITY_SET = new Set([
 const isIndiaCity = (v: string) => INDIA_CITY_SET.has(v) || v === 'India';
 import { useRouter } from 'next/navigation';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 const GOLD = '#C9A84C';
 
 const FALLBACK_SLIDES = [

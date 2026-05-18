@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, Settings, LogOut, ChevronRight, Users, Zap, Crown, Star, X, Home, Sparkles } from 'lucide-react';
 import { CitySearchDropdown, ALL_CITIES } from '../../components/CitySearchDropdown';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 const GOLD = '#C9A84C';
 const INDIA_CITY_SET = new Set([
   'Delhi','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Udaipur','Pune','Ahmedabad',
@@ -88,9 +89,9 @@ export default function CoupleMe() {
       setDreamAiHome(savedHome === 'dreamai');
 
       Promise.all([
-        fetch(`${API}/api/v2/couple/profile/${s.id}`).then(r => r.json()).catch(() => null),
-        fetch(`${API}/api/v2/couple/tokens/${s.id}`).then(r => r.json()).catch(() => null),
-        fetch(`${API}/api/users/${s.id}`).then(r => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/v2/couple/profile/${s.id}`).then(r => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/v2/couple/tokens/${s.id}`).then(r => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/users/${s.id}`).then(r => r.json()).catch(() => null),
       ]).then(([profile, tokenData, userData]) => {
         if (profile?.couple) {
           const p = profile.couple;
@@ -136,7 +137,7 @@ export default function CoupleMe() {
           ? (isIndiaCity(weddingCity) ? 'nri' : 'global')
           : 'india';
 
-      await fetch(`${API}/api/users/${userId}`, {
+      await fetch(`${API_BASE}/api/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

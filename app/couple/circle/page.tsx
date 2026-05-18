@@ -3,8 +3,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Heart, Share2 } from 'lucide-react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Session { id: string; name?: string; couple_tier?: string; token_balance?: number; }
@@ -97,7 +98,7 @@ function InviteSheet({ userId, onClose, onInvited }: {
     if (!name.trim()) { setError('Enter a name'); return; }
     setSending(true); setError('');
     try {
-      const res = await fetch(`${API}/api/co-planner/invite`, {
+      const res = await fetch(`${API_BASE}/api/co-planner/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, role, invitee_name: name.trim() }),
@@ -508,7 +509,7 @@ export default function CirclePage() {
   // Load members
   const loadMembers = useCallback(async (uid: string) => {
     try {
-      const res = await fetch(`${API}/api/co-planner/list/${uid}`);
+      const res = await fetch(`${API_BASE}/api/co-planner/list/${uid}`);
       const json = await res.json();
       if (json.success) setMembers(json.data || []);
     } catch {}
@@ -519,10 +520,10 @@ export default function CirclePage() {
   const loadActivity = useCallback(async (uid: string) => {
     try {
       const [museSaves, enquiries, coplanners, bookedVendors] = await Promise.all([
-        fetch(`${API}/api/couple/muse/${uid}`).then(r => r.json()),
-        fetch(`${API}/api/enquiries/couple/${uid}`).then(r => r.json()),
-        fetch(`${API}/api/co-planner/list/${uid}`).then(r => r.json()),
-        fetch(`${API}/api/couple/vendors/${uid}`).then(r => r.json()).catch(() => ({ success: false })),
+        fetch(`${API_BASE}/api/couple/muse/${uid}`).then(r => r.json()),
+        fetch(`${API_BASE}/api/enquiries/couple/${uid}`).then(r => r.json()),
+        fetch(`${API_BASE}/api/co-planner/list/${uid}`).then(r => r.json()),
+        fetch(`${API_BASE}/api/couple/vendors/${uid}`).then(r => r.json()).catch(() => ({ success: false })),
       ]);
 
       const items: ActivityItem[] = [];
@@ -621,7 +622,7 @@ export default function CirclePage() {
   // Load reactions and merge into activity
   const loadReactions = React.useCallback(async (uid: string) => {
     try {
-      const res = await fetch(`${API}/api/circle/reactions/${uid}`);
+      const res = await fetch(`${API_BASE}/api/circle/reactions/${uid}`);
       const json = await res.json();
       if (json.success && json.data.length > 0) {
         const reactionMap: Record<string, Record<string, number>> = {};
@@ -640,7 +641,7 @@ export default function CirclePage() {
   // Load circle messages
   const loadMessages = React.useCallback(async (uid: string) => {
     try {
-      const res = await fetch(`${API}/api/circle/messages/${uid}`);
+      const res = await fetch(`${API_BASE}/api/circle/messages/${uid}`);
       const json = await res.json();
       if (json.success) setMessages(json.data || []);
     } catch {}
@@ -666,7 +667,7 @@ export default function CirclePage() {
     }));
     // Persist
     if (session?.id) {
-      fetch(`${API}/api/circle/reactions`, {
+      fetch(`${API_BASE}/api/circle/reactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: session.id, item_id: itemId, emoji, actor_name: session.name || 'You' }),
@@ -690,7 +691,7 @@ export default function CirclePage() {
     const text = chatInput.trim();
     setChatInput('');
     try {
-      await fetch(`${API}/api/circle/messages`, {
+      await fetch(`${API_BASE}/api/circle/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: session.id, sender_user_id: session.id, sender_name: session.name || 'You', sender_role: 'partner', content: text }),
@@ -702,7 +703,7 @@ export default function CirclePage() {
   const handleRemoveMember = async (inviteId: string) => {
     if (!session?.id) return;
     try {
-      await fetch(`${API}/api/co-planner/remove`, {
+      await fetch(`${API_BASE}/api/co-planner/remove`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ invite_id: inviteId, user_id: session.id }),

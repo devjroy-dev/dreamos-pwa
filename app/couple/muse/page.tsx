@@ -3,8 +3,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, X, Sparkles, MessageCircle, ChevronRight } from 'lucide-react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Session {
@@ -153,7 +154,7 @@ export default function MusePage() {
 
     async function load() {
       try {
-        const res = await fetch(`${API}/api/couple/muse/${session!.id}`);
+        const res = await fetch(`${API_BASE}/api/couple/muse/${session!.id}`);
         if (!res.ok) throw new Error('fetch failed');
         const json = await res.json();
         if (!cancelled && json.success) {
@@ -174,7 +175,7 @@ export default function MusePage() {
   const handleRemove = useCallback(async (save_id: string) => {
     setRemoving(save_id);
     try {
-      const res = await fetch(`${API}/api/couple/muse/${save_id}`, {
+      const res = await fetch(`${API_BASE}/api/couple/muse/${save_id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('delete failed');
@@ -192,7 +193,7 @@ export default function MusePage() {
   const handleShortlist = useCallback(async (item: MuseItem) => {
     setShortlisting(item.id);
     try {
-      const res = await fetch(`${API}/api/couple/muse/shortlist`, {
+      const res = await fetch(`${API_BASE}/api/couple/muse/shortlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

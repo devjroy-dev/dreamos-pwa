@@ -4,8 +4,9 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Settings, LogOut } from 'lucide-react';
 import { useCoupleMode, type CoupleAppMode } from '../layout';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 interface ChatMessage { role: 'user' | 'ai'; text: string; }
 
@@ -20,7 +21,7 @@ function DreamAiSheet({ visible, onClose, userId }: { visible: boolean; onClose:
 
   useEffect(() => {
     if (!visible || !userId) return;
-    fetch(`${API}/api/v2/dreamai/couple-context/${userId}`)
+    fetch(`${API_BASE}/api/v2/dreamai/couple-context/${userId}`)
       .then(r => r.json()).then(setCtx).catch(() => {});
     setTimeout(() => inputRef.current?.focus(), 300);
   }, [visible, userId]);
@@ -45,7 +46,7 @@ function DreamAiSheet({ visible, onClose, userId }: { visible: boolean; onClose:
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const r = await fetch(`${API}/api/v2/dreamai/chat`, {
+      const r = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userType: 'couple', context: ctx, history: messages.slice(-10), image_base64: base64, image_media_type: file.type || 'image/jpeg', message: `I sent an image. The uploaded URL is: ${imageUrl}. If it looks like a receipt or invoice, log it as an expense. If it looks like wedding inspiration, save it to my Muse board.` }),
       });
@@ -59,7 +60,7 @@ function DreamAiSheet({ visible, onClose, userId }: { visible: boolean; onClose:
     const msg = text.trim(); if (!msg || loading) return;
     setInput(''); setMessages(p => [...p, { role: 'user', text: msg }]); setLoading(true);
     try {
-      const res = await fetch(`${API}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userType: 'couple', message: msg, context: ctx, history: messages.slice(-10) }),
       });

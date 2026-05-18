@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, X } from 'lucide-react';
+import { API_BASE } from '../../../../lib/api';
 
 type CardId = 'myfeed' | 'blind' | 'featured' | 'couture' | 'categories' | 'curated';
 interface FilterState { category: string; minBudget: string; maxBudget: string; city: string; }
@@ -147,7 +148,7 @@ export default function DiscoverHub() {
   const [searchQ, setSearchQ] = useState('');
   const [searchResults, setSearchResults] = useState<{id:string;name:string;category:string;city?:string}[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const API = 'https://dream-wedding-production-89ae.up.railway.app';
+  const API = API_BASE;
   const [comingSoonModal, setComingSoonModal] = useState<'couture'|'curated'|null>(null);
   // Sticky filters — persisted in localStorage, blind mode always resets
   const STORAGE_KEY = 'tdw_hub_filters';

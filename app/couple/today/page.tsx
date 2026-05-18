@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 interface HeroData { state: 'no_date'|'date_only'|'event'|'past'; days_until: number|null; event_name: string|null; wedding_date: string|null; }
 interface Moment { type: string; priority: number; title: string; body: string; action: string; task_id?: string; enquiry_id?: string; expense_id?: string; event_id?: string; due_date?: string; amount?: number; event_name?: string; }
@@ -121,7 +122,7 @@ function AddExpenseSheet({ visible, onClose, userId, onDone }: { visible: boolea
     if (!vendor.trim() || !amount) return;
     setSaving(true);
     try {
-      await fetch(`${API}/api/couple/expenses`, {
+      await fetch(`${API_BASE}/api/couple/expenses`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, vendor_name: vendor.trim(), actual_amount: parseFloat(amount), category, payment_status: 'committed', event: 'General' }),
       });
@@ -159,7 +160,7 @@ function AddTaskSheet({ visible, onClose, userId, onDone }: { visible: boolean; 
     if (!text.trim()) return;
     setSaving(true);
     try {
-      await fetch(`${API}/api/couple/checklist`, {
+      await fetch(`${API_BASE}/api/couple/checklist`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, text: text.trim(), due_date: dueDate || null, is_complete: false }),
       });
@@ -198,7 +199,7 @@ function AddMuseSheet({ visible, onClose, userId, onDone }: { visible: boolean; 
     if (!url.trim() || saving) return;
     setSaving(true);
     try {
-      const ogRes = await fetch(`${API}/api/v2/couple/muse`, {
+      const ogRes = await fetch(`${API_BASE}/api/v2/couple/muse`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, source_url: url.trim() }),
       });
@@ -221,7 +222,7 @@ function AddMuseSheet({ visible, onClose, userId, onDone }: { visible: boolean; 
       const imageUrl = cloudJson.secure_url;
       if (!imageUrl) throw new Error('Upload failed');
       // Use backend endpoint to insert
-      const res = await fetch(`${API}/api/v2/couple/muse-image`, {
+      const res = await fetch(`${API_BASE}/api/v2/couple/muse-image`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, image_url: imageUrl }),
       });
@@ -495,7 +496,7 @@ function DreamAiSheet({ visible, onClose, context, userId, prefill, onGrace, onU
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const r = await fetch(`${API}/api/v2/dreamai/chat`, {
+      const r = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId, userType: 'couple', context, history: messages.slice(-10),
@@ -515,7 +516,7 @@ function DreamAiSheet({ visible, onClose, context, userId, prefill, onGrace, onU
     const msg = text.trim(); if (!msg || loading) return;
     setInput(''); setMessages(p => [...p, { role: 'user', text: msg }]); setLoading(true);
     try {
-      const res = await fetch(`${API}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userType: 'couple', message: msg, context, history: messages.slice(-10) }),
       });
@@ -684,7 +685,7 @@ function CircleActivity({ coupleId }: { coupleId: string }) {
   const [messages, setMessages] = useState<any[]>([]);
   useEffect(() => {
     if (!coupleId) return;
-    fetch(`${API}/api/circle/messages/${coupleId}`)
+    fetch(`${API_BASE}/api/circle/messages/${coupleId}`)
       .then(r => r.json())
       .then(d => {
         if (d.success && d.data?.length > 0) {
@@ -767,17 +768,17 @@ export default function TodayPage() {
 
   useEffect(() => {
     if (!session) return;
-    fetch(`${API}/api/v2/couple/today/${session.id}`).then(r=>r.json()).then(json=>{setData(json);setLoading(false);}).catch(()=>{showToast('Could not load your dashboard.');setLoading(false);});
+    fetch(`${API_BASE}/api/v2/couple/today/${session.id}`).then(r=>r.json()).then(json=>{setData(json);setLoading(false);}).catch(()=>{showToast('Could not load your dashboard.');setLoading(false);});
   },[session,showToast]);
 
   useEffect(() => {
     if (!session) return;
-    fetch(`${API}/api/v2/dreamai/couple-context/${session.id}`).then(r=>r.json()).then(setDreamAiContext).catch(()=>{});
+    fetch(`${API_BASE}/api/v2/dreamai/couple-context/${session.id}`).then(r=>r.json()).then(setDreamAiContext).catch(()=>{});
   },[session]);
 
   async function completeTask(taskId: string) {
     setCompletedIds(p=>new Set([...p,taskId]));
-    try { await fetch(`${API}/api/v2/couple/tasks/${taskId}/complete`,{method:'PATCH'}); } catch {}
+    try { await fetch(`${API_BASE}/api/v2/couple/tasks/${taskId}/complete`,{method:'PATCH'}); } catch {}
   }
 
   function handleMomentAction(m: Moment) {
@@ -796,7 +797,7 @@ export default function TodayPage() {
 
   function refreshData() {
     if (!session) return;
-    fetch(`${API}/api/v2/couple/today/${session.id}`).then(r=>r.json()).then(setData).catch(()=>{});
+    fetch(`${API_BASE}/api/v2/couple/today/${session.id}`).then(r=>r.json()).then(setData).catch(()=>{});
   }
 
   const moments = (data?.three_moments||[]).filter(m=>!m.task_id||!completedIds.has(m.task_id!));

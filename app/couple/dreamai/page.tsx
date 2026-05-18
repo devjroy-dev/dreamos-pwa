@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const RAILWAY_URL = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 interface CoupleSession { id: string; name?: string; dreamer_type?: string; couple_tier?: string; }
 interface ChatMessage { role: 'user' | 'ai'; text: string; action?: { type: string; label: string; preview: string; params: Record<string, unknown> }; }
@@ -53,7 +54,7 @@ export default function DreamAiPage() {
 
   useEffect(() => {
     if (!session?.id) return;
-    fetch(`${RAILWAY_URL}/api/v2/dreamai/couple-context/${session.id}`)
+    fetch(`${API_BASE}/api/v2/dreamai/couple-context/${session.id}`)
       .then(r => r.json()).then(setContext).catch(() => {});
   }, [session?.id]);
 
@@ -84,7 +85,7 @@ export default function DreamAiPage() {
     setMessages(prev => [...prev, { role: 'user', text: msg }]);
     setLoading(true);
     try {
-      const res = await fetch(`${RAILWAY_URL}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userType: 'couple', message: msg, context }),
@@ -92,7 +93,7 @@ export default function DreamAiPage() {
       const json = await res.json();
       let replyText = json.reply || 'Something went wrong.';
       if (replyText.trim() === 'Done.' || replyText.trim() === 'Done') {
-        const retry = await fetch(`${RAILWAY_URL}/api/v2/dreamai/chat`, {
+        const retry = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, userType: 'couple', message: msg, context, history: [{ role: 'user', text: msg }] }),
@@ -139,7 +140,7 @@ export default function DreamAiPage() {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const res = await fetch(`${RAILWAY_URL}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

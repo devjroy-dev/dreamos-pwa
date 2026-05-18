@@ -1,8 +1,9 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 function getSession() {
   if (typeof window === 'undefined') return null;
@@ -399,7 +400,7 @@ export default function VendorProfilePage() {
 
   useEffect(() => {
     if (!vendorId) return;
-    const url = `${API}/api/v2/vendor/profile/${vendorId}${userId ? `?couple_id=${userId}` : ''}`;
+    const url = `${API_BASE}/api/v2/vendor/profile/${vendorId}${userId ? `?couple_id=${userId}` : ''}`;
     fetch(url).then(r => r.json()).then(d => { if (d.success) setData(d.data); setLoading(false); }).catch(() => setLoading(false));
   }, [vendorId, userId]);
 
@@ -418,7 +419,7 @@ export default function VendorProfilePage() {
     const newSaved = !isSaved;
     setIsSaved(newSaved);
     try {
-      await fetch(`${API}/api/couple/muse/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ couple_id: userId, vendor_id: vendorId }) });
+      await fetch(`${API_BASE}/api/couple/muse/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ couple_id: userId, vendor_id: vendorId }) });
       showToast(newSaved ? 'Saved to Muse ♥' : 'Removed from Muse');
     } catch { setIsSaved(!newSaved); }
   }

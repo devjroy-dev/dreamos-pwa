@@ -3,8 +3,9 @@
 import { Link2, Phone, Plus, Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Session {
@@ -100,7 +101,7 @@ export default function BespokePage() {
 
     async function load() {
       try {
-        const res = await fetch(`${API}/api/couple/moodboard/${session!.id}`);
+        const res = await fetch(`${API_BASE}/api/couple/moodboard/${session!.id}`);
         if (!res.ok) throw new Error('fetch failed');
         const json = await res.json();
         if (!cancelled && json.success) {
@@ -128,7 +129,7 @@ export default function BespokePage() {
   // Fetch contact unlock status
   const fetchContactStatus = async (vendor_id: string) => {
     try {
-      const res = await fetch(`${API}/api/couple/vendor/${vendor_id}/contact-status?couple_id=${session!.id}`);
+      const res = await fetch(`${API_BASE}/api/couple/vendor/${vendor_id}/contact-status?couple_id=${session!.id}`);
       if (!res.ok) return;
       const json = await res.json();
       if (json.success) {
@@ -142,7 +143,7 @@ export default function BespokePage() {
   // Remove pin
   const handleRemove = useCallback(async (pinId: string) => {
     try {
-      const res = await fetch(`${API}/api/couple/moodboard/${pinId}`, {
+      const res = await fetch(`${API_BASE}/api/couple/moodboard/${pinId}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('delete failed');
@@ -163,7 +164,7 @@ export default function BespokePage() {
     note?: string;
   }) => {
     try {
-      const res = await fetch(`${API}/api/couple/bespoke/add-pin`, {
+      const res = await fetch(`${API_BASE}/api/couple/bespoke/add-pin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

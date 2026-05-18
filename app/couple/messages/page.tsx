@@ -3,8 +3,9 @@
 import React, { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Send, Phone, Search } from 'lucide-react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Vendor {
@@ -78,7 +79,7 @@ function EnquirySheet({ vendor, userId, onClose, onSent }: {
     if (!msg.trim() || sending) return;
     setSending(true);
     try {
-      const res = await fetch(`${API}/api/enquiries`, {
+      const res = await fetch(`${API_BASE}/api/enquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, vendor_id: vendor.id, initial_message: msg.trim() }),
@@ -318,7 +319,7 @@ function MessagesContent() {
 
   const loadThreads = useCallback(async (uid: string) => {
     try {
-      const res = await fetch(`${API}/api/enquiries/couple/${uid}`);
+      const res = await fetch(`${API_BASE}/api/enquiries/couple/${uid}`);
       const json = await res.json();
       if (json.success) setThreads(json.data || []);
     } catch {}
@@ -350,7 +351,7 @@ function MessagesContent() {
   const loadMessages = useCallback(async (threadId: string) => {
     setMsgsLoading(true);
     try {
-      const res = await fetch(`${API}/api/enquiries/${threadId}`);
+      const res = await fetch(`${API_BASE}/api/enquiries/${threadId}`);
       const json = await res.json();
       if (json.success) setMessages(json.data.messages || []);
     } catch {}
@@ -360,7 +361,7 @@ function MessagesContent() {
   const openThread = useCallback((thread: Thread) => {
     setActiveThread(thread);
     loadMessages(thread.id);
-    fetch(`${API}/api/enquiries/${thread.id}/read`, {
+    fetch(`${API_BASE}/api/enquiries/${thread.id}/read`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ role:'couple' }),
     }).catch(()=>{});
@@ -380,7 +381,7 @@ function MessagesContent() {
     const opt: Message = { id:`temp-${Date.now()}`, enquiry_id:activeThread.id, from_role:'couple', content:text, created_at:new Date().toISOString() };
     setMessages(prev => [...prev, opt]);
     try {
-      await fetch(`${API}/api/enquiries/${activeThread.id}/messages`, {
+      await fetch(`${API_BASE}/api/enquiries/${activeThread.id}/messages`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ from_role:'couple', content:text }),
       });
@@ -422,7 +423,7 @@ function MessagesContent() {
             await loadThreads(userId);
             // Small delay to ensure thread is in list
             setTimeout(async () => {
-              const res = await fetch(`${API}/api/enquiries/${threadId}`);
+              const res = await fetch(`${API_BASE}/api/enquiries/${threadId}`);
               const json = await res.json();
               if (json.success) {
                 const t: Thread = { ...json.data.enquiry, vendor: json.data.vendor };

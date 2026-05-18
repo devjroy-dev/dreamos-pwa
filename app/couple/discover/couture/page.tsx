@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
+
 
 function getSession() {
   if (typeof window==='undefined') return null;
@@ -39,7 +40,7 @@ function AppointmentSheet({ designer, userId, onClose, onBooked }: { designer: D
     if (booking) return;
     setBooking(true);
     try {
-      const r=await fetch(`${API}/api/v2/couture/appointments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:designer.id,couple_id:userId,appointment_date:date||null,appointment_time:time||null,notes:notes||null})});
+      const r=await fetch(`${API_BASE}/api/v2/couture/appointments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:designer.id,couple_id:userId,appointment_date:date||null,appointment_time:time||null,notes:notes||null})});
       const d=await r.json();
       if (d.success) setStep('done');
     } catch {} finally { setBooking(false); }
@@ -185,7 +186,7 @@ export default function CouturePage() {
   },[router]);
 
   useEffect(()=>{
-    fetch(`${API}/api/v2/couture/designers`).then(r=>r.json()).then(d=>{ if(d.success) setDesigners(d.data||[]); setLoading(false); }).catch(()=>setLoading(false));
+    fetch(`${API_BASE}/api/v2/couture/designers`).then(r=>r.json()).then(d=>{ if(d.success) setDesigners(d.data||[]); setLoading(false); }).catch(()=>setLoading(false));
   },[]);
 
   const filtered = filter==='All' ? designers : designers.filter(d=>
