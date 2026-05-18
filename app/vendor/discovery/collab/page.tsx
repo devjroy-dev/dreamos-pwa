@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 function getVendorSession() {
   if (typeof window==='undefined') return null;
@@ -102,7 +102,7 @@ export default function CollabPage() {
   async function loadPosts(vid: string) {
     setLoading(true);
     try {
-      const r=await fetch(`${API}/api/v2/collab/posts?vendor_id=${vid}`);
+      const r=await fetch(`${API_BASE}/api/v2/collab/posts?vendor_id=${vid}`);
       const d=await r.json();
       if(d.success) setPosts(d.data||[]);
     } catch {} finally { setLoading(false); }
@@ -110,7 +110,7 @@ export default function CollabPage() {
 
   async function loadMyPosts(vid: string) {
     try {
-      const r=await fetch(`${API}/api/v2/collab/my-posts/${vid}`);
+      const r=await fetch(`${API_BASE}/api/v2/collab/my-posts/${vid}`);
       const d=await r.json();
       if(d.success) setMyPosts(d.data||[]);
     } catch {}
@@ -120,7 +120,7 @@ export default function CollabPage() {
     if (!form.title.trim()||creating) return;
     setCreating(true);
     try {
-      const r=await fetch(`${API}/api/v2/collab/posts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:vendorId,...form,budget:form.budget?Number(form.budget):null})});
+      const r=await fetch(`${API_BASE}/api/v2/collab/posts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:vendorId,...form,budget:form.budget?Number(form.budget):null})});
       const d=await r.json();
       if(d.success){setMyPosts(p=>[{...d.data,application_count:0},...p]);setShowNew(false);setForm({title:'',description:'',post_type:'Job',required_category:'',city:'',budget:'',event_date:''});setToast('Post created');setActiveTab('mine');}
       else setToast(d.error||'Error');
@@ -131,7 +131,7 @@ export default function CollabPage() {
     if (!applyPost||applying) return;
     setApplying(true);
     try {
-      const r=await fetch(`${API}/api/v2/collab/applications`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({post_id:applyPost.id,applicant_vendor_id:vendorId,message:applyMsg||null})});
+      const r=await fetch(`${API_BASE}/api/v2/collab/applications`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({post_id:applyPost.id,applicant_vendor_id:vendorId,message:applyMsg||null})});
       const d=await r.json();
       if(d.success){setApplyPost(null);setApplyMsg('');setToast('Application sent!');}
       else setToast(d.error||'Error');
@@ -141,7 +141,7 @@ export default function CollabPage() {
   async function viewApplications(post: Post) {
     setViewPost(post);setLoadingApps(true);
     try {
-      const r=await fetch(`${API}/api/v2/collab/applications/${post.id}`);
+      const r=await fetch(`${API_BASE}/api/v2/collab/applications/${post.id}`);
       const d=await r.json();
       if(d.success) setApplications(d.data||[]);
     } catch {} finally{setLoadingApps(false);}
@@ -149,7 +149,7 @@ export default function CollabPage() {
 
   async function updateApplication(appId: string, status: string) {
     try {
-      await fetch(`${API}/api/v2/collab/applications/${appId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,post_id:viewPost?.id,post_type:viewPost?.post_type?.toLowerCase()})});
+      await fetch(`${API_BASE}/api/v2/collab/applications/${appId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,post_id:viewPost?.id,post_type:viewPost?.post_type?.toLowerCase()})});
       setApplications(p=>p.map(a=>a.id===appId?{...a,status}:a));
       setToast(status==='accepted'?'Application accepted':'Application rejected');
     } catch{setToast('Error');}
@@ -157,7 +157,7 @@ export default function CollabPage() {
 
   async function closePost(postId: string) {
     try {
-      await fetch(`${API}/api/v2/collab/posts/${postId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'closed'})});
+      await fetch(`${API_BASE}/api/v2/collab/posts/${postId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'closed'})});
       setMyPosts(p=>p.map(post=>post.id===postId?{...post,status:'closed'}:post));
       setToast('Post closed');
     } catch{setToast('Error');}
@@ -166,7 +166,7 @@ export default function CollabPage() {
   async function logCollabExpense(post: Post) {
     if (!post.budget) { setToast('No budget set on this post.'); return; }
     try {
-      const r = await fetch(`${API}/api/expenses`, {
+      const r = await fetch(`${API_BASE}/api/expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

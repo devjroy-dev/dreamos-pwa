@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 
 function formatDate(d: string) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}); }
@@ -61,7 +61,7 @@ export default function ClientDetailPage() {
     if (!s?.vendorId&&!s?.id) { router.replace('/vendor/login'); return; }
     const vid = s.vendorId||s.id;
     setVendorId(vid);
-    fetch(`${BASE}/api/v2/vendor/clients/${vid}/${clientId}`)
+    fetch(`${API_BASE}/api/v2/vendor/clients/${vid}/${clientId}`)
       .then(r=>r.json()).then(d=>{ if(d.success){setData(d.data);setNotes(d.data.client?.notes||'');} setLoading(false); }).catch(()=>setLoading(false));
   },[clientId,router]);
 
@@ -69,14 +69,14 @@ export default function ClientDetailPage() {
     if (savingNotes) return;
     setSavingNotes(true);
     try {
-      await fetch(`${BASE}/api/vendor-clients/${clientId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({notes})});
+      await fetch(`${API_BASE}/api/vendor-clients/${clientId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({notes})});
       setToast('Notes saved');
     } catch { setToast('Could not save'); } finally { setSavingNotes(false); }
   }
 
   async function saveEdit() {
     try {
-      await fetch(`${BASE}/api/vendor-clients/${clientId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
+      await fetch(`${API_BASE}/api/vendor-clients/${clientId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
       setData((prev: any) => ({ ...prev, client: { ...prev.client, ...editForm } }));
       setEditing(false);
       setToast('Client updated');
@@ -85,7 +85,7 @@ export default function ClientDetailPage() {
 
   async function deleteClient() {
     try {
-      await fetch(`${BASE}/api/vendor-clients/${clientId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/vendor-clients/${clientId}`, { method: 'DELETE' });
       setToast('Client deleted');
       setTimeout(() => router.replace('/vendor/clients'), 1000);
     } catch { setToast('Could not delete'); }

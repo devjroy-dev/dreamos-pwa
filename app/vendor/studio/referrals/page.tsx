@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../../../../lib/api';
 
-const BACKEND = 'https://dream-wedding-production-89ae.up.railway.app';
 
 const shimmerStyle: React.CSSProperties = {
   background: 'linear-gradient(90deg, #F8F7F5 25%, #EEECE8 50%, #F8F7F5 75%)',
@@ -45,9 +45,9 @@ export default function ReferralsPage() {
   const fetchReferrals = useCallback(async (vid: string) => {
     try {
       const [codeRes, statsRes, rewardsRes] = await Promise.all([
-        fetch(`${BACKEND}/api/referral-code/${vid}`),
-        fetch(`${BACKEND}/api/referrals/stats/${vid}`),
-        fetch(`${BACKEND}/api/referrals/rewards/${vid}`),
+        fetch(`${API_BASE}/api/referral-code/${vid}`),
+        fetch(`${API_BASE}/api/referrals/stats/${vid}`),
+        fetch(`${API_BASE}/api/referrals/rewards/${vid}`),
       ]);
       const codeJson    = await codeRes.json();
       const statsJson   = await statsRes.json();

@@ -5,8 +5,8 @@ import {
   ArrowLeft, Camera, Check, CheckCircle, Image as ImageIcon, Instagram,
   MapPin, Star, Trash2, Upload, X, Loader,
 } from 'react-feather';
+import { API_BASE } from '../../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 // ── Brand tokens (match /vendor/mobile) ─────────────────────────────────
 
@@ -119,7 +119,7 @@ export default function VendorProfileEditPage() {
     }
     setSession(s);
 
-    fetch(`${API}/api/vendors/${s.vendorId}`)
+    fetch(`${API_BASE}/api/vendors/${s.vendorId}`)
       .then(r => r.json())
       .then(d => {
         if (d.success && d.data) {
@@ -149,7 +149,7 @@ export default function VendorProfileEditPage() {
     if (!vendorData?.id) return;
     setSavingField(fieldKey);
     try {
-      const r = await fetch(`${API}/api/vendors/${vendorData.id}`, {
+      const r = await fetch(`${API_BASE}/api/vendors/${vendorData.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

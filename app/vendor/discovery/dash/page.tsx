@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 // ─── Session ─────────────────────────────────────────────────────────────────
 function getSession() {
@@ -320,8 +320,8 @@ export default function DiscoveryDashPage() {
 
     // Fetch profile level and weekly snapshot in parallel
     Promise.all([
-      fetch(`${API}/api/v2/vendor/profile-level/${vendorId}`).then(r => r.json()),
-      fetch(`${API}/api/v2/vendor/today/${vendorId}`).then(r => r.json()),
+      fetch(`${API_BASE}/api/v2/vendor/profile-level/${vendorId}`).then(r => r.json()),
+      fetch(`${API_BASE}/api/v2/vendor/today/${vendorId}`).then(r => r.json()),
     ]).then(([levelData, todayData]) => {
       if (levelData.success) setProfile(levelData);
       if (todayData.snapshot) setSnapshot(todayData.snapshot);
@@ -335,7 +335,7 @@ export default function DiscoveryDashPage() {
     const vendorId = s.vendorId || s.id;
     setSubmitting(true);
     try {
-      const r = await fetch(`${API}/api/vendor-discover/request-access`, {
+      const r = await fetch(`${API_BASE}/api/vendor-discover/request-access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: vendorId }),
@@ -346,7 +346,7 @@ export default function DiscoveryDashPage() {
           ? "✓ You're live! Couples can discover you now."
           : "✓ Submitted. We'll be in touch within 48 hours.");
         // Refresh profile level
-        const fresh = await fetch(`${API}/api/v2/vendor/profile-level/${vendorId}`).then(r => r.json());
+        const fresh = await fetch(`${API_BASE}/api/v2/vendor/profile-level/${vendorId}`).then(r => r.json());
         if (fresh.success) setProfile(fresh);
       } else {
         showToast(d.error || 'Submission failed. Please try again.');

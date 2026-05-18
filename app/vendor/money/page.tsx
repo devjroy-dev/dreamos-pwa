@@ -2,8 +2,8 @@
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, X, CheckCircle } from 'lucide-react';
+import { API_BASE } from '../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 
 function formatDate(d: string) {
@@ -113,13 +113,13 @@ function VendorMoneyInner() {
     setLoading(true);
     try {
       const [ir, er, tr, pr, cr, gr, sr] = await Promise.all([
-        fetch(`${BASE}/api/invoices/${vid}`),
-        fetch(`${BASE}/api/expenses/${vid}`),
-        fetch(`${BASE}/api/tds/${vid}/summary`),
-        fetch(`${BASE}/api/payment-schedules/${vid}`),
-        fetch(`${BASE}/api/v2/vendor/clients/${vid}`),
-        fetch(`${BASE}/api/v2/vendor/gst-summary/${vid}?fy=${selectedFY}`),
-        fetch(`${BASE}/api/v2/vendor/payment-shield/${vid}`),
+        fetch(`${API_BASE}/api/invoices/${vid}`),
+        fetch(`${API_BASE}/api/expenses/${vid}`),
+        fetch(`${API_BASE}/api/tds/${vid}/summary`),
+        fetch(`${API_BASE}/api/payment-schedules/${vid}`),
+        fetch(`${API_BASE}/api/v2/vendor/clients/${vid}`),
+        fetch(`${API_BASE}/api/v2/vendor/gst-summary/${vid}?fy=${selectedFY}`),
+        fetch(`${API_BASE}/api/v2/vendor/payment-shield/${vid}`),
       ]);
       const id = await ir.json(); if (id.success||Array.isArray(id.data)||Array.isArray(id)) setInvoices(id.data||id||[]);
       const ed = await er.json(); if (ed.success||Array.isArray(ed.data)||Array.isArray(ed)) setExpenses(ed.data||ed||[]);
@@ -144,7 +144,7 @@ function VendorMoneyInner() {
 
   const handleMarkPaid = async (invId: string) => {
     try {
-      const r = await fetch(`${BASE}/api/invoices/${invId}/mark-paid`, { method:'PATCH' });
+      const r = await fetch(`${API_BASE}/api/invoices/${invId}/mark-paid`, { method:'PATCH' });
       const d = await r.json();
       if (d.success||r.ok) { setToast('Marked as paid.'); fetchAll(vendorId); }
       else setToast(d.error||'Failed.');
@@ -157,7 +157,7 @@ function VendorMoneyInner() {
     setInvSubmitting(true);
     try {
       const gstAmt = invForm.gst_enabled ? Number(invForm.amount)*1.18 : Number(invForm.amount);
-      const r = await fetch(`${BASE}/api/invoices`, {
+      const r = await fetch(`${API_BASE}/api/invoices`, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -189,7 +189,7 @@ function VendorMoneyInner() {
     if (!expDesc.trim()||!expAmt) { setToast('Enter description and amount.'); return; }
     setExpAdding(true);
     try {
-      const r = await fetch(`${BASE}/api/expenses`, {
+      const r = await fetch(`${API_BASE}/api/expenses`, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -438,7 +438,7 @@ function VendorMoneyInner() {
               {/* FY selector */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
                 <p style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:200, letterSpacing:'0.22em', textTransform:'uppercase', color:'#888580', margin:0 }}>Financial Year</p>
-                <select value={selectedFY} onChange={e=>{ setSelectedFY(e.target.value); if(vendorId) fetch(`${BASE}/api/v2/vendor/gst-summary/${vendorId}?fy=${e.target.value}`).then(r=>r.json()).then(d=>{ if(d.success) setGstData(d.data); }); }} style={{ fontFamily:"'Jost',sans-serif", fontSize:11, fontWeight:300, color:'#111', background:'transparent', border:'0.5px solid #E2DED8', borderRadius:6, padding:'4px 8px', cursor:'pointer' }}>
+                <select value={selectedFY} onChange={e=>{ setSelectedFY(e.target.value); if(vendorId) fetch(`${API_BASE}/api/v2/vendor/gst-summary/${vendorId}?fy=${e.target.value}`).then(r=>r.json()).then(d=>{ if(d.success) setGstData(d.data); }); }} style={{ fontFamily:"'Jost',sans-serif", fontSize:11, fontWeight:300, color:'#111', background:'transparent', border:'0.5px solid #E2DED8', borderRadius:6, padding:'4px 8px', cursor:'pointer' }}>
                   {[0,1,2].map(i=>{ const y=parseInt(currentFY.split('-')[0])-i; const fy=`${y}-${y+1}`; return <option key={fy} value={fy}>{`FY ${fy}`}</option>; })}
                 </select>
               </div>
@@ -459,7 +459,7 @@ function VendorMoneyInner() {
                         </div>
                       ))}
                     </div>
-                    <button onClick={()=>window.open(`${BASE}/api/v2/vendor/gst-export/${vendorId}?fy=${selectedFY}`)} style={{ width:'100%', background:'transparent', color:'#111', border:'1px solid #E2DED8', borderRadius:8, fontFamily:"'Jost',sans-serif", fontWeight:200, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', padding:'12px 0', cursor:'pointer', touchAction:'manipulation' }}>
+                    <button onClick={()=>window.open(`${API_BASE}/api/v2/vendor/gst-export/${vendorId}?fy=${selectedFY}`)} style={{ width:'100%', background:'transparent', color:'#111', border:'1px solid #E2DED8', borderRadius:8, fontFamily:"'Jost',sans-serif", fontWeight:200, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', padding:'12px 0', cursor:'pointer', touchAction:'manipulation' }}>
                       Export for CA (.csv)
                     </button>
                   </div>
@@ -546,7 +546,7 @@ function VendorMoneyInner() {
                 <input value={shieldForm.client_name} onChange={e=>setShieldForm(f=>({...f,client_name:e.target.value}))} placeholder="Client name" style={{ width:'100%', border:'none', borderBottom:'1px solid #E2DED8', fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:300, color:'#111', padding:'6px 0', marginBottom:10, outline:'none', background:'transparent' }}/>
                 <input value={shieldForm.amount} onChange={e=>setShieldForm(f=>({...f,amount:e.target.value}))} placeholder="Shield amount (₹)" inputMode="numeric" style={{ width:'100%', border:'none', borderBottom:'1px solid #E2DED8', fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:300, color:'#111', padding:'6px 0', marginBottom:10, outline:'none', background:'transparent' }}/>
                 <input type="date" value={shieldForm.wedding_date} onChange={e=>setShieldForm(f=>({...f,wedding_date:e.target.value}))} style={{ width:'100%', border:'none', borderBottom:'1px solid #E2DED8', fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:300, color:'#111', padding:'6px 0', marginBottom:14, outline:'none', background:'transparent' }}/>
-                <button disabled={!shieldForm.client_name||!shieldForm.amount||addingShield} onClick={async()=>{ setAddingShield(true); try { const r=await fetch(`${BASE}/api/v2/vendor/payment-shield`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:vendorId,client_name:shieldForm.client_name,amount:Number(shieldForm.amount),wedding_date:shieldForm.wedding_date||null})}); const d=await r.json(); if(d.success){setShieldData(p=>[d.data,...p]);setShieldForm({client_name:'',amount:'',wedding_date:''});setToast('Added to Shield');} else setToast(d.error||'Error'); } catch{setToast('Network error');} finally{setAddingShield(false);} }} style={{ width:'100%', height:44, background:'#111', color:'#F8F7F5', border:'none', borderRadius:100, fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:300, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer', opacity:(!shieldForm.client_name||!shieldForm.amount||addingShield)?0.5:1 }}>
+                <button disabled={!shieldForm.client_name||!shieldForm.amount||addingShield} onClick={async()=>{ setAddingShield(true); try { const r=await fetch(`${API_BASE}/api/v2/vendor/payment-shield`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:vendorId,client_name:shieldForm.client_name,amount:Number(shieldForm.amount),wedding_date:shieldForm.wedding_date||null})}); const d=await r.json(); if(d.success){setShieldData(p=>[d.data,...p]);setShieldForm({client_name:'',amount:'',wedding_date:''});setToast('Added to Shield');} else setToast(d.error||'Error'); } catch{setToast('Network error');} finally{setAddingShield(false);} }} style={{ width:'100%', height:44, background:'#111', color:'#F8F7F5', border:'none', borderRadius:100, fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:300, letterSpacing:'0.2em', textTransform:'uppercase', cursor:'pointer', opacity:(!shieldForm.client_name||!shieldForm.amount||addingShield)?0.5:1 }}>
                   {addingShield?'Adding...':'Add to Shield'}
                 </button>
               </div>

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 
 function getInitials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase(); }
@@ -54,7 +54,7 @@ export default function ClientsPage() {
     if (!s?.vendorId&&!s?.id) { router.replace('/vendor/login'); return; }
     const vid = s.vendorId||s.id;
     setVendorId(vid);
-    fetch(`${BASE}/api/v2/vendor/clients/${vid}`).then(r=>r.json()).then(d=>{ setClients(d.data||[]); setLoading(false); }).catch(()=>setLoading(false));
+    fetch(`${API_BASE}/api/v2/vendor/clients/${vid}`).then(r=>r.json()).then(d=>{ setClients(d.data||[]); setLoading(false); }).catch(()=>setLoading(false));
   },[router]);
 
   const filtered = clients.filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search));
@@ -63,7 +63,7 @@ export default function ClientsPage() {
     if (!form.name.trim()||adding) return;
     setAdding(true);
     try {
-      const r = await fetch(`${BASE}/api/vendor-clients`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ vendor_id:vendorId, ...form }) });
+      const r = await fetch(`${API_BASE}/api/vendor-clients`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ vendor_id:vendorId, ...form }) });
       const d = await r.json();
       if (d.success||d.id) { setClients(p=>[...(d.data?[d.data]:[d]),...p]); setShowAdd(false); setForm({name:'',phone:'',event_type:'Wedding',event_date:''}); setToast('Client added'); }
       else setToast(d.error||'Error adding client');

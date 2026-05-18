@@ -1,8 +1,8 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 const GOLD = '#C9A84C';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

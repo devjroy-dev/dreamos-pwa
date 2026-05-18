@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../../../../lib/api';
 
-const BACKEND = 'https://dream-wedding-production-89ae.up.railway.app';
 
 interface DailyEntry { date: string; impressions: number; profile_views: number; saves: number; enquiries: number; }
 interface Totals { impressions: number; profile_views: number; saves: number; enquiries: number; lock_interests: number; }
@@ -49,8 +49,8 @@ export default function AnalyticsPage() {
     try {
       // Fetch analytics + profile level in parallel
       const [analyticsRes, profileRes] = await Promise.all([
-        fetch(`${BACKEND}/api/vendor-analytics/${vid}`),
-        fetch(`${BACKEND}/api/v2/vendor/profile-level/${vid}`),
+        fetch(`${API_BASE}/api/vendor-analytics/${vid}`),
+        fetch(`${API_BASE}/api/v2/vendor/profile-level/${vid}`),
       ]);
       const analyticsJson = await analyticsRes.json();
       const profileJson = await profileRes.json();

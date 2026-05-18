@@ -2,8 +2,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, X } from 'lucide-react';
+import { API_BASE } from '../../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 
 function getInitials(name: string) {
@@ -39,7 +39,7 @@ export default function VendorTeamPage() {
   const fetchTeam = useCallback(async (vid: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`${BASE}/api/team/${vid}`);
+      const r = await fetch(`${API_BASE}/api/team/${vid}`);
       const d = await r.json();
       if (d.success) setTeam(d.data || []);
       else if (Array.isArray(d)) setTeam(d);
@@ -54,7 +54,7 @@ export default function VendorTeamPage() {
     if (!form.role.trim()) { setToast('Role is required.'); return; }
     setSubmitting(true);
     try {
-      const r = await fetch(`${BASE}/api/team`, {
+      const r = await fetch(`${API_BASE}/api/team`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // CRITICAL: must use vendor_id (not vendorId) in body

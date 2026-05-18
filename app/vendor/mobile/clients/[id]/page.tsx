@@ -7,8 +7,8 @@ import {
   Briefcase, Calendar, User as UserIcon, Mail, MapPin,
   CheckCircle, AlertCircle, Plus, Edit2, Clock, DollarSign,
 } from 'react-feather';
+import { API_BASE } from '../../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 // ── Brand tokens (match /vendor/mobile) ─────────────────────────────────
 
@@ -92,11 +92,11 @@ export default function ClientDetailPage() {
     (async () => {
       try {
         const [clientRes, invoicesRes, bookingsRes, schedRes, contractsRes] = await Promise.all([
-          fetch(`${API}/api/vendor-clients/by-id/${clientId}`).then(r => r.json()).catch(() => null),
-          fetch(`${API}/api/invoices/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
-          fetch(`${API}/api/bookings/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
-          fetch(`${API}/api/payment-schedules/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
-          fetch(`${API}/api/contracts/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
+          fetch(`${API_BASE}/api/vendor-clients/by-id/${clientId}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_BASE}/api/invoices/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
+          fetch(`${API_BASE}/api/bookings/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
+          fetch(`${API_BASE}/api/payment-schedules/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
+          fetch(`${API_BASE}/api/contracts/${s.vendorId}`).then(r => r.json()).catch(() => ({ data: [] })),
         ]);
 
         if (clientRes?.success && clientRes.data) {
@@ -144,7 +144,7 @@ export default function ClientDetailPage() {
     if (!clientId || noteDraft === (client?.notes || '')) return;
     setSavingNote(true);
     try {
-      const r = await fetch(`${API}/api/vendor-clients/${clientId}`, {
+      const r = await fetch(`${API_BASE}/api/vendor-clients/${clientId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: noteDraft }),

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 const GOLD = '#C9A84C';
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 
@@ -246,7 +246,7 @@ function SendSheet({ contract, businessName, onClose, onSent }: {
   async function markSent(channel: string) {
     setSending(true);
     try {
-      await fetch(`${BASE}/api/v2/vendor/contracts/${contract.id}/send`, {
+      await fetch(`${API_BASE}/api/v2/vendor/contracts/${contract.id}/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channel }),
       });
@@ -351,13 +351,13 @@ export default function ContractsPage() {
     setVendorCategory(vcat);
 
     // Load contracts
-    fetch(`${BASE}/api/v2/vendor/contracts/list/${vid}`)
+    fetch(`${API_BASE}/api/v2/vendor/contracts/list/${vid}`)
       .then(r => r.json())
       .then(d => { setContracts(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));
 
     // Load T&C
-    fetch(`${BASE}/api/v2/vendor/tc/${vid}`)
+    fetch(`${API_BASE}/api/v2/vendor/tc/${vid}`)
       .then(r => r.json())
       .then(d => {
         if (d.tc_text) {
@@ -375,7 +375,7 @@ export default function ContractsPage() {
     if (!vendorId || tcSaving) return;
     setTcSaving(true);
     try {
-      await fetch(`${BASE}/api/v2/vendor/tc/${vendorId}`, {
+      await fetch(`${API_BASE}/api/v2/vendor/tc/${vendorId}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tc_text: tcText }),
       });
@@ -401,7 +401,7 @@ export default function ContractsPage() {
     if (!formFields.client_name?.trim() || saving) return;
     setSaving(true);
     try {
-      const r = await fetch(`${BASE}/api/v2/vendor/contracts/create`, {
+      const r = await fetch(`${API_BASE}/api/v2/vendor/contracts/create`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vendor_id: vendorId,
@@ -438,7 +438,7 @@ export default function ContractsPage() {
 
   async function markAcknowledged(id: string) {
     try {
-      await fetch(`${BASE}/api/v2/vendor/contracts/${id}/acknowledge`, { method: 'POST' });
+      await fetch(`${API_BASE}/api/v2/vendor/contracts/${id}/acknowledge`, { method: 'POST' });
       setContracts(prev => prev.map((c: Contract) => c.id === id ? { ...c, status: 'acknowledged', acknowledged_at: new Date().toISOString() } : c));
       showToast('Marked as acknowledged');
     } catch { showToast('Error updating status'); }

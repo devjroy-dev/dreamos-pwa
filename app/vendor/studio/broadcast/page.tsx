@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 const MAX_CHARS = 500;
 
@@ -38,14 +38,14 @@ export default function BroadcastPage() {
     if(!s?.vendorId&&!s?.id){router.replace('/vendor/login');return;}
     const vid=s.vendorId||s.id;
     setVendorId(vid);
-    fetch(`${BASE}/api/broadcasts/${vid}`).then(r=>r.json()).then(d=>{setBroadcasts(d.data||d||[]);setLoading(false);}).catch(()=>setLoading(false));
+    fetch(`${API_BASE}/api/broadcasts/${vid}`).then(r=>r.json()).then(d=>{setBroadcasts(d.data||d||[]);setLoading(false);}).catch(()=>setLoading(false));
   },[router]);
 
   async function send() {
     if (!message.trim()||sending||!vendorId) return;
     setSending(true); setResult(null);
     try {
-      const r=await fetch(`${BASE}/api/v2/vendor/broadcast-whatsapp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:vendorId,message:message.trim(),segment})});
+      const r=await fetch(`${API_BASE}/api/v2/vendor/broadcast-whatsapp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vendor_id:vendorId,message:message.trim(),segment})});
       const d=await r.json();
       if (d.success) {
         setResult({sent:d.sent||0,total:d.total||0,failed_count:d.failed_count||0});

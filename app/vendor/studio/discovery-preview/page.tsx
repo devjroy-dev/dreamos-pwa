@@ -4,8 +4,8 @@
 // Names are revealed at tap level 1 (they're previewing their own profile).
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 function getSession() {
   if (typeof window === 'undefined') return null;
@@ -30,7 +30,7 @@ export default function DiscoveryPreviewPage() {
     setSession(s);
     const vendorId = s.vendorId || s.id;
 
-    fetch(`${API}/api/vendor-images/${vendorId}`)
+    fetch(`${API_BASE}/api/vendor-images/${vendorId}`)
       .then(r => r.json())
       .then(d => {
         const imgs: VendorImage[] = (d.data || []);

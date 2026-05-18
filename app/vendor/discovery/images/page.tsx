@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 // ─── Session ─────────────────────────────────────────────────────────────────
 function getSession() {
@@ -86,7 +86,7 @@ export default function ImageHubPage() {
     const vendorId = s.vendorId || s.id;
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/vendor-images/${vendorId}`);
+      const r = await fetch(`${API_BASE}/api/vendor-images/${vendorId}`);
       const d = await r.json();
       if (d.success) setImages(d.data || []);
     } catch { /* silently handle — images just stay empty */ }
@@ -127,7 +127,7 @@ export default function ImageHubPage() {
         return;
       }
       // Step 2: Save URL to backend for admin approval
-      const r = await fetch(`${API}/api/vendor-images`, {
+      const r = await fetch(`${API_BASE}/api/vendor-images`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: vendorId, url: cloudData.secure_url, tags: [] }),
@@ -151,7 +151,7 @@ export default function ImageHubPage() {
     const vendorId = s.vendorId || s.id;
     setUploading(true);
     try {
-      const r = await fetch(`${API}/api/vendor-images`, {
+      const r = await fetch(`${API_BASE}/api/vendor-images`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: vendorId, url: urlInput.trim(), tags: [] }),
@@ -175,7 +175,7 @@ export default function ImageHubPage() {
     if (!s) return;
     const vendorId = s.vendorId || s.id;
     try {
-      await fetch(`${API}/api/vendor-images/set-hero`, {
+      await fetch(`${API_BASE}/api/vendor-images/set-hero`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: vendorId, image_id: imageId }),
@@ -188,7 +188,7 @@ export default function ImageHubPage() {
   // ─── Delete ───────────────────────────────────────────────────────────────
   async function deleteImage(imageId: string) {
     try {
-      await fetch(`${API}/api/vendor-images/${imageId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/vendor-images/${imageId}`, { method: 'DELETE' });
       setImages(prev => prev.filter(i => i.id !== imageId));
       setDeleteTarget(null);
       setToast('Photo removed');

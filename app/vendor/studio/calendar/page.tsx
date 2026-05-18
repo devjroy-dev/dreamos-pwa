@@ -6,8 +6,8 @@ import {
   ArrowLeft, ChevronLeft, ChevronRight, Plus,
   CheckSquare, ListTodo, CalendarPlus, Ban,
 } from 'lucide-react';
+import { API_BASE } from '../../../../lib/api';
 
-const BACKEND = 'https://dream-wedding-production-89ae.up.railway.app';
 
 interface Booking {
   id: string;
@@ -85,7 +85,7 @@ export default function CalendarPage() {
     setImportResult(null);
     try {
       const text = await file.text();
-      const res = await fetch(`${BACKEND}/api/v2/vendor/calendar/import/${vendorId}`, {
+      const res = await fetch(`${API_BASE}/api/v2/vendor/calendar/import/${vendorId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ics_content: text }),
@@ -144,8 +144,8 @@ export default function CalendarPage() {
   async function fetchBookings(vid: string) {
     try {
       const [bookingsRes, availRes] = await Promise.all([
-        fetch(`${BACKEND}/api/vendor-clients/${vid}`),
-        fetch(`${BACKEND}/api/vendor-discover/availability/${vid}`),
+        fetch(`${API_BASE}/api/vendor-clients/${vid}`),
+        fetch(`${API_BASE}/api/vendor-discover/availability/${vid}`),
       ]);
       const [json, availJson] = await Promise.all([
         bookingsRes.json(),
@@ -188,7 +188,7 @@ export default function CalendarPage() {
       const to = new Date();
       to.setMonth(to.getMonth() + 13);
       const r = await fetch(
-        `${BACKEND}/api/v2/hot-dates?from=${from.toISOString().split('T')[0]}&to=${to.toISOString().split('T')[0]}`
+        `${API_BASE}/api/v2/hot-dates?from=${from.toISOString().split('T')[0]}&to=${to.toISOString().split('T')[0]}`
       );
       const d = await r.json();
       if (d.success) {
@@ -249,7 +249,7 @@ export default function CalendarPage() {
     setFabLoading(true);
     try {
       if (creationType === 'task' || creationType === 'todo') {
-        await fetch(`${BACKEND}/api/todos/${vendorId}`, {
+        await fetch(`${API_BASE}/api/todos/${vendorId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -262,7 +262,7 @@ export default function CalendarPage() {
         });
         showToast(creationType === 'task' ? 'Task added.' : 'To-do added.');
       } else if (creationType === 'booking') {
-        await fetch(`${BACKEND}/api/vendor-clients`, {
+        await fetch(`${API_BASE}/api/vendor-clients`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -276,7 +276,7 @@ export default function CalendarPage() {
           }),
         });
         if (formReminderDate) {
-          await fetch(`${BACKEND}/api/todos/${vendorId}`, {
+          await fetch(`${API_BASE}/api/todos/${vendorId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -292,7 +292,7 @@ export default function CalendarPage() {
         setRefreshKey(k => k + 1); // P0-CALENDAR: force bookingDates recompute
       } else if (creationType === 'block') {
         // P0-CALENDAR: block-date writes to vendor_availability_blocks (correct table)
-        await fetch(`${BACKEND}/api/v2/dreamai/vendor-action/block-date`, {
+        await fetch(`${API_BASE}/api/v2/dreamai/vendor-action/block-date`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -535,7 +535,7 @@ export default function CalendarPage() {
           <div style={{ padding: '16px 24px 0' }}>
             <button
               onClick={() => {
-                const url = `${BACKEND}/api/v2/vendor/calendar.ics/${vendorId}`;
+                const url = `${API_BASE}/api/v2/vendor/calendar.ics/${vendorId}`;
                 window.open(url, '_blank');
               }}
               style={{

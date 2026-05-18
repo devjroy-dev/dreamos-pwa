@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 interface VendorSession {
@@ -233,7 +233,7 @@ export default function VendorLeadsPage() {
 
   function loadClients(vendorId: string) {
     setLoadingClients(true);
-    fetch(`${API}/api/v2/vendor/clients/${vendorId}`)
+    fetch(`${API_BASE}/api/v2/vendor/clients/${vendorId}`)
       .then(r => r.json())
       .then(json => {
         setClients(Array.isArray(json.data) ? json.data : []);
@@ -251,7 +251,7 @@ export default function VendorLeadsPage() {
     setExtracting(true);
     setExtracted(null);
     try {
-      const res = await fetch(`${API}/api/v2/dreamai/whatsapp-extract`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/whatsapp-extract`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: message.trim() }),
@@ -273,7 +273,7 @@ export default function VendorLeadsPage() {
     if (!extracted || !session) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/api/vendor-clients`, {
+      const res = await fetch(`${API_BASE}/api/vendor-clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -313,7 +313,7 @@ export default function VendorLeadsPage() {
     if (!session || booking) return;
     setBooking(true);
     try {
-      const res = await fetch(`${API}/api/v2/vendor/leads/${client.id}/convert`, {
+      const res = await fetch(`${API_BASE}/api/v2/vendor/leads/${client.id}/convert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: session.vendorId }),

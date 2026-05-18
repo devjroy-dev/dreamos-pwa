@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 interface VendorSession {
@@ -293,7 +293,7 @@ function DreamAiSheet({
     const endpoint = endpointMap[type];
     if (!endpoint) return 'Unknown action.';
     try {
-      const r = await fetch(`${API}${endpoint}`, {
+      const r = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: vendorId, ...params }),
       });
@@ -309,7 +309,7 @@ function DreamAiSheet({
     setMessages(prev => [...prev, { role: 'user', text: msg }]);
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/v2/dreamai/chat`, {
+      const res = await fetch(`${API_BASE}/api/v2/dreamai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -787,7 +787,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 async function savePushSubscription(vendorId: string, sub: PushSubscription) {
-  await fetch(`${API}/api/v2/vendor/push-subscribe`, {
+  await fetch(`${API_BASE}/api/v2/vendor/push-subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ vendor_id: vendorId, subscription: sub.toJSON() }),
@@ -867,7 +867,7 @@ export default function VendorTodayPage() {
 
     // Fetch vendor profile to get name if missing in session
     if (!s.vendorName) {
-      fetch(`${API}/api/vendors/${s.vendorId}`)
+      fetch(`${API_BASE}/api/vendors/${s.vendorId}`)
         .then(r => r.json())
         .then(d => {
           if (d.name) {
@@ -878,13 +878,13 @@ export default function VendorTodayPage() {
           }
         }).catch(() => {});
     }
-    fetch(`${API}/api/v2/vendor/today/${s.vendorId}`)
+    fetch(`${API_BASE}/api/v2/vendor/today/${s.vendorId}`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
 
     // DreamAi context
-    fetch(`${API}/api/v2/dreamai/vendor-context/${s.vendorId}`)
+    fetch(`${API_BASE}/api/v2/dreamai/vendor-context/${s.vendorId}`)
       .then(r => r.json())
       .then(json => {
         setDreamAiContext(json);
@@ -911,7 +911,7 @@ export default function VendorTodayPage() {
       .catch(() => {});
 
     // Fetch vendor row for created_at (needed for onboarding + tip of day timing)
-    fetch(`${API}/api/vendors/${s.vendorId}`)
+    fetch(`${API_BASE}/api/vendors/${s.vendorId}`)
       .then(r => r.json())
       .then(d => {
         if (d.data?.created_at) setVendorCreatedAt(d.data.created_at);
@@ -919,7 +919,7 @@ export default function VendorTodayPage() {
       .catch(() => {});
 
     // Fetch client count to decide if onboarding banner should show
-    fetch(`${API}/api/v2/vendor/clients/${s.vendorId}`)
+    fetch(`${API_BASE}/api/v2/vendor/clients/${s.vendorId}`)
       .then(r => r.json())
       .then(d => setClientCount((d.data || []).length))
       .catch(() => setClientCount(0));

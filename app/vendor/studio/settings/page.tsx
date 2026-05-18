@@ -2,8 +2,8 @@
 // Tips & Features + Account Settings — Studio Settings page.
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
+import { API_BASE } from '../../../../lib/api';
 
-const BASE = 'https://dream-wedding-production-89ae.up.railway.app';
 
 function getVendorSession() {
   if (typeof window === 'undefined') return null;
@@ -141,7 +141,7 @@ function TipsAndFeaturesInner() {
     setVendorId(vid);
 
     // Check gmail status
-    fetch(`${BASE}/api/v2/vendor/gmail/status/${vid}`)
+    fetch(`${API_BASE}/api/v2/vendor/gmail/status/${vid}`)
       .then(r => r.json())
       .then(d => { setGmailConnected(d.connected); setGmailEmail(d.email || ''); setGmailLoading(false); })
       .catch(() => setGmailLoading(false));
@@ -156,7 +156,7 @@ function TipsAndFeaturesInner() {
     if (!vendorId || gmailWorking) return;
     setGmailWorking(true);
     try {
-      await fetch(`${BASE}/api/v2/vendor/gmail/disconnect/${vendorId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/v2/vendor/gmail/disconnect/${vendorId}`, { method: 'DELETE' });
       setGmailConnected(false);
       setGmailEmail('');
       showToast('Google account disconnected');
@@ -212,7 +212,7 @@ function TipsAndFeaturesInner() {
                   {gmailWorking ? '…' : 'Disconnect'}
                 </button>
               ) : (
-                <button onClick={() => { if (vendorId) window.location.href = `${BASE}/api/v2/vendor/gmail/connect/${vendorId}`; }} style={{ height: 28, padding: '0 14px', background: '#111', border: 'none', borderRadius: 100, fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#F8F7F5', cursor: 'pointer' }}>
+                <button onClick={() => { if (vendorId) window.location.href = `${API_BASE}/api/v2/vendor/gmail/connect/${vendorId}`; }} style={{ height: 28, padding: '0 14px', background: '#111', border: 'none', borderRadius: 100, fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#F8F7F5', cursor: 'pointer' }}>
                   Connect
                 </button>
               )}
