@@ -12,6 +12,54 @@ const FALLBACK_SLIDES: string[] = [
 
 const MOTTO = 'Not just happily married. Getting married happily.';
 
+// ─── Country list (NRI-focused, curated) ─────────────────────────────────────
+const COUNTRIES = [
+  { flag: '🇮🇳', name: 'India',        dialCode: '+91',  maxDigits: 10 },
+  { flag: '🇦🇪', name: 'UAE',          dialCode: '+971', maxDigits: 9  },
+  { flag: '🇺🇸', name: 'USA',          dialCode: '+1',   maxDigits: 10 },
+  { flag: '🇬🇧', name: 'UK',           dialCode: '+44',  maxDigits: 10 },
+  { flag: '🇨🇦', name: 'Canada',       dialCode: '+1',   maxDigits: 10 },
+  { flag: '🇦🇺', name: 'Australia',    dialCode: '+61',  maxDigits: 9  },
+  { flag: '🇲🇾', name: 'Malaysia',     dialCode: '+60',  maxDigits: 10 },
+  { flag: '🇩🇪', name: 'Germany',      dialCode: '+49',  maxDigits: 10 },
+  { flag: '🇫🇷', name: 'France',       dialCode: '+33',  maxDigits: 9  },
+  { flag: '🇳🇿', name: 'New Zealand',  dialCode: '+64',  maxDigits: 9  },
+  { flag: '🇿🇦', name: 'South Africa', dialCode: '+27',  maxDigits: 9  },
+];
+type Country = typeof COUNTRIES[number];
+
+// ─── Country bottom sheet ─────────────────────────────────────────────────────
+function CountrySheet({ visible, onSelect, onClose }: {
+  visible: boolean;
+  onSelect: (c: Country) => void;
+  onClose: () => void;
+}) {
+  if (!visible) return null;
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(12,10,9,0.5)' }} />
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
+        background: 'rgba(12,10,9,0.88)',
+        backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
+        borderTop: '0.5px solid rgba(255,255,255,0.12)',
+        borderRadius: '20px 20px 0 0',
+        padding: '16px 0 calc(env(safe-area-inset-bottom, 16px) + 16px)',
+        maxHeight: '60vh', overflowY: 'auto',
+      }}>
+        <p style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.4)', margin: '0 0 12px 20px' }}>Select country</p>
+        {COUNTRIES.map(c => (
+          <button key={c.dialCode + c.name} onClick={() => { onSelect(c); onClose(); }} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', background: 'none', border: 'none', padding: '12px 20px', cursor: 'pointer', touchAction: 'manipulation' }}>
+            <span style={{ fontSize: 22 }}>{c.flag}</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 15, color: '#F8F7F5', flex: 1, textAlign: 'left' }}>{c.name}</span>
+            <span style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 13, color: 'rgba(248,247,245,0.4)', letterSpacing: '0.05em' }}>{c.dialCode}</span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
 // Screen states — what the glass panel shows
 type Screen =
   | 'entry'          // The 3 dot-selector entry panel
@@ -173,6 +221,10 @@ export default function Home() {
   const [editSecondsLeft, setEditSecondsLeft] = useState(0);
   const [submitting, setSubmitting]     = useState(false);
 
+  // Country picker
+  const [country, setCountry]               = useState(COUNTRIES[0]);
+  const [showCountrySheet, setShowCountrySheet] = useState(false);
+
   // Invite / OTP fields
   const [inviteCode, setInviteCode]     = useState('');
   const [inviteError, setInviteError]   = useState('');
@@ -285,7 +337,7 @@ export default function Home() {
     setSubmitting(true);
     try {
       const payload: any = {
-        phone: '+91' + reqPhone.replace(/\D/g, ''),
+        phone: country.dialCode + reqPhone.replace(/\D/g, ''),
         instagram_handle: reqInstagram || null,
         kind: role === 'Dreamer' ? 'dreamer' : 'maker',
         name: reqName || null,
@@ -346,14 +398,15 @@ export default function Home() {
 
   const sendOtp = async (phoneNum: string) => {
     const isVendor = role === 'Maker';
-    const bare = phoneNum.replace(/\D/g, '').slice(-10);
+    const digits = phoneNum.replace(/\D/g, '');
+    const e164 = country.dialCode + digits;
     const endpoint = isVendor
       ? `${API_BASE}/api/v2/vendor/auth/send-otp`
       : `${API_BASE}/api/v2/couple/auth/send-otp`;
     try {
       const r = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: '+91' + bare }),
+        body: JSON.stringify({ phone: e164 }),
       });
       const d = await r.json();
       if (!d.ok) { showToast(d.error || 'Could not send code. Try again.'); return; }
@@ -363,14 +416,15 @@ export default function Home() {
 
   const verifyOtp = async () => {
     const isVendor = role === 'Maker';
-    const bare = phone.replace(/\D/g, '').slice(-10);
+    const digits = phone.replace(/\D/g, '');
+    const e164 = country.dialCode + digits;
     const endpoint = isVendor
       ? `${API_BASE}/api/v2/vendor/auth/verify-otp`
       : `${API_BASE}/api/v2/couple/auth/verify-otp`;
     try {
       const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: '+91' + bare, code: otp.join('') }),
+        body: JSON.stringify({ phone: e164, code: otp.join('') }),
       });
       const d = await res.json();
       if (!d.ok) {
@@ -400,7 +454,7 @@ export default function Home() {
       const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
       const sessionData = {
         id: roleId, userId, vendorId: roleId,
-        phone: '+91' + bare,
+        phone: e164,
         pin_set: pinSet,
         name: d.name || null,
         vendorName: d.name || null,
@@ -428,11 +482,12 @@ export default function Home() {
   // ── Sign in (returning member) ────────────────────────────────────────────
   const handleSignIn = async () => {
     const isVendor = role === 'Maker';
-    const bare = phone.replace(/\D/g, '').slice(-10);
+    const digits = phone.replace(/\D/g, '');
+    const e164 = country.dialCode + digits;
     try {
       const r = await fetch(`${API_BASE}/api/v2/auth/pin-status`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: '+91' + bare, role: isVendor ? 'vendor' : 'couple' }),
+        body: JSON.stringify({ phone: e164, role: isVendor ? 'vendor' : 'couple' }),
       });
       const d = await r.json();
 
@@ -444,7 +499,7 @@ export default function Home() {
 
       if (d.pin_set) {
         const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
-        const sd = { phone: '+91' + bare, pin_set: true };
+        const sd = { phone: e164, pin_set: true };
         localStorage.setItem(sessionKey, JSON.stringify(sd));
         localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
         router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login');
@@ -675,8 +730,11 @@ export default function Home() {
 
                 <Label text="Phone" />
                 <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.3)', marginBottom: 16 }}>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', paddingRight: 10, borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, whiteSpace: 'nowrap' }}>🇮🇳 +91</span>
-                  <input value={reqPhone} onChange={e => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} type="tel" maxLength={10} placeholder="00000 00000" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 16 }}>{country.flag}</span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                  </button>
+                  <input value={reqPhone} onChange={e => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
                 </div>
 
                 <Label text="Instagram" />
@@ -725,8 +783,11 @@ export default function Home() {
 
                 <Label text="Phone" />
                 <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.3)', marginBottom: 16 }}>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', paddingRight: 10, borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, whiteSpace: 'nowrap' }}>🇮🇳 +91</span>
-                  <input value={reqPhone} onChange={e => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} type="tel" maxLength={10} placeholder="00000 00000" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 16 }}>{country.flag}</span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                  </button>
+                  <input value={reqPhone} onChange={e => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
                 </div>
 
                 <Label text="Instagram" />
@@ -844,10 +905,13 @@ export default function Home() {
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 24px' }}>Enter your number. We'll send a code.</p>
                 <Label text="Phone number" />
                 <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', paddingRight: 10, borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10 }}>🇮🇳 +91</span>
-                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} type="tel" maxLength={10} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 16 }}>{country.flag}</span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                  </button>
+                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
                 </div>
-                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < 10} />
+                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits} />
               </>
             )}
 
@@ -902,10 +966,13 @@ export default function Home() {
                 </div>
                 <Label text="Phone number" />
                 <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', paddingRight: 10, borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10 }}>🇮🇳 +91</span>
-                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} type="tel" maxLength={10} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 16 }}>{country.flag}</span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                  </button>
+                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
                 </div>
-                <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < 10 || !role} />
+                <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits || !role} />
               </>
             )}
 
@@ -1098,6 +1165,12 @@ export default function Home() {
         </div>
       )}
 
+      {/* ── Country picker bottom sheet ─────────────────────────────── */}
+      <CountrySheet
+        visible={showCountrySheet}
+        onSelect={c => { setCountry(c); setReqPhone(''); setPhone(''); }}
+        onClose={() => setShowCountrySheet(false)}
+      />
     </div>
   );
 }
