@@ -36,7 +36,7 @@ export default function VendorPinLoginPage() {
   // Fetch live cover photos
   const [slides, setSlides] = useState<string[]>(FALLBACK_SLIDES);
   useEffect(() => {
-    fetch(API + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/cover-photos')
       .then(r => r.json())
       .then(d => { if (d.photos?.length) { setSlides(d.photos.map((p: any) => p.image_url)); } })
       .catch(() => {});
@@ -49,7 +49,7 @@ export default function VendorPinLoginPage() {
     setLoading(true);
     try {
       const session = JSON.parse(localStorage.getItem('vendor_web_session') || localStorage.getItem('vendor_session') || '{}');
-      const r = await fetch(API + '/api/v2/auth/verify-pin', {
+      const r = await fetch(API_BASE + '/api/v2/auth/verify-pin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: session.vendorId || session.id, pin: pinStr, role: 'vendor', phone: session.phone }),
       });

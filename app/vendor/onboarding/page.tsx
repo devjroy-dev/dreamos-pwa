@@ -50,7 +50,7 @@ export default function VendorOnboardingPage() {
 
   // Fetch live cover photos
   useEffect(() => {
-    fetch(API + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/cover-photos')
       .then(r => r.json())
       .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
       .catch(() => {});
@@ -68,7 +68,7 @@ export default function VendorOnboardingPage() {
       const phone = session.phone;
 
       // Save name + category to backend
-      const r = await fetch(API + '/api/v2/vendor/onboarding', {
+      const r = await fetch(API_BASE + '/api/v2/vendor/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendorId, phone, name: name.trim(), category }),

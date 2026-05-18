@@ -88,7 +88,7 @@ function ActionCard({ msg, vendorId, onConfirm, onDismiss }: {
     if (!ep) { onConfirm('Action not available yet.'); return; }
     setExecuting(true);
     try {
-      const r = await fetch(API + ep, {
+      const r = await fetch(API_BASE + ep, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vendor_id: vendorId, ...(msg.actionParams || {}) }),
@@ -202,7 +202,7 @@ export default function VendorDreamAiPage() {
     setVendorId(vid);
     setVendorName(s.vendorName || s.name || 'Maker');
 
-    fetch(API + '/api/v2/dreamai/vendor-context/' + vid)
+    fetch(API_BASE + '/api/v2/dreamai/vendor-context/' + vid)
       .then(r => r.json())
       .then(d => { setContext(d); setContextLoading(false); })
       .catch(() => setContextLoading(false));
@@ -290,7 +290,7 @@ export default function VendorDreamAiPage() {
 
       // v3 vendor-chat executes tools server-side and returns:
       //   { success, reply, toolsUsed: [{name, input, result}], iterations }
-      const r = await fetch(API + '/api/v3/dreamai/vendor-chat', {
+      const r = await fetch(API_BASE + '/api/v3/dreamai/vendor-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -314,7 +314,7 @@ export default function VendorDreamAiPage() {
 
       // Backend ran tools — refresh vendor context so chips/briefing reflect new state.
       if (vendorId && toolsUsed.length > 0) {
-        const ctx = await fetch(API + '/api/v2/dreamai/vendor-context/' + vendorId)
+        const ctx = await fetch(API_BASE + '/api/v2/dreamai/vendor-context/' + vendorId)
           .then(r => r.json()).catch(() => null);
         if (ctx) setContext(ctx);
       }
@@ -355,7 +355,7 @@ export default function VendorDreamAiPage() {
         text: m.text,
       }));
 
-      const r = await fetch(API + '/api/v2/dreamai/chat', {
+      const r = await fetch(API_BASE + '/api/v2/dreamai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -377,7 +377,7 @@ export default function VendorDreamAiPage() {
         const ep = getEndpoint(parsed.type);
         if (ep) {
           try {
-            const execR = await fetch(API + ep, {
+            const execR = await fetch(API_BASE + ep, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ vendor_id: vendorId, ...parsed.params }),
@@ -575,7 +575,7 @@ export default function VendorDreamAiPage() {
                     }]);
                     // Refresh context after action
                     if (vendorId) {
-                      const ctx = await fetch(API + '/api/v2/dreamai/vendor-context/' + vendorId)
+                      const ctx = await fetch(API_BASE + '/api/v2/dreamai/vendor-context/' + vendorId)
                         .then(r => r.json()).catch(() => null);
                       if (ctx) setContext(ctx);
                     }

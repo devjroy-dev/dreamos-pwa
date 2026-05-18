@@ -63,7 +63,7 @@ function ActionCard({ msg, userType, userId, onConfirm, onDismiss }: {
     setExecuting(true);
     try {
       const bodyKey = userType === 'vendor' ? 'vendor_id' : 'couple_id';
-      const r = await fetch(API + ep, {
+      const r = await fetch(API_BASE + ep, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [bodyKey]: userId, ...(msg.actionParams || {}) }),
       });
@@ -151,7 +151,7 @@ function Modal({ onClose, userType, userId }: {
     const ep = userType === 'vendor'
       ? `/api/v2/dreamai/vendor-context/${userId}`
       : `/api/v2/dreamai/couple-context/${userId}`;
-    fetch(API + ep)
+    fetch(API_BASE + ep)
       .then(r => r.json())
       .then(d => { setCtx(d); setCtxLoading(false); })
       .catch(() => setCtxLoading(false));
@@ -182,7 +182,7 @@ function Modal({ onClose, userType, userId }: {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      const r = await fetch(API + '/api/v2/dreamai/chat', {
+      const r = await fetch(API_BASE + '/api/v2/dreamai/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId, userType, context: ctx, history: msgs.slice(-10),
@@ -204,7 +204,7 @@ function Modal({ onClose, userType, userId }: {
     setMsgs(p => [...p, { role: 'user', text: msg }]);
     setBusy(true);
     try {
-      const r = await fetch(API + '/api/v2/dreamai/chat', {
+      const r = await fetch(API_BASE + '/api/v2/dreamai/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userType, message: msg, context: ctx, history: msgs.slice(-10) }),
       });
@@ -383,7 +383,7 @@ export default function DreamAiFAB({ userType='vendor', userId }: { userType?:'v
 
   useEffect(() => {
     if (!resolvedId || userType !== 'vendor') return;
-    fetch(API + '/api/v2/vendor/today/' + resolvedId)
+    fetch(API_BASE + '/api/v2/vendor/today/' + resolvedId)
       .then(r=>r.json()).then(d=>setUrgent((d.data?.needs_attention||[]).length>0)).catch(()=>{});
   }, [resolvedId, userType]);
 

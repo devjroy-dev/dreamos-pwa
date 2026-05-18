@@ -31,7 +31,7 @@ export default function CouplePinPage() {
   }, []);
 
   useEffect(() => {
-    fetch(API + '/api/v2/cover-photos')
+    fetch(API_BASE + '/api/v2/cover-photos')
       .then(r => r.json())
       .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
       .catch(() => {});
@@ -51,7 +51,7 @@ export default function CouplePinPage() {
     setLoading(true);
     try {
       const session = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
-      const r = await fetch(API + '/api/v2/auth/set-pin', {
+      const r = await fetch(API_BASE + '/api/v2/auth/set-pin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: session.userId || session.id, pin: pinStr, role: 'couple', phone: session.phone }),
       });

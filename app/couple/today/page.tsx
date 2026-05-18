@@ -88,7 +88,7 @@ function CoupleActionCard({ msg, userId, onConfirm, onDismiss }: {
     if (!ep) { onConfirm('Action not available yet.'); return; }
     setExecuting(true);
     try {
-      const r = await fetch(API + ep, {
+      const r = await fetch(API_BASE + ep, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: userId, ...(msg.actionParams || {}) }),
       });
