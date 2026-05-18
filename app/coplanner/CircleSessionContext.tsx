@@ -1,8 +1,7 @@
 'use client';
 import { createContext, useContext } from 'react';
 
-export const API = 'https://dream-wedding-production-89ae.up.railway.app';
-
+export { API_BASE as API } from '../../lib/api';
 export const GOLD     = '#C9A84C';
 export const INK      = '#0C0A09';
 export const CREAM    = '#F8F7F5';

@@ -1,8 +1,9 @@
 'use client';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
+import { API_BASE } from '../../lib/api';
 
-const API  = 'https://dream-wedding-production-89ae.up.railway.app';
+
 const GOLD = '#C9A84C';
 const HIDDEN = ['/pin', '/pin-login', '/login', '/setup', '/demo', '/vendor/dreamai'];
 

@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { API_BASE } from '../../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 export default function CoJoinPage() {
   const params = useParams();
@@ -21,7 +21,7 @@ export default function CoJoinPage() {
 
   useEffect(() => {
     if (!code) { setStep('error'); return; }
-    fetch(`${API}/api/co-planner/validate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) })
+    fetch(`${API_BASE}/api/co-planner/validate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) })
       .then(r => r.json()).then(d => {
         if (d.success) { setPrimaryName(d.data.primary_name); setInviteId(d.data.invite_id); setStep('form'); }
         else { setError(d.error || 'Invalid invite'); setStep('error'); }
@@ -35,7 +35,7 @@ export default function CoJoinPage() {
     if (password !== confirmPassword) { setError('Passwords do not match'); return; }
     setLoading(true); setError('');
     try {
-      const r = await fetch(`${API}/api/co-planner/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const r = await fetch(`${API_BASE}/api/co-planner/accept`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ invite_code: code, name: name.trim(), phone, email: email.trim() || null, instagram: instagram.trim() || null, password }) });
       const d = await r.json();
       if (d.success) {

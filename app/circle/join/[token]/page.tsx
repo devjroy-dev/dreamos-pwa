@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { API_BASE } from '../../../../lib/api';
 
-const API  = 'https://dream-wedding-production-89ae.up.railway.app';
+
 const GOLD = '#C9A84C';
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 const S: React.CSSProperties = { position: 'absolute', inset: 0 };
@@ -46,7 +47,7 @@ export default function CircleJoinPage() {
 
   useEffect(() => {
     // Fetch cover photos — same catalogue as the main gate
-    fetch(`${API}/api/v2/cover-photos`)
+    fetch(`${API_BASE}/api/v2/cover-photos`)
       .then(r => r.json())
       .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
       .catch(() => {});
@@ -57,7 +58,7 @@ export default function CircleJoinPage() {
   // Validate token on mount
   useEffect(() => {
     if (!token) { setErrorMsg('Invalid invite link.'); setStep('error'); return; }
-    fetch(`${API}/api/v2/circle/join/validate`, {
+    fetch(`${API_BASE}/api/v2/circle/join/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
@@ -86,7 +87,7 @@ export default function CircleJoinPage() {
     if (bare.length < 10) { showToast('Enter a valid 10-digit number'); return; }
     setLoading(true);
     try {
-      await fetch(`${API}/api/v2/couple/auth/send-otp`, {
+      await fetch(`${API_BASE}/api/v2/couple/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: bare }),
@@ -101,7 +102,7 @@ export default function CircleJoinPage() {
   const verifyOtp = async (code: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/circle/join/accept`, {
+      const r = await fetch(`${API_BASE}/api/v2/circle/join/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, phone, otp: code }),
@@ -133,7 +134,7 @@ export default function CircleJoinPage() {
   const setUserPin = async (pinStr: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/v2/circle/join/set-pin`, {
+      const r = await fetch(`${API_BASE}/api/v2/circle/join/set-pin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, pin: pinStr }),
@@ -141,7 +142,7 @@ export default function CircleJoinPage() {
       const d = await r.json();
       if (!d.success) { showToast(d.error || 'Could not set PIN.'); setLoading(false); return; }
       // Fetch full session
-      const sr = await fetch(`${API}/api/v2/circle/session/${userId}`);
+      const sr = await fetch(`${API_BASE}/api/v2/circle/session/${userId}`);
       const sd = await sr.json();
       if (sd.success) localStorage.setItem('circle_session', JSON.stringify(sd.data));
       router.push('/coplanner');

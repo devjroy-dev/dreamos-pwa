@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const RAILWAY = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://dream-wedding-production-89ae.up.railway.app';
+const RAILWAY = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://dream-os-production.up.railway.app';
 
 export async function POST(req: NextRequest) {
   try {

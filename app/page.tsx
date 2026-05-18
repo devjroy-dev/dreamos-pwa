@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../lib/api';
 
-const BACKEND = 'https://dream-wedding-production-89ae.up.railway.app';
 
 const FALLBACK_SLIDES: string[] = [
   
@@ -234,7 +234,7 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch cover photos
-    fetch(`${BACKEND}/api/v2/cover-photos`)
+    fetch(`${API_BASE}/api/v2/cover-photos`)
       .then(r => r.json())
       .then(d => { if (d.photos?.length) setSlides(d.photos.map((p: any) => p.image_url)); })
       .catch(() => {});
@@ -253,13 +253,13 @@ export default function Home() {
     setExploringIdx(0);
     setExploringDone(false);
     try {
-      const r = await fetch(`${BACKEND}/api/v2/exploring-photos`);
+      const r = await fetch(`${API_BASE}/api/v2/exploring-photos`);
       const d = await r.json();
       if (d.success && d.photos?.length) {
         setExploringPhotos(d.photos);
       } else {
         // No curated editorial photos yet — fall back to vendor preview photos
-        const r2 = await fetch(`${BACKEND}/api/v2/preview-vendors`);
+        const r2 = await fetch(`${API_BASE}/api/v2/preview-vendors`);
         const d2 = await r2.json();
         if (d2.success && d2.data?.length) {
           const fallback = d2.data
@@ -321,7 +321,7 @@ export default function Home() {
         payload.wedding_date_status = 'browsing';
       }
 
-      await fetch(`${BACKEND}/api/v2/waitlist`, {
+      await fetch(`${API_BASE}/api/v2/waitlist`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -365,8 +365,8 @@ export default function Home() {
     const isVendor = role === 'Maker';
     const bare = phoneNum.replace(/\D/g, '').slice(-10);
     const endpoint = isVendor
-      ? `${BACKEND}/api/v2/vendor/auth/send-otp`
-      : `${BACKEND}/api/v2/couple/auth/send-otp`;
+      ? `${API_BASE}/api/v2/vendor/auth/send-otp`
+      : `${API_BASE}/api/v2/couple/auth/send-otp`;
     try {
       const r = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -382,8 +382,8 @@ export default function Home() {
     const isVendor = role === 'Maker';
     const bare = phone.replace(/\D/g, '').slice(-10);
     const endpoint = isVendor
-      ? `${BACKEND}/api/v2/vendor/auth/verify-otp`
-      : `${BACKEND}/api/v2/couple/auth/verify-otp`;
+      ? `${API_BASE}/api/v2/vendor/auth/verify-otp`
+      : `${API_BASE}/api/v2/couple/auth/verify-otp`;
     try {
       const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -445,7 +445,7 @@ export default function Home() {
     const isVendor = role === 'Maker';
     const bare = phone.replace(/\D/g, '').slice(-10);
     try {
-      const r = await fetch(`${BACKEND}/api/v2/auth/pin-status?userId=_&role=${isVendor ? 'vendor' : 'couple'}&phone=${bare}`);
+      const r = await fetch(`${API_BASE}/api/v2/auth/pin-status?userId=_&role=${isVendor ? 'vendor' : 'couple'}&phone=${bare}`);
       const d = await r.json();
 
       if (!d.userId || d.found === false) {
@@ -839,7 +839,7 @@ export default function Home() {
                 <GoldBtn label="Continue →" onClick={async () => {
                   if (!inviteCode.trim() || !role) { setInviteError('Select Dreamer or Maker and enter your code.'); return; }
                   try {
-                    const r = await fetch(`${BACKEND}/api/v2/invite/validate`, {
+                    const r = await fetch(`${API_BASE}/api/v2/invite/validate`, {
                       method: 'POST', headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ code: inviteCode.trim(), role: role === 'Dreamer' ? 'dreamer' : 'vendor' }),
                     });

@@ -7,8 +7,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SEED_VENDORS, type SeedVendor } from '@/lib/seed/discoverySeed';
+import { API_BASE } from '../../lib/api';
 
-const API = 'https://dream-wedding-production-89ae.up.railway.app';
 
 type DiscoveryProps = {
   mode: 'couple' | 'demo';
@@ -128,7 +128,7 @@ export default function Discovery({ mode, session = null, vendorsOverride }: Dis
     haptic(12);
 
     try {
-      await fetch(`${API}/api/couple/muse/save`, {
+      await fetch(`${API_BASE}/api/couple/muse/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

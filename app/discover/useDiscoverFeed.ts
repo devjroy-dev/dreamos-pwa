@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { API_BASE } from '../../lib/api';
 
 export interface DiscoveryCard {
   id: string;
@@ -21,7 +22,7 @@ export function useDiscoverFeed() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("https://dream-wedding-production-89ae.up.railway.app/api/v2/discovery/feed")
+    fetch(`${API_BASE}/api/v2/discovery/feed`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
