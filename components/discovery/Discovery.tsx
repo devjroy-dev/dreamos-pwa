@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SEED_VENDORS, type SeedVendor } from '@/lib/seed/discoverySeed';
+import { SEED_VENDORS, type SeedVendor } from '../../lib/seed/discoverySeed';
 import { API_BASE } from '../../lib/api';
 
 
