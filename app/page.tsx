@@ -353,7 +353,7 @@ export default function Home() {
     try {
       const r = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: bare }),
+        body: JSON.stringify({ phone: '+91' + bare }),
       });
       const d = await r.json();
       if (!d.ok) { showToast(d.error || 'Could not send code. Try again.'); return; }
@@ -370,7 +370,7 @@ export default function Home() {
     try {
       const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: bare, code: otp.join('') }),
+        body: JSON.stringify({ phone: '+91' + bare, code: otp.join('') }),
       });
       const d = await res.json();
       if (!d.ok) {
@@ -444,7 +444,7 @@ export default function Home() {
 
       if (d.pin_set) {
         const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
-        const sd = { phone: bare, pin_set: true };
+        const sd = { phone: '+91' + bare, pin_set: true };
         localStorage.setItem(sessionKey, JSON.stringify(sd));
         localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
         router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login');
