@@ -285,7 +285,7 @@ export default function Home() {
     setSubmitting(true);
     try {
       const payload: any = {
-        phone: reqPhone.replace(/\D/g, ''),
+        phone: '+91' + reqPhone.replace(/\D/g, ''),
         instagram: reqInstagram || null,
         role: role === 'Dreamer' ? 'dreamer' : 'maker',
         name: reqName || null,
