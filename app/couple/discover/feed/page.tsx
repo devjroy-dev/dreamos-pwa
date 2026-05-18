@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import React, { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SEED_VENDORS, type SeedVendor } from '@/lib/seed/discoverySeed';
+import { SEED_VENDORS, type SeedVendor } from '../../../../lib/seed/discoverySeed';
 import { MessageCircle, Lock, Users } from 'lucide-react';
 import { API_BASE } from '../../../../lib/api';
 
