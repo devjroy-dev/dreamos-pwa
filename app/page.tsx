@@ -499,7 +499,7 @@ export default function Home() {
 
       if (d.pin_set) {
         const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
-        const sd = { phone: e164, pin_set: true };
+        const sd = {           id: d.role_id, userId: d.user_id, vendorId: d.role_id,           phone: e164, pin_set: true,         };
         localStorage.setItem(sessionKey, JSON.stringify(sd));
         localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
         router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login');
