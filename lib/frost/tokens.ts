@@ -89,6 +89,7 @@ export interface MuseLookTokens {
   cardFill:            string;
   stampFill:           string;
   hairline:            string;
+  hairlineStrong:      string;
   ink:                 string;
   soft:                string;
   brass:               string;

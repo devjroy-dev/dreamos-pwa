@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 // app/(vendor)/vendor/dreamai/page.tsx
 // DREAMAI — full conversation UI for the dream-os vendor agent.

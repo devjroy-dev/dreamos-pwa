@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 // app/(vendor)/vendor/leads/page.tsx
 // LEADS — pipeline. State filter pills, list of leads, inline state changer.
