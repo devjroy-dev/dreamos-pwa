@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# frost-pwa-vendor — Deploy Guide
 
-## Getting Started
+## What's in this ZIP
 
-First, run the development server:
+Frost vendor PWA build for `dreamos-pwa`. Restructures the flat `app/vendor/` post-login screens into a clean route-group architecture:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+app/
+  (landing)/            ← marketing surface
+    layout.tsx          ← passthrough
+    page.tsx            ← homepage (moved from app/page.tsx)
+    about/              ← moved
+    discover/           ← moved
+    join/               ← moved
+  (auth)/               ← PIN + login + onboarding
+    layout.tsx          ← passthrough
+    vendor/pin/
+    vendor/pin-login/
+    vendor/onboarding/
+    couple/pin/
+    couple/pin-login/
+    couple/onboarding/
+  (vendor)/             ← Frost vendor PWA (this build)
+    layout.tsx          ← mode context, TopBar, BottomNav
+    vendor/today/
+    vendor/leads/
+    vendor/clients/
+    vendor/clients/[clientId]/
+    vendor/money/
+    vendor/dreamai/
+    vendor/studio/      ← shell
+    vendor/discovery/   ← shell
+    vendor/discovery/leads/
+    vendor/discovery/images/
+    vendor/discovery/collab/
+  (bride)/              ← next session (frost-bride)
+  layout.tsx            ← root HTML shell — NEVER moved
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+URLs are unchanged: `/vendor/today`, `/vendor/leads`, etc. Route groups don't affect URLs. Login redirects keep working.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy steps
 
-## Learn More
+### 1. Unzip at repo root
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd dreamos-pwa
+unzip -o frost-pwa-vendor.zip
+cp -r deploy/* .
+rm -rf deploy frost-pwa-vendor.zip
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Verify auth screens exist at new location
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+ls app/\(auth\)/vendor/pin/
+ls app/\(auth\)/vendor/pin-login/
+ls app/\(auth\)/vendor/onboarding/
+ls app/\(landing\)/
+```
 
-## Deploy on Vercel
+If any are missing, the ZIP didn't include them (they weren't in scope — copy manually from `app/vendor/` before running cleanup).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Run cleanup (dry run first)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+bash cleanup.sh --dry-run   # see what will be deleted
+bash cleanup.sh             # apply
+```
+
+### 4. Start dev server with mocks
+
+```bash
+NEXT_PUBLIC_USE_MOCKS=true npm run dev
+```
+
+Navigate to `/vendor/pin-login` → PIN `1234` (demo couple) → `/vendor/today`. Full screen flow with mock data.
+
+### 5. Typecheck
+
+```bash
+npx tsc --noEmit
+```
+
+Zero errors expected. If there are errors, they'll be in pre-existing legacy files — not in the new `(vendor)/` screens.
+
+---
+
+## Flip to real backend
+
+In `.env.local` at repo root:
+
+```env
+NEXT_PUBLIC_USE_MOCKS=false
+NEXT_PUBLIC_API_BASE=https://dream-os-production.up.railway.app
+```
+
+Restart dev server. Zero code changes. The `USE_MOCKS` flag in `lib/api/_base.ts` controls every endpoint.
+
+---
+
+## What's NOT in this ZIP (intentional)
+
+| What | Why |
+|------|-----|
+| `app/(auth)/vendor/pin*`, `couple/pin*` | Auth screens untouched — you copy manually if needed |
+| `app/(bride)/` | Next session: frost-bride |
+| `app/admin/`, `app/circle/`, `app/coplanner/` | Separate surfaces, untouched |
+| `app/layout.tsx` | Root HTML shell — never in scope |
+| Couple post-login screens | Next session |
+
+---
+
+## DreamAi screen notes
+
+The vendor DreamAi screen calls `POST /api/v2/vendor/chat` on dream-os. Key architectural points verified against `src/api/vendor/chat.js`:
+
+- **One agent.** WhatsApp and PWA share `runAgenticTurn()` in `src/agent/engine.js`.
+- **One conversation row per vendor** (`kind='vendor_self'`). Agent remembers across surfaces — vendor's WhatsApp history is visible from the PWA and vice versa.
+- **History field is contract compliance only.** Backend reads from DB. Frontend passes it for session continuity, not for agent memory.
+- **`tool_calls` returns names only** (`string[]`). Full audit stays server-side. PWA surfaces them as pills: "✦ Updated lead state", "✦ Read invoices".
+- **`channel='web'`** suppresses cross-channel WhatsApp confirmations. PWA reply owns the confirmation.
+
+---
+
+## Next session: frost-bride
+
+Same pattern. `app/(bride)/couple/` route group with identical foundation (types → api → mocks → layout → screens). Screens: today, plan, muse, discover, dreamai, circle. `lib/types/bride.ts` shapes become the dream-os P2-7a contract spec.
