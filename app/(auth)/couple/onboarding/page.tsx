@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { CitySearchDropdown, ALL_CITIES } from '../../components/CitySearchDropdown';
-import { API_BASE } from '../../../lib/api';
+import { CitySearchDropdown, ALL_CITIES } from '../../../components/CitySearchDropdown';
+import { API_BASE } from '../../../../lib/api';
 
 const INDIA_CITY_SET = new Set([
   'Delhi','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Udaipur','Pune','Ahmedabad',

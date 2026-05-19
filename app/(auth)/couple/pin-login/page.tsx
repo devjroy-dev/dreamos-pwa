@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_BASE } from '../../../lib/api';
+import { API_BASE } from '../../../../lib/api';
 
 
 const GOLD = '#C9A84C';

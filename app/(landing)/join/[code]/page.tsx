@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { API_BASE } from '../../../lib/api';
+import { API_BASE } from '../../../../lib/api';
 
 
 export default function CoJoinPage() {

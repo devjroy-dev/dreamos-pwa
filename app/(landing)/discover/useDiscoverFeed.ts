@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { API_BASE } from '../../lib/api';
+import { API_BASE } from '../../../lib/api';
 
 export interface DiscoveryCard {
   id: string;

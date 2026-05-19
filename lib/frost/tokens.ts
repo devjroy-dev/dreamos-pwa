@@ -119,6 +119,7 @@ export const MUSE_LOOKS: Record<MuseLook, MuseLookTokens> = {
     closeColor:          'rgba(245,240,232,0.8)',
     scrimGradient:       ['rgba(15,12,10,0)', 'rgba(15,12,10,0.78)'],
     tileAspect:          1.18,
+    hairlineStrong:      'rgba(191,160,77,0.22)',
     statusBarStyle:      'light-content',
   },
   E3: {
@@ -136,6 +137,7 @@ export const MUSE_LOOKS: Record<MuseLook, MuseLookTokens> = {
     closeColor:          '#5A5650',
     scrimGradient:       ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
     tileAspect:          1.08,
+    hairlineStrong:      'rgba(44,40,35,0.18)',
     statusBarStyle:      'dark-content',
   },
 };
