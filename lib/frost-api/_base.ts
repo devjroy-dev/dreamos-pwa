@@ -74,6 +74,25 @@ export function getVendorId(): string | null {
   return s?.vendorId || s?.id || null;
 }
 
+export interface CoupleSession {
+  id?: string;       // couple_id
+  userId?: string;
+  name?: string;
+  pin_set?: boolean;
+}
+
+export function getCoupleSession(): CoupleSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw =
+      localStorage.getItem('couple_session') ||
+      localStorage.getItem('couple_web_session');
+    return raw ? (JSON.parse(raw) as CoupleSession) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -169,6 +188,18 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
       ...getAuthHeader(),
     },
     body: JSON.stringify(body),
+  });
+  return handleResponse<T>(res);
+}
+
+export async function apiDelete<T>(path: string): Promise<T> {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
   });
   return handleResponse<T>(res);
 }

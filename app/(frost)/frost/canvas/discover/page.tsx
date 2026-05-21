@@ -4,13 +4,11 @@ export const dynamic = 'force-dynamic';
 
 import React, { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SEED_VENDORS, type SeedVendor } from '../../../../../lib/seed/discoverySeed';
 import { useFrostMode } from '../../../layout';
-import { MODES } from '../../../../../lib/frost/tokens';
 import { MessageCircle, Lock, Users } from 'lucide-react';
-import { API_BASE } from '../../../../../lib/api';
-
-
+import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
+import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
+import type { DiscoverVendor } from '../../../../../lib/types/discover';
 
 const haptic = (ms: number) => {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -25,21 +23,13 @@ const TAP_MAX_TIME    = 250;
 const DOUBLE_TAP_MS   = 280;
 const OVERLAY_DISMISS = 80;
 
-// ── Save to Muse (standalone, no spawnHeart dependency) ───────────────────────
-async function saveVendorToMuse(vendorId: string, userId: string | null): Promise<boolean> {
-  if (!userId) return false;
+async function handleSaveToMuse(vendorId: string): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/api/couple/muse/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ couple_id: userId, vendor_id: vendorId, event: 'general' }),
-    });
-    const json = await res.json();
-    return json.success === true;
+    const result = await saveVendorToMuse(vendorId);
+    return result.ok === true;
   } catch { return false; }
 }
 
-// Toast that shows "Saved to Muse" briefly at top of screen
 function spawnSaveToast(alreadySaved = false) {
   if (typeof document === 'undefined') return;
   const existing = document.getElementById('muse-save-toast');
@@ -59,13 +49,12 @@ function spawnSaveToast(alreadySaved = false) {
     z-index:9998;pointer-events:none;white-space:nowrap;
     animation:toastSlideIn 250ms cubic-bezier(0.22,1,0.36,1) forwards;
   `;
-  el.textContent = alreadySaved ? 'Already in Muse' : 'Saved to Muse ♥';
+  el.textContent = alreadySaved ? 'Already in Muse' : 'Saved to Muse \u2665';
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 300ms ease'; }, 1800);
   setTimeout(() => el.remove(), 2200);
 }
 
-// ── Heart animation ───────────────────────────────────────────────────────────
 function spawnHeart() {
   if (typeof document === 'undefined') return;
   const el = document.createElement('div');
@@ -76,22 +65,19 @@ function spawnHeart() {
     animation:heartPop 700ms cubic-bezier(0.22,1,0.36,1) forwards;
     color:#C9A84C;
   `;
-  el.textContent = '♥';
+  el.textContent = '\u2665';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 700);
   haptic(14);
 }
 
-// ── Glass Overlay ─────────────────────────────────────────────────────────────
-function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
-  vendor: SeedVendor; visible: boolean; onClose: () => void;
-  onEnquire: () => void; userId: string | null;
+function GlassOverlay({ vendor, visible, onClose, isBlind }: {
+  vendor: DiscoverVendor; visible: boolean; onClose: () => void; isBlind: boolean;
 }) {
   const dragStartY = useRef(0);
   const [dragDelta, setDragDelta] = useState(0);
   const isDragging = useRef(false);
   const [circleToast, setCircleToast] = useState(false);
-  const [enquireToast, setEnquireToast] = useState(false);
 
   const onTouchStart = (e: React.TouchEvent) => {
     dragStartY.current = e.touches[0].clientY;
@@ -112,8 +98,10 @@ function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
   const ty = dragDelta > 0 ? `translateY(${dragDelta}px)` : 'translateY(0)';
   const op = dragDelta > 0 ? Math.max(0.3, 1 - dragDelta / 200) : 1;
 
+  const enquireLink = vendor.enquire_link ||
+    (vendor.routing_handle ? makeEnquireLink(vendor.routing_handle) : null);
+
   return (
-    // Outer wrapper: position fixed so backdrop-filter works on all browsers
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
       zIndex: 20,
@@ -121,7 +109,6 @@ function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
       transition: isDragging.current ? 'none' : 'transform 340ms cubic-bezier(0.22,1,0.36,1)',
       opacity: visible ? op : 0,
       willChange: 'transform',
-      // iOS frosted glass
       background: 'rgba(12,10,9,0.82)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
@@ -133,17 +120,10 @@ function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Drag handle */}
       <div style={{ display:'flex',justifyContent:'center',padding:'12px 0 16px' }}>
         <div style={{ width:36,height:4,borderRadius:2,background:'rgba(255,255,255,0.2)' }} />
       </div>
-      {/* Enquire toast */}
-      {enquireToast && (
-        <div style={{ position:'absolute',top:16,left:'50%',transform:'translateX(-50%)',background:'rgba(255,255,255,0.15)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',border:'0.5px solid rgba(255,255,255,0.2)',borderRadius:20,padding:'6px 16px',fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:300,color:'rgba(248,247,245,0.8)',whiteSpace:'nowrap',zIndex:30 }}>
-          Enquiry coming soon
-        </div>
-      )}
-      {/* Circle toast */}
+
       {circleToast && (
         <div style={{ position:'absolute',top:16,left:'50%',transform:'translateX(-50%)',background:'rgba(255,255,255,0.15)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',border:'0.5px solid rgba(255,255,255,0.2)',borderRadius:20,padding:'6px 16px',fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:300,color:'rgba(248,247,245,0.8)',whiteSpace:'nowrap',zIndex:30 }}>
           Add someone to your Circle first — tap Circle in the menu
@@ -151,42 +131,49 @@ function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
       )}
 
       <div style={{ padding:'0 24px' }}>
-        {/* Category + city */}
         <p style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase',color:'rgba(248,247,245,0.5)',margin:'0 0 8px' }}>
-          {vendor.categoryLabel}&nbsp;·&nbsp;{vendor.city}
+          {vendor.category}&nbsp;\u00b7&nbsp;{vendor.city}
         </p>
 
-        {/* Name */}
-        <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:300,color:'#F8F7F5',margin:'0 0 4px',letterSpacing:'-0.01em',lineHeight:1.1 }}>
-          {vendor.name}
-        </h2>
+        {!isBlind && (
+          <h2 style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:300,color:'#F8F7F5',margin:'0 0 4px',letterSpacing:'-0.01em',lineHeight:1.1 }}>
+            {vendor.name}
+          </h2>
+        )}
 
-        {/* Tagline */}
-        <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:15,fontWeight:300,fontStyle:'italic',color:'rgba(248,247,245,0.65)',margin:'0 0 12px',lineHeight:1.5 }}>
-          {vendor.tagline}
-        </p>
+        {vendor.about && (
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:15,fontWeight:300,fontStyle:'italic',color:'rgba(248,247,245,0.65)',margin:'0 0 12px',lineHeight:1.5 }}>
+            {vendor.about}
+          </p>
+        )}
 
-        {/* Price */}
-        <p style={{ fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:300,color:'rgba(248,247,245,0.5)',margin:'0 0 20px' }}>
-          {vendor.priceLabel}
-        </p>
+        {!isBlind && vendor.starting_price && (
+          <p style={{ fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:300,color:'rgba(248,247,245,0.5)',margin:'0 0 20px' }}>
+            {vendor.starting_price >= 100000
+              ? `Rs ${(vendor.starting_price / 100000).toFixed(vendor.starting_price % 100000 === 0 ? 0 : 1)}L onwards`
+              : `Rs ${(vendor.starting_price / 1000).toFixed(0)}K onwards`}
+          </p>
+        )}
 
-        {/* Action buttons */}
+        {isBlind && vendor.vibe_tags.length > 0 && (
+          <p style={{ fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.15em',color:'rgba(248,247,245,0.55)',margin:'0 0 20px' }}>
+            {vendor.vibe_tags.join(' \u00b7 ')}
+          </p>
+        )}
+
         <div style={{ display:'flex',flexDirection:'column',gap:10 }}>
-
-          {/* Enquire — primary CTA */}
           <button
-            onClick={(e: React.MouseEvent) => { e.stopPropagation(); setEnquireToast(true); setTimeout(() => setEnquireToast(false), 2500); onEnquire(); }}
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (enquireLink) window.open(enquireLink, '_blank');
+            }}
             style={{ width:'100%',padding:'14px 0',background:'rgba(248,247,245,0.9)',border:'none',borderRadius:10,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase',color:'#111111',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8,touchAction:'manipulation' }}
           >
             <MessageCircle size={14} strokeWidth={1.5} />
             Enquire
           </button>
 
-          {/* Second row: Lock Date + Share to Circle */}
           <div style={{ display:'flex',gap:8 }}>
-
-            {/* Lock Date — coming soon */}
             <button
               disabled
               style={{ flex:1,padding:'12px 0',background:'rgba(255,255,255,0.12)',border:'0.5px solid rgba(255,255,255,0.18)',borderRadius:10,fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(248,247,245,0.7)',cursor:'not-allowed',display:'flex',alignItems:'center',justifyContent:'center',gap:6 }}
@@ -196,7 +183,6 @@ function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
               <span style={{ fontSize:7,letterSpacing:'0.05em',textTransform:'none',fontStyle:'italic',color:'rgba(248,247,245,0.35)' }}>beta</span>
             </button>
 
-            {/* Share to Circle */}
             <button
               onClick={(e: React.MouseEvent) => { e.stopPropagation(); setCircleToast(true); setTimeout(() => setCircleToast(false), 2500); }}
               style={{ flex:1,padding:'12px 0',background:'rgba(255,255,255,0.12)',border:'0.5px solid rgba(255,255,255,0.18)',borderRadius:10,fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(248,247,245,0.7)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,touchAction:'manipulation' }}
@@ -211,47 +197,42 @@ function GlassOverlay({ vendor, visible, onClose, onEnquire, userId }: {
   );
 }
 
-// ── Image dots ────────────────────────────────────────────────────────────────
 function ImageDots({ total, current }: { total: number; current: number }) {
   if (total <= 1) return null;
   return (
-    <div style={{
-      position:'fixed',
-      top:'calc(env(safe-area-inset-top,0px) + 20px)',
-      left:'50%', transform:'translateX(-50%)',
-      display:'flex', gap:5, zIndex:25, pointerEvents:'none',
-    }}>
+    <div style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 20px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:5,zIndex:25,pointerEvents:'none' }}>
       {Array.from({ length: Math.min(total, 8) }).map((_, i) => (
-        <div key={i} style={{
-          width: i === current ? 16 : 5,
-          height: 5, borderRadius: 3,
-          background: i === current ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)',
-          transition: 'all 240ms cubic-bezier(0.22,1,0.36,1)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-        }} />
+        <div key={i} style={{ width: i === current ? 16 : 5,height:5,borderRadius:3,background: i === current ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)',transition:'all 240ms cubic-bezier(0.22,1,0.36,1)',boxShadow:'0 1px 3px rgba(0,0,0,0.3)' }} />
       ))}
     </div>
   );
 }
 
-// ── Blind centre toast (replaces side indicators) ────────────────────────────
 function BlindCentreToast({ hint }: { hint: 'left'|'right'|null }) {
   if (!hint) return null;
   return (
-    <div style={{
-      position:'fixed', top:'50%', left:'50%',
-      transform:'translate(-50%,-50%)',
-      zIndex:30, pointerEvents:'none',
-      animation: 'heartPop 600ms cubic-bezier(0.22,1,0.36,1) forwards',
-    }}>
-      <span style={{ fontSize:72, lineHeight:1, color: '#C9A84C' }}>
-        {hint === 'right' ? '♥' : '✕'}
+    <div style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:30,pointerEvents:'none',animation:'heartPop 600ms cubic-bezier(0.22,1,0.36,1) forwards' }}>
+      <span style={{ fontSize:72,lineHeight:1,color:'#C9A84C' }}>
+        {hint === 'right' ? '\u2665' : '\u2715'}
       </span>
     </div>
   );
 }
 
-// ── Main feed ─────────────────────────────────────────────────────────────────
+function EmptyDeck({ mode }: { mode: string }) {
+  return (
+    <div style={{ position:'fixed',inset:0,background:'#0C0A09',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12 }}>
+      <span style={{ fontSize:48 }}>\u2726</span>
+      <span style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:20,fontWeight:300,fontStyle:'italic',color:'rgba(248,247,245,0.7)' }}>
+        {mode === 'blind' ? "You've seen them all." : "You've seen everyone."}
+      </span>
+      <span style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(248,247,245,0.35)' }}>
+        Check back soon
+      </span>
+    </div>
+  );
+}
+
 function DiscoveryFeedContent() {
   const { mode: frostMode } = useFrostMode();
   const router = useRouter();
@@ -259,122 +240,55 @@ function DiscoveryFeedContent() {
   const mode = searchParams.get('mode') || 'discover';
   const isBlind = mode === 'blind';
 
-  const [userId, setUserId] = useState<string | null>(null);
-  const userIdRef = useRef<string | null>(null);
-  const [vendors, setVendors] = useState<SeedVendor[]>([]);
+  const [vendors, setVendors] = useState<DiscoverVendor[]>([]);
   const [vendorIdx, setVendorIdx] = useState(0);
   const [imageIdx, setImageIdx] = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [dissolveKey, setDissolveKey] = useState(0);
   const [blindHint, setBlindHint] = useState<'left'|'right'|null>(null);
-  // Blind mode swipe animation
   const [blindSlide, setBlindSlide] = useState<'left'|'right'|null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapTime = useRef(0);
   const tapCount = useRef(0);
 
-  // Auth
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-      if (raw) { const s = JSON.parse(raw); if (s?.id) { setUserId(s.id); userIdRef.current = s.id; } }
-    } catch {}
+    setLoading(true);
+    fetchDiscoverFeed({ page: 0 })
+      .then(({ vendors: v, has_more }) => {
+        setVendors(v);
+        setHasMore(has_more);
+        setVendorIdx(0);
+        setImageIdx(0);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  // Load vendors from API
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(`${API_BASE}/api/vendors?limit=200`);
-        const json = await res.json();
-        const raw: any[] = json.data || [];
-        if (!Array.isArray(raw) || raw.length === 0) throw new Error('empty');
-
-        const category = searchParams.get('category');
-        const minB = Number(searchParams.get('minBudget') || 0);
-        const maxB = Number(searchParams.get('maxBudget') || 0);
-
-        const PHOTO_FALLBACKS = [
-          '1519741497674-611481863552','1529636798458-92182e662485','1519225421980-715cb0215aed',
-          '1583939003579-730e3918a45a','1511285560929-80b456fea0bc','1478146896981-b80fe463b330',
-        ];
-
-        const CAT_LABEL: Record<string,string> = {
-          photographers:'Photography', photographer:'Photography',
-          mua:'Makeup & Hair', decorator:'Decor', decorators:'Decor',
-          venue:'Venue', venues:'Venue', designers:'Designer', designer:'Designer',
-          'event-managers':'Event Management', choreographers:'Choreography',
-          mehendi:'Mehendi', caterers:'Catering', dj:'DJ',
-        };
-
-        const CAT_SLUG: Record<string,string> = {
-          photographers:'photographer', videographers:'photographer',
-          mua:'mua', decorator:'decorator', decorators:'decorator',
-          venue:'venue', venues:'venue', designers:'designer', designer:'designer',
-          'event-managers':'event_manager', choreographers:'choreographer',
-          mehendi:'mehendi', caterers:'caterer', dj:'dj',
-        };
-
-        function mapVendor(v: any, idx: number): SeedVendor {
-          const cat = (v.category || '').toLowerCase();
-          const imgs: string[] = [...(v.featured_photos||[]), ...(v.portfolio_images||[])].filter(Boolean);
-          const images = imgs.length > 0 ? imgs : [
-            `https://images.unsplash.com/photo-${PHOTO_FALLBACKS[idx % PHOTO_FALLBACKS.length]}?w=1080&q=80&auto=format&fit=crop`,
-          ];
-          const price = v.starting_price || 0;
-          const priceLabel = price >= 100000
-            ? `₹${(price/100000).toFixed(price%100000===0?0:1)}L onwards`
-            : price > 0 ? `₹${(price/1000).toFixed(0)}K onwards` : 'Price on request';
-          return {
-            id: v.id,
-            name: v.name || 'Unnamed Vendor',
-            city: v.city || 'India',
-            category: (CAT_SLUG[cat] || 'photographer') as SeedVendor['category'],
-            categoryLabel: CAT_LABEL[cat] || 'Wedding',
-            priceFrom: price,
-            priceLabel,
-            tagline: v.tagline || (v.about||'').slice(0,80),
-            images,
-          };
+    if (!hasMore) return;
+    if (vendors.length === 0) return;
+    if (vendorIdx < vendors.length - 3) return;
+    const nextPage = currentPage + 1;
+    fetchDiscoverFeed({ page: nextPage })
+      .then(({ vendors: more, has_more }) => {
+        if (more.length > 0) {
+          setVendors(prev => [...prev, ...more]);
+          setCurrentPage(nextPage);
+          setHasMore(has_more);
+        } else {
+          setHasMore(false);
         }
-
-        let filtered = raw;
-        if (category) {
-          const catMap: Record<string,string> = {
-            'photography':'photographer','photographers':'photographer',
-            'makeup & hair':'mua','makeup':'mua','mua':'mua',
-            'decor':'decorator','decorator':'decorator',
-            'venues':'venue','venue':'venue',
-            'designers':'designer','designer':'designer',
-            'event managers':'event_manager','event-managers':'event_manager',
-          };
-          const want = catMap[category.toLowerCase()] || category.toLowerCase();
-          filtered = raw.filter(v => (v.category||'').toLowerCase() === want || CAT_SLUG[(v.category||'').toLowerCase()] === want);
-        }
-        if (minB) filtered = filtered.filter(v => (v.starting_price||0) >= minB);
-        if (maxB) filtered = filtered.filter(v => (v.starting_price||0) <= maxB);
-        if (mode === 'featured') filtered = filtered.filter(v => (v.starting_price||0) >= 200000);
-
-        const pool = filtered.length > 0 ? filtered : raw;
-        const mapped = pool.map((v,i) => mapVendor(v,i));
-        const shuffled = [...mapped].sort(() => Math.random() - 0.5);
-        setVendors(shuffled);
-        setVendorIdx(0); setImageIdx(0);
-      } catch {
-        // Fallback to seed
-        const all = SEED_VENDORS;
-        setVendors([...all].sort(() => Math.random() - 0.5));
-        setVendorIdx(0); setImageIdx(0);
-      }
-    }
-    load();
-  }, [mode, searchParams]);
+      })
+      .catch(() => {});
+  }, [vendorIdx, vendors.length, hasMore, currentPage]);
 
   const vendor = vendors[vendorIdx];
 
-  // Navigation
   const goNextVendor = useCallback((direction: 'left'|'right'|null = null) => {
     if (vendorIdx >= vendors.length - 1) return;
     if (direction) {
@@ -406,7 +320,7 @@ function DiscoveryFeedContent() {
   }, [vendorIdx]);
 
   const nextImage = useCallback(() => {
-    if (vendor && imageIdx < vendor.images.length - 1) {
+    if (vendor && imageIdx < vendor.photos.length - 1) {
       setImageIdx(i => i + 1); setDissolveKey(k => k + 1); haptic(4);
     }
   }, [imageIdx, vendor]);
@@ -415,19 +329,17 @@ function DiscoveryFeedContent() {
     if (imageIdx > 0) { setImageIdx(i => i - 1); setDissolveKey(k => k + 1); haptic(4); }
   }, [imageIdx]);
 
-  // Single tap — toggle overlay (non-blind only)
   const handleSingleTap = useCallback(() => {
     if (isBlind) return;
     setOverlayVisible(v => !v);
     haptic(4);
   }, [isBlind]);
 
-  // Double tap — save to muse (non-blind only)
   const handleDoubleTap = useCallback(() => {
     if (isBlind || !vendor) return;
     spawnHeart();
-    saveVendorToMuse(vendor.id, userIdRef.current).then(ok => spawnSaveToast(!ok));
-  }, [isBlind, vendor, userId]);
+    handleSaveToMuse(vendor.id).then(ok => spawnSaveToast(!ok));
+  }, [isBlind, vendor]);
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const t = e.touches[0];
@@ -445,7 +357,6 @@ function DiscoveryFeedContent() {
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    // Tap detection
     if (absX < TAP_MAX_MOVE && absY < TAP_MAX_MOVE && dt < TAP_MAX_TIME) {
       const now = Date.now();
       const since = now - lastTapTime.current;
@@ -468,17 +379,14 @@ function DiscoveryFeedContent() {
     if (!passed) return;
 
     if (isBlind) {
-      // Tinder-style left/right only
       if (absX > absY) {
         if (dx > SWIPE_THRESHOLD) {
-          // Right → save + animate
           setBlindHint('right');
           setTimeout(() => setBlindHint(null), 400);
           spawnHeart();
-          saveVendorToMuse(vendor?.id || '', userIdRef.current).then(ok => spawnSaveToast(!ok));
+          if (vendor) handleSaveToMuse(vendor.id).then(ok => spawnSaveToast(!ok));
           goNextVendor('right');
         } else if (dx < -SWIPE_THRESHOLD) {
-          // Left → dismiss + animate
           setBlindHint('left');
           setTimeout(() => setBlindHint(null), 400);
           goNextVendor('left');
@@ -487,27 +395,28 @@ function DiscoveryFeedContent() {
       return;
     }
 
-    // Normal mode
-    // Swipe down on overlay → dismiss
     if (overlayVisible && absY > absX && dy > OVERLAY_DISMISS) {
       setOverlayVisible(false); return;
     }
-    // Vertical → change vendor
     if (absY > absX) {
       if (dy < -SWIPE_THRESHOLD) goNextVendor(); else if (dy > SWIPE_THRESHOLD) goPrevVendor();
     } else {
-      // Horizontal → change photo
       if (dx < -SWIPE_THRESHOLD) nextImage(); else if (dx > SWIPE_THRESHOLD) prevImage();
     }
   };
 
-  if (!vendor) {
+  if (loading) {
     return (
-      <div style={{ position:'fixed',inset:0,background:frostMode.pagePaper,display:'flex',alignItems:'center',justifyContent:'center' }}>
-        <span style={{ fontFamily:"'Jost',sans-serif",fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',color:frostMode.soft }}>Loading</span>
+      <div style={{ position:'fixed',inset:0,background:'#0C0A09',display:'flex',alignItems:'center',justifyContent:'center' }}>
+        <span style={{ fontFamily:"'Jost',sans-serif",fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(245,240,232,0.35)' }}>Loading</span>
       </div>
     );
   }
+
+  if (!vendor) return <EmptyDeck mode={mode} />;
+
+  const photos = vendor.photos.length > 0 ? vendor.photos : [];
+  const currentPhoto = photos[imageIdx] || null;
 
   return (
     <>
@@ -530,7 +439,6 @@ function DiscoveryFeedContent() {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {/* Photo — with blind slide animation */}
         <div
           key={dissolveKey}
           style={{
@@ -542,19 +450,18 @@ function DiscoveryFeedContent() {
               : 'dissolveIn 260ms ease',
           }}
         >
-          <img
-            src={vendor.images[imageIdx]}
-            alt=""
-            draggable={false}
-            style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',willChange:'opacity' }}
-          />
+          {currentPhoto ? (
+            <img src={currentPhoto} alt="" draggable={false} style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',willChange:'opacity' }} />
+          ) : (
+            <div style={{ position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center' }}>
+              <span style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:14,fontStyle:'italic',color:'rgba(248,247,245,0.2)' }}>No photo yet</span>
+            </div>
+          )}
           <div style={{ position:'absolute',inset:0,background:'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 20%, transparent 65%, rgba(0,0,0,0.5) 100%)',pointerEvents:'none' }} />
         </div>
 
-        {/* Image dots — fixed positioning so they show above everything */}
-        <ImageDots total={vendor.images.length} current={imageIdx} />
+        <ImageDots total={photos.length} current={imageIdx} />
 
-        {/* Close → hub */}
         <button
           onClick={() => router.push('/frost')}
           style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:16,zIndex:25,width:36,height:36,borderRadius:'50%',background:'rgba(0,0,0,0.35)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'0.5px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(255,255,255,0.9)' }}
@@ -564,33 +471,28 @@ function DiscoveryFeedContent() {
           </svg>
         </button>
 
-        {/* Blind pill label */}
         {isBlind && (
           <div style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 20px)',right:16,zIndex:25,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:20,padding:'5px 14px',fontFamily:"'Jost',sans-serif",fontSize:8,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(255,255,255,0.75)' }}>
             Blind
           </div>
         )}
 
-        {/* Blind centre toast */}
         {isBlind && <BlindCentreToast hint={blindHint} />}
 
-        {/* Hint text (normal mode, no overlay) */}
         {!isBlind && !overlayVisible && (
           <div style={{ position:'fixed',bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',left:0,right:0,display:'flex',justifyContent:'center',zIndex:10,pointerEvents:'none',animation:'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)' }}>
             <span style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:200,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)' }}>
-              Tap · Double-tap to save · Swipe to browse
+              Tap \u00b7 Double-tap to save \u00b7 Swipe to browse
             </span>
           </div>
         )}
 
-        {/* Glass overlay */}
         {!isBlind && (
           <GlassOverlay
             vendor={vendor}
             visible={overlayVisible}
             onClose={() => setOverlayVisible(false)}
-            onEnquire={() => router.push(`/frost/canvas/journey?enquire=${vendor.id}&name=${encodeURIComponent(vendor.name)}`)}
-            userId={userId}
+            isBlind={isBlind}
           />
         )}
       </div>
