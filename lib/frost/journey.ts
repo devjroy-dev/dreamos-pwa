@@ -206,20 +206,53 @@ const MOCK_PROFILE: CoupleProfile = {
 export async function fetchReminders(): Promise<Reminder[]> {
   if (USE_MOCKS) return delay(MOCK_REMINDERS);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/couple/checklist/${id}`);
-  return r?.data ?? [];
+  // Reminders are events with kind='reminder' stored in the events table
+  const r: any = await apiFetch(`/api/v2/couple/events/${id}?state=all`);
+  const raw: any[] = (r?.events ?? []).filter((e: any) => e.kind === 'reminder');
+  return raw.map(e => ({
+    id:          e.id,
+    couple_id:   id || '',
+    text:        e.title || '',
+    due_date:    e.event_date || null,
+    is_complete: e.state === 'done',
+    event:       e.notes || null,
+  }));
 }
 
 export async function toggleReminder(id: string, is_complete: boolean): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/checklist/${id}`, { method: 'PATCH', body: JSON.stringify({ is_complete }) }); return true; }
-  catch { return false; }
+  try {
+    await apiFetch(`/api/v2/couple/events/${id}/state`, {
+      method: 'PATCH',
+      body: JSON.stringify({ state: is_complete ? 'done' : 'upcoming' }),
+    });
+    return true;
+  } catch { return false; }
 }
 
 export async function deleteReminder(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/checklist/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/v2/couple/events/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
+}
+
+export async function createReminder(data: {
+  text: string; due_date?: string; event?: string;
+}): Promise<Reminder | null> {
+  if (USE_MOCKS) {
+    const mock: Reminder = { id: `r-${Date.now()}`, couple_id: '', text: data.text, due_date: data.due_date||null, is_complete: false, event: data.event||null };
+    return delay(mock);
+  }
+  try {
+    const id = getCoupleId();
+    const r: any = await apiFetch(`/api/v2/couple/events/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ title: data.text, event_date: data.due_date || new Date().toISOString().split('T')[0], kind: 'reminder', notes: data.event || null }),
+    });
+    const e = r?.event;
+    if (!e) return null;
+    return { id: e.id, couple_id: id||'', text: e.title||data.text, due_date: e.event_date||null, is_complete: false, event: e.notes||data.event||null };
+  } catch { return null; }
 }
 
 export async function fetchExpenses(): Promise<Expense[]> {

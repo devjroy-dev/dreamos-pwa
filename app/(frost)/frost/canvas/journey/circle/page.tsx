@@ -192,7 +192,7 @@ export default function JourneyCircle() {
           <input
             value={inviteName}
             onChange={e => setInviteName(e.target.value)}
-            placeholder="Ananya, Mom, Planner\u2026"
+            placeholder="Ananya, Mom, Planner…"
             autoFocus
             style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.body, fontSize:15, color:t.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:16 }}
           />
@@ -200,7 +200,7 @@ export default function JourneyCircle() {
             onClick={handleInvite}
             disabled={!inviteName.trim() || inviting}
             style={{ width:'100%', padding:14, background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(!inviteName.trim() || inviting) ? 0.5 : 1 }}
-          >{inviting ? 'Generating\u2026' : 'Send Invite'}</button>
+          >{inviting ? 'Generating…' : 'Send Invite'}</button>
         </div>
       </>}
     </>

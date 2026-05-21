@@ -4,7 +4,7 @@ import { Check } from 'lucide-react';
 import CanvasShell from '../../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../../layout';
 import { MUSE_LOOKS, FF, SP, FR } from '../../../../../../lib/frost/tokens';
-import { fetchReminders, toggleReminder, deleteReminder, type Reminder } from '../../../../../../lib/frost/journey';
+import { fetchReminders, createReminder, toggleReminder, deleteReminder, type Reminder } from '../../../../../../lib/frost/journey';
 
 function formatDue(due: string | null | undefined): string | null {
   if (!due) return null;
@@ -39,6 +39,22 @@ export default function JourneyReminders() {
     await deleteReminder(id);
   }, []);
 
+  const [addSheet, setAddSheet] = useState(false);
+  const [saving,   setSaving]   = useState(false);
+  const [form, setForm] = useState({ text: '', due_date: '', event: '' });
+
+  const handleCreate = async () => {
+    if (!form.text.trim() || saving) return;
+    setSaving(true);
+    const created = await createReminder({ text: form.text.trim(), due_date: form.due_date || undefined, event: form.event || undefined });
+    if (created) {
+      setItems(prev => [created, ...prev]);
+      setAddSheet(false);
+      setForm({ text: '', due_date: '', event: '' });
+    }
+    setSaving(false);
+  };
+
   const pending = items.filter(r => !r.is_complete).sort((a,b) => (!a.due_date ? 1 : !b.due_date ? -1 : a.due_date.localeCompare(b.due_date)));
   const done = items.filter(r => r.is_complete);
 
@@ -54,6 +70,36 @@ export default function JourneyReminders() {
           {done.map(r => <Row key={r.id} r={r} t={t} onTap={() => toggle(r)} onHold={() => setConfirmId(r.id)} muted />)}
         </>}
       </div>
+      {/* FAB */}
+      <button onClick={() => setAddSheet(true)} style={{ position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 88px)', right:24, zIndex:50, width:52, height:52, borderRadius:26, background:t.brass, border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:'0 4px 24px rgba(0,0,0,0.28)', touchAction:'manipulation' }}>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="#1B1612" strokeWidth="1.8" strokeLinecap="round"/></svg>
+      </button>
+
+      {addSheet && <>
+        <div onClick={() => setAddSheet(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />
+        <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:201, background:t.pagePaper, borderRadius:'20px 20px 0 0', padding:`28px 24px calc(28px + env(safe-area-inset-bottom))` }}>
+          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:24, color:t.ink, marginBottom:4 }}>Add a reminder</div>
+          <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, marginBottom:24 }}>What needs to happen.</div>
+          {([
+            { key:'text',     label:'Reminder',  placeholder:'Call florist, confirm fitting…', type:'text' },
+            { key:'event',    label:'For event',  placeholder:'Wedding, Mehendi…',               type:'text' },
+            { key:'due_date', label:'Due date',   placeholder:'',                                type:'date' },
+          ] as {key:string;label:string;placeholder:string;type:string}[]).map(f => (
+            <div key={f.key} style={{ marginBottom:16 }}>
+              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>{f.label}</div>
+              <input type={f.type} value={(form as Record<string,string>)[f.key]}
+                onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                placeholder={f.placeholder}
+                style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.body, fontSize:15, color:t.ink, outline:'none', boxSizing:'border-box' as const, colorScheme:'dark' }} />
+            </div>
+          ))}
+          <button onClick={handleCreate} disabled={!form.text.trim() || saving}
+            style={{ width:'100%', padding:14, background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(!form.text.trim()||saving)?0.5:1, marginTop:4 }}>
+            {saving ? 'Adding…' : 'Add Reminder'}
+          </button>
+        </div>
+      </>}
+
       {confirmId && <>
         <div onClick={() => setConfirmId(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:201, background:t.cardFill, borderRadius:'20px 20px 0 0', padding:`24px 24px calc(24px + env(safe-area-inset-bottom))` }}>
