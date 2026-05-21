@@ -9,6 +9,7 @@ import CanvasShell from '../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../layout';
 import { MUSE_LOOKS, FF, SP, FR } from '../../../../../lib/frost/tokens';
 import { fetchMuseSaves, deleteMuseSave, fetchSaveActivity } from '../../../../../lib/frost-api/muse';
+import { createMuseSaveFromUrl } from '../../../../../lib/frost/journey';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 
 type MuseCeremony = 'all' | 'haldi' | 'mehendi' | 'sangeet' | 'reception' | 'wedding';
@@ -206,6 +207,28 @@ export default function CanvasMuse() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [selectedSave, setSelectedSave] = useState<MuseSave | null>(null);
   const [saveActivity, setSaveActivity] = useState<MuseActivity[]>([]);
+  const [addSheet,     setAddSheet]     = useState(false);
+  const [saving,       setSaving]       = useState(false);
+  const [urlInput,     setUrlInput]     = useState('');
+  const [addToast,     setAddToast]     = useState('');
+
+  const handleAddFromUrl = async () => {
+    if (!urlInput.trim() || saving) return;
+    setSaving(true);
+    const ok = await createMuseSaveFromUrl(urlInput.trim());
+    setSaving(false);
+    if (ok) {
+      setUrlInput('');
+      setAddSheet(false);
+      setAddToast('Saved to Muse');
+      setTimeout(() => setAddToast(''), 2400);
+      // Refresh
+      fetchMuseSaves({ saved_by: sourceFilter }).then(({ saves: s, total: tt }) => { setSaves(s); setTotal(tt); });
+    } else {
+      setAddToast('Could not save. Check the link.');
+      setTimeout(() => setAddToast(''), 2400);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -276,6 +299,11 @@ export default function CanvasMuse() {
           })}
         </div>
 
+        {/* FAB */}
+        <button onClick={() => setAddSheet(true)} style={{ position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 88px)', right:24, zIndex:50, width:52, height:52, borderRadius:26, background:tokens.brass, border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:'0 4px 24px rgba(0,0,0,0.28)', touchAction:'manipulation' }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="#1B1612" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        </button>
+
         <div style={{ padding: `0 ${SP.xxl}px`, columns: '2 auto', columnGap: 8 }}>
           {!loading && filtered.length === 0 && (
             <div style={{ columnSpan: 'all', textAlign: 'center', padding: '48px 0', fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: tokens.soft }}>No saves here yet.</div>
@@ -320,6 +348,34 @@ export default function CanvasMuse() {
           ))}
         </div>
       </CanvasShell>
+    <>
+      {addSheet && <>
+        <div onClick={() => setAddSheet(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:300 }} />
+        <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:301, background:tokens.pagePaper, borderRadius:'20px 20px 0 0', padding:`28px 24px calc(28px + env(safe-area-inset-bottom))` }}>
+          <div style={{ fontFamily: FF.display, fontStyle:'italic', fontSize:24, color:tokens.ink, marginBottom:4 }}>Add to Muse</div>
+          <div style={{ fontFamily: FF.body, fontSize:13, color:tokens.soft, marginBottom:24 }}>Paste an image link from Pinterest, Instagram, or anywhere.</div>
+          <div style={{ fontFamily: FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:tokens.soft, marginBottom:8 }}>Image URL</div>
+          <input
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            placeholder="https://i.pinimg.com/…"
+            autoFocus
+            style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.body, fontSize:14, color:tokens.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:20 }}
+          />
+          <button
+            onClick={handleAddFromUrl}
+            disabled={!urlInput.trim() || saving}
+            style={{ width:'100%', padding:14, background:tokens.brass, border:'none', borderRadius:8, fontFamily: FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(!urlInput.trim()||saving)?0.5:1 }}>
+            {saving ? 'Saving…' : 'Save to Muse'}
+          </button>
+        </div>
+      </>}
+
+      {addToast && (
+        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{addToast}</div>
+      )}
+    </>
+
     </>
   );
 }

@@ -12,7 +12,15 @@ const API_BASE  = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-producti
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  try { return localStorage.getItem('access_token'); } catch { return null; }
+  try {
+    // Try couple_session first (set by couple auth flow)
+    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s?.access_token) return s.access_token;
+    }
+    return localStorage.getItem('access_token');
+  } catch { return null; }
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -235,6 +243,25 @@ export async function fetchExpenses(): Promise<Expense[]> {
   }));
 }
 
+export async function createExpense(data: {
+  vendor_name: string; amount: number; category?: string; event?: string; due_date?: string; notes?: string;
+}): Promise<Expense | null> {
+  if (USE_MOCKS) {
+    const mock: Expense = { id: `exp-${Date.now()}`, couple_id: '', payment_status: 'pending', actual_amount: data.amount, ...data };
+    return delay(mock);
+  }
+  try {
+    const id = getCoupleId();
+    const r: any = await apiFetch(`/api/v2/couple/expenses/${id}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    const e = r?.expense;
+    if (!e) return null;
+    return { id: e.id, couple_id: id||'', vendor_name: e.vendor_name||data.vendor_name, description: e.description||null, actual_amount: e.amount||data.amount, payment_status: 'pending', category: e.tags?.[0]||data.category||null, event: e.tags?.[1]||data.event||null, due_date: e.due_date||data.due_date||null, notes: data.notes||null };
+  } catch { return null; }
+}
+
 export async function markExpensePaid(_id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
   return true; // couple_receipts are filed receipts — already paid
@@ -242,7 +269,7 @@ export async function markExpensePaid(_id: string): Promise<boolean> {
 
 export async function deleteExpense(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/v2/couple/receipts/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/v2/couple/expenses/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
 
@@ -267,9 +294,29 @@ export async function fetchVendors(): Promise<CoupleVendor[]> {
   }));
 }
 
-export async function deleteVendorRow(_id: string): Promise<boolean> {
+export async function createVendorRow(data: {
+  name: string; category?: string; status?: string; quoted_total?: number; notes?: string;
+}): Promise<CoupleVendor | null> {
+  if (USE_MOCKS) {
+    const mock: CoupleVendor = { id: `v-${Date.now()}`, couple_id: '', ...data };
+    return delay(mock);
+  }
+  try {
+    const id = getCoupleId();
+    const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ vendor_name: data.name, category: data.category, state: data.status||'considering', amount_total: data.quoted_total, notes: data.notes }),
+    });
+    const b = r?.booking;
+    if (!b) return null;
+    return { id: b.id, couple_id: id||'', name: b.vendor_name||data.name, category: b.category||null, status: b.state||'considering', quoted_total: b.amount_total||null, paid_total: 0, notes: b.notes||null };
+  } catch { return null; }
+}
+
+export async function deleteVendorRow(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  return true; // bookings not deletable via PWA
+  try { await apiFetch(`/api/v2/couple/bookings/${id}`, { method: 'DELETE' }); return true; }
+  catch { return false; }
 }
 
 export async function fetchEvents(): Promise<CoupleEvent[]> {
@@ -288,6 +335,31 @@ export async function fetchEvents(): Promise<CoupleEvent[]> {
     task_count:   0,
     vendor_count: 0,
   }));
+}
+
+export async function createEvent(data: {
+  event_name: string; event_date: string; venue?: string; notes?: string;
+}): Promise<CoupleEvent | null> {
+  if (USE_MOCKS) {
+    const mock: CoupleEvent = { id: `ev-${Date.now()}`, couple_id: '', ...data, task_count: 0, vendor_count: 0 };
+    return delay(mock);
+  }
+  try {
+    const id = getCoupleId();
+    const r: any = await apiFetch(`/api/v2/couple/events/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ title: data.event_name, event_date: data.event_date, venue: data.venue, notes: data.notes }),
+    });
+    const e = r?.event;
+    if (!e) return null;
+    return { id: e.id, couple_id: id||'', event_name: e.title||data.event_name, event_type: e.kind||null, event_date: e.event_date||data.event_date, venue: data.venue||null, task_count: 0, vendor_count: 0 };
+  } catch { return null; }
+}
+
+export async function deleteEvent(id: string): Promise<boolean> {
+  if (USE_MOCKS) return delay(true);
+  try { await apiFetch(`/api/v2/couple/events/${id}`, { method: 'DELETE' }); return true; }
+  catch { return false; }
 }
 
 export async function fetchCircleFeed(): Promise<CircleActivityEvent[]> {
@@ -387,6 +459,17 @@ export async function inviteCircleMember(invitee_name: string, _role: string): P
     });
     return r?.wa_me_link || null;
   } catch { return null; }
+}
+
+export async function createMuseSaveFromUrl(image_url: string, tags?: string[]): Promise<boolean> {
+  if (USE_MOCKS) return delay(true);
+  try {
+    const r: any = await apiFetch('/api/v2/couple/muse/save', {
+      method: 'POST',
+      body: JSON.stringify({ image_url, source_type: 'photo', aesthetic_tags: tags || [] }),
+    });
+    return r?.ok === true || r?.save_id != null;
+  } catch { return false; }
 }
 
 export function fmtINR(n: number | null | undefined): string {
