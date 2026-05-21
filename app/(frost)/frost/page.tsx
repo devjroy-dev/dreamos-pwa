@@ -314,7 +314,7 @@ export default function FrostLanding() {
                 <PhotoTile imageUrl={discoverUrl} label="Discover"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
               </div>
               <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 160 }}>
-                <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/muse')}             mode={mode} />
+                <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/surprise')}         mode={mode} />
                 <PhotoTile imageUrl={featuredUrl} label="Featured"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
               </div>
             </div>
