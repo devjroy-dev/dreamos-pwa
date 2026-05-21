@@ -389,14 +389,14 @@ function DiscoveryFeedContent() {
     if (isBlind) {
       if (absX > absY) {
         if (dx > SWIPE_THRESHOLD) {
-          setBlindHint('right');
-          setTimeout(() => setBlindHint(null), 400);
+          setBlindLift(true);
+          
           spawnHeart();
           if (vendor) handleSaveToMuse(vendor.id).then(ok => spawnSaveToast(!ok));
           goNextVendor('right');
         } else if (dx < -SWIPE_THRESHOLD) {
-          setBlindHint('left');
-          setTimeout(() => setBlindHint(null), 400);
+          setBlindLift(true);
+          
           goNextVendor('left');
         }
       }
