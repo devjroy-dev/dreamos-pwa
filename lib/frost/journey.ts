@@ -405,12 +405,17 @@ export function timeAgo(iso: string): string {
 }
 
 export function formatActivityLine(e: CircleActivityEvent): string {
-  const actor = e.actor_role === 'bride' ? 'You' : (e.payload?.actor_name || 'Someone');
+  const actor = e.actor_role === 'bride' ? 'You' : (e.payload?.actor_name || e.payload?.member_name || 'Someone');
   const p = e.payload || {};
   switch (e.event_type) {
+    // Real activity_type values from circle_activity table
+    case 'save_added':              return `${actor} saved to Muse`;
+    case 'comment':                 return `${actor} commented`;
+    case 'removed':                 return `${actor} removed a save`;
+    // Legacy / future values
     case 'vendor_booked':           return `${actor} booked ${p.vendor_name || 'a vendor'}`;
     case 'payment_logged':          return `${actor} logged a payment`;
-    case 'task_completed':          return `${actor} completed: ${p.task_text || 'a task'}`;
+    case 'task_completed':          return `${actor} completed a task`;
     case 'muse_saved':              return `${actor} saved to Muse`;
     case 'circle_message_sent':     return `${actor} sent a message`;
     case 'circle_invite_accepted':  return `${p.member_name || 'Someone'} joined your Circle`;

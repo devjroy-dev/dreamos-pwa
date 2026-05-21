@@ -75,7 +75,7 @@ export default function CanvasJourney() {
       .finally(() => setLoading(false));
   }, []);
 
-  const headline = name ? name + '\u2019s journey.' : 'Your journey.';
+  const headline = name ? name + '’s journey.' : 'Your journey.';
 
   const subline = (() => {
     if (loading) return '';
@@ -164,7 +164,7 @@ export default function CanvasJourney() {
         </div>
 
         <div style={{ paddingTop: SP.xl, textAlign: 'center', fontFamily: FF.display, fontStyle: 'italic', fontSize: 13, color: t.soft }}>
-          \u2726\u2002 Or tell DreamAi what you\u2019d like to do.
+          ✦  Or tell DreamAi what you’d like to do.
         </div>
       </div>
     </CanvasShell>

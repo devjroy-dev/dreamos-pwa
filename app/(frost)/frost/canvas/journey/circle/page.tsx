@@ -92,7 +92,7 @@ export default function JourneyCircle() {
 
         {/* Zone 2 — Activity */}
         <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.35em', textTransform:'uppercase', color:t.soft, marginBottom:SP.m }}>Activity</div>
-        {loading && <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, fontStyle:'italic', marginBottom:SP.m }}>Loading\u2026</div>}
+        {loading && <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, fontStyle:'italic', marginBottom:SP.m }}>Loading…</div>}
         {!loading && feed.length === 0 && <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, fontStyle:'italic', marginBottom:SP.m }}>Activity will appear here as things happen.</div>}
         {feed.map(e => (
           <div key={e.id} style={{ display:'flex', alignItems:'flex-start', gap:SP.m, marginBottom:SP.m }}>
@@ -167,7 +167,7 @@ export default function JourneyCircle() {
                 value={composing}
                 onChange={e => setComposing(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                placeholder="Message\u2026"
+                placeholder="Message…"
                 style={{ flex:1, background:'transparent', border:'none', outline:'none', fontFamily:FF.body, fontSize:15, color:t.ink, padding:'4px 0' }}
               />
               <button onClick={handleSend} disabled={!composing.trim() || sending} style={{ background:'none', border:'none', cursor:'pointer', opacity:composing.trim()?1:0.4 }}>
