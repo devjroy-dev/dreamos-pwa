@@ -23,9 +23,9 @@ const TAP_MAX_TIME    = 250;
 const DOUBLE_TAP_MS   = 280;
 const OVERLAY_DISMISS = 80;
 
-async function handleSaveToMuse(vendorId: string): Promise<boolean> {
+async function handleSaveToMuse(vendorId: string, imageUrl: string | null): Promise<boolean> {
   try {
-    const result = await saveVendorToMuse(vendorId);
+    const result = await saveVendorToMuse(vendorId, imageUrl);
     return result.ok === true;
   } catch { return false; }
 }
@@ -250,6 +250,7 @@ function DiscoveryFeedContent() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
 
+  const currentPhotoRef = useRef<string | null>(null);
   const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapTime = useRef(0);
@@ -344,10 +345,10 @@ function DiscoveryFeedContent() {
   }, [isBlind]);
 
   const handleDoubleTap = useCallback(() => {
-    if (isBlind || !vendor) return;
+    if (!vendor) return;
     spawnHeart();
-    handleSaveToMuse(vendor.id).then(ok => spawnSaveToast(!ok));
-  }, [isBlind, vendor]);
+    handleSaveToMuse(vendor.id, currentPhotoRef.current).then(ok => spawnSaveToast(!ok));
+  }, [vendor]);
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const t = e.touches[0];
@@ -387,18 +388,9 @@ function DiscoveryFeedContent() {
     if (!passed) return;
 
     if (isBlind) {
-      if (absX > absY) {
-        if (dx > SWIPE_THRESHOLD) {
-          setBlindHint('right');
-          setTimeout(() => setBlindHint(null), 400);
-          spawnHeart();
-          if (vendor) handleSaveToMuse(vendor.id).then(ok => spawnSaveToast(!ok));
-          goNextVendor('right');
-        } else if (dx < -SWIPE_THRESHOLD) {
-          setBlindHint('left');
-          setTimeout(() => setBlindHint(null), 400);
-          goNextVendor('left');
-        }
+      // Blind mode: swipe up → next vendor. No carousel, no left/right.
+      if (absY > absX && dy < -SWIPE_THRESHOLD) {
+        goNextVendor();
       }
       return;
     }
@@ -425,6 +417,7 @@ function DiscoveryFeedContent() {
 
   const photos = vendor.photos.length > 0 ? vendor.photos : [];
   const currentPhoto = photos[imageIdx] || null;
+  currentPhotoRef.current = currentPhoto;
 
   return (
     <>
@@ -462,7 +455,7 @@ function DiscoveryFeedContent() {
           <div style={{ position:'absolute',inset:0,background:'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 20%, transparent 65%, rgba(0,0,0,0.5) 100%)',pointerEvents:'none' }} />
         </div>
 
-        <ImageDots total={photos.length} current={imageIdx} />
+        {!isBlind && <ImageDots total={photos.length} current={imageIdx} />}
 
         <button
           onClick={() => router.push('/frost')}

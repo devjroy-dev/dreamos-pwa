@@ -24,11 +24,11 @@ export async function fetchMuseSaves(params?: {
   );
 }
 
-export async function saveVendorToMuse(vendorId: string): Promise<{
+export async function saveVendorToMuse(vendorId: string, imageUrl: string | null): Promise<{
   ok: boolean; save_id?: string; save_number?: number; already_saved?: boolean;
 }> {
   if (USE_MOCKS) return { ok: true, already_saved: false };
-  return apiPost('/api/v2/couple/muse/save', { vendor_id: vendorId });
+  return apiPost('/api/v2/couple/muse/save', { vendor_id: vendorId, image_url: imageUrl });
 }
 
 export async function deleteMuseSave(saveId: string): Promise<boolean> {
