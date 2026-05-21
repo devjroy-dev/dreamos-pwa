@@ -74,9 +74,10 @@ export default function VendorPinLoginPage() {
         // Handoff to thedreamai.in with JWT — single sign-in across domains.
         // The handoff page reads the token, writes vendor_session to localStorage
         // in dreamai format, then redirects to /wedding.
-        const s = JSON.parse(localStorage.getItem('vendor_web_session') || '{}');
-        const token   = s.access_token  || '';
-        const refresh = s.refresh_token || '';
+        // Read tokens directly from localStorage — they are stored under their own keys,
+        // NOT inside the vendor_web_session object.
+        const token   = localStorage.getItem('access_token')  || '';
+        const refresh = localStorage.getItem('refresh_token') || '';
         const params  = new URLSearchParams({ token, refresh });
         window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
       } else {
