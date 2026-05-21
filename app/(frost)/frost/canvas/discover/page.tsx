@@ -245,7 +245,7 @@ function DiscoveryFeedContent() {
   const [imageIdx, setImageIdx] = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [dissolveKey, setDissolveKey] = useState(0);
-  const [blindHint, setBlindHint] = useState<'left'|'right'|null>(null);
+  const [blindLift, setBlindLift] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -344,7 +344,7 @@ function DiscoveryFeedContent() {
   }, [isBlind]);
 
   const handleDoubleTap = useCallback(() => {
-    if (isBlind || !vendor) return;
+    if (!vendor) return;
     spawnHeart();
     handleSaveToMuse(vendor.id).then(ok => spawnSaveToast(!ok));
   }, [isBlind, vendor]);
@@ -436,6 +436,11 @@ function DiscoveryFeedContent() {
           100% { opacity:0; transform:translate(-50%,-50%) scale(1); }
         }
         @keyframes dissolveIn { from{opacity:0} to{opacity:1} }
+        @keyframes liftOff {
+          0%   { opacity:1; transform:translateY(0) scale(1); }
+          60%  { opacity:0.3; transform:translateY(-18%) scale(0.97); }
+          100% { opacity:0; transform:translateY(-28%) scale(0.95); }
+        }
         @keyframes slideInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         @keyframes toastSlideIn { from{opacity:0;transform:translateX(-50%) translateY(-8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
       `}</style>
@@ -449,7 +454,9 @@ function DiscoveryFeedContent() {
           key={dissolveKey}
           style={{
             position:'absolute', inset:0,
-            animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)',
+            animation: blindLift
+              ? 'liftOff 280ms cubic-bezier(0.22,1,0.36,1) forwards'
+              : 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)',
           }}
         >
           {currentPhoto ? (
@@ -479,7 +486,6 @@ function DiscoveryFeedContent() {
           </div>
         )}
 
-        {isBlind && <BlindCentreToast hint={blindHint} />}
 
         {!isBlind && !overlayVisible && (
           <div style={{ position:'fixed',bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',left:0,right:0,display:'flex',justifyContent:'center',zIndex:10,pointerEvents:'none',animation:'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)' }}>
