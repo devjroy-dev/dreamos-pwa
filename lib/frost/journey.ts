@@ -1,9 +1,8 @@
 // lib/frost/journey.ts
 // ─────────────────────────────────────────────────────────────────────────────
 // Typed API client for all Frost Journey sub-screens.
-// Same USE_MOCKS pattern as lib/frost-api/vendor.ts.
-// Interfaces match tdw-2/services/frostApi.ts shapes exactly.
-//
+// All shapes verified against actual dream-os src/api/couple/* handlers.
+// USE_MOCKS controlled by NEXT_PUBLIC_USE_MOCKS env var.
 // FLIP TO REAL: NEXT_PUBLIC_USE_MOCKS=false — zero code changes.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -13,6 +12,17 @@ const API_BASE  = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-producti
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   try { return localStorage.getItem('access_token'); } catch { return null; }
+}
+
+function getCoupleId(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    // pin-login writes { id, userId, ... } — id IS the couple_id
+    return s?.coupleId || s?.id || null;
+  } catch { return null; }
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -25,7 +35,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
       ...(init?.headers || {}),
     },
   });
-  if (!res.ok) throw new Error(`${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || `HTTP ${res.status}`);
+  }
   return res.json();
 }
 
@@ -33,266 +46,341 @@ function delay<T>(v: T, ms = 240): Promise<T> {
   return new Promise(r => setTimeout(() => r(v), ms));
 }
 
-function getCoupleId(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    return s?.coupleId || s?.id || null;
-  } catch { return null; }
-}
+// ─── TYPES (matched to actual backend response shapes) ─────────────────────
 
-// ─── TYPES ───────────────────────────────────────────────────────────────────
-
-export interface Reminder {
-  id: string;
-  couple_id: string;
-  text: string;
-  event?: string | null;
-  priority?: string | null;
-  due_date?: string | null;
-  is_complete: boolean;
-  created_at?: string;
-}
-
-export interface Expense {
-  id: string;
-  couple_id: string;
-  event?: string | null;
-  category?: string | null;
-  description?: string | null;
-  vendor_name?: string | null;
-  planned_amount?: number | null;
-  actual_amount?: number | null;
-  payment_status?: 'pending' | 'paid' | 'committed' | string | null;
-  receipt_url?: string | null;
-  due_date?: string | null;
-  notes?: string | null;
-  created_at?: string;
-}
-
-export interface CoupleVendor {
-  id: string;
-  couple_id: string;
-  vendor_id?: string | null;
-  name: string;
-  category?: string | null;
-  phone?: string | null;
-  status?: string | null;
-  quoted_total?: number | null;
-  paid_total?: number | null;
-  events?: string[] | null;
-  notes?: string | null;
-}
-
+// events table: id, title, event_date, event_time, kind, state, notes, created_at
 export interface CoupleEvent {
   id: string;
-  couple_id: string;
-  event_name?: string | null;
-  event_type?: string | null;
-  event_date?: string | null;
-  venue?: string | null;
-  task_count?: number;
-  vendor_count?: number;
+  title: string;
+  kind: string;        // shoot|call|meeting|task|reminder|recce|fitting|trial|family|ceremony|social|other
+  event_date: string;  // YYYY-MM-DD
+  event_time: string | null;
+  state: string;       // upcoming|done|cancelled
+  notes: string | null;
+  created_at?: string;
 }
 
-export interface CircleActivityEvent {
+// couple_receipts table: id, booking_id, amount, vendor_name, description, receipt_date, image_url, tags, created_at
+export interface CoupleReceipt {
   id: string;
-  event_type: string;
-  actor_role: 'bride' | 'member';
-  payload?: Record<string, any>;
+  booking_id: string | null;
+  amount: number | null;
+  vendor_name: string | null;
+  description: string | null;
+  receipt_date: string | null;
+  image_url: string | null;
+  tags: string[] | null;
   created_at: string;
 }
 
+// couple_bookings table: id, vendor_name, vendor_id, category, amount_total, amount_advance, amount_paid, balance_due_date, state, notes
+export interface CoupleBooking {
+  id: string;
+  vendor_name: string;
+  vendor_id: string | null;
+  category: string;
+  amount_total: number | null;
+  amount_advance: number | null;
+  amount_paid: number;
+  balance_due_date: string | null;
+  state: string;  // booked|advance_paid|paid
+  notes: string | null;
+  created_at?: string;
+}
+
+// circle from /api/v2/couple/circle/:coupleId
+export interface CircleMember {
+  id: string;
+  invitee_name: string;
+  role: string;
+  status: string;  // active|pending|removed
+  joined_at: string | null;
+  conversation_id: string | null;
+  last_active: string | null;
+}
+
+export interface CircleActivity {
+  id: string;
+  activity_type: string;
+  member_name: string | null;
+  actor_role: string | null;
+  content: string | null;
+  created_at: string;
+}
+
+export interface CircleData {
+  members: CircleMember[];
+  activity: CircleActivity[];
+  pending_invites: { id: string; invitee_name: string; role: string; expires_at: string | null; created_at: string }[];
+}
+
+// threads from /api/v2/frost/circle/threads/:brideId
 export interface CircleThread {
   thread_id: string;
-  kind: 'group' | 'dm';
-  label: string;
-  role?: string | null;
-  last_message?: { content: string } | null;
-  last_active?: string | null;
+  kind: string;
+  label: string | null;
+  last_message: { content: string | null; sender_name: string | null; created_at: string | null } | null;
+  last_active: string | null;
 }
 
+// messages from /api/v2/frost/circle/threads/:brideId/:threadId/messages
 export interface CircleMessage {
   id: string;
-  sender_name: string;
-  sender_role: 'bride' | 'member';
-  content: string;
+  body: string | null;
+  content: string | null;
+  sender_name: string | null;
+  sender_role: string | null;
   created_at: string;
 }
 
+// couple profile from /api/v2/couple/me/:coupleId
 export interface CoupleProfile {
-  name: string;
-  partner_name: string;
-  wedding_date: string;
-  wedding_city: string;
-  phone: string;
-  avatar_url?: string | null;
-  tier?: string;
+  id: string;
+  bride_name: string | null;    // from users.name
+  partner_name: string | null;
+  wedding_date: string | null;
+  wedding_city: string | null;
+  budget_total: number | null;
+  events_planned: string[];
+  planning_state: string | null;
+  onboarding_state: string | null;
 }
 
-// ─── MOCKS ───────────────────────────────────────────────────────────────────
-
-const MOCK_REMINDERS: Reminder[] = [
-  { id: 'r1', couple_id: '', text: 'Confirm lehenga fitting time with Anita Dongre', due_date: '2026-11-16', is_complete: false, event: 'Wedding' },
-  { id: 'r2', couple_id: '', text: 'Send final guest list to caterer', due_date: '2026-11-16', is_complete: false, event: 'Wedding' },
-  { id: 'r3', couple_id: '', text: 'Collect kalire from Chandni Chowk', due_date: '2026-11-17', is_complete: false },
-  { id: 'r4', couple_id: '', text: 'Send Mehndi artist entry pass', due_date: '2026-11-17', is_complete: false, event: 'Mehndi' },
-  { id: 'r5', couple_id: '', text: 'Pay balance to Aanya Studio', due_date: '2026-11-18', is_complete: false },
-  { id: 'r6', couple_id: '', text: 'Makeup trial done', due_date: '2026-11-13', is_complete: true },
-  { id: 'r7', couple_id: '', text: 'Final venue walkthrough completed', due_date: '2026-11-10', is_complete: true },
-];
-
-const MOCK_EXPENSES: Expense[] = [
-  { id: 'e1', couple_id: '', vendor_name: 'Aanya Studio',     category: 'Photography', actual_amount: 450000, payment_status: 'committed', due_date: '2026-11-08', event: 'Wedding' },
-  { id: 'e2', couple_id: '', vendor_name: 'Swati Roy MUA',    category: 'Makeup',      actual_amount: 180000, payment_status: 'committed', due_date: '2026-11-17', event: 'Wedding' },
-  { id: 'e3', couple_id: '', vendor_name: 'Bloom & Petals',   category: 'Decor',       actual_amount: 850000, payment_status: 'pending',   due_date: '2026-11-15', event: 'Wedding' },
-  { id: 'e4', couple_id: '', vendor_name: 'Shivam Caterers',  category: 'Catering',    actual_amount: 900000, payment_status: 'pending',   due_date: '2026-11-16', event: 'Wedding' },
-  { id: 'e5', couple_id: '', vendor_name: 'Anita Dongre',     category: 'Lehenga',     actual_amount: 320000, payment_status: 'paid',      due_date: null,          event: 'Wedding' },
-  { id: 'e6', couple_id: '', vendor_name: 'GRT Jewellers',    category: 'Jewellery',   actual_amount: 280000, payment_status: 'paid',      due_date: null,          event: 'Wedding' },
-];
-
-const MOCK_VENDORS: CoupleVendor[] = [
-  { id: 'v1', couple_id: '', name: 'Aanya Studio',    category: 'Photography', status: 'booked', quoted_total: 450000, paid_total: 275000, events: ['Mehndi', 'Wedding'] },
-  { id: 'v2', couple_id: '', name: 'Swati Roy MUA',   category: 'Makeup',      status: 'booked', quoted_total: 180000, paid_total: 90000,  events: ['Wedding', 'Sangeet'] },
-  { id: 'v3', couple_id: '', name: 'Bloom & Petals',  category: 'Decor',       status: 'booked', quoted_total: 850000, paid_total: 425000, events: ['Mehndi', 'Wedding'] },
-  { id: 'v4', couple_id: '', name: 'Shivam Caterers', category: 'Catering',    status: 'booked', quoted_total: 900000, paid_total: 450000, events: ['Wedding'] },
-  { id: 'v5', couple_id: '', name: 'Reel Makers',     category: 'Videography', status: 'shortlisted', quoted_total: 170000, paid_total: 0, events: ['Wedding'] },
-  { id: 'v6', couple_id: '', name: 'The Band Wale',   category: 'Music',       status: 'booked', quoted_total: 250000, paid_total: 75000,  events: ['Sangeet', 'Baraat'] },
-];
+// ─── MOCKS ────────────────────────────────────────────────────────────────────
 
 const MOCK_EVENTS: CoupleEvent[] = [
-  { id: 'ev1', couple_id: '', event_name: 'Haldi',   event_type: 'ceremony', event_date: '2026-11-17', venue: 'Home',       task_count: 3, vendor_count: 2 },
-  { id: 'ev2', couple_id: '', event_name: 'Mehndi',  event_type: 'ceremony', event_date: '2026-11-17', venue: 'Home',       task_count: 4, vendor_count: 3 },
-  { id: 'ev3', couple_id: '', event_name: 'Sangeet', event_type: 'ceremony', event_date: '2026-11-18', venue: 'Rooftop',    task_count: 5, vendor_count: 4 },
-  { id: 'ev4', couple_id: '', event_name: 'Wedding', event_type: 'ceremony', event_date: '2026-11-19', venue: 'ITC Maurya', task_count: 8, vendor_count: 6 },
+  { id: 'ev1', title: 'Haldi',   kind: 'family',   event_date: '2026-11-17', event_time: null,    state: 'upcoming', notes: null },
+  { id: 'ev2', title: 'Mehndi',  kind: 'family',   event_date: '2026-11-17', event_time: '15:00', state: 'upcoming', notes: 'Home' },
+  { id: 'ev3', title: 'Sangeet', kind: 'ceremony', event_date: '2026-11-18', event_time: '19:00', state: 'upcoming', notes: 'Rooftop' },
+  { id: 'ev4', title: 'Wedding', kind: 'ceremony', event_date: '2026-11-19', event_time: '10:00', state: 'upcoming', notes: 'ITC Maurya' },
 ];
 
-const MOCK_CIRCLE_FEED: CircleActivityEvent[] = [
-  { id: 'ca1', event_type: 'muse_saved',          actor_role: 'member', payload: { actor_name: 'Ananya' },              created_at: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'ca2', event_type: 'circle_message_sent', actor_role: 'member', payload: { actor_name: 'Mrs Sharma' },          created_at: new Date(Date.now() - 7200000).toISOString() },
-  { id: 'ca3', event_type: 'circle_invite_accepted', actor_role: 'member', payload: { member_name: 'Riya Kapoor' },     created_at: new Date(Date.now() - 86400000).toISOString() },
+const MOCK_RECEIPTS: CoupleReceipt[] = [
+  { id: 'r1', booking_id: null, amount: 50000,  vendor_name: 'Aanya Studio',   description: 'Advance payment', receipt_date: '2026-11-01', image_url: null, tags: ['photography'], created_at: '2026-11-01T10:00:00Z' },
+  { id: 'r2', booking_id: null, amount: 25000,  vendor_name: 'Swati Roy MUA',  description: 'Trial session',   receipt_date: '2026-11-05', image_url: null, tags: ['makeup'],      created_at: '2026-11-05T14:00:00Z' },
 ];
 
-const MOCK_CIRCLE_THREADS: CircleThread[] = [
-  { thread_id: 't1', kind: 'group', label: 'Wedding Family', last_message: { content: 'What time should we arrive?' }, last_active: new Date(Date.now() - 3600000).toISOString() },
-  { thread_id: 't2', kind: 'dm',    label: 'Ananya (Sister)', role: 'sister', last_message: { content: 'Saved that red lehenga for you ♥' }, last_active: new Date(Date.now() - 3600000).toISOString() },
-  { thread_id: 't3', kind: 'dm',    label: 'Mrs Sharma (Mom)', role: 'mother', last_message: { content: 'This is beautiful!' }, last_active: new Date(Date.now() - 7200000).toISOString() },
-  { thread_id: 't4', kind: 'dm',    label: 'Riya Kapoor', role: 'best friend', last_message: null, last_active: null },
+const MOCK_BOOKINGS: CoupleBooking[] = [
+  { id: 'b1', vendor_name: 'Aanya Studio',    vendor_id: null, category: 'photographer', amount_total: 450000, amount_advance: 50000,  amount_paid: 50000,  balance_due_date: '2026-11-15', state: 'advance_paid', notes: null },
+  { id: 'b2', vendor_name: 'Swati Roy MUA',   vendor_id: null, category: 'mua',          amount_total: 180000, amount_advance: 25000,  amount_paid: 25000,  balance_due_date: '2026-11-17', state: 'advance_paid', notes: null },
+  { id: 'b3', vendor_name: 'Bloom & Petals',  vendor_id: null, category: 'decor',         amount_total: 850000, amount_advance: null,   amount_paid: 0,      balance_due_date: '2026-11-10', state: 'booked',       notes: null },
+  { id: 'b4', vendor_name: 'Shivam Caterers', vendor_id: null, category: 'caterer',       amount_total: 900000, amount_advance: null,   amount_paid: 0,      balance_due_date: '2026-11-16', state: 'booked',       notes: null },
+  { id: 'b5', vendor_name: 'Reel Makers',     vendor_id: null, category: 'videographer',  amount_total: 170000, amount_advance: null,   amount_paid: 0,      balance_due_date: null,          state: 'booked',       notes: 'Shortlisted' },
 ];
+
+const MOCK_CIRCLE: CircleData = {
+  members: [
+    { id: 'm1', invitee_name: 'Ananya (Sister)', role: 'family',       status: 'active', joined_at: '2026-10-01T10:00:00Z', conversation_id: 'c1', last_active: new Date(Date.now() - 3600000).toISOString() },
+    { id: 'm2', invitee_name: 'Mrs Sharma',      role: 'family',       status: 'active', joined_at: '2026-10-02T10:00:00Z', conversation_id: 'c2', last_active: new Date(Date.now() - 7200000).toISOString() },
+    { id: 'm3', invitee_name: 'Riya Kapoor',     role: 'inner_circle', status: 'pending', joined_at: null, conversation_id: null, last_active: null },
+  ],
+  activity: [
+    { id: 'ca1', activity_type: 'save_added',      member_name: 'Ananya',    actor_role: 'circle_member', content: null,             created_at: new Date(Date.now() - 3600000).toISOString() },
+    { id: 'ca2', activity_type: 'circle_message',  member_name: 'Mrs Sharma', actor_role: 'circle_member', content: 'What time should we arrive?', created_at: new Date(Date.now() - 7200000).toISOString() },
+  ],
+  pending_invites: [],
+};
 
 const MOCK_PROFILE: CoupleProfile = {
-  name: 'Priya',
+  id: 'couple-test',
+  bride_name: 'Priya',
   partner_name: 'Rohan',
   wedding_date: '2026-11-19',
   wedding_city: 'Delhi',
-  phone: '+918757788550',
-  tier: 'platinum',
+  budget_total: 5000000,
+  events_planned: ['haldi','mehndi','sangeet','wedding'],
+  planning_state: null,
+  onboarding_state: 'complete',
 };
 
-// ─── API FUNCTIONS ────────────────────────────────────────────────────────────
+// ─── API FUNCTIONS — EVENTS ────────────────────────────────────────────────
 
-export async function fetchReminders(): Promise<Reminder[]> {
-  if (USE_MOCKS) return delay(MOCK_REMINDERS);
-  const id = getCoupleId();
-  const r: any = await apiFetch(`/api/couple/checklist/${id}`);
-  return r?.data ?? [];
-}
-
-export async function toggleReminder(id: string, is_complete: boolean): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/checklist/${id}`, { method: 'PATCH', body: JSON.stringify({ is_complete }) }); return true; }
-  catch { return false; }
-}
-
-export async function deleteReminder(id: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/checklist/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
-}
-
-export async function fetchExpenses(): Promise<Expense[]> {
-  if (USE_MOCKS) return delay(MOCK_EXPENSES);
-  const id = getCoupleId();
-  const r: any = await apiFetch(`/api/couple/expenses/${id}`);
-  return r?.data ?? [];
-}
-
-export async function markExpensePaid(id: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/expenses/${id}`, { method: 'PATCH', body: JSON.stringify({ payment_status: 'paid' }) }); return true; }
-  catch { return false; }
-}
-
-export async function deleteExpense(id: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/expenses/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
-}
-
-export async function fetchVendors(): Promise<CoupleVendor[]> {
-  if (USE_MOCKS) return delay(MOCK_VENDORS);
-  const id = getCoupleId();
-  const r: any = await apiFetch(`/api/couple/vendors/${id}`);
-  return r?.data ?? [];
-}
-
-export async function deleteVendorRow(id: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/vendors/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
-}
-
-export async function fetchEvents(): Promise<CoupleEvent[]> {
+export async function fetchEvents(state = 'upcoming'): Promise<CoupleEvent[]> {
   if (USE_MOCKS) return delay(MOCK_EVENTS);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/couple/events/${id}`);
-  return r?.data ?? [];
+  if (!id) return [];
+  const r: any = await apiFetch(`/api/v2/couple/events/${id}?state=${state}`);
+  return r?.events ?? [];
 }
 
-export async function fetchCircleFeed(): Promise<CircleActivityEvent[]> {
-  if (USE_MOCKS) return delay(MOCK_CIRCLE_FEED);
+export async function createEvent(body: {
+  title: string; event_date: string; kind: string; event_time?: string; notes?: string;
+}): Promise<CoupleEvent> {
+  if (USE_MOCKS) {
+    const ev: CoupleEvent = { id: `mock-${Date.now()}`, state: 'upcoming', event_time: null, notes: null, ...body };
+    return delay(ev, 400);
+  }
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/frost/circle/feed/${id}`);
-  return r?.data ?? [];
+  const r: any = await apiFetch(`/api/v2/couple/events/${id}`, { method: 'POST', body: JSON.stringify(body) });
+  return r.event;
 }
 
-export async function fetchCircleThreads(): Promise<CircleThread[]> {
-  if (USE_MOCKS) return delay(MOCK_CIRCLE_THREADS);
-  const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/frost/circle/threads/${id}`);
-  return r?.data ?? [];
+export async function updateEvent(eventId: string, patch: {
+  title?: string; event_date?: string; event_time?: string | null; kind?: string; notes?: string | null; state?: string;
+}): Promise<CoupleEvent> {
+  if (USE_MOCKS) {
+    const ev = MOCK_EVENTS.find(e => e.id === eventId);
+    return delay({ ...(ev || MOCK_EVENTS[0]), ...patch } as CoupleEvent, 300);
+  }
+  const r: any = await apiFetch(`/api/v2/couple/events/${eventId}`, { method: 'PATCH', body: JSON.stringify(patch) });
+  return r.event;
 }
 
-export async function fetchCircleMessages(threadId: string): Promise<CircleMessage[]> {
-  if (USE_MOCKS) return delay([]);
-  const r: any = await apiFetch(`/api/v2/frost/circle/messages/${threadId}`);
-  return r?.data ?? [];
-}
-
-export async function sendCircleMessage(threadId: string, content: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true, 600);
-  try { await apiFetch(`/api/v2/frost/circle/messages`, { method: 'POST', body: JSON.stringify({ thread_id: threadId, content }) }); return true; }
+export async function deleteEvent(eventId: string): Promise<boolean> {
+  if (USE_MOCKS) return delay(true, 300);
+  try { await apiFetch(`/api/v2/couple/events/${eventId}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
+
+// ─── API FUNCTIONS — RECEIPTS (expense vault) ──────────────────────────────
+
+export async function fetchReceipts(): Promise<CoupleReceipt[]> {
+  if (USE_MOCKS) return delay(MOCK_RECEIPTS);
+  const id = getCoupleId();
+  if (!id) return [];
+  const r: any = await apiFetch(`/api/v2/couple/expenses/${id}`);
+  return r?.expenses ?? [];
+}
+
+export async function deleteReceipt(receiptId: string): Promise<boolean> {
+  if (USE_MOCKS) return delay(true, 300);
+  try { await apiFetch(`/api/v2/couple/receipts/${receiptId}`, { method: 'DELETE' }); return true; }
+  catch { return false; }
+}
+
+// ─── API FUNCTIONS — BOOKINGS (vendor commitments) ────────────────────────
+
+export async function fetchBookings(): Promise<CoupleBooking[]> {
+  if (USE_MOCKS) return delay(MOCK_BOOKINGS);
+  const id = getCoupleId();
+  if (!id) return [];
+  const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`);
+  return r?.bookings ?? [];
+}
+
+export async function createBooking(body: {
+  vendor_name: string; category: string; amount_total?: number; amount_advance?: number;
+  balance_due_date?: string; notes?: string; state?: string;
+}): Promise<CoupleBooking> {
+  if (USE_MOCKS) {
+    const b: CoupleBooking = { id: `mock-${Date.now()}`, vendor_id: null, amount_advance: null, amount_paid: 0, balance_due_date: null, notes: null, amount_total: null, state: 'booked', ...body };
+    return delay(b, 400);
+  }
+  const id = getCoupleId();
+  const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`, { method: 'POST', body: JSON.stringify(body) });
+  return r.booking;
+}
+
+export async function updateBooking(bookingId: string, patch: {
+  vendor_name?: string; category?: string; amount_total?: number | null;
+  amount_advance?: number | null; balance_due_date?: string | null; notes?: string | null; state?: string;
+}): Promise<CoupleBooking> {
+  if (USE_MOCKS) {
+    const b = MOCK_BOOKINGS.find(x => x.id === bookingId);
+    return delay({ ...(b || MOCK_BOOKINGS[0]), ...patch } as CoupleBooking, 300);
+  }
+  const r: any = await apiFetch(`/api/v2/couple/bookings/${bookingId}`, { method: 'PATCH', body: JSON.stringify(patch) });
+  return r.booking;
+}
+
+export async function deleteBooking(bookingId: string): Promise<boolean> {
+  if (USE_MOCKS) return delay(true, 300);
+  try { await apiFetch(`/api/v2/couple/bookings/${bookingId}`, { method: 'DELETE' }); return true; }
+  catch { return false; }
+}
+
+export async function recordPayment(bookingId: string, amount: number, payment_date?: string): Promise<CoupleBooking> {
+  if (USE_MOCKS) {
+    const b = MOCK_BOOKINGS.find(x => x.id === bookingId);
+    const updated = { ...(b || MOCK_BOOKINGS[0]), amount_paid: (b?.amount_paid || 0) + amount };
+    return delay(updated as CoupleBooking, 400);
+  }
+  const body: any = { amount };
+  if (payment_date) body.payment_date = payment_date;
+  const r: any = await apiFetch(`/api/v2/couple/bookings/${bookingId}/payment`, { method: 'POST', body: JSON.stringify(body) });
+  return r.booking;
+}
+
+// ─── API FUNCTIONS — CIRCLE ────────────────────────────────────────────────
+
+export async function fetchCircle(): Promise<CircleData> {
+  if (USE_MOCKS) return delay(MOCK_CIRCLE);
+  const id = getCoupleId();
+  if (!id) return { members: [], activity: [], pending_invites: [] };
+  const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
+  return {
+    members:         r?.members         ?? [],
+    activity:        r?.activity        ?? [],
+    pending_invites: r?.pending_invites ?? [],
+  };
+}
+
+export async function inviteCircleMember(body: { invitee_name: string; role: string }): Promise<{ wa_me_link: string; invite_token: string; member_id: string }> {
+  if (USE_MOCKS) return delay({ wa_me_link: 'https://wa.me/917982159047?text=CIRCLE-MOCK', invite_token: 'MOCK', member_id: 'mock-id' }, 600);
+  const r: any = await apiFetch('/api/v2/couple/circle/invite', { method: 'POST', body: JSON.stringify(body) });
+  return { wa_me_link: r.wa_me_link, invite_token: r.invite_token, member_id: r.member_id };
+}
+
+// Threads — uses the coplanner frost endpoint (no JWT, scoped by brideId)
+export async function fetchCircleThreads(): Promise<CircleThread[]> {
+  if (USE_MOCKS) return delay([]);
+  const id = getCoupleId();
+  if (!id) return [];
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}`);
+  const r: any = await res.json();
+  return r?.data ?? [];
+}
+
+// Messages for a specific thread
+export async function fetchThreadMessages(threadId: string): Promise<CircleMessage[]> {
+  if (USE_MOCKS) return delay([]);
+  const id = getCoupleId();
+  if (!id) return [];
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}/${threadId}/messages`);
+  const r: any = await res.json();
+  return r?.data ?? [];
+}
+
+// Send a message to a thread
+export async function sendThreadMessage(threadId: string, messageBody: string): Promise<boolean> {
+  if (USE_MOCKS) return delay(true, 600);
+  try {
+    const id = getCoupleId();
+    await fetch(`${API_BASE}/api/v2/frost/circle/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: id, thread_id: threadId, body: messageBody, sender_name: 'couple' }),
+    });
+    return true;
+  } catch { return false; }
+}
+
+// ─── API FUNCTIONS — PROFILE ───────────────────────────────────────────────
 
 export async function fetchProfile(): Promise<CoupleProfile> {
   if (USE_MOCKS) return delay(MOCK_PROFILE);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/couple/profile/${id}`);
-  return r?.data ?? MOCK_PROFILE;
+  if (!id) return MOCK_PROFILE;
+  const r: any = await apiFetch(`/api/v2/couple/me/${id}`);
+  return r?.couple ?? MOCK_PROFILE;
 }
 
-export async function saveProfile(patch: Partial<CoupleProfile>): Promise<boolean> {
+export async function saveProfile(patch: {
+  name?: string; partner_name?: string; wedding_date?: string; wedding_city?: string;
+}): Promise<boolean> {
   if (USE_MOCKS) return delay(true, 600);
-  try { const id = getCoupleId(); await apiFetch(`/api/v2/couple/profile/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }); return true; }
-  catch { return false; }
+  try {
+    const id = getCoupleId();
+    await apiFetch(`/api/v2/couple/me/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+    return true;
+  } catch { return false; }
 }
+
+// ─── FORMATTING UTILS ──────────────────────────────────────────────────────
 
 export function fmtINR(n: number | null | undefined): string {
-  if (!n) return '₹0';
-  return '₹' + n.toLocaleString('en-IN');
+  if (!n && n !== 0) return 'Rs 0';
+  return 'Rs ' + n.toLocaleString('en-IN');
 }
 
 export function timeAgo(iso: string): string {
@@ -305,16 +393,57 @@ export function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function formatActivityLine(e: CircleActivityEvent): string {
-  const actor = e.actor_role === 'bride' ? 'You' : (e.payload?.actor_name || 'Someone');
-  const p = e.payload || {};
-  switch (e.event_type) {
-    case 'vendor_booked':           return `${actor} booked ${p.vendor_name || 'a vendor'}`;
-    case 'payment_logged':          return `${actor} logged a payment`;
-    case 'task_completed':          return `${actor} completed: ${p.task_text || 'a task'}`;
-    case 'muse_saved':              return `${actor} saved to Muse`;
-    case 'circle_message_sent':     return `${actor} sent a message`;
-    case 'circle_invite_accepted':  return `${p.member_name || 'Someone'} joined your Circle`;
-    default:                        return `${actor} made a change`;
+export function formatActivityLine(a: CircleActivity): string {
+  const actor = a.actor_role === 'bride' ? 'You' : (a.member_name || 'Someone');
+  switch (a.activity_type) {
+    case 'save_added':            return `${actor} saved to Muse`;
+    case 'circle_message':
+    case 'circle_message_sent':   return `${actor} sent a message`;
+    case 'circle_invite_accepted':return `${a.member_name || 'Someone'} joined your Circle`;
+    case 'vendor_booked':         return `${actor} noted a booking`;
+    case 'task_completed':        return `${actor} completed a task`;
+    default:                      return `${actor} made a change`;
   }
 }
+
+
+// ─── REMINDERS (couple_tasks) — stubs until REST endpoint ships ────────────
+// The brideEngine manages tasks via WhatsApp agent tools directly.
+// A REST endpoint for couple_tasks is not yet mounted in core.js.
+// These stubs keep the reminders canvas functional with mocks.
+export interface Reminder {
+  id: string;
+  couple_id: string;
+  text: string;
+  event?: string | null;
+  priority?: string | null;
+  due_date?: string | null;
+  is_complete: boolean;
+  created_at?: string;
+}
+
+const MOCK_REMINDERS: Reminder[] = [
+  { id: 'rem1', couple_id: '', text: 'Confirm lehenga fitting with Anita Dongre', due_date: '2026-11-16', is_complete: false, event: 'Wedding' },
+  { id: 'rem2', couple_id: '', text: 'Send final guest list to caterer', due_date: '2026-11-16', is_complete: false, event: 'Wedding' },
+  { id: 'rem3', couple_id: '', text: 'Collect kalire from Chandni Chowk', due_date: '2026-11-17', is_complete: false },
+  { id: 'rem4', couple_id: '', text: 'Makeup trial done', due_date: '2026-11-13', is_complete: true },
+];
+
+export async function fetchReminders(): Promise<Reminder[]> {
+  if (USE_MOCKS) return delay(MOCK_REMINDERS);
+  // Real endpoint not mounted yet — return empty until /api/v2/couple/tasks ships
+  return [];
+}
+
+export async function toggleReminder(id: string, is_complete: boolean): Promise<boolean> {
+  if (USE_MOCKS) return delay(true);
+  return false;
+}
+
+export async function deleteReminder(id: string): Promise<boolean> {
+  if (USE_MOCKS) return delay(true);
+  return false;
+}
+
+// Stub kept for compatibility — muse canvas uses lib/frost-api/couple.ts
+export async function createMuseSaveFromUrl(_url: string): Promise<void> { return; }

@@ -215,19 +215,14 @@ export default function CanvasMuse() {
   const handleAddFromUrl = async () => {
     if (!urlInput.trim() || saving) return;
     setSaving(true);
-    const ok = await createMuseSaveFromUrl(urlInput.trim());
+    await createMuseSaveFromUrl(urlInput.trim());
     setSaving(false);
-    if (ok) {
-      setUrlInput('');
-      setAddSheet(false);
-      setAddToast('Saved to Muse');
-      setTimeout(() => setAddToast(''), 2400);
-      // Refresh
-      fetchMuseSaves({ saved_by: sourceFilter }).then(({ saves: s, total: tt }) => { setSaves(s); setTotal(tt); });
-    } else {
-      setAddToast('Could not save. Check the link.');
-      setTimeout(() => setAddToast(''), 2400);
-    }
+    setUrlInput('');
+    setAddSheet(false);
+    setAddToast('Saved to Muse');
+    setTimeout(() => setAddToast(''), 2400);
+    // Refresh
+    fetchMuseSaves({ saved_by: sourceFilter }).then(({ saves: s, total: tt }) => { setSaves(s); setTotal(tt); });
   };
 
   useEffect(() => {
