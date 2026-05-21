@@ -193,6 +193,8 @@ const MOCK_PROFILE: CoupleProfile = {
 
 // ─── API FUNCTIONS ────────────────────────────────────────────────────────────
 
+// -- API FUNCTIONS ------------------------------------------------------------
+
 export async function fetchReminders(): Promise<Reminder[]> {
   if (USE_MOCKS) return delay(MOCK_REMINDERS);
   const id = getCoupleId();
@@ -215,84 +217,181 @@ export async function deleteReminder(id: string): Promise<boolean> {
 export async function fetchExpenses(): Promise<Expense[]> {
   if (USE_MOCKS) return delay(MOCK_EXPENSES);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/couple/expenses/${id}`);
-  return r?.data ?? [];
+  // couple_receipts: id, booking_id, amount, vendor_name, description, receipt_date, image_url, tags
+  const r: any = await apiFetch(`/api/v2/couple/expenses/${id}`);
+  const raw: any[] = r?.expenses ?? [];
+  return raw.map(e => ({
+    id:             e.id,
+    couple_id:      id || '',
+    vendor_name:    e.vendor_name  || null,
+    description:    e.description  || null,
+    actual_amount:  e.amount       || null,   // amount → actual_amount
+    payment_status: 'paid' as const,          // receipts vault = already paid
+    receipt_url:    e.image_url    || null,   // image_url → receipt_url
+    due_date:       e.receipt_date || null,
+    category:       e.tags?.[0]   || null,
+    event:          e.tags?.[1]   || null,
+    notes:          null,
+  }));
 }
 
-export async function markExpensePaid(id: string): Promise<boolean> {
+export async function markExpensePaid(_id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/expenses/${id}`, { method: 'PATCH', body: JSON.stringify({ payment_status: 'paid' }) }); return true; }
-  catch { return false; }
+  return true; // couple_receipts are filed receipts — already paid
 }
 
 export async function deleteExpense(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/expenses/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/v2/couple/receipts/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
 
 export async function fetchVendors(): Promise<CoupleVendor[]> {
   if (USE_MOCKS) return delay(MOCK_VENDORS);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/couple/vendors/${id}`);
-  return r?.data ?? [];
+  // couple_bookings: id, vendor_name, vendor_id, category, amount_total, amount_paid, state, notes
+  const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`);
+  const raw: any[] = r?.bookings ?? [];
+  return raw.map(b => ({
+    id:           b.id,
+    couple_id:    id || '',
+    vendor_id:    b.vendor_id    || null,
+    name:         b.vendor_name  || 'Vendor', // vendor_name → name
+    category:     b.category     || null,
+    phone:        null,
+    status:       b.state        || null,     // state → status
+    quoted_total: b.amount_total || null,     // amount_total → quoted_total
+    paid_total:   b.amount_paid  || null,     // amount_paid → paid_total
+    events:       null,
+    notes:        b.notes        || null,
+  }));
 }
 
-export async function deleteVendorRow(id: string): Promise<boolean> {
+export async function deleteVendorRow(_id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/couple/vendors/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
+  return true; // bookings not deletable via PWA
 }
 
 export async function fetchEvents(): Promise<CoupleEvent[]> {
   if (USE_MOCKS) return delay(MOCK_EVENTS);
   const id = getCoupleId();
+  // events table: id, title, event_date, event_time, kind, state, notes
   const r: any = await apiFetch(`/api/v2/couple/events/${id}`);
-  return r?.data ?? [];
+  const raw: any[] = r?.events ?? [];
+  return raw.map(e => ({
+    id:           e.id,
+    couple_id:    id || '',
+    event_name:   e.title      || null, // title → event_name
+    event_type:   e.kind       || null, // kind → event_type
+    event_date:   e.event_date || null,
+    venue:        null,
+    task_count:   0,
+    vendor_count: 0,
+  }));
 }
 
 export async function fetchCircleFeed(): Promise<CircleActivityEvent[]> {
   if (USE_MOCKS) return delay(MOCK_CIRCLE_FEED);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/frost/circle/feed/${id}`);
-  return r?.data ?? [];
+  // GET /api/v2/couple/circle/:id → { members, activity, pending_invites }
+  const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
+  const raw: any[] = r?.activity ?? [];
+  return raw.map(a => ({
+    id:         a.id,
+    event_type: a.activity_type || 'change',
+    actor_role: (a.actor_role === 'bride' ? 'bride' : 'member') as 'bride' | 'member',
+    payload: {
+      actor_name:  a.member_name || null,
+      member_name: a.member_name || null,
+      content:     a.content     || null,
+    },
+    created_at: a.created_at,
+  }));
 }
 
 export async function fetchCircleThreads(): Promise<CircleThread[]> {
   if (USE_MOCKS) return delay(MOCK_CIRCLE_THREADS);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/frost/circle/threads/${id}`);
-  return r?.data ?? [];
+  // Same /couple/circle/:id call — shape active members as DM threads
+  const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
+  const members: any[] = r?.members ?? [];
+  return members.map(m => ({
+    thread_id:    `dm:${m.id}`,
+    kind:         'dm' as const,
+    label:        m.invitee_name || 'Circle member',
+    role:         m.role         || null,
+    last_message: null,
+    last_active:  m.joined_at    || null,
+  }));
 }
 
 export async function fetchCircleMessages(threadId: string): Promise<CircleMessage[]> {
   if (USE_MOCKS) return delay([]);
-  const r: any = await apiFetch(`/api/v2/frost/circle/messages/${threadId}`);
-  return r?.data ?? [];
+  const id = getCoupleId();
+  const r: any = await apiFetch(`/api/v2/frost/circle/threads/${id}/${threadId}/messages`);
+  const raw: any[] = r?.data ?? [];
+  return raw.map(m => ({
+    id:          m.id,
+    sender_name: m.direction === 'inbound' ? 'Circle member' : 'You',
+    sender_role: (m.direction === 'inbound' ? 'member' : 'bride') as 'bride' | 'member',
+    content:     m.body       || '',
+    created_at:  m.created_at || new Date().toISOString(),
+  }));
 }
 
 export async function sendCircleMessage(threadId: string, content: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true, 600);
-  try { await apiFetch(`/api/v2/frost/circle/messages`, { method: 'POST', body: JSON.stringify({ thread_id: threadId, content }) }); return true; }
+  try { await apiFetch('/api/v2/frost/circle/messages', { method: 'POST', body: JSON.stringify({ thread_id: threadId, content }) }); return true; }
   catch { return false; }
 }
 
 export async function fetchProfile(): Promise<CoupleProfile> {
   if (USE_MOCKS) return delay(MOCK_PROFILE);
   const id = getCoupleId();
+  // GET /api/v2/couple/profile/:id (public) → { success, data: { bride_name, groom_name, wedding_date } }
   const r: any = await apiFetch(`/api/v2/couple/profile/${id}`);
-  return r?.data ?? MOCK_PROFILE;
+  const d = r?.data;
+  if (!d) return MOCK_PROFILE;
+  return {
+    name:         d.bride_name   || '',
+    partner_name: d.groom_name   || '',
+    wedding_date: d.wedding_date || '',
+    wedding_city: '',
+    phone:        '',
+    tier:         'lite',
+  };
 }
 
 export async function saveProfile(patch: Partial<CoupleProfile>): Promise<boolean> {
   if (USE_MOCKS) return delay(true, 600);
-  try { const id = getCoupleId(); await apiFetch(`/api/v2/couple/profile/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }); return true; }
-  catch { return false; }
+  try {
+    const id = getCoupleId();
+    await apiFetch(`/api/v2/couple/me/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        partner_name: patch.partner_name,
+        wedding_date: patch.wedding_date,
+        wedding_city: patch.wedding_city,
+      }),
+    });
+    return true;
+  } catch { return false; }
+}
+
+export async function inviteCircleMember(invitee_name: string, _role: string): Promise<string | null> {
+  if (USE_MOCKS) return delay('https://wa.me/14787788550?text=Hi', 600);
+  try {
+    const r: any = await apiFetch('/api/v2/couple/circle/invite', {
+      method: 'POST',
+      body: JSON.stringify({ invitee_name, role: 'inner_circle' }),
+    });
+    return r?.wa_me_link || null;
+  } catch { return null; }
 }
 
 export function fmtINR(n: number | null | undefined): string {
-  if (!n) return '₹0';
-  return '₹' + n.toLocaleString('en-IN');
+  if (!n) return '\u20b90';
+  return '\u20b9' + n.toLocaleString('en-IN');
 }
 
 export function timeAgo(iso: string): string {
