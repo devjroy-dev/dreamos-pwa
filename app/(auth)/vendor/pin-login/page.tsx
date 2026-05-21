@@ -71,7 +71,14 @@ export default function VendorPinLoginPage() {
           localStorage.setItem('vendor_session', JSON.stringify(updated));
           if (d.name) setName(d.name);
         } catch {}
-        router.replace('/vendor/today');
+        // Handoff to thedreamai.in with JWT — single sign-in across domains.
+        // The handoff page reads the token, writes vendor_session to localStorage
+        // in dreamai format, then redirects to /wedding.
+        const s = JSON.parse(localStorage.getItem('vendor_web_session') || '{}');
+        const token   = s.access_token  || '';
+        const refresh = s.refresh_token || '';
+        const params  = new URLSearchParams({ token, refresh });
+        window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
       } else {
         const next = attempts + 1; setAttempts(next);
         setShaking(true); setTimeout(() => setShaking(false), 400);

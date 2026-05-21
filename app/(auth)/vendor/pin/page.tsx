@@ -27,7 +27,12 @@ export default function VendorPinPage() {
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('vendor_web_session') || localStorage.getItem('vendor_session') || '{}');
-      if (s?.pin_set) { router.replace('/vendor/today'); return; }
+      if (s?.pin_set) {
+        // Already has PIN — handoff directly to dreamai
+        const params = new URLSearchParams({ token: s.access_token || '', refresh: s.refresh_token || '' });
+        window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
+        return;
+      }
     } catch {}
     pinRefs.current[0]?.focus();
   }, []);
@@ -66,7 +71,9 @@ export default function VendorPinPage() {
         const updated = { ...session, pin_set: true };
         localStorage.setItem('vendor_web_session', JSON.stringify(updated));
         localStorage.setItem('vendor_session', JSON.stringify(updated));
-        router.replace('/vendor/today');
+        const s2 = JSON.parse(localStorage.getItem('vendor_web_session') || '{}');
+        const params = new URLSearchParams({ token: s2.access_token || '', refresh: s2.refresh_token || '' });
+        window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
       } else { showToast('Could not set PIN. Try again.'); }
     } catch { showToast('Network error. Try again.'); }
     finally { setLoading(false); }
