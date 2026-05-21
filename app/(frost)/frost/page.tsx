@@ -220,7 +220,7 @@ export default function FrostLanding() {
   const [museUrl,      setMuseUrl]      = useState<string | null>(null);
   const [discoverUrl,  setDiscoverUrl]  = useState<string | null>(null);
   const [surpriseUrl,  setSurpriseUrl]  = useState<string | null>(null);
-  const [circleUrl,    setCircleUrl]    = useState<string | null>(null);
+  const [featuredUrl,  setFeaturedUrl]  = useState<string | null>(null);
 
   const isSanctuary = contentMode === 'sanctuary';
   const dark        = homeMode === 'E1A';
@@ -238,7 +238,7 @@ export default function FrostLanding() {
     setMuseUrl('https://images.unsplash.com/photo-1529636798458-92182e662485?w=600&q=80&auto=format&fit=crop');
     setDiscoverUrl('https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80&auto=format&fit=crop');
     setSurpriseUrl('https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&q=80&auto=format&fit=crop');
-    setCircleUrl('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600&q=80&auto=format&fit=crop');
+    setFeaturedUrl('https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=600&q=80&auto=format&fit=crop');
   }, []);
 
   const go = (path: string) => router.push(path);
@@ -315,7 +315,7 @@ export default function FrostLanding() {
               </div>
               <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 160 }}>
                 <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/muse')}             mode={mode} />
-                <PhotoTile imageUrl={circleUrl}   label="Circle"      onClick={() => go('/frost/canvas/journey/circle')}   mode={mode} />
+                <PhotoTile imageUrl={featuredUrl} label="Featured"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
               </div>
             </div>
 
