@@ -132,7 +132,7 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
 
       <div style={{ padding:'0 24px' }}>
         <p style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase',color:'rgba(248,247,245,0.5)',margin:'0 0 8px' }}>
-          {vendor.category}&nbsp;\u00b7&nbsp;{vendor.city}
+          {vendor.category}&nbsp;·&nbsp;{vendor.city}
         </p>
 
         {!isBlind && (
@@ -157,7 +157,7 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
 
         {isBlind && vendor.vibe_tags.length > 0 && (
           <p style={{ fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.15em',color:'rgba(248,247,245,0.55)',margin:'0 0 20px' }}>
-            {vendor.vibe_tags.join(' \u00b7 ')}
+            {vendor.vibe_tags.join(' · ')}
           </p>
         )}
 
@@ -246,7 +246,6 @@ function DiscoveryFeedContent() {
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [dissolveKey, setDissolveKey] = useState(0);
   const [blindHint, setBlindHint] = useState<'left'|'right'|null>(null);
-  const [blindSlide, setBlindSlide] = useState<'left'|'right'|null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -288,19 +287,28 @@ function DiscoveryFeedContent() {
   }, [vendorIdx, vendors.length, hasMore, currentPage]);
 
   const vendor = vendors[vendorIdx];
+  // Preload next images silently — reduces perceived lag
+  useEffect(() => {
+    if (!vendor) return;
+    const toPreload: string[] = [];
+    for (let i = imageIdx + 1; i < Math.min(vendor.photos.length, imageIdx + 3); i++) {
+      toPreload.push(vendor.photos[i]);
+    }
+    if (vendorIdx + 1 < vendors.length) {
+      const next = vendors[vendorIdx + 1];
+      if (next.photos[0]) toPreload.push(next.photos[0]);
+    }
+    toPreload.forEach(src => { const img = new Image(); img.src = src; });
+  }, [vendorIdx, imageIdx, vendor, vendors]);
 
   const goNextVendor = useCallback((direction: 'left'|'right'|null = null) => {
     if (vendorIdx >= vendors.length - 1) return;
     if (direction) {
-      setBlindSlide(direction);
-      setTimeout(() => {
-        setBlindSlide(null);
-        setVendorIdx(i => i + 1);
-        setImageIdx(0);
-        setOverlayVisible(false);
-        setDissolveKey(k => k + 1);
-        haptic(5);
-      }, 220);
+      setVendorIdx(i => i + 1);
+      setImageIdx(0);
+      setOverlayVisible(false);
+      setDissolveKey(k => k + 1);
+      haptic(5);
     } else {
       setVendorIdx(i => i + 1);
       setImageIdx(0);
@@ -430,8 +438,6 @@ function DiscoveryFeedContent() {
         @keyframes dissolveIn { from{opacity:0} to{opacity:1} }
         @keyframes slideInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         @keyframes toastSlideIn { from{opacity:0;transform:translateX(-50%) translateY(-8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-        @keyframes slideOffLeft { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-120%)} }
-        @keyframes slideOffRight { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(120%)} }
       `}</style>
 
       <div
@@ -443,11 +449,7 @@ function DiscoveryFeedContent() {
           key={dissolveKey}
           style={{
             position:'absolute', inset:0,
-            animation: blindSlide === 'left'
-              ? 'slideOffLeft 220ms ease forwards'
-              : blindSlide === 'right'
-              ? 'slideOffRight 220ms ease forwards'
-              : 'dissolveIn 260ms ease',
+            animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)',
           }}
         >
           {currentPhoto ? (
@@ -482,7 +484,7 @@ function DiscoveryFeedContent() {
         {!isBlind && !overlayVisible && (
           <div style={{ position:'fixed',bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',left:0,right:0,display:'flex',justifyContent:'center',zIndex:10,pointerEvents:'none',animation:'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)' }}>
             <span style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:200,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(255,255,255,0.4)' }}>
-              Tap \u00b7 Double-tap to save \u00b7 Swipe to browse
+              Tap · Double-tap to save · Swipe to browse
             </span>
           </div>
         )}
