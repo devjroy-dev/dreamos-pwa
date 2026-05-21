@@ -101,17 +101,29 @@ export interface CircleMember {
 
 export interface CircleActivity {
   id: string;
-  activity_type: string;
+  activity_type: string;  // save_added|comment|joined|vendor_booked|task_completed
   member_name: string | null;
   actor_role: string | null;
   content: string | null;
   created_at: string;
+  // enriched fields (populated for save_added rows)
+  image_url: string | null;
+  caption: string | null;
+  aesthetic_tags: string[] | null;
+  save_number: number | null;
+  source_type: string | null;
 }
 
 export interface CircleData {
   members: CircleMember[];
   activity: CircleActivity[];
   pending_invites: { id: string; invitee_name: string; role: string; expires_at: string | null; created_at: string }[];
+}
+
+// Individual member feed — GET /couple/circle/member/:memberId
+export interface MemberFeedData {
+  member: CircleMember & { invitee_phone: string | null };
+  activity: CircleActivity[];
 }
 
 // threads from /api/v2/frost/circle/threads/:brideId
@@ -175,8 +187,8 @@ const MOCK_CIRCLE: CircleData = {
     { id: 'm3', invitee_name: 'Riya Kapoor',     role: 'inner_circle', status: 'pending', joined_at: null, conversation_id: null, last_active: null },
   ],
   activity: [
-    { id: 'ca1', activity_type: 'save_added',      member_name: 'Ananya',    actor_role: 'circle_member', content: null,             created_at: new Date(Date.now() - 3600000).toISOString() },
-    { id: 'ca2', activity_type: 'circle_message',  member_name: 'Mrs Sharma', actor_role: 'circle_member', content: 'What time should we arrive?', created_at: new Date(Date.now() - 7200000).toISOString() },
+    { id: 'ca1', activity_type: 'save_added',      member_name: 'Ananya',    actor_role: 'circle_member', content: null,             created_at: new Date(Date.now() - 3600000).toISOString(), image_url: null, caption: 'Love this for the mehndi', aesthetic_tags: ['ethnic','elegant'], save_number: 5, source_type: 'image' },
+    { id: 'ca2', activity_type: 'comment',  member_name: 'Mrs Sharma', actor_role: 'circle_member', content: 'What time should we arrive?', created_at: new Date(Date.now() - 7200000).toISOString(), image_url: null, caption: null, aesthetic_tags: null, save_number: null, source_type: null },
   ],
   pending_invites: [],
 };
@@ -313,6 +325,17 @@ export async function fetchCircle(): Promise<CircleData> {
     activity:        r?.activity        ?? [],
     pending_invites: r?.pending_invites ?? [],
   };
+}
+
+export async function fetchMemberFeed(memberId: string): Promise<MemberFeedData | null> {
+  if (USE_MOCKS) return delay(null);
+  try {
+    const r: any = await apiFetch(`/api/v2/couple/circle/member/${memberId}`);
+    return {
+      member:   r?.member   ?? null,
+      activity: r?.activity ?? [],
+    };
+  } catch { return null; }
 }
 
 export async function inviteCircleMember(body: { invitee_name: string; role: string }): Promise<{ wa_me_link: string; invite_token: string; member_id: string }> {

@@ -27,8 +27,9 @@ const PRIMARY = [
 
 const SECONDARY = [
   { key: 'events',    Icon: Calendar,      title: 'Events',      route: '/frost/canvas/journey/events'   },
-  { key: 'broadcast', Icon: UserCheck,     title: 'My people',   route: '/frost/canvas/journey/circle'   },
+  { key: 'broadcast', Icon: UserCheck,     title: 'My people',   route: '/frost/canvas/journey/people'   },
   { key: 'messages',  Icon: MessageCircle, title: 'Messages',    route: '/frost/canvas/journey/circle'   },
+  { key: 'moments',   Icon: Archive,       title: 'Moments',     route: '/frost/canvas/journey/moments'  },
   { key: 'couture',   Icon: Scissors,      title: 'Couture',     route: null },
   { key: 'memory',    Icon: Archive,       title: 'Memory Box',  route: null },
   { key: 'honeymoon', Icon: Plane,         title: 'Honeymoon',   route: null },
