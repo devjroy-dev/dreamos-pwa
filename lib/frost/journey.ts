@@ -285,13 +285,20 @@ export async function createExpense(data: {
   }
   try {
     const id = getCoupleId();
+    // Map frontend fields → backend receipt fields
     const r: any = await apiFetch(`/api/v2/couple/receipts/${id}`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        vendor_name:  data.vendor_name,
+        amount:       data.amount,
+        description:  data.notes       || null,   // notes → description
+        receipt_date: data.due_date    || null,   // due_date → receipt_date
+        tags:         [data.category, data.event].filter(Boolean),  // category+event → tags[]
+      }),
     });
     const e = r?.expense;
     if (!e) return null;
-    return { id: e.id, couple_id: id||'', vendor_name: e.vendor_name||data.vendor_name, description: e.description||null, actual_amount: e.amount||data.amount, payment_status: 'pending', category: e.tags?.[0]||data.category||null, event: e.tags?.[1]||data.event||null, due_date: e.due_date||data.due_date||null, notes: data.notes||null };
+    return { id: e.id, couple_id: id||'', vendor_name: e.vendor_name||data.vendor_name, description: e.description||null, actual_amount: e.amount||data.amount, payment_status: 'paid' as const, category: e.tags?.[0]||data.category||null, event: e.tags?.[1]||data.event||null, due_date: e.receipt_date||data.due_date||null, notes: data.notes||null };
   } catch { return null; }
 }
 
