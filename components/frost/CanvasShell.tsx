@@ -27,6 +27,8 @@ export default function CanvasShell({
       position: 'fixed', inset: 0,
       background: mode.pagePaper,
       display: 'flex', flexDirection: 'column',
+      userSelect: 'none' as const,
+      WebkitUserSelect: 'none' as const,
     }}>
       {/* Frosted top bar */}
       <div style={{
