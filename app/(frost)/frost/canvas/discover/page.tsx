@@ -109,7 +109,7 @@ function FilterSheet({
     <div style={{ position:'fixed',inset:0,zIndex:50 }} onClick={onClose}>
       <div style={{ position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(4px)',WebkitBackdropFilter:'blur(4px)' }} />
       <div
-        style={{ position:'absolute',bottom:0,left:0,right:0,background: isDark ? 'rgba(27,22,18,0.97)' : 'rgba(216,211,204,0.97)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderTop:`0.5px solid ${t.hairline}`,borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',maxHeight:'85vh',overflowY:'auto' }}
+        style={{ position:'absolute',bottom:0,left:0,right:0,background: isDark ? 'rgba(27,22,18,0.97)' : 'rgba(216,211,204,0.97)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderTop:`0.5px solid ${t.hairline}`,borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',maxHeight:'85vh',overflowY:'auto',scrollbarWidth:'none' as const }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}
@@ -234,7 +234,7 @@ function DiscoverLanding({
   ];
 
   return (
-    <div style={{ position:'fixed',inset:0,background:t.pagePaper,overflowY:'auto',WebkitOverflowScrolling:'touch' as const }}>
+    <div className="frost-scroll" style={{ position:'fixed',inset:0,background:t.pagePaper,overflowY:'auto',WebkitOverflowScrolling:'touch' as const }}>
 
       {/* Back chevron */}
       <button

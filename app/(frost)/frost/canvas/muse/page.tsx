@@ -276,7 +276,7 @@ export default function CanvasMuse() {
           <div style={{ fontFamily: FF.body, fontSize: 13, color: tokens.soft }}>{loading ? 'Loading\u2026' : `${total} saved`}</div>
         </div>
 
-        <div style={{ display: 'flex', gap: 6, padding: `0 ${SP.xxl}px ${SP.s}px`, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div className="frost-scroll" style={{ display: 'flex', gap: 6, padding: `0 ${SP.xxl}px ${SP.s}px`, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {SOURCE_FILTERS.map(f => {
             const active = sourceFilter === f.value;
             return (
@@ -285,7 +285,7 @@ export default function CanvasMuse() {
           })}
         </div>
 
-        <div style={{ display: 'flex', gap: 6, padding: `0 ${SP.xxl}px ${SP.m}px`, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div className="frost-scroll" style={{ display: 'flex', gap: 6, padding: `0 ${SP.xxl}px ${SP.m}px`, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {CEREMONY_FILTERS.map(f => {
             const active = ceremonyFilter === f.value;
             return (

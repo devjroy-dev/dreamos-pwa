@@ -79,6 +79,24 @@ export default function CouplePinLoginPage() {
         };
         localStorage.setItem('couple_web_session', JSON.stringify(updated));
         localStorage.setItem('couple_session', JSON.stringify(updated));
+        // Fetch wedding_date so the frost landing countdown is real
+        try {
+          const meRes = await fetch(API_BASE + '/api/v2/couple/me/' + (d.couple_id || existing.id), {
+            headers: { 'Authorization': 'Bearer ' + d.access_token, 'Content-Type': 'application/json' },
+          });
+          const me = await meRes.json();
+          if (me.wedding_date || me.partner_name || me.bride_name) {
+            const enriched = {
+              ...updated,
+              wedding_date:  me.wedding_date  || updated.wedding_date  || null,
+              partner_name:  me.partner_name  || updated.partner_name  || null,
+              bride_name:    me.bride_name    || updated.bride_name    || null,
+              wedding_city:  me.wedding_city  || updated.wedding_city  || null,
+            };
+            localStorage.setItem('couple_web_session', JSON.stringify(enriched));
+            localStorage.setItem('couple_session', JSON.stringify(enriched));
+          }
+        } catch {}
         router.replace('/frost');
       } else {
         const next = attempts + 1; setAttempts(next);
