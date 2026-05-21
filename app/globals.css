@@ -220,6 +220,10 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border-secondary); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* ── Frost PWA — hide scrollbars on all scrollable surfaces ── */
+.frost-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.frost-scroll::-webkit-scrollbar { display: none; }
+
 ::selection { background: rgba(201,168,76,0.2); color: var(--text-primary); }
 
 /* ═══════════════════════════════════════════════════════════════════════

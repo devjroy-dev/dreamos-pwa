@@ -58,7 +58,7 @@ export default function CanvasShell({
       </div>
 
       {/* Content */}
-      <div style={{
+      <div className="frost-scroll" style={{
         flex: 1,
         overflowY: scrollable ? 'auto' : 'hidden',
         WebkitOverflowScrolling: 'touch',

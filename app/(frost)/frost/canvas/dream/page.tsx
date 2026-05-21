@@ -123,7 +123,7 @@ export default function CanvasDream() {
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: `${SP.xl}px ${SP.xl}px` }}>
+      <div ref={scrollRef} className="frost-scroll" style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: `${SP.xl}px ${SP.xl}px` }}>
         {messages.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: SP.xl }}>
             <div>
