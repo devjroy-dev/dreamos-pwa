@@ -32,17 +32,23 @@ export interface DiscoverHero {
 }
 
 export interface MuseSave {
-  id: string;
-  save_number: number;
-  image_url: string | null;
-  source_type: string;
-  vendor_id: string | null;
-  vendor_name: string | null;
-  caption: string | null;
-  aesthetic_tags: string[];
-  saved_by_role: 'bride' | 'circle_member';
-  circle_comment_count: number;
-  created_at: string;
+  id:                    string;
+  save_number:           number;
+  image_url:             string | null;
+  source_type:           'vendor' | 'photo' | 'link';
+  vendor_id:             string | null;
+  vendor_name:           string | null;
+  vendor_city:           string | null;
+  vendor_category:       string | null;
+  vendor_starting_price: number | null;
+  vendor_vibe_tags:      string[];
+  vendor_routing_handle: string | null;
+  enquire_link:          string | null;
+  caption:               string | null;
+  aesthetic_tags:        string[];
+  saved_by_role:         'bride' | 'circle_member';
+  circle_comment_count:  number;
+  created_at:            string;
 }
 
 export interface MuseActivity {

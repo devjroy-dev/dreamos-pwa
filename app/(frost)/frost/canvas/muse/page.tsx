@@ -30,17 +30,47 @@ const SOURCE_FILTERS: { label: string; value: SourceFilter }[] = [
 ];
 
 function FullBleedOverlay({
-  save, activity, onClose,
+  save, activity, onClose, onRemove,
 }: {
   save: MuseSave;
   activity: MuseActivity[];
   onClose: () => void;
+  onRemove: (saveId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [copyToast, setCopyToast] = useState(false);
+
+  const handleEnquire = () => {
+    if (save.enquire_link) window.open(save.enquire_link, '_blank');
+  };
+
+  const handleShare = async () => {
+    if (!save.enquire_link) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${save.vendor_name || 'Vendor'} — The Dream Wedding`,
+          text: `Check out ${save.vendor_name || 'this vendor'} on TDW`,
+          url: save.enquire_link,
+        });
+      } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(save.enquire_link);
+        setCopyToast(true);
+        setTimeout(() => setCopyToast(false), 2000);
+      } catch {}
+    }
+  };
+
+  const handleRemove = () => onRemove(save.id);
+
+  const isVendorSave = save.source_type === 'vendor';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: '#0C0A09', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative' }} onClick={() => isVendorSave && setOverlayVisible(v => !v)}>
         {save.image_url ? (
           <img src={save.image_url} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
@@ -51,7 +81,7 @@ function FullBleedOverlay({
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' }} />
 
         <button
-          onClick={onClose}
+          onClick={e => { e.stopPropagation(); onClose(); }}
           style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top,0px) + 16px)', left: 16, zIndex: 55, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '0.5px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.9)' }}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -59,12 +89,75 @@ function FullBleedOverlay({
           </svg>
         </button>
 
-        {save.vendor_name && (
-          <div style={{ position: 'absolute', bottom: 80, left: 20, right: 20 }}>
-            <p style={{ fontFamily: FF.display, fontSize: 22, fontWeight: 300, color: '#F8F7F5', margin: 0 }}>{save.vendor_name}</p>
+        {isVendorSave && !overlayVisible && (
+          <div style={{ position: 'absolute', bottom: 80, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+            <span style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)' }}>Tap to see vendor</span>
+          </div>
+        )}
+
+        {copyToast && (
+          <div style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top,0px) + 60px)', left: '50%', transform: 'translateX(-50%)', background: 'rgba(12,10,9,0.8)', backdropFilter: 'blur(12px)', borderRadius: 20, padding: '6px 16px', fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.9)', whiteSpace: 'nowrap' }}>
+            Link copied
           </div>
         )}
       </div>
+
+      {isVendorSave && (
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
+          transform: overlayVisible ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 340ms cubic-bezier(0.22,1,0.36,1)',
+          background: 'rgba(12,10,9,0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderTop: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '20px 20px 0 0',
+          paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 16px' }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+          </div>
+          <div style={{ padding: '0 24px' }}>
+            <p style={{ fontFamily: FF.label, fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
+              {save.vendor_category}&nbsp;·&nbsp;{save.vendor_city}
+            </p>
+            <h2 style={{ fontFamily: FF.display, fontSize: 26, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', lineHeight: 1.1 }}>
+              {save.vendor_name}
+            </h2>
+            {save.vendor_starting_price && (
+              <p style={{ fontFamily: FF.body, fontSize: 13, fontWeight: 300, color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
+                {save.vendor_starting_price >= 100000
+                  ? `Rs ${(save.vendor_starting_price / 100000).toFixed(save.vendor_starting_price % 100000 === 0 ? 0 : 1)}L onwards`
+                  : `Rs ${(save.vendor_starting_price / 1000).toFixed(0)}K onwards`}
+              </p>
+            )}
+            {save.vendor_vibe_tags.length > 0 && (
+              <p style={{ fontFamily: FF.label, fontSize: 9, color: 'rgba(248,247,245,0.45)', letterSpacing: '0.12em', margin: '0 0 20px' }}>
+                {save.vendor_vibe_tags.join(' · ')}
+              </p>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button onClick={handleEnquire} style={{ width: '100%', padding: '14px 0', background: 'rgba(248,247,245,0.9)', border: 'none', borderRadius: 10, fontFamily: FF.label, fontSize: 10, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#111111', cursor: 'pointer', touchAction: 'manipulation' }}>
+                Enquire ↗
+              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={handleShare} style={{ flex: 1, padding: '12px 0', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 10, fontFamily: FF.label, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.7)', cursor: 'pointer', touchAction: 'manipulation' }}>
+                  Share ↗
+                </button>
+                <button onClick={handleRemove} style={{ flex: 1, padding: '12px 0', background: 'rgba(184,69,62,0.15)', border: '0.5px solid rgba(184,69,62,0.3)', borderRadius: 10, fontFamily: FF.label, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(220,100,90,0.9)', cursor: 'pointer', touchAction: 'manipulation' }}>
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isVendorSave && (
+        <div style={{ background: 'rgba(12,10,9,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '0.5px solid rgba(255,255,255,0.08)', padding: '16px 20px calc(env(safe-area-inset-bottom,0px) + 16px)' }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={handleShare} style={{ flex: 1, padding: '12px 0', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 10, fontFamily: FF.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.7)', cursor: 'pointer' }}>Share ↗</button>
+            <button onClick={handleRemove} style={{ flex: 1, padding: '12px 0', background: 'rgba(184,69,62,0.15)', border: '0.5px solid rgba(184,69,62,0.3)', borderRadius: 10, fontFamily: FF.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(220,100,90,0.9)', cursor: 'pointer' }}>Remove</button>
+          </div>
+        </div>
+      )}
 
       {activity.length > 0 && (
         <div
@@ -75,7 +168,7 @@ function FullBleedOverlay({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A84C' }} />
               <span style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.6)' }}>
-                {activity.length} circle interaction{activity.length !== 1 ? 's' : ''} \u00b7 tap to see
+                {activity.length} circle interaction{activity.length !== 1 ? 's' : ''} · tap to see
               </span>
             </div>
           ) : (
@@ -94,8 +187,8 @@ function FullBleedOverlay({
         </div>
       )}
 
-      {activity.length === 0 && (
-        <div style={{ height: 'calc(env(safe-area-inset-bottom,0px) + 20px)' }} />
+      {activity.length === 0 && !isVendorSave && (
+        <div style={{ height: 'calc(env(safe-area-inset-bottom,0px) + 8px)' }} />
       )}
     </div>
   );
@@ -148,6 +241,14 @@ export default function CanvasMuse() {
           save={selectedSave}
           activity={saveActivity}
           onClose={() => { setSelectedSave(null); setSaveActivity([]); }}
+          onRemove={async (saveId) => {
+            const ok = await deleteMuseSave(saveId);
+            if (ok) {
+              setSaves(prev => prev.filter(s => s.id !== saveId));
+              setSelectedSave(null);
+              setSaveActivity([]);
+            }
+          }}
         />
       )}
 
