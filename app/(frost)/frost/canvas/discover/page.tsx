@@ -308,16 +308,16 @@ function DiscoverLanding({
         {/* Editorial secondary cards — Couture + Destination */}
         <div style={{ padding:'0 24px',display:'flex',flexDirection:'column' as const,gap:8,marginBottom:28 }}>
           {[
-            { id:'couture', title:'Couture', sub:"India\u2019s most distinguished wedding professionals", icon:(
+            { id:'couture', title:'Couture', sub:"India\u2019s most distinguished wedding professionals", action: () => onSelectCategory('mua' as CategoryId), icon:(
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             )},
-            { id:'destination', title:'Destination Weddings', sub:'Udaipur \u00b7 Goa \u00b7 Jaipur \u00b7 Mussoorie', icon:(
+            { id:'destination', title:'Destination Weddings', sub:'Udaipur \u00b7 Goa \u00b7 Jaipur \u00b7 Mussoorie', action: onBrowseAll, icon:(
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             )},
           ].map(item => (
             <button
               key={item.id}
-              onClick={onBrowseAll}
+              onClick={item.action}
               style={{ width:'100%',display:'flex',alignItems:'center',gap:14,background:t.cardFill,border:`0.5px solid ${t.hairline}`,borderRadius:14,padding:'14px 16px',cursor:'pointer',touchAction:'manipulation' as const,textAlign:'left' as const }}
             >
               <div style={{ width:36,height:36,borderRadius:10,background: isDark ? 'rgba(201,168,76,0.1)' : 'rgba(201,168,76,0.08)',border:'0.5px solid rgba(201,168,76,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
@@ -353,11 +353,11 @@ function DiscoverLanding({
           </div>
         </div>
 
-        {/* Discover Blind — subtle tertiary action */}
+        {/* Discover Blind — gold border, calls attention without being loud */}
         <div style={{ padding:'0 24px' }}>
           <button
             onClick={onBlind}
-            style={{ width:'100%',padding:'13px 0',background:'transparent',border:`0.5px solid ${t.hairline}`,borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.28em',textTransform:'uppercase' as const,color:t.soft,cursor:'pointer',touchAction:'manipulation' as const }}
+            style={{ width:'100%',padding:'13px 0',background:'transparent',border:`1px solid rgba(201,168,76,0.45)`,borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.28em',textTransform:'uppercase' as const,color:'rgba(201,168,76,0.7)',cursor:'pointer',touchAction:'manipulation' as const,boxShadow:'0 0 12px rgba(201,168,76,0.08)' }}
           >
             Discover Blind
           </button>

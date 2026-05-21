@@ -269,7 +269,7 @@ export default function FrostLanding() {
       {/* Hero */}
       <div style={{
         position: 'relative', zIndex: 1, flexShrink: 0,
-        padding: `calc(env(safe-area-inset-top,0px) + 40px) 24px 20px`,
+        padding: `calc(env(safe-area-inset-top,0px) + 24px) 24px 12px`,
         textAlign: 'center',
       }}>
         <div style={{ fontFamily: FF.label, fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: mode.soft, marginBottom: 5 }}>
@@ -278,10 +278,10 @@ export default function FrostLanding() {
         <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: mode.ink, lineHeight: 1.15, marginBottom: 3 }}>
           {domWord} {monthName}
         </div>
-        <div style={{ fontFamily: FF.body, fontSize: 13, color: mode.soft, marginBottom: 18 }}>
+        <div style={{ fontFamily: FF.body, fontSize: 13, color: mode.soft, marginBottom: 10 }}>
           {year}
         </div>
-        <div style={{ height: '0.5px', background: mode.hairline, width: 40, margin: '0 auto 18px' }} />
+        <div style={{ height: '0.5px', background: mode.hairline, width: 40, margin: '0 auto 10px' }} />
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 8 }}>
           <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 52, color: mode.brass, lineHeight: 1 }}>{days}</span>
           <span style={{ fontFamily: FF.label, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: mode.brassMuted }}>
@@ -301,18 +301,12 @@ export default function FrostLanding() {
         {!isSanctuary ? (
           // ── DREAM MODE ────────────────────────────────────────────────────
           <>
-            {/* 2x2 photo grid — each row equal flex, gap between tiles only */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 16px 8px', minHeight: 0 }}>
-              {/* Row 1: Muse | Discover */}
-              <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 0 }}>
-                <PhotoTile imageUrl={museUrl}     label="Muse"        onClick={() => go('/frost/canvas/muse')}             mode={mode} />
-                <PhotoTile imageUrl={discoverUrl} label="Discover"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
-              </div>
-              {/* Row 2: Surprise Me | Circle */}
-              <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 0 }}>
-                <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/muse')}             mode={mode} />
-                <PhotoTile imageUrl={circleUrl}   label="Circle"      onClick={() => go('/frost/canvas/journey/circle')}   mode={mode} />
-              </div>
+            {/* 4 portrait tiles — single horizontal row */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 6, padding: '10px 16px 8px', minHeight: 0 }}>
+              <PhotoTile imageUrl={museUrl}     label="Muse"        onClick={() => go('/frost/canvas/muse')}             mode={mode} />
+              <PhotoTile imageUrl={discoverUrl} label="Discover"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
+              <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/muse')}             mode={mode} />
+              <PhotoTile imageUrl={circleUrl}   label="Circle"      onClick={() => go('/frost/canvas/journey/circle')}   mode={mode} />
             </div>
 
             {/* Dream Ai — flat */}
