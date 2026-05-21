@@ -14,16 +14,16 @@ import { MODES } from '../../../../../lib/frost/tokens';
 // ── Category & tier constants ──────────────────────────────────────────────────
 
 const ALL_CATEGORIES = [
-  { id: 'venues',           label: 'Venues',           emoji: '🏛' },
-  { id: 'photographers',    label: 'Photographers',    emoji: '📷' },
-  { id: 'mua',              label: 'Makeup Artists',   emoji: '✨' },
-  { id: 'designers',        label: 'Designers',        emoji: '🧵' },
-  { id: 'jewellery',        label: 'Jewellery',        emoji: '💍' },
-  { id: 'choreographers',   label: 'Choreographers',   emoji: '💃' },
-  { id: 'content-creators', label: 'Content Creators', emoji: '🎬' },
-  { id: 'dj',               label: 'DJ & Music',       emoji: '🎵' },
-  { id: 'event-managers',   label: 'Event Managers',   emoji: '📋' },
-  { id: 'bridal-wellness',  label: 'Bridal Wellness',  emoji: '🌸' },
+  { id: 'venues',           label: 'Venues' },
+  { id: 'photographers',    label: 'Photographers' },
+  { id: 'mua',              label: 'Makeup Artists' },
+  { id: 'designers',        label: 'Designers' },
+  { id: 'jewellery',        label: 'Jewellery' },
+  { id: 'choreographers',   label: 'Choreographers' },
+  { id: 'content-creators', label: 'Content Creators' },
+  { id: 'dj',               label: 'DJ & Music' },
+  { id: 'event-managers',   label: 'Event Managers' },
+  { id: 'bridal-wellness',  label: 'Bridal Wellness' },
 ] as const;
 
 type CategoryId = typeof ALL_CATEGORIES[number]['id'];
@@ -193,7 +193,6 @@ function DiscoverLanding({
   const t = MODES[frostMode as 'E1A' | 'E3'] ?? MODES['E1A'];
   const isDark = frostMode === 'E1A';
 
-  // Greeting + countdown — reads couple session if present
   const [bridgeName,  setBridgeName]  = useState<string | null>(null);
   const [daysLeft,    setDaysLeft]    = useState<number | null>(null);
   const [weddingInfo, setWeddingInfo] = useState<string | null>(null);
@@ -211,9 +210,9 @@ function DiscoverLanding({
         if (diff > 0) setDaysLeft(diff);
         const month = wDate.toLocaleString('en-IN', { month: 'long' });
         const parts: string[] = [];
-        if (session.couple.city)        parts.push(session.couple.city);
-        if (month)                      parts.push(month);
-        if (parts.length) setWeddingInfo(parts.join(' · '));
+        if (session.couple.city) parts.push(session.couple.city);
+        if (month)               parts.push(month);
+        if (parts.length) setWeddingInfo(parts.join(' \u00b7 '));
       }
       const t2 = getTierFromBudget(session?.couple?.budget_total);
       setTier(t2);
@@ -225,10 +224,19 @@ function DiscoverLanding({
     return order.map(id => ALL_CATEGORIES.find(c => c.id === id)!).filter(Boolean);
   }, [tier]);
 
+  const gold = '#C9A84C';
+
+  const EXPLORE_ITEMS = [
+    { id: 'inspired',  title: 'Get Inspired',  sub: 'Venues, decor, ideas'      },
+    { id: 'lookbook',  title: 'Look Book',      sub: 'Designers, MUAs'           },
+    { id: 'spotlight', title: 'Spotlight',      sub: 'Top vendors this month'    },
+    { id: 'offers',    title: 'Special Offers', sub: 'Exclusive deals'           },
+  ];
+
   return (
     <div style={{ position:'fixed',inset:0,background:t.pagePaper,overflowY:'auto',WebkitOverflowScrolling:'touch' as const }}>
 
-      {/* Back to Frost home */}
+      {/* Back chevron */}
       <button
         onClick={() => router.push('/frost')}
         style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:16,zIndex:25,width:36,height:36,borderRadius:'50%',background: isDark ? 'rgba(27,22,18,0.6)' : 'rgba(216,211,204,0.6)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:`0.5px solid ${t.hairline}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:t.ink,touchAction:'manipulation' as const }}
@@ -238,54 +246,123 @@ function DiscoverLanding({
         </svg>
       </button>
 
-      <div style={{ padding:'calc(env(safe-area-inset-top,0px) + 72px) 24px calc(env(safe-area-inset-bottom,0px) + 40px)' }}>
+      <div style={{ paddingTop:'calc(env(safe-area-inset-top,0px) + 72px)',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 60px)' }}>
 
         {/* Header */}
-        <div style={{ marginBottom:8 }}>
-          <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:300,color:t.ink,margin:'0 0 4px',lineHeight:1.15,letterSpacing:'-0.01em' }}>
+        <div style={{ padding:'0 24px',marginBottom:6 }}>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:30,fontWeight:300,color:t.ink,margin:'0 0 4px',lineHeight:1.15,letterSpacing:'-0.01em' }}>
             {getTimeGreeting()}{bridgeName ? `, ${bridgeName}` : ''}
           </p>
           {(daysLeft !== null || weddingInfo) && (
-            <p style={{ fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.14em',color:t.soft,margin:0 }}>
-              {daysLeft !== null ? `${daysLeft} days` : ''}{daysLeft !== null && weddingInfo ? ' · ' : ''}{weddingInfo ?? ''}
+            <p style={{ fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.14em',color:t.soft,margin:0,textTransform:'uppercase' as const }}>
+              {daysLeft !== null ? `${daysLeft} days` : ''}{daysLeft !== null && weddingInfo ? ' \u00b7 ' : ''}{weddingInfo ?? ''}
             </p>
           )}
         </div>
 
-        {/* Tier greeting */}
-        <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:14,fontWeight:300,fontStyle:'italic',color:t.soft,margin:'0 0 28px' }}>
-          {getTierGreeting(tier)}
-        </p>
+        {/* Tier greeting — italic serif centred with gold hairlines */}
+        <div style={{ display:'flex',alignItems:'center',gap:12,padding:'12px 24px 24px' }}>
+          <div style={{ flex:1,height:'0.5px',background:'rgba(201,168,76,0.3)' }} />
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:13,fontWeight:300,fontStyle:'italic',color:t.soft,margin:0,whiteSpace:'nowrap' as const }}>
+            {getTierGreeting(tier)}
+          </p>
+          <div style={{ flex:1,height:'0.5px',background:'rgba(201,168,76,0.3)' }} />
+        </div>
 
-        {/* Category grid */}
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:16 }}>
-          {orderedCategories.map(cat => (
+        {/* Category pills — horizontal scroll, no emojis */}
+        <div style={{ overflowX:'auto',WebkitOverflowScrolling:'touch' as const,paddingBottom:4,marginBottom:24,scrollbarWidth:'none' as const }}>
+          <div style={{ display:'flex',gap:8,padding:'0 24px',width:'max-content' }}>
+            {orderedCategories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id)}
+                style={{ flexShrink:0,padding:'9px 18px',borderRadius:50,border:`0.5px solid ${t.hairline}`,background:t.cardFill,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:t.ink,cursor:'pointer',touchAction:'manipulation' as const,whiteSpace:'nowrap' as const }}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Discover Vendors — hero card */}
+        <div style={{ padding:'0 24px',marginBottom:10 }}>
+          <button
+            onClick={onBrowseAll}
+            style={{ width:'100%',display:'flex',alignItems:'center',gap:16,background: isDark ? 'rgba(201,168,76,0.08)' : 'rgba(201,168,76,0.06)',border:'0.5px solid rgba(201,168,76,0.3)',borderRadius:16,padding:'18px 20px',cursor:'pointer',touchAction:'manipulation' as const,textAlign:'left' as const }}
+          >
+            <div style={{ width:44,height:44,borderRadius:12,background:'rgba(201,168,76,0.12)',border:'0.5px solid rgba(201,168,76,0.25)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div style={{ flex:1 }}>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:300,color:t.ink,margin:'0 0 3px',letterSpacing:'0.01em' }}>Discover Vendors</p>
+              <p style={{ fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:300,color:t.soft,margin:0,lineHeight:1.4 }}>Swipe through India&apos;s finest wedding professionals</p>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 4l4 4-4 4"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Editorial secondary cards — Couture + Destination */}
+        <div style={{ padding:'0 24px',display:'flex',flexDirection:'column' as const,gap:8,marginBottom:28 }}>
+          {[
+            { id:'couture', title:'Couture', sub:"India\u2019s most distinguished wedding professionals", icon:(
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            )},
+            { id:'destination', title:'Destination Weddings', sub:'Udaipur \u00b7 Goa \u00b7 Jaipur \u00b7 Mussoorie', icon:(
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            )},
+          ].map(item => (
             <button
-              key={cat.id}
-              onClick={() => onSelectCategory(cat.id)}
-              style={{ background:t.cardFill,border:`0.5px solid ${t.hairline}`,borderRadius:12,padding:'16px 14px',display:'flex',alignItems:'center',gap:10,cursor:'pointer',touchAction:'manipulation' as const,textAlign:'left' as const }}
+              key={item.id}
+              onClick={onBrowseAll}
+              style={{ width:'100%',display:'flex',alignItems:'center',gap:14,background:t.cardFill,border:`0.5px solid ${t.hairline}`,borderRadius:14,padding:'14px 16px',cursor:'pointer',touchAction:'manipulation' as const,textAlign:'left' as const }}
             >
-              <span style={{ fontSize:20,lineHeight:1,flexShrink:0 }}>{cat.emoji}</span>
-              <span style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase' as const,color:t.ink,lineHeight:1.3 }}>{cat.label}</span>
+              <div style={{ width:36,height:36,borderRadius:10,background: isDark ? 'rgba(201,168,76,0.1)' : 'rgba(201,168,76,0.08)',border:'0.5px solid rgba(201,168,76,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                {item.icon}
+              </div>
+              <div style={{ flex:1 }}>
+                <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:15,fontWeight:300,color:t.ink,margin:'0 0 2px',letterSpacing:'0.01em' }}>{item.title}</p>
+                <p style={{ fontFamily:"'DM Sans',sans-serif",fontSize:10,fontWeight:300,color:t.soft,margin:0 }}>{item.sub}</p>
+              </div>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke={t.soft} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 4l4 4-4 4"/>
+              </svg>
             </button>
           ))}
         </div>
 
-        {/* Browse All */}
-        <button
-          onClick={onBrowseAll}
-          style={{ width:'100%',padding:'15px 0',background:t.brass,border:'none',borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase' as const,color:'#111111',cursor:'pointer',touchAction:'manipulation' as const,marginBottom:10 }}
-        >
-          Browse All
-        </button>
+        {/* E X P L O R E grid */}
+        <div style={{ padding:'0 24px',marginBottom:24 }}>
+          <p style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.4em',textTransform:'uppercase' as const,color:t.soft,textAlign:'center' as const,margin:'0 0 14px' }}>
+            E X P L O R E
+          </p>
+          <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8 }}>
+            {EXPLORE_ITEMS.map(item => (
+              <button
+                key={item.id}
+                onClick={onBrowseAll}
+                style={{ background:t.cardFill,border:`0.5px solid ${t.hairline}`,borderRadius:14,padding:'16px 14px',textAlign:'left' as const,cursor:'pointer',touchAction:'manipulation' as const }}
+              >
+                <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:14,fontWeight:300,color:t.ink,margin:'0 0 4px',letterSpacing:'0.01em' }}>{item.title}</p>
+                <p style={{ fontFamily:"'DM Sans',sans-serif",fontSize:9,fontWeight:300,color:t.soft,margin:0,lineHeight:1.5 }}>{item.sub}</p>
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Discover Blind */}
-        <button
-          onClick={onBlind}
-          style={{ width:'100%',padding:'14px 0',background:'transparent',border:`0.5px solid ${t.brass}`,borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase' as const,color:t.brass,cursor:'pointer',touchAction:'manipulation' as const }}
-        >
-          Discover Blind
-        </button>
+        {/* Discover Blind — subtle tertiary action */}
+        <div style={{ padding:'0 24px' }}>
+          <button
+            onClick={onBlind}
+            style={{ width:'100%',padding:'13px 0',background:'transparent',border:`0.5px solid ${t.hairline}`,borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.28em',textTransform:'uppercase' as const,color:t.soft,cursor:'pointer',touchAction:'manipulation' as const }}
+          >
+            Discover Blind
+          </button>
+        </div>
+
       </div>
     </div>
   );
