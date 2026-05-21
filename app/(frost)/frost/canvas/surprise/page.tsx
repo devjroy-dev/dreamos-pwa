@@ -49,8 +49,9 @@ export default function SurpriseMe() {
   const m = MODES[homeMode];
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [phase, setPhase]           = useState<'loading'|'quiz'|'reveal'|'empty'>('loading');
+  const [phase, setPhase]           = useState<'loading'|'quiz'|'submitting'|'reveal'|'empty'>('loading');
   const [quizImages, setQuizImages] = useState<QuizImage[]>([]);
+  const quizImagesRef               = useRef<QuizImage[]>([]);
   const [quizIdx, setQuizIdx]       = useState(0);
   const [likedIds, setLikedIds]     = useState<string[]>([]);
   const [saves, setSaves]           = useState<MuseSave[]>([]);
@@ -108,22 +109,25 @@ export default function SurpriseMe() {
   }, []);
 
   // ── Quiz actions ───────────────────────────────────────────────────────────
-  const handleLike = useCallback(() => {
-    const img = quizImages[quizIdx];
-    if (!img) return;
-    setLikedIds(prev => [...prev, img.id]);
-    next();
-  }, [quizImages, quizIdx]);
+  const advance = useCallback((liked: boolean) => {
+    setQuizIdx(currentIdx => {
+      const imgs = quizImagesRef.current;
+      const img  = imgs[currentIdx];
+      if (liked && img) {
+        setLikedIds(prev => [...prev, img.id]);
+      }
+      const nextIdx = currentIdx + 1;
+      if (nextIdx < imgs.length) {
+        return nextIdx;
+      }
+      // Last image — submit after state settles
+      setTimeout(() => setPhase('submitting'), 50);
+      return currentIdx;
+    });
+  }, []);
 
-  const handleSkip = useCallback(() => { next(); }, [quizIdx]);
-
-  const next = useCallback(() => {
-    if (quizIdx < quizImages.length - 1) {
-      setQuizIdx(q => q + 1);
-    } else {
-      submitQuiz();
-    }
-  }, [quizIdx, quizImages.length]);
+  const handleLike = useCallback(() => { advance(true); }, [advance]);
+  const handleSkip = useCallback(() => { advance(false); }, [advance]);
 
   const submitQuiz = useCallback(async () => {
     setSubmitting(true);
