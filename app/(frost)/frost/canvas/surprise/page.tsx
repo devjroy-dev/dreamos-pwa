@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFrostMode } from '../../../layout';
-import { MUSE_LOOKS, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
+import { MUSE_LOOKS, MODES, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
 
 declare const process: { env: { NEXT_PUBLIC_API_BASE?: string } };
 const API_BASE = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE) || 'https://dream-os-production.up.railway.app';
@@ -44,8 +44,9 @@ function getCoupleId(): string | null {
 
 export default function SurpriseMe() {
   const router = useRouter();
-  const { look } = useFrostMode();
+  const { look, homeMode } = useFrostMode();
   const t = MUSE_LOOKS[look];
+  const m = MODES[homeMode];
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [phase, setPhase]           = useState<'loading'|'quiz'|'reveal'|'empty'>('loading');
@@ -165,7 +166,7 @@ export default function SurpriseMe() {
     else prevReveal();
   };
 
-  const bg = `linear-gradient(to bottom, ${t.dreamGradient[0]}, ${t.dreamGradient[1]})`;
+  const bg = `linear-gradient(to bottom, ${m.dreamGradient[0]}, ${m.dreamGradient[1]})`;
 
   // ── Back button (shared) ───────────────────────────────────────────────────
   const BackBtn = () => (
