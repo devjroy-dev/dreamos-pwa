@@ -301,12 +301,16 @@ export default function FrostLanding() {
         {!isSanctuary ? (
           // ── DREAM MODE ────────────────────────────────────────────────────
           <>
-            {/* 4 portrait tiles — single horizontal row */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 6, padding: '10px 16px 8px', minHeight: 0 }}>
-              <PhotoTile imageUrl={museUrl}     label="Muse"        onClick={() => go('/frost/canvas/muse')}             mode={mode} />
-              <PhotoTile imageUrl={discoverUrl} label="Discover"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
-              <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/muse')}             mode={mode} />
-              <PhotoTile imageUrl={circleUrl}   label="Circle"      onClick={() => go('/frost/canvas/journey/circle')}   mode={mode} />
+            {/* 2x2 portrait grid — each row min 160px so tiles are rectangular */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 16px 8px', minHeight: 320 }}>
+              <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 160 }}>
+                <PhotoTile imageUrl={museUrl}     label="Muse"        onClick={() => go('/frost/canvas/muse')}             mode={mode} />
+                <PhotoTile imageUrl={discoverUrl} label="Discover"    onClick={() => go('/frost/canvas/discover')}         mode={mode} />
+              </div>
+              <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 160 }}>
+                <PhotoTile imageUrl={surpriseUrl} label="Surprise Me" onClick={() => go('/frost/canvas/muse')}             mode={mode} />
+                <PhotoTile imageUrl={circleUrl}   label="Circle"      onClick={() => go('/frost/canvas/journey/circle')}   mode={mode} />
+              </div>
             </div>
 
             {/* Dream Ai — flat */}
