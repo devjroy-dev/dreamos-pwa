@@ -198,7 +198,7 @@ function JourneyWord({ onClick, mode, dark }: { onClick: () => void; mode: ModeD
       borderTop: `0.5px solid ${mode.hairline}`,
       padding: '16px 0 calc(env(safe-area-inset-bottom,0px) + 16px)',
       fontFamily: FF.display, fontStyle: 'italic', fontSize: 20,
-      color: mode.brass,
+      color: dark ? mode.brass : mode.ink,
     }}>
       Journey
     </div>
