@@ -77,7 +77,9 @@ export default function SurpriseMe() {
           // Quiz done — load her Muse saves with images
           await loadSaves(token, coupleId);
         } else {
-          setQuizImages(data.images || []);
+          const imgs = data.images || [];
+          quizImagesRef.current = imgs;
+          setQuizImages(imgs);
           setPhase('quiz');
         }
       } catch {
