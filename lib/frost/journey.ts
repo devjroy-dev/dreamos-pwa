@@ -12,15 +12,7 @@ const API_BASE  = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-producti
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  try {
-    // Try couple_session first (set by couple auth flow)
-    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (s?.access_token) return s.access_token;
-    }
-    return localStorage.getItem('access_token');
-  } catch { return null; }
+  try { return localStorage.getItem('access_token'); } catch { return null; }
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -201,331 +193,106 @@ const MOCK_PROFILE: CoupleProfile = {
 
 // ─── API FUNCTIONS ────────────────────────────────────────────────────────────
 
-// -- API FUNCTIONS ------------------------------------------------------------
-
 export async function fetchReminders(): Promise<Reminder[]> {
   if (USE_MOCKS) return delay(MOCK_REMINDERS);
   const id = getCoupleId();
-  // Reminders are events with kind='reminder' stored in the events table
-  const r: any = await apiFetch(`/api/v2/couple/events/${id}?state=all`);
-  const raw: any[] = (r?.events ?? []).filter((e: any) => e.kind === 'reminder');
-  return raw.map(e => ({
-    id:          e.id,
-    couple_id:   id || '',
-    text:        e.title || '',
-    due_date:    e.event_date || null,
-    is_complete: e.state === 'done',
-    event:       e.notes || null,
-  }));
+  const r: any = await apiFetch(`/api/couple/checklist/${id}`);
+  return r?.data ?? [];
 }
 
 export async function toggleReminder(id: string, is_complete: boolean): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try {
-    await apiFetch(`/api/v2/couple/events/${id}/state`, {
-      method: 'PATCH',
-      body: JSON.stringify({ state: is_complete ? 'done' : 'upcoming' }),
-    });
-    return true;
-  } catch { return false; }
+  try { await apiFetch(`/api/couple/checklist/${id}`, { method: 'PATCH', body: JSON.stringify({ is_complete }) }); return true; }
+  catch { return false; }
 }
 
 export async function deleteReminder(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/v2/couple/events/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/couple/checklist/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
-}
-
-export async function createReminder(data: {
-  text: string; due_date?: string; event?: string;
-}): Promise<Reminder | null> {
-  if (USE_MOCKS) {
-    const mock: Reminder = { id: `r-${Date.now()}`, couple_id: '', text: data.text, due_date: data.due_date||null, is_complete: false, event: data.event||null };
-    return delay(mock);
-  }
-  try {
-    const id = getCoupleId();
-    const r: any = await apiFetch(`/api/v2/couple/events/${id}`, {
-      method: 'POST',
-      body: JSON.stringify({ title: data.text, event_date: data.due_date || new Date().toISOString().split('T')[0], kind: 'reminder', notes: data.event || null }),
-    });
-    const e = r?.event;
-    if (!e) return null;
-    return { id: e.id, couple_id: id||'', text: e.title||data.text, due_date: e.event_date||null, is_complete: false, event: e.notes||data.event||null };
-  } catch { return null; }
 }
 
 export async function fetchExpenses(): Promise<Expense[]> {
   if (USE_MOCKS) return delay(MOCK_EXPENSES);
   const id = getCoupleId();
-  // couple_receipts: id, booking_id, amount, vendor_name, description, receipt_date, image_url, tags
-  const r: any = await apiFetch(`/api/v2/couple/expenses/${id}`);
-  const raw: any[] = r?.expenses ?? [];
-  return raw.map(e => ({
-    id:             e.id,
-    couple_id:      id || '',
-    vendor_name:    e.vendor_name  || null,
-    description:    e.description  || null,
-    actual_amount:  e.amount       || null,   // amount → actual_amount
-    payment_status: 'paid' as const,          // receipts vault = already paid
-    receipt_url:    e.image_url    || null,   // image_url → receipt_url
-    due_date:       e.receipt_date || null,
-    category:       e.tags?.[0]   || null,
-    event:          e.tags?.[1]   || null,
-    notes:          null,
-  }));
+  const r: any = await apiFetch(`/api/couple/expenses/${id}`);
+  return r?.data ?? [];
 }
 
-export async function createExpense(data: {
-  vendor_name: string; amount: number; category?: string; event?: string; due_date?: string; notes?: string;
-}): Promise<Expense | null> {
-  if (USE_MOCKS) {
-    const mock: Expense = { id: `exp-${Date.now()}`, couple_id: '', payment_status: 'pending', actual_amount: data.amount, ...data };
-    return delay(mock);
-  }
-  try {
-    const id = getCoupleId();
-    // Map frontend fields → backend receipt fields
-    const r: any = await apiFetch(`/api/v2/couple/receipts/${id}`, {
-      method: 'POST',
-      body: JSON.stringify({
-        vendor_name:  data.vendor_name,
-        amount:       data.amount,
-        description:  data.notes       || null,   // notes → description
-        receipt_date: data.due_date    || null,   // due_date → receipt_date
-        tags:         [data.category, data.event].filter(Boolean),  // category+event → tags[]
-      }),
-    });
-    const e = r?.expense;
-    if (!e) return null;
-    return { id: e.id, couple_id: id||'', vendor_name: e.vendor_name||data.vendor_name, description: e.description||null, actual_amount: e.amount||data.amount, payment_status: 'paid' as const, category: e.tags?.[0]||data.category||null, event: e.tags?.[1]||data.event||null, due_date: e.receipt_date||data.due_date||null, notes: data.notes||null };
-  } catch { return null; }
-}
-
-export async function markExpensePaid(_id: string): Promise<boolean> {
+export async function markExpensePaid(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  return true; // couple_receipts are filed receipts — already paid
+  try { await apiFetch(`/api/couple/expenses/${id}`, { method: 'PATCH', body: JSON.stringify({ payment_status: 'paid' }) }); return true; }
+  catch { return false; }
 }
 
 export async function deleteExpense(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/v2/couple/receipts/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/couple/expenses/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
 
 export async function fetchVendors(): Promise<CoupleVendor[]> {
   if (USE_MOCKS) return delay(MOCK_VENDORS);
   const id = getCoupleId();
-  // couple_bookings: id, vendor_name, vendor_id, category, amount_total, amount_paid, state, notes
-  const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`);
-  const raw: any[] = r?.bookings ?? [];
-  return raw.map(b => ({
-    id:           b.id,
-    couple_id:    id || '',
-    vendor_id:    b.vendor_id    || null,
-    name:         b.vendor_name  || 'Vendor', // vendor_name → name
-    category:     b.category     || null,
-    phone:        null,
-    status:       b.state        || null,     // state → status
-    quoted_total: b.amount_total || null,     // amount_total → quoted_total
-    paid_total:   b.amount_paid  || null,     // amount_paid → paid_total
-    events:       null,
-    notes:        b.notes        || null,
-  }));
-}
-
-export async function createVendorRow(data: {
-  name: string; category?: string; status?: string; quoted_total?: number; notes?: string;
-}): Promise<CoupleVendor | null> {
-  if (USE_MOCKS) {
-    const mock: CoupleVendor = { id: `v-${Date.now()}`, couple_id: '', ...data };
-    return delay(mock);
-  }
-  try {
-    const id = getCoupleId();
-    const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`, {
-      method: 'POST',
-      body: JSON.stringify({ vendor_name: data.name, category: data.category, state: (['booked','advance_paid','paid'].includes(data.status||'') ? data.status : 'booked'), amount_total: data.quoted_total, notes: data.notes }),
-    });
-    const b = r?.booking;
-    if (!b) return null;
-    return { id: b.id, couple_id: id||'', name: b.vendor_name||data.name, category: b.category||null, status: b.state||'booked', quoted_total: b.amount_total||null, paid_total: 0, notes: b.notes||null };
-  } catch { return null; }
+  const r: any = await apiFetch(`/api/couple/vendors/${id}`);
+  return r?.data ?? [];
 }
 
 export async function deleteVendorRow(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/v2/couple/bookings/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/couple/vendors/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
 
 export async function fetchEvents(): Promise<CoupleEvent[]> {
   if (USE_MOCKS) return delay(MOCK_EVENTS);
   const id = getCoupleId();
-  // events table: id, title, event_date, event_time, kind, state, notes
   const r: any = await apiFetch(`/api/v2/couple/events/${id}`);
-  const raw: any[] = (r?.events ?? []).filter((e: any) => e.kind !== 'reminder');
-  return raw.map(e => ({
-    id:           e.id,
-    couple_id:    id || '',
-    event_name:   e.title      || null, // title → event_name
-    event_type:   e.kind       || null, // kind → event_type
-    event_date:   e.event_date || null,
-    venue:        null,
-    task_count:   0,
-    vendor_count: 0,
-  }));
-}
-
-export async function createEvent(data: {
-  event_name: string; event_date: string; venue?: string; notes?: string;
-}): Promise<CoupleEvent | null> {
-  if (USE_MOCKS) {
-    const mock: CoupleEvent = { id: `ev-${Date.now()}`, couple_id: '', ...data, task_count: 0, vendor_count: 0 };
-    return delay(mock);
-  }
-  try {
-    const id = getCoupleId();
-    const r: any = await apiFetch(`/api/v2/couple/events/${id}`, {
-      method: 'POST',
-      body: JSON.stringify({ title: data.event_name, event_date: data.event_date, venue: data.venue, notes: data.notes }),
-    });
-    const e = r?.event;
-    if (!e) return null;
-    return { id: e.id, couple_id: id||'', event_name: e.title||data.event_name, event_type: e.kind||null, event_date: e.event_date||data.event_date, venue: data.venue||null, task_count: 0, vendor_count: 0 };
-  } catch { return null; }
-}
-
-export async function deleteEvent(id: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/v2/couple/events/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
+  return r?.data ?? [];
 }
 
 export async function fetchCircleFeed(): Promise<CircleActivityEvent[]> {
   if (USE_MOCKS) return delay(MOCK_CIRCLE_FEED);
   const id = getCoupleId();
-  // GET /api/v2/couple/circle/:id → { members, activity, pending_invites }
-  const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
-  const raw: any[] = r?.activity ?? [];
-  return raw.map(a => ({
-    id:         a.id,
-    event_type: a.activity_type || 'change',
-    actor_role: (a.actor_role === 'bride' ? 'bride' : 'member') as 'bride' | 'member',
-    payload: {
-      actor_name:  a.member_name || null,
-      member_name: a.member_name || null,
-      content:     a.content     || null,
-    },
-    created_at: a.created_at,
-  }));
+  const r: any = await apiFetch(`/api/v2/frost/circle/feed/${id}`);
+  return r?.data ?? [];
 }
 
 export async function fetchCircleThreads(): Promise<CircleThread[]> {
   if (USE_MOCKS) return delay(MOCK_CIRCLE_THREADS);
   const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
-  const members: any[] = r?.members ?? [];
-  // Use conversation_id (real conversations.id) not member.id for thread lookup
-  // Only show members who have an active conversation (have sent at least one WA message)
-  return members
-    .filter(m => m.conversation_id)
-    .map(m => ({
-      thread_id:    `dm:${m.conversation_id}`,
-      kind:         'dm' as const,
-      label:        m.invitee_name || 'Circle member',
-      role:         m.role         || null,
-      last_message: null,
-      last_active:  m.last_active  || m.joined_at || null,
-    }));
+  const r: any = await apiFetch(`/api/v2/frost/circle/threads/${id}`);
+  return r?.data ?? [];
 }
 
 export async function fetchCircleMessages(threadId: string): Promise<CircleMessage[]> {
   if (USE_MOCKS) return delay([]);
-  const id = getCoupleId();
-  const r: any = await apiFetch(`/api/v2/frost/circle/threads/${id}/${threadId}/messages`);
-  const raw: any[] = r?.data ?? [];
-  return raw.map(m => ({
-    id:          m.id,
-    sender_name: m.direction === 'inbound' ? 'Circle member' : 'You',
-    sender_role: (m.direction === 'inbound' ? 'member' : 'bride') as 'bride' | 'member',
-    content:     m.body       || '',
-    created_at:  m.created_at || new Date().toISOString(),
-  }));
+  const r: any = await apiFetch(`/api/v2/frost/circle/messages/${threadId}`);
+  return r?.data ?? [];
 }
 
 export async function sendCircleMessage(threadId: string, content: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true, 600);
-  try {
-    const coupleId = getCoupleId();
-    const convoId = threadId.replace(/^dm:/, '');
-    await apiFetch('/api/v2/frost/circle/messages', {
-      method: 'POST',
-      body: JSON.stringify({ userId: coupleId, thread_id: 'dm:' + convoId, body: content }),
-    });
-    return true;
-  }
+  try { await apiFetch(`/api/v2/frost/circle/messages`, { method: 'POST', body: JSON.stringify({ thread_id: threadId, content }) }); return true; }
   catch { return false; }
 }
 
 export async function fetchProfile(): Promise<CoupleProfile> {
   if (USE_MOCKS) return delay(MOCK_PROFILE);
   const id = getCoupleId();
-  // GET /api/v2/couple/profile/:id (public) → { success, data: { bride_name, groom_name, wedding_date } }
   const r: any = await apiFetch(`/api/v2/couple/profile/${id}`);
-  const d = r?.data;
-  if (!d) return MOCK_PROFILE;
-  return {
-    name:         d.bride_name   || '',
-    partner_name: d.groom_name   || '',
-    wedding_date: d.wedding_date || '',
-    wedding_city: '',
-    phone:        '',
-    tier:         'lite',
-  };
+  return r?.data ?? MOCK_PROFILE;
 }
 
 export async function saveProfile(patch: Partial<CoupleProfile>): Promise<boolean> {
   if (USE_MOCKS) return delay(true, 600);
-  try {
-    const id = getCoupleId();
-    await apiFetch(`/api/v2/couple/me/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        partner_name: patch.partner_name,
-        wedding_date: patch.wedding_date,
-        wedding_city: patch.wedding_city,
-      }),
-    });
-    return true;
-  } catch { return false; }
-}
-
-export async function inviteCircleMember(invitee_name: string, _role: string): Promise<string | null> {
-  if (USE_MOCKS) return delay('https://wa.me/14787788550?text=Hi', 600);
-  try {
-    const r: any = await apiFetch('/api/v2/couple/circle/invite', {
-      method: 'POST',
-      body: JSON.stringify({ invitee_name, role: 'inner_circle' }),
-    });
-    return r?.wa_me_link || null;
-  } catch { return null; }
-}
-
-export async function createMuseSaveFromUrl(image_url: string, tags?: string[]): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
-  try {
-    const r: any = await apiFetch('/api/v2/couple/muse/save', {
-      method: 'POST',
-      body: JSON.stringify({ image_url, source_type: 'photo', aesthetic_tags: tags || [] }),
-    });
-    return r?.ok === true || r?.save_id != null;
-  } catch { return false; }
+  try { const id = getCoupleId(); await apiFetch(`/api/v2/couple/profile/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }); return true; }
+  catch { return false; }
 }
 
 export function fmtINR(n: number | null | undefined): string {
-  if (!n) return '\u20b90';
-  return '\u20b9' + n.toLocaleString('en-IN');
+  if (!n) return '₹0';
+  return '₹' + n.toLocaleString('en-IN');
 }
 
 export function timeAgo(iso: string): string {
@@ -539,17 +306,12 @@ export function timeAgo(iso: string): string {
 }
 
 export function formatActivityLine(e: CircleActivityEvent): string {
-  const actor = e.actor_role === 'bride' ? 'You' : (e.payload?.actor_name || e.payload?.member_name || 'Someone');
+  const actor = e.actor_role === 'bride' ? 'You' : (e.payload?.actor_name || 'Someone');
   const p = e.payload || {};
   switch (e.event_type) {
-    // Real activity_type values from circle_activity table
-    case 'save_added':              return `${actor} saved to Muse`;
-    case 'comment':                 return `${actor} commented`;
-    case 'removed':                 return `${actor} removed a save`;
-    // Legacy / future values
     case 'vendor_booked':           return `${actor} booked ${p.vendor_name || 'a vendor'}`;
     case 'payment_logged':          return `${actor} logged a payment`;
-    case 'task_completed':          return `${actor} completed a task`;
+    case 'task_completed':          return `${actor} completed: ${p.task_text || 'a task'}`;
     case 'muse_saved':              return `${actor} saved to Muse`;
     case 'circle_message_sent':     return `${actor} sent a message`;
     case 'circle_invite_accepted':  return `${p.member_name || 'Someone'} joined your Circle`;

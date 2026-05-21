@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import CanvasShell from '../../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../../layout';
 import { MUSE_LOOKS, FF, SP, FR } from '../../../../../../lib/frost/tokens';
-import { fetchVendors, createVendorRow, deleteVendorRow, fmtINR, type CoupleVendor } from '../../../../../../lib/frost/journey';
+import { fetchVendors, deleteVendorRow, fmtINR, type CoupleVendor } from '../../../../../../lib/frost/journey';
 
 const PIPELINE = [
   { key: 'booked',        label: 'BOOKED' },
@@ -21,21 +21,6 @@ export default function JourneyVendors() {
   const [vendors, setVendors] = useState<CoupleVendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [addSheet,  setAddSheet]  = useState(false);
-  const [saving,    setSaving]    = useState(false);
-  const [form, setForm] = useState({ name:'', category:'', status:'booked', quoted_total:'', notes:'' });
-
-  const handleCreate = async () => {
-    if (!form.name.trim() || saving) return;
-    setSaving(true);
-    const created = await createVendorRow({ name: form.name, category: form.category||undefined, status: form.status, quoted_total: form.quoted_total ? parseInt(form.quoted_total) : undefined, notes: form.notes||undefined });
-    if (created) {
-      setVendors(prev => [created, ...prev]);
-      setAddSheet(false);
-      setForm({ name:'', category:'', status:'booked', quoted_total:'', notes:'' });
-    }
-    setSaving(false);
-  };
 
   useEffect(() => { fetchVendors().then(v => { setVendors(v); setLoading(false); }); }, []);
 
@@ -93,50 +78,8 @@ export default function JourneyVendors() {
             })}
           </div>
         ))}
-
+        <div style={{ marginTop:SP.xl, fontFamily:FF.display, fontStyle:'italic', fontSize:13, color:t.soft, textAlign:'center' }}>✦  Tell Dream Ai when something moves.</div>
       </div>
-
-      {/* FAB */}
-      <button onClick={() => setAddSheet(true)} style={{ position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 88px)', right:24, zIndex:50, width:52, height:52, borderRadius:26, background:t.brass, border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:'0 4px 24px rgba(0,0,0,0.28)', touchAction:'manipulation' }}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="#1B1612" strokeWidth="1.8" strokeLinecap="round"/></svg>
-      </button>
-
-      {addSheet && <>
-        <div onClick={() => setAddSheet(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />
-        <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:201, background:t.pagePaper, borderRadius:'20px 20px 0 0', padding:`28px 24px calc(28px + env(safe-area-inset-bottom))`, maxHeight:'85vh', overflowY:'auto' }}>
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:24, color:t.ink, marginBottom:4 }}>Add a vendor</div>
-          <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, marginBottom:24 }}>Track everyone on your wedding team.</div>
-          {([
-            { key:'name',         label:'Name',         placeholder:'Aanya Studio, Dev Roy…', type:'text' },
-            { key:'category',     label:'Category',     placeholder:'Photography, MUA…',       type:'text' },
-            { key:'quoted_total', label:'Quoted (Rs)',  placeholder:'450000',                  type:'number' },
-            { key:'notes',        label:'Notes',        placeholder:'Contact, requirements…',  type:'text' },
-          ] as {key:string;label:string;placeholder:string;type:string}[]).map(f => (
-            <div key={f.key} style={{ marginBottom:16 }}>
-              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>{f.label}</div>
-              <input type={f.type} value={(form as Record<string,string>)[f.key]}
-                onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                placeholder={f.placeholder}
-                style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.body, fontSize:15, color:t.ink, outline:'none', boxSizing:'border-box' as const }} />
-            </div>
-          ))}
-          <div style={{ marginBottom:20 }}>
-            <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:t.soft, marginBottom:8 }}>Status</div>
-            <div style={{ display:'flex', flexWrap:'wrap' as const, gap:6 }}>
-              {['booked','advance_paid','paid'].map(s => (
-                <button key={s} onClick={() => setForm(p => ({ ...p, status: s }))}
-                  style={{ padding:'7px 14px', borderRadius:FR.pill, border:`0.5px solid ${form.status===s ? t.brass : t.hairline}`, background:form.status===s ? `rgba(191,160,77,0.12)` : 'transparent', fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:form.status===s ? t.brass : t.soft, cursor:'pointer' }}>
-                  {s === 'advance_paid' ? 'Advance Paid' : s.charAt(0).toUpperCase() + s.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button onClick={handleCreate} disabled={!form.name.trim()||saving}
-            style={{ width:'100%', padding:14, background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(!form.name.trim()||saving)?0.5:1 }}>
-            {saving ? 'Adding…' : 'Add Vendor'}
-          </button>
-        </div>
-      </>}
 
       {confirmId && <>
         <div onClick={() => setConfirmId(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />

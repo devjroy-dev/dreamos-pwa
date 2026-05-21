@@ -7,7 +7,7 @@ import { useFrostMode } from '../../../../layout';
 import { MUSE_LOOKS, FF, SP, FR, FROST_SURFACE, EASE } from '../../../../../../lib/frost/tokens';
 import {
   fetchCircleFeed, fetchCircleThreads, fetchCircleMessages, sendCircleMessage,
-  inviteCircleMember, formatActivityLine, timeAgo,
+  formatActivityLine, timeAgo,
   type CircleActivityEvent, type CircleThread, type CircleMessage,
 } from '../../../../../../lib/frost/journey';
 
@@ -21,10 +21,6 @@ export default function JourneyCircle() {
   const [composing, setComposing] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [inviting, setInviting] = useState(false);
-  const [inviteSheet, setInviteSheet] = useState(false);
-  const [inviteName, setInviteName] = useState('');
-  const [inviteToast, setInviteToast] = useState('');
 
   const load = useCallback(async () => {
     const [f, th] = await Promise.all([fetchCircleFeed(), fetchCircleThreads()]);
@@ -53,31 +49,10 @@ export default function JourneyCircle() {
     setSending(false);
   }, [composing, openThread, sending]);
 
-  const handleInvite = useCallback(async () => {
-    if (!inviteName.trim() || inviting) return;
-    setInviting(true);
-    const link = await inviteCircleMember(inviteName.trim(), 'inner_circle');
-    setInviting(false);
-    if (link) {
-      setInviteSheet(false); setInviteName('');
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        navigator.share({ url: link, title: 'Join my Circle' }).catch(() => {});
-      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        navigator.clipboard.writeText(link).catch(() => {});
-        setInviteToast('Invite link copied');
-        setTimeout(() => setInviteToast(''), 2800);
-      }
-    } else {
-      setInviteToast('Could not generate invite. Try again.');
-      setTimeout(() => setInviteToast(''), 2800);
-    }
-  }, [inviteName, inviting]);
-
   const groupThreads = threads.filter(th => th.kind === 'group');
   const dmThreads    = threads.filter(th => th.kind === 'dm');
 
   return (
-    <>
     <CanvasShell eyebrow="Circle" backTo="/frost/canvas/journey">
       <div style={{ padding:`${SP.xl}px ${SP.xxl}px ${SP.huge}px` }}>
 
@@ -109,7 +84,7 @@ export default function JourneyCircle() {
         {/* Zone 3 — Threads */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:SP.m }}>
           <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.35em', textTransform:'uppercase', color:t.soft }}>Threads</div>
-          <button onClick={() => setInviteSheet(true)} style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:FR.pill, border:`0.5px solid rgba(191,160,77,0.3)`, background:'transparent', fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:t.brassMuted, cursor:'pointer' }}>
+          <button style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', borderRadius:FR.pill, border:`0.5px solid rgba(191,160,77,0.3)`, background:'transparent', fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:t.brassMuted, cursor:'pointer' }}>
             <Plus size={12} color={t.brassMuted} strokeWidth={1.5} />Invite
           </button>
         </div>
@@ -178,31 +153,5 @@ export default function JourneyCircle() {
         </div>
       </>}
     </CanvasShell>
-
-      {inviteToast && (
-        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:t.ink, color:t.pagePaper, fontFamily:FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{inviteToast}</div>
-      )}
-
-      {inviteSheet && <>
-        <div onClick={() => setInviteSheet(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:300 }} />
-        <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:301, background:t.pagePaper, borderRadius:'20px 20px 0 0', padding:`24px 24px calc(24px + env(safe-area-inset-bottom))` }}>
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:t.ink, marginBottom:6 }}>Add to Circle</div>
-          <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, marginBottom:20 }}>They'll get a WhatsApp invite link.</div>
-          <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Their name</div>
-          <input
-            value={inviteName}
-            onChange={e => setInviteName(e.target.value)}
-            placeholder="Ananya, Mom, Planner…"
-            autoFocus
-            style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.body, fontSize:15, color:t.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:16 }}
-          />
-          <button
-            onClick={handleInvite}
-            disabled={!inviteName.trim() || inviting}
-            style={{ width:'100%', padding:14, background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(!inviteName.trim() || inviting) ? 0.5 : 1 }}
-          >{inviting ? 'Generating…' : 'Send Invite'}</button>
-        </div>
-      </>}
-    </>
   );
 }
