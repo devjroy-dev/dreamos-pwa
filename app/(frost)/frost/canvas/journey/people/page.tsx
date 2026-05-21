@@ -29,7 +29,7 @@ export default function MyPeople() {
 
   return (
     <CanvasShell eyebrow="My People" backTo="/frost/canvas/journey">
-      <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px` }}>
+      <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
         <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 26, color: t.ink, marginBottom: SP.s }}>Your circle.</div>
         <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft, marginBottom: SP.xl, lineHeight: 1.6 }}>
           The people sharing this journey with you. Tap to see what they've contributed.
@@ -50,7 +50,7 @@ export default function MyPeople() {
             {members.map(m => {
               const phone = (m as any).invitee_phone || null;
               return (
-                <FrostedSurface key={m.id} radius={FR.md} style={{ marginBottom: 8 }}>
+                <div key={m.id}><FrostedSurface radius={FR.md} style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', padding: `${SP.l}px`, gap: SP.m }}>
                     {/* Avatar */}
                     <div style={{ width: 42, height: 42, borderRadius: 21, background: `rgba(191,160,77,0.12)`, border: `0.5px solid rgba(191,160,77,0.25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -89,7 +89,7 @@ export default function MyPeople() {
                       </div>
                     </div>
                   </div>
-                </FrostedSurface>
+                </FrostedSurface></div>
               );
             })}
           </div>

@@ -18,7 +18,7 @@ const ROLES = [
 ] as const;
 
 // ── Activity card renderer ────────────────────────────────────────────────────
-function ActivityCard({ a, t, look }: { a: CircleActivity; t: any; look: string }) {
+function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
   const actor = a.actor_role === 'bride' ? 'You' : (a.member_name || 'Someone');
 
   if (a.activity_type === 'save_added' && a.image_url) {
@@ -155,7 +155,7 @@ export default function JourneyCircle() {
         <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 70px)', left: '50%', transform: 'translateX(-50%)', background: t.ink, color: t.pagePaper, fontFamily: FF.label, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '8px 18px', borderRadius: 20, zIndex: 400, pointerEvents: 'none', whiteSpace: 'nowrap' }}>{toast}</div>
       )}
 
-      <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px` }}>
+      <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
 
         {/* My People row — tappable chips */}
         {members.length > 0 && (
@@ -205,7 +205,7 @@ export default function JourneyCircle() {
         )}
 
         {activity.map(a => (
-          <ActivityCard key={a.id} a={a} t={t} look={look} />
+          <div key={a.id}><ActivityCard a={a} t={t} look={look as string} /></div>
         ))}
 
         <div ref={bottomRef} />

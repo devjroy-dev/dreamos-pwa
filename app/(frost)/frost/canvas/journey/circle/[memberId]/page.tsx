@@ -7,7 +7,7 @@ import { MUSE_LOOKS, FF, SP, FR } from '../../../../../../../lib/frost/tokens';
 import { fetchMemberFeed, timeAgo, type CircleActivity, type MemberFeedData } from '../../../../../../../lib/frost/journey';
 
 // Reuse ActivityCard logic inline (can't import from parent page)
-function ActivityCard({ a, t, look }: { a: CircleActivity; t: any; look: string }) {
+function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
   const actor = a.actor_role === 'bride' ? 'You' : (a.member_name || 'Someone');
 
   if (a.activity_type === 'save_added' && a.image_url) {
@@ -69,7 +69,7 @@ export default function MemberPage({ params }: { params: { memberId: string } })
 
   return (
     <CanvasShell eyebrow={member?.invitee_name || '…'} backTo="/frost/canvas/journey/circle">
-      <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px` }}>
+      <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
 
         {loading && <div style={{ fontFamily: FF.display, fontSize: 32, color: t.brassMuted, letterSpacing: 6 }}>…</div>}
 
@@ -112,7 +112,7 @@ export default function MemberPage({ params }: { params: { memberId: string } })
               </div>
             )}
 
-            {activity.map(a => <ActivityCard key={a.id} a={a} t={t} look={look} />)}
+            {activity.map(a => <div key={a.id}><ActivityCard a={a} t={t} look={look as string} /></div>)}
           </>
         )}
 

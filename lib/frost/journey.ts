@@ -7,6 +7,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== 'false';
+// Runtime override: if a couple session token exists, always use real API
+// regardless of USE_MOCKS env var. Prevents "member not found" and empty
+// canvases when NEXT_PUBLIC_USE_MOCKS is not set in Vercel.
+function shouldUseMocks(): boolean {
+  if (!USE_MOCKS) return false;
+  if (typeof window === 'undefined') return true;
+  try { return !localStorage.getItem('access_token'); } catch { return true; }
+}
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
 
 function getToken(): string | null {
@@ -208,7 +216,7 @@ const MOCK_PROFILE: CoupleProfile = {
 // ─── API FUNCTIONS — EVENTS ────────────────────────────────────────────────
 
 export async function fetchEvents(state = 'upcoming'): Promise<CoupleEvent[]> {
-  if (USE_MOCKS) return delay(MOCK_EVENTS);
+  if (shouldUseMocks()) return delay(MOCK_EVENTS);
   const id = getCoupleId();
   if (!id) return [];
   const r: any = await apiFetch(`/api/v2/couple/events/${id}?state=${state}`);
@@ -218,7 +226,7 @@ export async function fetchEvents(state = 'upcoming'): Promise<CoupleEvent[]> {
 export async function createEvent(body: {
   title: string; event_date: string; kind: string; event_time?: string; notes?: string;
 }): Promise<CoupleEvent> {
-  if (USE_MOCKS) {
+  if (shouldUseMocks()) {
     const ev: CoupleEvent = { id: `mock-${Date.now()}`, state: 'upcoming', event_time: null, notes: null, ...body };
     return delay(ev, 400);
   }
@@ -230,7 +238,7 @@ export async function createEvent(body: {
 export async function updateEvent(eventId: string, patch: {
   title?: string; event_date?: string; event_time?: string | null; kind?: string; notes?: string | null; state?: string;
 }): Promise<CoupleEvent> {
-  if (USE_MOCKS) {
+  if (shouldUseMocks()) {
     const ev = MOCK_EVENTS.find(e => e.id === eventId);
     return delay({ ...(ev || MOCK_EVENTS[0]), ...patch } as CoupleEvent, 300);
   }
@@ -239,7 +247,7 @@ export async function updateEvent(eventId: string, patch: {
 }
 
 export async function deleteEvent(eventId: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true, 300);
+  if (shouldUseMocks()) return delay(true, 300);
   try { await apiFetch(`/api/v2/couple/events/${eventId}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
@@ -247,7 +255,7 @@ export async function deleteEvent(eventId: string): Promise<boolean> {
 // ─── API FUNCTIONS — RECEIPTS (expense vault) ──────────────────────────────
 
 export async function fetchReceipts(): Promise<CoupleReceipt[]> {
-  if (USE_MOCKS) return delay(MOCK_RECEIPTS);
+  if (shouldUseMocks()) return delay(MOCK_RECEIPTS);
   const id = getCoupleId();
   if (!id) return [];
   const r: any = await apiFetch(`/api/v2/couple/expenses/${id}`);
@@ -255,7 +263,7 @@ export async function fetchReceipts(): Promise<CoupleReceipt[]> {
 }
 
 export async function deleteReceipt(receiptId: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true, 300);
+  if (shouldUseMocks()) return delay(true, 300);
   try { await apiFetch(`/api/v2/couple/receipts/${receiptId}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
@@ -263,7 +271,7 @@ export async function deleteReceipt(receiptId: string): Promise<boolean> {
 // ─── API FUNCTIONS — BOOKINGS (vendor commitments) ────────────────────────
 
 export async function fetchBookings(): Promise<CoupleBooking[]> {
-  if (USE_MOCKS) return delay(MOCK_BOOKINGS);
+  if (shouldUseMocks()) return delay(MOCK_BOOKINGS);
   const id = getCoupleId();
   if (!id) return [];
   const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`);
@@ -274,7 +282,7 @@ export async function createBooking(body: {
   vendor_name: string; category: string; amount_total?: number; amount_advance?: number;
   balance_due_date?: string; notes?: string; state?: string;
 }): Promise<CoupleBooking> {
-  if (USE_MOCKS) {
+  if (shouldUseMocks()) {
     const b: CoupleBooking = { id: `mock-${Date.now()}`, vendor_id: null, amount_advance: null, amount_paid: 0, balance_due_date: null, notes: null, amount_total: null, state: 'booked', ...body };
     return delay(b, 400);
   }
@@ -287,7 +295,7 @@ export async function updateBooking(bookingId: string, patch: {
   vendor_name?: string; category?: string; amount_total?: number | null;
   amount_advance?: number | null; balance_due_date?: string | null; notes?: string | null; state?: string;
 }): Promise<CoupleBooking> {
-  if (USE_MOCKS) {
+  if (shouldUseMocks()) {
     const b = MOCK_BOOKINGS.find(x => x.id === bookingId);
     return delay({ ...(b || MOCK_BOOKINGS[0]), ...patch } as CoupleBooking, 300);
   }
@@ -296,13 +304,13 @@ export async function updateBooking(bookingId: string, patch: {
 }
 
 export async function deleteBooking(bookingId: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true, 300);
+  if (shouldUseMocks()) return delay(true, 300);
   try { await apiFetch(`/api/v2/couple/bookings/${bookingId}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
 
 export async function recordPayment(bookingId: string, amount: number, payment_date?: string): Promise<CoupleBooking> {
-  if (USE_MOCKS) {
+  if (shouldUseMocks()) {
     const b = MOCK_BOOKINGS.find(x => x.id === bookingId);
     const updated = { ...(b || MOCK_BOOKINGS[0]), amount_paid: (b?.amount_paid || 0) + amount };
     return delay(updated as CoupleBooking, 400);
@@ -316,7 +324,7 @@ export async function recordPayment(bookingId: string, amount: number, payment_d
 // ─── API FUNCTIONS — CIRCLE ────────────────────────────────────────────────
 
 export async function fetchCircle(): Promise<CircleData> {
-  if (USE_MOCKS) return delay(MOCK_CIRCLE);
+  if (shouldUseMocks()) return delay(MOCK_CIRCLE);
   const id = getCoupleId();
   if (!id) return { members: [], activity: [], pending_invites: [] };
   const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
@@ -328,7 +336,9 @@ export async function fetchCircle(): Promise<CircleData> {
 }
 
 export async function fetchMemberFeed(memberId: string): Promise<MemberFeedData | null> {
-  if (USE_MOCKS) return delay(null);
+  // Always hit real API if a token exists — USE_MOCKS mock returns null which shows "Member not found"
+  const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('access_token');
+  if (USE_MOCKS && !hasToken) return delay(null);
   try {
     const r: any = await apiFetch(`/api/v2/couple/circle/member/${memberId}`);
     return {
@@ -339,14 +349,14 @@ export async function fetchMemberFeed(memberId: string): Promise<MemberFeedData 
 }
 
 export async function inviteCircleMember(body: { invitee_name: string; role: string }): Promise<{ wa_me_link: string; invite_token: string; member_id: string }> {
-  if (USE_MOCKS) return delay({ wa_me_link: 'https://wa.me/917982159047?text=CIRCLE-MOCK', invite_token: 'MOCK', member_id: 'mock-id' }, 600);
+  if (shouldUseMocks()) return delay({ wa_me_link: 'https://wa.me/917982159047?text=CIRCLE-MOCK', invite_token: 'MOCK', member_id: 'mock-id' }, 600);
   const r: any = await apiFetch('/api/v2/couple/circle/invite', { method: 'POST', body: JSON.stringify(body) });
   return { wa_me_link: r.wa_me_link, invite_token: r.invite_token, member_id: r.member_id };
 }
 
 // Threads — uses the coplanner frost endpoint (no JWT, scoped by brideId)
 export async function fetchCircleThreads(): Promise<CircleThread[]> {
-  if (USE_MOCKS) return delay([]);
+  if (shouldUseMocks()) return delay([]);
   const id = getCoupleId();
   if (!id) return [];
   const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}`);
@@ -356,7 +366,7 @@ export async function fetchCircleThreads(): Promise<CircleThread[]> {
 
 // Messages for a specific thread
 export async function fetchThreadMessages(threadId: string): Promise<CircleMessage[]> {
-  if (USE_MOCKS) return delay([]);
+  if (shouldUseMocks()) return delay([]);
   const id = getCoupleId();
   if (!id) return [];
   const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}/${threadId}/messages`);
@@ -366,7 +376,7 @@ export async function fetchThreadMessages(threadId: string): Promise<CircleMessa
 
 // Send a message to a thread
 export async function sendThreadMessage(threadId: string, messageBody: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true, 600);
+  if (shouldUseMocks()) return delay(true, 600);
   try {
     const id = getCoupleId();
     await fetch(`${API_BASE}/api/v2/frost/circle/messages`, {
@@ -381,7 +391,7 @@ export async function sendThreadMessage(threadId: string, messageBody: string): 
 // ─── API FUNCTIONS — PROFILE ───────────────────────────────────────────────
 
 export async function fetchProfile(): Promise<CoupleProfile> {
-  if (USE_MOCKS) return delay(MOCK_PROFILE);
+  if (shouldUseMocks()) return delay(MOCK_PROFILE);
   const id = getCoupleId();
   if (!id) return MOCK_PROFILE;
   const r: any = await apiFetch(`/api/v2/couple/me/${id}`);
@@ -391,7 +401,7 @@ export async function fetchProfile(): Promise<CoupleProfile> {
 export async function saveProfile(patch: {
   name?: string; partner_name?: string; wedding_date?: string; wedding_city?: string;
 }): Promise<boolean> {
-  if (USE_MOCKS) return delay(true, 600);
+  if (shouldUseMocks()) return delay(true, 600);
   try {
     const id = getCoupleId();
     await apiFetch(`/api/v2/couple/me/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
@@ -453,18 +463,18 @@ const MOCK_REMINDERS: Reminder[] = [
 ];
 
 export async function fetchReminders(): Promise<Reminder[]> {
-  if (USE_MOCKS) return delay(MOCK_REMINDERS);
+  if (shouldUseMocks()) return delay(MOCK_REMINDERS);
   // Real endpoint not mounted yet — return empty until /api/v2/couple/tasks ships
   return [];
 }
 
 export async function toggleReminder(id: string, is_complete: boolean): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
+  if (shouldUseMocks()) return delay(true);
   return false;
 }
 
 export async function deleteReminder(id: string): Promise<boolean> {
-  if (USE_MOCKS) return delay(true);
+  if (shouldUseMocks()) return delay(true);
   return false;
 }
 
