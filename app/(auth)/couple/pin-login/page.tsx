@@ -79,7 +79,7 @@ export default function CouplePinLoginPage() {
         };
         localStorage.setItem('couple_web_session', JSON.stringify(updated));
         localStorage.setItem('couple_session', JSON.stringify(updated));
-        router.replace('/couple/today');
+        router.replace('/frost');
       } else {
         const next = attempts + 1; setAttempts(next);
         setShaking(true); setTimeout(() => setShaking(false), 400);
