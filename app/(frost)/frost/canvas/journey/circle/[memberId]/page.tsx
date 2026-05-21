@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { Phone, MessageCircle } from 'lucide-react';
 import CanvasShell from '../../../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../../../layout';
@@ -54,14 +55,15 @@ function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
   );
 }
 
-export default function MemberPage({ params }: { params: { memberId: string } }) {
+export default function MemberPage() {
+  const params = useParams();
   const { look } = useFrostMode(); const t = MUSE_LOOKS[look];
   const [data, setData]       = useState<MemberFeedData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMemberFeed(params.memberId).then(d => { setData(d); setLoading(false); });
-  }, [params.memberId]);
+    fetchMemberFeed(params.memberId as string).then(d => { setData(d); setLoading(false); });
+  }, [params.memberId as string]);
 
   const member   = data?.member;
   const activity = data?.activity || [];
