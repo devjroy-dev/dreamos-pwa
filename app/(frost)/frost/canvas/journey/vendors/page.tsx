@@ -23,7 +23,7 @@ export default function JourneyVendors() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [addSheet,  setAddSheet]  = useState(false);
   const [saving,    setSaving]    = useState(false);
-  const [form, setForm] = useState({ name:'', category:'', status:'considering', quoted_total:'', notes:'' });
+  const [form, setForm] = useState({ name:'', category:'', status:'booked', quoted_total:'', notes:'' });
 
   const handleCreate = async () => {
     if (!form.name.trim() || saving) return;
@@ -32,7 +32,7 @@ export default function JourneyVendors() {
     if (created) {
       setVendors(prev => [created, ...prev]);
       setAddSheet(false);
-      setForm({ name:'', category:'', status:'considering', quoted_total:'', notes:'' });
+      setForm({ name:'', category:'', status:'booked', quoted_total:'', notes:'' });
     }
     setSaving(false);
   };
@@ -123,10 +123,10 @@ export default function JourneyVendors() {
           <div style={{ marginBottom:20 }}>
             <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:t.soft, marginBottom:8 }}>Status</div>
             <div style={{ display:'flex', flexWrap:'wrap' as const, gap:6 }}>
-              {['considering','shortlisted','in_discussion','booked'].map(s => (
+              {['booked','advance_paid','paid'].map(s => (
                 <button key={s} onClick={() => setForm(p => ({ ...p, status: s }))}
                   style={{ padding:'7px 14px', borderRadius:FR.pill, border:`0.5px solid ${form.status===s ? t.brass : t.hairline}`, background:form.status===s ? `rgba(191,160,77,0.12)` : 'transparent', fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:form.status===s ? t.brass : t.soft, cursor:'pointer' }}>
-                  {s.replace('_',' ')}
+                  {s === 'advance_paid' ? 'Advance Paid' : s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}
             </div>

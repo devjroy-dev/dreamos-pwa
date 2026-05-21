@@ -338,11 +338,11 @@ export async function createVendorRow(data: {
     const id = getCoupleId();
     const r: any = await apiFetch(`/api/v2/couple/bookings/${id}`, {
       method: 'POST',
-      body: JSON.stringify({ vendor_name: data.name, category: data.category, state: data.status||'considering', amount_total: data.quoted_total, notes: data.notes }),
+      body: JSON.stringify({ vendor_name: data.name, category: data.category, state: (['booked','advance_paid','paid'].includes(data.status||'') ? data.status : 'booked'), amount_total: data.quoted_total, notes: data.notes }),
     });
     const b = r?.booking;
     if (!b) return null;
-    return { id: b.id, couple_id: id||'', name: b.vendor_name||data.name, category: b.category||null, status: b.state||'considering', quoted_total: b.amount_total||null, paid_total: 0, notes: b.notes||null };
+    return { id: b.id, couple_id: id||'', name: b.vendor_name||data.name, category: b.category||null, status: b.state||'booked', quoted_total: b.amount_total||null, paid_total: 0, notes: b.notes||null };
   } catch { return null; }
 }
 
@@ -449,7 +449,15 @@ export async function fetchCircleMessages(threadId: string): Promise<CircleMessa
 
 export async function sendCircleMessage(threadId: string, content: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true, 600);
-  try { await apiFetch('/api/v2/frost/circle/messages', { method: 'POST', body: JSON.stringify({ thread_id: threadId, content }) }); return true; }
+  try {
+    const coupleId = getCoupleId();
+    const convoId = threadId.replace(/^dm:/, '');
+    await apiFetch('/api/v2/frost/circle/messages', {
+      method: 'POST',
+      body: JSON.stringify({ userId: coupleId, thread_id: 'dm:' + convoId, body: content }),
+    });
+    return true;
+  }
   catch { return false; }
 }
 
