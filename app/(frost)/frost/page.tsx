@@ -161,10 +161,13 @@ function PhotoTile({ imageUrl, label, onClick, mode }: {
 }
 
 // ─── Flat section — no card, no blur, no border, just hairline top + content ─
-function FlatSection({ label, lines, onClick, mode, first = false }: {
+function FlatSection({ label, lines, onClick, mode, dark, first = false }: {
   label: string; lines: string[]; onClick: () => void;
-  mode: ModeDescriptor; first?: boolean;
+  mode: ModeDescriptor; dark: boolean; first?: boolean;
 }) {
+  // In light mode the gradient background is too close to brass — use ink for legibility
+  const labelColor = dark ? mode.brass : mode.ink;
+  const accentColor = dark ? mode.brass : mode.brassMuted;
   return (
     <div onClick={onClick} style={{
       flexShrink: 0, cursor: 'pointer',
@@ -173,13 +176,13 @@ function FlatSection({ label, lines, onClick, mode, first = false }: {
     }}>
       <div style={{
         fontFamily: FF.display, fontStyle: 'italic', fontSize: 18,
-        color: mode.brass, marginBottom: 10,
+        color: labelColor, marginBottom: 10,
       }}>
         {label}
       </div>
       {lines.map((line, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: i < lines.length - 1 ? 6 : 0 }}>
-          <span style={{ fontFamily: FF.label, fontSize: 9, color: mode.brass, marginTop: 3, flexShrink: 0 }}>✦</span>
+          <span style={{ fontFamily: FF.label, fontSize: 9, color: accentColor, marginTop: 3, flexShrink: 0 }}>✦</span>
           <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.soft, lineHeight: 1.55 }}>{line}</span>
         </div>
       ))}
@@ -188,13 +191,14 @@ function FlatSection({ label, lines, onClick, mode, first = false }: {
 }
 
 // ─── Journey word — flat, centered, hairline top ──────────────────────────────
-function JourneyWord({ onClick, mode }: { onClick: () => void; mode: ModeDescriptor }) {
+function JourneyWord({ onClick, mode, dark }: { onClick: () => void; mode: ModeDescriptor; dark: boolean }) {
   return (
     <div onClick={onClick} style={{
       flexShrink: 0, textAlign: 'center', cursor: 'pointer',
       borderTop: `0.5px solid ${mode.hairline}`,
       padding: '16px 0 calc(env(safe-area-inset-bottom,0px) + 16px)',
-      fontFamily: FF.display, fontStyle: 'italic', fontSize: 20, color: mode.brassMuted,
+      fontFamily: FF.display, fontStyle: 'italic', fontSize: 20,
+      color: dark ? mode.brassMuted : mode.ink,
     }}>
       Journey
     </div>
@@ -245,6 +249,8 @@ export default function FrostLanding() {
       background: bgGradient(dark),
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
     }}>
 
       {/* Grain overlay */}
@@ -317,11 +323,11 @@ export default function FrostLanding() {
             <FlatSection
               label="Dream Ai" lines={[lineA, lineB]}
               onClick={() => go('/frost/canvas/dream')}
-              mode={mode} first
+              mode={mode} dark={dark} first
             />
 
             {/* Journey */}
-            <JourneyWord onClick={() => go('/frost/canvas/journey')} mode={mode} />
+            <JourneyWord onClick={() => go('/frost/canvas/journey')} mode={mode} dark={dark} />
           </>
         ) : (
           // ── SANCTUARY MODE — sections descend in height, Journey pinned bottom ──
@@ -330,40 +336,40 @@ export default function FrostLanding() {
               <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: mode.brass, marginBottom: 10 }}>Dream Ai</div>
               {[lineA, lineB].map((line, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: i === 0 ? 6 : 0 }}>
-                  <span style={{ fontFamily: FF.label, fontSize: 9, color: mode.brass, marginTop: 3, flexShrink: 0 }}>✦</span>
+                  <span style={{ fontFamily: FF.label, fontSize: 9, color: dark ? mode.brass : mode.brassMuted, marginTop: 3, flexShrink: 0 }}>✦</span>
                   <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.soft, lineHeight: 1.55 }}>{line}</span>
                 </div>
               ))}
             </div>
             <div style={{ flex: 1.6, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderTop: `0.5px solid ${mode.hairline}`, padding: '0 24px', cursor: 'pointer' }} onClick={() => go('/frost/canvas/journey/circle')}>
-              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: mode.brass, marginBottom: 8 }}>Circle</div>
+              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: dark ? mode.brass : mode.ink, marginBottom: 8 }}>Circle</div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <span style={{ fontFamily: FF.label, fontSize: 9, color: mode.brass, marginTop: 3, flexShrink: 0 }}>✦</span>
+                <span style={{ fontFamily: FF.label, fontSize: 9, color: dark ? mode.brass : mode.brassMuted, marginTop: 3, flexShrink: 0 }}>✦</span>
                 <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.soft, lineHeight: 1.55 }}>Quiet here for now.</span>
               </div>
             </div>
             <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderTop: `0.5px solid ${mode.hairline}`, padding: '0 24px', cursor: 'pointer' }} onClick={() => go('/frost/canvas/muse')}>
-              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: mode.brass, marginBottom: 8 }}>Muse</div>
+              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: dark ? mode.brass : mode.ink, marginBottom: 8 }}>Muse</div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <span style={{ fontFamily: FF.label, fontSize: 9, color: mode.brass, marginTop: 3, flexShrink: 0 }}>✦</span>
+                <span style={{ fontFamily: FF.label, fontSize: 9, color: dark ? mode.brass : mode.brassMuted, marginTop: 3, flexShrink: 0 }}>✦</span>
                 <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.soft, lineHeight: 1.55 }}>Your saved inspiration.</span>
               </div>
             </div>
             <div style={{ flex: 1.0, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderTop: `0.5px solid ${mode.hairline}`, padding: '0 24px', cursor: 'pointer' }} onClick={() => go('/frost/canvas/journey')}>
-              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: mode.brass, marginBottom: 8 }}>Moments</div>
+              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: dark ? mode.brass : mode.ink, marginBottom: 8 }}>Moments</div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <span style={{ fontFamily: FF.label, fontSize: 9, color: mode.brass, marginTop: 3, flexShrink: 0 }}>✦</span>
+                <span style={{ fontFamily: FF.label, fontSize: 9, color: dark ? mode.brass : mode.brassMuted, marginTop: 3, flexShrink: 0 }}>✦</span>
                 <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.soft, lineHeight: 1.55 }}>Your wedding memories.</span>
               </div>
             </div>
             <div style={{ flex: 0.8, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderTop: `0.5px solid ${mode.hairline}`, padding: '0 24px', cursor: 'pointer' }} onClick={() => go('/frost/canvas/journey')}>
-              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: mode.brass, marginBottom: 8 }}>Pages</div>
+              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: dark ? mode.brass : mode.ink, marginBottom: 8 }}>Pages</div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <span style={{ fontFamily: FF.label, fontSize: 9, color: mode.brass, marginTop: 3, flexShrink: 0 }}>✦</span>
+                <span style={{ fontFamily: FF.label, fontSize: 9, color: dark ? mode.brass : mode.brassMuted, marginTop: 3, flexShrink: 0 }}>✦</span>
                 <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.soft, lineHeight: 1.55 }}>Notes and pages.</span>
               </div>
             </div>
-            <JourneyWord onClick={() => go('/frost/canvas/journey')} mode={mode} />
+            <JourneyWord onClick={() => go('/frost/canvas/journey')} mode={mode} dark={dark} />
           </>
         )}
       </div>
