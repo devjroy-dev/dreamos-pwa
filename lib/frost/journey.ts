@@ -417,17 +417,20 @@ export async function fetchCircleFeed(): Promise<CircleActivityEvent[]> {
 export async function fetchCircleThreads(): Promise<CircleThread[]> {
   if (USE_MOCKS) return delay(MOCK_CIRCLE_THREADS);
   const id = getCoupleId();
-  // Same /couple/circle/:id call — shape active members as DM threads
   const r: any = await apiFetch(`/api/v2/couple/circle/${id}`);
   const members: any[] = r?.members ?? [];
-  return members.map(m => ({
-    thread_id:    `dm:${m.id}`,
-    kind:         'dm' as const,
-    label:        m.invitee_name || 'Circle member',
-    role:         m.role         || null,
-    last_message: null,
-    last_active:  m.joined_at    || null,
-  }));
+  // Use conversation_id (real conversations.id) not member.id for thread lookup
+  // Only show members who have an active conversation (have sent at least one WA message)
+  return members
+    .filter(m => m.conversation_id)
+    .map(m => ({
+      thread_id:    `dm:${m.conversation_id}`,
+      kind:         'dm' as const,
+      label:        m.invitee_name || 'Circle member',
+      role:         m.role         || null,
+      last_message: null,
+      last_active:  m.last_active  || m.joined_at || null,
+    }));
 }
 
 export async function fetchCircleMessages(threadId: string): Promise<CircleMessage[]> {
