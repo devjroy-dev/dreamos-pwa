@@ -285,7 +285,7 @@ export async function createExpense(data: {
   }
   try {
     const id = getCoupleId();
-    const r: any = await apiFetch(`/api/v2/couple/expenses/${id}`, {
+    const r: any = await apiFetch(`/api/v2/couple/receipts/${id}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -302,7 +302,7 @@ export async function markExpensePaid(_id: string): Promise<boolean> {
 
 export async function deleteExpense(id: string): Promise<boolean> {
   if (USE_MOCKS) return delay(true);
-  try { await apiFetch(`/api/v2/couple/expenses/${id}`, { method: 'DELETE' }); return true; }
+  try { await apiFetch(`/api/v2/couple/receipts/${id}`, { method: 'DELETE' }); return true; }
   catch { return false; }
 }
 
@@ -357,7 +357,7 @@ export async function fetchEvents(): Promise<CoupleEvent[]> {
   const id = getCoupleId();
   // events table: id, title, event_date, event_time, kind, state, notes
   const r: any = await apiFetch(`/api/v2/couple/events/${id}`);
-  const raw: any[] = r?.events ?? [];
+  const raw: any[] = (r?.events ?? []).filter((e: any) => e.kind !== 'reminder');
   return raw.map(e => ({
     id:           e.id,
     couple_id:    id || '',
