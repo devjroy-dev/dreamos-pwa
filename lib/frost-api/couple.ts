@@ -11,7 +11,7 @@
 // the P2-7a contract spec.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { USE_MOCKS, apiGet, apiPost, mockDelay } from './_base';
+import { USE_MOCKS, API_BASE, apiGet, apiPost, mockDelay, getAccessToken } from './_base';
 import {
   MOCK_COUPLE_ME, MOCK_COUPLE_TODAY, MOCK_COUPLE_MUSE,
   MOCK_COUPLE_CIRCLE, MOCK_COUPLE_EVENTS, MOCK_COUPLE_BOOKINGS,
@@ -123,4 +123,63 @@ export async function fetchCoupleBookings(coupleId: string): Promise<CoupleBooki
 export async function fetchCoupleReceipts(coupleId: string): Promise<CoupleReceiptsResponse> {
   if (USE_MOCKS) return mockDelay(MOCK_COUPLE_RECEIPTS);
   return apiGet<CoupleReceiptsResponse>(`/api/v2/couple/receipts/${coupleId}`);
+}
+
+// ─── POST /api/v2/couple/chat — SSE streaming ────────────────────────────────
+// Returns a cancel function. Call it to abort the stream early.
+// onDelta: called for each streamed word chunk
+// onDone:  called when stream ends cleanly
+// onError: called on network error or auth failure
+export function streamBrideChat(
+  message: string,
+  onDelta: (text: string) => void,
+  onDone: () => void,
+  onError: (err: string) => void,
+): () => void {
+  const token = getAccessToken();
+  if (!token) { onError('Not logged in'); return () => {}; }
+
+  const controller = new AbortController();
+
+  fetch(`${API_BASE}/api/v2/couple/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ message }),
+    signal: controller.signal,
+  }).then(async res => {
+    if (!res.ok) {
+      onError(`Request failed (${res.status})`);
+      return;
+    }
+    const reader = res.body?.getReader();
+    if (!reader) { onError('No stream'); return; }
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') { onDone(); return; }
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === 'text_delta') onDelta(evt.text);
+          if (evt.type === 'done') onDone();
+          if (evt.type === 'error') onError(evt.message || 'Agent error');
+        } catch {}
+      }
+    }
+  }).catch(err => {
+    if (err.name !== 'AbortError') onError(err.message || 'Connection failed');
+  });
+
+  return () => controller.abort();
 }

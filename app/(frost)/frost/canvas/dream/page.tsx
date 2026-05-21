@@ -1,16 +1,16 @@
 'use client';
 
-// app/(frost)/canvas/dream/page.tsx
-// Dream canvas — full DreamAi conversation thread.
-// Dark background (mode.dreamGradient). Frosted compose bar.
-// brideEngine: { ok, reply } only — no tool_calls surface.
-// Ported from tdw-2/app/(frost)/canvas/dream.tsx
+// app/(frost)/frost/canvas/dream/page.tsx
+// Dream canvas — full DreamAi conversation thread wired to brideEngine via SSE.
+// Full-bleed page. Dark gradient background. Frosted compose bar.
+// B-6: replaces mockReply with real streamBrideChat.
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send } from 'lucide-react';
 import { useFrostMode } from '../../../layout';
-import { FROST_SURFACE, FF, SP, FR, FROST_COPY, EASE, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
+import { FROST_SURFACE, FF, SP, FR, FROST_COPY, EASE } from '../../../../../lib/frost/tokens';
+import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 
 interface UIMsg {
   id: string;
@@ -20,6 +20,8 @@ interface UIMsg {
   error?: boolean;
 }
 
+function uid() { return Math.random().toString(36).slice(2); }
+
 const PROMPTS = [
   'How many days until my wedding?',
   'What\'s on my calendar this week?',
@@ -28,53 +30,83 @@ const PROMPTS = [
   'How much have I spent so far?',
 ];
 
-// Mock reply for demo
-function mockReply(msg: string): string {
-  const m = msg.toLowerCase();
-  if (/days|countdown|wedding/.test(m)) return '4 days to your wedding, Priya. The 19th of November at ITC Maurya. Pheras at 10 PM.';
-  if (/calendar|events|schedule/.test(m)) return 'This week: lehenga fitting tomorrow at 2 PM, Mehndi on the 17th, Sangeet on the 18th, and the wedding on the 19th.';
-  if (/circle|people/.test(m)) return 'Your Circle has 4 members: Ananya (sister), your mom, Riya (best friend), and Rohan\'s mom. Ananya was active this morning.';
-  if (/muse|saved|inspiration/.test(m)) return 'You have 47 saves across all ceremonies. Most are for the reception (12 looks) and the wedding (9 looks).';
-  if (/spent|money|budget|expenses/.test(m)) return 'Total committed: ₹28,00,000. Paid so far: ₹13,50,000. Largest pending: Shivam Caterers (₹4,50,000 balance).';
-  return 'I have your full picture — timeline, vendors, Muse board, Circle. Ask me anything.';
-}
-
 export default function CanvasDream() {
   const router = useRouter();
   const { mode } = useFrostMode();
   const [messages, setMessages] = useState<UIMsg[]>([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLTextAreaElement>(null);
+  const [input, setInput]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const textRef    = useRef<HTMLTextAreaElement>(null);
+  const cancelRef  = useRef<(() => void) | null>(null);
 
+  // Scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
+  // Auto-resize textarea
   useEffect(() => {
     if (!textRef.current) return;
     textRef.current.style.height = 'auto';
     textRef.current.style.height = Math.min(textRef.current.scrollHeight, 120) + 'px';
   }, [input]);
 
-  const send = async (text: string) => {
+  // Cancel in-flight stream on unmount
+  useEffect(() => () => { cancelRef.current?.(); }, []);
+
+  const send = useCallback(async (text: string) => {
     const msg = text.trim();
-    if (!msg || sending) return;
-    const userMsg: UIMsg = { id: 'u-' + Date.now(), role: 'user', content: msg };
-    const pending: UIMsg = { id: 'a-' + Date.now(), role: 'assistant', content: '', pending: true };
-    setMessages(prev => [...prev, userMsg, pending]);
+    if (!msg || loading) return;
+
     setInput('');
-    setSending(true);
-    await new Promise(r => setTimeout(r, 900));
-    setMessages(prev => prev.map(m => m.id === pending.id ? { ...m, content: mockReply(msg), pending: false } : m));
-    setSending(false);
-  };
+    setMessages(prev => [...prev, { id: uid(), role: 'user', content: msg }]);
+    setLoading(true);
+
+    const aiId = uid();
+    setMessages(prev => [...prev, { id: aiId, role: 'assistant', content: '', pending: true }]);
+
+    const cancel = streamBrideChat(
+      msg,
+      // onDelta — append each word chunk
+      (delta) => {
+        setMessages(prev => prev.map(m =>
+          m.id === aiId
+            ? { ...m, content: m.content + delta, pending: false }
+            : m
+        ));
+      },
+      // onDone
+      () => {
+        setMessages(prev => prev.map(m =>
+          m.id === aiId ? { ...m, pending: false } : m
+        ));
+        setLoading(false);
+        cancelRef.current = null;
+      },
+      // onError
+      (err) => {
+        console.error('[dream canvas] stream error:', err);
+        setMessages(prev => prev.map(m =>
+          m.id === aiId
+            ? { ...m, content: 'I had trouble with that. Try again.', error: true, pending: false }
+            : m
+        ));
+        setLoading(false);
+        cancelRef.current = null;
+      },
+    );
+
+    cancelRef.current = cancel;
+  }, [loading]);
 
   const bg = `linear-gradient(to bottom, ${mode.dreamGradient[0]}, ${mode.dreamGradient[1]})`;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: bg, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: bg, display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
+
       {/* Top bar */}
       <div style={{
         ...FROST_SURFACE.composer,
@@ -87,7 +119,7 @@ export default function CanvasDream() {
           Dream
         </button>
         <div style={{ flex: 1, textAlign: 'center', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: mode.brass }}>✦ AI</div>
-        <button onClick={() => setMessages([])} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>Clear</button>
+        <button onClick={() => { cancelRef.current?.(); setMessages([]); setLoading(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>Clear</button>
       </div>
 
       {/* Messages */}
@@ -102,7 +134,8 @@ export default function CanvasDream() {
               <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.25em', textTransform: 'uppercase', color: mode.brassMuted, marginBottom: 10 }}>Try asking</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {PROMPTS.map(p => (
-                  <button key={p} onClick={() => send(p)} style={{ textAlign: 'left', ...FROST_SURFACE.button, border: `0.5px solid ${mode.hairline}`, borderRadius: FR.md, padding: '12px 14px', fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.ink, cursor: 'pointer', background: FROST_SURFACE.button.background }}>
+                  <button key={p} onClick={() => send(p)}
+                    style={{ textAlign: 'left', ...FROST_SURFACE.button, border: `0.5px solid ${mode.hairline}`, borderRadius: FR.md, padding: '12px 14px', fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.ink, cursor: 'pointer', background: FROST_SURFACE.button.background }}>
                     {`"${p}"`}
                   </button>
                 ))}
@@ -114,15 +147,18 @@ export default function CanvasDream() {
             {messages.map(m => (
               <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 {m.role === 'user' ? (
-                  <div style={{ maxWidth: '85%', background: mode.brass, color: '#1B1612', padding: '10px 14px', borderRadius: '20px 20px 4px 20px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.5 }}>{m.content}</div>
-                ) : m.pending ? (
-                  <div style={{ ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 13, color: mode.soft }}>
+                  <div style={{ maxWidth: '85%', background: mode.brass, color: '#1B1612', padding: '10px 14px', borderRadius: '20px 20px 4px 20px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.5 }}>
+                    {m.content}
+                  </div>
+                ) : m.pending && m.content === '' ? (
+                  <div style={{ ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 13, color: mode.soft, background: FROST_SURFACE.button.background }}>
                     <span style={{ animation: 'fbPulse 1.4s infinite ease-in-out' }}>✦ thinking</span>
                     <style>{`@keyframes fbPulse{0%,80%,100%{opacity:.4}40%{opacity:1}}`}</style>
                   </div>
                 ) : (
-                  <div style={{ maxWidth: '90%', ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.6, color: mode.ink, whiteSpace: 'pre-wrap', background: FROST_SURFACE.button.background }}>
+                  <div style={{ maxWidth: '90%', ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.6, color: m.error ? '#B8453E' : mode.ink, whiteSpace: 'pre-wrap', background: FROST_SURFACE.button.background }}>
                     {m.content}
+                    {m.pending && <span style={{ opacity: 0.5 }}>▌</span>}
                   </div>
                 )}
               </div>
@@ -140,15 +176,17 @@ export default function CanvasDream() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
             placeholder={FROST_COPY.dreamCanvas.inputPlaceholder}
-            disabled={sending}
+            disabled={loading}
             rows={1}
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: mode.ink, fontFamily: FF.body, fontSize: 14, resize: 'none', maxHeight: 120, lineHeight: 1.5 }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: mode.ink, fontFamily: FF.body, fontSize: 14, resize: 'none', maxHeight: 120, lineHeight: 1.5, userSelect: 'text' }}
           />
           <button
             onClick={() => send(input)}
-            disabled={sending || !input.trim()}
-            style={{ background: input.trim() ? mode.brass : 'rgba(255,255,255,0.1)', color: input.trim() ? '#1B1612' : mode.soft, border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !sending ? 'pointer' : 'default', transition: `background 180ms ${EASE}` }}
-          ><Send size={14} strokeWidth={1.5} /></button>
+            disabled={loading || !input.trim()}
+            style={{ background: input.trim() && !loading ? mode.brass : 'rgba(255,255,255,0.1)', color: input.trim() && !loading ? '#1B1612' : mode.soft, border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'default', transition: `background 180ms ${EASE}`, flexShrink: 0 }}
+          >
+            <Send size={14} strokeWidth={1.5} />
+          </button>
         </div>
       </div>
     </div>
