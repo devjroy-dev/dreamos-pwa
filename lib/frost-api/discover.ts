@@ -21,6 +21,8 @@ export interface DiscoverFeedResponse {
 export async function fetchDiscoverFeed(params?: {
   category?: string;
   city?: string;
+  budget?: string;
+  vibes?: string;
   page?: number;
 }): Promise<DiscoverFeedResponse> {
   if (USE_MOCKS) return { ok: true, vendors: [], has_more: false, page: 0, total: 0 };

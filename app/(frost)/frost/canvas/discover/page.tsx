@@ -5,10 +5,291 @@ export const dynamic = 'force-dynamic';
 import React, { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFrostMode } from '../../../layout';
-import { MessageCircle, Lock, Users } from 'lucide-react';
+import { MessageCircle, Lock, Users, SlidersHorizontal, X } from 'lucide-react';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
+import { MODES } from '../../../../../lib/frost/tokens';
+
+// ── Category & tier constants ──────────────────────────────────────────────────
+
+const ALL_CATEGORIES = [
+  { id: 'venues',           label: 'Venues',           emoji: '🏛' },
+  { id: 'photographers',    label: 'Photographers',    emoji: '📷' },
+  { id: 'mua',              label: 'Makeup Artists',   emoji: '✨' },
+  { id: 'designers',        label: 'Designers',        emoji: '🧵' },
+  { id: 'jewellery',        label: 'Jewellery',        emoji: '💍' },
+  { id: 'choreographers',   label: 'Choreographers',   emoji: '💃' },
+  { id: 'content-creators', label: 'Content Creators', emoji: '🎬' },
+  { id: 'dj',               label: 'DJ & Music',       emoji: '🎵' },
+  { id: 'event-managers',   label: 'Event Managers',   emoji: '📋' },
+  { id: 'bridal-wellness',  label: 'Bridal Wellness',  emoji: '🌸' },
+] as const;
+
+type CategoryId = typeof ALL_CATEGORIES[number]['id'];
+
+const TIER_ORDER: Record<string, CategoryId[]> = {
+  essential: ['venues','photographers','mua','designers','choreographers','dj','content-creators','jewellery','bridal-wellness','event-managers'],
+  signature: ['venues','photographers','designers','mua','event-managers','choreographers','dj','content-creators','jewellery','bridal-wellness'],
+  luxe:      ['event-managers','venues','photographers','designers','mua','choreographers','content-creators','dj','jewellery','bridal-wellness'],
+};
+
+const CITIES = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa'];
+const VIBE_OPTIONS = ['Candid','Traditional','Luxury','Cinematic','Boho','Festive','Minimalist','Royal','Destination','Contemporary'];
+const BUDGET_OPTIONS = [
+  { label: 'Under Rs 1L',   value: '100000' },
+  { label: 'Rs 1L – 3L',   value: '300000' },
+  { label: 'Rs 3L – 5L',   value: '500000' },
+  { label: 'Rs 5L – 10L',  value: '1000000' },
+  { label: 'Rs 10L+',      value: '' },
+];
+
+function getTierFromBudget(budget: number | null | undefined): string {
+  if (!budget) return 'signature';
+  if (budget < 500000)  return 'essential';
+  if (budget < 2000000) return 'signature';
+  return 'luxe';
+}
+
+function getTierGreeting(tier: string): string {
+  if (tier === 'essential') return 'Handpicked for your celebration.';
+  if (tier === 'luxe')      return 'An exquisite curation, just for you.';
+  return 'Your vision, beautifully curated.';
+}
+
+function getTimeGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+// ── Filter sheet ───────────────────────────────────────────────────────────────
+
+interface FilterState {
+  city:   string | null;
+  vibes:  string[];
+  budget: string | null;
+}
+
+function FilterSheet({
+  visible, onClose, filters, onApply,
+  frostMode,
+}: {
+  visible:    boolean;
+  onClose:    () => void;
+  filters:    FilterState;
+  onApply:    (f: FilterState) => void;
+  frostMode:  string;
+}) {
+  const t = MODES[frostMode as 'E1A' | 'E3'] ?? MODES['E1A'];
+  const isDark = frostMode === 'E1A';
+  const [local, setLocal] = useState<FilterState>(filters);
+
+  useEffect(() => { if (visible) setLocal(filters); }, [visible, filters]);
+
+  if (!visible) return null;
+
+  const pill = (active: boolean) => ({
+    padding: '7px 14px',
+    borderRadius: 20,
+    border: `0.5px solid ${active ? t.brass : t.hairline}`,
+    background: active ? (isDark ? 'rgba(191,160,77,0.15)' : 'rgba(191,160,77,0.12)') : 'transparent',
+    fontFamily: "'Jost',sans-serif",
+    fontSize: 10,
+    fontWeight: 300,
+    letterSpacing: '0.12em',
+    color: active ? t.brass : t.soft,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    touchAction: 'manipulation' as const,
+  });
+
+  return (
+    <div style={{ position:'fixed',inset:0,zIndex:50 }} onClick={onClose}>
+      <div style={{ position:'absolute',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(4px)',WebkitBackdropFilter:'blur(4px)' }} />
+      <div
+        style={{ position:'absolute',bottom:0,left:0,right:0,background: isDark ? 'rgba(27,22,18,0.97)' : 'rgba(216,211,204,0.97)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderTop:`0.5px solid ${t.hairline}`,borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',maxHeight:'85vh',overflowY:'auto' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Handle */}
+        <div style={{ display:'flex',justifyContent:'center',padding:'12px 0 8px' }}>
+          <div style={{ width:36,height:4,borderRadius:2,background:t.hairlineStrong }} />
+        </div>
+
+        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 24px 20px' }}>
+          <span style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:20,fontWeight:300,color:t.ink,letterSpacing:'-0.01em' }}>Filters</span>
+          <button onClick={onClose} style={{ background:'none',border:'none',cursor:'pointer',color:t.soft,padding:4 }}><X size={18} strokeWidth={1.5} /></button>
+        </div>
+
+        <div style={{ padding:'0 24px',display:'flex',flexDirection:'column',gap:24 }}>
+
+          {/* City */}
+          <div>
+            <p style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase',color:t.soft,margin:'0 0 12px' }}>City</p>
+            <div style={{ display:'flex',flexWrap:'wrap',gap:8 }}>
+              {CITIES.map(c => (
+                <button key={c} style={pill(local.city === c)} onClick={() => setLocal(f => ({ ...f, city: f.city === c ? null : c }))}>{c}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Vibes */}
+          <div>
+            <p style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase',color:t.soft,margin:'0 0 12px' }}>Vibe</p>
+            <div style={{ display:'flex',flexWrap:'wrap',gap:8 }}>
+              {VIBE_OPTIONS.map(v => (
+                <button key={v} style={pill(local.vibes.includes(v))} onClick={() => setLocal(f => ({ ...f, vibes: f.vibes.includes(v) ? f.vibes.filter(x=>x!==v) : [...f.vibes,v] }))}>{v}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Budget */}
+          <div>
+            <p style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase',color:t.soft,margin:'0 0 12px' }}>Budget</p>
+            <div style={{ display:'flex',flexWrap:'wrap',gap:8 }}>
+              {BUDGET_OPTIONS.map(b => (
+                <button key={b.label} style={pill(local.budget === b.value)} onClick={() => setLocal(f => ({ ...f, budget: f.budget === b.value ? null : b.value }))}>{b.label}</button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Actions */}
+        <div style={{ display:'flex',gap:12,padding:'28px 24px 0' }}>
+          <button
+            onClick={() => { setLocal({ city:null,vibes:[],budget:null }); onApply({ city:null,vibes:[],budget:null }); onClose(); }}
+            style={{ flex:1,padding:'13px 0',background:'transparent',border:`0.5px solid ${t.hairlineStrong}`,borderRadius:10,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:t.soft,cursor:'pointer',touchAction:'manipulation' as const }}
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => { onApply(local); onClose(); }}
+            style={{ flex:2,padding:'13px 0',background:t.brass,border:'none',borderRadius:10,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.18em',textTransform:'uppercase' as const,color:'#111111',cursor:'pointer',touchAction:'manipulation' as const }}
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Discover landing ───────────────────────────────────────────────────────────
+
+function DiscoverLanding({
+  onSelectCategory,
+  onBrowseAll,
+  onBlind,
+  frostMode,
+}: {
+  onSelectCategory: (id: CategoryId) => void;
+  onBrowseAll:      () => void;
+  onBlind:          () => void;
+  frostMode:        string;
+}) {
+  const router = useRouter();
+  const t = MODES[frostMode as 'E1A' | 'E3'] ?? MODES['E1A'];
+  const isDark = frostMode === 'E1A';
+
+  // Greeting + countdown — reads couple session if present
+  const [bridgeName,  setBridgeName]  = useState<string | null>(null);
+  const [daysLeft,    setDaysLeft]    = useState<number | null>(null);
+  const [weddingInfo, setWeddingInfo] = useState<string | null>(null);
+  const [tier,        setTier]        = useState('signature');
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('couple_session');
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      if (session?.couple?.bride_name) setBridgeName(session.couple.bride_name);
+      if (session?.couple?.wedding_date) {
+        const wDate = new Date(session.couple.wedding_date);
+        const diff  = Math.ceil((wDate.getTime() - Date.now()) / 86400000);
+        if (diff > 0) setDaysLeft(diff);
+        const month = wDate.toLocaleString('en-IN', { month: 'long' });
+        const parts: string[] = [];
+        if (session.couple.city)        parts.push(session.couple.city);
+        if (month)                      parts.push(month);
+        if (parts.length) setWeddingInfo(parts.join(' · '));
+      }
+      const t2 = getTierFromBudget(session?.couple?.budget_total);
+      setTier(t2);
+    } catch {}
+  }, []);
+
+  const orderedCategories = React.useMemo(() => {
+    const order = TIER_ORDER[tier] ?? TIER_ORDER.signature;
+    return order.map(id => ALL_CATEGORIES.find(c => c.id === id)!).filter(Boolean);
+  }, [tier]);
+
+  return (
+    <div style={{ position:'fixed',inset:0,background:t.pagePaper,overflowY:'auto',WebkitOverflowScrolling:'touch' as const }}>
+
+      {/* Back to Frost home */}
+      <button
+        onClick={() => router.push('/frost')}
+        style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:16,zIndex:25,width:36,height:36,borderRadius:'50%',background: isDark ? 'rgba(27,22,18,0.6)' : 'rgba(216,211,204,0.6)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:`0.5px solid ${t.hairline}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:t.ink,touchAction:'manipulation' as const }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      <div style={{ padding:'calc(env(safe-area-inset-top,0px) + 72px) 24px calc(env(safe-area-inset-bottom,0px) + 40px)' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom:8 }}>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:300,color:t.ink,margin:'0 0 4px',lineHeight:1.15,letterSpacing:'-0.01em' }}>
+            {getTimeGreeting()}{bridgeName ? `, ${bridgeName}` : ''}
+          </p>
+          {(daysLeft !== null || weddingInfo) && (
+            <p style={{ fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.14em',color:t.soft,margin:0 }}>
+              {daysLeft !== null ? `${daysLeft} days` : ''}{daysLeft !== null && weddingInfo ? ' · ' : ''}{weddingInfo ?? ''}
+            </p>
+          )}
+        </div>
+
+        {/* Tier greeting */}
+        <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:14,fontWeight:300,fontStyle:'italic',color:t.soft,margin:'0 0 28px' }}>
+          {getTierGreeting(tier)}
+        </p>
+
+        {/* Category grid */}
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:16 }}>
+          {orderedCategories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => onSelectCategory(cat.id)}
+              style={{ background:t.cardFill,border:`0.5px solid ${t.hairline}`,borderRadius:12,padding:'16px 14px',display:'flex',alignItems:'center',gap:10,cursor:'pointer',touchAction:'manipulation' as const,textAlign:'left' as const }}
+            >
+              <span style={{ fontSize:20,lineHeight:1,flexShrink:0 }}>{cat.emoji}</span>
+              <span style={{ fontFamily:"'Jost',sans-serif",fontSize:9,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase' as const,color:t.ink,lineHeight:1.3 }}>{cat.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Browse All */}
+        <button
+          onClick={onBrowseAll}
+          style={{ width:'100%',padding:'15px 0',background:t.brass,border:'none',borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase' as const,color:'#111111',cursor:'pointer',touchAction:'manipulation' as const,marginBottom:10 }}
+        >
+          Browse All
+        </button>
+
+        {/* Discover Blind */}
+        <button
+          onClick={onBlind}
+          style={{ width:'100%',padding:'14px 0',background:'transparent',border:`0.5px solid ${t.brass}`,borderRadius:12,fontFamily:"'Jost',sans-serif",fontSize:10,fontWeight:300,letterSpacing:'0.22em',textTransform:'uppercase' as const,color:t.brass,cursor:'pointer',touchAction:'manipulation' as const }}
+        >
+          Discover Blind
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const haptic = (ms: number) => {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -231,12 +512,20 @@ function EmptyDeck({ mode }: { mode: string }) {
   );
 }
 
-function DiscoveryFeedContent() {
-  const { mode: frostMode } = useFrostMode();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const mode = searchParams.get('mode') || 'discover';
-  const isBlind = mode === 'blind';
+function DiscoveryFeedContent({
+  initialCategory,
+  initialBlind,
+  filters,
+  onBackToLanding,
+  onOpenFilter,
+}: {
+  initialCategory: CategoryId | null;
+  initialBlind:    boolean;
+  filters:         FilterState;
+  onBackToLanding: () => void;
+  onOpenFilter:    () => void;
+}) {
+  const isBlind = initialBlind;
 
   const [vendors, setVendors] = useState<DiscoverVendor[]>([]);
   const [vendorIdx, setVendorIdx] = useState(0);
@@ -257,7 +546,13 @@ function DiscoveryFeedContent() {
 
   useEffect(() => {
     setLoading(true);
-    fetchDiscoverFeed({ page: 0 })
+    fetchDiscoverFeed({
+      page:     0,
+      category: initialCategory ?? undefined,
+      city:     filters.city    ?? undefined,
+      budget:   filters.budget  ?? undefined,
+      vibes:    filters.vibes.length > 0 ? filters.vibes.join(',') : undefined,
+    })
       .then(({ vendors: v, has_more }) => {
         setVendors(v);
         setHasMore(has_more);
@@ -266,14 +561,20 @@ function DiscoveryFeedContent() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [initialCategory, filters]);
 
   useEffect(() => {
     if (!hasMore) return;
     if (vendors.length === 0) return;
     if (vendorIdx < vendors.length - 3) return;
     const nextPage = currentPage + 1;
-    fetchDiscoverFeed({ page: nextPage })
+    fetchDiscoverFeed({
+      page:     nextPage,
+      category: initialCategory ?? undefined,
+      city:     filters.city    ?? undefined,
+      budget:   filters.budget  ?? undefined,
+      vibes:    filters.vibes.length > 0 ? filters.vibes.join(',') : undefined,
+    })
       .then(({ vendors: more, has_more }) => {
         if (more.length > 0) {
           setVendors(prev => [...prev, ...more]);
@@ -284,7 +585,7 @@ function DiscoveryFeedContent() {
         }
       })
       .catch(() => {});
-  }, [vendorIdx, vendors.length, hasMore, currentPage]);
+  }, [vendorIdx, vendors.length, hasMore, currentPage, initialCategory, filters]);
 
   // Blind queue: flat list of {vendorId, imageUrl} across all vendors x all photos
   const blindQueue = React.useMemo(() => {
@@ -436,8 +737,8 @@ function DiscoveryFeedContent() {
     );
   }
 
-  if (isBlind && blindQueue.length > 0 && blindIdx >= blindQueue.length) return <EmptyDeck mode={mode} />;
-  if (!vendor) return <EmptyDeck mode={mode} />;
+  if (isBlind && blindQueue.length > 0 && blindIdx >= blindQueue.length) return <EmptyDeck mode={isBlind ? 'blind' : 'discover'} />;
+  if (!vendor) return <EmptyDeck mode={isBlind ? 'blind' : 'discover'} />;
 
   const photos = vendor.photos.length > 0 ? vendor.photos : [];
   const currentPhoto = photos[imageIdx] || null;
@@ -486,13 +787,22 @@ function DiscoveryFeedContent() {
         {!isBlind && <ImageDots total={photos.length} current={imageIdx} />}
 
         <button
-          onClick={() => router.push('/frost')}
-          style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:16,zIndex:25,width:36,height:36,borderRadius:'50%',background:'rgba(0,0,0,0.35)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'0.5px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(255,255,255,0.9)' }}
+          onClick={onBackToLanding}
+          style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:16,zIndex:25,width:36,height:36,borderRadius:'50%',background:'rgba(0,0,0,0.35)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'0.5px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(255,255,255,0.9)',touchAction:'manipulation' }}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
+
+        {!isBlind && (
+          <button
+            onClick={onOpenFilter}
+            style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',right:16,zIndex:25,width:36,height:36,borderRadius:'50%',background:'rgba(0,0,0,0.35)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'0.5px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(255,255,255,0.9)',touchAction:'manipulation' }}
+          >
+            <SlidersHorizontal size={15} strokeWidth={1.5} />
+          </button>
+        )}
 
         {isBlind && (
           <div style={{ position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 20px)',right:16,zIndex:25,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:20,padding:'5px 14px',fontFamily:"'Jost',sans-serif",fontSize:8,fontWeight:300,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(255,255,255,0.75)' }}>
@@ -524,15 +834,78 @@ function DiscoveryFeedContent() {
 }
 
 export default function DiscoveryFeed() {
+  const { homeMode } = useFrostMode();
+  const [discoverState, setDiscoverState]     = useState<'landing' | 'swipe'>('landing');
+  const [activeCategory, setActiveCategory]   = useState<CategoryId | null>(null);
+  const [isBlindMode,    setIsBlindMode]       = useState(false);
+  const [filterVisible,  setFilterVisible]     = useState(false);
+  const [filters,        setFilters]           = useState<FilterState>({ city: null, vibes: [], budget: null });
+  const [appliedFilters, setAppliedFilters]    = useState<FilterState>({ city: null, vibes: [], budget: null });
+
+  const handleSelectCategory = (id: CategoryId) => {
+    setActiveCategory(id);
+    setIsBlindMode(false);
+    setDiscoverState('swipe');
+  };
+
+  const handleBrowseAll = () => {
+    setActiveCategory(null);
+    setIsBlindMode(false);
+    setDiscoverState('swipe');
+  };
+
+  const handleBlind = () => {
+    setActiveCategory(null);
+    setIsBlindMode(true);
+    setDiscoverState('swipe');
+  };
+
+  const handleBackToLanding = () => {
+    setDiscoverState('landing');
+    setActiveCategory(null);
+    setIsBlindMode(false);
+  };
+
+  const handleApplyFilters = (f: FilterState) => {
+    setAppliedFilters(f);
+    setFilters(f);
+  };
+
+  if (discoverState === 'landing') {
+    return (
+      <DiscoverLanding
+        onSelectCategory={handleSelectCategory}
+        onBrowseAll={handleBrowseAll}
+        onBlind={handleBlind}
+        frostMode={homeMode}
+      />
+    );
+  }
+
   return (
-    <Suspense fallback={
-      <div style={{ position:'fixed',inset:0,background:'#0C0A09',display:'flex',alignItems:'center',justifyContent:'center' }}>
-        <span style={{ fontFamily:"'Jost',sans-serif",fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(245,240,232,0.35)' }}>
-          Loading
-        </span>
-      </div>
-    }>
-      <DiscoveryFeedContent />
-    </Suspense>
+    <>
+      <FilterSheet
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        filters={filters}
+        onApply={handleApplyFilters}
+        frostMode={homeMode}
+      />
+      <Suspense fallback={
+        <div style={{ position:'fixed',inset:0,background:'#0C0A09',display:'flex',alignItems:'center',justifyContent:'center' }}>
+          <span style={{ fontFamily:"'Jost',sans-serif",fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(245,240,232,0.35)' }}>
+            Loading
+          </span>
+        </div>
+      }>
+        <DiscoveryFeedContent
+          initialCategory={activeCategory}
+          initialBlind={isBlindMode}
+          filters={appliedFilters}
+          onBackToLanding={handleBackToLanding}
+          onOpenFilter={() => setFilterVisible(true)}
+        />
+      </Suspense>
+    </>
   );
 }
