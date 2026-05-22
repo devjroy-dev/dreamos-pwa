@@ -1,26 +1,41 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, BottomSheet } from '../_components/AdminUI';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect, BottomSheet, SectionDivider } from '../_components/AdminUI';
 import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../../lib/admin-api/index';
 
+const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
+const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
+const WA_VENDOR = '917982159047';
+
 const TIERS = ['trial','essential','signature','prestige'];
+const CATEGORIES = ['photography','videography','makeup','decor','venue','planning','catering','mehendi','music','jewellery','attire','honeymoon','invitation','other'];
 
 function fmt(d: string) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); }
 
 export default function MakersPage() {
-  const [vendors, setVendors] = useState<AdminVendor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch]   = useState('');
-  const [filter, setFilter]   = useState('all');
-  const [toast, setToast]     = useState('');
-  const [toastErr, setToastErr] = useState(false);
-  const [selected, setSelected] = useState<AdminVendor | null>(null);
+  const [vendors, setVendors]     = useState<AdminVendor[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [search, setSearch]       = useState('');
+  const [filter, setFilter]       = useState('all');
+  const [toast, setToast]         = useState('');
+  const [toastErr, setToastErr]   = useState(false);
+  const [selected, setSelected]   = useState<AdminVendor | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
+
+  // Invite form
+  const [invName, setInvName]     = useState('');
+  const [invPhone, setInvPhone]   = useState('');
+  const [invCat, setInvCat]       = useState('');
+  const [invCity, setInvCity]     = useState('');
+  const [invTier, setInvTier]     = useState('signature');
+  const [inviting, setInviting]   = useState(false);
+  const [inviteResult, setInviteResult] = useState<{ name: string; waLink: string } | null>(null);
+  const [copied, setCopied]       = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
     getVendors().then(d => { setVendors(d.vendors); setLoading(false); }).catch(() => setLoading(false));
   }, []);
-
   useEffect(() => { load(); }, [load]);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
@@ -40,6 +55,40 @@ export default function MakersPage() {
     catch { showToast('Failed.', true); }
   };
 
+  const invite = async () => {
+    if (!invName.trim() || !invPhone.trim()) return;
+    setInviting(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/v2/admin/vendors/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+        body: JSON.stringify({
+          business_name: invName.trim(),
+          phone: invPhone.trim(),
+          category: invCat || undefined,
+          city: invCity.trim() || undefined,
+          tier: invTier,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Failed');
+      const waLink = `https://wa.me/${WA_VENDOR}?text=Hi`;
+      setInviteResult({ name: invName.trim(), waLink });
+      load();
+      setInvName(''); setInvPhone(''); setInvCat(''); setInvCity(''); setInvTier('signature');
+    } catch (e: any) {
+      showToast(e.message || 'Failed to invite.', true);
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const copyInvite = () => {
+    if (!inviteResult) return;
+    const msg = `Hey ${inviteResult.name} — tap this link to get started with your chief of staff: ${inviteResult.waLink}`;
+    navigator.clipboard.writeText(msg).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); });
+  };
+
   const filtered = vendors.filter(v => {
     const q = search.toLowerCase();
     const matchSearch = !search || v.name?.toLowerCase().includes(q) || v.phone?.includes(search);
@@ -49,11 +98,15 @@ export default function MakersPage() {
 
   return (
     <div>
-      <PageHeader title="Makers" sub={`${vendors.length} total vendors`} />
+      <PageHeader
+        title="Makers"
+        sub={`${vendors.length} total vendors`}
+        action={<GoldBtn label="+ Invite" onClick={() => { setShowInvite(true); setInviteResult(null); }} />}
+      />
 
       <FieldInput label="Search" value={search} onChange={setSearch} placeholder="Name or phone…" />
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto' as const, paddingBottom: 4, scrollbarWidth: 'none' as const }}>
         {['all', ...TIERS].map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: 20, border: `0.5px solid ${filter === f ? T.gold : T.border}`, background: filter === f ? 'rgba(201,168,76,0.1)' : 'transparent', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: filter === f ? T.gold : T.soft, minHeight: 36 }}>{f}</button>
         ))}
@@ -82,23 +135,87 @@ export default function MakersPage() {
         </div>
       )}
 
+      {/* Manage vendor sheet */}
       <BottomSheet visible={!!selected} onClose={() => setSelected(null)} title={selected?.name || ''}>
         {selected && (
           <div>
             <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.15em', marginBottom: 20 }}>{selected.phone} · Joined {fmt(selected.created_at)}</div>
-
             <div style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, color: T.soft, letterSpacing: '0.22em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Set Tier</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' as const }}>
               {TIERS.map(t => (
-                <button key={t} onClick={() => setTier(selected.id, t)} style={{ padding: '10px 18px', borderRadius: 20, border: `0.5px solid ${selected.tier === t ? T.gold : T.border}`, background: selected.tier === t ? 'rgba(201,168,76,0.1)' : 'transparent', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: selected.tier === t ? T.gold : T.soft, minHeight: 44 }}>{t}</button>
+                <button key={t} onClick={() => { setTier(selected.id, t); setSelected(s => s ? { ...s, tier: t } : s); }} style={{ padding: '10px 18px', borderRadius: 20, border: `0.5px solid ${selected.tier === t ? T.gold : T.border}`, background: selected.tier === t ? 'rgba(201,168,76,0.1)' : 'transparent', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: selected.tier === t ? T.gold : T.soft, minHeight: 44 }}>{t}</button>
               ))}
             </div>
-
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               <GhostBtn label={selected.discover_eligible ? 'Remove from Discover' : 'Add to Discover'} onClick={() => { toggleDiscover(selected); setSelected(s => s ? { ...s, discover_eligible: !s.discover_eligible } : s); }} />
             </div>
-
             <GhostBtn label="Revoke Access" onClick={() => revoke(selected.id)} danger />
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* Invite by phone sheet */}
+      <BottomSheet visible={showInvite} onClose={() => { setShowInvite(false); setInviteResult(null); }} title="Invite a Maker">
+
+        {inviteResult ? (
+          /* ── Success state ── */
+          <div>
+            <div style={{ background: 'rgba(92,224,160,0.08)', border: `0.5px solid rgba(92,224,160,0.3)`, borderRadius: 12, padding: '16px 18px', marginBottom: 20 }}>
+              <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.success, marginBottom: 6 }}>✓ {inviteResult.name} has been invited.</div>
+              <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.1em' }}>Vendor row created. Send them the link below.</div>
+            </div>
+
+            <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 20 }}>
+              <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.2em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Share with {inviteResult.name}</div>
+              <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink, lineHeight: 1.7, marginBottom: 16 }}>
+                Hey {inviteResult.name} — tap this link to get started with your chief of staff:<br />
+                <span style={{ color: T.gold }}>{inviteResult.waLink}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={copyInvite}
+                  style={{ flex: 1, background: copied ? 'rgba(92,224,160,0.1)' : T.card, border: `0.5px solid ${copied ? 'rgba(92,224,160,0.4)' : T.border}`, borderRadius: 10, padding: '12px 0', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied ? T.success : T.soft, minHeight: 44 }}
+                >
+                  {copied ? '✓ Copied' : 'Copy Message'}
+                </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Hey ${inviteResult.name} — tap this link to get started with your chief of staff: ${inviteResult.waLink}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ flex: 1, background: T.gold, border: 'none', borderRadius: 10, padding: '12px 0', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: '#0A0908', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+                >
+                  Send via WA
+                </a>
+              </div>
+            </div>
+
+            <GhostBtn label="Invite Another" onClick={() => setInviteResult(null)} />
+          </div>
+        ) : (
+          /* ── Form state ── */
+          <div>
+            <FieldInput label="Name" value={invName} onChange={setInvName} placeholder="Kavya Sharma" />
+            <FieldInput label="WhatsApp Number" value={invPhone} onChange={setInvPhone} placeholder="+918757788550" />
+            <FieldSelect
+              label="Category (optional)"
+              value={invCat}
+              onChange={setInvCat}
+              options={[{ value: '', label: 'Select category' }, ...CATEGORIES.map(c => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))]}
+            />
+            <FieldInput label="City (optional)" value={invCity} onChange={setInvCity} placeholder="Mumbai" />
+            <FieldSelect
+              label="Starting Tier"
+              value={invTier}
+              onChange={setInvTier}
+              options={[{ value: 'trial', label: 'Trial' }, { value: 'essential', label: 'Essential' }, { value: 'signature', label: 'Signature (recommended)' }, { value: 'prestige', label: 'Prestige' }]}
+            />
+            <div style={{ paddingBottom: 12, marginTop: 4 }}>
+              <GoldBtn
+                label={inviting ? 'Creating…' : 'Create & Get Link'}
+                onClick={invite}
+                disabled={inviting || !invName.trim() || !invPhone.trim()}
+              />
+            </div>
           </div>
         )}
       </BottomSheet>
