@@ -66,7 +66,7 @@ export default function JourneyExpenses() {
   const totalCommitted  = bookings.reduce((s, b) => s + (b.amount_total || 0), 0);
   const totalPaid       = bookings.reduce((s, b) => s + (b.amount_paid  || 0), 0);
   const totalBalance    = totalCommitted - totalPaid;
-  const totalReceipts   = receipts.reduce((s, r) => s + (r.amount || 0), 0);
+  const totalMySpend    = receipts.filter(r => !r.image_url).reduce((s, r) => s + (r.amount || 0), 0);
 
   // My Expenses = manual adds (no image). Receipts = WhatsApp image receipts.
   const myExpenses    = receipts.filter(r => !r.image_url);
@@ -166,8 +166,8 @@ export default function JourneyExpenses() {
               <div style={{ fontFamily:FF.display, fontSize:20, color:t.ink }}>{fmtINR(totalBalance)}</div>
             </div>
             <div>
-              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Receipts</div>
-              <div style={{ fontFamily:FF.display, fontSize:20, color:t.soft }}>{fmtINR(totalReceipts)}</div>
+              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>My Spend</div>
+              <div style={{ fontFamily:FF.display, fontSize:20, color:t.soft }}>{fmtINR(totalMySpend)}</div>
             </div>
           </div>
         </FrostedSurface>
