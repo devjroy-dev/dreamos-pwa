@@ -259,7 +259,7 @@ export default function JourneyExpenses() {
               Tap the thumbnail to open full size. Forward receipts to Dream Ai on WhatsApp to save them here.
             </div>
             {receipts.length === 0 && (
-              <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:16, color:t.soft, textAlign:'center', paddingTop:60 }}>No receipts yet.</div>
+              <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:16, color:t.soft, textAlign:'center', paddingTop:60 }}>No WhatsApp receipts yet. Forward a receipt image to Dream Ai.</div>
             )}
             {receipts.map(r => (
               <div key={r.id}
