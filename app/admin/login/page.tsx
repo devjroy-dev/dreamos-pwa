@@ -1,23 +1,25 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? '';
+const PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? '';
+const G = '#C9A84C';
+const INK = '#F5F0E8';
+const SOFT = 'rgba(245,240,232,0.45)';
+const BORDER = 'rgba(201,168,76,0.2)';
 
-export default function AdminLoginPage() {
+export default function AdminLogin() {
   const router = useRouter();
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
   function handleLogin() {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     setTimeout(() => {
-      if (password === ADMIN_PASSWORD) {
+      if (password === PWD) {
         localStorage.setItem('admin_session', 'true');
-        router.replace('/admin/dashboard');
+        router.replace('/admin');
       } else {
         setError('Incorrect password.');
         setLoading(false);
@@ -26,77 +28,36 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0C0A09; }
-      `}</style>
-      <div style={{
-        minHeight: '100vh', background: '#0C0A09',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 24,
-      }}>
-        <div style={{ width: '100%', maxWidth: 360 }}>
-          {/* Brand */}
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <p style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontStyle: 'italic', fontWeight: 300, fontSize: 22,
-              color: '#F8F7F5', margin: '0 0 4px',
-            }}>The Dream Wedding</p>
-            <p style={{
-              fontFamily: "'Jost', sans-serif", fontWeight: 200,
-              fontSize: 9, color: 'rgba(248,247,245,0.45)',
-              letterSpacing: '0.25em', textTransform: 'uppercase',
-            }}>Admin</p>
-          </div>
-
-          {/* Password field */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{
-              fontFamily: "'Jost', sans-serif", fontWeight: 200,
-              fontSize: 8, color: 'rgba(248,247,245,0.45)',
-              letterSpacing: '0.22em', textTransform: 'uppercase',
-              display: 'block', marginBottom: 8,
-            }}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleLogin(); }}
-              autoFocus
-              style={{
-                width: '100%', height: 48,
-                background: '#161412', border: '0.5px solid rgba(248,247,245,0.15)',
-                borderRadius: 8, padding: '0 16px', outline: 'none',
-                fontFamily: "'DM Sans', sans-serif", fontWeight: 300,
-                fontSize: 14, color: '#F8F7F5',
-              }}
-            />
-          </div>
-
-          {error && (
-            <p style={{
-              fontFamily: "'DM Sans', sans-serif", fontWeight: 300,
-              fontSize: 13, color: '#C9A84C', marginBottom: 16,
-            }}>{error}</p>
-          )}
-
-          <button
-            onClick={handleLogin}
-            disabled={loading || !password}
-            style={{
-              width: '100%', height: 48,
-              background: '#111111', border: 'none', borderRadius: 8,
-              fontFamily: "'Jost', sans-serif", fontWeight: 300,
-              fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase',
-              color: '#F8F7F5', cursor: password ? 'pointer' : 'default',
-              opacity: loading ? 0.6 : 1,
-            }}
-          >{loading ? 'Entering...' : 'Enter'}</button>
+    <div style={{ minHeight: '100vh', background: '#0A0908', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 360 }}>
+        <div style={{ textAlign: 'center', marginBottom: 52 }}>
+          <p style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontWeight: 300, fontSize: 26, color: INK, marginBottom: 6 }}>The Dream Wedding</p>
+          <p style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: G, letterSpacing: '0.4em', textTransform: 'uppercase' }}>Control Room</p>
+          <div style={{ height: '0.5px', background: `linear-gradient(to right, transparent, ${G}44, transparent)`, marginTop: 20 }} />
         </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <p style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: SOFT, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 10 }}>Password</p>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            autoFocus
+            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '14px 16px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 15, color: INK, outline: 'none', minHeight: 52 }}
+          />
+        </div>
+
+        {error && <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: '#E05C5C', marginBottom: 12 }}>{error}</p>}
+
+        <button
+          onClick={handleLogin}
+          disabled={loading || !password}
+          style={{ width: '100%', background: !password || loading ? 'rgba(201,168,76,0.25)' : G, border: 'none', borderRadius: 10, padding: '16px 0', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', color: !password || loading ? 'rgba(201,168,76,0.5)' : '#0A0908', minHeight: 52, cursor: !password || loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
+        >
+          {loading ? 'Entering…' : 'Enter'}
+        </button>
       </div>
-    </>
+    </div>
   );
 }

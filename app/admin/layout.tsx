@@ -4,65 +4,67 @@ import { useRouter, usePathname } from 'next/navigation';
 
 const FONTS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { margin: 0; background: #FFFFFF; color: #111111; }
-  ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: #E2DED8; border-radius: 2px; }
-  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-  .fade-in { animation: fadeIn 240ms cubic-bezier(0.22,1,0.36,1) both; }
-  table { border-collapse: collapse; }
-  input, select, textarea { color: #111111 !important; background: transparent !important; }
-  input::placeholder { color: rgba(0,0,0,0.3) !important; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0A0908; color: #F5F0E8; -webkit-font-smoothing: antialiased; }
+  ::-webkit-scrollbar { width: 2px; } ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes shimmer { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
+  .fade-up { animation: fadeUp 280ms cubic-bezier(0.22,1,0.36,1) both; }
+  .shimmer { animation: shimmer 1.4s ease-in-out infinite; }
+  input, select, textarea { font-family: inherit; color: #F5F0E8 !important; }
+  input::placeholder, textarea::placeholder { color: rgba(245,240,232,0.25) !important; }
+  button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 `;
+
+const G = '#C9A84C';
+const BG = '#0A0908';
+const BORDER = 'rgba(201,168,76,0.15)';
+const INK = '#F5F0E8';
+const SOFT = 'rgba(245,240,232,0.5)';
+const SIDEBAR_W = 220;
 
 const NAV = [
   { group: 'OVERVIEW', items: [
-    { label: 'Command Centre', path: '/admin/dashboard', icon: '◈' },
-    { label: 'Control Room', path: '/admin/control-room', icon: '◐' },
+    { label: 'Dashboard',   path: '/admin',                        icon: '◈' },
   ]},
   { group: 'PEOPLE', items: [
-    { label: 'Dreamers',             path: '/admin/dreamers',  icon: '♡' },
-    { label: 'Makers',               path: '/admin/makers',    icon: '✦' },
-    { label: 'Discovery Approvals',  path: '/admin/approvals', icon: '◈' },
-    { label: 'Invite Codes',         path: '/admin/invites',   icon: '⌘' },
+    { label: 'Makers',      path: '/admin/makers',                 icon: '✦' },
+    { label: 'Dreamers',    path: '/admin/dreamers',               icon: '♡' },
+    { label: 'Invites',     path: '/admin/invites',                icon: '⌘' },
   ]},
-  { group: 'PLATFORM', items: [
-    { label: 'Cover Placement',  path: '/admin/cover',           icon: '⬡' },
-    { label: 'Discover Heroes',  path: '/admin/discover-heroes', icon: '✦' },
-    { label: 'Preview Vendors',  path: '/admin/preview',  icon: '◈' },
-    { label: 'Exploring Photos', path: '/admin/exploring', icon: '✦' },
-    { label: 'Messages',         path: '/admin/messages', icon: '💬' },
-    { label: 'Image Approvals',  path: '/admin/images',   icon: '⬡' },
-    { label: 'Featured',         path: '/admin/featured', icon: '★' },
-    { label: 'Hot Dates',        path: '/admin/hot-dates', icon: '🔥' },
+  { group: 'CONTENT', items: [
+    { label: 'Landing',     path: '/admin/content/landing',        icon: '⬡' },
+    { label: 'Exploring',   path: '/admin/content/exploring',      icon: '◎' },
+    { label: 'Heroes',      path: '/admin/content/heroes',         icon: '★' },
+    { label: 'Spotlight',   path: '/admin/content/spotlight',      icon: '◐' },
+    { label: 'Muse Pool',   path: '/admin/content/muse-pool',      icon: '♡' },
+    { label: 'Surprise Me', path: '/admin/content/surprise-me',    icon: '✦' },
   ]},
-  { group: 'MONEY', items: [
-    { label: 'Revenue', path: '/admin/money', icon: '₹' },
-    { label: 'Subscriptions', path: '/admin/subscriptions', icon: '◉' },
+  { group: 'APPROVALS', items: [
+    { label: 'Photos',      path: '/admin/approvals/photos',       icon: '⬡' },
+    { label: 'Discover',    path: '/admin/approvals/discover',     icon: '◈' },
   ]},
-  { group: 'TOOLS', items: [
-    { label: 'Data Tools', path: '/admin/data', icon: '⚙' },
-    { label: 'System Health', path: '/admin/health', icon: '●' },
+  { group: 'CONVERSATIONS', items: [
+    { label: 'Vendors',     path: '/admin/conversations/vendors',  icon: '◎' },
+    { label: 'Brides',      path: '/admin/conversations/brides',   icon: '◎' },
+  ]},
+  { group: 'COMMERCE', items: [
+    { label: 'Couture',     path: '/admin/couture',                icon: '✦' },
+    { label: 'Hot Dates',   path: '/admin/hot-dates',              icon: '◈' },
+  ]},
+  { group: 'CONFIG', items: [
+    { label: 'AI Caps',     path: '/admin/config',                 icon: '⚙' },
   ]},
 ];
 
-// Dark theme tokens
-const BG = '#FFFFFF';
-const BG2 = '#F8F7F5';
-const BG3 = '#F0EEE8';
-const BORDER = '#E2DED8';
-const TEXT = '#111111';
-const MUTED = '#888580';
-const GOLD = '#C9A84C';
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const router   = useRouter();
   const pathname = usePathname();
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed]   = useState(false);
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
-    const s = localStorage.getItem('admin_session');
+    const s = typeof window !== 'undefined' ? localStorage.getItem('admin_session') : null;
     if (!s && pathname !== '/admin/login') router.replace('/admin/login');
     else setAuthed(true);
   }, [pathname, router]);
@@ -70,36 +72,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!authed && pathname !== '/admin/login') return null;
   if (pathname === '/admin/login') return <><style>{FONTS}</style>{children}</>;
 
-  const isActive = (path: string) => pathname === path || (path !== '/admin' && pathname.startsWith(path));
+  const isActive = (path: string) =>
+    path === '/admin' ? pathname === '/admin' : pathname.startsWith(path);
 
-  const nav = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: BG2 }}>
-      {/* Brand */}
-      <div style={{ padding: '24px 20px 16px', flexShrink: 0 }}>
-        <div style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontWeight: 300, fontSize: 17, color: TEXT, marginBottom: 2 }}>The Dream Wedding</div>
-        <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: GOLD, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Admin Portal</div>
-        <div style={{ height: 1, background: `linear-gradient(to right, ${GOLD}44, transparent)`, marginTop: 14 }} />
+  const sidebarContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0D0B09', borderRight: `0.5px solid ${BORDER}` }}>
+      <div style={{ padding: '28px 20px 20px', flexShrink: 0 }}>
+        <div style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontWeight: 300, fontSize: 18, color: INK }}>The Dream Wedding</div>
+        <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7, color: G, letterSpacing: '0.35em', textTransform: 'uppercase' as const, marginTop: 4 }}>Control Room</div>
+        <div style={{ height: '0.5px', background: `linear-gradient(to right, ${G}55, transparent)`, marginTop: 16 }} />
       </div>
-
-      {/* Nav */}
-      <nav style={{ flex: 1, overflowY: 'auto', paddingBottom: 16 }}>
+      <nav style={{ flex: 1, overflowY: 'auto' as const, paddingBottom: 24, scrollbarWidth: 'none' as const }}>
         {NAV.map(({ group, items }) => (
           <div key={group}>
-            <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7, color: '#BBBBBB', letterSpacing: '0.3em', textTransform: 'uppercase', padding: '16px 20px 6px' }}>{group}</div>
+            <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7, color: 'rgba(201,168,76,0.4)', letterSpacing: '0.35em', textTransform: 'uppercase' as const, padding: '18px 20px 6px' }}>{group}</div>
             {items.map(({ label, path, icon }) => {
               const active = isActive(path);
               return (
-                <button key={path} onClick={() => { router.push(path); setNavOpen(false); }} style={{
-                  display: 'flex', alignItems: 'center', gap: 9, width: '100%', textAlign: 'left',
-                  padding: '8px 16px 8px 14px', border: 'none', outline: 'none', cursor: 'pointer',
-                  fontFamily: '"DM Sans", sans-serif', fontWeight: active ? 400 : 300, fontSize: 13,
-                  background: active ? BG3 : 'transparent',
-                  color: active ? TEXT : MUTED,
-                  borderLeft: `2px solid ${active ? GOLD : 'transparent'}`,
-                  borderRadius: '0 6px 6px 0',
-                  transition: 'all 0.12s ease',
-                }}>
-                  <span style={{ fontSize: 11, opacity: 0.5, width: 14, flexShrink: 0 }}>{icon}</span>
+                <button key={path} onClick={() => { router.push(path); setNavOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left' as const, padding: '10px 20px 10px 16px', border: 'none', outline: 'none', background: active ? 'rgba(201,168,76,0.08)' : 'transparent', color: active ? G : SOFT, borderLeft: `2px solid ${active ? G : 'transparent'}`, fontFamily: '"DM Sans", sans-serif', fontWeight: active ? 400 : 300, fontSize: 13, transition: 'all 0.15s ease', minHeight: 44 }}>
+                  <span style={{ fontSize: 10, width: 14, flexShrink: 0, opacity: active ? 1 : 0.5 }}>{icon}</span>
                   {label}
                 </button>
               );
@@ -107,10 +98,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         ))}
       </nav>
-
-      {/* Footer */}
-      <div style={{ padding: '12px 16px', borderTop: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
-        <button onClick={() => { localStorage.removeItem('admin_session'); router.replace('/admin/login'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUTED }}>Sign Out</button>
+      <div style={{ padding: '16px 20px', borderTop: `0.5px solid ${BORDER}`, flexShrink: 0 }}>
+        <button onClick={() => { localStorage.removeItem('admin_session'); router.replace('/admin/login'); }} style={{ background: 'none', border: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: SOFT, padding: 0, minHeight: 44, display: 'flex', alignItems: 'center' }}>Sign Out</button>
       </div>
     </div>
   );
@@ -118,41 +107,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <>
       <style>{FONTS}</style>
-      {navOpen && <div onClick={() => setNavOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 199 }} />}
-
-      {/* Mobile sidebar */}
-      <div style={{ position: 'fixed', top: 0, left: navOpen ? 0 : -260, bottom: 0, width: 240, zIndex: 200, transition: 'left 280ms cubic-bezier(0.22,1,0.36,1)', display: 'flex', flexDirection: 'column' }} id="mobile-nav">{nav}</div>
-
-      {/* Desktop sidebar */}
-      <div style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 220, display: 'none', flexDirection: 'column' }} id="desktop-nav">{nav}</div>
-
-      {/* Main */}
+      {navOpen && <div onClick={() => setNavOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 199, backdropFilter: 'blur(4px)' }} />}
+      <div style={{ position: 'fixed', top: 0, left: navOpen ? 0 : -SIDEBAR_W - 10, bottom: 0, width: SIDEBAR_W, zIndex: 200, transition: 'left 300ms cubic-bezier(0.22,1,0.36,1)' }} id="m-nav">{sidebarContent}</div>
+      <div style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: SIDEBAR_W, display: 'none', flexDirection: 'column' as const }} id="d-nav">{sidebarContent}</div>
       <div id="admin-main" style={{ background: BG, minHeight: '100vh' }}>
-        {/* Mobile top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `0.5px solid ${BORDER}`, background: BG2, position: 'sticky', top: 0, zIndex: 100 }} id="mobile-topbar">
-          <button onClick={() => setNavOpen(o => !o)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <div style={{ width: 20, height: 1.5, background: TEXT }} />
-            <div style={{ width: 14, height: 1.5, background: TEXT }} />
-            <div style={{ width: 20, height: 1.5, background: TEXT }} />
+        <div id="m-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 56, borderBottom: `0.5px solid ${BORDER}`, background: '#0D0B09', position: 'sticky', top: 0, zIndex: 100 }}>
+          <button onClick={() => setNavOpen(o => !o)} style={{ background: 'none', border: 'none', padding: 8, display: 'flex', flexDirection: 'column', gap: 5, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 20, height: 1.5, background: INK }} />
+            <div style={{ width: 14, height: 1.5, background: INK }} />
+            <div style={{ width: 20, height: 1.5, background: INK }} />
           </button>
-          <div style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontSize: 16, fontWeight: 300, color: TEXT }}>TDW Admin</div>
-          <div style={{ width: 28 }} />
+          <div style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontSize: 17, fontWeight: 300, color: INK }}>TDW</div>
+          <div style={{ width: 44 }} />
         </div>
-
-        {/* Content */}
-        <div style={{ padding: '28px 20px 80px', color: TEXT }} className="fade-in">
-          {children}
-        </div>
+        <div style={{ padding: '24px 20px 100px', maxWidth: 960, margin: '0 auto' }} className="fade-up">{children}</div>
       </div>
-
-      <style>{`
-        @media (min-width: 768px) {
-          #desktop-nav { display: flex !important; }
-          #mobile-topbar { display: none !important; }
-          #mobile-nav { display: none !important; }
-          #admin-main { margin-left: 220px; }
-        }
-      `}</style>
+      <style>{`@media(min-width:768px){#d-nav{display:flex!important;}#m-bar{display:none!important;}#m-nav{display:none!important;}#admin-main{margin-left:${SIDEBAR_W}px;}}`}</style>
     </>
   );
 }
