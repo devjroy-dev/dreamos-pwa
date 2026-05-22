@@ -89,7 +89,7 @@ export const patchCoupleTier = (id: string, tier: string) => adminPatch(`/api/v2
 
 export const getInvites = () => adminGet<{ invites: InviteCode[] }>('/api/v2/admin/invites');
 export const getWaLinks = () => adminGet<{ vendor: string; couple: string; note: string }>('/api/v2/admin/invites/whatsapp-links');
-export const generateInvites = (body: { kind: string; tier?: string; intended_phone?: string; notes?: string; count?: number }) =>
+export const generateInvites = (body: { kind: string; tier?: string; intended_phone?: string; name?: string; notes?: string; count?: number }) =>
   adminPost<{ codes: InviteCode[] }>('/api/v2/admin/invites/generate', body);
 export const deleteInvite = (code: string) => adminDelete(`/api/v2/admin/invites/${code}`);
 

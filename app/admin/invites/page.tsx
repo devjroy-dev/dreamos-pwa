@@ -18,6 +18,7 @@ export default function InvitesPage() {
   const [kind, setKind]           = useState('maker');
   const [tier, setTier]           = useState('signature');
   const [phone, setPhone]         = useState('');
+  const [name, setName]           = useState('');
   const [notes, setNotes]         = useState('');
   const [count, setCount]         = useState('1');
   const [generating, setGenerating] = useState(false);
@@ -41,10 +42,10 @@ export default function InvitesPage() {
   const generate = async () => {
     setGenerating(true);
     try {
-      const res = await generateInvites({ kind, tier: tier || undefined, intended_phone: phone.trim() || undefined, notes: notes.trim() || undefined, count: phone.trim() ? 1 : parseInt(count) || 1 });
+      const res = await generateInvites({ kind, tier: tier || undefined, intended_phone: phone.trim() || undefined, name: name.trim() || undefined, notes: notes.trim() || undefined, count: phone.trim() ? 1 : parseInt(count) || 1 });
       setInvites(prev => [...(res as any).codes.map((c: InviteCode) => ({ ...c, created_at: new Date().toISOString(), consumed_at: null, consumed_by_phone: null, created_by: 'admin' })), ...prev]);
       showToast(`${(res as any).codes.length} code${(res as any).codes.length > 1 ? 's' : ''} generated.`);
-      setShowGen(false); setPhone(''); setNotes(''); setCount('1');
+      setShowGen(false); setPhone(''); setName(''); setNotes(''); setCount('1');
     } catch { showToast('Failed to generate.', true); }
     finally { setGenerating(false); }
   };
@@ -124,11 +125,12 @@ export default function InvitesPage() {
       <BottomSheet visible={showGen} onClose={() => setShowGen(false)} title="Generate Codes">
         <FieldSelect label="Kind" value={kind} onChange={setKind} options={[{ value: 'maker', label: 'Maker (Vendor)' }, { value: 'dreamer', label: 'Dreamer (Couple)' }]} />
         <FieldSelect label="Tier" value={tier} onChange={setTier} options={[{ value: 'trial', label: 'Trial' }, { value: 'essential', label: 'Essential' }, { value: 'signature', label: 'Signature' }, { value: 'prestige', label: 'Prestige' }]} />
-        <FieldInput label="Bind to phone (optional)" value={phone} onChange={setPhone} placeholder="+91…" />
+        <FieldInput label="Phone (required for web sign-in)" value={phone} onChange={setPhone} placeholder="+91…" />
+        {phone.trim() && <FieldInput label="Name (required with phone)" value={name} onChange={setName} placeholder="Kavya Sharma" />}
         <FieldInput label="Notes (optional)" value={notes} onChange={setNotes} placeholder="VIP, founding cohort…" />
         {!phone && <FieldInput label="Count (max 50)" value={count} onChange={setCount} type="number" />}
         <div style={{ paddingBottom: 12 }}>
-          <GoldBtn label={generating ? 'Generating…' : 'Generate'} onClick={generate} disabled={generating} />
+          <GoldBtn label={generating ? 'Generating…' : 'Generate'} onClick={generate} disabled={generating || (!!phone.trim() && !name.trim())} />
         </div>
       </BottomSheet>
 
