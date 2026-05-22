@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, X } from 'lucide-react';
@@ -66,6 +67,10 @@ export default function JourneyExpenses() {
   const totalPaid       = bookings.reduce((s, b) => s + (b.amount_paid  || 0), 0);
   const totalBalance    = totalCommitted - totalPaid;
   const totalReceipts   = receipts.reduce((s, r) => s + (r.amount || 0), 0);
+
+  // My Expenses = manual adds (no image). Receipts = WhatsApp image receipts.
+  const myExpenses    = receipts.filter(r => !r.image_url);
+  const imageReceipts = receipts.filter(r => !!r.image_url);
 
   const handleAddExpense = useCallback(async () => {
     if (!newVendor.trim() || !newAmount) return;
@@ -186,26 +191,19 @@ export default function JourneyExpenses() {
                 <Plus size={11} color={t.brassMuted} strokeWidth={1.5} />Add
               </button>
             </div>
-            {receipts.length === 0 && (
+            {myExpenses.length === 0 && (
               <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:16, color:t.soft, textAlign:'center', paddingTop:60 }}>
-                Forward receipts to Dream Ai on WhatsApp, or add one here.
+                No expenses yet. Tap Add to log one.
               </div>
             )}
-            {receipts.map(r => (
+            {myExpenses.map(r => (
               <div key={r.id} onClick={() => setConfirmId(r.id)}
                 style={{ display:'flex', alignItems:'center', gap:SP.m, padding:`${SP.l}px 0`, borderBottom:`0.5px solid ${t.hairline}`, cursor:'pointer' }}>
-                {r.image_url ? (
-                  <div onClick={e => { e.stopPropagation(); setFullImg(r.image_url!); }}
-                    style={{ width:44, height:44, borderRadius:FR.sm, overflow:'hidden', flexShrink:0, cursor:'zoom-in' }}>
-                    <img src={r.image_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                  </div>
-                ) : (
-                  <div style={{ width:44, height:44, borderRadius:FR.sm, background:`rgba(168,146,75,0.08)`, border:`0.5px solid ${t.hairline}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <span style={{ fontFamily:FF.label, fontSize:8, color:t.brassMuted }}>REC</span>
-                  </div>
-                )}
+                <div style={{ width:44, height:44, borderRadius:FR.sm, background:`rgba(168,146,75,0.08)`, border:`0.5px solid ${t.hairline}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <span style={{ fontFamily:FF.label, fontSize:8, color:t.brassMuted }}>EXP</span>
+                </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:FF.body, fontSize:14, color:t.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.vendor_name || r.description || 'Receipt'}</div>
+                  <div style={{ fontFamily:FF.body, fontSize:14, color:t.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.vendor_name || r.description || 'Expense'}</div>
                   <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.1em', color:t.soft, marginTop:2 }}>{fmtDate(r.receipt_date || r.created_at)}</div>
                 </div>
                 {r.amount ? <div style={{ fontFamily:FF.display, fontSize:16, color:t.ink, flexShrink:0 }}>{fmtINR(r.amount)}</div> : null}
@@ -258,10 +256,10 @@ export default function JourneyExpenses() {
             <div style={{ fontFamily:FF.body, fontSize:13, color:t.soft, marginBottom:SP.xl }}>
               Tap the thumbnail to open full size. Forward receipts to Dream Ai on WhatsApp to save them here.
             </div>
-            {receipts.length === 0 && (
-              <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:16, color:t.soft, textAlign:'center', paddingTop:60 }}>No receipts yet.</div>
+            {imageReceipts.length === 0 && (
+              <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:16, color:t.soft, textAlign:'center', paddingTop:60 }}>No receipts yet. Forward a receipt image to Dream Ai on WhatsApp.</div>
             )}
-            {receipts.map(r => (
+            {imageReceipts.map(r => (
               <div key={r.id}
                 style={{ display:'flex', alignItems:'flex-start', gap:SP.m, padding:`${SP.l}px 0`, borderBottom:`0.5px solid ${t.hairline}` }}>
                 {/* Thumbnail — tappable to full screen */}
