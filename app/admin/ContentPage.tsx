@@ -3,9 +3,8 @@
 // Import and render with the appropriate API module.
 
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, Toast, UploadZone, ImageGrid, LoadingGrid, Counter, SectionDivider, type ImageGridItem } from '../../_components/AdminUI';
-import { adminPost } from '../../../../lib/admin-api/_base';
-import { adminUploadFile } from '../../../../lib/admin-api/_base';
+import { PageHeader, T, Toast, UploadZone, ImageGrid, LoadingGrid, Counter, SectionDivider, type ImageGridItem } from './_components/AdminUI';
+import { adminUploadFile } from '../../lib/admin-api/_base';
 
 export type ContentPageConfig = {
   title:       string;
