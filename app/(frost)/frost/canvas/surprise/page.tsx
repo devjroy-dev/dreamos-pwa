@@ -104,8 +104,8 @@ export default function SurpriseMe() {
   if (phase === 'empty') return (
     <div style={{ position:'fixed', inset:0, background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 32px', userSelect:'none' }}>
       <BackBtn />
-      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:'rgba(245,240,232,0.9)', textAlign:'center', lineHeight:1.3, marginBottom:SP.l }}>We're working on your surprises.</div>
-      <div style={{ fontFamily:FF.body, fontSize:14, color:'rgba(245,240,232,0.5)', textAlign:'center', lineHeight:1.7 }}>Give us a few minutes. Come back soon.</div>
+      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:'rgba(245,240,232,0.9)', textAlign:'center', lineHeight:1.3, marginBottom:SP.l }}>Your surprises are coming.</div>
+      <div style={{ fontFamily:FF.body, fontSize:14, color:'rgba(245,240,232,0.5)', textAlign:'center', lineHeight:1.7 }}>We're curating images that match your aesthetic. Check back soon.</div>
     </div>
   );
 
