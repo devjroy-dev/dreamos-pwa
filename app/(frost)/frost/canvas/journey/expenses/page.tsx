@@ -150,26 +150,41 @@ export default function JourneyExpenses() {
 
       <div style={{ padding:`${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect:'none' }}>
 
-        {/* Snapshot */}
+        {/* Snapshot — context-sensitive per slice */}
         <FrostedSurface style={{ padding:SP.l, marginBottom:SP.xl }}>
-          <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:SP.m }}>
-            <div>
-              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Committed</div>
-              <div style={{ fontFamily:FF.display, fontSize:20, color:t.ink }}>{fmtINR(totalCommitted)}</div>
+          {slice === 'my' && (
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Total Spent</div>
+                <div style={{ fontFamily:FF.display, fontSize:32, color:t.ink }}>{fmtINR(totalMySpend)}</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Paid</div>
-              <div style={{ fontFamily:FF.display, fontSize:20, color:t.brass }}>{fmtINR(totalPaid)}</div>
+          )}
+          {slice === 'vendor' && (
+            <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:SP.m }}>
+              <div>
+                <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Committed</div>
+                <div style={{ fontFamily:FF.display, fontSize:20, color:t.ink }}>{fmtINR(totalCommitted)}</div>
+              </div>
+              <div>
+                <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Paid</div>
+                <div style={{ fontFamily:FF.display, fontSize:20, color:t.brass }}>{fmtINR(totalPaid)}</div>
+              </div>
+              <div>
+                <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Balance</div>
+                <div style={{ fontFamily:FF.display, fontSize:20, color:t.ink }}>{fmtINR(totalBalance)}</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>Balance</div>
-              <div style={{ fontFamily:FF.display, fontSize:20, color:t.ink }}>{fmtINR(totalBalance)}</div>
+          )}
+          {slice === 'receipts' && (
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Receipts</div>
+                <div style={{ fontFamily:FF.display, fontSize:32, color:t.soft }}>{imageReceipts.length}</div>
+                <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.1em', color:t.soft, marginTop:4 }}>image{imageReceipts.length !== 1 ? 's' : ''} saved</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:4 }}>My Spend</div>
-              <div style={{ fontFamily:FF.display, fontSize:20, color:t.soft }}>{fmtINR(totalMySpend)}</div>
-            </div>
-          </div>
+          )}
         </FrostedSurface>
 
         {/* Slice tabs */}
