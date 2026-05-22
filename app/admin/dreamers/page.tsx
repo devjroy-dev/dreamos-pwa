@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, GhostBtn, Toast, FieldInput, BottomSheet } from '../_components/AdminUI';
 import { getCouples, patchCoupleTier, type AdminCouple } from '../../../lib/admin-api/index';
 
+const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
+const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 const TIERS = ['basic','gold','platinum'];
 function fmt(d: string | null) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
 
@@ -13,6 +15,20 @@ export default function DreamersPage() {
   const [selected, setSelected] = useState<AdminCouple | null>(null);
   const [toast, setToast]     = useState('');
   const [toastErr, setToastErr] = useState(false);
+
+  const deleteCouple = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v2/admin/couples/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setCouples(c => c.filter(x => x.id !== id));
+      showToast('Couple deleted.');
+      setSelected(null);
+    } catch { showToast('Failed to delete.', true); }
+  };
 
   const load = useCallback(() => {
     setLoading(true);
@@ -65,6 +81,9 @@ export default function DreamersPage() {
                 <button key={t} onClick={() => { setTier(selected.id, t); setSelected(s => s ? { ...s, tier: t } : s); }} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: `0.5px solid ${selected.tier === t ? T.gold : T.border}`, background: selected.tier === t ? 'rgba(201,168,76,0.1)' : 'transparent', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: selected.tier === t ? T.gold : T.soft, minHeight: 44 }}>{t}</button>
               ))}
             </div>
+            <div style={{ height: 1, background: 'rgba(224,92,92,0.15)', margin: '8px 0 16px' }} />
+            <GhostBtn label="Delete Permanently" onClick={() => deleteCouple(selected.id)} danger />
+            <p style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.1em', marginTop: 8 }}>Deletes all couple data — muse saves, circle, conversations. Cannot be undone.</p>
           </div>
         )}
       </BottomSheet>

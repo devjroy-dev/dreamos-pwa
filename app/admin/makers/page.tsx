@@ -55,6 +55,20 @@ export default function MakersPage() {
     catch { showToast('Failed.', true); }
   };
 
+  const deleteVendor = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v2/admin/vendors/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setVendors(v => v.filter(x => x.id !== id));
+      showToast('Vendor deleted.');
+      setSelected(null);
+    } catch { showToast('Failed to delete.', true); }
+  };
+
   const invite = async () => {
     if (!invName.trim() || !invPhone.trim()) return;
     setInviting(true);
@@ -150,6 +164,9 @@ export default function MakersPage() {
               <GhostBtn label={selected.discover_eligible ? 'Remove from Discover' : 'Add to Discover'} onClick={() => { toggleDiscover(selected); setSelected(s => s ? { ...s, discover_eligible: !s.discover_eligible } : s); }} />
             </div>
             <GhostBtn label="Revoke Access" onClick={() => revoke(selected.id)} danger />
+            <div style={{ height: 1, background: 'rgba(224,92,92,0.15)', margin: '16px 0' }} />
+            <GhostBtn label="Delete Permanently" onClick={() => deleteVendor(selected.id)} danger />
+            <p style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.1em', marginTop: 8 }}>Deletes all vendor data — leads, invoices, events, portfolio. Cannot be undone.</p>
           </div>
         )}
       </BottomSheet>
