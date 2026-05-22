@@ -57,7 +57,7 @@ export default function CouplePinPage() {
       const session = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
       const r = await fetch(API_BASE + '/api/v2/couple/auth/set-pin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.userId || session.id, pin: pinStr, role: 'couple', phone: session.phone }),
+        body: JSON.stringify({ couple_id: session.id || session.coupleId, pin: pinStr }),
       });
       const d = await r.json();
       if (d.ok) {
