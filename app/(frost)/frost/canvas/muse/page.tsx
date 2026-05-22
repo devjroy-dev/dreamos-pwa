@@ -229,6 +229,18 @@ export default function CanvasMuse() {
     fetchMuseSaves({ saved_by: sourceFilter }).then(({ saves: s, total: tt }) => { setSaves(s); setTotal(tt); });
   };
 
+  // Check taste profile on first mount — show overlay if not set
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (!token) return;
+    fetch('https://dream-os-production.up.railway.app/api/v2/couple/taste/profile', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => { if (!d.taste_quiz_done) setShowTagOverlay(true); })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     fetchMuseSaves({ saved_by: sourceFilter })
