@@ -27,7 +27,7 @@ export default function MakersPage() {
   const [invPhone, setInvPhone]   = useState('');
   const [invCat, setInvCat]       = useState('');
   const [invCity, setInvCity]     = useState('');
-  const [invTier, setInvTier]     = useState('signature');
+  const [invTier, setInvTier]     = useState('trial');
   const [inviting, setInviting]   = useState(false);
   const [inviteResult, setInviteResult] = useState<{ name: string; waLink: string } | null>(null);
   const [copied, setCopied]       = useState(false);

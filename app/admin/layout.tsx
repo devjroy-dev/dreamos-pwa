@@ -29,6 +29,7 @@ const NAV = [
   ]},
   { group: 'PEOPLE', items: [
     { label: 'Makers',      path: '/admin/makers',                 icon: '✦' },
+    { label: 'Portfolios',  path: '/admin/vendors/portfolio',      icon: '⬡' },
     { label: 'Dreamers',    path: '/admin/dreamers',               icon: '♡' },
     { label: 'Invites',     path: '/admin/invites',                icon: '⌘' },
   ]},
