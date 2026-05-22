@@ -887,7 +887,7 @@ export default function Home() {
                   try {
                     const r = await fetch(`${API_BASE}/api/v2/invite/validate`, {
                       method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ code: inviteCode.trim(), role: role === 'Dreamer' ? 'dreamer' : 'vendor' }),
+                      body: JSON.stringify({ code: inviteCode.trim(), kind: role === 'Dreamer' ? 'dreamer' : 'maker' }),
                     });
                     const d = await r.json();
                     if (d.valid) setScreen('invite_phone');
