@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../layout';
-import { MUSE_LOOKS, FF, SP, FR } from '../../../../../lib/frost/tokens';
+import { MUSE_LOOKS, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
 import { fetchMuseSaves, deleteMuseSave, fetchSaveActivity } from '../../../../../lib/frost-api/muse';
 import { createMuseSaveFromUrl } from '../../../../../lib/frost/journey';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
@@ -204,6 +204,10 @@ export default function CanvasMuse() {
   const [saves, setSaves] = useState<MuseSave[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showTagOverlay, setShowTagOverlay] = useState(false);
+  const [selectedTags, setSelectedTags]     = useState<string[]>([]);
+  const [savingTags, setSavingTags]         = useState(false);
+  const [tagsSaved, setTagsSaved]           = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [selectedSave, setSelectedSave] = useState<MuseSave | null>(null);
   const [saveActivity, setSaveActivity] = useState<MuseActivity[]>([]);
@@ -252,8 +256,80 @@ export default function CanvasMuse() {
     }
   };
 
+  const TAGS_LIST: [string, string][] = [
+    ['moody','Moody'],['editorial','Editorial'],['cinematic','Cinematic'],
+    ['film','Film'],['candid','Candid'],['intimate','Intimate'],
+    ['grand','Grand'],['ott','OTT'],['destination','Destination'],
+    ['pastel','Pastel'],['minimal','Minimal'],['festive','Festive'],
+    ['vibrant','Vibrant'],['warm','Warm'],['rustic','Rustic'],
+  ];
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => prev.includes(tag) ? prev.filter(x => x !== tag) : [...prev, tag]);
+  };
+
+  const saveTags = async () => {
+    if (selectedTags.length === 0) return;
+    setSavingTags(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (token) {
+        await fetch('https://dream-os-production.up.railway.app/api/v2/couple/taste', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tags: selectedTags }),
+        });
+      }
+      setTagsSaved(true);
+      setTimeout(() => setShowTagOverlay(false), 3000);
+    } catch {}
+    setSavingTags(false);
+  };
+
   return (
     <>
+      {/* Taste profile overlay */}
+      {showTagOverlay && (
+        <>
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)', zIndex:100 }} />
+          <div style={{ position:'fixed', inset:0, zIndex:101, display:'flex', flexDirection:'column', padding:`calc(env(safe-area-inset-top,0px) + 48px) 24px calc(env(safe-area-inset-bottom,0px) + 24px)`, overflowY:'auto' }}>
+            {tagsSaved ? (
+              <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center' }}>
+                <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:28, color:'rgba(245,240,232,0.95)', marginBottom:16, lineHeight:1.3 }}>Give us 5 minutes.</div>
+                <div style={{ fontFamily:FF.body, fontSize:15, color:'rgba(245,240,232,0.55)', lineHeight:1.7, maxWidth:280 }}>We're curating your Surprise Me with images that match your aesthetic. Come back soon.</div>
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom:24 }}>
+                  <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:'rgba(245,240,232,0.95)', lineHeight:1.3, marginBottom:10 }}>What moves you?</div>
+                  <div style={{ fontFamily:FF.body, fontSize:14, color:'rgba(245,240,232,0.5)', lineHeight:1.6 }}>Pick everything that feels like you. We'll curate your Surprise Me.</div>
+                </div>
+                <div style={{ display:'flex', flexWrap:'wrap' as const, gap:10, marginBottom:24 }}>
+                  {TAGS_LIST.map(([value, label]) => {
+                    const sel = selectedTags.includes(value);
+                    return (
+                      <button key={value} onClick={() => toggleTag(value)}
+                        style={{ padding:'10px 18px', borderRadius:FR.pill, border:`1px solid ${sel ? tokens.brass : 'rgba(255,255,255,0.2)'}`, background:sel ? 'rgba(191,160,77,0.2)' : 'rgba(255,255,255,0.05)', fontFamily:FF.body, fontSize:14, color:sel ? tokens.brass : 'rgba(245,240,232,0.7)', cursor:'pointer' }}>
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ display:'flex', gap:12 }}>
+                  <button onClick={() => setShowTagOverlay(false)}
+                    style={{ flex:1, padding:'13px 0', background:'rgba(255,255,255,0.06)', border:'0.5px solid rgba(255,255,255,0.15)', borderRadius:FR.md, fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:'rgba(245,240,232,0.4)', cursor:'pointer' }}>
+                    Skip
+                  </button>
+                  <button onClick={saveTags} disabled={savingTags || selectedTags.length === 0}
+                    style={{ flex:2, padding:'13px 0', background:selectedTags.length > 0 ? tokens.brass : 'rgba(255,255,255,0.08)', border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:selectedTags.length > 0 ? '#1B1612' : 'rgba(245,240,232,0.25)', cursor:selectedTags.length > 0 ? 'pointer' : 'default', opacity:savingTags ? 0.6 : 1 }}>
+                    {savingTags ? 'Saving…' : `Save${selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}`}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
       {selectedSave && (
         <FullBleedOverlay
           save={selectedSave}
