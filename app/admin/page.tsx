@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { PageHeader, StatCard, T } from '../_components/AdminUI';
-import { getVendors, getCouples, getInvites, getPhotoQueue, getDiscoverQueue } from '../../../lib/admin-api/index';
+import { PageHeader, StatCard, T } from './_components/AdminUI';
+import { getVendors, getCouples, getInvites, getPhotoQueue, getDiscoverQueue } from '../../lib/admin-api/index';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ vendors: 0, couples: 0, pending_photos: 0, pending_discover: 0, unused_invites: 0 });

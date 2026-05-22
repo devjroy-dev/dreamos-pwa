@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, BottomSheet } from '../_components/AdminUI';
-import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../../lib/admin-api/index';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, BottomSheet } from './_components/AdminUI';
+import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../lib/admin-api/index';
 
 const TIERS = ['trial','essential','signature','prestige'];
 

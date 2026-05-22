@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect, BottomSheet, SectionDivider } from '../_components/AdminUI';
-import { getInvites, getWaLinks, generateInvites, deleteInvite, type InviteCode } from '../../../lib/admin-api/index';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect, BottomSheet, SectionDivider } from './_components/AdminUI';
+import { getInvites, getWaLinks, generateInvites, deleteInvite, type InviteCode } from '../../lib/admin-api/index';
 
 function fmt(d: string) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); }
 

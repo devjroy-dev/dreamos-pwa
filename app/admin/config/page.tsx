@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, Toast } from '../_components/AdminUI';
-import { getConfig, patchConfig, type ConfigRow } from '../../../lib/admin-api/index';
+import { PageHeader, T, GoldBtn, Toast } from './_components/AdminUI';
+import { getConfig, patchConfig, type ConfigRow } from '../../lib/admin-api/index';
 
 type Group = { label: string; keys: string[] };
 
