@@ -307,18 +307,18 @@ export default function JourneyExpenses() {
         <div onClick={() => setShowAdd(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:201, background:t.pagePaper, borderRadius:'20px 20px 0 0', padding:`24px 24px calc(24px + env(safe-area-inset-bottom))`, maxHeight:'85vh', overflowY:'auto' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:SP.l }}>
-            <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:t.ink }}>Add an expense</div>
+            <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:t.ink }}>Log a spend</div>
             <button onClick={() => setShowAdd(false)} style={{ background:'none', border:'none', cursor:'pointer' }}><X size={20} color={t.soft} strokeWidth={1.5} /></button>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:SP.m }}>
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Where / who</div>
               <input value={newVendor} onChange={e => setNewVendor(e.target.value)} placeholder='Sabya showroom, Carma…' style={inp(t)} /></div>
-            <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Amount (Rs)</div>
+            <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Amount paid (Rs)</div>
               <input value={newAmount} onChange={e => setNewAmount(e.target.value)} placeholder='15000' inputMode='numeric' style={inp(t)} /></div>
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Date (optional)</div>
               <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} style={inp(t)} /></div>
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Notes (optional)</div>
-              <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder='Trial deposit, transport…' style={inp(t)} /></div>
+              <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder='Trial deposit, alterations, transport…' style={inp(t)} /></div>
             <button onClick={handleAddExpense} disabled={saving || !newVendor.trim() || !newAmount}
               style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !newVendor.trim() || !newAmount) ? 0.5 : 1 }}>
               {saving ? 'Adding…' : 'Add expense'}
