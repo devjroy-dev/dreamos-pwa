@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, BottomSheet } from './_components/AdminUI';
-import { getCoutureVendors, setCoutureEligible, type AdminVendor } from '../../lib/admin-api/index';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, BottomSheet } from '../_components/AdminUI';
+import { getCoutureVendors, setCoutureEligible, type AdminVendor } from '../../../lib/admin-api/index';
 
 export default function CouturePage() {
   const [vendors, setVendors] = useState<AdminVendor[]>([]);

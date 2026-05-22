@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, BottomSheet, SectionDivider } from './_components/AdminUI';
-import { getHotDates, addHotDate, deleteHotDate, type HotDate } from '../../lib/admin-api/index';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, BottomSheet, SectionDivider } from '../_components/AdminUI';
+import { getHotDates, addHotDate, deleteHotDate, type HotDate } from '../../../lib/admin-api/index';
 
 function fmtDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });

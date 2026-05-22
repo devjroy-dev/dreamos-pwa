@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GhostBtn, Toast, FieldInput, BottomSheet } from './_components/AdminUI';
-import { getCouples, patchCoupleTier, type AdminCouple } from '../../lib/admin-api/index';
+import { PageHeader, T, GhostBtn, Toast, FieldInput, BottomSheet } from '../_components/AdminUI';
+import { getCouples, patchCoupleTier, type AdminCouple } from '../../../lib/admin-api/index';
 
 const TIERS = ['basic','gold','platinum'];
 function fmt(d: string | null) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
