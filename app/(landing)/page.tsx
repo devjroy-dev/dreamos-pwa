@@ -424,7 +424,7 @@ export default function Home() {
     try {
       const res = await fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164, code: otp.join('') }),
+        body: JSON.stringify({ phone: e164, code: otp.join(''), purpose: 'login' }),
       });
       const d = await res.json();
       if (!d.ok) {
