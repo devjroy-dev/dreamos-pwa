@@ -1,214 +1,129 @@
 'use client';
 // app/demo/bride/page.tsx
-// Shared bride demo — seeds Frost couple session and redirects to Discover
-// No auth required.
+// Bride demo — seeds real couple session, populates discover with demo vendors only
+// No auth required. Full Frost experience with demo vendor pool.
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const BACKEND = 'https://dream-os-production.up.railway.app';
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');`;
 
 function getDateMonthsFromNow(months: number): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() + months);
+  const d = new Date(); d.setMonth(d.getMonth() + months);
   return d.toISOString().split('T')[0];
-}
-
-function getDateDaysFromNow(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
-}
-
-function getDaysAgo(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return d.toISOString();
 }
 
 export default function BrideDemoPage() {
+  const [vendorCount, setVendorCount] = useState<number | null>(null);
+  const [entering, setEntering] = useState(false);
+
   useEffect(() => {
-    seedBrideDemoSession();
-    logBrideDemoView();
+    // Fetch demo vendor count to show social proof
+    fetch(`${BACKEND}/api/v2/demo/discover`)
+      .then(r => r.json())
+      .then(d => { if (d.ok) setVendorCount(d.total); })
+      .catch(() => {});
+
+    // Log event
+    fetch(`${BACKEND}/api/v2/demo/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle: 'bride', event: 'bride_demo_viewed', user_agent: navigator.userAgent, referrer: document.referrer })
+    }).catch(() => {});
   }, []);
 
-  function seedBrideDemoSession() {
-    const brideDemo = {
-      demo: true,
-      demo_type: 'bride',
-      couple: {
-        id: 'demo-couple-1',
-        bride_name: 'Priya',
-        wedding_date: getDateMonthsFromNow(6),
-        wedding_city: 'Delhi',
-        budget_total: 5000000,
-        events_planned: ['mehndi', 'sangeet', 'wedding', 'reception'],
-        planning_state: 'shortlisting',
-        tier: 'gold'
-      },
-      events: [
-        {
-          id: 'demo-bride-evt-1',
-          title: 'Trial with Nidhi Gupta',
-          event_date: getDateDaysFromNow(7),
-          kind: 'trial',
-          state: 'upcoming'
-        },
-        {
-          id: 'demo-bride-evt-2',
-          title: 'Lehenga at Sabyasachi',
-          event_date: getDateDaysFromNow(14),
-          kind: 'shopping',
-          state: 'upcoming'
-        },
-        {
-          id: 'demo-bride-evt-3',
-          title: 'Mehendi Ceremony',
-          event_date: getDateMonthsFromNow(6),
-          kind: 'ceremony',
-          state: 'upcoming'
-        }
-      ],
-      expenses: [
-        {
-          id: 'demo-exp-1',
-          description: 'Venue booking advance',
-          amount: 150000,
-          category: 'venue',
-          created_at: getDaysAgo(5)
-        },
-        {
-          id: 'demo-exp-2',
-          description: 'Lehenga advance',
-          amount: 75000,
-          category: 'attire',
-          created_at: getDaysAgo(2)
-        }
-      ],
-      circle: [
-        { name: 'Mom', role: 'family', status: 'active' },
-        { name: 'Meha', role: 'inner_circle', status: 'active' }
-      ],
-      seeded_at: new Date().toISOString()
+  function handleEnterFrost() {
+    setEntering(true);
+
+    // Seed a real couple demo session into localStorage on this domain
+    // Frost reads couple_session — wedding_date drives the Sanctuary countdown
+    const coupleSession = {
+      demo:         true,
+      couple_id:    'demo-couple-1',
+      bride_name:   'Priya',
+      wedding_date: getDateMonthsFromNow(6),
+      wedding_city: 'Delhi',
+      budget_total: 5000000,
+      tier:         'gold',
+      access_token: 'demo_bride_token',
     };
 
     try {
-      localStorage.setItem('tdw_bride_demo_session', JSON.stringify(brideDemo));
-      localStorage.setItem('couple_session', JSON.stringify({
-        demo: true,
-        couple_id: 'demo-couple-1',
-        bride_name: 'Priya',
-        access_token: 'demo_token'
-      }));
-    } catch {
-      console.warn('localStorage unavailable');
-    }
-  }
+      localStorage.setItem('couple_session',      JSON.stringify(coupleSession));
+      localStorage.setItem('couple_web_session',  JSON.stringify(coupleSession));
+      localStorage.setItem('tdw_bride_demo_session', JSON.stringify({ demo: true, ...coupleSession }));
+      // Tell Frost discover to use the demo feed
+      localStorage.setItem('tdw_demo_discover',   'true');
+    } catch { /* Safari private mode — graceful degradation */ }
 
-  async function logBrideDemoView() {
-    try {
-      await fetch(`${BACKEND}/api/v2/demo/view`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          handle: 'bride',
-          event: 'bride_demo_viewed',
-          user_agent: navigator.userAgent,
-          referrer: document.referrer
-        })
-      });
-    } catch { /* silent */ }
-  }
-
-  function handleEnterFrost() {
-    window.location.href = 'https://thedreamwedding.in/frost/canvas/discover?demo=true';
+    // Small delay so localStorage writes commit before navigation
+    setTimeout(() => {
+      window.location.href = 'https://thedreamwedding.in/frost/canvas/discover?demo=true';
+    }, 80);
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#0C0A09', position: 'relative' }}>
-      {/* Hero background */}
+    <div style={{ minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
+      <style>{FONTS}</style>
+
+      {/* Rich dark gradient — no image dependency */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(160deg, #1A1612 0%, #0C0A09 60%, #0D0E0B 100%)'
+        background: 'radial-gradient(ellipse 140% 80% at 60% 10%, #2C1A10 0%, #1A1208 45%, #0C0A09 100%)'
       }} />
 
+      {/* Subtle gold shimmer overlay */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(12,8,6,0.9) 65%, #0C0A09 100%)'
+        background: 'radial-gradient(ellipse 60% 40% at 70% 20%, rgba(201,168,76,0.06) 0%, transparent 70%)'
       }} />
 
-      <div style={{
-        position: 'relative', zIndex: 10,
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        padding: '0 24px 48px'
-      }}>
-        {/* Watermark */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, #0C0A09 100%)' }} />
+
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 10, minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 24px 52px' }}>
+
+        {/* TDW watermark */}
         <div style={{ position: 'absolute', top: 24, right: 20, textAlign: 'right' }}>
-          <p style={{
-            fontFamily: '"Cormorant Garamond", serif',
-            fontWeight: 300,
-            fontSize: 13,
-            color: 'rgba(245,240,232,0.9)'
-          }}>
+          <p style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 14, color: 'rgba(245,240,232,0.92)', margin: 0 }}>
             The Dream Wedding
           </p>
-          <p style={{
-            fontFamily: '"Jost", sans-serif',
-            fontWeight: 200,
-            fontSize: 8,
-            letterSpacing: '0.18em',
-            color: 'rgba(201,168,76,0.7)',
-            textTransform: 'uppercase',
-            marginTop: 2
-          }}>
+          <p style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.2em', color: 'rgba(201,168,76,0.7)', textTransform: 'uppercase', margin: '3px 0 0' }}>
             The Curated Wedding OS
           </p>
         </div>
 
-        <h1 style={{
-          fontFamily: '"Cormorant Garamond", serif',
-          fontWeight: 300,
-          fontSize: 38,
-          lineHeight: 1.15,
-          color: '#F5F0E8',
-          marginBottom: 12
-        }}>
+        {/* Demo pill with vendor count */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(201,168,76,0.12)', border: '0.5px solid rgba(201,168,76,0.3)', borderRadius: 20, padding: '5px 12px', marginBottom: 24, alignSelf: 'flex-start' }}>
+          <span style={{ color: '#C9A84C', fontSize: 8 }}>✦</span>
+          <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', color: '#C9A84C', textTransform: 'uppercase' }}>
+            {vendorCount !== null ? `${vendorCount} Maker${vendorCount !== 1 ? 's' : ''} · Demo` : 'Bride Demo'}
+          </span>
+        </div>
+
+        <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 40, lineHeight: 1.12, color: '#F5F0E8', marginBottom: 14 }}>
           Not just happily married.<br />
           <em style={{ color: '#C9A84C' }}>Getting married happily.</em>
         </h1>
 
-        <p style={{
-          fontFamily: '"DM Sans", sans-serif',
-          fontWeight: 300,
-          fontSize: 13,
-          lineHeight: 1.6,
-          color: 'rgba(245,240,232,0.55)',
-          marginBottom: 32,
-          maxWidth: 320
-        }}>
-          Every Maker on TDW is personally curated. Browse. Save. Enquire. All in one place.
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, lineHeight: 1.65, color: 'rgba(245,240,232,0.5)', marginBottom: 36, maxWidth: 300 }}>
+          Browse curated Makers. Save the ones you love. This is what your brides see.
         </p>
 
         <button
           onClick={handleEnterFrost}
+          disabled={entering}
           style={{
-            width: '100%',
-            padding: '16px 24px',
-            background: '#C9A84C',
-            border: 'none',
-            borderRadius: 40,
-            fontFamily: '"Jost", sans-serif',
-            fontWeight: 300,
-            fontSize: 11,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: '#0C0A09',
-            cursor: 'pointer'
+            width: '100%', padding: '17px 24px',
+            background: entering ? 'rgba(201,168,76,0.6)' : '#C9A84C',
+            border: 'none', borderRadius: 40,
+            fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 11,
+            letterSpacing: '0.18em', textTransform: 'uppercase',
+            color: '#0C0A09', cursor: entering ? 'default' : 'pointer',
+            transition: 'background 200ms'
           }}
         >
-          Start Exploring →
+          {entering ? 'Opening…' : 'Start Exploring →'}
         </button>
       </div>
     </div>

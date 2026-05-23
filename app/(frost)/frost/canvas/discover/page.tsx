@@ -22,6 +22,19 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useFrostMode } from '../../../layout';
 import { MessageCircle, Lock, Users, SlidersHorizontal, X } from 'lucide-react';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
+
+// Demo discover — fetches active demo vendors when in bride demo mode
+const BACKEND = 'https://dream-os-production.up.railway.app';
+async function fetchDemoDiscoverFeed(): Promise<{ ok: true; vendors: import('../../../../../lib/types/discover').DiscoverVendor[]; page: number; has_more: boolean; total: number }> {
+  const res  = await fetch(`${BACKEND}/api/v2/demo/discover`);
+  const data = await res.json();
+  if (!data.ok) return { ok: true, vendors: [], page: 0, has_more: false, total: 0 };
+  return data;
+}
+function isBrideDemoDiscover(): boolean {
+  if (typeof window === 'undefined') return false;
+  try { return localStorage.getItem('tdw_demo_discover') === 'true'; } catch { return false; }
+}
 import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 
@@ -592,13 +605,16 @@ function DiscoveryFeedContent({
 
   useEffect(() => {
     setLoading(true);
-    fetchDiscoverFeed({
-      page:     0,
-      category: initialCategory ?? undefined,
-      city:     filters.city    ?? undefined,
-      budget:   filters.budget  ?? undefined,
-      vibes:    filters.vibes.length > 0 ? filters.vibes.join(',') : undefined,
-    })
+    const feedPromise = isBrideDemoDiscover()
+      ? fetchDemoDiscoverFeed()
+      : fetchDiscoverFeed({
+          page:     0,
+          category: initialCategory ?? undefined,
+          city:     filters.city    ?? undefined,
+          budget:   filters.budget  ?? undefined,
+          vibes:    filters.vibes.length > 0 ? filters.vibes.join(',') : undefined,
+        });
+    feedPromise
       .then(({ vendors: v, has_more }) => {
         setVendors(v); setHasMore(has_more); setVendorIdx(0); setImageIdx(0);
       })

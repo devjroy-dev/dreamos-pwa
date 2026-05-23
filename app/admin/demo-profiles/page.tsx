@@ -1,5 +1,6 @@
 'use client';
 // app/admin/demo-profiles/page.tsx
+import React from 'react';
 // Demo profile management — create, track, extend, deactivate
 
 import { useEffect, useState, useCallback } from 'react';
