@@ -53,6 +53,9 @@ const NAV = [
     { label: 'Couture',     path: '/admin/couture',                icon: '✦' },
     { label: 'Hot Dates',   path: '/admin/hot-dates',              icon: '◈' },
   ]},
+  { group: 'OUTREACH', items: [
+    { label: 'Demo Profiles', path: '/admin/demo-profiles', icon: '◉' },
+  ]},
   { group: 'CONFIG', items: [
     { label: 'AI Caps',     path: '/admin/config',                 icon: '⚙' },
   ]},
