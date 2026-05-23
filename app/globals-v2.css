@@ -14,3 +14,17 @@
   --accent-focus: #C9A84C;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* ── Safari iOS tap fix ─────────────────────────────────────────────────────
+   Prevents text selection on tap (shows as blue highlight on Safari).
+   Buttons/inputs explicitly re-enable selection where needed.
+   -webkit-tap-highlight-color removes the grey flash on tap in Safari/Chrome iOS. */
+*, *::before, *::after {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
