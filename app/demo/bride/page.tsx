@@ -68,17 +68,17 @@ export default function BrideDemoPage() {
 
       {/* Rich dark gradient — no image dependency */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
         background: 'radial-gradient(ellipse 140% 80% at 60% 10%, #2C1A10 0%, #1A1208 45%, #0C0A09 100%)'
       }} />
 
       {/* Subtle gold shimmer overlay */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
         background: 'radial-gradient(ellipse 60% 40% at 70% 20%, rgba(201,168,76,0.06) 0%, transparent 70%)'
       }} />
 
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, #0C0A09 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', background: 'linear-gradient(to bottom, transparent 50%, #0C0A09 100%)' }} />
 
       {/* Content */}
       <div style={{ position: 'relative', zIndex: 10, minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 24px 52px' }}>

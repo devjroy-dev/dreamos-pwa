@@ -97,19 +97,19 @@ export default function VendorDemoPage() {
       {/* Full-bleed hero — vendor's own photo */}
       {heroPhoto ? (
         <div style={{
-          position: 'absolute', inset: 0,
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           backgroundImage: `url(${heroPhoto.image_url})`,
           backgroundSize: 'cover', backgroundPosition: 'center top'
         }} />
       ) : (
         <div style={{
-          position: 'absolute', inset: 0,
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 140% 90% at 50% 0%, #2C1810 0%, #1A120C 45%, #0C0A09 100%)'
         }} />
       )}
 
       {/* Gradient overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(12,8,6,0.82) 55%, #0C0A09 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(12,8,6,0.82) 55%, #0C0A09 100%)' }} />
 
       {/* Content */}
       <div style={{ position: 'relative', zIndex: 10, minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 24px 52px' }}>
