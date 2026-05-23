@@ -128,9 +128,7 @@ export default function BrideDemoPage() {
       {/* Hero background */}
       <div style={{
         position: 'absolute', inset: 0,
-        backgroundImage: 'url(https://res.cloudinary.com/dccso5ljv/image/upload/bride-demo-hero.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        background: 'linear-gradient(160deg, #1A1612 0%, #0C0A09 60%, #0D0E0B 100%)'
       }} />
 
       <div style={{
