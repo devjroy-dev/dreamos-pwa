@@ -177,7 +177,7 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={onClose}>
-      <div style={{ position: 'absolute', inset: 0, ...GLASS.scrim }} />
+      <div style={{ position: 'absolute', inset: 0, ...GLASS.scrim, pointerEvents: 'none' }} />
       <div
         style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -318,7 +318,6 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
       transform: visible ? ty : 'translateY(100%)',
       transition: isDragging.current ? 'none' : 'transform 340ms cubic-bezier(0.22,1,0.36,1)',
       opacity: visible ? op : 0,
-      willChange: 'transform',
       // True glass — photo shows through
       ...GLASS.sheet,
       borderRadius: '20px 20px 0 0',
@@ -784,11 +783,11 @@ function DiscoveryFeedContent({
         onTouchEnd={onTouchEnd}
       >
         {/* Photo */}
-        <div key={dissolveKey} style={{ position: 'absolute', inset: 0, animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)' }}>
+        <div key={dissolveKey} style={{ position: 'absolute', inset: 0, zIndex: 1, animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)' }}>
           {(isBlind ? blindPhoto : currentPhoto) ? (
-            <img src={(isBlind ? blindPhoto : currentPhoto)!} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', willChange: 'opacity' }} />
+            <img src={(isBlind ? blindPhoto : currentPhoto)!} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
           ) : (
-            <div style={{ position: 'absolute', inset: 0, background: '#1a1714', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#1a1714', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
               <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(248,247,245,0.2)' }}>No photo yet</span>
             </div>
           )}
