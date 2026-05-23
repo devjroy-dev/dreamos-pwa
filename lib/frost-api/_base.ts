@@ -55,6 +55,28 @@ export interface VendorSession {
   pin_set?: boolean;
 }
 
+// ── Cookie helpers — iOS Safari ITP fallback ─────────────────────────────────
+// Safari wipes localStorage after 7 days. We mirror tokens to cookies which
+// survive ITP. Not httpOnly so frontend JS can read for Authorization header.
+const COUPLE_COOKIE  = 'tdw_couple_token';
+const VENDOR_COOKIE  = 'tdw_vendor_token';
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
+
+function writeCookie(name: string, value: string): void {
+  if (typeof document === 'undefined') return;
+  try {
+    document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${COOKIE_MAX_AGE}; path=/; SameSite=None; Secure`;
+  } catch { /* ignore */ }
+}
+
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  try {
+    const match = document.cookie.split('; ').find(r => r.startsWith(name + '='));
+    return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : null;
+  } catch { return null; }
+}
+
 export function getVendorSession(): VendorSession | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -94,9 +116,22 @@ export function getCoupleSession(): CoupleSession | null {
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
-    return localStorage.getItem('access_token');
+    const fromStorage = localStorage.getItem('access_token');
+    if (fromStorage) {
+      // Sync to cookie on every read — refreshes TTL, keeps cookie alive
+      writeCookie(COUPLE_COOKIE, fromStorage);
+      return fromStorage;
+    }
+    // localStorage cleared by iOS ITP — try cookie fallback
+    const fromCookie = readCookie(COUPLE_COOKIE) || readCookie(VENDOR_COOKIE);
+    if (fromCookie) {
+      // Restore to localStorage for this session
+      try { localStorage.setItem('access_token', fromCookie); } catch { /* ignore */ }
+    }
+    return fromCookie;
   } catch {
-    return null;
+    // localStorage fully blocked (private mode) — cookie only
+    return readCookie(COUPLE_COOKIE) || readCookie(VENDOR_COOKIE);
   }
 }
 
