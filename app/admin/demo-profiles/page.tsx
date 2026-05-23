@@ -324,6 +324,7 @@ export default function DemoProfilesPage() {
     name: '',
     demo_handle: '',
     instagram_handle: '',
+    vendor_phone: '',
     category: '',
     city: '',
     about: '',
@@ -402,6 +403,7 @@ export default function DemoProfilesPage() {
           name: form.name,
           demo_handle: form.demo_handle.toLowerCase(),
           instagram_handle: form.instagram_handle || undefined,
+          vendor_phone: form.vendor_phone || undefined,
           category: form.category,
           city: form.city,
           about: form.about || undefined,
@@ -415,7 +417,7 @@ export default function DemoProfilesPage() {
         setCreateError(data.error || 'Something went wrong.');
       } else {
         setCreatedResult({ studio_link: data.studio_link, bride_link: data.bride_link, dm_message: data.dm_message, expires_at: data.expires_at });
-        setForm({ name: '', demo_handle: '', instagram_handle: '', category: '', city: '', about: '', expires_hours: 48, notes: '', photo_urls: ['','','','','',''] });
+        setForm({ name: '', demo_handle: '', instagram_handle: '', vendor_phone: '', category: '', city: '', about: '', expires_hours: 48, notes: '', photo_urls: ['','','','','',''] });
         loadProfiles();
       }
     } catch (e: unknown) {
@@ -495,6 +497,10 @@ export default function DemoProfilesPage() {
           <div>
             <label style={LABEL_STYLE}>Instagram Handle</label>
             <input style={INPUT_STYLE} value={form.instagram_handle} onChange={e => setForm(f => ({ ...f, instagram_handle: e.target.value }))} placeholder="@handle" />
+          </div>
+          <div>
+            <label style={LABEL_STYLE}>WhatsApp Number <span style={{ color: 'rgba(245,240,232,0.3)', fontWeight: 300 }}>(optional — for live notifications)</span></label>
+            <input style={INPUT_STYLE} value={form.vendor_phone} onChange={e => setForm(f => ({ ...f, vendor_phone: e.target.value }))} placeholder="+91 98765 43210" type="tel" />
           </div>
           <div>
             <label style={LABEL_STYLE}>Category *</label>
