@@ -544,8 +544,9 @@ export default function Home() {
           opacity: screen === 'exploring' ? 0 : (i === cur ? 1 : 0),
           transition: `opacity 3s ${ease}`,
           willChange: 'opacity',
-          // Blur when a glass panel is active
           filter: 'none',
+          zIndex: 1,           // explicit z — Safari stacking context fix
+          pointerEvents: 'none', // never capture clicks
         }} />
       ))}
 
