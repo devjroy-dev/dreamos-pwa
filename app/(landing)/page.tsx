@@ -525,7 +525,7 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ ...S, overflow: 'hidden', background: '#0C0A09' }}>
+    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#0C0A09' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');
         * { box-sizing: border-box; }

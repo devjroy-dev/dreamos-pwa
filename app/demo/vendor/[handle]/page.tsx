@@ -91,7 +91,7 @@ export default function VendorDemoPage() {
 
   // ── MAIN LANDING ──────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', position: 'relative' }}>
       <style>{FONTS}</style>
 
       {/* Full-bleed hero — vendor's own photo */}
