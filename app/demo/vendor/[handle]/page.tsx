@@ -153,6 +153,14 @@ export default function VendorDemoPage() {
 
   function handleEnterStudio() {
     logDemoEvent('studio_entered');
+    try {
+      const raw = localStorage.getItem('tdw_demo_session');
+      if (raw) {
+        const encoded = btoa(encodeURIComponent(raw));
+        window.location.href = `https://thedreamai.in/wedding?demo=true&handle=${handle}&ds=${encoded}`;
+        return;
+      }
+    } catch {}
     window.location.href = `https://thedreamai.in/wedding?demo=true&handle=${handle}`;
   }
 
