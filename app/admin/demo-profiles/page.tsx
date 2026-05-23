@@ -202,6 +202,18 @@ function ProfileCard({
     onToast('Reactivated — 48hrs added ✦');
   }
 
+  async function hardDelete() {
+    if (!confirm(`Permanently delete demo for ${profile.name}? This cannot be undone.`)) return;
+    setBusy(true);
+    await fetch(`${BACKEND}/api/v2/admin/demo/${profile.id}/delete`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': adminPw }
+    });
+    setBusy(false);
+    onRefresh();
+    onToast('Deleted permanently');
+  }
+
   return (
     <div style={{
       ...CARD_STYLE,
@@ -290,11 +302,19 @@ function ProfileCard({
               <button onClick={deactivate} disabled={busy} style={{ ...BTN, background: 'rgba(255,100,100,0.08)', color: '#E07070', border: '0.5px solid rgba(224,112,112,0.2)' }}>
                 Deactivate
               </button>
+              <button onClick={hardDelete} disabled={busy} style={{ ...BTN, background: 'rgba(200,50,50,0.1)', color: '#C84646', border: '0.5px solid rgba(200,50,50,0.25)' }}>
+                Delete
+              </button>
             </>
           ) : (
-            <button onClick={reactivate} disabled={busy} style={{ ...BTN, background: 'rgba(201,168,76,0.12)', color: GOLD, border: `0.5px solid ${B}` }}>
-              Reactivate
-            </button>
+            <>
+              <button onClick={reactivate} disabled={busy} style={{ ...BTN, background: 'rgba(201,168,76,0.12)', color: GOLD, border: `0.5px solid ${B}` }}>
+                Reactivate
+              </button>
+              <button onClick={hardDelete} disabled={busy} style={{ ...BTN, background: 'rgba(255,100,100,0.08)', color: '#E07070', border: '0.5px solid rgba(224,112,112,0.2)' }}>
+                Delete
+              </button>
+            </>
           )}
         </div>
 

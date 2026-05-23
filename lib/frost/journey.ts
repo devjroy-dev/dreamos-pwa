@@ -168,12 +168,30 @@ export interface CoupleProfile {
 
 // ─── MOCKS ────────────────────────────────────────────────────────────────────
 
-const MOCK_EVENTS: CoupleEvent[] = [
-  { id: 'ev1', title: 'Haldi',   kind: 'family',   event_date: '2026-11-17', event_time: null,    state: 'upcoming', notes: null },
-  { id: 'ev2', title: 'Mehndi',  kind: 'family',   event_date: '2026-11-17', event_time: '15:00', state: 'upcoming', notes: 'Home' },
-  { id: 'ev3', title: 'Sangeet', kind: 'ceremony', event_date: '2026-11-18', event_time: '19:00', state: 'upcoming', notes: 'Rooftop' },
-  { id: 'ev4', title: 'Wedding', kind: 'ceremony', event_date: '2026-11-19', event_time: '10:00', state: 'upcoming', notes: 'ITC Maurya' },
-];
+function getMockEvents(): CoupleEvent[] {
+  // Dates relative to now so they always feel near and real
+  const d = (daysFromNow: number) => {
+    const dt = new Date(); dt.setDate(dt.getDate() + daysFromNow);
+    return dt.toISOString().split('T')[0];
+  };
+  const m = (monthsFromNow: number) => {
+    const dt = new Date(); dt.setMonth(dt.getMonth() + monthsFromNow);
+    return dt.toISOString().split('T')[0];
+  };
+  return [
+    { id: 'ev1', title: 'Bridal Trial — Swati Roy',          kind: 'trial',    event_date: d(6),    event_time: '11:00', state: 'upcoming', notes: 'Soft glam look for the mehndi. Bring ref pics.' },
+    { id: 'ev2', title: 'Lehenga Fitting — Sabyasachi',      kind: 'fitting',  event_date: d(11),   event_time: '14:00', state: 'upcoming', notes: 'Final drape and blouse alterations. Carry the dupatta.' },
+    { id: 'ev3', title: 'Pre-Wedding Shoot — Udaipur',        kind: 'shoot',    event_date: d(19),   event_time: '06:00', state: 'upcoming', notes: 'Golden hour at the Lake Palace ghats. Bring both outfits.' },
+    { id: 'ev4', title: 'Venue Recce — The Oberoi Amarvilas', kind: 'recce',    event_date: d(24),   event_time: '10:30', state: 'upcoming', notes: 'Walk the ceremony lawn and the ballroom. Confirm the mandap spot.' },
+    { id: 'ev5', title: 'Jewellery Consultation — Saraf',     kind: 'meeting',  event_date: d(30),   event_time: '12:00', state: 'upcoming', notes: 'Polki set shortlisted. Confirm the maang tikka.' },
+    { id: 'ev6', title: 'Haldi',                              kind: 'family',   event_date: m(5),    event_time: '09:00', state: 'upcoming', notes: 'Home — terrace garden. Yellow and white florals.' },
+    { id: 'ev7', title: 'Mehndi Evening',                     kind: 'ceremony', event_date: m(5),    event_time: '16:00', state: 'upcoming', notes: 'Poolside. Live dhol. 80 guests.' },
+    { id: 'ev8', title: 'Sangeet Night',                      kind: 'ceremony', event_date: m(6),    event_time: '19:00', state: 'upcoming', notes: 'Grand Ballroom, The Leela. 200 guests. Choreography confirmed.' },
+    { id: 'ev9', title: 'Wedding',                            kind: 'ceremony', event_date: m(6),    event_time: '07:00', state: 'upcoming', notes: 'Phera ceremony at sunrise. ITC Maurya Lawns.' },
+    { id: 'ev10', title: 'Reception',                         kind: 'social',   event_date: m(6),    event_time: '19:30', state: 'upcoming', notes: 'Rooftop. Candlelit. 350 guests.' },
+  ];
+}
+const MOCK_EVENTS: CoupleEvent[] = getMockEvents();
 
 const MOCK_RECEIPTS: CoupleReceipt[] = [
   { id: 'r1', booking_id: null, amount: 50000,  vendor_name: 'Aanya Studio',   description: 'Advance payment', receipt_date: '2026-11-01', image_url: null, tags: ['photography'], created_at: '2026-11-01T10:00:00Z' },
@@ -181,11 +199,12 @@ const MOCK_RECEIPTS: CoupleReceipt[] = [
 ];
 
 const MOCK_BOOKINGS: CoupleBooking[] = [
-  { id: 'b1', vendor_name: 'Aanya Studio',    vendor_id: null, category: 'photographer', amount_total: 450000, amount_advance: 50000,  amount_paid: 50000,  balance_due_date: '2026-11-15', state: 'advance_paid', notes: null },
-  { id: 'b2', vendor_name: 'Swati Roy MUA',   vendor_id: null, category: 'mua',          amount_total: 180000, amount_advance: 25000,  amount_paid: 25000,  balance_due_date: '2026-11-17', state: 'advance_paid', notes: null },
-  { id: 'b3', vendor_name: 'Bloom & Petals',  vendor_id: null, category: 'decor',         amount_total: 850000, amount_advance: null,   amount_paid: 0,      balance_due_date: '2026-11-10', state: 'booked',       notes: null },
-  { id: 'b4', vendor_name: 'Shivam Caterers', vendor_id: null, category: 'caterer',       amount_total: 900000, amount_advance: null,   amount_paid: 0,      balance_due_date: '2026-11-16', state: 'booked',       notes: null },
-  { id: 'b5', vendor_name: 'Reel Makers',     vendor_id: null, category: 'videographer',  amount_total: 170000, amount_advance: null,   amount_paid: 0,      balance_due_date: null,          state: 'booked',       notes: 'Shortlisted' },
+  { id: 'b1', vendor_name: 'Joseph Radhik',         vendor_id: null, category: 'photographer',  amount_total: 850000,  amount_advance: 150000, amount_paid: 150000, balance_due_date: null, state: 'advance_paid', notes: 'Full wedding coverage + pre-wedding Udaipur shoot.' },
+  { id: 'b2', vendor_name: 'Swati Roy',              vendor_id: null, category: 'makeup_artist', amount_total: 320000,  amount_advance: 75000,  amount_paid: 75000,  balance_due_date: null, state: 'advance_paid', notes: 'Bridal + 4 bridesmaids across all functions.' },
+  { id: 'b3', vendor_name: 'Sabyasachi Mukherjee',  vendor_id: null, category: 'bridal_wear',   amount_total: 4200000, amount_advance: 500000, amount_paid: 500000, balance_due_date: null, state: 'advance_paid', notes: 'Red tissue silk lehenga. Blouse in final fitting.' },
+  { id: 'b4', vendor_name: 'Weddingz Décor Studio', vendor_id: null, category: 'decorator',     amount_total: 1800000, amount_advance: null,   amount_paid: 0,      balance_due_date: null, state: 'booked',       notes: 'Marigold + white florals. Proposal shared.' },
+  { id: 'b5', vendor_name: 'The Leela New Delhi',   vendor_id: null, category: 'venue',         amount_total: 5500000, amount_advance: 500000, amount_paid: 500000, balance_due_date: null, state: 'advance_paid', notes: 'Grand Ballroom + Lawns. F&B inclusive.' },
+  { id: 'b6', vendor_name: 'Shiamak Davar Studio',  vendor_id: null, category: 'choreographer', amount_total: 180000,  amount_advance: null,   amount_paid: 0,      balance_due_date: null, state: 'booked',       notes: 'Sangeet performance — 6 couples, 3 songs.' },
 ];
 
 const MOCK_CIRCLE: CircleData = {
@@ -202,21 +221,21 @@ const MOCK_CIRCLE: CircleData = {
 };
 
 const MOCK_PROFILE: CoupleProfile = {
-  id: 'couple-test',
+  id: 'couple-demo',
   bride_name: 'Priya',
-  partner_name: 'Rohan',
-  wedding_date: '2026-11-19',
-  wedding_city: 'Delhi',
-  budget_total: 5000000,
-  events_planned: ['haldi','mehndi','sangeet','wedding'],
-  planning_state: null,
+  partner_name: 'Arjun',
+  wedding_date: (() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return d.toISOString().split('T')[0]; })(),
+  wedding_city: 'New Delhi',
+  budget_total: 12000000,
+  events_planned: ['haldi','mehndi','sangeet','wedding','reception'],
+  planning_state: 'shortlisting',
   onboarding_state: 'complete',
 };
 
 // ─── API FUNCTIONS — EVENTS ────────────────────────────────────────────────
 
 export async function fetchEvents(state = 'upcoming'): Promise<CoupleEvent[]> {
-  if (shouldUseMocks()) return delay(MOCK_EVENTS);
+  if (shouldUseMocks()) return delay(getMockEvents());
   const id = getCoupleId();
   if (!id) return [];
   const r: any = await apiFetch(`/api/v2/couple/events/${id}?state=${state}`);
