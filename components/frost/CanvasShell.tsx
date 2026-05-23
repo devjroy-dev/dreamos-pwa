@@ -13,11 +13,13 @@ export default function CanvasShell({
   eyebrow,
   backTo = '/frost',
   scrollable = true,
+  topRight,
 }: {
-  children: React.ReactNode;
-  eyebrow?: string;
-  backTo?: string;
+  children:    React.ReactNode;
+  eyebrow?:    string;
+  backTo?:     string;
   scrollable?: boolean;
+  topRight?:   React.ReactNode;
 }) {
   const router = useRouter();
   const { mode } = useFrostMode();
@@ -55,6 +57,7 @@ export default function CanvasShell({
           </svg>
           {eyebrow || 'Back'}
         </button>
+        {topRight && <div style={{ marginLeft: 'auto' }}>{topRight}</div>}
       </div>
 
       {/* Content */}

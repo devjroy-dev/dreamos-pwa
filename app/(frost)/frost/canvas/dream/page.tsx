@@ -114,7 +114,7 @@ export default function CanvasDream() {
         paddingBottom: 12, paddingLeft: 16, paddingRight: 16,
         display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
       }}>
-        <button onClick={() => router.push('/frost')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>
+        <button onClick={() => router.push('/frost/canvas/sanctuary')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           Dream
         </button>

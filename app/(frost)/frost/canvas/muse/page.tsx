@@ -4,6 +4,7 @@
 // Muse canvas — wired to real backend. Zero design changes.
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../layout';
@@ -196,6 +197,7 @@ function FullBleedOverlay({
 }
 
 export default function CanvasMuse() {
+  const router = useRouter();
   const { look } = useFrostMode();
   const tokens = MUSE_LOOKS[look];
 
@@ -358,7 +360,15 @@ export default function CanvasMuse() {
         />
       )}
 
-      <CanvasShell eyebrow="Muse">
+      <CanvasShell eyebrow="Muse" backTo="/frost/canvas/sanctuary" topRight={
+        <button
+          onClick={() => router.push('/frost/canvas/surprise')}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 12px 0 10px', borderRadius: 100, background: 'rgba(201,168,76,0.12)', border: '0.5px solid rgba(201,168,76,0.35)', cursor: 'pointer', touchAction: 'manipulation' }}
+        >
+          <span style={{ fontSize: 9, color: tokens.brass, lineHeight: 1 }}>✦</span>
+          <span style={{ fontFamily: FF.label, fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: tokens.brass, whiteSpace: 'nowrap' }}>Surprise Me</span>
+        </button>
+      }>
         <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.m}px` }}>
           <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: tokens.ink, marginBottom: 4 }}>Muse</div>
           <div style={{ fontFamily: FF.body, fontSize: 13, color: tokens.soft }}>{loading ? 'Loading\u2026' : `${total} saved`}</div>
@@ -369,15 +379,6 @@ export default function CanvasMuse() {
             const active = sourceFilter === f.value;
             return (
               <button key={f.value} onClick={() => setSourceFilter(f.value)} style={{ fontFamily: FF.label, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '7px 14px', borderRadius: FR.pill, border: 'none', background: active ? tokens.brass : 'transparent', color: active ? '#1B1612' : tokens.soft, outline: active ? 'none' : `0.5px solid ${tokens.hairline}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{f.label}</button>
-            );
-          })}
-        </div>
-
-        <div className="frost-scroll" style={{ display: 'flex', gap: 6, padding: `0 ${SP.xxl}px ${SP.m}px`, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          {CEREMONY_FILTERS.map(f => {
-            const active = ceremonyFilter === f.value;
-            return (
-              <button key={f.value} onClick={() => setCeremonyFilter(f.value)} style={{ fontFamily: FF.label, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '7px 14px', borderRadius: FR.pill, border: 'none', background: active ? tokens.brass : 'transparent', color: active ? '#1B1612' : tokens.soft, outline: active ? 'none' : `0.5px solid ${tokens.hairline}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{f.label}</button>
             );
           })}
         </div>

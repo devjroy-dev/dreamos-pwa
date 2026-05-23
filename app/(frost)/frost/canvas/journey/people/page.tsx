@@ -28,7 +28,7 @@ export default function MyPeople() {
   }, []);
 
   return (
-    <CanvasShell eyebrow="My People" backTo="/frost/canvas/journey">
+    <CanvasShell eyebrow="My People" backTo="/frost/canvas/sanctuary">
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
         <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 26, color: t.ink, marginBottom: SP.s }}>Your circle.</div>
         <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft, marginBottom: SP.xl, lineHeight: 1.6 }}>

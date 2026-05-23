@@ -18,43 +18,43 @@ const ROLES = [
 ] as const;
 
 // ── Activity card renderer ────────────────────────────────────────────────────
-function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
+function ActivityCard({ a, t, look, onNavigate }: { a: any; t: any; look: string; onNavigate: (path: string) => void }) {
   const actor = a.actor_role === 'bride' ? 'You' : (a.member_name || 'Someone');
 
   if (a.activity_type === 'save_added' && a.image_url) {
     return (
-      <div style={{ marginBottom: SP.xl }}>
-        {/* Image — full width, cropped */}
-        <div style={{ width: '100%', borderRadius: FR.box, overflow: 'hidden', marginBottom: SP.s, background: t.cardFill }}>
+      <div style={{ marginBottom: SP.l, display: 'flex', gap: SP.m, alignItems: 'flex-start' }}>
+        {/* Thumbnail — tappable, navigates to Muse */}
+        <div
+          onClick={() => onNavigate('/frost/canvas/muse')}
+          style={{ width: 72, height: 72, flexShrink: 0, borderRadius: FR.md, overflow: 'hidden', background: t.cardFill, cursor: 'pointer' }}
+        >
           <img
             src={a.image_url}
             alt={a.caption || 'Muse save'}
-            style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 320 }}
+            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
             loading="lazy"
           />
         </div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: SP.m }}>
-          <div style={{ flex: 1 }}>
-            {a.caption && (
-              <div style={{ fontFamily: FF.body, fontSize: 14, color: t.ink, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
-                "{a.caption}"
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: SP.m, flexWrap: 'wrap' as const }}>
-              <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft }}>
-                {actor} · {timeAgo(a.created_at)}
-              </div>
-              {a.aesthetic_tags && a.aesthetic_tags.length > 0 && (
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
-                  {a.aesthetic_tags.slice(0, 3).map((tag: string) => (
-                    <span key={tag} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+        {/* Text */}
+        <div style={{ flex: 1, paddingTop: 2 }}>
+          {a.caption && (
+            <div style={{ fontFamily: FF.body, fontSize: 13, color: t.ink, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
+              "{a.caption}"
             </div>
+          )}
+          <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft, marginBottom: a.aesthetic_tags?.length ? 4 : 0 }}>
+            {actor} · {timeAgo(a.created_at)}
           </div>
+          {a.aesthetic_tags && a.aesthetic_tags.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
+              {a.aesthetic_tags.slice(0, 3).map((tag: string) => (
+                <span key={tag} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -150,7 +150,7 @@ export default function JourneyCircle() {
   const pending  = circle?.pending_invites || [];
 
   return (
-    <CanvasShell eyebrow="Circle" backTo="/frost/canvas/journey">
+    <CanvasShell eyebrow="Circle" backTo="/frost/canvas/sanctuary">
       {toast && (
         <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 70px)', left: '50%', transform: 'translateX(-50%)', background: t.ink, color: t.pagePaper, fontFamily: FF.label, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '8px 18px', borderRadius: 20, zIndex: 400, pointerEvents: 'none', whiteSpace: 'nowrap' }}>{toast}</div>
       )}
@@ -205,7 +205,7 @@ export default function JourneyCircle() {
         )}
 
         {activity.map(a => (
-          <div key={a.id}><ActivityCard a={a} t={t} look={look as string} /></div>
+          <div key={a.id}><ActivityCard a={a} t={t} look={look as string} onNavigate={(path) => router.push(path)} /></div>
         ))}
 
         <div ref={bottomRef} />

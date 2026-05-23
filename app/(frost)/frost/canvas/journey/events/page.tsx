@@ -132,7 +132,7 @@ export default function JourneyEvents() {
   });
 
   return (
-    <CanvasShell eyebrow="Events" backTo="/frost/canvas/journey">
+    <CanvasShell eyebrow="Events" backTo="/frost/canvas/sanctuary">
       {toast && (
         <div style={{ position:'fixed', top:'calc(env(safe-area-inset-top) + 70px)', left:'50%', transform:'translateX(-50%)', background:t.ink, color:t.pagePaper, fontFamily:FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{toast}</div>
       )}

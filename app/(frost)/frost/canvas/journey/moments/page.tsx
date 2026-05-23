@@ -8,7 +8,7 @@ export default function JourneyMoments() {
   const { look } = useFrostMode(); const t = MUSE_LOOKS[look];
 
   return (
-    <CanvasShell eyebrow="Moments" backTo="/frost/canvas/journey">
+    <CanvasShell eyebrow="Moments" backTo="/frost/canvas/sanctuary">
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
 
         <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: t.ink, lineHeight: 1.3, marginBottom: SP.xl }}>

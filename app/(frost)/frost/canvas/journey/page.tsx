@@ -41,7 +41,7 @@ export default function CanvasJourney() {
   const tokens = MUSE_LOOKS[look];
 
   return (
-    <CanvasShell eyebrow={FROST_COPY.journeyCanvas.eyebrow}>
+    <CanvasShell eyebrow={FROST_COPY.journeyCanvas.eyebrow} backTo="/frost/canvas/sanctuary">
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px` }}>
 
         <div style={{ paddingBottom: SP.l }}>

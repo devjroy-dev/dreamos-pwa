@@ -76,7 +76,7 @@ export default function SurpriseMe() {
   const bg = `linear-gradient(to bottom, ${m.dreamGradient[0]}, ${m.dreamGradient[1]})`;
 
   const BackBtn = () => (
-    <button onClick={() => router.push('/frost')}
+    <button onClick={() => router.push('/frost/canvas/sanctuary')}
       style={{ position:'absolute', top:'calc(env(safe-area-inset-top,0px) + 16px)', left:16, zIndex:50, background:'rgba(0,0,0,0.35)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', border:'none', borderRadius:FR.pill, padding:'6px 14px', display:'flex', alignItems:'center', gap:6, fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:'rgba(245,240,232,0.9)', cursor:'pointer' }}>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
       Back
