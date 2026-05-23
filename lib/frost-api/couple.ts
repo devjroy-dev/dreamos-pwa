@@ -12,6 +12,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { USE_MOCKS, API_BASE, apiGet, apiPost, mockDelay, getAccessToken } from './_base';
+
+function isBrideDemoMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const s = localStorage.getItem('tdw_bride_demo_session');
+    return !!s && JSON.parse(s).demo === true;
+  } catch { return false; }
+}
 import {
   MOCK_COUPLE_ME, MOCK_COUPLE_TODAY, MOCK_COUPLE_MUSE,
   MOCK_COUPLE_CIRCLE, MOCK_COUPLE_EVENTS, MOCK_COUPLE_BOOKINGS,
@@ -30,13 +38,13 @@ import type {
 
 // ─── GET /api/v2/couple/me/:coupleId ────────────────────────────────────────
 export async function fetchCoupleMe(coupleId: string): Promise<CoupleMeResponse> {
-  if (USE_MOCKS) return mockDelay(MOCK_COUPLE_ME);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay(MOCK_COUPLE_ME);
   return apiGet<CoupleMeResponse>(`/api/v2/couple/me/${coupleId}`);
 }
 
 // ─── GET /api/v2/couple/today/:coupleId ─────────────────────────────────────
 export async function fetchCoupleToday(coupleId: string): Promise<CoupleTodayResponse> {
-  if (USE_MOCKS) return mockDelay(MOCK_COUPLE_TODAY);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay(MOCK_COUPLE_TODAY);
   return apiGet<CoupleTodayResponse>(`/api/v2/couple/today/${coupleId}`);
 }
 
@@ -45,7 +53,7 @@ export async function fetchCoupleMuse(
   coupleId: string,
   query: CoupleMuseQuery = {},
 ): Promise<CoupleMuseResponse> {
-  if (USE_MOCKS) {
+  if (USE_MOCKS || isBrideDemoMode()) {
     const filtered = query.ceremony && query.ceremony !== 'all'
       ? { ...MOCK_COUPLE_MUSE, saves: MOCK_COUPLE_MUSE.saves.filter(s => s.ceremony === query.ceremony) }
       : MOCK_COUPLE_MUSE;
@@ -59,7 +67,7 @@ export async function fetchCoupleMuse(
 
 // ─── DELETE /api/v2/couple/muse/:saveId ─────────────────────────────────────
 export async function deleteMuseSave(saveId: string): Promise<DeleteMuseResponse> {
-  if (USE_MOCKS) return mockDelay({ ok: true as const });
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay({ ok: true as const });
   // DELETE via apiPost-style — build a direct fetch since _base doesn't have apiDelete
   const { API_BASE, getAccessToken } = await import('./_base');
   const token = getAccessToken();
@@ -76,7 +84,7 @@ export async function deleteMuseSave(saveId: string): Promise<DeleteMuseResponse
 
 // ─── POST /api/v2/couple/chat ────────────────────────────────────────────────
 export async function coupleChat(body: CoupleChatBody): Promise<CoupleChatResponse> {
-  if (USE_MOCKS) {
+  if (USE_MOCKS || isBrideDemoMode()) {
     const reply = MOCK_COUPLE_CHAT_REPLY(body.message);
     return mockDelay({ ok: true as const, reply }, 900);
   }
@@ -85,19 +93,19 @@ export async function coupleChat(body: CoupleChatBody): Promise<CoupleChatRespon
 
 // ─── GET /api/v2/couple/circle/:coupleId ────────────────────────────────────
 export async function fetchCoupleCircle(coupleId: string): Promise<CoupleCircleResponse> {
-  if (USE_MOCKS) return mockDelay(MOCK_COUPLE_CIRCLE);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay(MOCK_COUPLE_CIRCLE);
   return apiGet<CoupleCircleResponse>(`/api/v2/couple/circle/${coupleId}`);
 }
 
 // ─── POST /api/v2/couple/circle/invite ──────────────────────────────────────
 export async function inviteCircleMember(body: CircleInviteBody): Promise<CircleInviteResponse> {
-  if (USE_MOCKS) return mockDelay({ ok: true as const, token: 'CIRCLE-MOCK01' }, 600);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay({ ok: true as const, token: 'CIRCLE-MOCK01' }, 600);
   return apiPost<CircleInviteResponse>('/api/v2/couple/circle/invite', body);
 }
 
 // ─── GET /api/v2/couple/circle/messages/:coupleId ───────────────────────────
 export async function fetchCircleMessages(coupleId: string): Promise<CircleMessagesResponse> {
-  if (USE_MOCKS) return mockDelay({ ok: true as const, messages: [] });
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay({ ok: true as const, messages: [] });
   return apiGet<CircleMessagesResponse>(`/api/v2/couple/circle/messages/${coupleId}`);
 }
 
@@ -106,7 +114,7 @@ export async function fetchCoupleEvents(
   coupleId: string,
   query: CoupleEventsQuery = {},
 ): Promise<CoupleEventsResponse> {
-  if (USE_MOCKS) return mockDelay(MOCK_COUPLE_EVENTS);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay(MOCK_COUPLE_EVENTS);
   return apiGet<CoupleEventsResponse>(
     `/api/v2/couple/events/${coupleId}`,
     { from: query.from, to: query.to, kind: query.kind },
@@ -115,13 +123,13 @@ export async function fetchCoupleEvents(
 
 // ─── GET /api/v2/couple/bookings/:coupleId ──────────────────────────────────
 export async function fetchCoupleBookings(coupleId: string): Promise<CoupleBookingsResponse> {
-  if (USE_MOCKS) return mockDelay(MOCK_COUPLE_BOOKINGS);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay(MOCK_COUPLE_BOOKINGS);
   return apiGet<CoupleBookingsResponse>(`/api/v2/couple/bookings/${coupleId}`);
 }
 
 // ─── GET /api/v2/couple/receipts/:coupleId ──────────────────────────────────
 export async function fetchCoupleReceipts(coupleId: string): Promise<CoupleReceiptsResponse> {
-  if (USE_MOCKS) return mockDelay(MOCK_COUPLE_RECEIPTS);
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay(MOCK_COUPLE_RECEIPTS);
   return apiGet<CoupleReceiptsResponse>(`/api/v2/couple/receipts/${coupleId}`);
 }
 
