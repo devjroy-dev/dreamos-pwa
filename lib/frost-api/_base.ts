@@ -24,12 +24,10 @@
 import { ApiClientError, ApiError } from '../types/common';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
-// USE_MOCKS defaults to TRUE unless explicitly set to 'false'.
-// Rationale: until the screens are smoke-tested end-to-end against Railway,
-// mocks are the safer default. Once you flip a deploy env var, it stays
-// flipped.
+// USE_MOCKS defaults to FALSE — real backend is the default.
+// Set NEXT_PUBLIC_USE_MOCKS=true in .env.local to use mock data during dev.
 export const USE_MOCKS =
-  process.env.NEXT_PUBLIC_USE_MOCKS !== 'false';
+  process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
 
 // Same fallback as legacy lib/api.ts — kept identical so a single env var
 // affects both new (frost) and old (legacy admin) surfaces during transition.
