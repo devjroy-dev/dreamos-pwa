@@ -596,9 +596,7 @@ export default function DemoProfilesPage() {
                 const next = [form.photo_urls[0], ...lines, '', '', '', '', ''].slice(0, 6);
                 setForm(f => ({ ...f, photo_urls: next }));
               }}
-              placeholder={"https://res.cloudinary.com/...
-https://res.cloudinary.com/...
-https://res.cloudinary.com/..."}
+              placeholder="Paste URLs — one per line (max 5)"
             />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {[1,2,3,4,5].map(i => (
