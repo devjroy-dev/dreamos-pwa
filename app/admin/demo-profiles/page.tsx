@@ -610,25 +610,25 @@ export default function DemoProfilesPage() {
               }}
               placeholder="Paste URLs — one per line (max 5)"
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {[1,2,3,4,5].map(i => (
-                <label key={i} style={{
-                  ...BTN, background: 'rgba(255,255,255,0.05)', color: SOFT,
-                  border: '0.5px solid rgba(255,255,255,0.1)', padding: '7px 10px',
-                  cursor: 'pointer', fontSize: 10, textAlign: 'center' as const,
-                  opacity: form.photo_urls[i] ? 1 : 0.5
-                }}>
-                  {form.photo_urls[i] ? '✓' : '↑'}
-                  <input type="file" accept="image/*" style={{ display: 'none' }}
-                    onChange={async e => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      try { const url = await uploadToCloudinary(file); setPhotoUrl(i, url); setToast(`Photo ${i+1} uploaded ✦`); } catch (_e) { alert('Upload failed'); }
-                    }}
-                  />
-                </label>
-              ))}
-            </div>
+            <label style={{
+              ...BTN, background: 'rgba(255,255,255,0.05)', color: SOFT,
+              border: '0.5px solid rgba(255,255,255,0.1)', padding: '10px 14px',
+              cursor: 'pointer', fontSize: 10, alignSelf: 'flex-start', flexShrink: 0
+            }}>
+              ↑ Upload
+              <input type="file" accept="image/*" multiple style={{ display: 'none' }}
+                onChange={async e => {
+                  const files = Array.from(e.target.files || []).slice(0, 5);
+                  for (let i = 0; i < files.length; i++) {
+                    try {
+                      const url = await uploadToCloudinary(files[i]);
+                      setPhotoUrl(i + 1, url);
+                    } catch (_e) { alert(`Upload failed for photo ${i + 2}`); }
+                  }
+                  setToast(`${files.length} photo${files.length !== 1 ? 's' : ''} uploaded ✦`);
+                }}
+              />
+            </label>
           </div>
 
           {/* Preview strip */}
