@@ -68,6 +68,20 @@ function timeUntilExpiry(expiresAt: string): { label: string; color: string } {
   return { label: `${Math.round(hrs)}h left`, color: '#8BC4A8' };
 }
 
+// ── Cloudinary upload ────────────────────────────────────────────────────────
+async function uploadToCloudinary(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'dream_wedding_uploads');
+  const res = await fetch('https://api.cloudinary.com/v1_1/dccso5ljv/image/upload', {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
+  return data.secure_url;
+}
+
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const BG   = '#0A0908';
 const GOLD = '#C9A84C';
