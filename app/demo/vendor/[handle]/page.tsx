@@ -53,21 +53,38 @@ export default function VendorDemoPage() {
     } catch { /* silent */ }
   }
 
-  function handleEnterStudio() {
+  async function handleEnterStudio() {
     if (!session) return;
     setEntering(true);
     logEvent('studio_entered');
 
-    // Encode the full vendor session — DreamAi decodes and writes to localStorage
-    // giving the vendor a real authenticated session in the full app
-    const sessionPayload = {
-      vendor_session: session,
-      demo: true,
-      demo_handle: handle,
-      vendor_photos: vendor?.photos?.map(p => p.image_url) || [],
-    };
-    const encoded = btoa(encodeURIComponent(JSON.stringify(sessionPayload)));
-    window.location.href = `https://thedreamai.in/wedding?demo=true&handle=${handle}&ds=${encoded}`;
+    // POST session to thedreamai.in — ITP-safe cross-domain handoff
+    // No URL params — ITP cannot strip POST body
+    try {
+      await fetch('https://thedreamai.in/api/auth/set-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          access_token:   session.access_token,
+          refresh_token:  session.refresh_token,
+          vendor_session: {
+            ...session,
+            demo: true,
+            demo_handle: handle,
+          },
+        }),
+      });
+      // Store demo photos in localStorage for portfolio tab
+      if (vendor?.photos?.length) {
+        try {
+          localStorage.setItem('tdw_demo_photos', JSON.stringify(vendor.photos.map(p => p.image_url)));
+          localStorage.setItem('tdw_is_demo', 'true');
+        } catch (_e) { /* ignore */ }
+      }
+    } catch (_e) { /* best effort — proceed anyway */ }
+
+    window.location.href = 'https://thedreamai.in/vendor';
   }
 
   // ── EXPIRED ───────────────────────────────────────────────────────────────

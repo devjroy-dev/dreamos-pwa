@@ -71,15 +71,24 @@ export default function VendorPinLoginPage() {
           localStorage.setItem('vendor_session', JSON.stringify(updated));
           if (d.name) setName(d.name);
         } catch {}
-        // Handoff to thedreamai.in with JWT — single sign-in across domains.
-        // The handoff page reads the token, writes vendor_session to localStorage
-        // in dreamai format, then redirects to /wedding.
-        // Read tokens directly from localStorage — they are stored under their own keys,
-        // NOT inside the vendor_web_session object.
+        // Cross-domain session handoff via POST — ITP cannot strip POST body
+        // This fixes iOS Safari where URL param tokens get stripped by ITP
         const token   = localStorage.getItem('access_token')  || '';
         const refresh = localStorage.getItem('refresh_token') || '';
-        const params  = new URLSearchParams({ token, refresh });
-        window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
+        const session = JSON.parse(localStorage.getItem('vendor_session') || localStorage.getItem('vendor_web_session') || '{}');
+        try {
+          await fetch('https://thedreamai.in/api/auth/set-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              access_token:  token,
+              refresh_token: refresh,
+              vendor_session: { ...session, access_token: token, refresh_token: refresh },
+            }),
+          });
+        } catch (_e) { /* best effort — proceed anyway */ }
+        window.location.href = 'https://thedreamai.in/vendor';
       } else {
         const next = attempts + 1; setAttempts(next);
         setShaking(true); setTimeout(() => setShaking(false), 400);

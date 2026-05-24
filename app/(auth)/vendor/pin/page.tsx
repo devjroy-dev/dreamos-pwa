@@ -25,12 +25,24 @@ export default function VendorPinPage() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2800); };
 
   useEffect(() => {
+    (async () => {
     try {
       const s = JSON.parse(localStorage.getItem('vendor_web_session') || localStorage.getItem('vendor_session') || '{}');
       if (s?.pin_set) {
-        // Already has PIN — handoff directly to dreamai
-        const params = new URLSearchParams({ token: s.access_token || '', refresh: s.refresh_token || '' });
-        window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
+        // Already has PIN — POST session to dreamai (ITP-safe cross-domain handoff)
+        try {
+          await fetch('https://thedreamai.in/api/auth/set-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              access_token:   s.access_token  || '',
+              refresh_token:  s.refresh_token || '',
+              vendor_session: s,
+            }),
+          });
+        } catch (_e) { /* best effort */ }
+        window.location.href = 'https://thedreamai.in/vendor';
         return;
       }
     } catch {}
@@ -72,8 +84,19 @@ export default function VendorPinPage() {
         localStorage.setItem('vendor_web_session', JSON.stringify(updated));
         localStorage.setItem('vendor_session', JSON.stringify(updated));
         const s2 = JSON.parse(localStorage.getItem('vendor_web_session') || '{}');
-        const params = new URLSearchParams({ token: s2.access_token || '', refresh: s2.refresh_token || '' });
-        window.location.href = `https://thedreamai.in/wedding/auth/handoff?${params}`;
+        try {
+          await fetch('https://thedreamai.in/api/auth/set-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              access_token:   s2.access_token  || '',
+              refresh_token:  s2.refresh_token || '',
+              vendor_session: s2,
+            }),
+          });
+        } catch (_e) { /* best effort */ }
+        window.location.href = 'https://thedreamai.in/vendor';
       } else { showToast('Could not set PIN. Try again.'); }
     } catch { showToast('Network error. Try again.'); }
     finally { setLoading(false); }
