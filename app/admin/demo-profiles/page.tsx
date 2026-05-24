@@ -588,11 +588,9 @@ export default function DemoProfilesPage() {
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <textarea
               style={{ ...INPUT_STYLE, flex: 1, minHeight: 100, resize: 'vertical', lineHeight: 1.8 }}
-              value={form.photo_urls.slice(1).filter(u => u).join('
-')}
+              value={form.photo_urls.slice(1).filter(u => u).join('\n')}
               onChange={e => {
-                const lines = e.target.value.split('
-').map(l => l.trim()).filter(Boolean).slice(0, 5);
+                const lines = e.target.value.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 5);
                 const next = [form.photo_urls[0], ...lines, '', '', '', '', ''].slice(0, 6);
                 setForm(f => ({ ...f, photo_urls: next }));
               }}
