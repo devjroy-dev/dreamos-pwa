@@ -363,7 +363,7 @@ export default function DemoProfilesPage() {
       try {
         const { password } = JSON.parse(stored);
         if (password) { setAdminPw(password); setAuthed(true); }
-      } catch {}
+      } catch (_e) {}
     }
   }, []);
 
@@ -380,7 +380,7 @@ export default function DemoProfilesPage() {
         setExpired(data.expired || []);
         setAuthed(true);
       }
-    } catch {}
+    } catch (_e) {}
     setLoadingList(false);
   }, [adminPw]);
 
@@ -548,28 +548,94 @@ export default function DemoProfilesPage() {
           </div>
         </div>
 
-        {/* Photo URLs */}
+        {/* Photos — hero upload + bulk URL paste */}
         <div style={{ marginTop: 20 }}>
-          <label style={LABEL_STYLE}>Photo URLs (3–6) * — use Cloudinary URLs. First photo = hero.</label>
-          <p style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 10, color: 'rgba(245,240,232,0.3)', marginBottom: 10 }}>
-            ⚠ Instagram CDN URLs expire within 24h. Upload to Cloudinary first.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {form.photo_urls.map((url, i) => (
-              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <input
-                  style={{ ...INPUT_STYLE, flex: 1 }}
-                  value={url}
-                  onChange={e => setPhotoUrl(i, e.target.value)}
-                  placeholder={i === 0 ? `Photo ${i + 1} (hero) — paste URL` : `Photo ${i + 1} — paste URL${i >= 3 ? ' (optional)' : ''}`}
-                />
-                {url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={url} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '0.5px solid rgba(201,168,76,0.2)', flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                )}
-              </div>
-            ))}
+
+          {/* Hero photo */}
+          <label style={LABEL_STYLE}>Hero Photo * — shown full-screen on landing page</label>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
+            <input
+              style={{ ...INPUT_STYLE, flex: 1 }}
+              value={form.photo_urls[0]}
+              onChange={e => setPhotoUrl(0, e.target.value)}
+              placeholder="Paste hero photo URL or upload ↑"
+            />
+            <label style={{
+              ...BTN, background: 'rgba(201,168,76,0.15)', color: GOLD,
+              border: `0.5px solid rgba(201,168,76,0.3)`, padding: '9px 14px',
+              cursor: 'pointer', flexShrink: 0, fontSize: 11
+            }}>
+              ↑ Upload
+              <input type="file" accept="image/*" style={{ display: 'none' }}
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try { const url = await uploadToCloudinary(file); setPhotoUrl(0, url); setToast('Hero uploaded ✦'); } catch (_e) { alert('Upload failed'); }
+                }}
+              />
+            </label>
+            {form.photo_urls[0] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={form.photo_urls[0]} alt="" style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: `0.5px solid rgba(201,168,76,0.3)`, flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            )}
           </div>
+
+          {/* Bulk other photos */}
+          <label style={LABEL_STYLE}>Other Photos (2–5 more) * — paste one URL per line or upload</label>
+          <p style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 10, color: 'rgba(245,240,232,0.25)', marginBottom: 8 }}>
+            Paste multiple URLs — one per line. Instagram CDN links work for 24hrs.
+          </p>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <textarea
+              style={{ ...INPUT_STYLE, flex: 1, minHeight: 100, resize: 'vertical', lineHeight: 1.8 }}
+              value={form.photo_urls.slice(1).filter(u => u).join('
+')}
+              onChange={e => {
+                const lines = e.target.value.split('
+').map(l => l.trim()).filter(Boolean).slice(0, 5);
+                const next = [form.photo_urls[0], ...lines, '', '', '', '', ''].slice(0, 6);
+                setForm(f => ({ ...f, photo_urls: next }));
+              }}
+              placeholder={"https://res.cloudinary.com/...
+https://res.cloudinary.com/...
+https://res.cloudinary.com/..."}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[1,2,3,4,5].map(i => (
+                <label key={i} style={{
+                  ...BTN, background: 'rgba(255,255,255,0.05)', color: SOFT,
+                  border: '0.5px solid rgba(255,255,255,0.1)', padding: '7px 10px',
+                  cursor: 'pointer', fontSize: 10, textAlign: 'center' as const,
+                  opacity: form.photo_urls[i] ? 1 : 0.5
+                }}>
+                  {form.photo_urls[i] ? '✓' : '↑'}
+                  <input type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={async e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try { const url = await uploadToCloudinary(file); setPhotoUrl(i, url); setToast(`Photo ${i+1} uploaded ✦`); } catch (_e) { alert('Upload failed'); }
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview strip */}
+          {form.photo_urls.filter(u => u).length > 0 && (
+            <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+              {form.photo_urls.filter(u => u).map((url, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={url} alt="" style={{
+                  width: 48, height: 48, objectFit: 'cover', borderRadius: 6,
+                  border: i === 0 ? `1.5px solid ${GOLD}` : '0.5px solid rgba(201,168,76,0.2)'
+                }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ))}
+              <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: SOFT, alignSelf: 'center', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                {form.photo_urls.filter(u => u).length} photo{form.photo_urls.filter(u => u).length !== 1 ? 's' : ''} · gold border = hero
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Notes */}
