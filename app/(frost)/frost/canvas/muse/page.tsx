@@ -9,8 +9,7 @@ import { Trash2 } from 'lucide-react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';
 import { useFrostMode } from '../../../layout';
 import { MUSE_LOOKS, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
-import { fetchMuseSaves, deleteMuseSave, fetchSaveActivity } from '../../../../../lib/frost-api/muse';
-import { createMuseSaveFromUrl } from '../../../../../lib/frost/journey';
+import { fetchMuseSaves, deleteMuseSave, fetchSaveActivity, uploadMuseImage, createMuseSaveFromUrl } from '../../../../../lib/frost-api/muse';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 
 type MuseCeremony = 'all' | 'haldi' | 'mehendi' | 'sangeet' | 'reception' | 'wedding';
@@ -221,12 +220,59 @@ export default function CanvasMuse() {
   const handleAddFromUrl = async () => {
     if (!urlInput.trim() || saving) return;
     setSaving(true);
-    await createMuseSaveFromUrl(urlInput.trim());
+    const res = await createMuseSaveFromUrl(urlInput.trim());
     setSaving(false);
     setUrlInput('');
     setAddSheet(false);
-    setAddToast('Saved to Muse');
+    setAddToast(res.ok ? 'Saved to Muse' : 'Could not save that link');
     setTimeout(() => setAddToast(''), 2400);
+    // Refresh
+    fetchMuseSaves({ saved_by: sourceFilter }).then(({ saves: s, total: tt }) => { setSaves(s); setTotal(tt); });
+  };
+
+  // ── Direct file upload (multi-image) ──────────────────────────────────
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
+
+  const handlePickFiles = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    // Filter to images only (defensive — `accept` should already do this)
+    const images = files.filter(f => f.type.startsWith('image/'));
+    if (images.length === 0) {
+      setAddToast('Please pick image files only');
+      setTimeout(() => setAddToast(''), 2400);
+      return;
+    }
+    setAddSheet(false);
+    setSaving(true);
+    let success = 0;
+    let failed = 0;
+    for (let i = 0; i < images.length; i++) {
+      setUploadProgress({ current: i + 1, total: images.length });
+      try {
+        const res = await uploadMuseImage(images[i]);
+        if (res.ok) success++; else failed++;
+      } catch {
+        failed++;
+      }
+    }
+    setUploadProgress(null);
+    setSaving(false);
+    // Clear the input so picking the same file again works
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (failed === 0) {
+      setAddToast(success === 1 ? 'Saved to Muse' : `Saved ${success} to Muse`);
+    } else if (success === 0) {
+      setAddToast('Could not save any images');
+    } else {
+      setAddToast(`Saved ${success}, ${failed} failed`);
+    }
+    setTimeout(() => setAddToast(''), 2800);
     // Refresh
     fetchMuseSaves({ saved_by: sourceFilter }).then(({ saves: s, total: tt }) => { setSaves(s); setTotal(tt); });
   };
@@ -437,23 +483,56 @@ export default function CanvasMuse() {
         <div onClick={() => setAddSheet(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:300 }} />
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:301, background:tokens.pagePaper, borderRadius:'20px 20px 0 0', padding:`28px 24px calc(28px + env(safe-area-inset-bottom))` }}>
           <div style={{ fontFamily: FF.display, fontStyle:'italic', fontSize:24, color:tokens.ink, marginBottom:4 }}>Add to Muse</div>
-          <div style={{ fontFamily: FF.body, fontSize:13, color:tokens.soft, marginBottom:24 }}>Paste an image link from Pinterest, Instagram, or anywhere.</div>
-          <div style={{ fontFamily: FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:tokens.soft, marginBottom:8 }}>Image URL</div>
+          <div style={{ fontFamily: FF.body, fontSize:13, color:tokens.soft, marginBottom:24 }}>Upload from your phone or paste a link.</div>
+
+          {/* Upload from phone — primary action */}
+          <button
+            onClick={handlePickFiles}
+            disabled={saving}
+            style={{ width:'100%', padding:14, background:tokens.brass, border:'none', borderRadius:8, fontFamily: FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:saving?0.5:1, marginBottom:14 }}>
+            Upload from phone
+          </button>
+
+          {/* Divider */}
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14, color:tokens.soft, fontFamily: FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase' }}>
+            <div style={{ flex:1, height:1, background:tokens.hairline }} />
+            <span>or</span>
+            <div style={{ flex:1, height:1, background:tokens.hairline }} />
+          </div>
+
+          {/* Paste link */}
+          <div style={{ fontFamily: FF.label, fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color:tokens.soft, marginBottom:8 }}>Paste a link</div>
           <input
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             placeholder="https://i.pinimg.com/…"
-            autoFocus
-            style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.body, fontSize:14, color:tokens.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:20 }}
+            style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.body, fontSize:14, color:tokens.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:12 }}
           />
           <button
             onClick={handleAddFromUrl}
             disabled={!urlInput.trim() || saving}
-            style={{ width:'100%', padding:14, background:tokens.brass, border:'none', borderRadius:8, fontFamily: FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(!urlInput.trim()||saving)?0.5:1 }}>
-            {saving ? 'Saving…' : 'Save to Muse'}
+            style={{ width:'100%', padding:12, background:'transparent', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:tokens.ink, cursor:'pointer', opacity:(!urlInput.trim()||saving)?0.5:1 }}>
+            {saving ? 'Saving…' : 'Save link'}
           </button>
         </div>
       </>}
+
+      {/* Hidden file input — triggered by the Upload button */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFilesSelected}
+        style={{ display:'none' }}
+      />
+
+      {/* Upload progress indicator */}
+      {uploadProgress && (
+        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'10px 20px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>
+          Uploading {uploadProgress.current} of {uploadProgress.total}…
+        </div>
+      )}
 
       {addToast && (
         <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{addToast}</div>

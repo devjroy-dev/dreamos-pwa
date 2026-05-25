@@ -144,3 +144,100 @@ export async function fetchSaveActivity(saveId: string): Promise<MuseActivityRes
   if (USE_MOCKS) return null;
   return apiGet<MuseActivityResponse>(`/api/v2/couple/muse/saves/${saveId}/activity`);
 }
+
+// ── Direct upload from phone ───────────────────────────────────────────────
+// Reads the File as base64 in the browser, POSTs to /upload with mime + caption.
+// Backend handles Cloudinary upload + Vision + Haiku tagging + muse_saves insert.
+
+export interface MuseUploadResponse {
+  ok:             boolean;
+  save_id?:       string;
+  save_number?:   number;
+  image_url?:     string;
+  aesthetic_tags?: string[];
+  error?:         string;
+}
+
+function fileToBase64(file: File): Promise<{ data: string; mime: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // result is "data:image/jpeg;base64,<...>"
+      const commaIdx = result.indexOf(',');
+      if (commaIdx === -1) return reject(new Error('FileReader returned unexpected format'));
+      const data = result.slice(commaIdx + 1);
+      const mime = file.type || 'image/jpeg';
+      resolve({ data, mime });
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function uploadMuseImage(file: File, caption?: string): Promise<MuseUploadResponse> {
+  if (isBrideDemoMode()) {
+    // Demo mode — fake a save with a blob URL so the board updates locally
+    try {
+      const stored = localStorage.getItem(DEMO_MUSE_KEY);
+      const existing: MuseSave[] = stored ? JSON.parse(stored) : [];
+      const blobUrl = URL.createObjectURL(file);
+      const newSave: MuseSave = {
+        id: `demo-uploaded-${Date.now()}`,
+        save_number: DEMO_MUSE_SAVES.length + existing.length + 1,
+        image_url: blobUrl,
+        source_type: 'image',
+        vendor_id: null,
+        vendor_name: null, vendor_city: null, vendor_category: null,
+        vendor_starting_price: null, vendor_vibe_tags: [],
+        vendor_routing_handle: null, enquire_link: null,
+        caption: caption || null, aesthetic_tags: [],
+        saved_by_role: 'bride', circle_comment_count: 0,
+        created_at: new Date().toISOString(),
+      };
+      localStorage.setItem(DEMO_MUSE_KEY, JSON.stringify([newSave, ...existing]));
+      return { ok: true, save_id: newSave.id, image_url: blobUrl };
+    } catch { /* ignore */ }
+    return { ok: true };
+  }
+  if (USE_MOCKS) return { ok: true };
+  const { data, mime } = await fileToBase64(file);
+  return apiPost<MuseUploadResponse>('/api/v2/couple/muse/upload', {
+    image_base64: data,
+    mime,
+    caption: caption || undefined,
+  });
+}
+
+// ── Add from URL (Pinterest / IG / direct) ────────────────────────────────
+// Previously stubbed in journey.ts — this is the real implementation.
+export async function createMuseSaveFromUrl(url: string, caption?: string): Promise<MuseUploadResponse> {
+  if (isBrideDemoMode()) {
+    // Demo mode — fake the save
+    try {
+      const stored = localStorage.getItem(DEMO_MUSE_KEY);
+      const existing: MuseSave[] = stored ? JSON.parse(stored) : [];
+      const newSave: MuseSave = {
+        id: `demo-fromurl-${Date.now()}`,
+        save_number: DEMO_MUSE_SAVES.length + existing.length + 1,
+        image_url: url,
+        source_type: 'link',
+        vendor_id: null,
+        vendor_name: null, vendor_city: null, vendor_category: null,
+        vendor_starting_price: null, vendor_vibe_tags: [],
+        vendor_routing_handle: null, enquire_link: null,
+        caption: caption || null, aesthetic_tags: [],
+        saved_by_role: 'bride', circle_comment_count: 0,
+        created_at: new Date().toISOString(),
+      };
+      localStorage.setItem(DEMO_MUSE_KEY, JSON.stringify([newSave, ...existing]));
+      return { ok: true, save_id: newSave.id, image_url: url };
+    } catch { /* ignore */ }
+    return { ok: true };
+  }
+  if (USE_MOCKS) return { ok: true };
+  return apiPost<MuseUploadResponse>('/api/v2/couple/muse/add-url', {
+    url,
+    caption: caption || undefined,
+  });
+}
