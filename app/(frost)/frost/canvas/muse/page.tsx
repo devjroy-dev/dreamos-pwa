@@ -3,7 +3,7 @@
 // app/(frost)/canvas/muse/page.tsx
 // Muse canvas — wired to real backend. Zero design changes.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';

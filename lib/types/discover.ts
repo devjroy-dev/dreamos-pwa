@@ -35,7 +35,7 @@ export interface MuseSave {
   id:                    string;
   save_number:           number;
   image_url:             string | null;
-  source_type:           'vendor' | 'photo' | 'link';
+  source_type:           'vendor' | 'photo' | 'link' | 'image';
   vendor_id:             string | null;
   vendor_name:           string | null;
   vendor_city:           string | null;

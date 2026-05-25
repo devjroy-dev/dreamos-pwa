@@ -47,6 +47,7 @@ export default function VendorPinPage() {
       }
     } catch {}
     pinRefs.current[0]?.focus();
+    })();
   }, []);
 
   // Fetch live cover photos
