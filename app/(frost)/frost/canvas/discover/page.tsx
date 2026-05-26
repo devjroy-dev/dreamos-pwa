@@ -120,32 +120,36 @@ function AccordionSection({ label, hasValue, children }: {
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}>
+    <div style={{ borderBottom: `1px solid rgba(239,233,221,0.10)` }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 24px', background: 'none', border: 'none',
+          padding: '18px 24px', background: 'none', border: 'none',
           cursor: 'pointer', touchAction: 'manipulation',
         }}
       >
         <span style={{
-          fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
-          letterSpacing: '0.28em', textTransform: 'uppercase' as const,
-          color: hasValue ? 'rgba(201,168,76,0.9)' : 'rgba(248,247,245,0.45)',
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          fontSize: 9, fontWeight: 300,
+          letterSpacing: '0.32em', textTransform: 'uppercase' as const,
+          color: hasValue ? '#D89854' : 'rgba(239,233,221,0.45)',
         }}>
-          {label}{hasValue ? ' ·' : ''}
+          {label}
+          {hasValue && <span style={{ color: '#D89854', marginLeft: 6 }}>·</span>}
         </span>
         <span style={{
-          color: 'rgba(248,247,245,0.35)', fontSize: 14,
+          color: open ? '#D89854' : 'rgba(239,233,221,0.32)',
+          fontSize: 12,
           transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: 'transform 200ms ease', display: 'inline-block',
-          fontFamily: "'Jost',sans-serif",
+          transition: 'transform 200ms ease, color 200ms ease',
+          display: 'inline-block',
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
         }}>›</span>
       </button>
       {open && (
-        <div style={{ padding: '0 24px 20px' }}>
+        <div style={{ padding: '0 24px 24px' }}>
           {children}
         </div>
       )}
@@ -164,45 +168,88 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
   useEffect(() => { if (visible) setLocal(filters); }, [visible, filters]);
   if (!visible) return null;
 
-  const pill = (active: boolean) => ({
-    padding: '7px 14px', borderRadius: 20,
-    border: active ? '0.5px solid rgba(201,168,76,0.75)' : '0.5px solid rgba(255,255,255,0.15)',
-    background: active ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.06)',
-    fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300,
-    letterSpacing: '0.12em',
-    color: active ? 'rgba(201,168,76,0.95)' : 'rgba(248,247,245,0.65)',
+  // Aubade pill — square corners, saffron active state
+  const pill = (active: boolean): React.CSSProperties => ({
+    padding: '8px 16px',
+    borderRadius: 2,
+    border: active
+      ? '1px solid rgba(216,152,84,0.75)'
+      : '1px solid rgba(239,233,221,0.16)',
+    background: active
+      ? 'rgba(216,152,84,0.14)'
+      : 'rgba(239,233,221,0.04)',
+    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+    fontSize: 9, fontWeight: 300,
+    letterSpacing: '0.18em', textTransform: 'uppercase' as const,
+    color: active ? '#D89854' : 'rgba(239,233,221,0.62)',
     cursor: 'pointer', whiteSpace: 'nowrap' as const,
     touchAction: 'manipulation' as const,
+    transition: 'all 200ms ease',
   });
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={onClose}>
-      <div style={{ position: 'absolute', inset: 0, ...GLASS.scrim, pointerEvents: 'none' }} />
+      {/* Dark scrim — lighter, photo still visible at top */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(3,3,5,0.55)', pointerEvents: 'none' }} />
+
       <div
         style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          ...GLASS.sheet,
-          borderRadius: '20px 20px 0 0',
+          background: 'rgba(10,9,11,0.92)',
+          backdropFilter: 'blur(28px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(28px) saturate(1.3)',
+          borderTop: '1px solid rgba(239,233,221,0.14)',
+          borderRadius: '0 0 0 0',
           paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
           maxHeight: '85vh', overflowY: 'auto', scrollbarWidth: 'none' as const,
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '14px 0 6px' }}>
+          <div style={{ width: 32, height: 3, borderRadius: 2, background: 'rgba(239,233,221,0.18)' }} />
         </div>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 24px 4px' }}>
-          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, color: '#F8F7F5', letterSpacing: '-0.01em' }}>
-            {isBlind ? 'Category' : 'Filters'}
-          </span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(248,247,245,0.4)', padding: 4 }}>
-            <X size={18} strokeWidth={1.5} />
+
+        {/* Header — Aubade: mono eyebrow + Fraunces title */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 24px 20px',
+          borderBottom: '1px solid rgba(239,233,221,0.10)',
+        }}>
+          <div>
+            <div style={{
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 8.5, fontWeight: 300,
+              letterSpacing: '0.32em', textTransform: 'uppercase',
+              color: 'rgba(239,233,221,0.40)',
+              marginBottom: 6,
+            }}>
+              {isBlind ? 'Select category' : 'Refine the catalogue'}
+            </div>
+            <div style={{
+              fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
+              fontStyle: 'italic', fontWeight: 300,
+              fontSize: 28, letterSpacing: '-0.02em',
+              color: '#EFE9DD',
+              fontFeatureSettings: '"opsz" 9',
+            }}>
+              {isBlind ? 'Category' : 'Filters'}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'rgba(239,233,221,0.35)', padding: 4,
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 14, lineHeight: 1,
+            }}
+          >
+            ×
           </button>
         </div>
 
-        {/* Category — always shown, first */}
+        {/* Category */}
         <AccordionSection label="Category" hasValue={!!local.category}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {CATEGORIES.map(c => (
@@ -214,7 +261,6 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
           </div>
         </AccordionSection>
 
-        {/* Rest only shown in normal (non-blind) mode */}
         {!isBlind && (
           <>
             <AccordionSection label="Mode" hasValue={!!local.mode}>
@@ -263,15 +309,38 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
           </>
         )}
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 12, padding: '24px 24px 0' }}>
+        {/* Actions — Aubade glass */}
+        <div style={{ display: 'flex', gap: 10, padding: '28px 24px 0' }}>
           <button
-            onClick={() => { const e = { category:null,city:null,vibes:[],budget:null,mode:null }; setLocal(e); onApply(e); onClose(); }}
-            style={{ flex: 1, padding: '13px 0', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.2)', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: 'rgba(248,247,245,0.45)', cursor: 'pointer', touchAction: 'manipulation' as const }}
+            onClick={() => {
+              const e = { category:null, city:null, vibes:[], budget:null, mode:null };
+              setLocal(e); onApply(e); onClose();
+            }}
+            style={{
+              flex: 1, padding: '14px 0',
+              background: 'transparent',
+              border: '1px solid rgba(239,233,221,0.18)',
+              borderRadius: 2,
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 9, fontWeight: 300,
+              letterSpacing: '0.28em', textTransform: 'uppercase' as const,
+              color: 'rgba(239,233,221,0.40)',
+              cursor: 'pointer', touchAction: 'manipulation' as const,
+            }}
           >Clear</button>
           <button
             onClick={() => { onApply(local); onClose(); }}
-            style={{ flex: 2, padding: '13px 0', background: '#C9A84C', border: 'none', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#0C0A09', cursor: 'pointer', touchAction: 'manipulation' as const }}
+            style={{
+              flex: 2, padding: '14px 0',
+              background: 'rgba(216,152,84,0.18)',
+              border: '1px solid rgba(216,152,84,0.55)',
+              borderRadius: 2,
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 9, fontWeight: 300,
+              letterSpacing: '0.28em', textTransform: 'uppercase' as const,
+              color: '#D89854',
+              cursor: 'pointer', touchAction: 'manipulation' as const,
+            }}
           >Apply</button>
         </div>
       </div>
@@ -333,7 +402,7 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
       </div>
 
       {circleToast && (
-        <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', ...GLASS.pill, borderRadius: 20, padding: '6px 16px', fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300, color: 'rgba(248,247,245,0.8)', whiteSpace: 'nowrap', zIndex: 30 }}>
+        <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', background: 'rgba(10,9,11,0.85)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(239,233,221,0.18)', borderRadius: 2, padding: '8px 16px', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(239,233,221,0.8)', whiteSpace: 'nowrap', zIndex: 30 }}>
           Add someone to your Circle first
         </div>
       )}
@@ -853,7 +922,7 @@ function DiscoveryFeedContent({
 
         {/* Gesture compass — four edge marks */}
         {!isBlind && (
-          <div style={{ position: 'absolute', inset: '130px 14px 100px 14px', zIndex: 4, pointerEvents: 'none', opacity: 0.55 }}>
+          <div style={{ position: 'absolute', inset: '100px 14px 80px 14px', zIndex: 4, pointerEvents: 'none', opacity: 0.55 }}>
             <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
               <span style={{ fontSize: 10 }}>↑</span>
               <span>Next plate</span>
