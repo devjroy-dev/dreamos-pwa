@@ -1,15 +1,15 @@
 'use client';
 
 // app/(frost)/frost/canvas/dream/page.tsx
-// Dream canvas — full DreamAi conversation thread wired to brideEngine via SSE.
-// Full-bleed page. Dark gradient background. Frosted compose bar.
-// B-6: replaces mockReply with real streamBrideChat.
+// Dream Ai — V4 reskin. Same SSE logic, same engine wiring.
+// Styled to match Sanctuary V4: Wine Night / Sky Ivory tokens,
+// Italianno greeting, Fraunces prose, dark panel aesthetic.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send } from 'lucide-react';
 import { useFrostMode } from '../../../layout';
-import { FROST_SURFACE, FF, SP, FR, FROST_COPY, EASE } from '../../../../../lib/frost/tokens';
+import { FROST_COPY, EASE } from '../../../../../lib/frost/tokens';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 
 interface UIMsg {
@@ -30,15 +30,34 @@ const PROMPTS = [
   'How much have I spent so far?',
 ];
 
+const CSS = `
+@keyframes dreamPulse{0%,80%,100%{opacity:.35}40%{opacity:1}}
+@keyframes dreamCursor{0%,100%{opacity:1}50%{opacity:0}}
+.dream-cursor{animation:dreamCursor 1s ease-in-out infinite;}
+.dream-scroll::-webkit-scrollbar{display:none;}
+.dream-scroll{-ms-overflow-style:none;scrollbar-width:none;}
+`;
+
 export default function CanvasDream() {
   const router = useRouter();
-  const { mode } = useFrostMode();
+  const { homeMode } = useFrostMode();
+  const dark = homeMode === 'E1A';
+
   const [messages, setMessages] = useState<UIMsg[]>([]);
-  const [input, setInput]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [input,    setInput]    = useState('');
+  const [loading,  setLoading]  = useState(false);
   const scrollRef  = useRef<HTMLDivElement>(null);
   const textRef    = useRef<HTMLTextAreaElement>(null);
   const cancelRef  = useRef<(() => void) | null>(null);
+
+  // Inject CSS once
+  useEffect(() => {
+    if (!document.getElementById('dream-v4-css')) {
+      const s = document.createElement('style');
+      s.id = 'dream-v4-css'; s.textContent = CSS;
+      document.head.appendChild(s);
+    }
+  }, []);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -54,31 +73,25 @@ export default function CanvasDream() {
     textRef.current.style.height = Math.min(textRef.current.scrollHeight, 120) + 'px';
   }, [input]);
 
-  // Cancel in-flight stream on unmount
+  // Cancel stream on unmount
   useEffect(() => () => { cancelRef.current?.(); }, []);
 
   const send = useCallback(async (text: string) => {
     const msg = text.trim();
     if (!msg || loading) return;
-
     setInput('');
     setMessages(prev => [...prev, { id: uid(), role: 'user', content: msg }]);
     setLoading(true);
-
     const aiId = uid();
     setMessages(prev => [...prev, { id: aiId, role: 'assistant', content: '', pending: true }]);
 
     const cancel = streamBrideChat(
       msg,
-      // onDelta — append each word chunk
       (delta) => {
         setMessages(prev => prev.map(m =>
-          m.id === aiId
-            ? { ...m, content: m.content + delta, pending: false }
-            : m
+          m.id === aiId ? { ...m, content: m.content + delta, pending: false } : m
         ));
       },
-      // onDone
       () => {
         setMessages(prev => prev.map(m =>
           m.id === aiId ? { ...m, pending: false } : m
@@ -86,79 +99,215 @@ export default function CanvasDream() {
         setLoading(false);
         cancelRef.current = null;
       },
-      // onError
       (err) => {
         console.error('[dream canvas] stream error:', err);
         setMessages(prev => prev.map(m =>
           m.id === aiId
-            ? { ...m, content: 'I had trouble with that. Try again.', error: true, pending: false }
+            ? { ...m, content: 'Something went wrong. Try again.', error: true, pending: false }
             : m
         ));
         setLoading(false);
         cancelRef.current = null;
       },
     );
-
     cancelRef.current = cancel;
   }, [loading]);
 
-  const bg = `linear-gradient(to bottom, ${mode.dreamGradient[0]}, ${mode.dreamGradient[1]})`;
+  // ── Tokens — exact from V4 sanctuary ─────────────────────────────────────
+  const bg = dark
+    ? `radial-gradient(ellipse 110% 60% at 50% -8%,rgba(196,133,106,.14) 0%,transparent 58%),linear-gradient(180deg,#14080C 0%,#0C0405 100%)`
+    : `radial-gradient(ellipse 110% 60% at 50% -8%,rgba(168,196,216,.25) 0%,transparent 58%),linear-gradient(180deg,#F0EEE8 0%,#DDD9D0 100%)`;
+
+  const topBarBg     = dark ? 'rgba(20,8,12,.80)'  : 'rgba(240,238,232,.88)';
+  const topBarBorder = dark ? 'rgba(196,133,106,.16)' : 'rgba(42,95,130,.16)';
+  const accent       = dark ? '#C4856A' : '#2A5F82';
+  const ink          = dark ? '#F5E5DC' : '#0A1628';
+  const inkSoft      = dark ? 'rgba(245,229,220,.65)' : 'rgba(10,22,40,.60)';
+  const inkMute      = dark ? 'rgba(196,133,106,.42)' : 'rgba(10,22,40,.45)';
+  const line         = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.14)';
+
+  // User bubble — accent colored, warm
+  const userBubbleBg  = accent;
+  const userBubbleTxt = dark ? '#1A0810' : '#FFFFFF';
+
+  // AI bubble — glass surface
+  const aiBubbleBg  = dark ? 'rgba(196,133,106,.08)' : 'rgba(42,95,130,.06)';
+  const aiBubbleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.18)';
+
+  // Compose bar
+  const composeBg  = dark ? 'rgba(20,8,12,.85)' : 'rgba(240,238,232,.90)';
+  const inputBg    = dark ? 'rgba(196,133,106,.06)' : 'rgba(42,95,130,.05)';
+  const inputBdr   = dark ? 'rgba(196,133,106,.22)' : 'rgba(42,95,130,.22)';
+  const sendActive = accent;
+  const sendInk    = dark ? '#1A0810' : '#FFFFFF';
+
+  // Prompt chip
+  const chipBg  = dark ? 'rgba(196,133,106,.06)' : 'rgba(42,95,130,.05)';
+  const chipBdr = dark ? 'rgba(196,133,106,.20)' : 'rgba(42,95,130,.20)';
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: bg, display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
+    <div style={{
+      position:'fixed', inset:0, background:bg,
+      display:'flex', flexDirection:'column',
+      userSelect:'none', WebkitUserSelect:'none' as any,
+    }}>
 
-      {/* Top bar */}
+      {/* Grain */}
+      <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,
+        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+        backgroundSize:'160px', opacity:dark?.4:.2,
+      }}/>
+
+      {/* ── Top bar ── */}
       <div style={{
-        ...FROST_SURFACE.composer,
-        paddingTop: 'calc(env(safe-area-inset-top,0px) + 12px)',
-        paddingBottom: 12, paddingLeft: 16, paddingRight: 16,
-        display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+        position:'relative', zIndex:10,
+        background:topBarBg,
+        backdropFilter:'blur(22px) saturate(1.1)',
+        WebkitBackdropFilter:'blur(22px) saturate(1.1)',
+        borderBottom:`0.5px solid ${topBarBorder}`,
+        paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',
+        paddingBottom:12, paddingLeft:18, paddingRight:18,
+        display:'flex', alignItems:'center',
+        flexShrink:0,
       }}>
-        <button onClick={() => router.push('/frost/canvas/sanctuary')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          Dream
+        {/* Back */}
+        <button
+          onClick={() => router.push('/frost/canvas/sanctuary')}
+          style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,padding:0,
+            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Sanctuary
         </button>
-        <div style={{ flex: 1, textAlign: 'center', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: mode.brass }}>✦ AI</div>
-        <button onClick={() => { cancelRef.current?.(); setMessages([]); setLoading(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>Clear</button>
+
+        {/* Title */}
+        <div style={{flex:1,textAlign:'center',
+          fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+          fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
+          Dream Ai
+        </div>
+
+        {/* Clear */}
+        <button
+          onClick={() => { cancelRef.current?.(); setMessages([]); setLoading(false); }}
+          style={{background:'none',border:'none',cursor:'pointer',padding:0,
+            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+            textTransform:'uppercase' as any,color:inkMute}}
+        >
+          Clear
+        </button>
       </div>
 
-      {/* Messages */}
-      <div ref={scrollRef} className="frost-scroll" style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: `${SP.xl}px ${SP.xl}px` }}>
+      {/* ── Messages ── */}
+      <div ref={scrollRef} className="dream-scroll" style={{
+        flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch' as any,
+        padding:'20px 18px',
+        position:'relative', zIndex:1,
+      }}>
         {messages.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: SP.xl }}>
+          // Empty state — "Tell me what's on your mind"
+          <div style={{display:'flex',flexDirection:'column',gap:24,paddingTop:8}}>
             <div>
-              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 26, color: mode.ink, lineHeight: 1.3 }}>What do you want to know?</div>
-              <div style={{ fontFamily: FF.body, fontSize: 13, color: mode.soft, marginTop: 8, lineHeight: 1.6 }}>I know your timeline, vendors, Muse board, and Circle.</div>
+              <div style={{
+                fontFamily:"'Italianno',cursive",
+                fontSize:48,lineHeight:.95,color:ink,marginBottom:8,
+              }}>
+                Tell me what's<br/>on your mind.
+              </div>
+              <div style={{
+                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+                fontSize:14,color:inkSoft,lineHeight:1.65,
+                fontFeatureSettings:'"opsz" 9',
+              }}>
+                I know your timeline, vendors,<br/>Muse board, and Circle.
+              </div>
             </div>
+
+            {/* Prompt chips */}
             <div>
-              <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.25em', textTransform: 'uppercase', color: mode.brassMuted, marginBottom: 10 }}>Try asking</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{
+                fontFamily:"'JetBrains Mono',monospace",fontSize:8,
+                letterSpacing:'.28em',textTransform:'uppercase' as any,
+                color:inkMute,marginBottom:12,
+              }}>
+                Try asking
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
                 {PROMPTS.map(p => (
-                  <button key={p} onClick={() => send(p)}
-                    style={{ textAlign: 'left', ...FROST_SURFACE.button, border: `0.5px solid ${mode.hairline}`, borderRadius: FR.md, padding: '12px 14px', fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.ink, cursor: 'pointer', background: FROST_SURFACE.button.background }}>
-                    {`"${p}"`}
+                  <button key={p} onClick={() => send(p)} style={{
+                    textAlign:'left',
+                    background:chipBg,
+                    border:`0.5px solid ${chipBdr}`,
+                    borderRadius:8,
+                    padding:'12px 14px',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+                    fontSize:14,color:ink,cursor:'pointer',
+                    fontFeatureSettings:'"opsz" 9',
+                    backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',
+                  }}>
+                    "{p}"
                   </button>
                 ))}
               </div>
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          // Message thread
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
             {messages.map(m => (
-              <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div key={m.id} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}>
                 {m.role === 'user' ? (
-                  <div style={{ maxWidth: '85%', background: mode.brass, color: '#1B1612', padding: '10px 14px', borderRadius: '20px 20px 4px 20px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.5 }}>
+                  // Her message — accent bubble
+                  <div style={{
+                    maxWidth:'82%',
+                    background:userBubbleBg,
+                    color:userBubbleTxt,
+                    padding:'10px 14px',
+                    borderRadius:'20px 20px 4px 20px',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+                    fontSize:15,lineHeight:1.55,
+                    fontFeatureSettings:'"opsz" 9',
+                    userSelect:'text',
+                  }}>
                     {m.content}
                   </div>
                 ) : m.pending && m.content === '' ? (
-                  <div style={{ ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 13, color: mode.soft, background: FROST_SURFACE.button.background }}>
-                    <span style={{ animation: 'fbPulse 1.4s infinite ease-in-out' }}>✦ thinking</span>
-                    <style>{`@keyframes fbPulse{0%,80%,100%{opacity:.4}40%{opacity:1}}`}</style>
+                  // Thinking state
+                  <div style={{
+                    background:aiBubbleBg,
+                    border:`0.5px solid ${aiBubbleBdr}`,
+                    padding:'10px 16px',
+                    borderRadius:'20px 20px 20px 4px',
+                    backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',
+                  }}>
+                    <span style={{
+                      fontFamily:"'JetBrains Mono',monospace",fontSize:9,
+                      letterSpacing:'.22em',textTransform:'uppercase' as any,
+                      color:accent,animation:'dreamPulse 1.4s infinite ease-in-out',
+                    }}>
+                      ✦ thinking
+                    </span>
                   </div>
                 ) : (
-                  <div style={{ maxWidth: '90%', ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.6, color: m.error ? '#B8453E' : mode.ink, whiteSpace: 'pre-wrap', background: FROST_SURFACE.button.background }}>
+                  // AI reply — glass bubble
+                  <div style={{
+                    maxWidth:'90%',
+                    background:aiBubbleBg,
+                    border:`0.5px solid ${aiBubbleBdr}`,
+                    padding:'12px 16px',
+                    borderRadius:'20px 20px 20px 4px',
+                    backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+                    fontSize:15,lineHeight:1.65,
+                    color:m.error ? '#C4534A' : ink,
+                    whiteSpace:'pre-wrap',
+                    fontFeatureSettings:'"opsz" 9',
+                    userSelect:'text',
+                  }}>
                     {m.content}
-                    {m.pending && <span style={{ opacity: 0.5 }}>▌</span>}
+                    {m.pending && <span className="dream-cursor" style={{opacity:.5,color:accent}}>▌</span>}
                   </div>
                 )}
               </div>
@@ -167,25 +316,58 @@ export default function CanvasDream() {
         )}
       </div>
 
-      {/* Compose bar */}
-      <div style={{ padding: `12px 16px calc(12px + env(safe-area-inset-bottom,0px))`, ...FROST_SURFACE.composer, borderTop: `0.5px solid ${mode.hairlineStrong}`, flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', ...FROST_SURFACE.button, borderRadius: 20, padding: '8px 10px 8px 14px', background: FROST_SURFACE.button.background }}>
+      {/* ── Compose bar ── */}
+      <div style={{
+        position:'relative', zIndex:10,
+        background:composeBg,
+        backdropFilter:'blur(22px) saturate(1.1)',
+        WebkitBackdropFilter:'blur(22px) saturate(1.1)',
+        borderTop:`0.5px solid ${line}`,
+        padding:`12px 18px calc(12px + env(safe-area-inset-bottom,0px))`,
+        flexShrink:0,
+      }}>
+        <div style={{
+          display:'flex', gap:10, alignItems:'flex-end',
+          background:inputBg,
+          border:`0.5px solid ${inputBdr}`,
+          borderRadius:20,
+          padding:'8px 10px 8px 16px',
+        }}>
           <textarea
             ref={textRef}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
+            onKeyDown={e => { if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); send(input); } }}
             placeholder={FROST_COPY.dreamCanvas.inputPlaceholder}
             disabled={loading}
             rows={1}
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: mode.ink, fontFamily: FF.body, fontSize: 14, resize: 'none', maxHeight: 120, lineHeight: 1.5, userSelect: 'text' }}
+            style={{
+              flex:1, background:'transparent', border:'none', outline:'none',
+              color:ink,
+              fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+              fontSize:15,lineHeight:1.5,
+              resize:'none',maxHeight:120,
+              fontFeatureSettings:'"opsz" 9',
+              userSelect:'text',
+              WebkitUserSelect:'text',
+              '::placeholder': { color: inkMute } as any,
+            }}
           />
           <button
             onClick={() => send(input)}
             disabled={loading || !input.trim()}
-            style={{ background: input.trim() && !loading ? mode.brass : 'rgba(255,255,255,0.1)', color: input.trim() && !loading ? '#1B1612' : mode.soft, border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'default', transition: `background 180ms ${EASE}`, flexShrink: 0 }}
+            style={{
+              background: input.trim() && !loading ? sendActive : 'rgba(128,128,128,.12)',
+              color: input.trim() && !loading ? sendInk : inkMute,
+              border:'none', borderRadius:'50%',
+              width:34, height:34,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              cursor: input.trim() && !loading ? 'pointer' : 'default',
+              transition:`background 200ms ${EASE}`,
+              flexShrink:0,
+            }}
           >
-            <Send size={14} strokeWidth={1.5} />
+            <Send size={14} strokeWidth={1.5}/>
           </button>
         </div>
       </div>
