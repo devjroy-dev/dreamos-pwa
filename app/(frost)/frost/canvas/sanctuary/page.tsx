@@ -293,14 +293,13 @@ export default function SanctuaryPage() {
             animationDelay:`${idx*16}ms`,
           }}>
             <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:journeyOpen?13:17,lineHeight:1,flexShrink:0,
-              // In Sky Ivory, slice text must be WHITE over the dark panel
-              color: slice.premium ? accent : (dark ? sliceTxt : '#FFFFFF'),
+              color: dark ? sliceTxt : '#FFFFFF',
               fontFeatureSettings:'"opsz" 9',transition:`font-size 480ms ${EASE}`}}>
               {slice.label}
             </span>
             {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
             <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,
-              color: slice.premium ? accent : (dark ? hintTxt : 'rgba(255,255,255,.55)'),
+              color: dark ? hintTxt : 'rgba(255,255,255,.55)',
               marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:150}}>
               {slice.hint}
             </span>
