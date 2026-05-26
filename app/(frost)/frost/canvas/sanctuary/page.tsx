@@ -95,6 +95,238 @@ const DREAM_PROMPTS=[
 ];
 
 // ── Root component ────────────────────────────────────────────────────────────
+
+// ── MOOD DATA ─────────────────────────────────────────────────────────────────
+const MOODS = [
+  { key:'hopeful',          label:'Hopeful',         color:'#D4956A' },
+  { key:'heavy',            label:'Heavy',            color:'#6B7FA8' },
+  { key:'tender',           label:'Tender',           color:'#D4848A' },
+  { key:'tired',            label:'Tired',            color:'#8A9DB5' },
+  { key:'angry',            label:'Angry',            color:'#C45A4A' },
+  { key:'still',            label:'Still',            color:'#E8E0D0' },
+  { key:'missing-someone',  label:'Missing Someone',  color:'#9B8DC4' },
+  { key:'proud',            label:'Proud',            color:'#C4A83A' },
+  { key:'doubting',         label:'Doubting',         color:'#7A8A8A' },
+  { key:'peaceful',         label:'Peaceful',         color:'#5A9E7A' },
+  { key:'overwhelmed',      label:'Overwhelmed',      color:'#C4784A' },
+  { key:'in-between',       label:'In Between',       color:'#B8B0C0' },
+];
+
+interface PageEntry { id:string; entry_date:string; mood:string; mood_color:string; body:string; created_at:string; }
+
+interface PagesRoomProps {
+  dark:boolean; accent:string; signal:string;
+  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
+}
+
+type PagesView = 'list' | 'picker' | 'writing';
+
+function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: PagesRoomProps) {
+  const [view,         setView]         = React.useState<PagesView>('list');
+  const [entries,      setEntries]      = React.useState<PageEntry[]>([]);
+  const [loading,      setLoading]      = React.useState(true);
+  const [selectedMood, setSelectedMood] = React.useState<typeof MOODS[0]|null>(null);
+  const [body,         setBody]         = React.useState('');
+  const [saving,       setSaving]       = React.useState(false);
+  const textRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Load entries
+  React.useEffect(()=>{
+    const load = async () => {
+      try {
+        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+        if(!raw) return;
+        const s = JSON.parse(raw);
+        const coupleId = s?.coupleId||s?.id;
+        const token = s?.token||s?.access_token;
+        if(!coupleId||!token) return;
+        const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+        const res = await fetch(`${API}/api/v2/couple/pages/${coupleId}?limit=50`,{headers:{Authorization:`Bearer ${token}`}});
+        if(!res.ok) return;
+        const data = await res.json();
+        setEntries(data.entries||[]);
+      } catch(e){ console.error(e); }
+      finally{ setLoading(false); }
+    };
+    load();
+  },[]);
+
+  // Auto-resize textarea
+  React.useEffect(()=>{
+    if(!textRef.current) return;
+    textRef.current.style.height='auto';
+    textRef.current.style.height=textRef.current.scrollHeight+'px';
+  },[body]);
+
+  const saveEntry = async () => {
+    if(!selectedMood||!body.trim()||saving) return;
+    setSaving(true);
+    try {
+      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+      if(!raw) return;
+      const s = JSON.parse(raw);
+      const token = s?.token||s?.access_token;
+      if(!token) return;
+      const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+      const res = await fetch(`${API}/api/v2/couple/pages`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
+        body:JSON.stringify({mood:selectedMood.key,mood_color:selectedMood.color,body:body.trim()}),
+      });
+      if(!res.ok) throw new Error('save failed');
+      const data = await res.json();
+      setEntries(prev=>[data.entry,...prev]);
+      setView('list');
+      setSelectedMood(null);
+      setBody('');
+    } catch(e){ console.error(e); }
+    finally{ setSaving(false); }
+  };
+
+  const line2 = dark ? 'rgba(196,133,106,.10)' : 'rgba(42,95,130,.10)';
+  const writingSurface = selectedMood
+    ? `${selectedMood.color}10`  // very subtle mood tint behind writing
+    : 'transparent';
+
+  // ── LIST VIEW ──
+  if(view==='list') return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+      {/* Poetry line at top */}
+      <div style={{padding:'18px 20px 12px',borderBottom:`0.5px solid ${roomLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:accent,lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>
+          "Everything you love about flowers<br/>is also true of weddings."
+        </div>
+      </div>
+
+      {/* Entry list */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading?(
+          <div style={{padding:32,textAlign:'center',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:roomInkMute}}>loading…</div>
+        ):entries.length===0?(
+          <div style={{padding:'48px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:48,color:accent,lineHeight:1}}>Today</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:roomInkMute,textAlign:'center' as any}}>Tap to begin today's page</div>
+          </div>
+        ):(
+          <div>
+            {entries.map((entry,i)=>{
+              const mood = MOODS.find(m=>m.key===entry.mood);
+              const d = new Date(entry.created_at);
+              const dateStr = d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+              return(
+                <div key={entry.id} style={{padding:'16px 20px',borderBottom:`0.5px solid ${line2}`,display:'flex',flexDirection:'column',gap:8}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{width:8,height:8,borderRadius:'50%',background:mood?.color||entry.mood_color,flexShrink:0,boxShadow:`0 0 6px ${mood?.color||entry.mood_color}60`}}/>
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>{mood?.label||entry.mood}</span>
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',color:roomInkMute,marginLeft:'auto'}}>{dateStr}</span>
+                  </div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:roomInk,lineHeight:1.65,fontFeatureSettings:'"opsz" 9',borderLeft:`1.5px solid ${mood?.color||entry.mood_color}60`,paddingLeft:12}}>
+                    {entry.body}
+                  </div>
+                </div>
+              );
+            })}
+            {/* Today entry CTA at bottom */}
+            <div style={{padding:'24px 20px',textAlign:'center' as any}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkMute,fontFeatureSettings:'"opsz" 9'}}>another page?</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Add today's page CTA */}
+      <div onClick={()=>setView('picker')} style={{flexShrink:0,borderTop:`0.5px solid ${roomLine}`,padding:'14px 20px',cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:28,color:accent,lineHeight:1}}>How are you feeling?</div>
+      </div>
+    </div>
+  );
+
+  // ── MOOD PICKER VIEW ──
+  if(view==='picker') return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+      {/* Date */}
+      <div style={{padding:'24px 20px 8px',flexShrink:0}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:roomInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+          {new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}
+        </div>
+      </div>
+
+      {/* 12 emotion dots — exactly as in the screenshots, unchanged */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'16px 20px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'24px 16px'}}>
+          {MOODS.map(mood=>(
+            <div key={mood.key} onClick={()=>{setSelectedMood(mood);setView('writing');}}
+              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+              <div style={{
+                width:52,height:52,borderRadius:'50%',
+                background:mood.color,
+                boxShadow:`0 0 0 ${selectedMood?.key===mood.key?'3px':'0px'} ${mood.color}`,
+                transition:'box-shadow 200ms ease',
+              }}/>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute,textAlign:'center' as any,lineHeight:1.3}}>
+                {mood.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── WRITING VIEW ──
+  return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:writingSurface}}>
+      {/* Mood indicator + action bar */}
+      <div style={{padding:'12px 20px',borderBottom:`0.5px solid ${roomLine}`,display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
+        <span style={{width:8,height:8,borderRadius:'50%',background:selectedMood?.color,boxShadow:`0 0 8px ${selectedMood?.color}80`,flexShrink:0}}/>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:selectedMood?.color}}>{selectedMood?.label}</span>
+        <div style={{marginLeft:'auto',display:'flex',gap:16}}>
+          <button onClick={()=>{setSelectedMood(null);setView('picker');}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute,padding:0}}>← back</button>
+          <button onClick={saveEntry} disabled={!body.trim()||saving}
+            style={{background:body.trim()&&!saving?accent:'transparent',color:body.trim()&&!saving?(dark?'#1A0810':'#FFFFFF'):roomInkMute,border:`0.5px solid ${body.trim()&&!saving?accent:roomInkMute}`,borderRadius:2,padding:'4px 12px',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,cursor:body.trim()&&!saving?'pointer':'default',transition:'all 200ms ease'}}>
+            {saving?'saving…':'save →'}
+          </button>
+        </div>
+      </div>
+
+      {/* Date */}
+      <div style={{padding:'16px 20px 8px',flexShrink:0}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkMute,fontFeatureSettings:'"opsz" 9'}}>
+          {new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}
+        </div>
+      </div>
+
+      {/* Left margin rule + writing area */}
+      <div style={{flex:1,display:'flex',overflowY:'auto'}} className="no-scroll">
+        {/* Left rule — the diary margin */}
+        <div style={{width:1,background:`${selectedMood?.color}40`,flexShrink:0,margin:'0 0 0 20px'}}/>
+        <div style={{flex:1,padding:'8px 20px 24px 14px'}}>
+          <textarea
+            ref={textRef}
+            value={body}
+            onChange={e=>setBody(e.target.value)}
+            placeholder="Write here…"
+            autoFocus
+            style={{
+              width:'100%',
+              minHeight:240,
+              background:'transparent',
+              border:'none',outline:'none',
+              color:roomInk,
+              fontFamily:"'Fraunces',serif",
+              fontStyle:'italic',fontWeight:300,
+              fontSize:17,lineHeight:1.75,
+              resize:'none',
+              fontFeatureSettings:'"opsz" 9',
+              userSelect:'text',WebkitUserSelect:'text' as any,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SanctuaryPage() {
   const { homeMode, setHomeMode } = useFrostMode();
   const dark = homeMode === 'E1A';
@@ -207,23 +439,35 @@ export default function SanctuaryPage() {
   const ghostColor= dark ? '#3A0C18'                 : '#7AAAC8';
   const ghostOp   = dark ? 0.92                      : 0.70;
 
-  // Room background (bloom surface)
-  const roomBg = dark
-    ? `linear-gradient(180deg,#14080C 0%,#0C0405 100%)`
-    : `linear-gradient(180deg,#080608 0%,#040406 100%)`; // always dark inside rooms
+  // Room backgrounds — match the mode. Same house, different rooms.
+  // Exception: Discover + Muse + Moments = always dark (photo galleries)
+  const isPhotoRoom = activeRoom==='discover'||activeRoom==='muse'||activeRoom==='moments';
 
-  const roomTopBg   = dark ? 'rgba(20,8,12,.88)' : 'rgba(8,6,10,.92)';
-  const roomInk     = dark ? '#F5E5DC' : '#F0EDE8';
-  const roomInkSoft = dark ? 'rgba(245,229,220,.70)' : 'rgba(240,237,232,.70)';
-  const roomInkMute = dark ? 'rgba(196,133,106,.45)'  : 'rgba(200,180,160,.40)';
-  const roomLine    = dark ? 'rgba(196,133,106,.14)'  : 'rgba(196,133,106,.18)';
-  const aiBubbleBg  = dark ? 'rgba(196,133,106,.08)'  : 'rgba(196,133,106,.10)';
-  const aiBubbleBdr = dark ? 'rgba(196,133,106,.18)'  : 'rgba(196,133,106,.22)';
-  const composeBg   = dark ? 'rgba(12,4,5,.90)'       : 'rgba(8,6,10,.92)';
-  const inputBg     = dark ? 'rgba(196,133,106,.06)'  : 'rgba(196,133,106,.08)';
-  const inputBdr    = dark ? 'rgba(196,133,106,.22)'  : 'rgba(196,133,106,.25)';
-  const chipBg      = dark ? 'rgba(196,133,106,.06)'  : 'rgba(196,133,106,.08)';
-  const chipBdr     = dark ? 'rgba(196,133,106,.20)'  : 'rgba(196,133,106,.24)';
+  const roomBg = isPhotoRoom
+    ? 'linear-gradient(180deg,#080608 0%,#040406 100%)'
+    : dark
+      // Wine Night: deep wine-black gradient with terracotta warmth bleeding top-right, dark plum pooling bottom-left
+      ? `radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.16) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.65) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)`
+      // Sky Ivory: bone-white gradient, slate blue wash top, warm grey-blue pooling bottom
+      : `radial-gradient(ellipse 90% 45% at 60% -5%,rgba(74,122,155,.22) 0%,transparent 52%),radial-gradient(ellipse 70% 50% at 10% 105%,rgba(42,95,130,.14) 0%,transparent 55%),linear-gradient(160deg,#EEF0F4 0%,#E8EAF0 30%,#DFE3EC 65%,#D8DCE8 100%)`;
+
+  const roomTopBg   = isPhotoRoom
+    ? 'rgba(8,6,10,.90)'
+    : dark
+      ? 'rgba(18,6,10,.85)'   // wine-black frosted
+      : 'rgba(238,240,244,.88)'; // slate-tinted bone frosted
+
+  const roomInk     = isPhotoRoom ? '#F0EDE8' : (dark ? '#F5E5DC' : '#0D1E35');
+  const roomInkSoft = isPhotoRoom ? 'rgba(240,237,232,.70)' : (dark ? 'rgba(245,229,220,.78)' : 'rgba(13,30,53,.80)');
+  const roomInkMute = isPhotoRoom ? 'rgba(200,180,160,.40)' : (dark ? 'rgba(196,133,106,.48)' : 'rgba(42,95,130,.55)');
+  const roomLine    = isPhotoRoom ? 'rgba(196,133,106,.16)' : (dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.16)');
+  const aiBubbleBg  = dark ? 'rgba(196,133,106,.08)'  : 'rgba(42,95,130,.06)';
+  const aiBubbleBdr = dark ? 'rgba(196,133,106,.18)'  : 'rgba(42,95,130,.16)';
+  const composeBg   = dark ? 'rgba(12,4,5,.90)'       : 'rgba(240,238,232,.90)';
+  const inputBg     = dark ? 'rgba(196,133,106,.06)'  : 'rgba(42,95,130,.05)';
+  const inputBdr    = dark ? 'rgba(196,133,106,.22)'  : 'rgba(42,95,130,.20)';
+  const chipBg      = dark ? 'rgba(196,133,106,.06)'  : 'rgba(42,95,130,.05)';
+  const chipBdr     = dark ? 'rgba(196,133,106,.20)'  : 'rgba(42,95,130,.18)';
 
   const dot = arcPoint(progress);
 
@@ -406,8 +650,16 @@ export default function SanctuaryPage() {
               </div>
             </>}
 
-            {/* ── OTHER ROOMS — placeholder until built ── */}
-            {activeRoom!=='dream'&&(
+            {/* ── PAGES — diary with feeling picker ── */}
+            {activeRoom==='pages'&&(
+              <PagesRoom
+                dark={dark} accent={accent} signal={signal}
+                roomInk={roomInk} roomInkSoft={roomInkSoft} roomInkMute={roomInkMute} roomLine={roomLine}
+              />
+            )}
+
+            {/* ── OTHER ROOMS — coming soon ── */}
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {SLICES.find(s=>s.key===activeRoom)?.label}
