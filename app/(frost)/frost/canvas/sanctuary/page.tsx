@@ -68,11 +68,30 @@ function numberToWords(n: number): string {
   return `${TENS[t]}-${ONES[o].toLowerCase()}`;
 }
 
+// Always words. The product is a sentence, not a spreadsheet.
+// Edge: >999 days falls back to numerals (practically never happens).
+function hundredsToWords(n: number): string {
+  if (n < 100) return numberToWords(n);
+  const h = Math.floor(n / 100);
+  const rem = n % 100;
+  const hWord = ONES[h] + ' hundred';
+  if (rem === 0) return hWord;
+  return hWord + ' and ' + numberToWords(rem).toLowerCase();
+}
+
+function daysToWords(n: number): string {
+  if (n < 100)  return numberToWords(n);
+  if (n < 1000) return hundredsToWords(n);
+  return String(n); // >999: numerals only
+}
+
 function progressLine(days: number): string {
-  if (days === 0)  return 'Today.';
-  if (days === 1)  return 'One morning between I will and I do.';
-  if (days < 100)  return `${numberToWords(days)} mornings between I will and I do.`;
-  return `${days} mornings between I will and I do.`;
+  if (days === 0) return 'Today.';
+  if (days === 1) return 'One morning between I will and I do.';
+  const w = daysToWords(days);
+  // Capitalise first letter
+  const capped = w.charAt(0).toUpperCase() + w.slice(1);
+  return `${capped} mornings between I will and I do.`;
 }
 
 // ── Date for the mono footer ─────────────────────────────────────────────
@@ -187,12 +206,15 @@ function Row({
       </span>
 
       {candle && (
-        <span style={{
-          width: 6, height: 6, borderRadius: 3,
-          background: AUBADE.aubade,
-          boxShadow: `0 0 8px ${AUBADE.aubade}`,
-          flexShrink: 0,
-        }} />
+        <span
+          className="frost-candle-dot"
+          style={{
+            width: 6, height: 6, borderRadius: 3,
+            background: AUBADE.aubade,
+            boxShadow: `0 0 8px ${AUBADE.aubade}`,
+            flexShrink: 0,
+          }}
+        />
       )}
 
       <span style={{
@@ -286,6 +308,59 @@ export default function SanctuaryPage() {
     setPLine(progressLine(d));
   }, []);
 
+  // ── Phase 2: inject CSS keyframe animations on mount ─────────────────
+  // We use a style tag because Next.js 'use client' pages don't support
+  // <style jsx global>. The tag is idempotent — won't duplicate on HMR.
+  React.useEffect(() => {
+    const id = 'frost-sanctuary-animations';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+      /* Meridian today-dot + halo heartbeat — 4s cycle */
+      /* 1.5s breath (0→37.5% of 4s), 2.5s stillness (37.5→100%) */
+      @keyframes meridianPulse {
+        0%   { opacity: 0.5; }
+        18%  { opacity: 1.0; }
+        37%  { opacity: 0.5; }
+        100% { opacity: 0.5; }
+      }
+      .frost-meridian-dot {
+        animation: meridianPulse 4s ease-in-out infinite;
+      }
+      .frost-meridian-halo {
+        animation: meridianPulse 4s ease-in-out infinite;
+      }
+
+      /* Numeral breath — 8s scale oscillation */
+      @keyframes numeralBreath {
+        0%   { transform: scale(1.000); }
+        50%  { transform: scale(1.005); }
+        100% { transform: scale(1.000); }
+      }
+      .frost-numeral-breath {
+        animation: numeralBreath 8s ease-in-out infinite;
+        transform-origin: center center;
+      }
+
+      /* Candle flicker — irregular 6s pattern */
+      @keyframes candleFlicker {
+        0%   { opacity: 0.70; }
+        15%  { opacity: 1.00; }
+        28%  { opacity: 0.85; }
+        45%  { opacity: 1.00; }
+        60%  { opacity: 0.90; }
+        75%  { opacity: 1.00; }
+        88%  { opacity: 0.78; }
+        100% { opacity: 0.70; }
+      }
+      .frost-candle-dot {
+        animation: candleFlicker 6s ease-in-out infinite;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
+
   const go = (path: string) => router.push(path);
 
   const dot = arcPointAt(progress);
@@ -312,17 +387,20 @@ export default function SanctuaryPage() {
         pointerEvents: 'none',
         zIndex: 1,
       }}>
-        <div style={{
-          fontFamily: FF.aubade,
-          fontWeight: 200,
-          fontSize: 280,
-          lineHeight: 0.85,
-          color: AUBADE.nocturneDeep,
-          opacity: 0.5,
-          letterSpacing: '-0.06em',
-          filter: 'blur(4px)',
-          fontFeatureSettings: '"opsz" 144',
-        }}>
+        <div
+          className="frost-numeral-breath"
+          style={{
+            fontFamily: FF.aubade,
+            fontWeight: 200,
+            fontSize: 280,
+            lineHeight: 0.85,
+            color: AUBADE.nocturneDeep,
+            opacity: 0.5,
+            letterSpacing: '-0.06em',
+            filter: 'blur(4px)',
+            fontFeatureSettings: '"opsz" 144',
+          }}
+        >
           {days || 0}
         </div>
       </div>
@@ -370,14 +448,15 @@ export default function SanctuaryPage() {
             fill="none"
             strokeLinecap="round"
           />
-          {/* Today dot — static for Phase 1 */}
+          {/* Today dot — Phase 2: heartbeat via CSS animation */}
           <circle
             cx={dot.x}
             cy={dot.y}
             r="3.5"
             fill={AUBADE.aubade}
+            className="frost-meridian-dot"
           />
-          {/* Halo — static for Phase 1, will heartbeat in Phase 2 */}
+          {/* Halo — Phase 2: pulses with dot */}
           <circle
             cx={dot.x}
             cy={dot.y}
@@ -386,6 +465,7 @@ export default function SanctuaryPage() {
             stroke={AUBADE.aubade}
             strokeWidth="0.5"
             opacity="0.5"
+            className="frost-meridian-halo"
           />
         </svg>
       </div>
