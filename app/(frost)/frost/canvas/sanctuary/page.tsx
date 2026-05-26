@@ -203,7 +203,7 @@ export default function SanctuaryPage() {
           Ghost bleeds through it. Slice text sits on top, fully legible. */}
       <div style={{
         position:'absolute',
-        top: journeyOpen ? '28%' : '46%',
+        top: journeyOpen ? '22%' : '46%',
         left:0,right:0,bottom:0,
         background:bottomPanelBg,
         backdropFilter:'blur(20px) saturate(1.2)',
@@ -284,15 +284,15 @@ export default function SanctuaryPage() {
       <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
         {SLICES.map((slice,idx)=>(
           <div key={slice.key} onClick={()=>go(slice.route)} className="si-a" style={{
-            flex:1,minHeight:journeyOpen?22:34,maxHeight:journeyOpen?34:999,
+            flex:1,
+            minHeight:0,  /* let flex decide — no forced min */
             display:'flex',alignItems:'center',padding:'0 18px',gap:7,
             borderBottom:`.5px solid ${line}`,
             cursor:'pointer',WebkitTapHighlightColor:'transparent',
             background:'transparent',
-            transition:`min-height 480ms ${EASE},max-height 480ms ${EASE}`,
             animationDelay:`${idx*16}ms`,
           }}>
-            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:journeyOpen?13:17,lineHeight:1,flexShrink:0,
+            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,
               color: dark ? sliceTxt : '#FFFFFF',
               fontFeatureSettings:'"opsz" 9',transition:`font-size 480ms ${EASE}`}}>
               {slice.label}
@@ -319,12 +319,12 @@ export default function SanctuaryPage() {
         {journeyOpen&&(
           <div style={{borderTop:`.5px solid ${line}`}}>
             {JOURNEY.map((link,i)=>(
-              <div key={link.label} onClick={()=>go(link.route)} className="si-a" style={{display:'flex',alignItems:'center',padding:'9px 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
+              <div key={link.label} onClick={()=>go(link.route)} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
                 <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:dark?inkSoft:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
                 {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:dark?inkMute:'rgba(255,255,255,.45)'}}>{link.hint}</span>}
               </div>
             ))}
-            <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${JOURNEY.length*28}ms`}}>
+            <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${JOURNEY.length*28}ms`}}>
               <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:dark?inkSoft:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>Mode</span>
               <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:accent}}>
                 {dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span>
