@@ -190,10 +190,14 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 
   // ── LIST VIEW ──
   if(view==='list') return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',
+      background: dark
+        ? 'transparent'
+        : 'linear-gradient(160deg,#EEF0F4 0%,#E4E8F0 40%,#D8DCE8 100%)',
+    }}>
       {/* Poetry line at top */}
       <div style={{padding:'18px 20px 12px',borderBottom:`0.5px solid ${roomLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:accent,lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:dark?accent:'#2A5F82',lineHeight:1.55,fontFeatureSettings:'"opsz" 9',opacity: dark?1:.9}}>
           "Everything you love about flowers<br/>is also true of weddings."
         </div>
       </div>
@@ -220,7 +224,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
                     <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>{mood?.label||entry.mood}</span>
                     <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',color:roomInkMute,marginLeft:'auto'}}>{dateStr}</span>
                   </div>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:roomInk,lineHeight:1.65,fontFeatureSettings:'"opsz" 9',borderLeft:`1.5px solid ${mood?.color||entry.mood_color}60`,paddingLeft:12}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:dark?roomInk:'#0D1E35',lineHeight:1.65,fontFeatureSettings:'"opsz" 9',borderLeft:`1.5px solid ${mood?.color||entry.mood_color}${dark?'60':'90'}`,paddingLeft:12}}>
                     {entry.body}
                   </div>
                 </div>
@@ -243,7 +247,11 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 
   // ── MOOD PICKER VIEW ──
   if(view==='picker') return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',
+      background: dark
+        ? 'transparent'
+        : 'linear-gradient(160deg,#EEF0F4 0%,#E4E8F0 40%,#D8DCE8 100%)',
+    }}>
       {/* Date */}
       <div style={{padding:'24px 20px 8px',flexShrink:0}}>
         <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:roomInkSoft,fontFeatureSettings:'"opsz" 9'}}>
@@ -251,19 +259,29 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
         </div>
       </div>
 
-      {/* 12 emotion dots — exactly as in the screenshots, unchanged */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'16px 20px'}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'24px 16px'}}>
+      {/* 12 emotion dots — editorial, small, centered */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'8px 20px 24px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'20px 12px'}}>
           {MOODS.map(mood=>(
             <div key={mood.key} onClick={()=>{setSelectedMood(mood);setView('writing');}}
-              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:7,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
               <div style={{
-                width:52,height:52,borderRadius:'50%',
+                width:28,height:28,borderRadius:'50%',
                 background:mood.color,
-                boxShadow:`0 0 0 ${selectedMood?.key===mood.key?'3px':'0px'} ${mood.color}`,
-                transition:'box-shadow 200ms ease',
+                opacity: dark ? 0.88 : 0.72,
+                boxShadow: selectedMood?.key===mood.key
+                  ? `0 0 0 2px ${mood.color}, 0 0 12px ${mood.color}60`
+                  : 'none',
+                transition:'box-shadow 180ms ease, opacity 180ms ease',
               }}/>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute,textAlign:'center' as any,lineHeight:1.3}}>
+              <div style={{
+                fontFamily:"'JetBrains Mono',monospace",
+                fontSize:6,letterSpacing:'.14em',
+                textTransform:'uppercase' as any,
+                color:roomInkMute,
+                textAlign:'center' as any,
+                lineHeight:1.3,
+              }}>
                 {mood.label}
               </div>
             </div>
@@ -275,7 +293,11 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 
   // ── WRITING VIEW ──
   return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:writingSurface}}>
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',
+      background: dark
+        ? writingSurface
+        : `linear-gradient(160deg,#EEF0F4 0%,#E4E8F0 40%,#D8DCE8 100%)`,
+    }}>
       {/* Mood indicator + action bar */}
       <div style={{padding:'12px 20px',borderBottom:`0.5px solid ${roomLine}`,display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
         <span style={{width:8,height:8,borderRadius:'50%',background:selectedMood?.color,boxShadow:`0 0 8px ${selectedMood?.color}80`,flexShrink:0}}/>
@@ -299,7 +321,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
       {/* Left margin rule + writing area */}
       <div style={{flex:1,display:'flex',overflowY:'auto'}} className="no-scroll">
         {/* Left rule — the diary margin */}
-        <div style={{width:1,background:`${selectedMood?.color}40`,flexShrink:0,margin:'0 0 0 20px'}}/>
+        <div style={{width:1,background:dark?`${selectedMood?.color}40`:`${selectedMood?.color}60`,flexShrink:0,margin:'0 0 0 20px'}}/>
         <div style={{flex:1,padding:'8px 20px 24px 14px'}}>
           <textarea
             ref={textRef}
@@ -312,7 +334,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
               minHeight:240,
               background:'transparent',
               border:'none',outline:'none',
-              color:roomInk,
+              color: dark ? roomInk : '#0D1E35',
               fontFamily:"'Fraunces',serif",
               fontStyle:'italic',fontWeight:300,
               fontSize:17,lineHeight:1.75,
