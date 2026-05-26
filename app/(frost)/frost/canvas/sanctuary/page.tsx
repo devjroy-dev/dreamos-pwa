@@ -292,6 +292,7 @@ export default function SanctuaryPage() {
   const [brideName,    setBrideName]    = useState('Priya');
   const [dateLine,     setDateLine]     = useState('');
   const [pLine,        setPLine]        = useState('');
+  const [pagesPreview, setPagesPreview] = useState('');
 
   useEffect(() => {
     const d = daysUntil(getWeddingDate());
@@ -306,6 +307,12 @@ export default function SanctuaryPage() {
     setDateLine(`${dom} of ${mon} · ${yr}`);
 
     setPLine(progressLine(d));
+
+    // Wire Pages row preview from localStorage
+    try {
+      const preview = localStorage.getItem('frost_pages_preview') || '';
+      setPagesPreview(preview);
+    } catch {}
   }, []);
 
   // ── Phase 2: inject CSS keyframe animations on mount ─────────────────
@@ -648,7 +655,7 @@ export default function SanctuaryPage() {
         <Row numeral="II"  name="Circle"  line="— Meha lit a candle · 8m ago"       onClick={() => go('/frost/canvas/journey/circle')}    candle />
         <Row numeral="III" name="Muse"    line="— 22 saved · 4 new"                 onClick={() => go('/frost/canvas/muse')}              />
         <Row numeral="IV"  name="People"  line="— 1 active · 1 invited"             onClick={() => go('/frost/canvas/journey/people')}    />
-        <Row numeral="V"   name="Pages"   line="— a page is waiting"                onClick={() => go('/frost/canvas/journey/pages')}     />
+        <Row numeral="V"   name="Pages"   line={pagesPreview ? `— ${pagesPreview}` : '— a page is waiting'}  onClick={() => go('/frost/canvas/journey/pages')}     />
         <Row numeral="VI"  name="Moments" line="— Your memories"                    onClick={() => go('/frost/canvas/journey/moments')}   />
         <JourneyRow onClick={() => go('/frost/canvas/journey')} />
       </div>
