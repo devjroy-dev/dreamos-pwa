@@ -699,7 +699,8 @@ function DiscoveryFeedContent({
   const [vendorIdx,      setVendorIdx]      = useState(0);
   const [imageIdx,       setImageIdx]       = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(false);
-  const [plateKey,       setPlateKey]       = useState(0);   // triggers plate-turn animation
+  const [plateKey,       setPlateKey]       = useState(0);
+  const [photoKey,       setPhotoKey]       = useState(0); // triggers crossfade on photo change
   const [plateDir,       setPlateDir]       = useState<'up'|'down'>('up');
   const [blindHint,      setBlindHint]      = useState<'dismiss' | null>(null);
   const [blindIdx,       setBlindIdx]       = useState(0);
@@ -707,15 +708,14 @@ function DiscoveryFeedContent({
   const [hasMore,        setHasMore]        = useState(true);
   const [loading,        setLoading]        = useState(true);
   const [showRibbon,     setShowRibbon]     = useState(false);
-  const [namePulse,      setNamePulse]      = useState(false);
 
   const currentPhotoRef = useRef<string | null>(null);
   const touchStart      = useRef<{ x: number; y: number; t: number } | null>(null);
   const tapTimer        = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pressTimer      = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const photoTimer      = useRef<ReturnType<typeof setInterval> | null>(null);
+  const slideshowPaused = useRef(false);
   const lastTapTime     = useRef(0);
   const tapCount        = useRef(0);
-  const photoTimer      = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hasActiveFilters = !!(filters.category || filters.city || filters.vibes.length > 0 || filters.budget || filters.mode);
 
@@ -786,29 +786,34 @@ function DiscoveryFeedContent({
     toPreload.forEach(src => { const img = new Image(); img.src = src; });
   }, [vendorIdx, imageIdx, vendor, vendors]);
 
-  // Photo auto-cycle — advances every 4s, resets when vendor changes
+  // Photo auto-cycle — 3.5s, pauses on hold, resumes on lift
+  // slideshowPaused ref (declared above) tracks hold state inside the interval without re-renders
+
   useEffect(() => {
     if (!vendor || vendor.photos.length <= 1 || isBlind) return;
     if (photoTimer.current) clearInterval(photoTimer.current);
+    slideshowPaused.current = false;
     photoTimer.current = setInterval(() => {
-      setImageIdx(i => {
-        const next = i + 1;
-        return next < vendor.photos.length ? next : 0;
-      });
-    }, 2000);
+      if (slideshowPaused.current) return;
+      setImageIdx(i => (i + 1 < vendor.photos.length ? i + 1 : 0));
+      setPhotoKey(k => k + 1);
+    }, 3500);
     return () => { if (photoTimer.current) clearInterval(photoTimer.current); };
   }, [vendorIdx, vendor, isBlind]);
 
-  // Single tap on photo = advance to next photo manually (resets auto-cycle)
+  // Tap on photo = advance to next photo + reset 3.5s timer
   const handlePhotoTap = useCallback(() => {
     if (!vendor || vendor.photos.length <= 1) return;
     setImageIdx(i => (i + 1) % vendor.photos.length);
-    // Reset the auto-cycle timer
+    setPhotoKey(k => k + 1);
     if (photoTimer.current) {
       clearInterval(photoTimer.current);
+      slideshowPaused.current = false;
       photoTimer.current = setInterval(() => {
-        setImageIdx(i => (i + 1) % vendor.photos.length);
-      }, 2000);
+        if (slideshowPaused.current) return;
+        setImageIdx(i => (i + 1 < (vendor?.photos.length ?? 1) ? i + 1 : 0));
+        setPhotoKey(k => k + 1);
+      }, 3500);
     }
     haptic(3);
   }, [vendor]);
@@ -839,35 +844,23 @@ function DiscoveryFeedContent({
     handleSaveToMuse(vendor.id, currentPhotoRef.current).then(ok => spawnSaveToast(!ok));
   }, [isBlind, vendor, blindQueue, blindIdx]);
 
-  const handleLongPress = useCallback(() => {
-    if (isBlind) return;
-    haptic(8);
-    setOverlayVisible(true);
-  }, [isBlind]);
-
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const t = e.touches[0];
     touchStart.current = { x: t.clientX, y: t.clientY, t: Date.now() };
-    // Long press — 350ms threshold
-    pressTimer.current = setTimeout(() => {
-      pressTimer.current = null;
-      handleLongPress();
-    }, 350);
+    // Hold = pause slideshow immediately. No timer threshold — instant on contact.
+    slideshowPaused.current = true;
   };
 
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!touchStart.current) return;
-    const dy = Math.abs(e.touches[0].clientY - touchStart.current.y);
-    const dx = Math.abs(e.touches[0].clientX - touchStart.current.x);
-    // Cancel long press if finger moves
-    if ((dy > 8 || dx > 8) && pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
+    // Movement cancels nothing — hold still pauses, swipe still works
+    // We just track movement for swipe detection in onTouchEnd
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
+    // Resume slideshow on finger lift
+    slideshowPaused.current = false;
+
     if (!touchStart.current) return;
     const start = touchStart.current;
     touchStart.current = null;
@@ -878,7 +871,7 @@ function DiscoveryFeedContent({
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    // Tap detection
+    // Tap detection — finger didn't move much and lifted quickly
     if (absX < TAP_MAX_MOVE && absY < TAP_MAX_MOVE && dt < TAP_MAX_TIME) {
       const now   = Date.now();
       const since = now - lastTapTime.current;
@@ -887,17 +880,12 @@ function DiscoveryFeedContent({
         tapCount.current = 0;
         handleDoubleTap();
       } else {
-        tapCount.current  = 1;
+        tapCount.current    = 1;
         lastTapTime.current = now;
-        tapTimer.current  = setTimeout(() => {
+        tapTimer.current    = setTimeout(() => {
           if (tapCount.current === 1) {
-            if (!overlayVisible) {
-              handlePhotoTap();
-              setNamePulse(true);
-              setTimeout(() => setNamePulse(false), 500);
-            } else {
-              setOverlayVisible(false);
-            }
+            if (!overlayVisible) handlePhotoTap();
+            else setOverlayVisible(false);
           }
           tapCount.current = 0;
         }, DOUBLE_TAP_MS);
@@ -908,13 +896,11 @@ function DiscoveryFeedContent({
     // Swipe detection — vertical axis only
     const velocity = absY / Math.max(dt, 1);
     if (absY < SWIPE_THRESHOLD && velocity < SWIPE_VELOCITY) return;
-    if (absX > absY) return; // ignore horizontal swipes entirely
+    if (absX > absY) return;
 
-    // Close overlay on downward swipe
     if (overlayVisible && dy > OVERLAY_DISMISS) { setOverlayVisible(false); return; }
 
     if (isBlind) {
-      // Blind: swipe up = next image
       if (dy < -SWIPE_THRESHOLD) {
         setBlindHint('dismiss');
         setTimeout(() => setBlindHint(null), 500);
@@ -926,8 +912,7 @@ function DiscoveryFeedContent({
     }
 
     if (dy < -SWIPE_THRESHOLD) {
-      // Swipe up only — forward through the catalogue.
-      // Sanctuary entered via ● SANCTUARY pill — deliberate, never accidental.
+      // Swipe up = next vendor. Sanctuary via ● SANCTUARY pill only.
       goNextVendor();
     }
   };
@@ -963,18 +948,24 @@ function DiscoveryFeedContent({
           to   { opacity:1; transform:translateX(-50%) translateY(0); }
         }
         /* Plate-turn — the catalogue page physics */
-        /* Current plate exits: scale down + fade out */
         @keyframes plateExit {
           0%   { opacity:1; transform:translateY(0) scale(1); }
           100% { opacity:0; transform:translateY(-28px) scale(0.97); }
         }
-        /* Next plate enters: rise from below + fade in */
         @keyframes plateEnter {
           0%   { opacity:0; transform:translateY(18px); }
           100% { opacity:1; transform:translateY(0); }
         }
         .plate-enter {
           animation: plateEnter 320ms cubic-bezier(0.22,1,0.36,1) forwards;
+        }
+        /* Photo crossfade — slow dissolve, like turning a page */
+        @keyframes photoCrossfade {
+          0%   { opacity:0; }
+          100% { opacity:1; }
+        }
+        .photo-crossfade {
+          animation: photoCrossfade 600ms ease-in-out forwards;
         }
         /* Ribbon fade — 30s: 1s in, 27s hold, 2s out */
         @keyframes ribbonFade {
@@ -994,7 +985,7 @@ function DiscoveryFeedContent({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Photo — plate-enter animation on vendor change */}
+        {/* Photo — plate-enter on vendor change, crossfade on photo change */}
         <div
           key={plateKey}
           className="plate-enter"
@@ -1002,9 +993,11 @@ function DiscoveryFeedContent({
         >
           {(isBlind ? blindPhoto : currentPhoto) ? (
             <img
+              key={photoKey}
               src={(isBlind ? blindPhoto : currentPhoto)!}
               alt=""
               draggable={false}
+              className="photo-crossfade"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
             />
           ) : (
@@ -1118,42 +1111,54 @@ function DiscoveryFeedContent({
           </div>
         )}
 
-        {/* Artisan card — always visible, tap to open overlay, pulses on photo tap */}
+        {/* Artisan card — name in hairline CTA box, lede below */}
         {!isBlind && !overlayVisible && vendor && (
           <div
-            onClick={() => { setOverlayVisible(true); haptic(4); }}
             style={{
               position: 'absolute',
-              bottom: 'calc(env(safe-area-inset-bottom,0px) + 96px)',
+              bottom: 'calc(env(safe-area-inset-bottom,0px) + 52px)',
               left: 22, right: 22,
               zIndex: 4,
-              cursor: 'pointer',
               WebkitTapHighlightColor: 'transparent',
             }}
           >
+            {/* Name — inside hairline CTA box, tappable */}
+            <div
+              onClick={() => { setOverlayVisible(true); haptic(4); }}
+              style={{
+                display: 'inline-block',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 2,
+                padding: '10px 16px',
+                marginBottom: 10,
+                cursor: 'pointer',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+              }}
+            >
+              <div style={{
+                fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
+                fontStyle: 'italic', fontWeight: 300,
+                fontSize: 24, color: '#fff',
+                lineHeight: 1, letterSpacing: '-0.02em',
+                fontFeatureSettings: '"opsz" 144',
+                textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+              }}>
+                {vendor.name}
+              </div>
+            </div>
+
+            {/* Lede — below the box */}
             <div style={{
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
               fontSize: 8.5, fontWeight: 300,
               letterSpacing: '0.24em', textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.60)',
-              marginBottom: 8,
+              color: 'rgba(255,255,255,0.58)',
               display: 'flex', alignItems: 'center', gap: 8,
+              textShadow: '0 1px 4px rgba(0,0,0,0.7)',
             }}>
-              <span style={{ width: 16, height: 1, background: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+              <span style={{ width: 16, height: 1, background: 'rgba(255,255,255,0.42)', flexShrink: 0 }} />
               {vendor.category}{vendor.city ? ` · ${vendor.city}` : ''}
-            </div>
-            <div style={{
-              fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
-              fontStyle: 'italic', fontWeight: 300,
-              fontSize: 34, color: '#fff',
-              lineHeight: 0.95, letterSpacing: '-0.025em',
-              fontFeatureSettings: '"opsz" 144',
-              textShadow: namePulse
-                ? '0 0 24px rgba(216,152,84,0.9), 0 2px 12px rgba(0,0,0,0.5)'
-                : '0 2px 12px rgba(0,0,0,0.5)',
-              transition: 'text-shadow 400ms ease',
-            }}>
-              {vendor.name}
             </div>
           </div>
         )}
