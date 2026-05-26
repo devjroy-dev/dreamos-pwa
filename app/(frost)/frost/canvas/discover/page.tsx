@@ -1231,7 +1231,10 @@ function DiscoveryFeedInner() {
         initialBlind={isBlindMode}
         filters={appliedFilters}
         onOpenFilter={() => setFilterVisible(true)}
-        onOpenSanctuary={() => router.replace('/frost/canvas/sanctuary')}
+        onOpenSanctuary={() => {
+          try { (window as any).__frostSwitchPanel?.(1); }
+          catch { router.replace('/frost/canvas'); }
+        }}
         onToggleBlind={() => setIsBlindMode(b => !b)}
       />
     </>
