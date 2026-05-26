@@ -175,12 +175,13 @@ function Row({
         fontFamily: FF.aubade,
         fontStyle: 'italic',
         fontWeight: 300,
-        fontSize: 19,
+        fontSize: 17,
         color: AUBADE.ink,
         letterSpacing: '-0.015em',
         lineHeight: 1,
         flexShrink: 0,
         fontFeatureSettings: '"opsz" 9',
+        fontVariationSettings: '"opsz" 9, "wght" 300',
       }}>
         {name}
       </span>
@@ -294,7 +295,7 @@ export default function SanctuaryPage() {
       position: 'fixed', inset: 0,
       background: `
         radial-gradient(ellipse 80% 50% at 50% 30%, rgba(216,152,84,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 100% 60% at 50% 100%, rgba(40,28,18,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 100% 60% at 50% 100%, rgba(20,18,22,0.35) 0%, transparent 70%),
         linear-gradient(180deg, ${AUBADE.paper} 0%, ${AUBADE.paper2} 50%, ${AUBADE.paperDeep} 100%)
       `,
       display: 'flex', flexDirection: 'column',
@@ -305,7 +306,7 @@ export default function SanctuaryPage() {
       {/* ── Mineral teal numeral — lives at the back, behind glass ──── */}
       <div style={{
         position: 'absolute',
-        top: 95,
+        top: 280,
         left: 0, right: 0,
         textAlign: 'center',
         pointerEvents: 'none',
@@ -343,7 +344,7 @@ export default function SanctuaryPage() {
       {/* ── Meridian arc — above the upper frost ───────────────────── */}
       <div style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         left: 0, right: 0,
         height: 90,
         zIndex: 4,
@@ -392,7 +393,7 @@ export default function SanctuaryPage() {
       {/* "I will" / "I do" labels — on top of meridian zone */}
       <div style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 56px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
         left: 22,
         zIndex: 5,
         fontFamily: FF.mono,
@@ -406,7 +407,7 @@ export default function SanctuaryPage() {
       </div>
       <div style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 56px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
         right: 22,
         zIndex: 5,
         fontFamily: FF.mono,
@@ -514,11 +515,12 @@ export default function SanctuaryPage() {
           fontFamily: FF.aubade,
           fontStyle: 'italic',
           fontWeight: 300,
-          fontSize: 19,
+          fontSize: 17,
           color: AUBADE.ink,
           lineHeight: 1.4,
           marginBottom: 14,
           fontFeatureSettings: '"opsz" 9',
+          fontVariationSettings: '"opsz" 9, "wght" 300',
         }}>
           {pLine.split(/(I will|I do)/g).map((part, i) =>
             (part === 'I will' || part === 'I do')
