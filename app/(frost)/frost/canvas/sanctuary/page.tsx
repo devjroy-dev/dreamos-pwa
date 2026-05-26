@@ -29,7 +29,7 @@ import {
 } from '../../../../../lib/frost/tokens';
 
 // ── Wedding date resolver — same logic as before ─────────────────────────
-const DEMO_WEDDING = new Date('2026-06-25T00:00:00+05:30');
+const DEMO_WEDDING = new Date('2026-05-29T00:00:00+05:30');
 
 function getWeddingDate(): Date {
   try {
