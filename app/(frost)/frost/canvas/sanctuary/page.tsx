@@ -1,50 +1,36 @@
 'use client';
 
-// Sanctuary V4 — identical to approved frost_final_two.html right columns
-// Wine Night: ghost bleeds into slice zone, deep dark background
-// Sky Ivory: dark near-black glass panel covers slice zone, ghost inside it
+// sanctuary/page.tsx — V5 BLOOM ARCHITECTURE
+// Every slice opens IN THIS PAGE. No router.push. No history stack.
+// She taps a slice → it blooms up from position → fills screen.
+// She swipes down or taps ← → contracts back to Sanctuary.
+// Same URL. Same component. Sanctuary is always underneath.
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
+import { Send } from 'lucide-react';
+import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|null;
+
+interface UIMsg {
+  id: string; role:'user'|'assistant'; content:string; pending?:boolean; error?:boolean;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const DEMO_WEDDING    = new Date('2026-11-19T00:00:00+05:30');
 const DEMO_ENGAGEMENT = new Date('2026-04-11T00:00:00+05:30');
 
-function getWeddingDate(): Date {
-  try { const r = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session'); if(r){const s=JSON.parse(r);if(s?.wedding_date)return new Date(s.wedding_date);} } catch{}
-  return DEMO_WEDDING;
-}
-function getEngagementDate(): Date {
-  try { const r = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session'); if(r){const s=JSON.parse(r);if(s?.engagement_date)return new Date(s.engagement_date);} } catch{}
-  return DEMO_ENGAGEMENT;
-}
-function getBrideName(): string {
-  try { const r = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session'); if(r){const s=JSON.parse(r);const n=(s?.user_name||s?.bride_name||s?.name||'').trim().split(' ')[0];if(n)return n;} } catch{}
-  return 'Priya';
-}
-function daysSince(d: Date): number {
-  const t=new Date();t.setHours(0,0,0,0);const e=new Date(d);e.setHours(0,0,0,0);
-  return Math.max(0,Math.round((t.getTime()-e.getTime())/86400000));
-}
-
-// Arc math
-function arcProgress(daysLeft: number): number { return Math.max(0,Math.min(1,1-daysLeft/365)); }
-function arcPoint(t: number){
-  const p0={x:18,y:92},p1={x:160,y:4},p2={x:302,y:92};const u=1-t;
-  return{x:u*u*p0.x+2*u*t*p1.x+t*t*p2.x,y:u*u*p0.y+2*u*t*p1.y+t*t*p2.y};
-}
-function arcPathTo(t: number): string {
-  if(t<=0)return'M 18 92';
-  const p0={x:18,y:92},p1={x:160,y:4},p2={x:302,y:92};
-  const q0={x:p0.x+(p1.x-p0.x)*t,y:p0.y+(p1.y-p0.y)*t};
-  const q1={x:p1.x+(p2.x-p1.x)*t,y:p1.y+(p2.y-p1.y)*t};
-  const ep={x:q0.x+(q1.x-q0.x)*t,y:q0.y+(q1.y-q0.y)*t};
-  return`M 18 92 Q ${q0.x.toFixed(1)} ${q0.y.toFixed(1)} ${ep.x.toFixed(1)} ${ep.y.toFixed(1)}`;
-}
-
-// Text helpers
+function getWeddingDate():Date{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);if(s?.wedding_date)return new Date(s.wedding_date);}}catch{}return DEMO_WEDDING; }
+function getEngagementDate():Date{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);if(s?.engagement_date)return new Date(s.engagement_date);}}catch{}return DEMO_ENGAGEMENT; }
+function getBrideName():string{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);const n=(s?.user_name||s?.bride_name||s?.name||'').trim().split(' ')[0];if(n)return n;}}catch{}return 'Priya'; }
+function daysSince(d:Date):number{const t=new Date();t.setHours(0,0,0,0);const e=new Date(d);e.setHours(0,0,0,0);return Math.max(0,Math.round((t.getTime()-e.getTime())/86400000));}
+function arcProgress(d:number):number{return Math.max(0,Math.min(1,1-d/365));}
+function arcPoint(t:number){const p0={x:18,y:92},p1={x:160,y:4},p2={x:302,y:92};const u=1-t;return{x:u*u*p0.x+2*u*t*p1.x+t*t*p2.x,y:u*u*p0.y+2*u*t*p1.y+t*t*p2.y};}
+function arcPathTo(t:number):string{if(t<=0)return'M 18 92';const p0={x:18,y:92},p1={x:160,y:4},p2={x:302,y:92};const q0={x:p0.x+(p1.x-p0.x)*t,y:p0.y+(p1.y-p0.y)*t};const q1={x:p1.x+(p2.x-p1.x)*t,y:p1.y+(p2.y-p1.y)*t};const ep={x:q0.x+(q1.x-q0.x)*t,y:q0.y+(q1.y-q0.y)*t};return`M 18 92 Q ${q0.x.toFixed(1)} ${q0.y.toFixed(1)} ${ep.x.toFixed(1)} ${ep.y.toFixed(1)}`;}
 const ONES=['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
 const TENS=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
 function toW(n:number):string{if(n<20)return ONES[n]||String(n);const t=Math.floor(n/10),o=n%10;if(!o)return TENS[t];return`${TENS[t]}-${ONES[o].toLowerCase()}`;}
@@ -53,8 +39,9 @@ function dW(n:number):string{if(n<100)return toW(n);if(n<1000)return bigW(n);ret
 function prose(d:number):string{if(d===0)return'Today.';const w=dW(d);return`${w.charAt(0).toUpperCase()+w.slice(1)} mornings between I will and I do.`;}
 function romanDate():string{const n=new Date(),R=['','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];return`${String(n.getDate()).padStart(2,'0')} · ${R[n.getMonth()+1]} · ${String(n.getFullYear()).slice(-2)}`;}
 function getDailyPoetry():string{const pool=FROST_COPY.idlePool;const d=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0).getTime())/86400000);return pool[d%pool.length];}
+function uid(){return Math.random().toString(36).slice(2);}
 
-// Keyframes
+// ── CSS ───────────────────────────────────────────────────────────────────────
 const CSS=`
 @keyframes gnB{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.006);}}
 @keyframes numB{0%,100%{transform:scale(1);}50%{transform:scale(1.003);}}
@@ -63,6 +50,10 @@ const CSS=`
 @keyframes dO{0%,37%,100%{opacity:.05;}18%{opacity:.22;}}
 @keyframes cF{0%{opacity:.7}15%{opacity:1}28%{opacity:.85}45%{opacity:1}60%{opacity:.88}75%{opacity:1}88%{opacity:.72}100%{opacity:.7}}
 @keyframes sIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+@keyframes bloomIn{from{opacity:0;transform:translateY(100%);}to{opacity:1;transform:translateY(0);}}
+@keyframes bloomOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(100%);}}
+@keyframes dpulse{0%,80%,100%{opacity:.35}40%{opacity:1}}
+@keyframes dcursor{0%,100%{opacity:1}50%{opacity:0}}
 .gn-a{animation:gnB 9s ease-in-out infinite;}
 .num-a{animation:numB 7s ease-in-out infinite;}
 .dc-a{animation:dC 4s ease-in-out infinite;}
@@ -70,30 +61,45 @@ const CSS=`
 .do-a{animation:dO 4s ease-in-out infinite;}
 .cf-a{animation:cF 5s ease-in-out infinite;}
 .si-a{animation:sIn 220ms cubic-bezier(0.22,1,0.36,1) forwards;}
+.bloom-enter{animation:bloomIn 380ms cubic-bezier(0.22,1,0.36,1) forwards;}
+.bloom-exit{animation:bloomOut 300ms cubic-bezier(0.4,0,1,1) forwards;}
+.d-cursor{animation:dcursor 1s ease-in-out infinite;}
+.no-scroll::-webkit-scrollbar{display:none;}
+.no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
 `;
 
 const SLICES=[
-  {key:'dream',   label:'Dream Ai',  hint:'Something will go wrong…',   route:'/frost/canvas/dream'},
-  {key:'circle',  label:'Circle',    hint:'Meha lit a candle · 8m ago', route:'/frost/canvas/journey/circle', candle:true},
-  {key:'muse',    label:'Muse',      hint:'22 saved · 4 new',           route:'/frost/canvas/muse'},
-  {key:'discover',label:'Discover',  hint:'Your curated world',          route:'/frost/canvas/discover'},
-  {key:'people',  label:'My People', hint:'1 active · 1 invited',       route:'/frost/canvas/journey/people'},
-  {key:'pages',   label:'Pages',     hint:'a page is waiting',           route:'/frost/canvas/journey/pages'},
-  {key:'moments', label:'Moments',   hint:'Your memories',               route:'/frost/canvas/journey/moments'},
-  {key:'events',  label:'Events',    hint:'Your timeline',               route:'/frost/canvas/journey/events'},
-  {key:'meridian',label:'Meridian',  hint:'Skin · mind · body',          route:'/frost/canvas/journey/meridian',premium:true},
-];
-const JOURNEY=[
-  {label:'Expenses', hint:'₹2.4L logged', route:'/frost/canvas/journey/expenses'},
-  {label:'Vendors',  hint:'4 confirmed',   route:'/frost/canvas/journey/vendors'},
-  {label:'Settings', hint:'',              route:'/frost/canvas/journey/settings'},
+  {key:'dream'   as RoomKey, label:'Dream Ai',  hint:'Something will go wrong…',   candle:false, premium:false},
+  {key:'circle'  as RoomKey, label:'Circle',    hint:'Meha lit a candle · 8m ago', candle:true,  premium:false},
+  {key:'muse'    as RoomKey, label:'Muse',      hint:'22 saved · 4 new',           candle:false, premium:false},
+  {key:'discover'as RoomKey, label:'Discover',  hint:'Your curated world',          candle:false, premium:false},
+  {key:'people'  as RoomKey, label:'My People', hint:'1 active · 1 invited',       candle:false, premium:false},
+  {key:'pages'   as RoomKey, label:'Pages',     hint:'a page is waiting',           candle:false, premium:false},
+  {key:'moments' as RoomKey, label:'Moments',   hint:'Your memories',               candle:false, premium:false},
+  {key:'events'  as RoomKey, label:'Events',    hint:'Your timeline',               candle:false, premium:false},
+  {key:'meridian'as RoomKey, label:'Meridian',  hint:'Skin · mind · body',          candle:false, premium:true},
 ];
 
+const JOURNEY_LINKS=[
+  {label:'Expenses',  hint:'₹2.4L logged'},
+  {label:'Vendors',   hint:'4 confirmed'},
+  {label:'Settings',  hint:''},
+];
+
+const DREAM_PROMPTS=[
+  'How many days until my wedding?',
+  "What's on my calendar this week?",
+  "Who's in my Circle?",
+  'What have I saved to Muse?',
+  'How much have I spent so far?',
+];
+
+// ── Root component ────────────────────────────────────────────────────────────
 export default function SanctuaryPage() {
-  const router = useRouter();
   const { homeMode, setHomeMode } = useFrostMode();
   const dark = homeMode === 'E1A';
 
+  // Sanctuary data
   const [days,       setDays]       = useState(176);
   const [progress,   setProgress]   = useState(.38);
   const [name,       setName]       = useState('Priya');
@@ -104,8 +110,22 @@ export default function SanctuaryPage() {
   const [weekday,    setWeekday]    = useState('Wednesday morning');
   const [dateStamp,  setDateStamp]  = useState('');
 
+  // Bloom state
+  const [activeRoom, setActiveRoom]   = useState<RoomKey>(null);
+  const [blooming,   setBlooming]     = useState(false);
+  const [closing,    setClosing]      = useState(false);
+  const touchStartY = useRef(0);
+
+  // Dream Ai state
+  const [msgs,    setMsgs]    = useState<UIMsg[]>([]);
+  const [input,   setInput]   = useState('');
+  const [loading, setLoading] = useState(false);
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const textRef    = useRef<HTMLTextAreaElement>(null);
+  const cancelRef  = useRef<(()=>void)|null>(null);
+
   useEffect(()=>{
-    if(!document.getElementById('sv4')){const s=document.createElement('style');s.id='sv4';s.textContent=CSS;document.head.appendChild(s);}
+    if(!document.getElementById('sv5')){const s=document.createElement('style');s.id='sv5';s.textContent=CSS;document.head.appendChild(s);}
     const w=getWeddingDate(),e=getEngagementDate(),d=daysUntil(w);
     setDays(d);setProgress(arcProgress(d));setName(getBrideName());
     setProseLine(prose(d));setPoetry(getDailyPoetry());setSinceYes(daysSince(e));
@@ -115,113 +135,124 @@ export default function SanctuaryPage() {
     setDateStamp(`${DOM[now.getDate()]||now.getDate()} of ${now.toLocaleDateString('en-IN',{month:'long'})} · ${now.getFullYear()}`);
   },[]);
 
-  const go=useCallback((p:string)=>router.push(p),[router]);
-  const dot=arcPoint(progress);
+  // Scroll dream to bottom
+  useEffect(()=>{ if(scrollRef.current)scrollRef.current.scrollTop=scrollRef.current.scrollHeight; },[msgs]);
+  useEffect(()=>{ if(!textRef.current)return;textRef.current.style.height='auto';textRef.current.style.height=Math.min(textRef.current.scrollHeight,120)+'px'; },[input]);
+  useEffect(()=>()=>{cancelRef.current?.();},[]);
 
-  // ── EXACT token values from frost_final_two.html approved render ──────────
-  const arc     = dark ? '#C4856A'         : '#2A5F82';
-  const arcRail = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.20)';
-  const signal  = dark ? '#6B9E8F'         : '#8B6E52';
-  const accent  = dark ? '#C4856A'         : '#2A5F82';
-  const ink     = dark ? '#F5E5DC'         : '#0A1628';
-  const inkSoft = dark ? 'rgba(245,229,220,.85)' : 'rgba(10,22,40,1.0)';
-  const inkMute = dark ? 'rgba(196,133,106,.42)'  : 'rgba(10,22,40,.60)';
-  const line    = dark ? 'rgba(196,133,106,.10)'  : 'rgba(42,95,130,.14)';
-  const lineStr = dark ? 'rgba(196,133,106,.18)'  : 'rgba(42,95,130,.22)';
-  const pillBg  = dark ? 'rgba(20,8,12,.55)'  : 'rgba(240,238,232,.75)';
-  const pillBdr = dark ? 'rgba(196,133,106,.30)' : 'rgba(42,95,130,.35)';
-  const pillTxt = dark ? 'rgba(245,229,220,.85)' : 'rgba(10,22,40,.85)';
-  const sliceTxt= dark ? '#F5E5DC'         : '#0A1628';
-  const hintTxt = dark ? 'rgba(196,133,106,.55)' : 'rgba(10,22,40,.72)';
-  const jnyBg   = dark ? 'rgba(196,133,106,.05)' : 'rgba(42,95,130,.06)';
+  // ── Bloom open / close ────────────────────────────────────────────────────
+  const openRoom = useCallback((key:RoomKey)=>{
+    setActiveRoom(key);
+    setBlooming(true);
+    setClosing(false);
+  },[]);
 
-  // ── BACKGROUND — exact from render ───────────────────────────────────────
+  const closeRoom = useCallback(()=>{
+    setClosing(true);
+    setTimeout(()=>{
+      setActiveRoom(null);
+      setBlooming(false);
+      setClosing(false);
+    },300);
+  },[]);
+
+  // Swipe down to close
+  const onTouchStart = useCallback((e:React.TouchEvent)=>{
+    touchStartY.current = e.touches[0].clientY;
+  },[]);
+  const onTouchEnd = useCallback((e:React.TouchEvent)=>{
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if(dy > 80) closeRoom();
+  },[closeRoom]);
+
+  // ── Dream Ai send ─────────────────────────────────────────────────────────
+  const sendDream = useCallback((text:string)=>{
+    const msg=text.trim();
+    if(!msg||loading)return;
+    setInput('');
+    setMsgs(prev=>[...prev,{id:uid(),role:'user',content:msg}]);
+    setLoading(true);
+    const aiId=uid();
+    setMsgs(prev=>[...prev,{id:aiId,role:'assistant',content:'',pending:true}]);
+    const cancel=streamBrideChat(msg,
+      (delta)=>setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,content:m.content+delta,pending:false}:m)),
+      ()=>{setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,pending:false}:m));setLoading(false);cancelRef.current=null;},
+      (err)=>{console.error(err);setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,content:'Something went wrong. Try again.',error:true,pending:false}:m));setLoading(false);cancelRef.current=null;}
+    );
+    cancelRef.current=cancel;
+  },[loading]);
+
+  // ── Tokens ────────────────────────────────────────────────────────────────
   const bg = dark
     ? `radial-gradient(ellipse 110% 60% at 50% -8%,rgba(196,133,106,.18) 0%,transparent 58%),radial-gradient(ellipse 70% 50% at 85% 108%,rgba(55,10,20,.55) 0%,transparent 55%),linear-gradient(180deg,#14080C 0%,#100608 55%,#0C0405 100%)`
     : `radial-gradient(ellipse 110% 60% at 50% -8%,rgba(168,196,216,.32) 0%,transparent 58%),radial-gradient(ellipse 70% 50% at 85% 108%,rgba(170,160,145,.14) 0%,transparent 55%),linear-gradient(180deg,#F0EEE8 0%,#E8E5DE 55%,#DDD9D0 100%)`;
 
-  // ── GHOST — exact from render ─────────────────────────────────────────────
-  // Wine Night: #3A0C18 dark rose, bleeds INTO slice zone (no mask cutoff early)
-  // Sky Ivory:  #7AAAC8 sky blue, sits inside the dark glass panel
-  const ghostColor = dark ? '#3A0C18' : '#7AAAC8';
-  const ghostOp    = dark ? 0.92      : 0.70;
+  const accent    = dark ? '#C4856A' : '#2A5F82';
+  const signal    = dark ? '#6B9E8F' : '#8B6E52';
+  const ink       = dark ? '#F5E5DC' : '#0A1628';
+  const inkSoft   = dark ? 'rgba(245,229,220,.85)' : 'rgba(10,22,40,1.0)';
+  const inkMute   = dark ? 'rgba(196,133,106,.42)'  : 'rgba(10,22,40,.60)';
+  const line      = dark ? 'rgba(196,133,106,.10)'  : 'rgba(42,95,130,.14)';
+  const lineStr   = dark ? 'rgba(196,133,106,.18)'  : 'rgba(42,95,130,.22)';
+  const pillBg    = dark ? 'rgba(20,8,12,.55)'      : 'rgba(240,238,232,.75)';
+  const pillBdr   = dark ? 'rgba(196,133,106,.30)'  : 'rgba(42,95,130,.35)';
+  const pillTxt   = dark ? 'rgba(245,229,220,.85)'  : 'rgba(10,22,40,.85)';
+  const jnyBg     = dark ? 'rgba(196,133,106,.05)'  : 'rgba(42,95,130,.06)';
+  const topBandBg = dark ? 'rgba(20,8,12,.62)'      : 'rgba(240,238,232,.68)';
+  // Bottom dark panel — covers slice zone, makes text legible
+  // Comes higher now so Dream Ai row is always in the dark zone
+  const botPanelBg= dark ? 'rgba(12,4,5,.50)'       : 'rgba(8,6,10,.82)';
+  const sliceTxt  = dark ? '#F5E5DC'                 : '#FFFFFF';
+  const hintTxt   = dark ? 'rgba(196,133,106,.55)'  : 'rgba(255,255,255,.55)';
+  const ghostColor= dark ? '#3A0C18'                 : '#7AAAC8';
+  const ghostOp   = dark ? 0.92                      : 0.70;
 
-  // ── UPPER FROST BAND — only at very top for chrome area ──────────────────
-  const topBandBg = dark ? 'rgba(20,8,12,.62)' : 'rgba(240,238,232,.68)';
+  // Room background (bloom surface)
+  const roomBg = dark
+    ? `linear-gradient(180deg,#14080C 0%,#0C0405 100%)`
+    : `linear-gradient(180deg,#080608 0%,#040406 100%)`; // always dark inside rooms
 
-  // ── LOWER DARK PANEL — this is the key ───────────────────────────────────
-  // Wine Night: continues the dark bg naturally, ghost bleeds through
-  // Sky Ivory: near-BLACK glass panel — this is the dramatic dark zone in the render
-  const bottomPanelBg = dark
-    ? 'rgba(12,4,5,.45)'          // subtle darkening, ghost shines through
-    : 'rgba(8,6,10,.82)';         // near-BLACK — this is what makes SI dramatic
+  const roomTopBg   = dark ? 'rgba(20,8,12,.88)' : 'rgba(8,6,10,.92)';
+  const roomInk     = dark ? '#F5E5DC' : '#F0EDE8';
+  const roomInkSoft = dark ? 'rgba(245,229,220,.70)' : 'rgba(240,237,232,.70)';
+  const roomInkMute = dark ? 'rgba(196,133,106,.45)'  : 'rgba(200,180,160,.40)';
+  const roomLine    = dark ? 'rgba(196,133,106,.14)'  : 'rgba(196,133,106,.18)';
+  const aiBubbleBg  = dark ? 'rgba(196,133,106,.08)'  : 'rgba(196,133,106,.10)';
+  const aiBubbleBdr = dark ? 'rgba(196,133,106,.18)'  : 'rgba(196,133,106,.22)';
+  const composeBg   = dark ? 'rgba(12,4,5,.90)'       : 'rgba(8,6,10,.92)';
+  const inputBg     = dark ? 'rgba(196,133,106,.06)'  : 'rgba(196,133,106,.08)';
+  const inputBdr    = dark ? 'rgba(196,133,106,.22)'  : 'rgba(196,133,106,.25)';
+  const chipBg      = dark ? 'rgba(196,133,106,.06)'  : 'rgba(196,133,106,.08)';
+  const chipBdr     = dark ? 'rgba(196,133,106,.20)'  : 'rgba(196,133,106,.24)';
 
+  const dot = arcPoint(progress);
+
+  // ── SANCTUARY ─────────────────────────────────────────────────────────────
   return (
     <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any}}>
 
       {/* Grain */}
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>
 
-      {/* ── GHOST NUMERAL ──
-          z:3 — above bg, above bottom panel, BEHIND hero text (z:5) and arc (z:6)
-          No mask cutoff — bleeds freely through hero AND slices, exactly like render
-          Position: top:120px so it starts behind the countdown number */}
-      <div className="gn-a" style={{
-        position:'absolute',
-        top: journeyOpen ? '60px' : '115px',
-        left:'50%',
-        fontFamily:"'Fraunces',serif",
-        fontWeight:700,fontStyle:'normal',
-        fontSize: journeyOpen ? '150px' : '320px',
-        lineHeight:1,letterSpacing:'-.06em',
-        whiteSpace:'nowrap',
-        color:ghostColor,
-        opacity:ghostOp,
-        filter:'blur(8px)',
-        fontFeatureSettings:'"opsz" 144',
-        pointerEvents:'none',
-        zIndex:3,
-        transition:`top 480ms ${EASE}, font-size 480ms ${EASE}`,
-        // Soft fade only at the very bottom — ghost bleeds through slices
-        WebkitMaskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)',
-        maskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)',
-      }}>{days}</div>
+      {/* Ghost numeral */}
+      <div className="gn-a" style={{position:'absolute',top:journeyOpen?'60px':'115px',left:'50%',fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?'150px':'320px',lineHeight:1,letterSpacing:'-.06em',whiteSpace:'nowrap',color:ghostColor,opacity:ghostOp,filter:'blur(8px)',fontFeatureSettings:'"opsz" 144',pointerEvents:'none',zIndex:3,transition:`top 480ms ${EASE}, font-size 480ms ${EASE}`,WebkitMaskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)',maskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)'}}>
+        {days}
+      </div>
 
-      {/* ── UPPER FROST BAND — chrome area only ── */}
-      <div style={{
-        position:'absolute',top:0,left:0,right:0,height:120,
-        background:topBandBg,
-        backdropFilter:'blur(22px) saturate(1.1)',
-        WebkitBackdropFilter:'blur(22px) saturate(1.1)',
-        WebkitMaskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',
-        maskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',
-        pointerEvents:'none',zIndex:2,
-      }}/>
+      {/* Upper frost band */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:120,background:topBandBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',WebkitMaskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',maskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',pointerEvents:'none',zIndex:2}}/>
 
-      {/* ── BOTTOM DARK PANEL — covers slice zone ──
-          This is the dramatic element in the Sky Ivory render: near-black glass
-          Ghost bleeds through it. Slice text sits on top, fully legible. */}
-      <div style={{
-        position:'absolute',
-        top: journeyOpen ? '22%' : '46%',
-        left:0,right:0,bottom:0,
-        background:bottomPanelBg,
-        backdropFilter:'blur(20px) saturate(1.2)',
-        WebkitBackdropFilter:'blur(20px) saturate(1.2)',
-        WebkitMaskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 12%,#000 22%)',
-        maskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 12%,#000 22%)',
-        pointerEvents:'none',zIndex:4,
-        transition:`top 480ms ${EASE}`,
-      }}/>
+      {/* Bottom dark panel — raised higher so ALL slices are in dark zone */}
+      <div style={{position:'absolute',top:journeyOpen?'22%':'38%',left:0,right:0,bottom:0,background:botPanelBg,backdropFilter:'blur(20px) saturate(1.2)',WebkitBackdropFilter:'blur(20px) saturate(1.2)',WebkitMaskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 10%,#000 20%)',maskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 10%,#000 20%)',pointerEvents:'none',zIndex:4,transition:`top 480ms ${EASE}`}}/>
 
-      {/* ── ARC ── */}
+      {/* Arc */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:108,zIndex:6,pointerEvents:'none'}}>
         <svg viewBox="0 0 320 108" preserveAspectRatio="none" style={{width:'100%',height:'100%',overflow:'visible'}}>
-          <path d="M 18 92 Q 160 4 302 92" stroke={arcRail} strokeWidth="1" fill="none"/>
-          <path d={arcPathTo(progress)} stroke={arc} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-          <circle cx={dot.x} cy={dot.y} r="18" fill="none" stroke={arc} strokeWidth=".5" className="do-a"/>
-          <circle cx={dot.x} cy={dot.y} r="10" fill="none" stroke={arc} strokeWidth=".8" className="dh-a"/>
-          <circle cx={dot.x} cy={dot.y} r="4.5" fill={arc} className="dc-a"/>
+          <path d="M 18 92 Q 160 4 302 92" stroke={dark?'rgba(196,133,106,.14)':'rgba(42,95,130,.20)'} strokeWidth="1" fill="none"/>
+          <path d={arcPathTo(progress)} stroke={accent} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          <circle cx={dot.x} cy={dot.y} r="18" fill="none" stroke={accent} strokeWidth=".5" className="do-a"/>
+          <circle cx={dot.x} cy={dot.y} r="10" fill="none" stroke={accent} strokeWidth=".8" className="dh-a"/>
+          <circle cx={dot.x} cy={dot.y} r="4.5" fill={accent} className="dc-a"/>
         </svg>
       </div>
 
@@ -231,108 +262,164 @@ export default function SanctuaryPage() {
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>I do</span>
       </div>
 
-      {/* ── CHROME ── */}
+      {/* Chrome */}
       <div style={{position:'relative',zIndex:8,display:'flex',alignItems:'center',justifyContent:'space-between',padding:`calc(env(safe-area-inset-top,0px) + 84px) 18px 0`,flexShrink:0}}>
-        <button onClick={()=>go('/frost/canvas/discover')} style={{display:'flex',alignItems:'center',gap:5,height:24,padding:'0 10px',borderRadius:2,background:pillBg,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:`0.5px solid ${pillBdr}`,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:pillTxt,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+        <button onClick={()=>openRoom('discover')} style={{display:'flex',alignItems:'center',gap:5,height:24,padding:'0 10px',borderRadius:2,background:pillBg,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:`0.5px solid ${pillBdr}`,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:pillTxt,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
           <span style={{width:4,height:4,borderRadius:'50%',background:accent,flexShrink:0}}/>
           Discover
         </button>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:inkMute}}>{romanDate()}</span>
       </div>
 
-      {/* ── HERO — z:5, above ghost (z:3) and bottom panel (z:4) ── */}
+      {/* Hero */}
       <div style={{position:'relative',zIndex:5,padding:journeyOpen?'8px 18px 4px':'14px 18px 10px',flexShrink:0,transition:`padding 480ms ${EASE}`}}>
-        {!journeyOpen&&(
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>
-            {weekday}
-            <span style={{flex:1,maxWidth:44,height:.5,background:line}}/>
-          </div>
-        )}
-
-        {/* Italianno greeting */}
+        {!journeyOpen&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>}
         <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?38:58,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
           Hello, <span style={{color:accent}}>{name}</span>.
         </div>
-
         {!journeyOpen&&<div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>}
-
-        {/* Fraunces Bold countdown */}
         <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?46:80,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>
-            {days}
-          </div>
+          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?46:80,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
           <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.44em',textTransform:'uppercase' as any,color:accent,opacity:.5}}>mornings</div>
         </div>
-
-        {!journeyOpen&&(
-          <>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,lineHeight:1.62,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
-              {proseLine.split(/(I will|I do)/g).map((p,i)=>
-                p==='I will'||p==='I do'
-                  ?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>
-                  :<span key={i}>{p}</span>
-              )}
-            </div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{dateStamp}</div>
-            {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.16em',textTransform:'uppercase' as any,color:signal}}>↑ {sinceYes} days since you said yes</div>}
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,lineHeight:1.55,marginTop:8,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
-          </>
-        )}
+        {!journeyOpen&&<>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,lineHeight:1.62,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
+            {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
+          </div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{dateStamp}</div>
+          {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.16em',textTransform:'uppercase' as any,color:signal}}>↑ {sinceYes} days since you said yes</div>}
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,lineHeight:1.55,marginTop:8,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
+        </>}
       </div>
 
-      {/* ── SLICES — z:5, above bottom panel (z:4), ghost (z:3) bleeds behind ── */}
+      {/* Slices */}
       <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
         {SLICES.map((slice,idx)=>(
-          <div key={slice.key} onClick={()=>go(slice.route)} className="si-a" style={{
-            flex:1,
-            minHeight:0,  /* let flex decide — no forced min */
-            display:'flex',alignItems:'center',padding:'0 18px',gap:7,
-            borderBottom:`.5px solid ${line}`,
-            cursor:'pointer',WebkitTapHighlightColor:'transparent',
-            background:'transparent',
-            animationDelay:`${idx*16}ms`,
-          }}>
-            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,
-              color: dark ? sliceTxt : '#FFFFFF',
-              fontFeatureSettings:'"opsz" 9',transition:`font-size 480ms ${EASE}`}}>
-              {slice.label}
-            </span>
+          <div key={slice.key} onClick={()=>openRoom(slice.key)} className="si-a"
+            style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',background:'transparent',animationDelay:`${idx*16}ms`}}>
+            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
             {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,
-              color: dark ? hintTxt : 'rgba(255,255,255,.55)',
-              marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:150}}>
-              {slice.hint}
-            </span>
-            {(slice.key==='discover'||slice.key==='meridian')&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:dark?inkMute:'rgba(255,255,255,.4)',flexShrink:0}}>→</span>}
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:150}}>{slice.hint}</span>
+            {(slice.key==='discover'||slice.key==='meridian')&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:hintTxt,flexShrink:0}}>→</span>}
           </div>
         ))}
       </div>
 
-      {/* ── JOURNEY — z:5, anchored bottom ── */}
+      {/* Journey */}
       <div style={{position:'relative',zIndex:5,flexShrink:0,borderTop:`.5px solid ${lineStr}`,paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 2px)',background:journeyOpen?jnyBg:'transparent',transition:`background 300ms ${EASE}`}}>
         <div onClick={()=>setJourneyOpen(o=>!o)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 18px',cursor:'pointer',WebkitTapHighlightColor:'transparent',minHeight:44}}>
-          <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,
-            color: dark ? accent : '#FFFFFF',
-            fontFeatureSettings:'"opsz" 9'}}>Journey</span>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:dark?accent:'rgba(255,255,255,.6)',opacity:.55,display:'inline-block',transform:journeyOpen?'rotate(180deg)':'rotate(0deg)',transition:`transform 300ms ${EASE}`}}>∨</span>
+          <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>Journey</span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:accent,opacity:.55,display:'inline-block',transform:journeyOpen?'rotate(180deg)':'rotate(0deg)',transition:`transform 300ms ${EASE}`}}>∨</span>
         </div>
-        {journeyOpen&&(
-          <div style={{borderTop:`.5px solid ${line}`}}>
-            {JOURNEY.map((link,i)=>(
-              <div key={link.label} onClick={()=>go(link.route)} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
-                <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:dark?inkSoft:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
-                {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:dark?inkMute:'rgba(255,255,255,.45)'}}>{link.hint}</span>}
-              </div>
-            ))}
-            <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${JOURNEY.length*28}ms`}}>
-              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:dark?inkSoft:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>Mode</span>
-              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:accent}}>
-                {dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span>
-              </span>
+        {journeyOpen&&<div style={{borderTop:`.5px solid ${line}`}}>
+          {JOURNEY_LINKS.map((link,i)=>(
+            <div key={link.label} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
+              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
+              {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:inkMute}}>{link.hint}</span>}
             </div>
+          ))}
+          <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${JOURNEY_LINKS.length*28}ms`}}>
+            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Mode</span>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:accent}}>{dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span></span>
           </div>
-        )}
+        </div>}
       </div>
+
+      {/* ════════════════════════════════════════════════════════
+          BLOOM LAYER — renders ON TOP of Sanctuary
+          Every room blooms up from the bottom, covering Sanctuary.
+          Swipe down or tap ← to close.
+          ════════════════════════════════════════════════════════ */}
+      {activeRoom && (
+        <div
+          className={closing ? 'bloom-exit' : 'bloom-enter'}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden'}}
+        >
+          {/* Room top bar */}
+          <div style={{position:'relative',zIndex:10,background:roomTopBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderBottom:`0.5px solid ${roomLine}`,paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',paddingBottom:12,paddingLeft:18,paddingRight:18,display:'flex',alignItems:'center',flexShrink:0}}>
+            <button onClick={closeRoom} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Sanctuary
+            </button>
+            <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
+              {SLICES.find(s=>s.key===activeRoom)?.label}
+            </div>
+            {activeRoom==='dream'&&<button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute}}>Clear</button>}
+            {activeRoom!=='dream'&&<div style={{width:40}}/>}
+          </div>
+
+          {/* Room content */}
+          <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+
+            {/* ── DREAM AI ── */}
+            {activeRoom==='dream'&&<>
+              <div ref={scrollRef} className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'20px 18px'}}>
+                {msgs.length===0?(
+                  <div style={{display:'flex',flexDirection:'column',gap:24,paddingTop:8}}>
+                    <div>
+                      <div style={{fontFamily:"'Italianno',cursive",fontSize:48,lineHeight:.95,color:roomInk,marginBottom:8}}>Tell me what's<br/>on your mind.</div>
+                      <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>I know your timeline, vendors,<br/>Muse board, and Circle.</div>
+                    </div>
+                    <div>
+                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:roomInkMute,marginBottom:12}}>Try asking</div>
+                      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                        {DREAM_PROMPTS.map(p=>(
+                          <button key={p} onClick={()=>sendDream(p)} style={{textAlign:'left',background:chipBg,border:`0.5px solid ${chipBdr}`,borderRadius:8,padding:'12px 14px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInk,cursor:'pointer',fontFeatureSettings:'"opsz" 9'}}>"{p}"</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ):(
+                  <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                    {msgs.map(m=>(
+                      <div key={m.id} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}>
+                        {m.role==='user'?(
+                          <div style={{maxWidth:'82%',background:accent,color:dark?'#1A0810':'#FFFFFF',padding:'10px 14px',borderRadius:'20px 20px 4px 20px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>{m.content}</div>
+                        ):m.pending&&m.content===''?(
+                          <div style={{background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'10px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)'}}>
+                            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,animation:'dpulse 1.4s infinite ease-in-out'}}>✦ thinking</span>
+                            <style>{`@keyframes dpulse{0%,80%,100%{opacity:.35}40%{opacity:1}}`}</style>
+                          </div>
+                        ):(
+                          <div style={{maxWidth:'90%',background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.65,color:m.error?'#C4534A':roomInk,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
+                            {m.content}
+                            {m.pending&&<span className="d-cursor" style={{opacity:.5,color:accent}}>▌</span>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Compose */}
+              <div style={{background:composeBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderTop:`0.5px solid ${roomLine}`,padding:`12px 18px calc(12px + env(safe-area-inset-bottom,0px))`,flexShrink:0}}>
+                <div style={{display:'flex',gap:10,alignItems:'flex-end',background:inputBg,border:`0.5px solid ${inputBdr}`,borderRadius:20,padding:'8px 10px 8px 16px'}}>
+                  <textarea ref={textRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendDream(input);}}} placeholder="Tell DreamAi anything…" disabled={loading} rows={1}
+                    style={{flex:1,background:'transparent',border:'none',outline:'none',color:roomInk,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,resize:'none',maxHeight:120,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
+                  <button onClick={()=>sendDream(input)} disabled={loading||!input.trim()}
+                    style={{background:input.trim()&&!loading?accent:'rgba(128,128,128,.12)',color:input.trim()&&!loading?(dark?'#1A0810':'#FFFFFF'):roomInkMute,border:'none',borderRadius:'50%',width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',cursor:input.trim()&&!loading?'pointer':'default',transition:`background 200ms ${EASE}`,flexShrink:0}}>
+                    <Send size={14} strokeWidth={1.5}/>
+                  </button>
+                </div>
+              </div>
+            </>}
+
+            {/* ── OTHER ROOMS — placeholder until built ── */}
+            {activeRoom!=='dream'&&(
+              <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
+                <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
+                  {SLICES.find(s=>s.key===activeRoom)?.label}
+                </div>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,textAlign:'center',lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
+                  Coming soon.<br/>Swipe down to return.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
