@@ -1,91 +1,141 @@
 'use client';
 
 // app/(frost)/frost/canvas/dream/page.tsx
-// Dream Ai — Aubade-Nocturne skin. All streaming logic unchanged.
+// Dream canvas — full DreamAi conversation thread wired to brideEngine via SSE.
+// Full-bleed page. Dark gradient background. Frosted compose bar.
+// B-6: replaces mockReply with real streamBrideChat.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send } from 'lucide-react';
-import { AUBADE, FF, FROST_COPY } from '../../../../../lib/frost/tokens';
+import { useFrostMode } from '../../../layout';
+import { FROST_SURFACE, FF, SP, FR, FROST_COPY, EASE } from '../../../../../lib/frost/tokens';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 
 interface UIMsg {
-  id: string; role: 'user' | 'assistant'; content: string; pending?: boolean; error?: boolean;
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  pending?: boolean;
+  error?: boolean;
 }
+
 function uid() { return Math.random().toString(36).slice(2); }
 
 const PROMPTS = [
   'How many days until my wedding?',
-  "What's on my calendar this week?",
-  "Who's in my Circle?",
-  "What have I saved to Muse?",
+  'What\'s on my calendar this week?',
+  'Who\'s in my Circle?',
+  'What have I saved to Muse?',
   'How much have I spent so far?',
 ];
 
 export default function CanvasDream() {
   const router = useRouter();
+  const { mode } = useFrostMode();
   const [messages, setMessages] = useState<UIMsg[]>([]);
-  const [input,    setInput]    = useState('');
-  const [loading,  setLoading]  = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const textRef   = useRef<HTMLTextAreaElement>(null);
-  const cancelRef = useRef<(() => void) | null>(null);
+  const [input, setInput]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const textRef    = useRef<HTMLTextAreaElement>(null);
+  const cancelRef  = useRef<(() => void) | null>(null);
 
+  // Scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
+  // Auto-resize textarea
   useEffect(() => {
     if (!textRef.current) return;
     textRef.current.style.height = 'auto';
     textRef.current.style.height = Math.min(textRef.current.scrollHeight, 120) + 'px';
   }, [input]);
 
+  // Cancel in-flight stream on unmount
   useEffect(() => () => { cancelRef.current?.(); }, []);
 
   const send = useCallback(async (text: string) => {
     const msg = text.trim();
     if (!msg || loading) return;
+
     setInput('');
     setMessages(prev => [...prev, { id: uid(), role: 'user', content: msg }]);
     setLoading(true);
+
     const aiId = uid();
     setMessages(prev => [...prev, { id: aiId, role: 'assistant', content: '', pending: true }]);
+
     const cancel = streamBrideChat(
       msg,
-      (delta) => setMessages(prev => prev.map(m => m.id === aiId ? { ...m, content: m.content + delta, pending: false } : m)),
-      () => { setMessages(prev => prev.map(m => m.id === aiId ? { ...m, pending: false } : m)); setLoading(false); cancelRef.current = null; },
-      (err) => { console.error('[dream]', err); setMessages(prev => prev.map(m => m.id === aiId ? { ...m, content: 'I had trouble with that. Try again.', error: true, pending: false } : m)); setLoading(false); cancelRef.current = null; },
+      // onDelta — append each word chunk
+      (delta) => {
+        setMessages(prev => prev.map(m =>
+          m.id === aiId
+            ? { ...m, content: m.content + delta, pending: false }
+            : m
+        ));
+      },
+      // onDone
+      () => {
+        setMessages(prev => prev.map(m =>
+          m.id === aiId ? { ...m, pending: false } : m
+        ));
+        setLoading(false);
+        cancelRef.current = null;
+      },
+      // onError
+      (err) => {
+        console.error('[dream canvas] stream error:', err);
+        setMessages(prev => prev.map(m =>
+          m.id === aiId
+            ? { ...m, content: 'I had trouble with that. Try again.', error: true, pending: false }
+            : m
+        ));
+        setLoading(false);
+        cancelRef.current = null;
+      },
     );
+
     cancelRef.current = cancel;
   }, [loading]);
 
+  const bg = `linear-gradient(to bottom, ${mode.dreamGradient[0]}, ${mode.dreamGradient[1]})`;
+
   return (
-    <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(ellipse 80% 50% at 50% 0%, rgba(216,152,84,0.06) 0%, transparent 60%), linear-gradient(180deg, ${AUBADE.paper} 0%, ${AUBADE.paper2} 60%, ${AUBADE.paperDeep} 100%)`, display: 'flex', flexDirection: 'column', userSelect: 'none', WebkitUserSelect: 'none' }}>
-      <style>{`@keyframes dreamPulse{0%,80%,100%{opacity:.35}40%{opacity:1}} @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <div style={{ position: 'fixed', inset: 0, background: bg, display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
 
       {/* Top bar */}
-      <div style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 14px)', paddingBottom: 14, paddingLeft: 22, paddingRight: 22, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${AUBADE.line}`, flexShrink: 0, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(10,9,11,0.60)' }}>
-        <button onClick={() => router.push('/frost/canvas/sanctuary')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: FF.mono, fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: AUBADE.inkMute, padding: 0, WebkitTapHighlightColor: 'transparent' }}>
-          <span style={{ color: AUBADE.aubade }}>←</span> Sanctuary
+      <div style={{
+        ...FROST_SURFACE.composer,
+        paddingTop: 'calc(env(safe-area-inset-top,0px) + 12px)',
+        paddingBottom: 12, paddingLeft: 16, paddingRight: 16,
+        display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+      }}>
+        <button onClick={() => router.push('/frost/canvas/sanctuary')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Dream
         </button>
-        <div style={{ fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 19, color: AUBADE.ink, fontFeatureSettings: '"opsz" 9' }}>Dream Ai</div>
-        <button onClick={() => { cancelRef.current?.(); setMessages([]); setLoading(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: FF.mono, fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: AUBADE.inkMute, padding: 0, WebkitTapHighlightColor: 'transparent' }}>Clear</button>
+        <div style={{ flex: 1, textAlign: 'center', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: mode.brass }}>✦ AI</div>
+        <button onClick={() => { cancelRef.current?.(); setMessages([]); setLoading(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: mode.brassMuted, padding: 0 }}>Clear</button>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="frost-scroll" style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '28px 22px 16px' }}>
+      <div ref={scrollRef} className="frost-scroll" style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: `${SP.xl}px ${SP.xl}px` }}>
         {messages.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SP.xl }}>
             <div>
-              <div style={{ fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 28, color: AUBADE.ink, lineHeight: 1.25, letterSpacing: '-0.02em', marginBottom: 10, fontFeatureSettings: '"opsz" 9' }}>What do you want to know?</div>
-              <div style={{ fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: AUBADE.inkSoft, lineHeight: 1.6, fontFeatureSettings: '"opsz" 9' }}>I know your timeline, vendors, Muse board, and Circle.</div>
+              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 26, color: mode.ink, lineHeight: 1.3 }}>What do you want to know?</div>
+              <div style={{ fontFamily: FF.body, fontSize: 13, color: mode.soft, marginTop: 8, lineHeight: 1.6 }}>I know your timeline, vendors, Muse board, and Circle.</div>
             </div>
             <div>
-              <div style={{ fontFamily: FF.mono, fontSize: 9, fontWeight: 300, letterSpacing: '0.28em', textTransform: 'uppercase', color: AUBADE.inkMute, marginBottom: 14 }}>Try asking</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.25em', textTransform: 'uppercase', color: mode.brassMuted, marginBottom: 10 }}>Try asking</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {PROMPTS.map(p => (
-                  <button key={p} onClick={() => send(p)} style={{ textAlign: 'left', background: 'rgba(239,233,221,0.04)', border: `1px solid ${AUBADE.line}`, borderRadius: 2, padding: '14px 16px', fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: AUBADE.inkSoft, lineHeight: 1.4, cursor: 'pointer', fontFeatureSettings: '"opsz" 9', WebkitTapHighlightColor: 'transparent' }}>
+                  <button key={p} onClick={() => send(p)}
+                    style={{ textAlign: 'left', ...FROST_SURFACE.button, border: `0.5px solid ${mode.hairline}`, borderRadius: FR.md, padding: '12px 14px', fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: mode.ink, cursor: 'pointer', background: FROST_SURFACE.button.background }}>
                     {`"${p}"`}
                   </button>
                 ))}
@@ -93,16 +143,22 @@ export default function CanvasDream() {
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {messages.map(m => (
-              <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', animation: 'msgIn 220ms cubic-bezier(0.22,1,0.36,1) forwards' }}>
+              <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 {m.role === 'user' ? (
-                  <div style={{ maxWidth: '82%', background: 'rgba(216,152,84,0.18)', border: '1px solid rgba(216,152,84,0.35)', borderRadius: '16px 16px 3px 16px', padding: '12px 16px', fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: AUBADE.ink, lineHeight: 1.55, fontFeatureSettings: '"opsz" 9' }}>{m.content}</div>
+                  <div style={{ maxWidth: '85%', background: mode.brass, color: '#1B1612', padding: '10px 14px', borderRadius: '20px 20px 4px 20px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.5 }}>
+                    {m.content}
+                  </div>
                 ) : m.pending && m.content === '' ? (
-                  <div style={{ background: 'rgba(239,233,221,0.05)', border: `1px solid ${AUBADE.line}`, borderRadius: '16px 16px 16px 3px', padding: '12px 16px', fontFamily: FF.mono, fontSize: 10, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: AUBADE.aubade, animation: 'dreamPulse 1.4s infinite ease-in-out' }}>✦ thinking</div>
+                  <div style={{ ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 13, color: mode.soft, background: FROST_SURFACE.button.background }}>
+                    <span style={{ animation: 'fbPulse 1.4s infinite ease-in-out' }}>✦ thinking</span>
+                    <style>{`@keyframes fbPulse{0%,80%,100%{opacity:.4}40%{opacity:1}}`}</style>
+                  </div>
                 ) : (
-                  <div style={{ maxWidth: '90%', background: 'rgba(239,233,221,0.05)', border: `1px solid ${AUBADE.line}`, borderRadius: '16px 16px 16px 3px', padding: '14px 16px', fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.65, color: m.error ? '#C46863' : AUBADE.ink, whiteSpace: 'pre-wrap', fontFeatureSettings: '"opsz" 9' }}>
-                    {m.content}{m.pending && <span style={{ color: AUBADE.aubade, opacity: 0.7 }}>▌</span>}
+                  <div style={{ maxWidth: '90%', ...FROST_SURFACE.button, padding: '10px 14px', borderRadius: '20px 20px 20px 4px', fontFamily: FF.body, fontSize: 14, lineHeight: 1.6, color: m.error ? '#B8453E' : mode.ink, whiteSpace: 'pre-wrap', background: FROST_SURFACE.button.background }}>
+                    {m.content}
+                    {m.pending && <span style={{ opacity: 0.5 }}>▌</span>}
                   </div>
                 )}
               </div>
@@ -112,10 +168,23 @@ export default function CanvasDream() {
       </div>
 
       {/* Compose bar */}
-      <div style={{ padding: `12px 22px calc(12px + env(safe-area-inset-bottom,0px))`, borderTop: `1px solid ${AUBADE.line}`, flexShrink: 0, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', background: 'rgba(10,9,11,0.70)' }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', background: 'rgba(239,233,221,0.05)', border: `1px solid ${AUBADE.line}`, borderRadius: 3, padding: '10px 10px 10px 16px' }}>
-          <textarea ref={textRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }} placeholder={FROST_COPY.dreamCanvas.inputPlaceholder} disabled={loading} rows={1} style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: AUBADE.ink, fontFamily: FF.aubade, fontStyle: 'italic', fontWeight: 300, fontSize: 16, resize: 'none', maxHeight: 120, lineHeight: 1.5, userSelect: 'text', WebkitUserSelect: 'text', caretColor: AUBADE.aubade, fontFeatureSettings: '"opsz" 9' } as React.CSSProperties} />
-          <button onClick={() => send(input)} disabled={loading || !input.trim()} style={{ background: input.trim() && !loading ? AUBADE.aubade : 'rgba(239,233,221,0.08)', color: input.trim() && !loading ? '#0A090B' : AUBADE.inkMute, border: 'none', borderRadius: 2, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'default', transition: 'background 180ms ease', flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}>
+      <div style={{ padding: `12px 16px calc(12px + env(safe-area-inset-bottom,0px))`, ...FROST_SURFACE.composer, borderTop: `0.5px solid ${mode.hairlineStrong}`, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', ...FROST_SURFACE.button, borderRadius: 20, padding: '8px 10px 8px 14px', background: FROST_SURFACE.button.background }}>
+          <textarea
+            ref={textRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
+            placeholder={FROST_COPY.dreamCanvas.inputPlaceholder}
+            disabled={loading}
+            rows={1}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: mode.ink, fontFamily: FF.body, fontSize: 14, resize: 'none', maxHeight: 120, lineHeight: 1.5, userSelect: 'text' }}
+          />
+          <button
+            onClick={() => send(input)}
+            disabled={loading || !input.trim()}
+            style={{ background: input.trim() && !loading ? mode.brass : 'rgba(255,255,255,0.1)', color: input.trim() && !loading ? '#1B1612' : mode.soft, border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'default', transition: `background 180ms ${EASE}`, flexShrink: 0 }}
+          >
             <Send size={14} strokeWidth={1.5} />
           </button>
         </div>

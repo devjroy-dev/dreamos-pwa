@@ -120,36 +120,32 @@ function AccordionSection({ label, hasValue, children }: {
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderBottom: `1px solid rgba(239,233,221,0.10)` }}>
+    <div style={{ borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '18px 24px', background: 'none', border: 'none',
+          padding: '16px 24px', background: 'none', border: 'none',
           cursor: 'pointer', touchAction: 'manipulation',
         }}
       >
         <span style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-          fontSize: 9, fontWeight: 300,
-          letterSpacing: '0.32em', textTransform: 'uppercase' as const,
-          color: hasValue ? '#D89854' : 'rgba(239,233,221,0.45)',
+          fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
+          letterSpacing: '0.28em', textTransform: 'uppercase' as const,
+          color: hasValue ? 'rgba(201,168,76,0.9)' : 'rgba(248,247,245,0.45)',
         }}>
-          {label}
-          {hasValue && <span style={{ color: '#D89854', marginLeft: 6 }}>·</span>}
+          {label}{hasValue ? ' ·' : ''}
         </span>
         <span style={{
-          color: open ? '#D89854' : 'rgba(239,233,221,0.32)',
-          fontSize: 12,
+          color: 'rgba(248,247,245,0.35)', fontSize: 14,
           transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: 'transform 200ms ease, color 200ms ease',
-          display: 'inline-block',
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          transition: 'transform 200ms ease', display: 'inline-block',
+          fontFamily: "'Jost',sans-serif",
         }}>›</span>
       </button>
       {open && (
-        <div style={{ padding: '0 24px 24px' }}>
+        <div style={{ padding: '0 24px 20px' }}>
           {children}
         </div>
       )}
@@ -168,88 +164,45 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
   useEffect(() => { if (visible) setLocal(filters); }, [visible, filters]);
   if (!visible) return null;
 
-  // Aubade pill — square corners, saffron active state
-  const pill = (active: boolean): React.CSSProperties => ({
-    padding: '8px 16px',
-    borderRadius: 2,
-    border: active
-      ? '1px solid rgba(216,152,84,0.75)'
-      : '1px solid rgba(239,233,221,0.16)',
-    background: active
-      ? 'rgba(216,152,84,0.14)'
-      : 'rgba(239,233,221,0.04)',
-    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-    fontSize: 9, fontWeight: 300,
-    letterSpacing: '0.18em', textTransform: 'uppercase' as const,
-    color: active ? '#D89854' : 'rgba(239,233,221,0.62)',
+  const pill = (active: boolean) => ({
+    padding: '7px 14px', borderRadius: 20,
+    border: active ? '0.5px solid rgba(201,168,76,0.75)' : '0.5px solid rgba(255,255,255,0.15)',
+    background: active ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.06)',
+    fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300,
+    letterSpacing: '0.12em',
+    color: active ? 'rgba(201,168,76,0.95)' : 'rgba(248,247,245,0.65)',
     cursor: 'pointer', whiteSpace: 'nowrap' as const,
     touchAction: 'manipulation' as const,
-    transition: 'all 200ms ease',
   });
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={onClose}>
-      {/* Dark scrim — lighter, photo still visible at top */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(3,3,5,0.55)', pointerEvents: 'none' }} />
-
+      <div style={{ position: 'absolute', inset: 0, ...GLASS.scrim, pointerEvents: 'none' }} />
       <div
         style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: 'rgba(10,9,11,0.92)',
-          backdropFilter: 'blur(28px) saturate(1.3)',
-          WebkitBackdropFilter: 'blur(28px) saturate(1.3)',
-          borderTop: '1px solid rgba(239,233,221,0.14)',
-          borderRadius: '0 0 0 0',
+          ...GLASS.sheet,
+          borderRadius: '20px 20px 0 0',
           paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
           maxHeight: '85vh', overflowY: 'auto', scrollbarWidth: 'none' as const,
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '14px 0 6px' }}>
-          <div style={{ width: 32, height: 3, borderRadius: 2, background: 'rgba(239,233,221,0.18)' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
         </div>
-
-        {/* Header — Aubade: mono eyebrow + Fraunces title */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 24px 20px',
-          borderBottom: '1px solid rgba(239,233,221,0.10)',
-        }}>
-          <div>
-            <div style={{
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 8.5, fontWeight: 300,
-              letterSpacing: '0.32em', textTransform: 'uppercase',
-              color: 'rgba(239,233,221,0.40)',
-              marginBottom: 6,
-            }}>
-              {isBlind ? 'Select category' : 'Refine the catalogue'}
-            </div>
-            <div style={{
-              fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
-              fontStyle: 'italic', fontWeight: 300,
-              fontSize: 28, letterSpacing: '-0.02em',
-              color: '#EFE9DD',
-              fontFeatureSettings: '"opsz" 9',
-            }}>
-              {isBlind ? 'Category' : 'Filters'}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(239,233,221,0.35)', padding: 4,
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 14, lineHeight: 1,
-            }}
-          >
-            ×
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 24px 4px' }}>
+          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, color: '#F8F7F5', letterSpacing: '-0.01em' }}>
+            {isBlind ? 'Category' : 'Filters'}
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(248,247,245,0.4)', padding: 4 }}>
+            <X size={18} strokeWidth={1.5} />
           </button>
         </div>
 
-        {/* Category */}
+        {/* Category — always shown, first */}
         <AccordionSection label="Category" hasValue={!!local.category}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {CATEGORIES.map(c => (
@@ -261,6 +214,7 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
           </div>
         </AccordionSection>
 
+        {/* Rest only shown in normal (non-blind) mode */}
         {!isBlind && (
           <>
             <AccordionSection label="Mode" hasValue={!!local.mode}>
@@ -309,38 +263,15 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
           </>
         )}
 
-        {/* Actions — Aubade glass */}
-        <div style={{ display: 'flex', gap: 10, padding: '28px 24px 0' }}>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 12, padding: '24px 24px 0' }}>
           <button
-            onClick={() => {
-              const e = { category:null, city:null, vibes:[], budget:null, mode:null };
-              setLocal(e); onApply(e); onClose();
-            }}
-            style={{
-              flex: 1, padding: '14px 0',
-              background: 'transparent',
-              border: '1px solid rgba(239,233,221,0.18)',
-              borderRadius: 2,
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 9, fontWeight: 300,
-              letterSpacing: '0.28em', textTransform: 'uppercase' as const,
-              color: 'rgba(239,233,221,0.40)',
-              cursor: 'pointer', touchAction: 'manipulation' as const,
-            }}
+            onClick={() => { const e = { category:null,city:null,vibes:[],budget:null,mode:null }; setLocal(e); onApply(e); onClose(); }}
+            style={{ flex: 1, padding: '13px 0', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.2)', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: 'rgba(248,247,245,0.45)', cursor: 'pointer', touchAction: 'manipulation' as const }}
           >Clear</button>
           <button
             onClick={() => { onApply(local); onClose(); }}
-            style={{
-              flex: 2, padding: '14px 0',
-              background: 'rgba(216,152,84,0.18)',
-              border: '1px solid rgba(216,152,84,0.55)',
-              borderRadius: 2,
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 9, fontWeight: 300,
-              letterSpacing: '0.28em', textTransform: 'uppercase' as const,
-              color: '#D89854',
-              cursor: 'pointer', touchAction: 'manipulation' as const,
-            }}
+            style={{ flex: 2, padding: '13px 0', background: '#C9A84C', border: 'none', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#0C0A09', cursor: 'pointer', touchAction: 'manipulation' as const }}
           >Apply</button>
         </div>
       </div>
@@ -402,21 +333,17 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
       </div>
 
       {circleToast && (
-        <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', background: 'rgba(10,9,11,0.85)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(239,233,221,0.18)', borderRadius: 2, padding: '8px 16px', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(239,233,221,0.8)', whiteSpace: 'nowrap', zIndex: 30 }}>
+        <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', ...GLASS.pill, borderRadius: 20, padding: '6px 16px', fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300, color: 'rgba(248,247,245,0.8)', whiteSpace: 'nowrap', zIndex: 30 }}>
           Add someone to your Circle first
         </div>
       )}
 
       <div style={{ padding: '0 24px' }}>
-        {/* Aubade lede — mono eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{ width: 20, height: 1, background: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
-          <p style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8.5, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', margin: 0, whiteSpace: 'nowrap' }}>
-            {vendor.category}{vendor.city ? ` · ${vendor.city}` : ''}
-          </p>
-        </div>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
+          {vendor.category}&nbsp;·&nbsp;{vendor.city}
+        </p>
         {!isBlind && (
-          <h2 style={{ fontFamily: "'Fraunces', 'Cormorant Garamond', serif", fontSize: 36, fontWeight: 300, fontStyle: 'italic', color: '#EFE9DD', margin: '0 0 10px', letterSpacing: '-0.025em', lineHeight: 0.95, fontFeatureSettings: '"opsz" 144' }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
             {vendor.name}
           </h2>
         )}
@@ -468,26 +395,13 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
 
 // ── Image dots ────────────────────────────────────────────────────────────────
 
-function PlateCounter({ vendorIdx, total }: { vendorIdx: number; total: number }) {
-  const plate    = String(vendorIdx + 1).padStart(3, '0');
-  const totalStr = String(total).padStart(3, '0');
+function ImageDots({ total, current }: { total: number; current: number }) {
+  if (total <= 1) return null;
   return (
-    <div style={{
-      position: 'fixed',
-      top: 'calc(env(safe-area-inset-top,0px) + 52px)',
-      left: 22,
-      zIndex: 24,
-      pointerEvents: 'none',
-    }}>
-      <span style={{
-        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-        fontSize: 9, fontWeight: 300,
-        letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.75)',
-        textShadow: '0 1px 4px rgba(0,0,0,0.6)',
-      }}>
-        Plate {plate}<span style={{ color: 'rgba(255,255,255,0.38)' }}> / {totalStr}</span>
-      </span>
+    <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top,0px) + 20px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 24, pointerEvents: 'none' }}>
+      {Array.from({ length: Math.min(total, 8) }).map((_, i) => (
+        <div key={i} style={{ width: i === current ? 16 : 5, height: 5, borderRadius: 3, background: i === current ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)', transition: 'all 240ms cubic-bezier(0.22,1,0.36,1)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+      ))}
     </div>
   );
 }
@@ -503,12 +417,12 @@ function BlindCentreToast({ hint }: { hint: 'dismiss' | null }) {
 
 function EmptyDeck({ mode }: { mode: string }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#0A090B', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-      <span style={{ color: '#D89854', fontSize: 32, lineHeight: 1 }}>✦</span>
-      <span style={{ fontFamily: "'Fraunces', 'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, fontStyle: 'italic', color: 'rgba(239,233,221,0.75)', letterSpacing: '-0.02em' }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#0C0A09', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+      <span style={{ fontSize: 48 }}>✦</span>
+      <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, fontStyle: 'italic', color: 'rgba(248,247,245,0.7)' }}>
         {mode === 'blind' ? "You've seen them all." : "You've seen everyone."}
       </span>
-      <span style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(239,233,221,0.35)' }}>
+      <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.35)' }}>
         Check back soon
       </span>
     </div>
@@ -527,86 +441,53 @@ function TopChrome({ onSanctuary, onFilter, onToggleBlind, isBlind, hasFilters }
   hasFilters:    boolean;
 }) {
   const top = 'calc(env(safe-area-inset-top,0px) + 14px)';
+
+  // Stop touch events bubbling up to the swipe handler
   const stopTouch = (e: React.TouchEvent) => e.stopPropagation();
 
-  const romanDate = (() => {
-    const now = new Date();
-    const ROMAN = ['','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];
-    const d = String(now.getDate()).padStart(2,'0');
-    const m = ROMAN[now.getMonth() + 1];
-    const y = String(now.getFullYear()).slice(-2);
-    return `${d} . ${m} . ${y}`;
-  })();
-
   const pillBase: React.CSSProperties = {
-    position: 'fixed', top, zIndex: 25,
-    display: 'flex', alignItems: 'center',
-    height: 28, borderRadius: 2,
-    cursor: 'pointer', touchAction: 'manipulation', border: 'none',
-  };
-  const aubaGlass: React.CSSProperties = {
-    background: 'rgba(5,6,8,0.36)',
-    backdropFilter: 'blur(20px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-    border: '1px solid rgba(255,255,255,0.18)',
-  };
-  const aubaGlassActive: React.CSSProperties = {
-    background: 'rgba(216,152,84,0.18)',
-    backdropFilter: 'blur(20px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-    border: '1px solid rgba(216,152,84,0.45)',
+    position: 'fixed',
+    top,
+    zIndex: 25,
+    display: 'flex',
+    alignItems: 'center',
+    height: 28,
+    borderRadius: 100,
+    cursor: 'pointer',
+    touchAction: 'manipulation',
+    border: 'none',
   };
 
   return (
     <>
-      {/* Roman date — top right, mono */}
-      <div style={{
-        position: 'fixed', top, right: 52, zIndex: 25,
-        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-        fontSize: 9, fontWeight: 300,
-        letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.50)',
-        height: 28, display: 'flex', alignItems: 'center',
-        textShadow: '0 1px 4px rgba(0,0,0,0.5)',
-        pointerEvents: 'none',
-      }}>
-        {romanDate}
-      </div>
-
-      {/* Sanctuary — left */}
+      {/* Sanctuary — left only */}
       <button
         onClick={onSanctuary}
         onTouchStart={stopTouch}
         onTouchEnd={stopTouch}
-        style={{ ...pillBase, left: 14, gap: 6, padding: '0 14px', ...aubaGlass }}
+        style={{ ...pillBase, left: 14, gap: 5, padding: '0 10px 0 8px', ...GLASS.pill }}
         aria-label="Sanctuary"
       >
-        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#D89854', flexShrink: 0 }} />
-        <span style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-          fontSize: 8.5, fontWeight: 300,
-          letterSpacing: '0.20em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.90)', whiteSpace: 'nowrap',
-        }}>
+        <span style={{ fontSize: 9, color: 'rgba(201,168,76,0.85)', lineHeight: 1 }}>✦</span>
+        <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.85)', whiteSpace: 'nowrap' }}>
           Sanctuary
         </span>
       </button>
 
-      {/* Blind — beside Sanctuary */}
+      {/* Blind — right side, left of filter */}
       <button
         onClick={onToggleBlind}
         onTouchStart={stopTouch}
         onTouchEnd={stopTouch}
-        style={{ ...pillBase, left: 'calc(14px + 120px + 8px)', padding: '0 14px', ...(isBlind ? aubaGlassActive : aubaGlass) }}
+        style={{
+          ...pillBase,
+          right: 50, // filter is at right:14, width 28 → this sits 8px gap left of it
+          padding: '0 10px',
+          ...(isBlind ? GLASS.pillActive : GLASS.pill),
+        }}
         aria-label="Toggle blind mode"
       >
-        <span style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-          fontSize: 8.5, fontWeight: 300,
-          letterSpacing: '0.20em', textTransform: 'uppercase',
-          color: isBlind ? '#D89854' : 'rgba(255,255,255,0.60)',
-          whiteSpace: 'nowrap',
-        }}>
+        <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: isBlind ? 'rgba(201,168,76,0.95)' : 'rgba(248,247,245,0.6)', whiteSpace: 'nowrap' }}>
           Blind
         </span>
       </button>
@@ -617,14 +498,21 @@ function TopChrome({ onSanctuary, onFilter, onToggleBlind, isBlind, hasFilters }
         onTouchStart={stopTouch}
         onTouchEnd={stopTouch}
         style={{
-          ...pillBase, right: 14, width: 28,
-          justifyContent: 'center', padding: 0,
-          ...(hasFilters ? aubaGlassActive : aubaGlass),
+          ...pillBase,
+          right: 14,
+          width: 28,
+          justifyContent: 'center',
+          padding: 0,
+          ...(hasFilters ? GLASS.pillActive : GLASS.pill),
           position: 'fixed',
         } as React.CSSProperties}
         aria-label="Filters"
       >
-        <SlidersHorizontal size={13} strokeWidth={1.5} color={hasFilters ? '#D89854' : 'rgba(255,255,255,0.8)'} />
+        <SlidersHorizontal
+          size={13}
+          strokeWidth={1.5}
+          color={hasFilters ? 'rgba(201,168,76,0.9)' : 'rgba(255,255,255,0.8)'}
+        />
       </button>
     </>
   );
@@ -658,7 +546,7 @@ function spawnSaveToast(alreadySaved = false) {
     z-index:9998;pointer-events:none;white-space:nowrap;
     animation:toastSlideIn 250ms cubic-bezier(0.22,1,0.36,1) forwards;
   `;
-  el.textContent = alreadySaved ? 'Already in Muse' : '✦ Saved to Muse';
+  el.textContent = alreadySaved ? 'Already in Muse' : 'Saved to Muse ♥';
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 300ms ease'; }, 1800);
   setTimeout(() => el.remove(), 2200);
@@ -672,9 +560,9 @@ function spawnHeart() {
     transform:translate(-50%,-50%) scale(0);
     font-size:88px;z-index:9999;pointer-events:none;
     animation:heartPop 700ms cubic-bezier(0.22,1,0.36,1) forwards;
-    color:#D89854;
+    color:#C9A84C;
   `;
-  el.textContent = '✦';
+  el.textContent = '♥';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 700);
   haptic(14);
@@ -699,37 +587,20 @@ function DiscoveryFeedContent({
   const [vendorIdx,      setVendorIdx]      = useState(0);
   const [imageIdx,       setImageIdx]       = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(false);
-  const [plateKey,       setPlateKey]       = useState(0);
-  const [photoKey,       setPhotoKey]       = useState(0); // triggers crossfade on photo change
-  const [plateDir,       setPlateDir]       = useState<'up'|'down'>('up');
+  const [dissolveKey,    setDissolveKey]    = useState(0);
   const [blindHint,      setBlindHint]      = useState<'dismiss' | null>(null);
   const [blindIdx,       setBlindIdx]       = useState(0);
   const [currentPage,    setCurrentPage]    = useState(0);
   const [hasMore,        setHasMore]        = useState(true);
   const [loading,        setLoading]        = useState(true);
-  const [showRibbon,     setShowRibbon]     = useState(false);
 
   const currentPhotoRef = useRef<string | null>(null);
   const touchStart      = useRef<{ x: number; y: number; t: number } | null>(null);
   const tapTimer        = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const photoTimer      = useRef<ReturnType<typeof setInterval> | null>(null);
-  const slideshowPaused = useRef(false);
   const lastTapTime     = useRef(0);
   const tapCount        = useRef(0);
 
   const hasActiveFilters = !!(filters.category || filters.city || filters.vibes.length > 0 || filters.budget || filters.mode);
-
-  // First-session ribbon — shown once, localStorage flag
-  useEffect(() => {
-    try {
-      const seen = localStorage.getItem('frost_discover_ribbon_seen');
-      if (!seen) {
-        setShowRibbon(true);
-        setTimeout(() => setShowRibbon(false), 30000);
-        localStorage.setItem('frost_discover_ribbon_seen', '1');
-      }
-    } catch {}
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -750,7 +621,6 @@ function DiscoveryFeedContent({
       .finally(() => setLoading(false));
   }, [initialCategory, filters]);
 
-  // Pagination
   useEffect(() => {
     if (!hasMore || vendors.length === 0 || vendorIdx < vendors.length - 3) return;
     const nextPage = currentPage + 1;
@@ -777,7 +647,6 @@ function DiscoveryFeedContent({
 
   const vendor = vendors[vendorIdx];
 
-  // Preload next images
   useEffect(() => {
     if (!vendor) return;
     const toPreload: string[] = [];
@@ -786,47 +655,28 @@ function DiscoveryFeedContent({
     toPreload.forEach(src => { const img = new Image(); img.src = src; });
   }, [vendorIdx, imageIdx, vendor, vendors]);
 
-  // Photo auto-cycle — 3.5s, pauses on hold, resumes on lift
-  // slideshowPaused ref (declared above) tracks hold state inside the interval without re-renders
-
-  useEffect(() => {
-    if (!vendor || vendor.photos.length <= 1 || isBlind) return;
-    if (photoTimer.current) clearInterval(photoTimer.current);
-    slideshowPaused.current = false;
-    photoTimer.current = setInterval(() => {
-      if (slideshowPaused.current) return;
-      setImageIdx(i => (i + 1 < vendor.photos.length ? i + 1 : 0));
-      setPhotoKey(k => k + 1);
-    }, 3500);
-    return () => { if (photoTimer.current) clearInterval(photoTimer.current); };
-  }, [vendorIdx, vendor, isBlind]);
-
-  // Tap on photo = advance to next photo + reset 3.5s timer
-  const handlePhotoTap = useCallback(() => {
-    if (!vendor || vendor.photos.length <= 1) return;
-    setImageIdx(i => (i + 1) % vendor.photos.length);
-    setPhotoKey(k => k + 1);
-    if (photoTimer.current) {
-      clearInterval(photoTimer.current);
-      slideshowPaused.current = false;
-      photoTimer.current = setInterval(() => {
-        if (slideshowPaused.current) return;
-        setImageIdx(i => (i + 1 < (vendor?.photos.length ?? 1) ? i + 1 : 0));
-        setPhotoKey(k => k + 1);
-      }, 3500);
-    }
-    haptic(3);
-  }, [vendor]);
-
   const goNextVendor = useCallback(() => {
     if (vendorIdx >= vendors.length - 1) return;
-    setPlateDir('up');
-    setVendorIdx(i => i + 1);
-    setImageIdx(0);
-    setOverlayVisible(false);
-    setPlateKey(k => k + 1);
-    haptic(6);
+    setVendorIdx(i => i + 1); setImageIdx(0); setOverlayVisible(false); setDissolveKey(k => k + 1); haptic(5);
   }, [vendorIdx, vendors.length]);
+
+  const goPrevVendor = useCallback(() => {
+    if (vendorIdx <= 0) return;
+    setVendorIdx(i => i - 1); setImageIdx(0); setOverlayVisible(false); setDissolveKey(k => k + 1); haptic(5);
+  }, [vendorIdx]);
+
+  const nextImage = useCallback(() => {
+    if (vendor && imageIdx < vendor.photos.length - 1) { setImageIdx(i => i + 1); setDissolveKey(k => k + 1); haptic(4); }
+  }, [imageIdx, vendor]);
+
+  const prevImage = useCallback(() => {
+    if (imageIdx > 0) { setImageIdx(i => i - 1); setDissolveKey(k => k + 1); haptic(4); }
+  }, [imageIdx]);
+
+  const handleSingleTap = useCallback(() => {
+    if (isBlind) return;
+    setOverlayVisible(v => !v); haptic(4);
+  }, [isBlind]);
 
   const handleDoubleTap = useCallback(() => {
     if (isBlind) {
@@ -834,9 +684,6 @@ function DiscoveryFeedContent({
       if (!item) return;
       spawnHeart();
       handleSaveToMuse(item.vendorId, item.imageUrl || null).then(ok => spawnSaveToast(!ok));
-      setBlindIdx(i => Math.min(i + 1, blindQueue.length - 1));
-      setPlateKey(k => k + 1);
-      haptic(6);
       return;
     }
     if (!vendor) return;
@@ -847,30 +694,9 @@ function DiscoveryFeedContent({
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const t = e.touches[0];
     touchStart.current = { x: t.clientX, y: t.clientY, t: Date.now() };
-    // Hold = pause slideshow immediately. No timer threshold — instant on contact.
-    slideshowPaused.current = true;
-  };
-
-  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!touchStart.current) return;
-    // Movement cancels nothing — hold still pauses, swipe still works
-    // We just track movement for swipe detection in onTouchEnd
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    // Resume slideshow — restart the full 3.5s from zero on finger lift.
-    // This means the photo she just held and decided to love gets the full
-    // 3.5 seconds before it changes, not whatever was left on the clock.
-    slideshowPaused.current = false;
-    if (vendor && vendor.photos.length > 1 && !isBlind && photoTimer.current) {
-      clearInterval(photoTimer.current);
-      photoTimer.current = setInterval(() => {
-        if (slideshowPaused.current) return;
-        setImageIdx(i => (i + 1 < vendor.photos.length ? i + 1 : 0));
-        setPhotoKey(k => k + 1);
-      }, 3500);
-    }
-
     if (!touchStart.current) return;
     const start = touchStart.current;
     touchStart.current = null;
@@ -881,56 +707,49 @@ function DiscoveryFeedContent({
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    // Tap detection — finger didn't move much and lifted quickly
     if (absX < TAP_MAX_MOVE && absY < TAP_MAX_MOVE && dt < TAP_MAX_TIME) {
-      const now   = Date.now();
+      const now = Date.now();
       const since = now - lastTapTime.current;
       if (since < DOUBLE_TAP_MS && tapCount.current >= 1) {
         if (tapTimer.current) clearTimeout(tapTimer.current);
         tapCount.current = 0;
         handleDoubleTap();
       } else {
-        tapCount.current    = 1;
-        lastTapTime.current = now;
-        tapTimer.current    = setTimeout(() => {
-          if (tapCount.current === 1) {
-            if (!overlayVisible) handlePhotoTap();
-            else setOverlayVisible(false);
-          }
+        tapCount.current = 1; lastTapTime.current = now;
+        tapTimer.current = setTimeout(() => {
+          if (tapCount.current === 1) handleSingleTap();
           tapCount.current = 0;
         }, DOUBLE_TAP_MS);
       }
       return;
     }
 
-    // Swipe detection — vertical axis only
-    const velocity = absY / Math.max(dt, 1);
-    if (absY < SWIPE_THRESHOLD && velocity < SWIPE_VELOCITY) return;
-    if (absX > absY) return;
-
-    if (overlayVisible && dy > OVERLAY_DISMISS) { setOverlayVisible(false); return; }
+    const velocity = Math.max(absX, absY) / Math.max(dt, 1);
+    if (Math.max(absX, absY) <= SWIPE_THRESHOLD && velocity <= SWIPE_VELOCITY) return;
 
     if (isBlind) {
-      if (dy < -SWIPE_THRESHOLD) {
-        setBlindHint('dismiss');
-        setTimeout(() => setBlindHint(null), 500);
+      if (absY > absX && dy < -SWIPE_THRESHOLD) {
+        setBlindHint('dismiss'); setTimeout(() => setBlindHint(null), 500);
         setBlindIdx(i => Math.min(i + 1, blindQueue.length - 1));
-        setPlateKey(k => k + 1);
-        haptic(5);
+        setDissolveKey(k => k + 1); haptic(5);
       }
       return;
     }
 
-    if (dy < -SWIPE_THRESHOLD) {
-      // Swipe up = next vendor. Sanctuary via ● SANCTUARY pill only.
-      goNextVendor();
+    if (overlayVisible && absY > absX && dy > OVERLAY_DISMISS) { setOverlayVisible(false); return; }
+    if (absY > absX) {
+      if (dy < -SWIPE_THRESHOLD) goNextVendor();
+      else if (dy > SWIPE_THRESHOLD) goPrevVendor();
+    } else {
+      if (dx < -SWIPE_THRESHOLD) nextImage();
+      else if (dx > SWIPE_THRESHOLD) prevImage();
     }
   };
 
   if (loading) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: '#0A090B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(239,233,221,0.35)' }}>Loading</span>
+      <div style={{ position: 'fixed', inset: 0, background: '#0C0A09', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.35)' }}>Loading</span>
       </div>
     );
   }
@@ -953,111 +772,30 @@ function DiscoveryFeedContent({
           70%  { transform:translate(-50%,-50%) scale(0.95); }
           100% { opacity:0; transform:translate(-50%,-50%) scale(1); }
         }
-        @keyframes toastSlideIn {
-          from { opacity:0; transform:translateX(-50%) translateY(-8px); }
-          to   { opacity:1; transform:translateX(-50%) translateY(0); }
-        }
-        /* Plate-turn — the catalogue page physics */
-        @keyframes plateExit {
-          0%   { opacity:1; transform:translateY(0) scale(1); }
-          100% { opacity:0; transform:translateY(-28px) scale(0.97); }
-        }
-        @keyframes plateEnter {
-          0%   { opacity:0; transform:translateY(18px); }
-          100% { opacity:1; transform:translateY(0); }
-        }
-        .plate-enter {
-          animation: plateEnter 320ms cubic-bezier(0.22,1,0.36,1) forwards;
-        }
-        /* Photo crossfade — slow dissolve, like turning a page */
-        @keyframes photoCrossfade {
-          0%   { opacity:0; }
-          100% { opacity:1; }
-        }
-        .photo-crossfade {
-          animation: photoCrossfade 600ms ease-in-out forwards;
-        }
-        /* Ribbon fade — 30s: 1s in, 27s hold, 2s out */
-        @keyframes ribbonFade {
-          0%     { opacity:0; transform:translateY(6px); }
-          3.3%   { opacity:1; transform:translateY(0); }
-          90%    { opacity:1; }
-          100%   { opacity:0; }
-        }
-        .frost-ribbon {
-          animation: ribbonFade 30s ease-in-out forwards;
-        }
-        /* Hairline heartbeat — same rhythm as Sanctuary meridian */
-        /* 1.5s breath (0→37.5% of 4s), 2.5s stillness (37.5→100%) */
-        @keyframes hairlinePulse {
-          0%   { opacity: 0.35; box-shadow: 0 0 4px rgba(216,152,84,0.3); }
-          18%  { opacity: 1.00; box-shadow: 0 0 12px rgba(216,152,84,0.7); }
-          37%  { opacity: 0.35; box-shadow: 0 0 4px rgba(216,152,84,0.3); }
-          100% { opacity: 0.35; box-shadow: 0 0 4px rgba(216,152,84,0.3); }
-        }
-        .discover-hairline-cta {
-          animation: hairlinePulse 4s ease-in-out infinite;
-        }
+        @keyframes dissolveIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes toastSlideIn { from{opacity:0;transform:translateX(-50%) translateY(-8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
       `}</style>
 
       <div
-        style={{ position: 'fixed', inset: 0, background: '#0A090B', overflow: 'hidden', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
+        style={{ position: 'fixed', inset: 0, background: '#0C0A09', overflow: 'hidden', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
         onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Photo — plate-enter on vendor change, crossfade on photo change */}
-        <div
-          key={plateKey}
-          className="plate-enter"
-          style={{ position: 'absolute', inset: 0, zIndex: 1 }}
-        >
+        {/* Photo */}
+        <div key={dissolveKey} style={{ position: 'absolute', inset: 0, zIndex: 1, animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)' }}>
           {(isBlind ? blindPhoto : currentPhoto) ? (
-            <img
-              key={photoKey}
-              src={(isBlind ? blindPhoto : currentPhoto)!}
-              alt=""
-              draggable={false}
-              className="photo-crossfade"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
-            />
+            <img src={(isBlind ? blindPhoto : currentPhoto)!} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
           ) : (
-            <div style={{ position: 'absolute', inset: 0, background: '#14120F', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              <span style={{ fontFamily: "'Fraunces', 'Cormorant Garamond', serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(239,233,221,0.2)' }}>No photo yet</span>
+            <div style={{ position: 'absolute', inset: 0, background: '#1a1714', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+              <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(248,247,245,0.2)' }}>No photo yet</span>
             </div>
           )}
-          {/* Bottom gradient */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, transparent 20%, transparent 55%, rgba(0,0,0,0.62) 100%)', pointerEvents: 'none' }} />
-          {/* Edge vignette — darkens corners/edges for text legibility */}
-          <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 80px rgba(0,0,0,0.38)', pointerEvents: 'none' }} />
-          {/* Plate border — inset hairline, frames the plate */}
-          <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(255,255,255,0.13)', pointerEvents: 'none', zIndex: 2 }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 18%, transparent 65%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
         </div>
 
-        {/* Photo progress dots — subtle, bottom-right, for multi-photo vendors */}
-        {!isBlind && photos.length > 1 && (
-          <div style={{
-            position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 22px)',
-            right: 22,
-            zIndex: 4,
-            display: 'flex', gap: 4,
-            pointerEvents: 'none',
-          }}>
-            {photos.slice(0, 8).map((_, i) => (
-              <div key={i} style={{
-                width: i === imageIdx ? 14 : 4,
-                height: 4,
-                borderRadius: 2,
-                background: i === imageIdx ? '#D89854' : 'rgba(255,255,255,0.35)',
-                transition: 'all 300ms cubic-bezier(0.22,1,0.36,1)',
-              }} />
-            ))}
-          </div>
-        )}
-
-        {/* Plate counter */}
-        {!isBlind && <PlateCounter vendorIdx={vendorIdx} total={vendors.length} />}
+        {/* Image dots — centre top, zIndex 24 so pills (25) sit above */}
+        {!isBlind && <ImageDots total={photos.length} current={imageIdx} />}
 
         {/* Top chrome */}
         <TopChrome
@@ -1070,125 +808,16 @@ function DiscoveryFeedContent({
 
         {isBlind && <BlindCentreToast hint={blindHint} />}
 
-        {/* Gesture compass — top only: ↑ Next */}
-        <div style={{ position: 'absolute', top: 100, left: 0, right: 0, zIndex: 4, pointerEvents: 'none', opacity: 0.50 }}>
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-          }}>
-            <span style={{ fontSize: 11 }}>↑</span>
-            <span>Next</span>
-          </div>
-        </div>
-
-        {/* First-session teaching ribbon — 30s, updated text */}
-        {showRibbon && (
-          <div className="frost-ribbon" style={{
-            position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 170px)',
-            left: 0, right: 0,
-            zIndex: 5, pointerEvents: 'none',
-            textAlign: 'center',
-            padding: '10px 0',
-            background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.48) 15%, rgba(0,0,0,0.48) 85%, transparent)',
-          }}>
-            <span style={{
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 8, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.92)',
-            }}>
-              ↑ swipe · next&nbsp;&nbsp;·&nbsp;&nbsp;tap · next photo&nbsp;&nbsp;·&nbsp;&nbsp;hold · pause&nbsp;&nbsp;·&nbsp;&nbsp;⊙ double-tap · save
+        {/* Hint */}
+        {!isBlind && !overlayVisible && (
+          <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none', animation: 'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)' }}>
+            <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+              Tap · Double-tap to save · Swipe to browse
             </span>
           </div>
         )}
 
-        {/* Artisan name — ambient, no box, just the name and lede */}
-        {!isBlind && !overlayVisible && vendor && (
-          <div style={{
-            position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 56px)',
-            left: 22,
-            zIndex: 4,
-            pointerEvents: 'none',
-          }}>
-            {/* Name — Fraunces italic, informational only */}
-            <div style={{
-              fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
-              fontStyle: 'italic', fontWeight: 300,
-              fontSize: 26, color: '#fff',
-              lineHeight: 1, letterSpacing: '-0.02em',
-              fontFeatureSettings: '"opsz" 144',
-              textShadow: '0 2px 10px rgba(0,0,0,0.55)',
-              marginBottom: 8,
-            }}>
-              {vendor.name}
-            </div>
-            {/* Lede */}
-            <div style={{
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 8.5, fontWeight: 300,
-              letterSpacing: '0.24em', textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.52)',
-              display: 'flex', alignItems: 'center', gap: 8,
-              textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-            }}>
-              <span style={{ width: 14, height: 1, background: 'rgba(255,255,255,0.38)', flexShrink: 0 }} />
-              {vendor.category}{vendor.city ? ` · ${vendor.city}` : ''}
-            </div>
-          </div>
-        )}
-
-        {/* Hairline CTA — pulsing, centered at bottom, sole enquiry trigger */}
-        {!isBlind && !overlayVisible && vendor && (
-          <button
-            onClick={() => { setOverlayVisible(true); haptic(4); }}
-            className="discover-hairline-cta"
-            style={{
-              position: 'absolute',
-              bottom: 'calc(env(safe-area-inset-bottom,0px) + 18px)',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 4,
-              background: 'none',
-              border: 'none',
-              padding: '8px 0',    // generous tap target
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <span style={{
-              display: 'block',
-              width: 120,
-              height: 2,
-              borderRadius: 2,
-              background: 'linear-gradient(90deg, transparent, rgba(216,152,84,0.7) 25%, rgba(239,209,157,0.95) 50%, rgba(216,152,84,0.7) 75%, transparent)',
-            }} />
-          </button>
-        )}
-
-        {/* Save reminder — bottom-right, quiet */}
-        {!isBlind && !overlayVisible && (
-          <div style={{
-            position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 22px)',
-            right: 22,
-            zIndex: 4, pointerEvents: 'none',
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 7.5, fontWeight: 300,
-            letterSpacing: '0.18em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.34)',
-            textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-          }}>
-            ⊙ double-tap · save
-          </div>
-        )}
-
-        {/* Glass overlay — triggered by long press */}
+        {/* Glass overlay */}
         {!isBlind && (
           <GlassOverlay
             vendor={vendor}
@@ -1231,7 +860,7 @@ function DiscoveryFeedInner() {
         initialBlind={isBlindMode}
         filters={appliedFilters}
         onOpenFilter={() => setFilterVisible(true)}
-        onOpenSanctuary={() => router.replace('/frost/canvas/sanctuary')}
+        onOpenSanctuary={() => router.push('/frost/canvas/sanctuary')}
         onToggleBlind={() => setIsBlindMode(b => !b)}
       />
     </>

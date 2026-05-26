@@ -1,34 +1,27 @@
 'use client';
 
 // app/(frost)/frost/canvas/sanctuary/page.tsx
-// ──────────────────────────────────────────────────────────────────────────
-// Sanctuary — Direction 07 (Aubade & Nocturne) · Phase 1 · STATIC ONLY.
+// Sanctuary — the bride's quiet planner.
+// Lifted from the sanctuary mode of frost/page.tsx and extracted as its own route.
 //
-// The bride's interior room. Nocturne. Cold paper. Mineral teal numeral
-// living at the back of two frosted-glass layers. Italianno signature on
-// her name. Meridian arc tracing her path from "I will" to "I do". Seven
-// rooms: I Dream · II Circle · III Muse · IV People · V Pages · VI Moments
-// · VII Journey.
-//
-// PHASE 1 SHIPS STATIC. No motion yet. The motion (heartbeat on the
-// meridian dot, breath-drift on the numeral, candle flicker on Circle,
-// daily greeting ribbon) lands in Phase 2 after we look at the room
-// standing still and confirm the geometry, type, and palette are right.
-//
-// Phase 3 wires Pages interior surface and real entry data.
-// Phase 4 builds Aubade (Discover).
-// Phase 5 builds the Aubade↔Nocturne swipe transition.
-// ──────────────────────────────────────────────────────────────────────────
+// Top chrome: single pill top-left [✦ Dream] → /frost/canvas/discover
+// Sections (hairline separated, flex, tappable):
+//   Dream Ai · Circle · Muse · My People · Moments · Events
+// Bottom: Journey accordion (shorter, expands inline)
+//   Sub-links: Expenses · Vendors · Reminders · Settings
+//   Settings row shows: Mode: Light / Mode: Dark — tap to toggle homeMode
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFrostMode } from '../../../layout';
 import {
-  FF, FROST_COPY, EASE, AUBADE, AUBADE_GLASS,
+  FF, FROST_COPY, EASE,
   daysUntil,
+  type ModeDescriptor,
 } from '../../../../../lib/frost/tokens';
 
-// ── Wedding date resolver — same logic as before ─────────────────────────
+// ── Helpers (verbatim from frost/page.tsx) ────────────────────────────────────
+
 const DEMO_WEDDING = new Date('2026-11-19T00:00:00+05:30');
 
 function getWeddingDate(): Date {
@@ -39,62 +32,6 @@ function getWeddingDate(): Date {
   return DEMO_WEDDING;
 }
 
-function getBrideFirstName(): string {
-  try {
-    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-    if (raw) {
-      const s = JSON.parse(raw);
-      const n = (s?.user_name || s?.name || '').trim().split(' ')[0];
-      if (n) return n;
-    }
-  } catch {}
-  return 'Priya';
-}
-
-// ── Words-vs-numerals rule for the progress line ─────────────────────────
-// Under 100 → words ("ninety-three mornings"). 100+ → numerals.
-// Below 10 special line: "Nine mornings remain." (drama at the end)
-// At zero: "Today."
-const ONES = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
-  'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen',
-  'Seventeen','Eighteen','Nineteen'];
-const TENS = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
-
-function numberToWords(n: number): string {
-  if (n < 20) return ONES[n] || String(n);
-  const t = Math.floor(n / 10);
-  const o = n % 10;
-  if (o === 0) return TENS[t];
-  return `${TENS[t]}-${ONES[o].toLowerCase()}`;
-}
-
-// Always words. The product is a sentence, not a spreadsheet.
-// Edge: >999 days falls back to numerals (practically never happens).
-function hundredsToWords(n: number): string {
-  if (n < 100) return numberToWords(n);
-  const h = Math.floor(n / 100);
-  const rem = n % 100;
-  const hWord = ONES[h] + ' hundred';
-  if (rem === 0) return hWord;
-  return hWord + ' and ' + numberToWords(rem).toLowerCase();
-}
-
-function daysToWords(n: number): string {
-  if (n < 100)  return numberToWords(n);
-  if (n < 1000) return hundredsToWords(n);
-  return String(n); // >999: numerals only
-}
-
-function progressLine(days: number): string {
-  if (days === 0) return 'Today.';
-  if (days === 1) return 'One morning between I will and I do.';
-  const w = daysToWords(days);
-  // Capitalise first letter
-  const capped = w.charAt(0).toUpperCase() + w.slice(1);
-  return `${capped} mornings between I will and I do.`;
-}
-
-// ── Date for the mono footer ─────────────────────────────────────────────
 const DOM_WORDS = [
   '','First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth','Ninth',
   'Tenth','Eleventh','Twelfth','Thirteenth','Fourteenth','Fifteenth','Sixteenth',
@@ -103,561 +40,286 @@ const DOM_WORDS = [
   'Twenty-Eighth','Twenty-Ninth','Thirtieth','Thirty-First',
 ];
 
-// ── Meridian arc — SVG calc ──────────────────────────────────────────────
-// Background path: full curve from "I will" (left) to "I do" (right).
-// Progress path: same curve, stopped at today position.
-// Total journey: assumed engagement → wedding window. We compute progress
-// as 1 - (daysRemaining / totalJourneyDays). Fallback total = 365 days
-// if engagement date unknown — keeps the arc visually meaningful.
-function meridianProgress(daysRemaining: number, totalJourney = 365): number {
-  if (daysRemaining <= 0) return 1;
-  if (daysRemaining >= totalJourney) return 0;
-  return 1 - (daysRemaining / totalJourney);
+function pickIdleLines(): [string, string] {
+  const pool = FROST_COPY.idlePool;
+  const h = new Date().getHours();
+  return [pool[h % pool.length], pool[(h + 4) % pool.length]];
 }
 
-// Quadratic bezier point at parameter t in [0,1] for the arc
-// Control point at midpoint, top of arc. Path: M 40 80 Q 190 20 340 80
-function arcPointAt(t: number): { x: number; y: number } {
-  const p0 = { x: 40,  y: 80 };
-  const p1 = { x: 190, y: 20 };  // control
-  const p2 = { x: 340, y: 80 };
-  const u = 1 - t;
-  return {
-    x: u*u*p0.x + 2*u*t*p1.x + t*t*p2.x,
-    y: u*u*p0.y + 2*u*t*p1.y + t*t*p2.y,
-  };
+function bgGradient(dark: boolean): string {
+  return dark
+    ? 'radial-gradient(ellipse 120% 60% at 50% 0%, #2A2118 0%, #1B1612 55%, #130F0C 100%)'
+    : 'radial-gradient(ellipse 120% 60% at 50% 0%, #DDD8D0 0%, #C8C2BA 55%, #ADA79E 100%)';
 }
 
-// Generate a SVG path string up to parameter t (for the saffron progress arc)
-function arcPathTo(t: number): string {
-  if (t <= 0) return 'M 40 80';
-  // Approximate the partial bezier with a quadratic of its own
-  // by splitting at t via De Casteljau's algorithm.
-  const p0 = { x: 40,  y: 80 };
-  const p1 = { x: 190, y: 20 };
-  const p2 = { x: 340, y: 80 };
-  const q0 = {
-    x: p0.x + (p1.x - p0.x) * t,
-    y: p0.y + (p1.y - p0.y) * t,
-  };
-  const q1 = {
-    x: p1.x + (p2.x - p1.x) * t,
-    y: p1.y + (p2.y - p1.y) * t,
-  };
-  const endpoint = {
-    x: q0.x + (q1.x - q0.x) * t,
-    y: q0.y + (q1.y - q0.y) * t,
-  };
-  return `M ${p0.x} ${p0.y} Q ${q0.x} ${q0.y} ${endpoint.x.toFixed(2)} ${endpoint.y.toFixed(2)}`;
-}
+// ── Section — flex so it compresses when Journey expands ─────────────────────
+// flex: proportional weight (gradual decrease Dream Ai → Events)
+// minHeight: floor so label + one line always visible even when compressed
+// flexShrink: 1 — sections yield space to Journey sub-rows
 
-// ── Row — single chapel in the building ──────────────────────────────────
-function Row({
-  numeral, name, line, onClick, candle = false, first = false,
+function Section({
+  label, lines, onClick, mode, dark, flex, minHeight, first = false,
 }: {
-  numeral: string;
-  name:    string;
-  line:    string;
-  onClick: () => void;
-  candle?: boolean;
-  first?:  boolean;
+  label:     string;
+  lines:     string[];
+  onClick:   () => void;
+  mode:      ModeDescriptor;
+  dark:      boolean;
+  flex:      number;
+  minHeight: number;
+  first?:    boolean;
 }) {
   return (
     <div
       onClick={onClick}
       style={{
-        flex: 1,
-        minHeight: 44,
+        flex,
+        minHeight,
         flexShrink: 1,
-        display: 'flex', alignItems: 'center', gap: 14,
-        padding: '8px 22px',
-        borderTop: first ? 'none' : `1px solid ${AUBADE.line}`,
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        borderTop: first ? 'none' : `0.5px solid ${mode.hairline}`,
+        padding: '6px 24px',
         cursor: 'pointer',
-        WebkitTapHighlightColor: 'transparent',
-        position: 'relative',
-        zIndex: 3,
-      }}
-    >
-      <span style={{
-        fontFamily: FF.mono,
-        fontSize: 9,
-        fontWeight: 300,
-        letterSpacing: '0.12em',
-        color: AUBADE.inkMute,
-        width: 22,
-        flexShrink: 0,
-      }}>
-        {numeral}
-      </span>
-
-      <span style={{
-        fontFamily: FF.aubade,
-        fontStyle: 'italic',
-        fontWeight: 300,
-        fontSize: 17,
-        color: AUBADE.ink,
-        letterSpacing: '-0.015em',
-        lineHeight: 1,
-        flexShrink: 0,
-        fontFeatureSettings: '"opsz" 9',
-        fontVariationSettings: '"opsz" 9, "wght" 300',
-      }}>
-        {name}
-      </span>
-
-      {candle && (
-        <span
-          className="frost-candle-dot"
-          style={{
-            width: 6, height: 6, borderRadius: 3,
-            background: AUBADE.aubade,
-            boxShadow: `0 0 8px ${AUBADE.aubade}`,
-            flexShrink: 0,
-          }}
-        />
-      )}
-
-      <span style={{
-        flex: 1,
-        fontFamily: FF.mono,
-        fontSize: 8.5,
-        fontWeight: 300,
-        letterSpacing: '0.14em',
-        color: AUBADE.inkSoft,
-        textTransform: 'uppercase',
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        textAlign: 'right',
-      }}>
-        {line}
-      </span>
-    </div>
-  );
-}
-
-// ── Journey row — separated from the rest by lineStrong border ──────────
-function JourneyRow({ onClick }: { onClick: () => void }) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        flexShrink: 0,
-        padding: '14px 22px calc(env(safe-area-inset-bottom,0px) + 14px)',
-        borderTop: `1px solid ${AUBADE.lineStrong}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        cursor: 'pointer',
         WebkitTapHighlightColor: 'transparent',
-        position: 'relative',
-        zIndex: 3,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <span style={{
-          fontFamily: FF.mono,
-          fontSize: 9,
-          fontWeight: 300,
-          color: AUBADE.aubade,
-          letterSpacing: '0.12em',
-        }}>VII</span>
-        <span style={{
-          fontFamily: FF.aubade,
-          fontStyle: 'italic',
-          fontWeight: 400,
-          fontSize: 22,
-          color: AUBADE.ink,
-          letterSpacing: '-0.015em',
-          fontFeatureSettings: '"opsz" 9',
-        }}>Journey</span>
+      <div style={{
+        fontFamily: FF.display, fontStyle: 'italic', fontSize: 19,
+        color: dark ? mode.brass : mode.ink, marginBottom: 5,
+        flexShrink: 0,
+      }}>
+        {label}
       </div>
-      <span style={{
-        color: AUBADE.aubade,
-        fontFamily: FF.mono,
-        fontSize: 14,
-        lineHeight: 1,
-      }}>+</span>
+      {lines.map((line, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: i < lines.length - 1 ? 4 : 0, flexShrink: 0 }}>
+          <span style={{ fontFamily: FF.label, fontSize: 9, color: dark ? mode.brass : mode.brassMuted, marginTop: 2, flexShrink: 0 }}>✦</span>
+          <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 15, color: mode.soft, lineHeight: 1.4 }}>{line}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-// ── Root ─────────────────────────────────────────────────────────────────
+// ── Journey accordion ─────────────────────────────────────────────────────────
+// Chevron points DOWN when closed, UP when open.
+// Sub-links are italic Cormorant, same colour as section context lines.
+// Each sub-row is compact (32px) so all 5 rows + Journey header fit on screen.
+
+const JOURNEY_LINKS = [
+  { label: 'Expenses',   route: '/frost/canvas/journey/expenses'  },
+  { label: 'Vendors',    route: '/frost/canvas/journey/vendors'   },
+  { label: 'Reminders',  route: '/frost/canvas/journey/reminders' },
+  { label: 'Settings',   route: '/frost/canvas/journey/settings'  },
+];
+
+function JourneyAccordion({
+  mode, dark, onNavigate, onToggleMode,
+}: {
+  mode:          ModeDescriptor;
+  dark:          boolean;
+  onNavigate:    (route: string) => void;
+  onToggleMode:  () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{
+      flexShrink: 0,
+      borderTop: `0.5px solid ${mode.hairline}`,
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 6px)',
+    }}>
+      {/* Header — same font as sections, compact height */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 24px',
+          minHeight: 44,
+          cursor: 'pointer',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span style={{
+          fontFamily: FF.display, fontStyle: 'italic', fontSize: 19,
+          color: dark ? mode.brass : mode.ink,
+        }}>
+          Journey
+        </span>
+        {/* Chevron — points down when closed, up when open */}
+        <svg
+          width="14" height="14" viewBox="0 0 14 14" fill="none"
+          style={{
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: `transform 220ms ${EASE}`,
+          }}
+        >
+          <path d="M2 4.5L7 9.5L12 4.5" stroke={dark ? mode.brassMuted : mode.soft} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+
+      {/* Sub-links — compact rows, italic Cormorant, mode.soft colour */}
+      {open && (
+        <div>
+          {JOURNEY_LINKS.map(link => (
+            <div
+              key={link.label}
+              onClick={() => onNavigate(link.route)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '5px 24px 5px 32px',
+                borderTop: `0.5px solid ${mode.hairline}`,
+                minHeight: 30,
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span style={{ fontFamily: FF.label, fontSize: 8, color: dark ? mode.brass : mode.brassMuted, flexShrink: 0 }}>✦</span>
+              <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 15, color: mode.soft, lineHeight: 1.3 }}>
+                {link.label}
+              </span>
+            </div>
+          ))}
+          {/* Mode row — value uses mode.soft in light mode for legibility */}
+          <div
+            onClick={onToggleMode}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '5px 24px 5px 32px',
+              borderTop: `0.5px solid ${mode.hairline}`,
+              minHeight: 30,
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: FF.label, fontSize: 8, color: dark ? mode.brass : mode.brassMuted, flexShrink: 0 }}>✦</span>
+              <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 15, color: mode.soft }}>Mode</span>
+            </div>
+            <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 15, color: mode.soft }}>
+              {dark ? 'Dark' : 'Light'}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Root ──────────────────────────────────────────────────────────────────────
+
 export default function SanctuaryPage() {
   const router = useRouter();
-  // Mode context kept for compat — Aubade-Nocturne is dark-first.
-  // Light variant lands later as "Daylight"; we ignore homeMode for now.
-  useFrostMode();
+  const { homeMode, setHomeMode, mode } = useFrostMode();
+  const dark = homeMode === 'E1A';
 
-  const [days,         setDays]         = useState(0);
-  const [progress,     setProgress]     = useState(0);
-  const [brideName,    setBrideName]    = useState('Priya');
-  const [dateLine,     setDateLine]     = useState('');
-  const [pLine,        setPLine]        = useState('');
-  const [pagesPreview, setPagesPreview] = useState('');
+  const [days,      setDays]      = useState(0);
+  const [weekday,   setWeekday]   = useState('');
+  const [domWord,   setDomWord]   = useState('');
+  const [monthName, setMonthName] = useState('');
+  const [year,      setYear]      = useState('');
+  const [lineA,     setLineA]     = useState('');
+  const [lineB,     setLineB]     = useState('');
 
   useEffect(() => {
-    const d = daysUntil(getWeddingDate());
-    setDays(d);
-    setProgress(meridianProgress(d));
-    setBrideName(getBrideFirstName());
-
+    setDays(daysUntil(getWeddingDate()));
     const now = new Date();
-    const dom = DOM_WORDS[now.getDate()] || String(now.getDate());
-    const mon = now.toLocaleDateString('en-IN', { month: 'long' });
-    const yr  = now.getFullYear();
-    setDateLine(`${dom} of ${mon} · ${yr}`);
-
-    setPLine(progressLine(d));
-
-    // Wire Pages row preview from localStorage
-    try {
-      const preview = localStorage.getItem('frost_pages_preview') || '';
-      setPagesPreview(preview);
-    } catch {}
-  }, []);
-
-  // ── Phase 2: inject CSS keyframe animations on mount ─────────────────
-  // We use a style tag because Next.js 'use client' pages don't support
-  // <style jsx global>. The tag is idempotent — won't duplicate on HMR.
-  React.useEffect(() => {
-    const id = 'frost-sanctuary-animations';
-    if (document.getElementById(id)) return;
-    const style = document.createElement('style');
-    style.id = id;
-    style.textContent = `
-      /* Meridian today-dot + halo heartbeat — 4s cycle */
-      /* 1.5s breath (0→37.5% of 4s), 2.5s stillness (37.5→100%) */
-      @keyframes meridianPulse {
-        0%   { opacity: 0.5; }
-        18%  { opacity: 1.0; }
-        37%  { opacity: 0.5; }
-        100% { opacity: 0.5; }
-      }
-      .frost-meridian-dot {
-        animation: meridianPulse 4s ease-in-out infinite;
-      }
-      .frost-meridian-halo {
-        animation: meridianPulse 4s ease-in-out infinite;
-      }
-
-      /* Numeral breath — 8s scale oscillation */
-      @keyframes numeralBreath {
-        0%   { transform: scale(1.000); }
-        50%  { transform: scale(1.005); }
-        100% { transform: scale(1.000); }
-      }
-      .frost-numeral-breath {
-        animation: numeralBreath 8s ease-in-out infinite;
-        transform-origin: center center;
-      }
-
-      /* Candle flicker — irregular 6s pattern */
-      @keyframes candleFlicker {
-        0%   { opacity: 0.70; }
-        15%  { opacity: 1.00; }
-        28%  { opacity: 0.85; }
-        45%  { opacity: 1.00; }
-        60%  { opacity: 0.90; }
-        75%  { opacity: 1.00; }
-        88%  { opacity: 0.78; }
-        100% { opacity: 0.70; }
-      }
-      .frost-candle-dot {
-        animation: candleFlicker 6s ease-in-out infinite;
-      }
-    `;
-    document.head.appendChild(style);
+    setWeekday(now.toLocaleDateString('en-IN', { weekday: 'long' }));
+    setDomWord(DOM_WORDS[now.getDate()] || String(now.getDate()));
+    setMonthName('of ' + now.toLocaleDateString('en-IN', { month: 'long' }));
+    setYear(String(now.getFullYear()));
+    const [a, b] = pickIdleLines();
+    setLineA(a); setLineB(b);
   }, []);
 
   const go = (path: string) => router.push(path);
 
-  const dot = arcPointAt(progress);
-
   return (
     <div style={{
       position: 'fixed', inset: 0,
-      background: `
-        radial-gradient(ellipse 80% 50% at 50% 30%, rgba(216,152,84,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 100% 60% at 50% 100%, rgba(20,18,22,0.35) 0%, transparent 70%),
-        linear-gradient(180deg, ${AUBADE.paper} 0%, ${AUBADE.paper2} 50%, ${AUBADE.paperDeep} 100%)
-      `,
+      background: bgGradient(dark),
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
       userSelect: 'none', WebkitUserSelect: 'none',
     }}>
 
-      {/* ── Mineral teal numeral — lives at the back, behind glass ──── */}
+      {/* Grain overlay */}
       <div style={{
-        position: 'absolute',
-        top: 280,
-        left: 0, right: 0,
-        textAlign: 'center',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }}>
-        <div
-          className="frost-numeral-breath"
-          style={{
-            fontFamily: FF.aubade,
-            fontWeight: 200,
-            fontSize: 280,
-            lineHeight: 0.85,
-            color: AUBADE.nocturneDeep,
-            opacity: 0.5,
-            letterSpacing: '-0.06em',
-            filter: 'blur(4px)',
-            fontFeatureSettings: '"opsz" 144',
-          }}
-        >
-          {days || 0}
-        </div>
-      </div>
-
-      {/* ── Upper frost layer — covers meridian + top bar zone ──────── */}
-      <div style={{
-        position: 'absolute',
-        top: 0, left: 0, right: 0,
-        height: 140,
-        zIndex: 2,
-        backdropFilter: AUBADE_GLASS.blur,
-        WebkitBackdropFilter: AUBADE_GLASS.webkitBlur,
-        background: AUBADE_GLASS.bg,
-        pointerEvents: 'none',
-        WebkitMaskImage: 'linear-gradient(180deg, #000 70%, transparent 100%)',
-        maskImage:        'linear-gradient(180deg, #000 70%, transparent 100%)',
+        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+        backgroundSize: '160px 160px', opacity: dark ? 0.35 : 0.18,
       }} />
 
-      {/* ── Meridian arc — above the upper frost ───────────────────── */}
-      <div style={{
-        position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-        left: 0, right: 0,
-        height: 90,
-        zIndex: 4,
-        pointerEvents: 'none',
-      }}>
-        <svg
-          viewBox="0 0 380 100"
-          preserveAspectRatio="none"
-          style={{ width: '100%', height: '100%', overflow: 'visible' }}
-        >
-          {/* Background arc — full curve */}
-          <path
-            d="M 40 80 Q 190 20 340 80"
-            stroke="rgba(239,233,221,0.18)"
-            strokeWidth="0.5"
-            fill="none"
-          />
-          {/* Progress arc — saffron, ends at today */}
-          <path
-            d={arcPathTo(progress)}
-            stroke={AUBADE.aubade}
-            strokeWidth="1.2"
-            fill="none"
-            strokeLinecap="round"
-          />
-          {/* Today dot — Phase 2: heartbeat via CSS animation */}
-          <circle
-            cx={dot.x}
-            cy={dot.y}
-            r="3.5"
-            fill={AUBADE.aubade}
-            className="frost-meridian-dot"
-          />
-          {/* Halo — Phase 2: pulses with dot */}
-          <circle
-            cx={dot.x}
-            cy={dot.y}
-            r="6"
-            fill="none"
-            stroke={AUBADE.aubade}
-            strokeWidth="0.5"
-            opacity="0.5"
-            className="frost-meridian-halo"
-          />
-        </svg>
-      </div>
-
-      {/* "I will" / "I do" labels — on top of meridian zone */}
-      <div style={{
-        position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
-        left: 22,
-        zIndex: 5,
-        fontFamily: FF.mono,
-        fontSize: 8,
-        letterSpacing: '0.30em',
-        textTransform: 'uppercase',
-        color: 'rgba(239,233,221,0.45)',
-        pointerEvents: 'none',
-      }}>
-        I will
-      </div>
-      <div style={{
-        position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
-        right: 22,
-        zIndex: 5,
-        fontFamily: FF.mono,
-        fontSize: 8,
-        letterSpacing: '0.30em',
-        textTransform: 'uppercase',
-        color: 'rgba(239,233,221,0.45)',
-        pointerEvents: 'none',
-      }}>
-        I do
-      </div>
-
-      {/* ── Top bar — Aubade left link · 26.v.26 right ──────────────── */}
-      <div style={{
-        padding: 'calc(env(safe-area-inset-top, 0px) + 92px) 22px 10px',
-        zIndex: 4,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'relative',
-        flexShrink: 0,
-      }}>
-        <button
-          onClick={() => go('/frost/canvas/discover')}
-          style={{
-            background: 'transparent', border: 'none', padding: 0,
-            fontFamily: FF.mono,
-            fontSize: 9,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: AUBADE.inkSoft,
-            display: 'flex', alignItems: 'center', gap: 8,
-            cursor: 'pointer',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          <span style={{ color: AUBADE.aubade }}>↑</span>
-          Aubade
-        </button>
+      {/* Top-left pill — [✦ Dream] → Discover */}
+      <button
+        onClick={() => go('/frost/canvas/discover')}
+        style={{
+          position: 'absolute',
+          top: 'calc(env(safe-area-inset-top,0px) + 14px)',
+          left: 16, zIndex: 50,
+          display: 'flex', alignItems: 'center', gap: 5,
+          height: 28, padding: '0 10px 0 8px',
+          borderRadius: 100,
+          background: dark ? 'rgba(255,253,248,0.10)' : 'rgba(44,40,35,0.08)',
+          backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+          border: `0.5px solid ${mode.hairline}`,
+          cursor: 'pointer', touchAction: 'manipulation',
+        }}
+      >
+        <span style={{ fontSize: 9, color: mode.brassMuted, lineHeight: 1 }}>✦</span>
         <span style={{
-          fontFamily: FF.mono,
-          fontSize: 9,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: AUBADE.inkMute,
-        }}>
-          {(() => {
-            // 26 . v . 26  — Roman month, dot-separated. Universal museum date.
-            const now = new Date();
-            const ROMAN = ['','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];
-            const d  = String(now.getDate()).padStart(2, '0');
-            const m  = ROMAN[now.getMonth() + 1];
-            const y  = String(now.getFullYear()).slice(-2);
-            return `${d} . ${m} . ${y}`;
-          })()}
-        </span>
-      </div>
+          fontFamily: FF.label, fontSize: 8, fontWeight: 300,
+          letterSpacing: '0.22em', textTransform: 'uppercase',
+          color: dark ? 'rgba(245,240,232,0.75)' : 'rgba(44,40,35,0.65)',
+          whiteSpace: 'nowrap',
+        }}>Dream</span>
+      </button>
 
-      {/* ── Hero ────────────────────────────────────────────────────── */}
+      {/* Hero */}
       <div style={{
-        padding: '28px 22px 24px',
-        position: 'relative',
-        zIndex: 4,
-        flexShrink: 0,
-        textAlign: 'left',
+        position: 'relative', zIndex: 1, flexShrink: 0,
+        padding: `calc(env(safe-area-inset-top,0px) + 36px) 24px 20px`,
+        textAlign: 'center',
       }}>
-        {/* mono greeting */}
-        <div style={{
-          fontFamily: FF.mono,
-          fontSize: 9.5,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: AUBADE.inkSoft,
-          marginBottom: 18,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <span>Tuesday morning</span>
-          <span style={{
-            flex: 1, height: 1,
-            background: AUBADE.line,
-            maxWidth: 100,
-          }} />
+        <div style={{ fontFamily: FF.label, fontSize: 12, letterSpacing: '0.3em', textTransform: 'uppercase', color: mode.soft, marginBottom: 8 }}>
+          {weekday}
         </div>
-
-        {/* Italianno signature — Hello, Priya. */}
-        <div style={{
-          fontFamily: FF.italianno,
-          fontWeight: 400,
-          fontSize: 56,
-          color: AUBADE.ink,
-          lineHeight: 0.95,
-          letterSpacing: '-0.01em',
-          marginBottom: 6,
-        }}>
-          Hello, <span style={{ color: AUBADE.aubade }}>{brideName}</span>.
+        <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: mode.ink, lineHeight: 1.15, marginBottom: 3 }}>
+          {domWord} {monthName}
         </div>
-
-        {/* saffron rule */}
-        <div style={{
-          width: 64, height: 1,
-          background: AUBADE.aubade,
-          marginBottom: 18,
-        }} />
-
-        {/* Fraunces italic progress line */}
-        <div style={{
-          fontFamily: FF.aubade,
-          fontStyle: 'italic',
-          fontWeight: 300,
-          fontSize: 17,
-          color: AUBADE.ink,
-          lineHeight: 1.4,
-          marginBottom: 14,
-          fontFeatureSettings: '"opsz" 9',
-          fontVariationSettings: '"opsz" 9, "wght" 300',
-        }}>
-          {pLine.split(/(I will|I do)/g).map((part, i) =>
-            (part === 'I will' || part === 'I do')
-              ? <span key={i} style={{ color: AUBADE.aubade, fontStyle: 'italic', fontWeight: 400 }}>{part}</span>
-              : <span key={i}>{part}</span>
-          )}
+        <div style={{ fontFamily: FF.body, fontSize: 13, color: mode.soft, marginBottom: 12 }}>
+          {year}
         </div>
-
-        {/* mono date footer */}
-        <div style={{
-          fontFamily: FF.mono,
-          fontSize: 9,
-          letterSpacing: '0.20em',
-          textTransform: 'uppercase',
-          color: AUBADE.inkMute,
-        }}>
-          {dateLine}
+        <div style={{ height: '0.5px', background: mode.hairline, width: 40, margin: '0 auto 12px' }} />
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 8 }}>
+          <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 56, color: mode.brass, lineHeight: 1 }}>{days}</span>
+          <span style={{ fontFamily: FF.label, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: mode.brassMuted }}>
+            {FROST_COPY.landing.daysWord}
+          </span>
         </div>
       </div>
 
-      {/* ── Lower frost layer — covers stack zone ──────────────────── */}
+      {/* Descent — overflow hidden, sections compress, Journey stays fixed */}
       <div style={{
-        position: 'absolute',
-        top: 400,
-        left: 0, right: 0, bottom: 0,
-        zIndex: 2,
-        backdropFilter: AUBADE_GLASS.blur,
-        WebkitBackdropFilter: AUBADE_GLASS.webkitBlur,
-        background: AUBADE_GLASS.bg,
-        pointerEvents: 'none',
-        WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 30%)',
-        maskImage:        'linear-gradient(180deg, transparent 0%, #000 30%)',
-      }} />
-
-      {/* ── Stack — six rooms + Journey ─────────────────────────────── */}
-      <div style={{
-        flex: 1,
-        display: 'flex', flexDirection: 'column',
-        borderTop: `1px solid ${AUBADE.line}`,
-        position: 'relative',
-        zIndex: 3,
+        position: 'relative', zIndex: 1,
+        flex: 1, display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
+        borderTop: `0.5px solid ${mode.hairline}`,
       }}>
-        <Row numeral="I"   name="Dream"   line="— Something will go wrong"          onClick={() => go('/frost/canvas/dream')}            first />
-        <Row numeral="II"  name="Circle"  line="— Meha lit a candle · 8m ago"       onClick={() => go('/frost/canvas/journey/circle')}    candle />
-        <Row numeral="III" name="Muse"    line="— 22 saved · 4 new"                 onClick={() => go('/frost/canvas/muse')}              />
-        <Row numeral="IV"  name="People"  line="— 1 active · 1 invited"             onClick={() => go('/frost/canvas/journey/people')}    />
-        <Row numeral="V"   name="Pages"   line={pagesPreview ? `— ${pagesPreview}` : '— a page is waiting'}  onClick={() => go('/frost/canvas/journey/pages')}     />
-        <Row numeral="VI"  name="Moments" line="— Your memories"                    onClick={() => go('/frost/canvas/journey/moments')}   />
-        <JourneyRow onClick={() => go('/frost/canvas/journey')} />
+        {/* flex = weight (gradual decrease), minHeight = floor so label never disappears */}
+        <Section label="Dream Ai"  lines={[lineA, lineB]}              onClick={() => go('/frost/canvas/dream')}              mode={mode} dark={dark} flex={1} minHeight={52} first />
+        <Section label="Circle"    lines={['Quiet here for now.']}     onClick={() => go('/frost/canvas/journey/circle')}     mode={mode} dark={dark} flex={1} minHeight={44} />
+        <Section label="Muse"      lines={['Your saved inspiration.']} onClick={() => go('/frost/canvas/muse')}               mode={mode} dark={dark} flex={1} minHeight={40} />
+        <Section label="My People" lines={['Your circle & guests.']}   onClick={() => go('/frost/canvas/journey/people')}     mode={mode} dark={dark} flex={1} minHeight={40} />
+        <Section label="Moments"   lines={['Your wedding memories.']}  onClick={() => go('/frost/canvas/journey/moments')}    mode={mode} dark={dark} flex={1} minHeight={40} />
+        <Section label="Events"    lines={['Your timeline.']}          onClick={() => go('/frost/canvas/journey/events')}     mode={mode} dark={dark} flex={1} minHeight={40} />
+
+        <JourneyAccordion
+          mode={mode}
+          dark={dark}
+          onNavigate={go}
+          onToggleMode={() => setHomeMode(dark ? 'E3' : 'E1A')}
+        />
       </div>
     </div>
   );

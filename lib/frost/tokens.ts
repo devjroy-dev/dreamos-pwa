@@ -173,54 +173,9 @@ export const FROST_SURFACE = {
 
 // ─── Typography ──────────────────────────────────────────────────────────────
 export const FF = {
-  display:   "'Cormorant Garamond', serif",
-  body:      "'DM Sans', sans-serif",
-  label:     "'Jost', sans-serif",
-  // ── Direction 07 — Aubade & Nocturne typography ─────────────────────────
-  // Aubade body: Fraunces opsz 9 (book cut, italic) for progress text & row labels.
-  // Aubade display: Fraunces opsz 144 (display cut) — reserve for hero only.
-  // Italianno: single-weight copperplate, used ONLY for handwritten signatures
-  //   (the bride's name in the Sanctuary hero — first and second time only).
-  // Mono: JetBrains Mono for micro-labels, dates, plate numbers, ribbons.
-  aubade:    "'Fraunces', 'Cormorant Garamond', serif",
-  italianno: "'Italianno', cursive",
-  mono:      "'JetBrains Mono', ui-monospace, monospace",
-} as const;
-
-// ─── Aubade & Nocturne palette (Direction 07) ────────────────────────────────
-// Locked tokens. Used ONLY by the new Sanctuary + Discover surfaces.
-// Existing MODES (E1A / E3) untouched — old surfaces still render correctly.
-export const AUBADE = {
-  // Paper — Nocturne (Sanctuary) is the cold dark. Darker than E1A.
-  paper:        '#0A090B',
-  paper2:       '#0E0B0C',
-  paperDeep:    '#030305',
-  // Ink — warm cream against the cold paper
-  ink:          '#EFE9DD',
-  inkSoft:      'rgba(239,233,221,0.60)',
-  inkMute:      'rgba(239,233,221,0.34)',
-  // Hairlines
-  line:         'rgba(239,233,221,0.10)',
-  lineStrong:   'rgba(239,233,221,0.22)',
-  // Aubade thread — saffron-amber. Stage light on silk. Foreground accent.
-  aubade:       '#D89854',
-  aubadeDeep:   '#C97B3A',
-  // Nocturne thread — mineral teal. Patinated copper. Numeral behind glass.
-  nocturne:     '#5C7E80',
-  nocturneDeep: '#4A6B6E',
-  // Mehendi skin (alternative palette running same architecture)
-  ember:        '#C46863',     // madder rose
-  indigo:       '#1A1A2E',     // indigo dusk
-  copper:       '#C9925A',
-} as const;
-
-// Frosted glass material for Nocturne (Sanctuary).
-// Two layers — upper covers meridian zone, lower covers stack zone.
-// Numeral lives BETWEEN paper and glass.
-export const AUBADE_GLASS = {
-  blur:         'blur(24px) saturate(1.2)',
-  webkitBlur:   'blur(24px) saturate(1.2)',
-  bg:           'rgba(10,9,11,0.55)',
+  display: "'Cormorant Garamond', serif",
+  body:    "'DM Sans', sans-serif",
+  label:   "'Jost', sans-serif",
 } as const;
 
 // ─── Spacing ─────────────────────────────────────────────────────────────────
