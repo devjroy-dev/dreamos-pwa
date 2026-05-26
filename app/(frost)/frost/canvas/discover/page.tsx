@@ -858,8 +858,18 @@ function DiscoveryFeedContent({
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    // Resume slideshow on finger lift
+    // Resume slideshow — restart the full 3.5s from zero on finger lift.
+    // This means the photo she just held and decided to love gets the full
+    // 3.5 seconds before it changes, not whatever was left on the clock.
     slideshowPaused.current = false;
+    if (vendor && vendor.photos.length > 1 && !isBlind && photoTimer.current) {
+      clearInterval(photoTimer.current);
+      photoTimer.current = setInterval(() => {
+        if (slideshowPaused.current) return;
+        setImageIdx(i => (i + 1 < vendor.photos.length ? i + 1 : 0));
+        setPhotoKey(k => k + 1);
+      }, 3500);
+    }
 
     if (!touchStart.current) return;
     const start = touchStart.current;
@@ -1062,43 +1072,15 @@ function DiscoveryFeedContent({
           </div>
         </div>
 
-        {/* Bottom gesture legend — double-tap save · hold enquire */}
-        <div style={{
-          position: 'absolute',
-          bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)',
-          left: 0, right: 0,
-          zIndex: 4, pointerEvents: 'none',
-          display: 'flex', justifyContent: 'space-between',
-          padding: '0 22px',
-          opacity: 0.50,
-        }}>
-          <span style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-          }}>
-            ⊙ double-tap · save
-          </span>
-          {!isBlind && (
-            <span style={{
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-            }}>
-              hold · enquire ⏵
-            </span>
-          )}
-        </div>
-
-        {/* First-session teaching ribbon — 30s, dark backing */}
+        {/* First-session teaching ribbon — 30s, updated text */}
         {showRibbon && (
           <div className="frost-ribbon" style={{
             position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 130px)',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 170px)',
             left: 0, right: 0,
             zIndex: 5, pointerEvents: 'none',
             textAlign: 'center',
-            padding: '12px 0',
+            padding: '10px 0',
             background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.48) 15%, rgba(0,0,0,0.48) 85%, transparent)',
           }}>
             <span style={{
@@ -1106,45 +1088,58 @@ function DiscoveryFeedContent({
               fontSize: 8, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase',
               color: 'rgba(255,255,255,0.92)',
             }}>
-              ↑ swipe · next&nbsp;&nbsp;·&nbsp;&nbsp;tap · next photo&nbsp;&nbsp;·&nbsp;&nbsp;⊙ double-tap · save&nbsp;&nbsp;·&nbsp;&nbsp;hold · enquire
+              ↑ swipe · next&nbsp;&nbsp;·&nbsp;&nbsp;tap · next photo&nbsp;&nbsp;·&nbsp;&nbsp;hold · pause&nbsp;&nbsp;·&nbsp;&nbsp;⊙ double-tap · save
             </span>
           </div>
         )}
 
-        {/* Artisan card — name in hairline CTA box, lede below */}
+        {/* Artisan card — frosted glass box floating over photo */}
         {!isBlind && !overlayVisible && vendor && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 'calc(env(safe-area-inset-bottom,0px) + 52px)',
-              left: 22, right: 22,
-              zIndex: 4,
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >
-            {/* Name — inside hairline CTA box, tappable */}
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 48px)',
+            left: 22,
+            zIndex: 4,
+            WebkitTapHighlightColor: 'transparent',
+          }}>
+            {/* Frosted glass name box — tappable, opens enquiry overlay */}
             <div
               onClick={() => { setOverlayVisible(true); haptic(4); }}
               style={{
-                display: 'inline-block',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 2,
-                padding: '10px 16px',
-                marginBottom: 10,
+                display: 'inline-flex',
+                flexDirection: 'column',
+                gap: 10,
+                border: '1px solid rgba(255,255,255,0.22)',
+                borderRadius: 3,
+                padding: '12px 14px 9px 14px',
+                marginBottom: 9,
                 cursor: 'pointer',
-                backdropFilter: 'none',
-                WebkitBackdropFilter: 'none',
+                background: 'rgba(0,0,0,0.28)',
+                backdropFilter: 'blur(16px) saturate(1.2)',
+                WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+                minWidth: 160,
               }}
             >
+              {/* Vendor name */}
               <div style={{
                 fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
                 fontStyle: 'italic', fontWeight: 300,
                 fontSize: 24, color: '#fff',
                 lineHeight: 1, letterSpacing: '-0.02em',
                 fontFeatureSettings: '"opsz" 144',
-                textShadow: '0 2px 8px rgba(0,0,0,0.6)',
               }}>
                 {vendor.name}
+              </div>
+              {/* ENQUIRE → label inside box, bottom-right */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{
+                  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                  fontSize: 7.5, fontWeight: 300,
+                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.52)',
+                }}>
+                  Enquire →
+                </span>
               </div>
             </div>
 
@@ -1153,13 +1148,30 @@ function DiscoveryFeedContent({
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
               fontSize: 8.5, fontWeight: 300,
               letterSpacing: '0.24em', textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.58)',
+              color: 'rgba(255,255,255,0.52)',
               display: 'flex', alignItems: 'center', gap: 8,
               textShadow: '0 1px 4px rgba(0,0,0,0.7)',
             }}>
-              <span style={{ width: 16, height: 1, background: 'rgba(255,255,255,0.42)', flexShrink: 0 }} />
+              <span style={{ width: 14, height: 1, background: 'rgba(255,255,255,0.38)', flexShrink: 0 }} />
               {vendor.category}{vendor.city ? ` · ${vendor.city}` : ''}
             </div>
+          </div>
+        )}
+
+        {/* Save reminder — bottom-right only, quiet */}
+        {!isBlind && !overlayVisible && (
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 26px)',
+            right: 22,
+            zIndex: 4, pointerEvents: 'none',
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 7.5, fontWeight: 300,
+            letterSpacing: '0.18em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.36)',
+            textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+          }}>
+            ⊙ double-tap · save
           </div>
         )}
 
@@ -1206,7 +1218,7 @@ function DiscoveryFeedInner() {
         initialBlind={isBlindMode}
         filters={appliedFilters}
         onOpenFilter={() => setFilterVisible(true)}
-        onOpenSanctuary={() => router.push('/frost/canvas/sanctuary')}
+        onOpenSanctuary={() => router.replace('/frost/canvas/sanctuary')}
         onToggleBlind={() => setIsBlindMode(b => !b)}
       />
     </>
