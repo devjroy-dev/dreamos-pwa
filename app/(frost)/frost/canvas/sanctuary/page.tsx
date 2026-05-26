@@ -100,7 +100,7 @@ interface T { bg:string; arc:string; arcRail:string; ghost:string; ghostOp:numbe
 const WN:T = {
   bg: `radial-gradient(ellipse 110% 60% at 50% -8%,rgba(196,133,106,.18) 0%,transparent 58%),radial-gradient(ellipse 70% 50% at 85% 108%,rgba(55,10,20,.55) 0%,transparent 55%),linear-gradient(180deg,#14080C 0%,#100608 55%,#0C0405 100%)`,
   arc: '#C4856A', arcRail: 'rgba(196,133,106,.14)',
-  ghost: '#3A0C18', ghostOp: .82,
+  ghost: '#3A0C18', ghostOp: .92,
   glassBandBg: 'rgba(20,8,12,.62)', glassBandBgBot: 'rgba(16,6,8,.62)',
   ink: '#F5E5DC', inkSoft: 'rgba(245,225,215,.82)', inkMute: 'rgba(196,133,106,.42)',
   accent: '#C4856A', signal: '#6B9E8F',
@@ -113,14 +113,14 @@ const WN:T = {
 const SI:T = {
   bg: `radial-gradient(ellipse 110% 60% at 50% -8%,rgba(168,196,216,.32) 0%,transparent 58%),radial-gradient(ellipse 70% 50% at 85% 108%,rgba(170,160,145,.14) 0%,transparent 55%),linear-gradient(180deg,#F0EEE8 0%,#E8E5DE 55%,#DDD9D0 100%)`,
   arc: '#2A5F82', arcRail: 'rgba(42,95,130,.22)',   // DARKER blue for legibility
-  ghost: '#A8C4D8', ghostOp: .28,
+  ghost: '#A8C4D8', ghostOp: .55,
   glassBandBg: 'rgba(240,238,232,.68)', glassBandBgBot: 'rgba(232,229,222,.75)',
-  ink: '#0E1E2E', inkSoft: 'rgba(14,30,46,.88)', inkMute: 'rgba(14,30,46,.55)',  // MUCH DARKER
+  ink: '#0A1628', inkSoft: 'rgba(10,22,40,1.0)', inkMute: 'rgba(10,22,40,.65)',  // MUCH DARKER
   accent: '#2A5F82', signal: '#8B6E52',  // DARKER slate blue
   pillBg: 'rgba(240,238,232,.75)', pillBorder: 'rgba(42,95,130,.35)', pillText: 'rgba(14,30,46,.85)',
   line: 'rgba(42,95,130,.14)', lineStrong: 'rgba(42,95,130,.22)',
   journeyBg: 'rgba(42,95,130,.06)',
-  sliceNameColor: '#0E1E2E', sliceHintColor: 'rgba(14,30,46,.65)',  // FULL LEGIBILITY
+  sliceNameColor: '#0A1628', sliceHintColor: 'rgba(10,22,40,.75)',  // FULL LEGIBILITY
   sliceMeridianBg: 'rgba(42,95,130,.06)',
 };
 
@@ -220,23 +220,25 @@ export default function SanctuaryPage() {
         backgroundSize:'160px', opacity: dark ? .45 : .22,
       }}/>
 
-      {/* ── Ghost numeral — 300px, blurred, masked before slices ── */}
+      {/* ── Ghost numeral — positioned from top, visible behind hero ── */}
       <div className="s-gn" style={{
         position:'absolute',
-        bottom: journeyOpen ? '52%' : '36%',
+        top: journeyOpen ? '80px' : '140px',
         left:'50%',
         fontFamily:"'Fraunces', serif",
         fontWeight:700, fontStyle:'normal',
-        fontSize: journeyOpen ? '180px' : '300px',
+        fontSize: journeyOpen ? '160px' : '310px',
         lineHeight:1, letterSpacing:'-.06em',
         whiteSpace:'nowrap',
-        color: tk.ghost, opacity: tk.ghostOp,
-        filter:'blur(9px)',
+        color: tk.ghost,
+        opacity: tk.ghostOp,
+        filter:'blur(8px)',
         fontFeatureSettings:'"opsz" 144',
         pointerEvents:'none', zIndex:1,
-        transition:`bottom 480ms ${EASE}, font-size 480ms ${EASE}`,
-        WebkitMaskImage:'linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 42%, rgba(0,0,0,0.04) 60%, rgba(0,0,0,0) 74%)',
-        maskImage:'linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 42%, rgba(0,0,0,0.04) 60%, rgba(0,0,0,0) 74%)',
+        transition:`top 480ms ${EASE}, font-size 480ms ${EASE}`,
+        /* Fade out BELOW the hero prose — not above */
+        WebkitMaskImage:'linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.05) 72%, rgba(0,0,0,0) 85%)',
+        maskImage:'linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.05) 72%, rgba(0,0,0,0) 85%)',
       }}>
         {days}
       </div>
@@ -410,7 +412,7 @@ export default function SanctuaryPage() {
       {/* ── Lower frost band — dark glassy blur over slice zone ── */}
       <div style={{
         position:'absolute',
-        top: journeyOpen ? '26%' : '40%',
+        top: journeyOpen ? '26%' : '55%',
         left:0, right:0, bottom:0,
         background: tk.glassBandBgBot,
         backdropFilter:'blur(18px) saturate(1.1)',
@@ -441,7 +443,7 @@ export default function SanctuaryPage() {
               borderBottom:`.5px solid ${tk.line}`,
               cursor:'pointer',
               WebkitTapHighlightColor:'transparent',
-              background: slice.premium ? tk.sliceMeridianBg : 'transparent',
+              background: 'transparent',
               transition:`min-height 480ms ${EASE}, max-height 480ms ${EASE}`,
               animationDelay:`${idx*16}ms`,
             }}
