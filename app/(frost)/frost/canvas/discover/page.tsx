@@ -699,20 +699,36 @@ function DiscoveryFeedContent({
   const [vendorIdx,      setVendorIdx]      = useState(0);
   const [imageIdx,       setImageIdx]       = useState(0);
   const [overlayVisible, setOverlayVisible] = useState(false);
-  const [dissolveKey,    setDissolveKey]    = useState(0);
+  const [plateKey,       setPlateKey]       = useState(0);   // triggers plate-turn animation
+  const [plateDir,       setPlateDir]       = useState<'up'|'down'>('up');
   const [blindHint,      setBlindHint]      = useState<'dismiss' | null>(null);
   const [blindIdx,       setBlindIdx]       = useState(0);
   const [currentPage,    setCurrentPage]    = useState(0);
   const [hasMore,        setHasMore]        = useState(true);
   const [loading,        setLoading]        = useState(true);
+  const [showRibbon,     setShowRibbon]     = useState(false);
 
   const currentPhotoRef = useRef<string | null>(null);
   const touchStart      = useRef<{ x: number; y: number; t: number } | null>(null);
   const tapTimer        = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressTimer      = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapTime     = useRef(0);
   const tapCount        = useRef(0);
+  const photoTimer      = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hasActiveFilters = !!(filters.category || filters.city || filters.vibes.length > 0 || filters.budget || filters.mode);
+
+  // First-session ribbon — shown once, localStorage flag
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('frost_discover_ribbon_seen');
+      if (!seen) {
+        setShowRibbon(true);
+        setTimeout(() => setShowRibbon(false), 5000);
+        localStorage.setItem('frost_discover_ribbon_seen', '1');
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -733,6 +749,7 @@ function DiscoveryFeedContent({
       .finally(() => setLoading(false));
   }, [initialCategory, filters]);
 
+  // Pagination
   useEffect(() => {
     if (!hasMore || vendors.length === 0 || vendorIdx < vendors.length - 3) return;
     const nextPage = currentPage + 1;
@@ -759,6 +776,7 @@ function DiscoveryFeedContent({
 
   const vendor = vendors[vendorIdx];
 
+  // Preload next images
   useEffect(() => {
     if (!vendor) return;
     const toPreload: string[] = [];
@@ -767,28 +785,42 @@ function DiscoveryFeedContent({
     toPreload.forEach(src => { const img = new Image(); img.src = src; });
   }, [vendorIdx, imageIdx, vendor, vendors]);
 
+  // Photo auto-cycle — advances every 4s, resets when vendor changes
+  useEffect(() => {
+    if (!vendor || vendor.photos.length <= 1 || isBlind) return;
+    if (photoTimer.current) clearInterval(photoTimer.current);
+    photoTimer.current = setInterval(() => {
+      setImageIdx(i => {
+        const next = i + 1;
+        return next < vendor.photos.length ? next : 0;
+      });
+    }, 4000);
+    return () => { if (photoTimer.current) clearInterval(photoTimer.current); };
+  }, [vendorIdx, vendor, isBlind]);
+
+  // Single tap on photo = advance to next photo manually (resets auto-cycle)
+  const handlePhotoTap = useCallback(() => {
+    if (!vendor || vendor.photos.length <= 1) return;
+    setImageIdx(i => (i + 1) % vendor.photos.length);
+    // Reset the auto-cycle timer
+    if (photoTimer.current) {
+      clearInterval(photoTimer.current);
+      photoTimer.current = setInterval(() => {
+        setImageIdx(i => (i + 1) % vendor.photos.length);
+      }, 4000);
+    }
+    haptic(3);
+  }, [vendor]);
+
   const goNextVendor = useCallback(() => {
     if (vendorIdx >= vendors.length - 1) return;
-    setVendorIdx(i => i + 1); setImageIdx(0); setOverlayVisible(false); setDissolveKey(k => k + 1); haptic(5);
+    setPlateDir('up');
+    setVendorIdx(i => i + 1);
+    setImageIdx(0);
+    setOverlayVisible(false);
+    setPlateKey(k => k + 1);
+    haptic(6);
   }, [vendorIdx, vendors.length]);
-
-  const goPrevVendor = useCallback(() => {
-    if (vendorIdx <= 0) return;
-    setVendorIdx(i => i - 1); setImageIdx(0); setOverlayVisible(false); setDissolveKey(k => k + 1); haptic(5);
-  }, [vendorIdx]);
-
-  const nextImage = useCallback(() => {
-    if (vendor && imageIdx < vendor.photos.length - 1) { setImageIdx(i => i + 1); setDissolveKey(k => k + 1); haptic(4); }
-  }, [imageIdx, vendor]);
-
-  const prevImage = useCallback(() => {
-    if (imageIdx > 0) { setImageIdx(i => i - 1); setDissolveKey(k => k + 1); haptic(4); }
-  }, [imageIdx]);
-
-  const handleSingleTap = useCallback(() => {
-    if (isBlind) return;
-    setOverlayVisible(v => !v); haptic(4);
-  }, [isBlind]);
 
   const handleDoubleTap = useCallback(() => {
     if (isBlind) {
@@ -796,6 +828,9 @@ function DiscoveryFeedContent({
       if (!item) return;
       spawnHeart();
       handleSaveToMuse(item.vendorId, item.imageUrl || null).then(ok => spawnSaveToast(!ok));
+      setBlindIdx(i => Math.min(i + 1, blindQueue.length - 1));
+      setPlateKey(k => k + 1);
+      haptic(6);
       return;
     }
     if (!vendor) return;
@@ -803,12 +838,35 @@ function DiscoveryFeedContent({
     handleSaveToMuse(vendor.id, currentPhotoRef.current).then(ok => spawnSaveToast(!ok));
   }, [isBlind, vendor, blindQueue, blindIdx]);
 
+  const handleLongPress = useCallback(() => {
+    if (isBlind) return;
+    haptic(8);
+    setOverlayVisible(true);
+  }, [isBlind]);
+
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const t = e.touches[0];
     touchStart.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+    // Long press — 350ms threshold
+    pressTimer.current = setTimeout(() => {
+      pressTimer.current = null;
+      handleLongPress();
+    }, 350);
+  };
+
+  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStart.current) return;
+    const dy = Math.abs(e.touches[0].clientY - touchStart.current.y);
+    const dx = Math.abs(e.touches[0].clientX - touchStart.current.x);
+    // Cancel long press if finger moves
+    if ((dy > 8 || dx > 8) && pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
     if (!touchStart.current) return;
     const start = touchStart.current;
     touchStart.current = null;
@@ -819,49 +877,63 @@ function DiscoveryFeedContent({
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
+    // Tap detection
     if (absX < TAP_MAX_MOVE && absY < TAP_MAX_MOVE && dt < TAP_MAX_TIME) {
-      const now = Date.now();
+      const now   = Date.now();
       const since = now - lastTapTime.current;
       if (since < DOUBLE_TAP_MS && tapCount.current >= 1) {
         if (tapTimer.current) clearTimeout(tapTimer.current);
         tapCount.current = 0;
         handleDoubleTap();
       } else {
-        tapCount.current = 1; lastTapTime.current = now;
-        tapTimer.current = setTimeout(() => {
-          if (tapCount.current === 1) handleSingleTap();
+        tapCount.current  = 1;
+        lastTapTime.current = now;
+        tapTimer.current  = setTimeout(() => {
+          if (tapCount.current === 1) {
+            // Single tap = advance photo (if overlay not open)
+            if (!overlayVisible) handlePhotoTap();
+            else setOverlayVisible(false);
+          }
           tapCount.current = 0;
         }, DOUBLE_TAP_MS);
       }
       return;
     }
 
-    const velocity = Math.max(absX, absY) / Math.max(dt, 1);
-    if (Math.max(absX, absY) <= SWIPE_THRESHOLD && velocity <= SWIPE_VELOCITY) return;
+    // Swipe detection — vertical axis only
+    const velocity = absY / Math.max(dt, 1);
+    if (absY < SWIPE_THRESHOLD && velocity < SWIPE_VELOCITY) return;
+    if (absX > absY) return; // ignore horizontal swipes entirely
+
+    // Close overlay on downward swipe
+    if (overlayVisible && dy > OVERLAY_DISMISS) { setOverlayVisible(false); return; }
 
     if (isBlind) {
-      if (absY > absX && dy < -SWIPE_THRESHOLD) {
-        setBlindHint('dismiss'); setTimeout(() => setBlindHint(null), 500);
+      // Blind: swipe up = next image
+      if (dy < -SWIPE_THRESHOLD) {
+        setBlindHint('dismiss');
+        setTimeout(() => setBlindHint(null), 500);
         setBlindIdx(i => Math.min(i + 1, blindQueue.length - 1));
-        setDissolveKey(k => k + 1); haptic(5);
+        setPlateKey(k => k + 1);
+        haptic(5);
       }
       return;
     }
 
-    if (overlayVisible && absY > absX && dy > OVERLAY_DISMISS) { setOverlayVisible(false); return; }
-    if (absY > absX) {
-      if (dy < -SWIPE_THRESHOLD) goNextVendor();
-      else if (dy > SWIPE_THRESHOLD) goPrevVendor();
-    } else {
-      if (dx < -SWIPE_THRESHOLD) nextImage();
-      else if (dx > SWIPE_THRESHOLD) prevImage();
+    if (dy < -SWIPE_THRESHOLD) {
+      // Swipe up = next vendor
+      goNextVendor();
+    } else if (dy > 120) {
+      // Swipe down with long throw (120px) = enter Sanctuary
+      // Short downward swipes ignored — prevents accidental Sanctuary entry
+      onOpenSanctuary();
     }
   };
 
   if (loading) {
     return (
       <div style={{ position: 'fixed', inset: 0, background: '#0A090B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.35)' }}>Loading</span>
+        <span style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(239,233,221,0.35)' }}>Loading</span>
       </div>
     );
   }
@@ -884,29 +956,86 @@ function DiscoveryFeedContent({
           70%  { transform:translate(-50%,-50%) scale(0.95); }
           100% { opacity:0; transform:translate(-50%,-50%) scale(1); }
         }
-        @keyframes dissolveIn { from{opacity:0} to{opacity:1} }
-        @keyframes slideInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes toastSlideIn { from{opacity:0;transform:translateX(-50%) translateY(-8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+        @keyframes toastSlideIn {
+          from { opacity:0; transform:translateX(-50%) translateY(-8px); }
+          to   { opacity:1; transform:translateX(-50%) translateY(0); }
+        }
+        /* Plate-turn — the catalogue page physics */
+        /* Current plate exits: scale down + fade out */
+        @keyframes plateExit {
+          0%   { opacity:1; transform:translateY(0) scale(1); }
+          100% { opacity:0; transform:translateY(-28px) scale(0.97); }
+        }
+        /* Next plate enters: rise from below + fade in */
+        @keyframes plateEnter {
+          0%   { opacity:0; transform:translateY(18px); }
+          100% { opacity:1; transform:translateY(0); }
+        }
+        .plate-enter {
+          animation: plateEnter 320ms cubic-bezier(0.22,1,0.36,1) forwards;
+        }
+        /* Ribbon fade */
+        @keyframes ribbonFade {
+          0%   { opacity:0; transform:translateY(6px); }
+          15%  { opacity:0.72; transform:translateY(0); }
+          75%  { opacity:0.72; }
+          100% { opacity:0; }
+        }
+        .frost-ribbon {
+          animation: ribbonFade 5s ease-in-out forwards;
+        }
       `}</style>
 
       <div
-        style={{ position: 'fixed', inset: 0, background: '#0C0A09', overflow: 'hidden', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
+        style={{ position: 'fixed', inset: 0, background: '#0A090B', overflow: 'hidden', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
         onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Photo */}
-        <div key={dissolveKey} style={{ position: 'absolute', inset: 0, zIndex: 1, animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)' }}>
+        {/* Photo — plate-enter animation on vendor change */}
+        <div
+          key={plateKey}
+          className="plate-enter"
+          style={{ position: 'absolute', inset: 0, zIndex: 1 }}
+        >
           {(isBlind ? blindPhoto : currentPhoto) ? (
-            <img src={(isBlind ? blindPhoto : currentPhoto)!} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+            <img
+              src={(isBlind ? blindPhoto : currentPhoto)!}
+              alt=""
+              draggable={false}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+            />
           ) : (
-            <div style={{ position: 'absolute', inset: 0, background: '#1a1714', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(248,247,245,0.2)' }}>No photo yet</span>
+            <div style={{ position: 'absolute', inset: 0, background: '#14120F', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+              <span style={{ fontFamily: "'Fraunces', 'Cormorant Garamond', serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(239,233,221,0.2)' }}>No photo yet</span>
             </div>
           )}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 18%, transparent 65%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.55) 100%)', pointerEvents: 'none' }} />
         </div>
 
-        {/* Plate counter — top-left mono */}
+        {/* Photo progress dots — subtle, bottom-right, for multi-photo vendors */}
+        {!isBlind && photos.length > 1 && (
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 22px)',
+            right: 22,
+            zIndex: 4,
+            display: 'flex', gap: 4,
+            pointerEvents: 'none',
+          }}>
+            {photos.slice(0, 8).map((_, i) => (
+              <div key={i} style={{
+                width: i === imageIdx ? 14 : 4,
+                height: 4,
+                borderRadius: 2,
+                background: i === imageIdx ? '#D89854' : 'rgba(255,255,255,0.35)',
+                transition: 'all 300ms cubic-bezier(0.22,1,0.36,1)',
+              }} />
+            ))}
+          </div>
+        )}
+
+        {/* Plate counter */}
         {!isBlind && <PlateCounter vendorIdx={vendorIdx} total={vendors.length} />}
 
         {/* Top chrome */}
@@ -920,29 +1049,112 @@ function DiscoveryFeedContent({
 
         {isBlind && <BlindCentreToast hint={blindHint} />}
 
-        {/* Gesture compass — four edge marks */}
-        {!isBlind && (
-          <div style={{ position: 'absolute', inset: '100px 14px 80px 14px', zIndex: 4, pointerEvents: 'none', opacity: 0.55 }}>
-            <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
-              <span style={{ fontSize: 10 }}>↑</span>
-              <span>Next plate</span>
+        {/* Gesture compass — two marks only: top and bottom */}
+        <div style={{ position: 'absolute', inset: '100px 0 90px 0', zIndex: 4, pointerEvents: 'none', opacity: 0.50 }}>
+          {/* Top — ↑ Next */}
+          <div style={{
+            position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+          }}>
+            <span style={{ fontSize: 11 }}>↑</span>
+            <span>Next</span>
+          </div>
+          {/* Bottom — ↓ Sanctuary */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', gap: 4,
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+          }}>
+            <span style={{ fontSize: 11 }}>↓</span>
+            <span style={{ color: '#D89854' }}>Sanctuary</span>
+          </div>
+        </div>
+
+        {/* Bottom gesture legend — double-tap save · hold enquire */}
+        <div style={{
+          position: 'absolute',
+          bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)',
+          left: 0, right: 0,
+          zIndex: 4, pointerEvents: 'none',
+          display: 'flex', justifyContent: 'space-between',
+          padding: '0 22px',
+          opacity: 0.50,
+        }}>
+          <span style={{
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+          }}>
+            ⊙ double-tap · save
+          </span>
+          {!isBlind && (
+            <span style={{
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+            }}>
+              hold · enquire ⏵
+            </span>
+          )}
+        </div>
+
+        {/* First-session teaching ribbon */}
+        {showRibbon && (
+          <div className="frost-ribbon" style={{
+            position: 'absolute',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 56px)',
+            left: 0, right: 0,
+            zIndex: 5, pointerEvents: 'none',
+            textAlign: 'center',
+          }}>
+            <span style={{
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 8.5, fontWeight: 300, letterSpacing: '0.26em', textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 6px rgba(0,0,0,0.8)',
+            }}>
+              ─── swipe up to discover · double-tap to save · hold for more ───
+            </span>
+          </div>
+        )}
+
+        {/* Artisan card — always visible at bottom in Aubade style */}
+        {!isBlind && !overlayVisible && vendor && (
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 56px)',
+            left: 22, right: 22,
+            zIndex: 4, pointerEvents: 'none',
+          }}>
+            <div style={{
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 8.5, fontWeight: 300,
+              letterSpacing: '0.24em', textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.60)',
+              marginBottom: 8,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ width: 16, height: 1, background: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+              {vendor.category}{vendor.city ? ` · ${vendor.city}` : ''}
             </div>
-            <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
-              <span style={{ fontSize: 10 }}>↓</span>
-              <span style={{ color: '#D89854' }}>Sanctuary</span>
-            </div>
-            <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)', writingMode: 'vertical-rl' as const }}>
-              <span style={{ fontSize: 10, writingMode: 'horizontal-tb' as const }}>⊙</span>
-              <span>Double-tap · Save</span>
-            </div>
-            <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%) rotate(180deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)', writingMode: 'vertical-rl' as const }}>
-              <span style={{ fontSize: 10, writingMode: 'horizontal-tb' as const, transform: 'rotate(180deg)' }}>⏵</span>
-              <span>Hold · Enquire</span>
+            <div style={{
+              fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
+              fontStyle: 'italic', fontWeight: 300,
+              fontSize: 34, color: '#fff',
+              lineHeight: 0.95, letterSpacing: '-0.025em',
+              fontFeatureSettings: '"opsz" 144',
+              textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            }}>
+              {vendor.name}
             </div>
           </div>
         )}
 
-        {/* Glass overlay */}
+        {/* Glass overlay — triggered by long press */}
         {!isBlind && (
           <GlassOverlay
             vendor={vendor}
