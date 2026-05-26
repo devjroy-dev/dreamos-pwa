@@ -339,11 +339,15 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
       )}
 
       <div style={{ padding: '0 24px' }}>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
-          {vendor.category}&nbsp;·&nbsp;{vendor.city}
-        </p>
+        {/* Aubade lede — mono eyebrow */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{ width: 20, height: 1, background: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+          <p style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8.5, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)', margin: 0, whiteSpace: 'nowrap' }}>
+            {vendor.category}{vendor.city ? ` · ${vendor.city}` : ''}
+          </p>
+        </div>
         {!isBlind && (
-          <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: "'Fraunces', 'Cormorant Garamond', serif", fontSize: 36, fontWeight: 300, fontStyle: 'italic', color: '#EFE9DD', margin: '0 0 10px', letterSpacing: '-0.025em', lineHeight: 0.95, fontFeatureSettings: '"opsz" 144' }}>
             {vendor.name}
           </h2>
         )}
@@ -395,13 +399,26 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
 
 // ── Image dots ────────────────────────────────────────────────────────────────
 
-function ImageDots({ total, current }: { total: number; current: number }) {
-  if (total <= 1) return null;
+function PlateCounter({ vendorIdx, total }: { vendorIdx: number; total: number }) {
+  const plate    = String(vendorIdx + 1).padStart(3, '0');
+  const totalStr = String(total).padStart(3, '0');
   return (
-    <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top,0px) + 20px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 24, pointerEvents: 'none' }}>
-      {Array.from({ length: Math.min(total, 8) }).map((_, i) => (
-        <div key={i} style={{ width: i === current ? 16 : 5, height: 5, borderRadius: 3, background: i === current ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)', transition: 'all 240ms cubic-bezier(0.22,1,0.36,1)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
-      ))}
+    <div style={{
+      position: 'fixed',
+      top: 'calc(env(safe-area-inset-top,0px) + 52px)',
+      left: 22,
+      zIndex: 24,
+      pointerEvents: 'none',
+    }}>
+      <span style={{
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+        fontSize: 9, fontWeight: 300,
+        letterSpacing: '0.22em', textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.75)',
+        textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+      }}>
+        Plate {plate}<span style={{ color: 'rgba(255,255,255,0.38)' }}> / {totalStr}</span>
+      </span>
     </div>
   );
 }
@@ -417,12 +434,12 @@ function BlindCentreToast({ hint }: { hint: 'dismiss' | null }) {
 
 function EmptyDeck({ mode }: { mode: string }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#0C0A09', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-      <span style={{ fontSize: 48 }}>✦</span>
-      <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, fontStyle: 'italic', color: 'rgba(248,247,245,0.7)' }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#0A090B', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+      <span style={{ color: '#D89854', fontSize: 32, lineHeight: 1 }}>✦</span>
+      <span style={{ fontFamily: "'Fraunces', 'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, fontStyle: 'italic', color: 'rgba(239,233,221,0.75)', letterSpacing: '-0.02em' }}>
         {mode === 'blind' ? "You've seen them all." : "You've seen everyone."}
       </span>
-      <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.35)' }}>
+      <span style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(239,233,221,0.35)' }}>
         Check back soon
       </span>
     </div>
@@ -441,53 +458,86 @@ function TopChrome({ onSanctuary, onFilter, onToggleBlind, isBlind, hasFilters }
   hasFilters:    boolean;
 }) {
   const top = 'calc(env(safe-area-inset-top,0px) + 14px)';
-
-  // Stop touch events bubbling up to the swipe handler
   const stopTouch = (e: React.TouchEvent) => e.stopPropagation();
 
+  const romanDate = (() => {
+    const now = new Date();
+    const ROMAN = ['','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];
+    const d = String(now.getDate()).padStart(2,'0');
+    const m = ROMAN[now.getMonth() + 1];
+    const y = String(now.getFullYear()).slice(-2);
+    return `${d} . ${m} . ${y}`;
+  })();
+
   const pillBase: React.CSSProperties = {
-    position: 'fixed',
-    top,
-    zIndex: 25,
-    display: 'flex',
-    alignItems: 'center',
-    height: 28,
-    borderRadius: 100,
-    cursor: 'pointer',
-    touchAction: 'manipulation',
-    border: 'none',
+    position: 'fixed', top, zIndex: 25,
+    display: 'flex', alignItems: 'center',
+    height: 28, borderRadius: 2,
+    cursor: 'pointer', touchAction: 'manipulation', border: 'none',
+  };
+  const aubaGlass: React.CSSProperties = {
+    background: 'rgba(5,6,8,0.36)',
+    backdropFilter: 'blur(20px) saturate(1.4)',
+    WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+    border: '1px solid rgba(255,255,255,0.18)',
+  };
+  const aubaGlassActive: React.CSSProperties = {
+    background: 'rgba(216,152,84,0.18)',
+    backdropFilter: 'blur(20px) saturate(1.4)',
+    WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+    border: '1px solid rgba(216,152,84,0.45)',
   };
 
   return (
     <>
-      {/* Sanctuary — left only */}
+      {/* Roman date — top right, mono */}
+      <div style={{
+        position: 'fixed', top, right: 52, zIndex: 25,
+        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+        fontSize: 9, fontWeight: 300,
+        letterSpacing: '0.22em', textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.50)',
+        height: 28, display: 'flex', alignItems: 'center',
+        textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+        pointerEvents: 'none',
+      }}>
+        {romanDate}
+      </div>
+
+      {/* Sanctuary — left */}
       <button
         onClick={onSanctuary}
         onTouchStart={stopTouch}
         onTouchEnd={stopTouch}
-        style={{ ...pillBase, left: 14, gap: 5, padding: '0 10px 0 8px', ...GLASS.pill }}
+        style={{ ...pillBase, left: 14, gap: 6, padding: '0 14px', ...aubaGlass }}
         aria-label="Sanctuary"
       >
-        <span style={{ fontSize: 9, color: 'rgba(201,168,76,0.85)', lineHeight: 1 }}>✦</span>
-        <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.85)', whiteSpace: 'nowrap' }}>
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#D89854', flexShrink: 0 }} />
+        <span style={{
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          fontSize: 8.5, fontWeight: 300,
+          letterSpacing: '0.20em', textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.90)', whiteSpace: 'nowrap',
+        }}>
           Sanctuary
         </span>
       </button>
 
-      {/* Blind — right side, left of filter */}
+      {/* Blind — beside Sanctuary */}
       <button
         onClick={onToggleBlind}
         onTouchStart={stopTouch}
         onTouchEnd={stopTouch}
-        style={{
-          ...pillBase,
-          right: 50, // filter is at right:14, width 28 → this sits 8px gap left of it
-          padding: '0 10px',
-          ...(isBlind ? GLASS.pillActive : GLASS.pill),
-        }}
+        style={{ ...pillBase, left: 'calc(14px + 120px + 8px)', padding: '0 14px', ...(isBlind ? aubaGlassActive : aubaGlass) }}
         aria-label="Toggle blind mode"
       >
-        <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: isBlind ? 'rgba(201,168,76,0.95)' : 'rgba(248,247,245,0.6)', whiteSpace: 'nowrap' }}>
+        <span style={{
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          fontSize: 8.5, fontWeight: 300,
+          letterSpacing: '0.20em', textTransform: 'uppercase',
+          color: isBlind ? '#D89854' : 'rgba(255,255,255,0.60)',
+          whiteSpace: 'nowrap',
+        }}>
           Blind
         </span>
       </button>
@@ -498,21 +548,14 @@ function TopChrome({ onSanctuary, onFilter, onToggleBlind, isBlind, hasFilters }
         onTouchStart={stopTouch}
         onTouchEnd={stopTouch}
         style={{
-          ...pillBase,
-          right: 14,
-          width: 28,
-          justifyContent: 'center',
-          padding: 0,
-          ...(hasFilters ? GLASS.pillActive : GLASS.pill),
+          ...pillBase, right: 14, width: 28,
+          justifyContent: 'center', padding: 0,
+          ...(hasFilters ? aubaGlassActive : aubaGlass),
           position: 'fixed',
         } as React.CSSProperties}
         aria-label="Filters"
       >
-        <SlidersHorizontal
-          size={13}
-          strokeWidth={1.5}
-          color={hasFilters ? 'rgba(201,168,76,0.9)' : 'rgba(255,255,255,0.8)'}
-        />
+        <SlidersHorizontal size={13} strokeWidth={1.5} color={hasFilters ? '#D89854' : 'rgba(255,255,255,0.8)'} />
       </button>
     </>
   );
@@ -546,7 +589,7 @@ function spawnSaveToast(alreadySaved = false) {
     z-index:9998;pointer-events:none;white-space:nowrap;
     animation:toastSlideIn 250ms cubic-bezier(0.22,1,0.36,1) forwards;
   `;
-  el.textContent = alreadySaved ? 'Already in Muse' : 'Saved to Muse ♥';
+  el.textContent = alreadySaved ? 'Already in Muse' : '✦ Saved to Muse';
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 300ms ease'; }, 1800);
   setTimeout(() => el.remove(), 2200);
@@ -560,9 +603,9 @@ function spawnHeart() {
     transform:translate(-50%,-50%) scale(0);
     font-size:88px;z-index:9999;pointer-events:none;
     animation:heartPop 700ms cubic-bezier(0.22,1,0.36,1) forwards;
-    color:#C9A84C;
+    color:#D89854;
   `;
-  el.textContent = '♥';
+  el.textContent = '✦';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 700);
   haptic(14);
@@ -748,7 +791,7 @@ function DiscoveryFeedContent({
 
   if (loading) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: '#0C0A09', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'fixed', inset: 0, background: '#0A090B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.35)' }}>Loading</span>
       </div>
     );
@@ -794,8 +837,8 @@ function DiscoveryFeedContent({
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 18%, transparent 65%, rgba(0,0,0,0.4) 100%)', pointerEvents: 'none' }} />
         </div>
 
-        {/* Image dots — centre top, zIndex 24 so pills (25) sit above */}
-        {!isBlind && <ImageDots total={photos.length} current={imageIdx} />}
+        {/* Plate counter — top-left mono */}
+        {!isBlind && <PlateCounter vendorIdx={vendorIdx} total={vendors.length} />}
 
         {/* Top chrome */}
         <TopChrome
@@ -808,12 +851,25 @@ function DiscoveryFeedContent({
 
         {isBlind && <BlindCentreToast hint={blindHint} />}
 
-        {/* Hint */}
-        {!isBlind && !overlayVisible && (
-          <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none', animation: 'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)' }}>
-            <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
-              Tap · Double-tap to save · Swipe to browse
-            </span>
+        {/* Gesture compass — four edge marks */}
+        {!isBlind && (
+          <div style={{ position: 'absolute', inset: '130px 14px 100px 14px', zIndex: 4, pointerEvents: 'none', opacity: 0.55 }}>
+            <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+              <span style={{ fontSize: 10 }}>↑</span>
+              <span>Next plate</span>
+            </div>
+            <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, fontWeight: 300, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+              <span style={{ fontSize: 10 }}>↓</span>
+              <span style={{ color: '#D89854' }}>Sanctuary</span>
+            </div>
+            <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)', writingMode: 'vertical-rl' as const }}>
+              <span style={{ fontSize: 10, writingMode: 'horizontal-tb' as const }}>⊙</span>
+              <span>Double-tap · Save</span>
+            </div>
+            <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%) rotate(180deg)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 7.5, fontWeight: 300, letterSpacing: '0.20em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.70)', textShadow: '0 1px 4px rgba(0,0,0,0.6)', writingMode: 'vertical-rl' as const }}>
+              <span style={{ fontSize: 10, writingMode: 'horizontal-tb' as const, transform: 'rotate(180deg)' }}>⏵</span>
+              <span>Hold · Enquire</span>
+            </div>
           </div>
         )}
 
