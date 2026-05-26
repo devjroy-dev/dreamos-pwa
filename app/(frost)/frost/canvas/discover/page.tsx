@@ -1163,7 +1163,7 @@ function DiscoveryFeedContent({
           >
             <span style={{
               display: 'block',
-              width: 48,
+              width: 120,
               height: 2,
               borderRadius: 2,
               background: 'linear-gradient(90deg, transparent, rgba(216,152,84,0.7) 25%, rgba(239,209,157,0.95) 50%, rgba(216,152,84,0.7) 75%, transparent)',
