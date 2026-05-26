@@ -987,6 +987,17 @@ function DiscoveryFeedContent({
         .frost-ribbon {
           animation: ribbonFade 30s ease-in-out forwards;
         }
+        /* Hairline heartbeat — same rhythm as Sanctuary meridian */
+        /* 1.5s breath (0→37.5% of 4s), 2.5s stillness (37.5→100%) */
+        @keyframes hairlinePulse {
+          0%   { opacity: 0.35; box-shadow: 0 0 4px rgba(216,152,84,0.3); }
+          18%  { opacity: 1.00; box-shadow: 0 0 12px rgba(216,152,84,0.7); }
+          37%  { opacity: 0.35; box-shadow: 0 0 4px rgba(216,152,84,0.3); }
+          100% { opacity: 0.35; box-shadow: 0 0 4px rgba(216,152,84,0.3); }
+        }
+        .discover-hairline-cta {
+          animation: hairlinePulse 4s ease-in-out infinite;
+        }
       `}</style>
 
       <div
@@ -1093,57 +1104,28 @@ function DiscoveryFeedContent({
           </div>
         )}
 
-        {/* Artisan card — frosted glass box floating over photo */}
+        {/* Artisan name — ambient, no box, just the name and lede */}
         {!isBlind && !overlayVisible && vendor && (
           <div style={{
             position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 48px)',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 56px)',
             left: 22,
             zIndex: 4,
-            WebkitTapHighlightColor: 'transparent',
+            pointerEvents: 'none',
           }}>
-            {/* Frosted glass name box — tappable, opens enquiry overlay */}
-            <div
-              onClick={() => { setOverlayVisible(true); haptic(4); }}
-              style={{
-                display: 'inline-flex',
-                flexDirection: 'column',
-                gap: 10,
-                border: '1px solid rgba(255,255,255,0.22)',
-                borderRadius: 3,
-                padding: '12px 14px 9px 14px',
-                marginBottom: 9,
-                cursor: 'pointer',
-                background: 'rgba(0,0,0,0.28)',
-                backdropFilter: 'blur(16px) saturate(1.2)',
-                WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
-                minWidth: 160,
-              }}
-            >
-              {/* Vendor name */}
-              <div style={{
-                fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
-                fontStyle: 'italic', fontWeight: 300,
-                fontSize: 24, color: '#fff',
-                lineHeight: 1, letterSpacing: '-0.02em',
-                fontFeatureSettings: '"opsz" 144',
-              }}>
-                {vendor.name}
-              </div>
-              {/* ENQUIRE → label inside box, bottom-right */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <span style={{
-                  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                  fontSize: 7.5, fontWeight: 300,
-                  letterSpacing: '0.22em', textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.52)',
-                }}>
-                  Enquire →
-                </span>
-              </div>
+            {/* Name — Fraunces italic, informational only */}
+            <div style={{
+              fontFamily: "'Fraunces', 'Cormorant Garamond', serif",
+              fontStyle: 'italic', fontWeight: 300,
+              fontSize: 26, color: '#fff',
+              lineHeight: 1, letterSpacing: '-0.02em',
+              fontFeatureSettings: '"opsz" 144',
+              textShadow: '0 2px 10px rgba(0,0,0,0.55)',
+              marginBottom: 8,
+            }}>
+              {vendor.name}
             </div>
-
-            {/* Lede — below the box */}
+            {/* Lede */}
             <div style={{
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
               fontSize: 8.5, fontWeight: 300,
@@ -1158,17 +1140,48 @@ function DiscoveryFeedContent({
           </div>
         )}
 
-        {/* Save reminder — bottom-right only, quiet */}
+        {/* Hairline CTA — pulsing, centered at bottom, sole enquiry trigger */}
+        {!isBlind && !overlayVisible && vendor && (
+          <button
+            onClick={() => { setOverlayVisible(true); haptic(4); }}
+            className="discover-hairline-cta"
+            style={{
+              position: 'absolute',
+              bottom: 'calc(env(safe-area-inset-bottom,0px) + 18px)',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 4,
+              background: 'none',
+              border: 'none',
+              padding: '8px 0',    // generous tap target
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{
+              display: 'block',
+              width: 48,
+              height: 2,
+              borderRadius: 2,
+              background: 'linear-gradient(90deg, transparent, rgba(216,152,84,0.7) 25%, rgba(239,209,157,0.95) 50%, rgba(216,152,84,0.7) 75%, transparent)',
+            }} />
+          </button>
+        )}
+
+        {/* Save reminder — bottom-right, quiet */}
         {!isBlind && !overlayVisible && (
           <div style={{
             position: 'absolute',
-            bottom: 'calc(env(safe-area-inset-bottom,0px) + 26px)',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 22px)',
             right: 22,
             zIndex: 4, pointerEvents: 'none',
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
             fontSize: 7.5, fontWeight: 300,
             letterSpacing: '0.18em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.36)',
+            color: 'rgba(255,255,255,0.34)',
             textShadow: '0 1px 4px rgba(0,0,0,0.7)',
           }}>
             ⊙ double-tap · save
