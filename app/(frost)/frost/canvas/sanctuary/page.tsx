@@ -71,7 +71,7 @@ html,body{overscroll-behavior:none;}
 `;
 
 const SLICES=[
-  {key:'dream'   as RoomKey, label:'Dream Ai',  hint:'Something will go wrong…',   candle:false, premium:false},
+  {key:'dream'   as RoomKey, label:'Dream Ai',  hint:'Tell me anything.',   candle:false, premium:false},
   {key:'circle'  as RoomKey, label:'Circle',    hint:'Meha lit a candle · 8m ago', candle:true,  premium:false},
   {key:'muse'    as RoomKey, label:'Muse',      hint:'22 saved · 4 new',           candle:false, premium:false},
   {key:'discover'as RoomKey, label:'Discover',  hint:'Your curated world',          candle:false, premium:false},
@@ -1013,7 +1013,7 @@ export default function SanctuaryPage() {
             style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',background:'transparent',animationDelay:`${idx*16}ms`}}>
             <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
             {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:150}}>{slice.hint}</span>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{slice.hint}</span>
             {(slice.key==='discover'||slice.key==='meridian')&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:hintTxt,flexShrink:0}}>→</span>}
           </div>
         ))}
