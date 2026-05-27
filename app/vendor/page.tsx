@@ -390,7 +390,7 @@ export default function WeddingChatPage() {
         .then(data => {
           if (!data.ok) {
             // 401 / bad token — clear and redirect
-            import('@/lib/session').then(({ clearVendorSession }) => {
+            import('@/lib/vendor/session').then(({ clearVendorSession }) => {
               clearVendorSession();
               router.replace('/vendor/login');
             });
@@ -402,7 +402,7 @@ export default function WeddingChatPage() {
             if (remoteId && sessionId && remoteId !== sessionId) {
               // Session ID doesn't match what backend says — stale/wrong account
               console.warn('[vendor/page] session ID mismatch — clearing');
-              import('@/lib/session').then(({ clearVendorSession }) => {
+              import('@/lib/vendor/session').then(({ clearVendorSession }) => {
                 clearVendorSession();
                 router.replace('/vendor/login');
               });
