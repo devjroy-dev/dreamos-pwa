@@ -7,7 +7,8 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, CheckSquare, Users, Heart, Layers, MessageCircle } from 'lucide-react';
-import { useBrideMode } from '../../app/(bride)/layout';
+// useBrideMode removed — (bride) layout deleted
+const useBrideMode = () => ({ mode: 'HOME' as const, setMode: (_m: string) => {} });
 import { COLORS, FONTS, EASE } from './tokens';
 
 const PLAN_TABS = [

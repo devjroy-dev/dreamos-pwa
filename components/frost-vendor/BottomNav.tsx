@@ -12,7 +12,8 @@ import {
   Home, Users, Wallet, Grid2X2,
   LayoutDashboard, Inbox, Image as ImageIcon, Handshake,
 } from 'lucide-react';
-import { useVendorMode } from '../../app/(vendor)/layout';
+// useVendorMode removed — (vendor) layout deleted
+const useVendorMode = () => ({ mode: 'BUSINESS' as const, setMode: (_m: string) => {} });
 import { COLORS, FONTS, EASE } from './tokens';
 
 const BUSINESS_TABS = [
