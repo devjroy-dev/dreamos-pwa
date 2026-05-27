@@ -7,12 +7,11 @@
 // Same URL. Same component. Sanctuary is always underneath.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -768,7 +767,8 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
 
 
 // ── PEOPLE ROOM ────────────────────────────────────────────────────────────────
-// Circle members list — active + pending. Tap member → their feed (future).
+// List view → tap member → inline detail view with their activity feed.
+// No router.push — pure state machine inside the bloom.
 
 interface PeopleRoomProps { dark:boolean; accent:string; signal:string; }
 
@@ -784,9 +784,12 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
   const cardBdr = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.14)';
   const ac      = dark ? '#C4856A'               : '#2A5F82';
 
-  const [members, setMembers] = React.useState<CircleMember[]>([]);
-  const [pending, setPending] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [members,      setMembers]      = React.useState<CircleMember[]>([]);
+  const [pending,      setPending]      = React.useState<any[]>([]);
+  const [loading,      setLoading]      = React.useState(true);
+  const [selected,     setSelected]     = React.useState<CircleMember|null>(null);
+  const [memberFeed,   setMemberFeed]   = React.useState<CircleActivity[]>([]);
+  const [feedLoading,  setFeedLoading]  = React.useState(false);
 
   React.useEffect(()=>{
     fetchCircle().then(c=>{
@@ -796,8 +799,95 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
     }).catch(()=>setLoading(false));
   },[]);
 
+  const openMember = (m: CircleMember) => {
+    setSelected(m);
+    setMemberFeed([]);
+    setFeedLoading(true);
+    fetchMemberFeed(m.id).then(d=>{
+      setMemberFeed(d?.activity||[]);
+      setFeedLoading(false);
+    }).catch(()=>setFeedLoading(false));
+  };
+
   const roleLabel = (r:string) => r.replace(/_/g,' ');
 
+  // ── MEMBER DETAIL VIEW ──────────────────────────────────────────────────
+  if(selected) {
+    const phone = (selected as any).invitee_phone || null;
+    return (
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+        {/* Detail top bar */}
+        <div style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',gap:14,flexShrink:0}}>
+          <button onClick={()=>setSelected(null)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,color:inkMute,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:0}}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Back
+          </button>
+          <div style={{flex:1,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ac,fontFeatureSettings:'"opsz" 9'}}>{selected.invitee_name}</div>
+          <div style={{width:48}}/>
+        </div>
+
+        <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+          {/* Member header */}
+          <div style={{padding:'20px 20px 16px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',gap:16}}>
+            <div style={{width:56,height:56,borderRadius:28,background:`${ac}18`,border:`2px solid ${ac}55`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:26,color:ac}}>{(selected.invitee_name[0]||'·').toUpperCase()}</span>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{selected.invitee_name}</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute}}>
+                {roleLabel(selected.role)}
+                {selected.last_active&&<span style={{color:signal}}> · {timeAgo(selected.last_active)}</span>}
+              </div>
+            </div>
+            {/* Contact buttons */}
+            {phone&&<div style={{display:'flex',gap:8,flexShrink:0}}>
+              <a href={`https://wa.me/${phone.replace(/\+/g,'')}`} target="_blank" rel="noopener noreferrer"
+                style={{width:36,height:36,borderRadius:18,background:'rgba(37,211,102,.10)',border:'0.5px solid rgba(37,211,102,.25)',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z" fill="#25D366"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.273-1.535l-.378-.224-3.927 1.025 1.046-3.82-.247-.393A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z" fill="#25D366"/></svg>
+              </a>
+              <a href={`tel:${phone}`}
+                style={{width:36,height:36,borderRadius:18,background:`${ac}12`,border:`0.5px solid ${ac}33`,display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C9.61 22 2 14.39 2 5a1 1 0 011-1H6.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z" stroke={ac} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </a>
+            </div>}
+          </div>
+
+          {/* Activity feed */}
+          <div style={{padding:'16px 20px'}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:16}}>What they've shared</div>
+            {feedLoading&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+            {!feedLoading&&memberFeed.length===0&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Nothing shared yet.</div>}
+            {memberFeed.map(a=>{
+              if(a.activity_type==='save_added'&&a.image_url) return(
+                <div key={a.id} style={{marginBottom:20}}>
+                  <div style={{borderRadius:8,overflow:'hidden',marginBottom:8,background:cardBg}}>
+                    <img src={a.image_url} alt={a.caption||'Save'} style={{width:'100%',display:'block',objectFit:'cover',maxHeight:280}} loading="lazy"/>
+                  </div>
+                  {a.caption&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,lineHeight:1.5,marginBottom:4,fontFeatureSettings:'"opsz" 9'}}>"{a.caption}"</div>}
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{timeAgo(a.created_at)}</div>
+                </div>
+              );
+              if(a.activity_type==='comment'&&a.content) return(
+                <div key={a.id} style={{marginBottom:14,paddingLeft:12,borderLeft:`2px solid ${ac}`}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,lineHeight:1.6,marginBottom:3,fontFeatureSettings:'"opsz" 9'}}>"{a.content}"</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{timeAgo(a.created_at)}</div>
+                </div>
+              );
+              return(
+                <div key={a.id} style={{display:'flex',gap:10,marginBottom:10,alignItems:'flex-start'}}>
+                  <div style={{width:5,height:5,borderRadius:3,background:inkMute,marginTop:5,flexShrink:0}}/>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{a.activity_type.replace(/_/g,' ')} · <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.12em'}}>{timeAgo(a.created_at)}</span></div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{height:40}}/>
+        </div>
+      </div>
+    );
+  }
+
+  // ── LIST VIEW ──────────────────────────────────────────────────────────────
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
@@ -807,48 +897,38 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
         </div>
 
         {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
-
         {!loading&&members.length===0&&pending.length===0&&(
-          <div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>
-            No one yet. Invite someone from Circle.
-          </div>
+          <div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone from Circle.</div>
         )}
 
-        {/* Active members */}
         {members.length>0&&(
           <div style={{padding:'16px 20px 8px'}}>
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Active</div>
             {members.map(m=>{
               const phone=(m as any).invitee_phone||null;
               return(
-                <div key={m.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',marginBottom:8,borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`}}>
-                  {/* Avatar */}
+                <div key={m.id} onClick={()=>openMember(m)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',marginBottom:8,borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
                   <div style={{width:44,height:44,borderRadius:22,background:`${ac}18`,border:`1.5px solid ${ac}55`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:20,color:ac}}>{(m.invitee_name[0]||'·').toUpperCase()}</span>
                   </div>
-
-                  {/* Name + role */}
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:2}}>{m.invitee_name}</div>
                     <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>
-                      {roleLabel(m.role)}
-                      {m.last_active&&<span style={{color:signal}}> · {timeAgo(m.last_active)}</span>}
+                      {roleLabel(m.role)}{m.last_active&&<span style={{color:signal}}> · {timeAgo(m.last_active)}</span>}
                     </div>
                   </div>
-
-                  {/* Action buttons */}
-                  <div style={{display:'flex',gap:8,flexShrink:0}}>
+                  <div style={{display:'flex',gap:8,flexShrink:0}} onClick={e=>e.stopPropagation()}>
                     {phone&&<>
                       <a href={`https://wa.me/${phone.replace(/\+/g,'')}`} target="_blank" rel="noopener noreferrer"
                         style={{width:34,height:34,borderRadius:17,background:'rgba(37,211,102,.10)',border:'0.5px solid rgba(37,211,102,.25)',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z" fill="#25D366"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.273-1.535l-.378-.224-3.927 1.025 1.046-3.82-.247-.393A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z" fill="#25D366"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z" fill="#25D366"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.273-1.535l-.378-.224-3.927 1.025 1.046-3.82-.247-.393A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z" fill="#25D366"/></svg>
                       </a>
                       <a href={`tel:${phone}`}
                         style={{width:34,height:34,borderRadius:17,background:`${ac}12`,border:`0.5px solid ${ac}33`,display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C9.61 22 2 14.39 2 5a1 1 0 011-1H6.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z" stroke={ac} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C9.61 22 2 14.39 2 5a1 1 0 011-1H6.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z" stroke={ac} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </a>
                     </>}
-                    {!phone&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.1em',color:inkMute,alignSelf:'center'}}>no phone</div>}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke={inkMute} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </div>
                 </div>
               );
@@ -856,7 +936,6 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
           </div>
         )}
 
-        {/* Pending */}
         {pending.length>0&&(
           <div style={{padding:'8px 20px 16px'}}>
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Invited · waiting to join</div>
@@ -865,7 +944,7 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
                 <div style={{width:44,height:44,borderRadius:22,border:`0.5px dashed ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:inkMute}}>?</div>
                 <div style={{flex:1}}>
                   <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{p.invitee_name}</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{roleLabel(p.role)} · invite pending</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{roleLabel(p.role)} · pending</div>
                 </div>
               </div>
             ))}
@@ -2296,33 +2375,6 @@ export default function SanctuaryPage() {
   const textRef    = useRef<HTMLTextAreaElement>(null);
   const cancelRef  = useRef<(()=>void)|null>(null);
 
-  // ── Android back button trap ────────────────────────────────────────────────
-  // Push a sentinel state on mount so Android back pops to it first.
-  // On popstate: if a room is open → close it. If no room → push sentinel again
-  // (stay on sanctuary). Never let the browser navigate away.
-  useEffect(()=>{
-    // Push initial sentinel so there is always a state to pop to
-    window.history.pushState({ sanctuary: true }, '');
-
-    const onPop = (e: PopStateEvent) => {
-      // Always push a new sentinel — keeps us on this page
-      window.history.pushState({ sanctuary: true }, '');
-      // If a room is open, close it (acts as "back" within the app)
-      setActiveRoom(prev => {
-        if (prev !== null) {
-          setClosing(true);
-          setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); }, 300);
-          return prev; // will be cleared by timeout
-        }
-        return null;
-      });
-    };
-
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   useEffect(()=>{
     if(!document.getElementById('sv5')){const s=document.createElement('style');s.id='sv5';s.textContent=CSS;document.head.appendChild(s);}
     const w=getWeddingDate(),e=getEngagementDate(),d=daysUntil(w);
@@ -2353,6 +2405,33 @@ export default function SanctuaryPage() {
       setBlooming(false);
       setClosing(false);
     },300);
+  },[]);
+
+  // ── Back button trap (Android + iOS PWA) ─────────────────────────────────
+  // Strategy: push a sentinel history entry on mount.
+  // When popstate fires (back button): push another sentinel (stay on page)
+  // AND close any open room. Two back presses = room closes then nothing.
+  // The user can only leave via the task switcher — never via back.
+  const activeRoomRef = React.useRef<RoomKey>(null);
+  useEffect(()=>{ activeRoomRef.current = activeRoom; },[activeRoom]);
+
+  useEffect(()=>{
+    // Push sentinel so there's always a history entry to pop to
+    window.history.pushState({tdw:'sanctuary'},'');
+
+    const onPop = () => {
+      // Immediately push another sentinel — browser stays on this URL
+      window.history.pushState({tdw:'sanctuary'},'');
+      // If a room is open, close it
+      if(activeRoomRef.current !== null){
+        setClosing(true);
+        setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); },300);
+      }
+      // If no room open, do nothing — user stays on sanctuary
+    };
+
+    window.addEventListener('popstate', onPop);
+    return ()=>{ window.removeEventListener('popstate', onPop); };
   },[]);
 
   // Swipe down to close

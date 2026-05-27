@@ -1,3 +1,4 @@
+import React from 'react';
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -174,6 +175,7 @@ export default function CouplePinLoginPage() {
               {pin.map((d, i) => (
                 <input key={i} ref={el => { pinRefs.current[i] = el; }}
                   type='tel' maxLength={1} value={d}
+                  autoComplete={i === 0 ? 'one-time-code' : 'off'}
                   onChange={e => handleInput(i, e.target.value)}
                   onKeyDown={e => { if (e.key === 'Backspace') handleBackspace(i, d); }}
                   style={inputStyle} disabled={loading} />
