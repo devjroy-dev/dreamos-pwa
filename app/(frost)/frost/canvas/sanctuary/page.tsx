@@ -12,6 +12,7 @@ import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
+import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, type CircleData, type CircleActivity } from '../../../../../lib/frost/journey';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|null;
@@ -95,6 +96,234 @@ const DREAM_PROMPTS=[
 ];
 
 // ── Root component ────────────────────────────────────────────────────────────
+
+
+// ── CIRCLE ROOM ───────────────────────────────────────────────────────────────
+interface CircleRoomProps {
+  dark:boolean; accent:string; signal:string;
+  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
+}
+
+const ROLE_LABELS: Record<string,string> = {
+  partner:'Partner · Fiancé',
+  family:'Family',
+  inner_circle:'Inner Circle',
+};
+
+function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: CircleRoomProps) {
+  const [data,        setData]        = React.useState<CircleData|null>(null);
+  const [loading,     setLoading]     = React.useState(true);
+  const [view,        setView]        = React.useState<'feed'|'invite'>('feed');
+  const [inviteName,  setInviteName]  = React.useState('');
+  const [inviteRole,  setInviteRole]  = React.useState('family');
+  const [inviting,    setInviting]    = React.useState(false);
+  const [waLink,      setWaLink]      = React.useState<string|null>(null);
+
+  const circleBg = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.14) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
+    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
+
+  const pgInk     = dark ? '#F5E5DC' : '#0C1830';
+  const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
+  const pgInkMute = dark ? 'rgba(196,133,106,.48)' : 'rgba(42,80,130,.52)';
+  const pgLine    = dark ? 'rgba(196,133,106,.12)' : 'rgba(42,80,130,.16)';
+  const pgAccent  = dark ? '#C4856A' : '#2A5F82';
+  const candleBg  = dark ? 'rgba(196,133,106,.08)' : 'rgba(42,95,130,.06)';
+  const candleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.16)';
+
+  React.useEffect(()=>{
+    fetchCircle().then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  const doInvite = async () => {
+    if(!inviteName.trim()||inviting) return;
+    setInviting(true);
+    try {
+      const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole});
+      setWaLink(r.wa_me_link);
+    } catch(e){ console.error(e); }
+    finally{ setInviting(false); }
+  };
+
+  const members  = data?.members         || [];
+  const activity = data?.activity        || [];
+  const pending  = data?.pending_invites || [];
+
+  // ── INVITE VIEW ──
+  if(view==='invite') return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:circleBg}}>
+      <div style={{padding:'24px 24px 16px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,marginBottom:6}}>Invite to Circle</div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>Up to 3 people. They can add to your Muse board.</div>
+      </div>
+
+      {waLink ? (
+        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+            Invite link ready.<br/>Send it on WhatsApp.
+          </div>
+          <a href={waLink} target="_blank" rel="noopener noreferrer"
+            style={{display:'flex',alignItems:'center',justifyContent:'center',
+              padding:'12px 28px',borderRadius:4,
+              background:pgAccent,color:dark?'#1A0810':'#FFFFFF',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,textDecoration:'none',cursor:'pointer'}}>
+            Open WhatsApp →
+          </a>
+          <button onClick={()=>{setWaLink(null);setInviteName('');setView('feed');}}
+            style={{background:'none',border:'none',cursor:'pointer',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+              textTransform:'uppercase' as any,color:pgInkMute,padding:0}}>
+            Back to Circle
+          </button>
+        </div>
+      ) : (
+        <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
+          {/* Name input */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
+            <input value={inviteName} onChange={e=>setInviteName(e.target.value)}
+              placeholder="e.g. Mom, Priya, Anjali"
+              style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
+                padding:'12px 14px',color:pgInk,
+                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
+                fontFeatureSettings:'"opsz" 9',outline:'none',
+                boxSizing:'border-box' as any}}/>
+          </div>
+          {/* Role selector */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Relationship</div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {['partner','family','inner_circle'].map(r=>(
+                <div key={r} onClick={()=>setInviteRole(r)}
+                  style={{padding:'10px 14px',borderRadius:4,border:`0.5px solid ${inviteRole===r?pgAccent:pgLine}`,cursor:'pointer',
+                    background:inviteRole===r?(dark?'rgba(196,133,106,.08)':'rgba(42,95,130,.06)'):'transparent',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,
+                    color:inviteRole===r?pgAccent:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+                  {ROLE_LABELS[r]}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Send button */}
+          <button onClick={doInvite} disabled={!inviteName.trim()||inviting}
+            style={{padding:'13px',borderRadius:4,border:'none',cursor:inviteName.trim()&&!inviting?'pointer':'default',
+              background:inviteName.trim()&&!inviting?pgAccent:'rgba(128,128,128,.15)',
+              color:inviteName.trim()&&!inviting?(dark?'#1A0810':'#FFFFFF'):pgInkMute,
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,transition:'all 200ms ease'}}>
+            {inviting?'Generating link…':'Generate invite link'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── FEED VIEW ──
+  return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:circleBg}}>
+
+      {/* Members row */}
+      <div style={{padding:'16px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:12}}>Your Circle</div>
+        <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap' as any}}>
+          {loading?(
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pgInkMute,letterSpacing:'.18em'}}>loading…</div>
+          ):members.length===0&&pending.length===0?(
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone.</div>
+          ):(
+            <>
+              {members.map(m=>(
+                <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                  {/* Avatar circle */}
+                  <div style={{width:44,height:44,borderRadius:'50%',
+                    background:dark?'rgba(196,133,106,.15)':'rgba(42,95,130,.12)',
+                    border:`1.5px solid ${pgAccent}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgAccent}}>
+                    {(m.invitee_name||'?')[0]}
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                    {m.invitee_name?.split(' ')[0]}
+                  </div>
+                  {/* Active candle dot */}
+                  {m.state==='active'&&(
+                    <div className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 5px ${signal}`}}/>
+                  )}
+                </div>
+              ))}
+              {/* Pending invites */}
+              {pending.map(p=>(
+                <div key={p.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                  <div style={{width:44,height:44,borderRadius:'50%',
+                    border:`1.5px dashed ${pgLine}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute}}>
+                    ?
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.12em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                    {p.invitee_name?.split(' ')[0]}
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,color:pgInkMute,letterSpacing:'.1em',textTransform:'uppercase' as any}}>pending</div>
+                </div>
+              ))}
+            </>
+          )}
+          {/* Add button */}
+          {members.length < 3 && (
+            <div onClick={()=>setView('invite')} style={{width:44,height:44,borderRadius:'50%',
+              border:`1px dashed ${pgLine}`,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              cursor:'pointer',WebkitTapHighlightColor:'transparent',color:pgInkMute,fontSize:20,fontWeight:200}}>
+              +
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Activity feed */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading?(
+          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
+        ):activity.length===0?(
+          <div style={{padding:'48px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Quiet here<br/>for now.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>When your Circle saves something<br/>or sends a message, it appears here.</div>
+          </div>
+        ):(
+          <div>
+            {activity.map(a=>(
+              <div key={a.id} style={{padding:'14px 20px',borderBottom:`0.5px solid ${pgLine}`,display:'flex',gap:12,alignItems:'flex-start'}}>
+                {/* Activity dot */}
+                <div style={{width:7,height:7,borderRadius:'50%',background:pgAccent,flexShrink:0,marginTop:5,opacity:.7}}/>
+                <div style={{flex:1}}>
+                  {/* Save with image */}
+                  {a.activity_type==='save_added'&&a.image_url&&(
+                    <div style={{width:'100%',height:120,borderRadius:6,overflow:'hidden',marginBottom:8,background:dark?'rgba(196,133,106,.06)':'rgba(42,95,130,.06)'}}>
+                      <img src={a.image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
+                    </div>
+                  )}
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
+                    {a.content || formatActivityLine(a)}
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    {/* Candle dot for recent activity */}
+                    {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                      <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
+                    )}
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                      {a.member_name||'You'} · {timeAgo(a.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ── MOOD DATA ─────────────────────────────────────────────────────────────────
 const MOODS = [
@@ -366,6 +595,234 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 }
 
 // ── Root component ────────────────────────────────────────────────────────────
+
+
+// ── CIRCLE ROOM ───────────────────────────────────────────────────────────────
+interface CircleRoomProps {
+  dark:boolean; accent:string; signal:string;
+  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
+}
+
+const ROLE_LABELS: Record<string,string> = {
+  partner:'Partner · Fiancé',
+  family:'Family',
+  inner_circle:'Inner Circle',
+};
+
+function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: CircleRoomProps) {
+  const [data,        setData]        = React.useState<CircleData|null>(null);
+  const [loading,     setLoading]     = React.useState(true);
+  const [view,        setView]        = React.useState<'feed'|'invite'>('feed');
+  const [inviteName,  setInviteName]  = React.useState('');
+  const [inviteRole,  setInviteRole]  = React.useState('family');
+  const [inviting,    setInviting]    = React.useState(false);
+  const [waLink,      setWaLink]      = React.useState<string|null>(null);
+
+  const circleBg = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.14) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
+    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
+
+  const pgInk     = dark ? '#F5E5DC' : '#0C1830';
+  const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
+  const pgInkMute = dark ? 'rgba(196,133,106,.48)' : 'rgba(42,80,130,.52)';
+  const pgLine    = dark ? 'rgba(196,133,106,.12)' : 'rgba(42,80,130,.16)';
+  const pgAccent  = dark ? '#C4856A' : '#2A5F82';
+  const candleBg  = dark ? 'rgba(196,133,106,.08)' : 'rgba(42,95,130,.06)';
+  const candleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.16)';
+
+  React.useEffect(()=>{
+    fetchCircle().then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  const doInvite = async () => {
+    if(!inviteName.trim()||inviting) return;
+    setInviting(true);
+    try {
+      const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole});
+      setWaLink(r.wa_me_link);
+    } catch(e){ console.error(e); }
+    finally{ setInviting(false); }
+  };
+
+  const members  = data?.members         || [];
+  const activity = data?.activity        || [];
+  const pending  = data?.pending_invites || [];
+
+  // ── INVITE VIEW ──
+  if(view==='invite') return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:circleBg}}>
+      <div style={{padding:'24px 24px 16px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,marginBottom:6}}>Invite to Circle</div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>Up to 3 people. They can add to your Muse board.</div>
+      </div>
+
+      {waLink ? (
+        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+            Invite link ready.<br/>Send it on WhatsApp.
+          </div>
+          <a href={waLink} target="_blank" rel="noopener noreferrer"
+            style={{display:'flex',alignItems:'center',justifyContent:'center',
+              padding:'12px 28px',borderRadius:4,
+              background:pgAccent,color:dark?'#1A0810':'#FFFFFF',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,textDecoration:'none',cursor:'pointer'}}>
+            Open WhatsApp →
+          </a>
+          <button onClick={()=>{setWaLink(null);setInviteName('');setView('feed');}}
+            style={{background:'none',border:'none',cursor:'pointer',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+              textTransform:'uppercase' as any,color:pgInkMute,padding:0}}>
+            Back to Circle
+          </button>
+        </div>
+      ) : (
+        <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
+          {/* Name input */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
+            <input value={inviteName} onChange={e=>setInviteName(e.target.value)}
+              placeholder="e.g. Mom, Priya, Anjali"
+              style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
+                padding:'12px 14px',color:pgInk,
+                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
+                fontFeatureSettings:'"opsz" 9',outline:'none',
+                boxSizing:'border-box' as any}}/>
+          </div>
+          {/* Role selector */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Relationship</div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {['partner','family','inner_circle'].map(r=>(
+                <div key={r} onClick={()=>setInviteRole(r)}
+                  style={{padding:'10px 14px',borderRadius:4,border:`0.5px solid ${inviteRole===r?pgAccent:pgLine}`,cursor:'pointer',
+                    background:inviteRole===r?(dark?'rgba(196,133,106,.08)':'rgba(42,95,130,.06)'):'transparent',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,
+                    color:inviteRole===r?pgAccent:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+                  {ROLE_LABELS[r]}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Send button */}
+          <button onClick={doInvite} disabled={!inviteName.trim()||inviting}
+            style={{padding:'13px',borderRadius:4,border:'none',cursor:inviteName.trim()&&!inviting?'pointer':'default',
+              background:inviteName.trim()&&!inviting?pgAccent:'rgba(128,128,128,.15)',
+              color:inviteName.trim()&&!inviting?(dark?'#1A0810':'#FFFFFF'):pgInkMute,
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,transition:'all 200ms ease'}}>
+            {inviting?'Generating link…':'Generate invite link'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── FEED VIEW ──
+  return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:circleBg}}>
+
+      {/* Members row */}
+      <div style={{padding:'16px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:12}}>Your Circle</div>
+        <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap' as any}}>
+          {loading?(
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pgInkMute,letterSpacing:'.18em'}}>loading…</div>
+          ):members.length===0&&pending.length===0?(
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone.</div>
+          ):(
+            <>
+              {members.map(m=>(
+                <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                  {/* Avatar circle */}
+                  <div style={{width:44,height:44,borderRadius:'50%',
+                    background:dark?'rgba(196,133,106,.15)':'rgba(42,95,130,.12)',
+                    border:`1.5px solid ${pgAccent}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgAccent}}>
+                    {(m.invitee_name||'?')[0]}
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                    {m.invitee_name?.split(' ')[0]}
+                  </div>
+                  {/* Active candle dot */}
+                  {m.state==='active'&&(
+                    <div className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 5px ${signal}`}}/>
+                  )}
+                </div>
+              ))}
+              {/* Pending invites */}
+              {pending.map(p=>(
+                <div key={p.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                  <div style={{width:44,height:44,borderRadius:'50%',
+                    border:`1.5px dashed ${pgLine}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute}}>
+                    ?
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.12em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                    {p.invitee_name?.split(' ')[0]}
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,color:pgInkMute,letterSpacing:'.1em',textTransform:'uppercase' as any}}>pending</div>
+                </div>
+              ))}
+            </>
+          )}
+          {/* Add button */}
+          {members.length < 3 && (
+            <div onClick={()=>setView('invite')} style={{width:44,height:44,borderRadius:'50%',
+              border:`1px dashed ${pgLine}`,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              cursor:'pointer',WebkitTapHighlightColor:'transparent',color:pgInkMute,fontSize:20,fontWeight:200}}>
+              +
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Activity feed */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading?(
+          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
+        ):activity.length===0?(
+          <div style={{padding:'48px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Quiet here<br/>for now.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>When your Circle saves something<br/>or sends a message, it appears here.</div>
+          </div>
+        ):(
+          <div>
+            {activity.map(a=>(
+              <div key={a.id} style={{padding:'14px 20px',borderBottom:`0.5px solid ${pgLine}`,display:'flex',gap:12,alignItems:'flex-start'}}>
+                {/* Activity dot */}
+                <div style={{width:7,height:7,borderRadius:'50%',background:pgAccent,flexShrink:0,marginTop:5,opacity:.7}}/>
+                <div style={{flex:1}}>
+                  {/* Save with image */}
+                  {a.activity_type==='save_added'&&a.image_url&&(
+                    <div style={{width:'100%',height:120,borderRadius:6,overflow:'hidden',marginBottom:8,background:dark?'rgba(196,133,106,.06)':'rgba(42,95,130,.06)'}}>
+                      <img src={a.image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
+                    </div>
+                  )}
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
+                    {a.content || formatActivityLine(a)}
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    {/* Candle dot for recent activity */}
+                    {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                      <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
+                    )}
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                      {a.member_name||'You'} · {timeAgo(a.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ── MOOD DATA ─────────────────────────────────────────────────────────────────
 const MOODS = [
@@ -943,6 +1400,14 @@ export default function SanctuaryPage() {
               </div>
             </>}
 
+            {/* ── CIRCLE — activity feed + invite ── */}
+            {activeRoom==='circle'&&(
+              <CircleRoom
+                dark={dark} accent={accent} signal={signal}
+                roomInk={roomInk} roomInkSoft={roomInkSoft} roomInkMute={roomInkMute} roomLine={roomLine}
+              />
+            )}
+
             {/* ── PAGES — diary with feeling picker ── */}
             {activeRoom==='pages'&&(
               <PagesRoom
@@ -952,7 +1417,7 @@ export default function SanctuaryPage() {
             )}
 
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&(
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {SLICES.find(s=>s.key===activeRoom)?.label}
