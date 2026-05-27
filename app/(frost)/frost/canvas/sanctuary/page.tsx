@@ -825,20 +825,6 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
 }
 
 // ── MOOD DATA ─────────────────────────────────────────────────────────────────
-const MOODS = [
-  { key:'hopeful',          label:'Hopeful',         color:'#D4956A' },
-  { key:'heavy',            label:'Heavy',            color:'#6B7FA8' },
-  { key:'tender',           label:'Tender',           color:'#D4848A' },
-  { key:'tired',            label:'Tired',            color:'#8A9DB5' },
-  { key:'angry',            label:'Angry',            color:'#C45A4A' },
-  { key:'still',            label:'Still',            color:'#E8E0D0' },
-  { key:'missing-someone',  label:'Missing Someone',  color:'#9B8DC4' },
-  { key:'proud',            label:'Proud',            color:'#C4A83A' },
-  { key:'doubting',         label:'Doubting',         color:'#7A8A8A' },
-  { key:'peaceful',         label:'Peaceful',         color:'#5A9E7A' },
-  { key:'overwhelmed',      label:'Overwhelmed',      color:'#C4784A' },
-  { key:'in-between',       label:'In Between',       color:'#B8B0C0' },
-];
 
 interface PageEntry { id:string; entry_date:string; mood:string; mood_color:string; body:string; created_at:string; }
 
