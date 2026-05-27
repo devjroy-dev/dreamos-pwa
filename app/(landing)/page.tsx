@@ -228,6 +228,7 @@ export default function Home() {
   // Invite / OTP fields
   const [inviteCode, setInviteCode]     = useState('');
   const [inviteError, setInviteError]   = useState('');
+  const [inviteName, setInviteName]     = useState('');
   const [phone, setPhone]               = useState('');
   const [otp, setOtp]                   = useState(['', '', '', '', '', '']);
 
@@ -400,6 +401,28 @@ export default function Home() {
     const isVendor = role === 'Maker';
     const digits = phoneNum.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
+
+    // On invite path: call /invite/consume first so the users row exists before send-otp
+    if (screen === 'invite_phone') {
+      try {
+        const cr = await fetch(`${API_BASE}/api/v2/invite/consume`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code:  inviteCode.trim(),
+            kind:  isVendor ? 'maker' : 'dreamer',
+            phone: e164,
+            name:  inviteName.trim() || undefined,
+          }),
+        });
+        const cd = await cr.json();
+        if (!cd.ok) {
+          showToast(cd.error || 'Could not verify invite. Try again.');
+          return;
+        }
+        // ok — account confirmed/created, fall through to send OTP
+      } catch { showToast('Could not connect. Try again.'); return; }
+    }
+
     const endpoint = isVendor
       ? `${API_BASE}/api/v2/vendor/auth/send-otp`
       : `${API_BASE}/api/v2/couple/auth/send-otp`;
@@ -428,8 +451,11 @@ export default function Home() {
       });
       const d = await res.json();
       if (!d.ok) {
-        const err = d.error || '';
-        if (err.toLowerCase().includes('no account') || err.toLowerCase().includes('not found') || err.toLowerCase().includes('no vendor')) {
+        const reason = d.reason || '';
+        const err    = d.error  || '';
+        if (reason === 'phone_not_found' || err.toLowerCase().includes('no account')) {
+          // On invite path this shouldn't happen (consume already ran)
+          // On sign-in path: no account exists
           setScreen('request_who');
           showToast('No account found. Request an invite to join.');
           return;
@@ -902,8 +928,15 @@ export default function Home() {
             {screen === 'invite_phone' && (
               <>
                 <BackBtn onClick={() => setScreen('invite_code')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome. Let's begin.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 24px' }}>Enter your number. We'll send a code.</p>
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome. Let’s begin.</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>Enter your details. We’ll send a code to your WhatsApp.</p>
+                <Label text="Your first name" />
+                <input
+                  value={inviteName}
+                  onChange={e => setInviteName(e.target.value)}
+                  placeholder="First name"
+                  style={{ ...INPUT }}
+                />
                 <Label text="Phone number" />
                 <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
                   <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
