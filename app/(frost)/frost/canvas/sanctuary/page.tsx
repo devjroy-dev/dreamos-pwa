@@ -750,8 +750,12 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
         {/* Sign out */}
         <div style={{padding:'24px 16px 0'}}>
           <div onClick={()=>{
-            try{localStorage.removeItem('access_token');localStorage.removeItem('couple_session');localStorage.removeItem('couple_web_session');}catch{}
-            window.location.href='/frost/login';
+            try{
+              ['access_token','refresh_token','couple_session','couple_web_session',
+               'couple_last_path','couple_app_mode']
+               .forEach(k=>localStorage.removeItem(k));
+            }catch{}
+            window.location.replace('/');
           }} style={{padding:'14px',borderRadius:8,border:`0.5px solid rgba(184,69,62,.25)`,background:'rgba(184,69,62,.06)',textAlign:'center' as any,cursor:'pointer',
             fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',
             WebkitTapHighlightColor:'transparent'}}>
@@ -2376,6 +2380,11 @@ export default function SanctuaryPage() {
   const cancelRef  = useRef<(()=>void)|null>(null);
 
   useEffect(()=>{
+    // ── Auth guard — if no session, go to landing ──────────────────────────
+    const token = localStorage.getItem('access_token');
+    const session = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+    if(!token && !session){ window.location.replace('/'); return; }
+
     if(!document.getElementById('sv5')){const s=document.createElement('style');s.id='sv5';s.textContent=CSS;document.head.appendChild(s);}
     const w=getWeddingDate(),e=getEngagementDate(),d=daysUntil(w);
     setDays(d);setProgress(arcProgress(d));setName(getBrideName());
