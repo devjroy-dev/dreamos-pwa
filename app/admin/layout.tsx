@@ -54,7 +54,8 @@ const NAV = [
     { label: 'Hot Dates',   path: '/admin/hot-dates',              icon: '◈' },
   ]},
   { group: 'INVITE REQUESTS', items: [
-    { label: 'Invite Requests', path: '/admin/invite-requests', icon: '✉' },
+    { label: 'Dreamers',        path: '/admin/invite-requests/dreamers', icon: '♡' },
+    { label: 'Makers',          path: '/admin/invite-requests/makers',   icon: '✦' },
   ]},
   { group: 'OUTREACH', items: [
     { label: 'Demo Profiles', path: '/admin/demo-profiles', icon: '◉' },
