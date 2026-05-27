@@ -13,7 +13,9 @@ import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, type CircleData, type CircleActivity, type CoupleEvent } from '../../../../../lib/frost/journey';
-import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity } from '../../../../../lib/frost-api/muse';
+import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
+import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
+import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -69,7 +71,6 @@ const CSS=`
 .d-cursor{animation:dcursor 1s ease-in-out infinite;}
 .no-scroll::-webkit-scrollbar{display:none;}
 .no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
-html,body{overscroll-behavior:none;}
 `;
 
 const SLICES=[
@@ -101,6 +102,386 @@ const DREAM_PROMPTS=[
 // ── Root component ────────────────────────────────────────────────────────────
 
 
+
+
+// ── DISCOVER ROOM ──────────────────────────────────────────────────────────────
+// Always dark #080608 — cinematic full-bleed photo feed.
+// Swipe up/down = next/prev vendor. Swipe left/right = next/prev photo.
+// Single tap = vendor overlay. Double-tap = save to Muse ♥
+// Blind mode = category-only, identity hidden, swipe up to cycle.
+// Pills and filter sheet use Wine Night / Sky Ivory DNA tokens.
+
+const DISC_CATEGORIES = ['Venues','Photographers','Makeup Artists','Designers','Jewellery','Choreographers','Content Creators','DJ & Music','Event Managers','Bridal Wellness'];
+const DISC_CITIES     = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa'];
+const DISC_VIBES      = ['Candid','Traditional','Luxury','Cinematic','Boho','Festive','Minimalist','Royal','Destination','Contemporary'];
+const DISC_BUDGETS    = [{label:'Under Rs 1L',value:'100000'},{label:'Rs 1L – 3L',value:'300000'},{label:'Rs 3L – 5L',value:'500000'},{label:'Rs 5L – 10L',value:'1000000'},{label:'Rs 10L+',value:''}];
+
+const DISC_SWIPE_THRESH = 45;
+const DISC_TAP_MOVE     = 10;
+const DISC_TAP_TIME     = 250;
+const DISC_DTAP_MS      = 280;
+
+interface DiscFilterState { category:string|null; city:string|null; vibes:string[]; budget:string|null; }
+
+function discHaptic(ms:number){ if(typeof navigator!=='undefined'&&'vibrate' in navigator){ try{navigator.vibrate(ms);}catch{} } }
+
+function spawnDiscHeart(accent:string){
+  if(typeof document==='undefined') return;
+  const el=document.createElement('div');
+  el.style.cssText=`position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:88px;z-index:9999;pointer-events:none;animation:discHeartPop 700ms cubic-bezier(0.22,1,0.36,1) forwards;color:${accent};`;
+  el.textContent='♥'; document.body.appendChild(el); setTimeout(()=>el.remove(),700); discHaptic(14);
+}
+
+function spawnDiscToast(msg:string){
+  if(typeof document==='undefined') return;
+  const ex=document.getElementById('disc-toast'); if(ex) ex.remove();
+  const el=document.createElement('div'); el.id='disc-toast';
+  el.style.cssText=`position:fixed;top:calc(env(safe-area-inset-top,0px) + 52px);left:50%;transform:translateX(-50%);background:rgba(8,6,8,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:0.5px solid rgba(255,255,255,0.14);color:rgba(248,247,245,0.9);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:8px 18px;border-radius:20px;z-index:9998;pointer-events:none;white-space:nowrap;`;
+  el.textContent=msg; document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity 300ms';},1800);
+  setTimeout(()=>el.remove(),2200);
+}
+
+// Filter sheet — DNA-aware pills
+function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
+  visible:boolean; onClose:()=>void; filters:DiscFilterState;
+  accent:string; dark:boolean; onApply:(f:DiscFilterState)=>void;
+}) {
+  const [local,setLocal] = React.useState<DiscFilterState>(filters);
+  React.useEffect(()=>{ if(visible) setLocal(filters); },[visible,filters]);
+  if(!visible) return null;
+
+  // Pills inside filter sheet stay dark-cinema regardless of mode
+  // (sheet is always dark glass over the photo)
+  const p = (active:boolean):React.CSSProperties => ({
+    padding:'7px 14px', borderRadius:100,
+    border:active?`0.5px solid ${accent}`:'0.5px solid rgba(255,255,255,.18)',
+    background:active?`${accent}28`:'rgba(255,255,255,.07)',
+    fontFamily:"'JetBrains Mono',monospace", fontSize:8, letterSpacing:'.14em',
+    color:active?accent:'rgba(248,247,245,.65)',
+    cursor:'pointer', whiteSpace:'nowrap' as any, touchAction:'manipulation' as any,
+  });
+
+  const [openSection,setOpenSection] = React.useState<string|null>(null);
+  const toggle = (s:string) => setOpenSection(o=>o===s?null:s);
+
+  const Section = ({id,label,hasVal,children}:{id:string;label:string;hasVal:boolean;children:React.ReactNode}) => (
+    <div style={{borderBottom:'0.5px solid rgba(255,255,255,.08)'}}>
+      <button onClick={()=>toggle(id)} style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',background:'none',border:'none',cursor:'pointer',touchAction:'manipulation' as any}}>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:hasVal?accent:'rgba(248,247,245,.45)'}}>{label}{hasVal?' ·':''}</span>
+        <span style={{color:'rgba(248,247,245,.35)',fontSize:14,transform:openSection===id?'rotate(90deg)':'rotate(0deg)',transition:'transform 200ms ease',display:'inline-block'}}>›</span>
+      </button>
+      {openSection===id&&<div style={{padding:'0 24px 20px'}}>{children}</div>}
+    </div>
+  );
+
+  return (
+    <div style={{position:'absolute',inset:0,zIndex:200}} onClick={onClose}>
+      <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.3)',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,background:'rgba(8,6,8,.82)',backdropFilter:'blur(28px) saturate(1.8)',WebkitBackdropFilter:'blur(28px) saturate(1.8)',borderTop:'0.5px solid rgba(255,255,255,.1)',borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',maxHeight:'85vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 24px 4px'}}>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:28,color:'#F8F7F5',lineHeight:1}}>Discover</span>
+          <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(248,247,245,.4)',padding:4,fontSize:18}}>✕</button>
+        </div>
+        <Section id="cat" label="Category" hasVal={!!local.category}>
+          <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
+            {DISC_CATEGORIES.map(c=><button key={c} style={p(local.category===c)} onClick={()=>setLocal(f=>({...f,category:f.category===c?null:c}))}>{c}</button>)}
+          </div>
+        </Section>
+        <Section id="city" label="City" hasVal={!!local.city}>
+          <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
+            {DISC_CITIES.map(c=><button key={c} style={p(local.city===c)} onClick={()=>setLocal(f=>({...f,city:f.city===c?null:c}))}>{c}</button>)}
+          </div>
+        </Section>
+        <Section id="vibe" label="Vibe" hasVal={local.vibes.length>0}>
+          <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
+            {DISC_VIBES.map(v=><button key={v} style={p(local.vibes.includes(v))} onClick={()=>setLocal(f=>({...f,vibes:f.vibes.includes(v)?f.vibes.filter(x=>x!==v):[...f.vibes,v]}))}>{v}</button>)}
+          </div>
+        </Section>
+        <Section id="budget" label="Budget" hasVal={!!local.budget}>
+          <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
+            {DISC_BUDGETS.map(b=><button key={b.label} style={p(local.budget===b.value)} onClick={()=>setLocal(f=>({...f,budget:f.budget===b.value?null:b.value}))}>{b.label}</button>)}
+          </div>
+        </Section>
+        <div style={{display:'flex',gap:12,padding:'24px 24px 0'}}>
+          <button onClick={()=>{const e:DiscFilterState={category:null,city:null,vibes:[],budget:null};setLocal(e);onApply(e);onClose();}} style={{flex:1,padding:'13px 0',background:'transparent',border:'0.5px solid rgba(255,255,255,.2)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.45)',cursor:'pointer'}}>Clear</button>
+          <button onClick={()=>{onApply(local);onClose();}} style={{flex:2,padding:'13px 0',background:accent,border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer'}}>Apply</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Vendor glass overlay — swipe down to dismiss
+function DiscVendorOverlay({vendor,visible,onClose,isBlind,accent}:{
+  vendor:DiscoverVendor; visible:boolean; onClose:()=>void; isBlind:boolean; accent:string;
+}) {
+  const dragY   = React.useRef(0);
+  const [delta, setDelta] = React.useState(0);
+  const dragging = React.useRef(false);
+
+  const enquireLink = vendor.enquire_link||(vendor.routing_handle?makeEnquireLink(vendor.routing_handle):null);
+
+  return (
+    <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:60,
+      transform:visible?`translateY(${delta}px)`:'translateY(100%)',
+      transition:dragging.current?'none':'transform 340ms cubic-bezier(0.22,1,0.36,1)',
+      opacity:visible?Math.max(.3,1-delta/200):0,
+      background:'rgba(8,6,8,.82)',backdropFilter:'blur(28px) saturate(1.8)',WebkitBackdropFilter:'blur(28px) saturate(1.8)',
+      borderTop:'0.5px solid rgba(255,255,255,.10)',borderRadius:'20px 20px 0 0',
+      paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',
+    }}
+      onTouchStart={e=>{dragY.current=e.touches[0].clientY;dragging.current=true;setDelta(0);}}
+      onTouchMove={e=>{const d=e.touches[0].clientY-dragY.current;if(d>0)setDelta(d);}}
+      onTouchEnd={()=>{dragging.current=false;if(delta>80){setDelta(0);onClose();}else setDelta(0);}}
+    >
+      <div style={{display:'flex',justifyContent:'center',padding:'12px 0 16px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
+      <div style={{padding:'0 24px'}}>
+        <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>{vendor.category}&nbsp;·&nbsp;{vendor.city}</p>
+        {!isBlind&&<h2 style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:300,fontStyle:'italic',color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</h2>}
+        {vendor.about&&<p style={{fontFamily:"'Fraunces',serif",fontSize:14,fontWeight:300,fontStyle:'italic',color:'rgba(248,247,245,.7)',margin:'0 0 12px',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{vendor.about}</p>}
+        {!isBlind&&vendor.starting_price&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.5)',letterSpacing:'.12em',margin:'0 0 8px'}}>{vendor.starting_price>=100000?`Rs ${(vendor.starting_price/100000).toFixed(vendor.starting_price%100000===0?0:1)}L onwards`:`Rs ${(vendor.starting_price/1000).toFixed(0)}K onwards`}</p>}
+        {vendor.vibe_tags.length>0&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(248,247,245,.45)',letterSpacing:'.1em',margin:'0 0 20px'}}>{vendor.vibe_tags.join(' · ')}</p>}
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          <button onClick={()=>{if(enquireLink)window.open(enquireLink,'_blank');}} style={{width:'100%',padding:'14px 0',background:'rgba(248,247,245,.92)',border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer'}}>Enquire ↗</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Image dots
+function DiscImageDots({total,current}:{total:number;current:number}) {
+  if(total<=1) return null;
+  return (
+    <div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 20px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:5,zIndex:24,pointerEvents:'none'}}>
+      {Array.from({length:Math.min(total,8)}).map((_,i)=>(
+        <div key={i} style={{width:i===current?16:5,height:5,borderRadius:3,background:i===current?'rgba(255,255,255,.95)':'rgba(255,255,255,.38)',transition:'all 240ms cubic-bezier(0.22,1,0.36,1)',boxShadow:'0 1px 3px rgba(0,0,0,.3)'}}/>
+      ))}
+    </div>
+  );
+}
+
+interface DiscoverRoomProps { dark:boolean; accent:string; signal:string; }
+
+function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
+  // DNA tokens for chrome pills
+  const pillActive    = accent;
+  const pillActiveTxt = dark ? '#1A0810' : '#FFFFFF';
+  const pillIdle      = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.14)';
+  const pillIdleTxt   = dark ? 'rgba(248,247,245,.80)' : 'rgba(248,247,245,.85)';
+  const pillIdleBdr   = dark ? 'rgba(196,133,106,.28)' : 'rgba(42,95,130,.32)';
+  const hasFiltrBdr   = accent;
+
+  const [vendors,   setVendors]   = React.useState<DiscoverVendor[]>([]);
+  const [vIdx,      setVIdx]      = React.useState(0);
+  const [imgIdx,    setImgIdx]    = React.useState(0);
+  const [overlay,   setOverlay]   = React.useState(false);
+  const [dissolve,  setDissolve]  = React.useState(0);
+  const [isBlind,   setIsBlind]   = React.useState(false);
+  const [blindIdx,  setBlindIdx]  = React.useState(0);
+  const [loading,   setLoading]   = React.useState(true);
+  const [page,      setPage]      = React.useState(0);
+  const [hasMore,   setHasMore]   = React.useState(true);
+  const [showFilter,setShowFilter]= React.useState(false);
+  const [filters,   setFilters]   = React.useState<DiscFilterState>({category:null,city:null,vibes:[],budget:null});
+  const [blindHint, setBlindHint] = React.useState(false);
+
+  const touchStart  = React.useRef<{x:number;y:number;t:number}|null>(null);
+  const tapTimer    = React.useRef<ReturnType<typeof setTimeout>|null>(null);
+  const lastTap     = React.useRef(0);
+  const tapCount    = React.useRef(0);
+  const curPhoto    = React.useRef<string|null>(null);
+
+  const hasActiveFilters = !!(filters.category||filters.city||filters.vibes.length||filters.budget);
+
+  React.useEffect(()=>{
+    setLoading(true);
+    fetchDiscoverFeed({page:0,category:filters.category??undefined,city:filters.city??undefined,budget:filters.budget??undefined,vibes:filters.vibes.length?filters.vibes.join(','):undefined})
+      .then(({vendors:v,has_more})=>{setVendors(v);setHasMore(has_more);setVIdx(0);setImgIdx(0);setPage(0);})
+      .catch(()=>{}).finally(()=>setLoading(false));
+  },[filters]);
+
+  // Paginate
+  React.useEffect(()=>{
+    if(!hasMore||!vendors.length||vIdx<vendors.length-3) return;
+    const next=page+1;
+    fetchDiscoverFeed({page:next,category:filters.category??undefined,city:filters.city??undefined,budget:filters.budget??undefined,vibes:filters.vibes.length?filters.vibes.join(','):undefined})
+      .then(({vendors:more,has_more})=>{if(more.length){setVendors(p=>[...p,...more]);setPage(next);setHasMore(has_more);}else setHasMore(false);})
+      .catch(()=>{});
+  },[vIdx,vendors.length,hasMore,page,filters]);
+
+  const blindQueue = React.useMemo(()=>{
+    const q:{vId:string;img:string;v:DiscoverVendor}[]=[];
+    vendors.forEach(v=>{
+      if(!v.photos.length) q.push({vId:v.id,img:'',v});
+      else v.photos.forEach(p=>q.push({vId:v.id,img:p,v}));
+    });
+    return q;
+  },[vendors]);
+
+  const vendor = vendors[vIdx];
+  const photos = vendor?.photos||[];
+
+  // Preload next images
+  React.useEffect(()=>{
+    if(!vendor) return;
+    const toLoad:string[]=[];
+    for(let i=imgIdx+1;i<Math.min(photos.length,imgIdx+3);i++) toLoad.push(photos[i]);
+    if(vendors[vIdx+1]?.photos[0]) toLoad.push(vendors[vIdx+1].photos[0]);
+    toLoad.forEach(s=>{const img=new Image();img.src=s;});
+  },[vIdx,imgIdx,vendor,vendors,photos]);
+
+  const goNextV=React.useCallback(()=>{if(vIdx>=vendors.length-1)return;setVIdx(i=>i+1);setImgIdx(0);setOverlay(false);setDissolve(k=>k+1);discHaptic(5);},[vIdx,vendors.length]);
+  const goPrevV=React.useCallback(()=>{if(vIdx<=0)return;setVIdx(i=>i-1);setImgIdx(0);setOverlay(false);setDissolve(k=>k+1);discHaptic(5);},[vIdx]);
+  const nextImg=React.useCallback(()=>{if(imgIdx<photos.length-1){setImgIdx(i=>i+1);setDissolve(k=>k+1);discHaptic(4);}},[imgIdx,photos.length]);
+  const prevImg=React.useCallback(()=>{if(imgIdx>0){setImgIdx(i=>i-1);setDissolve(k=>k+1);discHaptic(4);}},[imgIdx]);
+
+  const handleDoubleTap=React.useCallback(()=>{
+    if(isBlind){
+      const item=blindQueue[blindIdx];if(!item)return;
+      spawnDiscHeart(accent);
+      saveVendorToMuse(item.vId,item.img||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));
+      return;
+    }
+    if(!vendor)return;
+    spawnDiscHeart(accent);
+    saveVendorToMuse(vendor.id,curPhoto.current).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));
+  },[isBlind,vendor,blindQueue,blindIdx,accent]);
+
+  const onTouchStart=(e:React.TouchEvent<HTMLDivElement>)=>{
+    // Don't capture touches from filter sheet or overlay children
+    const t=e.touches[0];
+    touchStart.current={x:t.clientX,y:t.clientY,t:Date.now()};
+  };
+
+  const onTouchEnd=(e:React.TouchEvent<HTMLDivElement>)=>{
+    if(!touchStart.current)return;
+    const s=touchStart.current; touchStart.current=null;
+    const end=e.changedTouches[0];
+    const dx=end.clientX-s.x, dy=end.clientY-s.y, dt=Date.now()-s.t;
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+
+    // Tap detection
+    if(ax<DISC_TAP_MOVE&&ay<DISC_TAP_MOVE&&dt<DISC_TAP_TIME){
+      const now=Date.now(),since=now-lastTap.current;
+      if(since<DISC_DTAP_MS&&tapCount.current>=1){
+        if(tapTimer.current)clearTimeout(tapTimer.current);
+        tapCount.current=0; handleDoubleTap();
+      } else {
+        tapCount.current=1;lastTap.current=now;
+        tapTimer.current=setTimeout(()=>{
+          if(tapCount.current===1&&!isBlind){setOverlay(v=>!v);discHaptic(4);}
+          tapCount.current=0;
+        },DISC_DTAP_MS);
+      }
+      return;
+    }
+
+    const vel=Math.max(ax,ay)/Math.max(dt,1);
+    if(Math.max(ax,ay)<=DISC_SWIPE_THRESH&&vel<=0.3)return;
+
+    if(isBlind){
+      if(ay>ax&&dy<-DISC_SWIPE_THRESH){
+        setBlindHint(true);setTimeout(()=>setBlindHint(false),500);
+        setBlindIdx(i=>Math.min(i+1,blindQueue.length-1));
+        setDissolve(k=>k+1);discHaptic(5);
+      }
+      return;
+    }
+
+    if(overlay&&ay>ax&&dy>80){setOverlay(false);return;}
+    if(ay>ax){ if(dy<-DISC_SWIPE_THRESH)goNextV(); else if(dy>DISC_SWIPE_THRESH)goPrevV(); }
+    else { if(dx<-DISC_SWIPE_THRESH)nextImg(); else if(dx>DISC_SWIPE_THRESH)prevImg(); }
+  };
+
+  const blindItem = isBlind?blindQueue[blindIdx]:null;
+  const photo     = isBlind?blindItem?.img:photos[imgIdx];
+  curPhoto.current = photo||null;
+
+  // Empty / loading
+  if(loading) return (
+    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#080608'}}>
+      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(245,240,232,.3)'}}>Loading…</span>
+    </div>
+  );
+
+  if(isBlind&&blindQueue.length>0&&blindIdx>=blindQueue.length) return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12}}>
+      <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1}}>All seen.</span>
+      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
+    </div>
+  );
+
+  if(!vendor) return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12}}>
+      <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1}}>All seen.</span>
+      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
+    </div>
+  );
+
+  return (
+    <div style={{flex:1,position:'relative',background:'#080608',overflow:'hidden',touchAction:'none',userSelect:'none',WebkitUserSelect:'none' as any}}
+      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+
+      {/* keyframes injected once */}
+      <style>{`@keyframes discHeartPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}45%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{transform:translate(-50%,-50%) scale(.95)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}@keyframes discDissolve{from{opacity:0}to{opacity:1}}`}</style>
+
+      {/* Photo */}
+      <div key={dissolve} style={{position:'absolute',inset:0,zIndex:1,animation:'discDissolve 260ms cubic-bezier(0.22,1,0.36,1)'}}>
+        {photo
+          ? <img src={photo} alt="" draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
+          : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:'rgba(248,247,245,.2)'}}>No photo yet</span></div>
+        }
+        {/* Vignette */}
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.22) 0%,transparent 18%,transparent 62%,rgba(0,0,0,.55) 100%)',pointerEvents:'none'}}/>
+      </div>
+
+      {/* Image dots */}
+      {!isBlind&&<DiscImageDots total={photos.length} current={imgIdx}/>}
+
+      {/* Chrome pills — DNA tokens on dark photo */}
+      {/* Blind pill */}
+      <button onClick={e=>{e.stopPropagation();setIsBlind(b=>!b);setBlindIdx(0);setDissolve(k=>k+1);}}
+        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+        style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 14px)',right:50,zIndex:25,height:28,padding:'0 12px',borderRadius:100,border:`0.5px solid ${isBlind?hasFiltrBdr:pillIdleBdr}`,background:isBlind?`${accent}28`:pillIdle,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:isBlind?accent:pillIdleTxt,cursor:'pointer',touchAction:'manipulation' as any}}>
+        Blind
+      </button>
+      {/* Filter pill */}
+      <button onClick={e=>{e.stopPropagation();setShowFilter(true);}}
+        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+        style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 14px)',right:14,zIndex:25,width:32,height:28,borderRadius:100,border:`0.5px solid ${hasActiveFilters?hasFiltrBdr:pillIdleBdr}`,background:hasActiveFilters?`${accent}28`:pillIdle,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',touchAction:'manipulation' as any}}>
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke={hasActiveFilters?accent:'rgba(255,255,255,.8)'} strokeWidth="1.5" strokeLinecap="round"/></svg>
+      </button>
+
+      {/* Vendor info bar at bottom (non-blind, overlay closed) */}
+      {!isBlind&&!overlay&&vendor&&(
+        <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',left:0,right:0,padding:'0 20px',zIndex:10,pointerEvents:'none',display:'flex',flexDirection:'column',gap:4}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.55)'}}>{vendor.category} · {vendor.city}</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:'rgba(248,247,245,.9)',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.35)'}}>Tap · Double-tap ♥ · Swipe</div>
+        </div>
+      )}
+
+      {/* Blind mode centre X */}
+      {isBlind&&blindHint&&(
+        <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:30,pointerEvents:'none',fontSize:72,color:accent}}>✕</div>
+      )}
+
+      {/* Vendor glass overlay */}
+      {!isBlind&&vendor&&(
+        <DiscVendorOverlay vendor={vendor} visible={overlay} onClose={()=>setOverlay(false)} isBlind={isBlind} accent={accent}/>
+      )}
+
+      {/* Filter sheet */}
+      {showFilter&&(
+        <DiscFilterSheet visible={showFilter} onClose={()=>setShowFilter(false)} filters={filters} accent={accent} dark={dark}
+          onApply={f=>{setFilters(f);setShowFilter(false);}}/>
+      )}
+    </div>
+  );
+}
 
 // ── MUSE ROOM ─────────────────────────────────────────────────────────────────
 // Always dark #080608 — photo gallery, both modes.
@@ -1086,14 +1467,42 @@ export default function SanctuaryPage() {
   const touchStartY = useRef(0);
   const bloomRef    = useRef<HTMLDivElement>(null);
 
-  // Attach non-passive touchmove to bloom div to block pull-to-refresh
-  // Only active when a room is open. Sanctuary root is unaffected.
+  // Block pull-to-refresh inside bloom rooms ONLY when:
+  // 1. A room is open AND
+  // 2. The touch target is not inside a scrollable child that has scroll room
+  // This allows Muse/Dream/Circle content to scroll normally.
   useEffect(()=>{
     const el = bloomRef.current;
     if(!el || !activeRoom) return;
-    const block = (e: TouchEvent) => { e.preventDefault(); };
-    el.addEventListener('touchmove', block, { passive: false });
-    return () => el.removeEventListener('touchmove', block);
+    let startY = 0;
+    const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY; };
+    const onMove = (e: TouchEvent) => {
+      const dy = e.touches[0].clientY - startY;
+      // Find the closest scrollable ancestor of the touch target
+      let node = e.target as HTMLElement | null;
+      while(node && node !== el) {
+        const style = window.getComputedStyle(node);
+        const overflow = style.overflowY;
+        const canScroll = overflow === 'auto' || overflow === 'scroll';
+        if(canScroll) {
+          // If pulling down and already at top — block (no-op for PTR)
+          if(dy > 0 && node.scrollTop <= 0) { e.preventDefault(); return; }
+          // If pulling up and already at bottom — let it pass
+          if(dy < 0 && node.scrollTop + node.clientHeight >= node.scrollHeight - 1) { return; }
+          // Otherwise the child has scroll room — let it scroll
+          return;
+        }
+        node = node.parentElement;
+      }
+      // No scrollable child found — block PTR when pulling down
+      if(dy > 0) e.preventDefault();
+    };
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove',  onMove,  { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove',  onMove);
+    };
   }, [activeRoom]);
 
   // Dream Ai state
@@ -1324,9 +1733,7 @@ export default function SanctuaryPage() {
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           ref={bloomRef}
-          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden',
-            overscrollBehavior:'none',
-          }}
+          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden'}}
         >
           {/* Room top bar */}
           <div style={{position:'relative',zIndex:10,background:roomTopBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderBottom:`0.5px solid ${roomLine}`,paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',paddingBottom:12,paddingLeft:18,paddingRight:18,display:'flex',alignItems:'center',flexShrink:0}}>
@@ -1405,6 +1812,11 @@ export default function SanctuaryPage() {
               />
             )}
 
+            {/* ── DISCOVER — cinematic full-bleed feed ── */}
+            {activeRoom==='discover'&&(
+              <DiscoverRoom dark={dark} accent={accent} signal={signal}/>
+            )}
+
             {/* ── MUSE — masonry board, always dark ── */}
             {activeRoom==='muse'&&(
               <MuseRoom dark={dark} accent={accent}/>
@@ -1427,7 +1839,7 @@ export default function SanctuaryPage() {
             )}
 
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&(
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {SLICES.find(s=>s.key===activeRoom)?.label}
