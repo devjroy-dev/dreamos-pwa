@@ -2563,10 +2563,13 @@ export default function SanctuaryPage() {
         </svg>
       </div>
 
-      {/* I WILL / I DO */}
-      <div style={{position:'absolute',top:`calc(env(safe-area-inset-top,0px) + 76px)`,left:0,right:0,display:'flex',justifyContent:'space-between',padding:'0 20px',zIndex:7,pointerEvents:'none'}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>I will</span>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>I do</span>
+      {/* I WILL / I DO — fixed at y=78px, same coordinate space as arc (no safe-area offset) */}
+      {/* Arc endpoints are at y=92 in SVG. Labels at 78px = 14px clear above the line. */}
+      <div style={{position:'absolute',top:'78px',left:0,right:0,display:'flex',justifyContent:'space-between',padding:'0 20px',zIndex:7,pointerEvents:'none'}}>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,
+          textShadow:`0 0 8px ${dark?'rgba(12,4,5,1)':'rgba(238,240,246,1)'}, 0 0 16px ${dark?'rgba(12,4,5,.9)':'rgba(238,240,246,.9)'}`}}>I will</span>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,
+          textShadow:`0 0 8px ${dark?'rgba(12,4,5,1)':'rgba(238,240,246,1)'}, 0 0 16px ${dark?'rgba(12,4,5,.9)':'rgba(238,240,246,.9)'}`}}>I do</span>
       </div>
 
       {/* Date stamp — floats top-right above the arc */}
