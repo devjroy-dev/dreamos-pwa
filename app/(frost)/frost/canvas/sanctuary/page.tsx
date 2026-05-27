@@ -12,7 +12,7 @@ import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -760,6 +760,117 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
           </div>
         </div>
 
+        <div style={{height:40}}/>
+      </div>
+    </div>
+  );
+}
+
+
+// ── PEOPLE ROOM ────────────────────────────────────────────────────────────────
+// Circle members list — active + pending. Tap member → their feed (future).
+
+interface PeopleRoomProps { dark:boolean; accent:string; signal:string; }
+
+function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
+  const bg      = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
+    : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
+  const ink     = dark ? '#F5E5DC'               : '#0C1830';
+  const inkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.72)';
+  const inkMute = dark ? 'rgba(196,133,106,.50)' : 'rgba(42,80,130,.55)';
+  const line    = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.14)';
+  const cardBg  = dark ? 'rgba(196,133,106,.06)' : 'rgba(42,95,130,.06)';
+  const cardBdr = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.14)';
+  const ac      = dark ? '#C4856A'               : '#2A5F82';
+
+  const [members, setMembers] = React.useState<CircleMember[]>([]);
+  const [pending, setPending] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(()=>{
+    fetchCircle().then(c=>{
+      setMembers(c.members);
+      setPending(c.pending_invites);
+      setLoading(false);
+    }).catch(()=>setLoading(false));
+  },[]);
+
+  const roleLabel = (r:string) => r.replace(/_/g,' ');
+
+  return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        <div style={{padding:'20px 20px 8px'}}>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ac,lineHeight:1,marginBottom:4}}>Your circle.</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>The people sharing this journey with you.</div>
+        </div>
+
+        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+
+        {!loading&&members.length===0&&pending.length===0&&(
+          <div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>
+            No one yet. Invite someone from Circle.
+          </div>
+        )}
+
+        {/* Active members */}
+        {members.length>0&&(
+          <div style={{padding:'16px 20px 8px'}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Active</div>
+            {members.map(m=>{
+              const phone=(m as any).invitee_phone||null;
+              return(
+                <div key={m.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',marginBottom:8,borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`}}>
+                  {/* Avatar */}
+                  <div style={{width:44,height:44,borderRadius:22,background:`${ac}18`,border:`1.5px solid ${ac}55`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:20,color:ac}}>{(m.invitee_name[0]||'·').toUpperCase()}</span>
+                  </div>
+
+                  {/* Name + role */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:2}}>{m.invitee_name}</div>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>
+                      {roleLabel(m.role)}
+                      {m.last_active&&<span style={{color:signal}}> · {timeAgo(m.last_active)}</span>}
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div style={{display:'flex',gap:8,flexShrink:0}}>
+                    {phone&&<>
+                      <a href={`https://wa.me/${phone.replace(/\+/g,'')}`} target="_blank" rel="noopener noreferrer"
+                        style={{width:34,height:34,borderRadius:17,background:'rgba(37,211,102,.10)',border:'0.5px solid rgba(37,211,102,.25)',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z" fill="#25D366"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.273-1.535l-.378-.224-3.927 1.025 1.046-3.82-.247-.393A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z" fill="#25D366"/></svg>
+                      </a>
+                      <a href={`tel:${phone}`}
+                        style={{width:34,height:34,borderRadius:17,background:`${ac}12`,border:`0.5px solid ${ac}33`,display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none'}}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C9.61 22 2 14.39 2 5a1 1 0 011-1H6.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z" stroke={ac} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </a>
+                    </>}
+                    {!phone&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.1em',color:inkMute,alignSelf:'center'}}>no phone</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Pending */}
+        {pending.length>0&&(
+          <div style={{padding:'8px 20px 16px'}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Invited · waiting to join</div>
+            {pending.map(p=>(
+              <div key={p.id} style={{display:'flex',alignItems:'center',gap:14,padding:'10px 0',borderBottom:`0.5px solid ${line}`,opacity:.6}}>
+                <div style={{width:44,height:44,borderRadius:22,border:`0.5px dashed ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:inkMute}}>?</div>
+                <div style={{flex:1}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{p.invitee_name}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{roleLabel(p.role)} · invite pending</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         <div style={{height:40}}/>
       </div>
     </div>
@@ -2185,6 +2296,33 @@ export default function SanctuaryPage() {
   const textRef    = useRef<HTMLTextAreaElement>(null);
   const cancelRef  = useRef<(()=>void)|null>(null);
 
+  // ── Android back button trap ────────────────────────────────────────────────
+  // Push a sentinel state on mount so Android back pops to it first.
+  // On popstate: if a room is open → close it. If no room → push sentinel again
+  // (stay on sanctuary). Never let the browser navigate away.
+  useEffect(()=>{
+    // Push initial sentinel so there is always a state to pop to
+    window.history.pushState({ sanctuary: true }, '');
+
+    const onPop = (e: PopStateEvent) => {
+      // Always push a new sentinel — keeps us on this page
+      window.history.pushState({ sanctuary: true }, '');
+      // If a room is open, close it (acts as "back" within the app)
+      setActiveRoom(prev => {
+        if (prev !== null) {
+          setClosing(true);
+          setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); }, 300);
+          return prev; // will be cleared by timeout
+        }
+        return null;
+      });
+    };
+
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(()=>{
     if(!document.getElementById('sv5')){const s=document.createElement('style');s.id='sv5';s.textContent=CSS;document.head.appendChild(s);}
     const w=getWeddingDate(),e=getEngagementDate(),d=daysUntil(w);
@@ -2535,6 +2673,11 @@ export default function SanctuaryPage() {
               />
             )}
 
+            {/* ── PEOPLE ── */}
+            {activeRoom==='people'&&(
+              <PeopleRoom dark={dark} accent={accent} signal={signal}/>
+            )}
+
             {/* ── EXPENSES ── */}
             {activeRoom==='expenses'&&(
               <ExpensesRoom dark={dark} accent={accent} signal={signal}/>
@@ -2551,7 +2694,7 @@ export default function SanctuaryPage() {
             )}
 
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&(
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&activeRoom!=='people'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {(()=>{const r=activeRoom as string;return(['expenses','vendors','settings'].includes(r)?(r==='expenses'?'Expenses':r==='vendors'?'Vendors':'Settings'):SLICES.find(s=>s.key===activeRoom)?.label);})()}
