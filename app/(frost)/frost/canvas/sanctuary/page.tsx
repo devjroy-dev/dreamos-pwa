@@ -2569,17 +2569,18 @@ export default function SanctuaryPage() {
           <circle cx={dot.x} cy={dot.y} r="18" fill="none" stroke={accent} strokeWidth=".5" className="do-a"/>
           <circle cx={dot.x} cy={dot.y} r="10" fill="none" stroke={accent} strokeWidth=".8" className="dh-a"/>
           <circle cx={dot.x} cy={dot.y} r="4.5" fill={accent} className="dc-a"/>
+          {/* I WILL — left endpoint label, sits below arc line */}
+          <text x="18" y="107" textAnchor="start"
+            fontFamily="'JetBrains Mono',monospace" fontSize="7.5" letterSpacing="2.5"
+            fill={dark?'rgba(196,133,106,.45)':'rgba(42,80,130,.50)'}>I WILL</text>
+          {/* I DO — right endpoint label, sits below arc line */}
+          <text x="302" y="107" textAnchor="end"
+            fontFamily="'JetBrains Mono',monospace" fontSize="7.5" letterSpacing="2.5"
+            fill={dark?'rgba(196,133,106,.45)':'rgba(42,80,130,.50)'}>I DO</text>
         </svg>
       </div>
 
-      {/* I WILL / I DO — fixed at y=78px, same coordinate space as arc (no safe-area offset) */}
-      {/* Arc endpoints are at y=92 in SVG. Labels at 78px = 14px clear above the line. */}
-      <div style={{position:'absolute',top:'78px',left:0,right:0,display:'flex',justifyContent:'space-between',padding:'0 20px',zIndex:7,pointerEvents:'none'}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,
-          textShadow:`0 0 8px ${dark?'rgba(12,4,5,1)':'rgba(238,240,246,1)'}, 0 0 16px ${dark?'rgba(12,4,5,.9)':'rgba(238,240,246,.9)'}`}}>I will</span>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,
-          textShadow:`0 0 8px ${dark?'rgba(12,4,5,1)':'rgba(238,240,246,1)'}, 0 0 16px ${dark?'rgba(12,4,5,.9)':'rgba(238,240,246,.9)'}`}}>I do</span>
-      </div>
+      {/* I WILL / I DO — rendered inside SVG below */}
 
       {/* Date stamp — floats top-right above the arc */}
       <div style={{position:'absolute',top:`calc(env(safe-area-inset-top,0px) + 8px)`,right:18,zIndex:9,pointerEvents:'none'}}>
