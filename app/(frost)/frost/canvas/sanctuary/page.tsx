@@ -12,7 +12,7 @@ import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, type CircleData, type CircleActivity } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, type CircleData, type CircleActivity, type CoupleEvent } from '../../../../../lib/frost/journey';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|null;
@@ -96,6 +96,140 @@ const DREAM_PROMPTS=[
 ];
 
 // ── Root component ────────────────────────────────────────────────────────────
+
+
+// ── EVENTS ROOM ───────────────────────────────────────────────────────────────
+const KIND_CHIP: Record<string,{label:string;color:string}> = {
+  trial:    {label:'Trial',     color:'#D4848A'},
+  fitting:  {label:'Fitting',   color:'#9B8DC4'},
+  shoot:    {label:'Shoot',     color:'#6B7FA8'},
+  recce:    {label:'Recce',     color:'#7A8A8A'},
+  meeting:  {label:'Meeting',   color:'#C4A83A'},
+  call:     {label:'Call',      color:'#5A9E7A'},
+  family:   {label:'Family',    color:'#D4956A'},
+  ceremony: {label:'Ceremony',  color:'#C4856A'},
+  social:   {label:'Social',    color:'#D4848A'},
+  reminder: {label:'Reminder',  color:'#8A9DB5'},
+  task:     {label:'Task',      color:'#7A8A8A'},
+  other:    {label:'Other',     color:'#B8B0C0'},
+};
+
+interface EventsRoomProps {
+  dark:boolean; accent:string; signal:string;
+  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
+}
+
+function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsRoomProps) {
+  const [events,  setEvents]  = React.useState<CoupleEvent[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filter,  setFilter]  = React.useState<string>('all');
+
+  const evBg = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.14) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
+    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
+
+  const pgInk     = dark ? '#F5E5DC' : '#0C1830';
+  const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
+  const pgInkMute = dark ? 'rgba(196,133,106,.48)' : 'rgba(42,80,130,.52)';
+  const pgLine    = dark ? 'rgba(196,133,106,.12)' : 'rgba(42,80,130,.16)';
+  const pgAccent  = dark ? '#C4856A' : '#2A5F82';
+
+  React.useEffect(()=>{
+    fetchEvents('upcoming').then(e=>{ setEvents(e); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  const filtered = filter==='all' ? events : events.filter(e=>e.kind===filter);
+  const groups: Record<string, CoupleEvent[]> = {};
+  filtered.forEach(e=>{
+    if(!groups[e.event_date]) groups[e.event_date]=[];
+    groups[e.event_date].push(e);
+  });
+  const sortedDates = Object.keys(groups).sort();
+
+  function formatEventDate(iso: string): string {
+    const d = new Date(iso+'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diff = Math.round((d.getTime()-today.getTime())/86400000);
+    if(diff===0) return 'Today';
+    if(diff===1) return 'Tomorrow';
+    if(diff>1&&diff<7) return d.toLocaleDateString('en-IN',{weekday:'long'});
+    return d.toLocaleDateString('en-IN',{day:'numeric',month:'long'});
+  }
+
+  function formatTime(t:string|null):string {
+    if(!t) return '';
+    const [h,m]=t.split(':');
+    const hr=parseInt(h);
+    return `${hr>12?hr-12:hr||12}:${m} ${hr>=12?'PM':'AM'}`;
+  }
+
+  const kinds = ['all',...Array.from(new Set(events.map(e=>e.kind)))];
+
+  return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:evBg}}>
+      {/* Filter pills */}
+      <div style={{padding:'12px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0,overflowX:'auto' as any,display:'flex',gap:8,WebkitOverflowScrolling:'touch' as any}}>
+        {kinds.map(k=>{
+          const chip = k==='all' ? {label:'All',color:pgAccent} : (KIND_CHIP[k]||{label:k,color:pgAccent});
+          const active = filter===k;
+          return(
+            <div key={k} onClick={()=>setFilter(k)}
+              style={{flexShrink:0,padding:'5px 12px',borderRadius:100,cursor:'pointer',
+                background:active?(dark?`${chip.color}22`:`${chip.color}18`):'transparent',
+                border:`0.5px solid ${active?chip.color:pgLine}`,
+                fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',
+                textTransform:'uppercase' as any,color:active?chip.color:pgInkMute,
+                transition:'all 180ms ease',WebkitTapHighlightColor:'transparent'}}>
+              {chip.label}
+            </div>
+          );
+        })}
+      </div>
+      {/* Timeline */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading ? (
+          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
+        ) : filtered.length===0 ? (
+          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Tell Dream Ai to add something<br/>to your calendar.</div>
+          </div>
+        ) : (
+          <div style={{padding:'8px 0 32px'}}>
+            {sortedDates.map(date=>(
+              <div key={date}>
+                <div style={{padding:'16px 20px 8px',display:'flex',alignItems:'center',gap:12}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:pgAccent,fontFeatureSettings:'"opsz" 9'}}>{formatEventDate(date)}</div>
+                  <div style={{flex:1,height:.5,background:pgLine}}/>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',color:pgInkMute}}>{new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+                </div>
+                {groups[date].map(ev=>{
+                  const chip = KIND_CHIP[ev.kind]||{label:ev.kind,color:pgAccent};
+                  return(
+                    <div key={ev.id} style={{margin:'0 20px 10px',borderRadius:6,
+                      background:dark?'rgba(196,133,106,.05)':'rgba(42,95,130,.05)',
+                      border:`0.5px solid ${dark?'rgba(196,133,106,.12)':'rgba(42,95,130,.12)'}`,
+                      padding:'12px 14px',display:'flex',gap:12}}>
+                      <div style={{width:2,background:chip.color,borderRadius:1,flexShrink:0,opacity:.8}}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:chip.color}}>{chip.label}</span>
+                          {ev.event_time&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',color:pgInkMute,marginLeft:'auto'}}>{formatTime(ev.event_time)}</span>}
+                        </div>
+                        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:pgInk,lineHeight:1.4,fontFeatureSettings:'"opsz" 9',marginBottom:ev.notes?5:0}}>{ev.title}</div>
+                        {ev.notes&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:pgInkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>{ev.notes}</div>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 
 // ── CIRCLE ROOM ───────────────────────────────────────────────────────────────
@@ -597,472 +731,6 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 // ── Root component ────────────────────────────────────────────────────────────
 
 
-// ── CIRCLE ROOM ───────────────────────────────────────────────────────────────
-interface CircleRoomProps {
-  dark:boolean; accent:string; signal:string;
-  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
-}
-
-const ROLE_LABELS: Record<string,string> = {
-  partner:'Partner · Fiancé',
-  family:'Family',
-  inner_circle:'Inner Circle',
-};
-
-function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: CircleRoomProps) {
-  const [data,        setData]        = React.useState<CircleData|null>(null);
-  const [loading,     setLoading]     = React.useState(true);
-  const [view,        setView]        = React.useState<'feed'|'invite'>('feed');
-  const [inviteName,  setInviteName]  = React.useState('');
-  const [inviteRole,  setInviteRole]  = React.useState('family');
-  const [inviting,    setInviting]    = React.useState(false);
-  const [waLink,      setWaLink]      = React.useState<string|null>(null);
-
-  const circleBg = dark
-    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.14) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
-    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
-
-  const pgInk     = dark ? '#F5E5DC' : '#0C1830';
-  const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
-  const pgInkMute = dark ? 'rgba(196,133,106,.48)' : 'rgba(42,80,130,.52)';
-  const pgLine    = dark ? 'rgba(196,133,106,.12)' : 'rgba(42,80,130,.16)';
-  const pgAccent  = dark ? '#C4856A' : '#2A5F82';
-  const candleBg  = dark ? 'rgba(196,133,106,.08)' : 'rgba(42,95,130,.06)';
-  const candleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.16)';
-
-  React.useEffect(()=>{
-    fetchCircle().then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
-  },[]);
-
-  const doInvite = async () => {
-    if(!inviteName.trim()||inviting) return;
-    setInviting(true);
-    try {
-      const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole});
-      setWaLink(r.wa_me_link);
-    } catch(e){ console.error(e); }
-    finally{ setInviting(false); }
-  };
-
-  const members  = data?.members         || [];
-  const activity = data?.activity        || [];
-  const pending  = data?.pending_invites || [];
-
-  // ── INVITE VIEW ──
-  if(view==='invite') return (
-    <div style={{flex:1,display:'flex',flexDirection:'column',background:circleBg}}>
-      <div style={{padding:'24px 24px 16px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,marginBottom:6}}>Invite to Circle</div>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>Up to 3 people. They can add to your Muse board.</div>
-      </div>
-
-      {waLink ? (
-        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
-            Invite link ready.<br/>Send it on WhatsApp.
-          </div>
-          <a href={waLink} target="_blank" rel="noopener noreferrer"
-            style={{display:'flex',alignItems:'center',justifyContent:'center',
-              padding:'12px 28px',borderRadius:4,
-              background:pgAccent,color:dark?'#1A0810':'#FFFFFF',
-              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
-              textTransform:'uppercase' as any,textDecoration:'none',cursor:'pointer'}}>
-            Open WhatsApp →
-          </a>
-          <button onClick={()=>{setWaLink(null);setInviteName('');setView('feed');}}
-            style={{background:'none',border:'none',cursor:'pointer',
-              fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
-              textTransform:'uppercase' as any,color:pgInkMute,padding:0}}>
-            Back to Circle
-          </button>
-        </div>
-      ) : (
-        <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
-          {/* Name input */}
-          <div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
-            <input value={inviteName} onChange={e=>setInviteName(e.target.value)}
-              placeholder="e.g. Mom, Priya, Anjali"
-              style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
-                padding:'12px 14px',color:pgInk,
-                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
-                fontFeatureSettings:'"opsz" 9',outline:'none',
-                boxSizing:'border-box' as any}}/>
-          </div>
-          {/* Role selector */}
-          <div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Relationship</div>
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {['partner','family','inner_circle'].map(r=>(
-                <div key={r} onClick={()=>setInviteRole(r)}
-                  style={{padding:'10px 14px',borderRadius:4,border:`0.5px solid ${inviteRole===r?pgAccent:pgLine}`,cursor:'pointer',
-                    background:inviteRole===r?(dark?'rgba(196,133,106,.08)':'rgba(42,95,130,.06)'):'transparent',
-                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,
-                    color:inviteRole===r?pgAccent:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
-                  {ROLE_LABELS[r]}
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Send button */}
-          <button onClick={doInvite} disabled={!inviteName.trim()||inviting}
-            style={{padding:'13px',borderRadius:4,border:'none',cursor:inviteName.trim()&&!inviting?'pointer':'default',
-              background:inviteName.trim()&&!inviting?pgAccent:'rgba(128,128,128,.15)',
-              color:inviteName.trim()&&!inviting?(dark?'#1A0810':'#FFFFFF'):pgInkMute,
-              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
-              textTransform:'uppercase' as any,transition:'all 200ms ease'}}>
-            {inviting?'Generating link…':'Generate invite link'}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
-  // ── FEED VIEW ──
-  return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:circleBg}}>
-
-      {/* Members row */}
-      <div style={{padding:'16px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:12}}>Your Circle</div>
-        <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap' as any}}>
-          {loading?(
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pgInkMute,letterSpacing:'.18em'}}>loading…</div>
-          ):members.length===0&&pending.length===0?(
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone.</div>
-          ):(
-            <>
-              {members.map(m=>(
-                <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
-                  {/* Avatar circle */}
-                  <div style={{width:44,height:44,borderRadius:'50%',
-                    background:dark?'rgba(196,133,106,.15)':'rgba(42,95,130,.12)',
-                    border:`1.5px solid ${pgAccent}`,
-                    display:'flex',alignItems:'center',justifyContent:'center',
-                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgAccent}}>
-                    {(m.invitee_name||'?')[0]}
-                  </div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
-                    {m.invitee_name?.split(' ')[0]}
-                  </div>
-                  {/* Active candle dot */}
-                  {m.state==='active'&&(
-                    <div className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 5px ${signal}`}}/>
-                  )}
-                </div>
-              ))}
-              {/* Pending invites */}
-              {pending.map(p=>(
-                <div key={p.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
-                  <div style={{width:44,height:44,borderRadius:'50%',
-                    border:`1.5px dashed ${pgLine}`,
-                    display:'flex',alignItems:'center',justifyContent:'center',
-                    fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute}}>
-                    ?
-                  </div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.12em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
-                    {p.invitee_name?.split(' ')[0]}
-                  </div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,color:pgInkMute,letterSpacing:'.1em',textTransform:'uppercase' as any}}>pending</div>
-                </div>
-              ))}
-            </>
-          )}
-          {/* Add button */}
-          {members.length < 3 && (
-            <div onClick={()=>setView('invite')} style={{width:44,height:44,borderRadius:'50%',
-              border:`1px dashed ${pgLine}`,
-              display:'flex',alignItems:'center',justifyContent:'center',
-              cursor:'pointer',WebkitTapHighlightColor:'transparent',color:pgInkMute,fontSize:20,fontWeight:200}}>
-              +
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Activity feed */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
-        {loading?(
-          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
-        ):activity.length===0?(
-          <div style={{padding:'48px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Quiet here<br/>for now.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>When your Circle saves something<br/>or sends a message, it appears here.</div>
-          </div>
-        ):(
-          <div>
-            {activity.map(a=>(
-              <div key={a.id} style={{padding:'14px 20px',borderBottom:`0.5px solid ${pgLine}`,display:'flex',gap:12,alignItems:'flex-start'}}>
-                {/* Activity dot */}
-                <div style={{width:7,height:7,borderRadius:'50%',background:pgAccent,flexShrink:0,marginTop:5,opacity:.7}}/>
-                <div style={{flex:1}}>
-                  {/* Save with image */}
-                  {a.activity_type==='save_added'&&a.image_url&&(
-                    <div style={{width:'100%',height:120,borderRadius:6,overflow:'hidden',marginBottom:8,background:dark?'rgba(196,133,106,.06)':'rgba(42,95,130,.06)'}}>
-                      <img src={a.image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
-                    </div>
-                  )}
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
-                    {a.content || formatActivityLine(a)}
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    {/* Candle dot for recent activity */}
-                    {Date.now()-new Date(a.created_at).getTime()<600000&&(
-                      <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
-                    )}
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute}}>
-                      {a.member_name||'You'} · {timeAgo(a.created_at)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── MOOD DATA ─────────────────────────────────────────────────────────────────
-
-interface PageEntry { id:string; entry_date:string; mood:string; mood_color:string; body:string; created_at:string; }
-
-interface PagesRoomProps {
-  dark:boolean; accent:string; signal:string;
-  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
-}
-
-type PagesView = 'list' | 'picker' | 'writing';
-
-function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: PagesRoomProps) {
-  const [view,         setView]         = React.useState<PagesView>('list');
-  const [entries,      setEntries]      = React.useState<PageEntry[]>([]);
-  const [loading,      setLoading]      = React.useState(true);
-  const [selectedMood, setSelectedMood] = React.useState<typeof MOODS[0]|null>(null);
-  const [body,         setBody]         = React.useState('');
-  const [saving,       setSaving]       = React.useState(false);
-  const textRef = React.useRef<HTMLTextAreaElement>(null);
-
-  // Load entries
-  React.useEffect(()=>{
-    const load = async () => {
-      try {
-        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-        if(!raw) return;
-        const s = JSON.parse(raw);
-        const coupleId = s?.coupleId||s?.id;
-        const token = s?.token||s?.access_token;
-        if(!coupleId||!token) return;
-        const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
-        const res = await fetch(`${API}/api/v2/couple/pages/${coupleId}?limit=50`,{headers:{Authorization:`Bearer ${token}`}});
-        if(!res.ok) return;
-        const data = await res.json();
-        setEntries(data.entries||[]);
-      } catch(e){ console.error(e); }
-      finally{ setLoading(false); }
-    };
-    load();
-  },[]);
-
-  // Auto-resize textarea
-  React.useEffect(()=>{
-    if(!textRef.current) return;
-    textRef.current.style.height='auto';
-    textRef.current.style.height=textRef.current.scrollHeight+'px';
-  },[body]);
-
-  const saveEntry = async () => {
-    if(!selectedMood||!body.trim()||saving) return;
-    setSaving(true);
-    try {
-      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-      if(!raw) return;
-      const s = JSON.parse(raw);
-      const token = s?.token||s?.access_token;
-      if(!token) return;
-      const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
-      const res = await fetch(`${API}/api/v2/couple/pages`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
-        body:JSON.stringify({mood:selectedMood.key,mood_color:selectedMood.color,body:body.trim()}),
-      });
-      if(!res.ok) throw new Error('save failed');
-      const data = await res.json();
-      setEntries(prev=>[data.entry,...prev]);
-      setView('list');
-      setSelectedMood(null);
-      setBody('');
-    } catch(e){ console.error(e); }
-    finally{ setSaving(false); }
-  };
-
-  const line2 = dark ? 'rgba(196,133,106,.10)' : 'rgba(42,95,130,.10)';
-  const writingSurface = selectedMood
-    ? `${selectedMood.color}10`  // very subtle mood tint behind writing
-    : 'transparent';
-
-  // ── LIST VIEW ──
-  if(view==='list') return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',
-      background: dark
-        ? 'transparent'
-        : 'linear-gradient(160deg,#EEF0F4 0%,#E4E8F0 40%,#D8DCE8 100%)',
-    }}>
-      {/* Poetry line at top */}
-      <div style={{padding:'18px 20px 12px',borderBottom:`0.5px solid ${roomLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:dark?accent:'#2A5F82',lineHeight:1.55,fontFeatureSettings:'"opsz" 9',opacity: dark?1:.9}}>
-          "Everything you love about flowers<br/>is also true of weddings."
-        </div>
-      </div>
-
-      {/* Entry list */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
-        {loading?(
-          <div style={{padding:32,textAlign:'center',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:roomInkMute}}>loading…</div>
-        ):entries.length===0?(
-          <div style={{padding:'48px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:48,color:accent,lineHeight:1}}>Today</div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:roomInkMute,textAlign:'center' as any}}>Tap to begin today's page</div>
-          </div>
-        ):(
-          <div>
-            {entries.map((entry,i)=>{
-              const mood = MOODS.find(m=>m.key===entry.mood);
-              const d = new Date(entry.created_at);
-              const dateStr = d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-              return(
-                <div key={entry.id} style={{padding:'16px 20px',borderBottom:`0.5px solid ${line2}`,display:'flex',flexDirection:'column',gap:8}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <span style={{width:8,height:8,borderRadius:'50%',background:mood?.color||entry.mood_color,flexShrink:0,boxShadow:`0 0 6px ${mood?.color||entry.mood_color}60`}}/>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>{mood?.label||entry.mood}</span>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',color:roomInkMute,marginLeft:'auto'}}>{dateStr}</span>
-                  </div>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:dark?roomInk:'#0D1E35',lineHeight:1.65,fontFeatureSettings:'"opsz" 9',borderLeft:`1.5px solid ${mood?.color||entry.mood_color}${dark?'60':'90'}`,paddingLeft:12}}>
-                    {entry.body}
-                  </div>
-                </div>
-              );
-            })}
-            {/* Today entry CTA at bottom */}
-            <div style={{padding:'24px 20px',textAlign:'center' as any}}>
-              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkMute,fontFeatureSettings:'"opsz" 9'}}>another page?</div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Add today's page CTA */}
-      <div onClick={()=>setView('picker')} style={{flexShrink:0,borderTop:`0.5px solid ${roomLine}`,padding:'14px 20px',cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:28,color:accent,lineHeight:1}}>How are you feeling?</div>
-      </div>
-    </div>
-  );
-
-  // ── MOOD PICKER VIEW ──
-  if(view==='picker') return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',
-      background: dark
-        ? 'transparent'
-        : 'linear-gradient(160deg,#EEF0F4 0%,#E4E8F0 40%,#D8DCE8 100%)',
-    }}>
-      {/* Date */}
-      <div style={{padding:'24px 20px 8px',flexShrink:0}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:roomInkSoft,fontFeatureSettings:'"opsz" 9'}}>
-          {new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}
-        </div>
-      </div>
-
-      {/* 12 emotion dots — editorial, small, centered */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'8px 20px 24px'}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'20px 12px'}}>
-          {MOODS.map(mood=>(
-            <div key={mood.key} onClick={()=>{setSelectedMood(mood);setView('writing');}}
-              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:7,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
-              <div style={{
-                width:28,height:28,borderRadius:'50%',
-                background:mood.color,
-                opacity: dark ? 0.88 : 0.72,
-                boxShadow: selectedMood?.key===mood.key
-                  ? `0 0 0 2px ${mood.color}, 0 0 12px ${mood.color}60`
-                  : 'none',
-                transition:'box-shadow 180ms ease, opacity 180ms ease',
-              }}/>
-              <div style={{
-                fontFamily:"'JetBrains Mono',monospace",
-                fontSize:6,letterSpacing:'.14em',
-                textTransform:'uppercase' as any,
-                color:roomInkMute,
-                textAlign:'center' as any,
-                lineHeight:1.3,
-              }}>
-                {mood.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  // ── WRITING VIEW ──
-  return (
-    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',
-      background: dark
-        ? writingSurface
-        : `linear-gradient(160deg,#EEF0F4 0%,#E4E8F0 40%,#D8DCE8 100%)`,
-    }}>
-      {/* Mood indicator + action bar */}
-      <div style={{padding:'12px 20px',borderBottom:`0.5px solid ${roomLine}`,display:'flex',alignItems:'center',gap:10,flexShrink:0}}>
-        <span style={{width:8,height:8,borderRadius:'50%',background:selectedMood?.color,boxShadow:`0 0 8px ${selectedMood?.color}80`,flexShrink:0}}/>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:selectedMood?.color}}>{selectedMood?.label}</span>
-        <div style={{marginLeft:'auto',display:'flex',gap:16}}>
-          <button onClick={()=>{setSelectedMood(null);setView('picker');}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute,padding:0}}>← back</button>
-          <button onClick={saveEntry} disabled={!body.trim()||saving}
-            style={{background:body.trim()&&!saving?accent:'transparent',color:body.trim()&&!saving?(dark?'#1A0810':'#FFFFFF'):roomInkMute,border:`0.5px solid ${body.trim()&&!saving?accent:roomInkMute}`,borderRadius:2,padding:'4px 12px',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,cursor:body.trim()&&!saving?'pointer':'default',transition:'all 200ms ease'}}>
-            {saving?'saving…':'save →'}
-          </button>
-        </div>
-      </div>
-
-      {/* Date */}
-      <div style={{padding:'16px 20px 8px',flexShrink:0}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkMute,fontFeatureSettings:'"opsz" 9'}}>
-          {new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}
-        </div>
-      </div>
-
-      {/* Left margin rule + writing area */}
-      <div style={{flex:1,display:'flex',overflowY:'auto'}} className="no-scroll">
-        {/* Left rule — the diary margin */}
-        <div style={{width:1,background:dark?`${selectedMood?.color}40`:`${selectedMood?.color}60`,flexShrink:0,margin:'0 0 0 20px'}}/>
-        <div style={{flex:1,padding:'8px 20px 24px 14px'}}>
-          <textarea
-            ref={textRef}
-            value={body}
-            onChange={e=>setBody(e.target.value)}
-            placeholder="Write here…"
-            autoFocus
-            style={{
-              width:'100%',
-              minHeight:240,
-              background:'transparent',
-              border:'none',outline:'none',
-              color: dark ? roomInk : '#0D1E35',
-              fontFamily:"'Fraunces',serif",
-              fontStyle:'italic',fontWeight:300,
-              fontSize:17,lineHeight:1.75,
-              resize:'none',
-              fontFeatureSettings:'"opsz" 9',
-              userSelect:'text',WebkitUserSelect:'text' as any,
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function SanctuaryPage() {
   const { homeMode, setHomeMode } = useFrostMode();
   const dark = homeMode === 'E1A';
@@ -1386,6 +1054,14 @@ export default function SanctuaryPage() {
               </div>
             </>}
 
+            {/* ── EVENTS — timeline grouped by date ── */}
+            {activeRoom==='events'&&(
+              <EventsRoom
+                dark={dark} accent={accent} signal={signal}
+                roomInk={roomInk} roomInkSoft={roomInkSoft} roomInkMute={roomInkMute} roomLine={roomLine}
+              />
+            )}
+
             {/* ── CIRCLE — activity feed + invite ── */}
             {activeRoom==='circle'&&(
               <CircleRoom
@@ -1403,7 +1079,7 @@ export default function SanctuaryPage() {
             )}
 
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&(
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {SLICES.find(s=>s.key===activeRoom)?.label}
