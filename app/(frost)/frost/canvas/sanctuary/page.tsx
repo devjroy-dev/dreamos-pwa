@@ -2047,9 +2047,7 @@ export default function SanctuaryPage() {
               Sanctuary
             </button>
             <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
-              {(['expenses','vendors','settings'].includes(activeRoom as string)
-                ? (activeRoom==='expenses'?'Expenses':activeRoom==='vendors'?'Vendors':'Settings')
-                : SLICES.find(s=>s.key===activeRoom)?.label)}
+              {(()=>{const r=activeRoom as string;return(['expenses','vendors','settings'].includes(r)?(r==='expenses'?'Expenses':r==='vendors'?'Vendors':'Settings'):SLICES.find(s=>s.key===activeRoom)?.label);})()}
             </div>
             {activeRoom==='dream'&&<button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute}}>Clear</button>}
             {activeRoom!=='dream'&&<div style={{width:40}}/>}
@@ -2164,9 +2162,7 @@ export default function SanctuaryPage() {
             {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
-                  {(['expenses','vendors','settings'].includes(activeRoom as string)
-                ? (activeRoom==='expenses'?'Expenses':activeRoom==='vendors'?'Vendors':'Settings')
-                : SLICES.find(s=>s.key===activeRoom)?.label)}
+                  {(()=>{const r=activeRoom as string;return(['expenses','vendors','settings'].includes(r)?(r==='expenses'?'Expenses':r==='vendors'?'Vendors':'Settings'):SLICES.find(s=>s.key===activeRoom)?.label);})()}
                 </div>
                 <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,textAlign:'center',lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
                   Coming soon.<br/>Swipe down to return.
