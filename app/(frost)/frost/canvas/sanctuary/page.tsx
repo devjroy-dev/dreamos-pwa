@@ -1032,13 +1032,13 @@ export default function SanctuaryPage() {
         {journeyOpen&&<div style={{borderTop:`.5px solid ${line}`}}>
           {JOURNEY_LINKS.map((link,i)=>(
             <div key={link.label} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
-              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
-              {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:inkMute}}>{link.hint}</span>}
+              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
+              {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:'rgba(255,255,255,.45)'}}>{link.hint}</span>}
             </div>
           ))}
           <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${JOURNEY_LINKS.length*28}ms`}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Mode</span>
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:accent}}>{dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span></span>
+            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>Mode</span>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?accent:'rgba(255,255,255,.75)'}}>{dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span></span>
           </div>
         </div>}
       </div>
