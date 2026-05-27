@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       getPhotoQueue({ state: 'pending' }).catch(() => ({ photos: [] })),
       getDiscoverQueue().catch(() => ({ requests: [] })),
       getInvites().catch(() => ({ invites: [] })),
-      fetch(`${import.meta?.env?.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app'}/api/v2/admin/waitlist?status=new`,
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app'}/api/v2/admin/waitlist?status=new`,
         { headers: { 'x-admin-password': ADMIN_PWD } }).then(r=>r.json()).catch(()=>({ signups: [] })),
     ]).then(([v, c, p, d, i, w]) => {
       setStats({
