@@ -921,6 +921,10 @@ export default function SanctuaryPage() {
   // Exception: Discover + Muse + Moments = always dark (photo galleries)
   const isPhotoRoom = activeRoom==='discover'||activeRoom==='muse'||activeRoom==='moments';
 
+  const roomTopBg = isPhotoRoom
+    ? 'rgba(8,6,10,.92)'
+    : dark ? 'rgba(18,6,10,.88)' : 'rgba(238,240,246,.88)';
+
   const roomBg = isPhotoRoom
     ? 'linear-gradient(180deg,#080608 0%,#040406 100%)'
     : dark
