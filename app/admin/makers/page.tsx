@@ -21,12 +21,7 @@ export default function MakersPage() {
   const [toastErr, setToastErr]   = useState(false);
   const [selected, setSelected]   = useState<AdminVendor | null>(null);
 
-  const [invName, setInvName]     = useState('');
-  const [invPhone, setInvPhone]   = useState('');
-  const [invCat, setInvCat]       = useState('');
-  const [invCity, setInvCity]     = useState('');
   const [invTier, setInvTier]     = useState('trial');
-  const [inviting, setInviting]   = useState(false);
   const [copied, setCopied]       = useState(false);
 
   const load = useCallback(() => {
@@ -64,40 +59,6 @@ export default function MakersPage() {
       showToast('Vendor deleted.');
       setSelected(null);
     } catch { showToast('Failed to delete.', true); }
-  };
-
-  const invite = async () => {
-    if (!invName.trim() || !invPhone.trim()) return;
-    setInviting(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/v2/admin/vendors/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
-        body: JSON.stringify({
-          business_name: invName.trim(),
-          phone: invPhone.trim(),
-          category: invCat || undefined,
-          city: invCity.trim() || undefined,
-          tier: invTier,
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || 'Failed');
-      const waLink = `https://wa.me/${WA_VENDOR}?text=Hi`;
-      setInviteResult({ name: invName.trim(), waLink });
-      load();
-      setInvName(''); setInvPhone(''); setInvCat(''); setInvCity(''); setInvTier('signature');
-    } catch (e: any) {
-      showToast(e.message || 'Failed to invite.', true);
-    } finally {
-      setInviting(false);
-    }
-  };
-
-  const copyInvite = () => {
-    if (!inviteResult) return;
-    const msg = `Hey ${inviteResult.name} — tap this link to get started with your chief of staff: ${inviteResult.waLink}`;
-    navigator.clipboard.writeText(msg).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); });
   };
 
   const filtered = vendors.filter(v => {
