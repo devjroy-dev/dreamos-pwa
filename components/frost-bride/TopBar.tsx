@@ -12,7 +12,7 @@ const useBrideMode = () => ({ mode: 'HOME' as BrideMode, setMode: (_m: BrideMode
 import { COLORS, FONTS, EASE, initials } from './tokens';
 import { getCoupleSession } from './atoms';
 
-const MODE_DESTINATION: Record<BrideMode, string> = {
+const MODE_DESTINATION: Partial<Record<BrideMode, string>> = {
   PLAN:     '/couple/today',
   DISCOVER: '/couple/muse',
 };
