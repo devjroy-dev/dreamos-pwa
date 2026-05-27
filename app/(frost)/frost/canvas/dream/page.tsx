@@ -350,7 +350,6 @@ export default function CanvasDream() {
               fontFeatureSettings:'"opsz" 9',
               userSelect:'text',
               WebkitUserSelect:'text',
-              '::placeholder': { color: inkMute } as any,
             }}
           />
           <button

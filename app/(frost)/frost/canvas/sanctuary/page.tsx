@@ -114,9 +114,10 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
   const [selected, setSelected] = React.useState<CoupleEvent|null>(null);
 
   // Gradient — same family as the rest of the mode
+  // Events inherits exact same gradient as Sanctuary — same DNA, same house
   const evBg = dark
-    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.16) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
-    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
+    ? 'radial-gradient(ellipse 110% 55% at 50% -5%,rgba(196,133,106,.18) 0%,transparent 52%),radial-gradient(ellipse 70% 60% at 90% 110%,rgba(40,5,12,.80) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 5% 100%,rgba(60,8,20,.70) 0%,transparent 50%),linear-gradient(180deg,#1A0A0E 0%,#0E0506 40%,#080204 70%,#0C0408 100%)'
+    : 'radial-gradient(ellipse 110% 50% at 60% -5%,rgba(74,122,155,.24) 0%,transparent 55%),radial-gradient(ellipse 70% 50% at 10% 110%,rgba(42,95,130,.16) 0%,transparent 55%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 30%,#D8DEEC 60%,#CDD4E8 100%)';
 
   const pgInk     = dark ? '#F5E5DC' : '#0C1830';
   const pgInkSoft = dark ? 'rgba(245,229,220,.70)' : 'rgba(12,24,48,.65)';
@@ -314,8 +315,8 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
   const [waLink,      setWaLink]      = React.useState<string|null>(null);
 
   const circleBg = dark
-    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.14) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
-    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
+    ? 'radial-gradient(ellipse 110% 55% at 50% -5%,rgba(196,133,106,.18) 0%,transparent 52%),radial-gradient(ellipse 70% 60% at 90% 110%,rgba(40,5,12,.80) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 5% 100%,rgba(60,8,20,.70) 0%,transparent 50%),linear-gradient(180deg,#1A0A0E 0%,#0E0506 40%,#080204 70%,#0C0408 100%)'
+    : 'radial-gradient(ellipse 110% 50% at 60% -5%,rgba(74,122,155,.24) 0%,transparent 55%),radial-gradient(ellipse 70% 50% at 10% 110%,rgba(42,95,130,.16) 0%,transparent 55%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 30%,#D8DEEC 60%,#CDD4E8 100%)';
 
   const pgInk     = dark ? '#F5E5DC' : '#0C1830';
   const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
@@ -606,8 +607,8 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 
   // Background — light mode gets the blue-grey gradient, dark gets wine-black
   const pageBg = dark
-    ? 'linear-gradient(180deg,#14080C 0%,#0C0405 100%)'
-    : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
+    ? 'radial-gradient(ellipse 110% 55% at 50% -5%,rgba(196,133,106,.16) 0%,transparent 52%),radial-gradient(ellipse 70% 60% at 90% 110%,rgba(40,5,12,.80) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 5% 100%,rgba(60,8,20,.70) 0%,transparent 50%),linear-gradient(180deg,#1A0A0E 0%,#0E0506 40%,#080204 70%,#0C0408 100%)'
+    : 'radial-gradient(ellipse 110% 50% at 60% -5%,rgba(74,122,155,.24) 0%,transparent 55%),radial-gradient(ellipse 70% 50% at 10% 110%,rgba(42,95,130,.16) 0%,transparent 55%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 30%,#D8DEEC 60%,#CDD4E8 100%)';
 
   // Ink in light mode — deep navy on the blue-grey surface
   const pgInk     = dark ? '#F5E5DC' : '#0C1830';
@@ -831,6 +832,19 @@ export default function SanctuaryPage() {
     setDateStamp(`${DOM[now.getDate()]||now.getDate()} of ${now.toLocaleDateString('en-IN',{month:'long'})} · ${now.getFullYear()}`);
   },[]);
 
+  // Prevent browser pull-to-refresh when a bloom room is open
+  // Chrome requires passive:false and actual preventDefault() on touchmove
+  useEffect(()=>{
+    if(!activeRoom) return;
+    const handler = (e: TouchEvent) => {
+      // Only prevent if touch started near top (pull-to-refresh zone)
+      // or if we're in the bloom layer
+      e.preventDefault();
+    };
+    document.addEventListener('touchmove', handler, { passive: false });
+    return () => document.removeEventListener('touchmove', handler);
+  }, [activeRoom]);
+
   // Scroll dream to bottom
   useEffect(()=>{ if(scrollRef.current)scrollRef.current.scrollTop=scrollRef.current.scrollHeight; },[msgs]);
   useEffect(()=>{ if(!textRef.current)return;textRef.current.style.height='auto';textRef.current.style.height=Math.min(textRef.current.scrollHeight,120)+'px'; },[input]);
@@ -910,16 +924,8 @@ export default function SanctuaryPage() {
   const roomBg = isPhotoRoom
     ? 'linear-gradient(180deg,#080608 0%,#040406 100%)'
     : dark
-      // Wine Night: deep wine-black gradient with terracotta warmth bleeding top-right, dark plum pooling bottom-left
-      ? `radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.16) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.65) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)`
-      // Sky Ivory: bone-white gradient, slate blue wash top, warm grey-blue pooling bottom
-      : `radial-gradient(ellipse 90% 45% at 60% -5%,rgba(74,122,155,.22) 0%,transparent 52%),radial-gradient(ellipse 70% 50% at 10% 105%,rgba(42,95,130,.14) 0%,transparent 55%),linear-gradient(160deg,#EEF0F4 0%,#E8EAF0 30%,#DFE3EC 65%,#D8DCE8 100%)`;
-
-  const roomTopBg   = isPhotoRoom
-    ? 'rgba(8,6,10,.90)'
-    : dark
-      ? 'rgba(18,6,10,.85)'   // wine-black frosted
-      : 'rgba(238,240,244,.88)'; // slate-tinted bone frosted
+      ? 'radial-gradient(ellipse 110% 55% at 50% -5%,rgba(196,133,106,.18) 0%,transparent 52%),radial-gradient(ellipse 70% 60% at 90% 110%,rgba(40,5,12,.80) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 5% 100%,rgba(60,8,20,.70) 0%,transparent 50%),linear-gradient(180deg,#1A0A0E 0%,#0E0506 40%,#080204 70%,#0C0408 100%)'
+      : 'radial-gradient(ellipse 110% 50% at 60% -5%,rgba(74,122,155,.24) 0%,transparent 55%),radial-gradient(ellipse 70% 50% at 10% 110%,rgba(42,95,130,.16) 0%,transparent 55%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 30%,#D8DEEC 60%,#CDD4E8 100%)'; // slate-tinted bone frosted
 
   const roomInk     = isPhotoRoom ? '#F0EDE8' : (dark ? '#F5E5DC' : '#0D1E35');
   const roomInkSoft = isPhotoRoom ? 'rgba(240,237,232,.70)' : (dark ? 'rgba(245,229,220,.78)' : 'rgba(13,30,53,.80)');
@@ -1043,7 +1049,7 @@ export default function SanctuaryPage() {
           className={closing ? 'bloom-exit' : 'bloom-enter'}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
-          onTouchMove={(e)=>{ /* prevent pull-to-refresh on the bloom layer */ e.stopPropagation(); }}
+          onTouchMove={(e)=>{ e.preventDefault(); }}
           style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden',
             overscrollBehavior:'contain',
             touchAction:'pan-y',
