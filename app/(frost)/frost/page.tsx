@@ -1,13 +1,13 @@
 'use client';
 
 // app/(frost)/frost/page.tsx
-// Frost entry — Discover is the home. Redirects immediately.
+// Frost entry — Sanctuary is home. Discover lives inside Sanctuary bloom.
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function FrostRoot() {
   const router = useRouter();
-  useEffect(() => { router.replace('/frost/canvas/discover'); }, [router]);
-  return <div style={{ position: 'fixed', inset: 0, background: '#0C0A09' }} />;
+  useEffect(() => { router.replace('/frost/canvas/sanctuary'); }, [router]);
+  return <div style={{ position: 'fixed', inset: 0, background: '#0C0405' }} />;
 }

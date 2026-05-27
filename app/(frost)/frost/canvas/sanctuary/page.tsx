@@ -983,9 +983,19 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
       {selectedSave&&<MuseOverlay save={selectedSave} activity={saveActivity} accent={accent} dark={dark} onClose={()=>{setSelectedSave(null);setSaveActivity([]);}} onRemove={handleRemove}/>}
 
       {/* Header */}
-      <div style={{padding:'18px 20px 10px',flexShrink:0}}>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:'#F0EDE8',lineHeight:1,marginBottom:3}}>Muse</div>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(42,95,130,.65)'}}>{loading?'loading…':`${total} saved`}</div>
+      <div style={{padding:'18px 20px 10px',flexShrink:0,display:'flex',alignItems:'flex-start',justifyContent:'space-between'}}>
+        <div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:'#F0EDE8',lineHeight:1,marginBottom:3}}>Muse</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(42,95,130,.65)'}}>{loading?'loading…':`${total} saved`}</div>
+        </div>
+        {/* Surprise Me pill */}
+        <a href="/frost/canvas/surprise"
+          style={{display:'flex',alignItems:'center',gap:5,height:28,padding:'0 12px 0 10px',borderRadius:100,
+            background:`${accent}1A`,border:`0.5px solid ${accent}55`,
+            cursor:'pointer',touchAction:'manipulation',textDecoration:'none',flexShrink:0,marginTop:4}}>
+          <span style={{fontSize:9,color:accent,lineHeight:1}}>✦</span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,whiteSpace:'nowrap'}}>Surprise Me</span>
+        </a>
       </div>
 
       {/* Pills — Source | Ceremony — all using mode DNA */}
