@@ -91,22 +91,6 @@ function clearCookieToken(): void {
   } catch { /* ignore */ }
 }
 
-// Wipe the demo flag from both localStorage and cookie. Called on every
-// session write/clear so demo state never leaks into a real user session.
-// The demo-entry flow (app/wedding/page.tsx) re-sets the flag AFTER calling
-// setVendorSession, so legitimate demo mode is unaffected.
-function clearDemoFlag(): void {
-  try {
-    const store = ls();
-    if (store) store.removeItem('tdw_is_demo');
-  } catch { /* ignore */ }
-  if (typeof document !== 'undefined') {
-    try {
-      document.cookie = `tdw_is_demo=; max-age=0; path=/; SameSite=Lax; Secure`;
-    } catch { /* ignore */ }
-  }
-}
-
 // Full session cookie — set by /api/auth/set-session (demo GET redirect) or
 // by setVendorSession() below. Allows getVendorSession() to reconstruct the
 // session without localStorage — the token-only cookie can't do this alone.
@@ -188,7 +172,6 @@ export function getVendorSession(): VendorSession | null {
 export function setVendorSession(session: VendorSession): void {
   // Clear any leftover demo flag before writing the new session. The demo
   // entry flow re-sets the flag explicitly afterwards if needed.
-  clearDemoFlag();
   // Stamp version so getVendorSession can detect pre-hardening sessions
   const stamped = { ...session, _v: SESSION_VERSION };
   // localStorage.setItem throws QuotaExceededError in iOS Safari Private Browsing.
@@ -216,7 +199,6 @@ export function clearVendorSession(): void {
   } catch { /* ignore */ }
   clearCookieToken();
   clearCookieSession();
-  clearDemoFlag();
 }
 
 // ── Just Do It toggle ──────────────────────────────────────────────────────

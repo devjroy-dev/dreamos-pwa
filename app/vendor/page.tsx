@@ -367,9 +367,7 @@ export default function WeddingChatPage() {
           const parsed = JSON.parse(cookieVal);
           if (parsed?.access_token) {
             setVendorSession(parsed);
-            if (parsed.demo) {
-              try { localStorage.setItem('tdw_is_demo', 'true'); } catch { /* ok */ }
-            }
+            // demo flag removed — vendor demo system deleted
           }
         }
       }
