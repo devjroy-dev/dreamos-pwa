@@ -12,14 +12,14 @@ import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, type CircleData, type CircleActivity, type CoupleEvent } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|null;
+type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|'expenses'|'vendors'|'settings'|null;
 
 interface UIMsg {
   id: string; role:'user'|'assistant'; content:string; pending?:boolean; error?:boolean;
@@ -90,6 +90,9 @@ const JOURNEY_LINKS=[
   {label:'Vendors',   hint:'4 confirmed'},
   {label:'Settings',  hint:''},
 ];
+// WhatsApp DreamAI link — opens WA with prefilled Hi
+const DREAMAI_WA_NUMBER = '14787788550';
+const DREAMAI_WA_LINK   = `https://wa.me/${DREAMAI_WA_NUMBER}?text=Hi`;
 
 const DREAM_PROMPTS=[
   'How many days until my wedding?',
@@ -103,6 +106,292 @@ const DREAM_PROMPTS=[
 
 
 
+
+
+// ── EXPENSES ROOM ──────────────────────────────────────────────────────────────
+// Receipts list + total spent. Sanctuary bg. Mode-aware DNA tokens.
+
+interface ExpensesRoomProps { dark:boolean; accent:string; signal:string; }
+
+function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
+  const bg      = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
+    : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
+  const ink     = dark ? '#F5E5DC'                 : '#0C1830';
+  const inkSoft = dark ? 'rgba(245,229,220,.72)'   : 'rgba(12,24,48,.72)';
+  const inkMute = dark ? 'rgba(196,133,106,.50)'   : 'rgba(42,80,130,.55)';
+  const line    = dark ? 'rgba(196,133,106,.12)'   : 'rgba(42,95,130,.14)';
+  const cardBg  = dark ? 'rgba(196,133,106,.05)'   : 'rgba(42,95,130,.05)';
+  const cardBdr = dark ? 'rgba(196,133,106,.12)'   : 'rgba(42,95,130,.12)';
+  const ac      = dark ? '#C4856A'                 : '#2A5F82';
+
+  const [receipts, setReceipts] = React.useState<CoupleReceipt[]>([]);
+  const [loading,  setLoading]  = React.useState(true);
+
+  React.useEffect(()=>{
+    fetchReceipts().then(r=>{ setReceipts(r); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  const total = receipts.reduce((s,r)=>s+(r.amount||0),0);
+  const fmtRs = (n:number) => n>=100000
+    ? `₹${(n/100000).toFixed(n%100000===0?0:1)}L`
+    : n>=1000 ? `₹${(n/1000).toFixed(0)}K`
+    : `₹${n}`;
+
+  function fmtDate(iso:string|null):string {
+    if(!iso) return '';
+    const d=new Date(iso+'T00:00:00');
+    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  }
+
+  return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+      {/* Total header */}
+      <div style={{padding:'20px 20px 14px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total logged</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:38,color:ac,lineHeight:1,letterSpacing:'-.03em',fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(total)}</div>
+          {!loading&&receipts.length>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>{receipts.length} receipt{receipts.length!==1?'s':''}</div>}
+        </div>
+      </div>
+
+      {/* Receipt list */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+        {!loading&&receipts.length===0&&(
+          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:ac,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>logged yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Send Dream Ai a photo of a receipt<br/>and she'll log it for you.</div>
+          </div>
+        )}
+        {!loading&&receipts.map(r=>(
+          <div key={r.id} style={{margin:'8px 16px',borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,padding:'12px 16px',display:'flex',gap:12,alignItems:'flex-start'}}>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,lineHeight:1.3,fontFeatureSettings:'"opsz" 9'}}>{r.vendor_name||'Payment'}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ac,flexShrink:0,marginLeft:8}}>{fmtRs(r.amount||0)}</div>
+              </div>
+              {r.description&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{r.description}</div>}
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{fmtDate(r.receipt_date)}{r.tags&&r.tags.length>0?` · ${r.tags[0]}`:''}</div>
+            </div>
+          </div>
+        ))}
+        {!loading&&receipts.length>0&&<div style={{height:32}}/>}
+      </div>
+    </div>
+  );
+}
+
+// ── VENDORS ROOM ───────────────────────────────────────────────────────────────
+// Confirmed bookings list. Sanctuary bg. Mode-aware DNA tokens.
+
+interface VendorsRoomProps { dark:boolean; accent:string; }
+
+function VendorsRoom({ dark, accent }: VendorsRoomProps) {
+  const bg      = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
+    : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
+  const ink     = dark ? '#F5E5DC'                : '#0C1830';
+  const inkSoft = dark ? 'rgba(245,229,220,.72)'  : 'rgba(12,24,48,.72)';
+  const inkMute = dark ? 'rgba(196,133,106,.50)'  : 'rgba(42,80,130,.55)';
+  const line    = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.14)';
+  const cardBg  = dark ? 'rgba(196,133,106,.05)'  : 'rgba(42,95,130,.05)';
+  const cardBdr = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.12)';
+  const ac      = dark ? '#C4856A'                : '#2A5F82';
+
+  const STATE_LABEL: Record<string,{label:string;color:string}> = {
+    booked:        {label:'Booked',       color:dark?'rgba(196,133,106,.7)':'rgba(42,95,130,.7)'},
+    advance_paid:  {label:'Advance paid', color:'#6B9E8F'},
+    paid:          {label:'Paid in full', color:'#5A9E7A'},
+  };
+
+  const [bookings, setBookings] = React.useState<CoupleBooking[]>([]);
+  const [loading,  setLoading]  = React.useState(true);
+
+  React.useEffect(()=>{
+    fetchBookings().then(b=>{ setBookings(b); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  const fmtRs = (n:number) => n>=100000
+    ? `₹${(n/100000).toFixed(n%100000===0?0:1)}L`
+    : n>=1000 ? `₹${(n/1000).toFixed(0)}K`
+    : `₹${n}`;
+
+  const totalCommitted = bookings.reduce((s,b)=>s+(b.amount_total||0),0);
+
+  return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+      {/* Header */}
+      <div style={{padding:'20px 20px 14px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total committed</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:38,color:ac,lineHeight:1,letterSpacing:'-.03em',fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(totalCommitted)}</div>
+          {!loading&&bookings.length>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>{bookings.length} vendor{bookings.length!==1?'s':''}</div>}
+        </div>
+      </div>
+
+      {/* Bookings list */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+        {!loading&&bookings.length===0&&(
+          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:ac,lineHeight:1,textAlign:'center' as any}}>No vendors<br/>booked yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Tell Dream Ai you've confirmed a vendor<br/>and she'll log it here.</div>
+          </div>
+        )}
+        {!loading&&bookings.map(b=>{
+          const state = STATE_LABEL[b.state]||{label:b.state,color:inkMute};
+          const balance = (b.amount_total||0)-(b.amount_paid||0);
+          return (
+            <div key={b.id} style={{margin:'8px 16px',borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,padding:'14px 16px'}}>
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,lineHeight:1.2,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{b.vendor_name}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{b.category.replace(/_/g,' ')}</div>
+                </div>
+                <div style={{textAlign:'right' as any,flexShrink:0,marginLeft:12}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:17,color:ac,lineHeight:1}}>{fmtRs(b.amount_total||0)}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.12em',textTransform:'uppercase' as any,color:state.color,marginTop:3}}>{state.label}</div>
+                </div>
+              </div>
+              {/* Progress bar: paid vs total */}
+              {(b.amount_total||0)>0&&(
+                <div style={{marginTop:8}}>
+                  <div style={{height:2,borderRadius:1,background:dark?'rgba(196,133,106,.12)':'rgba(42,95,130,.12)',overflow:'hidden'}}>
+                    <div style={{height:'100%',width:`${Math.min(100,((b.amount_paid||0)/(b.amount_total||1))*100)}%`,background:state.color,borderRadius:1,transition:'width 600ms ease'}}/>
+                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.1em',color:inkMute}}>Paid {fmtRs(b.amount_paid||0)}</div>
+                    {balance>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.1em',color:inkMute}}>Due {fmtRs(balance)}</div>}
+                  </div>
+                </div>
+              )}
+              {b.notes&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginTop:8,paddingTop:8,borderTop:`0.5px solid ${line}`}}>{b.notes}</div>}
+            </div>
+          );
+        })}
+        {!loading&&bookings.length>0&&<div style={{height:32}}/>}
+      </div>
+    </div>
+  );
+}
+
+// ── SETTINGS ROOM ──────────────────────────────────────────────────────────────
+// Profile info + mode toggle + WA DreamAI shortcut. Sanctuary bg.
+
+interface SettingsRoomProps { dark:boolean; accent:string; signal:string; setHomeMode:(m:any)=>void; }
+
+function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) {
+  const bg      = dark
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
+    : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
+  const ink     = dark ? '#F5E5DC'                : '#0C1830';
+  const inkSoft = dark ? 'rgba(245,229,220,.72)'  : 'rgba(12,24,48,.72)';
+  const inkMute = dark ? 'rgba(196,133,106,.50)'  : 'rgba(42,80,130,.55)';
+  const line    = dark ? 'rgba(196,133,106,.14)'  : 'rgba(42,95,130,.14)';
+  const rowBg   = dark ? 'rgba(196,133,106,.05)'  : 'rgba(42,95,130,.05)';
+  const rowBdr  = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.12)';
+  const ac      = dark ? '#C4856A'                : '#2A5F82';
+  const sig     = dark ? '#6B9E8F'                : '#8B6E52';
+
+  const [profile, setProfile] = React.useState<CoupleProfile|null>(null);
+
+  React.useEffect(()=>{
+    fetchProfile().then(p=>setProfile(p)).catch(()=>{});
+  },[]);
+
+  function fmtWeddingDate(iso:string|null):string {
+    if(!iso) return '—';
+    return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  }
+
+  const Row = ({label,value,onTap,isLink,arrow}:{label:string;value?:string;onTap?:()=>void;isLink?:boolean;arrow?:boolean}) => (
+    <div onClick={onTap} style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',cursor:onTap?'pointer':'default',WebkitTapHighlightColor:'transparent',background:onTap?undefined:rowBg}}>
+      <div style={{flex:1}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{label}</div>
+        {value&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:isLink?ac:ink,fontFeatureSettings:'"opsz" 9'}}>{value}</div>}
+      </div>
+      {arrow&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:inkMute}}>›</span>}
+    </div>
+  );
+
+  return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+
+        {/* Profile section */}
+        <div style={{padding:'20px 20px 10px'}}>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ac,lineHeight:1,marginBottom:4}}>
+            {profile?.bride_name||'Your'} & {profile?.partner_name||'Partner'}
+          </div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>{profile?.wedding_city||'Your city'}</div>
+        </div>
+
+        <div style={{height:.5,background:line,margin:'0 20px'}}/>
+
+        {/* Info rows */}
+        <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)}/>
+        {profile?.budget_total&&<Row label="Total budget" value={profile.budget_total>=100000?`₹${(profile.budget_total/100000).toFixed(0)}L`:`₹${profile.budget_total}`}/>}
+
+        {/* Mode toggle */}
+        <div style={{padding:'10px 0 4px',marginTop:8}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:'0 20px 8px'}}>Appearance</div>
+          <div style={{display:'flex',margin:'0 16px',borderRadius:8,overflow:'hidden',border:`0.5px solid ${line}`}}>
+            {(['E1A','E3'] as const).map(mode=>{
+              const active = (mode==='E1A'&&dark)||(mode==='E3'&&!dark);
+              const label  = mode==='E1A'?'Wine Night':'Sky & Ivory';
+              return (
+                <div key={mode} onClick={()=>setHomeMode(mode)}
+                  style={{flex:1,padding:'12px 8px',textAlign:'center' as any,cursor:'pointer',
+                    background:active?ac:'transparent',
+                    fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',
+                    textTransform:'uppercase' as any,
+                    color:active?(dark?'#1A0810':'#FFFFFF'):inkMute,
+                    transition:'all 220ms ease',WebkitTapHighlightColor:'transparent'}}>
+                  {label}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* DreamAI on WhatsApp */}
+        <div style={{padding:'10px 0 4px',marginTop:8}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:'0 20px 8px'}}>DreamAi</div>
+          <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer"
+            style={{display:'flex',alignItems:'center',padding:'14px 20px',margin:'0 16px',borderRadius:8,
+              background:dark?'rgba(196,133,106,.07)':'rgba(42,95,130,.07)',
+              border:`0.5px solid ${dark?'rgba(196,133,106,.18)':'rgba(42,95,130,.18)'}`,
+              textDecoration:'none',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>Open on WhatsApp</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>Chat with Dream Ai anywhere</div>
+            </div>
+            <div style={{width:36,height:36,borderRadius:'50%',background:ac,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" fill="currentColor"/>
+              </svg>
+            </div>
+          </a>
+        </div>
+
+        {/* Sign out */}
+        <div style={{padding:'24px 16px 0'}}>
+          <div onClick={()=>{
+            try{localStorage.removeItem('access_token');localStorage.removeItem('couple_session');localStorage.removeItem('couple_web_session');}catch{}
+            window.location.href='/frost/login';
+          }} style={{padding:'14px',borderRadius:8,border:`0.5px solid rgba(184,69,62,.25)`,background:'rgba(184,69,62,.06)',textAlign:'center' as any,cursor:'pointer',
+            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',
+            WebkitTapHighlightColor:'transparent'}}>
+            Sign out
+          </div>
+        </div>
+
+        <div style={{height:40}}/>
+      </div>
+    </div>
+  );
+}
 
 // ── DISCOVER ROOM ──────────────────────────────────────────────────────────────
 // Always dark #080608 — cinematic full-bleed photo feed.
@@ -1710,12 +1999,18 @@ export default function SanctuaryPage() {
         </div>
         {journeyOpen&&<div style={{borderTop:`.5px solid ${line}`}}>
           {JOURNEY_LINKS.map((link,i)=>(
-            <div key={link.label} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
+            <div key={link.label} onClick={()=>{setJourneyOpen(false);openRoom(link.label.toLowerCase() as RoomKey);}} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
               <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
               {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:'rgba(255,255,255,.45)'}}>{link.hint}</span>}
             </div>
           ))}
-          <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${JOURNEY_LINKS.length*28}ms`}}>
+          {/* DreamAI on WhatsApp — external link, no bloom */}
+          <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer" className="si-a"
+            style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',textDecoration:'none',animationDelay:`${(JOURNEY_LINKS.length)*28}ms`}}>
+            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>DreamAi on WhatsApp</span>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(255,255,255,.4)'}}>↗</span>
+          </a>
+          <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${(JOURNEY_LINKS.length+1)*28}ms`}}>
             <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>Mode</span>
             <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?accent:'rgba(255,255,255,.75)'}}>{dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span></span>
           </div>
@@ -1742,7 +2037,9 @@ export default function SanctuaryPage() {
               Sanctuary
             </button>
             <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
-              {SLICES.find(s=>s.key===activeRoom)?.label}
+              {(['expenses','vendors','settings'].includes(activeRoom||'')
+                ? (activeRoom==='expenses'?'Expenses':activeRoom==='vendors'?'Vendors':'Settings')
+                : SLICES.find(s=>s.key===activeRoom)?.label)}
             </div>
             {activeRoom==='dream'&&<button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute}}>Clear</button>}
             {activeRoom!=='dream'&&<div style={{width:40}}/>}
@@ -1838,11 +2135,28 @@ export default function SanctuaryPage() {
               />
             )}
 
+            {/* ── EXPENSES ── */}
+            {activeRoom==='expenses'&&(
+              <ExpensesRoom dark={dark} accent={accent} signal={signal}/>
+            )}
+
+            {/* ── VENDORS ── */}
+            {activeRoom==='vendors'&&(
+              <VendorsRoom dark={dark} accent={accent}/>
+            )}
+
+            {/* ── SETTINGS ── */}
+            {activeRoom==='settings'&&(
+              <SettingsRoom dark={dark} accent={accent} signal={signal} setHomeMode={setHomeMode}/>
+            )}
+
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&(
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
-                  {SLICES.find(s=>s.key===activeRoom)?.label}
+                  {(['expenses','vendors','settings'].includes(activeRoom||'')
+                ? (activeRoom==='expenses'?'Expenses':activeRoom==='vendors'?'Vendors':'Settings')
+                : SLICES.find(s=>s.key===activeRoom)?.label)}
                 </div>
                 <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,textAlign:'center',lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
                   Coming soon.<br/>Swipe down to return.
