@@ -162,7 +162,7 @@ export default function AdminCouplesPage() {
                   <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: '#555250' }}>{new Date(c.created_at).toLocaleDateString('en-IN')}</td>
                   <td style={{ padding: '11px 14px' }}>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <a href={`https://thedreamwedding.in/couple/today?id=${c.id}`} target="_blank" rel="noreferrer" style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#555250', textDecoration: 'underline' }}>View</a>
+                      <a href={`https://thedreamwedding.in/frost`} target="_blank" rel="noreferrer" style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#555250', textDecoration: 'underline' }}>View</a>
                       <button onClick={() => setConfirmRevoke(c.id)} style={{ background: 'none', border: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#C0392B', cursor: 'pointer' }}>Revoke</button>
                     </div>
                   </td>

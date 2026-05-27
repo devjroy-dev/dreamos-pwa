@@ -29,7 +29,7 @@ export default function CouplePinPage() {
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
-      if (s?.pin_set) { router.replace('/couple/today'); return; }
+      if (s?.pin_set) { router.replace('/frost'); return; }
     } catch {}
     pinRefs.current[0]?.focus();
   }, []);
@@ -66,7 +66,7 @@ export default function CouplePinPage() {
         const updated = { ...session, pin_set: true };
         localStorage.setItem('couple_web_session', JSON.stringify(updated));
         localStorage.setItem('couple_session', JSON.stringify(updated));
-        router.replace('/couple/today');
+        router.replace('/frost');
       } else { showToast('Could not set PIN. Try again.'); }
     } catch { showToast('Network error. Try again.'); }
     finally { setLoading(false); }
