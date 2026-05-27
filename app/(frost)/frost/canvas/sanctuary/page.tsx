@@ -67,6 +67,7 @@ const CSS=`
 .d-cursor{animation:dcursor 1s ease-in-out infinite;}
 .no-scroll::-webkit-scrollbar{display:none;}
 .no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
+html,body{overscroll-behavior:none;}
 `;
 
 const SLICES=[
@@ -98,21 +99,9 @@ const DREAM_PROMPTS=[
 // ── Root component ────────────────────────────────────────────────────────────
 
 
-// ── EVENTS ROOM ───────────────────────────────────────────────────────────────
-const KIND_CHIP: Record<string,{label:string;color:string}> = {
-  trial:    {label:'Trial',     color:'#D4848A'},
-  fitting:  {label:'Fitting',   color:'#9B8DC4'},
-  shoot:    {label:'Shoot',     color:'#6B7FA8'},
-  recce:    {label:'Recce',     color:'#7A8A8A'},
-  meeting:  {label:'Meeting',   color:'#C4A83A'},
-  call:     {label:'Call',      color:'#5A9E7A'},
-  family:   {label:'Family',    color:'#D4956A'},
-  ceremony: {label:'Ceremony',  color:'#C4856A'},
-  social:   {label:'Social',    color:'#D4848A'},
-  reminder: {label:'Reminder',  color:'#8A9DB5'},
-  task:     {label:'Task',      color:'#7A8A8A'},
-  other:    {label:'Other',     color:'#B8B0C0'},
-};
+// ── EVENTS ROOM — ornament on a string ────────────────────────────────────────
+// Vertical line. Date bubble. Beautiful moments hanging off it.
+// Same layout as the original events page the bride loved.
 
 interface EventsRoomProps {
   dark:boolean; accent:string; signal:string;
@@ -122,108 +111,179 @@ interface EventsRoomProps {
 function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsRoomProps) {
   const [events,  setEvents]  = React.useState<CoupleEvent[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [filter,  setFilter]  = React.useState<string>('all');
+  const [selected, setSelected] = React.useState<CoupleEvent|null>(null);
 
+  // Gradient — same family as the rest of the mode
   const evBg = dark
-    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.14) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
+    ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.16) 0%,transparent 52%),radial-gradient(ellipse 60% 50% at 15% 100%,rgba(80,10,25,.60) 0%,transparent 55%),linear-gradient(160deg,#1A0A0E 0%,#120608 35%,#0C0404 65%,#180610 100%)'
     : 'linear-gradient(160deg,#E8ECF4 0%,#DDE2EE 35%,#D0D6E8 65%,#C8D0E4 100%)';
 
   const pgInk     = dark ? '#F5E5DC' : '#0C1830';
-  const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
-  const pgInkMute = dark ? 'rgba(196,133,106,.48)' : 'rgba(42,80,130,.52)';
-  const pgLine    = dark ? 'rgba(196,133,106,.12)' : 'rgba(42,80,130,.16)';
+  const pgInkSoft = dark ? 'rgba(245,229,220,.70)' : 'rgba(12,24,48,.65)';
+  const pgInkMute = dark ? 'rgba(196,133,106,.50)' : 'rgba(42,80,130,.52)';
+  const pgLine    = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,80,130,.18)';
   const pgAccent  = dark ? '#C4856A' : '#2A5F82';
+  const pgBubbleBg= dark ? 'rgba(196,133,106,.10)' : 'rgba(42,95,130,.10)';
+  const pgBubbleBdr=dark ? 'rgba(196,133,106,.35)' : 'rgba(42,95,130,.35)';
 
   React.useEffect(()=>{
-    fetchEvents('upcoming').then(e=>{ setEvents(e); setLoading(false); }).catch(()=>setLoading(false));
+    fetchEvents('upcoming')
+      .then(e=>{ setEvents(e); setLoading(false); })
+      .catch(()=>setLoading(false));
   },[]);
 
-  const filtered = filter==='all' ? events : events.filter(e=>e.kind===filter);
-  const groups: Record<string, CoupleEvent[]> = {};
-  filtered.forEach(e=>{
-    if(!groups[e.event_date]) groups[e.event_date]=[];
-    groups[e.event_date].push(e);
-  });
-  const sortedDates = Object.keys(groups).sort();
+  function fmtDate(d:string):{month:string;day:string} {
+    const dt = new Date(d+'T00:00:00');
+    if(isNaN(dt.getTime())) return {month:'',day:'—'};
+    return {
+      month: dt.toLocaleDateString('en-IN',{month:'short'}).toUpperCase(),
+      day:   String(dt.getDate()),
+    };
+  }
 
-  function formatEventDate(iso: string): string {
-    const d = new Date(iso+'T00:00:00');
-    const today = new Date(); today.setHours(0,0,0,0);
-    const diff = Math.round((d.getTime()-today.getTime())/86400000);
+  function fmtTime(t:string|null):string {
+    if(!t) return '';
+    const [h,m]=t.split(':').map(Number);
+    return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'pm':'am'}`;
+  }
+
+  function daysUntilEvent(d:string):string {
+    const today=new Date();today.setHours(0,0,0,0);
+    const ev=new Date(d+'T00:00:00');ev.setHours(0,0,0,0);
+    const diff=Math.round((ev.getTime()-today.getTime())/86400000);
     if(diff===0) return 'Today';
     if(diff===1) return 'Tomorrow';
-    if(diff>1&&diff<7) return d.toLocaleDateString('en-IN',{weekday:'long'});
-    return d.toLocaleDateString('en-IN',{day:'numeric',month:'long'});
+    if(diff<0)   return `${Math.abs(diff)}d ago`;
+    return `in ${diff} days`;
   }
 
-  function formatTime(t:string|null):string {
-    if(!t) return '';
-    const [h,m]=t.split(':');
-    const hr=parseInt(h);
-    return `${hr>12?hr-12:hr||12}:${m} ${hr>=12?'PM':'AM'}`;
-  }
-
-  const kinds = ['all',...Array.from(new Set(events.map(e=>e.kind)))];
+  // Soonest upcoming event gets accent highlight
+  const now=new Date();now.setHours(0,0,0,0);
+  const soonestIdx=events.findIndex(ev=>{
+    const d=new Date(ev.event_date+'T00:00:00');d.setHours(0,0,0,0);
+    return d.getTime()>=now.getTime();
+  });
 
   return (
     <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:evBg}}>
-      {/* Filter pills */}
-      <div style={{padding:'12px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0,overflowX:'auto' as any,display:'flex',gap:8,WebkitOverflowScrolling:'touch' as any}}>
-        {kinds.map(k=>{
-          const chip = k==='all' ? {label:'All',color:pgAccent} : (KIND_CHIP[k]||{label:k,color:pgAccent});
-          const active = filter===k;
-          return(
-            <div key={k} onClick={()=>setFilter(k)}
-              style={{flexShrink:0,padding:'5px 12px',borderRadius:100,cursor:'pointer',
-                background:active?(dark?`${chip.color}22`:`${chip.color}18`):'transparent',
-                border:`0.5px solid ${active?chip.color:pgLine}`,
-                fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',
-                textTransform:'uppercase' as any,color:active?chip.color:pgInkMute,
-                transition:'all 180ms ease',WebkitTapHighlightColor:'transparent'}}>
-              {chip.label}
-            </div>
-          );
-        })}
+
+      {/* Header */}
+      <div style={{padding:'20px 24px 12px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1}}>
+          The days.
+        </div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,marginTop:4,fontFeatureSettings:'"opsz" 9'}}>
+          {events.length>0 ? `${events.length} beautiful moment${events.length!==1?'s':''} ahead.` : 'Your days will appear here.'}
+        </div>
       </div>
-      {/* Timeline */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
-        {loading ? (
-          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
-        ) : filtered.length===0 ? (
-          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+
+      {/* Timeline scroll */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'24px 24px 48px',position:'relative'}}>
+
+        {loading&&(
+          <div style={{textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,paddingTop:32}}>loading…</div>
+        )}
+
+        {!loading&&events.length===0&&(
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12,paddingTop:64}}>
             <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>yet.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Tell Dream Ai to add something<br/>to your calendar.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+              Tell Dream Ai about an event<br/>and it will appear here.
+            </div>
           </div>
-        ) : (
-          <div style={{padding:'8px 0 32px'}}>
-            {sortedDates.map(date=>(
-              <div key={date}>
-                <div style={{padding:'16px 20px 8px',display:'flex',alignItems:'center',gap:12}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:pgAccent,fontFeatureSettings:'"opsz" 9'}}>{formatEventDate(date)}</div>
-                  <div style={{flex:1,height:.5,background:pgLine}}/>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',color:pgInkMute}}>{new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
-                </div>
-                {groups[date].map(ev=>{
-                  const chip = KIND_CHIP[ev.kind]||{label:ev.kind,color:pgAccent};
-                  return(
-                    <div key={ev.id} style={{margin:'0 20px 10px',borderRadius:6,
-                      background:dark?'rgba(196,133,106,.05)':'rgba(42,95,130,.05)',
-                      border:`0.5px solid ${dark?'rgba(196,133,106,.12)':'rgba(42,95,130,.12)'}`,
-                      padding:'12px 14px',display:'flex',gap:12}}>
-                      <div style={{width:2,background:chip.color,borderRadius:1,flexShrink:0,opacity:.8}}/>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:chip.color}}>{chip.label}</span>
-                          {ev.event_time&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',color:pgInkMute,marginLeft:'auto'}}>{formatTime(ev.event_time)}</span>}
-                        </div>
-                        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:pgInk,lineHeight:1.4,fontFeatureSettings:'"opsz" 9',marginBottom:ev.notes?5:0}}>{ev.title}</div>
-                        {ev.notes&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:pgInkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>{ev.notes}</div>}
-                      </div>
+        )}
+
+        {!loading&&events.length>0&&(
+          <div style={{position:'relative'}}>
+            {/* THE VERTICAL LINE — the string that holds the ornaments */}
+            <div style={{
+              position:'absolute',
+              left:22,
+              top:22,
+              bottom:22,
+              width:'0.5px',
+              background:`linear-gradient(180deg, ${pgAccent}00 0%, ${pgAccent}60 8%, ${pgAccent}60 92%, ${pgAccent}00 100%)`,
+            }}/>
+
+            {/* Events — ornaments on the string */}
+            {events.map((ev,i)=>{
+              const {month,day}=fmtDate(ev.event_date);
+              const timeStr=fmtTime(ev.event_time);
+              const highlight=i===soonestIdx;
+              const until=daysUntilEvent(ev.event_date);
+
+              return(
+                <div key={ev.id}
+                  onClick={()=>setSelected(selected?.id===ev.id?null:ev)}
+                  style={{display:'flex',alignItems:'flex-start',gap:16,marginBottom:28,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+
+                  {/* Date bubble — the ornament head */}
+                  <div style={{
+                    width:44,height:44,borderRadius:'50%',flexShrink:0,
+                    background: highlight ? pgAccent : pgBubbleBg,
+                    border:`${highlight?1.5:.5}px solid ${highlight?pgAccent:pgBubbleBdr}`,
+                    display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+                    zIndex:1,position:'relative',
+                    boxShadow: highlight ? `0 0 16px ${pgAccent}40` : 'none',
+                    transition:'all 200ms ease',
+                  }}>
+                    <div style={{
+                      fontFamily:"'JetBrains Mono',monospace",
+                      fontSize:7,letterSpacing:'.1em',
+                      color: highlight ? (dark?'#1A0810':'#FFFFFF') : pgInkMute,
+                      lineHeight:1.1,
+                    }}>{month}</div>
+                    <div style={{
+                      fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',
+                      fontSize:17,
+                      color: highlight ? (dark?'#1A0810':'#FFFFFF') : pgInk,
+                      lineHeight:1.1,
+                      fontFeatureSettings:'"opsz" 144',
+                    }}>{day}</div>
+                  </div>
+
+                  {/* Event content */}
+                  <div style={{flex:1,paddingTop:6,minWidth:0}}>
+                    {/* Title */}
+                    <div style={{
+                      fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+                      fontSize:18,lineHeight:1.2,
+                      color: highlight ? pgAccent : pgInk,
+                      fontFeatureSettings:'"opsz" 9',
+                      marginBottom:4,
+                    }}>{ev.title}</div>
+
+                    {/* Meta row */}
+                    <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap' as any}}>
+                      {timeStr&&(
+                        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',color:pgInkMute}}>{timeStr}</span>
+                      )}
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',textTransform:'uppercase' as any,color:pgInkMute}}>{ev.kind}</span>
+                      {/* Countdown — accent color for soonest */}
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.1em',color:highlight?pgAccent:pgInkMute,marginLeft:'auto'}}>
+                        {until}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            ))}
+
+                    {/* Notes — expand on tap */}
+                    {selected?.id===ev.id&&ev.notes&&(
+                      <div style={{
+                        fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
+                        fontSize:13,color:pgInkSoft,lineHeight:1.6,
+                        fontFeatureSettings:'"opsz" 9',
+                        marginTop:8,
+                        padding:'10px 12px',
+                        borderLeft:`1.5px solid ${pgAccent}50`,
+                        borderRadius:'0 4px 4px 0',
+                        background: dark ? 'rgba(196,133,106,.05)' : 'rgba(42,95,130,.05)',
+                      }}>
+                        {ev.notes}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -798,7 +858,7 @@ export default function SanctuaryPage() {
   },[]);
   const onTouchEnd = useCallback((e:React.TouchEvent)=>{
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if(dy > 80) closeRoom();
+    if(dy > 120) closeRoom();
   },[closeRoom]);
 
   // ── Dream Ai send ─────────────────────────────────────────────────────────
@@ -877,7 +937,7 @@ export default function SanctuaryPage() {
 
   // ── SANCTUARY ─────────────────────────────────────────────────────────────
   return (
-    <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any}}>
+    <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any,overscrollBehavior:'none'}}>
 
       {/* Grain */}
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>
@@ -920,23 +980,23 @@ export default function SanctuaryPage() {
       </div>
 
       {/* Hero */}
-      <div style={{position:'relative',zIndex:5,padding:journeyOpen?'8px 18px 4px':'14px 18px 10px',flexShrink:0,transition:`padding 480ms ${EASE}`}}>
+      <div style={{position:'relative',zIndex:5,padding:journeyOpen?'6px 18px 2px':'10px 18px 6px',flexShrink:0,transition:`padding 480ms ${EASE}`}}>
         {!journeyOpen&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>}
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?38:58,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?30:42,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
           Hello, <span style={{color:accent}}>{name}</span>.
         </div>
         {!journeyOpen&&<div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>}
         <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?46:80,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
+          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?38:62,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
           <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.44em',textTransform:'uppercase' as any,color:accent,opacity:.5}}>mornings</div>
         </div>
         {!journeyOpen&&<>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,lineHeight:1.62,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,lineHeight:1.55,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
             {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
           </div>
           <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{dateStamp}</div>
           {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.16em',textTransform:'uppercase' as any,color:signal}}>↑ {sinceYes} days since you said yes</div>}
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,lineHeight:1.55,marginTop:8,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:11,lineHeight:1.5,marginTop:6,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
         </>}
       </div>
 
@@ -983,7 +1043,11 @@ export default function SanctuaryPage() {
           className={closing ? 'bloom-exit' : 'bloom-enter'}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
-          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden'}}
+          onTouchMove={(e)=>{ /* prevent pull-to-refresh on the bloom layer */ e.stopPropagation(); }}
+          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden',
+            overscrollBehavior:'contain',
+            touchAction:'pan-y',
+          }}
         >
           {/* Room top bar */}
           <div style={{position:'relative',zIndex:10,background:roomTopBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderBottom:`0.5px solid ${roomLine}`,paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',paddingBottom:12,paddingLeft:18,paddingRight:18,display:'flex',alignItems:'center',flexShrink:0}}>
