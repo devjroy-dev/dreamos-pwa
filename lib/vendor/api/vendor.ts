@@ -1,0 +1,739 @@
+// lib/api/vendor.ts
+// One exported async function per vendor contract endpoint.
+// Screen components import from here — never raw fetch.
+
+import { getJson, postJson, patchJson, API_BASE, getAuthHeader, USE_MOCKS } from './_base';
+import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
+import { getMockContext, getMockLeads, getMockClients, getMockInvoices,
+         getMockExpenses, getMockEvents, getMockMe } from '../mocks/vendor';
+import type {
+  MeResponse, VendorContextResponse, TodayResponse,
+  LeadsResponse,
+  ClientsResponse, ClientDetailResponse,
+  InvoicesResponse, ExpensesResponse, EventsResponse,
+  ChatResponse, ContactCard, ClarifyPayload,
+  SendOtpResponse, VerifyOtpResponse, PinStatusResponse, PinLoginResponse,
+} from '../types/vendor';
+
+// ── Profile ───────────────────────────────────────────────────────────────
+export function fetchMe(): Promise<MeResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockMe());
+  return getJson<MeResponse>('/api/v2/vendor/me');
+}
+
+// ── Context (snapshot panel) ──────────────────────────────────────────────
+export function fetchContext(vendorId: string): Promise<VendorContextResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockContext());
+  return getJson<VendorContextResponse>(`/api/v2/vendor/context/${vendorId}`);
+}
+
+// ── Today dashboard ───────────────────────────────────────────────────────
+export function fetchToday(vendorId: string): Promise<TodayResponse> {
+  if (USE_MOCKS) {
+    return Promise.resolve({
+      ok: true,
+      vendor: { name: 'Dev', category: 'photography', city: 'Delhi' },
+      needs_attention: { overdue_invoices: [], new_leads: [], events_today: [] },
+      this_week: [],
+      money_snapshot: { total_outstanding: 0, unpaid_count: 0, advance_paid_count: 0 },
+      open_leads_count: 0,
+    });
+  }
+  return getJson<TodayResponse>(`/api/v2/vendor/today/${vendorId}`);
+}
+
+// ── Leads ─────────────────────────────────────────────────────────────────
+export function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockLeads());
+  return getJson<LeadsResponse>(`/api/v2/vendor/leads/${vendorId}?state=${state}`);
+}
+
+export function patchLeadState(leadId: string, state: string, reason?: string): Promise<LeadStateResponse> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, lead: { id: leadId, state } });
+  return patchJson<LeadStateResponse>(`/api/v2/vendor/leads/${leadId}/state`, { state, reason });
+}
+
+// ── Clients ───────────────────────────────────────────────────────────────
+export function fetchClients(vendorId: string): Promise<ClientsResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockClients());
+  return getJson<ClientsResponse>(`/api/v2/vendor/clients/${vendorId}`);
+}
+
+export function fetchClientDetail(vendorId: string, clientId: string): Promise<ClientDetailResponse> {
+  if (USE_MOCKS) {
+    const clients = getMockClients().clients;
+    const client = clients.find(c => c.id === clientId) ?? clients[0];
+    return Promise.resolve({
+      ok: true,
+      client: { id: client.id, name: client.name, phone: client.phone, email: client.email, notes: client.notes },
+      leads: [],
+      invoices: [],
+    });
+  }
+  return getJson<ClientDetailResponse>(`/api/v2/vendor/clients/${vendorId}/${clientId}`);
+}
+
+// ── Invoices ──────────────────────────────────────────────────────────────
+export function fetchInvoices(vendorId: string, state = 'all'): Promise<InvoicesResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockInvoices());
+  return getJson<InvoicesResponse>(`/api/v2/vendor/invoices/${vendorId}?state=${state}`);
+}
+
+// ── Expenses ──────────────────────────────────────────────────────────────
+export function fetchExpenses(vendorId: string): Promise<ExpensesResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockExpenses());
+  return getJson<ExpensesResponse>(`/api/v2/vendor/expenses/${vendorId}`);
+}
+
+// ── Events ────────────────────────────────────────────────────────────────
+export function fetchEvents(vendorId: string, state = 'upcoming'): Promise<EventsResponse> {
+  if (USE_MOCKS) return Promise.resolve(getMockEvents());
+  return getJson<EventsResponse>(`/api/v2/vendor/events/${vendorId}?state=${state}`);
+}
+
+// ── Chat — JSON fallback (mock / non-streaming clients) ───────────────────
+export function sendChat(vendorId: string, message: string, history: {role:string;content:string}[], aiPrimer?: string): Promise<ChatResponse> {
+  if (USE_MOCKS) {
+    return Promise.resolve({ ok: true, reply: `Mock reply to: "${message}"`, tool_calls: [] });
+  }
+  const body: Record<string,unknown> = { vendor_id: vendorId, message, history };
+  if (aiPrimer) body.ai_primer = aiPrimer;
+  return postJson<ChatResponse>('/api/v2/vendor/chat', body);
+}
+
+// ── Chat — SSE streaming ──────────────────────────────────────────────────
+// Sends Accept: text/event-stream. Backend streams text_delta events
+// word-by-word, then a done event with tool_calls, refresh, contact, clarify.
+//
+// Calls onDelta(text) for each streamed word.
+// Calls onDone(result) when the stream closes with the full result.
+// Returns a cleanup function — call it to abort the stream.
+
+export type StreamDonePayload = {
+  tool_calls: string[];
+  refresh?: boolean;
+  contact?: ContactCard;
+  clarify?: ClarifyPayload;
+};
+
+export function streamChat(
+  vendorId: string,
+  message: string,
+  aiPrimer: string | undefined,
+  onDelta: (text: string) => void,
+  onDone: (result: StreamDonePayload) => void,
+  onError: (msg: string) => void,
+): () => void {
+  const controller = new AbortController();
+  const bodyPayload: Record<string, unknown> = { vendor_id: vendorId, message, history: [] };
+  if (aiPrimer) bodyPayload.ai_primer = aiPrimer;
+  const bodyStr = JSON.stringify(bodyPayload);
+
+  async function attemptStream(retried = false): Promise<void> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      ...getAuthHeader(),
+    };
+
+    const res = await fetch(`${API_BASE}/api/v2/vendor/chat`, {
+      method: 'POST',
+      headers,
+      body: bodyStr,
+      signal: controller.signal,
+    });
+
+    // ── Token refresh on 401 ───────────────────────────────────────────
+    if (res.status === 401 && !retried) {
+      try {
+        // Use getVendorSession() — reads from cookies when localStorage is
+        // blocked (iOS Safari Private Browsing) or cleared by ITP.
+        const session = getVendorSession();
+        if (!session?.refresh_token) throw new Error('no refresh token');
+
+        const refreshRes = await fetch(`${API_BASE}/api/v2/vendor/auth/refresh`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ refresh_token: session.refresh_token }),
+        });
+
+        if (refreshRes.ok) {
+          const data = await refreshRes.json().catch(() => null);
+          if (data?.access_token) {
+            setVendorSession({
+              ...session,
+              access_token:  data.access_token,
+              refresh_token: data.refresh_token || session.refresh_token,
+            });
+            return attemptStream(true);
+          }
+        }
+      } catch {
+        // Refresh failed — fall through to redirect
+      }
+      clearVendorSession();
+      if (typeof window !== 'undefined') window.location.href = '/vendor/login';
+      return;
+    }
+
+    if (!res.ok || !res.body) {
+      onError('Connection failed. Try again.');
+      return;
+    }
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer    = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') return;
+
+        try {
+          const event = JSON.parse(payload);
+          if (event.type === 'text_delta' && event.text) {
+            onDelta(event.text);
+          } else if (event.type === 'done') {
+            onDone({
+              tool_calls: event.tool_calls ?? [],
+              refresh:    event.refresh,
+              contact:    event.contact,
+              clarify:    event.clarify,
+            });
+          } else if (event.type === 'error') {
+            onError(event.message ?? 'Agent error. Try again.');
+          }
+        } catch {
+          // Malformed SSE line — skip
+        }
+      }
+    }
+  }
+
+  (async () => {
+    try {
+      await attemptStream();
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      onError('Network error. Try again.');
+    }
+  })();
+
+  return () => controller.abort();
+}
+
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+export function sendOtp(phone: string): Promise<SendOtpResponse> {
+  return postJson<SendOtpResponse>('/api/v2/vendor/auth/send-otp', { phone }, false);
+}
+
+export function verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse> {
+  return postJson<VerifyOtpResponse>('/api/v2/vendor/auth/verify-otp', { phone, otp, purpose: 'login' }, false);
+}
+
+export function pinStatus(phone: string): Promise<PinStatusResponse> {
+  return getJson<PinStatusResponse>(`/api/v2/auth/pin-status?phone=${encodeURIComponent(phone)}&role=vendor`, false);
+}
+
+export function pinLogin(phone: string, pin: string): Promise<PinLoginResponse> {
+  return postJson<PinLoginResponse>('/api/v2/vendor/auth/pin-login', { phone, pin }, false);
+}
+
+export function setPin(vendorId: string, pin: string): Promise<{ ok: boolean }> {
+  return postJson<{ ok: boolean }>('/api/v2/vendor/auth/set-pin', { vendor_id: vendorId, pin }, false);
+}
+
+export function forgotPin(phone: string): Promise<SendOtpResponse> {
+  return postJson<SendOtpResponse>('/api/v2/vendor/auth/forgot-pin', { phone }, false);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Block 1b — typed write functions (20 new exports)
+// ════════════════════════════════════════════════════════════════════
+
+import { deleteJson } from './_base';
+import type {
+  // Common
+  ApiErr,
+  LeadStateResponse,
+  // Leads
+  CreateLeadRequest, CreateLeadResponse,
+  UpdateLeadRequest, UpdateLeadResponse, LeadDetailResponse,
+  // Clients
+  CreateClientRequest, CreateClientResponse,
+  UpdateClientRequest, UpdateClientResponse,
+  // Invoices
+  CreateInvoiceRequest, CreateInvoiceResponse,
+  UpdateInvoiceRequest, UpdateInvoiceResponse,
+  RecordPaymentRequest, RecordPaymentResponse,
+  InvoicePdfResponse,
+  // Expenses
+  CreateExpenseRequest, CreateExpenseResponse,
+  UpdateExpenseRequest, UpdateExpenseResponse,
+  // Events
+  CreateEventRequest, CreateEventResponse,
+  UpdateEventRequest, UpdateEventResponse,
+  // Profile
+  UpdateMeRequest, UpdateMeResponse,
+  UpdateRoutingHandleRequest, UpdateRoutingHandleResponse,
+  UpdateInvoicePrefixRequest, UpdateInvoicePrefixResponse,
+  // Availability
+  AvailabilityResponse, BlockDateRequest, BlockDateResponse,
+  // Hot dates
+  HotDatesResponse,
+  // Shared row types for mocks
+  Lead, Client, Invoice, Expense, VendorEvent,
+} from '../types/vendor';
+import {
+  makeMockLead, makeMockClient, makeMockInvoice,
+  makeMockExpense, makeMockEvent,
+} from '../mocks/vendor';
+
+// ── Leads ─────────────────────────────────────────────────────────────────
+
+export function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, data: makeMockLead(body), deduped: false });
+  return postJson<CreateLeadResponse | ApiErr>('/api/v2/vendor/leads', body);
+}
+
+export function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const base = makeMockLead({ name: body.name ?? 'Mock Lead', ...body });
+    return Promise.resolve({ ok: true, lead: { ...base, id: leadId } });
+  }
+  return patchJson<UpdateLeadResponse | ApiErr>(`/api/v2/vendor/leads/${leadId}`, body);
+}
+
+export function fetchLeadDetail(leadId: string): Promise<LeadDetailResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const lead = makeMockLead({ name: 'Mock Lead Detail' });
+    return Promise.resolve({ ok: true, lead: { ...lead, id: leadId }, vendor_summary: null, conversation: [], invoices: [], events: [] });
+  }
+  return getJson<LeadDetailResponse | ApiErr>(`/api/v2/vendor/leads/${leadId}/detail`);
+}
+
+/** Convenience wrapper — sets state to 'lost'. */
+export function loseLead(leadId: string, reason?: string): Promise<LeadStateResponse | ApiErr> {
+  return patchLeadState(leadId, 'lost', reason);
+}
+
+// ── Clients ───────────────────────────────────────────────────────────────
+
+export function createClient(body: CreateClientRequest): Promise<CreateClientResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, client: makeMockClient(body), deduped: false, restored: false });
+  return postJson<CreateClientResponse | ApiErr>('/api/v2/vendor/clients', body);
+}
+
+export function updateClient(clientId: string, body: UpdateClientRequest): Promise<UpdateClientResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const base = makeMockClient({ name: body.name ?? 'Mock Client', ...body });
+    return Promise.resolve({ ok: true, client: { ...base, id: clientId } });
+  }
+  return patchJson<UpdateClientResponse | ApiErr>(`/api/v2/vendor/clients/${clientId}`, body);
+}
+
+/** Hard delete — leads.client_id and invoices.client_id are SET NULL on delete. */
+export function deleteClient(clientId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
+  return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/clients/${clientId}`);
+}
+
+// ── Invoices ──────────────────────────────────────────────────────────────
+
+export function createInvoice(body: CreateInvoiceRequest): Promise<CreateInvoiceResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, invoice: makeMockInvoice(body), pdf_pending: true });
+  return postJson<CreateInvoiceResponse | ApiErr>('/api/v2/vendor/invoices', body);
+}
+
+export function updateInvoice(invoiceId: string, body: UpdateInvoiceRequest): Promise<UpdateInvoiceResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const base = makeMockInvoice({ amount_total: body.amount_total ?? 0, ...body });
+    return Promise.resolve({ ok: true, invoice: { ...base, id: invoiceId } });
+  }
+  return patchJson<UpdateInvoiceResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}`, body);
+}
+
+export function recordPayment(invoiceId: string, body: RecordPaymentRequest): Promise<RecordPaymentResponse | ApiErr> {
+  if (USE_MOCKS) {
+    return Promise.resolve({ ok: true, invoice: null, payment_recorded: body.amount, new_state: 'advance_paid' });
+  }
+  return postJson<RecordPaymentResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/payments`, body);
+}
+
+export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse | ApiErr> {
+  if (USE_MOCKS) {
+    return Promise.resolve({ ok: true, pdf_url: 'https://example.com/mock.pdf', expires_in: 3600 });
+  }
+  return getJson<InvoicePdfResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/pdf`);
+}
+
+/** Cancel invoice — sets state to 'cancelled'. Alias: "delete" / "remove" per standing rule. */
+export { patchInvoiceCancel as cancelInvoice };
+function patchInvoiceCancel(invoiceId: string): Promise<{ ok: true; invoice: { id: string; state: string } } | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, invoice: { id: invoiceId, state: 'cancelled' } });
+  return patchJson<{ ok: true; invoice: { id: string; state: string } } | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/cancel`, {});
+}
+
+// ── Expenses ──────────────────────────────────────────────────────────────
+
+export function createExpense(body: CreateExpenseRequest): Promise<CreateExpenseResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, expense: makeMockExpense(body) });
+  return postJson<CreateExpenseResponse | ApiErr>('/api/v2/vendor/expenses', body);
+}
+
+export function updateExpense(expenseId: string, body: UpdateExpenseRequest): Promise<UpdateExpenseResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const base = makeMockExpense({ amount: body.amount ?? 0, ...body });
+    return Promise.resolve({ ok: true, expense: { ...base, id: expenseId } });
+  }
+  return patchJson<UpdateExpenseResponse | ApiErr>(`/api/v2/vendor/expenses/${expenseId}`, body);
+}
+
+export function deleteExpense(expenseId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
+  return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/expenses/${expenseId}`);
+}
+
+// ── Events ────────────────────────────────────────────────────────────────
+
+export function createEvent(body: CreateEventRequest): Promise<CreateEventResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, event: makeMockEvent(body) });
+  return postJson<CreateEventResponse | ApiErr>('/api/v2/vendor/events', body);
+}
+
+export function updateEvent(eventId: string, body: UpdateEventRequest): Promise<UpdateEventResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const base = makeMockEvent({ title: body.title ?? 'Event', event_date: body.event_date ?? new Date().toISOString().split('T')[0], ...body });
+    return Promise.resolve({ ok: true, event: { ...base, id: eventId } });
+  }
+  return patchJson<UpdateEventResponse | ApiErr>(`/api/v2/vendor/events/${eventId}`, body);
+}
+
+export function deleteEvent(eventId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
+  return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/events/${eventId}`);
+}
+
+export function cancelEvent(eventId: string): Promise<{ ok: true; event: { id: string; state: string } } | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, event: { id: eventId, state: 'cancelled' } });
+  return patchJson<{ ok: true; event: { id: string; state: string } } | ApiErr>(`/api/v2/vendor/events/${eventId}/cancel`, {});
+}
+
+// ── Profile ───────────────────────────────────────────────────────────────
+
+export function updateMe(body: UpdateMeRequest): Promise<UpdateMeResponse | ApiErr> {
+  if (USE_MOCKS) {
+    return Promise.resolve({
+      ok: true,
+      vendor: {
+        id: '2eb5d3fb-31eb-4b26-859a-cf10ae477d53',
+        name: 'Dev Jroy',
+        business_name: body.business_name ?? 'Frost Studio',
+        city: body.city ?? 'Delhi',
+        open_to_travel: body.open_to_travel ?? true,
+        upi_id: body.upi_id ?? null,
+        gstin: body.gstin ?? null,
+        aesthetic_tags: body.aesthetic_tags ?? [],
+        rate_min: body.rate_min ?? null,
+        rate_max: body.rate_max ?? null,
+        discover_preview: false,
+      },
+    });
+  }
+  return patchJson<UpdateMeResponse | ApiErr>('/api/v2/vendor/me', body);
+}
+
+export function updateRoutingHandle(body: UpdateRoutingHandleRequest): Promise<UpdateRoutingHandleResponse | ApiErr> {
+  if (USE_MOCKS) {
+    const h = body.routing_handle.toUpperCase();
+    return Promise.resolve({ ok: true, routing_handle: h, wa_link: `https://wa.me/917982159047?text=TDW-${h}` });
+  }
+  return patchJson<UpdateRoutingHandleResponse | ApiErr>('/api/v2/vendor/me/routing-handle', body);
+}
+
+export function updateInvoicePrefix(body: UpdateInvoicePrefixRequest): Promise<UpdateInvoicePrefixResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, prefix: body.prefix.toUpperCase(), current_counter: 16 });
+  return patchJson<UpdateInvoicePrefixResponse | ApiErr>('/api/v2/vendor/me/invoice-prefix', body);
+}
+
+// ── Availability ──────────────────────────────────────────────────────────
+
+export function fetchAvailability(vendorId: string, from?: string, to?: string): Promise<AvailabilityResponse | ApiErr> {
+  const params = new URLSearchParams();
+  if (from) params.set('from', from);
+  if (to)   params.set('to', to);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  if (USE_MOCKS) return Promise.resolve({ ok: true, blocks: [], total: 0 });
+  return getJson<AvailabilityResponse | ApiErr>(`/api/v2/vendor/availability/${vendorId}${qs}`);
+}
+
+export function blockDate(body: BlockDateRequest): Promise<BlockDateResponse | ApiErr> {
+  if (USE_MOCKS) {
+    return Promise.resolve({
+      ok: true,
+      block: { id: 'mock-block-' + Date.now(), blocked_date: body.blocked_date, reason: body.reason ?? null, created_at: new Date().toISOString() },
+    });
+  }
+  return postJson<BlockDateResponse | ApiErr>('/api/v2/vendor/availability', body);
+}
+
+export function unblockDate(blockId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
+  return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/availability/${blockId}`);
+}
+
+// ── Hot dates ─────────────────────────────────────────────────────────────
+
+export function fetchHotDates(): Promise<HotDatesResponse | ApiErr> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, dates: [], total: 0 });
+  return getJson<HotDatesResponse | ApiErr>('/api/v2/hot-dates');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Block 5 — Discover / Portfolio / Couture / Featured
+// ════════════════════════════════════════════════════════════════════
+
+import type {
+  PortfolioImage, PortfolioListResponse, UploadUrlResponse,
+  DiscoverStatus, CoutureSlot, CoutureAppointment, FeaturedSubmission,
+} from '../types/vendor';
+
+export function fetchUploadUrl(filename: string): Promise<UploadUrlResponse | ApiErr> {
+  return postJson<UploadUrlResponse | ApiErr>('/api/v2/vendor/portfolio/upload-url', { filename });
+}
+
+export function registerPortfolioImage(body: {
+  image_url: string; caption?: string; aesthetic_tags?: string[]; is_hero?: boolean; in_carousel?: boolean;
+}): Promise<{ ok: boolean; image: PortfolioImage } | ApiErr> {
+  return postJson('/api/v2/vendor/portfolio', body);
+}
+
+export function fetchPortfolio(vendorId: string, state = 'all'): Promise<PortfolioListResponse | ApiErr> {
+  return getJson<PortfolioListResponse | ApiErr>(`/api/v2/vendor/portfolio/${vendorId}?state=${state}`);
+}
+
+export function updatePortfolioImage(imageId: string, body: {
+  caption?: string; aesthetic_tags?: string[]; in_carousel?: boolean;
+}): Promise<{ ok: boolean; image: PortfolioImage } | ApiErr> {
+  return patchJson('/api/v2/vendor/portfolio/' + imageId, body);
+}
+
+export function setHeroImage(imageId: string): Promise<{ ok: boolean; image: PortfolioImage } | ApiErr> {
+  return patchJson('/api/v2/vendor/portfolio/' + imageId + '/hero', {});
+}
+
+export function deletePortfolioImage(imageId: string): Promise<{ ok: boolean; deleted: boolean } | ApiErr> {
+  return deleteJson('/api/v2/vendor/portfolio/' + imageId);
+}
+
+export function fetchDiscoverStatus(): Promise<DiscoverStatus | ApiErr> {
+  return getJson<DiscoverStatus | ApiErr>('/api/v2/vendor/discover/status');
+}
+
+export function submitDiscoverRequest(body: {
+  rate_min: number; rate_max: number; aesthetic_tags: string[];
+  pitch?: string; instagram_handle?: string; sample_image_ids?: string[];
+}): Promise<{ ok: boolean; request_id: string } | ApiErr> {
+  return postJson('/api/v2/vendor/discover/request', body);
+}
+
+export function withdrawDiscoverRequest(): Promise<{ ok: boolean } | ApiErr> {
+  return postJson('/api/v2/vendor/discover/withdraw', {});
+}
+
+export function fetchCoutureSlots(state = 'all'): Promise<{ ok: boolean; slots: CoutureSlot[]; total: number } | ApiErr> {
+  return getJson(`/api/v2/vendor/couture/availability?state=${state}`);
+}
+
+export function addCoutureSlot(body: { slot_at: string; duration_minutes?: number; fee_inr: number }): Promise<{ ok: boolean; slot: CoutureSlot } | ApiErr> {
+  return postJson('/api/v2/vendor/couture/availability', body);
+}
+
+export function removeCoutureSlot(slotId: string): Promise<{ ok: boolean; deleted: boolean } | ApiErr> {
+  return deleteJson('/api/v2/vendor/couture/availability/' + slotId);
+}
+
+export function fetchCoutureAppointments(state = 'all'): Promise<{ ok: boolean; appointments: CoutureAppointment[]; total: number } | ApiErr> {
+  return getJson(`/api/v2/vendor/couture/appointments?state=${state}`);
+}
+
+export function updateCoutureAppointment(id: string, body: { state?: string; notes?: string }): Promise<{ ok: boolean; appointment: CoutureAppointment } | ApiErr> {
+  return patchJson('/api/v2/vendor/couture/appointments/' + id, body);
+}
+
+export function fetchFeaturedSubmissions(): Promise<{ ok: boolean; submissions: FeaturedSubmission[]; total: number } | ApiErr> {
+  return getJson('/api/v2/vendor/featured');
+}
+
+export function submitFeatured(body: {
+  slot_kind: string; hero_image_id?: string; caption?: string;
+  proposed_start_date?: string; proposed_end_date?: string;
+}): Promise<{ ok: boolean; submission_id: string; amount_inr: number } | ApiErr> {
+  return postJson('/api/v2/vendor/featured/submit', body);
+}
+
+// ── Studio Suite (Block 6) ────────────────────────────────────────────────
+
+import type {
+  TeamMember, TeamTask, TeamMessage, TeamPayment, TeamPaymentBalance, StudioBriefing,
+} from '@/lib/vendor/types/vendor';
+
+export function fetchStudioBriefing(): Promise<{ ok: true } & StudioBriefing | ApiErr> {
+  return getJson('/api/v2/vendor/studio/briefing');
+}
+
+// Team
+export function fetchTeam(): Promise<{ ok: boolean; members: TeamMember[] } | ApiErr> {
+  return getJson('/api/v2/vendor/studio/team');
+}
+export function addTeamMember(body: {
+  name: string; role?: string; phone?: string; daily_rate_inr?: number; notes?: string;
+}): Promise<{ ok: boolean; member: TeamMember } | ApiErr> {
+  return postJson('/api/v2/vendor/studio/team', body);
+}
+export function updateTeamMember(memberId: string, body: {
+  name?: string; role?: string; phone?: string; daily_rate_inr?: number; notes?: string; active?: boolean;
+}): Promise<{ ok: boolean; member: TeamMember } | ApiErr> {
+  return patchJson('/api/v2/vendor/studio/team/' + memberId, body);
+}
+export function deleteTeamMember(memberId: string): Promise<{ ok: boolean; member: TeamMember } | ApiErr> {
+  return deleteJson('/api/v2/vendor/studio/team/' + memberId);
+}
+
+// Tasks
+export function fetchTasks(params?: { state?: string; assigned_to?: string }): Promise<{ ok: boolean; tasks: TeamTask[] } | ApiErr> {
+  const qs = new URLSearchParams(params as Record<string, string> ?? {}).toString();
+  return getJson('/api/v2/vendor/studio/tasks' + (qs ? '?' + qs : ''));
+}
+export function createTask(body: {
+  title: string; description?: string; assigned_to_member_id?: string;
+  linked_event_id?: string; due_date?: string; priority?: string;
+}): Promise<{ ok: boolean; task: TeamTask } | ApiErr> {
+  return postJson('/api/v2/vendor/studio/tasks', body);
+}
+export function updateTask(taskId: string, body: {
+  title?: string; description?: string; assigned_to_member_id?: string;
+  due_date?: string; priority?: string; state?: string;
+}): Promise<{ ok: boolean; task: TeamTask } | ApiErr> {
+  return patchJson('/api/v2/vendor/studio/tasks/' + taskId, body);
+}
+export function deleteTask(taskId: string): Promise<{ ok: boolean; task: TeamTask } | ApiErr> {
+  return deleteJson('/api/v2/vendor/studio/tasks/' + taskId);
+}
+
+// Messages
+export function fetchTeamMessages(): Promise<{ ok: boolean; messages: TeamMessage[] } | ApiErr> {
+  return getJson('/api/v2/vendor/studio/messages');
+}
+export function postTeamMessage(body: {
+  body: string; pinned?: boolean; linked_event_id?: string;
+}): Promise<{ ok: boolean; message: TeamMessage } | ApiErr> {
+  return postJson('/api/v2/vendor/studio/messages', body);
+}
+export function togglePinMessage(messageId: string): Promise<{ ok: boolean; message: TeamMessage } | ApiErr> {
+  return patchJson('/api/v2/vendor/studio/messages/' + messageId + '/pin', {});
+}
+
+// Payments
+export function fetchTeamPayments(params?: { state?: string; member_id?: string }): Promise<{ ok: boolean; payments: TeamPayment[] } | ApiErr> {
+  const qs = new URLSearchParams(params as Record<string, string> ?? {}).toString();
+  return getJson('/api/v2/vendor/studio/team-payments' + (qs ? '?' + qs : ''));
+}
+export function fetchPaymentBalance(): Promise<{ ok: boolean; balances: TeamPaymentBalance[]; total_owed_inr: number } | ApiErr> {
+  return getJson('/api/v2/vendor/studio/team-payments/balance');
+}
+export function logPayment(body: {
+  team_member_id: string; amount_inr: number; description?: string;
+  linked_event_id?: string; linked_task_id?: string; notes?: string;
+}): Promise<{ ok: boolean; payment: TeamPayment } | ApiErr> {
+  return postJson('/api/v2/vendor/studio/team-payments', body);
+}
+export function markPaymentPaid(paymentId: string, body: {
+  paid_via?: string; notes?: string;
+}): Promise<{ ok: boolean; payment: TeamPayment } | ApiErr> {
+  return patchJson('/api/v2/vendor/studio/team-payments/' + paymentId + '/mark-paid', body);
+}
+
+// ── Block 7: Schedules / Contracts / TDS ─────────────────────────────────
+import type { ScheduleMilestone, Contract, TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
+
+// Schedules
+export function fetchSchedule(invoiceId: string): Promise<{ ok: boolean; schedule: ScheduleMilestone[] } | ApiErr> {
+  return getJson(`/api/v2/vendor/invoices/${invoiceId}/schedule`);
+}
+export function createSchedule(invoiceId: string, milestones: Array<{ label: string; pct: number; due_date?: string }>): Promise<{ ok: boolean; schedule: ScheduleMilestone[] } | ApiErr> {
+  return postJson(`/api/v2/vendor/invoices/${invoiceId}/schedule`, { milestones });
+}
+export function markMilestonePaid(milestoneId: string, amount_paid: number): Promise<{ ok: boolean; milestone: ScheduleMilestone } | ApiErr> {
+  return postJson(`/api/v2/vendor/schedules/${milestoneId}/paid`, { amount_paid });
+}
+export function deleteSchedule(invoiceId: string): Promise<{ ok: boolean; deleted: boolean } | ApiErr> {
+  return deleteJson(`/api/v2/vendor/invoices/${invoiceId}/schedule`);
+}
+
+// Contracts
+export function fetchContracts(params?: { client_id?: string; state?: string }): Promise<{ ok: boolean; contracts: Contract[]; total: number } | ApiErr> {
+  const qs = params ? '?' + new URLSearchParams(params as Record<string,string>).toString() : '';
+  return getJson(`/api/v2/vendor/contracts${qs}`);
+}
+export function requestContractUpload(title: string, filename: string, clientId?: string): Promise<{ ok: boolean; contract_id: string; upload_url: string; expires_in: number } | ApiErr> {
+  return postJson('/api/v2/vendor/contracts/upload-url', { title, filename, client_id: clientId });
+}
+export function finalizeContract(contractId: string): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+  return postJson(`/api/v2/vendor/contracts/${contractId}/finalize`, {});
+}
+export function updateContract(contractId: string, body: { title?: string; notes?: string; state?: string; signed_at?: string }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+  return patchJson(`/api/v2/vendor/contracts/${contractId}`, body);
+}
+export function sendContract(contractId: string): Promise<{ ok: boolean; contract: Contract; download_url: string } | ApiErr> {
+  return postJson(`/api/v2/vendor/contracts/${contractId}/send`, {});
+}
+export function fetchContractDownload(contractId: string): Promise<{ ok: boolean; download_url: string; expires_in: number } | ApiErr> {
+  return getJson(`/api/v2/vendor/contracts/${contractId}/download`);
+}
+export function cancelContract(contractId: string): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+  return deleteJson(`/api/v2/vendor/contracts/${contractId}`);
+}
+
+// TDS
+export function fetchTdsEntries(vendorId: string, params?: { financial_year?: string; from?: string; to?: string }): Promise<{ ok: boolean; entries: TdsEntry[]; total: number } | ApiErr> {
+  const qs = params ? '?' + new URLSearchParams(params as Record<string,string>).toString() : '';
+  return getJson(`/api/v2/vendor/tds/${vendorId}${qs}`);
+}
+export function fetchTdsSummary(vendorId: string, financialYear: string): Promise<TdsSummary | ApiErr> {
+  return getJson(`/api/v2/vendor/tds/${vendorId}/summary?financial_year=${financialYear}`);
+}
+export function createTdsEntry(body: {
+  client_name: string; gross_amount: number; tds_rate: number;
+  deduction_date?: string; section?: string; financial_year?: string;
+  client_pan?: string; client_tan?: string; invoice_id?: string; certificate_no?: string; notes?: string;
+}): Promise<{ ok: boolean; entry: TdsEntry } | ApiErr> {
+  return postJson('/api/v2/vendor/tds', body);
+}
+export function updateTdsEntry(entryId: string, body: Partial<TdsEntry>): Promise<{ ok: boolean; entry: TdsEntry } | ApiErr> {
+  return patchJson(`/api/v2/vendor/tds/${entryId}`, body);
+}
+export function deleteTdsEntry(entryId: string): Promise<{ ok: boolean; deleted: boolean } | ApiErr> {
+  return deleteJson(`/api/v2/vendor/tds/${entryId}`);
+}
+export async function exportTdsCsv(vendorId: string, financialYear: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/v2/vendor/tds/${vendorId}/export?financial_year=${encodeURIComponent(financialYear)}`, {
+    headers: getAuthHeader(),
+  });
+  const blob = await res.blob();
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `tds-${financialYear}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}

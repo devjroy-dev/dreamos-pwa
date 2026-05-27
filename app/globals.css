@@ -666,3 +666,277 @@ body {
   transition: all 0.15s;
 }
 .theme-toggle:hover { background: var(--sidebar-hover); color: var(--sidebar-text-bright); }
+
+
+/* ── DreamAi Vendor CSS vars (Atelier dark theme) ── */
+@import "tailwindcss";
+
+@theme {
+  --color-bg-warm:    #1F1612;
+  --color-bg-deep:    #16100C;
+  --color-bg-discov:  #0C0907;
+  --color-ink:        #F0E6D2;
+  --color-ink-soft:   rgba(240,230,210,0.65);
+  --color-ink-mute:   rgba(240,230,210,0.45);
+  --color-brass:      #C9A84C;
+  --color-brass-warm: #E0BC6E;
+  --color-brass-deep: #B59548;
+  --color-brass-soft: rgba(201,168,76,0.22);
+  --color-brass-line: rgba(201,168,76,0.18);
+  --color-brass-faint:rgba(201,168,76,0.10);
+  --color-terracotta: #E07B5C;
+  --color-gold:       #C9A84C;
+  --color-cream:      #F0E6D2;
+  --color-warm:       #F4F1EC;
+  --color-muted:      #8C8480;
+  --color-border:     rgba(201,168,76,0.18);
+  --font-display:     "Italiana", "GFS Didot", Georgia, serif;
+  --font-script:      "Cormorant Garamond", Georgia, serif;
+  --font-body:        "DM Sans", system-ui, sans-serif;
+  --font-label:       "Jost", system-ui, sans-serif;
+  --ease-luxury:      cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Theme CSS variables ─────────────────────────────────────── */
+/* Dark mode defaults */
+:root {
+  --atelier-ink:         #F0E6D2;
+  --atelier-ink-soft:    rgba(240,230,210,0.65);
+  --atelier-ink-mute:    rgba(240,230,210,0.45);
+  --atelier-ink-dim:     rgba(240,230,210,0.25);
+  --atelier-card-bg:     linear-gradient(180deg, rgba(245,235,212,0.06) 0%, rgba(245,235,212,0.03) 100%);
+  --atelier-card-border: rgba(201,168,76,0.3);
+  --atelier-card-shadow: 0 12px 32px -16px rgba(0,0,0,0.5);
+  --atelier-header-bg:   rgba(31,22,18,0.78);
+  --atelier-sheet-bg:    linear-gradient(180deg, rgba(31,22,18,0.97) 0%, rgba(22,16,12,0.99) 100%);
+  --atelier-sheet-top:   rgba(31,22,18,0.97);
+  --atelier-sheet-bot:   rgba(22,16,12,0.99);
+  --atelier-sheet-border:rgba(201,168,76,0.32);
+  --atelier-input-bg:    rgba(245,235,212,0.04);
+  --atelier-input-border:rgba(201,168,76,0.28);
+  --atelier-overlay:     rgba(0,0,0,0.6);
+  --atelier-overlay-bg:  rgba(0,0,0,0.6);
+  --atelier-row-hover:   rgba(245,235,212,0.03);
+  --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(245,240,232,0.012) 1px, transparent 0);
+  --atelier-label:       #E0BC6E;
+  --atelier-accent-text: #C9A84C;
+}
+
+/* ── EDITORIAL PAPER — light mode
+   Exact palette from the Atelier Masterpiece vision:
+   #F5F2EE  bone white base — no yellow, no cream
+   #2A1A10  deep oxblood ink — legible, warm, not black
+   #8B4B37  Sabyasachi monogram accent — deep red-brown
+   #C9A84C  brass — same as always, used sparingly
+   ──────────────────────────────────────────────── */
+html.theme-light {
+  --atelier-ink:         #1A0F08;
+  --atelier-ink-soft:    rgba(26,15,8,0.82);
+  --atelier-ink-mute:    rgba(26,15,8,0.58);
+  --atelier-ink-dim:     rgba(26,15,8,0.38);
+  --atelier-card-bg:     linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(245,242,238,0.65) 100%);
+  --atelier-card-border: rgba(122,56,40,0.20);
+  --atelier-card-shadow: 0 2px 12px -4px rgba(42,26,16,0.08);
+  --atelier-header-bg:   rgba(245,242,238,0.94);
+  --atelier-sheet-bg:    linear-gradient(180deg, #F5F2EE 0%, #EDE8DF 100%);
+  --atelier-sheet-top:   #F5F2EE;
+  --atelier-sheet-bot:   #EDE8DF;
+  --atelier-sheet-border:rgba(122,56,40,0.25);
+  --atelier-input-bg:    rgba(26,15,8,0.04);
+  --atelier-input-border:rgba(122,56,40,0.22);
+  --atelier-overlay-bg:  rgba(26,15,8,0.55);
+  --atelier-overlay:     rgba(26,15,8,0.55);
+  --atelier-row-hover:   rgba(26,15,8,0.03);
+  --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(26,15,8,0.018) 1px, transparent 0);
+  --atelier-label:       #7A3828;
+  --atelier-accent-text: #7A3828;
+}
+
+/* ── Hub atmosphere — dark espresso / bone paper ─────────────── */
+html, body {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(201,168,76,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(122,56,40,0.06) 0%, transparent 60%),
+    linear-gradient(180deg, #1F1612 0%, #16100C 100%) !important;
+  color: #F0E6D2 !important;
+  background-attachment: fixed !important;
+}
+
+html.theme-light,
+html.theme-light body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"),
+    linear-gradient(160deg, #F7F4EF 0%, #F3EFE8 40%, #F5F1EB 70%, #F2EDE6 100%) !important;
+  color: #1A0F08 !important;
+  background-attachment: fixed !important;
+}
+
+/* ── Studio room ─────────────────────────────────────────────── */
+html.room-studio,
+body.room-studio {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(201,180,120,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 10% 100%, rgba(45,42,38,0.4) 0%, transparent 65%),
+    linear-gradient(180deg, #1B1A18 0%, #141311 100%) !important;
+}
+
+html.theme-light.room-studio,
+html.theme-light body.room-studio {
+  /* Slightly cooler bone — daylight through tall windows */
+  background: #F5F2EE !important;
+  color: #1A0F08 !important;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Paper grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background-image: var(--atelier-grain);
+  background-size: 3px 3px;
+  z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
+
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ── Atelier card ────────────────────────────────────────────── */
+.atelier-card {
+  background: var(--atelier-card-bg);
+  border: 0.5px solid var(--atelier-card-border);
+  border-radius: 4px;
+  box-shadow: var(--atelier-card-shadow), inset 0 1px 0 rgba(245,235,212,0.06);
+  position: relative;
+}
+
+html.theme-light .atelier-card {
+  box-shadow: var(--atelier-card-shadow), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+/* Corner ornaments */
+.atelier-card-ornate { position: relative; }
+.atelier-card-ornate::before,
+.atelier-card-ornate::after {
+  content: '';
+  position: absolute; width: 12px; height: 12px;
+  border: 0.5px solid var(--color-brass);
+  pointer-events: none;
+}
+.atelier-card-ornate::before { top: 4px; left: 4px; border-right: none; border-bottom: none; }
+.atelier-card-ornate::after  { bottom: 4px; right: 4px; border-left: none; border-top: none; }
+
+/* Brass-key FAB */
+.atelier-fab {
+  background: linear-gradient(180deg, #D4B86A 0%, #B59548 100%);
+  border: 0.5px solid #E0BC6E;
+  color: #1A120E;
+  box-shadow:
+    0 16px 36px -8px rgba(0,0,0,0.6),
+    0 4px 12px -2px rgba(201,168,76,0.4),
+    inset 0 1px 1px rgba(255,235,200,0.6);
+}
+
+html.theme-light .atelier-fab {
+  background: linear-gradient(180deg, #9B4E38 0%, #7A3828 100%) !important;
+  border-color: #9B4E38 !important;
+  color: #F5F2EE !important;
+  box-shadow:
+    0 8px 24px -6px rgba(122,56,40,0.50),
+    0 2px 6px -1px rgba(122,56,40,0.30),
+    inset 0 1px 1px rgba(255,200,180,0.25) !important;
+}
+
+html.theme-light .atelier-today-coin {
+  background: radial-gradient(circle at 40% 30%, #9B4E38 0%, #7A3828 70%, #5E2418 100%) !important;
+  color: #F5F2EE !important;
+  box-shadow: 0 2px 8px -2px rgba(122,56,40,0.45), inset 0 0.5px 1px rgba(255,200,180,0.25) !important;
+}
+
+/* Today coin */
+.atelier-today-coin {
+  background: radial-gradient(circle at 40% 30%, #E0BC6E 0%, #B59548 70%, #9F8038 100%);
+  color: #1A120E;
+  box-shadow: 0 2px 6px -1px rgba(201,168,76,0.4), inset 0 0.5px 1px rgba(255,235,200,0.4);
+}
+
+/* Hot dates ribbon */
+.atelier-hot-ribbon {
+  background: linear-gradient(90deg, rgba(122,56,40,0.06) 0%, rgba(201,168,76,0.09) 50%, rgba(122,56,40,0.06) 100%);
+  border-top: 0.5px solid rgba(201,168,76,0.28);
+  border-bottom: 0.5px solid rgba(201,168,76,0.28);
+}
+
+html.theme-light .atelier-hot-ribbon {
+  background: linear-gradient(90deg, rgba(122,56,40,0.06) 0%, rgba(122,56,40,0.10) 50%, rgba(122,56,40,0.06) 100%);
+  border-top: 0.5px solid rgba(122,56,40,0.22);
+  border-bottom: 0.5px solid rgba(122,56,40,0.22);
+}
+
+/* ── Header + Nav backdrop ───────────────────────────────────── */
+[data-atelier-backdrop="warm"] {
+  background: var(--atelier-header-bg) !important;
+}
+
+/* Discover always dark */
+
+
+/* ── Light mode — inline style overrides for components ─────────
+   Components use hardcoded rgba dark values for ink/borders.
+   These CSS overrides target the key structural elements by
+   data attributes so we don't need to touch 28 component files.
+   ──────────────────────────────────────────────────────────────── */
+
+/* All text inside the light-mode body reads as oxblood ink */
+html.theme-light *:not([data-atelier-backdrop="warm"]):not(.atelier-fab) {
+  color: inherit;
+}
+
+/* Ensure body text color cascades correctly */
+html.theme-light body,
+html.theme-light main,
+html.theme-light div,
+html.theme-light span,
+html.theme-light p,
+html.theme-light h1,
+html.theme-light h2,
+html.theme-light h3 {
+  color: inherit;
+}
+
+/* ── Safari iOS tap fix ──────────────────────────────────────── */
+*, *::before, *::after {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ── Light mode text force — catches components not using CSS vars ── */
+html.theme-light * {
+  --atelier-ink:         #2A1A10 !important;
+  --atelier-ink-soft:    rgba(26,15,8,0.82) !important;
+  --atelier-ink-mute:    rgba(26,15,8,0.58) !important;
+  --atelier-ink-dim:     rgba(26,15,8,0.38) !important;
+  --atelier-label:       #7A3828 !important;
+  --atelier-accent-text: #7A3828 !important;
+}
+
+/* Ensure body text is always dark in light mode */
+html.theme-light,
+html.theme-light body,
+html.theme-light div,
+html.theme-light span,
+html.theme-light p,
+html.theme-light h1, html.theme-light h2, html.theme-light h3,
+html.theme-light a {
+  color: #1A0F08;
+}
+
+

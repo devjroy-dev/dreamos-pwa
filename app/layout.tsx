@@ -26,6 +26,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Cormorant + DM Sans + Jost — existing surfaces */}
         {/* Italianno — Sanctuary greeting (copperplate script) */}
+        {/* Italiana — dreamai vendor display font */}
+        {/* Italiana — dreamai vendor display font */}
         {/* Fraunces — countdown number + prose (variable optical size) */}
         {/* JetBrains Mono — all micro-labels, dates, hints */}
         <link
