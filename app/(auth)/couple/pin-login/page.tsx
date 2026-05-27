@@ -173,14 +173,21 @@ export default function CouplePinLoginPage() {
             <div style={{ display:'flex',justifyContent:'center',gap:16,marginBottom:32,animation: shaking ? 'pinShake 320ms cubic-bezier(0.22,1,0.36,1)' : 'none' }}>
               {pin.map((d, i) => (
                 <input key={i} ref={el => { pinRefs.current[i] = el; }}
-                  type='tel' maxLength={1} value={d}
-                  autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                  type='tel' inputMode='numeric' maxLength={1} value={d}
+                  autoComplete='one-time-code'
                   onChange={e => handleInput(i, e.target.value)}
                   onKeyDown={e => { if (e.key === 'Backspace') handleBackspace(i, d); }}
                   style={inputStyle} disabled={loading} />
               ))}
             </div>
             {loading && <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:20 }}>Verifying…</p>}
+            {/* Hidden inputs — iOS Keychain + Android autofill see these */}
+            <input type="text" name="username" autoComplete="username"
+              value={(() => { try { const s = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}'); return s?.phone || ''; } catch { return ''; } })()}
+              readOnly style={{ position:'absolute', opacity:0, pointerEvents:'none', width:1, height:1, top:0, left:0 }} />
+            <input type="password" name="password" autoComplete="current-password"
+              value={pin.join('')} readOnly
+              style={{ position:'absolute', opacity:0, pointerEvents:'none', width:1, height:1, top:0, left:0 }} />
             <p onClick={() => { localStorage.removeItem('couple_web_session'); localStorage.removeItem('couple_session'); router.replace('/'); }}
               style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(248,247,245,0.25)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
             >Forgot PIN? Sign in again</p>
