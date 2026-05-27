@@ -442,7 +442,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                     {m.invitee_name?.split(' ')[0]}
                   </div>
                   {/* Active candle dot */}
-                  {m.state==='active'&&(
+                  {m.status==='active'&&(
                     <div className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 5px ${signal}`}}/>
                   )}
                 </div>
