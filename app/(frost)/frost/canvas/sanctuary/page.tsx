@@ -67,7 +67,6 @@ const CSS=`
 .d-cursor{animation:dcursor 1s ease-in-out infinite;}
 .no-scroll::-webkit-scrollbar{display:none;}
 .no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
-html,body{overscroll-behavior:none;}
 `;
 
 const SLICES=[
@@ -858,7 +857,7 @@ export default function SanctuaryPage() {
   },[]);
   const onTouchEnd = useCallback((e:React.TouchEvent)=>{
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if(dy > 120) closeRoom();
+    if(dy > 80) closeRoom();
   },[closeRoom]);
 
   // ── Dream Ai send ─────────────────────────────────────────────────────────
@@ -937,7 +936,7 @@ export default function SanctuaryPage() {
 
   // ── SANCTUARY ─────────────────────────────────────────────────────────────
   return (
-    <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any,overscrollBehavior:'none'}}>
+    <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any}}>
 
       {/* Grain */}
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>
@@ -980,23 +979,23 @@ export default function SanctuaryPage() {
       </div>
 
       {/* Hero */}
-      <div style={{position:'relative',zIndex:5,padding:journeyOpen?'6px 18px 2px':'10px 18px 6px',flexShrink:0,transition:`padding 480ms ${EASE}`}}>
+      <div style={{position:'relative',zIndex:5,padding:journeyOpen?'8px 18px 4px':'14px 18px 10px',flexShrink:0,transition:`padding 480ms ${EASE}`}}>
         {!journeyOpen&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>}
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?30:42,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?38:58,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
           Hello, <span style={{color:accent}}>{name}</span>.
         </div>
         {!journeyOpen&&<div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>}
         <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?38:62,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
+          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?46:80,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
           <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.44em',textTransform:'uppercase' as any,color:accent,opacity:.5}}>mornings</div>
         </div>
         {!journeyOpen&&<>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,lineHeight:1.55,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,lineHeight:1.62,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
             {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
           </div>
           <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{dateStamp}</div>
           {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.16em',textTransform:'uppercase' as any,color:signal}}>↑ {sinceYes} days since you said yes</div>}
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:11,lineHeight:1.5,marginTop:6,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,lineHeight:1.55,marginTop:8,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
         </>}
       </div>
 
@@ -1043,11 +1042,7 @@ export default function SanctuaryPage() {
           className={closing ? 'bloom-exit' : 'bloom-enter'}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
-          onTouchMove={(e)=>{ /* prevent pull-to-refresh on the bloom layer */ e.stopPropagation(); }}
-          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden',
-            overscrollBehavior:'contain',
-            touchAction:'pan-y',
-          }}
+          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden'}}
         >
           {/* Room top bar */}
           <div style={{position:'relative',zIndex:10,background:roomTopBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderBottom:`0.5px solid ${roomLine}`,paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',paddingBottom:12,paddingLeft:18,paddingRight:18,display:'flex',alignItems:'center',flexShrink:0}}>
