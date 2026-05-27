@@ -45,7 +45,7 @@ function extractDraft(text: string): string {
   return text;
 }
 
-function AiMessageText({ text, T, F }: { text: string; T: ReturnType<typeof import('@/lib/ThemeContext').useT>; F: Record<string, string> }) {
+function AiMessageText({ text, T, F }: { text: string; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>; F: Record<string, string> }) {
   const [copied, setCopied] = useState(false);
   const hasDraft = isDraft(text);
   const draftText = hasDraft ? extractDraft(text) : '';
