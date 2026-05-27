@@ -812,6 +812,17 @@ export default function SanctuaryPage() {
   const [blooming,   setBlooming]     = useState(false);
   const [closing,    setClosing]      = useState(false);
   const touchStartY = useRef(0);
+  const bloomRef    = useRef<HTMLDivElement>(null);
+
+  // Attach non-passive touchmove to bloom div to block pull-to-refresh
+  // Only active when a room is open. Sanctuary root is unaffected.
+  useEffect(()=>{
+    const el = bloomRef.current;
+    if(!el || !activeRoom) return;
+    const block = (e: TouchEvent) => { e.preventDefault(); };
+    el.addEventListener('touchmove', block, { passive: false });
+    return () => el.removeEventListener('touchmove', block);
+  }, [activeRoom]);
 
   // Dream Ai state
   const [msgs,    setMsgs]    = useState<UIMsg[]>([]);
@@ -831,19 +842,6 @@ export default function SanctuaryPage() {
     const DOM=['','First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth','Ninth','Tenth','Eleventh','Twelfth','Thirteenth','Fourteenth','Fifteenth','Sixteenth','Seventeenth','Eighteenth','Nineteenth','Twentieth','Twenty-First','Twenty-Second','Twenty-Third','Twenty-Fourth','Twenty-Fifth','Twenty-Sixth','Twenty-Seventh','Twenty-Eighth','Twenty-Ninth','Thirtieth','Thirty-First'];
     setDateStamp(`${DOM[now.getDate()]||now.getDate()} of ${now.toLocaleDateString('en-IN',{month:'long'})} · ${now.getFullYear()}`);
   },[]);
-
-  // Prevent browser pull-to-refresh when a bloom room is open
-  // Chrome requires passive:false and actual preventDefault() on touchmove
-  useEffect(()=>{
-    if(!activeRoom) return;
-    const handler = (e: TouchEvent) => {
-      // Only prevent if touch started near top (pull-to-refresh zone)
-      // or if we're in the bloom layer
-      e.preventDefault();
-    };
-    document.addEventListener('touchmove', handler, { passive: false });
-    return () => document.removeEventListener('touchmove', handler);
-  }, [activeRoom]);
 
   // Scroll dream to bottom
   useEffect(()=>{ if(scrollRef.current)scrollRef.current.scrollTop=scrollRef.current.scrollHeight; },[msgs]);
@@ -998,7 +996,7 @@ export default function SanctuaryPage() {
         {!journeyOpen&&<div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>}
         <div style={{display:'flex',alignItems:'baseline',gap:8}}>
           <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?34:48,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
-          <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.44em',textTransform:'uppercase' as any,color:accent,opacity:.5}}>mornings</div>
+          <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:accent,opacity:.6}}>mornings to I do</div>
         </div>
         {!journeyOpen&&<>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,lineHeight:1.55,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
@@ -1053,10 +1051,9 @@ export default function SanctuaryPage() {
           className={closing ? 'bloom-exit' : 'bloom-enter'}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
-          onTouchMove={(e)=>{ e.preventDefault(); }}
+          ref={bloomRef}
           style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden',
-            overscrollBehavior:'contain',
-            touchAction:'pan-y',
+            overscrollBehavior:'none',
           }}
         >
           {/* Room top bar */}
