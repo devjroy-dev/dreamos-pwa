@@ -13,7 +13,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Settings, LogOut } from 'lucide-react';
-import { useVendorMode, type VendorMode } from '../../app/(vendor)/layout';
+type VendorMode = 'BUSINESS' | 'DISCOVERY' | 'DREAMAI';
+const useVendorMode = () => ({ mode: 'BUSINESS' as VendorMode, setMode: (_m: VendorMode) => {} });
 import { COLORS, FONTS, EASE, initials } from './tokens';
 import { getVendorSession } from '../../lib/frost-api/_base';
 
