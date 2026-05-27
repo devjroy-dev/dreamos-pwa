@@ -1,4 +1,3 @@
-import React from 'react';
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -123,7 +122,7 @@ export default function VendorPinLoginPage() {
     }
   };
 
-  const inputStyle: React.CSSProperties = {
+  const inputStyle: { [key: string]: string | number } = {
     width: 52, height: 62, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD, fontFamily: "'DM Sans', sans-serif",
     fontWeight: 400, fontSize: 28, color: '#F8F7F5', textAlign: 'center',
