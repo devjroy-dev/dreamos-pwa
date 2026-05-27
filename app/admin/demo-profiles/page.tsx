@@ -1,714 +1,353 @@
 'use client';
-// app/admin/demo-profiles/page.tsx
 import React from 'react';
-// Demo profile management — create, track, extend, deactivate
+// app/admin/demo-profiles/page.tsx
+// Demo system admin UI — three sections:
+//   1. Demo Vendors — create, list, copy link, deactivate
+//   2. Demo Leads Inbox — view enquiries, mark as relayed
+//   3. Bride Muse Pool — upload/manage curated images
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect } from '../_components/AdminUI';
 
 const BACKEND = 'https://dream-os-production.up.railway.app';
+const DEMO_UUID = 'bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb';
 
 const CATEGORIES = [
-  'photographer', 'videographer', 'makeup_artist', 'mehendi_artist',
-  'bridal_wear', 'groom_wear', 'jewellery', 'venue', 'caterer',
-  'decorator', 'choreographer', 'dj', 'band', 'pandit', 'invitation_designer', 'event_manager'
+  'photographer','videographer','makeup_artist','mehendi_artist',
+  'bridal_wear','groom_wear','jewellery','venue','caterer',
+  'decorator','choreographer','dj','band','pandit','invitation_designer','event_manager',
 ];
-
 const CITIES = [
-  'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata',
-  'Pune', 'Jaipur', 'Ahmedabad', 'Chandigarh', 'Lucknow', 'Surat',
-  'Kochi', 'Goa', 'Udaipur', 'Agra', 'Amritsar', 'Gurugram', 'Noida'
+  'Delhi','Mumbai','Bangalore','Hyderabad','Chennai','Kolkata',
+  'Pune','Jaipur','Ahmedabad','Chandigarh','Lucknow','Surat',
+  'Kochi','Goa','Udaipur','Agra','Amritsar','Gurugram','Noida',
 ];
 
-interface DemoProfile {
-  id: string;
-  name: string;
-  demo_handle: string;
-  demo_instagram?: string;
-  demo_active: boolean;
-  demo_expires_at: string;
-  demo_created_at: string;
-  demo_notes?: string;
-  category: string;
-  city: string;
-  vendor_portfolio: Array<{ image_url: string; is_hero: boolean; approval_state: string }>;
-  views: Record<string, number>;
-  last_viewed_at: string | null;
-  status_label: 'not_opened' | 'opened_landing' | 'entered_studio' | 'used_dreamai';
-  demo_link: string;
-  dm_message: string;
+interface DemoVendor {
+  id: string; ig_handle: string; display_name: string;
+  category: string; city: string; whatsapp_phone: string | null;
+  active: boolean; lead_count: number; photo_count: number;
+  demo_url: string; created_at: string;
+}
+interface DemoLead {
+  id: string; demo_vendor_handle: string;
+  bride_name: string; bride_phone: string;
+  bride_ig_handle: string | null; bride_email: string | null;
+  bride_wedding_date: string | null; bride_wedding_city: string | null;
+  otp_verified: boolean; notified_vendor: boolean; admin_notified: boolean;
+  created_at: string;
+}
+interface MuseImage {
+  id: string; image_url: string; tags: string[];
+  caption: string | null; display_order: number; active: boolean;
 }
 
-function getStatusLabel(label: string): string {
-  switch (label) {
-    case 'not_opened':     return 'NOT OPENED';
-    case 'opened_landing': return 'OPENED LANDING';
-    case 'entered_studio': return 'ENTERED STUDIO';
-    case 'used_dreamai':   return 'USED DREAMAI';
-    default:               return 'NOT OPENED';
-  }
+function fmt(d: string) {
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+}
+function catLabel(c: string) {
+  return c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-function getStatusColor(label: string): string {
-  switch (label) {
-    case 'not_opened':     return '#888580';
-    case 'opened_landing': return '#C9A84C';
-    case 'entered_studio': return '#8BC4A8';
-    case 'used_dreamai':   return '#4CAF7E';
-    default:               return '#888580';
-  }
+async function adminFetch(path: string, opts?: RequestInit) {
+  const pw = (typeof window !== 'undefined' ? localStorage.getItem('tdw_admin_pw') : '') || '';
+  return fetch(`${BACKEND}${path}`, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': pw, ...(opts?.headers || {}) },
+  }).then(r => r.json());
 }
 
-function timeUntilExpiry(expiresAt: string): { label: string; color: string } {
-  const ms = new Date(expiresAt).getTime() - Date.now();
-  if (ms <= 0) return { label: 'Expired', color: '#888580' };
-  const hrs = ms / (1000 * 60 * 60);
-  if (hrs < 2)  return { label: `${Math.round(hrs * 60)}m left`, color: '#E07070' };
-  if (hrs < 12) return { label: `${Math.round(hrs)}h left`, color: '#C9A84C' };
-  return { label: `${Math.round(hrs)}h left`, color: '#8BC4A8' };
+async function uploadToDemo(file: File): Promise<{ image_url: string; cloudinary_id: string }> {
+  const pw = (typeof window !== 'undefined' ? localStorage.getItem('tdw_admin_pw') : '') || '';
+  const sign = await fetch(`${BACKEND}/api/v2/admin/demo/cloudinary-sign`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+    body: JSON.stringify({ filename: file.name }),
+  }).then(r => r.json());
+  const fd = new FormData();
+  Object.entries(sign.params as Record<string, string>).forEach(([k, v]) => fd.append(k, v));
+  fd.append('file', file);
+  const up = await fetch(sign.upload_url, { method: 'POST', body: fd });
+  if (!up.ok) throw new Error('Upload failed');
+  const d = await up.json();
+  return { image_url: d.secure_url, cloudinary_id: d.public_id };
 }
 
-// ── Cloudinary upload ────────────────────────────────────────────────────────
-async function uploadToCloudinary(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', 'dream_wedding_uploads');
-  const res = await fetch('https://api.cloudinary.com/v1_1/dccso5ljv/image/upload', {
-    method: 'POST',
-    body: formData
-  });
-  const data = await res.json();
-  if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
-  return data.secure_url;
-}
-
-// ── Tokens ────────────────────────────────────────────────────────────────────
-const BG   = '#0A0908';
-const GOLD = '#C9A84C';
-const INK  = '#F5F0E8';
-const SOFT = 'rgba(245,240,232,0.45)';
-const B    = 'rgba(201,168,76,0.15)';
-const CARD_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '0.5px solid rgba(201,168,76,0.15)',
-  borderRadius: 12,
-  padding: '20px',
-};
-const INPUT_STYLE: React.CSSProperties = {
-  width: '100%',
-  background: 'rgba(255,255,255,0.05)',
-  border: '0.5px solid rgba(201,168,76,0.2)',
-  borderRadius: 8,
-  padding: '10px 12px',
-  color: INK,
-  fontFamily: '"DM Sans", sans-serif',
-  fontWeight: 300,
-  fontSize: 13,
-  outline: 'none',
-  boxSizing: 'border-box',
-};
-const SELECT_STYLE: React.CSSProperties = {
-  ...INPUT_STYLE,
-  appearance: 'none',
-};
-const LABEL_STYLE: React.CSSProperties = {
-  fontFamily: '"Jost", sans-serif',
-  fontWeight: 200,
-  fontSize: 9,
-  letterSpacing: '0.14em',
-  color: 'rgba(201,168,76,0.7)',
-  textTransform: 'uppercase',
-  display: 'block',
-  marginBottom: 6,
-};
-const BTN: React.CSSProperties = {
-  padding: '9px 18px',
-  borderRadius: 24,
-  border: 'none',
-  fontFamily: '"Jost", sans-serif',
-  fontWeight: 300,
-  fontSize: 10,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-};
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onDone, 2400);
-    return () => clearTimeout(t);
-  }, [onDone]);
-  return (
-    <div style={{
-      position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-      background: 'rgba(12,8,6,0.95)', border: `0.5px solid ${B}`,
-      borderRadius: 32, padding: '10px 22px',
-      fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 11,
-      letterSpacing: '0.1em', color: INK, zIndex: 9999,
-      backdropFilter: 'blur(12px)', pointerEvents: 'none'
-    }}>
-      {msg}
-    </div>
-  );
-}
-
-// ── Profile card ──────────────────────────────────────────────────────────────
-function ProfileCard({
-  profile, adminPw, onRefresh, onToast
-}: {
-  profile: DemoProfile;
-  adminPw: string;
-  onRefresh: () => void;
-  onToast: (m: string) => void;
-}) {
-  const hero = profile.vendor_portfolio.find(p => p.is_hero) ?? profile.vendor_portfolio[0];
-  const expiry = timeUntilExpiry(profile.demo_expires_at);
-  const statusColor = getStatusColor(profile.status_label);
-  const statusText  = getStatusLabel(profile.status_label);
-  const isExpired   = !profile.demo_active || new Date(profile.demo_expires_at) <= new Date();
-  const [busy, setBusy] = useState(false);
-
-  async function copyDM() {
-    await navigator.clipboard.writeText(profile.dm_message);
-    onToast('DM copied ✦');
-  }
-
-  async function copyLinks() {
-    const links = `Studio: ${profile.demo_link}\nBride demo: https://demo.thedreamwedding.in/bride`;
-    await navigator.clipboard.writeText(links);
-    onToast('Links copied ✦');
-  }
-
-  async function extend() {
-    setBusy(true);
-    await fetch(`${BACKEND}/api/v2/admin/demo/${profile.id}/extend`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
-      body: JSON.stringify({ hours: 48 })
-    });
-    setBusy(false);
-    onRefresh();
-    onToast('Extended 48hrs ✦');
-  }
-
-  async function deactivate() {
-    if (!confirm(`Deactivate demo for ${profile.name}?`)) return;
-    setBusy(true);
-    await fetch(`${BACKEND}/api/v2/admin/demo/${profile.id}`, {
-      method: 'DELETE',
-      headers: { 'x-admin-password': adminPw }
-    });
-    setBusy(false);
-    onRefresh();
-    onToast('Deactivated');
-  }
-
-  async function reactivate() {
-    setBusy(true);
-    await fetch(`${BACKEND}/api/v2/admin/demo/${profile.id}/extend`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
-      body: JSON.stringify({ hours: 48 })
-    });
-    setBusy(false);
-    onRefresh();
-    onToast('Reactivated — 48hrs added ✦');
-  }
-
-  async function hardDelete() {
-    if (!confirm(`Permanently delete demo for ${profile.name}? This cannot be undone.`)) return;
-    setBusy(true);
-    await fetch(`${BACKEND}/api/v2/admin/demo/${profile.id}/delete`, {
-      method: 'DELETE',
-      headers: { 'x-admin-password': adminPw }
-    });
-    setBusy(false);
-    onRefresh();
-    onToast('Deleted permanently');
-  }
-
-  return (
-    <div style={{
-      ...CARD_STYLE,
-      opacity: isExpired ? 0.55 : 1,
-      display: 'flex', gap: 16, alignItems: 'flex-start'
-    }}>
-      {/* Hero thumbnail */}
-      {hero && (
-        <div style={{
-          width: 72, height: 72, borderRadius: 8, flexShrink: 0,
-          backgroundImage: `url(${hero.image_url})`,
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          border: '0.5px solid rgba(201,168,76,0.2)'
-        }} />
-      )}
-
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <span style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 17, color: INK }}>
-            {profile.name}
-          </span>
-          <span style={{
-            fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8,
-            letterSpacing: '0.16em', color: statusColor, textTransform: 'uppercase',
-            border: `0.5px solid ${statusColor}30`, borderRadius: 12,
-            padding: '2px 8px'
-          }}>
-            {statusText}
-          </span>
-        </div>
-
-        <p style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.12em', color: SOFT, textTransform: 'uppercase', margin: '0 0 8px' }}>
-          {profile.category} · {profile.city}
-          {profile.demo_instagram && ` · @${profile.demo_instagram}`}
-        </p>
-
-        {/* View counts */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
-          {[
-            { key: 'landing_viewed',  label: 'Opens' },
-            { key: 'studio_entered',  label: 'Studio' },
-            { key: 'chat_started',    label: 'Chats' },
-            { key: 'cta_tapped',      label: 'CTA' },
-          ].map(({ key, label }) => (
-            <div key={key} style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 18, color: (profile.views[key] || 0) > 0 ? GOLD : SOFT }}>
-                {profile.views[key] || 0}
-              </div>
-              <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.12em', color: SOFT, textTransform: 'uppercase' }}>
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Link + expiry */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-          <a href={profile.demo_link} target="_blank" rel="noreferrer" style={{
-            fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 10,
-            color: GOLD, textDecoration: 'none', letterSpacing: '0.08em'
-          }}>
-            {profile.demo_link.replace('https://', '')} ↗
-          </a>
-          <span style={{
-            fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9,
-            color: expiry.color, letterSpacing: '0.1em', textTransform: 'uppercase'
-          }}>
-            {expiry.label}
-          </span>
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={copyDM} style={{ ...BTN, background: 'rgba(201,168,76,0.12)', color: GOLD, border: `0.5px solid ${B}` }}>
-            Copy DM
-          </button>
-          <button onClick={copyLinks} style={{ ...BTN, background: 'rgba(255,255,255,0.05)', color: SOFT, border: '0.5px solid rgba(255,255,255,0.1)' }}>
-            Copy Links
-          </button>
-          {!isExpired ? (
-            <>
-              <button onClick={extend} disabled={busy} style={{ ...BTN, background: 'rgba(255,255,255,0.05)', color: SOFT, border: '0.5px solid rgba(255,255,255,0.1)' }}>
-                Extend 48h
-              </button>
-              <button onClick={deactivate} disabled={busy} style={{ ...BTN, background: 'rgba(255,100,100,0.08)', color: '#E07070', border: '0.5px solid rgba(224,112,112,0.2)' }}>
-                Deactivate
-              </button>
-              <button onClick={hardDelete} disabled={busy} style={{ ...BTN, background: 'rgba(200,50,50,0.1)', color: '#C84646', border: '0.5px solid rgba(200,50,50,0.25)' }}>
-                Delete
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={reactivate} disabled={busy} style={{ ...BTN, background: 'rgba(201,168,76,0.12)', color: GOLD, border: `0.5px solid ${B}` }}>
-                Reactivate
-              </button>
-              <button onClick={hardDelete} disabled={busy} style={{ ...BTN, background: 'rgba(255,100,100,0.08)', color: '#E07070', border: '0.5px solid rgba(224,112,112,0.2)' }}>
-                Delete
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Admin notes */}
-        {profile.demo_notes && (
-          <p style={{ marginTop: 10, fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: 'rgba(245,240,232,0.3)', fontStyle: 'italic' }}>
-            {profile.demo_notes}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 export default function DemoProfilesPage() {
-  const router = useRouter();
-  const [adminPw, setAdminPw] = useState('');
-  const [authed, setAuthed] = useState(false);
-  const [active, setActive] = useState<DemoProfile[]>([]);
-  const [expired, setExpired] = useState<DemoProfile[]>([]);
-  const [loadingList, setLoadingList] = useState(false);
-  const [toast, setToast] = useState('');
-  const [createdResult, setCreatedResult] = useState<null | { studio_link: string; bride_link: string; dm_message: string; expires_at: string }>(null);
+  const [tab, setTab] = useState<'vendors' | 'leads' | 'muse'>('vendors');
+  const [vendors,  setVendors]  = useState<DemoVendor[]>([]);
+  const [leads,    setLeads]    = useState<DemoLead[]>([]);
+  const [muse,     setMuse]     = useState<MuseImage[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [toast,    setToast]    = useState('');
+  const [toastErr, setToastErr] = useState(false);
+  const [copied,   setCopied]   = useState('');
 
-  // Create form state
-  const [form, setForm] = useState({
-    name: '',
-    demo_handle: '',
-    instagram_handle: '',
-    vendor_phone: '',
-    category: '',
-    city: '',
-    about: '',
-    expires_hours: 48,
-    notes: '',
-    photo_urls: ['', '', '', '', '', ''] as string[],
-  });
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState('');
+  // Create form
+  const [showCreate,  setShowCreate]  = useState(false);
+  const [igHandle,    setIgHandle]    = useState('');
+  const [dispName,    setDispName]    = useState('');
+  const [category,    setCategory]    = useState('');
+  const [city,        setCity]        = useState('');
+  const [waPhone,     setWaPhone]     = useState('');
+  const [about,       setAbout]       = useState('');
+  const [rateDisplay, setRateDisplay] = useState('');
+  const [photos,      setPhotos]      = useState<Array<{ url: string; cloudinary_id: string; is_hero: boolean }>>([]);
+  const [uploading,   setUploading]   = useState(false);
+  const [creating,    setCreating]    = useState(false);
 
-  // Auth check from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem('admin_session');
-    if (stored) {
-      try {
-        const { password } = JSON.parse(stored);
-        if (password) { setAdminPw(password); setAuthed(true); }
-      } catch (_e) {}
-    }
+  // Muse form
+  const [museTags,      setMuseTags]      = useState('');
+  const [museCaption,   setMuseCaption]   = useState('');
+  const [museUploading, setMuseUploading] = useState(false);
+
+  const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [v, l, m] = await Promise.all([
+        adminFetch('/api/v2/admin/demo/vendors'),
+        adminFetch('/api/v2/admin/demo/leads'),
+        adminFetch('/api/v2/admin/demo/muse-pool'),
+      ]);
+      if (v.ok) setVendors(v.vendors || []);
+      if (l.ok) setLeads(l.leads || []);
+      if (m.ok) setMuse(m.images || []);
+    } catch { showToast('Failed to load.', true); }
+    setLoading(false);
   }, []);
 
-  const loadProfiles = useCallback(async () => {
-    if (!adminPw) return;
-    setLoadingList(true);
+  useEffect(() => { load(); }, [load]);
+
+  const copy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text).then(() => { setCopied(id); setTimeout(() => setCopied(''), 2000); });
+  };
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return;
+    setUploading(true);
     try {
-      const res = await fetch(`${BACKEND}/api/v2/admin/demo`, {
-        headers: { 'x-admin-password': adminPw }
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setActive(data.active || []);
-        setExpired(data.expired || []);
-        setAuthed(true);
-      }
-    } catch (_e) {}
-    setLoadingList(false);
-  }, [adminPw]);
-
-  useEffect(() => {
-    if (authed) loadProfiles();
-  }, [authed, loadProfiles]);
-
-  function handleLogin(pw: string) {
-    localStorage.setItem('admin_session', JSON.stringify({ password: pw }));
-    setAdminPw(pw);
-    setAuthed(true);
-  }
-
-  function setPhotoUrl(i: number, val: string) {
-    const next = [...form.photo_urls];
-    next[i] = val;
-    setForm(f => ({ ...f, photo_urls: next }));
+      const r = await uploadToDemo(file);
+      setPhotos(prev => [...prev, { url: r.image_url, cloudinary_id: r.cloudinary_id, is_hero: prev.length === 0 }]);
+      showToast(`Photo ${photos.length + 1} uploaded ✓`);
+    } catch (err: any) { showToast('Upload failed: ' + err.message, true); }
+    setUploading(false);
   }
 
   async function handleCreate() {
-    setCreateError('');
-    const photos = form.photo_urls.filter(u => u.trim());
-    if (!form.name || !form.demo_handle || !form.category || !form.city) {
-      setCreateError('Name, handle, category, and city are required.');
-      return;
-    }
-    if (!/^[a-z0-9-]+$/.test(form.demo_handle.toLowerCase())) {
-      setCreateError('Handle must be lowercase letters, numbers, hyphens only.');
-      return;
-    }
-    if (photos.length < 3) {
-      setCreateError('Add at least 3 photo URLs.');
-      return;
-    }
+    if (!igHandle || !dispName || !category || !city) { showToast('Handle, name, category and city required.', true); return; }
+    if (photos.length < 3) { showToast('Minimum 3 photos required.', true); return; }
     setCreating(true);
     try {
-      const res = await fetch(`${BACKEND}/api/v2/admin/demo`, {
+      const d = await adminFetch('/api/v2/admin/demo/vendors', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPw },
-        body: JSON.stringify({
-          name: form.name,
-          demo_handle: form.demo_handle.toLowerCase(),
-          instagram_handle: form.instagram_handle || undefined,
-          vendor_phone: form.vendor_phone || undefined,
-          category: form.category,
-          city: form.city,
-          about: form.about || undefined,
-          photo_urls: photos,
-          expires_hours: form.expires_hours,
-          notes: form.notes || undefined,
-        })
+        body: JSON.stringify({ ig_handle: igHandle, display_name: dispName, category, city, whatsapp_phone: waPhone || null, about: about || null, rate_display: rateDisplay || null, photos }),
       });
-      const data = await res.json();
-      if (!data.ok) {
-        setCreateError(data.error || 'Something went wrong.');
-      } else {
-        setCreatedResult({ studio_link: data.studio_link, bride_link: data.bride_link, dm_message: data.dm_message, expires_at: data.expires_at });
-        setForm({ name: '', demo_handle: '', instagram_handle: '', vendor_phone: '', category: '', city: '', about: '', expires_hours: 48, notes: '', photo_urls: ['','','','','',''] });
-        loadProfiles();
-      }
-    } catch (e: unknown) {
-      setCreateError(e instanceof Error ? e.message : 'Network error.');
-    }
+      if (!d.ok) { showToast(d.error || 'Failed.', true); setCreating(false); return; }
+      showToast('Demo created: ' + d.demo_url);
+      setShowCreate(false); setIgHandle(''); setDispName(''); setCategory(''); setCity('');
+      setWaPhone(''); setAbout(''); setRateDisplay(''); setPhotos([]);
+      load();
+    } catch { showToast('Failed to create.', true); }
     setCreating(false);
   }
 
-  // ── Auth gate ─────────────────────────────────────────────────────────────
-  if (!authed) {
-    return (
-      <div style={{ padding: 40, maxWidth: 360 }}>
-        <p style={LABEL_STYLE}>Admin password</p>
-        <input
-          type="password"
-          style={INPUT_STYLE}
-          onKeyDown={e => { if (e.key === 'Enter') handleLogin((e.target as HTMLInputElement).value); }}
-          placeholder="Enter password and press Enter"
-          autoFocus
-        />
-      </div>
-    );
+  async function handleDeactivate(id: string) {
+    await adminFetch(`/api/v2/admin/demo/vendors/${id}`, { method: 'DELETE' });
+    showToast('Deactivated.'); load();
   }
 
-  return (
-    <div style={{ padding: '32px 40px', maxWidth: 860, color: INK, fontFamily: '"DM Sans", sans-serif' }}>
-      {toast && <Toast msg={toast} onDone={() => setToast('')} />}
+  async function handleRelay(id: string) {
+    await adminFetch(`/api/v2/admin/demo/leads/${id}/relay`, { method: 'POST' });
+    showToast('Marked as relayed.'); load();
+  }
 
-      {/* Page title */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: INK, margin: 0 }}>
-          Demo Profiles
-        </h1>
-        <p style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 10, letterSpacing: '0.14em', color: SOFT, textTransform: 'uppercase', marginTop: 4 }}>
-          Vendor acquisition outreach — demo.thedreamwedding.in
-        </p>
+  async function handleMuseUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return;
+    setMuseUploading(true);
+    try {
+      const r = await uploadToDemo(file);
+      const tags = museTags.split(',').map(t => t.trim()).filter(Boolean);
+      await adminFetch('/api/v2/admin/demo/muse-pool', {
+        method: 'POST',
+        body: JSON.stringify({ image_url: r.image_url, cloudinary_id: r.cloudinary_id, tags, caption: museCaption || null }),
+      });
+      showToast('Image added ✓'); setMuseTags(''); setMuseCaption(''); load();
+    } catch (err: any) { showToast('Upload failed: ' + err.message, true); }
+    setMuseUploading(false);
+  }
+
+  async function handleMuseDelete(id: string) {
+    await adminFetch(`/api/v2/admin/demo/muse-pool/${id}`, { method: 'DELETE' });
+    showToast('Removed.'); load();
+  }
+
+  const unnotified = leads.filter(l => !l.notified_vendor && !l.admin_notified);
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.bg, padding: '24px 20px 80px' }}>
+      {toast && <Toast msg={toast} error={toastErr} onDone={() => setToast('')} />}
+      <PageHeader
+        title="Demo Profiles"
+        sub={vendors.filter(v => v.active).length + ' active · ' + unnotified.length + ' unrelayed leads'}
+      />
+
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {(['vendors', 'leads', 'muse'] as const).map(tb => (
+          <button key={tb} onClick={() => setTab(tb)} style={{ background: tab === tb ? T.gold : T.card, border: `0.5px solid ${tab === tb ? T.gold : T.border}`, borderRadius: 10, padding: '8px 16px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: tab === tb ? '#0A0908' : T.soft, cursor: 'pointer' }}>
+            {tb === 'leads' && unnotified.length > 0 ? `Leads (${unnotified.length})` : tb.charAt(0).toUpperCase() + tb.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* ── SECTION 1: Create form ─────────────────────────────────────────── */}
-      <div style={{ ...CARD_STYLE, marginBottom: 40 }}>
-        <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 20, color: INK, margin: '0 0 24px' }}>
-          Create Demo Profile
-        </h2>
+      {/* VENDORS */}
+      {tab === 'vendors' && (
+        <div>
+          <GoldBtn label="+ Create Demo" onClick={() => setShowCreate(!showCreate)} />
 
-        {createdResult && (
-          <div style={{
-            background: 'rgba(139,196,168,0.08)', border: '0.5px solid rgba(139,196,168,0.3)',
-            borderRadius: 10, padding: '16px', marginBottom: 24
-          }}>
-            <p style={{ ...LABEL_STYLE, color: '#8BC4A8', marginBottom: 10 }}>✦ Demo Ready</p>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-              <button onClick={() => { navigator.clipboard.writeText(createdResult.studio_link); setToast('Studio link copied'); }} style={{ ...BTN, background: 'rgba(139,196,168,0.15)', color: '#8BC4A8', border: '0.5px solid rgba(139,196,168,0.3)', fontSize: 9 }}>
-                Copy Studio Link
-              </button>
-              <button onClick={() => { navigator.clipboard.writeText(createdResult.bride_link); setToast('Bride link copied'); }} style={{ ...BTN, background: 'rgba(139,196,168,0.15)', color: '#8BC4A8', border: '0.5px solid rgba(139,196,168,0.3)', fontSize: 9 }}>
-                Copy Bride Link
-              </button>
-              <button onClick={() => { navigator.clipboard.writeText(createdResult.dm_message); setToast('DM message copied'); }} style={{ ...BTN, background: 'rgba(201,168,76,0.12)', color: GOLD, border: `0.5px solid ${B}`, fontSize: 9 }}>
-                Copy DM Message
-              </button>
+          {showCreate && (
+            <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 14, padding: 20, marginTop: 16, marginBottom: 24 }}>
+              <p style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontWeight: 300, fontSize: 18, color: T.ink, marginBottom: 16 }}>New Demo Profile</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <FieldInput label="IG Handle (no @)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" />
+                <FieldInput label="Display Name" value={dispName} onChange={setDispName} placeholder="Swati Roy" />
+                <FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES.map(c => ({ value: c, label: catLabel(c) }))} />
+                <FieldSelect label="City" value={city} onChange={setCity} options={CITIES.map(c => ({ value: c, label: c }))} />
+                <FieldInput label="WhatsApp (optional)" value={waPhone} onChange={setWaPhone} placeholder="+918757788550" />
+                <FieldInput label="Rate Display (optional)" value={rateDisplay} onChange={setRateDisplay} placeholder="₹50K – ₹2L" />
+              </div>
+              <FieldInput label="About (optional)" value={about} onChange={setAbout} placeholder="Celebrity MUA based in Delhi..." />
+              <div style={{ marginTop: 16, marginBottom: 12 }}>
+                <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.soft, marginBottom: 8 }}>Photos ({photos.length}/20, min 3) — first is hero</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                  {photos.map((p, i) => (
+                    <div key={i} style={{ position: 'relative' }}>
+                      <img src={p.url} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: i === 0 ? `2px solid ${T.gold}` : `0.5px solid ${T.border}` }} />
+                      {i === 0 && <div style={{ position: 'absolute', top: 2, left: 2, background: T.gold, borderRadius: 4, padding: '1px 4px', fontFamily: T.ff.label, fontSize: 6, color: '#0A0908' }}>HERO</div>}
+                      <button onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))} style={{ position: 'absolute', top: -4, right: -4, background: T.danger, border: 'none', borderRadius: 50, width: 18, height: 18, color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                    </div>
+                  ))}
+                </div>
+                <label style={{ display: 'inline-block', background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '8px 14px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.soft, cursor: uploading ? 'not-allowed' : 'pointer' }}>
+                  {uploading ? 'Uploading…' : '+ Add Photo'}
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} style={{ display: 'none' }} />
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                <GoldBtn label={creating ? 'Creating…' : 'Create Demo'} onClick={handleCreate} disabled={creating} />
+                <GhostBtn label="Cancel" onClick={() => setShowCreate(false)} />
+              </div>
             </div>
-            <p style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: SOFT }}>
-              Studio: <a href={createdResult.studio_link} target="_blank" rel="noreferrer" style={{ color: GOLD }}>{createdResult.studio_link}</a>
-            </p>
-          </div>
-        )}
+          )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div>
-            <label style={LABEL_STYLE}>Vendor Name *</label>
-            <input style={INPUT_STYLE} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Rohan Mehta" />
-          </div>
-          <div>
-            <label style={LABEL_STYLE}>Demo Handle * (URL slug)</label>
-            <input style={INPUT_STYLE} value={form.demo_handle} onChange={e => setForm(f => ({ ...f, demo_handle: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))} placeholder="e.g. rohan" />
-          </div>
-          <div>
-            <label style={LABEL_STYLE}>Instagram Handle</label>
-            <input style={INPUT_STYLE} value={form.instagram_handle} onChange={e => setForm(f => ({ ...f, instagram_handle: e.target.value }))} placeholder="@handle" />
-          </div>
-          <div>
-            <label style={LABEL_STYLE}>WhatsApp Number <span style={{ color: 'rgba(245,240,232,0.3)', fontWeight: 300 }}>(optional — for live notifications)</span></label>
-            <input style={INPUT_STYLE} value={form.vendor_phone} onChange={e => setForm(f => ({ ...f, vendor_phone: e.target.value }))} placeholder="+91 98765 43210" type="tel" />
-          </div>
-          <div>
-            <label style={LABEL_STYLE}>Category *</label>
-            <select style={SELECT_STYLE} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-              <option value="">Select category</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={LABEL_STYLE}>City *</label>
-            <select style={SELECT_STYLE} value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}>
-              <option value="">Select city</option>
-              {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={LABEL_STYLE}>Expires In</label>
-            <select style={SELECT_STYLE} value={form.expires_hours} onChange={e => setForm(f => ({ ...f, expires_hours: Number(e.target.value) }))}>
-              <option value={24}>24 hours</option>
-              <option value={48}>48 hours</option>
-              <option value={72}>72 hours</option>
-              <option value={168}>1 week</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Photos — hero upload + bulk URL paste */}
-        <div style={{ marginTop: 20 }}>
-
-          {/* Hero photo */}
-          <label style={LABEL_STYLE}>Hero Photo * — shown full-screen on landing page</label>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
-            <input
-              style={{ ...INPUT_STYLE, flex: 1 }}
-              value={form.photo_urls[0]}
-              onChange={e => setPhotoUrl(0, e.target.value)}
-              placeholder="Paste hero photo URL or upload ↑"
-            />
-            <label style={{
-              ...BTN, background: 'rgba(201,168,76,0.15)', color: GOLD,
-              border: `0.5px solid rgba(201,168,76,0.3)`, padding: '9px 14px',
-              cursor: 'pointer', flexShrink: 0, fontSize: 11
-            }}>
-              ↑ Upload
-              <input type="file" accept="image/*" style={{ display: 'none' }}
-                onChange={async e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try { const url = await uploadToCloudinary(file); setPhotoUrl(0, url); setToast('Hero uploaded ✦'); } catch (_e) { alert('Upload failed'); }
-                }}
-              />
-            </label>
-            {form.photo_urls[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={form.photo_urls[0]} alt="" style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: `0.5px solid rgba(201,168,76,0.3)`, flexShrink: 0 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            )}
-          </div>
-
-          {/* Bulk other photos */}
-          <label style={LABEL_STYLE}>Other Photos (2–5 more) * — paste one URL per line or upload</label>
-          <p style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 10, color: 'rgba(245,240,232,0.25)', marginBottom: 8 }}>
-            Paste multiple URLs — one per line. Instagram CDN links work for 24hrs.
-          </p>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <textarea
-              style={{ ...INPUT_STYLE, flex: 1, minHeight: 100, resize: 'vertical', lineHeight: 1.8 }}
-              value={form.photo_urls.slice(1).filter(u => u).join('\n')}
-              onChange={e => {
-                const lines = e.target.value.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 5);
-                const next = [form.photo_urls[0], ...lines, '', '', '', '', ''].slice(0, 6);
-                setForm(f => ({ ...f, photo_urls: next }));
-              }}
-              placeholder="Paste URLs — one per line (max 5)"
-            />
-            <label style={{
-              ...BTN, background: 'rgba(255,255,255,0.05)', color: SOFT,
-              border: '0.5px solid rgba(255,255,255,0.1)', padding: '10px 14px',
-              cursor: 'pointer', fontSize: 10, alignSelf: 'flex-start', flexShrink: 0
-            }}>
-              ↑ Upload
-              <input type="file" accept="image/*" multiple style={{ display: 'none' }}
-                onChange={async e => {
-                  const files = Array.from(e.target.files || []).slice(0, 5);
-                  for (let i = 0; i < files.length; i++) {
-                    try {
-                      const url = await uploadToCloudinary(files[i]);
-                      setPhotoUrl(i + 1, url);
-                    } catch (_e) { alert(`Upload failed for photo ${i + 2}`); }
-                  }
-                  setToast(`${files.length} photo${files.length !== 1 ? 's' : ''} uploaded ✦`);
-                }}
-              />
-            </label>
-          </div>
-
-          {/* Preview strip */}
-          {form.photo_urls.filter(u => u).length > 0 && (
-            <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-              {form.photo_urls.filter(u => u).map((url, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={url} alt="" style={{
-                  width: 48, height: 48, objectFit: 'cover', borderRadius: 6,
-                  border: i === 0 ? `1.5px solid ${GOLD}` : '0.5px solid rgba(201,168,76,0.2)'
-                }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          {loading ? (
+            <p style={{ fontFamily: T.ff.body, fontWeight: 300, fontSize: 13, color: T.muted, marginTop: 16 }}>Loading…</p>
+          ) : vendors.length === 0 ? (
+            <p style={{ fontFamily: T.ff.body, fontWeight: 300, fontSize: 13, color: T.muted, marginTop: 24 }}>No demo profiles yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+              {vendors.map(v => (
+                <div key={v.id} style={{ background: T.card, border: `0.5px solid ${v.active ? T.border : 'rgba(255,255,255,0.05)'}`, borderRadius: 12, padding: '16px 18px', opacity: v.active ? 1 : 0.5 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div>
+                      <p style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontWeight: 300, fontSize: 18, color: T.ink, marginBottom: 2 }}>{v.display_name}</p>
+                      <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.gold }}>@{v.ig_handle} · {catLabel(v.category)} · {v.city}</p>
+                    </div>
+                    <div style={{ background: v.active ? 'rgba(92,224,160,0.1)' : T.card, border: `0.5px solid ${v.active ? T.success : T.border}`, borderRadius: 6, padding: '3px 8px', fontFamily: T.ff.label, fontSize: 7, color: v.active ? T.success : T.muted, letterSpacing: '0.1em' }}>{v.active ? 'ACTIVE' : 'INACTIVE'}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
+                    <span style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted }}>{v.photo_count} photos</span>
+                    <span style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted }}>{v.lead_count} leads</span>
+                    {v.whatsapp_phone && <span style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted }}>WA: {v.whatsapp_phone}</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button onClick={() => copy(v.demo_url, v.id)} style={{ background: copied === v.id ? T.success : T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '7px 12px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: copied === v.id ? '#0A0908' : T.soft, cursor: 'pointer' }}>
+                      {copied === v.id ? '✓ Copied' : 'Copy Link'}
+                    </button>
+                    <a href={v.demo_url} target="_blank" rel="noreferrer" style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '7px 12px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: T.soft, textDecoration: 'none', display: 'inline-block' }}>Preview</a>
+                    {v.active && <button onClick={() => handleDeactivate(v.id)} style={{ background: 'transparent', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '7px 12px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: T.danger, cursor: 'pointer' }}>Deactivate</button>}
+                  </div>
+                </div>
               ))}
-              <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: SOFT, alignSelf: 'center', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                {form.photo_urls.filter(u => u).length} photo{form.photo_urls.filter(u => u).length !== 1 ? 's' : ''} · gold border = hero
-              </span>
             </div>
           )}
         </div>
+      )}
 
-        {/* Notes */}
-        <div style={{ marginTop: 16 }}>
-          <label style={LABEL_STYLE}>Admin Notes</label>
-          <textarea style={{ ...INPUT_STYLE, minHeight: 64, resize: 'vertical' }} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Referred by Swati, met at Delhi expo, etc." />
-        </div>
-
-        {createError && (
-          <p style={{ marginTop: 12, fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#E07070' }}>
-            {createError}
-          </p>
-        )}
-
-        <div style={{ marginTop: 20 }}>
-          <button
-            onClick={handleCreate}
-            disabled={creating}
-            style={{ ...BTN, background: creating ? 'rgba(201,168,76,0.3)' : GOLD, color: '#0A0908', padding: '12px 28px', fontSize: 11 }}
-          >
-            {creating ? 'Creating…' : 'Create Demo Profile →'}
-          </button>
-        </div>
-      </div>
-
-      {/* ── SECTION 2: Active demos ───────────────────────────────────────────── */}
-      <div style={{ marginBottom: 40 }}>
-        <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 22, color: INK, margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          Active
-          <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 10, color: SOFT, letterSpacing: '0.1em' }}>
-            {active.length} profile{active.length !== 1 ? 's' : ''}
-          </span>
-        </h2>
-
-        {loadingList ? (
-          <p style={{ color: SOFT, fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13 }}>Loading…</p>
-        ) : active.length === 0 ? (
-          <p style={{ color: SOFT, fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, fontStyle: 'italic' }}>
-            No active demos. Create one above.
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {active.map(p => (
-              <ProfileCard key={p.id} profile={p} adminPw={adminPw} onRefresh={loadProfiles} onToast={setToast} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── SECTION 3: Expired demos ──────────────────────────────────────────── */}
-      {expired.length > 0 && (
+      {/* LEADS */}
+      {tab === 'leads' && (
         <div>
-          <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 22, color: INK, margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-            Expired
-            <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 10, color: SOFT, letterSpacing: '0.1em' }}>
-              {expired.length}
-            </span>
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {expired.map(p => (
-              <ProfileCard key={p.id} profile={p} adminPw={adminPw} onRefresh={loadProfiles} onToast={setToast} />
-            ))}
+          {loading ? (
+            <p style={{ fontFamily: T.ff.body, fontWeight: 300, fontSize: 13, color: T.muted }}>Loading…</p>
+          ) : leads.length === 0 ? (
+            <p style={{ fontFamily: T.ff.body, fontWeight: 300, fontSize: 13, color: T.muted }}>No demo leads yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {leads.map(l => (
+                <div key={l.id} style={{ background: (!l.notified_vendor && !l.admin_notified) ? 'rgba(201,168,76,0.05)' : T.card, border: `0.5px solid ${(!l.notified_vendor && !l.admin_notified) ? T.borderStrong : T.border}`, borderRadius: 12, padding: '16px 18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div>
+                      <p style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontWeight: 300, fontSize: 18, color: T.ink, marginBottom: 2 }}>{l.bride_name}</p>
+                      <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: T.gold }}>for @{l.demo_vendor_handle}</p>
+                    </div>
+                    <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted }}>{fmt(l.created_at)}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+                    <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>📱 {l.bride_phone}</p>
+                    {l.bride_ig_handle && <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>📸 @{l.bride_ig_handle}</p>}
+                    {l.bride_email && <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>✉️ {l.bride_email}</p>}
+                    {l.bride_wedding_city && <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>📍 {l.bride_wedding_city}{l.bride_wedding_date ? ` · ${new Date(l.bride_wedding_date).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}` : ''}</p>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {l.notified_vendor ? (
+                      <span style={{ fontFamily: T.ff.label, fontSize: 8, color: T.success, letterSpacing: '0.1em' }}>✓ VENDOR NOTIFIED</span>
+                    ) : l.admin_notified ? (
+                      <span style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.1em' }}>✓ ADMIN NOTIFIED</span>
+                    ) : (
+                      <span style={{ fontFamily: T.ff.label, fontSize: 8, color: T.gold, letterSpacing: '0.1em' }}>⚠ NEEDS RELAY</span>
+                    )}
+                    {!l.notified_vendor && (
+                      <button onClick={() => handleRelay(l.id)} style={{ background: T.gold, border: 'none', borderRadius: 8, padding: '6px 12px', fontFamily: T.ff.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#0A0908', cursor: 'pointer' }}>Mark Relayed</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MUSE POOL */}
+      {tab === 'muse' && (
+        <div>
+          <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: 16, marginBottom: 20 }}>
+            <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.soft, marginBottom: 12 }}>Add to Muse Pool</p>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              <FieldInput label="Tags (comma separated)" value={museTags} onChange={setMuseTags} placeholder="lehenga, red, bridal" />
+              <FieldInput label="Caption (optional)" value={museCaption} onChange={setMuseCaption} placeholder="Crimson silk lehenga" />
+            </div>
+            <label style={{ display: 'inline-block', background: museUploading ? T.card : T.gold, border: 'none', borderRadius: 10, padding: '10px 18px', fontFamily: T.ff.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: museUploading ? T.muted : '#0A0908', cursor: museUploading ? 'not-allowed' : 'pointer' }}>
+              {museUploading ? 'Uploading…' : '+ Upload Image'}
+              <input type="file" accept="image/*" onChange={handleMuseUpload} disabled={museUploading} style={{ display: 'none' }} />
+            </label>
           </div>
+          {muse.length === 0 ? (
+            <p style={{ fontFamily: T.ff.body, fontWeight: 300, fontSize: 13, color: T.muted }}>No muse images yet.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+              {muse.map(img => (
+                <div key={img.id} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '3/4' }}>
+                  <img src={img.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', padding: '6px 8px' }}>
+                    {img.tags.length > 0 && <p style={{ fontFamily: T.ff.label, fontSize: 7, color: '#C9A84C', margin: 0 }}>{img.tags.join(', ')}</p>}
+                    {img.caption && <p style={{ fontFamily: T.ff.body, fontSize: 9, color: 'rgba(255,255,255,0.7)', margin: 0 }}>{img.caption}</p>}
+                  </div>
+                  <button onClick={() => handleMuseDelete(img.id)} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(224,92,92,0.8)', border: 'none', borderRadius: 50, width: 22, height: 22, color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
