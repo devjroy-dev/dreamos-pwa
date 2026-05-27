@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageHeader, StatCard, T } from './_components/AdminUI';
 import { getVendors, getCouples, getInvites, getPhotoQueue, getDiscoverQueue } from '../../lib/admin-api/index';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ vendors: 0, couples: 0, pending_photos: 0, pending_discover: 0, unused_invites: 0, new_requests: 0 });
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
@@ -50,9 +52,9 @@ export default function AdminDashboard() {
           <StatCard label="Photo Queue" value={stats.pending_photos} sub="Pending approval" />
           <StatCard label="Discover Queue" value={stats.pending_discover} sub="Under review" />
           <StatCard label="Open Invites" value={stats.unused_invites} sub="Unconsumed codes" />
-          <a href="/admin/invite-requests" style={{textDecoration:'none',display:'contents'}}>
+          <div onClick={()=>router.push('/admin/invite-requests')} style={{cursor:'pointer'}}>
             <StatCard label="New Requests" value={stats.new_requests} sub="Awaiting review" />
-          </a>
+          </div>
         </div>
       )}
       <div style={{ marginTop: 36, background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 14, padding: 20 }}>
