@@ -221,10 +221,10 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
-      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
 
       {/* Full-screen receipt image viewer */}
-      {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.92)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.92)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
         <img src={fullImg} alt="Receipt" style={{maxWidth:'94vw',maxHeight:'88vh',objectFit:'contain',borderRadius:8}}/>
         <button onClick={()=>setFullImg(null)} style={{position:'absolute',top:24,right:24,background:'rgba(255,255,255,.12)',border:'none',borderRadius:20,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(245,240,232,.8)',fontSize:18}}>✕</button>
       </div>}
@@ -329,8 +329,8 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
       {/* Add Expense sheet */}
       {showAdd&&<>
-        <div onClick={()=>setShowAdd(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'85vh',overflowY:'auto'}}>
+        <div onClick={()=>setShowAdd(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'85vh',overflowY:'auto'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:ink,fontFeatureSettings:'"opsz" 9'}}>Add an expense</div>
             <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
@@ -354,8 +354,8 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
       {/* Confirm delete */}
       {confirmId&&<>
-        <div onClick={()=>setConfirmId(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+        <div onClick={()=>setConfirmId(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>Remove this?</div>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>It will be removed from your list.</div>
           <div style={{display:'flex',gap:10}}>
@@ -367,8 +367,8 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
       {/* Pay vendor sheet */}
       {payBooking&&<>
-        <div onClick={()=>setPayBooking(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+        <div onClick={()=>setPayBooking(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
             <button onClick={()=>setPayBooking(null)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
@@ -514,7 +514,7 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
-      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
 
       {/* Header */}
       <div style={{padding:'16px 20px 12px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
@@ -559,8 +559,8 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
       {/* Add sheet */}
       {showAdd&&<>
-        <div onClick={()=>setShowAdd(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
+        <div onClick={()=>setShowAdd(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:ink,fontFeatureSettings:'"opsz" 9'}}>Add a booking</div>
             <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
@@ -584,8 +584,8 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
       {/* Action sheet */}
       {action&&!showEdit&&!showPay&&<>
-        <div onClick={()=>setAction(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+        <div onClick={()=>setAction(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:2,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name}</div>
           <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',color:inkMute,textTransform:'uppercase' as any,marginBottom:16}}>{action.category} · {action.state.replace(/_/g,' ')}</div>
           {action.amount_total&&<div style={{display:'flex',gap:24,marginBottom:20}}>
@@ -604,8 +604,8 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
       {/* Edit sheet */}
       {showEdit&&action&&<>
-        <div onClick={()=>{setShowEdit(false);setAction(null);}} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
+        <div onClick={()=>{setShowEdit(false);setAction(null);}} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:ink,fontFeatureSettings:'"opsz" 9'}}>Edit booking</div>
             <button onClick={()=>{setShowEdit(false);setAction(null);}} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
@@ -629,8 +629,8 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
       {/* Payment sheet */}
       {showPay&&action&&<>
-        <div onClick={()=>setShowPay(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
-        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+        <div onClick={()=>setShowPay(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
             <button onClick={()=>setShowPay(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
@@ -2446,7 +2446,7 @@ export default function SanctuaryPage() {
           </div>
 
           {/* Room content */}
-          <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+          <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',position:'relative'}}>
 
             {/* ── DREAM AI ── */}
             {activeRoom==='dream'&&<>
