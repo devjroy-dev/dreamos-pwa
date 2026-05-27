@@ -2385,6 +2385,23 @@ export default function SanctuaryPage() {
     const session = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
     if(!token && !session){ window.location.replace('/'); return; }
 
+    // ── Onboarding guard — if onboarding not complete, go to onboarding ───
+    // Check via API so we always have fresh state, not just cached session.
+    // Non-fatal: if fetch fails, proceed to Sanctuary normally.
+    if(token) {
+      fetch('https://dream-os-production.up.railway.app/api/v2/couple/me',{
+        headers:{'Authorization':`Bearer ${token}`},
+      })
+      .then(r=>r.json())
+      .then(d=>{
+        const state = d?.couple?.onboarding_state;
+        if(state && state!=='complete'){
+          window.location.replace('/frost/canvas/onboarding');
+        }
+      })
+      .catch(()=>{/* non-fatal */});
+    }
+
     if(!document.getElementById('sv5')){const s=document.createElement('style');s.id='sv5';s.textContent=CSS;document.head.appendChild(s);}
     const w=getWeddingDate(),e=getEngagementDate(),d=daysUntil(w);
     setDays(d);setProgress(arcProgress(d));setName(getBrideName());
