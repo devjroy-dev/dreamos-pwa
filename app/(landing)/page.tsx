@@ -494,13 +494,13 @@ export default function Home() {
       const vendorNeedsOnboarding = isVendor && !pinSet && !d.name;
       const coupleNeedsOnboarding = !isVendor && !pinSet && !d.name;
       if (vendorNeedsOnboarding) {
-        router.push('/vendor/onboarding');
+        router.push('/vendor/login');
       } else if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');
       } else {
         router.push(pinSet
-          ? (isVendor ? '/vendor/pin-login' : '/couple/pin-login')
-          : (isVendor ? '/vendor/pin' : '/couple/pin'));
+          ? (isVendor ? '/vendor/login' : '/couple/pin-login')
+          : (isVendor ? '/vendor/login' : '/couple/pin'));
       }
     } catch { showToast('Verification failed.'); }
   };
@@ -528,7 +528,7 @@ export default function Home() {
         const sd = {           id: d.role_id, userId: d.user_id, vendorId: d.role_id,           phone: e164, pin_set: true,         };
         localStorage.setItem(sessionKey, JSON.stringify(sd));
         localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
-        router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login');
+        router.push(isVendor ? '/vendor/login' : '/couple/pin-login');
         return;
       }
 
