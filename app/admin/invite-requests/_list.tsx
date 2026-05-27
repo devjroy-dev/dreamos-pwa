@@ -3,6 +3,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { PageHeader, GoldBtn, GhostBtn, Toast, T } from '../_components/AdminUI';
 import { API_BASE } from '../../../lib/admin-api';
 
+const SEASON_LABELS: Record<string,string> = {
+  jan_mar: 'Jan – Mar',
+  apr_jun: 'Apr – Jun',
+  jul_sep: 'Jul – Sep',
+  oct_jan: 'Oct – Jan',
+};
+
 export interface WaitlistSignup {
   id: string;
   kind: 'dreamer' | 'maker';
@@ -101,7 +108,7 @@ function DetailDrawer({signup,onClose,onUpdate,onDelete}:{signup:WaitlistSignup;
           {signup.kind==='maker'&&signup.category&&<Row label="Category" value={signup.category_other||signup.category}/>}
           {signup.kind==='dreamer'&&(
             signup.wedding_date_status==='exact'?<Row label="Wedding date" value={fmtDate(signup.wedding_date!)}/>:
-            signup.wedding_date_status==='season'?<Row label="Season" value={signup.wedding_date_season||'—'}/>:
+            signup.wedding_date_status==='season'?<Row label="Season" value={SEASON_LABELS[signup.wedding_date_season||'']||signup.wedding_date_season||'—'}/>:
             <Row label="Planning" value="Just browsing"/>
           )}
           {signup.notes&&<Row label="Notes" value={signup.notes}/>}
@@ -143,7 +150,7 @@ function SignupCard({signup,onClick}:{signup:WaitlistSignup;onClick:()=>void}){
   const fmtDate=(iso:string)=>new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
   const weddingInfo=signup.kind==='dreamer'
     ?signup.wedding_date_status==='exact'?fmtDate(signup.wedding_date!)
-    :signup.wedding_date_status==='season'?signup.wedding_date_season||'—'
+    :signup.wedding_date_status==='season'?(SEASON_LABELS[signup.wedding_date_season||'']||signup.wedding_date_season||'—')
     :'Browsing':null;
 
   return(
