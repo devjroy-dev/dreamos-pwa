@@ -12,7 +12,7 @@ import { useFrostMode } from '../../../layout';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -109,7 +109,10 @@ const DREAM_PROMPTS=[
 
 
 // ── EXPENSES ROOM ──────────────────────────────────────────────────────────────
-// Receipts list + total spent. Sanctuary bg. Mode-aware DNA tokens.
+// Three slices: My Expenses (manual) | Vendors (bookings+pay) | Receipts (images)
+// Full CRUD — mirrors the original journey/expenses/page.tsx exactly.
+
+type ExpenseSlice = 'my'|'vendor'|'receipts';
 
 interface ExpensesRoomProps { dark:boolean; accent:string; signal:string; }
 
@@ -117,73 +120,282 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   const bg      = dark
     ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
     : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
-  const ink     = dark ? '#F5E5DC'                 : '#0C1830';
-  const inkSoft = dark ? 'rgba(245,229,220,.72)'   : 'rgba(12,24,48,.72)';
-  const inkMute = dark ? 'rgba(196,133,106,.50)'   : 'rgba(42,80,130,.55)';
-  const line    = dark ? 'rgba(196,133,106,.12)'   : 'rgba(42,95,130,.14)';
-  const cardBg  = dark ? 'rgba(196,133,106,.05)'   : 'rgba(42,95,130,.05)';
-  const cardBdr = dark ? 'rgba(196,133,106,.12)'   : 'rgba(42,95,130,.12)';
-  const ac      = dark ? '#C4856A'                 : '#2A5F82';
+  const ink     = dark ? '#F5E5DC'                : '#0C1830';
+  const inkSoft = dark ? 'rgba(245,229,220,.72)'  : 'rgba(12,24,48,.72)';
+  const inkMute = dark ? 'rgba(196,133,106,.50)'  : 'rgba(42,80,130,.55)';
+  const line    = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.14)';
+  const cardBg  = dark ? 'rgba(196,133,106,.05)'  : 'rgba(42,95,130,.05)';
+  const cardBdr = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.12)';
+  const paper   = dark ? '#1A0A0E'                : '#EEF0F6';
+  const brass   = '#C9A84C';
+  const ac      = dark ? '#C4856A'                : '#2A5F82';
 
-  const [receipts, setReceipts] = React.useState<CoupleReceipt[]>([]);
-  const [loading,  setLoading]  = React.useState(true);
+  const [slice,     setSlice]     = React.useState<ExpenseSlice>('my');
+  const [receipts,  setReceipts]  = React.useState<CoupleReceipt[]>([]);
+  const [bookings,  setBookings]  = React.useState<CoupleBooking[]>([]);
+  const [loading,   setLoading]   = React.useState(true);
+  const [toast,     setToast]     = React.useState('');
+  const [fullImg,   setFullImg]   = React.useState<string|null>(null);
+  const [showAdd,   setShowAdd]   = React.useState(false);
+  const [confirmId, setConfirmId] = React.useState<string|null>(null);
+  const [payBooking,setPayBooking]= React.useState<CoupleBooking|null>(null);
+  const [newVendor, setNewVendor] = React.useState('');
+  const [newAmount, setNewAmount] = React.useState('');
+  const [newDate,   setNewDate]   = React.useState('');
+  const [newDesc,   setNewDesc]   = React.useState('');
+  const [payAmount, setPayAmount] = React.useState('');
+  const [payDate,   setPayDate]   = React.useState('');
+  const [saving,    setSaving]    = React.useState(false);
+
+  const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
 
   React.useEffect(()=>{
-    fetchReceipts().then(r=>{ setReceipts(r); setLoading(false); }).catch(()=>setLoading(false));
+    Promise.all([fetchReceipts(),fetchBookings()]).then(([r,b])=>{
+      setReceipts(r); setBookings(b); setLoading(false);
+    }).catch(()=>setLoading(false));
   },[]);
 
-  const total = receipts.reduce((s,r)=>s+(r.amount||0),0);
-  const fmtRs = (n:number) => n>=100000
-    ? `₹${(n/100000).toFixed(n%100000===0?0:1)}L`
-    : n>=1000 ? `₹${(n/1000).toFixed(0)}K`
-    : `₹${n}`;
-
-  function fmtDate(iso:string|null):string {
-    if(!iso) return '';
-    const d=new Date(iso+'T00:00:00');
-    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  const fmtRs = (n:number) => n>=100000?`₹${(n/100000).toFixed(n%100000===0?0:1)}L`:n>=1000?`₹${(n/1000).toFixed(0)}K`:`₹${n}`;
+  function fmtDate(d:string|null|undefined):string {
+    if(!d) return '';
+    const dt=new Date(d+'T00:00:00');
+    if(isNaN(dt.getTime())) return d;
+    return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
   }
+
+  const totalCommitted  = bookings.reduce((s,b)=>s+(b.amount_total||0),0);
+  const totalPaid       = bookings.reduce((s,b)=>s+(b.amount_paid||0),0);
+  const totalBalance    = totalCommitted-totalPaid;
+  const myExpenses      = receipts.filter(r=>!r.image_url);
+  const imageReceipts   = receipts.filter(r=>!!r.image_url);
+  const totalMySpend    = myExpenses.reduce((s,r)=>s+(r.amount||0),0);
+
+  const handleAddExpense = async () => {
+    if(!newVendor.trim()||!newAmount) return;
+    setSaving(true);
+    try {
+      const token    = typeof window!=='undefined'?localStorage.getItem('access_token'):null;
+      const raw      = typeof window!=='undefined'?(localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session')):null;
+      const coupleId = raw?JSON.parse(raw)?.id:null;
+      if(token&&coupleId){
+        const res = await fetch(`https://dream-os-production.up.railway.app/api/v2/couple/expenses/${coupleId}`,{
+          method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({vendor_name:newVendor.trim(),amount:parseInt(newAmount.replace(/,/g,''),10),receipt_date:newDate||new Date().toISOString().slice(0,10),description:newDesc.trim()||null}),
+        });
+        const data=await res.json();
+        if(data.ok&&data.expense) setReceipts(prev=>[data.expense,...prev]);
+      }
+      setShowAdd(false);setNewVendor('');setNewAmount('');setNewDate('');setNewDesc('');
+      showToast('Expense added.');
+    } catch { showToast('Could not add. Try again.'); }
+    setSaving(false);
+  };
+
+  const handleDeleteReceipt = async (id:string) => {
+    setReceipts(prev=>prev.filter(r=>r.id!==id));
+    setConfirmId(null);
+    await deleteReceipt(id);
+    showToast('Removed.');
+  };
+
+  const handlePayment = async () => {
+    if(!payBooking||!payAmount) return;
+    const amt=parseInt(payAmount.replace(/,/g,''),10);
+    if(isNaN(amt)||amt<=0){showToast('Enter a valid amount.');return;}
+    setSaving(true);
+    try {
+      const updated=await recordPayment(payBooking.id,amt,payDate||undefined);
+      setBookings(prev=>prev.map(b=>b.id===updated.id?updated:b));
+      setPayBooking(null);setPayAmount('');setPayDate('');
+      showToast('Payment recorded.');
+    } catch { showToast('Could not record.'); }
+    setSaving(false);
+  };
+
+  const inpStyle:React.CSSProperties = {width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'};
+  const SliceBtn = ({id,label}:{id:ExpenseSlice;label:string}) => (
+    <button onClick={()=>setSlice(id)} style={{flex:1,padding:'9px 0',borderRadius:8,border:`0.5px solid ${slice===id?ac:line}`,background:slice===id?`${ac}14`:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',textTransform:'uppercase' as any,color:slice===id?ac:inkMute,cursor:'pointer'}}>
+      {label}
+    </button>
+  );
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
-      {/* Total header */}
-      <div style={{padding:'20px 20px 14px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total logged</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:38,color:ac,lineHeight:1,letterSpacing:'-.03em',fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(total)}</div>
-          {!loading&&receipts.length>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>{receipts.length} receipt{receipts.length!==1?'s':''}</div>}
-        </div>
+      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+
+      {/* Full-screen receipt image viewer */}
+      {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.92)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <img src={fullImg} alt="Receipt" style={{maxWidth:'94vw',maxHeight:'88vh',objectFit:'contain',borderRadius:8}}/>
+        <button onClick={()=>setFullImg(null)} style={{position:'absolute',top:24,right:24,background:'rgba(255,255,255,.12)',border:'none',borderRadius:20,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(245,240,232,.8)',fontSize:18}}>✕</button>
+      </div>}
+
+      {/* Snapshot */}
+      <div style={{padding:'16px 20px 10px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
+        {slice==='my'&&<div style={{display:'flex',alignItems:'baseline',gap:8}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:34,color:ac,lineHeight:1,fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(totalMySpend)}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute}}>total spent</div>
+        </div>}
+        {slice==='vendor'&&<div style={{display:'flex',gap:24}}>
+          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Committed</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:ac}}>{fmtRs(totalCommitted)}</div></div>
+          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Paid</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</div></div>
+          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Balance</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:ink}}>{fmtRs(totalBalance)}</div></div>
+        </div>}
+        {slice==='receipts'&&<div style={{display:'flex',alignItems:'baseline',gap:8}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:34,color:ac,lineHeight:1,fontFeatureSettings:'"opsz" 144'}}>{imageReceipts.length}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute}}>receipt image{imageReceipts.length!==1?'s':''}</div>
+        </div>}
       </div>
 
-      {/* Receipt list */}
+      {/* Slice tabs */}
+      <div style={{display:'flex',gap:8,padding:'10px 16px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
+        <SliceBtn id="my"       label="My expenses"/>
+        <SliceBtn id="vendor"   label="Vendors"/>
+        <SliceBtn id="receipts" label="Receipts"/>
+      </div>
+
+      {/* Content */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
-        {!loading&&receipts.length===0&&(
-          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:ac,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>logged yet.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Send Dream Ai a photo of a receipt<br/>and she'll log it for you.</div>
+
+        {/* MY EXPENSES */}
+        {!loading&&slice==='my'&&<>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px 8px'}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:18,color:ink,fontFeatureSettings:'"opsz" 9'}}>What I've spent.</div>
+            <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
           </div>
-        )}
-        {!loading&&receipts.map(r=>(
-          <div key={r.id} style={{margin:'8px 16px',borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,padding:'12px 16px',display:'flex',gap:12,alignItems:'flex-start'}}>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
-                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,lineHeight:1.3,fontFeatureSettings:'"opsz" 9'}}>{r.vendor_name||'Payment'}</div>
-                <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ac,flexShrink:0,marginLeft:8}}>{fmtRs(r.amount||0)}</div>
+          {myExpenses.length===0&&<div style={{padding:'48px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No expenses yet. Tap Add to log one.</div>}
+          {myExpenses.map(r=>(
+            <div key={r.id} onClick={()=>setConfirmId(r.id)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
+              <div style={{width:40,height:40,borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute}}>EXP</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.vendor_name||r.description||'Expense'}</div>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{fmtDate(r.receipt_date||r.created_at)}</div>
               </div>
-              {r.description&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{r.description}</div>}
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{fmtDate(r.receipt_date)}{r.tags&&r.tags.length>0?` · ${r.tags[0]}`:''}</div>
+              {r.amount&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ac,flexShrink:0}}>{fmtRs(r.amount)}</div>}
             </div>
-          </div>
-        ))}
-        {!loading&&receipts.length>0&&<div style={{height:32}}/>}
+          ))}
+        </>}
+
+        {/* VENDOR EXPENSES */}
+        {!loading&&slice==='vendor'&&<>
+          <div style={{padding:'14px 20px 8px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:18,color:ink,fontFeatureSettings:'"opsz" 9'}}>My team.</div>
+          {bookings.length===0&&<div style={{padding:'48px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No bookings yet. Add vendors in the Vendors tab.</div>}
+          {bookings.map(b=>{
+            const balance=(b.amount_total||0)-(b.amount_paid||0);
+            return(
+              <div key={b.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
+                <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(b.category?.[0]||b.vendor_name?.[0]||'·').toUpperCase()}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.vendor_name}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',color:inkMute,marginTop:2}}>
+                    {b.category}{b.amount_paid>0?` · paid ${fmtRs(b.amount_paid)}`:''}
+                    {balance>0?` · bal ${fmtRs(balance)}`:''}
+                  </div>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4,flexShrink:0}}>
+                  {b.amount_total&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:15,color:ink}}>{fmtRs(b.amount_total)}</div>}
+                  <button onClick={()=>{setPayBooking(b);setPayAmount('');setPayDate('');}} style={{padding:'4px 10px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>Pay</button>
+                </div>
+              </div>
+            );
+          })}
+        </>}
+
+        {/* RECEIPTS */}
+        {!loading&&slice==='receipts'&&<>
+          <div style={{padding:'14px 20px 4px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:18,color:ink,fontFeatureSettings:'"opsz" 9'}}>Receipt vault.</div>
+          <div style={{padding:'0 20px 12px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Forward receipt images to Dream Ai on WhatsApp — they land here automatically.</div>
+          {imageReceipts.length===0&&<div style={{padding:'48px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No receipts yet.</div>}
+          {imageReceipts.map(r=>(
+            <div key={r.id} style={{display:'flex',alignItems:'flex-start',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
+              <div onClick={()=>r.image_url&&setFullImg(r.image_url)} style={{width:56,height:72,borderRadius:8,overflow:'hidden',flexShrink:0,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:r.image_url?'zoom-in':'default'}}>
+                {r.image_url?<img src={r.image_url} alt="Receipt" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute}}>REC</span>}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,fontFeatureSettings:'"opsz" 9'}}>{r.vendor_name||r.description||'Receipt'}</div>
+                {r.description&&r.vendor_name&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,marginTop:2,lineHeight:1.4,fontFeatureSettings:'"opsz" 9'}}>{r.description}</div>}
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>{fmtDate(r.receipt_date||r.created_at)}</div>
+                {(r.tags||[]).length>0&&<div style={{display:'flex',gap:4,flexWrap:'wrap' as any,marginTop:6}}>{(r.tags||[]).slice(0,3).map((tag:string)=><span key={tag} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.1em',color:ac,padding:'2px 6px',border:`0.5px solid ${ac}33`,borderRadius:100}}>{tag}</span>)}</div>}
+              </div>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,flexShrink:0}}>
+                {r.amount&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:15,color:ac}}>{fmtRs(r.amount)}</div>}
+                <button onClick={()=>setConfirmId(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:16,padding:4}}>✕</button>
+              </div>
+            </div>
+          ))}
+        </>}
+        <div style={{height:40}}/>
       </div>
+
+      {/* Add Expense sheet */}
+      {showAdd&&<>
+        <div onClick={()=>setShowAdd(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'85vh',overflowY:'auto'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:ink,fontFeatureSettings:'"opsz" 9'}}>Add an expense</div>
+            <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Where / who</div>
+              <input value={newVendor} onChange={e=>setNewVendor(e.target.value)} placeholder="Sabya showroom, Carma…" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount (₹)</div>
+              <input value={newAmount} onChange={e=>setNewAmount(e.target.value)} placeholder="15000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Date (optional)</div>
+              <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes (optional)</div>
+              <input value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Trial deposit, transport…" style={inpStyle}/></div>
+            <button onClick={handleAddExpense} disabled={saving||!newVendor.trim()||!newAmount}
+              style={{marginTop:4,padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!newVendor.trim()||!newAmount)?.5:1}}>
+              {saving?'Adding…':'Add expense'}
+            </button>
+          </div>
+        </div>
+      </>}
+
+      {/* Confirm delete */}
+      {confirmId&&<>
+        <div onClick={()=>setConfirmId(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>Remove this?</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>It will be removed from your list.</div>
+          <div style={{display:'flex',gap:10}}>
+            <button onClick={()=>handleDeleteReceipt(confirmId)} style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer'}}>Remove</button>
+            <button onClick={()=>setConfirmId(null)} style={{flex:1,padding:14,background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>Keep</button>
+          </div>
+        </div>
+      </>}
+
+      {/* Pay vendor sheet */}
+      {payBooking&&<>
+        <div onClick={()=>setPayBooking(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
+            <button onClick={()=>setPayBooking(null)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+          </div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:20,fontFeatureSettings:'"opsz" 9'}}>{payBooking.vendor_name} · paid so far: {fmtRs(payBooking.amount_paid)}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount (₹)</div>
+              <input value={payAmount} onChange={e=>setPayAmount(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Date (optional)</div>
+              <input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)} style={inpStyle}/></div>
+            <button onClick={handlePayment} disabled={saving||!payAmount}
+              style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!payAmount)?.5:1}}>
+              {saving?'Recording…':'Record payment'}
+            </button>
+          </div>
+        </div>
+      </>}
     </div>
   );
 }
 
-// ── VENDORS ROOM ───────────────────────────────────────────────────────────────
-// Confirmed bookings list. Sanctuary bg. Mode-aware DNA tokens.
+// ── VENDORS ROOM ──────────────────────────────────────────────────────────────
+// Full CRUD: Add · Edit · Pay · Delete — mirrors journey/vendors/page.tsx exactly.
+
+const VENDOR_CATEGORIES = ['photographer','videographer','mua','designer','venue','caterer','decor','florist','music','planner','other'] as const;
+type VendorCategory = typeof VENDOR_CATEGORIES[number];
+const PIPELINE_STATES = [{key:'paid',label:'PAID'},{key:'advance_paid',label:'ADVANCE PAID'},{key:'booked',label:'BOOKED'}];
 
 interface VendorsRoomProps { dark:boolean; accent:string; }
 
@@ -195,83 +407,244 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
   const inkSoft = dark ? 'rgba(245,229,220,.72)'  : 'rgba(12,24,48,.72)';
   const inkMute = dark ? 'rgba(196,133,106,.50)'  : 'rgba(42,80,130,.55)';
   const line    = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.14)';
-  const cardBg  = dark ? 'rgba(196,133,106,.05)'  : 'rgba(42,95,130,.05)';
-  const cardBdr = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.12)';
+  const paper   = dark ? '#1A0A0E'                : '#EEF0F6';
   const ac      = dark ? '#C4856A'                : '#2A5F82';
-
-  const STATE_LABEL: Record<string,{label:string;color:string}> = {
-    booked:        {label:'Booked',       color:dark?'rgba(196,133,106,.7)':'rgba(42,95,130,.7)'},
-    advance_paid:  {label:'Advance paid', color:'#6B9E8F'},
-    paid:          {label:'Paid in full', color:'#5A9E7A'},
-  };
 
   const [bookings, setBookings] = React.useState<CoupleBooking[]>([]);
   const [loading,  setLoading]  = React.useState(true);
+  const [toast,    setToast]    = React.useState('');
+  const [showAdd,  setShowAdd]  = React.useState(false);
+  const [action,   setAction]   = React.useState<CoupleBooking|null>(null);
+  const [showEdit, setShowEdit] = React.useState(false);
+  const [showPay,  setShowPay]  = React.useState(false);
+  const [saving,   setSaving]   = React.useState(false);
+
+  const [newName,  setNewName]  = React.useState('');
+  const [newCat,   setNewCat]   = React.useState<VendorCategory>('photographer');
+  const [newTotal, setNewTotal] = React.useState('');
+  const [newAdv,   setNewAdv]   = React.useState('');
+  const [newDue,   setNewDue]   = React.useState('');
+  const [newNotes, setNewNotes] = React.useState('');
+
+  const [editName,  setEditName]  = React.useState('');
+  const [editCat,   setEditCat]   = React.useState<VendorCategory>('photographer');
+  const [editTotal, setEditTotal] = React.useState('');
+  const [editAdv,   setEditAdv]   = React.useState('');
+  const [editDue,   setEditDue]   = React.useState('');
+  const [editNotes, setEditNotes] = React.useState('');
+  const [payAmount, setPayAmount] = React.useState('');
+  const [payDate,   setPayDate]   = React.useState('');
+
+  const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
 
   React.useEffect(()=>{
     fetchBookings().then(b=>{ setBookings(b); setLoading(false); }).catch(()=>setLoading(false));
   },[]);
 
-  const fmtRs = (n:number) => n>=100000
-    ? `₹${(n/100000).toFixed(n%100000===0?0:1)}L`
-    : n>=1000 ? `₹${(n/1000).toFixed(0)}K`
-    : `₹${n}`;
+  const fmtRs = (n:number) => n>=100000?`₹${(n/100000).toFixed(n%100000===0?0:1)}L`:n>=1000?`₹${(n/1000).toFixed(0)}K`:`₹${n}`;
+
+  const openEdit = (b:CoupleBooking) => {
+    setEditName(b.vendor_name); setEditCat(b.category as VendorCategory);
+    setEditTotal(b.amount_total?String(b.amount_total):'');
+    setEditAdv(b.amount_advance?String(b.amount_advance):'');
+    setEditDue(b.balance_due_date||''); setEditNotes(b.notes||'');
+    setAction(b); setShowEdit(true);
+  };
+
+  const handleAdd = async () => {
+    if(!newName.trim()) return;
+    setSaving(true);
+    try {
+      const body:any={vendor_name:newName.trim(),category:newCat};
+      if(newTotal) body.amount_total=parseInt(newTotal.replace(/,/g,''),10);
+      if(newAdv)   body.amount_advance=parseInt(newAdv.replace(/,/g,''),10);
+      if(newDue)   body.balance_due_date=newDue;
+      if(newNotes.trim()) body.notes=newNotes.trim();
+      const b=await createBooking(body);
+      setBookings(prev=>[b,...prev]);
+      setShowAdd(false);setNewName('');setNewCat('photographer');setNewTotal('');setNewAdv('');setNewDue('');setNewNotes('');
+      showToast('Booking added.');
+    } catch { showToast('Could not add. Try again.'); }
+    setSaving(false);
+  };
+
+  const handleEdit = async () => {
+    if(!action||!editName.trim()) return;
+    setSaving(true);
+    try {
+      const patch:any={vendor_name:editName.trim(),category:editCat};
+      patch.amount_total=editTotal?parseInt(editTotal.replace(/,/g,''),10):null;
+      patch.amount_advance=editAdv?parseInt(editAdv.replace(/,/g,''),10):null;
+      patch.balance_due_date=editDue||null;
+      patch.notes=editNotes.trim()||null;
+      const updated=await updateBooking(action.id,patch);
+      setBookings(prev=>prev.map(b=>b.id===updated.id?updated:b));
+      setShowEdit(false);setAction(null);
+      showToast('Updated.');
+    } catch { showToast('Could not update.'); }
+    setSaving(false);
+  };
+
+  const handlePayment = async () => {
+    if(!action||!payAmount) return;
+    const amt=parseInt(payAmount.replace(/,/g,''),10);
+    if(isNaN(amt)||amt<=0){showToast('Enter a valid amount.');return;}
+    setSaving(true);
+    try {
+      const updated=await recordPayment(action.id,amt,payDate||undefined);
+      setBookings(prev=>prev.map(b=>b.id===updated.id?updated:b));
+      setShowPay(false);setAction(null);setPayAmount('');setPayDate('');
+      showToast('Payment recorded.');
+    } catch { showToast('Could not record payment.'); }
+    setSaving(false);
+  };
+
+  const handleDelete = async (b:CoupleBooking) => {
+    setAction(null);
+    setBookings(prev=>prev.filter(x=>x.id!==b.id));
+    await deleteBooking(b.id);
+    showToast('Removed.');
+  };
 
   const totalCommitted = bookings.reduce((s,b)=>s+(b.amount_total||0),0);
+  const totalPaid      = bookings.reduce((s,b)=>s+(b.amount_paid||0),0);
+  const groups = PIPELINE_STATES.map(p=>({label:p.label,items:bookings.filter(b=>b.state===p.key)})).filter(g=>g.items.length>0);
+
+  const inpStyle:React.CSSProperties = {width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'};
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+
       {/* Header */}
-      <div style={{padding:'20px 20px 14px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total committed</div>
-        <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:38,color:ac,lineHeight:1,letterSpacing:'-.03em',fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(totalCommitted)}</div>
-          {!loading&&bookings.length>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>{bookings.length} vendor{bookings.length!==1?'s':''}</div>}
+      <div style={{padding:'16px 20px 12px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+        <div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:4}}>My team</div>
+          {bookings.length>0&&<div style={{display:'flex',gap:20}}>
+            <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:20,color:ac}}>{fmtRs(totalCommitted)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:inkMute,letterSpacing:'.1em',marginLeft:4}}>committed</span></div>
+            <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:20,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:inkMute,letterSpacing:'.1em',marginLeft:4}}>paid</span></div>
+          </div>}
         </div>
+        <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
       </div>
 
-      {/* Bookings list */}
+      {/* List */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
-        {!loading&&bookings.length===0&&(
-          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:ac,lineHeight:1,textAlign:'center' as any}}>No vendors<br/>booked yet.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Tell Dream Ai you've confirmed a vendor<br/>and she'll log it here.</div>
+        {!loading&&bookings.length===0&&<div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Add your first booking.</div>}
+        {groups.map(g=>(
+          <div key={g.label}>
+            <div style={{padding:'14px 20px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>{g.label}</div>
+            {g.items.map(b=>{
+              const balance=(b.amount_total||0)-(b.amount_paid||0);
+              const meta=[b.category,b.amount_total?fmtRs(b.amount_total):null,b.balance_due_date?`Due ${new Date(b.balance_due_date).toLocaleDateString('en-IN',{month:'short',day:'numeric'})}`:null].filter(Boolean).join(' · ');
+              return(
+                <div key={b.id} onClick={()=>setAction(b)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
+                  <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(b.category?.[0]||b.vendor_name?.[0]||'·').toUpperCase()}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.vendor_name}</div>
+                    {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',color:inkMute,marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{meta}</div>}
+                  </div>
+                  {b.amount_total&&b.amount_paid<b.amount_total&&<div style={{textAlign:'right' as any,flexShrink:0}}>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:inkMute}}>Bal</div>
+                    <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:15,color:ink}}>{fmtRs(balance)}</div>
+                  </div>}
+                </div>
+              );
+            })}
           </div>
-        )}
-        {!loading&&bookings.map(b=>{
-          const state = STATE_LABEL[b.state]||{label:b.state,color:inkMute};
-          const balance = (b.amount_total||0)-(b.amount_paid||0);
-          return (
-            <div key={b.id} style={{margin:'8px 16px',borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,padding:'14px 16px'}}>
-              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6}}>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,lineHeight:1.2,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{b.vendor_name}</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{b.category.replace(/_/g,' ')}</div>
-                </div>
-                <div style={{textAlign:'right' as any,flexShrink:0,marginLeft:12}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:17,color:ac,lineHeight:1}}>{fmtRs(b.amount_total||0)}</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.12em',textTransform:'uppercase' as any,color:state.color,marginTop:3}}>{state.label}</div>
-                </div>
-              </div>
-              {/* Progress bar: paid vs total */}
-              {(b.amount_total||0)>0&&(
-                <div style={{marginTop:8}}>
-                  <div style={{height:2,borderRadius:1,background:dark?'rgba(196,133,106,.12)':'rgba(42,95,130,.12)',overflow:'hidden'}}>
-                    <div style={{height:'100%',width:`${Math.min(100,((b.amount_paid||0)/(b.amount_total||1))*100)}%`,background:state.color,borderRadius:1,transition:'width 600ms ease'}}/>
-                  </div>
-                  <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
-                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.1em',color:inkMute}}>Paid {fmtRs(b.amount_paid||0)}</div>
-                    {balance>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.1em',color:inkMute}}>Due {fmtRs(balance)}</div>}
-                  </div>
-                </div>
-              )}
-              {b.notes&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginTop:8,paddingTop:8,borderTop:`0.5px solid ${line}`}}>{b.notes}</div>}
-            </div>
-          );
-        })}
-        {!loading&&bookings.length>0&&<div style={{height:32}}/>}
+        ))}
+        <div style={{height:40}}/>
       </div>
+
+      {/* Add sheet */}
+      {showAdd&&<>
+        <div onClick={()=>setShowAdd(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:ink,fontFeatureSettings:'"opsz" 9'}}>Add a booking</div>
+            <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Aanya Studio" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
+              <select value={newCat} onChange={e=>setNewCat(e.target.value as VendorCategory)} style={{...inpStyle,appearance:'none' as any,WebkitAppearance:'none' as any}}>
+                {VENDOR_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+              </select></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total amount (₹, optional)</div><input value={newTotal} onChange={e=>setNewTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance agreed (₹, optional)</div><input value={newAdv} onChange={e=>setNewAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Balance due date (optional)</div><input type="date" value={newDue} onChange={e=>setNewDue(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes (optional)</div><input value={newNotes} onChange={e=>setNewNotes(e.target.value)} placeholder="What's included, terms…" style={inpStyle}/></div>
+            <button onClick={handleAdd} disabled={saving||!newName.trim()} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!newName.trim())?.5:1}}>
+              {saving?'Adding…':'Add booking'}
+            </button>
+          </div>
+        </div>
+      </>}
+
+      {/* Action sheet */}
+      {action&&!showEdit&&!showPay&&<>
+        <div onClick={()=>setAction(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:2,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',color:inkMute,textTransform:'uppercase' as any,marginBottom:16}}>{action.category} · {action.state.replace(/_/g,' ')}</div>
+          {action.amount_total&&<div style={{display:'flex',gap:24,marginBottom:20}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute,letterSpacing:'.14em'}}>TOTAL</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:18,color:ink}}>{fmtRs(action.amount_total)}</div></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute,letterSpacing:'.14em'}}>PAID</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:18,color:'#6B9E8F'}}>{fmtRs(action.amount_paid)}</div></div>
+            {action.amount_paid<(action.amount_total||0)&&<div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute,letterSpacing:'.14em'}}>BALANCE</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:18,color:ink}}>{fmtRs((action.amount_total||0)-action.amount_paid)}</div></div>}
+          </div>}
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            <button onClick={()=>{setShowPay(true);setPayAmount('');setPayDate('');}} style={{padding:14,background:`${ac}18`,border:`0.5px solid ${ac}44`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>Record a payment</button>
+            <button onClick={()=>openEdit(action)} style={{padding:14,background:'rgba(255,255,255,.04)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:ink,cursor:'pointer'}}>Edit</button>
+            <button onClick={()=>handleDelete(action)} style={{padding:14,background:'rgba(184,69,62,.12)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer'}}>Remove</button>
+            <button onClick={()=>setAction(null)} style={{padding:14,background:'rgba(255,255,255,.02)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>Cancel</button>
+          </div>
+        </div>
+      </>}
+
+      {/* Edit sheet */}
+      {showEdit&&action&&<>
+        <div onClick={()=>{setShowEdit(false);setAction(null);}} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:ink,fontFeatureSettings:'"opsz" 9'}}>Edit booking</div>
+            <button onClick={()=>{setShowEdit(false);setAction(null);}} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={editName} onChange={e=>setEditName(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
+              <select value={editCat} onChange={e=>setEditCat(e.target.value as VendorCategory)} style={{...inpStyle,appearance:'none' as any,WebkitAppearance:'none' as any}}>
+                {VENDOR_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+              </select></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total (₹)</div><input value={editTotal} onChange={e=>setEditTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance (₹)</div><input value={editAdv} onChange={e=>setEditAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Balance due date</div><input type="date" value={editDue} onChange={e=>setEditDue(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes</div><input value={editNotes} onChange={e=>setEditNotes(e.target.value)} style={inpStyle}/></div>
+            <button onClick={handleEdit} disabled={saving||!editName.trim()} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!editName.trim())?.5:1}}>
+              {saving?'Saving…':'Save changes'}
+            </button>
+          </div>
+        </div>
+      </>}
+
+      {/* Payment sheet */}
+      {showPay&&action&&<>
+        <div onClick={()=>setShowPay(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
+        <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
+            <button onClick={()=>setShowPay(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+          </div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:20,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name} · paid so far: {fmtRs(action.amount_paid)}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount paid (₹)</div><input value={payAmount} onChange={e=>setPayAmount(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Payment date (optional)</div><input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)} style={inpStyle}/></div>
+            <button onClick={handlePayment} disabled={saving||!payAmount} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!payAmount)?.5:1}}>
+              {saving?'Recording…':'Record payment'}
+            </button>
+          </div>
+        </div>
+      </>}
     </div>
   );
 }
@@ -1845,12 +2218,31 @@ export default function SanctuaryPage() {
   },[]);
 
   // Swipe down to close
+  const touchStartX = useRef(0);
   const onTouchStart = useCallback((e:React.TouchEvent)=>{
     touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
   },[]);
   const onTouchEnd = useCallback((e:React.TouchEvent)=>{
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if(dy > 120) closeRoom();
+    const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
+    // Only close if: clearly vertical (not horizontal), dragged down 120px+,
+    // AND started in the top 100px pull-zone OR from a non-scrollable surface
+    if(dy > 120 && dx < 60) {
+      // Check if the touch started inside a scrollable child that had scroll room
+      const target = e.target as HTMLElement;
+      let node: HTMLElement | null = target;
+      let inScrollable = false;
+      const bloom = bloomRef.current;
+      while(node && bloom && node !== bloom) {
+        const s = window.getComputedStyle(node);
+        if(s.overflowY === 'auto' || s.overflowY === 'scroll') {
+          if(node.scrollTop > 4) { inScrollable = true; break; }
+        }
+        node = node.parentElement;
+      }
+      if(!inScrollable) closeRoom();
+    }
   },[closeRoom]);
 
   // ── Dream Ai send ─────────────────────────────────────────────────────────
@@ -1960,10 +2352,10 @@ export default function SanctuaryPage() {
 
       {/* Chrome */}
       <div style={{position:'relative',zIndex:8,display:'flex',alignItems:'center',justifyContent:'space-between',padding:`calc(env(safe-area-inset-top,0px) + 84px) 18px 0`,flexShrink:0}}>
-        <button onClick={()=>openRoom('discover')} style={{display:'flex',alignItems:'center',gap:5,height:24,padding:'0 10px',borderRadius:2,background:pillBg,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:`0.5px solid ${pillBdr}`,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:pillTxt,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+        <div style={{display:'flex',alignItems:'center',gap:5,height:24,padding:'0 10px',borderRadius:2,background:pillBg,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:`0.5px solid ${pillBdr}`,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:pillTxt}}>
           <span style={{width:4,height:4,borderRadius:'50%',background:accent,flexShrink:0}}/>
-          Discover
-        </button>
+          Sanctuary
+        </div>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:inkMute}}>{romanDate()}</span>
       </div>
 
