@@ -2416,18 +2416,20 @@ export default function SanctuaryPage() {
   useEffect(()=>{ activeRoomRef.current = activeRoom; },[activeRoom]);
 
   useEffect(()=>{
-    // Push sentinel so there's always a history entry to pop to
-    window.history.pushState({tdw:'sanctuary'},'');
+    // Push TWO sentinels on mount — need to pop both before leaving
+    // Using location.hash approach: browser stays on same URL, popstate fires reliably
+    const url = window.location.pathname + window.location.search;
+    window.history.pushState({tdw:'s',n:1}, '', url);
+    window.history.pushState({tdw:'s',n:2}, '', url);
 
-    const onPop = () => {
-      // Immediately push another sentinel — browser stays on this URL
-      window.history.pushState({tdw:'sanctuary'},'');
-      // If a room is open, close it
+    const onPop = (e: PopStateEvent) => {
+      // Always push a fresh sentinel to trap the back press
+      window.history.pushState({tdw:'s',n:Date.now()}, '', url);
+      // Close room if open
       if(activeRoomRef.current !== null){
         setClosing(true);
         setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); },300);
       }
-      // If no room open, do nothing — user stays on sanctuary
     };
 
     window.addEventListener('popstate', onPop);
@@ -2567,12 +2569,8 @@ export default function SanctuaryPage() {
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>I do</span>
       </div>
 
-      {/* Chrome */}
-      <div style={{position:'relative',zIndex:8,display:'flex',alignItems:'center',justifyContent:'space-between',padding:`calc(env(safe-area-inset-top,0px) + 84px) 18px 0`,flexShrink:0}}>
-        <div style={{display:'flex',alignItems:'center',gap:5,height:24,padding:'0 10px',borderRadius:2,background:pillBg,backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:`0.5px solid ${pillBdr}`,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:pillTxt}}>
-          <span style={{width:4,height:4,borderRadius:'50%',background:accent,flexShrink:0}}/>
-          Sanctuary
-        </div>
+      {/* Chrome — just the date stamp, top right. Sanctuary pill removed (collides with arc). */}
+      <div style={{position:'absolute',top:`calc(env(safe-area-inset-top,0px) + 14px)`,right:18,zIndex:8,pointerEvents:'none'}}>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:inkMute}}>{romanDate()}</span>
       </div>
 
