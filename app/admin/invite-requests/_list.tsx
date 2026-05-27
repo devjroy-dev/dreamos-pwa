@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
-import { PageHeader, GoldBtn, GhostBtn, Toast, T } from '../../_components/AdminUI';
-import { API_BASE } from '../../../../lib/admin-api';
+import { PageHeader, GoldBtn, GhostBtn, Toast, T } from '../_components/AdminUI';
+import { API_BASE } from '../../../lib/admin-api';
 
 export interface WaitlistSignup {
   id: string;
