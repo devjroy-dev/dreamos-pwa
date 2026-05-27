@@ -2569,13 +2569,13 @@ export default function SanctuaryPage() {
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>I do</span>
       </div>
 
-      {/* Chrome — just the date stamp, top right. Sanctuary pill removed (collides with arc). */}
-      <div style={{position:'absolute',top:`calc(env(safe-area-inset-top,0px) + 14px)`,right:18,zIndex:8,pointerEvents:'none'}}>
+      {/* Date stamp — floats top-right above the arc */}
+      <div style={{position:'absolute',top:`calc(env(safe-area-inset-top,0px) + 8px)`,right:18,zIndex:9,pointerEvents:'none'}}>
         <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:inkMute}}>{romanDate()}</span>
       </div>
 
-      {/* Hero */}
-      <div style={{position:'relative',zIndex:5,padding:journeyOpen?'6px 18px 2px':'10px 18px 6px',flexShrink:0,transition:`padding 480ms ${EASE}`}}>
+      {/* Hero — top padding clears the arc (108px) + safe area */}
+      <div style={{position:'relative',zIndex:5,padding:journeyOpen?`calc(env(safe-area-inset-top,0px) + 108px) 18px 2px`:`calc(env(safe-area-inset-top,0px) + 112px) 18px 6px`,flexShrink:0,transition:`padding 480ms ${EASE}`}}>
         {!journeyOpen&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>}
         <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?30:42,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
           Hello, <span style={{color:accent}}>{name}</span>.
