@@ -7,7 +7,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
-import { useBrideMode, type BrideMode } from '../../app/(bride)/layout';
+type BrideMode = 'HOME' | 'PLAN' | 'DISCOVER' | 'CIRCLE' | 'MUSE';
+const useBrideMode = () => ({ mode: 'HOME' as BrideMode, setMode: (_m: BrideMode) => {} });
 import { COLORS, FONTS, EASE, initials } from './tokens';
 import { getCoupleSession } from './atoms';
 
