@@ -20,16 +20,13 @@ export default function MakersPage() {
   const [toast, setToast]         = useState('');
   const [toastErr, setToastErr]   = useState(false);
   const [selected, setSelected]   = useState<AdminVendor | null>(null);
-  const [showInvite, setShowInvite] = useState(false);
 
-  // Invite form
   const [invName, setInvName]     = useState('');
   const [invPhone, setInvPhone]   = useState('');
   const [invCat, setInvCat]       = useState('');
   const [invCity, setInvCity]     = useState('');
   const [invTier, setInvTier]     = useState('trial');
   const [inviting, setInviting]   = useState(false);
-  const [inviteResult, setInviteResult] = useState<{ name: string; waLink: string } | null>(null);
   const [copied, setCopied]       = useState(false);
 
   const load = useCallback(() => {
@@ -115,7 +112,6 @@ export default function MakersPage() {
       <PageHeader
         title="Makers"
         sub={`${vendors.length} total vendors`}
-        action={<GoldBtn label="+ Invite" onClick={() => { setShowInvite(true); setInviteResult(null); }} />}
       />
 
       <FieldInput label="Search" value={search} onChange={setSearch} placeholder="Name or phone…" />
@@ -171,71 +167,6 @@ export default function MakersPage() {
         )}
       </BottomSheet>
 
-      {/* Invite by phone sheet */}
-      <BottomSheet visible={showInvite} onClose={() => { setShowInvite(false); setInviteResult(null); }} title="Invite a Maker">
-
-        {inviteResult ? (
-          /* ── Success state ── */
-          <div>
-            <div style={{ background: 'rgba(92,224,160,0.08)', border: `0.5px solid rgba(92,224,160,0.3)`, borderRadius: 12, padding: '16px 18px', marginBottom: 20 }}>
-              <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.success, marginBottom: 6 }}>✓ {inviteResult.name} has been invited.</div>
-              <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.1em' }}>Vendor row created. Send them the link below.</div>
-            </div>
-
-            <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 20 }}>
-              <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.2em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Share with {inviteResult.name}</div>
-              <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink, lineHeight: 1.7, marginBottom: 16 }}>
-                Hey {inviteResult.name} — tap this link to get started with your chief of staff:<br />
-                <span style={{ color: T.gold }}>{inviteResult.waLink}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button
-                  onClick={copyInvite}
-                  style={{ flex: 1, background: copied ? 'rgba(92,224,160,0.1)' : T.card, border: `0.5px solid ${copied ? 'rgba(92,224,160,0.4)' : T.border}`, borderRadius: 10, padding: '12px 0', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied ? T.success : T.soft, minHeight: 44 }}
-                >
-                  {copied ? '✓ Copied' : 'Copy Message'}
-                </button>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Hey ${inviteResult.name} — tap this link to get started with your chief of staff: ${inviteResult.waLink}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ flex: 1, background: T.gold, border: 'none', borderRadius: 10, padding: '12px 0', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: '#0A0908', minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
-                >
-                  Send via WA
-                </a>
-              </div>
-            </div>
-
-            <GhostBtn label="Invite Another" onClick={() => setInviteResult(null)} />
-          </div>
-        ) : (
-          /* ── Form state ── */
-          <div>
-            <FieldInput label="Name" value={invName} onChange={setInvName} placeholder="Kavya Sharma" />
-            <FieldInput label="WhatsApp Number" value={invPhone} onChange={setInvPhone} placeholder="+918757788550" />
-            <FieldSelect
-              label="Category (optional)"
-              value={invCat}
-              onChange={setInvCat}
-              options={[{ value: '', label: 'Select category' }, ...CATEGORIES.map(c => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))]}
-            />
-            <FieldInput label="City (optional)" value={invCity} onChange={setInvCity} placeholder="Mumbai" />
-            <FieldSelect
-              label="Starting Tier"
-              value={invTier}
-              onChange={setInvTier}
-              options={[{ value: 'trial', label: 'Trial' }, { value: 'essential', label: 'Essential' }, { value: 'signature', label: 'Signature (recommended)' }, { value: 'prestige', label: 'Prestige' }]}
-            />
-            <div style={{ paddingBottom: 12, marginTop: 4 }}>
-              <GoldBtn
-                label={inviting ? 'Creating…' : 'Create & Get Link'}
-                onClick={invite}
-                disabled={inviting || !invName.trim() || !invPhone.trim()}
-              />
-            </div>
-          </div>
-        )}
-      </BottomSheet>
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>
