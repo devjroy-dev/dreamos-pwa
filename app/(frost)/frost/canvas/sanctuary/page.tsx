@@ -2047,7 +2047,7 @@ export default function SanctuaryPage() {
               Sanctuary
             </button>
             <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
-              {(['expenses','vendors','settings'].includes(activeRoom||'')
+              {(['expenses','vendors','settings'].includes(activeRoom as string)
                 ? (activeRoom==='expenses'?'Expenses':activeRoom==='vendors'?'Vendors':'Settings')
                 : SLICES.find(s=>s.key===activeRoom)?.label)}
             </div>
@@ -2164,7 +2164,7 @@ export default function SanctuaryPage() {
             {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
-                  {(['expenses','vendors','settings'].includes(activeRoom||'')
+                  {(['expenses','vendors','settings'].includes(activeRoom as string)
                 ? (activeRoom==='expenses'?'Expenses':activeRoom==='vendors'?'Vendors':'Settings')
                 : SLICES.find(s=>s.key===activeRoom)?.label)}
                 </div>
