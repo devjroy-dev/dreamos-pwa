@@ -4,8 +4,7 @@ export const dynamic = 'force-dynamic';
 // app/demo/vendor/[handle]/page.tsx
 // Demo vendor landing. One screen. Non-scrollable.
 // Vendor's own photos carousel (2.5s auto-advance).
-// Frosted entry strip at bottom — tap to reveal, whole pane is the CTA.
-// "We built this for you." · vendor name · "Tap to see inside."
+// Exact TDW frosted-entry-strip pattern — dark #0C0A09 base, warm espresso tones.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -13,29 +12,36 @@ import { fetchDemoVendor } from '@/lib/demo/api';
 import type { DemoVendor, DemoPhoto } from '@/lib/demo/api';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
 
+// Exact font stack from real app
 const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-cormorant), Georgia, serif',
-  body:    'var(--font-dm-sans), system-ui, sans-serif',
-  label:   'var(--font-jost), system-ui, sans-serif',
+  display: "'Italiana', 'GFS Didot', Georgia, serif",
+  script:  "'Cormorant Garamond', Georgia, serif",
+  body:    "'DM Sans', system-ui, sans-serif",
+  label:   "'Jost', system-ui, sans-serif",
 };
 
 export default function DemoLandingPage() {
-  const params  = useParams();
-  const handle  = typeof params.handle === 'string' ? params.handle : '';
-  const router  = useRouter();
+  const params = useParams();
+  const handle = typeof params.handle === 'string' ? params.handle : '';
+  const router = useRouter();
 
-  const [vendor,  setVendor]  = useState<DemoVendor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [cur,     setCur]     = useState(0);
-  const [entered, setEntered] = useState(false); // strip expanded
-  const [reveal,  setReveal]  = useState(false); // fade-in trigger after mount
+  const [vendor,   setVendor]   = useState<DemoVendor | null>(null);
+  const [loading,  setLoading]  = useState(true);
+  const [cur,      setCur]      = useState(0);
+  const [entered,  setEntered]  = useState(false);
+  const [reveal,   setReveal]   = useState(false);
+
+  // Claim flow
+  const [claimOpen,    setClaimOpen]    = useState(false);
+  const [claimPhone,   setClaimPhone]   = useState('');
+  const [claimSending, setClaimSending] = useState(false);
+  const [claimDone,    setClaimDone]    = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const photosRef   = useRef<string[]>([]);
 
-  // Fetch vendor
   useEffect(() => {
     if (!handle) return;
     fetchDemoVendor(handle)
@@ -48,7 +54,6 @@ export default function DemoLandingPage() {
       .finally(() => setLoading(false));
   }, [handle]);
 
-  // Carousel — 2.5s, starts as soon as photos load
   const startCarousel = useCallback(() => {
     if (intervalRef.current) return;
     intervalRef.current = setInterval(() => {
@@ -59,253 +64,209 @@ export default function DemoLandingPage() {
   useEffect(() => {
     if (!loading && vendor) {
       startCarousel();
-      // Small delay so the image is painted before we fade in the UI
       const t = setTimeout(() => setReveal(true), 80);
       return () => clearTimeout(t);
     }
   }, [loading, vendor, startCarousel]);
 
-  useEffect(() => () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  }, []);
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+
+  async function handleClaim() {
+    if (!claimPhone.trim() || claimSending) return;
+    setClaimSending(true);
+    try {
+      await fetch(`${API_BASE}/api/v2/demo/vendor/${handle}/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: claimPhone.trim(), vendor_name: vendor?.display_name ?? handle }),
+      });
+    } catch { /* silent — still show success */ }
+    setClaimSending(false);
+    setClaimDone(true);
+  }
 
   const photos = (vendor?.photos ?? []).map((p: DemoPhoto) => p.url).filter(Boolean) as string[];
+  const hasPhotos = photos.length > 0;
 
-  // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ position: 'fixed', inset: 0, background: '#0C0A09', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 18, color: 'rgba(245,235,212,0.35)', letterSpacing: '0.02em' }}>
-        One moment…
-      </div>
+    <div style={{ position:'fixed', inset:0, background:'#0C0A09', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ fontFamily:F.script, fontStyle:'italic', fontSize:18, color:'rgba(240,230,210,0.35)' }}>One moment…</div>
     </div>
   );
 
-  // ── Not found ──────────────────────────────────────────────────────────────
   if (!vendor) return (
-    <div style={{ position: 'fixed', inset: 0, background: '#0C0A09', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-      <div style={{ fontFamily: F.display, fontSize: 28, color: 'rgba(245,235,212,0.9)', letterSpacing: '0.02em' }}>Profile not found.</div>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, color: 'rgba(245,235,212,0.4)' }}>This demo link may have expired.</div>
+    <div style={{ position:'fixed', inset:0, background:'#0C0A09', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
+      <div style={{ fontFamily:F.display, fontSize:28, color:'rgba(240,230,210,0.9)' }}>Profile not found.</div>
+      <div style={{ fontFamily:F.script, fontStyle:'italic', fontSize:16, color:'rgba(240,230,210,0.4)' }}>This demo link may have expired.</div>
     </div>
   );
 
   const vendorDisplayName = vendor.display_name || handle;
-  const hasPhotos = photos.length > 0;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#0C0A09' }}>
+    <div style={{ position:'fixed', inset:0, overflow:'hidden', background:'#0C0A09' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Italiana&family=Jost:wght@200;300;400&display=swap');
         @keyframes breathe { 0%,100%{opacity:0.25} 50%{opacity:0.55} }
         @keyframes hairlineIn { from{transform:scaleX(0);opacity:0} to{transform:scaleX(1);opacity:1} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        * { -webkit-tap-highlight-color: transparent; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        input::placeholder { color: rgba(240,230,210,0.3); }
       `}</style>
 
-      {/* ── Carousel slides ─────────────────────────────────────────────────── */}
+      {/* Carousel */}
       {hasPhotos ? photos.map((url, i) => (
-        <div key={i} style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url(${url})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          opacity: reveal ? (i === cur ? 1 : 0) : 0,
-          transition: `opacity ${i === cur ? '1.8s' : '1.2s'} ${EASE}`,
-          willChange: 'opacity',
-          zIndex: 1,
-          pointerEvents: 'none',
-        }} />
+        <div key={i} style={{ position:'absolute', inset:0, backgroundImage:`url(${url})`, backgroundSize:'cover', backgroundPosition:'center top', opacity: reveal ? (i === cur ? 1 : 0) : 0, transition:`opacity ${i === cur ? '1.8s' : '1.2s'} ${EASE}`, willChange:'opacity', zIndex:1, pointerEvents:'none' }} />
       )) : (
-        // Fallback dark texture if no photos
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 40%, rgba(201,168,76,0.08) 0%, transparent 70%)', zIndex: 1, pointerEvents: 'none' }} />
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 30% 40%, rgba(201,168,76,0.08) 0%, transparent 70%)', zIndex:1, pointerEvents:'none' }} />
       )}
 
-      {/* ── Radial vignette ─────────────────────────────────────────────────── */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse at 50% 45%, transparent 15%, rgba(0,0,0,0.52) 100%)',
-      }} />
+      {/* Radial vignette — exact match to real app */}
+      <div style={{ position:'absolute', inset:0, zIndex:2, pointerEvents:'none', background:'radial-gradient(ellipse at 50% 60%, transparent 20%, rgba(0,0,0,0.55) 100%)' }} />
 
-      {/* ── Bottom gradient — ensures frosted strip reads well ───────────────── */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '52%', zIndex: 3, pointerEvents: 'none',
-        background: 'linear-gradient(to top, rgba(8,6,5,0.88) 0%, rgba(8,6,5,0.42) 55%, transparent 100%)',
-      }} />
+      {/* Bottom gradient */}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'52%', zIndex:3, pointerEvents:'none', background:'linear-gradient(to top, rgba(12,10,9,0.92) 0%, rgba(12,10,9,0.45) 55%, transparent 100%)' }} />
 
-      {/* ── TDW wordmark — top left ──────────────────────────────────────────── */}
-      <div style={{
-        position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 22px)',
-        left: 22, zIndex: 10,
-        opacity: reveal ? 1 : 0,
-        transition: `opacity 1.2s ${EASE} 0.3s`,
-      }}>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: 'rgba(248,247,245,0.72)', letterSpacing: '0.02em', lineHeight: 1 }}>
-          The Dream Wedding
-        </div>
-        <div style={{ fontFamily: F.label, fontWeight: 200, fontSize: 6, letterSpacing: '0.38em', textTransform: 'uppercase', color: '#C9A84C', marginTop: 5 }}>
-          India's First Wedding OS
-        </div>
+      {/* TDW wordmark — exact from real landing */}
+      <div style={{ position:'absolute', top:'calc(env(safe-area-inset-top, 0px) + 22px)', left:22, zIndex:10, opacity: reveal ? 1 : 0, transition:`opacity 1.2s ${EASE} 0.3s` }}>
+        <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:16, color:'rgba(248,247,245,0.72)', letterSpacing:'0.02em', lineHeight:1 }}>The Dream Wedding</div>
+        <div style={{ fontFamily:F.label, fontWeight:200, fontSize:6, letterSpacing:'0.38em', textTransform:'uppercase', color:'#C9A84C', marginTop:5 }}>India&apos;s First Wedding OS</div>
       </div>
 
-      {/* ── Slide dots — top centre, visible when not expanded ──────────────── */}
+      {/* Slide dots */}
       {hasPhotos && photos.length > 1 && !entered && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(env(safe-area-inset-top, 0px) + 28px)',
-          left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', gap: 5, zIndex: 10,
-          opacity: reveal ? 1 : 0,
-          transition: `opacity 1s ${EASE} 0.6s`,
-        }}>
+        <div style={{ position:'absolute', top:'calc(env(safe-area-inset-top, 0px) + 28px)', left:'50%', transform:'translateX(-50%)', display:'flex', gap:5, zIndex:10, opacity: reveal ? 1 : 0, transition:`opacity 1s ${EASE} 0.6s` }}>
           {photos.map((_, i) => (
-            <div key={i} style={{
-              width: i === cur ? 18 : 4, height: 4, borderRadius: 2,
-              background: i === cur ? '#C9A84C' : 'rgba(255,255,255,0.22)',
-              transition: `width 400ms ${EASE}, background 400ms ${EASE}`,
-            }} />
+            <div key={i} style={{ width: i === cur ? 18 : 4, height:4, borderRadius:2, background: i === cur ? '#C9A84C' : 'rgba(255,255,255,0.22)', transition:`width 400ms ${EASE}, background 400ms ${EASE}` }} />
           ))}
         </div>
       )}
 
-      {/* ── Entry strip — bottom frosted pane ───────────────────────────────── */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
-        opacity: reveal ? 1 : 0,
-        transition: `opacity 1.4s ${EASE} 0.5s`,
-      }}>
+      {/* Entry strip — exact pattern from real TDW landing */}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:20, opacity: reveal ? 1 : 0, transition:`opacity 1.4s ${EASE} 0.5s` }}>
         <div
           onClick={() => !entered && setEntered(true)}
           style={{
-            background: entered
-              ? 'rgba(8,6,5,0.42)'
-              : 'rgba(8,6,5,0.32)',
-            backdropFilter: 'blur(28px) saturate(1.6)',
-            WebkitBackdropFilter: 'blur(28px) saturate(1.6)',
+            background: entered ? 'rgba(12,10,9,0.38)' : 'rgba(12,10,9,0.32)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             borderTop: '0.5px solid rgba(255,255,255,0.10)',
             padding: entered
-              ? '22px 26px calc(env(safe-area-inset-bottom, 16px) + 32px)'
-              : '18px 26px calc(env(safe-area-inset-bottom, 12px) + 20px)',
-            transition: `padding 500ms ${EASE}, background 400ms ${EASE}`,
+              ? '20px 24px calc(env(safe-area-inset-bottom, 16px) + 28px)'
+              : '14px 24px calc(env(safe-area-inset-bottom, 12px) + 16px)',
+            transition: `padding 400ms ${EASE}, background 400ms ${EASE}`,
             cursor: entered ? 'default' : 'pointer',
           }}
         >
-
-          {/* ── Collapsed state ──────────────────────────────────────────────── */}
-          <div style={{
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-          }}>
+          {/* Always-visible brand row — exact from real landing */}
+          <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between' }}>
             <div>
-              {/* "We built this for you." */}
-              <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 13, color: 'rgba(248,247,245,0.45)',
-                letterSpacing: '0.02em', marginBottom: 6, lineHeight: 1,
-              }}>
+              {/* "We built this for you." — Cormorant italic, dim */}
+              <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.45)', letterSpacing:'0.02em', marginBottom:6, lineHeight:1 }}>
                 We built this for you.
               </div>
-
-              {/* Vendor name — Italiana, large */}
-              <div style={{
-                fontFamily: F.display, fontWeight: 400,
-                fontSize: 34, color: 'rgba(248,247,245,0.96)',
-                lineHeight: 1, letterSpacing: '0.01em',
-              }}>
+              {/* Vendor name — Italiana, large. Exact from real landing */}
+              <div style={{ fontFamily:F.display, fontWeight:400, fontSize:34, color:'rgba(248,247,245,0.96)', lineHeight:1.1, letterSpacing:'0.02em' }}>
                 {vendorDisplayName}
               </div>
-
-              {/* Category · City */}
+              {/* Category · City — Jost 200, brass */}
               {(vendor.category || vendor.city) && (
-                <div style={{
-                  fontFamily: F.label, fontWeight: 200, fontSize: 8,
-                  letterSpacing: '0.38em', textTransform: 'uppercase',
-                  color: 'rgba(201,168,76,0.75)', marginTop: 7,
-                }}>
+                <div style={{ fontFamily:F.label, fontWeight:200, fontSize:7, letterSpacing:'0.32em', textTransform:'uppercase', color:'#C9A84C', marginTop:4 }}>
                   {[vendor.category, vendor.city].filter(Boolean).join(' · ')}
                 </div>
               )}
             </div>
 
-            {/* "tap" pulse — only when collapsed */}
+            {/* Breathe hint — exact from real landing */}
             {!entered && (
-              <div style={{
-                fontFamily: F.label, fontWeight: 200, fontSize: 8,
-                letterSpacing: '0.22em', textTransform: 'uppercase',
-                color: 'rgba(248,247,245,0.28)',
-                animation: 'breathe 3s ease-in-out infinite',
-                paddingBottom: 4,
-              }}>
+              <div style={{ fontFamily:F.label, fontWeight:200, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.28)', animation:'breathe 3s ease-in-out infinite', paddingBottom:4 }}>
                 tap
               </div>
             )}
           </div>
 
-          {/* ── Expanded state — slides open ─────────────────────────────────── */}
-          <div style={{
-            maxHeight: entered ? '260px' : '0px',
-            overflow: 'hidden',
-            transition: `max-height 520ms ${EASE}`,
-          }}>
-            <div style={{ paddingTop: 22 }}>
+          {/* Expanded content */}
+          <div style={{ maxHeight: entered ? '300px' : '0px', overflow:'hidden', transition:`max-height 440ms ${EASE}` }}>
+            <div style={{ paddingTop:20, display:'flex', flexDirection:'column', gap:10 }}>
 
-              {/* Brass hairline */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22,
-                transformOrigin: 'left center',
-                animation: entered ? `hairlineIn 600ms ${EASE} 180ms both` : 'none',
-              }}>
-                <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to right, rgba(201,168,76,0.6), rgba(201,168,76,0.15))' }} />
-                <span style={{ fontFamily: F.display, fontSize: 10, color: '#C9A84C', letterSpacing: '0.3em', lineHeight: 1 }}>◆</span>
-                <div style={{ flex: 1, height: '0.5px', background: 'linear-gradient(to left, rgba(201,168,76,0.6), rgba(201,168,76,0.15))' }} />
+              {/* Brass hairline with ◆ — exact from real app */}
+              <div style={{ display:'flex', alignItems:'center', gap:12, animation: entered ? `hairlineIn 600ms ${EASE} 180ms both` : 'none' }}>
+                <div style={{ flex:1, height:'0.5px', background:'linear-gradient(to right, rgba(201,168,76,0.6), rgba(201,168,76,0.12))' }} />
+                <span style={{ fontFamily:F.display, fontSize:10, color:'#C9A84C', letterSpacing:'0.3em', lineHeight:1 }}>◆</span>
+                <div style={{ flex:1, height:'0.5px', background:'linear-gradient(to left, rgba(201,168,76,0.6), rgba(201,168,76,0.12))' }} />
               </div>
 
-              {/* "Tap to see inside." */}
-              <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 18, color: 'rgba(248,247,245,0.55)',
-                textAlign: 'center', letterSpacing: '0.01em', marginBottom: 26,
-                animation: entered ? `fadeUp 500ms ${EASE} 220ms both` : 'none',
-              }}>
-                Tap to see inside.
+              {/* "Your studio awaits." — Cormorant italic */}
+              <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:18, color:'rgba(248,247,245,0.55)', textAlign:'center', letterSpacing:'0.01em', animation: entered ? `fadeUp 500ms ${EASE} 200ms both` : 'none' }}>
+                Your studio awaits.
               </div>
 
-              {/* The single CTA — the whole pane is the gesture, but this makes it obvious */}
+              {/* Enter Your Studio — gold button, exact from real landing */}
               <button
                 onClick={() => router.push(`/demo/vendor/${handle}/studio`)}
-                style={{
-                  width: '100%', padding: '15px 0',
-                  background: 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)',
-                  border: '0.5px solid #E0BC6E',
-                  borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                  letterSpacing: '0.52em', textTransform: 'uppercase',
-                  color: '#1A120E',
-                  animation: entered ? `fadeUp 500ms ${EASE} 300ms both` : 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
+                style={{ width:'100%', height:48, background:'#C9A84C', border:'none', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:9, fontWeight:400, letterSpacing:'0.22em', textTransform:'uppercase', color:'#0C0A09', animation: entered ? `fadeUp 500ms ${EASE} 280ms both` : 'none', WebkitTapHighlightColor:'transparent' }}
               >
                 Enter Your Studio
               </button>
 
-              {/* Secondary — Discover */}
+              {/* Explore Discover — ghost, routes to demodiscover subdomain */}
               <button
-                onClick={() => router.push(`/demo/vendor/${handle}/discover`)}
-                style={{
-                  width: '100%', padding: '13px 0', marginTop: 10,
-                  background: 'transparent',
-                  border: '0.5px solid rgba(201,168,76,0.28)',
-                  borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  letterSpacing: '0.42em', textTransform: 'uppercase',
-                  color: 'rgba(201,168,76,0.65)',
-                  animation: entered ? `fadeUp 500ms ${EASE} 380ms both` : 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
+                onClick={() => { window.location.href = `https://demodiscover.thedreamwedding.in`; }}
+                style={{ width:'100%', height:44, background:'transparent', border:'0.5px solid rgba(248,247,245,0.2)', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:8, fontWeight:300, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.55)', animation: entered ? `fadeUp 500ms ${EASE} 350ms both` : 'none', WebkitTapHighlightColor:'transparent' }}
               >
                 Explore Discover
+              </button>
+
+              {/* Claim Your Studio — text link */}
+              <button
+                onClick={e => { e.stopPropagation(); setClaimOpen(true); }}
+                style={{ background:'none', border:'none', cursor:'pointer', fontFamily:F.label, fontWeight:200, fontSize:7, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.28)', textAlign:'center', padding:'4px 0', animation: entered ? `fadeUp 500ms ${EASE} 420ms both` : 'none' }}
+              >
+                Claim Your Studio
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Claim sheet */}
+      {claimOpen && (
+        <>
+          <div onClick={() => { setClaimOpen(false); setClaimDone(false); setClaimPhone(''); }} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(12,10,9,0.5)' }} />
+          <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:101, background:'rgba(12,10,9,0.88)', backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)', borderTop:'0.5px solid rgba(255,255,255,0.12)', borderRadius:'20px 20px 0 0', padding:`20px 24px calc(env(safe-area-inset-bottom, 16px) + 24px)` }}>
+            {claimDone ? (
+              <div style={{ textAlign:'center', padding:'20px 0' }}>
+                <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:32, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>Welcome to TDW.</div>
+                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7 }}>Our team will reach out shortly.<br />We verify every profile personally.</div>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:22, color:'rgba(248,247,245,0.9)', marginBottom:4 }}>Claim Your Studio.</div>
+                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.45)', marginBottom:20 }}>Enter your number. We&apos;ll reach out on WhatsApp.</div>
+                <div style={{ display:'flex', alignItems:'center', borderBottom:'1px solid rgba(255,255,255,0.2)', marginBottom:20 }}>
+                  <span style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.45)', paddingRight:12, borderRight:'1px solid rgba(255,255,255,0.15)', marginRight:12 }}>+91</span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="00000 00000"
+                    value={claimPhone}
+                    onChange={e => setClaimPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    style={{ flex:1, background:'transparent', border:'none', outline:'none', fontFamily:F.body, fontWeight:300, fontSize:15, color:'rgba(248,247,245,0.9)', padding:'8px 0' }}
+                  />
+                </div>
+                <button
+                  onClick={handleClaim}
+                  disabled={claimPhone.length < 10 || claimSending}
+                  style={{ width:'100%', height:52, background: claimPhone.length >= 10 && !claimSending ? '#C9A84C' : 'rgba(201,168,76,0.3)', border:'none', borderRadius:100, cursor: claimPhone.length >= 10 && !claimSending ? 'pointer' : 'default', fontFamily:F.label, fontSize:10, fontWeight:400, letterSpacing:'0.2em', textTransform:'uppercase', color: claimPhone.length >= 10 && !claimSending ? '#0C0A09' : 'rgba(12,10,9,0.4)' }}
+                >
+                  {claimSending ? 'Sending…' : 'Claim Studio →'}
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

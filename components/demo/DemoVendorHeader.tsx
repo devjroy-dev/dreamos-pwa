@@ -134,7 +134,7 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
               <span style={{ flexShrink: 0, width: 22, textAlign: 'center', fontFamily: F.display, fontWeight: 400, fontSize: 18, color: '#E0BC6E', lineHeight: 1 }}>→</span>
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, color: '#E0BC6E', letterSpacing: '0.005em', lineHeight: 1.15 }}>Claim Your Studio</span>
-                <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 11, color: inkMuteColor, marginTop: 1 }}>Sign up for full access</span>
+                <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 11, color: inkMuteColor, marginTop: 1 }}>Enter your number to join</span>
               </span>
             </button>
           </div>

@@ -20,7 +20,18 @@ function fmtShort(s:string){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s);if(!m)ret
 function splitDay(s:string):{day:string;month:string}{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s);if(!m)return{day:s,month:''};return{day:String(parseInt(m[3])),month:MONTHS_SHORT[parseInt(m[2])-1]};}
 
 // Demo hot dates — 5 auspicious dates seeded for demo
-const DEMO_HOT_DATES=new Set(['2026-06-15','2026-06-22','2026-07-04','2026-07-11','2026-11-20','2026-12-03']);
+const DEMO_HOT_DATES=new Set([
+  // June
+  '2026-06-15','2026-06-22',
+  // July
+  '2026-07-04','2026-07-11',
+  // October — Navratri & Dussehra season
+  '2026-10-02','2026-10-09','2026-10-16','2026-10-23','2026-10-30',
+  // November — peak wedding season
+  '2026-11-06','2026-11-13','2026-11-20','2026-11-27',
+  // December — winter weddings
+  '2026-12-03','2026-12-10','2026-12-17','2026-12-27',
+]);
 
 // Demo availability blocks
 interface Block{blocked_date:string;note?:string;}
