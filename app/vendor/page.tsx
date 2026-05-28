@@ -389,10 +389,38 @@ export default function WeddingChatPage() {
 
   useEffect(() => {
     try {
+      // Check URL param first (iOS Safari safe)
+      const urlParams = new URLSearchParams(window.location.search);
+      const demoFromUrl = urlParams.get('demo') === DEMO_UUID;
+      const handleFromUrl = urlParams.get('handle') || '';
+      const nameFromUrl   = urlParams.get('name')   || '';
+      const categoryFromUrl = urlParams.get('category') || '';
+      const cityFromUrl   = decodeURIComponent(urlParams.get('city') || '');
+
+      if (demoFromUrl) {
+        const demoSession = {
+          id: DEMO_UUID, vendorId: DEMO_UUID, user_id: DEMO_UUID,
+          name: decodeURIComponent(nameFromUrl), phone: null,
+          tier: 'signature', category: categoryFromUrl,
+          city: decodeURIComponent(cityFromUrl),
+          ig_handle: handleFromUrl, demo: true,
+          demo_handle: handleFromUrl, _v: 2,
+        };
+        setDemoSession(demoSession);
+        setIsDemoMode(true);
+        try {
+          localStorage.setItem(DEMO_SESS_KEY, JSON.stringify(demoSession));
+          localStorage.setItem('vendor_session', JSON.stringify(demoSession));
+          localStorage.setItem('vendor_web_session', JSON.stringify(demoSession));
+        } catch { /* iOS Private Browsing — URL param is the fallback */ }
+        return;
+      }
+
+      // localStorage fallback
       const realSess = localStorage.getItem('vendor_session') || localStorage.getItem('vendor_web_session');
       if (realSess) {
         const parsed = JSON.parse(realSess);
-        if (parsed?.id && parsed?.id !== DEMO_UUID && !parsed?.demo) return; // real session exists — ignore demo
+        if (parsed?.id && parsed?.id !== DEMO_UUID && !parsed?.demo) return;
       }
       const demoRaw = localStorage.getItem(DEMO_SESS_KEY);
       if (demoRaw) {
@@ -400,7 +428,6 @@ export default function WeddingChatPage() {
         if (parsed?.demo) {
           setDemoSession(parsed);
           setIsDemoMode(true);
-          // Write demo data into real session keys so vendor app works normally
           localStorage.setItem('vendor_session',     demoRaw);
           localStorage.setItem('vendor_web_session', demoRaw);
         }
@@ -426,9 +453,12 @@ export default function WeddingChatPage() {
     if (seeded === null) return;
     if (!sessionLoading && !session) { router.replace('/'); return; }
     if (!sessionLoading && session) {
-      // Skip backend verification for demo sessions — synchronous check (React state may not be set yet)
-      const _demoCheck = (() => { try { const d = JSON.parse(localStorage.getItem('tdw_vendor_demo_session') || '{}'); return !!d?.demo; } catch { return false; } })();
-      if (_demoCheck || isDemoMode) { setSeeded(true); return; }
+      // Skip backend verification for demo sessions
+      // Check URL param first (iOS Safari safe) then localStorage fallback
+      const _urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const _demoFromUrl = _urlParams?.get('demo') === DEMO_UUID;
+      const _demoFromStorage = (() => { try { const d = JSON.parse(localStorage.getItem('tdw_vendor_demo_session') || '{}'); return !!d?.demo; } catch { return false; } })();
+      if (_demoFromUrl || _demoFromStorage || isDemoMode) { setSeeded(true); return; }
       // Verify JWT against backend — catches expired tokens and wrong accounts.
       // If the stored session points to the wrong vendor (e.g. stale mock),
       // the /me response will have a different vendor ID — force re-login.
