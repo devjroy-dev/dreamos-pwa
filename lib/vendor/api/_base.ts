@@ -9,7 +9,6 @@
 
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
 import type { VendorSession } from '@/lib/vendor/session';
-import { isDemoMode } from '@/lib/vendor/demo';
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ??
@@ -105,10 +104,6 @@ async function fetchWithAuth(url: string, init: RequestInit): Promise<Response> 
   let res = await fetch(url, init);
 
   if (res.status === 401) {
-    // Demo sessions have no real JWT — every authed call 401s by design.
-    // Skip refresh + redirect; caller sees ok:false and falls back to mocks.
-    if (isDemoMode()) return res;
-
     const refreshed = await refreshSession();
     if (!refreshed) {
       clearAndRedirect();
