@@ -1,8 +1,13 @@
 // middleware.ts
 // Demo subdomain routing for demo.thedreamwedding.in
-// demo.thedreamwedding.in/vendor/makeupbyswatiroy → /demo/vendor/makeupbyswatiroy
-// demo.thedreamwedding.in/bride → /demo/bride
-// demo.thedreamwedding.in → /demo/bride
+//
+// URL patterns:
+//   demo.thedreamwedding.in/vendor/[handle]           → /demo/vendor/[handle]
+//   demo.thedreamwedding.in/vendor/[handle]/studio    → /demo/vendor/[handle]/studio
+//   demo.thedreamwedding.in/vendor/[handle]/list/...  → /demo/vendor/[handle]/list/...
+//   demo.thedreamwedding.in/vendor/[handle]/...       → /demo/vendor/[handle]/...
+//   demo.thedreamwedding.in/bride                     → /demo/bride
+//   demo.thedreamwedding.in/                          → /demo/bride
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -13,32 +18,31 @@ export function middleware(request: NextRequest) {
   if (!host.startsWith('demo.')) return NextResponse.next();
 
   const url = request.nextUrl.clone();
+  const path = url.pathname;
 
-  // Already routed correctly — prevent rewrite loop
-  if (url.pathname.startsWith('/demo/')) return NextResponse.next();
+  // Already correctly rewritten — never loop
+  if (path.startsWith('/demo/')) return NextResponse.next();
 
-  const path = url.pathname; // e.g. /vendor/makeupbyswatiroy or /bride or /
-
+  // Root or /bride → bride demo
   if (path === '/' || path === '/bride') {
     url.pathname = '/demo/bride';
     return NextResponse.rewrite(url);
   }
 
-  // /vendor/[handle] → /demo/vendor/[handle]
+  // /vendor/[handle] and all sub-paths → /demo/vendor/[handle]/...
   const vendorMatch = path.match(/^\/vendor\/(.+)$/);
   if (vendorMatch) {
     url.pathname = `/demo/vendor/${vendorMatch[1]}`;
     return NextResponse.rewrite(url);
   }
 
-  // Bare handle: /makeupbyswatiroy → /demo/vendor/makeupbyswatiroy
+  // Bare handle (legacy): /makeupbyswatiroy → /demo/vendor/makeupbyswatiroy
   const bare = path.replace(/^\//, '');
   if (bare && bare !== 'vendor') {
     url.pathname = `/demo/vendor/${bare}`;
     return NextResponse.rewrite(url);
   }
 
-  // Fallback
   url.pathname = '/demo/bride';
   return NextResponse.rewrite(url);
 }
