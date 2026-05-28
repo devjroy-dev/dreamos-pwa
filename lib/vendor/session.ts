@@ -131,7 +131,7 @@ export function getVendorSession(): VendorSession | null {
     const raw = store?.getItem(SESSION_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as VendorSession & { _v?: number };
-      if (parsed && typeof parsed.id === 'string' && parsed.access_token) {
+      if (parsed && typeof parsed.id === 'string' && parsed.id) {
         // Evict stale or contaminated sessions immediately
         if (isStaleSession(parsed)) {
           console.warn('[session] stale/mock session detected — evicting localStorage only');
