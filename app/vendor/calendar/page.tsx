@@ -126,7 +126,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
     const primer = sel
       ? `What would you like me to add for ${fmtShort(sel)}?`
       : `What would you like me to add to the calendar? Give me a title, date, and time.`;
-    router.push(`/wedding?aiPrimer=${encodeURIComponent(primer)}`);
+    router.push(`/vendor?aiPrimer=${encodeURIComponent(primer)}`);
   }
 
   const selEvents = sel ? (byDate.get(sel) ?? []) : [];
@@ -489,7 +489,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button type="button" onClick={() => {
                         setSel(null);
-                        router.push(`/wedding?aiPrimer=${encodeURIComponent(`What would you like to change about the event "${ev.title}" on ${fmtShort(ev.event_date)}?`)}`);
+                        router.push(`/vendor?aiPrimer=${encodeURIComponent(`What would you like to change about the event "${ev.title}" on ${fmtShort(ev.event_date)}?`)}`);
                       }} style={{
                         background: 'none', border: `0.5px solid rgba(201,168,76,0.28)`,
                         borderRadius: 999, padding: '5px 10px', cursor: 'pointer',
