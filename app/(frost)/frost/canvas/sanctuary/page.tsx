@@ -2866,10 +2866,16 @@ function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConcierge
         body:'{}',
       });
       const data = await res.json();
-      if(data.ok) setState('sent');
-      else setState('error');
-    } catch { setState('error'); }
-    if(state!=='sent') setTimeout(()=>setState('idle'), 3000);
+      if(data.ok) {
+        setState('sent');
+      } else {
+        setState('error');
+        setTimeout(()=>setState('idle'), 3000);
+      }
+    } catch {
+      setState('error');
+      setTimeout(()=>setState('idle'), 3000);
+    }
   };
 
   const ink     = '#F0EDE8';
