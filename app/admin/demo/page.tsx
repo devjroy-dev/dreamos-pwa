@@ -105,8 +105,6 @@ export default function DemoAdminPage() {
   const [creating,    setCreating]    = useState(false);
 
   // Seed leads — starts closed, no vendor selected
-  const [showSeed,   setShowSeed]   = useState(false);
-  const [seedTarget, setSeedTarget] = useState<DemoVendor | null>(null);
   const [seeding,    setSeeding]    = useState(false);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
@@ -250,7 +248,7 @@ export default function DemoAdminPage() {
                       </button>
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' as const }}>
-                      <GhostBtn label="Seed Leads" onClick={() => { setSeedTarget(v); setShowSeed(true); }} small />
+                      <GhostBtn label="Seed Leads" onClick={() => { if(window.confirm(`Seed 10 mock leads for ${v.display_name}?`)) handleSeedLeads(v); }} small />
                       {v.active && <GhostBtn label="Deactivate" onClick={() => handleDeactivate(v.id)} danger small />}
                     </div>
                   </div>
@@ -336,26 +334,7 @@ export default function DemoAdminPage() {
       </BottomSheet>
 
       {/* Seed Leads Sheet */}
-      {seedTarget !== null && (
-      <BottomSheet
-        visible={showSeed}
-        onClose={() => { setShowSeed(false); setSeedTarget(null); }}
-        title={`Seed Leads — ${seedTarget.display_name}`}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <p style={{ fontFamily: T.ff.body, fontSize: 14, color: T.soft, lineHeight: 1.6 }}>
-            Adds 10 realistic mock leads to <strong style={{ color: T.ink }}>{seedTarget?.display_name}</strong>. DreamAi uses these as context so responses feel real and specific.
-          </p>
-          <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted, lineHeight: 1.5 }}>
-            Safe to run multiple times — leads stack, not replace.
-          </p>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <GoldBtn label={seeding ? 'Seeding…' : 'Seed 10 Leads'} onClick={() => seedTarget && handleSeedLeads(seedTarget)} disabled={seeding} />
-            <GhostBtn label="Cancel" onClick={() => { setShowSeed(false); setSeedTarget(null); }} />
-          </div>
-        </div>
-      </BottomSheet>
-      )}
+
     </div>
   );
 }
