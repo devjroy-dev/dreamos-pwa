@@ -451,7 +451,10 @@ export default function WeddingChatPage() {
 
   useEffect(() => {
     if (seeded === null) return;
-    if (!sessionLoading && !session) { router.replace('/'); return; }
+    // Check URL demo param synchronously before redirecting — demo sessions have no localStorage
+    const _urlP = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const _isDemoUrl = _urlP?.get('demo') === DEMO_UUID;
+    if (!sessionLoading && !session && !_isDemoUrl) { router.replace('/'); return; }
     if (!sessionLoading && session) {
       // Skip backend verification for demo sessions
       // Check URL param first (iOS Safari safe) then localStorage fallback
