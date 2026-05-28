@@ -1,6 +1,8 @@
 // middleware.ts
-// Handles demo subdomain routing: demo.thedreamwedding.in/[handle] → /demo/vendor/[handle]
+// Demo subdomain routing for demo.thedreamwedding.in
+// demo.thedreamwedding.in/vendor/makeupbyswatiroy → /demo/vendor/makeupbyswatiroy
 // demo.thedreamwedding.in/bride → /demo/bride
+// demo.thedreamwedding.in → /demo/bride
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -8,33 +10,39 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || '';
 
-  // Demo subdomain routing
-  if (host.startsWith('demo.')) {
-    const url = request.nextUrl.clone();
-    const pathSegments = url.pathname.split('/').filter(Boolean);
-    const handle = pathSegments[0] || 'bride';
+  if (!host.startsWith('demo.')) return NextResponse.next();
 
-    if (handle === 'bride') {
-      url.pathname = '/demo/bride';
-    } else {
-      url.pathname = `/demo/vendor/${handle}`;
-    }
+  const url = request.nextUrl.clone();
 
+  // Already routed correctly — prevent rewrite loop
+  if (url.pathname.startsWith('/demo/')) return NextResponse.next();
+
+  const path = url.pathname; // e.g. /vendor/makeupbyswatiroy or /bride or /
+
+  if (path === '/' || path === '/bride') {
+    url.pathname = '/demo/bride';
     return NextResponse.rewrite(url);
   }
 
-  return NextResponse.next();
+  // /vendor/[handle] → /demo/vendor/[handle]
+  const vendorMatch = path.match(/^\/vendor\/(.+)$/);
+  if (vendorMatch) {
+    url.pathname = `/demo/vendor/${vendorMatch[1]}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // Bare handle: /makeupbyswatiroy → /demo/vendor/makeupbyswatiroy
+  const bare = path.replace(/^\//, '');
+  if (bare && bare !== 'vendor') {
+    url.pathname = `/demo/vendor/${bare}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // Fallback
+  url.pathname = '/demo/bride';
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - api (API routes)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|api).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 };
