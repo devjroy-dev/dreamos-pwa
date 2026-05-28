@@ -19,17 +19,11 @@ export default function BrideDemoPage() {
 
   useEffect(() => {
     // Fetch demo vendor count to show social proof
-    fetch(`${BACKEND}/api/v2/demo/discover`)
+    fetch(`${BACKEND}/api/v2/demo/vendors`)
       .then(r => r.json())
-      .then(d => { if (d.ok) setVendorCount(d.total); })
+      .then(d => { if (d.ok) setVendorCount((d.vendors || []).length); })
       .catch(() => {});
 
-    // Log event
-    fetch(`${BACKEND}/api/v2/demo/view`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ handle: 'bride', event: 'bride_demo_viewed', user_agent: navigator.userAgent, referrer: document.referrer })
-    }).catch(() => {});
   }, []);
 
   function handleEnterFrost() {
@@ -52,13 +46,11 @@ export default function BrideDemoPage() {
       localStorage.setItem('couple_session',      JSON.stringify(coupleSession));
       localStorage.setItem('couple_web_session',  JSON.stringify(coupleSession));
       localStorage.setItem('tdw_bride_demo_session', JSON.stringify({ demo: true, ...coupleSession }));
-      // Tell Frost discover to use the demo feed
-      localStorage.setItem('tdw_demo_discover',   'true');
     } catch { /* Safari private mode — graceful degradation */ }
 
     // Small delay so localStorage writes commit before navigation
     setTimeout(() => {
-      window.location.href = 'https://thedreamwedding.in/frost/canvas/discover?demo=true';
+      window.location.href = 'https://thedreamwedding.in/frost';
     }, 80);
   }
 
