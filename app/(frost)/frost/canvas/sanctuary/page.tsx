@@ -8,6 +8,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useFrostMode } from '../../../layout';
+import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
@@ -1267,8 +1268,10 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const [vIdx,       setVIdx]       = React.useState(0);
   const [imgIdx,     setImgIdx]     = React.useState(0);
   const [panelOpen,  setPanelOpen]  = React.useState(false);
+  const [nameSlice,  setNameSlice]  = React.useState(false); // single tap toggle
   const [dissolve,   setDissolve]   = React.useState(0);
   const [isBlind,    setIsBlind]    = React.useState(false);
+  const [undoStack,  setUndoStack]  = React.useState<number[]>([]); // prev vIdx values
   const [loading,    setLoading]    = React.useState(true);
   const [page,       setPage]       = React.useState(0);
   const [hasMore,    setHasMore]    = React.useState(true);
@@ -1313,17 +1316,39 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
 
   const goNextV=React.useCallback(()=>{
     if(vIdx>=vendors.length-1)return;
-    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
+    setUndoStack(s=>[...s.slice(-4),vIdx]); // keep last 5
+    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setNameSlice(false);setDissolve(k=>k+1);discHaptic(5);
   },[vIdx,vendors.length]);
 
   const goPrevV=React.useCallback(()=>{
     if(vIdx<=0)return;
-    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
+    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setNameSlice(false);setDissolve(k=>k+1);discHaptic(5);
   },[vIdx]);
+
+  const undoSkip=React.useCallback(()=>{
+    setUndoStack(s=>{
+      if(!s.length) return s;
+      const prev=s[s.length-1];
+      setVIdx(prev);setImgIdx(0);setPanelOpen(false);setNameSlice(false);setDissolve(k=>k+1);discHaptic(8);
+      return s.slice(0,-1);
+    });
+  },[]);
 
   const cyclePhoto=React.useCallback(()=>{
     if(!photos.length) return;
     setImgIdx(i=>(i+1)%photos.length);
+    setDissolve(k=>k+1);discHaptic(4);
+  },[photos.length]);
+
+  const nextImg=React.useCallback(()=>{
+    if(!photos.length) return;
+    setImgIdx(i=>(i+1)%photos.length);
+    setDissolve(k=>k+1);discHaptic(4);
+  },[photos.length]);
+
+  const prevImg=React.useCallback(()=>{
+    if(!photos.length) return;
+    setImgIdx(i=>(i-1+photos.length)%photos.length);
     setDissolve(k=>k+1);discHaptic(4);
   },[photos.length]);
 
@@ -1358,7 +1383,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     const dx=end.clientX-s.x, dy=end.clientY-s.y, dt=Date.now()-s.t;
     const ax=Math.abs(dx), ay=Math.abs(dy);
 
-    // Tap detection
+    // ── Tap detection ─────────────────────────────────────────────────
     if(ax<DISC_TAP_MOVE&&ay<DISC_TAP_MOVE&&dt<DISC_TAP_TIME){
       const now=Date.now(),since=now-lastTap.current;
       if(since<DISC_DTAP_MS&&tapCount.current>=1){
@@ -1367,20 +1392,17 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         if(isBlind){
           const item=blindItems[blindIdx];
           if(item){spawnDiscHeart(accent);saveVendorToMuse(item.vId,item.img||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));}
-        } else {
-          handleDoubleTap();
-        }
+        } else { handleDoubleTap(); }
       } else {
-        tapCount.current=1;lastTap.current=now;
+        tapCount.current=1; lastTap.current=now;
         tapTimer.current=setTimeout(()=>{
           if(tapCount.current===1){
             if(isBlind){
-              // single tap in blind = next photo
               setBlindIdx(i=>Math.min(i+1,blindItems.length-1));
-              setDissolve(k=>k+1);discHaptic(5);
+              setDissolve(k=>k+1); discHaptic(5);
             } else {
-              // single tap in normal = cycle photo
-              cyclePhoto();
+              // Single tap — toggle frosted name slice
+              setNameSlice(v=>!v); discHaptic(3);
             }
           }
           tapCount.current=0;
@@ -1392,15 +1414,22 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     const vel=Math.max(ax,ay)/Math.max(dt,1);
     if(Math.max(ax,ay)<=DISC_SWIPE_THRESH&&vel<=0.3)return;
 
-    // Swipe left = next vendor, swipe right = prev vendor
-    // Only horizontal swipes navigate vendors
-    if(ax>ay){
-      if(isBlind){
-        if(dx<-DISC_SWIPE_THRESH){setBlindIdx(i=>Math.min(i+1,blindItems.length-1));setDissolve(k=>k+1);discHaptic(5);}
-        else if(dx>DISC_SWIPE_THRESH){setBlindIdx(i=>Math.max(i-1,0));setDissolve(k=>k+1);discHaptic(5);}
+    // ── Swipe routing ──────────────────────────────────────────────────
+    // Vertical = vendor nav | Horizontal = photo nav within vendor
+    if(isBlind){
+      if(ay>ax){
+        if(dy<-DISC_SWIPE_THRESH){setBlindIdx(i=>Math.min(i+1,blindItems.length-1));setDissolve(k=>k+1);discHaptic(5);}
+        else if(dy>DISC_SWIPE_THRESH){setBlindIdx(i=>Math.max(i-1,0));setDissolve(k=>k+1);discHaptic(5);}
+      }
+    } else {
+      if(ay>ax){
+        // Vertical — vendor navigation (Reels/Shorts muscle memory)
+        if(dy<-DISC_SWIPE_THRESH) goNextV();      // swipe UP = next vendor
+        else if(dy>DISC_SWIPE_THRESH) goPrevV();  // swipe DOWN = prev vendor
       } else {
-        if(dx<-DISC_SWIPE_THRESH) goNextV();
-        else if(dx>DISC_SWIPE_THRESH) goPrevV();
+        // Horizontal — photo navigation within same vendor
+        if(dx<-DISC_SWIPE_THRESH) nextImg();      // swipe LEFT = next photo
+        else if(dx>DISC_SWIPE_THRESH) prevImg();  // swipe RIGHT = prev photo
       }
     }
   };
@@ -1480,11 +1509,45 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         </div>
       )}
 
-      {/* Vendor name bar at bottom (non-blind, panel closed) */}
+      {/* Frosted name slice — toggles on single tap */}
       {!isBlind&&!panelOpen&&vendor&&(
-        <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 58px)',left:0,right:0,padding:'0 20px',zIndex:10,pointerEvents:'none',display:'flex',flexDirection:'column',gap:3}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)'}}>{vendor.category} · {vendor.city}</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:'rgba(248,247,245,.92)',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</div>
+        <div style={{
+          position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 56px)',
+          left:0,right:0,zIndex:10,
+          transform:nameSlice?'translateY(0)':'translateY(110%)',
+          transition:'transform 280ms cubic-bezier(0.22,1,0.36,1)',
+          pointerEvents:'none',
+        }}>
+          <div style={{
+            background:'rgba(8,6,8,.55)',
+            backdropFilter:'blur(24px) saturate(1.6)',
+            WebkitBackdropFilter:'blur(24px) saturate(1.6)',
+            borderTop:'0.5px solid rgba(255,255,255,.08)',
+            padding:'10px 20px 12px',
+          }}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.42)',marginBottom:3}}>{vendor.category} · {vendor.city}</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:'rgba(248,247,245,.95)',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Undo pill — bottom left, shows when there's something to undo */}
+      {!isBlind&&undoStack.length>0&&!panelOpen&&(
+        <div onClick={e=>{e.stopPropagation();undoSkip();}}
+          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+          style={{
+            position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 62px)',
+            left:16,zIndex:20,
+            background:'rgba(8,6,8,.65)',
+            backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
+            border:'0.5px solid rgba(255,255,255,.14)',
+            borderRadius:100,padding:'7px 12px',
+            display:'flex',alignItems:'center',gap:6,
+            cursor:'pointer',WebkitTapHighlightColor:'transparent',
+          }}>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.6)'}}>
+            ← {vendors[undoStack[undoStack.length-1]]?.category||'Back'}
+          </span>
         </div>
       )}
 
@@ -1872,13 +1935,24 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
     <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:evBg}}>
 
       {/* Header */}
-      <div style={{padding:'20px 24px 12px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1}}>
-          The days.
+      <div style={{padding:'20px 24px 12px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between'}}>
+        <div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1}}>
+            The days.
+          </div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,marginTop:4,fontFeatureSettings:'"opsz" 9'}}>
+            {events.length>0 ? `${events.length} beautiful moment${events.length!==1?'s':''} ahead.` : 'Your days will appear here.'}
+          </div>
         </div>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,marginTop:4,fontFeatureSettings:'"opsz" 9'}}>
-          {events.length>0 ? `${events.length} beautiful moment${events.length!==1?'s':''} ahead.` : 'Your days will appear here.'}
-        </div>
+        <button onClick={()=>{
+          // Signal parent to open Dream Ai with prefill — bubble up via custom event
+          window.dispatchEvent(new CustomEvent('frost:open-dream',{detail:{prompt:'Add an event to my calendar'}}));
+        }} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
+          border:`0.5px solid ${pgAccent}44`,background:`${pgAccent}12`,
+          fontFamily:"'JetBrains Mono',monospace",fontSize:7.5,letterSpacing:'.18em',
+          textTransform:'uppercase' as any,color:pgAccent,cursor:'pointer',flexShrink:0}}>
+          + Ask DreamAi
+        </button>
       </div>
 
       {/* Timeline scroll */}
@@ -2483,6 +2557,14 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
   );
 
   // ── WRITING VIEW ──
+  // Focus textarea when entering writing view
+  React.useEffect(()=>{
+    if(view==='writing'&&textRef.current){
+      const t = setTimeout(()=>{textRef.current?.focus();},180);
+      return ()=>clearTimeout(t);
+    }
+  },[view]);
+
   // Exact reference: top bar DISCARD · ● MOOD · SAVE, date, left journal rule, large text
   return (
     <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:pageBg}}>
@@ -2534,8 +2616,8 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
             ref={textRef}
             value={body}
             onChange={e=>setBody(e.target.value)}
+            onFocus={e=>{const el=e.target;setTimeout(()=>{el.scrollIntoView({block:'nearest'});el.style.height='auto';el.style.height=el.scrollHeight+'px';},150);}}
             placeholder="Write here…"
-            autoFocus
             style={{
               width:'100%',
               minHeight:300,
@@ -2767,9 +2849,9 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
 // Taps → fires POST /couple/concierge/request → admin gets WA notification.
 // All brides, no gate.
 
-interface MeridianConciergeBtnProps { accent:string; dark:boolean; }
+interface MeridianConciergeBtnProps { accent:string; dark:boolean; compact?:boolean; }
 
-function MeridianConciergeBtn({ accent, dark }: MeridianConciergeBtnProps) {
+function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConciergeBtnProps) {
   const [state, setState] = React.useState<'idle'|'sending'|'sent'|'error'>('idle');
   const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
@@ -2804,10 +2886,18 @@ function MeridianConciergeBtn({ accent, dark }: MeridianConciergeBtnProps) {
       `}</style>
 
       {state==='sent' ? (
-        <div style={{padding:'16px 20px',borderRadius:10,background:`${accent}10`,border:`0.5px solid ${accent}33`,textAlign:'center' as any}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+        <div style={{padding:compact?'8px 12px':'16px 20px',borderRadius:10,background:`${accent}10`,border:`0.5px solid ${accent}33`,textAlign:'center' as any}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:compact?12:14,color:ink,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
             Our concierge will reach you at the earliest.
           </div>
+        </div>
+      ) : compact ? (
+        // Compact version — single line for chat view
+        <div onClick={request} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',gap:8}}>
+          <div style={{width:32,height:2,borderRadius:1,background:`linear-gradient(90deg,transparent,${accent},transparent)`,animation:'concPulse 2.8s ease-in-out infinite',opacity:state==='sending'?.3:1}}/>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
+            {state==='sending'?'…':state==='error'?'retry':'Concierge'}
+          </span>
         </div>
       ) : (
         <div onClick={request} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:'14px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:10}}>
@@ -3047,10 +3137,11 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </div>
-        {msgs.length>0&&<div style={{textAlign:'center' as any,marginTop:6}}>
+        {msgs.length>0&&<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:6,padding:'0 2px'}}>
           <button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,padding:0}}>
             Clear
           </button>
+          <MeridianConciergeBtn accent={accent} dark={dark} compact/>
         </div>}
       </div>
     </div>
@@ -3176,8 +3267,10 @@ export default function SanctuaryPage() {
       const manuallySet = localStorage.getItem('@frost.home_mode_manual');
       if(!manuallySet) {
         const h = now.getHours();
-        const shouldBeDark = h < 7 || h >= 19; // before 7am or after 7pm
-        setHomeMode(shouldBeDark ? 'E1A' : 'E3');
+        const autoMode = (h < 7 || h >= 19) ? 'E1A' : 'E3';
+        // Write to localStorage AND update React state so it persists on reload
+        setFrostMode(autoMode);
+        setHomeMode(autoMode);
       }
     } catch {}
 
@@ -3324,12 +3417,14 @@ function timeAgoShort(iso:string):string {
     touchStartX.current = e.touches[0].clientX;
   },[]);
   const onTouchEnd = useCallback((e:React.TouchEvent)=>{
+    // Discover owns its own swipe gestures — never dismiss via swipe-down.
+    // Back via top bar ← or native OS back gesture (popstate).
+    if(activeRoom === 'discover') return;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
     // Only close if: clearly vertical (not horizontal), dragged down 120px+,
     // AND started in the top 100px pull-zone OR from a non-scrollable surface
     if(dy > 120 && dx < 60) {
-      // Check if the touch started inside a scrollable child that had scroll room
       const target = e.target as HTMLElement;
       let node: HTMLElement | null = target;
       let inScrollable = false;
@@ -3343,7 +3438,7 @@ function timeAgoShort(iso:string):string {
       }
       if(!inScrollable) closeRoom();
     }
-  },[closeRoom]);
+  },[closeRoom, activeRoom]);
 
   // ── Dream Ai send ─────────────────────────────────────────────────────────
   const sendDream = useCallback((text:string)=>{

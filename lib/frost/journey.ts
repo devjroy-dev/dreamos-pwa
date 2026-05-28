@@ -6,7 +6,7 @@
 // FLIP TO REAL: NEXT_PUBLIC_USE_MOCKS=false — zero code changes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== 'false';
+const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
 // Runtime override: if a couple session token exists, always use real API
 // regardless of USE_MOCKS env var. Prevents "member not found" and empty
 // canvases when NEXT_PUBLIC_USE_MOCKS is not set in Vercel.
