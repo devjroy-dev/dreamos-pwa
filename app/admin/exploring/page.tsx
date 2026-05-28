@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { API_BASE } from '../../../lib/api';
 
-const PWD = 'Mira@2551354';
+const PWD = 'Liza@2551354';
 
 interface ExploringPhoto {
   id: string;

@@ -50,7 +50,7 @@ function catLabel(c: string) {
 }
 
 async function adminFetch(path: string, opts?: RequestInit) {
-  const pw = (typeof window !== 'undefined' ? localStorage.getItem('tdw_admin_pw') : '') || '';
+  const pw = 'Liza@2551354';
   return fetch(`${BACKEND}${path}`, {
     ...opts,
     headers: { 'Content-Type': 'application/json', 'x-admin-password': pw, ...(opts?.headers || {}) },
@@ -58,7 +58,7 @@ async function adminFetch(path: string, opts?: RequestInit) {
 }
 
 async function uploadToDemo(file: File): Promise<{ image_url: string; cloudinary_id: string }> {
-  const pw = (typeof window !== 'undefined' ? localStorage.getItem('tdw_admin_pw') : '') || '';
+  const pw = 'Liza@2551354';
   const sign = await fetch(`${BACKEND}/api/v2/admin/demo/cloudinary-sign`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
     body: JSON.stringify({ filename: file.name }),

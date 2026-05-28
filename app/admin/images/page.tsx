@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
+const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);

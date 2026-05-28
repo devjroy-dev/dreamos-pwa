@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
+const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtINR(n: number) { return '₹' + n.toLocaleString('en-IN'); }
 function timeAgo(d: string) {

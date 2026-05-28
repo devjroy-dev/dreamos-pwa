@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
+const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
 function fmtINR(n: number) { return '₹' + (n || 0).toLocaleString('en-IN'); }

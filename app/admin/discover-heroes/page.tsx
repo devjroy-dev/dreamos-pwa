@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
 
-const ADMIN_PASSWORD = 'Mira@2551354';
+const ADMIN_PASSWORD = 'Liza@2551354';
 
 interface DiscoverHero {
   id: string;

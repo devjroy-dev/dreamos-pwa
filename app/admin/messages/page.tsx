@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
+const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
 function timeAgo(d: string) { const diff = Date.now() - new Date(d).getTime(); const h = Math.floor(diff/3600000); const dd = Math.floor(diff/86400000); if (h < 1) return 'just now'; if (h < 24) return `${h}h ago`; if (dd < 7) return `${dd}d ago`; return fmtDate(d); }

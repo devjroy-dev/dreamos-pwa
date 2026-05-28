@@ -147,7 +147,7 @@ function TabAccess() {
 
       <Card>
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Admin</p>
-        <Toggle value={true} label="Admin portal password protected" note="Always ON. Admin password: Mira@2551354" />
+        <Toggle value={true} label="Admin portal password protected" note="Always ON. Admin password: Liza@2551354" />
       </Card>
     </div>
   );

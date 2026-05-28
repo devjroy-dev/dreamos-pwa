@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
 
-const ADMIN_PASSWORD = 'Mira@2551354';
+const ADMIN_PASSWORD = 'Liza@2551354';
 const SUPABASE_URL = 'https://nqcdfzbvlrcrjineoudp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xY2RmemJ2bHJjcmppbmVvdWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3Mjg3ODksImV4cCI6MjA5MTMwNDc4OX0.s01R0eSn67jKTevL_HGAubyXB2gXM_OlRTt2LBCMMA8';
 

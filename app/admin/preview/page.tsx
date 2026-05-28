@@ -6,7 +6,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
 
-const H   = { 'Content-Type': 'application/json', 'x-admin-password': 'Mira@2551354' };
+const H   = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 // Single interface covers both slotted and available states.
 // display_order is optional so AvailableVendors (without a slot) still satisfy it.

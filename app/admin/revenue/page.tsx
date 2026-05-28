@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
 
-const PWD = 'Mira@2551354';
+const PWD = 'Liza@2551354';
 const h = { 'x-admin-password': PWD };
 
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
