@@ -2388,7 +2388,8 @@ export default function SanctuaryPage() {
     // ── Onboarding guard — if onboarding not complete, go to onboarding ───
     // Check via API so we always have fresh state, not just cached session.
     // Non-fatal: if fetch fails, proceed to Sanctuary normally.
-    if(token) {
+    const isDemo = (() => { try { const s = JSON.parse(localStorage.getItem('couple_session')||'{}'); return !!s?.demo; } catch { return false; } })();
+    if(token && !isDemo) {
       fetch('https://dream-os-production.up.railway.app/api/v2/couple/me',{
         headers:{'Authorization':`Bearer ${token}`},
       })
