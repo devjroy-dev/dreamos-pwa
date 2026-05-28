@@ -29,7 +29,7 @@ const CATEGORIES = [
   { value: 'other',        label: 'Other'           },
 ];
 
-type Tab = 'vendors' | 'leads';
+type Tab = 'vendors' | 'leads' | 'claims';
 
 interface DemoVendor {
   id: string; ig_handle: string; display_name: string; category: string;
@@ -43,6 +43,11 @@ interface DemoLead {
   id: string; demo_vendor_handle: string; bride_name: string;
   bride_phone: string; bride_wedding_city: string | null;
   bride_wedding_date: string | null; otp_verified: boolean; created_at: string;
+}
+
+interface ClaimRequest {
+  id: string; ig_handle: string; vendor_name: string | null;
+  phone: string; claimed_at: string; contacted: boolean; notes: string | null;
 }
 
 async function adminFetch(path: string, opts?: RequestInit) {
@@ -86,6 +91,7 @@ export default function DemoAdminPage() {
   const [tab,      setTab]      = useState<Tab>('vendors');
   const [vendors,  setVendors]  = useState<DemoVendor[]>([]);
   const [leads,    setLeads]    = useState<DemoLead[]>([]);
+  const [claims,   setClaims]   = useState<ClaimRequest[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [toast,    setToast]    = useState('');
   const [toastErr, setToastErr] = useState(false);
@@ -112,12 +118,14 @@ export default function DemoAdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [vRes, lRes] = await Promise.all([
+      const [vRes, lRes, cRes] = await Promise.all([
         adminFetch('/api/v2/admin/demo/vendors'),
         adminFetch('/api/v2/admin/demo/leads'),
+        fetch(`${API_BASE}/api/v2/admin/demo/claims`, { headers: { 'x-admin-password': ADMIN_PWD } }).then(r => r.json()).catch(() => ({ ok: false })),
       ]);
       if (vRes.ok) setVendors(vRes.vendors || []);
       if (lRes.ok) setLeads(lRes.leads || []);
+      if (cRes.ok) setClaims(cRes.claims || []);
     } catch { showToast('Failed to load.', true); }
     setLoading(false);
   }, []);
@@ -209,9 +217,9 @@ export default function DemoAdminPage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, padding: '0 24px 20px' }}>
-        {(['vendors', 'leads'] as Tab[]).map(t => (
+        {(['vendors', 'leads', 'claims'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? T.gold : T.card, border: `0.5px solid ${tab === t ? T.gold : T.border}`, borderRadius: 10, padding: '7px 16px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: tab === t ? '#0A0908' : T.soft, cursor: 'pointer' }}>
-            {t === 'vendors' ? `Profiles (${vendors.length})` : `Leads (${leads.length})`}
+            {t === 'vendors' ? `Profiles (${vendors.length})` : t === 'leads' ? `Leads (${leads.length})` : `Claims (${claims.length})`}
           </button>
         ))}
       </div>
@@ -284,6 +292,55 @@ export default function DemoAdminPage() {
                       {l.otp_verified ? 'OTP ✓' : 'unverified'}
                     </span>
                     <span style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted }}>{fmt(l.created_at)}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      )}
+
+      {/* Claims list */}
+      {tab === 'claims' && (
+        <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {loading
+            ? <div style={{ color: T.soft, fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase' as const, padding: 20 }}>Loading…</div>
+            : claims.length === 0
+            ? <div style={{ color: T.soft, fontFamily: T.ff.body, fontSize: 14, padding: 20 }}>No claims yet.</div>
+            : claims.map(cl => (
+              <div key={cl.id} style={{ background: T.card, border: `0.5px solid ${cl.contacted ? T.border : T.gold}`, borderRadius: 10, padding: '14px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontFamily: T.ff.body, fontSize: 15, color: T.ink }}>{cl.vendor_name || cl.ig_handle}</span>
+                      {!cl.contacted && <span style={{ fontFamily: T.ff.label, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: 'rgba(201,168,76,0.12)', borderRadius: 6, padding: '2px 7px' }}>New</span>}
+                    </div>
+                    <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.14em', color: T.gold, textTransform: 'uppercase' as const, marginBottom: 4 }}>@{cl.ig_handle}</div>
+                    <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, marginBottom: 6 }}>
+                      <a href={`tel:${cl.phone}`} style={{ color: T.success, textDecoration: 'none' }}>{cl.phone}</a>
+                    </div>
+                    <div style={{ fontFamily: T.ff.body, fontSize: 11, color: T.soft }}>{fmt(cl.claimed_at)}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await fetch(`${API_BASE}/api/v2/admin/demo/claims/${cl.id}/contacted`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+                            body: JSON.stringify({ contacted: !cl.contacted }),
+                          });
+                          setClaims(prev => prev.map(x => x.id === cl.id ? { ...x, contacted: !cl.contacted } : x));
+                        } catch { showToast('Failed to update.', true); }
+                      }}
+                      style={{ background: cl.contacted ? 'rgba(92,224,160,0.1)' : T.card, border: `0.5px solid ${cl.contacted ? T.success : T.border}`, borderRadius: 8, padding: '6px 12px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: cl.contacted ? T.success : T.soft, cursor: 'pointer' }}
+                    >
+                      {cl.contacted ? 'Contacted ✓' : 'Mark Contacted'}
+                    </button>
+                    <a href={`https://wa.me/${cl.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
+                      style={{ background: 'rgba(37,211,102,0.12)', border: '0.5px solid rgba(37,211,102,0.35)', borderRadius: 8, padding: '6px 12px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#25d366', textDecoration: 'none', display: 'block', textAlign: 'center' as const }}>
+                      WhatsApp →
+                    </a>
                   </div>
                 </div>
               </div>
