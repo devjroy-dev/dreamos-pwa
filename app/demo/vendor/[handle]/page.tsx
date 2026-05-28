@@ -233,7 +233,7 @@ export default function DemoLandingPage() {
       {claimOpen && (
         <>
           <div onClick={() => { setClaimOpen(false); setClaimDone(false); setClaimPhone(''); }} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(12,10,9,0.5)' }} />
-          <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:101, background:'rgba(12,10,9,0.88)', backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)', borderTop:'0.5px solid rgba(255,255,255,0.12)', borderRadius:'20px 20px 0 0', padding:`20px 24px calc(env(safe-area-inset-bottom, 16px) + 24px)` }}>
+          <div onClick={e => e.stopPropagation()} style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:101, background:'rgba(12,10,9,0.88)', backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)', borderTop:'0.5px solid rgba(255,255,255,0.12)', borderRadius:'20px 20px 0 0', padding:`20px 24px calc(env(safe-area-inset-bottom, 16px) + 24px)` }}>
             {claimDone ? (
               <div style={{ textAlign:'center', padding:'20px 0' }}>
                 <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:32, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>Welcome to TDW.</div>
@@ -256,7 +256,7 @@ export default function DemoLandingPage() {
                   />
                 </div>
                 <button
-                  onClick={handleClaim}
+                  onClick={e => { e.stopPropagation(); handleClaim(); }}
                   disabled={claimPhone.length < 10 || claimSending}
                   style={{ width:'100%', height:52, background: claimPhone.length >= 10 && !claimSending ? '#C9A84C' : 'rgba(201,168,76,0.3)', border:'none', borderRadius:100, cursor: claimPhone.length >= 10 && !claimSending ? 'pointer' : 'default', fontFamily:F.label, fontSize:10, fontWeight:400, letterSpacing:'0.2em', textTransform:'uppercase', color: claimPhone.length >= 10 && !claimSending ? '#0C0A09' : 'rgba(12,10,9,0.4)' }}
                 >
