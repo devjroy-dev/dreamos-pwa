@@ -72,22 +72,20 @@ const CSS=`
 .no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
 `;
 
-const SLICES=[
-  {key:'dream'   as RoomKey, label:'Dream Ai',  hint:'Tell me anything.',   candle:false, premium:false},
-  {key:'circle'  as RoomKey, label:'Circle',    hint:'Meha lit a candle · 8m ago', candle:true,  premium:false},
-  {key:'muse'    as RoomKey, label:'Muse',      hint:'22 saved · 4 new',           candle:false, premium:false},
-  {key:'discover'as RoomKey, label:'Discover',  hint:'Your curated world',          candle:false, premium:false},
-  {key:'people'  as RoomKey, label:'My People', hint:'1 active · 1 invited',       candle:false, premium:false},
-  {key:'pages'   as RoomKey, label:'Pages',     hint:'a page is waiting',           candle:false, premium:false},
-  {key:'moments' as RoomKey, label:'Moments',   hint:'Your memories',               candle:false, premium:false},
-  {key:'events'  as RoomKey, label:'Events',    hint:'Your timeline',               candle:false, premium:false},
-  {key:'meridian'as RoomKey, label:'Meridian',  hint:'Skin · mind · body',          candle:false, premium:true},
-];
-
-const JOURNEY_LINKS=[
-  {label:'Expenses',  hint:'₹2.4L logged'},
-  {label:'Vendors',   hint:'4 confirmed'},
-  {label:'Settings',  hint:''},
+// SLICES are now dynamic — hints updated from live data on mount.
+// Base definitions — hints overridden by useSanctuaryHints() state.
+const BASE_SLICES=[
+  {key:'dream'   as RoomKey, label:'Dream Ai',     candle:false, premium:false},
+  {key:'circle'  as RoomKey, label:'Circle',       candle:true,  premium:false},
+  {key:'muse'    as RoomKey, label:'Muse',         candle:false, premium:false},
+  {key:'discover'as RoomKey, label:'Discover',     candle:false, premium:false},
+  {key:'people'  as RoomKey, label:'My People',    candle:false, premium:false},
+  {key:'pages'   as RoomKey, label:'Pages',        candle:false, premium:false},
+  {key:'moments' as RoomKey, label:'Moments',      candle:false, premium:false},
+  {key:'events'  as RoomKey, label:'The Journey',  candle:false, premium:false},
+  {key:'expenses'as RoomKey, label:'Expenses',     candle:false, premium:false},
+  {key:'vendors' as RoomKey, label:'Vendors',      candle:false, premium:false},
+  {key:'meridian'as RoomKey, label:'Meridian',     candle:false, premium:true},
 ];
 // WhatsApp DreamAI link — opens WA with prefilled Hi
 const DREAMAI_WA_NUMBER = '14787788550';
@@ -713,7 +711,11 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
               const active = (mode==='E1A'&&dark)||(mode==='E3'&&!dark);
               const label  = mode==='E1A'?'Wine Night':'Sky & Ivory';
               return (
-                <div key={mode} onClick={()=>setHomeMode(mode)}
+                <div key={mode} onClick={()=>{
+                  setHomeMode(mode);
+                  // Mark as manually set — disables auto time-based switching
+                  try{localStorage.setItem('@frost.home_mode_manual','1');}catch{}
+                }}
                   style={{flex:1,padding:'12px 8px',textAlign:'center' as any,cursor:'pointer',
                     background:active?ac:'transparent',
                     fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',
@@ -2217,6 +2219,69 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
           </div>
         )}
       </div>
+
+      {/* Circle compose — minimal, sends to group thread */}
+      <div style={{flexShrink:0,background:dark?'rgba(12,4,5,.88)':'rgba(230,232,240,.88)',
+        backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
+        borderTop:`0.5px solid ${pgLine}`,
+        padding:`10px 16px calc(10px + env(safe-area-inset-bottom,0px))`}}>
+        <CircleCompose dark={dark} accent={pgAccent} line={pgLine} ink={pgInk} signal={signal}
+          onSent={(msg)=>{
+            // Optimistically append to activity feed
+            const newItem={id:uid(),activity_type:'message',member_name:'You',actor_role:'bride',content:msg,created_at:new Date().toISOString(),image_url:null,caption:null,aesthetic_tags:null,save_number:null,source_type:null};
+            setData(prev=>prev?{...prev,activity:[newItem,...(prev.activity||[])]}:prev);
+          }}/>
+      </div>
+    </div>
+  );
+}
+
+// ── CIRCLE COMPOSE ─────────────────────────────────────────────────────────────
+interface CircleComposeProps {dark:boolean;accent:string;line:string;ink:string;signal:string;onSent:(msg:string)=>void;}
+function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
+  const [text,   setText]   = React.useState('');
+  const [sending,setSending]= React.useState(false);
+  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+
+  const send = async () => {
+    if(!text.trim()||sending) return;
+    const msg = text.trim();
+    setText('');
+    setSending(true);
+    try {
+      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+      const s = raw ? JSON.parse(raw) : null;
+      const coupleId = s?.coupleId||s?.id;
+      if(coupleId) {
+        await fetch(`${API}/api/v2/frost/circle/messages`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({userId:coupleId,thread_id:`circle_group`,body:msg,sender_name:'Bride'}),
+        });
+      }
+      onSent(msg);
+    } catch {}
+    setSending(false);
+  };
+
+  const inputBg  = dark?'rgba(196,133,106,.05)':'rgba(42,95,130,.05)';
+  const inputBdr = dark?'rgba(196,133,106,.18)':'rgba(42,95,130,.18)';
+
+  return(
+    <div style={{display:'flex',gap:8,alignItems:'center',background:inputBg,border:`0.5px solid ${inputBdr}`,borderRadius:20,padding:'7px 8px 7px 14px'}}>
+      <input value={text} onChange={e=>setText(e.target.value)}
+        onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();send();}}}
+        placeholder="Say something to your circle…"
+        disabled={sending}
+        style={{flex:1,background:'transparent',border:'none',outline:'none',
+          fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,
+          color:ink,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text'}}/>
+      <button onClick={send} disabled={!text.trim()||sending}
+        style={{width:30,height:30,borderRadius:'50%',background:text.trim()&&!sending?accent:'rgba(128,128,128,.12)',
+          color:text.trim()&&!sending?(dark?'#1A0810':'#FFFFFF'):'rgba(128,128,128,.4)',
+          border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:text.trim()&&!sending?'pointer':'default',flexShrink:0}}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
     </div>
   );
 }
@@ -2492,26 +2557,44 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 }
 
 // ── MOMENTS ROOM ──────────────────────────────────────────────────────────────
-// Personal photo diary — candids, real life, her journey.
-// Source: muse_saves WHERE surface='moments', newest first.
-// Bride uploads from camera roll. Circle members contribute via WhatsApp (Vision classified).
-// Always dark — same film-roll aesthetic as Muse.
+// Ornament string — photo thumbnails hanging off a vertical line.
+// Left: thumbnail (56×56, tappable → full bleed).
+// Right: date + day count + caption.
+// Full-bleed on tap. Circle badge when contributed by a member.
+// Caption: auto-generated by Vision→Haiku on WhatsApp forwards.
 
 interface MomentPhoto { id:string; save_number:number; image_url:string; caption?:string|null; saved_by_role:string; created_at:string; }
 
 interface MomentsRoomProps { dark:boolean; accent:string; }
 
-function MomentsRoom({ accent }: MomentsRoomProps) {
-  const [moments,  setMoments]  = React.useState<MomentPhoto[]>([]);
-  const [loading,  setLoading]  = React.useState(true);
-  const [fullImg,  setFullImg]  = React.useState<string|null>(null);
-  const [uploading,setUploading]= React.useState(false);
-  const [toast,    setToast]    = React.useState('');
+function MomentsRoom({ dark, accent }: MomentsRoomProps) {
+  const [moments,   setMoments]   = React.useState<MomentPhoto[]>([]);
+  const [loading,   setLoading]   = React.useState(true);
+  const [fullImg,   setFullImg]   = React.useState<string|null>(null);
+  const [uploading, setUploading] = React.useState(false);
+  const [toast,     setToast]     = React.useState('');
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
 
-  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+  // Get days at the time a moment was created
+  function daysAtCapture(iso:string, weddingIso:string|null):string|null {
+    if(!weddingIso) return null;
+    const wedding = new Date(weddingIso).getTime();
+    const saved   = new Date(iso).getTime();
+    const diff    = Math.round((wedding - saved) / 86400000);
+    if(diff < 0)  return 'After the wedding';
+    if(diff === 0) return 'Wedding day';
+    return `Day ${diff}`;
+  }
+
+  const weddingIso = React.useMemo(()=>{
+    try {
+      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+      if(raw) { const s=JSON.parse(raw); return s?.wedding_date||null; }
+    } catch {} return null;
+  },[]);
 
   React.useEffect(()=>{
     const load = async () => {
@@ -2540,40 +2623,35 @@ function MomentsRoom({ accent }: MomentsRoomProps) {
     if(!raw){showToast('Please log in to add moments.');setUploading(false);return;}
     const s = JSON.parse(raw);
     const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
-    if(!token){showToast('Session expired. Please log in again.');setUploading(false);return;}
-
+    if(!token){showToast('Session expired.');setUploading(false);return;}
     let added = 0;
     for(const file of files){
       try {
         const b64 = await new Promise<string>((res,rej)=>{
           const r=new FileReader(); r.onload=()=>res((r.result as string).split(',')[1]); r.onerror=rej; r.readAsDataURL(file);
         });
-        // Upload via Muse upload endpoint with surface override
         const resp = await fetch(`${API}/api/v2/couple/muse/upload`,{
           method:'POST',
           headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
           body:JSON.stringify({image_base64:b64,mime_type:file.type,surface:'moments'}),
         });
         const data = await resp.json();
-        if(data.ok&&data.save){
-          setMoments(prev=>[{...data.save,image_url:data.save.image_url},...prev]);
-          added++;
-        }
-      } catch{ /* continue */ }
+        if(data.ok&&data.save){ setMoments(prev=>[data.save,...prev]); added++; }
+      } catch{}
     }
     if(fileRef.current) fileRef.current.value='';
     setUploading(false);
-    showToast(added===0?'Could not add. Try again.':added===1?'Moment saved.':(`${added} moments saved.`));
+    showToast(added===0?'Could not add. Try again.':added===1?'Moment saved.':`${added} moments saved.`);
   };
 
-  function timeLabel(iso:string):string {
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  function fmtDate(iso:string):string {
+    return new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
   }
 
   const ink     = '#F0EDE8';
-  const inkMute = 'rgba(240,237,232,.40)';
+  const inkMute = 'rgba(240,237,232,.35)';
   const line    = 'rgba(240,237,232,.08)';
+  const accent2 = '#C4856A';
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:'#080608',position:'relative',overflow:'hidden'}}>
@@ -2586,38 +2664,39 @@ function MomentsRoom({ accent }: MomentsRoomProps) {
       </div>}
 
       {/* Header */}
-      <div style={{padding:'20px 20px 12px',flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',borderBottom:`0.5px solid ${line}`}}>
+      <div style={{padding:'20px 18px 12px',flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',borderBottom:`0.5px solid ${line}`}}>
         <div>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ink,lineHeight:1,marginBottom:2}}>Moments</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>
-            {loading?'loading…':`${moments.length} saved`}
-          </div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:36,color:ink,lineHeight:1,marginBottom:2}}>Moments</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>{loading?'loading…':`${moments.length} saved`}</div>
         </div>
         <button onClick={()=>fileRef.current?.click()} disabled={uploading}
-          style={{display:'flex',alignItems:'center',gap:6,padding:'8px 16px',borderRadius:100,
-            border:`0.5px solid ${accent}55`,background:`${accent}14`,
-            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
-            textTransform:'uppercase' as any,color:accent,cursor:'pointer',opacity:uploading?.5:1}}>
+          style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
+            border:`0.5px solid ${accent2}44`,background:`${accent2}12`,
+            fontFamily:"'JetBrains Mono',monospace",fontSize:7.5,letterSpacing:'.18em',
+            textTransform:'uppercase' as any,color:accent2,cursor:'pointer',opacity:uploading?.5:1}}>
           {uploading?'Adding…':'+ Add'}
         </button>
       </div>
 
-      {/* Film roll */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+      {/* Ornament string */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'20px 0 16px',position:'relative'}}>
+
+        {/* The string */}
+        {moments.length>0&&<div style={{position:'absolute',left:82,top:20,bottom:40,width:.5,
+          background:`linear-gradient(180deg,transparent 0%,${accent2}55 4%,${accent2}55 96%,transparent 100%)`,
+          pointerEvents:'none',zIndex:1}}/>}
 
         {loading&&<div style={{padding:48,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
 
         {!loading&&moments.length===0&&(
-          <div style={{padding:'52px 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:16,textAlign:'center' as any}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:40,color:accent,lineHeight:1}}>Nothing yet.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:'rgba(240,237,232,.55)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{padding:'48px 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:16,textAlign:'center' as any}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:40,color:accent2,lineHeight:1}}>Nothing yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:'rgba(240,237,232,.5)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>
               Your first photo becomes Day One. The brunch with the girls, the trial day, the shopping chaos — they all live here.
             </div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>
-              WhatsApp moments — coming soon
-            </div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>WhatsApp moments — coming soon</div>
             <button onClick={()=>fileRef.current?.click()}
-              style={{marginTop:8,padding:'12px 28px',borderRadius:100,background:accent,border:'none',
+              style={{marginTop:8,padding:'12px 28px',borderRadius:100,background:accent2,border:'none',
                 fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',
                 textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer'}}>
               Add from camera roll
@@ -2625,36 +2704,56 @@ function MomentsRoom({ accent }: MomentsRoomProps) {
           </div>
         )}
 
-        {moments.map((m,i)=>(
-          <div key={m.id} style={{position:'relative'}}>
-            {/* Date stamp — show on first item and whenever date changes */}
-            {(i===0||timeLabel(m.created_at)!==timeLabel(moments[i-1].created_at))&&(
-              <div style={{padding:'16px 20px 8px',display:'flex',alignItems:'center',gap:10}}>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>{timeLabel(m.created_at)}</div>
-                <div style={{flex:1,height:'0.5px',background:line}}/>
-                {m.saved_by_role==='circle_member'&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.14em',textTransform:'uppercase' as any,color:accent,border:`0.5px solid ${accent}44`,borderRadius:4,padding:'2px 6px'}}>Circle</div>}
+        {moments.map((m,i)=>{
+          const isFirst = i===0;
+          const dayLabel = daysAtCapture(m.created_at, weddingIso);
+          return (
+            <div key={m.id} style={{display:'flex',alignItems:'flex-start',marginBottom:22,position:'relative',zIndex:2}}>
+              {/* Thumbnail — left of string */}
+              <div style={{width:82,flexShrink:0,display:'flex',justifyContent:'flex-end',paddingRight:16}}>
+                <div onClick={()=>setFullImg(m.image_url)}
+                  style={{width:54,height:54,borderRadius:8,overflow:'hidden',cursor:'zoom-in',
+                    border:`.5px solid ${isFirst?accent2:'rgba(240,237,232,.08)'}`,
+                    boxShadow:isFirst?`0 0 12px ${accent2}44`:'none',
+                    background:'#1a1714',flexShrink:0}}>
+                  <img src={m.image_url} alt={m.caption||''} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
+                </div>
+                {/* Connector to string */}
+                <div style={{position:'absolute',left:82,top:27,width:14,height:.5,background:`${accent2}55`}}/>
               </div>
-            )}
-            {/* Photo */}
-            <div onClick={()=>setFullImg(m.image_url)}
-              style={{margin:'0 12px 10px',borderRadius:10,overflow:'hidden',cursor:'zoom-in',background:'#1a1714'}}>
-              <img src={m.image_url} alt={m.caption||''} style={{width:'100%',display:'block',objectFit:'cover',maxHeight:480}} loading="lazy"/>
-              {m.caption&&<div style={{padding:'8px 12px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:'rgba(240,237,232,.7)',lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
-                {m.caption}
-              </div>}
+
+              {/* Dot on string */}
+              <div style={{position:'absolute',left:82,top:27,width:7,height:7,borderRadius:'50%',
+                background:isFirst?accent2:'#080608',
+                border:`0.5px solid ${isFirst?accent2:accent2+'55'}`,
+                boxShadow:isFirst?`0 0 8px ${accent2}66`:'none',
+                transform:'translateX(-3.5px)',zIndex:3}}/>
+
+              {/* Meta — right of string */}
+              <div style={{flex:1,paddingLeft:18,paddingTop:2}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:isFirst?accent2:inkMute}}>
+                    {fmtDate(m.created_at)}{dayLabel?` · ${dayLabel}`:''}
+                  </span>
+                  {m.saved_by_role==='circle_member'&&(
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:accent2,border:`0.5px solid ${accent2}44`,borderRadius:3,padding:'1px 5px'}}>Circle</span>
+                  )}
+                </div>
+                {m.caption&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:'rgba(240,237,232,.6)',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{m.caption}</div>}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {!loading&&moments.length>0&&(
-          <div style={{padding:'24px 20px',textAlign:'center' as any}}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>
-              WhatsApp moments — coming soon
-            </div>
+          <div style={{padding:'8px 18px 8px 100px',textAlign:'left' as any}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>WhatsApp moments — coming soon</div>
           </div>
         )}
 
-        <div style={{height:40}}/>
+        {/* Bottom vignette */}
+        <div style={{position:'absolute',bottom:0,left:0,right:0,height:60,background:'linear-gradient(transparent,rgba(8,6,8,.8))',pointerEvents:'none'}}/>
+        <div style={{height:20}}/>
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{display:'none'}}/>
@@ -2662,6 +2761,72 @@ function MomentsRoom({ accent }: MomentsRoomProps) {
   );
 }
 
+
+// ── MERIDIAN CONCIERGE BUTTON ────────────────────────────────────────────────
+// Throbbing heartbeat line — same pulse as Discover peek nav.
+// Taps → fires POST /couple/concierge/request → admin gets WA notification.
+// All brides, no gate.
+
+interface MeridianConciergeBtnProps { accent:string; dark:boolean; }
+
+function MeridianConciergeBtn({ accent, dark }: MeridianConciergeBtnProps) {
+  const [state, setState] = React.useState<'idle'|'sending'|'sent'|'error'>('idle');
+  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+
+  const request = async () => {
+    if(state==='sending'||state==='sent') return;
+    setState('sending');
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`${API}/api/v2/couple/concierge/request`,{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${token||''}`,'Content-Type':'application/json'},
+        body:'{}',
+      });
+      const data = await res.json();
+      if(data.ok) setState('sent');
+      else setState('error');
+    } catch { setState('error'); }
+    if(state!=='sent') setTimeout(()=>setState('idle'), 3000);
+  };
+
+  const ink     = '#F0EDE8';
+  const inkMute = 'rgba(240,237,232,.35)';
+  const line    = 'rgba(240,237,232,.08)';
+
+  return (
+    <div style={{padding:'0 20px 4px'}}>
+      <style>{`
+        @keyframes concPulse {
+          0%,100% { opacity:0.5; box-shadow:0 0 6px ${accent}44; }
+          50%      { opacity:1;   box-shadow:0 0 18px ${accent}88; }
+        }
+      `}</style>
+
+      {state==='sent' ? (
+        <div style={{padding:'16px 20px',borderRadius:10,background:`${accent}10`,border:`0.5px solid ${accent}33`,textAlign:'center' as any}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+            Our concierge will reach you at the earliest.
+          </div>
+        </div>
+      ) : (
+        <div onClick={request} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:'14px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:10}}>
+          {/* Heartbeat line */}
+          <div style={{
+            width:'72%',height:3,borderRadius:2,
+            background:`linear-gradient(90deg, transparent 0%, ${accent} 20%, ${accent} 80%, transparent 100%)`,
+            animation:state==='sending'?'none':'concPulse 2.8s ease-in-out infinite',
+            opacity:state==='sending'?.4:1,
+            transition:'opacity 200ms ease',
+          }}/>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7.5,letterSpacing:'.22em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
+            {state==='sending'?'Reaching out…':state==='error'?'Try again':'Ask a Personal Concierge'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── MERIDIAN ROOM ─────────────────────────────────────────────────────────────
 // Personal concierge — skin, mind, body, decisions.
@@ -2701,7 +2866,7 @@ function getMeridianCards(days:number|null): {title:string;body:string;tag:strin
 
 interface MeridianRoomProps { dark:boolean; accent:string; }
 
-function MeridianRoom({ accent }: MeridianRoomProps) {
+function MeridianRoom({ accent, dark }: MeridianRoomProps) {
   const [msgs,    setMsgs]    = React.useState<MeridianMsg[]>([]);
   const [input,   setInput]   = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -2832,9 +2997,13 @@ function MeridianRoom({ accent }: MeridianRoomProps) {
             {/* Prompt to start */}
             <div style={{padding:'20px 20px 8px',textAlign:'center' as any}}>
               <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:inkMute,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
-                Tell me what's on your mind.
+                Tell me what’s on your mind.
               </div>
             </div>
+
+            {/* Concierge heartbeat button */}
+            <MeridianConciergeBtn accent={accent} dark={dark}/>
+
             <div style={{height:80}}/>
           </div>
         </>
@@ -2903,7 +3072,14 @@ export default function SanctuaryPage() {
   const [proseLine,  setProseLine]  = useState('');
   const [poetry,     setPoetry]     = useState('');
   const [sinceYes,   setSinceYes]   = useState(47);
-  const [journeyOpen,setJourneyOpen]= useState(false);
+  // Live hints from backend — fetched on mount
+  const [circleHint,  setCircleHint]  = useState('quiet');
+  const [museHint,    setMuseHint]    = useState('');
+  const [peopleHint,  setPeopleHint]  = useState('');
+  const [pagesHint,   setPagesHint]   = useState('a page is waiting');
+  const [eventsHint,  setEventsHint]  = useState('Your timeline');
+  const [expensesHint,setExpensesHint]= useState('');
+  const [vendorsHint, setVendorsHint] = useState('');
   const [weekday,    setWeekday]    = useState('Wednesday morning');
   const [dateStamp,  setDateStamp]  = useState('');
 
@@ -2992,7 +3168,104 @@ export default function SanctuaryPage() {
     setWeekday(now.toLocaleDateString('en-IN',{weekday:'long'})+' morning');
     const DOM=['','First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth','Ninth','Tenth','Eleventh','Twelfth','Thirteenth','Fourteenth','Fifteenth','Sixteenth','Seventeenth','Eighteenth','Nineteenth','Twentieth','Twenty-First','Twenty-Second','Twenty-Third','Twenty-Fourth','Twenty-Fifth','Twenty-Sixth','Twenty-Seventh','Twenty-Eighth','Twenty-Ninth','Thirtieth','Thirty-First'];
     setDateStamp(`${DOM[now.getDate()]||now.getDate()} of ${now.toLocaleDateString('en-IN',{month:'long'})} · ${now.getFullYear()}`);
+
+    // ── Auto dark/light by time of day ────────────────────────────────────
+    // Only applies if bride has never manually set a preference.
+    // '@frost.home_mode_manual' flag = she chose herself → respect forever.
+    try {
+      const manuallySet = localStorage.getItem('@frost.home_mode_manual');
+      if(!manuallySet) {
+        const h = now.getHours();
+        const shouldBeDark = h < 7 || h >= 19; // before 7am or after 7pm
+        setHomeMode(shouldBeDark ? 'E1A' : 'E3');
+      }
+    } catch {}
+
+    // ── Live hints fetch ──────────────────────────────────────────────────
+    const hintsRaw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+    const hintsToken = localStorage.getItem('access_token');
+    const hintsSession = hintsRaw ? JSON.parse(hintsRaw) : null;
+    const coupleId = hintsSession?.coupleId||hintsSession?.id;
+    const API = 'https://dream-os-production.up.railway.app';
+    if(coupleId && hintsToken) {
+      // Circle + people hints
+      fetch(`${API}/api/v2/couple/circle/${coupleId}`,{headers:{Authorization:`Bearer ${hintsToken}`}})
+        .then(r=>r.json()).then(d=>{
+          const members = d?.members||[];
+          const pending = d?.pending_invites||[];
+          const activity = d?.activity||[];
+          // Circle hint — last activity
+          if(activity.length>0){
+            const last = activity[0];
+            const name = last.member_name||'Someone';
+            const ago = last.created_at ? timeAgoShort(last.created_at) : '';
+            const type = last.activity_type==='save_added'?'added a save':last.activity_type==='comment'?'left a comment':'was active';
+            setCircleHint(`${name} ${type}${ago?' · '+ago:''}`);
+          } else {
+            setCircleHint('quiet');
+          }
+          // People hint
+          const activeCount = members.filter((m:any)=>m.status==='active').length;
+          const pendingCount = pending.length;
+          if(activeCount>0||pendingCount>0){
+            const parts=[];
+            if(activeCount>0) parts.push(`${activeCount} active`);
+            if(pendingCount>0) parts.push(`${pendingCount} invited`);
+            setPeopleHint(parts.join(' · '));
+          }
+        }).catch(()=>{});
+
+      // Muse hint
+      fetch(`${API}/api/v2/couple/muse/${coupleId}?limit=1`,{headers:{Authorization:`Bearer ${hintsToken}`}})
+        .then(r=>r.json()).then(d=>{
+          const total = d?.total||0;
+          if(total>0) setMuseHint(`${total} saved`);
+        }).catch(()=>{});
+
+      // Pages hint
+      fetch(`${API}/api/v2/couple/pages/${coupleId}/preview`,{headers:{Authorization:`Bearer ${hintsToken}`}})
+        .then(r=>r.json()).then(d=>{
+          if(d?.preview) setPagesHint(d.preview + '…');
+          else setPagesHint('a page is waiting');
+        }).catch(()=>{});
+
+      // Events hint
+      fetch(`${API}/api/v2/couple/events/${coupleId}?state=upcoming`,{headers:{Authorization:`Bearer ${hintsToken}`}})
+        .then(r=>r.json()).then(d=>{
+          const evs = d?.events||[];
+          if(evs.length>0) setEventsHint(`${evs.length} day${evs.length!==1?'s':''} ahead`);
+          else setEventsHint('Your timeline');
+        }).catch(()=>{});
+
+      // Expenses hint
+      fetch(`${API}/api/v2/couple/bookings/${coupleId}`,{headers:{Authorization:`Bearer ${hintsToken}`}})
+        .then(r=>r.json()).then(d=>{
+          const books = d?.bookings||[];
+          const paid = books.reduce((s:number,b:any)=>s+(b.amount_paid||0),0);
+          if(paid>0){
+            const fmt = paid>=100000?`Rs ${(paid/100000).toFixed(1)}L`:paid>=1000?`Rs ${Math.round(paid/1000)}K`:`Rs ${paid}`;
+            setExpensesHint(`${fmt} logged`);
+          }
+        }).catch(()=>{});
+
+      // Vendors hint
+      fetch(`${API}/api/v2/couple/bookings/${coupleId}`,{headers:{Authorization:`Bearer ${hintsToken}`}})
+        .then(r=>r.json()).then(d=>{
+          const books = d?.bookings||[];
+          if(books.length>0) setVendorsHint(`${books.length} confirmed`);
+        }).catch(()=>{});
+    }
   },[]);
+
+function timeAgoShort(iso:string):string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff/60000);
+  if(m<1)  return 'just now';
+  if(m<60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if(h<24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
 
   // Scroll dream to bottom
   useEffect(()=>{ if(scrollRef.current)scrollRef.current.scrollTop=scrollRef.current.scrollHeight; },[msgs]);
@@ -3104,7 +3377,6 @@ export default function SanctuaryPage() {
   const pillBg    = dark ? 'rgba(20,8,12,.55)'      : 'rgba(240,238,232,.75)';
   const pillBdr   = dark ? 'rgba(196,133,106,.30)'  : 'rgba(42,95,130,.35)';
   const pillTxt   = dark ? 'rgba(245,229,220,.85)'  : 'rgba(10,22,40,.85)';
-  const jnyBg     = dark ? 'rgba(196,133,106,.05)'  : 'rgba(42,95,130,.06)';
   const topBandBg = dark ? 'rgba(20,8,12,.62)'      : 'rgba(240,238,232,.68)';
   // Bottom dark panel — covers slice zone, makes text legible
   // Comes higher now so Dream Ai row is always in the dark zone
@@ -3150,7 +3422,7 @@ export default function SanctuaryPage() {
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>
 
       {/* Ghost numeral */}
-      <div className="gn-a" style={{position:'absolute',top:journeyOpen?'60px':'115px',left:'50%',fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?'150px':'320px',lineHeight:1,letterSpacing:'-.06em',whiteSpace:'nowrap',color:ghostColor,opacity:ghostOp,filter:'blur(8px)',fontFeatureSettings:'"opsz" 144',pointerEvents:'none',zIndex:3,transition:`top 480ms ${EASE}, font-size 480ms ${EASE}`,WebkitMaskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)',maskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)'}}>
+      <div className="gn-a" style={{position:'absolute',top:'115px',left:'50%',fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:'320px',lineHeight:1,letterSpacing:'-.06em',whiteSpace:'nowrap',color:ghostColor,opacity:ghostOp,filter:'blur(8px)',fontFeatureSettings:'"opsz" 144',pointerEvents:'none',zIndex:3,transition:`top 480ms ${EASE}, font-size 480ms ${EASE}`,WebkitMaskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)',maskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)'}}>
         {days}
       </div>
 
@@ -3158,7 +3430,7 @@ export default function SanctuaryPage() {
       <div style={{position:'absolute',top:0,left:0,right:0,height:120,background:topBandBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',WebkitMaskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',maskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',pointerEvents:'none',zIndex:2}}/>
 
       {/* Bottom dark panel — raised higher so ALL slices are in dark zone */}
-      <div style={{position:'absolute',top:journeyOpen?'22%':'38%',left:0,right:0,bottom:0,background:botPanelBg,backdropFilter:'blur(20px) saturate(1.2)',WebkitBackdropFilter:'blur(20px) saturate(1.2)',WebkitMaskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 10%,#000 20%)',maskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 10%,#000 20%)',pointerEvents:'none',zIndex:4,transition:`top 480ms ${EASE}`}}/>
+      <div style={{position:'absolute',top:'38%',left:0,right:0,bottom:0,background:botPanelBg,backdropFilter:'blur(20px) saturate(1.2)',WebkitBackdropFilter:'blur(20px) saturate(1.2)',WebkitMaskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 10%,#000 20%)',maskImage:'linear-gradient(180deg,transparent 0%,rgba(0,0,0,.7) 10%,#000 20%)',pointerEvents:'none',zIndex:4,transition:`top 480ms ${EASE}`}}/>
 
       {/* Arc */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:108,zIndex:6,pointerEvents:'none'}}>
@@ -3187,63 +3459,64 @@ export default function SanctuaryPage() {
       </div>
 
       {/* Hero — top padding clears the arc (108px) + safe area */}
-      <div style={{position:'relative',zIndex:5,padding:journeyOpen?`calc(env(safe-area-inset-top,0px) + 108px) 18px 2px`:`calc(env(safe-area-inset-top,0px) + 112px) 18px 6px`,flexShrink:0,transition:`padding 480ms ${EASE}`}}>
-        {!journeyOpen&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>}
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:journeyOpen?30:42,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:journeyOpen?4:8,transition:`font-size 480ms ${EASE}`}}>
+      <div style={{position:'relative',zIndex:5,padding:`calc(env(safe-area-inset-top,0px) + 112px) 18px 6px`,flexShrink:0}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:8}}>
           Hello, <span style={{color:accent}}>{name}</span>.
         </div>
-        {!journeyOpen&&<div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>}
+        <div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>
         <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:journeyOpen?34:48,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144',transition:`font-size 480ms ${EASE}`}}>{days}</div>
+          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:48,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144'}}>{days}</div>
           <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:accent,opacity:.6}}>mornings to I do</div>
         </div>
-        {!journeyOpen&&<>
+        <>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,lineHeight:1.55,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
             {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
           </div>
           <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{dateStamp}</div>
           {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.16em',textTransform:'uppercase' as any,color:signal}}>↑ {sinceYes} days since you said yes</div>}
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:11,lineHeight:1.5,marginTop:6,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
-        </>}
+        </>
       </div>
 
-      {/* Slices */}
-      <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
-        {SLICES.map((slice,idx)=>(
-          <div key={slice.key} onClick={()=>openRoom(slice.key)} className="si-a"
-            style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',background:'transparent',animationDelay:`${idx*16}ms`}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
-            {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{slice.hint}</span>
-            {(slice.key==='discover'||slice.key==='meridian')&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:hintTxt,flexShrink:0}}>→</span>}
-          </div>
-        ))}
-      </div>
-
-      {/* Journey */}
-      <div style={{position:'relative',zIndex:5,flexShrink:0,borderTop:`.5px solid ${lineStr}`,paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 2px)',background:journeyOpen?jnyBg:'transparent',transition:`background 300ms ${EASE}`}}>
-        <div onClick={()=>setJourneyOpen(o=>!o)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 18px',cursor:'pointer',WebkitTapHighlightColor:'transparent',minHeight:44}}>
-          <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>Journey</span>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:accent,opacity:.55,display:'inline-block',transform:journeyOpen?'rotate(180deg)':'rotate(0deg)',transition:`transform 300ms ${EASE}`}}>∨</span>
-        </div>
-        {journeyOpen&&<div style={{borderTop:`.5px solid ${line}`}}>
-          {JOURNEY_LINKS.map((link,i)=>(
-            <div key={link.label} onClick={()=>{setJourneyOpen(false);openRoom(link.label.toLowerCase() as RoomKey);}} className="si-a" style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${i*28}ms`}}>
-              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>{link.label}</span>
-              {link.hint&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',textTransform:'uppercase' as any,color:'rgba(255,255,255,.45)'}}>{link.hint}</span>}
+      {/* Slices — dynamic hints */}
+      {(()=>{
+        const hintMap:{[k:string]:string}={
+          dream:'Tell me anything.',
+          circle:circleHint,
+          muse:museHint||'Your board',
+          discover:'Your curated world',
+          people:peopleHint||'Your circle',
+          pages:pagesHint,
+          moments:'Your story, in photos',
+          events:eventsHint,
+          expenses:expensesHint||'Track your spend',
+          vendors:vendorsHint||'Your team',
+          meridian:'Skin · mind · body',
+        };
+        return(
+        <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
+          {BASE_SLICES.map((slice,idx)=>(
+            <div key={slice.key} onClick={()=>openRoom(slice.key)} className="si-a"
+              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',background:'transparent',animationDelay:`${idx*16}ms`}}>
+              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
+              {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{hintMap[slice.key as string]||''}</span>
+              {(slice.key==='discover'||slice.key==='meridian')&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:hintTxt,flexShrink:0}}>→</span>}
             </div>
           ))}
-          {/* DreamAI on WhatsApp — external link, no bloom */}
-          <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer" className="si-a"
-            style={{display:'flex',alignItems:'center',minHeight:44,padding:'0 24px',borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',textDecoration:'none',animationDelay:`${(JOURNEY_LINKS.length)*28}ms`}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,flex:1,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>DreamAi on WhatsApp</span>
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(255,255,255,.4)'}}>↗</span>
-          </a>
-          <div onClick={()=>setHomeMode(dark?'E3':'E1A')} className="si-a" style={{display:'flex',alignItems:'center',justifyContent:'space-between',minHeight:44,padding:'0 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',animationDelay:`${(JOURNEY_LINKS.length+1)*28}ms`}}>
-            <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:'rgba(255,255,255,.85)',fontFeatureSettings:'"opsz" 9'}}>Mode</span>
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?accent:'rgba(255,255,255,.75)'}}>{dark?'Dark':'Light'} · <span style={{opacity:.5}}>switch</span></span>
-          </div>
-        </div>}
+        </div>
+        );
+      })()}
+
+      {/* DreamAi on WhatsApp — persistent bottom link, always visible */}
+      <div style={{position:'relative',zIndex:5,flexShrink:0,borderTop:`.5px solid ${lineStr}`,paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 4px)'}}>
+        <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer"
+          style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'10px 18px',textDecoration:'none',WebkitTapHighlightColor:'transparent'}}>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(10,22,40,.45)'}}>
+            ↗ DreamAi on <span style={{color:accent}}>WhatsApp</span>
+          </span>
+        </a>
       </div>
 
       {/* ════════════════════════════════════════════════════════
@@ -3266,7 +3539,11 @@ export default function SanctuaryPage() {
               Sanctuary
             </button>
             <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
-              {(()=>{const r=activeRoom as string;return(['expenses','vendors','settings'].includes(r)?(r==='expenses'?'Expenses':r==='vendors'?'Vendors':'Settings'):SLICES.find(s=>s.key===activeRoom)?.label);})()}
+              {(()=>{
+                const labels:{[k:string]:string}={expenses:'Expenses',vendors:'Vendors',settings:'Settings'};
+                if(activeRoom&&labels[activeRoom]) return labels[activeRoom];
+                return BASE_SLICES.find(s=>s.key===activeRoom)?.label||'';
+              })()}
             </div>
             {activeRoom==='dream'&&<button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute}}>Clear</button>}
             {activeRoom!=='dream'&&<div style={{width:40}}/>}
@@ -3274,6 +3551,14 @@ export default function SanctuaryPage() {
 
           {/* Room content */}
           <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',position:'relative'}}>
+            {/* Bottom vignette — cinematic framing both modes */}
+            {activeRoom!=='discover'&&activeRoom!=='muse'&&activeRoom!=='moments'&&(
+              <div style={{position:'absolute',bottom:0,left:0,right:0,height:80,
+                background:dark
+                  ?'linear-gradient(transparent,rgba(12,4,5,.65))'
+                  :'linear-gradient(transparent,rgba(8,10,18,.45))',
+                pointerEvents:'none',zIndex:5}}/>
+            )}
 
             {/* ── DREAM AI ── */}
             {activeRoom==='dream'&&<>
@@ -3392,11 +3677,26 @@ export default function SanctuaryPage() {
               <MeridianRoom dark={dark} accent={accent}/>
             )}
 
+            {/* ── EXPENSES — already built ── */}
+            {activeRoom==='expenses'&&(
+              <ExpensesRoom dark={dark} accent={accent} signal={signal}/>
+            )}
+
+            {/* ── VENDORS — already built ── */}
+            {activeRoom==='vendors'&&(
+              <VendorsRoom dark={dark} accent={accent}/>
+            )}
+
+            {/* ── SETTINGS — already built ── */}
+            {activeRoom==='settings'&&(
+              <SettingsRoom dark={dark} accent={accent} signal={signal} setHomeMode={(m)=>{setHomeMode(m);try{localStorage.setItem('@frost.home_mode_manual','1');}catch{}}}/>
+            )}
+
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&activeRoom!=='people'&&activeRoom!=='moments'&&activeRoom!=='meridian'&&(
+            {activeRoom!==null&&!['dream','pages','circle','events','muse','discover','expenses','vendors','settings','people','moments','meridian'].includes(activeRoom)&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
-                  {(()=>{const r=activeRoom as string;return(['expenses','vendors','settings'].includes(r)?(r==='expenses'?'Expenses':r==='vendors'?'Vendors':'Settings'):SLICES.find(s=>s.key===activeRoom)?.label);})()}
+                  {BASE_SLICES.find(s=>s.key===activeRoom)?.label||activeRoom}
                 </div>
                 <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,textAlign:'center',lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
                   Coming soon.<br/>Swipe down to return.
