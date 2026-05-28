@@ -58,6 +58,7 @@ const NAV = [
     { label: 'Makers',          path: '/admin/invite-requests/makers',   icon: '✦' },
   ]},
   { group: 'OUTREACH', items: [
+    { label: 'Demo Profiles', path: '/admin/demo', icon: '◈' },
   ]},
   { group: 'CONFIG', items: [
     { label: 'AI Caps',     path: '/admin/config',                 icon: '⚙' },
