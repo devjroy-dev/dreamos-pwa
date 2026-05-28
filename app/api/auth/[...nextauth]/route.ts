@@ -9,7 +9,7 @@ const handler = NextAuth({
     }),
   ],
   pages: {
-    signIn: '/vendor/login',
+    signIn: '/',
   },
   callbacks: {
     async session({ session, token }) {

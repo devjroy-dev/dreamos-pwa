@@ -2,7 +2,7 @@
 // GET /api/auth/clear-session
 //
 // Server-side session wipe. Clears all vendor session cookies then serves
-// an HTML page that clears localStorage and redirects to /vendor/login.
+// an HTML page that clears localStorage and redirects to /.
 //
 // Works on iOS Safari where console access is impossible.
 // Share the link: thedreamwedding.in/api/auth/clear-session
@@ -42,7 +42,7 @@ export async function GET(_req: NextRequest) {
       document.cookie = name + '=; max-age=0; path=/; SameSite=Lax; Secure';
       document.cookie = name + '=; max-age=0; path=/; SameSite=None; Secure';
     });
-    setTimeout(() => { window.location.replace('/vendor/login'); }, 300);
+    setTimeout(() => { window.location.replace('/'); }, 300);
   </script>
 </body>
 </html>`;

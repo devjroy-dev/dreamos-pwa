@@ -172,7 +172,7 @@ export function streamChat(
         // Refresh failed — fall through to redirect
       }
       clearVendorSession();
-      if (typeof window !== 'undefined') window.location.href = '/vendor/login';
+      if (typeof window !== 'undefined') window.location.href = '/';
       return;
     }
 

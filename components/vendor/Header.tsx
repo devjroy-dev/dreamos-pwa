@@ -86,7 +86,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   function signOut() {
     setProfileOpen(false);
     clearVendorSession();
-    router.replace('/vendor/login');
+    router.replace('/');
   }
 
   function requestInvite() {

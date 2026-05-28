@@ -35,7 +35,7 @@ function writeSession(patch: Record<string, string>): void {
 function clearAndRedirect(): void {
   if (typeof window === 'undefined') return;
   clearVendorSession();
-  window.location.href = '/vendor/login';
+  window.location.href = '/';
 }
 
 // ── Auth header ───────────────────────────────────────────────────────────
