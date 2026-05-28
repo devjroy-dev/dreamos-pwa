@@ -4,8 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchContext, streamChat } from '@/lib/vendor/api/vendor';
 import { getVendorSession } from '@/lib/vendor/session';
 import { buildBriefing } from '@/lib/vendor/briefing';
+import { getMockContext } from '@/lib/vendor/mocks/vendor';
+import { isDemoMode } from '@/lib/vendor/demo';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
 import type { ClarifyPayload, ContactCard } from '@/lib/vendor/types/vendor';
+
+const DEMO_AI_REPLY = "This is a demo of your studio. Sign up to chat with DreamAi, reply to enquiries, and start booking work.";
 
 export type ChatMessageRole = 'user' | 'ai';
 
@@ -45,6 +49,17 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
   // ── Load context on mount ─────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
+    // Demo mode: use mock context, skip the authed call entirely.
+    if (isDemoMode()) {
+      const ctx = getMockContext();
+      setContext(ctx);
+      const briefing = buildBriefing(ctx);
+      if (briefing) setMessages((prev: ChatMessage[]) => prev.length === 0
+        ? [{ id: 'briefing', role: 'ai', text: briefing }]
+        : prev
+      );
+      return;
+    }
     (async () => {
       try {
         const ctx = await fetchContext(vendorId);
@@ -86,6 +101,14 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
 
     // Add user message
     setMessages((prev: ChatMessage[]) => [...prev, { id: nextId(), role: 'user', text: trimmed }]);
+
+    // Demo mode: canned local reply, no backend call.
+    if (isDemoMode()) {
+      const aiMsgId = nextId();
+      setMessages((prev: ChatMessage[]) => [...prev, { id: aiMsgId, role: 'ai', text: DEMO_AI_REPLY }]);
+      return;
+    }
+
     setLoading(true);
 
     // Add empty AI message that will be filled by streaming deltas

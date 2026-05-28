@@ -4,6 +4,7 @@
 
 import { getJson, postJson, patchJson, API_BASE, getAuthHeader, USE_MOCKS } from './_base';
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
+import { isDemoMode } from '@/lib/vendor/demo';
 import { getMockContext, getMockLeads, getMockClients, getMockInvoices,
          getMockExpenses, getMockEvents, getMockMe } from '../mocks/vendor';
 import type {
@@ -145,6 +146,11 @@ export function streamChat(
 
     // ── Token refresh on 401 ───────────────────────────────────────────
     if (res.status === 401 && !retried) {
+      // Demo sessions have no real JWT — don't try to refresh or redirect.
+      if (isDemoMode()) {
+        onError('Sign up to chat with DreamAi.');
+        return;
+      }
       try {
         // Use getVendorSession() — reads from cookies when localStorage is
         // blocked (iOS Safari Private Browsing) or cleared by ITP.

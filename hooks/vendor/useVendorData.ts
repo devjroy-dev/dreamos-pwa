@@ -11,6 +11,11 @@ import {
   fetchClients, fetchLeads, fetchInvoices,
   fetchExpenses, fetchEvents,
 } from '@/lib/vendor/api/vendor';
+import {
+  getMockClients, getMockLeads, getMockInvoices,
+  getMockExpenses, getMockEvents,
+} from '@/lib/vendor/mocks/vendor';
+import { isDemoMode } from '@/lib/vendor/demo';
 import type {
   Client, Lead, Invoice, Expense, VendorEvent,
 } from '@/lib/vendor/types/vendor';
@@ -39,6 +44,7 @@ function useLoader<T>(
   kind: Kind,
   fetcher: (id: string) => Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
   extract: (raw: Record<string, unknown>) => T | null,
+  demoData?: () => T,
 ): LoadState<T> {
   const key = vendorId ? cacheKey(vendorId, kind) : null;
   const cached = key ? (cache.get(key) as CacheEntry<T> | undefined) : undefined;
@@ -50,6 +56,15 @@ function useLoader<T>(
 
   const run = useCallback(async (force: boolean) => {
     if (!vendorId || !key) return;
+    // Demo mode: serve mocks, skip the authed call. Still cache so refresh() works.
+    if (demoData && isDemoMode()) {
+      const mock = demoData();
+      cache.set(key, { data: mock as unknown as T, ts: Date.now() });
+      setData(mock);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     const existing = cache.get(key) as CacheEntry<T> | undefined;
     if (!force && existing && Date.now() - existing.ts < CACHE_TTL) {
       setData(existing.data);
@@ -72,7 +87,7 @@ function useLoader<T>(
     } finally {
       if (my === tick.current) setLoading(false);
     }
-  }, [vendorId, key, fetcher, extract]);
+  }, [vendorId, key, fetcher, extract, demoData]);
 
   useEffect(() => { run(false); }, [run]);
 
@@ -96,6 +111,7 @@ export function useClientsData(vendorId: string | null): LoadState<Client[]> {
     vendorId, 'clients',
     (id) => fetchClients(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.clients) ? (raw.clients as Client[]) : null,
+    () => getMockClients().clients as Client[],
   );
 }
 
@@ -104,6 +120,7 @@ export function useLeadsData(vendorId: string | null): LoadState<Lead[]> {
     vendorId, 'leads',
     (id) => fetchLeads(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.leads) ? (raw.leads as Lead[]) : null,
+    () => getMockLeads().leads as Lead[],
   );
 }
 
@@ -112,6 +129,7 @@ export function useInvoicesData(vendorId: string | null): LoadState<Invoice[]> {
     vendorId, 'invoices',
     (id) => fetchInvoices(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.invoices) ? (raw.invoices as Invoice[]) : null,
+    () => getMockInvoices().invoices as Invoice[],
   );
 }
 
@@ -120,6 +138,7 @@ export function useExpensesData(vendorId: string | null): LoadState<Expense[]> {
     vendorId, 'expenses',
     (id) => fetchExpenses(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.expenses) ? (raw.expenses as Expense[]) : null,
+    () => getMockExpenses().expenses as Expense[],
   );
 }
 
@@ -128,6 +147,7 @@ export function useEventsData(vendorId: string | null): LoadState<VendorEvent[]>
     vendorId, 'events',
     (id) => fetchEvents(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.events) ? (raw.events as VendorEvent[]) : null,
+    () => getMockEvents().events as VendorEvent[],
   );
 }
 
