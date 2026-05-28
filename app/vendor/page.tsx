@@ -426,8 +426,9 @@ export default function WeddingChatPage() {
     if (seeded === null) return;
     if (!sessionLoading && !session) { router.replace('/'); return; }
     if (!sessionLoading && session) {
-      // Skip backend verification for demo sessions — no real JWT
-      if (isDemoMode) { setSeeded(true); return; }
+      // Skip backend verification for demo sessions — synchronous check (React state may not be set yet)
+      const _demoCheck = (() => { try { const d = JSON.parse(localStorage.getItem('tdw_vendor_demo_session') || '{}'); return !!d?.demo; } catch { return false; } })();
+      if (_demoCheck || isDemoMode) { setSeeded(true); return; }
       // Verify JWT against backend — catches expired tokens and wrong accounts.
       // If the stored session points to the wrong vendor (e.g. stale mock),
       // the /me response will have a different vendor ID — force re-login.
