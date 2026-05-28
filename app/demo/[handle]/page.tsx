@@ -62,23 +62,15 @@ export default function VendorDemoPage() {
   function handleEnterStudio() {
     if (!vendor) return;
     setEntering(true);
-    const demoSession = {
-      id:          DEMO_UUID,
-      vendorId:    DEMO_UUID,
-      user_id:     DEMO_UUID,
-      name:        vendor.name,
-      phone:       null,
-      tier:        'signature',
-      category:    vendor.category,
-      city:        vendor.city,
-      ig_handle:   vendor.ig_handle,
-      demo:        true,
-      demo_handle: vendor.ig_handle,
-      demo_photos: vendor.photos,
-      _v:          2,
-    };
-    try { localStorage.setItem(DEMO_SESS_KEY, JSON.stringify(demoSession)); } catch {}
-    setTimeout(() => { router.push('/vendor'); }, 80);
+    // URL param based — works on iOS Safari Private Browsing (no localStorage dependency)
+    const params = new URLSearchParams({
+      demo:     DEMO_UUID,
+      handle:   vendor.ig_handle,
+      name:     vendor.name,
+      category: vendor.category,
+      city:     vendor.city,
+    });
+    router.push('/vendor?' + params.toString());
   }
 
   async function handleDeleteDemo() {
