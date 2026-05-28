@@ -1,0 +1,66 @@
+{
+  "name": "TDW Control Room",
+  "short_name": "Control Room",
+  "description": "The Dream Wedding — Admin Portal",
+  "start_url": "https://thedreamwedding.in/admin",
+  "scope": "https://thedreamwedding.in/admin",
+  "id": "in.thedreamwedding.admin",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0A0908",
+  "theme_color": "#0D0B09",
+  "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "TDW Control Room Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/admin",
+      "description": "Overview and stats"
+    },
+    {
+      "name": "Makers",
+      "url": "/admin/makers",
+      "description": "Manage vendor profiles"
+    },
+    {
+      "name": "Demo Profiles",
+      "url": "/admin/demo",
+      "description": "Demo outreach and claims"
+    }
+  ]
+}
