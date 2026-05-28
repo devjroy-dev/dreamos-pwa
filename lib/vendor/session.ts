@@ -16,7 +16,7 @@ const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
 
 // The test vendor UUID hardcoded in MOCK_SESSION.
 // Any stored session with this ID on a real domain is stale/contaminated.
-const MOCK_VENDOR_ID    = '2eb5d3fb-31eb-4b26-859a-cf10ae477d53';
+const MOCK_VENDOR_ID    = '00000000-0000-0000-0000-000000000000'; // non-conflicting — real vendors never have this UUID
 const MOCK_ACCESS_TOKEN = 'mock-access-token';
 
 // Session version stamp — bump this to force-evict all stored sessions
