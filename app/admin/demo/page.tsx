@@ -194,7 +194,7 @@ export default function DemoAdminPage() {
       } catch { /* skip individual failures */ }
     }
     showToast(`Seeded ${count} leads for ${vendor.display_name}.`);
-    setShowSeed(false); setSeedTarget(null); setSeeding(false); load();
+    setSeeding(false); load();
   }
 
   return (
