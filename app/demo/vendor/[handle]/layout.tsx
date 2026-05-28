@@ -83,7 +83,9 @@ function DemoBottomNav({ handle }: { handle: string }) {
 
   // No bottom nav on AI page or landing — PeekNav/landing handles it
   if (mode === 'ai') return null;
-  if (pathname === base || pathname === base + '/') return null;
+  const handlePathNav = `/vendor/${handle}`;
+  if (pathname === base || pathname === base + '/' ||
+      pathname === handlePathNav || pathname === handlePathNav + '/') return null;
 
   const STUDIO_ITEMS: SubItem[] = [
     { href:`${base}/calendar`, label:'Calendar',  glyph:'◐' },
@@ -120,7 +122,12 @@ function DemoShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const router   = useRouter();
   const base     = `/demo/vendor/${handle}`;
-  const isLanding = pathname === base || pathname === base + '/';
+  // usePathname() returns the browser URL path (before middleware rewrite).
+  // On demo.thedreamwedding.in/vendor/makeupbyswatiroy, pathname = /vendor/makeupbyswatiroy
+  // but base = /demo/vendor/makeupbyswatiroy. Check both forms.
+  const handlePath = `/vendor/${handle}`;
+  const isLanding = pathname === base || pathname === base + '/' ||
+                    pathname === handlePath || pathname === handlePath + '/';
 
   const PANEL_ROOTS = [
     `${base}/calendar`,

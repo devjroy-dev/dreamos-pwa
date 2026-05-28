@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 // Exact TDW frosted-entry-strip pattern — dark #0C0A09 base, warm espresso tones.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { fetchDemoVendor } from '@/lib/demo/api';
 import type { DemoVendor, DemoPhoto } from '@/lib/demo/api';
@@ -38,6 +39,16 @@ export default function DemoLandingPage() {
   const [claimPhone,   setClaimPhone]   = useState('');
   const [claimSending, setClaimSending] = useState(false);
   const [claimDone,    setClaimDone]    = useState(false);
+
+  const searchParams = useSearchParams();
+
+  // Auto-open claim sheet if ?claim=1 (from header dropdown)
+  useEffect(() => {
+    if (searchParams?.get('claim') === '1') {
+      setEntered(true);
+      setClaimOpen(true);
+    }
+  }, [searchParams]);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const photosRef   = useRef<string[]>([]);

@@ -130,7 +130,7 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
             </button>
 
             {/* Claim studio CTA */}
-            <button type="button" onClick={() => { setProfileOpen(false); router.push(`/demo/vendor/${handle}`); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 20px 14px', border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', marginTop: 2 }}>
+            <button type="button" onClick={() => { setProfileOpen(false); router.push(`/demo/vendor/${handle}?claim=1`); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 20px 14px', border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', marginTop: 2 }}>
               <span style={{ flexShrink: 0, width: 22, textAlign: 'center', fontFamily: F.display, fontWeight: 400, fontSize: 18, color: '#E0BC6E', lineHeight: 1 }}>→</span>
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, color: '#E0BC6E', letterSpacing: '0.005em', lineHeight: 1.15 }}>Claim Your Studio</span>
