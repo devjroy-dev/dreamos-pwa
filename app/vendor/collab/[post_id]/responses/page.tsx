@@ -50,7 +50,7 @@ export default function CollabResponsesPage() {
   const router  = useRouter();
 
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1, background: D.bg }} aria-busy="true" />;
 
   return <ResponsesScreen post_id={post_id} vendorName={session.name} />;

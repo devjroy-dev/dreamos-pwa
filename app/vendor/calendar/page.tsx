@@ -58,7 +58,7 @@ function splitDay(s: string): { day: string; month: string } {
 export default function CalendarPage() {
   const router = useRouter();
   const { session, loading } = useVendorSession();
-  useEffect(() => { if (!loading && !session) router.replace('/vendor/login'); }, [loading, session, router]);
+  useEffect(() => { if (!loading && !session) router.replace('/'); }, [loading, session, router]);
   if (loading || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   return <CalendarScreen vendorId={session.id} vendorName={session.name ?? null} />;
 }

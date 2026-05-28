@@ -56,7 +56,7 @@ function stateLabel(s: string): { text: string; color: string } {
 export default function TdwLeadsPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   return <TdwLeadsScreen vendorId={session.id} vendorName={session.name ?? null} />;
 }

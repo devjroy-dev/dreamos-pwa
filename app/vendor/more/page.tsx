@@ -114,7 +114,7 @@ function MoreRow({ item }: { item: Item }) {
 export default function MorePage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
 
   const ACCOUNT_ITEMS: Item[] = [
@@ -123,7 +123,7 @@ export default function MorePage() {
       label: 'Sign Out',
       description: '',
       danger: true,
-      action: () => { clearVendorSession(); router.replace('/vendor/login'); },
+      action: () => { clearVendorSession(); router.replace('/'); },
       glyph: '→',
     },
   ];

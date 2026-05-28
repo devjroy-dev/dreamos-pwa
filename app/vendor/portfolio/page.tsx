@@ -32,7 +32,7 @@ const STATE_FILTERS = ['all', 'approved', 'pending', 'rejected'] as const;
 export default function PortfolioPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} />;
   return <PortfolioScreen vendorId={session.id} vendorName={session.name ?? null} />;
 }

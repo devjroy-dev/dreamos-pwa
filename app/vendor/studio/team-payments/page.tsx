@@ -36,7 +36,7 @@ const labelStyle: React.CSSProperties = {
 export default function TeamPaymentsPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1, background: 'transparent' }} />;
   if (session.tier !== 'prestige') {
     return (

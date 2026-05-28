@@ -81,7 +81,7 @@ type Tab = 'opportunities' | 'my_posts';
 export default function CollabPage() {
   const { session, loading: sl } = useVendorSession();
   const router = useRouter();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   return <CollabScreen vendorId={session.id} vendorName={session.name} tier={session.tier} />;
 }

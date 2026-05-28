@@ -32,7 +32,7 @@ function HandoffInner() {
     const refresh = params.get('refresh') ?? '';
 
     if (!token) {
-      router.replace('/vendor/login');
+      router.replace('/');
       return;
     }
 
@@ -41,7 +41,7 @@ function HandoffInner() {
     })
       .then(r => r.json())
       .then(data => {
-        if (!data.ok || !data.vendor) { router.replace('/vendor/login'); return; }
+        if (!data.ok || !data.vendor) { router.replace('/'); return; }
         const session = {
           id:             data.vendor.id,
           user_id:        data.vendor.user_id        ?? '',
@@ -55,7 +55,7 @@ function HandoffInner() {
         setVendorSession(session); // handles localStorage throw + always sets cookies
         router.replace('/vendor');
       })
-      .catch(() => { router.replace('/vendor/login'); });
+      .catch(() => { router.replace('/'); });
   }, [params, router]);
 
   return (

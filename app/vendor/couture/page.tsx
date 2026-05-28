@@ -25,7 +25,7 @@ const F = {
 export default function CouturePage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} />;
   return <CoutureScreen vendorId={session.id} vendorName={session.name ?? null} />;
 }

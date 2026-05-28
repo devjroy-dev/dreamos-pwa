@@ -26,7 +26,7 @@ const F = {
 export default function SettingsPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   return <SettingsScreen vendorName={session.name ?? null} />;
 }
@@ -80,7 +80,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
     finally { setSaving(null); }
   }
 
-  function signOut() { clearVendorSession(); router.replace('/vendor/login'); }
+  function signOut() { clearVendorSession(); router.replace('/'); }
 
   if (loading) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

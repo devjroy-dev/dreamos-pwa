@@ -120,7 +120,7 @@ export default function SlicePage() {
   const params = useParams<{ slice: string }>();
   const slice  = params?.slice as ListSlice;
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   if (!['clients','leads','invoices','events','expenses'].includes(slice))
     return <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>

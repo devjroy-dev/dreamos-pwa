@@ -46,7 +46,7 @@ function fyOptions(): string[] {
 export default function TdsPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/vendor/login'); }, [sl, session, router]);
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} />;
   return <TdsScreen vendorId={session.id} vendorName={session.name ?? null} />;
 }
