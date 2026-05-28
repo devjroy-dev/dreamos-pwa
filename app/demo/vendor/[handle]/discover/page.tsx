@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Header } from '@/components/vendor/Header';
+import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { fetchDemoVendor } from '@/lib/demo/api';
 import type { DemoVendor } from '@/lib/demo/api';
@@ -42,7 +42,7 @@ export default function DemoDiscoverPage() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <Header vendorName={vendorName} />
+      <DemoVendorHeader vendorName={vendorName} handle={handle} />
 
       {/* Hero */}
       <div style={{ position: 'relative', height: 260, background: heroUrl ? undefined : FALLBACK_HERO_GRADIENT, flexShrink: 0 }}>

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { Header } from '@/components/vendor/Header';
+import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
@@ -137,7 +137,7 @@ export default function DemoListPage() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
-      <Header vendorName={vendorName} />
+      <DemoVendorHeader vendorName={vendorName} handle={handle} />
 
       <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
         <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>

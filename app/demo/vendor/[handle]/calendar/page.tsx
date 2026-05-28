@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 import { useParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { Header } from '@/components/vendor/Header';
+import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { useDemoEventsData } from '@/hooks/demo/useDemoVendorData';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
@@ -75,7 +75,7 @@ export default function DemoCalendarPage() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
-      <Header vendorName={vendorName} />
+      <DemoVendorHeader vendorName={vendorName} handle={handle} />
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
 
         {/* Month header */}

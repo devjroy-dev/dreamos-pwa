@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 import { useParams } from 'next/navigation';
 import { Suspense, useRef, useState } from 'react';
-import { Header } from '@/components/vendor/Header';
+import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
 import { CommandBar } from '@/components/vendor/CommandBar';
@@ -107,11 +107,11 @@ function ChatScreen({ handle, vendorId, vendorName }: { handle: string; vendorId
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
-      <Header vendorName={vendorName} />
+      <DemoVendorHeader vendorName={vendorName} handle={handle} category={null} city={null} />
 
       <CommandBar
         context={null}
-        vendorId={vendorId}
+        vendorId=""
         justDoIt={justDoIt}
         onJustDoItChange={setJustDoIt}
       />
