@@ -81,8 +81,9 @@ function DemoBottomNav({ handle }: { handle: string }) {
   const base     = `/demo/vendor/${handle}`;
   const mode     = modeFromPath(pathname, base);
 
-  // No bottom nav on AI page — PeekNav handles it
+  // No bottom nav on AI page or landing — PeekNav/landing handles it
   if (mode === 'ai') return null;
+  if (pathname === base || pathname === base + '/') return null;
 
   const STUDIO_ITEMS: SubItem[] = [
     { href:`${base}/calendar`, label:'Calendar',  glyph:'◐' },
@@ -119,7 +120,7 @@ function DemoShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const router   = useRouter();
   const base     = `/demo/vendor/${handle}`;
-  const isLanding = pathname === base;
+  const isLanding = pathname === base || pathname === base + '/';
 
   const PANEL_ROOTS = [
     `${base}/calendar`,
