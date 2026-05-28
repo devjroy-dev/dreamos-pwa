@@ -1,70 +1,195 @@
 'use client';
 // app/demo/vendor/[handle]/list/page.tsx
-// Demo vendor leads list. NO auth. NO session.
+// Demo list page — exact real UI. Leads come from demo_leads. Others empty.
+// Write operations are no-ops. NO session. NO auth.
 
 export const dynamic = 'force-dynamic';
 
-import { useParams } from 'next/navigation';
-import { DemoHeader } from '@/components/demo/DemoHeader';
-import { DemoNav }    from '@/components/demo/DemoNav';
-import { useDemoLeads, useDemoVendor } from '@/hooks/demo/useDemoData';
+import { useParams, useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { Header } from '@/components/vendor/Header';
+import { Toast } from '@/components/vendor/Toast';
+import { useToast } from '@/hooks/vendor/useToast';
+import { useDemoContext } from '@/hooks/demo/useDemoContext';
+import { useDemoLeadsData, useDemoClientsData, useDemoInvoicesData, useDemoExpensesData, useDemoEventsData } from '@/hooks/demo/useDemoVendorData';
+import type { Client, Lead, Invoice, Expense, VendorEvent } from '@/lib/vendor/types/vendor';
+import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 
-const T = {
-  bg: '#0C0A09', card: '#111008', ink: '#F0E6D2', soft: 'rgba(240,230,210,0.60)',
-  mute: 'rgba(240,230,210,0.35)', gold: '#C9A84C', border: 'rgba(240,230,210,0.08)',
-  ff: { body: "'DM Sans', sans-serif", label: "'Jost', sans-serif", display: "'Cormorant Garamond', serif" },
-};
+const A = {
+  ink:       'var(--atelier-ink)',
+  inkSoft:   'var(--atelier-ink-soft)',
+  inkMute:   'var(--atelier-ink-mute)',
+  inkDim:    'var(--atelier-ink-dim)',
+  brass:     'var(--atelier-accent-text)',
+  brassWarm: 'var(--atelier-label)',
+  brassLine: 'rgba(201,168,76,0.18)',
+  green:     '#7FBE85',
+  red:       '#E07B5C',
+} as const;
+const F = {
+  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
+  script:  'var(--font-cormorant), Georgia, serif',
+  body:    'var(--font-dm-sans), system-ui, sans-serif',
+  label:   'var(--font-jost), system-ui, sans-serif',
+} as const;
 
-const STATE_COLOR: Record<string, string> = {
-  new: '#6B9E8F', contacted: '#C9A84C', quoted: '#8B7355', booked: '#4A7A4A', lost: '#6B4040',
-};
+const LABELS: Record<ListSlice, string> = { clients: 'Clients', leads: 'Leads', invoices: 'Invoices', events: 'Events', expenses: 'Expenses' };
+const GLYPHS: Record<ListSlice, string> = { clients: 'C', leads: 'L', invoices: 'I', events: '◐', expenses: '×' };
+
+function stateColor(slice: ListSlice, state: string | undefined): string {
+  if (!state) return A.inkMute;
+  const s = state.toLowerCase();
+  if (slice === 'leads') {
+    if (s === 'new') return A.brassWarm;
+    if (s === 'contacted' || s === 'quoted') return A.brass;
+    if (s === 'booked') return A.green;
+    if (s === 'lost') return A.red;
+  }
+  return A.brassWarm;
+}
+
+interface Row {
+  id: string; primary: string; secondary?: string; meta?: string;
+  badge?: string; phone?: string;
+  detail: { label: string; value: string }[];
+}
+
+function fmtDate(iso: string | null | undefined) {
+  if (!iso) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return iso;
+  return `${parseInt(m[3])} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m[2])-1]} ${m[1]}`;
+}
+function cap(s: string | null | undefined): string {
+  if (!s || s === '—') return s ?? '—';
+  return s.split(/[\s_-]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function toRows(slice: ListSlice, clients: Client[], leads: Lead[], invoices: Invoice[], expenses: Expense[], events: VendorEvent[]): Row[] {
+  if (slice === 'clients')  return clients.map(c  => ({ id: c.id, primary: c.name, secondary: c.phone ?? undefined, detail: [{label:'Phone',value:c.phone??'—'},{label:'Email',value:c.email??'—'}] }));
+  if (slice === 'leads')    return leads.map(l    => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: l.wedding_date?fmtDate(l.wedding_date):undefined, badge: l.state, phone: l.phone??undefined, detail: [{label:'State',value:l.state},{label:'Wedding date',value:fmtDate(l.wedding_date)},{label:'City',value:l.wedding_city??'—'}] }));
+  if (slice === 'invoices') return invoices.map(i => ({ id: i.id, primary: i.client_name, secondary: i.invoice_number, badge: i.state, detail: [{label:'Total',value:`Rs ${i.amount_total.toLocaleString('en-IN')}`},{label:'State',value:i.state}] }));
+  if (slice === 'expenses') return expenses.map(e => ({ id: e.id, primary: e.description??'Expense', secondary: e.category??undefined, badge: `Rs ${e.amount.toLocaleString('en-IN')}`, detail: [{label:'Amount',value:`Rs ${e.amount.toLocaleString('en-IN')}`},{label:'Category',value:e.category??'—'}] }));
+  return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date), badge: ev.state, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?ev.event_time.slice(0,5):'—'}] }));
+}
+
+const WaIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M7.5 0C3.358 0 0 3.358 0 7.5c0 1.32.344 2.56.946 3.634L0 15l3.99-1.046A7.46 7.46 0 007.5 15C11.642 15 15 11.642 15 7.5S11.642 0 7.5 0zm0 13.75a6.21 6.21 0 01-3.17-.868l-.228-.135-2.357.557.584-2.296-.148-.235A6.21 6.21 0 011.25 7.5C1.25 4.048 4.048 1.25 7.5 1.25S13.75 4.048 13.75 7.5 10.952 13.75 7.5 13.75zM10.9 9.1c-.186-.093-1.1-.543-1.27-.604-.17-.062-.294-.093-.418.093-.124.186-.48.604-.588.728-.108.124-.217.14-.403.047-.186-.094-.786-.29-1.497-.924-.553-.494-.926-1.104-1.035-1.29-.108-.186-.011-.287.082-.38.084-.083.186-.217.279-.325.093-.108.124-.186.186-.31.062-.124.031-.233-.015-.326-.047-.093-.418-1.01-.573-1.382-.151-.364-.304-.315-.418-.321-.108-.006-.232-.007-.356-.007-.124 0-.326.047-.497.233-.17.186-.651.636-.651 1.551 0 .916.667 1.8.76 1.924.093.124 1.312 2.003 3.179 2.81.444.192.79.306.06.391.446.141.852.122.874.055.268-.053 1.1-.45.255-.886.155-.324.155-.81.108-.885.047-.062-.17-.124-.357-.217z"/>
+  </svg>
+);
+
+function ListRow({ row, slice, onSelect }: { row: Row; slice: ListSlice; onSelect: () => void }) {
+  const detailParts = [row.secondary, row.meta].filter(Boolean) as string[];
+  const detailLine  = detailParts.length > 0 ? detailParts.map(cap).join(' · ') : '—';
+  const pillColor   = stateColor(slice, row.badge);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+      <button type="button" onClick={onSelect} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 16, padding: '15px 16px 15px 22px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ flexShrink: 0, width: 28, textAlign: 'center', fontFamily: F.display, fontWeight: 400, fontSize: 22, color: A.brassWarm, lineHeight: 1 }}>{GLYPHS[slice]}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 18, color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.primary}</div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, letterSpacing: '0.01em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detailLine}</div>
+        </div>
+        {row.badge && (
+          <span style={{ flexShrink: 0, fontFamily: F.label, fontWeight: 400, fontSize: 8, color: pillColor, letterSpacing: '0.32em', textTransform: 'uppercase', border: `0.5px solid ${pillColor}`, borderRadius: 2, padding: '4px 9px', minWidth: 56, textAlign: 'center' }}>{row.badge}</span>
+        )}
+      </button>
+      {slice === 'leads' && row.phone && (
+        <div style={{ display: 'flex', gap: 6, paddingRight: 16, flexShrink: 0 }}>
+          <a href={`https://wa.me/${row.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(127,190,133,0.10)', border: '0.5px solid rgba(127,190,133,0.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: A.green }}><WaIcon /></a>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DemoListPage() {
   const params  = useParams();
   const handle  = typeof params.handle === 'string' ? params.handle : '';
-  const { vendor }         = useDemoVendor(handle);
-  const { leads, loading } = useDemoLeads(handle);
+  const slice   = (typeof params.slice === 'string' ? params.slice : 'leads') as ListSlice;
+  const router  = useRouter();
+  const { vendorName } = useDemoContext(handle);
+  const { toast, show: showToast } = useToast();
+
+  const c  = useDemoClientsData();
+  const l  = useDemoLeadsData(handle);
+  const i  = useDemoInvoicesData();
+  const ex = useDemoExpensesData();
+  const ev = useDemoEventsData();
+
+  const rawRows = useMemo(() => toRows(slice, c.data??[], l.data??[], i.data??[], ex.data??[], ev.data??[]),
+    [slice, c.data, l.data, i.data, ex.data, ev.data]);
+
+  const loading = l.loading;
+  const [query, setQuery] = useState('');
+  const [sel, setSel]     = useState<Row | null>(null);
+
+  const rows = useMemo(() => {
+    if (!query.trim()) return rawRows;
+    const q = query.trim().toLowerCase();
+    return rawRows.filter(r => r.primary.toLowerCase().includes(q) || (r.secondary??'').toLowerCase().includes(q));
+  }, [rawRows, query]);
+
+  if (!['clients','leads','invoices','events','expenses'].includes(slice)) {
+    return <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><div style={{ fontFamily: F.script, fontStyle: 'italic', color: A.inkMute }}>Unknown.</div></div>;
+  }
 
   return (
-    <div style={{ minHeight: '100dvh', background: T.bg, color: T.ink }}>
-      <DemoHeader vendorName={vendor?.display_name || null} handle={handle} />
-      <div style={{ paddingTop: 80, paddingBottom: 80 }}>
-        <div style={{ padding: '16px 20px 12px' }}>
-          <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.22em', color: T.mute, textTransform: 'uppercase', marginBottom: 4 }}>Your Pipeline</div>
-          <div style={{ fontFamily: T.ff.display, fontSize: 26, fontWeight: 300, color: T.ink }}>Leads</div>
-          <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.mute, marginTop: 2 }}>
-            {leads.length} total · {leads.filter(l => l.state === 'new').length} new · {leads.filter(l => l.state === 'booked').length} booked
-          </div>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
+      <Header vendorName={vendorName} />
 
-        {loading ? (
-          <div style={{ padding: '40px 20px', textAlign: 'center', color: T.mute, fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Loading…</div>
-        ) : leads.length === 0 ? (
-          <div style={{ padding: '40px 20px', textAlign: 'center', color: T.mute, fontFamily: T.ff.body, fontSize: 14 }}>No leads yet.</div>
-        ) : (
-          <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {leads.map(lead => (
-              <div key={lead.id} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '14px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                  <span style={{ fontFamily: T.ff.body, fontSize: 15, fontWeight: 400, color: T.ink }}>{lead.bride_name}</span>
-                  <span style={{ fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: STATE_COLOR[lead.state || 'new'] || T.mute, background: `${STATE_COLOR[lead.state || 'new'] || T.mute}18`, borderRadius: 10, padding: '3px 8px' }}>
-                    {lead.state || 'new'}
-                  </span>
-                </div>
-                <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginBottom: 4 }}>
-                  {[lead.bride_wedding_city, lead.bride_wedding_date].filter(Boolean).join(' · ')}
-                </div>
-                {lead.raw_message && (
-                  <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.mute, fontStyle: 'italic', borderLeft: `2px solid ${T.border}`, paddingLeft: 10, marginTop: 8 }}>
-                    "{lead.raw_message.slice(0, 120)}{lead.raw_message.length > 120 ? '…' : ''}"
-                  </div>
-                )}
+      <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
+      </div>
+
+      <div style={{ padding: '12px 22px 6px' }}>
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: F.display, fontSize: 14, color: A.inkMute, lineHeight: 1, pointerEvents: 'none' }}>⌕</span>
+          <input type="text" placeholder={`Search ${LABELS[slice].toLowerCase()}…`} value={query} onChange={e => setQuery(e.target.value)}
+            style={{ width: '100%', padding: '10px 12px 10px 32px', boxSizing: 'border-box', background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 13, color: A.ink, outline: 'none', caretColor: A.brass }} />
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
+        {!loading && rows.length === 0 && (
+          <div style={{ padding: '40px 24px', textAlign: 'center', fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.5 }}>
+            {query ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></> : <>Nothing here yet.</>}
+          </div>
+        )}
+        {rows.map((row: Row, idx: number) => <div key={row.id}><ListRow row={row} slice={slice} onSelect={() => setSel(row)} /></div>)}
+      </div>
+
+      <Toast toast={toast} />
+
+      {/* Detail sheet */}
+      <>
+        {sel && <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'var(--atelier-overlay)' }} />}
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)', borderTop: '0.5px solid var(--atelier-sheet-border)', padding: `0 0 calc(20px + env(safe-area-inset-bottom))`, transform: sel ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)', maxHeight: '88dvh', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+            <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+          </div>
+          <div style={{ padding: '6px 24px 14px', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>{LABELS[slice]}</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', letterSpacing: '0.005em', lineHeight: 1.15 }}>{sel?.primary ?? ''}</div>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 24px' }}>
+            {(sel?.detail ?? []).map((f, ii) => (
+              <div key={ii} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '10px 0', gap: 14, borderBottom: ii < (sel?.detail.length ?? 0) - 1 ? '0.5px solid var(--atelier-card-border)' : 'none' }}>
+                <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{f.label}</span>
+                <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 15, color: A.ink, letterSpacing: '0.005em', textAlign: 'right' }}>{cap(f.value)}</span>
               </div>
             ))}
           </div>
-        )}
-      </div>
-      <DemoNav handle={handle} />
+          <div style={{ padding: '12px 24px 0' }}>
+            <button type="button" onClick={() => { setSel(null); router.push(`/demo/vendor/${handle}/studio`); }}
+              style={{ width: '100%', padding: '12px 16px', background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+              Ask DreamAi about this →
+            </button>
+          </div>
+        </div>
+      </>
     </div>
   );
 }

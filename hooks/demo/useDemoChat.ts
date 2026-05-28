@@ -1,26 +1,19 @@
 'use client';
 // hooks/demo/useDemoChat.ts
 // DreamAi chat hook for demo mode.
-// NO session. NO auth. Handle from URL is the only identity.
+// Returns same ChatMessage type as real useChat so real ChatThread works.
+// NO session. NO auth. Handle = identity.
 
 import { useCallback, useRef, useState } from 'react';
 import { streamDemoChat } from '@/lib/demo/api';
-import type { StreamDonePayload } from '@/lib/demo/api';
+import type { ChatMessage } from '@/hooks/vendor/useChat';
 
-export interface DemoChatMessage {
-  id:        string;
-  role:      'user' | 'ai';
-  text:      string;
-  streaming?: boolean;
-}
+type BackendHistory = { role: 'user' | 'assistant'; content: string; };
 
-type BackendRole = 'user' | 'assistant';
-interface BackendHistory { role: BackendRole; content: string; }
-
-function uid() { return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
+function uid() { return `${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
 
 export function useDemoChat({ handle }: { handle: string }) {
-  const [messages, setMessages] = useState<DemoChatMessage[]>([{
+  const [messages, setMessages] = useState<ChatMessage[]>([{
     id:   'welcome',
     role: 'ai',
     text: 'Welcome to your DreamAi studio. I have your leads and profile loaded. Ask me anything — about your leads, how to respond to brides, or what TDW can do for your business.',
@@ -50,12 +43,12 @@ export function useDemoChat({ handle }: { handle: string }) {
         accumulated += delta;
         setMessages(prev => prev.map(m => m.id === aiId ? { ...m, text: accumulated } : m));
       },
-      (_result: StreamDonePayload) => {
+      (_result) => {
         setMessages(prev => prev.map(m => m.id === aiId ? { ...m, streaming: false } : m));
         historyRef.current = [
           ...historyRef.current,
-          { role: 'user' as const,      content: trimmed     },
-          { role: 'assistant' as const, content: accumulated },
+          { role: 'user' as const,      content: trimmed      },
+          { role: 'assistant' as const, content: accumulated  },
         ].slice(-20);
         setLoading(false);
         abortRef.current = null;

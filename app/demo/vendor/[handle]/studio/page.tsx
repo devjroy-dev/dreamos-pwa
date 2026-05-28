@@ -1,101 +1,141 @@
 'use client';
 // app/demo/vendor/[handle]/studio/page.tsx
-// Demo vendor DreamAi studio. Real AI. Real streaming. NO auth. NO session.
+// Demo DreamAi studio — EXACT real vendor app UI.
+// Real components, real styles, real fonts.
+// NO session. NO auth. Handle = identity.
 
 export const dynamic = 'force-dynamic';
 
 import { useParams } from 'next/navigation';
-import { useRef, useState } from 'react';
-import { DemoHeader } from '@/components/demo/DemoHeader';
-import { DemoNav }    from '@/components/demo/DemoNav';
+import { Suspense, useRef, useState } from 'react';
+import { Header } from '@/components/vendor/Header';
+import { ChatThread } from '@/components/vendor/ChatThread';
+import { InputBar } from '@/components/vendor/InputBar';
+import { CommandBar } from '@/components/vendor/CommandBar';
+import { PeekNav } from '@/components/vendor/PeekNav';
+import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { useDemoChat } from '@/hooks/demo/useDemoChat';
-import { useDemoVendor } from '@/hooks/demo/useDemoData';
+import { useT } from '@/lib/vendor/ThemeContext';
 
-const T = {
-  bg: '#0C0A09', ink: '#F0E6D2', soft: 'rgba(240,230,210,0.60)',
-  mute: 'rgba(240,230,210,0.35)', gold: '#C9A84C', border: 'rgba(240,230,210,0.08)',
-  userBg: 'rgba(201,168,76,0.10)', aiBg: 'rgba(240,230,210,0.05)',
-  ff: { body: "'DM Sans', sans-serif", label: "'Jost', sans-serif", display: "'Cormorant Garamond', serif" },
+const F = {
+  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
+  script:  'var(--font-cormorant), Georgia, serif',
+  label:   'var(--font-jost), system-ui, sans-serif',
 };
 
-const PROMPTS = [
-  'Who are my new leads?',
-  'How should I respond to a price negotiation?',
-  'What can TDW do for my business?',
-  'Which lead should I follow up with first?',
-];
+function timeOfDayGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 5)  return 'Good Evening';
+  if (h < 12) return 'Good Morning';
+  if (h < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
+function GreetingLine({ vendorName }: { vendorName: string | null }) {
+  const T = useT();
+  const greeting = timeOfDayGreeting();
+  return (
+    <div style={{ textAlign: 'center', padding: '16px 24px 4px' }}>
+      <div style={{ fontFamily: F.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.7)', marginBottom: 10 }}>
+        {greeting}
+      </div>
+      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 19, color: T.inkSoft, lineHeight: 1.4, letterSpacing: '0.01em', maxWidth: 320, margin: '0 auto' }}>
+        {vendorName ? `Welcome, ${vendorName}. Your leads await.` : 'Welcome back.'}
+      </div>
+    </div>
+  );
+}
+
+function DemoLedger({ newLeads }: { newLeads: number }) {
+  const T = useT();
+  const brass = 'rgba(201,168,76,0.18)';
+  const brassWarm = 'var(--atelier-label)';
+  return (
+    <div style={{ display: 'flex', alignItems: 'stretch', padding: '14px 8px 12px', margin: '10px 22px 0', borderTop: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.22)' : brass}`, borderBottom: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.22)' : brass}`, position: 'relative' }}>
+      <div style={{ position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)', background: `linear-gradient(180deg, ${T.pageBg} 0%, ${T.pageBg} 60%, transparent 100%)`, padding: '0 14px', height: 14, display: 'flex', alignItems: 'center', color: T.isLight ? T.accent : '#C9A84C', fontSize: 9, letterSpacing: '0.3em' }}>◆</div>
+      <div style={{ flex: 1, textAlign: 'center', padding: '0 4px' }}>
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 32, lineHeight: 1, color: newLeads > 0 ? 'var(--atelier-ink)' : 'var(--atelier-ink-dim)', letterSpacing: '-0.01em' }}>{newLeads}</div>
+        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.34em', textTransform: 'uppercase', color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', marginTop: 6 }}>Letters</div>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 10, color: T.inkDim, marginTop: 2 }}>{newLeads === 0 ? 'all replied' : 'awaiting reply'}</div>
+      </div>
+      <div style={{ flex: 1, textAlign: 'center', padding: '0 4px', position: 'relative' }}>
+        <span style={{ position: 'absolute', left: 0, top: '12%', bottom: '12%', width: '0.5px', background: T.isLight ? 'rgba(122,56,40,0.18)' : 'rgba(201,168,76,0.22)' }} />
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 32, lineHeight: 1, color: 'var(--atelier-ink-dim)', letterSpacing: '-0.01em' }}>—</div>
+        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.34em', textTransform: 'uppercase', color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', marginTop: 6 }}>Owed</div>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 10, color: T.inkDim, marginTop: 2 }}>nothing pending</div>
+      </div>
+      <div style={{ flex: 1, textAlign: 'center', padding: '0 4px', position: 'relative' }}>
+        <span style={{ position: 'absolute', left: 0, top: '12%', bottom: '12%', width: '0.5px', background: T.isLight ? 'rgba(122,56,40,0.18)' : 'rgba(201,168,76,0.22)' }} />
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 18, lineHeight: 1, color: 'var(--atelier-ink)', letterSpacing: '-0.01em' }}>tomorrow</div>
+        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.34em', textTransform: 'uppercase', color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', marginTop: 6 }}>Next</div>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 10, color: T.inkDim, marginTop: 2 }}>Bridal Trial</div>
+      </div>
+    </div>
+  );
+}
 
 export default function DemoStudioPage() {
-  const params  = useParams();
-  const handle  = typeof params.handle === 'string' ? params.handle : '';
-  const { vendor } = useDemoVendor(handle);
-  const { messages, loading, send } = useDemoChat({ handle });
-  const [input, setInput] = useState('');
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const params = useParams();
+  const handle = typeof params.handle === 'string' ? params.handle : '';
+  const { vendorId, vendorName, loading } = useDemoContext(handle);
 
-  function handleSend() {
-    const t = input.trim();
-    if (!t || loading) return;
-    setInput('');
-    send(t);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-  }
+  if (loading) return <div style={{ flex: 1 }} aria-busy="true" />;
 
   return (
-    <div style={{ minHeight: '100dvh', background: T.bg, color: T.ink, display: 'flex', flexDirection: 'column' }}>
-      <DemoHeader vendorName={vendor?.display_name || null} handle={handle} />
+    <Suspense fallback={<div style={{ flex: 1 }} aria-busy="true" />}>
+      <ChatScreen handle={handle} vendorId={vendorId} vendorName={vendorName} />
+    </Suspense>
+  );
+}
 
-      {/* DreamAi label strip */}
-      <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 40, padding: '10px 20px', background: T.bg, borderBottom: `0.5px solid ${T.border}`, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.22em', color: T.gold, textTransform: 'uppercase' }}>DreamAi</span>
-        <span style={{ fontFamily: T.ff.label, fontSize: 9, color: T.mute }}>· your wedding business AI</span>
+function ChatScreen({ handle, vendorId, vendorName }: { handle: string; vendorId: string; vendorName: string | null }) {
+  const { messages, loading, send } = useDemoChat({ handle });
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const [justDoIt, setJustDoIt] = useState(false);
+
+  // Build a minimal context shape for components that need it
+  const mockContext = {
+    vendor:           { name: vendorName, category: null, city: null, tier: 'signature', routing_handle: null },
+    new_leads:        [],
+    upcoming_events:  [],
+    pending_invoices: [],
+    open_leads_count: 0,
+  };
+
+  // Count new leads for ledger
+  const newLeadsCount = messages.length > 1 ? 0 : 0; // will update once context loads
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
+      <Header vendorName={vendorName} />
+
+      <CommandBar
+        context={null}
+        vendorId={vendorId}
+        justDoIt={justDoIt}
+        onJustDoItChange={setJustDoIt}
+      />
+
+      <GreetingLine vendorName={vendorName} />
+      <DemoLedger newLeads={0} />
+
+      {/* Demo banner */}
+      <div style={{ margin: '10px 22px 0', padding: '9px 14px', background: 'rgba(201,168,76,0.06)', border: '0.5px solid rgba(201,168,76,0.18)', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C9A84C', boxShadow: '0 0 6px rgba(201,168,76,0.6)', flexShrink: 0 }} />
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', flex: 1 }}>Demo Studio — WhatsApp access after signup</span>
       </div>
 
-      {/* Chat thread */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '124px 20px 148px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {messages.map(m => (
-          <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-            <div style={{ maxWidth: '82%', background: m.role === 'user' ? T.userBg : T.aiBg, border: `0.5px solid ${m.role === 'user' ? 'rgba(201,168,76,0.2)' : T.border}`, borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px', padding: '12px 16px' }}>
-              <p style={{ fontFamily: T.ff.body, fontSize: 14, lineHeight: 1.6, color: m.role === 'user' ? T.gold : T.ink, margin: 0 }}>
-                {m.text || (m.streaming ? '…' : '')}
-              </p>
-            </div>
-          </div>
-        ))}
-        <div ref={bottomRef} />
-      </div>
+      <ChatThread
+        messages={messages}
+        loading={loading}
+        onConfirm={() => {}}
+        onCancel={() => {}}
+        onChipTap={send}
+        scrollRef={chatScrollRef}
+      />
 
-      {/* Suggested prompts — only on first load */}
-      {messages.length === 1 && (
-        <div style={{ position: 'fixed', bottom: 132, left: 0, right: 0, padding: '0 16px', display: 'flex', gap: 8, overflowX: 'auto' }}>
-          {PROMPTS.map(p => (
-            <button key={p} onClick={() => setInput(p)} style={{ flexShrink: 0, background: 'rgba(201,168,76,0.08)', border: '0.5px solid rgba(201,168,76,0.25)', borderRadius: 20, padding: '7px 14px', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.12em', color: T.gold, cursor: 'pointer', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>
-              {p}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Input bar */}
-      <div style={{ position: 'fixed', bottom: 64, left: 0, right: 0, padding: '12px 16px', background: T.bg, borderTop: `0.5px solid ${T.border}`, display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-        <textarea
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-          placeholder="Ask DreamAi anything…"
-          rows={1}
-          style={{ flex: 1, background: 'rgba(240,230,210,0.05)', border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '10px 14px', fontFamily: T.ff.body, fontSize: 14, color: T.ink, resize: 'none', outline: 'none', minHeight: 44 }}
-        />
-        <button
-          onClick={handleSend}
-          disabled={!input.trim() || loading}
-          style={{ width: 44, height: 44, borderRadius: 12, background: (!input.trim() || loading) ? 'rgba(201,168,76,0.15)' : T.gold, border: 'none', cursor: (!input.trim() || loading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-        >
-          <span style={{ fontSize: 16, color: (!input.trim() || loading) ? T.mute : '#0C0A09' }}>↑</span>
-        </button>
-      </div>
-
-      <DemoNav handle={handle} />
+      <InputBar onSend={send} disabled={loading} />
+      <PeekNav scrollRef={chatScrollRef} context={null} onSend={send} />
     </div>
   );
 }
