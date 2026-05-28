@@ -961,21 +961,23 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
 }
 
 // ── DISCOVER ROOM ──────────────────────────────────────────────────────────────
-// Always dark #080608 — cinematic full-bleed photo feed.
-// Swipe up/down = next/prev vendor. Swipe left/right = next/prev photo.
-// Single tap = vendor overlay. Double-tap = save to Muse ♥
-// Blind mode = category-only, identity hidden, swipe up to cycle.
-// Pills and filter sheet use Wine Night / Sky Ivory DNA tokens.
+// Full-bleed cinematic feed.
+// Swipe left  = next vendor
+// Swipe right = prev vendor
+// Single tap  = cycle photos of same vendor (dots at bottom)
+// Double-tap  = save to Muse ♥
+// Peek nav    = long glowing line at bottom → tap → vendor panel slides up
+//               Panel: name, enquire (silent WA), lock date (beta), circle share
 
 const DISC_CATEGORIES = ['Venues','Photographers','Makeup Artists','Designers','Jewellery','Choreographers','Content Creators','DJ & Music','Event Managers','Bridal Wellness'];
 const DISC_CITIES     = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa'];
 const DISC_VIBES      = ['Candid','Traditional','Luxury','Cinematic','Boho','Festive','Minimalist','Royal','Destination','Contemporary'];
 const DISC_BUDGETS    = [{label:'Under Rs 1L',value:'100000'},{label:'Rs 1L – 3L',value:'300000'},{label:'Rs 3L – 5L',value:'500000'},{label:'Rs 5L – 10L',value:'1000000'},{label:'Rs 10L+',value:''}];
 
-const DISC_SWIPE_THRESH = 45;
+const DISC_SWIPE_THRESH = 42;
 const DISC_TAP_MOVE     = 10;
-const DISC_TAP_TIME     = 250;
-const DISC_DTAP_MS      = 280;
+const DISC_TAP_TIME     = 240;
+const DISC_DTAP_MS      = 270;
 
 interface DiscFilterState { category:string|null; city:string|null; vibes:string[]; budget:string|null; }
 
@@ -998,7 +1000,7 @@ function spawnDiscToast(msg:string){
   setTimeout(()=>el.remove(),2200);
 }
 
-// Filter sheet — DNA-aware pills
+// ── Filter sheet ──────────────────────────────────────────────────────────────
 function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
   visible:boolean; onClose:()=>void; filters:DiscFilterState;
   accent:string; dark:boolean; onApply:(f:DiscFilterState)=>void;
@@ -1007,8 +1009,6 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
   React.useEffect(()=>{ if(visible) setLocal(filters); },[visible,filters]);
   if(!visible) return null;
 
-  // Pills inside filter sheet stay dark-cinema regardless of mode
-  // (sheet is always dark glass over the photo)
   const p = (active:boolean):React.CSSProperties => ({
     padding:'7px 14px', borderRadius:100,
     border:active?`0.5px solid ${accent}`:'0.5px solid rgba(255,255,255,.18)',
@@ -1069,86 +1069,215 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
   );
 }
 
-// Vendor glass overlay — swipe down to dismiss
-function DiscVendorOverlay({vendor,visible,onClose,isBlind,accent}:{
-  vendor:DiscoverVendor; visible:boolean; onClose:()=>void; isBlind:boolean; accent:string;
+// ── Vendor panel (slides up from peek nav tap) ────────────────────────────────
+function DiscVendorPanel({vendor,visible,onClose,accent,onEnquire,onCircleShare}:{
+  vendor:DiscoverVendor; visible:boolean; onClose:()=>void;
+  accent:string; onEnquire:()=>void; onCircleShare:()=>void;
 }) {
   const dragY   = React.useRef(0);
   const [delta, setDelta] = React.useState(0);
   const dragging = React.useRef(false);
 
-  const enquireLink = vendor.enquire_link||(vendor.routing_handle?makeEnquireLink(vendor.routing_handle):null);
-
   return (
-    <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:60,
+    <div style={{
+      position:'absolute',bottom:0,left:0,right:0,zIndex:60,
       transform:visible?`translateY(${delta}px)`:'translateY(100%)',
       transition:dragging.current?'none':'transform 340ms cubic-bezier(0.22,1,0.36,1)',
       opacity:visible?Math.max(.3,1-delta/200):0,
-      background:'rgba(8,6,8,.82)',backdropFilter:'blur(28px) saturate(1.8)',WebkitBackdropFilter:'blur(28px) saturate(1.8)',
+      background:'rgba(8,6,8,.88)',backdropFilter:'blur(32px) saturate(1.8)',WebkitBackdropFilter:'blur(32px) saturate(1.8)',
       borderTop:'0.5px solid rgba(255,255,255,.10)',borderRadius:'20px 20px 0 0',
-      paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',
+      paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',
     }}
       onTouchStart={e=>{dragY.current=e.touches[0].clientY;dragging.current=true;setDelta(0);}}
       onTouchMove={e=>{const d=e.touches[0].clientY-dragY.current;if(d>0)setDelta(d);}}
       onTouchEnd={()=>{dragging.current=false;if(delta>80){setDelta(0);onClose();}else setDelta(0);}}
     >
-      <div style={{display:'flex',justifyContent:'center',padding:'12px 0 16px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
+      {/* Drag handle */}
+      <div style={{display:'flex',justifyContent:'center',padding:'14px 0 18px'}}>
+        <div style={{width:40,height:4,borderRadius:2,background:'rgba(255,255,255,.18)'}}/>
+      </div>
+
       <div style={{padding:'0 24px'}}>
-        <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>{vendor.category}&nbsp;·&nbsp;{vendor.city}</p>
-        {!isBlind&&<h2 style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:300,fontStyle:'italic',color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</h2>}
-        {vendor.about&&<p style={{fontFamily:"'Fraunces',serif",fontSize:14,fontWeight:300,fontStyle:'italic',color:'rgba(248,247,245,.7)',margin:'0 0 12px',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{vendor.about}</p>}
-        {!isBlind&&vendor.starting_price&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.5)',letterSpacing:'.12em',margin:'0 0 8px'}}>{vendor.starting_price>=100000?`Rs ${(vendor.starting_price/100000).toFixed(vendor.starting_price%100000===0?0:1)}L onwards`:`Rs ${(vendor.starting_price/1000).toFixed(0)}K onwards`}</p>}
-        {vendor.vibe_tags.length>0&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(248,247,245,.45)',letterSpacing:'.1em',margin:'0 0 20px'}}>{vendor.vibe_tags.join(' · ')}</p>}
+        {/* Category + city */}
+        <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.45)',margin:'0 0 6px'}}>
+          {vendor.category}&nbsp;·&nbsp;{vendor.city}
+        </p>
+
+        {/* Vendor name */}
+        <h2 style={{fontFamily:"'Fraunces',serif",fontSize:28,fontWeight:300,fontStyle:'italic',color:'#F8F7F5',margin:'0 0 6px',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>
+          {vendor.name}
+        </h2>
+
+        {/* Price */}
+        {vendor.starting_price&&(
+          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.45)',letterSpacing:'.12em',margin:'0 0 6px'}}>
+            {vendor.starting_price>=100000?`Rs ${(vendor.starting_price/100000).toFixed(vendor.starting_price%100000===0?0:1)}L onwards`:`Rs ${(vendor.starting_price/1000).toFixed(0)}K onwards`}
+          </p>
+        )}
+
+        {/* Vibe tags */}
+        {vendor.vibe_tags&&vendor.vibe_tags.length>0&&(
+          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(248,247,245,.35)',letterSpacing:'.1em',margin:'0 0 24px'}}>
+            {vendor.vibe_tags.join(' · ')}
+          </p>
+        )}
+
+        {/* Action buttons */}
         <div style={{display:'flex',flexDirection:'column',gap:10}}>
-          <button onClick={()=>{if(enquireLink)window.open(enquireLink,'_blank');}} style={{width:'100%',padding:'14px 0',background:'rgba(248,247,245,.92)',border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer'}}>Enquire ↗</button>
+
+          {/* Enquire — silent WA */}
+          <button onClick={onEnquire}
+            style={{width:'100%',padding:'15px 0',background:'rgba(248,247,245,.92)',border:'none',borderRadius:10,
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,
+              color:'#0C0A09',cursor:'pointer'}}>
+            Enquire
+          </button>
+
+          <div style={{display:'flex',gap:10}}>
+            {/* Lock date — beta */}
+            <button disabled
+              style={{flex:1,padding:'13px 0',background:'rgba(255,255,255,.05)',
+                border:'0.5px solid rgba(255,255,255,.12)',borderRadius:10,
+                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.16em',
+                textTransform:'uppercase' as any,color:'rgba(248,247,245,.28)',cursor:'not-allowed',
+                display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+              Lock date
+              <span style={{fontSize:6,letterSpacing:'.16em',color:'rgba(201,168,76,.55)',
+                border:'0.5px solid rgba(201,168,76,.3)',borderRadius:4,padding:'1px 5px'}}>
+                BETA
+              </span>
+            </button>
+
+            {/* Circle share */}
+            <button onClick={onCircleShare}
+              style={{flex:1,padding:'13px 0',background:'rgba(255,255,255,.06)',
+                border:'0.5px solid rgba(255,255,255,.14)',borderRadius:10,
+                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.16em',
+                textTransform:'uppercase' as any,color:'rgba(248,247,245,.60)',cursor:'pointer'}}>
+              Share to Circle
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// Image dots
-function DiscImageDots({total,current}:{total:number;current:number}) {
+// ── Image dots ────────────────────────────────────────────────────────────────
+function DiscImageDots({total,current,accent}:{total:number;current:number;accent:string}) {
   if(total<=1) return null;
   return (
-    <div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 20px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:5,zIndex:24,pointerEvents:'none'}}>
-      {Array.from({length:Math.min(total,8)}).map((_,i)=>(
-        <div key={i} style={{width:i===current?16:5,height:5,borderRadius:3,background:i===current?'rgba(255,255,255,.95)':'rgba(255,255,255,.38)',transition:'all 240ms cubic-bezier(0.22,1,0.36,1)',boxShadow:'0 1px 3px rgba(0,0,0,.3)'}}/>
+    <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 56px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:6,zIndex:24,pointerEvents:'none'}}>
+      {Array.from({length:Math.min(total,7)}).map((_,i)=>(
+        <div key={i} style={{width:i===current?18:5,height:5,borderRadius:3,
+          background:i===current?accent:'rgba(255,255,255,.32)',
+          transition:'all 220ms cubic-bezier(0.22,1,0.36,1)',
+          boxShadow:i===current?`0 0 8px ${accent}88`:'none'}}/>
       ))}
+    </div>
+  );
+}
+
+// ── Peek nav — glowing horizontal line ───────────────────────────────────────
+function DiscPeekNav({onTap,accent,panelOpen,hasActiveFilters,onFilterTap,isBlind,onBlindTap}:{
+  onTap:()=>void; accent:string; panelOpen:boolean;
+  hasActiveFilters:boolean; onFilterTap:()=>void;
+  isBlind:boolean; onBlindTap:()=>void;
+}) {
+  return (
+    <div style={{
+      position:'absolute',bottom:0,left:0,right:0,zIndex:50,
+      paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 10px)',
+      paddingTop:10,
+      display:'flex',alignItems:'center',justifyContent:'space-between',
+      padding:'10px 18px calc(env(safe-area-inset-bottom,0px) + 10px)',
+      pointerEvents:'none',
+    }}>
+      {/* Blind pill */}
+      <button
+        onClick={e=>{e.stopPropagation();onBlindTap();}}
+        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+        style={{
+          pointerEvents:'all',
+          height:28,padding:'0 12px',borderRadius:100,
+          border:`0.5px solid ${isBlind?accent:'rgba(255,255,255,.22)'}`,
+          background:isBlind?`${accent}22`:'rgba(8,6,8,.55)',
+          backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',
+          fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+          textTransform:'uppercase' as any,
+          color:isBlind?accent:'rgba(248,247,245,.65)',
+          cursor:'pointer',touchAction:'manipulation' as any,
+        }}>
+        Blind
+      </button>
+
+      {/* Peek nav line — centre */}
+      <button
+        onClick={e=>{e.stopPropagation();onTap();}}
+        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+        style={{
+          pointerEvents:'all',
+          flex:1,margin:'0 14px',
+          height:28,
+          background:'none',border:'none',cursor:'pointer',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          touchAction:'manipulation' as any,
+        }}>
+        <style>{`
+          @keyframes peekPulse {
+            0%,100% { opacity:0.55; box-shadow:0 0 6px ${accent}44; }
+            50%      { opacity:1;    box-shadow:0 0 16px ${accent}88; }
+          }
+        `}</style>
+        <div style={{
+          width:'100%',height:3,borderRadius:2,
+          background:panelOpen?accent:`linear-gradient(90deg, transparent 0%, ${accent} 20%, ${accent} 80%, transparent 100%)`,
+          animation:panelOpen?'none':'peekPulse 2.8s ease-in-out infinite',
+          transition:'background 300ms ease',
+        }}/>
+      </button>
+
+      {/* Filter pill */}
+      <button
+        onClick={e=>{e.stopPropagation();onFilterTap();}}
+        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+        style={{
+          pointerEvents:'all',
+          width:34,height:28,borderRadius:100,
+          border:`0.5px solid ${hasActiveFilters?accent:'rgba(255,255,255,.22)'}`,
+          background:hasActiveFilters?`${accent}22`:'rgba(8,6,8,.55)',
+          backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',touchAction:'manipulation' as any,
+        }}>
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4h12M4 8h8M6 12h4" stroke={hasActiveFilters?accent:'rgba(255,255,255,.8)'} strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
     </div>
   );
 }
 
 interface DiscoverRoomProps { dark:boolean; accent:string; signal:string; }
 
-function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
-  // DNA tokens for chrome pills
-  const pillActive    = accent;
-  const pillActiveTxt = dark ? '#1A0810' : '#FFFFFF';
-  const pillIdle      = dark ? 'rgba(196,133,106,.14)' : 'rgba(42,95,130,.14)';
-  const pillIdleTxt   = dark ? 'rgba(248,247,245,.80)' : 'rgba(248,247,245,.85)';
-  const pillIdleBdr   = dark ? 'rgba(196,133,106,.28)' : 'rgba(42,95,130,.32)';
-  const hasFiltrBdr   = accent;
-
-  const [vendors,   setVendors]   = React.useState<DiscoverVendor[]>([]);
-  const [vIdx,      setVIdx]      = React.useState(0);
-  const [imgIdx,    setImgIdx]    = React.useState(0);
-  const [overlay,   setOverlay]   = React.useState(false);
-  const [dissolve,  setDissolve]  = React.useState(0);
-  const [isBlind,   setIsBlind]   = React.useState(false);
-  const [blindIdx,  setBlindIdx]  = React.useState(0);
-  const [loading,   setLoading]   = React.useState(true);
-  const [page,      setPage]      = React.useState(0);
-  const [hasMore,   setHasMore]   = React.useState(true);
-  const [showFilter,setShowFilter]= React.useState(false);
-  const [filters,   setFilters]   = React.useState<DiscFilterState>({category:null,city:null,vibes:[],budget:null});
-  const [blindHint, setBlindHint] = React.useState(false);
+function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
+  const [vendors,    setVendors]    = React.useState<DiscoverVendor[]>([]);
+  const [vIdx,       setVIdx]       = React.useState(0);
+  const [imgIdx,     setImgIdx]     = React.useState(0);
+  const [panelOpen,  setPanelOpen]  = React.useState(false);
+  const [dissolve,   setDissolve]   = React.useState(0);
+  const [isBlind,    setIsBlind]    = React.useState(false);
+  const [loading,    setLoading]    = React.useState(true);
+  const [page,       setPage]       = React.useState(0);
+  const [hasMore,    setHasMore]    = React.useState(true);
+  const [showFilter, setShowFilter] = React.useState(false);
+  const [filters,    setFilters]    = React.useState<DiscFilterState>({category:null,city:null,vibes:[],budget:null});
+  const [enquiring,  setEnquiring]  = React.useState(false);
 
   const touchStart  = React.useRef<{x:number;y:number;t:number}|null>(null);
   const tapTimer    = React.useRef<ReturnType<typeof setTimeout>|null>(null);
   const lastTap     = React.useRef(0);
   const tapCount    = React.useRef(0);
-  const curPhoto    = React.useRef<string|null>(null);
 
   const hasActiveFilters = !!(filters.category||filters.city||filters.vibes.length||filters.budget);
 
@@ -1168,15 +1297,6 @@ function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
       .catch(()=>{});
   },[vIdx,vendors.length,hasMore,page,filters]);
 
-  const blindQueue = React.useMemo(()=>{
-    const q:{vId:string;img:string;v:DiscoverVendor}[]=[];
-    vendors.forEach(v=>{
-      if(!v.photos.length) q.push({vId:v.id,img:'',v});
-      else v.photos.forEach(p=>q.push({vId:v.id,img:p,v}));
-    });
-    return q;
-  },[vendors]);
-
   const vendor = vendors[vIdx];
   const photos = vendor?.photos||[];
 
@@ -1189,25 +1309,42 @@ function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
     toLoad.forEach(s=>{const img=new Image();img.src=s;});
   },[vIdx,imgIdx,vendor,vendors,photos]);
 
-  const goNextV=React.useCallback(()=>{if(vIdx>=vendors.length-1)return;setVIdx(i=>i+1);setImgIdx(0);setOverlay(false);setDissolve(k=>k+1);discHaptic(5);},[vIdx,vendors.length]);
-  const goPrevV=React.useCallback(()=>{if(vIdx<=0)return;setVIdx(i=>i-1);setImgIdx(0);setOverlay(false);setDissolve(k=>k+1);discHaptic(5);},[vIdx]);
-  const nextImg=React.useCallback(()=>{if(imgIdx<photos.length-1){setImgIdx(i=>i+1);setDissolve(k=>k+1);discHaptic(4);}},[imgIdx,photos.length]);
-  const prevImg=React.useCallback(()=>{if(imgIdx>0){setImgIdx(i=>i-1);setDissolve(k=>k+1);discHaptic(4);}},[imgIdx]);
+  const goNextV=React.useCallback(()=>{
+    if(vIdx>=vendors.length-1)return;
+    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
+  },[vIdx,vendors.length]);
+
+  const goPrevV=React.useCallback(()=>{
+    if(vIdx<=0)return;
+    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
+  },[vIdx]);
+
+  const cyclePhoto=React.useCallback(()=>{
+    if(!photos.length) return;
+    setImgIdx(i=>(i+1)%photos.length);
+    setDissolve(k=>k+1);discHaptic(4);
+  },[photos.length]);
 
   const handleDoubleTap=React.useCallback(()=>{
-    if(isBlind){
-      const item=blindQueue[blindIdx];if(!item)return;
-      spawnDiscHeart(accent);
-      saveVendorToMuse(item.vId,item.img||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));
-      return;
-    }
     if(!vendor)return;
     spawnDiscHeart(accent);
-    saveVendorToMuse(vendor.id,curPhoto.current).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));
-  },[isBlind,vendor,blindQueue,blindIdx,accent]);
+    saveVendorToMuse(vendor.id,photos[imgIdx]||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));
+  },[vendor,photos,imgIdx,accent]);
+
+  // Blind mode: cycle through all vendor photos anonymously
+  const [blindItems, setBlindItems] = React.useState<{vId:string;img:string}[]>([]);
+  const [blindIdx,   setBlindIdx]   = React.useState(0);
+  React.useEffect(()=>{
+    const q:{vId:string;img:string}[]=[];
+    vendors.forEach(v=>{
+      if(!v.photos.length) q.push({vId:v.id,img:''});
+      else v.photos.forEach(p=>q.push({vId:v.id,img:p}));
+    });
+    setBlindItems(q);
+    setBlindIdx(0);
+  },[vendors]);
 
   const onTouchStart=(e:React.TouchEvent<HTMLDivElement>)=>{
-    // Don't capture touches from filter sheet or overlay children
     const t=e.touches[0];
     touchStart.current={x:t.clientX,y:t.clientY,t:Date.now()};
   };
@@ -1224,11 +1361,26 @@ function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
       const now=Date.now(),since=now-lastTap.current;
       if(since<DISC_DTAP_MS&&tapCount.current>=1){
         if(tapTimer.current)clearTimeout(tapTimer.current);
-        tapCount.current=0; handleDoubleTap();
+        tapCount.current=0;
+        if(isBlind){
+          const item=blindItems[blindIdx];
+          if(item){spawnDiscHeart(accent);saveVendorToMuse(item.vId,item.img||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));}
+        } else {
+          handleDoubleTap();
+        }
       } else {
         tapCount.current=1;lastTap.current=now;
         tapTimer.current=setTimeout(()=>{
-          if(tapCount.current===1&&!isBlind){setOverlay(v=>!v);discHaptic(4);}
+          if(tapCount.current===1){
+            if(isBlind){
+              // single tap in blind = next photo
+              setBlindIdx(i=>Math.min(i+1,blindItems.length-1));
+              setDissolve(k=>k+1);discHaptic(5);
+            } else {
+              // single tap in normal = cycle photo
+              cyclePhoto();
+            }
+          }
           tapCount.current=0;
         },DISC_DTAP_MS);
       }
@@ -1238,39 +1390,58 @@ function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
     const vel=Math.max(ax,ay)/Math.max(dt,1);
     if(Math.max(ax,ay)<=DISC_SWIPE_THRESH&&vel<=0.3)return;
 
-    if(isBlind){
-      if(ay>ax&&dy<-DISC_SWIPE_THRESH){
-        setBlindHint(true);setTimeout(()=>setBlindHint(false),500);
-        setBlindIdx(i=>Math.min(i+1,blindQueue.length-1));
-        setDissolve(k=>k+1);discHaptic(5);
+    // Swipe left = next vendor, swipe right = prev vendor
+    // Only horizontal swipes navigate vendors
+    if(ax>ay){
+      if(isBlind){
+        if(dx<-DISC_SWIPE_THRESH){setBlindIdx(i=>Math.min(i+1,blindItems.length-1));setDissolve(k=>k+1);discHaptic(5);}
+        else if(dx>DISC_SWIPE_THRESH){setBlindIdx(i=>Math.max(i-1,0));setDissolve(k=>k+1);discHaptic(5);}
+      } else {
+        if(dx<-DISC_SWIPE_THRESH) goNextV();
+        else if(dx>DISC_SWIPE_THRESH) goPrevV();
       }
-      return;
     }
-
-    if(overlay&&ay>ax&&dy>80){setOverlay(false);return;}
-    if(ay>ax){ if(dy<-DISC_SWIPE_THRESH)goNextV(); else if(dy>DISC_SWIPE_THRESH)goPrevV(); }
-    else { if(dx<-DISC_SWIPE_THRESH)nextImg(); else if(dx>DISC_SWIPE_THRESH)prevImg(); }
   };
 
-  const blindItem = isBlind?blindQueue[blindIdx]:null;
-  const photo     = isBlind?blindItem?.img:photos[imgIdx];
-  curPhoto.current = photo||null;
+  const handleEnquire=React.useCallback(async ()=>{
+    if(!vendor||enquiring)return;
+    setEnquiring(true);
+    setPanelOpen(false);
+    try {
+      const API='https://dream-os-production.up.railway.app';
+      const raw=typeof window!=='undefined'?(localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session')):null;
+      const session=raw?JSON.parse(raw):null;
+      await fetch(`${API}/api/v2/discover/enquire`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          vendor_id:vendor.id,
+          bride_name:session?.bride_name||session?.name||undefined,
+        }),
+      });
+      spawnDiscToast('Enquiry sent ✦');
+    } catch {
+      spawnDiscToast('Could not send. Try again.');
+    }
+    setEnquiring(false);
+  },[vendor,enquiring]);
 
-  // Empty / loading
+  const handleCircleShare=React.useCallback(()=>{
+    if(!vendor)return;
+    setPanelOpen(false);
+    saveVendorToMuse(vendor.id,photos[imgIdx]||null)
+      .then(r=>spawnDiscToast(r.ok?'Shared to Circle ✦':'Already saved'));
+  },[vendor,photos,imgIdx]);
+
+  const photo = isBlind?(blindItems[blindIdx]?.img||''):photos[imgIdx];
+
   if(loading) return (
     <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#080608'}}>
       <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(245,240,232,.3)'}}>Loading…</span>
     </div>
   );
 
-  if(isBlind&&blindQueue.length>0&&blindIdx>=blindQueue.length) return (
-    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12}}>
-      <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1}}>All seen.</span>
-      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
-    </div>
-  );
-
-  if(!vendor) return (
+  if(!vendor&&!isBlind) return (
     <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12}}>
       <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1}}>All seen.</span>
       <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
@@ -1281,53 +1452,64 @@ function DiscoverRoom({ dark, accent, signal }: DiscoverRoomProps) {
     <div style={{flex:1,position:'relative',background:'#080608',overflow:'hidden',touchAction:'none',userSelect:'none',WebkitUserSelect:'none' as any}}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
 
-      {/* keyframes injected once */}
-      <style>{`@keyframes discHeartPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}45%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{transform:translate(-50%,-50%) scale(.95)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}@keyframes discDissolve{from{opacity:0}to{opacity:1}}`}</style>
+      <style>{`
+        @keyframes discHeartPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}45%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{transform:translate(-50%,-50%) scale(.95)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+        @keyframes discDissolve{from{opacity:0}to{opacity:1}}
+      `}</style>
 
       {/* Photo */}
-      <div key={dissolve} style={{position:'absolute',inset:0,zIndex:1,animation:'discDissolve 260ms cubic-bezier(0.22,1,0.36,1)'}}>
+      <div key={dissolve} style={{position:'absolute',inset:0,zIndex:1,animation:'discDissolve 240ms cubic-bezier(0.22,1,0.36,1)'}}>
         {photo
           ? <img src={photo} alt="" draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
           : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:'rgba(248,247,245,.2)'}}>No photo yet</span></div>
         }
         {/* Vignette */}
-        <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.22) 0%,transparent 18%,transparent 62%,rgba(0,0,0,.55) 100%)',pointerEvents:'none'}}/>
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.2) 0%,transparent 20%,transparent 55%,rgba(0,0,0,.65) 100%)',pointerEvents:'none'}}/>
       </div>
 
-      {/* Image dots */}
-      {!isBlind&&<DiscImageDots total={photos.length} current={imgIdx}/>}
-
-      {/* Chrome pills — DNA tokens on dark photo */}
-      {/* Blind pill */}
-      <button onClick={e=>{e.stopPropagation();setIsBlind(b=>!b);setBlindIdx(0);setDissolve(k=>k+1);}}
-        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
-        style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 14px)',right:50,zIndex:25,height:28,padding:'0 12px',borderRadius:100,border:`0.5px solid ${isBlind?hasFiltrBdr:pillIdleBdr}`,background:isBlind?`${accent}28`:pillIdle,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:isBlind?accent:pillIdleTxt,cursor:'pointer',touchAction:'manipulation' as any}}>
-        Blind
-      </button>
-      {/* Filter pill */}
-      <button onClick={e=>{e.stopPropagation();setShowFilter(true);}}
-        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
-        style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 14px)',right:14,zIndex:25,width:32,height:28,borderRadius:100,border:`0.5px solid ${hasActiveFilters?hasFiltrBdr:pillIdleBdr}`,background:hasActiveFilters?`${accent}28`:pillIdle,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',touchAction:'manipulation' as any}}>
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke={hasActiveFilters?accent:'rgba(255,255,255,.8)'} strokeWidth="1.5" strokeLinecap="round"/></svg>
-      </button>
-
-      {/* Vendor info bar at bottom (non-blind, overlay closed) */}
-      {!isBlind&&!overlay&&vendor&&(
-        <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',left:0,right:0,padding:'0 20px',zIndex:10,pointerEvents:'none',display:'flex',flexDirection:'column',gap:4}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.55)'}}>{vendor.category} · {vendor.city}</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:'rgba(248,247,245,.9)',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.35)'}}>Tap · Double-tap ♥ · Swipe</div>
+      {/* Blind overlay — category only */}
+      {isBlind&&vendor&&(
+        <div style={{position:'absolute',inset:0,zIndex:5,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'rgba(8,6,8,.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)',borderRadius:8,padding:'8px 18px'}}>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.28em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)'}}>
+              {blindItems[blindIdx]?(vendors.find(v=>v.id===blindItems[blindIdx].vId)?.category||'vendor'):'–'}
+            </span>
+          </div>
         </div>
       )}
 
-      {/* Blind mode centre X */}
-      {isBlind&&blindHint&&(
-        <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:30,pointerEvents:'none',fontSize:72,color:accent}}>✕</div>
+      {/* Vendor name bar at bottom (non-blind, panel closed) */}
+      {!isBlind&&!panelOpen&&vendor&&(
+        <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 58px)',left:0,right:0,padding:'0 20px',zIndex:10,pointerEvents:'none',display:'flex',flexDirection:'column',gap:3}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)'}}>{vendor.category} · {vendor.city}</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:'rgba(248,247,245,.92)',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</div>
+        </div>
       )}
 
-      {/* Vendor glass overlay */}
+      {/* Image dots — above peek nav */}
+      {!isBlind&&<DiscImageDots total={photos.length} current={imgIdx} accent={accent}/>}
+
+      {/* Peek nav */}
+      <DiscPeekNav
+        onTap={()=>setPanelOpen(o=>!o)}
+        accent={accent}
+        panelOpen={panelOpen}
+        hasActiveFilters={hasActiveFilters}
+        onFilterTap={()=>setShowFilter(true)}
+        isBlind={isBlind}
+        onBlindTap={()=>{setIsBlind(b=>!b);setBlindIdx(0);setDissolve(k=>k+1);}}
+      />
+
+      {/* Vendor panel */}
       {!isBlind&&vendor&&(
-        <DiscVendorOverlay vendor={vendor} visible={overlay} onClose={()=>setOverlay(false)} isBlind={isBlind} accent={accent}/>
+        <DiscVendorPanel
+          vendor={vendor}
+          visible={panelOpen}
+          onClose={()=>setPanelOpen(false)}
+          accent={accent}
+          onEnquire={handleEnquire}
+          onCircleShare={handleCircleShare}
+        />
       )}
 
       {/* Filter sheet */}
@@ -2080,7 +2262,8 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
         if(!raw) return;
         const s = JSON.parse(raw);
         const coupleId = s?.coupleId||s?.id;
-        const token = s?.token||s?.access_token;
+        // Token: check standalone key first (real brides), fall back to session object (demo)
+        const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
         if(!coupleId||!token) return;
         const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
         const res = await fetch(`${API}/api/v2/couple/pages/${coupleId}?limit=50`,{headers:{Authorization:`Bearer ${token}`}});
@@ -2106,7 +2289,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
       const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
       if(!raw) return;
       const s = JSON.parse(raw);
-      const token = s?.token||s?.access_token;
+      const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
       if(!token) return;
       const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
       const res = await fetch(`${API}/api/v2/couple/pages`,{
@@ -2307,6 +2490,404 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
     </div>
   );
 }
+
+// ── MOMENTS ROOM ──────────────────────────────────────────────────────────────
+// Personal photo diary — candids, real life, her journey.
+// Source: muse_saves WHERE surface='moments', newest first.
+// Bride uploads from camera roll. Circle members contribute via WhatsApp (Vision classified).
+// Always dark — same film-roll aesthetic as Muse.
+
+interface MomentPhoto { id:string; save_number:number; image_url:string; caption?:string|null; saved_by_role:string; created_at:string; }
+
+interface MomentsRoomProps { dark:boolean; accent:string; }
+
+function MomentsRoom({ accent }: MomentsRoomProps) {
+  const [moments,  setMoments]  = React.useState<MomentPhoto[]>([]);
+  const [loading,  setLoading]  = React.useState(true);
+  const [fullImg,  setFullImg]  = React.useState<string|null>(null);
+  const [uploading,setUploading]= React.useState(false);
+  const [toast,    setToast]    = React.useState('');
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
+
+  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+
+  React.useEffect(()=>{
+    const load = async () => {
+      try {
+        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+        if(!raw){setLoading(false);return;}
+        const s = JSON.parse(raw);
+        const coupleId = s?.coupleId||s?.id;
+        const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+        if(!coupleId||!token){setLoading(false);return;}
+        const res = await fetch(`${API}/api/v2/couple/moments/${coupleId}`,{headers:{Authorization:`Bearer ${token}`}});
+        if(!res.ok){setLoading(false);return;}
+        const data = await res.json();
+        setMoments(data.moments||[]);
+      } catch(e){ console.error(e); }
+      finally{ setLoading(false); }
+    };
+    load();
+  },[]);
+
+  const handleFiles = async (e:React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files||[]).filter((f:File)=>f.type.startsWith('image/')) as File[];
+    if(!files.length) return;
+    setUploading(true);
+    const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+    if(!raw){showToast('Please log in to add moments.');setUploading(false);return;}
+    const s = JSON.parse(raw);
+    const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+    if(!token){showToast('Session expired. Please log in again.');setUploading(false);return;}
+
+    let added = 0;
+    for(const file of files){
+      try {
+        const b64 = await new Promise<string>((res,rej)=>{
+          const r=new FileReader(); r.onload=()=>res((r.result as string).split(',')[1]); r.onerror=rej; r.readAsDataURL(file);
+        });
+        // Upload via Muse upload endpoint with surface override
+        const resp = await fetch(`${API}/api/v2/couple/muse/upload`,{
+          method:'POST',
+          headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({image_base64:b64,mime_type:file.type,surface:'moments'}),
+        });
+        const data = await resp.json();
+        if(data.ok&&data.save){
+          setMoments(prev=>[{...data.save,image_url:data.save.image_url},...prev]);
+          added++;
+        }
+      } catch{ /* continue */ }
+    }
+    if(fileRef.current) fileRef.current.value='';
+    setUploading(false);
+    showToast(added===0?'Could not add. Try again.':added===1?'Moment saved.':(`${added} moments saved.`));
+  };
+
+  function timeLabel(iso:string):string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }
+
+  const ink     = '#F0EDE8';
+  const inkMute = 'rgba(240,237,232,.40)';
+  const line    = 'rgba(240,237,232,.08)';
+
+  return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:'#080608',position:'relative',overflow:'hidden'}}>
+      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px)+16px)',left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+
+      {/* Full-screen viewer */}
+      {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.96)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <img src={fullImg} alt="" style={{maxWidth:'96vw',maxHeight:'92vh',objectFit:'contain',borderRadius:4}}/>
+        <button onClick={()=>setFullImg(null)} style={{position:'absolute',top:24,right:20,background:'rgba(240,237,232,.12)',border:'none',borderRadius:20,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(240,237,232,.8)',fontSize:18}}>✕</button>
+      </div>}
+
+      {/* Header */}
+      <div style={{padding:'20px 20px 12px',flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',borderBottom:`0.5px solid ${line}`}}>
+        <div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ink,lineHeight:1,marginBottom:2}}>Moments</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>
+            {loading?'loading…':`${moments.length} saved`}
+          </div>
+        </div>
+        <button onClick={()=>fileRef.current?.click()} disabled={uploading}
+          style={{display:'flex',alignItems:'center',gap:6,padding:'8px 16px',borderRadius:100,
+            border:`0.5px solid ${accent}55`,background:`${accent}14`,
+            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+            textTransform:'uppercase' as any,color:accent,cursor:'pointer',opacity:uploading?.5:1}}>
+          {uploading?'Adding…':'+ Add'}
+        </button>
+      </div>
+
+      {/* Film roll */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+
+        {loading&&<div style={{padding:48,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+
+        {!loading&&moments.length===0&&(
+          <div style={{padding:'52px 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:16,textAlign:'center' as any}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:40,color:accent,lineHeight:1}}>Nothing yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:'rgba(240,237,232,.55)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>
+              Your first photo becomes Day One. The brunch with the girls, the trial day, the shopping chaos — they all live here.
+            </div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>
+              WhatsApp moments — coming soon
+            </div>
+            <button onClick={()=>fileRef.current?.click()}
+              style={{marginTop:8,padding:'12px 28px',borderRadius:100,background:accent,border:'none',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',
+                textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer'}}>
+              Add from camera roll
+            </button>
+          </div>
+        )}
+
+        {moments.map((m,i)=>(
+          <div key={m.id} style={{position:'relative'}}>
+            {/* Date stamp — show on first item and whenever date changes */}
+            {(i===0||timeLabel(m.created_at)!==timeLabel(moments[i-1].created_at))&&(
+              <div style={{padding:'16px 20px 8px',display:'flex',alignItems:'center',gap:10}}>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>{timeLabel(m.created_at)}</div>
+                <div style={{flex:1,height:'0.5px',background:line}}/>
+                {m.saved_by_role==='circle_member'&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.14em',textTransform:'uppercase' as any,color:accent,border:`0.5px solid ${accent}44`,borderRadius:4,padding:'2px 6px'}}>Circle</div>}
+              </div>
+            )}
+            {/* Photo */}
+            <div onClick={()=>setFullImg(m.image_url)}
+              style={{margin:'0 12px 10px',borderRadius:10,overflow:'hidden',cursor:'zoom-in',background:'#1a1714'}}>
+              <img src={m.image_url} alt={m.caption||''} style={{width:'100%',display:'block',objectFit:'cover',maxHeight:480}} loading="lazy"/>
+              {m.caption&&<div style={{padding:'8px 12px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:'rgba(240,237,232,.7)',lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+                {m.caption}
+              </div>}
+            </div>
+          </div>
+        ))}
+
+        {!loading&&moments.length>0&&(
+          <div style={{padding:'24px 20px',textAlign:'center' as any}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>
+              WhatsApp moments — coming soon
+            </div>
+          </div>
+        )}
+
+        <div style={{height:40}}/>
+      </div>
+
+      <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{display:'none'}}/>
+    </div>
+  );
+}
+
+
+// ── MERIDIAN ROOM ─────────────────────────────────────────────────────────────
+// Personal concierge — skin, mind, body, decisions.
+// Always dark. Separate from DreamAi — different context, different persona.
+// V1: AI only (Haiku). V2: AI + human escalation (Platinum tier).
+
+interface MeridianMsg { id:string; role:'user'|'assistant'; content:string; pending?:boolean; error?:boolean; }
+
+// Editorial cards — static content keyed to days remaining
+function getMeridianCards(days:number|null): {title:string;body:string;tag:string}[] {
+  if(days===null||days>180) return [
+    { title:'The 180-day window.',       tag:'skin',  body:'This is the time to audit. See your dermatologist. Start with basics — SPF, Vitamin C, retinol at night. The work you do now shows on your wedding day.' },
+    { title:'Ubtan. Every week.',        tag:'ritual',body:'Rice flour, turmeric, raw milk. Apply and leave for 20 minutes. Your skin has time to adapt and reward you. Make it a ritual, not a task.' },
+    { title:'Water before everything.', tag:'body',  body:'Three litres a day. Not juice. Not chai. Water. The simplest thing nobody does consistently. Start now when the stakes are low.' },
+  ];
+  if(days>90) return [
+    { title:'The glow is built now.',   tag:'skin',  body:'If you have not started hair oiling, start this week. Coconut or Bhringraj, overnight, twice a week. The difference by the wedding day is real.' },
+    { title:'Skin cycle locked.',       tag:'skin',  body:'Stop experimenting with new products. You should know what works for your skin by now. Maintain, don’t explore.' },
+    { title:'The sleep question.',      tag:'mind',  body:'Seven hours is not negotiable. Cortisol from poor sleep undoes every facial. Your skin repairs at night. Protect that window.' },
+  ];
+  if(days>60) return [
+    { title:'No new treatments.',       tag:'skin',  body:'This is not the time for a new peel or a new serum. What you have been doing is working. Protect the progress.' },
+    { title:'Trial week ritual.',       tag:'ritual',body:'The week before your mehendi trial — no facials, no threading, nothing that causes redness. Let your skin rest and show up calm.' },
+    { title:'Breathe before deciding.', tag:'mind',  body:'Every decision feels enormous right now. Most are not. When you feel overwhelmed, give it 24 hours before acting.' },
+  ];
+  if(days>30) return [
+    { title:'Final stretch.',           tag:'skin',  body:'Hydration, sleep, and your existing routine. That is the entire protocol. Nothing new touches your face this month.' },
+    { title:'The anxiety is normal.',   tag:'mind',  body:'Every bride feels it. The chaos is not a sign things are going wrong. It is the sign that something beautiful is coming.' },
+    { title:'Eat properly.',            tag:'body',  body:'Not a diet. Not a restriction. Eat for energy — protein, good fats, vegetables. You need strength for the days ahead.' },
+  ];
+  return [
+    { title:'You are almost there.',    tag:'mind',  body:'This week — sleep. Hydrate. Do not start anything new. Let the people who love you carry things. Your job is to arrive glowing.' },
+    { title:'The morning ritual.',      tag:'skin',  body:'Gentle cleanser, Vitamin C, SPF. That is it. No masks, no peels, no experiments. Simple, consistent, protected.' },
+    { title:'One thing at a time.',     tag:'mind',  body:'Whatever feels urgent right now — give it one decision at a time. You have handled everything so far. You will handle this too.' },
+  ];
+}
+
+interface MeridianRoomProps { dark:boolean; accent:string; }
+
+function MeridianRoom({ accent }: MeridianRoomProps) {
+  const [msgs,    setMsgs]    = React.useState<MeridianMsg[]>([]);
+  const [input,   setInput]   = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [days,    setDays]    = React.useState<number|null>(null);
+  const scrollRef  = React.useRef<HTMLDivElement>(null);
+  const textRef    = React.useRef<HTMLTextAreaElement>(null);
+  const cancelRef  = React.useRef<(()=>void)|null>(null);
+
+  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+  const cards = getMeridianCards(days);
+
+  React.useEffect(()=>{
+    try {
+      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+      if(raw){const s=JSON.parse(raw);if(s?.wedding_date){const d=Math.max(0,Math.round((new Date(s.wedding_date).getTime()-Date.now())/86400000));setDays(d);}}
+    } catch{}
+  },[]);
+
+  React.useEffect(()=>{ if(scrollRef.current) scrollRef.current.scrollTop=scrollRef.current.scrollHeight; },[msgs]);
+  React.useEffect(()=>{ if(!textRef.current)return;textRef.current.style.height='auto';textRef.current.style.height=Math.min(textRef.current.scrollHeight,100)+'px'; },[input]);
+  React.useEffect(()=>()=>{cancelRef.current?.();},[]);
+
+  function uid(){return Math.random().toString(36).slice(2);}
+
+  const send = React.useCallback((text:string)=>{
+    const msg = text.trim();
+    if(!msg||loading)return;
+    setInput('');
+    const userMsg:MeridianMsg = {id:uid(),role:'user',content:msg};
+    setMsgs(prev=>[...prev,userMsg]);
+    setLoading(true);
+    const aiId = uid();
+    setMsgs(prev=>[...prev,{id:aiId,role:'assistant',content:'',pending:true}]);
+
+    const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+    const token = localStorage.getItem('access_token')||(raw?JSON.parse(raw)?.access_token:null);
+
+    const ctrl = new AbortController();
+    cancelRef.current = ()=>ctrl.abort();
+
+    fetch(`${API}/api/v2/couple/meridian/chat`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token||''}`},
+      body:JSON.stringify({message:msg}),
+      signal:ctrl.signal,
+    }).then(res=>{
+      if(!res.body)throw new Error('no body');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      const pump = async () => {
+        while(true){
+          const {done,value} = await reader.read();
+          if(done)break;
+          buf += decoder.decode(value,{stream:true});
+          const lines = buf.split('\n');
+          buf = lines.pop()||'';
+          for(const line of lines){
+            if(!line.startsWith('data:'))continue;
+            const raw2 = line.slice(5).trim();
+            if(raw2==='[DONE]')break;
+            try{
+              const ev = JSON.parse(raw2);
+              if(ev.type==='text_delta'){
+                setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,content:m.content+ev.text,pending:false}:m));
+              } else if(ev.type==='done'||ev.type==='error'){
+                if(ev.type==='error') setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,content:ev.text||'Something went wrong.',error:true,pending:false}:m));
+              }
+            }catch{}
+          }
+        }
+      };
+      return pump();
+    }).catch(err=>{
+      if(err.name!=='AbortError') setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,content:'Something went wrong. Try again.',error:true,pending:false}:m));
+    }).finally(()=>{
+      setMsgs(prev=>prev.map(m=>m.id===aiId?{...m,pending:false}:m));
+      setLoading(false);
+      cancelRef.current=null;
+    });
+  },[loading,API]);
+
+  const ink      = '#F0EDE8';
+  const inkSoft  = 'rgba(240,237,232,.70)';
+  const inkMute  = 'rgba(240,237,232,.35)';
+  const line     = 'rgba(240,237,232,.08)';
+  const cardBg   = 'rgba(240,237,232,.04)';
+  const cardBdr  = 'rgba(240,237,232,.10)';
+  const inputBg  = 'rgba(240,237,232,.05)';
+  const inputBdr = 'rgba(240,237,232,.16)';
+  const compBg   = 'rgba(8,6,8,.90)';
+  const aiBubble = 'rgba(240,237,232,.05)';
+  const aiBubBdr = 'rgba(240,237,232,.10)';
+
+  const tagColors:{[k:string]:string} = {skin:'#C4856A',ritual:'#C9A84C',body:'#6B9E8F',mind:'#8B7EC4'};
+
+  return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:'linear-gradient(180deg,#0E0608 0%,#080608 100%)',overflow:'hidden'}}>
+
+      {/* Editorial cards */}
+      {msgs.length===0&&(
+        <>
+          {/* Header */}
+          <div style={{padding:'20px 20px 14px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ink,lineHeight:1,marginBottom:4}}>Meridian</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+              Your personal concierge. Skin, mind, body, decisions.
+            </div>
+            {days!==null&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:accent,marginTop:6}}>
+              {days} days to go
+            </div>}
+          </div>
+
+          {/* Scrollable cards */}
+          <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'16px 0'}}>
+            {cards.map((card,i)=>(
+              <div key={i} style={{margin:'0 16px 12px',padding:'16px 18px',borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.18em',textTransform:'uppercase' as any,color:tagColors[card.tag]||accent,border:`0.5px solid ${(tagColors[card.tag]||accent)}44`,borderRadius:4,padding:'2px 7px'}}>
+                    {card.tag}
+                  </span>
+                </div>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:ink,lineHeight:1.2,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>{card.title}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,lineHeight:1.7,fontFeatureSettings:'"opsz" 9'}}>{card.body}</div>
+              </div>
+            ))}
+
+            {/* Prompt to start */}
+            <div style={{padding:'20px 20px 8px',textAlign:'center' as any}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:inkMute,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+                Tell me what's on your mind.
+              </div>
+            </div>
+            <div style={{height:80}}/>
+          </div>
+        </>
+      )}
+
+      {/* Chat history */}
+      {msgs.length>0&&(
+        <div ref={scrollRef} className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'16px 16px 8px'}}>
+          {msgs.map(m=>(
+            <div key={m.id} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
+              {m.role==='user'?(
+                <div style={{maxWidth:'82%',background:accent,color:'#0C0A09',padding:'10px 14px',borderRadius:'20px 20px 4px 20px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
+                  {m.content}
+                </div>
+              ):m.pending&&m.content===''?(
+                <div style={{background:aiBubble,border:`0.5px solid ${aiBubBdr}`,padding:'10px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)'}}>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,animation:'dpulse 1.4s infinite ease-in-out'}}>✦</span>
+                </div>
+              ):(
+                <div style={{maxWidth:'90%',background:aiBubble,border:`0.5px solid ${aiBubBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.65,color:m.error?'#C4534A':ink,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
+                  {m.content}
+                  {m.pending&&<span style={{opacity:.5,color:accent}}>▌</span>}
+                </div>
+              )}
+            </div>
+          ))}
+          <div style={{height:10}}/>
+        </div>
+      )}
+
+      {/* Compose */}
+      <div style={{background:compBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderTop:`0.5px solid ${line}`,padding:`12px 16px calc(12px + env(safe-area-inset-bottom,0px))`,flexShrink:0}}>
+        <div style={{display:'flex',gap:10,alignItems:'flex-end',background:inputBg,border:`0.5px solid ${inputBdr}`,borderRadius:20,padding:'8px 10px 8px 16px'}}>
+          <textarea ref={textRef} value={input} onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(input);}}}
+            placeholder="Tell me what's troubling you, or what you need…"
+            disabled={loading} rows={1}
+            style={{flex:1,background:'transparent',border:'none',outline:'none',color:ink,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,resize:'none',maxHeight:100,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
+          <button onClick={()=>send(input)} disabled={loading||!input.trim()}
+            style={{background:input.trim()&&!loading?accent:'rgba(240,237,232,.08)',color:input.trim()&&!loading?'#0C0A09':'rgba(240,237,232,.3)',border:'none',borderRadius:'50%',width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',cursor:input.trim()&&!loading?'pointer':'default',transition:'background 200ms ease',flexShrink:0}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+        {msgs.length>0&&<div style={{textAlign:'center' as any,marginTop:6}}>
+          <button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,padding:0}}>
+            Clear
+          </button>
+        </div>}
+      </div>
+    </div>
+  );
+}
+
 
 // ── Root component ────────────────────────────────────────────────────────────
 
@@ -2801,8 +3382,18 @@ export default function SanctuaryPage() {
               <SettingsRoom dark={dark} accent={accent} signal={signal} setHomeMode={setHomeMode}/>
             )}
 
+            {/* ── MOMENTS — personal photo diary ── */}
+            {activeRoom==='moments'&&(
+              <MomentsRoom dark={dark} accent={accent}/>
+            )}
+
+            {/* ── MERIDIAN — personal concierge ── */}
+            {activeRoom==='meridian'&&(
+              <MeridianRoom dark={dark} accent={accent}/>
+            )}
+
             {/* ── OTHER ROOMS — coming soon ── */}
-            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&activeRoom!=='people'&&(
+            {activeRoom!=='dream'&&activeRoom!=='pages'&&activeRoom!=='circle'&&activeRoom!=='events'&&activeRoom!=='muse'&&activeRoom!=='discover'&&activeRoom!=='expenses'&&activeRoom!=='vendors'&&activeRoom!=='settings'&&activeRoom!=='people'&&activeRoom!=='moments'&&activeRoom!=='meridian'&&(
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:32}}>
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {(()=>{const r=activeRoom as string;return(['expenses','vendors','settings'].includes(r)?(r==='expenses'?'Expenses':r==='vendors'?'Vendors':'Settings'):SLICES.find(s=>s.key===activeRoom)?.label);})()}

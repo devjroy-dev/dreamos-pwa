@@ -39,33 +39,7 @@ function isBrideDemoMode(): boolean {
   } catch { return false; }
 }
 
-function FrostDemoBanner() {
-  const [isDemoMode, setIsDemoMode] = React.useState(false);
 
-  React.useEffect(() => {
-    setIsDemoMode(isBrideDemoMode());
-  }, []);
-
-  if (!isDemoMode) return null;
-
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-      background: 'rgba(12,8,6,0.9)',
-      backdropFilter: 'blur(10px)',
-      borderBottom: '0.5px solid rgba(201,168,76,0.15)',
-      padding: '7px 16px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-    }}>
-      <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', color: 'rgba(201,168,76,0.7)', textTransform: 'uppercase' }}>
-        ✦ Demo Mode
-      </span>
-      <a href="https://thedreamwedding.in" style={{ fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.1em', color: '#C9A84C', textDecoration: 'none', textTransform: 'uppercase' }}>
-        Request Invite →
-      </a>
-    </div>
-  );
-}
 
 export default function FrostLayout({ children }: { children: React.ReactNode }) {
   const [homeMode,    setHome]    = useState<HomeModeKey>('E3');
@@ -92,7 +66,6 @@ export default function FrostLayout({ children }: { children: React.ReactNode })
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; padding: 0; }
       `}</style>
-      <FrostDemoBanner />
       {children}
     </FrostCtx.Provider>
   );
