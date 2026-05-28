@@ -837,6 +837,13 @@ function DiscoveryFeedInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // In bride demo mode — redirect discover to the dedicated demo discover subdomain
+  useEffect(() => {
+    if (isBrideDemoDiscover()) {
+      window.location.href = 'https://demodiscover.thedreamwedding.in';
+    }
+  }, []);
+
   const [isBlindMode,    setIsBlindMode]    = useState(false);
   const [filterVisible,  setFilterVisible]  = useState(false);
   const [filters,        setFilters]        = useState<FilterState>({ category: null, city: null, vibes: [], budget: null, mode: null });

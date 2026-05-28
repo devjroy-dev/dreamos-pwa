@@ -27,6 +27,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  // ── demobride.thedreamwedding.in → Bride demo ──────────────────────────────
+  if (host.startsWith('demobride.')) {
+    if (path.startsWith('/demo/bride')) return NextResponse.next();
+    url.pathname = '/demo/bride';
+    return NextResponse.rewrite(url);
+  }
+
   // ── demo.thedreamwedding.in → Vendor demo ───────────────────────────────
   if (host.startsWith('demo.')) {
     if (path.startsWith('/demo/')) return NextResponse.next();

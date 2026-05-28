@@ -46,6 +46,7 @@ export default function BrideDemoPage() {
       localStorage.setItem('couple_session',      JSON.stringify(coupleSession));
       localStorage.setItem('couple_web_session',  JSON.stringify(coupleSession));
       localStorage.setItem('tdw_bride_demo_session', JSON.stringify({ demo: true, ...coupleSession }));
+      localStorage.setItem('tdw_demo_discover',   'true');
     } catch { /* Safari private mode — graceful degradation */ }
 
     // Small delay so localStorage writes commit before navigation
