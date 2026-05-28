@@ -487,20 +487,22 @@ export default function Home() {
         category: d.category || null,
         tier: d.tier || null,
         dreamer_type: d.dreamer_type || 'basic',
+        access_token:  d.access_token  || null,
+        refresh_token: d.refresh_token || null,
+        _v: 2,
       };
       localStorage.setItem(sessionKey, JSON.stringify(sessionData));
       localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
 
-      const vendorNeedsOnboarding = isVendor && !pinSet && !d.name;
+      // Vendor: always goes to /vendor/pin-login (PIN screen) → /vendor
+      // Couple: onboarding if new, pin-login if returning, pin if no PIN set
       const coupleNeedsOnboarding = !isVendor && !pinSet && !d.name;
-      if (vendorNeedsOnboarding) {
-        router.push('/vendor/login');
-      } else if (coupleNeedsOnboarding) {
+      if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');
+      } else if (isVendor) {
+        router.push('/vendor/pin-login');
       } else {
-        router.push(pinSet
-          ? (isVendor ? '/vendor/pin-login' : '/couple/pin-login')
-          : (isVendor ? '/vendor/pin-login' : '/couple/pin'));
+        router.push(pinSet ? '/couple/pin-login' : '/couple/pin');
       }
     } catch { showToast('Verification failed.'); }
   };
@@ -528,7 +530,7 @@ export default function Home() {
         const sd = {           id: d.role_id, userId: d.user_id, vendorId: d.role_id,           phone: e164, pin_set: true,         };
         localStorage.setItem(sessionKey, JSON.stringify(sd));
         localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
-        router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login');
+        router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login'); // pin screens → /vendor or /frost
         return;
       }
 

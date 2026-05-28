@@ -424,7 +424,7 @@ export default function WeddingChatPage() {
 
   useEffect(() => {
     if (seeded === null) return;
-    if (!sessionLoading && !session) { router.replace('/vendor/login'); return; }
+    if (!sessionLoading && !session) { router.replace('/'); return; }
     if (!sessionLoading && session) {
       // Verify JWT against backend — catches expired tokens and wrong accounts.
       // If the stored session points to the wrong vendor (e.g. stale mock),
@@ -435,7 +435,7 @@ export default function WeddingChatPage() {
             // 401 / bad token — clear and redirect
             import('@/lib/vendor/session').then(({ clearVendorSession }) => {
               clearVendorSession();
-              router.replace('/vendor/login');
+              router.replace('/');
             });
             return;
           }
@@ -447,7 +447,7 @@ export default function WeddingChatPage() {
               console.warn('[vendor/page] session ID mismatch — clearing');
               import('@/lib/vendor/session').then(({ clearVendorSession }) => {
                 clearVendorSession();
-                router.replace('/vendor/login');
+                router.replace('/');
               });
               return;
             }
