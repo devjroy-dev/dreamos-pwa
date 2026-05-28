@@ -336,10 +336,11 @@ export default function DemoAdminPage() {
       </BottomSheet>
 
       {/* Seed Leads Sheet */}
+      {seedTarget !== null && (
       <BottomSheet
-        visible={showSeed && seedTarget !== null}
+        visible={showSeed}
         onClose={() => { setShowSeed(false); setSeedTarget(null); }}
-        title={`Seed Leads — ${seedTarget?.display_name || ''}`}
+        title={`Seed Leads — ${seedTarget.display_name}`}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <p style={{ fontFamily: T.ff.body, fontSize: 14, color: T.soft, lineHeight: 1.6 }}>
@@ -354,6 +355,7 @@ export default function DemoAdminPage() {
           </div>
         </div>
       </BottomSheet>
+      )}
     </div>
   );
 }
