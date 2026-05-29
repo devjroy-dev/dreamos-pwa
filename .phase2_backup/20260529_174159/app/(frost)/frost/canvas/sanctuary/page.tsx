@@ -1560,7 +1560,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           bride_name:session?.bride_name||session?.name||undefined,
         }),
       });
-      spawnDiscToast('Vendor notified ✦ link saved in Vendors');
+      spawnDiscToast('Enquiry sent ✦');
     } catch {
       spawnDiscToast('Could not send. Try again.');
     }
