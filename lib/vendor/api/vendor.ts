@@ -117,11 +117,17 @@ export function sendChat(vendorId: string, message: string, history: {role:strin
 // Calls onDone(result) when the stream closes with the full result.
 // Returns a cleanup function — call it to abort the stream.
 
+export type SuggestionsPayload = {
+  intro?: string | null;
+  suggestions: { label: string; value: string }[];
+};
+
 export type StreamDonePayload = {
   tool_calls: string[];
   refresh?: boolean;
   contact?: ContactCard;
   clarify?: ClarifyPayload;
+  suggestions?: SuggestionsPayload;
 };
 
 export function streamChat(

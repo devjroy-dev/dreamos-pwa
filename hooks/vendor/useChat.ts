@@ -6,6 +6,7 @@ import { getVendorSession } from '@/lib/vendor/session';
 import { buildBriefing } from '@/lib/vendor/briefing';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
 import type { ClarifyPayload, ContactCard } from '@/lib/vendor/types/vendor';
+import type { SuggestionsPayload } from '@/lib/vendor/api/vendor';
 
 export type ChatMessageRole = 'user' | 'ai';
 
@@ -16,6 +17,7 @@ export interface ChatMessage {
   toolCalls?: string[];
   contact?:   ContactCard;
   clarify?:   ClarifyPayload;  // when set, render options as inline chips
+  suggestions?: SuggestionsPayload;  // 3.0-C2: optional next-step cards under a completed action
   streaming?: boolean;         // true while SSE stream is in progress
 }
 
@@ -142,6 +144,7 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
                 toolCalls:  result.tool_calls,
                 contact:    result.contact,
                 clarify:    result.clarify,
+                suggestions: result.suggestions,
               }
             : m
         ));

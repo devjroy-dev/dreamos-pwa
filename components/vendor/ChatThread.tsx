@@ -74,6 +74,41 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
               })}
             </div>
           )}
+
+          {/* Proactive suggestions (3.0-C2) — optional next-steps under a
+              completed action. Lighter/ghost styling distinguishes them from
+              clarify (which is a blocking question). Includes optional intro. */}
+          {m.suggestions?.suggestions && m.suggestions.suggestions.length > 0 && (
+            <div style={{ padding: '2px 22px 10px 38px' }}>
+              {m.suggestions.intro && (
+                <div style={{
+                  fontFamily: F.body, fontSize: 12, fontWeight: 300,
+                  color: T.isLight ? 'rgba(26,15,8,0.62)' : 'rgba(240,230,210,0.6)',
+                  margin: '2px 0 7px', lineHeight: 1.45, fontStyle: 'italic',
+                }}>{m.suggestions.intro}</div>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                {m.suggestions.suggestions.map((opt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => onChipTap(opt.value, opt.label)}
+                    style={{
+                      height: 30, paddingInline: 12,
+                      background: 'transparent',
+                      border: `0.5px dashed ${T.isLight ? 'rgba(122,56,40,0.35)' : 'rgba(201,168,76,0.38)'}`,
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      letterSpacing: '0.2em', textTransform: 'uppercase' as const,
+                      color: T.isLight ? 'rgba(122,56,40,0.85)' : 'rgba(201,168,76,0.8)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >{opt.label}</button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ))}
 
