@@ -82,7 +82,7 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
             <div style={{ padding: '2px 22px 10px 38px' }}>
               {m.suggestions.intro && (
                 <div style={{
-                  fontFamily: F.body, fontSize: 12, fontWeight: 300,
+                  fontFamily: F.label, fontSize: 12, fontWeight: 300,
                   color: T.isLight ? 'rgba(26,15,8,0.62)' : 'rgba(240,230,210,0.6)',
                   margin: '2px 0 7px', lineHeight: 1.45, fontStyle: 'italic',
                 }}>{m.suggestions.intro}</div>
