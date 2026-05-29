@@ -290,6 +290,24 @@ export async function fetchBookings(): Promise<CoupleBooking[]> {
   return r?.bookings ?? [];
 }
 
+export interface CoupleEnquiry {
+  id: string;
+  vendor_id: string;
+  vendor_name: string | null;
+  category: string | null;
+  city: string | null;
+  routing_handle: string | null;
+  created_at: string;
+}
+
+export async function fetchEnquiries(): Promise<CoupleEnquiry[]> {
+  if (shouldUseMocks()) return delay([]);
+  try {
+    const r: any = await apiFetch('/api/v2/couple/enquiries');
+    return r?.enquiries ?? [];
+  } catch { return []; }
+}
+
 export async function createBooking(body: {
   vendor_name: string; category: string; amount_total?: number; amount_advance?: number;
   balance_due_date?: string; notes?: string; state?: string;

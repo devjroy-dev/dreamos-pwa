@@ -12,7 +12,7 @@ import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -443,8 +443,11 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
 
+  const [enquiries, setEnquiries] = React.useState<CoupleEnquiry[]>([]);
+
   React.useEffect(()=>{
     fetchBookings().then(b=>{ setBookings(b); setLoading(false); }).catch(()=>setLoading(false));
+    fetchEnquiries().then(setEnquiries).catch(()=>{});
   },[]);
 
   const fmtRs = (n:number) => n>=100000?`₹${(n/100000).toFixed(n%100000===0?0:1)}L`:n>=1000?`₹${(n/1000).toFixed(0)}K`:`₹${n}`;
@@ -543,6 +546,32 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
       {/* List */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+
+        {/* ── Enquired — vendors she reached out to from Discover ── */}
+        {enquiries.length>0&&(
+          <div>
+            <div style={{padding:'14px 20px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>Enquired</div>
+            {enquiries.map(e=>{
+              const waLink=`https://wa.me/917982159047?text=${encodeURIComponent('TDW-'+(e.routing_handle||e.vendor_id))}`;
+              const meta=[e.category,e.city].filter(Boolean).join(' · ');
+              return(
+                <div key={e.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
+                  <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(e.vendor_name?.[0]||e.category?.[0]||'·').toUpperCase()}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.vendor_name||'Vendor'}</div>
+                    {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{meta}</div>}
+                  </div>
+                  <a href={waLink} target="_blank" rel="noopener noreferrer"
+                    onClick={e2=>e2.stopPropagation()}
+                    style={{width:34,height:34,borderRadius:17,background:'rgba(37,211,102,.10)',border:'0.5px solid rgba(37,211,102,.25)',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none',flexShrink:0}}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" fill="#25D366"/></svg>
+                  </a>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {!loading&&bookings.length===0&&<div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Add your first booking.</div>}
         {groups.map(g=>(
           <div key={g.label}>
@@ -1527,6 +1556,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           vendor_id:vendor.id,
+          couple_id:session?.coupleId||session?.id||undefined,
           bride_name:session?.bride_name||session?.name||undefined,
         }),
       });
