@@ -12,7 +12,7 @@ import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -797,6 +797,11 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
   const [selected,     setSelected]     = React.useState<CircleMember|null>(null);
   const [memberFeed,   setMemberFeed]   = React.useState<CircleActivity[]>([]);
   const [feedLoading,  setFeedLoading]  = React.useState(false);
+  const [removeTarget, setRemoveTarget] = React.useState<CircleMember|null>(null);
+  const [removing,     setRemoving]     = React.useState(false);
+  const [toast,        setToast]        = React.useState('');
+
+  const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
 
   React.useEffect(()=>{
     fetchCircle().then(c=>{
@@ -805,6 +810,21 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
       setLoading(false);
     }).catch(()=>setLoading(false));
   },[]);
+
+  const handleRemove = async (m: CircleMember) => {
+    setRemoving(true);
+    const ok = await removeCircleMember(m.id);
+    if(ok) {
+      setMembers(prev=>prev.filter(x=>x.id!==m.id));
+      setPending(prev=>prev.filter((x:any)=>x.id!==m.id));
+      showToast(`${m.invitee_name} removed from Circle.`);
+    } else {
+      showToast('Could not remove. Try again.');
+    }
+    setRemoving(false);
+    setRemoveTarget(null);
+    setSelected(null);
+  };
 
   const openMember = (m: CircleMember) => {
     setSelected(m);
@@ -822,7 +842,8 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
   if(selected) {
     const phone = (selected as any).invitee_phone || null;
     return (
-      <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden',position:'relative'}}>
+        {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px)+12px)',left:'50%',transform:'translateX(-50%)',background:ink,color:bg,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 16px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
         {/* Detail top bar */}
         <div style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',gap:14,flexShrink:0}}>
           <button onClick={()=>setSelected(null)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,color:inkMute,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:0}}>
@@ -830,7 +851,7 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
             Back
           </button>
           <div style={{flex:1,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ac,fontFeatureSettings:'"opsz" 9'}}>{selected.invitee_name}</div>
-          <div style={{width:48}}/>
+          <button onClick={()=>setRemoveTarget(selected)} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',padding:0}}>Remove</button>
         </div>
 
         <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
@@ -890,13 +911,50 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
           </div>
           <div style={{height:40}}/>
         </div>
+      {/* Confirm remove sheet */}
+      {removeTarget&&<>
+        <div onClick={()=>setRemoveTarget(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:301,background:dark?'#1A0A0E':'#EEF0F6',borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>Remove {removeTarget.invitee_name}?</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>They'll lose access to your Circle, Muse board, and DreamAi.</div>
+          <div style={{display:'flex',gap:10}}>
+            <button onClick={()=>handleRemove(removeTarget)} disabled={removing}
+              style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:removing?.5:1}}>
+              {removing?'Removing…':'Remove'}
+            </button>
+            <button onClick={()=>setRemoveTarget(null)}
+              style={{flex:1,padding:14,background:`rgba(255,255,255,.04)`,border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
+              Keep
+            </button>
+          </div>
+        </div>
+      </>}
       </div>
     );
   }
 
   // ── LIST VIEW ──────────────────────────────────────────────────────────────
   return (
-    <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden',position:'relative'}}>
+      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px)+12px)',left:'50%',transform:'translateX(-50%)',background:ink,color:dark?'#1A0A0E':'#F0EEE8',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 16px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {/* Confirm remove sheet (from list) */}
+      {removeTarget&&<>
+        <div onClick={()=>setRemoveTarget(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300}}/>
+        <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:301,background:dark?'#1A0A0E':'#EEF0F6',borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>Remove {removeTarget.invitee_name}?</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>They'll lose access to your Circle, Muse board, and DreamAi.</div>
+          <div style={{display:'flex',gap:10}}>
+            <button onClick={()=>handleRemove(removeTarget)} disabled={removing}
+              style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:removing?.5:1}}>
+              {removing?'Removing…':'Remove'}
+            </button>
+            <button onClick={()=>setRemoveTarget(null)}
+              style={{flex:1,padding:14,background:`rgba(255,255,255,.04)`,border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
+              Keep
+            </button>
+          </div>
+        </div>
+      </>}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         <div style={{padding:'20px 20px 8px'}}>
           <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ac,lineHeight:1,marginBottom:4}}>Your circle.</div>
@@ -935,6 +993,10 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C9.61 22 2 14.39 2 5a1 1 0 011-1H6.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z" stroke={ac} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </a>
                     </>}
+                    <button onClick={()=>setRemoveTarget(m)}
+                      style={{width:34,height:34,borderRadius:17,background:'rgba(184,69,62,.08)',border:'0.5px solid rgba(184,69,62,.25)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="rgba(184,69,62,.9)" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    </button>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke={inkMute} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </div>
                 </div>
@@ -947,12 +1009,16 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
           <div style={{padding:'8px 20px 16px'}}>
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Invited · waiting to join</div>
             {pending.map(p=>(
-              <div key={p.id} style={{display:'flex',alignItems:'center',gap:14,padding:'10px 0',borderBottom:`0.5px solid ${line}`,opacity:.6}}>
+              <div key={p.id} style={{display:'flex',alignItems:'center',gap:14,padding:'10px 0',borderBottom:`0.5px solid ${line}`}}>
                 <div style={{width:44,height:44,borderRadius:22,border:`0.5px dashed ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:inkMute}}>?</div>
                 <div style={{flex:1}}>
                   <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{p.invitee_name}</div>
                   <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{roleLabel(p.role)} · pending</div>
                 </div>
+                <button onClick={()=>setRemoveTarget(p as any)}
+                  style={{width:30,height:30,borderRadius:15,background:'rgba(184,69,62,.08)',border:'0.5px solid rgba(184,69,62,.25)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="rgba(184,69,62,.9)" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                </button>
               </div>
             ))}
           </div>

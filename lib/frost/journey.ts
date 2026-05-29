@@ -208,15 +208,8 @@ const MOCK_BOOKINGS: CoupleBooking[] = [
 ];
 
 const MOCK_CIRCLE: CircleData = {
-  members: [
-    { id: 'm1', invitee_name: 'Ananya (Sister)', role: 'family',       status: 'active', joined_at: '2026-10-01T10:00:00Z', conversation_id: 'c1', last_active: new Date(Date.now() - 3600000).toISOString() },
-    { id: 'm2', invitee_name: 'Mrs Sharma',      role: 'family',       status: 'active', joined_at: '2026-10-02T10:00:00Z', conversation_id: 'c2', last_active: new Date(Date.now() - 7200000).toISOString() },
-    { id: 'm3', invitee_name: 'Riya Kapoor',     role: 'inner_circle', status: 'pending', joined_at: null, conversation_id: null, last_active: null },
-  ],
-  activity: [
-    { id: 'ca1', activity_type: 'save_added',      member_name: 'Ananya',    actor_role: 'circle_member', content: null,             created_at: new Date(Date.now() - 3600000).toISOString(), image_url: null, caption: 'Love this for the mehndi', aesthetic_tags: ['ethnic','elegant'], save_number: 5, source_type: 'image' },
-    { id: 'ca2', activity_type: 'comment',  member_name: 'Mrs Sharma', actor_role: 'circle_member', content: 'What time should we arrive?', created_at: new Date(Date.now() - 7200000).toISOString(), image_url: null, caption: null, aesthetic_tags: null, save_number: null, source_type: null },
-  ],
+  members: [],
+  activity: [],
   pending_invites: [],
 };
 
@@ -365,6 +358,13 @@ export async function fetchMemberFeed(memberId: string): Promise<MemberFeedData 
       activity: r?.activity ?? [],
     };
   } catch { return null; }
+}
+
+export async function removeCircleMember(memberId: string): Promise<boolean> {
+  try {
+    await apiFetch(`/api/v2/couple/circle/member/${memberId}`, { method: 'DELETE' });
+    return true;
+  } catch { return false; }
 }
 
 export async function inviteCircleMember(body: { invitee_name: string; role: string }): Promise<{ wa_me_link: string; invite_token: string; member_id: string }> {
