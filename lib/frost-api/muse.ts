@@ -103,8 +103,8 @@ export async function fetchMuseSaves(params?: {
   );
 }
 
-export async function saveVendorToMuse(vendorId: string, imageUrl: string | null): Promise<{
-  ok: boolean; save_id?: string; save_number?: number; already_saved?: boolean;
+export async function saveVendorToMuse(vendorId: string, imageUrl: string | null, shareToCircle: boolean = false): Promise<{
+  ok: boolean; save_id?: string; save_number?: number; already_saved?: boolean; shared_to_circle?: boolean;
 }> {
   if (isBrideDemoMode()) {
     // In demo mode — save to localStorage so muse board shows it
@@ -131,7 +131,7 @@ export async function saveVendorToMuse(vendorId: string, imageUrl: string | null
     return { ok: true, already_saved: false, save_number: DEMO_MUSE_SAVES.length + 1 };
   }
   if (USE_MOCKS) return { ok: true, already_saved: false };
-  return apiPost('/api/v2/couple/muse/save', { vendor_id: vendorId, image_url: imageUrl });
+  return apiPost('/api/v2/couple/muse/save', { vendor_id: vendorId, image_url: imageUrl, share_to_circle: shareToCircle });
 }
 
 export async function deleteMuseSave(saveId: string): Promise<boolean> {

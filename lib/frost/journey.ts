@@ -367,10 +367,10 @@ export async function removeCircleMember(memberId: string): Promise<boolean> {
   } catch { return false; }
 }
 
-export async function inviteCircleMember(body: { invitee_name: string; role: string }): Promise<{ wa_me_link: string; invite_token: string; member_id: string }> {
-  if (shouldUseMocks()) return delay({ wa_me_link: 'https://wa.me/917982159047?text=CIRCLE-MOCK', invite_token: 'MOCK', member_id: 'mock-id' }, 600);
+export async function inviteCircleMember(body: { invitee_name: string; role: string; invitee_phone?: string }): Promise<{ wa_me_link: string; invite_token: string; member_id: string; join_url?: string; has_phone?: boolean }> {
+  if (shouldUseMocks()) return delay({ wa_me_link: 'https://wa.me/?text=CIRCLE-MOCK', invite_token: 'MOCK', member_id: 'mock-id', join_url: 'https://thedreamwedding.in/circle/join/CIRCLE-MOCK', has_phone: false }, 600);
   const r: any = await apiFetch('/api/v2/couple/circle/invite', { method: 'POST', body: JSON.stringify(body) });
-  return { wa_me_link: r.wa_me_link, invite_token: r.invite_token, member_id: r.member_id };
+  return { wa_me_link: r.wa_me_link, invite_token: r.invite_token, member_id: r.member_id, join_url: r.join_url, has_phone: r.has_phone };
 }
 
 // Threads — uses the coplanner frost endpoint (no JWT, scoped by brideId)

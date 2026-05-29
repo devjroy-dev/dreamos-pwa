@@ -190,10 +190,18 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   };
 
   const handleDeleteReceipt = async (id:string) => {
+    const prevReceipts = receipts;
+    const removed = receipts.find(r=>r.id===id);
     setReceipts(prev=>prev.filter(r=>r.id!==id));
     setConfirmId(null);
-    await deleteReceipt(id);
-    showToast('Removed.');
+    const ok = await deleteReceipt(id);
+    if(ok){
+      showToast('Removed.');
+    } else {
+      // Restore on failure
+      setReceipts(prevReceipts);
+      showToast('Could not remove. Try again.');
+    }
   };
 
   const handlePayment = async () => {
@@ -307,7 +315,7 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
           {imageReceipts.map(r=>(
             <div key={r.id} style={{display:'flex',alignItems:'flex-start',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
               <div onClick={()=>r.image_url&&setFullImg(r.image_url)} style={{width:56,height:72,borderRadius:8,overflow:'hidden',flexShrink:0,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:r.image_url?'zoom-in':'default'}}>
-                {r.image_url?<img src={r.image_url} alt="Receipt" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute}}>REC</span>}
+                {r.image_url?<img src={r.image_url} alt="Receipt" style={{width:'100%',height:'100%',objectFit:'cover'}} loading="lazy"/>:<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute}}>REC</span>}
               </div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,fontFeatureSettings:'"opsz" 9'}}>{r.vendor_name||r.description||'Receipt'}</div>
@@ -499,9 +507,15 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 
   const handleDelete = async (b:CoupleBooking) => {
     setAction(null);
+    const prevBookings = bookings;
     setBookings(prev=>prev.filter(x=>x.id!==b.id));
-    await deleteBooking(b.id);
-    showToast('Removed.');
+    const ok = await deleteBooking(b.id);
+    if(ok){
+      showToast('Removed.');
+    } else {
+      setBookings(prevBookings);
+      showToast('Could not remove. Try again.');
+    }
   };
 
   const totalCommitted = bookings.reduce((s,b)=>s+(b.amount_total||0),0);
@@ -1526,8 +1540,8 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const handleCircleShare=React.useCallback(()=>{
     if(!vendor)return;
     setPanelOpen(false);
-    saveVendorToMuse(vendor.id,photos[imgIdx]||null)
-      .then(r=>spawnDiscToast(r.ok?'Shared to Circle ✦':'Already saved'));
+    saveVendorToMuse(vendor.id,photos[imgIdx]||null,true)
+      .then(r=>spawnDiscToast(r.ok?'Shared to your Circle ✦':'Could not share'));
   },[vendor,photos,imgIdx]);
 
   const photo = isBlind?(blindItems[blindIdx]?.img||''):photos[imgIdx];
@@ -1885,15 +1899,18 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
         {MUSE_CEREMONY_FILTERS.map(f=>{const active=ceremonyFilter===f.value;return <button key={f.value} onClick={()=>setCeremonyFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>{f.label}</button>;})}
       </div>
 
-      {/* Masonry grid */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'0 12px 24px'}}>
+      {/* Uniform 2×2 grid — equal squares, hairline borders, full bleed */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         {!loading&&filtered.length===0&&<div style={{textAlign:'center' as any,padding:'64px 0',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:'rgba(240,237,232,.3)',fontFeatureSettings:'"opsz" 9'}}>No saves here yet.</div>}
-        <div style={{columns:'2 auto',columnGap:8}}>
-          {filtered.map(save=>(
-            <div key={save.id} onClick={()=>openSave(save)} style={{position:'relative',marginBottom:8,borderRadius:8,overflow:'hidden',breakInside:'avoid',cursor:'pointer',background:'#1a1714'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,borderTop:'0.5px solid rgba(245,240,232,.12)'}}>
+          {filtered.map((save,i)=>(
+            <div key={save.id} onClick={()=>openSave(save)}
+              style={{position:'relative',aspectRatio:'1/1',overflow:'hidden',cursor:'pointer',background:'#1a1714',
+                borderBottom:'0.5px solid rgba(245,240,232,.12)',
+                borderRight: i%2===0 ? '0.5px solid rgba(245,240,232,.12)' : 'none'}}>
               {save.image_url
-                ? <img src={save.image_url} alt={save.vendor_name||'muse'} style={{width:'100%',display:'block',objectFit:'cover'}} loading="lazy"/>
-                : <div style={{width:'100%',aspectRatio:'3/4',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:11,color:'rgba(248,247,245,.2)'}}>{save.vendor_name||'—'}</span></div>
+                ? <img src={save.image_url} alt={save.vendor_name||'muse'} style={{width:'100%',height:'100%',display:'block',objectFit:'cover'}} loading="lazy"/>
+                : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:11,color:'rgba(248,247,245,.2)'}}>{save.vendor_name||'—'}</span></div>
               }
               {save.vendor_name&&<div style={{position:'absolute',bottom:6,left:6,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,background:'rgba(8,6,8,.6)',color:'rgba(245,240,232,.9)',padding:'3px 7px',borderRadius:100,backdropFilter:'blur(4px)'}}>{save.vendor_name}</div>}
               {save.circle_comment_count>0&&<div style={{position:'absolute',top:6,right:6,background:`${accent}DD`,borderRadius:100,padding:'2px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pillActiveTxt,letterSpacing:'.1em'}}>{save.circle_comment_count}</div>}
@@ -2153,9 +2170,30 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
   const [loading,     setLoading]     = React.useState(true);
   const [view,        setView]        = React.useState<'feed'|'invite'>('feed');
   const [inviteName,  setInviteName]  = React.useState('');
+  const [invitePhone, setInvitePhone] = React.useState('');
   const [inviteRole,  setInviteRole]  = React.useState('family');
   const [inviting,    setInviting]    = React.useState(false);
   const [waLink,      setWaLink]      = React.useState<string|null>(null);
+  const [contactsSupported] = React.useState<boolean>(()=>{
+    if(typeof navigator==='undefined') return false;
+    return !!((navigator as any).contacts && (navigator as any).contacts.select);
+  });
+
+  const pickContact = async () => {
+    try {
+      const nav:any = navigator;
+      if(!nav.contacts?.select) return;
+      const props = ['name','tel'];
+      const result = await nav.contacts.select(props, {multiple:false});
+      if(result && result.length){
+        const c = result[0];
+        const nm = Array.isArray(c.name) ? c.name[0] : c.name;
+        const tel = Array.isArray(c.tel) ? c.tel[0] : c.tel;
+        if(nm)  setInviteName(String(nm));
+        if(tel) setInvitePhone(String(tel).replace(/[^\d+]/g,''));
+      }
+    } catch { /* user cancelled or unsupported — silently ignore */ }
+  };
 
   const circleBg = dark
     ? 'radial-gradient(ellipse 110% 55% at 50% -5%,rgba(196,133,106,.18) 0%,transparent 52%),radial-gradient(ellipse 70% 60% at 90% 110%,rgba(40,5,12,.80) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 5% 100%,rgba(60,8,20,.70) 0%,transparent 50%),linear-gradient(180deg,#1A0A0E 0%,#0E0506 40%,#080204 70%,#0C0408 100%)'
@@ -2177,16 +2215,16 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
     if(!inviteName.trim()||inviting) return;
     setInviting(true);
     try {
-      const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole});
+      const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole,invitee_phone:invitePhone.trim()||undefined});
       if(r.wa_me_link) {
         setWaLink(r.wa_me_link);
+      } else if(r.join_url) {
+        setWaLink(`https://wa.me/?text=${encodeURIComponent('Join my wedding circle: '+r.join_url)}`);
       } else {
-        // No wa_me_link returned — surface the token as fallback copy
-        setWaLink(`https://wa.me/14787788550?text=${r.invite_token}`);
+        setWaLink('ERROR:Could not generate link. Try again.');
       }
     } catch(e:any) {
       console.error('[doInvite]', e);
-      // Show the error inline
       setWaLink('ERROR:' + (e?.message || 'Could not generate link. Try again.'));
     }
     finally{ setInviting(false); }
@@ -2230,7 +2268,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
               textTransform:'uppercase' as any,textDecoration:'none',cursor:'pointer'}}>
             Open WhatsApp →
           </a>
-          <button onClick={()=>{setWaLink(null);setInviteName('');setView('feed');}}
+          <button onClick={()=>{setWaLink(null);setInviteName('');setInvitePhone('');setView('feed');}}
             style={{background:'none',border:'none',cursor:'pointer',
               fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
               textTransform:'uppercase' as any,color:pgInkMute,padding:0}}>
@@ -2240,6 +2278,17 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
         )
       ) : (
         <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
+          {/* Invite from contacts — Android only (Contact Picker API) */}
+          {contactsSupported&&(
+            <button onClick={pickContact}
+              style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'12px',
+                borderRadius:4,border:`0.5px solid ${pgAccent}`,background:'transparent',cursor:'pointer',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+                textTransform:'uppercase' as any,color:pgAccent,WebkitTapHighlightColor:'transparent'}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" stroke={pgAccent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Invite from contacts
+            </button>
+          )}
           {/* Name input */}
           <div>
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
@@ -2250,6 +2299,19 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                 fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
                 fontFeatureSettings:'"opsz" 9',outline:'none',
                 boxSizing:'border-box' as any}}/>
+          </div>
+          {/* Phone input (optional) — enables direct WhatsApp deep-link */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their WhatsApp number <span style={{opacity:.6}}>· optional</span></div>
+            <input value={invitePhone} onChange={e=>setInvitePhone(e.target.value.replace(/[^\d+ ]/g,''))}
+              type="tel" inputMode="tel"
+              placeholder="e.g. 98765 43210"
+              style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
+                padding:'12px 14px',color:pgInk,
+                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
+                fontFeatureSettings:'"opsz" 9',outline:'none',
+                boxSizing:'border-box' as any}}/>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:11,color:pgInkMute,marginTop:6,fontFeatureSettings:'"opsz" 9'}}>Add a number to send the invite straight to their chat.</div>
           </div>
           {/* Role selector */}
           <div>
@@ -3489,7 +3551,7 @@ export default function SanctuaryPage() {
           else setEventsHint('Your timeline');
         }).catch(()=>{});
 
-      // Expenses hint
+      // Expenses + Vendors hint — single bookings fetch feeds both
       fetch(`${API}/api/v2/couple/bookings/${coupleId}`,{headers:{Authorization:`Bearer ${hintsToken}`}})
         .then(r=>r.json()).then(d=>{
           const books = d?.bookings||[];
@@ -3498,12 +3560,6 @@ export default function SanctuaryPage() {
             const fmt = paid>=100000?`Rs ${(paid/100000).toFixed(1)}L`:paid>=1000?`Rs ${Math.round(paid/1000)}K`:`Rs ${paid}`;
             setExpensesHint(`${fmt} logged`);
           }
-        }).catch(()=>{});
-
-      // Vendors hint
-      fetch(`${API}/api/v2/couple/bookings/${coupleId}`,{headers:{Authorization:`Bearer ${hintsToken}`}})
-        .then(r=>r.json()).then(d=>{
-          const books = d?.bookings||[];
           if(books.length>0) setVendorsHint(`${books.length} confirmed`);
         }).catch(()=>{});
     }
