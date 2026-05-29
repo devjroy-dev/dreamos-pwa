@@ -7,7 +7,7 @@
 // Same URL. Same component. Sanctuary is always underneath.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useFrostMode } from '../../../layout';
+import { useFrostMode } from '../../../../layout';
 import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
