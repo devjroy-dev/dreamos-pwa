@@ -1,4 +1,7 @@
-'use client';
+cp sanctuary-page.tsx "app/(frost)/frost/canvas/sanctuary/page.tsx"
+git add "app/(frost)/frost/canvas/sanctuary/page.tsx"
+git commit -m "feat(frost): restructure slices — Discover first, Settings added, Dream Ai bottom anchor; fix Pages hooks crash, wire Events Ask-DreamAi, dedupe room renders"
+git push'use client';
 
 // sanctuary/page.tsx — V5 BLOOM ARCHITECTURE
 // Every slice opens IN THIS PAGE. No router.push. No history stack.
@@ -76,10 +79,9 @@ const CSS=`
 // SLICES are now dynamic — hints updated from live data on mount.
 // Base definitions — hints overridden by useSanctuaryHints() state.
 const BASE_SLICES=[
-  {key:'dream'   as RoomKey, label:'Dream Ai',     candle:false, premium:false},
+  {key:'discover'as RoomKey, label:'Discover',     candle:false, premium:false},
   {key:'circle'  as RoomKey, label:'Circle',       candle:true,  premium:false},
   {key:'muse'    as RoomKey, label:'Muse',         candle:false, premium:false},
-  {key:'discover'as RoomKey, label:'Discover',     candle:false, premium:false},
   {key:'people'  as RoomKey, label:'My People',    candle:false, premium:false},
   {key:'pages'   as RoomKey, label:'Pages',        candle:false, premium:false},
   {key:'moments' as RoomKey, label:'Moments',      candle:false, premium:false},
@@ -87,6 +89,7 @@ const BASE_SLICES=[
   {key:'expenses'as RoomKey, label:'Expenses',     candle:false, premium:false},
   {key:'vendors' as RoomKey, label:'Vendors',      candle:false, premium:false},
   {key:'meridian'as RoomKey, label:'Meridian',     candle:false, premium:true},
+  {key:'settings'as RoomKey, label:'Settings',     candle:false, premium:false},
 ];
 // WhatsApp DreamAI link — opens WA with prefilled Hi
 const DREAMAI_WA_NUMBER = '14787788550';
@@ -2510,6 +2513,15 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
     textRef.current.style.height=textRef.current.scrollHeight+'px';
   },[body]);
 
+  // Focus textarea when entering writing view.
+  // MUST live here (before any conditional return) — Rules of Hooks.
+  React.useEffect(()=>{
+    if(view==='writing'&&textRef.current){
+      const t = setTimeout(()=>{textRef.current?.focus();},180);
+      return ()=>clearTimeout(t);
+    }
+  },[view]);
+
   const saveEntry = async () => {
     if(!selectedMood||!body.trim()||saving) return;
     setSaving(true);
@@ -2646,14 +2658,6 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
   );
 
   // ── WRITING VIEW ──
-  // Focus textarea when entering writing view
-  React.useEffect(()=>{
-    if(view==='writing'&&textRef.current){
-      const t = setTimeout(()=>{textRef.current?.focus();},180);
-      return ()=>clearTimeout(t);
-    }
-  },[view]);
-
   // Exact reference: top bar DISCARD · ● MOOD · SAVE, date, left journal rule, large text
   return (
     <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:pageBg}}>
@@ -3539,6 +3543,23 @@ function timeAgoShort(iso:string):string {
     },300);
   },[]);
 
+  // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
+  // Opens the Dream bloom and prefills the input with the suggested prompt.
+  useEffect(()=>{
+    const onOpenDream = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      const prompt = detail?.prompt;
+      setActiveRoom('dream');
+      setBlooming(true);
+      setClosing(false);
+      if(prompt && typeof prompt === 'string') {
+        setInput(prompt);
+      }
+    };
+    window.addEventListener('frost:open-dream', onOpenDream);
+    return ()=>{ window.removeEventListener('frost:open-dream', onOpenDream); };
+  },[]);
+
   // ── Back button trap (Android + iOS PWA) ─────────────────────────────────
   // Strategy: push a sentinel history entry on mount.
   // When popstate fires (back button): push another sentinel (stay on page)
@@ -3746,6 +3767,7 @@ function timeAgoShort(iso:string):string {
           expenses:expensesHint||'Track your spend',
           vendors:vendorsHint||'Your team',
           meridian:'Skin · mind · body',
+          settings:'Your wedding, your way',
         };
         return(
         <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
@@ -3762,14 +3784,15 @@ function timeAgoShort(iso:string):string {
         );
       })()}
 
-      {/* DreamAi on WhatsApp — persistent bottom link, always visible */}
-      <div style={{position:'relative',zIndex:5,flexShrink:0,borderTop:`.5px solid ${lineStr}`,paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 4px)'}}>
-        <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer"
-          style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'10px 18px',textDecoration:'none',WebkitTapHighlightColor:'transparent'}}>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(10,22,40,.45)'}}>
-            ↗ DreamAi on <span style={{color:accent}}>WhatsApp</span>
-          </span>
-        </a>
+      {/* Dream Ai — bottom anchor slice. Smaller, centered, italicised. Opens in-app Dream bloom. */}
+      <div onClick={()=>openRoom('dream')}
+        style={{position:'relative',zIndex:5,flexShrink:0,borderTop:`.5px solid ${lineStr}`,
+          display:'flex',alignItems:'center',justifyContent:'center',
+          padding:'12px 18px',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 12px)',
+          cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation'}}>
+        <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1,color:accent,fontFeatureSettings:'"opsz" 9',letterSpacing:'.01em'}}>
+          Dream Ai
+        </span>
       </div>
 
       {/* ════════════════════════════════════════════════════════
@@ -3903,21 +3926,6 @@ function timeAgoShort(iso:string):string {
             {/* ── PEOPLE ── */}
             {activeRoom==='people'&&(
               <PeopleRoom dark={dark} accent={accent} signal={signal}/>
-            )}
-
-            {/* ── EXPENSES ── */}
-            {activeRoom==='expenses'&&(
-              <ExpensesRoom dark={dark} accent={accent} signal={signal}/>
-            )}
-
-            {/* ── VENDORS ── */}
-            {activeRoom==='vendors'&&(
-              <VendorsRoom dark={dark} accent={accent}/>
-            )}
-
-            {/* ── SETTINGS ── */}
-            {activeRoom==='settings'&&(
-              <SettingsRoom dark={dark} accent={accent} signal={signal} setHomeMode={setHomeMode}/>
             )}
 
             {/* ── MOMENTS — personal photo diary ── */}
