@@ -47,24 +47,35 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{
-  var DARK='#1E0A0E', LIGHT='#F0EEE8';
-  var stored=null, manual=null;
-  try{stored=localStorage.getItem('@frost.home_mode');}catch(e){}
-  try{manual=localStorage.getItem('@frost.home_mode_manual');}catch(e){}
   var path=location.pathname||'';
+  var FROST_DARK='#1E0A0E', FROST_LIGHT='#F0EEE8';
+  var VENDOR_LIGHT='#F5F2EE';
   var isFrost=path.indexOf('/frost')===0||path.indexOf('/coplanner')===0||path.indexOf('/circle')===0;
-  var bg=DARK;
+  var isVendor=path.indexOf('/vendor')===0;
+  var bg=null;
   if(isFrost){
+    var stored=null, manual=null;
+    try{stored=localStorage.getItem('@frost.home_mode');}catch(e){}
+    try{manual=localStorage.getItem('@frost.home_mode_manual');}catch(e){}
     var mode;
     if(stored==='E3'||stored==='E1A'){mode=stored;}
     else if(!manual){var h=new Date().getHours();mode=(h<7||h>=19)?'E1A':'E3';}
     else{mode='E1A';}
-    bg=(mode==='E3')?LIGHT:DARK;
+    bg=(mode==='E3')?FROST_LIGHT:FROST_DARK;
+  } else if(isVendor){
+    var vt=null;
+    try{vt=localStorage.getItem('dreamai_theme');}catch(e){}
+    if(vt==='light'){
+      document.documentElement.classList.add('theme-light');
+      bg=VENDOR_LIGHT;
+    }
   }
-  document.documentElement.style.background=bg;
-  if(document.body){document.body.style.background=bg;}
-  var tc=document.querySelector('meta[name="theme-color"]');
-  if(tc){tc.setAttribute('content',bg);}
+  if(bg){
+    document.documentElement.style.background=bg;
+    if(document.body){document.body.style.background=bg;}
+    var tc=document.querySelector('meta[name="theme-color"]');
+    if(tc){tc.setAttribute('content',bg);}
+  }
 }catch(e){}})();`,
           }}
         />
