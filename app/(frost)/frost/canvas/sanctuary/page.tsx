@@ -2207,8 +2207,33 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
   const candleBg  = dark ? 'rgba(196,133,106,.08)' : 'rgba(42,95,130,.06)';
   const candleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.16)';
 
+  const [chatMsgs, setChatMsgs] = React.useState<any[]>([]);
+  const API_CIRCLE = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+
   React.useEffect(()=>{
     fetchCircle().then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  // Fetch circle thread messages + poll every 10s so members' messages appear live.
+  React.useEffect(()=>{
+    let alive = true;
+    const loadMessages = async () => {
+      try {
+        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+        const s = raw ? JSON.parse(raw) : null;
+        const coupleId = s?.coupleId||s?.id;
+        const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+        if(!coupleId) return;
+        const res = await fetch(`${API_CIRCLE}/api/v2/frost/circle/messages/${coupleId}`,{
+          headers: token?{Authorization:`Bearer ${token}`}:undefined,
+        });
+        const d = await res.json();
+        if(alive && d?.ok && Array.isArray(d.messages)) setChatMsgs(d.messages);
+      } catch { /* keep last known */ }
+    };
+    loadMessages();
+    const iv = setInterval(loadMessages, 10000);
+    return ()=>{ alive=false; clearInterval(iv); };
   },[]);
 
   const doInvite = async () => {
@@ -2231,8 +2256,22 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
   };
 
   const members  = data?.members         || [];
-  const activity = data?.activity        || [];
+  const baseActivity = data?.activity     || [];
   const pending  = data?.pending_invites || [];
+
+  // Merge real chat messages into the activity stream so the group chat is visible
+  // alongside saves/joins. Messages render as activity_type='message'.
+  const msgItems = (chatMsgs||[]).map((m:any)=>({
+    id:            'msg-'+m.id,
+    activity_type: 'message',
+    member_name:   m.sender_role==='bride' ? 'You' : (m.sender_name||'Circle'),
+    actor_role:    m.sender_role||'circle_member',
+    content:       m.content||m.body||'',
+    created_at:    m.created_at,
+    image_url:     null, caption:null, aesthetic_tags:null, save_number:null, source_type:null,
+  }));
+  const activity = [...baseActivity, ...msgItems]
+    .sort((a:any,b:any)=> new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   // ── INVITE VIEW ──
   if(view==='invite') return (
@@ -2452,9 +2491,8 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
         padding:`10px 16px calc(10px + env(safe-area-inset-bottom,0px))`}}>
         <CircleCompose dark={dark} accent={pgAccent} line={pgLine} ink={pgInk} signal={signal}
           onSent={(msg)=>{
-            // Optimistically append to activity feed
-            const newItem={id:uid(),activity_type:'message',member_name:'You',actor_role:'bride',content:msg,created_at:new Date().toISOString(),image_url:null,caption:null,aesthetic_tags:null,save_number:null,source_type:null};
-            setData(prev=>prev?{...prev,activity:[newItem,...(prev.activity||[])]}:prev);
+            // Optimistic — append to chatMsgs; next 10s poll reconciles with server truth.
+            setChatMsgs(prev=>[...prev,{id:'local-'+Date.now(),content:msg,body:msg,sender_role:'bride',sender_name:'You',created_at:new Date().toISOString()}]);
           }}/>
       </div>
     </div>
@@ -2478,10 +2516,11 @@ function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
       const s = raw ? JSON.parse(raw) : null;
       const coupleId = s?.coupleId||s?.id;
       if(coupleId) {
+        // No thread_id → backend resolves the canonical per-couple circle thread.
         await fetch(`${API}/api/v2/frost/circle/messages`,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({userId:coupleId,thread_id:`circle_group`,body:msg,sender_name:'Bride'}),
+          body:JSON.stringify({userId:coupleId,body:msg,sender_name:'Bride',sender_role:'bride'}),
         });
       }
       onSent(msg);
