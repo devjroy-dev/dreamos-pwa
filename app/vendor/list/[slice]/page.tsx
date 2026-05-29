@@ -17,7 +17,7 @@ import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
-import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid } from '@/lib/vendor/api/vendor';
+import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf } from '@/lib/vendor/api/vendor';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
 import { ConversationThread } from '@/components/vendor/ConversationThread';
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
@@ -159,6 +159,7 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
   const [editRow,     setEditRow]     = useState<Record<string,unknown> | null>(null);
   const [editPrimer,  setEditPrimer]  = useState<string>('');
   const { toast, show: showToast }   = useToast();
+  const [pdfBusy, setPdfBusy] = useState(false);
   const [leadDetail, setLeadDetail] = useState<{ vendor_summary: string | null; conversation: ConversationMessage[] } | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
@@ -170,7 +171,7 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
     const res = await createSchedule(sel.id, milestones.map(m => ({
       label: m.label, pct: Number(m.pct), due_date: m.due_date || undefined,
     })));
-    if (!res.ok) alert((res as { error?: string }).error ?? 'Failed to create schedule');
+    if (!res.ok) showToast((res as { error?: string }).error ?? 'Failed to create schedule', 'error');
     else { setSchedule((res as { schedule: ScheduleMilestone[] }).schedule); setScheduleOpen(false); }
     setScheduleSaving(false);
   }
@@ -185,6 +186,22 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
       }).catch(() => setSchedule([])).finally(() => setScheduleLoading(false));
     }
   }, [sel, slice]);
+
+  async function downloadInvoicePdf() {
+    if (!sel || pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const res = await fetchInvoicePdf(sel.id);
+      if (res.ok && (res as { pdf_url?: string }).pdf_url) {
+        window.open((res as { pdf_url: string }).pdf_url, '_blank', 'noopener');
+      } else {
+        showToast((res as { error?: string }).error ?? 'PDF not ready yet — try again in a moment.', 'error');
+      }
+    } catch {
+      showToast('Could not fetch the PDF. Try again.', 'error');
+    }
+    setPdfBusy(false);
+  }
 
   const rows = useMemo(() => {
     if (!query.trim()) return rawRows;
@@ -466,6 +483,19 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
             {/* Invoice payment schedule */}
             {slice === 'invoices' && sel && (
               <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+                <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
+                  className={!pdfBusy ? 'atelier-fab' : undefined}
+                  style={{
+                    width: '100%', marginBottom: 16, padding: '11px 14px',
+                    background: pdfBusy ? 'rgba(201,168,76,0.18)' : undefined,
+                    border: '0.5px solid #E0BC6E', borderRadius: 3,
+                    cursor: pdfBusy ? 'default' : 'pointer', opacity: pdfBusy ? 0.6 : 1,
+                    fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+                    letterSpacing: '0.28em', textTransform: 'uppercase',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}>
+                  {pdfBusy ? 'Fetching…' : '↓ Download PDF'}
+                </button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brass, letterSpacing: '0.42em', textTransform: 'uppercase' }}>Payment Schedule</span>
                   <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />

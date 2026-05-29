@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
-import { fetchLeads, fetchMe } from '@/lib/vendor/api/vendor';
+import { fetchLeads, fetchMe, fetchDiscoverStatus } from '@/lib/vendor/api/vendor';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -65,15 +65,20 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const router = useRouter();
   const [leads,   setLeads]   = useState<TdwLead[]>([]);
   const [handle,  setHandle]  = useState<string>('');
+  const [savesCount, setSavesCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetchLeads(vendorId, 'all'),
       fetchMe(),
-    ]).then(([leadsRes, meRes]) => {
+      fetchDiscoverStatus().catch(() => null),
+    ]).then(([leadsRes, meRes, statusRes]) => {
       if (leadsRes.ok) setLeads(leadsRes.leads as TdwLead[]);
       if (meRes.ok) setHandle((meRes as { vendor: { handle: string } }).vendor?.handle ?? '');
+      if (statusRes && (statusRes as { ok?: boolean }).ok) {
+        setSavesCount((statusRes as { saves_count?: number }).saves_count ?? 0);
+      }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [vendorId]);
 
@@ -84,7 +89,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
 
   const enquiries  = tdwLeads.length;
   const actioned   = tdwLeads.filter(l => l.state !== 'new').length;
-  const saves      = '—';
+  const saves      = savesCount === null ? '—' : String(savesCount);
 
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const recent = tdwLeads.filter(l => l.created_at >= cutoff);
@@ -160,7 +165,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               color: A.brass, fontSize: 9, letterSpacing: '0.3em',
             }}>◆</div>
             {[
-              { label: 'Saves',     value: saves,     accent: false, color: 'var(--atelier-ink-dim)' },
+              { label: 'Saves',     value: saves,     accent: (savesCount ?? 0) > 0, color: (savesCount ?? 0) > 0 ? 'var(--atelier-ink)' : 'var(--atelier-ink-dim)' },
               { label: 'Enquiries', value: String(enquiries), accent: enquiries > 0, color: enquiries > 0 ? 'var(--atelier-ink)' : 'var(--atelier-ink-dim)', divider: true },
               { label: 'Actioned',  value: String(actioned),  accent: actioned > 0,  color: actioned > 0 ? A.brassWarm : 'var(--atelier-ink-dim)', divider: true },
             ].map(({ label, value, color, divider }) => (

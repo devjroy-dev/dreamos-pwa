@@ -19,10 +19,6 @@ import { CommandBar } from '@/components/vendor/CommandBar';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { setVendorSession } from '@/lib/vendor/session';
 
-// ── Demo mode constants ───────────────────────────────────────────────────────
-const DEMO_SESS_KEY  = 'tdw_vendor_demo_session';
-const DEMO_UUID      = 'bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb';
-const BACKEND        = 'https://dream-os-production.up.railway.app';
 import { getJson } from '@/lib/vendor/api/_base';
 import { useChat } from '@/hooks/vendor/useChat';
 
@@ -380,88 +376,12 @@ export default function WeddingChatPage() {
     setSeeded(true);
   }, []);
 
-  // ── Demo session fallback ─────────────────────────────────────────────────
-  // Check for demo session ONLY when no real session exists.
-  // Real session always takes priority.
-  const [demoSession, setDemoSession] = useState<Record<string,unknown> | null>(null);
-  const [isDemoMode,  setIsDemoMode]  = useState(false);
-  const [showDemoBanner, setShowDemoBanner] = useState(true);
-
-  useEffect(() => {
-    try {
-      // Check URL param first (iOS Safari safe)
-      const urlParams = new URLSearchParams(window.location.search);
-      const demoFromUrl = urlParams.get('demo') === DEMO_UUID;
-      const handleFromUrl = urlParams.get('handle') || '';
-      const nameFromUrl   = urlParams.get('name')   || '';
-      const categoryFromUrl = urlParams.get('category') || '';
-      const cityFromUrl   = decodeURIComponent(urlParams.get('city') || '');
-
-      if (demoFromUrl) {
-        const demoSession = {
-          id: DEMO_UUID, vendorId: DEMO_UUID, user_id: DEMO_UUID,
-          name: decodeURIComponent(nameFromUrl), phone: null,
-          tier: 'signature', category: categoryFromUrl,
-          city: decodeURIComponent(cityFromUrl),
-          ig_handle: handleFromUrl, demo: true,
-          demo_handle: handleFromUrl, _v: 2,
-        };
-        setDemoSession(demoSession);
-        setIsDemoMode(true);
-        try {
-          localStorage.setItem(DEMO_SESS_KEY, JSON.stringify(demoSession));
-          localStorage.setItem('vendor_session', JSON.stringify(demoSession));
-          localStorage.setItem('vendor_web_session', JSON.stringify(demoSession));
-        } catch { /* iOS Private Browsing — URL param is the fallback */ }
-        return;
-      }
-
-      // localStorage fallback
-      const realSess = localStorage.getItem('vendor_session') || localStorage.getItem('vendor_web_session');
-      if (realSess) {
-        const parsed = JSON.parse(realSess);
-        if (parsed?.id && parsed?.id !== DEMO_UUID && !parsed?.demo) return;
-      }
-      const demoRaw = localStorage.getItem(DEMO_SESS_KEY);
-      if (demoRaw) {
-        const parsed = JSON.parse(demoRaw);
-        if (parsed?.demo) {
-          setDemoSession(parsed);
-          setIsDemoMode(true);
-          localStorage.setItem('vendor_session',     demoRaw);
-          localStorage.setItem('vendor_web_session', demoRaw);
-        }
-      }
-    } catch { /* ignore */ }
-  }, []);
-
-  async function handleDeleteDemoRequest() {
-    if (!demoSession?.demo_handle) return;
-    try {
-      await fetch(`${BACKEND}/api/v2/demo/vendor/${demoSession.demo_handle}/delete-request`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ig_handle: demoSession.demo_handle, name: demoSession.name }),
-      });
-      alert('Deletion request sent. We will remove your demo within 24 hours.');
-    } catch { alert('Could not send request. Please contact us directly.'); }
-  }
-
   const { session, loading: sessionLoading } = useVendorSession();
 
   useEffect(() => {
     if (seeded === null) return;
-    // Check URL demo param synchronously before redirecting — demo sessions have no localStorage
-    const _urlP = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const _isDemoUrl = _urlP?.get('demo') === DEMO_UUID;
-    if (!sessionLoading && !session && !_isDemoUrl) { router.replace('/'); return; }
+    if (!sessionLoading && !session) { router.replace('/'); return; }
     if (!sessionLoading && session) {
-      // Skip backend verification for demo sessions
-      // Check URL param first (iOS Safari safe) then localStorage fallback
-      const _urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-      const _demoFromUrl = _urlParams?.get('demo') === DEMO_UUID;
-      const _demoFromStorage = (() => { try { const d = JSON.parse(localStorage.getItem('tdw_vendor_demo_session') || '{}'); return !!d?.demo; } catch { return false; } })();
-      if (_demoFromUrl || _demoFromStorage || isDemoMode) { setSeeded(true); return; }
       // Verify JWT against backend — catches expired tokens and wrong accounts.
       // If the stored session points to the wrong vendor (e.g. stale mock),
       // the /me response will have a different vendor ID — force re-login.
@@ -504,23 +424,6 @@ export default function WeddingChatPage() {
 
   return (
     <Suspense fallback={<div style={{ flex: 1 }} aria-busy="true" />}>
-      {/* ── Demo banner ────────────────────────────────────────────────────── */}
-      {isDemoMode && showDemoBanner && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: 'rgba(201,168,76,0.12)', backdropFilter: 'blur(12px)', borderBottom: '0.5px solid rgba(201,168,76,0.3)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 11, color: 'rgba(201,168,76,0.9)', margin: 0, flex: 1 }}>
-            Demo mode — WhatsApp access available after signup
-          </p>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-            <button onClick={() => { window.location.href = '/'; }} style={{ background: '#C9A84C', border: 'none', borderRadius: 8, padding: '6px 12px', fontFamily: "'Jost', sans-serif", fontWeight: 300, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#0A0908', cursor: 'pointer' }}>
-              Claim studio →
-            </button>
-            <button onClick={handleDeleteDemoRequest} style={{ background: 'transparent', border: 'none', fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '6px 4px' }}>
-              Delete
-            </button>
-            <button onClick={() => setShowDemoBanner(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, padding: '0 4px', lineHeight: 1 }}>×</button>
-          </div>
-        </div>
-      )}
       <ChatScreen vendorId={session.id} vendorName={session.name} />
     </Suspense>
   );

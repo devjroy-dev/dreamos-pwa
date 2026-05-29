@@ -570,6 +570,7 @@ export interface DiscoverStatus {
   discover_request_state: string;
   discover_eligible: boolean;
   portfolio_summary: { total: number; approved: number; pending: number; rejected: number };
+  saves_count?: number;
   current_request: { id: string; state: string; decided_at: string | null } | null;
   last_decision_reason: string | null;
 }
