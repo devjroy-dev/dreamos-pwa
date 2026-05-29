@@ -3,6 +3,31 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../lib/api';
 
+// iOS Safari (normal browsing, installed PWA, or ITP-restricted contexts) can
+// throw on localStorage.setItem even when the network is fine. The login flow
+// previously did raw setItem inside the same try/catch as the fetch, so a
+// storage throw surfaced as a misleading "Could not connect" toast and aborted
+// sign-in. These helpers isolate storage writes and mirror the session to a
+// first-party cookie, which works in contexts where localStorage throws — so
+// login completes regardless of localStorage state.
+const SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+  } catch { /* iOS storage blocked/quota — cookie fallback covers it */ }
+}
+
+function mirrorSessionToCookie(isVendor: boolean, session: unknown): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const name = isVendor ? 'tdw_vendor_session' : 'tdw_couple_session';
+    const val  = encodeURIComponent(JSON.stringify(session));
+    document.cookie = `${name}=${val}; max-age=${SESSION_COOKIE_MAX_AGE}; path=/; SameSite=Lax; Secure`;
+  } catch { /* ignore */ }
+}
 
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
@@ -474,8 +499,8 @@ export default function Home() {
         return;
       }
 
-      if (d.access_token)  localStorage.setItem('access_token', d.access_token);
-      if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
+      if (d.access_token)  safeSetItem('access_token', d.access_token);
+      if (d.refresh_token) safeSetItem('refresh_token', d.refresh_token);
 
       const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
       const sessionData = {
@@ -491,8 +516,9 @@ export default function Home() {
         refresh_token: d.refresh_token || null,
         _v: 2,
       };
-      localStorage.setItem(sessionKey, JSON.stringify(sessionData));
-      localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
+      safeSetItem(sessionKey, JSON.stringify(sessionData));
+      safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
+      mirrorSessionToCookie(isVendor, sessionData);
 
       // Vendor: always goes to /vendor/pin-login (PIN screen) → /vendor
       // Couple: onboarding if new, pin-login if returning, pin if no PIN set
@@ -528,8 +554,9 @@ export default function Home() {
       if (d.pin_set) {
         const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
         const sd = {           id: d.role_id, userId: d.user_id, vendorId: d.role_id,           phone: e164, pin_set: true,         };
-        localStorage.setItem(sessionKey, JSON.stringify(sd));
-        localStorage.setItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
+        safeSetItem(sessionKey, JSON.stringify(sd));
+        safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
+        mirrorSessionToCookie(isVendor, sd);
         router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login'); // pin screens → /vendor or /frost
         return;
       }

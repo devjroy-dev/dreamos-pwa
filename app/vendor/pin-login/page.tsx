@@ -9,6 +9,32 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
 
+// iOS Safari may have thrown on localStorage.setItem during landing sign-in, so
+// the session can live only in the first-party cookie. Read both; write both.
+const SESSION_COOKIE = 'tdw_vendor_session';
+
+function readVendorSession(): Record<string, unknown> | null {
+  try {
+    const raw = localStorage.getItem('vendor_web_session') || localStorage.getItem('vendor_session');
+    if (raw) return JSON.parse(raw);
+  } catch { /* fall through */ }
+  try {
+    const m = document.cookie.split('; ').find(r => r.startsWith(SESSION_COOKIE + '='));
+    if (m) return JSON.parse(decodeURIComponent(m.split('=').slice(1).join('=')));
+  } catch { /* ignore */ }
+  return null;
+}
+
+function writeVendorSession(session: Record<string, unknown>): void {
+  try {
+    localStorage.setItem('vendor_web_session', JSON.stringify(session));
+    localStorage.setItem('vendor_session',     JSON.stringify(session));
+  } catch { /* iOS storage blocked — cookie covers it */ }
+  try {
+    document.cookie = `${SESSION_COOKIE}=${encodeURIComponent(JSON.stringify(session))}; max-age=${7 * 24 * 60 * 60}; path=/; SameSite=Lax; Secure`;
+  } catch { /* ignore */ }
+}
+
 const GOLD = '#C9A84C';
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
@@ -31,14 +57,12 @@ export default function VendorPinLoginPage() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2800); };
 
   useEffect(() => {
-    try {
-      const s = JSON.parse(
-        localStorage.getItem('vendor_web_session') ||
-        localStorage.getItem('vendor_session') || '{}'
-      );
-      if (!s?.id || !s?.pin_set) { router.replace('/'); return; }
-      if (s?.name) setName(s.name);
-    } catch { router.replace('/'); return; }
+    // Read session from localStorage; fall back to the first-party cookie that
+    // the landing login mirrors to (covers iOS Safari where localStorage.setItem
+    // threw during sign-in, so the session only exists in the cookie).
+    const s = readVendorSession();
+    if (!s?.id || !s?.pin_set) { router.replace('/'); return; }
+    if (s?.name) setName(s.name as string);
     pinRefs.current[0]?.focus();
   }, [router]);
 
@@ -55,10 +79,7 @@ export default function VendorPinLoginPage() {
     if (loading) return;
     setLoading(true);
     try {
-      const session = JSON.parse(
-        localStorage.getItem('vendor_web_session') ||
-        localStorage.getItem('vendor_session') || '{}'
-      );
+      const session = readVendorSession() || {};
       const r = await fetch(API_BASE + '/api/v2/vendor/auth/pin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,12 +87,9 @@ export default function VendorPinLoginPage() {
       });
       const d = await r.json();
       if (d.ok) {
-        if (d.access_token)  localStorage.setItem('access_token', d.access_token);
-        if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
-        const existing = JSON.parse(
-          localStorage.getItem('vendor_web_session') ||
-          localStorage.getItem('vendor_session') || '{}'
-        );
+        if (d.access_token)  { try { localStorage.setItem('access_token', d.access_token); } catch {} }
+        if (d.refresh_token) { try { localStorage.setItem('refresh_token', d.refresh_token); } catch {} }
+        const existing = readVendorSession() || {};
         // Write stamped vendor session for dreamai session hardening
         const updated = {
           ...existing,
@@ -84,8 +102,7 @@ export default function VendorPinLoginPage() {
           refresh_token: d.refresh_token || d.access_token,
           _v: 2,
         };
-        localStorage.setItem('vendor_web_session', JSON.stringify(updated));
-        localStorage.setItem('vendor_session',     JSON.stringify(updated));
+        writeVendorSession(updated);
         router.replace('/vendor');
       } else {
         const next = attempts + 1; setAttempts(next);
