@@ -39,6 +39,18 @@
     {
       "source": "/join/:code",
       "destination": "/join/[code]"
+    },
+    {
+      "source": "/coplanner",
+      "destination": "/coplanner"
+    },
+    {
+      "source": "/coplanner/:path*",
+      "destination": "/coplanner/:path*"
+    },
+    {
+      "source": "/circle/join/:token",
+      "destination": "/circle/join/[token]"
     }
   ]
 }
