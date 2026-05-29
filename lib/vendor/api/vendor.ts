@@ -27,6 +27,14 @@ export function fetchContext(vendorId: string): Promise<VendorContextResponse> {
   return getJson<VendorContextResponse>(`/api/v2/vendor/context/${vendorId}`);
 }
 
+// ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
+export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };
+export type ChatHistoryResponse = { ok: boolean; messages: ChatHistoryMessage[]; error?: string };
+export function fetchChatHistory(vendorId: string, limit = 10): Promise<ChatHistoryResponse> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, messages: [] });
+  return getJson<ChatHistoryResponse>(`/api/v2/vendor/chat/history/${vendorId}?limit=${limit}`);
+}
+
 // ── Today dashboard ───────────────────────────────────────────────────────
 export function fetchToday(vendorId: string): Promise<TodayResponse> {
   if (USE_MOCKS) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchContext, streamChat } from '@/lib/vendor/api/vendor';
+import { fetchContext, fetchChatHistory, streamChat } from '@/lib/vendor/api/vendor';
 import { getVendorSession } from '@/lib/vendor/session';
 import { buildBriefing } from '@/lib/vendor/briefing';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
@@ -42,7 +42,10 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
   const pendingPrimerRef = useRef<string>('');
   const abortRef         = useRef<(() => void) | null>(null);
 
-  // ── Load context on mount ─────────────────────────────────────────────
+  // ── Load context + recent history on mount ────────────────────────────
+  // 3.0-B: fetch the last ~10 messages so the chat opens with recent
+  // scrollback instead of a blank screen. History sits ABOVE the briefing.
+  // This is display-only — the agent reads its own history server-side.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -51,10 +54,27 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
         if (cancelled) return;
         setContext(ctx);
         const briefing = buildBriefing(ctx);
-        if (briefing) setMessages((prev: ChatMessage[]) => prev.length === 0
-          ? [{ id: 'briefing', role: 'ai', text: briefing }]
-          : prev
-        );
+
+        // Fetch recent transcript (best-effort; never blocks the briefing).
+        let history: ChatMessage[] = [];
+        try {
+          const h = await fetchChatHistory(vendorId, 10);
+          if (!cancelled && h.ok && Array.isArray(h.messages)) {
+            history = h.messages.map(m => ({ id: m.id, role: m.role, text: m.text }));
+          }
+        } catch {}
+        if (cancelled) return;
+
+        setMessages((prev: ChatMessage[]) => {
+          if (prev.length > 0) return prev;  // user already started typing
+          const seed: ChatMessage[] = [...history];
+          // Append the briefing only if it isn't already the last thing said.
+          if (briefing) {
+            const lastText = history.length ? history[history.length - 1].text : '';
+            if (lastText !== briefing) seed.push({ id: 'briefing', role: 'ai', text: briefing });
+          }
+          return seed;
+        });
       } catch {}
     })();
     return () => { cancelled = true; };
