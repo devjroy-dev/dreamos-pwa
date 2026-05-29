@@ -39,7 +39,11 @@ export default function CoJoinPage() {
         body: JSON.stringify({ invite_code: code, name: name.trim(), phone, email: email.trim() || null, instagram: instagram.trim() || null, password }) });
       const d = await r.json();
       if (d.success) {
-        localStorage.setItem('couple_session', JSON.stringify({ id: d.data.id, name: d.data.name, couple_tier: 'co_planner', tier_label: 'co_planner', tokens: 0, primary_user_id: d.data.primary_user_id }));
+        const sess = { id: d.data.id, name: d.data.name, couple_tier: 'co_planner', tier_label: 'co_planner', tokens: 0, primary_user_id: d.data.primary_user_id };
+        try { localStorage.setItem('couple_session', JSON.stringify(sess)); } catch { /* iOS storage blocked */ }
+        try {
+          document.cookie = `tdw_couple_session=${encodeURIComponent(JSON.stringify(sess))}; max-age=${7 * 24 * 60 * 60}; path=/; SameSite=Lax; Secure`;
+        } catch { /* ignore */ }
         setStep('done');
       } else { setError(d.error || 'Signup failed'); }
     } catch { setError('Network error'); }

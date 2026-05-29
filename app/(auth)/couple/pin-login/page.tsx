@@ -3,6 +3,30 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../../lib/api';
 
+// iOS Safari may throw on localStorage.setItem during sign-in, so the couple
+// session can live only in the first-party cookie. Read both; write both.
+const COUPLE_SESSION_COOKIE = 'tdw_couple_session';
+function readCoupleSession(): Record<string, unknown> {
+  try {
+    const raw = localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session');
+    if (raw) return JSON.parse(raw);
+  } catch { /* fall through */ }
+  try {
+    const m = document.cookie.split('; ').find(r => r.startsWith(COUPLE_SESSION_COOKIE + '='));
+    if (m) return JSON.parse(decodeURIComponent(m.split('=').slice(1).join('=')));
+  } catch { /* ignore */ }
+  return {};
+}
+function writeCoupleSession(session: Record<string, unknown>): void {
+  try {
+    localStorage.setItem('couple_web_session', JSON.stringify(session));
+    localStorage.setItem('couple_session',     JSON.stringify(session));
+  } catch { /* iOS storage blocked — cookie covers it */ }
+  try {
+    document.cookie = `${COUPLE_SESSION_COOKIE}=${encodeURIComponent(JSON.stringify(session))}; max-age=${7 * 24 * 60 * 60}; path=/; SameSite=Lax; Secure`;
+  } catch { /* ignore */ }
+}
+
 
 const GOLD = '#C9A84C';
 const FALLBACK_SLIDES: string[] = [
@@ -33,15 +57,14 @@ export default function CouplePinLoginPage() {
       const pinSetParam = params.get('pin_set');
       if (uid && pinSetParam === 'true') {
         const sd = { id: uid, userId: uid, phone, pin_set: true };
-        localStorage.setItem('couple_web_session', JSON.stringify(sd));
-        localStorage.setItem('couple_session', JSON.stringify(sd));
+        writeCoupleSession(sd);
         window.history.replaceState({}, '', '/couple/pin-login');
         pinRefs.current[0]?.focus();
         return;
       }
-      const s = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
+      const s = readCoupleSession();
       if ((!s?.id && !s?.userId) || !s?.pin_set) { router.replace('/'); return; }
-      if (s?.name) setName(s.name);
+      if (s?.name) setName(s.name as string);
     } catch { router.replace('/'); return; }
     pinRefs.current[0]?.focus();
   }, []);
@@ -59,17 +82,17 @@ export default function CouplePinLoginPage() {
     if (loading) return;
     setLoading(true);
     try {
-      const session = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
+      const session = readCoupleSession();
       const r = await fetch(API_BASE + '/api/v2/couple/auth/pin-login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: session.phone, pin: pinStr }),
       });
       const d = await r.json();
       if (d.ok) {
-        if (d.access_token)  localStorage.setItem('access_token', d.access_token);
-        if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
-        const existing = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
-        const updated = {
+        if (d.access_token)  { try { localStorage.setItem('access_token', d.access_token); } catch {} }
+        if (d.refresh_token) { try { localStorage.setItem('refresh_token', d.refresh_token); } catch {} }
+        const existing = readCoupleSession();
+        const updated: Record<string, unknown> = {
           ...existing,
           id: d.couple_id || existing.id,
           userId: d.user_id || existing.userId,
@@ -77,8 +100,7 @@ export default function CouplePinLoginPage() {
           pin_set: true,
           dreamer_type: d.dreamer_type || existing.dreamer_type || 'basic',
         };
-        localStorage.setItem('couple_web_session', JSON.stringify(updated));
-        localStorage.setItem('couple_session', JSON.stringify(updated));
+        writeCoupleSession(updated);
         // Fetch wedding_date so the frost landing countdown is real
         try {
           const meRes = await fetch(API_BASE + '/api/v2/couple/me/' + (d.couple_id || existing.id), {
@@ -93,8 +115,7 @@ export default function CouplePinLoginPage() {
               bride_name:    me.bride_name    || updated.bride_name    || null,
               wedding_city:  me.wedding_city  || updated.wedding_city  || null,
             };
-            localStorage.setItem('couple_web_session', JSON.stringify(enriched));
-            localStorage.setItem('couple_session', JSON.stringify(enriched));
+            writeCoupleSession(enriched);
           }
         } catch {}
         router.replace('/frost');

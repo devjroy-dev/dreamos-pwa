@@ -370,10 +370,20 @@ export function getCoupleIdForFrost(): string | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    return s?.coupleId || s?.id || null;
-  } catch { return null; }
+    if (raw) {
+      const s = JSON.parse(raw);
+      const id = s?.coupleId || s?.id;
+      if (id) return id;
+    }
+  } catch { /* fall through to cookie */ }
+  try {
+    const m = document.cookie.split('; ').find(r => r.startsWith('tdw_couple_session='));
+    if (m) {
+      const s = JSON.parse(decodeURIComponent(m.split('=').slice(1).join('=')));
+      return s?.coupleId || s?.id || null;
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────

@@ -107,10 +107,18 @@ export function getCoupleSession(): CoupleSession | null {
     const raw =
       localStorage.getItem('couple_session') ||
       localStorage.getItem('couple_web_session');
-    return raw ? (JSON.parse(raw) as CoupleSession) : null;
-  } catch {
-    return null;
-  }
+    if (raw) return JSON.parse(raw) as CoupleSession;
+  } catch { /* fall through to cookie */ }
+  // Cookie fallback — covers iOS Safari where localStorage.setItem threw during
+  // sign-in (session lives only in the tdw_couple_session cookie set by landing).
+  try {
+    const cookieRaw = readCookie('tdw_couple_session');
+    if (cookieRaw) {
+      const parsed = JSON.parse(cookieRaw) as CoupleSession;
+      if (parsed && (parsed as { id?: string }).id) return parsed;
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
 export function getAccessToken(): string | null {

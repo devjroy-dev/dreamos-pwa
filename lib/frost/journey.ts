@@ -26,11 +26,22 @@ function getCoupleId(): string | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    // pin-login writes { id, userId, ... } — id IS the couple_id
-    return s?.coupleId || s?.id || null;
-  } catch { return null; }
+    if (raw) {
+      const s = JSON.parse(raw);
+      // pin-login writes { id, userId, ... } — id IS the couple_id
+      const id = s?.coupleId || s?.id;
+      if (id) return id;
+    }
+  } catch { /* fall through to cookie */ }
+  // Cookie fallback — iOS Safari may have blocked the localStorage write at sign-in.
+  try {
+    const m = document.cookie.split('; ').find(r => r.startsWith('tdw_couple_session='));
+    if (m) {
+      const s = JSON.parse(decodeURIComponent(m.split('=').slice(1).join('=')));
+      return s?.coupleId || s?.id || null;
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {

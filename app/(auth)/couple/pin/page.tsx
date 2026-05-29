@@ -3,6 +3,29 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../../lib/api';
 
+// iOS Safari may throw on localStorage.setItem during sign-in, so the couple
+// session can live only in the first-party cookie. Read both; write both.
+const COUPLE_SESSION_COOKIE = 'tdw_couple_session';
+function readCoupleSession(): Record<string, unknown> {
+  try {
+    const raw = localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session');
+    if (raw) return JSON.parse(raw);
+  } catch { /* fall through */ }
+  try {
+    const m = document.cookie.split('; ').find(r => r.startsWith(COUPLE_SESSION_COOKIE + '='));
+    if (m) return JSON.parse(decodeURIComponent(m.split('=').slice(1).join('=')));
+  } catch { /* ignore */ }
+  return {};
+}
+function writeCoupleSession(session: Record<string, unknown>): void {
+  try {
+    localStorage.setItem('couple_web_session', JSON.stringify(session));
+    localStorage.setItem('couple_session',     JSON.stringify(session));
+  } catch { /* iOS storage blocked — cookie covers it */ }
+  try {
+    document.cookie = `${COUPLE_SESSION_COOKIE}=${encodeURIComponent(JSON.stringify(session))}; max-age=${7 * 24 * 60 * 60}; path=/; SameSite=Lax; Secure`;
+  } catch { /* ignore */ }
+}
 
 const GOLD = '#C9A84C';
 const FALLBACK_SLIDES: string[] = [
@@ -54,18 +77,17 @@ export default function CouplePinPage() {
     }
     setLoading(true);
     try {
-      const session = JSON.parse(localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session') || '{}');
+      const session = readCoupleSession();
       const r = await fetch(API_BASE + '/api/v2/couple/auth/set-pin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ couple_id: session.id || session.coupleId, pin: pinStr }),
       });
       const d = await r.json();
       if (d.ok) {
-        if (d.access_token)  localStorage.setItem('access_token', d.access_token);
-        if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
+        if (d.access_token)  { try { localStorage.setItem('access_token', d.access_token); } catch {} }
+        if (d.refresh_token) { try { localStorage.setItem('refresh_token', d.refresh_token); } catch {} }
         const updated = { ...session, pin_set: true };
-        localStorage.setItem('couple_web_session', JSON.stringify(updated));
-        localStorage.setItem('couple_session', JSON.stringify(updated));
+        writeCoupleSession(updated);
         router.replace('/frost');
       } else { showToast('Could not set PIN. Try again.'); }
     } catch { showToast('Network error. Try again.'); }
