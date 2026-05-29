@@ -7,7 +7,7 @@
 // Same URL. Same component. Sanctuary is always underneath.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useFrostMode } from '../../../../layout';
+import { useFrostMode } from '../../../layout';
 import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
@@ -2112,8 +2112,17 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
     setInviting(true);
     try {
       const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole});
-      setWaLink(r.wa_me_link);
-    } catch(e){ console.error(e); }
+      if(r.wa_me_link) {
+        setWaLink(r.wa_me_link);
+      } else {
+        // No wa_me_link returned — surface the token as fallback copy
+        setWaLink(`https://wa.me/14787788550?text=${r.invite_token}`);
+      }
+    } catch(e:any) {
+      console.error('[doInvite]', e);
+      // Show the error inline
+      setWaLink('ERROR:' + (e?.message || 'Could not generate link. Try again.'));
+    }
     finally{ setInviting(false); }
   };
 
@@ -2130,6 +2139,19 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
       </div>
 
       {waLink ? (
+        waLink.startsWith('ERROR:') ? (
+          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:16}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:'#C4534A',textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+              {waLink.replace('ERROR:', '')}
+            </div>
+            <button onClick={()=>{setWaLink(null);setInviting(false);}}
+              style={{background:'none',border:`0.5px solid ${pgAccent}`,borderRadius:4,padding:'10px 20px',cursor:'pointer',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+                textTransform:'uppercase' as any,color:pgAccent}}>
+              Try again
+            </button>
+          </div>
+        ) : (
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20}}>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
             Invite link ready.<br/>Send it on WhatsApp.
@@ -2149,6 +2171,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
             Back to Circle
           </button>
         </div>
+        )
       ) : (
         <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
           {/* Name input */}
@@ -2655,10 +2678,36 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
   const [fullImg,   setFullImg]   = React.useState<string|null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [toast,     setToast]     = React.useState('');
+  // Caption editing
+  const [editingId,   setEditingId]   = React.useState<string|null>(null);
+  const [editCaption, setEditCaption] = React.useState('');
+  const [savingCap,   setSavingCap]   = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
   const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
+
+  const saveCaption = async (id:string) => {
+    setSavingCap(true);
+    try {
+      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+      const s = raw ? JSON.parse(raw) : null;
+      const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+      const res = await fetch(`${API}/api/v2/couple/muse/caption/${id}`,{
+        method:'PATCH',
+        headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({caption:editCaption.trim()||null}),
+      });
+      if(res.ok) {
+        setMoments(prev=>prev.map(m=>m.id===id?{...m,caption:editCaption.trim()||null}:m));
+        showToast('Caption saved.');
+      } else {
+        showToast('Could not save. Try again.');
+      }
+    } catch { showToast('Could not save. Try again.'); }
+    setSavingCap(false);
+    setEditingId(null);
+  };
 
   // Get days at the time a moment was created
   function daysAtCapture(iso:string, weddingIso:string|null):string|null {
@@ -2821,7 +2870,44 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
                     <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:accent2,border:`0.5px solid ${accent2}44`,borderRadius:3,padding:'1px 5px'}}>Circle</span>
                   )}
                 </div>
-                {m.caption&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:'rgba(240,237,232,.6)',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{m.caption}</div>}
+                {/* Caption: show inline editor if editing, else show text + tap-to-edit */}
+                {editingId===m.id ? (
+                  <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                    <input
+                      autoFocus
+                      value={editCaption}
+                      onChange={e=>setEditCaption(e.target.value)}
+                      onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();saveCaption(m.id);}if(e.key==='Escape'){setEditingId(null);}}}
+                      placeholder="Add a caption…"
+                      style={{background:'rgba(240,237,232,.08)',border:`0.5px solid ${accent2}55`,borderRadius:4,
+                        padding:'6px 10px',color:'rgba(240,237,232,.9)',
+                        fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:12,
+                        outline:'none',userSelect:'text',WebkitUserSelect:'text' as any}}
+                    />
+                    <div style={{display:'flex',gap:6}}>
+                      <button onClick={()=>saveCaption(m.id)} disabled={savingCap}
+                        style={{padding:'4px 10px',borderRadius:4,background:accent2,border:'none',
+                          fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',
+                          textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer',opacity:savingCap?.5:1}}>
+                        {savingCap?'Saving…':'Save'}
+                      </button>
+                      <button onClick={()=>setEditingId(null)}
+                        style={{padding:'4px 10px',borderRadius:4,background:'transparent',border:`0.5px solid rgba(240,237,232,.15)`,
+                          fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',
+                          textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div onClick={()=>{setEditingId(m.id);setEditCaption(m.caption||'');}}
+                    style={{cursor:'text',minHeight:18}}>
+                    {m.caption
+                      ? <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:'rgba(240,237,232,.6)',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{m.caption}</div>
+                      : <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',color:'rgba(240,237,232,.22)',textTransform:'uppercase' as any}}>Tap to add caption</div>
+                    }
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -3599,7 +3685,7 @@ function timeAgoShort(iso:string):string {
         <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
           {BASE_SLICES.map((slice,idx)=>(
             <div key={slice.key} onClick={()=>openRoom(slice.key)} className="si-a"
-              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',background:'transparent',animationDelay:`${idx*16}ms`}}>
+              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',background:'transparent',animationDelay:`${idx*16}ms`}}>
               <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
               {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
               <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{hintMap[slice.key as string]||''}</span>
