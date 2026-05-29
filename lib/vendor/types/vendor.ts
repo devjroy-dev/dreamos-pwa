@@ -475,6 +475,7 @@ export interface Invoice {
   id:             string;
   invoice_number: string;
   client_name:    string;
+  client_phone?:  string;
   amount_total:   number;
   amount_paid:    number;
   amount_owed:    number;

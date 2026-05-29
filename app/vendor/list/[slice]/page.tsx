@@ -69,7 +69,7 @@ function stateColor(slice: ListSlice, state: string | undefined): string {
 
 interface Row {
   id: string; primary: string; secondary?: string; meta?: string;
-  badge?: string; badgeAlert?: boolean; phone?: string;
+  badge?: string; badgeAlert?: boolean; phone?: string; client_phone?: string;
   aiPrimer: string; deletePrimer: string;
   detail: { label: string; value: string }[];
 }
@@ -102,7 +102,7 @@ function toRows(slice: ListSlice, clients: Client[], leads: Lead[], invoices: In
   const today = new Date().toISOString().slice(0,10);
   if (slice === 'clients') return clients.map(c => ({ id: c.id, primary: c.name, secondary: c.phone ?? undefined, meta: c.email ?? undefined, phone: c.phone ?? undefined, aiPrimer: `What would you like to change about ${c.name}?`, deletePrimer: `Delete client ${c.name} (id: ${c.id}).`, detail: [{label:'Phone',value:c.phone??'—'},{label:'Email',value:c.email??'—'},{label:'Notes',value:c.notes??'—'},{label:'Added',value:fmtDate(c.created_at)}] }));
   if (slice === 'leads') return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: l.wedding_date?fmtLeadDate(l.wedding_date, l.wedding_date_precision):undefined, badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `What would you like to change about the ${l.name??'unnamed'} lead?`, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, detail: [{label:'State',value:l.state},{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'}] }));
-  if (slice === 'invoices') return invoices.map(inv => ({ id: inv.id, primary: inv.client_name, secondary: inv.invoice_number, meta: inv.due_date?`due ${fmtDate(inv.due_date)}`:undefined, badge: inv.state, badgeAlert: inv.state==='unpaid'&&!!inv.due_date&&inv.due_date<today, aiPrimer: `What would you like to change about invoice ${inv.invoice_number} for ${inv.client_name}?`, deletePrimer: `Delete invoice ${inv.invoice_number} for ${inv.client_name} — ${fmtRs(inv.amount_total)} (id: ${inv.id}).`, detail: [{label:'Invoice #',value:inv.invoice_number},{label:'Total',value:fmtRs(inv.amount_total)},{label:'Paid',value:fmtRs(inv.amount_paid)},{label:'Owed',value:fmtRs(inv.amount_owed)},{label:'State',value:inv.state},{label:'Due',value:fmtDate(inv.due_date)}] }));
+  if (slice === 'invoices') return invoices.map(inv => ({ id: inv.id, primary: inv.client_name, secondary: inv.invoice_number, meta: inv.due_date?`due ${fmtDate(inv.due_date)}`:undefined, badge: inv.state, badgeAlert: inv.state==='unpaid'&&!!inv.due_date&&inv.due_date<today, client_phone: inv.client_phone??undefined, aiPrimer: `What would you like to change about invoice ${inv.invoice_number} for ${inv.client_name}?`, deletePrimer: `Delete invoice ${inv.invoice_number} for ${inv.client_name} — ${fmtRs(inv.amount_total)} (id: ${inv.id}).`, detail: [{label:'Invoice #',value:inv.invoice_number},{label:'Total',value:fmtRs(inv.amount_total)},{label:'Paid',value:fmtRs(inv.amount_paid)},{label:'Owed',value:fmtRs(inv.amount_owed)},{label:'State',value:inv.state},{label:'Due',value:fmtDate(inv.due_date)}] }));
   if (slice === 'expenses') return expenses.map(exp => ({ id: exp.id, primary: exp.description??'Expense', secondary: exp.category??undefined, meta: exp.expense_date?fmtDate(exp.expense_date):undefined, badge: fmtRs(exp.amount), aiPrimer: `What would you like to change about the expense "${exp.description??'this expense'}" — ${fmtRs(exp.amount)}?`, deletePrimer: `Delete expense "${exp.description??'this expense'}" — ${fmtRs(exp.amount)} (id: ${exp.id}).`, detail: [{label:'Amount',value:fmtRs(exp.amount)},{label:'Category',value:exp.category??'—'},{label:'Description',value:exp.description??'—'},{label:'Date',value:fmtDate(exp.expense_date)},{label:'Client',value:exp.client_name??'—'}] }));
   return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date)+(ev.event_time?` · ${ev.event_time.slice(0,5)}`:''), badge: ev.state, aiPrimer: `What would you like to change about the event "${ev.title}" on ${fmtDate(ev.event_date)}?`, deletePrimer: `Delete the event "${ev.title}" on ${fmtDate(ev.event_date)} (id: ${ev.id}).`, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?ev.event_time.slice(0,5):'—'},{label:'State',value:ev.state},{label:'Notes',value:ev.notes??'—'}] }));
 }
@@ -486,7 +486,7 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
                 <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
                   className={!pdfBusy ? 'atelier-fab' : undefined}
                   style={{
-                    width: '100%', marginBottom: 16, padding: '11px 14px',
+                    width: '100%', marginBottom: 8, padding: '11px 14px',
                     background: pdfBusy ? 'rgba(201,168,76,0.18)' : undefined,
                     border: '0.5px solid #E0BC6E', borderRadius: 3,
                     cursor: pdfBusy ? 'default' : 'pointer', opacity: pdfBusy ? 0.6 : 1,
@@ -496,6 +496,39 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
                   }}>
                   {pdfBusy ? 'Fetching…' : '↓ Download PDF'}
                 </button>
+
+                {/* Send on WhatsApp — only shown when client has a phone number.
+                    Fetches the PDF URL, then opens wa.me pre-loaded with the
+                    client's number and the PDF link in the draft message. */}
+                {sel.client_phone && (
+                  <button type="button"
+                    onClick={async () => {
+                      try {
+                        const res = await fetchInvoicePdf(sel.id);
+                        const pdfRes = res as { ok: boolean; pdf_url?: string; error?: string };
+                        if (pdfRes.ok && pdfRes.pdf_url) {
+                          const phone   = (sel.client_phone ?? '').replace(/\D/g, '');
+                          const message = encodeURIComponent(`Hi ${sel.primary}, please find your booking confirmation for ${sel.secondary ?? 'your invoice'} here: ${pdfRes.pdf_url}`);
+                          window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener');
+                        } else {
+                          showToast(pdfRes.error ?? 'PDF not ready yet — record the advance first.', 'error');
+                        }
+                      } catch {
+                        showToast('Could not fetch the PDF. Try again.', 'error');
+                      }
+                    }}
+                    style={{
+                      width: '100%', marginBottom: 16, padding: '11px 14px',
+                      background: 'transparent',
+                      border: '0.5px solid rgba(37,211,102,0.5)', borderRadius: 3,
+                      cursor: 'pointer',
+                      fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#25D366',
+                      letterSpacing: '0.28em', textTransform: 'uppercase',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    }}>
+                    ↗ Send on WhatsApp
+                  </button>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brass, letterSpacing: '0.42em', textTransform: 'uppercase' }}>Payment Schedule</span>
                   <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
