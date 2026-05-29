@@ -87,15 +87,17 @@ export default function CircleJoinPage() {
     if (bare.length < 10) { showToast('Enter a valid 10-digit number'); return; }
     setLoading(true);
     try {
-      await fetch(`${API_BASE}/api/v2/couple/auth/send-otp`, {
+      const r = await fetch(`${API_BASE}/api/v2/circle/join/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: bare }),
+        body: JSON.stringify({ token, phone: bare }),
       });
+      const d = await r.json();
+      if (!d.success) { showToast(d.error || 'Could not send code. Try again.'); setLoading(false); return; }
       setStep('otp');
       setOtp(Array(OTP_LEN).fill(''));
       setTimeout(() => otpRefs.current[0]?.focus(), 200);
-    } catch { showToast('Could not send OTP. Try again.'); }
+    } catch { showToast('Could not send code. Try again.'); }
     setLoading(false);
   };
 
