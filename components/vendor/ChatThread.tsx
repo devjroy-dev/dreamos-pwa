@@ -14,7 +14,7 @@ interface Props {
   loading: boolean;
   onConfirm: (id: string) => void;
   onCancel:  (id: string) => void;
-  onChipTap: (text: string) => void;
+  onChipTap: (text: string, displayText?: string) => void;
   scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -50,11 +50,14 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
               display: 'flex', flexWrap: 'wrap', gap: 7,
               padding: '4px 22px 8px 38px',
             }}>
-              {m.clarify.options.map((opt, i) => (
+              {m.clarify.options.map((opt, i) => {
+                const label = typeof opt === 'string' ? opt : opt.label;
+                const value = typeof opt === 'string' ? opt : opt.value;
+                return (
                 <button
                   key={i}
                   type="button"
-                  onClick={() => onChipTap(opt)}
+                  onClick={() => onChipTap(value, label)}
                   style={{
                     height: 32, paddingInline: 14,
                     background: 'var(--atelier-input-bg)',
@@ -66,8 +69,9 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
                     color: T.isLight ? T.accent : 'var(--atelier-label)',
                     whiteSpace: 'nowrap',
                   }}
-                >{opt}</button>
-              ))}
+                >{label}</button>
+                );
+              })}
             </div>
           )}
         </div>

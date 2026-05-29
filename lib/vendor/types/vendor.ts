@@ -513,9 +513,14 @@ export interface ContactCard {
   link?:  string;
 }
 
+export interface ClarifyOption {
+  label: string;
+  value: string;
+}
+
 export interface ClarifyPayload {
   question: string;
-  options:  string[];
+  options:  (ClarifyOption | string)[];
 }
 
 export interface ChatResponse {

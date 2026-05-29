@@ -28,7 +28,7 @@ interface UseChatReturn {
   messages:        ChatMessage[];
   loading:         boolean;
   context:         VendorContextResponse | null;
-  send:            (text: string) => void;
+  send:            (text: string, displayText?: string) => void;
   injectAiMessage: (text: string) => void;
   lastToolCalls:   string[];
 }
@@ -74,7 +74,10 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
   }, []);
 
   // ── Send — uses SSE streaming ─────────────────────────────────────────
-  const send = useCallback((text: string) => {
+  // displayText (optional): when a card is tapped, the chat bubble shows the
+  // human label while `text` (the structured value, e.g. "invoice_id:abc")
+  // goes to the agent. Keeps the transcript readable while killing ambiguity.
+  const send = useCallback((text: string, displayText?: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
@@ -84,8 +87,9 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
     const aiPrimer = pendingPrimerRef.current;
     pendingPrimerRef.current = '';
 
-    // Add user message
-    setMessages((prev: ChatMessage[]) => [...prev, { id: nextId(), role: 'user', text: trimmed }]);
+    // Add user message — show the friendly label if provided, else the raw text.
+    const bubbleText = (displayText && displayText.trim()) ? displayText.trim() : trimmed;
+    setMessages((prev: ChatMessage[]) => [...prev, { id: nextId(), role: 'user', text: bubbleText }]);
     setLoading(true);
 
     // Add empty AI message that will be filled by streaming deltas
