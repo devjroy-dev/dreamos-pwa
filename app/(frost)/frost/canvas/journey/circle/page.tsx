@@ -23,39 +23,37 @@ function ActivityCard({ a, t, look, onNavigate }: { a: any; t: any; look: string
 
   if (a.activity_type === 'save_added' && a.image_url) {
     return (
-      <div style={{ marginBottom: SP.l, display: 'flex', gap: SP.m, alignItems: 'flex-start' }}>
-        {/* Thumbnail — tappable, navigates to Muse */}
+      <div style={{ marginBottom: SP.xl }}>
+        {/* Image — natural height, no forced crop (matches Muse). Faces show fully uncropped. */}
         <div
           onClick={() => onNavigate('/frost/canvas/muse')}
-          style={{ width: 72, height: 72, flexShrink: 0, borderRadius: FR.md, overflow: 'hidden', background: t.cardFill, cursor: 'pointer' }}
+          style={{ width: '100%', borderRadius: FR.md, overflow: 'hidden', background: t.cardFill, cursor: 'pointer', marginBottom: SP.s, position: 'relative' }}
         >
           <img
             src={a.image_url}
             alt={a.caption || 'Muse save'}
-            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+            style={{ width: '100%', display: 'block', objectFit: 'cover' }}
             loading="lazy"
           />
         </div>
-        {/* Text */}
-        <div style={{ flex: 1, paddingTop: 2 }}>
-          {a.caption && (
-            <div style={{ fontFamily: FF.body, fontSize: 13, color: t.ink, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
-              "{a.caption}"
-            </div>
-          )}
-          <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft, marginBottom: a.aesthetic_tags?.length ? 4 : 0 }}>
-            {actor} · {timeAgo(a.created_at)}
+        {/* Caption + meta below the image */}
+        {a.caption && (
+          <div style={{ fontFamily: FF.body, fontSize: 13, color: t.ink, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
+            "{a.caption}"
           </div>
-          {a.aesthetic_tags && a.aesthetic_tags.length > 0 && (
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
-              {a.aesthetic_tags.slice(0, 3).map((tag: string) => (
-                <span key={tag} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+        )}
+        <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft, marginBottom: a.aesthetic_tags?.length ? 4 : 0 }}>
+          {actor} · {timeAgo(a.created_at)}
         </div>
+        {a.aesthetic_tags && a.aesthetic_tags.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
+            {a.aesthetic_tags.slice(0, 3).map((tag: string) => (
+              <span key={tag} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
