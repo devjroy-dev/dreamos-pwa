@@ -456,7 +456,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               <button type="button" onClick={onAdd} className="atelier-fab" style={{
                 width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: F.body, fontSize: 18, lineHeight: 1, fontWeight: 400,
+                fontFamily: F.display, fontSize: 18, lineHeight: 1, fontWeight: 400,
                 cursor: 'pointer', border: '0.5px solid #E0BC6E',
               }}>+</button>
             </div>

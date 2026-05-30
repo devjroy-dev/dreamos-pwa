@@ -1,18 +1,55 @@
-'use client';
-
-import './globals-v2.css';
 import type { Metadata } from 'next';
+import { Italiana, Cormorant_Garamond, DM_Sans, Jost } from 'next/font/google';
 import './globals.css';
-import { useEffect } from 'react';
+import './globals-v2.css';
+import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
-function ServiceWorkerRegistrar() {
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-  }, []);
-  return null;
-}
+// ── Atelier typography stack ─────────────────────────────────────────────────
+//   Italiana           — display: numerals, month names, glyphs (C L I ◐ ×)
+//   Cormorant Garamond — script:  italic captions, greeting line, detail rows
+//   DM Sans            — body:    subtitles, meta, chat prose
+//   Jost               — label:   micro-labels, eyebrows, nav labels
+
+const italiana = Italiana({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-italiana',
+  display: 'swap',
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+});
+
+const jost = Jost({
+  subsets: ['latin'],
+  weight: ['200', '300', '400', '500'],
+  variable: '--font-jost',
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: 'The Dream Wedding',
+  description: "India's First Wedding OS",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export default function RootLayout({
   children,
@@ -20,18 +57,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${italiana.variable} ${cormorant.variable} ${dmSans.variable} ${jost.variable}`}
+    >
       <head>
+        {/* Fraunces + JetBrains Mono + Italianno — Frost/Sanctuary only (not vendor) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Cormorant + DM Sans + Jost — existing surfaces */}
-        {/* Italianno — Sanctuary greeting (copperplate script) */}
-        {/* Italiana — dreamai vendor display font */}
-        {/* Italiana — dreamai vendor display font */}
-        {/* Fraunces — countdown number + prose (variable optical size) */}
-        {/* JetBrains Mono — all micro-labels, dates, hints */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,300;1,9..144,400&family=Italianno&family=JetBrains+Mono:wght@300;400&family=Jost:wght@200;300;400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,300;1,9..144,400&family=Italianno&family=JetBrains+Mono:wght@300;400&display=swap"
           rel="stylesheet"
         />
         <link rel="manifest" href="/manifest.json" />
@@ -41,9 +76,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="TDW" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-        {/* Pre-hydration Frost theme — runs before React paints to prevent a
-            dark↔light flash. Mirrors getFrostMode() + the time-based auto rule
-            in sanctuary (dark before 7am / after 7pm when never manually set). */}
+        {/* Pre-hydration theme — prevents dark↔light flash before React paints */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{

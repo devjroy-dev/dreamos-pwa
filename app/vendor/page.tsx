@@ -158,14 +158,14 @@ function Ledger({ context }: { context: VendorContextResponse | null }) {
 
       <LedgerCell
         big={String(leads)}
-        bigSize={32}
+        bigSize={48}
         label="Letters"
         sub={leads === 0 ? 'all replied' : 'awaiting reply'}
         accent={leads > 0}
       />
       <LedgerCell
         big={owed > 0 ? fmtRs(owed) : '—'}
-        bigSize={owed > 0 ? 26 : 32}
+        bigSize={owed > 0 ? 34 : 48}
         label="Owed"
         sub={owedCount === 0 ? 'nothing pending' : owedCount === 1 ? 'across 1 invoice' : `across ${owedCount} invoices`}
         accent={owed > 0}
@@ -174,7 +174,7 @@ function Ledger({ context }: { context: VendorContextResponse | null }) {
       />
       <LedgerCell
         big={nextEvent ? fmtEventDate(nextEvent.event_date) : '—'}
-        bigSize={nextEvent ? 18 : 32}
+        bigSize={nextEvent ? 22 : 48}
         bigFamily={nextEvent ? F.script : undefined}
         bigItalic={!!nextEvent}
         label="Next"
