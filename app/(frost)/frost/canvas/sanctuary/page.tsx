@@ -1929,18 +1929,16 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
         {MUSE_CEREMONY_FILTERS.map(f=>{const active=ceremonyFilter===f.value;return <button key={f.value} onClick={()=>setCeremonyFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>{f.label}</button>;})}
       </div>
 
-      {/* Uniform 2×2 grid — equal squares, hairline borders, full bleed */}
-      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+      {/* Masonry grid — natural image heights, no cropping */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,paddingBottom:88}}>
         {!loading&&filtered.length===0&&<div style={{textAlign:'center' as any,padding:'64px 0',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:'rgba(240,237,232,.3)',fontFeatureSettings:'"opsz" 9'}}>No saves here yet.</div>}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,borderTop:'0.5px solid rgba(245,240,232,.12)'}}>
-          {filtered.map((save,i)=>(
+        <div style={{columns:'2 auto',columnGap:6,padding:'0 12px'}}>
+          {filtered.map((save)=>(
             <div key={save.id} onClick={()=>openSave(save)}
-              style={{position:'relative',aspectRatio:'1/1',overflow:'hidden',cursor:'pointer',background:'#1a1714',
-                borderBottom:'0.5px solid rgba(245,240,232,.12)',
-                borderRight: i%2===0 ? '0.5px solid rgba(245,240,232,.12)' : 'none'}}>
+              style={{position:'relative',marginBottom:6,borderRadius:8,overflow:'hidden',breakInside:'avoid',cursor:'pointer',background:'#1a1714'}}>
               {save.image_url
-                ? <img src={save.image_url} alt={save.vendor_name||'muse'} style={{width:'100%',height:'100%',display:'block',objectFit:'cover'}} loading="lazy"/>
-                : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:11,color:'rgba(248,247,245,.2)'}}>{save.vendor_name||'—'}</span></div>
+                ? <img src={save.image_url} alt={save.vendor_name||'muse'} style={{width:'100%',display:'block',objectFit:'cover'}} loading="lazy"/>
+                : <div style={{width:'100%',aspectRatio:'3/4',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:11,color:'rgba(248,247,245,.2)'}}>{save.vendor_name||'—'}</span></div>
               }
               {save.vendor_name&&<div style={{position:'absolute',bottom:6,left:6,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,background:'rgba(8,6,8,.6)',color:'rgba(245,240,232,.9)',padding:'3px 7px',borderRadius:100,backdropFilter:'blur(4px)'}}>{save.vendor_name}</div>}
               {save.circle_comment_count>0&&<div style={{position:'absolute',top:6,right:6,background:`${accent}DD`,borderRadius:100,padding:'2px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pillActiveTxt,letterSpacing:'.1em'}}>{save.circle_comment_count}</div>}
@@ -2489,17 +2487,34 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                 {/* Activity dot */}
                 <div style={{width:7,height:7,borderRadius:'50%',background:pgAccent,flexShrink:0,marginTop:5,opacity:.7}}/>
                 <div style={{flex:1}}>
-                  {/* Save with image */}
-                  {a.activity_type==='save_added'&&a.image_url&&(
-                    <div style={{width:'100%',height:120,borderRadius:6,overflow:'hidden',marginBottom:8,background:dark?'rgba(196,133,106,.06)':'rgba(42,95,130,.06)'}}>
-                      <img src={a.image_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
+                  {/* Save with image — portrait thumbnail + caption beside, full image visible */}
+                  {a.activity_type==='save_added'&&a.image_url?(
+                    <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+                      {/* Portrait thumbnail — fixed width, natural height, no cropping */}
+                      <div style={{flexShrink:0,width:64,borderRadius:6,overflow:'hidden',background:dark?'rgba(196,133,106,.06)':'rgba(42,95,130,.06)'}}>
+                        <img src={a.image_url} alt="" style={{width:'100%',display:'block',objectFit:'contain'}} loading="lazy"/>
+                      </div>
+                      {/* Caption + meta beside */}
+                      <div style={{flex:1,paddingTop:2}}>
+                        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInk,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginBottom:6}}>
+                          {a.content || formatActivityLine(a)}
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                            <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
+                          )}
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                            {a.member_name||'You'} · {timeAgo(a.created_at)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  ):(
+                    <>
                   <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
                     {a.content || formatActivityLine(a)}
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    {/* Candle dot for recent activity */}
                     {Date.now()-new Date(a.created_at).getTime()<600000&&(
                       <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
                     )}
@@ -2507,6 +2522,8 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                       {a.member_name||'You'} · {timeAgo(a.created_at)}
                     </span>
                   </div>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
