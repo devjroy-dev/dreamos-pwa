@@ -1144,9 +1144,15 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
   );
 
   return (
-    <div style={{position:'absolute',inset:0,zIndex:200}} onClick={onClose}>
+    <div style={{position:'absolute',inset:0,zIndex:200}}
+      onClick={onClose}
+      onTouchStart={e=>e.stopPropagation()}
+      onTouchEnd={e=>{e.stopPropagation();onClose();}}>
       <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.3)',pointerEvents:'none'}}/>
-      <div style={{position:'absolute',bottom:0,left:0,right:0,background:'rgba(8,6,8,.82)',backdropFilter:'blur(28px) saturate(1.8)',WebkitBackdropFilter:'blur(28px) saturate(1.8)',borderTop:'0.5px solid rgba(255,255,255,.1)',borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',maxHeight:'85vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,background:'rgba(8,6,8,.82)',backdropFilter:'blur(28px) saturate(1.8)',WebkitBackdropFilter:'blur(28px) saturate(1.8)',borderTop:'0.5px solid rgba(255,255,255,.1)',borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',maxHeight:'85vh',overflowY:'auto'}}
+        onClick={e=>e.stopPropagation()}
+        onTouchStart={e=>e.stopPropagation()}
+        onTouchEnd={e=>e.stopPropagation()}>
         <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 24px 4px'}}>
           <span style={{fontFamily:"'Italianno',cursive",fontSize:28,color:'#F8F7F5',lineHeight:1}}>Discover</span>
@@ -1279,7 +1285,7 @@ function DiscVendorPanel({vendor,visible,onClose,accent,onEnquire,onCircleShare}
 function DiscImageDots({total,current,accent}:{total:number;current:number;accent:string}) {
   if(total<=1) return null;
   return (
-    <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 56px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:6,zIndex:24,pointerEvents:'none'}}>
+    <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 92px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:6,zIndex:24,pointerEvents:'none'}}>
       {Array.from({length:Math.min(total,7)}).map((_,i)=>(
         <div key={i} style={{width:i===current?18:5,height:5,borderRadius:3,
           background:i===current?accent:'rgba(255,255,255,.32)',
@@ -1377,7 +1383,6 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const [vIdx,       setVIdx]       = React.useState(0);
   const [imgIdx,     setImgIdx]     = React.useState(0);
   const [panelOpen,  setPanelOpen]  = React.useState(false);
-  const [nameSlice,  setNameSlice]  = React.useState(false); // single tap toggle
   const [dissolve,   setDissolve]   = React.useState(0);
   const [isBlind,    setIsBlind]    = React.useState(false);
   const [undoStack,  setUndoStack]  = React.useState<number[]>([]); // prev vIdx values
@@ -1426,19 +1431,19 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const goNextV=React.useCallback(()=>{
     if(vIdx>=vendors.length-1)return;
     setUndoStack(s=>[...s.slice(-4),vIdx]); // keep last 5
-    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setNameSlice(false);setDissolve(k=>k+1);discHaptic(5);
+    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
   },[vIdx,vendors.length]);
 
   const goPrevV=React.useCallback(()=>{
     if(vIdx<=0)return;
-    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setNameSlice(false);setDissolve(k=>k+1);discHaptic(5);
+    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
   },[vIdx]);
 
   const undoSkip=React.useCallback(()=>{
     setUndoStack(s=>{
       if(!s.length) return s;
       const prev=s[s.length-1];
-      setVIdx(prev);setImgIdx(0);setPanelOpen(false);setNameSlice(false);setDissolve(k=>k+1);discHaptic(8);
+      setVIdx(prev);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(8);
       return s.slice(0,-1);
     });
   },[]);
@@ -1510,8 +1515,8 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
               setBlindIdx(i=>Math.min(i+1,blindItems.length-1));
               setDissolve(k=>k+1); discHaptic(5);
             } else {
-              // Single tap — toggle frosted name slice
-              setNameSlice(v=>!v); discHaptic(3);
+              // Single tap — open the vendor panel (Enquire / Lock date / Circle)
+              setPanelOpen(true); discHaptic(3);
             }
           }
           tapCount.current=0;
@@ -1619,63 +1624,83 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         </div>
       )}
 
-      {/* Frosted name slice — toggles on single tap */}
+      {/* Persistent name · category line — bottom, always visible, tappable */}
       {!isBlind&&!panelOpen&&vendor&&(
-        <div style={{
-          position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 56px)',
-          left:0,right:0,zIndex:10,
-          transform:nameSlice?'translateY(0)':'translateY(110%)',
-          transition:'transform 280ms cubic-bezier(0.22,1,0.36,1)',
-          pointerEvents:'none',
-        }}>
-          <div style={{
-            background:'rgba(8,6,8,.55)',
-            backdropFilter:'blur(24px) saturate(1.6)',
-            WebkitBackdropFilter:'blur(24px) saturate(1.6)',
-            borderTop:'0.5px solid rgba(255,255,255,.08)',
-            padding:'10px 20px 12px',
+        <div
+          onClick={e=>{e.stopPropagation();setPanelOpen(true);discHaptic(3);}}
+          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>{e.stopPropagation();setPanelOpen(true);discHaptic(3);}}
+          style={{
+            position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',
+            left:0,right:0,zIndex:10,padding:'0 24px',
+            cursor:'pointer',WebkitTapHighlightColor:'transparent',
           }}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.42)',marginBottom:3}}>{vendor.category} · {vendor.city}</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:'rgba(248,247,245,.95)',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>{vendor.name}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.55)',marginBottom:4}}>
+            {vendor.category} · {vendor.city}
+          </div>
+          <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:12}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:26,color:'rgba(248,247,245,.97)',lineHeight:1.05,fontFeatureSettings:'"opsz" 9',textShadow:'0 1px 12px rgba(0,0,0,.4)'}}>
+              {vendor.name}
+            </div>
+            <div style={{flexShrink:0,display:'flex',alignItems:'center',gap:5,paddingBottom:3,opacity:.6}}>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)'}}>Tap</span>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="rgba(248,247,245,.7)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Undo pill — bottom left, shows when there's something to undo */}
-      {!isBlind&&undoStack.length>0&&!panelOpen&&(
-        <div onClick={e=>{e.stopPropagation();undoSkip();}}
-          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
-          style={{
-            position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 62px)',
-            left:16,zIndex:20,
-            background:'rgba(8,6,8,.65)',
-            backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
-            border:'0.5px solid rgba(255,255,255,.14)',
-            borderRadius:100,padding:'7px 12px',
-            display:'flex',alignItems:'center',gap:6,
-            cursor:'pointer',WebkitTapHighlightColor:'transparent',
-          }}>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.6)'}}>
-            ← {vendors[undoStack[undoStack.length-1]]?.category||'Back'}
-          </span>
-        </div>
+      {/* Top chrome — Blind toggle top-left, filter top-right */}
+      {!panelOpen&&(
+        <>
+          {/* Blind pill — top-left */}
+          <button
+            onClick={e=>{e.stopPropagation();setIsBlind(b=>!b);setBlindIdx(0);setDissolve(k=>k+1);}}
+            onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+            style={{
+              position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 12px)',left:16,zIndex:30,
+              height:30,padding:'0 14px',borderRadius:100,
+              border:`0.5px solid ${isBlind?accent:'rgba(255,255,255,.24)'}`,
+              background:isBlind?`${accent}22`:'rgba(8,6,8,.5)',
+              backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',
+              textTransform:'uppercase' as any,
+              color:isBlind?accent:'rgba(248,247,245,.7)',
+              cursor:'pointer',touchAction:'manipulation' as any,WebkitTapHighlightColor:'transparent',
+            }}>
+            Blind
+          </button>
+          {/* Filter pill — top-right */}
+          <button
+            onClick={e=>{e.stopPropagation();setShowFilter(true);}}
+            onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+            style={{
+              position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 12px)',right:16,zIndex:30,
+              width:36,height:30,borderRadius:100,
+              border:`0.5px solid ${hasActiveFilters?accent:'rgba(255,255,255,.24)'}`,
+              background:hasActiveFilters?`${accent}22`:'rgba(8,6,8,.5)',
+              backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              cursor:'pointer',touchAction:'manipulation' as any,WebkitTapHighlightColor:'transparent',
+            }}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4h12M4 8h8M6 12h4" stroke={hasActiveFilters?accent:'rgba(255,255,255,.8)'} strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </>
       )}
 
-      {/* Image dots — above peek nav */}
-      {!isBlind&&<DiscImageDots total={photos.length} current={imgIdx} accent={accent}/>}
+      {/* Image dots — bottom, above the name line */}
+      {!isBlind&&!panelOpen&&<DiscImageDots total={photos.length} current={imgIdx} accent={accent}/>}
 
-      {/* Peek nav */}
-      <DiscPeekNav
-        onTap={()=>setPanelOpen(o=>!o)}
-        accent={accent}
-        panelOpen={panelOpen}
-        hasActiveFilters={hasActiveFilters}
-        onFilterTap={()=>setShowFilter(true)}
-        isBlind={isBlind}
-        onBlindTap={()=>{setIsBlind(b=>!b);setBlindIdx(0);setDissolve(k=>k+1);}}
-      />
-
-      {/* Vendor panel */}
+      {/* Vendor panel + tap-outside scrim */}
+      {!isBlind&&vendor&&panelOpen&&(
+        <div
+          onClick={()=>setPanelOpen(false)}
+          onTouchStart={e=>e.stopPropagation()}
+          onTouchEnd={e=>{e.stopPropagation();setPanelOpen(false);}}
+          style={{position:'absolute',inset:0,zIndex:55,background:'rgba(0,0,0,0.001)'}}
+        />
+      )}
       {!isBlind&&vendor&&(
         <DiscVendorPanel
           vendor={vendor}
