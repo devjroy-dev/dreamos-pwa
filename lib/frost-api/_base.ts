@@ -107,7 +107,11 @@ export function getCoupleSession(): CoupleSession | null {
     const raw =
       localStorage.getItem('couple_session') ||
       localStorage.getItem('couple_web_session');
-    if (raw) return JSON.parse(raw) as CoupleSession;
+    if (raw) {
+      const s = JSON.parse(raw) as CoupleSession & { coupleId?: string };
+      if (s.coupleId && !s.id) s.id = s.coupleId;
+      return s;
+    }
   } catch { /* fall through to cookie */ }
   // Cookie fallback — covers iOS Safari where localStorage.setItem threw during
   // sign-in (session lives only in the tdw_couple_session cookie set by landing).
