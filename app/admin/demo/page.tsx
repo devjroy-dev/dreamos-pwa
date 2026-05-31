@@ -36,7 +36,7 @@ interface DemoVendor {
   city: string; about: string | null; rate_display: string | null;
   whatsapp_phone: string | null;
   photos: Array<{ url: string; is_hero?: boolean; cloudinary_id?: string }>;
-  active: boolean; created_at: string;
+  active: boolean; created_at: string; discover_eligible?: boolean;
 }
 
 interface DemoLead {
@@ -184,6 +184,16 @@ export default function DemoAdminPage() {
     } catch { showToast('Failed.', true); }
   }
 
+  async function handleDiscoverToggle(id: string, makeEligible: boolean) {
+    const endpoint = makeEligible ? 'discover-grant' : 'discover-revoke';
+    try {
+      const d = await adminFetch(`/api/v2/admin/demo/vendors/${id}/${endpoint}`, { method: 'POST' });
+      if (!d.ok) { showToast('Failed.', true); return; }
+      setVendors(v => v.map(x => x.id === id ? { ...x, discover_eligible: makeEligible } : x));
+      showToast(makeEligible ? 'Added to Discover.' : 'Removed from Discover.');
+    } catch { showToast('Failed.', true); }
+  }
+
   function copyUrl(handle: string, id: string) {
     const url = `https://demo.thedreamwedding.in/vendor/${handle}`;
     if (navigator.clipboard) navigator.clipboard.writeText(url).catch(() => {});
@@ -284,6 +294,11 @@ export default function DemoAdminPage() {
                       <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: v.active ? T.success : T.muted, background: v.active ? 'rgba(78,201,148,0.12)' : 'rgba(240,234,224,0.06)', borderRadius: 8, padding: '2px 7px' }}>
                         {v.active ? 'active' : 'inactive'}
                       </span>
+                      {v.discover_eligible && (
+                        <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: T.gold, background: T.goldSoft, borderRadius: 8, padding: '2px 7px' }}>
+                          in discover
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', color: T.gold, textTransform: 'uppercase' as const, marginBottom: 4 }}>
                       @{v.ig_handle} · {v.category} · {v.city}
@@ -301,6 +316,9 @@ export default function DemoAdminPage() {
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' as const }}>
                       <GhostBtn label="Seed Leads" onClick={() => { if(window.confirm(`Seed 10 mock leads for ${v.display_name}?`)) handleSeedLeads(v); }} small />
+                      {v.discover_eligible
+                        ? <GhostBtn label="Remove from Discover" onClick={() => handleDiscoverToggle(v.id, false)} danger small />
+                        : v.active && <GhostBtn label="Add to Discover" onClick={() => handleDiscoverToggle(v.id, true)} small />}
                       {v.active && <GhostBtn label="Deactivate" onClick={() => handleDeactivate(v.id)} danger small />}
                     </div>
                   </div>
