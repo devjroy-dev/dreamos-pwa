@@ -44,3 +44,10 @@ next-env.d.ts
 *.zip
 phase*_pkg/
 .phase*_backup/
+
+c2_build_fix/
+phase3_0_frontend_fix/
+web/
+
+phase3_0_b_pkg/
+phase3_0_c2_pkg/
