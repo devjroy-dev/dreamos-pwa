@@ -1,28 +1,24 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect, BottomSheet, SectionDivider } from '../_components/AdminUI';
+import { PageHeader, T, Toast, FieldInput, ActionChip } from '../_components/AdminUI';
 import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../../lib/admin-api/index';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
 const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
-const WA_VENDOR = '917982159047';
 
 const TIERS = ['trial','essential','signature','prestige'];
-const CATEGORIES = ['photography','videography','makeup','decor','venue','planning','catering','mehendi','music','jewellery','attire','honeymoon','invitation','other'];
 
 function fmt(d: string) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); }
 
 export default function MakersPage() {
-  const [vendors, setVendors]     = useState<AdminVendor[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [search, setSearch]       = useState('');
-  const [filter, setFilter]       = useState('all');
-  const [toast, setToast]         = useState('');
-  const [toastErr, setToastErr]   = useState(false);
-  const [selected, setSelected]   = useState<AdminVendor | null>(null);
-
-  const [invTier, setInvTier]     = useState('trial');
-  const [copied, setCopied]       = useState(false);
+  const [vendors, setVendors]   = useState<AdminVendor[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState('');
+  const [filter, setFilter]     = useState('all');
+  const [toast, setToast]       = useState('');
+  const [toastErr, setToastErr] = useState(false);
+  const [openId, setOpenId]     = useState<string | null>(null);
+  const [confirmDel, setConfirmDel] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -31,6 +27,7 @@ export default function MakersPage() {
   useEffect(() => { load(); }, [load]);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
+  const toggleOpen = (id: string) => { setConfirmDel(null); setOpenId(o => o === id ? null : id); };
 
   const setTier = async (id: string, tier: string) => {
     try { await patchVendorTier(id, tier); setVendors(v => v.map(x => x.id === id ? { ...x, tier } : x)); showToast('Tier updated.'); }
@@ -43,7 +40,7 @@ export default function MakersPage() {
   };
 
   const revoke = async (id: string) => {
-    try { await patchVendorRevoke(id); setVendors(v => v.map(x => x.id === id ? { ...x, status: 'paused' } : x)); showToast('Access revoked.'); setSelected(null); }
+    try { await patchVendorRevoke(id); setVendors(v => v.map(x => x.id === id ? { ...x, status: 'paused' } : x)); showToast('Access revoked.'); }
     catch { showToast('Failed.', true); }
   };
 
@@ -57,7 +54,7 @@ export default function MakersPage() {
       if (!res.ok) throw new Error('Failed');
       setVendors(v => v.filter(x => x.id !== id));
       showToast('Vendor deleted.');
-      setSelected(null);
+      setOpenId(null); setConfirmDel(null);
     } catch { showToast('Failed to delete.', true); }
   };
 
@@ -70,16 +67,13 @@ export default function MakersPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Makers"
-        sub={`${vendors.length} total vendors`}
-      />
+      <PageHeader title="Makers" sub={`${vendors.length} total vendors`} />
 
       <FieldInput label="Search" value={search} onChange={setSearch} placeholder="Name or phone…" />
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto' as const, paddingBottom: 4, scrollbarWidth: 'none' as const }}>
         {['all', ...TIERS].map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: 20, border: `0.5px solid ${filter === f ? T.gold : T.border}`, background: filter === f ? 'rgba(201,168,76,0.1)' : 'transparent', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: filter === f ? T.gold : T.soft, minHeight: 36 }}>{f}</button>
+          <button key={f} onClick={() => setFilter(f)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: 20, border: `0.5px solid ${filter === f ? T.gold : T.border}`, background: filter === f ? T.goldSoft : 'transparent', fontFamily: T.ff.label, fontWeight: filter === f ? 600 : 400, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: filter === f ? T.gold : T.soft, minHeight: 36 }}>{f}</button>
         ))}
       </div>
 
@@ -91,43 +85,52 @@ export default function MakersPage() {
         <div style={{ textAlign: 'center', padding: '48px 0', color: T.muted, fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 18 }}>No vendors found</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-          {filtered.map(v => (
-            <div key={v.id} onClick={() => setSelected(v)} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', minHeight: 72 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 400, color: T.ink, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
-                <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.1em' }}>{v.category || '—'} · {v.city || '—'} · {v.phone}</div>
+          {filtered.map(v => {
+            const open = openId === v.id;
+            return (
+              <div key={v.id} style={{ background: T.card, border: `0.5px solid ${open ? T.borderStrong : T.border}`, borderRadius: 12, overflow: 'hidden', transition: 'border-color 150ms' }}>
+                {/* Header row — tap to expand */}
+                <div onClick={() => toggleOpen(v.id)} style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', minHeight: 72 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.08em' }}>{v.category || '—'} · {v.city || '—'} · {v.phone}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                    <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: T.goldSoft, border: `0.5px solid ${T.gold}`, borderRadius: 20, padding: '3px 10px' }}>{v.tier}</span>
+                    {v.discover_eligible && <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, color: T.success, letterSpacing: '0.1em' }}>● DISCOVER</span>}
+                  </div>
+                  <span style={{ color: T.soft, fontSize: 13, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 180ms', flexShrink: 0 }}>›</span>
+                </div>
+
+                {/* Expanded actions — inline, no sheet */}
+                {open && (
+                  <div style={{ padding: '4px 16px 18px', borderTop: `0.5px solid ${T.border}` }}>
+                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.12em', margin: '14px 0 12px' }}>Joined {fmt(v.created_at)}</div>
+
+                    <div style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, color: T.soft, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Tier</div>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' as const }}>
+                      {TIERS.map(t => (
+                        <button key={t} onClick={() => setTier(v.id, t)} style={{ flex: 1, minWidth: 72, padding: '11px 0', borderRadius: 9, border: `0.5px solid ${v.tier === t ? T.gold : T.border}`, background: v.tier === t ? T.goldSoft : 'transparent', fontFamily: T.ff.label, fontWeight: v.tier === t ? 600 : 400, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: v.tier === t ? T.gold : T.soft, minHeight: 44, cursor: 'pointer' }}>{t}</button>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      <ActionChip label={v.discover_eligible ? 'Remove Discover' : 'Add to Discover'} tone="neutral" onClick={() => toggleDiscover(v)} />
+                      <ActionChip label="Revoke Access" tone="no" onClick={() => revoke(v.id)} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {confirmDel === v.id
+                        ? <ActionChip label="Tap again to delete permanently" tone="no" onClick={() => deleteVendor(v.id)} />
+                        : <ActionChip label="Delete" tone="no" onClick={() => setConfirmDel(v.id)} />}
+                    </div>
+                    {confirmDel === v.id && <p style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.08em', marginTop: 8 }}>Deletes all vendor data — leads, invoices, events, portfolio. Cannot be undone.</p>}
+                  </div>
+                )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                <span style={{ fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: T.gold, background: 'rgba(201,168,76,0.1)', border: `0.5px solid rgba(201,168,76,0.3)`, borderRadius: 20, padding: '3px 10px' }}>{v.tier}</span>
-                {v.discover_eligible && <span style={{ fontFamily: T.ff.label, fontSize: 7, color: T.success, letterSpacing: '0.1em' }}>● Discover</span>}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-
-      {/* Manage vendor sheet */}
-      <BottomSheet visible={!!selected} onClose={() => setSelected(null)} title={selected?.name || ''}>
-        {selected && (
-          <div>
-            <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.15em', marginBottom: 20 }}>{selected.phone} · Joined {fmt(selected.created_at)}</div>
-            <div style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, color: T.soft, letterSpacing: '0.22em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Set Tier</div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' as const }}>
-              {TIERS.map(t => (
-                <button key={t} onClick={() => { setTier(selected.id, t); setSelected(s => s ? { ...s, tier: t } : s); }} style={{ padding: '10px 18px', borderRadius: 20, border: `0.5px solid ${selected.tier === t ? T.gold : T.border}`, background: selected.tier === t ? 'rgba(201,168,76,0.1)' : 'transparent', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: selected.tier === t ? T.gold : T.soft, minHeight: 44 }}>{t}</button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <GhostBtn label={selected.discover_eligible ? 'Remove from Discover' : 'Add to Discover'} onClick={() => { toggleDiscover(selected); setSelected(s => s ? { ...s, discover_eligible: !s.discover_eligible } : s); }} />
-            </div>
-            <GhostBtn label="Revoke Access" onClick={() => revoke(selected.id)} danger />
-            <div style={{ height: 1, background: 'rgba(224,92,92,0.15)', margin: '16px 0' }} />
-            <GhostBtn label="Delete Permanently" onClick={() => deleteVendor(selected.id)} danger />
-            <p style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.1em', marginTop: 8 }}>Deletes all vendor data — leads, invoices, events, portfolio. Cannot be undone.</p>
-          </div>
-        )}
-      </BottomSheet>
-
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>

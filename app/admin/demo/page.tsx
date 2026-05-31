@@ -5,7 +5,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   PageHeader, T, GoldBtn, GhostBtn, Toast,
-  FieldInput, FieldSelect, BottomSheet,
+  FieldInput, FieldSelect,
 } from '../_components/AdminUI';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
@@ -110,7 +110,7 @@ export default function DemoAdminPage() {
   const [uploading,   setUploading]   = useState(false);
   const [creating,    setCreating]    = useState(false);
 
-  // Seed leads — starts closed, no vendor selected
+  // Seed leads
   const [seeding,    setSeeding]    = useState(false);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
@@ -212,13 +212,57 @@ export default function DemoAdminPage() {
       <PageHeader
         title="Demo Profiles"
         sub="Vendor demo links for outreach. No auth — handle is identity."
-        action={<GoldBtn label="+ Create Demo" onClick={() => setShowCreate(true)} />}
+        action={<GoldBtn label={showCreate ? 'Close' : '+ Create Demo'} onClick={() => { if (showCreate) { setShowCreate(false); resetCreateForm(); } else { setShowCreate(true); } }} />}
       />
+
+      {/* Create Demo form — inline, no sheet */}
+      {showCreate && (
+        <div style={{ margin: '0 24px 24px', background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20 }}>
+          <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Create Demo Profile</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <FieldInput label="IG Handle (becomes URL)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" />
+            <FieldInput label="Display Name" value={dispName} onChange={setDispName} placeholder="Swati Tomar" />
+            <FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} />
+            <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" />
+            <FieldInput label="WhatsApp Number" value={waPhone} onChange={setWaPhone} placeholder="+919888294440" />
+            <FieldInput label="Rate Display" value={rateDisplay} onChange={setRateDisplay} placeholder="Rs 50K – Rs 2L" />
+            <div>
+              <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: T.soft, marginBottom: 8 }}>About</div>
+              <textarea value={about} onChange={e => setAbout(e.target.value)} placeholder="Short bio…" rows={3}
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
+            </div>
+            <div>
+              <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: T.soft, marginBottom: 8 }}>
+                Photos ({photos.length} · min 3 · tap to set hero)
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 10 }}>
+                {photos.map((p, i) => (
+                  <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
+                    <img src={p.url} alt="" onClick={() => setHero(i)} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: p.is_hero ? `2px solid ${T.gold}` : `0.5px solid ${T.border}`, cursor: 'pointer' }} />
+                    {p.is_hero && <div style={{ position: 'absolute', top: 3, left: 3, background: T.gold, borderRadius: 4, padding: '1px 5px', fontFamily: T.ff.label, fontSize: 7, color: T.ink }}>HERO</div>}
+                    <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, background: T.danger, border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  </div>
+                ))}
+              </div>
+              {photos.length < 10 && (
+                <label style={{ display: 'inline-block', background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: uploading ? T.muted : T.soft, cursor: uploading ? 'not-allowed' : 'pointer' }}>
+                  {uploading ? 'Uploading…' : '+ Add Photo'}
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} style={{ display: 'none' }} />
+                </label>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+              <GhostBtn label="Cancel" onClick={() => { setShowCreate(false); resetCreateForm(); }} />
+              <GoldBtn label={creating ? 'Creating…' : 'Create Demo'} onClick={handleCreate} disabled={creating || uploading} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, padding: '0 24px 20px' }}>
         {(['vendors', 'leads', 'claims'] as Tab[]).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? T.gold : T.card, border: `0.5px solid ${tab === t ? T.gold : T.border}`, borderRadius: 10, padding: '7px 16px', fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: tab === t ? '#0A0908' : T.soft, cursor: 'pointer' }}>
+          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? T.gold : T.card, border: `0.5px solid ${tab === t ? T.gold : T.border}`, borderRadius: 10, padding: '7px 16px', fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: tab === t ? T.ink : T.soft, cursor: 'pointer' }}>
             {t === 'vendors' ? `Profiles (${vendors.length})` : t === 'leads' ? `Leads (${leads.length})` : `Claims (${claims.length})`}
           </button>
         ))}
@@ -236,8 +280,8 @@ export default function DemoAdminPage() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                      <span style={{ fontFamily: T.ff.body, fontSize: 15, color: T.ink }}>{v.display_name}</span>
-                      <span style={{ fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: v.active ? T.success : T.muted, background: v.active ? 'rgba(92,224,160,0.1)' : 'rgba(245,240,232,0.06)', borderRadius: 8, padding: '2px 7px' }}>
+                      <span style={{ fontFamily: T.ff.body, fontSize: 15, fontWeight: 600, color: T.ink }}>{v.display_name}</span>
+                      <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: v.active ? T.success : T.muted, background: v.active ? 'rgba(78,201,148,0.12)' : 'rgba(240,234,224,0.06)', borderRadius: 8, padding: '2px 7px' }}>
                         {v.active ? 'active' : 'inactive'}
                       </span>
                     </div>
@@ -248,10 +292,10 @@ export default function DemoAdminPage() {
                       {v.photos.length} photos · {fmt(v.created_at)}{v.rate_display ? ` · ${v.rate_display}` : ''}
                     </div>
                     <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as const }}>
-                      <code style={{ fontFamily: 'monospace', fontSize: 11, color: T.gold, background: 'rgba(201,168,76,0.08)', padding: '4px 10px', borderRadius: 6 }}>
+                      <code style={{ fontFamily: 'monospace', fontSize: 11, color: T.gold, background: T.goldSoft, padding: '4px 10px', borderRadius: 6 }}>
                         demo.thedreamwedding.in/vendor/{v.ig_handle}
                       </code>
-                      <button onClick={() => copyUrl(v.ig_handle, v.id)} style={{ background: copied === v.id ? 'rgba(92,224,160,0.15)' : T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '5px 12px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied === v.id ? T.success : T.soft, cursor: 'pointer' }}>
+                      <button onClick={() => copyUrl(v.ig_handle, v.id)} style={{ background: copied === v.id ? 'rgba(78,201,148,0.15)' : T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '5px 12px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied === v.id ? T.success : T.soft, cursor: 'pointer' }}>
                         {copied === v.id ? 'Copied ✓' : 'Copy URL'}
                       </button>
                     </div>
@@ -283,7 +327,7 @@ export default function DemoAdminPage() {
               <div key={l.id} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 10, padding: '12px 16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, marginBottom: 3 }}>{l.bride_name}</div>
+                    <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3 }}>{l.bride_name}</div>
                     <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.12em', color: T.gold, textTransform: 'uppercase' as const, marginBottom: 3 }}>@{l.demo_vendor_handle}</div>
                     <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>{[l.bride_wedding_city, l.bride_wedding_date].filter(Boolean).join(' · ')}</div>
                   </div>
@@ -312,8 +356,8 @@ export default function DemoAdminPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontFamily: T.ff.body, fontSize: 15, color: T.ink }}>{cl.vendor_name || cl.ig_handle}</span>
-                      {!cl.contacted && <span style={{ fontFamily: T.ff.label, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: 'rgba(201,168,76,0.12)', borderRadius: 6, padding: '2px 7px' }}>New</span>}
+                      <span style={{ fontFamily: T.ff.body, fontSize: 15, fontWeight: 600, color: T.ink }}>{cl.vendor_name || cl.ig_handle}</span>
+                      {!cl.contacted && <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: T.goldSoft, borderRadius: 6, padding: '2px 7px' }}>New</span>}
                     </div>
                     <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.14em', color: T.gold, textTransform: 'uppercase' as const, marginBottom: 4 }}>@{cl.ig_handle}</div>
                     <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, marginBottom: 6 }}>
@@ -333,7 +377,7 @@ export default function DemoAdminPage() {
                           setClaims(prev => prev.map(x => x.id === cl.id ? { ...x, contacted: !cl.contacted } : x));
                         } catch { showToast('Failed to update.', true); }
                       }}
-                      style={{ background: cl.contacted ? 'rgba(92,224,160,0.1)' : T.card, border: `0.5px solid ${cl.contacted ? T.success : T.border}`, borderRadius: 8, padding: '6px 12px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: cl.contacted ? T.success : T.soft, cursor: 'pointer' }}
+                      style={{ background: cl.contacted ? 'rgba(78,201,148,0.1)' : T.card, border: `0.5px solid ${cl.contacted ? T.success : T.border}`, borderRadius: 8, padding: '6px 12px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: cl.contacted ? T.success : T.soft, cursor: 'pointer' }}
                     >
                       {cl.contacted ? 'Contacted ✓' : 'Mark Contacted'}
                     </button>
@@ -348,50 +392,6 @@ export default function DemoAdminPage() {
           }
         </div>
       )}
-
-      {/* Create Demo Sheet */}
-      <BottomSheet visible={showCreate} onClose={() => { setShowCreate(false); resetCreateForm(); }} title="Create Demo Profile">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <FieldInput label="IG Handle (becomes URL)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" />
-          <FieldInput label="Display Name" value={dispName} onChange={setDispName} placeholder="Swati Tomar" />
-          <FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} />
-          <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" />
-          <FieldInput label="WhatsApp Number" value={waPhone} onChange={setWaPhone} placeholder="+919888294440" />
-          <FieldInput label="Rate Display" value={rateDisplay} onChange={setRateDisplay} placeholder="Rs 50K – Rs 2L" />
-          <div>
-            <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: T.soft, marginBottom: 8 }}>About</div>
-            <textarea value={about} onChange={e => setAbout(e.target.value)} placeholder="Short bio…" rows={3}
-              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
-          </div>
-          <div>
-            <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: T.soft, marginBottom: 8 }}>
-              Photos ({photos.length} · min 3 · tap to set hero)
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 10 }}>
-              {photos.map((p, i) => (
-                <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
-                  <img src={p.url} alt="" onClick={() => setHero(i)} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: p.is_hero ? `2px solid ${T.gold}` : `0.5px solid ${T.border}`, cursor: 'pointer' }} />
-                  {p.is_hero && <div style={{ position: 'absolute', top: 3, left: 3, background: T.gold, borderRadius: 4, padding: '1px 5px', fontFamily: T.ff.label, fontSize: 7, color: '#0A0908' }}>HERO</div>}
-                  <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, background: T.danger, border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                </div>
-              ))}
-            </div>
-            {photos.length < 10 && (
-              <label style={{ display: 'inline-block', background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: uploading ? T.muted : T.soft, cursor: uploading ? 'not-allowed' : 'pointer' }}>
-                {uploading ? 'Uploading…' : '+ Add Photo'}
-                <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} style={{ display: 'none' }} />
-              </label>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
-            <GoldBtn label={creating ? 'Creating…' : 'Create Demo'} onClick={handleCreate} disabled={creating || uploading} />
-            <GhostBtn label="Cancel" onClick={() => { setShowCreate(false); resetCreateForm(); }} />
-          </div>
-        </div>
-      </BottomSheet>
-
-      {/* Seed Leads Sheet */}
-
     </div>
   );
 }

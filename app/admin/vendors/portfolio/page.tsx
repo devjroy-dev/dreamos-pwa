@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, UploadZone, ImageGrid, LoadingGrid, SectionDivider, BottomSheet, FieldInput, type ImageGridItem } from '../../_components/AdminUI';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, UploadZone, ImageGrid, LoadingGrid, SectionDivider, FieldInput, type ImageGridItem } from '../../_components/AdminUI';
 import { getVendors, type AdminVendor } from '../../../../lib/admin-api/index';
 import { adminUploadFile } from '../../../../lib/admin-api/_base';
 
@@ -27,7 +27,6 @@ export default function VendorPortfolioPage() {
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
 
-  // Load vendor list once
   useEffect(() => {
     getVendors().then(d => setVendors(d.vendors)).catch(() => {});
   }, []);
@@ -50,10 +49,11 @@ export default function VendorPortfolioPage() {
   const handleVendorChange = (vid: string) => {
     setVendorId(vid);
     setPhotos([]);
+    setShowCaption(false); setPendingUpload(null);
     if (vid) loadPhotos(vid);
   };
 
-  // When user picks a file or URL — show caption sheet before uploading
+  // When user picks a file or URL — show inline caption panel before uploading
   const handleFile = async (file: File) => {
     setPendingUpload({ type: 'file', file });
     setCaption('');
@@ -65,6 +65,8 @@ export default function VendorPortfolioPage() {
     setCaption('');
     setShowCaption(true);
   };
+
+  const cancelUpload = () => { setShowCaption(false); setPendingUpload(null); setCaption(''); };
 
   const submitUpload = async () => {
     if (!pendingUpload || !vendorId) return;
@@ -101,7 +103,6 @@ export default function VendorPortfolioPage() {
     } catch { showToast('Failed to delete.', true); }
   };
 
-  // Toggle is_hero
   const toggleHero = async (id: string, currentHero: boolean) => {
     try {
       await fetch(`${API_BASE}/api/v2/admin/vendors/${vendorId}/portfolio/${id}`, {
@@ -114,7 +115,6 @@ export default function VendorPortfolioPage() {
     } catch { showToast('Failed.', true); }
   };
 
-  // Map to ImageGrid format — active = in_carousel, extra shows hero badge + tags
   const gridItems: ImageGridItem[] = photos.map(p => ({
     id: p.id,
     image_url: p.image_url,
@@ -123,7 +123,7 @@ export default function VendorPortfolioPage() {
     extra: (
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, padding: '4px 0 8px' }}>
         {p.is_hero && (
-          <span style={{ fontFamily: T.ff.label, fontSize: 7, color: T.gold, border: `0.5px solid ${T.borderStrong}`, borderRadius: 20, padding: '2px 8px', letterSpacing: '0.1em' }}>HERO</span>
+          <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, color: T.gold, border: `0.5px solid ${T.borderStrong}`, borderRadius: 20, padding: '2px 8px', letterSpacing: '0.1em' }}>HERO</span>
         )}
         {(p.aesthetic_tags || []).slice(0, 2).map((tag: string) => (
           <span key={tag} style={{ fontFamily: T.ff.label, fontSize: 7, color: T.muted, border: `0.5px solid ${T.border}`, borderRadius: 20, padding: '2px 8px' }}>{tag}</span>
@@ -138,11 +138,11 @@ export default function VendorPortfolioPage() {
 
       {/* Vendor picker */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, color: T.soft, letterSpacing: '0.22em', textTransform: 'uppercase' as const, marginBottom: 8 }}>Select Vendor</div>
+        <div style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, color: T.soft, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 8 }}>Select Vendor</div>
         <select
           value={vendorId}
           onChange={e => handleVendorChange(e.target.value)}
-          style={{ width: '100%', background: '#141210', border: `0.5px solid ${vendorId ? T.gold : T.border}`, borderRadius: 10, padding: '14px 16px', fontFamily: T.ff.body, fontSize: 14, color: vendorId ? T.ink : T.soft, outline: 'none', minHeight: 52, appearance: 'none' as const }}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${vendorId ? T.gold : T.border}`, borderRadius: 10, padding: '14px 16px', fontFamily: T.ff.body, fontSize: 14, color: vendorId ? T.ink : T.soft, outline: 'none', minHeight: 52, appearance: 'none' as const }}
         >
           <option value="">— Choose a vendor —</option>
           {vendors.map(v => (
@@ -153,12 +153,12 @@ export default function VendorPortfolioPage() {
 
       {/* Selected vendor pill */}
       {selectedVendor && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(201,168,76,0.06)', border: `0.5px solid ${T.borderStrong}`, borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(201,168,76,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: T.goldSoft, border: `0.5px solid ${T.borderStrong}`, borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: T.goldSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 14, color: T.gold }}>{selectedVendor.name[0]}</span>
           </div>
           <div>
-            <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink }}>{selectedVendor.name}</div>
+            <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink }}>{selectedVendor.name}</div>
             <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.1em' }}>{selectedVendor.category || '—'} · {selectedVendor.city || '—'} · {selectedVendor.tier}</div>
           </div>
           <div style={{ marginLeft: 'auto', fontFamily: T.ff.label, fontSize: 8, color: T.soft }}>
@@ -170,6 +170,25 @@ export default function VendorPortfolioPage() {
       {vendorId && (
         <>
           <UploadZone onFile={handleFile} onUrl={handleUrl} loading={uploading} />
+
+          {/* Caption step — inline, no sheet */}
+          {showCaption && pendingUpload && (
+            <div style={{ background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20, marginTop: 16, marginBottom: 8 }}>
+              <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 12 }}>Add Caption</p>
+              {pendingUpload.type === 'file' && (
+                <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, marginBottom: 14 }}>📎 {pendingUpload.file.name}</div>
+              )}
+              {pendingUpload.type === 'url' && (
+                <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.gold, marginBottom: 14, wordBreak: 'break-all' }}>🔗 URL ready</div>
+              )}
+              <FieldInput label="Caption (optional)" value={caption} onChange={setCaption} placeholder="Bridal lehenga shoot, Delhi 2025…" />
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                <GhostBtn label="Cancel" onClick={cancelUpload} />
+                <GoldBtn label={uploading ? 'Uploading…' : 'Upload Photo'} onClick={submitUpload} disabled={uploading} />
+              </div>
+            </div>
+          )}
+
           <SectionDivider label={`${photos.length} photo${photos.length !== 1 ? 's' : ''} in portfolio`} />
           {loading ? <LoadingGrid /> : (
             <>
@@ -203,22 +222,6 @@ export default function VendorPortfolioPage() {
           <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.muted, letterSpacing: '0.18em' }}>to upload or manage their portfolio</div>
         </div>
       )}
-
-      {/* Caption sheet — shown before upload */}
-      <BottomSheet visible={showCaption} onClose={() => { setShowCaption(false); setPendingUpload(null); }} title="Add Caption">
-        <div style={{ marginBottom: 8 }}>
-          {pendingUpload?.type === 'file' && (
-            <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, marginBottom: 16 }}>📎 {(pendingUpload as any).file.name}</div>
-          )}
-          {pendingUpload?.type === 'url' && (
-            <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.gold, marginBottom: 16, wordBreak: 'break-all' }}>🔗 URL ready</div>
-          )}
-          <FieldInput label="Caption (optional)" value={caption} onChange={setCaption} placeholder="Bridal lehenga shoot, Delhi 2025…" />
-          <div style={{ paddingBottom: 12 }}>
-            <GoldBtn label={uploading ? 'Uploading…' : 'Upload Photo'} onClick={submitUpload} disabled={uploading} />
-          </div>
-        </div>
-      </BottomSheet>
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>

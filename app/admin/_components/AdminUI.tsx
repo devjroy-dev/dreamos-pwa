@@ -10,32 +10,32 @@ const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 export const T = {
-  // Backgrounds
-  bg:           '#0A0908',
-  surface:      '#0F0D0B',
-  card:         'rgba(255,255,255,0.035)',
-  cardHover:    'rgba(255,255,255,0.06)',
-  sheet:        '#111009',
+  // Backgrounds — deep navy chrome
+  bg:           '#0A0F18',
+  surface:      '#0F1622',
+  card:         'rgba(255,255,255,0.055)',
+  cardHover:    'rgba(255,255,255,0.09)',
+  sheet:        '#0F1622',
 
-  // Borders
-  border:       'rgba(201,168,76,0.14)',
-  borderStrong: 'rgba(201,168,76,0.28)',
-  borderFocus:  'rgba(201,168,76,0.55)',
+  // Borders — neutral hairlines; oxblood reserved for focus
+  border:       'rgba(255,255,255,0.10)',
+  borderStrong: 'rgba(255,255,255,0.18)',
+  borderFocus:  'rgba(196,64,88,0.55)',
 
-  // Colour
-  gold:         '#C9A84C',
-  goldDim:      'rgba(201,168,76,0.65)',
-  goldSoft:     'rgba(201,168,76,0.2)',
+  // Colour — oxblood spark. Key name kept as `gold` so no page/call-site needs editing.
+  gold:         '#C44058',
+  goldDim:      'rgba(196,64,88,0.70)',
+  goldSoft:     'rgba(196,64,88,0.18)',
 
-  // Text
+  // Text — warm ivory (pairs with navy + oxblood)
   ink:          '#F0EAE0',
-  soft:         'rgba(240,234,224,0.52)',
-  muted:        'rgba(240,234,224,0.3)',
-  dim:          'rgba(240,234,224,0.18)',
+  soft:         'rgba(240,234,224,0.62)',
+  muted:        'rgba(240,234,224,0.42)',
+  dim:          'rgba(240,234,224,0.22)',
 
-  // Semantic
-  danger:       '#D95858',
-  dangerSoft:   'rgba(217,88,88,0.15)',
+  // Semantic — danger nudged orange so the red Deny chip never reads as oxblood
+  danger:       '#E0574E',
+  dangerSoft:   'rgba(224,87,78,0.15)',
   success:      '#4EC994',
   successSoft:  'rgba(78,201,148,0.15)',
   warning:      '#D4A017',
@@ -55,9 +55,9 @@ export function PageHeader({ title, sub, action }: {
   return (
     <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:32, gap:16 }}>
       <div>
-        <h1 style={{ fontFamily:T.ff.display, fontStyle:'italic', fontWeight:300, fontSize:30, color:T.ink, lineHeight:1.05, margin:0, letterSpacing:'-0.01em' }}>{title}</h1>
+        <h1 style={{ fontFamily:T.ff.body, fontWeight:700, fontSize:27, color:T.ink, lineHeight:1.1, margin:0, letterSpacing:'-0.015em' }}>{title}</h1>
         {sub && (
-          <p style={{ fontFamily:T.ff.label, fontWeight:200, fontSize:9, color:T.goldDim, letterSpacing:'0.32em', textTransform:'uppercase', marginTop:8, marginBottom:0 }}>{sub}</p>
+          <p style={{ fontFamily:T.ff.label, fontWeight:600, fontSize:10, color:T.goldDim, letterSpacing:'0.14em', textTransform:'uppercase', marginTop:9, marginBottom:0 }}>{sub}</p>
         )}
       </div>
       {action && <div style={{ flexShrink:0, marginTop:4 }}>{action}</div>}
@@ -72,9 +72,9 @@ export function StatCard({ label, value, sub, accent }: {
   return (
     <div style={{ background:T.card, border:`0.5px solid ${accent ? T.borderStrong : T.border}`, borderRadius:14, padding:'20px 22px', position:'relative', overflow:'hidden' }}>
       {accent && <div style={{ position:'absolute', top:0, left:0, right:0, height:'1.5px', background:`linear-gradient(to right, ${T.gold}, transparent)` }} />}
-      <div style={{ fontFamily:T.ff.label, fontWeight:200, fontSize:8, color:T.soft, letterSpacing:'0.28em', textTransform:'uppercase', marginBottom:10 }}>{label}</div>
-      <div style={{ fontFamily:T.ff.display, fontWeight:300, fontSize:34, color:accent ? T.gold : T.ink, lineHeight:1, letterSpacing:'-0.02em' }}>{value}</div>
-      {sub && <div style={{ fontFamily:T.ff.body, fontWeight:300, fontSize:11, color:T.muted, marginTop:8 }}>{sub}</div>}
+      <div style={{ fontFamily:T.ff.label, fontWeight:600, fontSize:10, color:T.soft, letterSpacing:'0.13em', textTransform:'uppercase', marginBottom:12 }}>{label}</div>
+      <div style={{ fontFamily:T.ff.body, fontWeight:700, fontSize:38, color:accent ? T.gold : T.ink, lineHeight:1, letterSpacing:'-0.03em' }}>{value}</div>
+      {sub && <div style={{ fontFamily:T.ff.body, fontWeight:400, fontSize:12, color:T.muted, marginTop:9 }}>{sub}</div>}
     </div>
   );
 }
@@ -98,13 +98,13 @@ export function GoldBtn({ label, onClick, disabled, small }: {
         fontFamily:T.ff.label, fontWeight:300,
         fontSize: small ? 9 : 10,
         letterSpacing:'0.2em', textTransform:'uppercase',
-        color: disabled ? T.goldDim : '#0A0908',
+        color: disabled ? T.goldDim : T.ink,
         minHeight: small ? 38 : 44,
         cursor: disabled ? 'not-allowed' : 'pointer',
         whiteSpace:'nowrap',
         transform: pressed && !disabled ? 'scale(0.97)' : 'scale(1)',
         transition:`all 120ms ${EASE}`,
-        boxShadow: pressed || disabled ? 'none' : '0 2px 12px rgba(201,168,76,0.22)',
+        boxShadow: pressed || disabled ? 'none' : '0 2px 12px rgba(196,64,88,0.22)',
       }}
     >
       {label}
@@ -140,6 +140,33 @@ export function GhostBtn({ label, onClick, danger, small, disabled }: {
     >
       {label}
     </button>
+  );
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+// ── ActionChip ────────────────────────────────────────────────────────────────
+// One-tap on-card action. Replaces slide-up sheets for approve/deny/revoke.
+export function ActionChip({ label, tone, onClick, disabled }: {
+  label: string; tone: 'ok' | 'no' | 'neutral'; onClick: () => void; disabled?: boolean;
+}) {
+  const map = { ok: [T.success, T.successSoft], no: [T.danger, T.dangerSoft], neutral: [T.gold, T.goldSoft] } as const;
+  const [c, bg] = map[tone];
+  const [pressed, setPressed] = useState(false);
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); if (!disabled) onClick(); }}
+      disabled={disabled}
+      onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)}
+      style={{
+        flex: 1, background: disabled ? 'rgba(255,255,255,0.04)' : bg,
+        border: `0.5px solid ${disabled ? T.border : c}`,
+        color: disabled ? T.muted : c,
+        fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+        borderRadius: 9, minHeight: 44, cursor: disabled ? 'not-allowed' : 'pointer',
+        transform: pressed && !disabled ? 'scale(0.97)' : 'scale(1)',
+        transition: `all 120ms ${EASE}`,
+      }}
+    >{label}</button>
   );
 }
 
@@ -184,13 +211,13 @@ export function FieldInput({ label, value, onChange, placeholder, type = 'text',
         onBlur={() => setFocused(false)}
         style={{
           width:'100%',
-          background: focused ? 'rgba(201,168,76,0.04)' : 'rgba(255,255,255,0.03)',
+          background: focused ? 'rgba(196,64,88,0.04)' : 'rgba(255,255,255,0.03)',
           border:`0.5px solid ${focused ? T.borderFocus : T.border}`,
           borderRadius:9, padding:'12px 14px',
           fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink,
           outline:'none', minHeight:46,
           transition:`all 200ms ${EASE}`,
-          boxShadow: focused ? `0 0 0 3px rgba(201,168,76,0.07)` : 'none',
+          boxShadow: focused ? `0 0 0 3px rgba(196,64,88,0.07)` : 'none',
         }}
       />
     </div>
@@ -213,17 +240,17 @@ export function FieldSelect({ label, value, onChange, options }: {
           onBlur={() => setFocused(false)}
           style={{
             width:'100%',
-            background: focused ? 'rgba(201,168,76,0.04)' : '#130F0C',
+            background: focused ? 'rgba(196,64,88,0.04)' : '#10171F',
             border:`0.5px solid ${focused ? T.borderFocus : T.border}`,
             borderRadius:9, padding:'12px 36px 12px 14px',
             fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink,
             outline:'none', minHeight:46, appearance:'none',
             transition:`all 200ms ${EASE}`,
-            boxShadow: focused ? `0 0 0 3px rgba(201,168,76,0.07)` : 'none',
+            boxShadow: focused ? `0 0 0 3px rgba(196,64,88,0.07)` : 'none',
             cursor:'pointer',
           }}
         >
-          {options.map(o => <option key={o.value} value={o.value} style={{ background:'#130F0C' }}>{o.label}</option>)}
+          {options.map(o => <option key={o.value} value={o.value} style={{ background:'#10171F' }}>{o.label}</option>)}
         </select>
         {/* Custom chevron */}
         <span style={{ position:'absolute', right:13, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:T.goldDim, fontSize:11, fontFamily:T.ff.label }}>▾</span>
@@ -388,7 +415,7 @@ export function UploadZone({ onFile, onUrl, loading, accept = 'image/*' }: {
             onFocus={() => setUrlFocus(true)}
             onBlur={() => setUrlFocus(false)}
             placeholder="https://res.cloudinary.com/…"
-            style={{ flex:1, background: urlFocus ? 'rgba(201,168,76,0.04)' : 'rgba(255,255,255,0.03)', border:`0.5px solid ${urlFocus ? T.borderFocus : T.border}`, borderRadius:9, padding:'12px 14px', fontFamily:T.ff.body, fontSize:13, color:T.ink, outline:'none', minHeight:46, transition:`all 200ms ${EASE}` }}
+            style={{ flex:1, background: urlFocus ? 'rgba(196,64,88,0.04)' : 'rgba(255,255,255,0.03)', border:`0.5px solid ${urlFocus ? T.borderFocus : T.border}`, borderRadius:9, padding:'12px 14px', fontFamily:T.ff.body, fontSize:13, color:T.ink, outline:'none', minHeight:46, transition:`all 200ms ${EASE}` }}
           />
           <GoldBtn label={loading ? '…' : 'Add'} onClick={() => { if(url.trim()){onUrl(url.trim());setUrl('');} }} disabled={!url.trim()||loading} />
         </div>
@@ -492,7 +519,7 @@ export function Counter({ current, max }: { current: number; max: number }) {
   return (
     <div style={{ display:'flex', alignItems:'center', gap:14, background:T.card, border:`0.5px solid ${full ? T.gold : T.border}`, borderRadius:10, padding:'12px 16px', marginBottom:20 }}>
       <div style={{ flex:1, height:3, background:T.border, borderRadius:2, overflow:'hidden' }}>
-        <div style={{ height:'100%', width:`${pct}%`, background: full ? T.gold : 'rgba(201,168,76,0.45)', borderRadius:2, transition:`width 500ms ${EASE}` }} />
+        <div style={{ height:'100%', width:`${pct}%`, background: full ? T.gold : 'rgba(196,64,88,0.45)', borderRadius:2, transition:`width 500ms ${EASE}` }} />
       </div>
       <span style={{ fontFamily:T.ff.label, fontSize:10, fontWeight:200, color: full ? T.gold : T.soft, letterSpacing:'0.12em', whiteSpace:'nowrap', flexShrink:0 }}>{current} / {max}</span>
     </div>
@@ -512,7 +539,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search…' }: {
         placeholder={placeholder}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={{ width:'100%', background: focused ? 'rgba(201,168,76,0.04)' : 'rgba(255,255,255,0.03)', border:`0.5px solid ${focused ? T.borderFocus : T.border}`, borderRadius:10, padding:'11px 14px 11px 38px', fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink, outline:'none', minHeight:44, transition:`all 200ms ${EASE}` }}
+        style={{ width:'100%', background: focused ? 'rgba(196,64,88,0.04)' : 'rgba(255,255,255,0.03)', border:`0.5px solid ${focused ? T.borderFocus : T.border}`, borderRadius:10, padding:'11px 14px 11px 38px', fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink, outline:'none', minHeight:44, transition:`all 200ms ${EASE}` }}
       />
       {value && (
         <button onClick={() => onChange('')} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:T.muted, fontSize:16, cursor:'pointer', padding:4 }}>×</button>
@@ -549,7 +576,7 @@ export function Row({ children, onClick, danger }: {
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ background: hov && onClick ? 'rgba(201,168,76,0.03)' : 'transparent', border:`0.5px solid ${danger ? 'rgba(217,88,88,0.2)' : T.border}`, borderRadius:12, padding:'14px 18px', marginBottom:8, cursor:onClick?'pointer':'default', transition:`all 150ms ${EASE}` }}
+      style={{ background: hov && onClick ? 'rgba(196,64,88,0.03)' : 'transparent', border:`0.5px solid ${danger ? 'rgba(217,88,88,0.2)' : T.border}`, borderRadius:12, padding:'14px 18px', marginBottom:8, cursor:onClick?'pointer':'default', transition:`all 150ms ${EASE}` }}
     >
       {children}
     </div>

@@ -1,16 +1,15 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, BottomSheet } from '../../_components/AdminUI';
+import { PageHeader, T, Toast, ActionChip } from '../../_components/AdminUI';
 import { getDiscoverQueue, grantDiscover, denyDiscover, revokeDiscover, type DiscoverRequest } from '../../../../lib/admin-api/index';
 
 const STATE_COLORS: Record<string, string> = {
-  under_review: '#C9A84C', approved: '#5CE0A0', denied: '#E05C5C', revoked: '#888', not_requested: '#444',
+  under_review: '#C44058', approved: '#4EC994', denied: '#E0574E', revoked: '#888', not_requested: '#555',
 };
 
 export default function DiscoverApprovalsPage() {
   const [requests, setRequests] = useState<DiscoverRequest[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [selected, setSelected] = useState<DiscoverRequest | null>(null);
   const [toast, setToast]       = useState('');
   const [toastErr, setToastErr] = useState(false);
 
@@ -22,18 +21,9 @@ export default function DiscoverApprovalsPage() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const grant = async (id: string) => {
-    try { await grantDiscover(id); showToast('Approved for Discover.'); load(); setSelected(null); }
-    catch { showToast('Failed.', true); }
-  };
-  const deny = async (id: string) => {
-    try { await denyDiscover(id); showToast('Denied.'); load(); setSelected(null); }
-    catch { showToast('Failed.', true); }
-  };
-  const revoke = async (id: string) => {
-    try { await revokeDiscover(id); showToast('Revoked.'); load(); setSelected(null); }
-    catch { showToast('Failed.', true); }
-  };
+  const grant  = async (id: string) => { try { await grantDiscover(id);  showToast('Approved for Discover.'); load(); } catch { showToast('Failed.', true); } };
+  const deny   = async (id: string) => { try { await denyDiscover(id);   showToast('Denied.');               load(); } catch { showToast('Failed.', true); } };
+  const revoke = async (id: string) => { try { await revokeDiscover(id); showToast('Revoked.');              load(); } catch { showToast('Failed.', true); } };
 
   const pending = requests.filter(r => r.discover_request_state === 'under_review');
   const rest    = requests.filter(r => r.discover_request_state !== 'under_review');
@@ -44,47 +34,47 @@ export default function DiscoverApprovalsPage() {
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-          {[1,2,3].map(i => <div key={i} className="shimmer" style={{ background: T.card, borderRadius: 12, height: 72 }} />)}
+          {[1,2,3].map(i => <div key={i} className="shimmer" style={{ background: T.card, borderRadius: 12, height: 100 }} />)}
         </div>
       ) : requests.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: T.muted, fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 18 }}>No requests</div>
       ) : (
-        <>
-          {[...pending, ...rest].map(r => (
-            <div key={r.vendor_id} onClick={() => setSelected(r)} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: 'pointer', minHeight: 72 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, marginBottom: 2 }}>{r.vendor_name}</div>
-                <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.1em' }}>{r.vendor_category} · {r.vendor_city} · {r.portfolio_count} photos</div>
-              </div>
-              <span style={{ fontFamily: T.ff.label, fontSize: 7, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: STATE_COLORS[r.discover_request_state] || T.soft, border: `0.5px solid ${STATE_COLORS[r.discover_request_state] || T.border}`, borderRadius: 20, padding: '3px 10px', flexShrink: 0 }}>
-                {r.discover_request_state.replace('_', ' ')}
-              </span>
-            </div>
-          ))}
-        </>
-      )}
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+          {[...pending, ...rest].map(r => {
+            const st = r.discover_request_state;
+            return (
+              <div key={r.vendor_id} style={{ background: T.card, border: `0.5px solid ${st === 'under_review' ? T.borderStrong : T.border}`, borderRadius: 12, padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: (st === 'under_review' || st === 'approved' || st === 'denied') ? 14 : 0 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3 }}>{r.vendor_name}</div>
+                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.08em' }}>{r.vendor_category} · {r.vendor_city} · {r.portfolio_count} photos</div>
+                  </div>
+                  <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: STATE_COLORS[st] || T.soft, border: `0.5px solid ${STATE_COLORS[st] || T.border}`, borderRadius: 20, padding: '3px 10px', flexShrink: 0 }}>
+                    {st.replace('_', ' ')}
+                  </span>
+                </div>
 
-      <BottomSheet visible={!!selected} onClose={() => setSelected(null)} title={selected?.vendor_name || ''}>
-        {selected && (
-          <div>
-            <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, marginBottom: 20, letterSpacing: '0.1em' }}>{selected.vendor_category} · {selected.vendor_city} · {selected.portfolio_count} portfolio photos</div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' as const }}>
-              {selected.discover_request_state === 'under_review' && (
-                <>
-                  <GoldBtn label="Approve" onClick={() => grant(selected.vendor_id)} />
-                  <GhostBtn label="Deny" onClick={() => deny(selected.vendor_id)} danger />
-                </>
-              )}
-              {selected.discover_request_state === 'approved' && (
-                <GhostBtn label="Revoke Access" onClick={() => revoke(selected.vendor_id)} danger />
-              )}
-              {selected.discover_request_state === 'denied' && (
-                <GoldBtn label="Approve Anyway" onClick={() => grant(selected.vendor_id)} />
-              )}
-            </div>
-          </div>
-        )}
-      </BottomSheet>
+                {st === 'under_review' && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <ActionChip label="Deny" tone="no" onClick={() => deny(r.vendor_id)} />
+                    <ActionChip label="Approve" tone="ok" onClick={() => grant(r.vendor_id)} />
+                  </div>
+                )}
+                {st === 'approved' && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <ActionChip label="Revoke Access" tone="no" onClick={() => revoke(r.vendor_id)} />
+                  </div>
+                )}
+                {st === 'denied' && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <ActionChip label="Approve Anyway" tone="ok" onClick={() => grant(r.vendor_id)} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, BottomSheet, SectionDivider } from '../_components/AdminUI';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, SectionDivider } from '../_components/AdminUI';
 import { getHotDates, addHotDate, deleteHotDate, type HotDate } from '../../../lib/admin-api/index';
 
 function fmtDate(d: string) {
@@ -44,21 +44,27 @@ export default function HotDatesPage() {
     catch { showToast('Failed.', true); }
   };
 
+  const DelBtn = ({ id }: { id: string }) => (
+    <button onClick={() => confirmId === id ? remove(id) : setConfirmId(id)} style={{ background: confirmId === id ? T.dangerSoft : 'transparent', border: confirmId === id ? `0.5px solid ${T.danger}` : 'none', borderRadius: 8, color: T.danger, fontFamily: T.ff.label, fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '8px 12px', minHeight: 44, cursor: 'pointer' }}>{confirmId === id ? 'Confirm?' : 'Del'}</button>
+  );
+
   const upcoming = dates.filter(d => new Date(d.date) >= new Date());
   const past     = dates.filter(d => new Date(d.date) < new Date());
 
   return (
     <div>
-      <PageHeader title="Hot Dates" sub="Vivah Muhurat & auspicious wedding dates" action={<GoldBtn label="Add Date" onClick={() => setShowAdd(true)} />} />
+      <PageHeader title="Hot Dates" sub="Vivah Muhurat & auspicious wedding dates" action={<GoldBtn label={showAdd ? 'Close' : 'Add Date'} onClick={() => setShowAdd(s => !s)} />} />
 
-      {confirmId && (
-        <div onClick={() => setConfirmId(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#111009', border: `0.5px solid ${T.border}`, borderRadius: 16, padding: 28, maxWidth: 320, width: '100%' }}>
-            <div style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 20, color: T.ink, marginBottom: 16 }}>Delete this date?</div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <GhostBtn label="Cancel" onClick={() => setConfirmId(null)} />
-              <GhostBtn label="Delete" onClick={() => remove(confirmId)} danger />
-            </div>
+      {/* Add form — inline, no sheet */}
+      {showAdd && (
+        <div style={{ background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20, marginBottom: 24 }}>
+          <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Add Hot Date</p>
+          <FieldInput label="Date (YYYY-MM-DD)" value={date} onChange={setDate} type="date" />
+          <FieldInput label="Label (optional)" value={note} onChange={setNote} placeholder="Akshaya Tritiya, Dev Uthani Ekadashi…" />
+          <FieldInput label="Region" value={region} onChange={setRegion} placeholder="All India" />
+          <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            <GhostBtn label="Cancel" onClick={() => setShowAdd(false)} />
+            <GoldBtn label={adding ? 'Adding…' : 'Add'} onClick={add} disabled={adding || !date} />
           </div>
         </div>
       )}
@@ -76,10 +82,10 @@ export default function HotDatesPage() {
           {upcoming.map(d => (
             <div key={d.id} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.gold, marginBottom: 2 }}>{fmtDate(d.date)}</div>
+                <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.gold, marginBottom: 2 }}>{fmtDate(d.date)}</div>
                 <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.1em' }}>{d.label || 'Muhurat'} · {d.region}</div>
               </div>
-              <button onClick={() => setConfirmId(d.id)} style={{ background: 'transparent', border: 'none', color: T.danger, fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, padding: '8px 12px', minHeight: 44 }}>Del</button>
+              <DelBtn id={d.id} />
             </div>
           ))}
         </div>
@@ -95,21 +101,12 @@ export default function HotDatesPage() {
                   <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.soft, marginBottom: 2 }}>{fmtDate(d.date)}</div>
                   <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted }}>{d.label || 'Muhurat'}</div>
                 </div>
-                <button onClick={() => setConfirmId(d.id)} style={{ background: 'transparent', border: 'none', color: T.danger, fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, padding: '8px 12px', minHeight: 44 }}>Del</button>
+                <DelBtn id={d.id} />
               </div>
             ))}
           </div>
         </>
       )}
-
-      <BottomSheet visible={showAdd} onClose={() => setShowAdd(false)} title="Add Hot Date">
-        <FieldInput label="Date (YYYY-MM-DD)" value={date} onChange={setDate} type="date" />
-        <FieldInput label="Label (optional)" value={note} onChange={setNote} placeholder="Akshaya Tritiya, Dev Uthani Ekadashi…" />
-        <FieldInput label="Region" value={region} onChange={setRegion} placeholder="All India" />
-        <div style={{ paddingBottom: 12 }}>
-          <GoldBtn label={adding ? 'Adding…' : 'Add'} onClick={add} disabled={adding || !date} />
-        </div>
-      </BottomSheet>
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>

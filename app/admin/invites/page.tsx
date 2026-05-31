@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect, BottomSheet, SectionDivider } from '../_components/AdminUI';
+import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FieldSelect, SectionDivider } from '../_components/AdminUI';
 import { getInvites, getWaLinks, generateInvites, deleteInvite, type InviteCode } from '../../../lib/admin-api/index';
 
 function fmt(d: string) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); }
@@ -60,11 +60,28 @@ export default function InvitesPage() {
 
   return (
     <div>
-      <PageHeader title="Invites" sub="WhatsApp links + web codes" action={<GoldBtn label="Generate" onClick={() => setShowGen(true)} />} />
+      <PageHeader title="Invites" sub="WhatsApp links + web codes" action={<GoldBtn label={showGen ? 'Close' : 'Generate'} onClick={() => setShowGen(s => !s)} />} />
+
+      {/* Generate form — inline, no sheet */}
+      {showGen && (
+        <div style={{ background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20, marginBottom: 24 }}>
+          <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Generate Codes</p>
+          <FieldSelect label="Kind" value={kind} onChange={setKind} options={[{ value: 'maker', label: 'Maker (Vendor)' }, { value: 'dreamer', label: 'Dreamer (Couple)' }]} />
+          <FieldSelect label="Tier" value={tier} onChange={setTier} options={[{ value: 'trial', label: 'Trial' }, { value: 'essential', label: 'Essential' }, { value: 'signature', label: 'Signature' }, { value: 'prestige', label: 'Prestige' }]} />
+          <FieldInput label="Phone (required for web sign-in)" value={phone} onChange={setPhone} placeholder="+91…" />
+          {phone.trim() && <FieldInput label="Name (required with phone)" value={name} onChange={setName} placeholder="Kavya Sharma" />}
+          <FieldInput label="Notes (optional)" value={notes} onChange={setNotes} placeholder="VIP, founding cohort…" />
+          {!phone && <FieldInput label="Count (max 50)" value={count} onChange={setCount} type="number" />}
+          <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            <GhostBtn label="Cancel" onClick={() => setShowGen(false)} />
+            <GoldBtn label={generating ? 'Generating…' : 'Generate'} onClick={generate} disabled={generating || (!!phone.trim() && !name.trim())} />
+          </div>
+        </div>
+      )}
 
       {/* WA Links */}
       <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 14, padding: 20, marginBottom: 24 }}>
-        <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, color: T.soft, letterSpacing: '0.25em', textTransform: 'uppercase' as const, marginBottom: 16 }}>WhatsApp Onboarding Links</p>
+        <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.soft, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 16 }}>WhatsApp Onboarding Links</p>
         <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted, marginBottom: 16, lineHeight: 1.5 }}>Share these numbers. When someone messages, the agent onboards them automatically. No invite code needed.</p>
         {[['Vendor (Maker)', waLinks.vendor], ['Couple (Dreamer)', waLinks.couple]].map(([label, link]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: `0.5px solid ${T.border}` }}>
@@ -72,7 +89,7 @@ export default function InvitesPage() {
               <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink, marginBottom: 2 }}>{label}</div>
               <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft }}>{link}</div>
             </div>
-            <button onClick={() => copy(link, label)} style={{ background: copied === label ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.05)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 16px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied === label ? T.gold : T.soft, minHeight: 44, minWidth: 80 }}>
+            <button onClick={() => copy(link, label)} style={{ background: copied === label ? T.goldSoft : 'rgba(255,255,255,0.05)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 16px', fontFamily: T.ff.label, fontWeight: 600, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied === label ? T.gold : T.soft, minHeight: 44, minWidth: 80 }}>
               {copied === label ? 'Copied!' : 'Copy'}
             </button>
           </div>
@@ -97,7 +114,7 @@ export default function InvitesPage() {
               </div>
               <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                 <button onClick={() => copy(inv.code, inv.code)} style={{ background: 'transparent', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: copied === inv.code ? T.gold : T.soft, minHeight: 44 }}>{copied === inv.code ? '✓' : 'Copy'}</button>
-                <button onClick={() => remove(inv.code)} style={{ background: 'transparent', border: `0.5px solid rgba(224,92,92,0.3)`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: '#E05C5C', minHeight: 44 }}>Del</button>
+                <button onClick={() => remove(inv.code)} style={{ background: 'transparent', border: `0.5px solid ${T.dangerSoft}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: T.danger, minHeight: 44 }}>Del</button>
               </div>
             </div>
           ))}
@@ -120,19 +137,6 @@ export default function InvitesPage() {
           </div>
         </>
       )}
-
-      {/* Generate sheet */}
-      <BottomSheet visible={showGen} onClose={() => setShowGen(false)} title="Generate Codes">
-        <FieldSelect label="Kind" value={kind} onChange={setKind} options={[{ value: 'maker', label: 'Maker (Vendor)' }, { value: 'dreamer', label: 'Dreamer (Couple)' }]} />
-        <FieldSelect label="Tier" value={tier} onChange={setTier} options={[{ value: 'trial', label: 'Trial' }, { value: 'essential', label: 'Essential' }, { value: 'signature', label: 'Signature' }, { value: 'prestige', label: 'Prestige' }]} />
-        <FieldInput label="Phone (required for web sign-in)" value={phone} onChange={setPhone} placeholder="+91…" />
-        {phone.trim() && <FieldInput label="Name (required with phone)" value={name} onChange={setName} placeholder="Kavya Sharma" />}
-        <FieldInput label="Notes (optional)" value={notes} onChange={setNotes} placeholder="VIP, founding cohort…" />
-        {!phone && <FieldInput label="Count (max 50)" value={count} onChange={setCount} type="number" />}
-        <div style={{ paddingBottom: 12 }}>
-          <GoldBtn label={generating ? 'Generating…' : 'Generate'} onClick={generate} disabled={generating || (!!phone.trim() && !name.trim())} />
-        </div>
-      </BottomSheet>
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>

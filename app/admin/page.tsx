@@ -37,8 +37,8 @@ export default function AdminDashboard() {
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
-        <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 9, color: T.soft, letterSpacing: '0.25em', textTransform: 'uppercase' as const, marginBottom: 4 }}>{timeStr}</p>
-        <h1 style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontWeight: 300, fontSize: 34, color: T.ink, lineHeight: 1.1 }}>Control Room</h1>
+        <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.soft, letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: 7 }}>{timeStr}</p>
+        <h1 style={{ fontFamily: T.ff.body, fontWeight: 700, fontSize: 32, color: T.ink, lineHeight: 1.08, letterSpacing: '-0.02em' }}>Control Room</h1>
         <div style={{ height: '0.5px', background: `linear-gradient(to right, ${T.gold}44, transparent)`, marginTop: 16 }} />
       </div>
       {loading ? (
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
         </div>
       )}
       <div style={{ marginTop: 36, background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 14, padding: 20 }}>
-        <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, color: T.soft, letterSpacing: '0.25em', textTransform: 'uppercase' as const, marginBottom: 12 }}>Quick Links</p>
+        <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.soft, letterSpacing: '0.13em', textTransform: 'uppercase' as const, marginBottom: 12 }}>Quick Links</p>
         {[['Generate Invites','/admin/invites'],['Upload Muse Pool','/admin/content/muse-pool'],['Upload Surprise Me','/admin/content/surprise-me'],['Approve Photos','/admin/approvals/photos'],['AI Caps','/admin/config']].map(([label,path]) => (
           <a key={path} href={path} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: `0.5px solid ${T.border}`, textDecoration: 'none', color: T.soft, fontFamily: T.ff.body, fontSize: 14, fontWeight: 300 }}>
             {label}<span style={{ color: T.gold }}>→</span>

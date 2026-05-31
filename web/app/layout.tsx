@@ -85,7 +85,6 @@ export default function RootLayout({
   var VENDOR_LIGHT='#F5F2EE';
   var isFrost=path.indexOf('/frost')===0||path.indexOf('/coplanner')===0||path.indexOf('/circle')===0;
   var isVendor=path.indexOf('/vendor')===0;
-  var isAdmin=path.indexOf('/admin')===0;
   var bg=null;
   if(isFrost){
     var stored=null, manual=null;
@@ -103,8 +102,6 @@ export default function RootLayout({
       document.documentElement.classList.add('theme-light');
       bg=VENDOR_LIGHT;
     }
-  } else if(isAdmin){
-    bg='#18293E';
   }
   if(bg){
     document.documentElement.style.background=bg;

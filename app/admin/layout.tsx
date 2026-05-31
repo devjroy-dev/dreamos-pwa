@@ -6,22 +6,21 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
-const G    = '#C9A84C';
-const BG   = '#0A0908';
-const SURF = '#0D0B09';
+const G    = '#C44058';
 const INK  = '#F0EAE0';
 const SOFT = 'rgba(240,234,224,0.48)';
 const DIM  = 'rgba(240,234,224,0.22)';
-const BORDER = 'rgba(201,168,76,0.14)';
-const BORDER_STRONG = 'rgba(201,168,76,0.28)';
+const BORDER = 'rgba(255,255,255,0.10)';
+const BORDER_STRONG = 'rgba(255,255,255,0.18)';
 const SIDEBAR_W = 228;
 
 const FONTS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Jost:wght@200;300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    background: #0A0908;
+    background: linear-gradient(165deg, #213650 0%, #18293E 50%, #122031 100%);
+    background-attachment: fixed;
     color: #F0EAE0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -29,9 +28,9 @@ const FONTS = `
   }
   ::-webkit-scrollbar { width: 2px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: rgba(196,64,88,0.2); border-radius: 2px; }
   scrollbar-width: thin;
-  scrollbar-color: rgba(201,168,76,0.2) transparent;
+  scrollbar-color: rgba(196,64,88,0.2) transparent;
 
   input, select, textarea {
     font-family: "DM Sans", sans-serif;
@@ -40,7 +39,7 @@ const FONTS = `
   }
   input::placeholder, textarea::placeholder { color: rgba(240,234,224,0.22) !important; }
   button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  option { background: #130F0C; }
+  option { background: #10171F; }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(10px); }
@@ -63,48 +62,79 @@ const FONTS = `
 
 const NAV = [
   { group: 'Overview', items: [
-    { label:'Dashboard',     path:'/admin',                          glyph:'◈' },
+    { label:'Dashboard',     path:'/admin',                          icon:'dashboard' },
   ]},
   { group: 'People', items: [
-    { label:'Makers',        path:'/admin/makers',                   glyph:'✦' },
-    { label:'Portfolios',    path:'/admin/vendors/portfolio',        glyph:'⬡' },
-    { label:'Dreamers',      path:'/admin/dreamers',                 glyph:'♡' },
-    { label:'Invites',       path:'/admin/invites',                  glyph:'⌘' },
+    { label:'Makers',        path:'/admin/makers',                   icon:'makers' },
+    { label:'Portfolios',    path:'/admin/vendors/portfolio',        icon:'portfolio' },
+    { label:'Dreamers',      path:'/admin/dreamers',                 icon:'dreamers' },
+    { label:'Invites',       path:'/admin/invites',                  icon:'invites' },
   ]},
   { group: 'Content', items: [
-    { label:'Landing',       path:'/admin/content/landing',         glyph:'⬡' },
-    { label:'Exploring',     path:'/admin/content/exploring',       glyph:'◎' },
-    { label:'Heroes',        path:'/admin/content/heroes',          glyph:'★' },
-    { label:'Spotlight',     path:'/admin/content/spotlight',       glyph:'◐' },
-    { label:'Muse Pool',     path:'/admin/content/muse-pool',       glyph:'♡' },
-    { label:'Surprise Me',   path:'/admin/content/surprise-me',     glyph:'✦' },
+    { label:'Landing',       path:'/admin/content/landing',         icon:'landing' },
+    { label:'Exploring',     path:'/admin/content/exploring',       icon:'exploring' },
+    { label:'Heroes',        path:'/admin/content/heroes',          icon:'heroes' },
+    { label:'Spotlight',     path:'/admin/content/spotlight',       icon:'spotlight' },
+    { label:'Muse Pool',     path:'/admin/content/muse-pool',       icon:'muse' },
+    { label:'Surprise Me',   path:'/admin/content/surprise-me',     icon:'surprise' },
   ]},
   { group: 'Approvals', items: [
-    { label:'Photos',        path:'/admin/approvals/photos',        glyph:'⬡' },
-    { label:'Discover',      path:'/admin/approvals/discover',      glyph:'◈' },
+    { label:'Photos',        path:'/admin/approvals/photos',        icon:'photos' },
+    { label:'Discover',      path:'/admin/approvals/discover',      icon:'discover' },
   ]},
   { group: 'Conversations', items: [
-    { label:'Vendors',       path:'/admin/conversations/vendors',   glyph:'◎' },
-    { label:'Brides',        path:'/admin/conversations/brides',    glyph:'◎' },
+    { label:'Vendors',       path:'/admin/conversations/vendors',   icon:'chat' },
+    { label:'Brides',        path:'/admin/conversations/brides',    icon:'chatHeart' },
   ]},
   { group: 'Commerce', items: [
-    { label:'Couture',       path:'/admin/couture',                 glyph:'✦' },
-    { label:'Hot Dates',     path:'/admin/hot-dates',               glyph:'◈' },
+    { label:'Couture',       path:'/admin/couture',                 icon:'couture' },
+    { label:'Hot Dates',     path:'/admin/hot-dates',               icon:'calendar' },
   ]},
   { group: 'Invite Requests', items: [
-    { label:'Dreamers',      path:'/admin/invite-requests/dreamers', glyph:'♡' },
-    { label:'Makers',        path:'/admin/invite-requests/makers',   glyph:'✦' },
+    { label:'Dreamers',      path:'/admin/invite-requests/dreamers', icon:'inbox' },
+    { label:'Makers',        path:'/admin/invite-requests/makers',   icon:'userplus' },
   ]},
   { group: 'Outreach', items: [
-    { label:'Demo Profiles', path:'/admin/demo',                    glyph:'◈' },
+    { label:'Demo Profiles', path:'/admin/demo',                    icon:'demo' },
   ]},
   { group: 'Config', items: [
-    { label:'AI Caps',       path:'/admin/config',                  glyph:'⚙' },
+    { label:'AI Caps',       path:'/admin/config',                  icon:'config' },
   ]},
 ];
 
-function NavItem({ label, path, glyph, active, onClick }: {
-  label: string; path: string; glyph: string; active: boolean; onClick: () => void;
+function Icon({ name, size = 18 }: { name: string; size?: number }) {
+  const p: Record<string, React.ReactNode> = {
+    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+    makers:    <><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9"/><path d="M3 9h18"/></>,
+    portfolio: <><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></>,
+    dreamers:  <path d="M12 20s-7-4.3-7-9.5A3.5 3.5 0 0112 7a3.5 3.5 0 017 3.5C19 15.7 12 20 12 20z"/>,
+    invites:   <><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/><path d="M14 6v12"/></>,
+    landing:   <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></>,
+    exploring: <><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></>,
+    heroes:    <path d="M12 3l2.6 5.6 6.1.6-4.6 4 1.4 6L12 16.9 6.5 19.2l1.4-6-4.6-4 6.1-.6z"/>,
+    spotlight: <><path d="M12 3v3M12 18v3M5 12H2M22 12h-3M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/><circle cx="12" cy="12" r="3.5"/></>,
+    muse:      <><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></>,
+    surprise:  <><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13"/><path d="M12 8S9 3 6.5 4.5 9 8 12 8zM12 8s3-5 5.5-3.5S15 8 12 8z"/></>,
+    photos:    <><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></>,
+    discover:  <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M11 8v6M8 11h6"/></>,
+    chat:      <path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/>,
+    chatHeart: <><path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/><path d="M12 14.5s-2.4-1.5-2.4-3a1.2 1.2 0 012.4-.5 1.2 1.2 0 012.4.5c0 1.5-2.4 3-2.4 3z"/></>,
+    couture:   <><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8 7.5L20 18M8 16.5L20 6"/></>,
+    calendar:  <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></>,
+    inbox:     <><path d="M3 12l3-7h12l3 7v6a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M3 12h5l2 3h4l2-3h5"/></>,
+    userplus:  <><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0112 0M18 8v6M21 11h-6"/></>,
+    demo:      <><path d="M9 3h6M10 3v6l-5 9a2 2 0 001.8 3h10.4a2 2 0 001.8-3l-5-9V3"/><path d="M7.5 15h9"/></>,
+    config:    <><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h6M14 18h6"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+      {p[name] || null}
+    </svg>
+  );
+}
+
+function NavItem({ label, path, icon, active, onClick }: {
+  label: string; path: string; icon: string; active: boolean; onClick: () => void;
 }) {
   const [hov, setHov] = useState(false);
   return (
@@ -117,18 +147,18 @@ function NavItem({ label, path, glyph, active, onClick }: {
         width:'100%', textAlign:'left',
         padding:'9px 18px 9px 14px',
         border:'none', outline:'none',
-        background: active ? 'rgba(201,168,76,0.09)' : hov ? 'rgba(255,255,255,0.03)' : 'transparent',
+        background: active ? 'rgba(196,64,88,0.09)' : hov ? 'rgba(255,255,255,0.03)' : 'transparent',
         borderLeft:`2px solid ${active ? G : 'transparent'}`,
         color: active ? G : hov ? INK : SOFT,
         fontFamily:'"DM Sans", sans-serif',
-        fontWeight: active ? 400 : 300,
-        fontSize:13, letterSpacing:'0.01em',
+        fontWeight: active ? 600 : 500,
+        fontSize:13.5, letterSpacing:'0.005em',
         transition:`all 140ms ${EASE}`,
-        minHeight:40,
+        minHeight:42,
         cursor:'pointer',
       }}
     >
-      <span style={{ fontSize:10, width:14, flexShrink:0, opacity: active ? 1 : 0.55, fontFamily:'"Jost",sans-serif' }}>{glyph}</span>
+      <span style={{ width:18, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: active ? 1 : 0.7 }}><Icon name={icon} size={18} /></span>
       {label}
     </button>
   );
@@ -142,13 +172,13 @@ function Sidebar({ onNavigate }: { onNavigate: () => void }) {
     path === '/admin' ? pathname === '/admin' : pathname.startsWith(path);
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', background: SURF, borderRight:`0.5px solid ${BORDER}` }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', background:'linear-gradient(180deg, #15273D 0%, #0E1B2C 100%)', borderRight:`0.5px solid ${BORDER}` }}>
       {/* Wordmark */}
       <div style={{ padding:'26px 20px 18px', flexShrink:0 }}>
-        <div style={{ fontFamily:'"Cormorant Garamond",serif', fontStyle:'italic', fontWeight:300, fontSize:19, color:INK, letterSpacing:'-0.01em', lineHeight:1 }}>
+        <div style={{ fontFamily:'"Cormorant Garamond",serif', fontStyle:'italic', fontWeight:400, fontSize:22, color:INK, letterSpacing:'-0.01em', lineHeight:1 }}>
           The Dream Wedding
         </div>
-        <div style={{ fontFamily:'"Jost",sans-serif', fontWeight:200, fontSize:7, color:G, letterSpacing:'0.42em', textTransform:'uppercase', marginTop:5 }}>
+        <div style={{ fontFamily:'"Jost",sans-serif', fontWeight:400, fontSize:9, color:G, letterSpacing:'0.34em', textTransform:'uppercase', marginTop:6 }}>
           Control Room
         </div>
         <div style={{ height:'0.5px', background:`linear-gradient(to right, ${G}55, transparent)`, marginTop:14 }} />
@@ -158,13 +188,13 @@ function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       <nav style={{ flex:1, overflowY:'auto', paddingBottom:28, scrollbarWidth:'none' }}>
         {NAV.map(({ group, items }) => (
           <div key={group} style={{ marginBottom:4 }}>
-            <div style={{ fontFamily:'"Jost",sans-serif', fontWeight:200, fontSize:7, color:'rgba(201,168,76,0.35)', letterSpacing:'0.4em', textTransform:'uppercase', padding:'16px 18px 5px' }}>
+            <div style={{ fontFamily:'"Jost",sans-serif', fontWeight:600, fontSize:10, color:'rgba(196,64,88,0.9)', letterSpacing:'0.14em', textTransform:'uppercase', padding:'18px 18px 6px' }}>
               {group}
             </div>
-            {items.map(({ label, path, glyph }) => (
+            {items.map(({ label, path, icon }) => (
               <div key={path}>
                 <NavItem
-                  label={label} path={path} glyph={glyph}
+                  label={label} path={path} icon={icon}
                   active={!!isActive(path)}
                   onClick={() => { router.push(path); onNavigate(); }}
                 />
@@ -178,7 +208,7 @@ function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       <div style={{ padding:'14px 18px', borderTop:`0.5px solid ${BORDER}`, flexShrink:0 }}>
         <button
           onClick={() => { localStorage.removeItem('admin_session'); router.replace('/admin/login'); }}
-          style={{ background:'none', border:'none', fontFamily:'"Jost",sans-serif', fontWeight:200, fontSize:8, letterSpacing:'0.24em', textTransform:'uppercase', color:DIM, padding:0, minHeight:36, cursor:'pointer', transition:`color 150ms ${EASE}` }}
+          style={{ background:'none', border:'none', fontFamily:'"Jost",sans-serif', fontWeight:400, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:DIM, padding:0, minHeight:36, cursor:'pointer', transition:`color 150ms ${EASE}` }}
           onMouseEnter={e => (e.currentTarget.style.color = SOFT)}
           onMouseLeave={e => (e.currentTarget.style.color = DIM)}
         >
@@ -211,7 +241,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* PWA meta — admin scope installs as separate app on Android */}
       <head>
         <link rel="manifest" href="/admin-manifest.json" />
-        <meta name="theme-color" content="#0D0B09" />
+        <meta name="theme-color" content="#0F1622" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -238,14 +268,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Main */}
-      <div id="admin-main" style={{ background:BG, minHeight:'100dvh' }}>
+      <div id="admin-main" style={{ background:'linear-gradient(165deg, #213650 0%, #18293E 50%, #122031 100%)', backgroundAttachment:'fixed', minHeight:'100dvh' }}>
 
         {/* Mobile top bar */}
         <div id="m-bar" style={{
           display:'flex', alignItems:'center', justifyContent:'space-between',
           padding:'0 20px', height:54,
           borderBottom:`0.5px solid ${BORDER}`,
-          background: SURF,
+          background: 'rgba(15,29,46,0.82)',
           position:'sticky', top:0, zIndex:100,
           backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
         }}>
