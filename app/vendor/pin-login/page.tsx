@@ -91,15 +91,20 @@ export default function VendorPinLoginPage() {
         if (d.refresh_token) { try { localStorage.setItem('refresh_token', d.refresh_token); } catch {} }
         const existing = readVendorSession() || {};
         // Write stamped vendor session for dreamai session hardening
+        // pin-login endpoint returns {ok, user_id, vendor_id, access_token, refresh_token}
+        // but NOT name/tier/category — restore these from the existing session so
+        // the vendor app has the right display name and feature flags.
         const updated = {
           ...existing,
           id:         d.vendor_id  || existing.id,
           user_id:    d.user_id    || existing.user_id,
-          name:       d.name       || existing.name || '',
+          name:       existing.name       || existing.vendorName || null,
           phone:      session.phone,
-          tier:       d.tier       || existing.tier || 'essential',
+          tier:       existing.tier       || 'essential',
+          category:   existing.category   || null,
           access_token:  d.access_token,
           refresh_token: d.refresh_token || d.access_token,
+          pin_set: true,
           _v: 2,
         };
         writeVendorSession(updated);

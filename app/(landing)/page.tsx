@@ -520,13 +520,13 @@ export default function Home() {
       safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
       mirrorSessionToCookie(isVendor, sessionData);
 
-      // Vendor: always goes to /vendor/pin-login (PIN screen) → /vendor
+      // Vendor: /vendor/pin if first login (no PIN set), /vendor/pin-login if returning
       // Couple: onboarding if new, pin-login if returning, pin if no PIN set
       const coupleNeedsOnboarding = !isVendor && !pinSet && !d.name;
       if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');
       } else if (isVendor) {
-        router.push('/vendor/pin-login');
+        router.push(pinSet ? '/vendor/pin-login' : '/vendor/pin');
       } else {
         router.push(pinSet ? '/couple/pin-login' : '/couple/pin');
       }
