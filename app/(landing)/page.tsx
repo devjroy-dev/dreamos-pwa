@@ -684,18 +684,7 @@ export default function Home() {
                     fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
                     letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
                   }}
-                >I have an invite</button>
-
-                <button
-                  onClick={e => { e.stopPropagation(); setScreen('request_who'); }}
-                  style={{
-                    width: '100%', height: 48, background: 'transparent',
-                    border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
-                    cursor: 'pointer', touchAction: 'manipulation',
-                    fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                    letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F8F7F5',
-                  }}
-                >Request an invite</button>
+                >Create account</button>
 
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
