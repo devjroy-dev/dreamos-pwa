@@ -659,14 +659,25 @@ export default function Home() {
             }}>
               <div style={{ paddingTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
-                  onClick={e => { e.stopPropagation(); setRole(null); setScreen('invite_phone'); }}
+                  onClick={e => { e.stopPropagation(); setRole('Maker'); setScreen('invite_phone'); }}
                   style={{
                     width: '100%', height: 48, background: '#C9A84C', border: 'none',
                     borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
                     fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
                     letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
                   }}
-                >Create account</button>
+                >I'm a vendor</button>
+
+                <button
+                  onClick={e => { e.stopPropagation(); setRole('Dreamer'); setScreen('invite_phone'); }}
+                  style={{
+                    width: '100%', height: 48, background: 'transparent',
+                    border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
+                    cursor: 'pointer', touchAction: 'manipulation',
+                    fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+                    letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F8F7F5',
+                  }}
+                >Plan my wedding</button>
 
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
