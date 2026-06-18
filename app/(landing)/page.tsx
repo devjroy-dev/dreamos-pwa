@@ -427,13 +427,12 @@ export default function Home() {
     const digits = phoneNum.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
 
-    // On invite path: call /invite/consume first so the users row exists before send-otp
+    // Open signup: create the account (no invite code) before send-otp.
     if (screen === 'invite_phone') {
       try {
-        const cr = await fetch(`${API_BASE}/api/v2/invite/consume`, {
+        const cr = await fetch(`${API_BASE}/api/v2/register`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code:  inviteCode.trim(),
             kind:  isVendor ? 'maker' : 'dreamer',
             phone: e164,
             name:  inviteName.trim() || undefined,
@@ -441,10 +440,10 @@ export default function Home() {
         });
         const cd = await cr.json();
         if (!cd.ok) {
-          showToast(cd.error || 'Could not verify invite. Try again.');
+          showToast(cd.error || 'Could not start sign-up. Try again.');
           return;
         }
-        // ok — account confirmed/created, fall through to send OTP
+        // ok — account created/confirmed, fall through to send OTP
       } catch { showToast('Could not connect. Try again.'); return; }
     }
 
@@ -678,7 +677,7 @@ export default function Home() {
             }}>
               <div style={{ paddingTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
-                  onClick={e => { e.stopPropagation(); setRole(null); setScreen('invite_code'); }}
+                  onClick={e => { e.stopPropagation(); setRole(null); setScreen('invite_phone'); }}
                   style={{
                     width: '100%', height: 48, background: '#C9A84C', border: 'none',
                     borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
@@ -956,7 +955,7 @@ export default function Home() {
             {/* ── INVITE: PHONE ─────────────────────────────────────────────── */}
             {screen === 'invite_phone' && (
               <>
-                <BackBtn onClick={() => setScreen('invite_code')} />
+                <BackBtn onClick={() => setScreen('entry')} />
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome. Let’s begin.</p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>Enter your details. We’ll send a code to your WhatsApp.</p>
                 <Label text="Your first name" />
