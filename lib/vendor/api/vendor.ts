@@ -42,6 +42,7 @@ export type CabinetBinder = {
   followup_on: string | null;
   followup_note: string | null;
   phone: string | null;
+  created_at?: string | null;
 };
 export type CabinetEvent = {
   id: string;
@@ -71,6 +72,54 @@ export function fetchCabinet(vendorId: string): Promise<CabinetResponse> {
   return getJson<CabinetResponse>(`/api/v2/vendor/cabinet/${vendorId}`);
 }
 
+// ── Binder adapters (Piece 4-A) ──────────────────────────────
+// The List is binder-native now: the four typed reads are VIEWS over the one
+// free-form ledger. /cabinet already slices clients/leads/paid/owed with the soft
+// match; /binders gives the flat ledger (expenses = direction 'out'). The typed
+// shapes below are populated from binders — components and the Studio look untouched.
+// Fields with no binder column (wedding_city, budget, email, category) live in the
+// note as prose and map to null; they surface in the binder's story.
+
+export type LedgerResponse = { ok: boolean; count: number; binders: CabinetBinder[]; error?: string };
+export function fetchLedger(vendorId: string): Promise<LedgerResponse> {
+  if (USE_MOCKS) return Promise.resolve({ ok: true, count: 0, binders: [] });
+  return getJson<LedgerResponse>(`/api/v2/vendor/binders/${vendorId}`);
+}
+
+function binderToClient(b: CabinetBinder): ClientsResponse['clients'][number] {
+  return { id: b.id, name: b.client ?? '', phone: b.phone ?? null, email: null, notes: b.note ?? null, created_at: b.created_at ?? '' };
+}
+function binderToLead(b: CabinetBinder): LeadsResponse['leads'][number] {
+  return {
+    id: b.id, name: b.client ?? null, wedding_date: b.date ?? null,
+    wedding_city: null, budget_total: null, state: b.stage ?? 'lead',
+    source: null, referrer: null, raw_message: b.note ?? null, created_at: b.created_at ?? '',
+  };
+}
+function invoiceState(b: CabinetBinder): string {
+  const owed = b.amount_pending ?? 0;
+  const paid = b.amount_received ?? 0;
+  if (owed > 0) return 'unpaid';
+  if (paid > 0) return 'paid';
+  return b.payment_status ?? 'unpaid';
+}
+function binderToInvoice(b: CabinetBinder): InvoicesResponse['invoices'][number] {
+  const paid = b.amount_received ?? 0;
+  const owed = b.amount_pending ?? 0;
+  const total = (paid + owed) || (b.amount ?? 0);
+  return {
+    id: b.id, invoice_number: '', client_name: b.client ?? '',
+    amount_total: total, amount_paid: paid, amount_owed: owed,
+    state: invoiceState(b), due_date: b.date ?? null, created_at: b.created_at ?? '',
+  };
+}
+function binderToExpense(b: CabinetBinder): ExpensesResponse['expenses'][number] {
+  return {
+    id: b.id, description: b.note ?? null, amount: b.amount ?? 0,
+    category: null, expense_date: b.date ?? null, client_name: b.client ?? null, created_at: b.created_at ?? '',
+  };
+}
+
 // ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
 export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };
 export type ChatHistoryResponse = { ok: boolean; messages: ChatHistoryMessage[]; error?: string };
@@ -95,9 +144,12 @@ export function fetchToday(vendorId: string): Promise<TodayResponse> {
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────
-export function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockLeads());
-  return getJson<LeadsResponse>(`/api/v2/vendor/leads/${vendorId}?state=${state}`);
+export async function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
+  if (USE_MOCKS) return getMockLeads();
+  const cab = await fetchCabinet(vendorId);
+  let leads = (cab.leads ?? []).map(binderToLead);
+  if (state !== 'all') leads = leads.filter((l) => (l.state ?? '').toLowerCase() === state.toLowerCase());
+  return { ok: cab.ok, leads, total: leads.length };
 }
 
 export function patchLeadState(leadId: string, state: string, reason?: string): Promise<LeadStateResponse> {
@@ -106,9 +158,11 @@ export function patchLeadState(leadId: string, state: string, reason?: string): 
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────
-export function fetchClients(vendorId: string): Promise<ClientsResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockClients());
-  return getJson<ClientsResponse>(`/api/v2/vendor/clients/${vendorId}`);
+export async function fetchClients(vendorId: string): Promise<ClientsResponse> {
+  if (USE_MOCKS) return getMockClients();
+  const cab = await fetchCabinet(vendorId);
+  const clients = (cab.clients ?? []).map(binderToClient);
+  return { ok: cab.ok, clients, total: clients.length };
 }
 
 export function fetchClientDetail(vendorId: string, clientId: string): Promise<ClientDetailResponse> {
@@ -126,15 +180,27 @@ export function fetchClientDetail(vendorId: string, clientId: string): Promise<C
 }
 
 // ── Invoices ──────────────────────────────────────────────────────────────
-export function fetchInvoices(vendorId: string, state = 'all'): Promise<InvoicesResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockInvoices());
-  return getJson<InvoicesResponse>(`/api/v2/vendor/invoices/${vendorId}?state=${state}`);
+export async function fetchInvoices(vendorId: string, state = 'all'): Promise<InvoicesResponse> {
+  if (USE_MOCKS) return getMockInvoices();
+  const cab = await fetchCabinet(vendorId);
+  const byId = new Map<string, CabinetBinder>();
+  for (const b of [...(cab.paid ?? []), ...(cab.owed ?? [])]) byId.set(b.id, b);
+  let invoices = [...byId.values()].map(binderToInvoice);
+  if (state !== 'all') invoices = invoices.filter((i) => i.state.toLowerCase() === state.toLowerCase());
+  const summary = {
+    total_outstanding: invoices.reduce((s, i) => s + i.amount_owed, 0),
+    total_collected: invoices.reduce((s, i) => s + i.amount_paid, 0),
+  };
+  return { ok: cab.ok, invoices, summary, total: invoices.length };
 }
 
 // ── Expenses ──────────────────────────────────────────────────────────────
-export function fetchExpenses(vendorId: string): Promise<ExpensesResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockExpenses());
-  return getJson<ExpensesResponse>(`/api/v2/vendor/expenses/${vendorId}`);
+export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse> {
+  if (USE_MOCKS) return getMockExpenses();
+  const led = await fetchLedger(vendorId);
+  const expenses = (led.binders ?? []).filter((b) => b.direction === 'out').map(binderToExpense);
+  const total_spent = expenses.reduce((s, e) => s + e.amount, 0);
+  return { ok: led.ok, expenses, total_spent, total: expenses.length };
 }
 
 // ── Events ────────────────────────────────────────────────────────────────
