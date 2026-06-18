@@ -427,25 +427,7 @@ export default function Home() {
     const digits = phoneNum.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
 
-    // Open signup: create the account (no invite code) before send-otp.
-    if (screen === 'invite_phone') {
-      try {
-        const cr = await fetch(`${API_BASE}/api/v2/register`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            kind:  isVendor ? 'maker' : 'dreamer',
-            phone: e164,
-            name:  inviteName.trim() || undefined,
-          }),
-        });
-        const cd = await cr.json();
-        if (!cd.ok) {
-          showToast(cd.error || 'Could not start sign-up. Try again.');
-          return;
-        }
-        // ok — account created/confirmed, fall through to send OTP
-      } catch { showToast('Could not connect. Try again.'); return; }
-    }
+    // Open signup: send-otp self-mints the account from the phone — no pre-call needed.
 
     const endpoint = isVendor
       ? `${API_BASE}/api/v2/vendor/auth/send-otp`
