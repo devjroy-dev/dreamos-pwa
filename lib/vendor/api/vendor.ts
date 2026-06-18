@@ -27,6 +27,50 @@ export function fetchContext(vendorId: string): Promise<VendorContextResponse> {
   return getJson<VendorContextResponse>(`/api/v2/vendor/context/${vendorId}`);
 }
 
+// ---- The Cabinet (binder-native dashboard read) ----
+export type CabinetBinder = {
+  id: string;
+  client: string | null;
+  amount: number | null;
+  amount_received: number | null;
+  amount_pending: number | null;
+  payment_status: string | null;
+  direction: 'in' | 'out' | null;
+  date: string | null;
+  stage: string | null;
+  note: string | null;
+  followup_on: string | null;
+  followup_note: string | null;
+  phone: string | null;
+};
+export type CabinetEvent = {
+  id: string;
+  title: string | null;
+  kind: string | null;
+  event_date: string | null;
+  event_time: string | null;
+  state: string | null;
+  notes: string | null;
+};
+export type CabinetReminder =
+  | ({ source: 'event' } & CabinetEvent)
+  | { source: 'binder'; id: string; client: string | null; followup_on: string | null; followup_note: string | null; binder?: CabinetBinder };
+export type CabinetResponse = {
+  ok: boolean;
+  vendor?: { name: string | null; category: string | null; city: string | null; handle: string | null };
+  clients: CabinetBinder[];
+  leads: CabinetBinder[];
+  paid: CabinetBinder[];
+  owed: CabinetBinder[];
+  booked: CabinetEvent[];
+  reminders: CabinetReminder[];
+  counts?: { clients: number; leads: number; paid: number; owed: number; booked: number; reminders: number };
+  error?: string;
+};
+export function fetchCabinet(vendorId: string): Promise<CabinetResponse> {
+  return getJson<CabinetResponse>(`/api/v2/vendor/cabinet/${vendorId}`);
+}
+
 // ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
 export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };
 export type ChatHistoryResponse = { ok: boolean; messages: ChatHistoryMessage[]; error?: string };

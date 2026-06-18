@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { DARK, LIGHT, type ThemeTokens } from './theme';
+import { DARK, LIGHT, FLAIR, type ThemeTokens } from './theme';
 
 const ThemeCtx = createContext<ThemeTokens>(DARK);
 const KEY = 'dreamai_theme';
@@ -14,8 +14,8 @@ function applyCSSVars(t: ThemeTokens) {
   r.setProperty('--atelier-ink-soft',     t.inkSoft);
   r.setProperty('--atelier-ink-mute',     t.inkMute);
   r.setProperty('--atelier-ink-dim',      t.inkDim);
-  r.setProperty('--atelier-label',        t.isLight ? '#7A3828' : '#E0BC6E');
-  r.setProperty('--atelier-accent-text',  t.isLight ? '#7A3828' : '#C9A84C');
+  r.setProperty('--atelier-label',        t.label);
+  r.setProperty('--atelier-accent-text',  t.accentText);
   r.setProperty('--atelier-header-bg',    t.headerBg);
   r.setProperty('--atelier-sheet-top',    t.sheetTop);
   r.setProperty('--atelier-sheet-bot',    t.sheetBot);
@@ -26,21 +26,23 @@ function applyCSSVars(t: ThemeTokens) {
   r.setProperty('--atelier-row-hover',    t.rowHover);
   r.setProperty('--atelier-overlay-bg',   t.overlay);
   // Set body bg directly — prevents one-frame dark flash on swipe
-  document.documentElement.style.background = t.isLight ? '#F5F2EE' : '';
-  document.body.style.background = t.isLight ? '#F5F2EE' : '';
+  const __bg = t.isLight ? '#F5F2EE' : (t.pageBg === '#090d17' ? '#090d17' : '');
+  document.documentElement.style.background = __bg;
+  document.body.style.background = __bg;
 }
 
 
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [tokens, setTokens] = useState<ThemeTokens>(DARK);
-  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>('dark');
+  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'flair'>('dark');
 
-  function applyTheme(theme: 'dark' | 'light') {
-    const t = theme === 'light' ? LIGHT : DARK;
+  function applyTheme(theme: 'dark' | 'light' | 'flair') {
+    const t = theme === 'flair' ? FLAIR : theme === 'light' ? LIGHT : DARK;
     setTokens(t);
     setCurrentTheme(theme);
     document.documentElement.classList.toggle('theme-light', theme === 'light');
+    document.documentElement.classList.toggle('theme-flair', theme === 'flair');
     // Apply base vars first
     applyCSSVars(t);
   }
@@ -48,13 +50,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Read stored preference
     try {
-      const stored = localStorage.getItem(KEY) as 'dark' | 'light' | null;
-      applyTheme(stored === 'light' ? 'light' : 'dark');
+      const stored = localStorage.getItem(KEY) as 'dark' | 'light' | 'flair' | null;
+      applyTheme(stored === 'light' ? 'light' : stored === 'flair' ? 'flair' : 'dark');
     } catch { applyTheme('dark'); }
 
     // Cross-tab sync
     const storageHandler = (e: StorageEvent) => {
-      if (e.key === KEY) applyTheme((e.newValue as 'dark' | 'light') ?? 'dark');
+      if (e.key === KEY) applyTheme((e.newValue as 'dark' | 'light' | 'flair') ?? 'dark');
     };
     window.addEventListener('storage', storageHandler);
     return () => window.removeEventListener('storage', storageHandler);
@@ -68,9 +70,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const obs = new MutationObserver(() => {
       const html = document.documentElement;
       const isLight = html.classList.contains('theme-light');
-      const t = isLight ? LIGHT : DARK;
+      const isFlair = html.classList.contains('theme-flair');
+      const t = isFlair ? FLAIR : isLight ? LIGHT : DARK;
       setTokens(t);
-      setCurrentTheme(isLight ? 'light' : 'dark');
+      setCurrentTheme(isFlair ? 'flair' : isLight ? 'light' : 'dark');
       applyCSSVars(t);
     });
     obs.observe(document.documentElement, {

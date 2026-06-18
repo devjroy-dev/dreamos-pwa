@@ -28,6 +28,8 @@ export interface ThemeTokens {
   pageBg: string;
   sectionBg: string;
   isLight: boolean;
+  label: string;
+  accentText: string;
 }
 
 export const DARK: ThemeTokens = {
@@ -54,6 +56,8 @@ export const DARK: ThemeTokens = {
   pageBg:     '#1F1612',
   sectionBg:  'rgba(245,235,212,0.03)',
   isLight:    false,
+  label:      '#E0BC6E',
+  accentText: '#C9A84C',
 };
 
 // ── Editorial Paper — archival print on heavy cotton stock ──────
@@ -86,9 +90,40 @@ export const LIGHT: ThemeTokens = {
   pageBg:     '#F5F2EE',
   sectionBg:  'rgba(26,15,8,0.025)',
   isLight:    true,
+  label:      '#7A3828',
+  accentText: '#7A3828',
+};
+
+// ---- Flair: the dreamai navy/bone/ember room (third theme) ----
+export const FLAIR: ThemeTokens = {
+  ink:        '#e9e4d9',
+  inkSoft:    'rgba(233,228,217,0.60)',
+  inkMute:    'rgba(233,228,217,0.34)',
+  inkDim:     'rgba(233,228,217,0.18)',
+  brass:      '#c99a63',
+  brassWarm:  '#d8a86f',
+  brassLine:  'rgba(233,228,217,0.09)',
+  brassSoft:  'rgba(201,154,99,0.55)',
+  accent:     '#c99a63',
+  accentLine: 'rgba(201,154,99,0.40)',
+  cardBg:     'rgba(20,28,46,0.55)',
+  cardBorder: 'rgba(233,228,217,0.16)',
+  headerBg:   'rgba(9,13,23,0.82)',
+  sheetTop:   '#0b1120',
+  sheetBot:   '#090d17',
+  sheetBorder:'rgba(233,228,217,0.16)',
+  inputBg:    'rgba(233,228,217,0.04)',
+  inputBorder:'rgba(233,228,217,0.16)',
+  rowHover:   'rgba(233,228,217,0.03)',
+  overlay:    'rgba(0,0,0,0.6)',
+  pageBg:     '#090d17',
+  sectionBg:  'rgba(233,228,217,0.03)',
+  isLight:    false,
+  label:      '#d8a86f',
+  accentText: '#c99a63',
 };
 
 export function useThemeTokens(): ThemeTokens {
   const [theme] = useTheme();
-  return theme === 'light' ? LIGHT : DARK;
+  return theme === 'light' ? LIGHT : theme === 'flair' ? FLAIR : DARK;
 }

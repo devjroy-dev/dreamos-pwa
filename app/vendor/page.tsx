@@ -23,6 +23,7 @@ import { getJson } from '@/lib/vendor/api/_base';
 import { useChat } from '@/hooks/vendor/useChat';
 
 import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
+import Cabinet from '@/components/vendor/Cabinet';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
 
@@ -477,6 +478,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
+      <Cabinet vendorId={vendorId} />
 
       {/* ── Header ── */}
       <Header vendorName={displayName} />

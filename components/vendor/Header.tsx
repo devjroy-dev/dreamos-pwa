@@ -44,7 +44,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   const [, setMode] = useVendorMode();
   const [profileOpen, setProfileOpen] = useState(false);
   const [tipsOpen, setTipsOpen]       = useState(false);
-  const [theme, toggleTheme] = useTheme();
+  const [theme, , setThemeMode] = useTheme();
   const T = useT();
 
   const me = useVendorMe();
@@ -196,14 +196,9 @@ export function Header({ vendorName }: { vendorName: string | null }) {
 
             {/* THEME TOGGLE — between sections */}
             <SectionLabel isLight={isLight}>Display</SectionLabel>
-            <DItem
-              glyph={theme === 'dark' ? '○' : '●'}
-              label={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-              subtitle={theme === 'dark' ? 'Switch to parchment' : 'Switch to espresso'}
-              isLight={isLight}
-              onClick={() => { toggleTheme(); }}
-              accent
-            />
+            <DItem glyph="●" label="Dark"  subtitle="Espresso"            isLight={isLight} accent={theme === 'dark'}  onClick={() => { setThemeMode('dark'); }} />
+            <DItem glyph="○" label="Light" subtitle="Parchment"           isLight={isLight} accent={theme === 'light'} onClick={() => { setThemeMode('light'); }} />
+            <DItem glyph="✦" label="Flair" subtitle="Navy · bone · ember" isLight={isLight} accent={theme === 'flair'} onClick={() => { setThemeMode('flair'); }} />
 
             {/* ACTIONS section */}
             <SectionLabel isLight={isLight}>Actions</SectionLabel>
