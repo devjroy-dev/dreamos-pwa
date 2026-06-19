@@ -29,10 +29,20 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
     }
   }, [scrollRef]);
 
-  // Auto-scroll to bottom on new messages
+  // The streaming reply grows by mutating the LAST message's text (count stays
+  // constant), so we also key the scroll on the tail's length. And we only follow
+  // when the user is already near the bottom — if they've scrolled up to read
+  // history, we leave them be rather than yanking them back down mid-stream.
+  const tail = messages[messages.length - 1];
+  const tailLen = tail ? tail.text.length : 0;
   useEffect(() => {
+    const c = containerRef.current;
+    if (c) {
+      const nearBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 120;
+      if (!nearBottom) return;  // user is reading higher up — don't interrupt
+    }
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+  }, [messages.length, tailLen]);
 
   return (
     <div
