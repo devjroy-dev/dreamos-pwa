@@ -555,24 +555,89 @@ export async function deleteClient(clientId: string): Promise<{ ok: true; delete
 
 // ── Invoices ──────────────────────────────────────────────────────────────
 
-export function createInvoice(body: CreateInvoiceRequest): Promise<CreateInvoiceResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, invoice: makeMockInvoice(body), pdf_pending: true });
-  return postJson<CreateInvoiceResponse | ApiErr>('/api/v2/vendor/invoices', body);
+export async function createInvoice(body: CreateInvoiceRequest): Promise<CreateInvoiceResponse | ApiErr> {
+  if (USE_MOCKS) return { ok: true, invoice: makeMockInvoice(body), pdf_pending: true };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const total = body.amount_total ?? 0;
+  const received = Math.min(body.amount_advance ?? 0, total);
+  const pending = Math.max(0, total - received);
+  const status = pending <= 0 ? 'paid' : received > 0 ? 'advance_paid' : 'unpaid';
+  // 1. Resolve the binder: an existing client/lead, else open a fresh one.
+  let binderId = body.client_id || body.lead_id || null;
+  if (!binderId) {
+    const note = foldNote(body.description, body.due_date ? `Due: ${body.due_date}` : null, body.notes);
+    const opened = await postJson<BinderWriteResponse>(binderBase(v), {
+      client: body.client_name, phone: body.client_phone, date: body.due_date, note, stage: 'client',
+    });
+    if (!opened.ok || !opened.binder) return { ok: false, error: opened.error || 'Could not open invoice binder.' };
+    binderId = opened.binder.id;
+  }
+  // 2. Set owed vs received through the witnessed money door.
+  const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/money-edit`, {
+    amount_received: String(received), amount_pending: String(pending), payment_status: status,
+  });
+  if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not set invoice amount.' };
+  return { ok: true, invoice: binderToInvoice(m.binder), pdf_pending: true };
 }
 
-export function updateInvoice(invoiceId: string, body: UpdateInvoiceRequest): Promise<UpdateInvoiceResponse | ApiErr> {
+export async function updateInvoice(invoiceId: string, body: UpdateInvoiceRequest): Promise<UpdateInvoiceResponse | ApiErr> {
   if (USE_MOCKS) {
     const base = makeMockInvoice({ amount_total: body.amount_total ?? 0, ...body });
-    return Promise.resolve({ ok: true, invoice: { ...base, id: invoiceId } });
+    return { ok: true, invoice: { ...base, id: invoiceId } };
   }
-  return patchJson<UpdateInvoiceResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}`, body);
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  // 1. Non-money cells through /edit (note grows).
+  const note = foldNote(body.description, body.notes);
+  if (body.client_name != null || body.client_phone != null || body.due_date != null || note) {
+    const e = await postJson<BinderWriteResponse>(`${binderBase(v)}/${invoiceId}/edit`, {
+      client: body.client_name, phone: body.client_phone, date: body.due_date, note,
+    });
+    if (!e.ok) return { ok: false, error: e.error || 'Could not update invoice.' };
+  }
+  // 2. Money cells (total/advance) through the witnessed door, recomputed against ground truth.
+  let binder = null as CabinetBinder | null;
+  if (body.amount_total != null || body.amount_advance != null) {
+    const led = await fetchLedger(v);
+    const cur = (led.binders ?? []).find((x) => x.id === invoiceId);
+    const curReceived = cur?.amount_received ?? 0;
+    const total = body.amount_total ?? curReceived + (cur?.amount_pending ?? 0);
+    const received = body.amount_advance != null ? Math.min(body.amount_advance, total) : curReceived;
+    const pending = Math.max(0, total - received);
+    const status = pending <= 0 ? 'paid' : received > 0 ? 'advance_paid' : 'unpaid';
+    const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${invoiceId}/money-edit`, {
+      amount_received: String(received), amount_pending: String(pending), payment_status: status,
+    });
+    if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not update invoice amount.' };
+    binder = m.binder;
+  }
+  // 3. If only non-money changed, re-read for fresh truth.
+  if (!binder) {
+    const led = await fetchLedger(v);
+    binder = (led.binders ?? []).find((x) => x.id === invoiceId) ?? null;
+  }
+  if (!binder) return { ok: false, error: 'Invoice not found.' };
+  return { ok: true, invoice: binderToInvoice(binder) };
 }
 
-export function recordPayment(invoiceId: string, body: RecordPaymentRequest): Promise<RecordPaymentResponse | ApiErr> {
-  if (USE_MOCKS) {
-    return Promise.resolve({ ok: true, invoice: null, payment_recorded: body.amount, new_state: 'advance_paid' });
-  }
-  return postJson<RecordPaymentResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/payments`, body);
+export async function recordPayment(invoiceId: string, body: RecordPaymentRequest): Promise<RecordPaymentResponse | ApiErr> {
+  if (USE_MOCKS) return { ok: true, invoice: null, payment_recorded: body.amount, new_state: 'advance_paid' };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  // Ground-truth before mutation: read the real figures, never the screen's copy.
+  const led = await fetchLedger(v);
+  const b = (led.binders ?? []).find((x) => x.id === invoiceId);
+  if (!b) return { ok: false, error: 'Invoice not found.' };
+  const pay = body.amount ?? 0;
+  const newReceived = (b.amount_received ?? 0) + pay;
+  const newPending = Math.max(0, (b.amount_pending ?? 0) - pay);
+  const status = newPending <= 0 ? 'paid' : 'advance_paid';
+  const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${invoiceId}/money-edit`, {
+    amount_received: String(newReceived), amount_pending: String(newPending), payment_status: status,
+  });
+  if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not record payment.' };
+  return { ok: true, invoice: binderToInvoice(m.binder), payment_recorded: pay, new_state: status };
 }
 
 export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse | ApiErr> {
@@ -611,13 +676,22 @@ export async function updateExpense(expenseId: string, body: UpdateExpenseReques
   }
   const v = currentVendorId();
   if (!v) return noVendor();
-  // Money (amount) is corrected through the witnessed money door — see 4-C. Here: non-money cells.
+  // Non-money cells through /edit.
   const note = foldNote(body.description, body.category ? `Category: ${body.category}` : null, body.notes);
   const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/edit`, {
     client: body.client_name, date: body.expense_date, note,
   });
   if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not update expense.' };
-  return { ok: true, expense: binderToExpense(r.binder) };
+  // Amount, if changed, through the witnessed money door (single figure, direction out).
+  let binder = r.binder;
+  if (body.amount != null) {
+    const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/money-edit`, {
+      amount: String(body.amount), direction: 'out',
+    });
+    if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not update expense amount.' };
+    binder = m.binder;
+  }
+  return { ok: true, expense: binderToExpense(binder) };
 }
 
 export async function deleteExpense(expenseId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
