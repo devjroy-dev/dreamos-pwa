@@ -19,41 +19,14 @@ function toE164(raw: string): string {
 }
 
 
-// Detects if an AI message contains a draft reply — shows copy button if so
-function isDraft(text: string): boolean {
-  const lower = text.toLowerCase();
-  // Contains common draft indicators
-  if ((lower.includes('dear ') || lower.includes('hi ') || lower.includes('hello ')) && text.length > 120) return true;
-  if (lower.includes('here\'s a draft') || lower.includes('here is a draft') || lower.includes('draft reply') || lower.includes('draft:')) return true;
-  if (lower.includes('subject:') || lower.includes('warm regards') || lower.includes('best regards')) return true;
-  return false;
-}
-
-// Extract just the draft text — remove the AI preamble before the draft
-function extractDraft(text: string): string {
-  // Common preamble patterns
-  const patterns = [
-    /here['\'s is]+ (?:a |the )?draft[:\n]+/i,
-    /draft[:\n]+/i,
-    /reply[:\n]+/i,
-  ];
-  for (const p of patterns) {
-    const match = text.match(p);
-    if (match && match.index !== undefined) {
-      return text.slice(match.index + match[0].length).trim();
-    }
-  }
-  return text;
-}
+// (Draft-guessing removed — a plain Copy now lives on every AI message.)
 
 function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: boolean; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>; F: Record<string, string> }) {
   const [copied, setCopied] = useState(false);
-  const hasDraft = isDraft(text);
-  const draftText = hasDraft ? extractDraft(text) : '';
 
   function copy() {
     try {
-      navigator.clipboard.writeText(draftText || text);
+      navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -72,32 +45,33 @@ function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: bo
         fontSize: 18, color: T.ink, lineHeight: 1.42,
         letterSpacing: '0.005em', margin: 0, whiteSpace: 'pre-wrap',
       }}>{text}</p>
-      {hasDraft && (
-        <button
-          type="button"
-          onClick={copy}
-          style={{
-            marginTop: 10,
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '6px 12px',
-            background: copied
-              ? T.isLight ? 'rgba(122,56,40,0.10)' : 'rgba(201,168,76,0.12)'
-              : 'transparent',
-            border: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.28)' : 'rgba(201,168,76,0.30)'}`,
-            borderRadius: 4, cursor: 'pointer',
-            fontFamily: 'var(--font-jost), system-ui, sans-serif',
-            fontWeight: 300, fontSize: 9,
-            letterSpacing: '0.22em', textTransform: 'uppercase' as const,
-            color: copied
-              ? T.isLight ? T.accent : '#C9A84C'
-              : T.isLight ? T.inkMute : 'rgba(240,230,210,0.50)',
-            transition: 'all 200ms',
-          }}
-        >
-          <span style={{ fontSize: 10 }}>{copied ? '✓' : '⎘'}</span>
-          {copied ? 'Copied' : 'Copy draft'}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={copied ? "Copied" : "Copy message"}
+        title={copied ? "Copied" : "Copy"}
+        style={{
+          marginTop: 8,
+          width: 24, height: 24, padding: 0,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          background: "transparent", border: "none", cursor: "pointer",
+          color: copied
+            ? (T.isLight ? T.accent : "#C9A84C")
+            : (T.isLight ? T.inkMute : "rgba(240,230,210,0.45)"),
+          transition: "color 200ms",
+        }}
+      >
+        {copied ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
     </>
   );
 }
