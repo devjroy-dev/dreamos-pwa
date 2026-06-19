@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
 import { TypingDots } from './TypingDots';
@@ -21,6 +21,63 @@ function toE164(raw: string): string {
 
 // (Draft-guessing removed — a plain Copy now lives on every AI message.)
 
+// ── Myra's prose renderer ────────────────────────────────────────────────
+// Ported from dreamai's desk renderer (paragraphs + **bold**), adapted for Myra:
+// adds list rendering and auto-emphasis of Rs amounts in the theme accent.
+// No dependency — a small hand-rolled inline parser, exactly how dreamai did it.
+type Tok = ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>;
+
+// Inline: **bold** spans, and inside any run, Rs amounts get the accent colour.
+function emphasizeRs(seg: string, T: Tok, salt: string): ReactNode[] {
+  // matches: Rs 1,00,000  /  Rs 75000  /  Rs 2.55 lakh  /  Rs 1.2 cr
+  const parts = seg.split(/(Rs\.?\s?[\d,]+(?:\.\d+)?(?:\s?(?:lakh|cr|crore|k))?)/gi);
+  return parts.map((p, i) => {
+    if (/^Rs\.?\s?[\d,]/i.test(p)) {
+      return <span key={`${salt}r${i}`} style={{ color: T.accent, fontStyle: 'normal', fontWeight: 500 }}>{p}</span>;
+    }
+    return <span key={`${salt}n${i}`}>{p}</span>;
+  });
+}
+function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let last = 0; let m: RegExpExecArray | null; let k = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
+    out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'normal', fontWeight: 600 }}>{emphasizeRs(m[1], T, `${salt}${k}`)}</strong>);
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last), T, `${salt}${k}`)}</span>);
+  return out;
+}
+// Block: split on blank lines; a run of '-'/'•' lines becomes a bulleted list.
+function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode[] {
+  const pStyle = {
+    fontFamily: F.script, fontStyle: 'italic' as const, fontWeight: 400,
+    fontSize: 18, color: T.ink, lineHeight: 1.42, letterSpacing: '0.005em',
+    margin: 0, whiteSpace: 'pre-wrap' as const,
+  };
+  const blocks = (text || '').split(/\n\n+/);
+  const out: ReactNode[] = [];
+  blocks.forEach((block, bi) => {
+    const lines = block.split('\n');
+    const isList = lines.length > 0 && lines.every((l) => /^\s*[-•]\s+/.test(l) || l.trim() === '');
+    if (isList) {
+      const items = lines.filter((l) => /^\s*[-•]\s+/.test(l)).map((l) => l.replace(/^\s*[-•]\s+/, ''));
+      out.push(
+        <ul key={`ul${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {items.map((it, ii) => (
+            <li key={`li${bi}-${ii}`} style={{ listStyleType: 'disc' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
+          ))}
+        </ul>
+      );
+    } else {
+      out.push(<p key={`p${bi}`} style={pStyle}>{inlineNodes(block, T, `${bi}-`)}</p>);
+    }
+  });
+  return out;
+}
+
 function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: boolean; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>; F: Record<string, string> }) {
   const [copied, setCopied] = useState(false);
 
@@ -40,11 +97,9 @@ function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: bo
 
   return (
     <>
-      <p style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 400,
-        fontSize: 18, color: T.ink, lineHeight: 1.42,
-        letterSpacing: '0.005em', margin: 0, whiteSpace: 'pre-wrap',
-      }}>{text}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {renderProse(text, T, F)}
+      </div>
       <button
         type="button"
         onClick={copy}
