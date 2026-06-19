@@ -47,7 +47,12 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
           {/* The pair at work (5-B): Myra's reply is the bubble above; her
               operator's deliberation reads quietly beneath — answer first. */}
           {m.deliberation && m.deliberation.length > 0 && (
-            <div style={{ padding: '0 22px 9px 38px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ padding: '0 22px 9px 38px' }}>
+              <div style={{
+                display: 'flex', flexDirection: 'column', gap: 3,
+                paddingLeft: 12,
+                borderLeft: `2px solid ${T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(233,228,217,0.16)'}`,
+              }}>
               {m.deliberation.map((beat, i) => {
                 const line =
                   beat.kind === 'handoff' ? 'Handed to the operator'
@@ -61,6 +66,7 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
                   }}>{line}</div>
                 );
               })}
+              </div>
             </div>
           )}
           {/* Clarify chips — brass in dark, oxblood in light */}
