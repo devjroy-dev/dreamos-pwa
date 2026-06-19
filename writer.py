@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
-# Piece 4-D - advance-paid invoices show "Advance Paid", not "Unpaid".
-# Fix: invoiceState derives from real figures (money in + balance owed = advance_paid);
-# plus a distinct pill colour. Anchored + idempotent. Two files.
+# Piece 4-E - console hygiene + clean badges. Title-case the invoice badge
+# (ADVANCE_PAID -> "Advance Paid"); gate the /schedule fetch behind a flag so
+# opening an invoice no longer 404s (schedule is Step 10). One file, anchored.
 import base64, sys, os
+PATH = "app/vendor/list/[slice]/page.tsx"
 def d(s): return base64.b64decode(s).decode("utf-8")
 EDITS = [
-    ("lib/vendor/api/vendor.ts", "invoiceState advance_paid fix", "ZnVuY3Rpb24gaW52b2ljZVN0YXRlKGI6IENhYmluZXRCaW5kZXIpOiBzdHJpbmcgewogIGNvbnN0IG93ZWQgPSBiLmFtb3VudF9wZW5kaW5nID8/IDA7CiAgY29uc3QgcGFpZCA9IGIuYW1vdW50X3JlY2VpdmVkID8/IDA7CiAgaWYgKG93ZWQgPiAwKSByZXR1cm4gJ3VucGFpZCc7CiAgaWYgKHBhaWQgPiAwKSByZXR1cm4gJ3BhaWQnOwogIHJldHVybiBiLnBheW1lbnRfc3RhdHVzID8/ICd1bnBhaWQnOwp9", "ZnVuY3Rpb24gaW52b2ljZVN0YXRlKGI6IENhYmluZXRCaW5kZXIpOiBzdHJpbmcgewogIGNvbnN0IG93ZWQgPSBiLmFtb3VudF9wZW5kaW5nID8/IDA7CiAgY29uc3QgcGFpZCA9IGIuYW1vdW50X3JlY2VpdmVkID8/IDA7CiAgLy8gRGVyaXZlIGZyb20gdGhlIHJlYWwgZmlndXJlcyBzbyB0aGUgcGlsbCBuZXZlciBjb250cmFkaWN0cyB0aGUgcGFpZC9vd2VkIHNob3duLgogIGlmIChwYWlkID4gMCB8fCBvd2VkID4gMCkgewogICAgaWYgKG93ZWQgPD0gMCkgcmV0dXJuICdwYWlkJzsgICAgICAgIC8vIG5vdGhpbmcgbGVmdCB0byBjb2xsZWN0CiAgICBpZiAocGFpZCA+IDApIHJldHVybiAnYWR2YW5jZV9wYWlkJzsgLy8gbW9uZXkgaW4sIGJhbGFuY2Ugc3RpbGwgb3dlZAogICAgcmV0dXJuICd1bnBhaWQnOyAgICAgICAgICAgICAgICAgICAgIC8vIG5vdGhpbmcgcmVjZWl2ZWQgeWV0CiAgfQogIC8vIE5vIHJlY2VpdmVkL3BlbmRpbmcgYnJlYWtkb3duIG9uIHRoaXMgYmluZGVyIOKAlCBmYWxsIGJhY2sgdG8gc3RvcmVkIHN0YXR1cy4KICByZXR1cm4gYi5wYXltZW50X3N0YXR1cyA/PyAndW5wYWlkJzsKfQ=="),
-    ("app/vendor/list/[slice]/page.tsx", "advance_paid pill colour", "ICAgIGlmIChzID09PSAncGFpZCcpIHJldHVybiBBLmdyZWVuOwogICAgaWYgKHMgPT09ICd1bnBhaWQnKSByZXR1cm4gQS5icmFzc1dhcm07", "ICAgIGlmIChzID09PSAncGFpZCcpIHJldHVybiBBLmdyZWVuOwogICAgaWYgKHMgPT09ICdhZHZhbmNlX3BhaWQnKSByZXR1cm4gQS5icmFzczsKICAgIGlmIChzID09PSAndW5wYWlkJykgcmV0dXJuIEEuYnJhc3NXYXJtOw==")
+    ("cap + SCHEDULE flag", "ZnVuY3Rpb24gY2FwKHM6IHN0cmluZyB8IG51bGwgfCB1bmRlZmluZWQpOiBzdHJpbmcgewogIGlmICghcyB8fCBzID09PSAn4oCUJykgcmV0dXJuIHMgPz8gJ+KAlCc7CiAgcmV0dXJuIHMuc3BsaXQoL1tcc18tXSsvKS5tYXAodyA9PiB3LmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpICsgdy5zbGljZSgxKSkuam9pbignICcpOwp9", "ZnVuY3Rpb24gY2FwKHM6IHN0cmluZyB8IG51bGwgfCB1bmRlZmluZWQpOiBzdHJpbmcgewogIGlmICghcyB8fCBzID09PSAn4oCUJykgcmV0dXJuIHMgPz8gJ+KAlCc7CiAgcmV0dXJuIHMuc3BsaXQoL1tcc18tXSsvKS5tYXAodyA9PiB3LmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpICsgdy5zbGljZSgxKSkuam9pbignICcpOwp9CgovLyBQYXltZW50IHNjaGVkdWxlIGVuZHBvaW50IGxhbmRzIHdpdGggU3RlcCAxMCAoYXJ0aWZhY3QgaGFuZHMpLiBPZmYgdW50aWwgdGhlbiwKLy8gc28gb3BlbmluZyBhbiBpbnZvaWNlIGRvZXNuJ3QgZmlyZSBhIDQwNCBhZ2FpbnN0IGEgcm91dGUgdGhhdCBpc24ndCBidWlsdCB5ZXQuCmNvbnN0IFNDSEVEVUxFX0VOQUJMRUQ6IGJvb2xlYW4gPSBmYWxzZTs="),
+    ("invoice badge title-case", "bWV0YTogaW52LmR1ZV9kYXRlP2BkdWUgJHtmbXREYXRlKGludi5kdWVfZGF0ZSl9YDp1bmRlZmluZWQsIGJhZGdlOiBpbnYuc3RhdGUsIGJhZGdlQWxlcnQ6", "bWV0YTogaW52LmR1ZV9kYXRlP2BkdWUgJHtmbXREYXRlKGludi5kdWVfZGF0ZSl9YDp1bmRlZmluZWQsIGJhZGdlOiBjYXAoaW52LnN0YXRlKSwgYmFkZ2VBbGVydDo="),
+    ("gate schedule fetch (Step 10)", "ICAgIGlmIChzbGljZSA9PT0gJ2ludm9pY2VzJyAmJiBzZWwpIHsKICAgICAgc2V0U2NoZWR1bGUobnVsbCk7IHNldFNjaGVkdWxlTG9hZGluZyh0cnVlKTsKICAgICAgZmV0Y2hTY2hlZHVsZShzZWwuaWQpLnRoZW4ociA9PiB7", "ICAgIGlmIChzbGljZSA9PT0gJ2ludm9pY2VzJyAmJiBzZWwpIHsKICAgICAgaWYgKCFTQ0hFRFVMRV9FTkFCTEVEKSB7IHNldFNjaGVkdWxlKFtdKTsgcmV0dXJuOyB9CiAgICAgIHNldFNjaGVkdWxlKG51bGwpOyBzZXRTY2hlZHVsZUxvYWRpbmcodHJ1ZSk7CiAgICAgIGZldGNoU2NoZWR1bGUoc2VsLmlkKS50aGVuKHIgPT4gew==")
 ]
+if not os.path.exists(PATH):
+    print("FATAL: %s not found." % PATH); sys.exit(1)
+text = open(PATH, encoding="utf-8").read()
 applied = skipped = 0
-for path, label, o_b64, n_b64 in EDITS:
-    if not os.path.exists(path):
-        print("SKIP  [%s] %s not found." % (label, path)); skipped += 1; continue
-    text = open(path, encoding="utf-8").read()
+for label, o_b64, n_b64 in EDITS:
     old, new = d(o_b64), d(n_b64)
     if new in text:
         print("SKIP  [%s] already applied." % label); skipped += 1; continue
     c = text.count(old)
-    if c == 1:
-        open(path, "w", encoding="utf-8").write(text.replace(old, new)); applied += 1; print("OK    [%s]" % label)
+    if c == 1: text = text.replace(old, new); applied += 1; print("OK    [%s]" % label)
     elif c == 0: print("SKIP  [%s] anchor NOT FOUND." % label); skipped += 1
     else: print("SKIP  [%s] anchor x%d." % (label, c)); skipped += 1
-vf = open("lib/vendor/api/vendor.ts", encoding="utf-8").read()
-pf = open("app/vendor/list/[slice]/page.tsx", encoding="utf-8").read()
+open(PATH, "w", encoding="utf-8").write(text)
 checks = [
-  ("advance_paid derived",       "if (paid > 0) return 'advance_paid';" in vf),
-  ("old buggy line gone",        "  if (owed > 0) return 'unpaid';\n  if (paid > 0) return 'paid';" not in vf),
-  ("figures preferred over status","if (paid > 0 || owed > 0) {" in vf),
-  ("advance_paid pill colour",   "if (s === 'advance_paid') return A.brass;" in pf),
+  ("SCHEDULE_ENABLED flag added",  "const SCHEDULE_ENABLED: boolean = false;" in text),
+  ("invoice badge title-cased",    "badge: cap(inv.state)," in text),
+  ("schedule fetch gated",         "if (!SCHEDULE_ENABLED) { setSchedule([]); return; }" in text),
+  ("fetchSchedule still imported", "fetchSchedule" in text),
 ]
 print(chr(10) + "-- verification --")
 allok = True
