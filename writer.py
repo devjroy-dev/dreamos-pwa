@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-# Piece 4-E - console hygiene + clean badges. Title-case the invoice badge
-# (ADVANCE_PAID -> "Advance Paid"); gate the /schedule fetch behind a flag so
-# opening an invoice no longer 404s (schedule is Step 10). One file, anchored.
+# Piece 5-A - the breathing blob. Rewrites TypingDots into dreamai's ember dot +
+# Saturn ring, themed via useT (ember/oxblood/brass per room). One file, idempotent.
 import base64, sys, os
-PATH = "app/vendor/list/[slice]/page.tsx"
+PATH = "components/vendor/TypingDots.tsx"
 def d(s): return base64.b64decode(s).decode("utf-8")
 EDITS = [
-    ("cap + SCHEDULE flag", "ZnVuY3Rpb24gY2FwKHM6IHN0cmluZyB8IG51bGwgfCB1bmRlZmluZWQpOiBzdHJpbmcgewogIGlmICghcyB8fCBzID09PSAn4oCUJykgcmV0dXJuIHMgPz8gJ+KAlCc7CiAgcmV0dXJuIHMuc3BsaXQoL1tcc18tXSsvKS5tYXAodyA9PiB3LmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpICsgdy5zbGljZSgxKSkuam9pbignICcpOwp9", "ZnVuY3Rpb24gY2FwKHM6IHN0cmluZyB8IG51bGwgfCB1bmRlZmluZWQpOiBzdHJpbmcgewogIGlmICghcyB8fCBzID09PSAn4oCUJykgcmV0dXJuIHMgPz8gJ+KAlCc7CiAgcmV0dXJuIHMuc3BsaXQoL1tcc18tXSsvKS5tYXAodyA9PiB3LmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpICsgdy5zbGljZSgxKSkuam9pbignICcpOwp9CgovLyBQYXltZW50IHNjaGVkdWxlIGVuZHBvaW50IGxhbmRzIHdpdGggU3RlcCAxMCAoYXJ0aWZhY3QgaGFuZHMpLiBPZmYgdW50aWwgdGhlbiwKLy8gc28gb3BlbmluZyBhbiBpbnZvaWNlIGRvZXNuJ3QgZmlyZSBhIDQwNCBhZ2FpbnN0IGEgcm91dGUgdGhhdCBpc24ndCBidWlsdCB5ZXQuCmNvbnN0IFNDSEVEVUxFX0VOQUJMRUQ6IGJvb2xlYW4gPSBmYWxzZTs="),
-    ("invoice badge title-case", "bWV0YTogaW52LmR1ZV9kYXRlP2BkdWUgJHtmbXREYXRlKGludi5kdWVfZGF0ZSl9YDp1bmRlZmluZWQsIGJhZGdlOiBpbnYuc3RhdGUsIGJhZGdlQWxlcnQ6", "bWV0YTogaW52LmR1ZV9kYXRlP2BkdWUgJHtmbXREYXRlKGludi5kdWVfZGF0ZSl9YDp1bmRlZmluZWQsIGJhZGdlOiBjYXAoaW52LnN0YXRlKSwgYmFkZ2VBbGVydDo="),
-    ("gate schedule fetch (Step 10)", "ICAgIGlmIChzbGljZSA9PT0gJ2ludm9pY2VzJyAmJiBzZWwpIHsKICAgICAgc2V0U2NoZWR1bGUobnVsbCk7IHNldFNjaGVkdWxlTG9hZGluZyh0cnVlKTsKICAgICAgZmV0Y2hTY2hlZHVsZShzZWwuaWQpLnRoZW4ociA9PiB7", "ICAgIGlmIChzbGljZSA9PT0gJ2ludm9pY2VzJyAmJiBzZWwpIHsKICAgICAgaWYgKCFTQ0hFRFVMRV9FTkFCTEVEKSB7IHNldFNjaGVkdWxlKFtdKTsgcmV0dXJuOyB9CiAgICAgIHNldFNjaGVkdWxlKG51bGwpOyBzZXRTY2hlZHVsZUxvYWRpbmcodHJ1ZSk7CiAgICAgIGZldGNoU2NoZWR1bGUoc2VsLmlkKS50aGVuKHIgPT4gew==")
+    ("TypingDots -> breathing blob", "J3VzZSBjbGllbnQnOwovLyBUeXBpbmdEb3RzIOKAlCBBdGVsaWVyIHJlYnVpbGQKLy8gVGhyZWUgYnJhc3MgZG90cyB0aGF0IHB1bHNlIGdlbnRseSDigJQgbGlrZSBhIGZvdW50YWluIHBlbiB0YXAtdGFwLXRhcHBpbmcKLy8gb24gYSBzaGVldCBvZiBwYXBlciBiZWZvcmUgdGhlIG5leHQgc2VudGVuY2UuCgpleHBvcnQgZnVuY3Rpb24gVHlwaW5nRG90cygpIHsKICByZXR1cm4gKAogICAgPGRpdiBzdHlsZT17eyBkaXNwbGF5OiAnZmxleCcsIGdhcDogNiwgYWxpZ25JdGVtczogJ2NlbnRlcicsIHBhZGRpbmc6ICc0cHggMnB4JyB9fT4KICAgICAge1swLCAxLCAyXS5tYXAoaSA9PiAoCiAgICAgICAgPHNwYW4KICAgICAgICAgIGtleT17aX0KICAgICAgICAgIHN0eWxlPXt7CiAgICAgICAgICAgIHdpZHRoOiA1LCBoZWlnaHQ6IDUsIGJvcmRlclJhZGl1czogJzUwJScsCiAgICAgICAgICAgIGJhY2tncm91bmRDb2xvcjogJyNDOUE4NEMnLAogICAgICAgICAgICBkaXNwbGF5OiAnaW5saW5lLWJsb2NrJywKICAgICAgICAgICAgYW5pbWF0aW9uOiBgYXRlbGllclR5cGluZyAxLjRzIGVhc2UtaW4tb3V0ICR7aSAqIDAuMTh9cyBpbmZpbml0ZWAsCiAgICAgICAgICAgIG9wYWNpdHk6IDAuMzUsCiAgICAgICAgICB9fQogICAgICAgIC8+CiAgICAgICkpfQogICAgICA8c3R5bGU+e2AKICAgICAgICBAa2V5ZnJhbWVzIGF0ZWxpZXJUeXBpbmcgewogICAgICAgICAgMCUsIDEwMCUgeyBvcGFjaXR5OiAwLjI7IHRyYW5zZm9ybTogdHJhbnNsYXRlWSgwKTsgfQogICAgICAgICAgNTAlIHsgb3BhY2l0eTogMC45NTsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0zcHgpOyB9CiAgICAgICAgfQogICAgICBgfTwvc3R5bGU+CiAgICA8L2Rpdj4KICApOwp9Cg==", "J3VzZSBjbGllbnQnOwovLyBUeXBpbmdEb3RzIOKAlCBNeXJhJ3MgInRoaW5raW5nIiBtYXJrIHdoaWxlIHNoZSBzdHJlYW1zLgovLyBQb3J0ZWQgZnJvbSBkcmVhbWFpJ3MgZG9vcjogYSBzaW5nbGUgYnJlYXRoaW5nIGVtYmVyIGRvdCB3aXRoIGEgdGhpbiwgdGlsdGVkCi8vIFNhdHVybiByaW5nLiBDb2xvdXIgZm9sbG93cyB0aGUgYWN0aXZlIHRoZW1lIChlbWJlciBpbiBGbGFpciwgb3hibG9vZCBpbiBsaWdodCwKLy8gYnJhc3MgaW4gZGFyayksIHNvIHRoZSBsaXZpbmcgbWFyayBzaXRzIHJpZ2h0IGluIGV2ZXJ5IHJvb20uCmltcG9ydCB7IHVzZVQgfSBmcm9tICdAL2xpYi92ZW5kb3IvVGhlbWVDb250ZXh0JzsKCmV4cG9ydCBmdW5jdGlvbiBUeXBpbmdEb3RzKCkgewogIGNvbnN0IFQgPSB1c2VUKCk7CiAgY29uc3QgZW1iZXIgPSBULmFjY2VudDsKICBjb25zdCBlbWJlclNvZnQgPSBULmJyYXNzU29mdDsKICByZXR1cm4gKAogICAgPGRpdiBzdHlsZT17eyBkaXNwbGF5OiAnZmxleCcsIGFsaWduSXRlbXM6ICdjZW50ZXInLCBwYWRkaW5nOiAnNnB4IDJweCA2cHggNHB4JyB9fT4KICAgICAgPHNwYW4KICAgICAgICBzdHlsZT17ewogICAgICAgICAgcG9zaXRpb246ICdyZWxhdGl2ZScsIGRpc3BsYXk6ICdpbmxpbmUtYmxvY2snLAogICAgICAgICAgd2lkdGg6IDExLCBoZWlnaHQ6IDExLCBib3JkZXJSYWRpdXM6ICc1MCUnLAogICAgICAgICAgYmFja2dyb3VuZDogZW1iZXIsCiAgICAgICAgICBib3hTaGFkb3c6IGAwIDAgMTJweCAzcHggJHtlbWJlclNvZnR9YCwKICAgICAgICAgIGFuaW1hdGlvbjogJ3Rkd0Jsb2IgMi40cyBlYXNlLWluLW91dCBpbmZpbml0ZScsCiAgICAgICAgfX0KICAgICAgPgogICAgICAgIDxzcGFuCiAgICAgICAgICBzdHlsZT17ewogICAgICAgICAgICBwb3NpdGlvbjogJ2Fic29sdXRlJywgbGVmdDogJzUwJScsIHRvcDogJzUwJScsCiAgICAgICAgICAgIHdpZHRoOiAyNCwgaGVpZ2h0OiA5LAogICAgICAgICAgICB0cmFuc2Zvcm06ICd0cmFuc2xhdGUoLTUwJSwtNTAlKSByb3RhdGUoLTE4ZGVnKScsCiAgICAgICAgICAgIGJvcmRlcjogYDFweCBzb2xpZCAke2VtYmVyU29mdH1gLCBib3JkZXJSYWRpdXM6ICc1MCUnLAogICAgICAgICAgICBvcGFjaXR5OiAwLjcsCiAgICAgICAgICAgIGFuaW1hdGlvbjogJ3Rkd1JpbmcgMi40cyBlYXNlLWluLW91dCBpbmZpbml0ZScsCiAgICAgICAgICB9fQogICAgICAgIC8+CiAgICAgIDwvc3Bhbj4KICAgICAgPHN0eWxlPntgCiAgICAgICAgQGtleWZyYW1lcyB0ZHdCbG9iIHsKICAgICAgICAgIDAlLCAxMDAlIHsgb3BhY2l0eTogLjY7IGJveC1zaGFkb3c6IDAgMCA5cHggMnB4ICR7ZW1iZXJTb2Z0fTsgdHJhbnNmb3JtOiBzY2FsZSguOTIpOyB9CiAgICAgICAgICA1MCUgICAgICB7IG9wYWNpdHk6IDE7ICBib3gtc2hhZG93OiAwIDAgMThweCA1cHggJHtlbWJlclNvZnR9OyB0cmFuc2Zvcm06IHNjYWxlKDEuMDgpOyB9CiAgICAgICAgfQogICAgICAgIEBrZXlmcmFtZXMgdGR3UmluZyB7CiAgICAgICAgICAwJSwgMTAwJSB7IG9wYWNpdHk6IC40NTsgdHJhbnNmb3JtOiB0cmFuc2xhdGUoLTUwJSwtNTAlKSByb3RhdGUoLTE4ZGVnKSBzY2FsZSguOTYpOyB9CiAgICAgICAgICA1MCUgICAgICB7IG9wYWNpdHk6IC44NTsgdHJhbnNmb3JtOiB0cmFuc2xhdGUoLTUwJSwtNTAlKSByb3RhdGUoLTE4ZGVnKSBzY2FsZSgxLjA1KTsgfQogICAgICAgIH0KICAgICAgYH08L3N0eWxlPgogICAgPC9kaXY+CiAgKTsKfQo=")
 ]
 if not os.path.exists(PATH):
     print("FATAL: %s not found." % PATH); sys.exit(1)
@@ -24,10 +21,11 @@ for label, o_b64, n_b64 in EDITS:
     else: print("SKIP  [%s] anchor x%d." % (label, c)); skipped += 1
 open(PATH, "w", encoding="utf-8").write(text)
 checks = [
-  ("SCHEDULE_ENABLED flag added",  "const SCHEDULE_ENABLED: boolean = false;" in text),
-  ("invoice badge title-cased",    "badge: cap(inv.state)," in text),
-  ("schedule fetch gated",         "if (!SCHEDULE_ENABLED) { setSchedule([]); return; }" in text),
-  ("fetchSchedule still imported", "fetchSchedule" in text),
+  ("blob dot + ring",        "tdwBlob" in text and "tdwRing" in text),
+  ("themed via useT",        "const T = useT();" in text and "T.accent" in text and "T.brassSoft" in text),
+  ("Saturn ring tilt",       "rotate(-18deg)" in text),
+  ("old three-dots gone",    "atelierTyping" not in text),
+  ("export name unchanged",  "export function TypingDots()" in text),
 ]
 print(chr(10) + "-- verification --")
 allok = True
