@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
+import { TypingDots } from './TypingDots';
 
 const A = { brass: '#C9A84C', brassWarm: '#E0BC6E' } as const;
 const F = {
@@ -45,7 +46,7 @@ function extractDraft(text: string): string {
   return text;
 }
 
-function AiMessageText({ text, T, F }: { text: string; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>; F: Record<string, string> }) {
+function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: boolean; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>; F: Record<string, string> }) {
   const [copied, setCopied] = useState(false);
   const hasDraft = isDraft(text);
   const draftText = hasDraft ? extractDraft(text) : '';
@@ -59,6 +60,10 @@ function AiMessageText({ text, T, F }: { text: string; T: ReturnType<typeof impo
       // fallback
     }
   }
+
+  // Before the first word lands, the blob breathes in place of the empty line
+  // (the working mark); it gives way to the reply as soon as text arrives.
+  if (streaming && !text) return <TypingDots />;
 
   return (
     <>
@@ -144,7 +149,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             letterSpacing: '0.5em', textTransform: 'uppercase',
             color: T.isLight ? T.accent : 'rgba(201,168,76,0.65)', marginBottom: 6,
           }}>DreamAi</div>
-          <AiMessageText text={message.text} T={T} F={F} />
+          <AiMessageText text={message.text} streaming={message.streaming} T={T} F={F} />
         </div>
         {contact?.phone && (
           <div style={{ display: 'flex', gap: 8, paddingLeft: 16 }}>

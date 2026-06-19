@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { MessageBubble } from './MessageBubble';
-import { TypingDots } from './TypingDots';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
 
@@ -112,12 +111,8 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
         </div>
       ))}
 
-      {/* Typing indicator */}
-      {loading && !messages.some(m => m.streaming) && (
-        <div style={{ padding: '8px 22px 8px 38px', display: 'flex', alignItems: 'center' }}>
-          <TypingDots />
-        </div>
-      )}
+      {/* The working blob now lives inside the streaming bubble (it shows while
+          the AI message is streaming but still empty), so no separate indicator. */}
 
       <div ref={bottomRef} />
     </div>
