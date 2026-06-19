@@ -55,6 +55,7 @@ function stateColor(slice: ListSlice, state: string | undefined): string {
   }
   if (slice === 'invoices') {
     if (s === 'paid') return A.green;
+    if (s === 'advance_paid') return A.brass;
     if (s === 'unpaid') return A.brassWarm;
     if (s === 'overdue') return A.red;
     if (s === 'cancelled') return A.inkMute;

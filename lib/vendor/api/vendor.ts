@@ -99,8 +99,13 @@ function binderToLead(b: CabinetBinder): Lead {
 function invoiceState(b: CabinetBinder): string {
   const owed = b.amount_pending ?? 0;
   const paid = b.amount_received ?? 0;
-  if (owed > 0) return 'unpaid';
-  if (paid > 0) return 'paid';
+  // Derive from the real figures so the pill never contradicts the paid/owed shown.
+  if (paid > 0 || owed > 0) {
+    if (owed <= 0) return 'paid';        // nothing left to collect
+    if (paid > 0) return 'advance_paid'; // money in, balance still owed
+    return 'unpaid';                     // nothing received yet
+  }
+  // No received/pending breakdown on this binder — fall back to stored status.
   return b.payment_status ?? 'unpaid';
 }
 function binderToInvoice(b: CabinetBinder): InvoicesResponse['invoices'][number] {
