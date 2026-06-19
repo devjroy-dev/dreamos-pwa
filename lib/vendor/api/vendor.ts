@@ -89,9 +89,9 @@ export function fetchLedger(vendorId: string): Promise<LedgerResponse> {
 function binderToClient(b: CabinetBinder): ClientsResponse['clients'][number] {
   return { id: b.id, name: b.client ?? '', phone: b.phone ?? null, email: null, notes: b.note ?? null, created_at: b.created_at ?? '' };
 }
-function binderToLead(b: CabinetBinder): LeadsResponse['leads'][number] {
+function binderToLead(b: CabinetBinder): Lead {
   return {
-    id: b.id, name: b.client ?? null, wedding_date: b.date ?? null,
+    id: b.id, name: b.client ?? null, phone: b.phone ?? null, wedding_date: b.date ?? null,
     wedding_city: null, budget_total: null, state: b.stage ?? 'lead',
     source: null, referrer: null, raw_message: b.note ?? null, created_at: b.created_at ?? '',
   };
@@ -119,6 +119,27 @@ function binderToExpense(b: CabinetBinder): ExpensesResponse['expenses'][number]
     category: null, expense_date: b.date ?? null, client_name: b.client ?? null, created_at: b.created_at ?? '',
   };
 }
+
+// ── Binder write helpers (Piece 4-B) ────────────────────────────
+// Form writes go free-form through Kriya via /binders/* — the SAME hands the chat
+// path uses. The screen is just another caller. vendorId is resolved from the
+// session here, so form signatures don't change. Fields with no binder column
+// (city, budget, source, email, category) fold into the note as prose.
+type BinderWriteResponse = { ok: boolean; message?: string; binder?: CabinetBinder | null; error?: string };
+function currentVendorId(): string | null { return getVendorSession()?.id ?? null; }
+function noVendor(): ApiErr { return { ok: false, error: 'No vendor session — please sign in again.' }; }
+function foldNote(...lines: Array<string | null | undefined>): string | undefined {
+  const out = lines.map((l) => (l ?? '').toString().trim()).filter(Boolean);
+  return out.length ? out.join('\n') : undefined;
+}
+function rupeeLine(min?: number | null, max?: number | null): string | null {
+  const f = (n: number) => 'Rs ' + n.toLocaleString('en-IN');
+  if (min != null && max != null) return `Budget: ${f(min)}–${f(max)}`;
+  if (min != null) return `Budget: ${f(min)}`;
+  if (max != null) return `Budget: ${f(max)}`;
+  return null;
+}
+function binderBase(v: string) { return `/api/v2/vendor/binders/${v}`; }
 
 // ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
 export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };
@@ -152,9 +173,12 @@ export async function fetchLeads(vendorId: string, state = 'all'): Promise<Leads
   return { ok: cab.ok, leads, total: leads.length };
 }
 
-export function patchLeadState(leadId: string, state: string, reason?: string): Promise<LeadStateResponse> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, lead: { id: leadId, state } });
-  return patchJson<LeadStateResponse>(`/api/v2/vendor/leads/${leadId}/state`, { state, reason });
+export async function patchLeadState(leadId: string, state: string, _reason?: string): Promise<LeadStateResponse> {
+  if (USE_MOCKS) return { ok: true, lead: { id: leadId, state } };
+  const v = currentVendorId();
+  if (!v) return { ok: false, lead: { id: leadId, state } };
+  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${leadId}/stage`, { stage: state });
+  return { ok: r.ok, lead: { id: leadId, state: r.binder?.stage ?? state } };
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────
@@ -165,18 +189,23 @@ export async function fetchClients(vendorId: string): Promise<ClientsResponse> {
   return { ok: cab.ok, clients, total: clients.length };
 }
 
-export function fetchClientDetail(vendorId: string, clientId: string): Promise<ClientDetailResponse> {
+export async function fetchClientDetail(vendorId: string, clientId: string): Promise<ClientDetailResponse> {
   if (USE_MOCKS) {
     const clients = getMockClients().clients;
     const client = clients.find(c => c.id === clientId) ?? clients[0];
-    return Promise.resolve({
+    return {
       ok: true,
       client: { id: client.id, name: client.name, phone: client.phone, email: client.email, notes: client.notes },
       leads: [],
       invoices: [],
-    });
+    };
   }
-  return getJson<ClientDetailResponse>(`/api/v2/vendor/clients/${vendorId}/${clientId}`);
+  const led = await fetchLedger(vendorId);
+  const b = (led.binders ?? []).find((x) => x.id === clientId);
+  const client = b
+    ? { id: b.id, name: b.client ?? '', phone: b.phone ?? null, email: null, notes: b.note ?? null }
+    : { id: clientId, name: '', phone: null, email: null, notes: null };
+  return { ok: led.ok && !!b, client, leads: [], invoices: [] };
 }
 
 // ── Invoices ──────────────────────────────────────────────────────────────
@@ -425,25 +454,59 @@ import {
 
 // ── Leads ─────────────────────────────────────────────────────────────────
 
-export function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, data: makeMockLead(body), deduped: false });
-  return postJson<CreateLeadResponse | ApiErr>('/api/v2/vendor/leads', body);
+export async function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse | ApiErr> {
+  if (USE_MOCKS) return { ok: true, data: makeMockLead(body), deduped: false };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const note = foldNote(
+    body.raw_message, body.notes,
+    body.wedding_city ? `City: ${body.wedding_city}` : null,
+    rupeeLine(body.budget_min, body.budget_max),
+    body.event_types?.length ? `Events: ${body.event_types.join(', ')}` : null,
+    body.source ? `Source: ${body.source}` : null,
+    body.referrer_name ? `Referred by: ${body.referrer_name}` : null,
+    body.email ? `Email: ${body.email}` : null,
+  );
+  const r = await postJson<BinderWriteResponse>(binderBase(v), {
+    client: body.name, phone: body.phone, date: body.wedding_date, note, stage: 'lead',
+  });
+  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not create lead.' };
+  return { ok: true, data: binderToLead(r.binder), deduped: false };
 }
 
-export function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
+export async function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
   if (USE_MOCKS) {
     const base = makeMockLead({ name: body.name ?? 'Mock Lead', ...body });
-    return Promise.resolve({ ok: true, lead: { ...base, id: leadId } });
+    return { ok: true, lead: { ...base, id: leadId } };
   }
-  return patchJson<UpdateLeadResponse | ApiErr>(`/api/v2/vendor/leads/${leadId}`, body);
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const note = foldNote(
+    body.wedding_city ? `City: ${body.wedding_city}` : null,
+    rupeeLine(body.budget_min, body.budget_max),
+    body.source ? `Source: ${body.source}` : null,
+    body.referrer_name ? `Referred by: ${body.referrer_name}` : null,
+    body.email ? `Email: ${body.email}` : null,
+    body.raw_message, body.notes,
+  );
+  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${leadId}/edit`, {
+    client: body.name, date: body.wedding_date, phone: body.phone, note,
+  });
+  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not update lead.' };
+  return { ok: true, lead: binderToLead(r.binder) };
 }
 
-export function fetchLeadDetail(leadId: string): Promise<LeadDetailResponse | ApiErr> {
+export async function fetchLeadDetail(leadId: string): Promise<LeadDetailResponse | ApiErr> {
   if (USE_MOCKS) {
     const lead = makeMockLead({ name: 'Mock Lead Detail' });
-    return Promise.resolve({ ok: true, lead: { ...lead, id: leadId }, vendor_summary: null, conversation: [], invoices: [], events: [] });
+    return { ok: true, lead: { ...lead, id: leadId }, vendor_summary: null, conversation: [], invoices: [], events: [] };
   }
-  return getJson<LeadDetailResponse | ApiErr>(`/api/v2/vendor/leads/${leadId}/detail`);
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const led = await fetchLedger(v);
+  const b = (led.binders ?? []).find((x) => x.id === leadId);
+  if (!b) return { ok: false, error: 'Lead not found.' };
+  return { ok: true, lead: binderToLead(b), vendor_summary: null, conversation: [], invoices: [], events: [] };
 }
 
 /** Convenience wrapper — sets state to 'lost'. */
@@ -453,23 +516,41 @@ export function loseLead(leadId: string, reason?: string): Promise<LeadStateResp
 
 // ── Clients ───────────────────────────────────────────────────────────────
 
-export function createClient(body: CreateClientRequest): Promise<CreateClientResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, client: makeMockClient(body), deduped: false, restored: false });
-  return postJson<CreateClientResponse | ApiErr>('/api/v2/vendor/clients', body);
+export async function createClient(body: CreateClientRequest): Promise<CreateClientResponse | ApiErr> {
+  if (USE_MOCKS) return { ok: true, client: makeMockClient(body), deduped: false, restored: false };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const note = foldNote(body.notes, body.email ? `Email: ${body.email}` : null);
+  const r = await postJson<BinderWriteResponse>(binderBase(v), {
+    client: body.name, phone: body.phone, note, stage: 'client',
+  });
+  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not create client.' };
+  return { ok: true, client: binderToClient(r.binder), deduped: false, restored: false };
 }
 
-export function updateClient(clientId: string, body: UpdateClientRequest): Promise<UpdateClientResponse | ApiErr> {
+export async function updateClient(clientId: string, body: UpdateClientRequest): Promise<UpdateClientResponse | ApiErr> {
   if (USE_MOCKS) {
     const base = makeMockClient({ name: body.name ?? 'Mock Client', ...body });
-    return Promise.resolve({ ok: true, client: { ...base, id: clientId } });
+    return { ok: true, client: { ...base, id: clientId } };
   }
-  return patchJson<UpdateClientResponse | ApiErr>(`/api/v2/vendor/clients/${clientId}`, body);
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const note = foldNote(body.notes, body.email ? `Email: ${body.email}` : null);
+  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${clientId}/edit`, {
+    client: body.name, phone: body.phone, note,
+  });
+  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not update client.' };
+  return { ok: true, client: binderToClient(r.binder) };
 }
 
 /** Hard delete — leads.client_id and invoices.client_id are SET NULL on delete. */
-export function deleteClient(clientId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
-  return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/clients/${clientId}`);
+export async function deleteClient(clientId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
+  if (USE_MOCKS) return { ok: true, deleted: true };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${clientId}/hide`, {});
+  if (!r.ok) return { ok: false, error: r.error || 'Could not remove.' };
+  return { ok: true, deleted: true };
 }
 
 // ── Invoices ──────────────────────────────────────────────────────────────
@@ -510,22 +591,42 @@ function patchInvoiceCancel(invoiceId: string): Promise<{ ok: true; invoice: { i
 
 // ── Expenses ──────────────────────────────────────────────────────────────
 
-export function createExpense(body: CreateExpenseRequest): Promise<CreateExpenseResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, expense: makeMockExpense(body) });
-  return postJson<CreateExpenseResponse | ApiErr>('/api/v2/vendor/expenses', body);
+export async function createExpense(body: CreateExpenseRequest): Promise<CreateExpenseResponse | ApiErr> {
+  if (USE_MOCKS) return { ok: true, expense: makeMockExpense(body) };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const note = foldNote(body.description, body.category ? `Category: ${body.category}` : null, body.notes);
+  const r = await postJson<BinderWriteResponse>(binderBase(v), {
+    client: body.client_name || body.description || 'Expense',
+    amount: body.amount, direction: 'out', date: body.expense_date, note, stage: 'expense',
+  });
+  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not record expense.' };
+  return { ok: true, expense: binderToExpense(r.binder) };
 }
 
-export function updateExpense(expenseId: string, body: UpdateExpenseRequest): Promise<UpdateExpenseResponse | ApiErr> {
+export async function updateExpense(expenseId: string, body: UpdateExpenseRequest): Promise<UpdateExpenseResponse | ApiErr> {
   if (USE_MOCKS) {
     const base = makeMockExpense({ amount: body.amount ?? 0, ...body });
-    return Promise.resolve({ ok: true, expense: { ...base, id: expenseId } });
+    return { ok: true, expense: { ...base, id: expenseId } };
   }
-  return patchJson<UpdateExpenseResponse | ApiErr>(`/api/v2/vendor/expenses/${expenseId}`, body);
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  // Money (amount) is corrected through the witnessed money door — see 4-C. Here: non-money cells.
+  const note = foldNote(body.description, body.category ? `Category: ${body.category}` : null, body.notes);
+  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/edit`, {
+    client: body.client_name, date: body.expense_date, note,
+  });
+  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not update expense.' };
+  return { ok: true, expense: binderToExpense(r.binder) };
 }
 
-export function deleteExpense(expenseId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
-  return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/expenses/${expenseId}`);
+export async function deleteExpense(expenseId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
+  if (USE_MOCKS) return { ok: true, deleted: true };
+  const v = currentVendorId();
+  if (!v) return noVendor();
+  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/hide`, {});
+  if (!r.ok) return { ok: false, error: r.error || 'Could not remove.' };
+  return { ok: true, deleted: true };
 }
 
 // ── Events ────────────────────────────────────────────────────────────────
