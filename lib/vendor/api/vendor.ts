@@ -274,6 +274,13 @@ export type StreamDonePayload = {
   suggestions?: SuggestionsPayload;
 };
 
+// The pair-at-work beats the firewall emits on the wire (3-B). Myra's prose
+// rides as text_delta; these three describe what her operator did underneath.
+export type StreamBeat =
+  | { kind: 'handoff'; message: string }
+  | { kind: 'operator_action'; action: string; detail: string }
+  | { kind: 'operator_report'; message: string };
+
 export function streamChat(
   vendorId: string,
   message: string,
@@ -281,6 +288,7 @@ export function streamChat(
   onDelta: (text: string) => void,
   onDone: (result: StreamDonePayload) => void,
   onError: (msg: string) => void,
+  onBeat?: (beat: StreamBeat) => void,
 ): () => void {
   const controller = new AbortController();
   const bodyPayload: Record<string, unknown> = { vendor_id: vendorId, message, history: [] };
@@ -360,6 +368,12 @@ export function streamChat(
           const event = JSON.parse(payload);
           if (event.type === 'text_delta' && event.text) {
             onDelta(event.text);
+          } else if (event.type === 'handoff') {
+            onBeat?.({ kind: 'handoff', message: event.message ?? '' });
+          } else if (event.type === 'operator_action') {
+            onBeat?.({ kind: 'operator_action', action: event.kind ?? '', detail: event.detail ?? '' });
+          } else if (event.type === 'operator_report') {
+            onBeat?.({ kind: 'operator_report', message: event.message ?? '' });
           } else if (event.type === 'done') {
             onDone({
               tool_calls: event.tool_calls ?? [],

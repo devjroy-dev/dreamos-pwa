@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-# Piece 5-A.2 - make the blob visible. It renders INSIDE the streaming bubble while
-# the AI message is streaming-but-empty (before the first word), then gives way to
-# the reply. Removes the dead gate + now-unused import. 2 files, idempotent.
+# Piece 5-B - the pair at work. streamChat catches the handoff/operator_action/
+# operator_report beats; useChat collects them onto the turn; ChatThread shows them
+# quietly beneath Myra's reply (answer first). 3 files, anchored, idempotent.
 import base64, sys, os
 def d(s): return base64.b64decode(s).decode("utf-8")
 EDITS = [
-    ("components/vendor/MessageBubble.tsx", "m_import", "aW1wb3J0IHsgdXNlVCB9IGZyb20gJ0AvbGliL3ZlbmRvci9UaGVtZUNvbnRleHQnOw==", "aW1wb3J0IHsgdXNlVCB9IGZyb20gJ0AvbGliL3ZlbmRvci9UaGVtZUNvbnRleHQnOwppbXBvcnQgeyBUeXBpbmdEb3RzIH0gZnJvbSAnLi9UeXBpbmdEb3RzJzs="),
-    ("components/vendor/MessageBubble.tsx", "m_sig", "ZnVuY3Rpb24gQWlNZXNzYWdlVGV4dCh7IHRleHQsIFQsIEYgfTogeyB0ZXh0OiBzdHJpbmc7IFQ6IFJldHVyblR5cGU8dHlwZW9mIGltcG9ydCgnQC9saWIvdmVuZG9yL1RoZW1lQ29udGV4dCcpLnVzZVQ+OyBGOiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+IH0pIHs=", "ZnVuY3Rpb24gQWlNZXNzYWdlVGV4dCh7IHRleHQsIHN0cmVhbWluZywgVCwgRiB9OiB7IHRleHQ6IHN0cmluZzsgc3RyZWFtaW5nPzogYm9vbGVhbjsgVDogUmV0dXJuVHlwZTx0eXBlb2YgaW1wb3J0KCdAL2xpYi92ZW5kb3IvVGhlbWVDb250ZXh0JykudXNlVD47IEY6IFJlY29yZDxzdHJpbmcsIHN0cmluZz4gfSkgew=="),
-    ("components/vendor/MessageBubble.tsx", "m_return", "ICByZXR1cm4gKAogICAgPD4KICAgICAgPHAgc3R5bGU9e3sKICAgICAgICBmb250RmFtaWx5OiBGLnNjcmlwdCwgZm9udFN0eWxlOiAnaXRhbGljJywgZm9udFdlaWdodDogNDAwLAogICAgICAgIGZvbnRTaXplOiAxOCwgY29sb3I6IFQuaW5rLCBsaW5lSGVpZ2h0OiAxLjQyLA==", "ICAvLyBCZWZvcmUgdGhlIGZpcnN0IHdvcmQgbGFuZHMsIHRoZSBibG9iIGJyZWF0aGVzIGluIHBsYWNlIG9mIHRoZSBlbXB0eSBsaW5lCiAgLy8gKHRoZSB3b3JraW5nIG1hcmspOyBpdCBnaXZlcyB3YXkgdG8gdGhlIHJlcGx5IGFzIHNvb24gYXMgdGV4dCBhcnJpdmVzLgogIGlmIChzdHJlYW1pbmcgJiYgIXRleHQpIHJldHVybiA8VHlwaW5nRG90cyAvPjsKCiAgcmV0dXJuICgKICAgIDw+CiAgICAgIDxwIHN0eWxlPXt7CiAgICAgICAgZm9udEZhbWlseTogRi5zY3JpcHQsIGZvbnRTdHlsZTogJ2l0YWxpYycsIGZvbnRXZWlnaHQ6IDQwMCwKICAgICAgICBmb250U2l6ZTogMTgsIGNvbG9yOiBULmluaywgbGluZUhlaWdodDogMS40Miw="),
-    ("components/vendor/MessageBubble.tsx", "m_call", "ICAgICAgICAgIDxBaU1lc3NhZ2VUZXh0IHRleHQ9e21lc3NhZ2UudGV4dH0gVD17VH0gRj17Rn0gLz4=", "ICAgICAgICAgIDxBaU1lc3NhZ2VUZXh0IHRleHQ9e21lc3NhZ2UudGV4dH0gc3RyZWFtaW5nPXttZXNzYWdlLnN0cmVhbWluZ30gVD17VH0gRj17Rn0gLz4="),
-    ("components/vendor/ChatThread.tsx", "c_dead", "ICAgICAgey8qIFR5cGluZyBpbmRpY2F0b3IgKi99CiAgICAgIHtsb2FkaW5nICYmICFtZXNzYWdlcy5zb21lKG0gPT4gbS5zdHJlYW1pbmcpICYmICgKICAgICAgICA8ZGl2IHN0eWxlPXt7IHBhZGRpbmc6ICc4cHggMjJweCA4cHggMzhweCcsIGRpc3BsYXk6ICdmbGV4JywgYWxpZ25JdGVtczogJ2NlbnRlcicgfX0+CiAgICAgICAgICA8VHlwaW5nRG90cyAvPgogICAgICAgIDwvZGl2PgogICAgICApfQo=", "ICAgICAgey8qIFRoZSB3b3JraW5nIGJsb2Igbm93IGxpdmVzIGluc2lkZSB0aGUgc3RyZWFtaW5nIGJ1YmJsZSAoaXQgc2hvd3Mgd2hpbGUKICAgICAgICAgIHRoZSBBSSBtZXNzYWdlIGlzIHN0cmVhbWluZyBidXQgc3RpbGwgZW1wdHkpLCBzbyBubyBzZXBhcmF0ZSBpbmRpY2F0b3IuICovfQo="),
-    ("components/vendor/ChatThread.tsx", "c_import", "aW1wb3J0IHsgVHlwaW5nRG90cyB9IGZyb20gJy4vVHlwaW5nRG90cyc7Cg==", "")
+    ("lib/vendor/api/vendor.ts", "v_donepayload", "ZXhwb3J0IHR5cGUgU3RyZWFtRG9uZVBheWxvYWQgPSB7CiAgdG9vbF9jYWxsczogc3RyaW5nW107CiAgcmVmcmVzaD86IGJvb2xlYW47CiAgY29udGFjdD86IENvbnRhY3RDYXJkOwogIGNsYXJpZnk/OiBDbGFyaWZ5UGF5bG9hZDsKICBzdWdnZXN0aW9ucz86IFN1Z2dlc3Rpb25zUGF5bG9hZDsKfTs=", "ZXhwb3J0IHR5cGUgU3RyZWFtRG9uZVBheWxvYWQgPSB7CiAgdG9vbF9jYWxsczogc3RyaW5nW107CiAgcmVmcmVzaD86IGJvb2xlYW47CiAgY29udGFjdD86IENvbnRhY3RDYXJkOwogIGNsYXJpZnk/OiBDbGFyaWZ5UGF5bG9hZDsKICBzdWdnZXN0aW9ucz86IFN1Z2dlc3Rpb25zUGF5bG9hZDsKfTsKCi8vIFRoZSBwYWlyLWF0LXdvcmsgYmVhdHMgdGhlIGZpcmV3YWxsIGVtaXRzIG9uIHRoZSB3aXJlICgzLUIpLiBNeXJhJ3MgcHJvc2UKLy8gcmlkZXMgYXMgdGV4dF9kZWx0YTsgdGhlc2UgdGhyZWUgZGVzY3JpYmUgd2hhdCBoZXIgb3BlcmF0b3IgZGlkIHVuZGVybmVhdGguCmV4cG9ydCB0eXBlIFN0cmVhbUJlYXQgPQogIHwgeyBraW5kOiAnaGFuZG9mZic7IG1lc3NhZ2U6IHN0cmluZyB9CiAgfCB7IGtpbmQ6ICdvcGVyYXRvcl9hY3Rpb24nOyBhY3Rpb246IHN0cmluZzsgZGV0YWlsOiBzdHJpbmcgfQogIHwgeyBraW5kOiAnb3BlcmF0b3JfcmVwb3J0JzsgbWVzc2FnZTogc3RyaW5nIH07"),
+    ("lib/vendor/api/vendor.ts", "v_params", "ICBvbkRvbmU6IChyZXN1bHQ6IFN0cmVhbURvbmVQYXlsb2FkKSA9PiB2b2lkLAogIG9uRXJyb3I6IChtc2c6IHN0cmluZykgPT4gdm9pZCwKKTogKCkgPT4gdm9pZCB7", "ICBvbkRvbmU6IChyZXN1bHQ6IFN0cmVhbURvbmVQYXlsb2FkKSA9PiB2b2lkLAogIG9uRXJyb3I6IChtc2c6IHN0cmluZykgPT4gdm9pZCwKICBvbkJlYXQ/OiAoYmVhdDogU3RyZWFtQmVhdCkgPT4gdm9pZCwKKTogKCkgPT4gdm9pZCB7"),
+    ("lib/vendor/api/vendor.ts", "v_parse", "ICAgICAgICAgIGlmIChldmVudC50eXBlID09PSAndGV4dF9kZWx0YScgJiYgZXZlbnQudGV4dCkgewogICAgICAgICAgICBvbkRlbHRhKGV2ZW50LnRleHQpOwogICAgICAgICAgfSBlbHNlIGlmIChldmVudC50eXBlID09PSAnZG9uZScpIHs=", "ICAgICAgICAgIGlmIChldmVudC50eXBlID09PSAndGV4dF9kZWx0YScgJiYgZXZlbnQudGV4dCkgewogICAgICAgICAgICBvbkRlbHRhKGV2ZW50LnRleHQpOwogICAgICAgICAgfSBlbHNlIGlmIChldmVudC50eXBlID09PSAnaGFuZG9mZicpIHsKICAgICAgICAgICAgb25CZWF0Py4oeyBraW5kOiAnaGFuZG9mZicsIG1lc3NhZ2U6IGV2ZW50Lm1lc3NhZ2UgPz8gJycgfSk7CiAgICAgICAgICB9IGVsc2UgaWYgKGV2ZW50LnR5cGUgPT09ICdvcGVyYXRvcl9hY3Rpb24nKSB7CiAgICAgICAgICAgIG9uQmVhdD8uKHsga2luZDogJ29wZXJhdG9yX2FjdGlvbicsIGFjdGlvbjogZXZlbnQua2luZCA/PyAnJywgZGV0YWlsOiBldmVudC5kZXRhaWwgPz8gJycgfSk7CiAgICAgICAgICB9IGVsc2UgaWYgKGV2ZW50LnR5cGUgPT09ICdvcGVyYXRvcl9yZXBvcnQnKSB7CiAgICAgICAgICAgIG9uQmVhdD8uKHsga2luZDogJ29wZXJhdG9yX3JlcG9ydCcsIG1lc3NhZ2U6IGV2ZW50Lm1lc3NhZ2UgPz8gJycgfSk7CiAgICAgICAgICB9IGVsc2UgaWYgKGV2ZW50LnR5cGUgPT09ICdkb25lJykgew=="),
+    ("hooks/vendor/useChat.ts", "u_import", "aW1wb3J0IHsgZmV0Y2hDb250ZXh0LCBmZXRjaENoYXRIaXN0b3J5LCBzdHJlYW1DaGF0IH0gZnJvbSAnQC9saWIvdmVuZG9yL2FwaS92ZW5kb3InOw==", "aW1wb3J0IHsgZmV0Y2hDb250ZXh0LCBmZXRjaENoYXRIaXN0b3J5LCBzdHJlYW1DaGF0LCB0eXBlIFN0cmVhbUJlYXQgfSBmcm9tICdAL2xpYi92ZW5kb3IvYXBpL3ZlbmRvcic7"),
+    ("hooks/vendor/useChat.ts", "u_msgtype", "ICBzdHJlYW1pbmc/OiBib29sZWFuOyAgICAgICAgIC8vIHRydWUgd2hpbGUgU1NFIHN0cmVhbSBpcyBpbiBwcm9ncmVzcwp9", "ICBzdHJlYW1pbmc/OiBib29sZWFuOyAgICAgICAgIC8vIHRydWUgd2hpbGUgU1NFIHN0cmVhbSBpcyBpbiBwcm9ncmVzcwogIGRlbGliZXJhdGlvbj86IFN0cmVhbUJlYXRbXTsgLy8gNS1COiB0aGUgb3BlcmF0b3IncyB3b3JrIGJlbmVhdGggTXlyYSdzIHJlcGx5Cn0="),
+    ("hooks/vendor/useChat.ts", "u_init", "c2V0TWVzc2FnZXMoKHByZXY6IENoYXRNZXNzYWdlW10pID0+IFsuLi5wcmV2LCB7IGlkOiBhaU1zZ0lkLCByb2xlOiAnYWknLCB0ZXh0OiAnJywgc3RyZWFtaW5nOiB0cnVlIH1dKTs=", "c2V0TWVzc2FnZXMoKHByZXY6IENoYXRNZXNzYWdlW10pID0+IFsuLi5wcmV2LCB7IGlkOiBhaU1zZ0lkLCByb2xlOiAnYWknLCB0ZXh0OiAnJywgc3RyZWFtaW5nOiB0cnVlLCBkZWxpYmVyYXRpb246IFtdIH1dKTs="),
+    ("hooks/vendor/useChat.ts", "u_onerror", "ICAgICAgLy8gb25FcnJvcgogICAgICAoZXJyTXNnOiBzdHJpbmcpID0+IHsKICAgICAgICBzZXRNZXNzYWdlcygocHJldjogQ2hhdE1lc3NhZ2VbXSkgPT4gcHJldi5tYXAoKG06IENoYXRNZXNzYWdlKSA9PgogICAgICAgICAgbS5pZCA9PT0gYWlNc2dJZCA/IHsgLi4ubSwgdGV4dDogZXJyTXNnLCBzdHJlYW1pbmc6IGZhbHNlIH0gOiBtCiAgICAgICAgKSk7CiAgICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICAgICAgYWJvcnRSZWYuY3VycmVudCA9IG51bGw7CiAgICAgIH0sCiAgICApOw==", "ICAgICAgLy8gb25FcnJvcgogICAgICAoZXJyTXNnOiBzdHJpbmcpID0+IHsKICAgICAgICBzZXRNZXNzYWdlcygocHJldjogQ2hhdE1lc3NhZ2VbXSkgPT4gcHJldi5tYXAoKG06IENoYXRNZXNzYWdlKSA9PgogICAgICAgICAgbS5pZCA9PT0gYWlNc2dJZCA/IHsgLi4ubSwgdGV4dDogZXJyTXNnLCBzdHJlYW1pbmc6IGZhbHNlIH0gOiBtCiAgICAgICAgKSk7CiAgICAgICAgc2V0TG9hZGluZyhmYWxzZSk7CiAgICAgICAgYWJvcnRSZWYuY3VycmVudCA9IG51bGw7CiAgICAgIH0sCgogICAgICAvLyBvbkJlYXQg4oCUIGNvbGxlY3QgdGhlIHBhaXItYXQtd29yayBiZWF0cyBvbnRvIHRoZSBzdHJlYW1pbmcgdHVybgogICAgICAoYmVhdDogU3RyZWFtQmVhdCkgPT4gewogICAgICAgIHNldE1lc3NhZ2VzKChwcmV2OiBDaGF0TWVzc2FnZVtdKSA9PiBwcmV2Lm1hcCgobTogQ2hhdE1lc3NhZ2UpID0+CiAgICAgICAgICBtLmlkID09PSBhaU1zZ0lkID8geyAuLi5tLCBkZWxpYmVyYXRpb246IFsuLi4obS5kZWxpYmVyYXRpb24gPz8gW10pLCBiZWF0XSB9IDogbQogICAgICAgICkpOwogICAgICB9LAogICAgKTs="),
+    ("components/vendor/ChatThread.tsx", "c_bubble", "ICAgICAgICAgIDxNZXNzYWdlQnViYmxlIG1lc3NhZ2U9e219IC8+CiAgICAgICAgICB7LyogQ2xhcmlmeSBjaGlwcyDigJQgYnJhc3MgaW4gZGFyaywgb3hibG9vZCBpbiBsaWdodCAqL30=", "ICAgICAgICAgIDxNZXNzYWdlQnViYmxlIG1lc3NhZ2U9e219IC8+CgogICAgICAgICAgey8qIFRoZSBwYWlyIGF0IHdvcmsgKDUtQik6IE15cmEncyByZXBseSBpcyB0aGUgYnViYmxlIGFib3ZlOyBoZXIKICAgICAgICAgICAgICBvcGVyYXRvcidzIGRlbGliZXJhdGlvbiByZWFkcyBxdWlldGx5IGJlbmVhdGgg4oCUIGFuc3dlciBmaXJzdC4gKi99CiAgICAgICAgICB7bS5kZWxpYmVyYXRpb24gJiYgbS5kZWxpYmVyYXRpb24ubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgICAgIDxkaXYgc3R5bGU9e3sgcGFkZGluZzogJzAgMjJweCA5cHggMzhweCcsIGRpc3BsYXk6ICdmbGV4JywgZmxleERpcmVjdGlvbjogJ2NvbHVtbicsIGdhcDogMyB9fT4KICAgICAgICAgICAgICB7bS5kZWxpYmVyYXRpb24ubWFwKChiZWF0LCBpKSA9PiB7CiAgICAgICAgICAgICAgICBjb25zdCBsaW5lID0KICAgICAgICAgICAgICAgICAgYmVhdC5raW5kID09PSAnaGFuZG9mZicgPyAnSGFuZGVkIHRvIHRoZSBvcGVyYXRvcicKICAgICAgICAgICAgICAgICAgOiBiZWF0LmtpbmQgPT09ICdvcGVyYXRvcl9hY3Rpb24nID8gYE9wZXJhdG9yIFx1MDBiNyAke2JlYXQuYWN0aW9ufSR7YmVhdC5kZXRhaWwgPyAnIFx1MjAxNCAnICsgYmVhdC5kZXRhaWwgOiAnJ31gCiAgICAgICAgICAgICAgICAgIDogYE9wZXJhdG9yIHJlcG9ydGVkIFx1MDBiNyAke2JlYXQubWVzc2FnZX1gOwogICAgICAgICAgICAgICAgcmV0dXJuICgKICAgICAgICAgICAgICAgICAgPGRpdiBrZXk9e2l9IHN0eWxlPXt7CiAgICAgICAgICAgICAgICAgICAgZm9udEZhbWlseTogRi5sYWJlbCwgZm9udFNpemU6IDExLCBmb250V2VpZ2h0OiAzMDAsIGxpbmVIZWlnaHQ6IDEuNSwKICAgICAgICAgICAgICAgICAgICBsZXR0ZXJTcGFjaW5nOiAnMC4wMWVtJywKICAgICAgICAgICAgICAgICAgICBjb2xvcjogVC5pc0xpZ2h0ID8gJ3JnYmEoMjYsMTUsOCwwLjUpJyA6ICdyZ2JhKDIzMywyMjgsMjE3LDAuNDIpJywKICAgICAgICAgICAgICAgICAgfX0+e2xpbmV9PC9kaXY+CiAgICAgICAgICAgICAgICApOwogICAgICAgICAgICAgIH0pfQogICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICl9CiAgICAgICAgICB7LyogQ2xhcmlmeSBjaGlwcyDigJQgYnJhc3MgaW4gZGFyaywgb3hibG9vZCBpbiBsaWdodCAqL30=")
 ]
 applied = skipped = 0
 for path, label, o_b64, n_b64 in EDITS:
@@ -18,23 +20,27 @@ for path, label, o_b64, n_b64 in EDITS:
         print("SKIP  [%s] %s not found." % (label, path)); skipped += 1; continue
     text = open(path, encoding="utf-8").read()
     old, new = d(o_b64), d(n_b64)
-    if old == new: continue
-    if new and new in text:
+    if new in text:
         print("SKIP  [%s] already applied." % label); skipped += 1; continue
     c = text.count(old)
     if c == 1:
         open(path, "w", encoding="utf-8").write(text.replace(old, new)); applied += 1; print("OK    [%s]" % label)
     elif c == 0: print("SKIP  [%s] anchor NOT FOUND." % label); skipped += 1
     else: print("SKIP  [%s] anchor x%d." % (label, c)); skipped += 1
-mf = open("components/vendor/MessageBubble.tsx", encoding="utf-8").read()
+vf = open("lib/vendor/api/vendor.ts", encoding="utf-8").read()
+uf = open("hooks/vendor/useChat.ts", encoding="utf-8").read()
 cf = open("components/vendor/ChatThread.tsx", encoding="utf-8").read()
 checks = [
-  ("MessageBubble imports blob",     "import { TypingDots } from './TypingDots';" in mf),
-  ("AiMessageText takes streaming",  "streaming?: boolean;" in mf),
-  ("blob when empty+streaming",      "if (streaming && !text) return <TypingDots />;" in mf),
-  ("call passes streaming",          "streaming={message.streaming}" in mf),
-  ("dead gate removed",              "loading && !messages.some(m => m.streaming)" not in cf),
-  ("ChatThread no longer imports blob","import { TypingDots } from './TypingDots';" not in cf),
+  ("StreamBeat type exported",   "export type StreamBeat =" in vf),
+  ("onBeat param added",         "onBeat?: (beat: StreamBeat) => void," in vf),
+  ("handoff parsed",             "kind: 'handoff', message: event.message" in vf),
+  ("operator_action parsed",     "kind: 'operator_action', action: event.kind" in vf),
+  ("operator_report parsed",     "kind: 'operator_report', message: event.message" in vf),
+  ("useChat imports StreamBeat", "type StreamBeat }" in uf),
+  ("deliberation on message",    "deliberation?: StreamBeat[];" in uf),
+  ("deliberation initialised",   "streaming: true, deliberation: [] }" in uf),
+  ("onBeat collects beats",      "deliberation: [...(m.deliberation ?? []), beat]" in uf),
+  ("trace rendered answer-first","m.deliberation && m.deliberation.length > 0" in cf),
 ]
 print(chr(10) + "-- verification --")
 allok = True

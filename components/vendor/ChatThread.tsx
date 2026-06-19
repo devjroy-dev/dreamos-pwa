@@ -43,6 +43,26 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
       {messages.map((m, idx) => (
         <div key={m.id ?? idx}>
           <MessageBubble message={m} />
+
+          {/* The pair at work (5-B): Myra's reply is the bubble above; her
+              operator's deliberation reads quietly beneath — answer first. */}
+          {m.deliberation && m.deliberation.length > 0 && (
+            <div style={{ padding: '0 22px 9px 38px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {m.deliberation.map((beat, i) => {
+                const line =
+                  beat.kind === 'handoff' ? 'Handed to the operator'
+                  : beat.kind === 'operator_action' ? `Operator \u00b7 ${beat.action}${beat.detail ? ' \u2014 ' + beat.detail : ''}`
+                  : `Operator reported \u00b7 ${beat.message}`;
+                return (
+                  <div key={i} style={{
+                    fontFamily: F.label, fontSize: 11, fontWeight: 300, lineHeight: 1.5,
+                    letterSpacing: '0.01em',
+                    color: T.isLight ? 'rgba(26,15,8,0.5)' : 'rgba(233,228,217,0.42)',
+                  }}>{line}</div>
+                );
+              })}
+            </div>
+          )}
           {/* Clarify chips — brass in dark, oxblood in light */}
           {m.clarify?.options && m.clarify.options.length > 0 && (
             <div style={{

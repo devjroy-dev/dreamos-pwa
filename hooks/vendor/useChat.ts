@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchContext, fetchChatHistory, streamChat } from '@/lib/vendor/api/vendor';
+import { fetchContext, fetchChatHistory, streamChat, type StreamBeat } from '@/lib/vendor/api/vendor';
 import { getVendorSession } from '@/lib/vendor/session';
 import { buildBriefing } from '@/lib/vendor/briefing';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
@@ -19,6 +19,7 @@ export interface ChatMessage {
   clarify?:   ClarifyPayload;  // when set, render options as inline chips
   suggestions?: SuggestionsPayload;  // 3.0-C2: optional next-step cards under a completed action
   streaming?: boolean;         // true while SSE stream is in progress
+  deliberation?: StreamBeat[]; // 5-B: the operator's work beneath Myra's reply
 }
 
 export interface BackendHistoryMessage { role: 'user' | 'assistant'; content: string; }
@@ -116,7 +117,7 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
 
     // Add empty AI message that will be filled by streaming deltas
     const aiMsgId = nextId();
-    setMessages((prev: ChatMessage[]) => [...prev, { id: aiMsgId, role: 'ai', text: '', streaming: true }]);
+    setMessages((prev: ChatMessage[]) => [...prev, { id: aiMsgId, role: 'ai', text: '', streaming: true, deliberation: [] }]);
 
     let accumulated = '';
 
@@ -163,6 +164,13 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
         ));
         setLoading(false);
         abortRef.current = null;
+      },
+
+      // onBeat — collect the pair-at-work beats onto the streaming turn
+      (beat: StreamBeat) => {
+        setMessages((prev: ChatMessage[]) => prev.map((m: ChatMessage) =>
+          m.id === aiMsgId ? { ...m, deliberation: [...(m.deliberation ?? []), beat] } : m
+        ));
       },
     );
 
