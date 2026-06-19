@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchContext, fetchChatHistory, streamChat, type StreamBeat } from '@/lib/vendor/api/vendor';
 import { getVendorSession } from '@/lib/vendor/session';
-import { buildBriefing } from '@/lib/vendor/briefing';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
 import type { ClarifyPayload, ContactCard } from '@/lib/vendor/types/vendor';
 import type { SuggestionsPayload } from '@/lib/vendor/api/vendor';
@@ -56,9 +55,9 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
         const ctx = await fetchContext(vendorId);
         if (cancelled) return;
         setContext(ctx);
-        const briefing = buildBriefing(ctx);
 
-        // Fetch recent transcript (best-effort; never blocks the briefing).
+        // Seed the thread with recent transcript only (best-effort). No auto-
+        // briefing — Myra speaks when the owner asks, nothing injected unprompted.
         let history: ChatMessage[] = [];
         try {
           const h = await fetchChatHistory(vendorId, 10);
@@ -70,13 +69,7 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
 
         setMessages((prev: ChatMessage[]) => {
           if (prev.length > 0) return prev;  // user already started typing
-          const seed: ChatMessage[] = [...history];
-          // Append the briefing only if it isn't already the last thing said.
-          if (briefing) {
-            const lastText = history.length ? history[history.length - 1].text : '';
-            if (lastText !== briefing) seed.push({ id: 'briefing', role: 'ai', text: briefing });
-          }
-          return seed;
+          return [...history];
         });
       } catch {}
     })();
