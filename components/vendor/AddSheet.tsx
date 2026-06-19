@@ -132,8 +132,6 @@ interface Props {
   /** When provided: edit mode — pre-fill form with existing values (raw data object, not display Row) */
   existing?: Record<string,unknown> | null;
   existingId?: string;
-  /** Item-specific chat primer for the "Via chat" button in edit mode */
-  editPrimer?: string;
 }
 
 function normalisePhone(v: string): string {
@@ -143,7 +141,7 @@ function normalisePhone(v: string): string {
   return v.trim() || '';
 }
 
-export function AddSheet({ open, slice, onClose, onToast, existing, existingId, editPrimer }: Props) {
+export function AddSheet({ open, slice, onClose, onToast, existing, existingId }: Props) {
   const router = useRouter();
   const schema = SCHEMAS[slice];
   const isEdit = !!existing && !!existingId;
@@ -295,8 +293,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
 
   function goToChat() {
     onClose();
-    const primer = isEdit && editPrimer ? editPrimer : ADD_PRIMERS[slice];
-    router.push(`/wedding?aiPrimer=${encodeURIComponent(primer)}`);
+    router.push(`/wedding?aiPrimer=${encodeURIComponent(ADD_PRIMERS[slice])}`);
   }
 
   const requiredMet = schema.fields.filter(f => f.required).every(f => values[f.key]?.trim());

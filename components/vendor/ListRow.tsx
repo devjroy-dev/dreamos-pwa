@@ -11,7 +11,6 @@ export interface ListRowData {
   date?: string;
   removable?: string;
   editable?: string;
-  editPrimer: string;
   removePrimer?: string;
   tapPrimer: string;
 }

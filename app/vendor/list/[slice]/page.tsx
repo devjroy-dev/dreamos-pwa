@@ -162,7 +162,6 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
   const [scheduleSaving,  setScheduleSaving]  = useState(false);
   const [addOpen,     setAddOpen]     = useState(false);
   const [editRow,     setEditRow]     = useState<Record<string,unknown> | null>(null);
-  const [editPrimer,  setEditPrimer]  = useState<string>('');
   const { toast, show: showToast }   = useToast();
   const [pdfBusy, setPdfBusy] = useState(false);
   const [leadDetail, setLeadDetail] = useState<{ vendor_summary: string | null; conversation: ConversationMessage[] } | null>(null);
@@ -224,10 +223,8 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
     }).catch(() => {}).finally(() => setLoadingDetail(false));
   }, [sel, slice]);
 
-  function onEdit(row: Row) { setSel(null); router.push(`/wedding?aiPrimer=${encodeURIComponent(row.aiPrimer)}`); }
   function onEditHere(row: Row) {
     setSel(null);
-    setEditPrimer(row.aiPrimer);
     let raw: Record<string,unknown> | null = null;
     if (slice === 'clients')  raw = ((c.data  ?? []).find(r => r.id === row.id) as unknown as Record<string,unknown>) ?? null;
     if (slice === 'leads')    raw = ((l.data  ?? []).find(r => r.id === row.id) as unknown as Record<string,unknown>) ?? null;
@@ -324,11 +321,10 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
       <AddSheet
         open={addOpen}
         slice={slice}
-        onClose={() => { setAddOpen(false); setEditRow(null); setEditPrimer(''); }}
+        onClose={() => { setAddOpen(false); setEditRow(null); }}
         onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
         existing={editRow}
         existingId={editRow?.id as string | undefined}
-        editPrimer={editPrimer}
       />
 
       {/* Schedule builder sheet */}
@@ -633,12 +629,7 @@ function SliceScreen({ vendorId, slice }: { vendorId: string; slice: ListSlice }
                   fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>Edit Here</button>
-                <button type="button" onClick={() => sel && onEdit(sel)} style={{
-                  flex: 1, padding: '12px 16px', background: 'transparent',
-                  border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
-                }}>Via Chat</button>
+
                 <button type="button" onClick={() => { setConfirmDel(true); setDeleteMsg(null); }} style={{
                   flex: 1, padding: '12px 16px', background: 'transparent',
                   border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',

@@ -13,6 +13,7 @@ import { useHotDates } from '@/hooks/vendor/useHotDates';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import { Header } from '@/components/vendor/Header';
 import { CalendarBlockSheet } from '@/components/vendor/CalendarBlockSheet';
+import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAvailability, fetchHotDates, cancelEvent } from '@/lib/vendor/api/vendor';
@@ -73,6 +74,9 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const [blocks,   setBlocks]   = useState<AvailabilityBlock[]>([]);
   const [hotDates, setHotDates] = useState<HotDate[]>([]);
   const [blockSel, setBlockSel] = useState<string | null>(null);
+  // Tap-to-edit a calendar event opens the form (direct write), never the AI.
+  const [editRow, setEditRow] = useState<Record<string, unknown> | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   const { toast, show: showToast } = useToast();
 
   const { data: events, refresh: refreshEvents } = useEventsData(vendorId);
@@ -489,7 +493,8 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button type="button" onClick={() => {
                         setSel(null);
-                        router.push(`/vendor?aiPrimer=${encodeURIComponent(`What would you like to change about the event "${ev.title}" on ${fmtShort(ev.event_date)}?`)}`);
+                        setEditRow(ev as unknown as Record<string, unknown>);
+                        setAddOpen(true);
                       }} style={{
                         background: 'none', border: `0.5px solid rgba(201,168,76,0.28)`,
                         borderRadius: 999, padding: '5px 10px', cursor: 'pointer',
@@ -520,6 +525,14 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         onClose={() => setBlockSel(null)}
         onToast={showToast}
         onRefresh={refreshBlocks}
+      />
+      <AddSheet
+        open={addOpen}
+        slice="events"
+        existing={editRow}
+        existingId={editRow?.id as string | undefined}
+        onClose={() => { setAddOpen(false); setEditRow(null); }}
+        onToast={showToast}
       />
     </div>
   );

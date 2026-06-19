@@ -72,7 +72,7 @@ export default function DemoSlicePage(){
   const c=useDemoClientsData();const l=useDemoLeadsData(handle);const i=useDemoInvoicesData();const ex=useDemoExpensesData();const ev=useDemoEventsData();
   const rawRows=useMemo(()=>toRows(slice,c.data??[],l.data??[],i.data??[],ex.data??[],ev.data??[]),[slice,c.data,l.data,i.data,ex.data,ev.data]);
   const loading=l.loading;
-  const[query,setQuery]=useState('');const[sel,setSel]=useState<Row|null>(null);const[confirmDel,setConfirmDel]=useState(false);const[addOpen,setAddOpen]=useState(false);const[editRow,setEditRow]=useState<Record<string,unknown>|null>(null);const[editPrimer,setEditPrimer]=useState('');
+  const[query,setQuery]=useState('');const[sel,setSel]=useState<Row|null>(null);const[confirmDel,setConfirmDel]=useState(false);const[addOpen,setAddOpen]=useState(false);const[editRow,setEditRow]=useState<Record<string,unknown>|null>(null);
   const rows=useMemo(()=>{if(!query.trim())return rawRows;const q=query.trim().toLowerCase();return rawRows.filter(r=>r.primary.toLowerCase().includes(q)||(r.secondary??'').toLowerCase().includes(q)||(r.meta??'').toLowerCase().includes(q));},[rawRows,query]);
   if(!['clients','leads','invoices','events','expenses'].includes(slice))return<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{fontFamily:F.script,fontStyle:'italic',color:A.inkMute}}>Unknown.</div></div>;
   return(
@@ -94,7 +94,7 @@ export default function DemoSlicePage(){
       </div>
       <button type="button" onClick={()=>{setEditRow(null);setAddOpen(true);}} aria-label={`Add ${LABELS[slice].toLowerCase()}`} className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:30,width:46,height:46,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:22,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid #E0BC6E'}}>+</button>
       <Toast toast={toast}/>
-      <AddSheet open={addOpen} slice={slice} onClose={()=>{setAddOpen(false);setEditRow(null);setEditPrimer('');}} onToast={(msg:string,kind?:ToastKind)=>showToast(msg,kind)} existing={editRow} existingId={editRow?.id as string|undefined} editPrimer={editPrimer}/>
+      <AddSheet open={addOpen} slice={slice} onClose={()=>{setAddOpen(false);setEditRow(null);}} onToast={(msg:string,kind?:ToastKind)=>showToast(msg,kind)} existing={editRow} existingId={editRow?.id as string|undefined}/>
       <>
         {sel&&<div onClick={()=>{setSel(null);setConfirmDel(false);}} style={{position:'fixed',inset:0,zIndex:40,background:'var(--atelier-overlay)'}}/>}
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:50,background:'var(--atelier-sheet-bg)',backdropFilter:'blur(40px) saturate(1.8)',WebkitBackdropFilter:'blur(40px) saturate(1.8)',borderTop:'0.5px solid var(--atelier-sheet-border)',padding:`0 0 calc(20px + env(safe-area-inset-bottom))`,transform:sel?'translateY(0)':'translateY(100%)',transition:'transform 320ms cubic-bezier(0.22,1,0.36,1)',maxHeight:'88dvh',display:'flex',flexDirection:'column'}}>
@@ -120,7 +120,7 @@ export default function DemoSlicePage(){
             )}
             {!confirmDel?(
               <div style={{display:'flex',gap:8}}>
-                <button type="button" onClick={()=>{if(sel){setSel(null);setEditPrimer(sel.aiPrimer);setEditRow({id:sel.id});setAddOpen(true);}}} className="atelier-fab" style={{flex:1,padding:'12px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Edit Here</button>
+                <button type="button" onClick={()=>{if(sel){setSel(null);setEditRow({id:sel.id});setAddOpen(true);}}} className="atelier-fab" style={{flex:1,padding:'12px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Edit Here</button>
                 <button type="button" onClick={()=>{setSel(null);router.push(`/demo/vendor/${handle}/studio`);}} style={{flex:1,padding:'12px 16px',background:'transparent',border:'0.5px solid var(--atelier-sheet-border)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.brassWarm,letterSpacing:'0.32em',textTransform:'uppercase'}}>Via Chat</button>
                 <button type="button" onClick={()=>setConfirmDel(true)} style={{flex:1,padding:'12px 16px',background:'transparent',border:'0.5px solid rgba(224,123,92,0.4)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.red,letterSpacing:'0.32em',textTransform:'uppercase'}}>Delete</button>
               </div>
