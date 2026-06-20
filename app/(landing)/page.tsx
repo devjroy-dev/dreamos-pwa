@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 
 // iOS Safari (normal browsing, installed PWA, or ITP-restricted contexts) can
 // throw on localStorage.setItem even when the network is fine. The login flow
@@ -423,22 +424,17 @@ export default function Home() {
   };
 
   const sendOtp = async (phoneNum: string) => {
-    const isVendor = role === 'Maker';
     const digits = phoneNum.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
 
-    // Open signup: send-otp self-mints the account from the phone — no pre-call needed.
-
-    const endpoint = isVendor
-      ? `${API_BASE}/api/v2/vendor/auth/send-otp`
-      : `${API_BASE}/api/v2/couple/auth/send-otp`;
+    // Path 1: Supabase Phone-OTP. signInWithOtp self-mints the Supabase auth user
+    // (shouldCreateUser) and sends the code over SMS — open signup, any number.
     try {
-      const r = await fetch(endpoint, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164 }),
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: e164,
+        options: { shouldCreateUser: true },
       });
-      const d = await r.json();
-      if (!d.ok) { showToast(d.error || 'Could not send code. Try again.'); return; }
+      if (error) { showToast(error.message || 'Could not send code. Try again.'); return; }
       setScreen(screen === 'signin_phone' ? 'signin_otp' : 'invite_otp');
     } catch { showToast('Could not send code. Try again.'); }
   };
@@ -447,28 +443,27 @@ export default function Home() {
     const isVendor = role === 'Maker';
     const digits = phone.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
-    const endpoint = isVendor
-      ? `${API_BASE}/api/v2/vendor/auth/verify-otp`
-      : `${API_BASE}/api/v2/couple/auth/verify-otp`;
     try {
-      const res = await fetch(endpoint, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164, otp: otp.join(''), purpose: 'login' }),
+      // 1 — Supabase verifies the SMS code and mints the session (client-side).
+      const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
+        phone: e164, token: otp.join(''), type: 'sms',
       });
-      const d = await res.json();
-      if (!d.ok) {
-        const reason = d.reason || '';
-        const err    = d.error  || '';
-        if (reason === 'phone_not_found' || err.toLowerCase().includes('no account')) {
-          // On invite path this shouldn't happen (consume already ran)
-          // On sign-in path: no account exists
-          setScreen('request_who');
-          showToast('No account found. Request an invite to join.');
-          return;
-        }
-        showToast(err || 'Incorrect code.');
-        return;
-      }
+      if (vErr || !vData.session) { showToast(vErr?.message || 'Incorrect code.'); return; }
+      const accessToken  = vData.session.access_token;
+      const refreshToken = vData.session.refresh_token;
+
+      // 2 — Provision the vendor|couple row for this Supabase identity (idempotent;
+      //     phone-fallback re-binds a legacy account). Returns ids + pin_set, no tokens.
+      const provEndpoint = isVendor
+        ? `${API_BASE}/api/v2/vendor/auth/provision`
+        : `${API_BASE}/api/v2/couple/auth/provision`;
+      const pRes = await fetch(provEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ phone: e164 }),
+      });
+      const d = await pRes.json();
+      if (!d.ok) { showToast(d.error || 'Could not complete sign-in.'); return; }
 
       const roleId = isVendor ? d.vendor_id : d.couple_id;
       const userId = d.user_id;
@@ -480,8 +475,8 @@ export default function Home() {
         return;
       }
 
-      if (d.access_token)  safeSetItem('access_token', d.access_token);
-      if (d.refresh_token) safeSetItem('refresh_token', d.refresh_token);
+      if (accessToken)  safeSetItem('access_token', accessToken);
+      if (refreshToken) safeSetItem('refresh_token', refreshToken);
 
       const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
       const sessionData = {
@@ -493,16 +488,14 @@ export default function Home() {
         category: d.category || null,
         tier: d.tier || null,
         dreamer_type: d.dreamer_type || 'basic',
-        access_token:  d.access_token  || null,
-        refresh_token: d.refresh_token || null,
+        access_token:  accessToken  || null,
+        refresh_token: refreshToken || null,
         _v: 2,
       };
       safeSetItem(sessionKey, JSON.stringify(sessionData));
       safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
       mirrorSessionToCookie(isVendor, sessionData);
 
-      // Vendor: /vendor/pin if first login (no PIN set), /vendor/pin-login if returning
-      // Couple: onboarding if new, pin-login if returning, pin if no PIN set
       const coupleNeedsOnboarding = !isVendor && !pinSet && !d.name;
       if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');

@@ -1,63 +1,59 @@
 #!/usr/bin/env python3
-# Fix - tap-to-edit resolves INLINE (direct form write), never through the AI.
-# A deliberate edit the owner taps is unambiguous; routing it through Myra let a
-# stale chat subject win and edit the wrong record. Now: list + calendar tap-edit
-# open the form (direct updateEvent etc.); the AI-primer EDIT injection is removed.
-# (Add-via-chat and the chat-typed edit path are untouched — those stay.)
-import base64, sys, os
-def d(s): return base64.b64decode(s).decode("utf-8")
-EDITS = [
-    ("app/vendor/list/[slice]/page.tsx", "list: drop onEdit riddle line", "ICBmdW5jdGlvbiBvbkVkaXQocm93OiBSb3cpIHsgc2V0U2VsKG51bGwpOyByb3V0ZXIucHVzaChgL3dlZGRpbmc/YWlQcmltZXI9JHtlbmNvZGVVUklDb21wb25lbnQocm93LmFpUHJpbWVyKX1gKTsgfQo=", ""),
-    ("app/vendor/list/[slice]/page.tsx", "list: drop setEditPrimer line", "ICAgIHNldEVkaXRQcmltZXIocm93LmFpUHJpbWVyKTsK", ""),
-    ("app/vendor/list/[slice]/page.tsx", "list: remove riddle Edit button", "ICAgICAgICAgICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBvbkNsaWNrPXsoKSA9PiBzZWwgJiYgb25FZGl0KHNlbCl9IHN0eWxlPXt7CiAgICAgICAgICAgICAgICAgIGZsZXg6IDEsIHBhZGRpbmc6ICcxMnB4IDE2cHgnLCBiYWNrZ3JvdW5kOiAndHJhbnNwYXJlbnQnLAogICAgICAgICAgICAgICAgICBib3JkZXI6ICcwLjVweCBzb2xpZCB2YXIoLS1hdGVsaWVyLXNoZWV0LWJvcmRlciknLCBib3JkZXJSYWRpdXM6IDIsIGN1cnNvcjogJ3BvaW50ZXInLAogICAgICAgICAgICAgICAgICBmb250RmFtaWx5OiBGLmxhYmVsLCBmb250V2VpZ2h0OiAzMDAsIGZvbnRTaXplOiA5LCBjb2xvcjogQS5icmFzc1dhcm0sCiAgICAgICAgICAgICAgICAgIGxldHRlclNwYWNpbmc6ICcwLjMyZW0nLCB0ZXh0VHJhbnNmb3JtOiAndXBwZXJjYXNlJywKICAgICAgICAgICAgICAgIH19PlZpYSBDaGF0PC9idXR0b24+", ""),
-    ("app/vendor/list/[slice]/page.tsx", "list: drop editPrimer state", "ICBjb25zdCBbZWRpdFByaW1lciwgIHNldEVkaXRQcmltZXJdICA9IHVzZVN0YXRlPHN0cmluZz4oJycpOwo=", ""),
-    ("app/vendor/list/[slice]/page.tsx", "list: AddSheet onClose without editPrimer", "ICAgICAgICBvbkNsb3NlPXsoKSA9PiB7IHNldEFkZE9wZW4oZmFsc2UpOyBzZXRFZGl0Um93KG51bGwpOyBzZXRFZGl0UHJpbWVyKCcnKTsgfX0K", "ICAgICAgICBvbkNsb3NlPXsoKSA9PiB7IHNldEFkZE9wZW4oZmFsc2UpOyBzZXRFZGl0Um93KG51bGwpOyB9fQo="),
-    ("app/vendor/list/[slice]/page.tsx", "list: drop editPrimer prop", "ICAgICAgICBlZGl0UHJpbWVyPXtlZGl0UHJpbWVyfQo=", ""),
-    ("components/vendor/AddSheet.tsx", "addsheet: drop editPrimer prop type", "ICAvKiogSXRlbS1zcGVjaWZpYyBjaGF0IHByaW1lciBmb3IgdGhlICJWaWEgY2hhdCIgYnV0dG9uIGluIGVkaXQgbW9kZSAqLwogIGVkaXRQcmltZXI/OiBzdHJpbmc7Cg==", ""),
-    ("components/vendor/AddSheet.tsx", "addsheet: drop editPrimer param", "ZXhwb3J0IGZ1bmN0aW9uIEFkZFNoZWV0KHsgb3Blbiwgc2xpY2UsIG9uQ2xvc2UsIG9uVG9hc3QsIGV4aXN0aW5nLCBleGlzdGluZ0lkLCBlZGl0UHJpbWVyIH06IFByb3BzKSB7", "ZXhwb3J0IGZ1bmN0aW9uIEFkZFNoZWV0KHsgb3Blbiwgc2xpY2UsIG9uQ2xvc2UsIG9uVG9hc3QsIGV4aXN0aW5nLCBleGlzdGluZ0lkIH06IFByb3BzKSB7"),
-    ("components/vendor/AddSheet.tsx", "addsheet: goToChat add-only (no edit primer)", "ICAgIGNvbnN0IHByaW1lciA9IGlzRWRpdCAmJiBlZGl0UHJpbWVyID8gZWRpdFByaW1lciA6IEFERF9QUklNRVJTW3NsaWNlXTsKICAgIHJvdXRlci5wdXNoKGAvd2VkZGluZz9haVByaW1lcj0ke2VuY29kZVVSSUNvbXBvbmVudChwcmltZXIpfWApOw==", "ICAgIHJvdXRlci5wdXNoKGAvd2VkZGluZz9haVByaW1lcj0ke2VuY29kZVVSSUNvbXBvbmVudChBRERfUFJJTUVSU1tzbGljZV0pfWApOw=="),
-    ("app/vendor/calendar/page.tsx", "calendar: import AddSheet", "aW1wb3J0IHsgQ2FsZW5kYXJCbG9ja1NoZWV0IH0gZnJvbSAnQC9jb21wb25lbnRzL3ZlbmRvci9DYWxlbmRhckJsb2NrU2hlZXQnOw==", "aW1wb3J0IHsgQ2FsZW5kYXJCbG9ja1NoZWV0IH0gZnJvbSAnQC9jb21wb25lbnRzL3ZlbmRvci9DYWxlbmRhckJsb2NrU2hlZXQnOwppbXBvcnQgeyBBZGRTaGVldCB9IGZyb20gJ0AvY29tcG9uZW50cy92ZW5kb3IvQWRkU2hlZXQnOw=="),
-    ("app/vendor/calendar/page.tsx", "calendar: edit form state", "ICBjb25zdCBbYmxvY2tTZWwsIHNldEJsb2NrU2VsXSA9IHVzZVN0YXRlPHN0cmluZyB8IG51bGw+KG51bGwpOw==", "ICBjb25zdCBbYmxvY2tTZWwsIHNldEJsb2NrU2VsXSA9IHVzZVN0YXRlPHN0cmluZyB8IG51bGw+KG51bGwpOwogIC8vIFRhcC10by1lZGl0IGEgY2FsZW5kYXIgZXZlbnQgb3BlbnMgdGhlIGZvcm0gKGRpcmVjdCB3cml0ZSksIG5ldmVyIHRoZSBBSS4KICBjb25zdCBbZWRpdFJvdywgc2V0RWRpdFJvd10gPSB1c2VTdGF0ZTxSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiB8IG51bGw+KG51bGwpOwogIGNvbnN0IFthZGRPcGVuLCBzZXRBZGRPcGVuXSA9IHVzZVN0YXRlKGZhbHNlKTs="),
-    ("app/vendor/calendar/page.tsx", "calendar: Edit opens form not AI", "ICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBvbkNsaWNrPXsoKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHNldFNlbChudWxsKTsKICAgICAgICAgICAgICAgICAgICAgICAgcm91dGVyLnB1c2goYC92ZW5kb3I/YWlQcmltZXI9JHtlbmNvZGVVUklDb21wb25lbnQoYFdoYXQgd291bGQgeW91IGxpa2UgdG8gY2hhbmdlIGFib3V0IHRoZSBldmVudCAiJHtldi50aXRsZX0iIG9uICR7Zm10U2hvcnQoZXYuZXZlbnRfZGF0ZSl9P2ApfWApOwogICAgICAgICAgICAgICAgICAgICAgfX0gc3R5bGU9e3s=", "ICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBvbkNsaWNrPXsoKSA9PiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHNldFNlbChudWxsKTsKICAgICAgICAgICAgICAgICAgICAgICAgc2V0RWRpdFJvdyhldiBhcyB1bmtub3duIGFzIFJlY29yZDxzdHJpbmcsIHVua25vd24+KTsKICAgICAgICAgICAgICAgICAgICAgICAgc2V0QWRkT3Blbih0cnVlKTsKICAgICAgICAgICAgICAgICAgICAgIH19IHN0eWxlPXt7"),
-    ("app/vendor/calendar/page.tsx", "calendar: mount AddSheet", "ICAgICAgPENhbGVuZGFyQmxvY2tTaGVldAogICAgICAgIG9wZW49eyEhYmxvY2tTZWx9CiAgICAgICAgZGF0ZUlzbz17YmxvY2tTZWx9CiAgICAgICAgZXhpc3RpbmdCbG9jaz17YmxvY2tTZWwgPyAoYmxvY2tNYXAuZ2V0KGJsb2NrU2VsKSA/PyBudWxsKSA6IG51bGx9CiAgICAgICAgb25DbG9zZT17KCkgPT4gc2V0QmxvY2tTZWwobnVsbCl9CiAgICAgICAgb25Ub2FzdD17c2hvd1RvYXN0fQogICAgICAgIG9uUmVmcmVzaD17cmVmcmVzaEJsb2Nrc30KICAgICAgLz4=", "ICAgICAgPENhbGVuZGFyQmxvY2tTaGVldAogICAgICAgIG9wZW49eyEhYmxvY2tTZWx9CiAgICAgICAgZGF0ZUlzbz17YmxvY2tTZWx9CiAgICAgICAgZXhpc3RpbmdCbG9jaz17YmxvY2tTZWwgPyAoYmxvY2tNYXAuZ2V0KGJsb2NrU2VsKSA/PyBudWxsKSA6IG51bGx9CiAgICAgICAgb25DbG9zZT17KCkgPT4gc2V0QmxvY2tTZWwobnVsbCl9CiAgICAgICAgb25Ub2FzdD17c2hvd1RvYXN0fQogICAgICAgIG9uUmVmcmVzaD17cmVmcmVzaEJsb2Nrc30KICAgICAgLz4KICAgICAgPEFkZFNoZWV0CiAgICAgICAgb3Blbj17YWRkT3Blbn0KICAgICAgICBzbGljZT0iZXZlbnRzIgogICAgICAgIGV4aXN0aW5nPXtlZGl0Um93fQogICAgICAgIGV4aXN0aW5nSWQ9e2VkaXRSb3c/LmlkIGFzIHN0cmluZyB8IHVuZGVmaW5lZH0KICAgICAgICBvbkNsb3NlPXsoKSA9PiB7IHNldEFkZE9wZW4oZmFsc2UpOyBzZXRFZGl0Um93KG51bGwpOyB9fQogICAgICAgIG9uVG9hc3Q9e3Nob3dUb2FzdH0KICAgICAgLz4="),
-    ("app/demo/vendor/[handle]/list/[slice]/page.tsx", "demo: drop editPrimer state", "Y29uc3RbZWRpdFByaW1lcixzZXRFZGl0UHJpbWVyXT11c2VTdGF0ZSgnJyk7", ""),
-    ("app/demo/vendor/[handle]/list/[slice]/page.tsx", "demo: AddSheet mount without editPrimer", "b25DbG9zZT17KCk9PntzZXRBZGRPcGVuKGZhbHNlKTtzZXRFZGl0Um93KG51bGwpO3NldEVkaXRQcmltZXIoJycpO319IG9uVG9hc3Q9eyhtc2c6c3RyaW5nLGtpbmQ/OlRvYXN0S2luZCk9PnNob3dUb2FzdChtc2csa2luZCl9IGV4aXN0aW5nPXtlZGl0Um93fSBleGlzdGluZ0lkPXtlZGl0Um93Py5pZCBhcyBzdHJpbmd8dW5kZWZpbmVkfSBlZGl0UHJpbWVyPXtlZGl0UHJpbWVyfS8+", "b25DbG9zZT17KCk9PntzZXRBZGRPcGVuKGZhbHNlKTtzZXRFZGl0Um93KG51bGwpO319IG9uVG9hc3Q9eyhtc2c6c3RyaW5nLGtpbmQ/OlRvYXN0S2luZCk9PnNob3dUb2FzdChtc2csa2luZCl9IGV4aXN0aW5nPXtlZGl0Um93fSBleGlzdGluZ0lkPXtlZGl0Um93Py5pZCBhcyBzdHJpbmd8dW5kZWZpbmVkfS8+"),
-    ("app/demo/vendor/[handle]/list/[slice]/page.tsx", "demo: Edit Here without editPrimer", "b25DbGljaz17KCk9PntpZihzZWwpe3NldFNlbChudWxsKTtzZXRFZGl0UHJpbWVyKHNlbC5haVByaW1lcik7c2V0RWRpdFJvdyh7aWQ6c2VsLmlkfSk7c2V0QWRkT3Blbih0cnVlKTt9fX0=", "b25DbGljaz17KCk9PntpZihzZWwpe3NldFNlbChudWxsKTtzZXRFZGl0Um93KHtpZDpzZWwuaWR9KTtzZXRBZGRPcGVuKHRydWUpO319fQ=="),
-    ("components/vendor/ListRow.tsx", "listrow: drop unused editPrimer prop", "ICBlZGl0UHJpbWVyOiBzdHJpbmc7Cg==", "")
-]
-applied = skipped = 0
-for path, label, o_b64, n_b64 in EDITS:
-    if not os.path.exists(path):
-        print("SKIP  [%s] %s not found." % (label, path)); skipped += 1; continue
-    text = open(path, encoding="utf-8").read()
-    old, new = d(o_b64), d(n_b64)
-    if old == new: continue
-    # Idempotency: if the finished `new` block is already present, this edit is done.
-    # (Crucial for ADDITIVE edits where `new` contains `old` — the old anchor still
-    # exists after applying, so we must check `new` first and replace ONCE only.)
-    if new and new in text:
-        print("SKIP  [%s] already applied." % label); skipped += 1; continue
-    c = text.count(old)
-    if c == 1:
-        open(path, "w", encoding="utf-8").write(text.replace(old, new, 1)); applied += 1; print("OK    [%s]" % label)
-    elif c == 0: print("SKIP  [%s] anchor NOT FOUND." % label); skipped += 1
-    else: print("SKIP  [%s] anchor x%d." % (label, c)); skipped += 1
-lp = open("app/vendor/list/[slice]/page.tsx", encoding="utf-8").read()
-cp = open("app/vendor/calendar/page.tsx", encoding="utf-8").read()
-asf= open("components/vendor/AddSheet.tsx", encoding="utf-8").read()
-checks = [
-  ("list onEdit riddle gone",   "router.push(`/wedding?aiPrimer=${encodeURIComponent(row.aiPrimer)}`)" not in lp),
-  ("list onEditHere kept",      "function onEditHere(row: Row)" in lp),
-  ("list editPrimer state gone","const [editPrimer," not in lp),
-  ("calendar imports AddSheet", "import { AddSheet }" in cp),
-  ("calendar edit opens form",  "setEditRow(ev as unknown" in cp),
-  ("calendar edit riddle gone", "What would you like to change about the event" not in cp),
-  ("calendar mounts AddSheet",  "<AddSheet" in cp and 'slice="events"' in cp),
-  ("addsheet editPrimer gone",  "editPrimer" not in asf),
-]
-print(chr(10) + "-- verification --")
-allok = True
-for n,p in checks: print("  %s %s" % ("PASS" if p else "FAIL", n)); allok = allok and p
-print(chr(10) + "(%d applied, %d skipped)" % (applied, skipped))
-print("ALL CHECKS PASSED" if allok else "SOME CHECKS FAILED")
-sys.exit(0 if allok else 2)
+# PWA Auth Flip (Path 1): login page calls Supabase Phone-OTP client-side, then the
+# dream-os /provision endpoint. sendOtp/verifyOtp internals swapped; the `d` shape and
+# ALL downstream (session storage, cookie mirror, routing) are preserved untouched.
+# Adds lib/supabase.ts + @supabase/supabase-js dependency.
+#   unzip -o pwa-auth-flip-v1.zip && python3 writer.py
+#   then: npm install
+# Requires Vercel env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY (set).
+import os, sys, base64, json
+ROOT = os.getcwd()
+def die(m): print("ABORT: " + m); sys.exit(1)
+if not os.path.isfile("package.json"): die("run from the dreamos-pwa repo root.")
+pkg = json.load(open("package.json"))
+P = {'client': 'Ly8gbGliL3N1cGFiYXNlLnRzCi8vIEJyb3dzZXIgU3VwYWJhc2UgY2xpZW50IChhbm9uIGtleSkgZm9yIFBob25lLU9UUCBsb2dpbiDigJQgUGF0aCAxLgovLyBUaGUgc2Vzc2lvbiBpdCBtaW50cyAoc2lnbkluV2l0aE90cC92ZXJpZnlPdHApIElTIHRoZSBhdXRoIHRva2VuIHRoZSByZXN0IG9mIHRoZQovLyBhcHAgc2VuZHMgYXMgQmVhcmVyOyBkcmVhbS1vcyByZXF1aXJlQXV0aCB2ZXJpZmllcyBpdCB2aWEgZ2V0VXNlcigpLiBUaGUgcHJvdmlzaW9uCi8vIGVuZHBvaW50IHRoZW4gbGlua3MvY3JlYXRlcyB0aGUgdmVuZG9yfGNvdXBsZSByb3cuIEVudiBzZXQgaW4gVmVyY2VsOgovLyAgIE5FWFRfUFVCTElDX1NVUEFCQVNFX1VSTCwgTkVYVF9QVUJMSUNfU1VQQUJBU0VfQU5PTl9LRVkKaW1wb3J0IHsgY3JlYXRlQ2xpZW50IH0gZnJvbSAnQHN1cGFiYXNlL3N1cGFiYXNlLWpzJzsKCmNvbnN0IFVSTCAgPSBwcm9jZXNzLmVudi5ORVhUX1BVQkxJQ19TVVBBQkFTRV9VUkwgIHx8ICcnOwpjb25zdCBBTk9OID0gcHJvY2Vzcy5lbnYuTkVYVF9QVUJMSUNfU1VQQUJBU0VfQU5PTl9LRVkgfHwgJyc7CgpleHBvcnQgY29uc3Qgc3VwYWJhc2UgPSBjcmVhdGVDbGllbnQoVVJMLCBBTk9OLCB7CiAgYXV0aDogeyBwZXJzaXN0U2Vzc2lvbjogZmFsc2UsIGF1dG9SZWZyZXNoVG9rZW46IGZhbHNlIH0sCn0pOwo=', 'so_old': 'ICBjb25zdCBzZW5kT3RwID0gYXN5bmMgKHBob25lTnVtOiBzdHJpbmcpID0+IHsKICAgIGNvbnN0IGlzVmVuZG9yID0gcm9sZSA9PT0gJ01ha2VyJzsKICAgIGNvbnN0IGRpZ2l0cyA9IHBob25lTnVtLnJlcGxhY2UoL1xEL2csICcnKTsKICAgIGNvbnN0IGUxNjQgPSBjb3VudHJ5LmRpYWxDb2RlICsgZGlnaXRzOwoKICAgIC8vIE9wZW4gc2lnbnVwOiBzZW5kLW90cCBzZWxmLW1pbnRzIHRoZSBhY2NvdW50IGZyb20gdGhlIHBob25lIOKAlCBubyBwcmUtY2FsbCBuZWVkZWQuCgogICAgY29uc3QgZW5kcG9pbnQgPSBpc1ZlbmRvcgogICAgICA/IGAke0FQSV9CQVNFfS9hcGkvdjIvdmVuZG9yL2F1dGgvc2VuZC1vdHBgCiAgICAgIDogYCR7QVBJX0JBU0V9L2FwaS92Mi9jb3VwbGUvYXV0aC9zZW5kLW90cGA7CiAgICB0cnkgewogICAgICBjb25zdCByID0gYXdhaXQgZmV0Y2goZW5kcG9pbnQsIHsKICAgICAgICBtZXRob2Q6ICdQT1NUJywgaGVhZGVyczogeyAnQ29udGVudC1UeXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nIH0sCiAgICAgICAgYm9keTogSlNPTi5zdHJpbmdpZnkoeyBwaG9uZTogZTE2NCB9KSwKICAgICAgfSk7CiAgICAgIGNvbnN0IGQgPSBhd2FpdCByLmpzb24oKTsKICAgICAgaWYgKCFkLm9rKSB7IHNob3dUb2FzdChkLmVycm9yIHx8ICdDb3VsZCBub3Qgc2VuZCBjb2RlLiBUcnkgYWdhaW4uJyk7IHJldHVybjsgfQogICAgICBzZXRTY3JlZW4oc2NyZWVuID09PSAnc2lnbmluX3Bob25lJyA/ICdzaWduaW5fb3RwJyA6ICdpbnZpdGVfb3RwJyk7CiAgICB9IGNhdGNoIHsgc2hvd1RvYXN0KCdDb3VsZCBub3Qgc2VuZCBjb2RlLiBUcnkgYWdhaW4uJyk7IH0KICB9Owo=', 'so_new': 'ICBjb25zdCBzZW5kT3RwID0gYXN5bmMgKHBob25lTnVtOiBzdHJpbmcpID0+IHsKICAgIGNvbnN0IGRpZ2l0cyA9IHBob25lTnVtLnJlcGxhY2UoL1xEL2csICcnKTsKICAgIGNvbnN0IGUxNjQgPSBjb3VudHJ5LmRpYWxDb2RlICsgZGlnaXRzOwoKICAgIC8vIFBhdGggMTogU3VwYWJhc2UgUGhvbmUtT1RQLiBzaWduSW5XaXRoT3RwIHNlbGYtbWludHMgdGhlIFN1cGFiYXNlIGF1dGggdXNlcgogICAgLy8gKHNob3VsZENyZWF0ZVVzZXIpIGFuZCBzZW5kcyB0aGUgY29kZSBvdmVyIFNNUyDigJQgb3BlbiBzaWdudXAsIGFueSBudW1iZXIuCiAgICB0cnkgewogICAgICBjb25zdCB7IGVycm9yIH0gPSBhd2FpdCBzdXBhYmFzZS5hdXRoLnNpZ25JbldpdGhPdHAoewogICAgICAgIHBob25lOiBlMTY0LAogICAgICAgIG9wdGlvbnM6IHsgc2hvdWxkQ3JlYXRlVXNlcjogdHJ1ZSB9LAogICAgICB9KTsKICAgICAgaWYgKGVycm9yKSB7IHNob3dUb2FzdChlcnJvci5tZXNzYWdlIHx8ICdDb3VsZCBub3Qgc2VuZCBjb2RlLiBUcnkgYWdhaW4uJyk7IHJldHVybjsgfQogICAgICBzZXRTY3JlZW4oc2NyZWVuID09PSAnc2lnbmluX3Bob25lJyA/ICdzaWduaW5fb3RwJyA6ICdpbnZpdGVfb3RwJyk7CiAgICB9IGNhdGNoIHsgc2hvd1RvYXN0KCdDb3VsZCBub3Qgc2VuZCBjb2RlLiBUcnkgYWdhaW4uJyk7IH0KICB9Owo=', 'vo_old': 'ICBjb25zdCB2ZXJpZnlPdHAgPSBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBpc1ZlbmRvciA9IHJvbGUgPT09ICdNYWtlcic7CiAgICBjb25zdCBkaWdpdHMgPSBwaG9uZS5yZXBsYWNlKC9cRC9nLCAnJyk7CiAgICBjb25zdCBlMTY0ID0gY291bnRyeS5kaWFsQ29kZSArIGRpZ2l0czsKICAgIGNvbnN0IGVuZHBvaW50ID0gaXNWZW5kb3IKICAgICAgPyBgJHtBUElfQkFTRX0vYXBpL3YyL3ZlbmRvci9hdXRoL3ZlcmlmeS1vdHBgCiAgICAgIDogYCR7QVBJX0JBU0V9L2FwaS92Mi9jb3VwbGUvYXV0aC92ZXJpZnktb3RwYDsKICAgIHRyeSB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IGZldGNoKGVuZHBvaW50LCB7CiAgICAgICAgbWV0aG9kOiAnUE9TVCcsIGhlYWRlcnM6IHsgJ0NvbnRlbnQtVHlwZSc6ICdhcHBsaWNhdGlvbi9qc29uJyB9LAogICAgICAgIGJvZHk6IEpTT04uc3RyaW5naWZ5KHsgcGhvbmU6IGUxNjQsIG90cDogb3RwLmpvaW4oJycpLCBwdXJwb3NlOiAnbG9naW4nIH0pLAogICAgICB9KTsKICAgICAgY29uc3QgZCA9IGF3YWl0IHJlcy5qc29uKCk7CiAgICAgIGlmICghZC5vaykgewogICAgICAgIGNvbnN0IHJlYXNvbiA9IGQucmVhc29uIHx8ICcnOwogICAgICAgIGNvbnN0IGVyciAgICA9IGQuZXJyb3IgIHx8ICcnOwogICAgICAgIGlmIChyZWFzb24gPT09ICdwaG9uZV9ub3RfZm91bmQnIHx8IGVyci50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKCdubyBhY2NvdW50JykpIHsKICAgICAgICAgIC8vIE9uIGludml0ZSBwYXRoIHRoaXMgc2hvdWxkbid0IGhhcHBlbiAoY29uc3VtZSBhbHJlYWR5IHJhbikKICAgICAgICAgIC8vIE9uIHNpZ24taW4gcGF0aDogbm8gYWNjb3VudCBleGlzdHMKICAgICAgICAgIHNldFNjcmVlbigncmVxdWVzdF93aG8nKTsKICAgICAgICAgIHNob3dUb2FzdCgnTm8gYWNjb3VudCBmb3VuZC4gUmVxdWVzdCBhbiBpbnZpdGUgdG8gam9pbi4nKTsKICAgICAgICAgIHJldHVybjsKICAgICAgICB9CiAgICAgICAgc2hvd1RvYXN0KGVyciB8fCAnSW5jb3JyZWN0IGNvZGUuJyk7CiAgICAgICAgcmV0dXJuOwogICAgICB9CgogICAgICBjb25zdCByb2xlSWQgPSBpc1ZlbmRvciA/IGQudmVuZG9yX2lkIDogZC5jb3VwbGVfaWQ7CiAgICAgIGNvbnN0IHVzZXJJZCA9IGQudXNlcl9pZDsKICAgICAgY29uc3QgcGluU2V0ID0gISFkLnBpbl9zZXQ7CgogICAgICBpZiAoIXVzZXJJZCB8fCAhcm9sZUlkKSB7CiAgICAgICAgc2V0U2NyZWVuKCdyZXF1ZXN0X3dobycpOwogICAgICAgIHNob3dUb2FzdCgnTm8gYWNjb3VudCBmb3VuZC4gUmVxdWVzdCBhbiBpbnZpdGUgdG8gam9pbi4nKTsKICAgICAgICByZXR1cm47CiAgICAgIH0KCiAgICAgIGlmIChkLmFjY2Vzc190b2tlbikgIHNhZmVTZXRJdGVtKCdhY2Nlc3NfdG9rZW4nLCBkLmFjY2Vzc190b2tlbik7CiAgICAgIGlmIChkLnJlZnJlc2hfdG9rZW4pIHNhZmVTZXRJdGVtKCdyZWZyZXNoX3Rva2VuJywgZC5yZWZyZXNoX3Rva2VuKTsKCiAgICAgIGNvbnN0IHNlc3Npb25LZXkgPSBpc1ZlbmRvciA/ICd2ZW5kb3Jfd2ViX3Nlc3Npb24nIDogJ2NvdXBsZV93ZWJfc2Vzc2lvbic7CiAgICAgIGNvbnN0IHNlc3Npb25EYXRhID0gewogICAgICAgIGlkOiByb2xlSWQsIHVzZXJJZCwgdmVuZG9ySWQ6IHJvbGVJZCwKICAgICAgICBwaG9uZTogZTE2NCwKICAgICAgICBwaW5fc2V0OiBwaW5TZXQsCiAgICAgICAgbmFtZTogZC5uYW1lIHx8IG51bGwsCiAgICAgICAgdmVuZG9yTmFtZTogZC5uYW1lIHx8IG51bGwsCiAgICAgICAgY2F0ZWdvcnk6IGQuY2F0ZWdvcnkgfHwgbnVsbCwKICAgICAgICB0aWVyOiBkLnRpZXIgfHwgbnVsbCwKICAgICAgICBkcmVhbWVyX3R5cGU6IGQuZHJlYW1lcl90eXBlIHx8ICdiYXNpYycsCiAgICAgICAgYWNjZXNzX3Rva2VuOiAgZC5hY2Nlc3NfdG9rZW4gIHx8IG51bGwsCiAgICAgICAgcmVmcmVzaF90b2tlbjogZC5yZWZyZXNoX3Rva2VuIHx8IG51bGwsCiAgICAgICAgX3Y6IDIsCiAgICAgIH07CiAgICAgIHNhZmVTZXRJdGVtKHNlc3Npb25LZXksIEpTT04uc3RyaW5naWZ5KHNlc3Npb25EYXRhKSk7CiAgICAgIHNhZmVTZXRJdGVtKGlzVmVuZG9yID8gJ3ZlbmRvcl9zZXNzaW9uJyA6ICdjb3VwbGVfc2Vzc2lvbicsIEpTT04uc3RyaW5naWZ5KHNlc3Npb25EYXRhKSk7CiAgICAgIG1pcnJvclNlc3Npb25Ub0Nvb2tpZShpc1ZlbmRvciwgc2Vzc2lvbkRhdGEpOwoKICAgICAgLy8gVmVuZG9yOiAvdmVuZG9yL3BpbiBpZiBmaXJzdCBsb2dpbiAobm8gUElOIHNldCksIC92ZW5kb3IvcGluLWxvZ2luIGlmIHJldHVybmluZwogICAgICAvLyBDb3VwbGU6IG9uYm9hcmRpbmcgaWYgbmV3LCBwaW4tbG9naW4gaWYgcmV0dXJuaW5nLCBwaW4gaWYgbm8gUElOIHNldAogICAgICBjb25zdCBjb3VwbGVOZWVkc09uYm9hcmRpbmcgPSAhaXNWZW5kb3IgJiYgIXBpblNldCAmJiAhZC5uYW1lOwogICAgICBpZiAoY291cGxlTmVlZHNPbmJvYXJkaW5nKSB7CiAgICAgICAgcm91dGVyLnB1c2goJy9jb3VwbGUvb25ib2FyZGluZycpOwogICAgICB9IGVsc2UgaWYgKGlzVmVuZG9yKSB7CiAgICAgICAgcm91dGVyLnB1c2gocGluU2V0ID8gJy92ZW5kb3IvcGluLWxvZ2luJyA6ICcvdmVuZG9yL3BpbicpOwogICAgICB9IGVsc2UgewogICAgICAgIHJvdXRlci5wdXNoKHBpblNldCA/ICcvY291cGxlL3Bpbi1sb2dpbicgOiAnL2NvdXBsZS9waW4nKTsKICAgICAgfQogICAgfSBjYXRjaCB7IHNob3dUb2FzdCgnVmVyaWZpY2F0aW9uIGZhaWxlZC4nKTsgfQogIH07Cg==', 'vo_new': 'ICBjb25zdCB2ZXJpZnlPdHAgPSBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBpc1ZlbmRvciA9IHJvbGUgPT09ICdNYWtlcic7CiAgICBjb25zdCBkaWdpdHMgPSBwaG9uZS5yZXBsYWNlKC9cRC9nLCAnJyk7CiAgICBjb25zdCBlMTY0ID0gY291bnRyeS5kaWFsQ29kZSArIGRpZ2l0czsKICAgIHRyeSB7CiAgICAgIC8vIDEg4oCUIFN1cGFiYXNlIHZlcmlmaWVzIHRoZSBTTVMgY29kZSBhbmQgbWludHMgdGhlIHNlc3Npb24gKGNsaWVudC1zaWRlKS4KICAgICAgY29uc3QgeyBkYXRhOiB2RGF0YSwgZXJyb3I6IHZFcnIgfSA9IGF3YWl0IHN1cGFiYXNlLmF1dGgudmVyaWZ5T3RwKHsKICAgICAgICBwaG9uZTogZTE2NCwgdG9rZW46IG90cC5qb2luKCcnKSwgdHlwZTogJ3NtcycsCiAgICAgIH0pOwogICAgICBpZiAodkVyciB8fCAhdkRhdGEuc2Vzc2lvbikgeyBzaG93VG9hc3QodkVycj8ubWVzc2FnZSB8fCAnSW5jb3JyZWN0IGNvZGUuJyk7IHJldHVybjsgfQogICAgICBjb25zdCBhY2Nlc3NUb2tlbiAgPSB2RGF0YS5zZXNzaW9uLmFjY2Vzc190b2tlbjsKICAgICAgY29uc3QgcmVmcmVzaFRva2VuID0gdkRhdGEuc2Vzc2lvbi5yZWZyZXNoX3Rva2VuOwoKICAgICAgLy8gMiDigJQgUHJvdmlzaW9uIHRoZSB2ZW5kb3J8Y291cGxlIHJvdyBmb3IgdGhpcyBTdXBhYmFzZSBpZGVudGl0eSAoaWRlbXBvdGVudDsKICAgICAgLy8gICAgIHBob25lLWZhbGxiYWNrIHJlLWJpbmRzIGEgbGVnYWN5IGFjY291bnQpLiBSZXR1cm5zIGlkcyArIHBpbl9zZXQsIG5vIHRva2Vucy4KICAgICAgY29uc3QgcHJvdkVuZHBvaW50ID0gaXNWZW5kb3IKICAgICAgICA/IGAke0FQSV9CQVNFfS9hcGkvdjIvdmVuZG9yL2F1dGgvcHJvdmlzaW9uYAogICAgICAgIDogYCR7QVBJX0JBU0V9L2FwaS92Mi9jb3VwbGUvYXV0aC9wcm92aXNpb25gOwogICAgICBjb25zdCBwUmVzID0gYXdhaXQgZmV0Y2gocHJvdkVuZHBvaW50LCB7CiAgICAgICAgbWV0aG9kOiAnUE9TVCcsCiAgICAgICAgaGVhZGVyczogeyAnQ29udGVudC1UeXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nLCBBdXRob3JpemF0aW9uOiBgQmVhcmVyICR7YWNjZXNzVG9rZW59YCB9LAogICAgICAgIGJvZHk6IEpTT04uc3RyaW5naWZ5KHsgcGhvbmU6IGUxNjQgfSksCiAgICAgIH0pOwogICAgICBjb25zdCBkID0gYXdhaXQgcFJlcy5qc29uKCk7CiAgICAgIGlmICghZC5vaykgeyBzaG93VG9hc3QoZC5lcnJvciB8fCAnQ291bGQgbm90IGNvbXBsZXRlIHNpZ24taW4uJyk7IHJldHVybjsgfQoKICAgICAgY29uc3Qgcm9sZUlkID0gaXNWZW5kb3IgPyBkLnZlbmRvcl9pZCA6IGQuY291cGxlX2lkOwogICAgICBjb25zdCB1c2VySWQgPSBkLnVzZXJfaWQ7CiAgICAgIGNvbnN0IHBpblNldCA9ICEhZC5waW5fc2V0OwoKICAgICAgaWYgKCF1c2VySWQgfHwgIXJvbGVJZCkgewogICAgICAgIHNldFNjcmVlbigncmVxdWVzdF93aG8nKTsKICAgICAgICBzaG93VG9hc3QoJ05vIGFjY291bnQgZm91bmQuIFJlcXVlc3QgYW4gaW52aXRlIHRvIGpvaW4uJyk7CiAgICAgICAgcmV0dXJuOwogICAgICB9CgogICAgICBpZiAoYWNjZXNzVG9rZW4pICBzYWZlU2V0SXRlbSgnYWNjZXNzX3Rva2VuJywgYWNjZXNzVG9rZW4pOwogICAgICBpZiAocmVmcmVzaFRva2VuKSBzYWZlU2V0SXRlbSgncmVmcmVzaF90b2tlbicsIHJlZnJlc2hUb2tlbik7CgogICAgICBjb25zdCBzZXNzaW9uS2V5ID0gaXNWZW5kb3IgPyAndmVuZG9yX3dlYl9zZXNzaW9uJyA6ICdjb3VwbGVfd2ViX3Nlc3Npb24nOwogICAgICBjb25zdCBzZXNzaW9uRGF0YSA9IHsKICAgICAgICBpZDogcm9sZUlkLCB1c2VySWQsIHZlbmRvcklkOiByb2xlSWQsCiAgICAgICAgcGhvbmU6IGUxNjQsCiAgICAgICAgcGluX3NldDogcGluU2V0LAogICAgICAgIG5hbWU6IGQubmFtZSB8fCBudWxsLAogICAgICAgIHZlbmRvck5hbWU6IGQubmFtZSB8fCBudWxsLAogICAgICAgIGNhdGVnb3J5OiBkLmNhdGVnb3J5IHx8IG51bGwsCiAgICAgICAgdGllcjogZC50aWVyIHx8IG51bGwsCiAgICAgICAgZHJlYW1lcl90eXBlOiBkLmRyZWFtZXJfdHlwZSB8fCAnYmFzaWMnLAogICAgICAgIGFjY2Vzc190b2tlbjogIGFjY2Vzc1Rva2VuICB8fCBudWxsLAogICAgICAgIHJlZnJlc2hfdG9rZW46IHJlZnJlc2hUb2tlbiB8fCBudWxsLAogICAgICAgIF92OiAyLAogICAgICB9OwogICAgICBzYWZlU2V0SXRlbShzZXNzaW9uS2V5LCBKU09OLnN0cmluZ2lmeShzZXNzaW9uRGF0YSkpOwogICAgICBzYWZlU2V0SXRlbShpc1ZlbmRvciA/ICd2ZW5kb3Jfc2Vzc2lvbicgOiAnY291cGxlX3Nlc3Npb24nLCBKU09OLnN0cmluZ2lmeShzZXNzaW9uRGF0YSkpOwogICAgICBtaXJyb3JTZXNzaW9uVG9Db29raWUoaXNWZW5kb3IsIHNlc3Npb25EYXRhKTsKCiAgICAgIGNvbnN0IGNvdXBsZU5lZWRzT25ib2FyZGluZyA9ICFpc1ZlbmRvciAmJiAhcGluU2V0ICYmICFkLm5hbWU7CiAgICAgIGlmIChjb3VwbGVOZWVkc09uYm9hcmRpbmcpIHsKICAgICAgICByb3V0ZXIucHVzaCgnL2NvdXBsZS9vbmJvYXJkaW5nJyk7CiAgICAgIH0gZWxzZSBpZiAoaXNWZW5kb3IpIHsKICAgICAgICByb3V0ZXIucHVzaChwaW5TZXQgPyAnL3ZlbmRvci9waW4tbG9naW4nIDogJy92ZW5kb3IvcGluJyk7CiAgICAgIH0gZWxzZSB7CiAgICAgICAgcm91dGVyLnB1c2gocGluU2V0ID8gJy9jb3VwbGUvcGluLWxvZ2luJyA6ICcvY291cGxlL3BpbicpOwogICAgICB9CiAgICB9IGNhdGNoIHsgc2hvd1RvYXN0KCdWZXJpZmljYXRpb24gZmFpbGVkLicpOyB9CiAgfTsK'}
+def b64(k): return base64.b64decode(P[k]).decode()
+
+# 1 — lib/supabase.ts
+CLIENT = os.path.join(ROOT, "lib", "supabase.ts")
+if os.path.isfile(CLIENT):
+    print("= lib/supabase.ts already present (idempotent).")
+else:
+    open(CLIENT, "w", encoding="utf-8").write(b64("client")); print("+ lib/supabase.ts")
+
+# 2 — login page: import + swap bodies
+PAGE = os.path.join(ROOT, "app", "(landing)", "page.tsx")
+t = open(PAGE, encoding="utf-8").read()
+if "from '../../lib/supabase'" not in t:
+    anchor = "import { API_BASE } from '../../lib/api';"
+    if anchor not in t: die("login page API_BASE import anchor not found.")
+    t = t.replace(anchor, anchor + "\nimport { supabase } from '../../lib/supabase';", 1)
+    print("+ login page: supabase import")
+
+so_old = b64("so_old"); vo_old = b64("vo_old")
+if "signInWithOtp" in t:
+    print("= sendOtp already flipped (idempotent).")
+elif so_old not in t:
+    die("sendOtp body not found verbatim in login page.")
+else:
+    t = t.replace(so_old, b64("so_new"), 1); print("+ login page: sendOtp -> Supabase Phone-OTP")
+
+if "auth.verifyOtp({ phone: e164, token" in t:
+    print("= verifyOtp already flipped (idempotent).")
+elif vo_old not in t:
+    die("verifyOtp body not found verbatim in login page.")
+else:
+    t = t.replace(vo_old, b64("vo_new"), 1); print("+ login page: verifyOtp -> Supabase verify + /provision")
+
+open(PAGE, "w", encoding="utf-8").write(t)
+
+# 3 — dependency
+deps = pkg.setdefault("dependencies", {})
+if "@supabase/supabase-js" not in deps:
+    deps["@supabase/supabase-js"] = "^2.45.0"
+    json.dump(pkg, open("package.json", "w"), indent=2); open("package.json","a").write("\n")
+    print("+ package.json: @supabase/supabase-js ^2.45.0  (run: npm install)")
+else:
+    print("= @supabase/supabase-js already a dependency.")
+
+print("\nDone. Run `npm install`, commit, push (Vercel redeploys).")
