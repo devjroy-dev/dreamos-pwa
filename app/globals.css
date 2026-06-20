@@ -749,6 +749,33 @@ html.theme-light {
   --atelier-accent-text: #7A3828;
 }
 
+/* ── Flair — the dreamai navy/bone/ember room (content-surface vars) ──
+   ThemeContext's JS repaints the chrome vars inline; these are the surface
+   fills it never touches (card-bg, sheet-bg, grain), so without this block
+   the middle stayed espresso while the edges went navy. ── */
+html.theme-flair {
+  --atelier-ink:         #e9e4d9;
+  --atelier-ink-soft:    rgba(233,228,217,0.60);
+  --atelier-ink-mute:    rgba(233,228,217,0.34);
+  --atelier-ink-dim:     rgba(233,228,217,0.18);
+  --atelier-card-bg:     linear-gradient(180deg, rgba(20,28,46,0.55) 0%, rgba(20,28,46,0.30) 100%);
+  --atelier-card-border: rgba(233,228,217,0.16);
+  --atelier-card-shadow: 0 12px 32px -16px rgba(0,0,0,0.6);
+  --atelier-header-bg:   rgba(9,13,23,0.82);
+  --atelier-sheet-bg:    linear-gradient(180deg, #0b1120 0%, #090d17 100%);
+  --atelier-sheet-top:   #0b1120;
+  --atelier-sheet-bot:   #090d17;
+  --atelier-sheet-border:rgba(233,228,217,0.16);
+  --atelier-input-bg:    rgba(233,228,217,0.04);
+  --atelier-input-border:rgba(233,228,217,0.16);
+  --atelier-overlay:     rgba(0,0,0,0.6);
+  --atelier-overlay-bg:  rgba(0,0,0,0.6);
+  --atelier-row-hover:   rgba(233,228,217,0.03);
+  --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(233,228,217,0.012) 1px, transparent 0);
+  --atelier-label:       #d8a86f;
+  --atelier-accent-text: #c99a63;
+}
+
 /* ── Hub atmosphere — dark espresso / bone paper ─────────────── */
 html, body {
   background:
@@ -765,6 +792,19 @@ html.theme-light body {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"),
     linear-gradient(160deg, #F7F4EF 0%, #F3EFE8 40%, #F5F1EB 70%, #F2EDE6 100%) !important;
   color: #1A0F08 !important;
+  background-attachment: fixed !important;
+}
+
+/* ── Flair body — the dreamai navy room with a faint ember glow ──
+   Mirrors the espresso html,body rule but in navy/ember, so the !important
+   page gradient stops bleeding espresso under Flair. ── */
+html.theme-flair,
+html.theme-flair body {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(201,154,99,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(201,154,99,0.05) 0%, transparent 60%),
+    linear-gradient(180deg, #0b1120 0%, #090d17 100%) !important;
+  color: #e9e4d9 !important;
   background-attachment: fixed !important;
 }
 
