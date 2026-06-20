@@ -27,7 +27,7 @@ function toE164(raw: string): string {
 // No dependency — a small hand-rolled inline parser, exactly how dreamai did it.
 type Tok = ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>;
 
-// Inline: **bold** spans, and inside any run, Rs amounts get the accent colour.
+// Inline: **bold**, *italic* / _italic_, `code`, and Rs amounts in the accent.
 function emphasizeRs(seg: string, T: Tok, salt: string): ReactNode[] {
   // matches: Rs 1,00,000  /  Rs 75000  /  Rs 2.55 lakh  /  Rs 1.2 cr
   const parts = seg.split(/(Rs\.?\s?[\d,]+(?:\.\d+)?(?:\s?(?:lakh|cr|crore|k))?)/gi);
@@ -38,19 +38,44 @@ function emphasizeRs(seg: string, T: Tok, salt: string): ReactNode[] {
     return <span key={`${salt}n${i}`}>{p}</span>;
   });
 }
-function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
+// Italic emphasis: the prose is already italic Cormorant, so *word* / _word_ reads as
+// emphasis by going UPRIGHT + a touch heavier — it lifts out of the surrounding slant.
+function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /\*\*(.+?)\*\*/g;
+  const re = /\*(?!\s)([^*\n]+?)\*|_(?!\s)([^_\n]+?)_/g;
   let last = 0; let m: RegExpExecArray | null; let k = 0;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
-    out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'normal', fontWeight: 600 }}>{emphasizeRs(m[1], T, `${salt}${k}`)}</strong>);
+    const inner = m[1] !== undefined ? m[1] : (m[2] as string);
+    out.push(<em key={`${salt}i${k++}`} style={{ fontStyle: 'normal', fontWeight: 500 }}>{emphasizeRs(inner, T, `${salt}${k}`)}</em>);
     last = re.lastIndex;
   }
   if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last), T, `${salt}${k}`)}</span>);
   return out;
 }
-// Block: split on blank lines; a run of '-'/'•' lines becomes a bulleted list.
+// Inline: split on **bold** and `code` first (strong delimiters), italics handled within
+// the runs between them — so * inside ** is never mis-paired.
+function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /\*\*(.+?)\*\*|`([^`]+?)`/g;
+  let last = 0; let m: RegExpExecArray | null; let k = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
+    if (m[1] !== undefined) {
+      out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'normal', fontWeight: 600 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
+    } else {
+      out.push(<code key={`${salt}c${k++}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontStyle: 'normal', fontSize: '0.86em', background: T.isLight ? 'rgba(26,15,8,0.06)' : 'rgba(233,228,217,0.08)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
+    }
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last), T, `${salt}${k}`)}</span>);
+  return out;
+}
+// Block: blank-line-separated. A run of -/*/+/• lines is a bulleted list; a run of
+// "1." / "1)" lines is numbered; a #/##/### line is a heading; else a paragraph.
+const BULLET = /^\s*[-*+•]\s+/;
+const NUMBERED = /^\s*\d+[.)]\s+/;
+const HEADING = /^\s*#{1,3}\s+/;
 function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode[] {
   const pStyle = {
     fontFamily: F.script, fontStyle: 'italic' as const, fontWeight: 400,
@@ -61,15 +86,34 @@ function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode
   const out: ReactNode[] = [];
   blocks.forEach((block, bi) => {
     const lines = block.split('\n');
-    const isList = lines.length > 0 && lines.every((l) => /^\s*[-•]\s+/.test(l) || l.trim() === '');
-    if (isList) {
-      const items = lines.filter((l) => /^\s*[-•]\s+/.test(l)).map((l) => l.replace(/^\s*[-•]\s+/, ''));
+    const nonEmpty = lines.filter((l) => l.trim() !== '');
+    const isBullet = nonEmpty.length > 0 && nonEmpty.every((l) => BULLET.test(l));
+    const isNumbered = nonEmpty.length > 0 && nonEmpty.every((l) => NUMBERED.test(l));
+    const isHeading = nonEmpty.length === 1 && HEADING.test(nonEmpty[0]);
+    if (isBullet) {
+      const items = nonEmpty.map((l) => l.replace(BULLET, ''));
       out.push(
         <ul key={`ul${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {items.map((it, ii) => (
             <li key={`li${bi}-${ii}`} style={{ listStyleType: 'disc' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
           ))}
         </ul>
+      );
+    } else if (isNumbered) {
+      const items = nonEmpty.map((l) => l.replace(NUMBERED, ''));
+      out.push(
+        <ol key={`ol${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {items.map((it, ii) => (
+            <li key={`oli${bi}-${ii}`} style={{ listStyleType: 'decimal' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
+          ))}
+        </ol>
+      );
+    } else if (isHeading) {
+      const level = (nonEmpty[0].match(/^#{1,3}/) || ['#'])[0].length;
+      out.push(
+        <p key={`h${bi}`} style={{ ...pStyle, fontStyle: 'normal', fontWeight: 600, fontSize: level === 1 ? 21 : level === 2 ? 19 : 18 }}>
+          {inlineNodes(nonEmpty[0].replace(HEADING, ''), T, `${bi}-h-`)}
+        </p>
       );
     } else {
       out.push(<p key={`p${bi}`} style={pStyle}>{inlineNodes(block, T, `${bi}-`)}</p>);
