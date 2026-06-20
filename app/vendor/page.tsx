@@ -14,7 +14,6 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { Header } from '@/components/vendor/Header';
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
-import { PeekNav } from '@/components/vendor/PeekNav';
 import { CommandBar } from '@/components/vendor/CommandBar';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { setVendorSession } from '@/lib/vendor/session';
@@ -472,8 +471,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   // Use the vendor's business name from context when available; fall back to session name.
   const displayName = context?.vendor?.name ?? vendorName ?? null;
 
-  // Scroll ref shared between ChatThread (the scroll surface) and PeekNav
-  // (which listens for scroll-up to auto-summon the Hub nav).
+  // Scroll ref for ChatThread (the scroll surface).
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -507,9 +505,6 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
       {/* ── Input bar ── */}
       <InputBar onSend={send} disabled={loading} />
-
-      {/* ── PeekNav — brass thread above input, slides up creates + cues ── */}
-      <PeekNav scrollRef={chatScrollRef} context={context} onSend={send} />
 
       <OnboardingOverlay onSend={send} />
     </div>
