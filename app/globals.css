@@ -1007,7 +1007,10 @@ html.theme-flair .dd-cab{
 
 /* the ornament handle — sits just above the bottom nav */
 .dd-cab .cab-orn{
-  position: fixed; left: 0; right: 0; bottom: 76px; height: 44px; z-index: 48;
+  /* tap target = the visible crest only (was full-width, which swallowed taps on the
+     last row + everything along the bottom). Centered, sized to the handle. */
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 76px;
+  width: 208px; height: 40px; z-index: 48;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: transparent; border: 0; cursor: pointer; padding: 0; gap: 2px;
 }

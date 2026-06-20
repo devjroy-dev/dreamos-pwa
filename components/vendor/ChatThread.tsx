@@ -122,14 +122,23 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
   // history, we leave them be rather than yanking them back down mid-stream.
   const tail = messages[messages.length - 1];
   const tailLen = tail ? tail.text.length : 0;
+  // Also follow when the pair-at-work line appears (a deliberation beat with no text yet) —
+  // otherwise it lands below the fold and the user has to scroll by hand.
+  const tailDelib = tail?.deliberation?.length ?? 0;
+  const prevCount = useRef(0);
   useEffect(() => {
     const c = containerRef.current;
-    if (c) {
-      const nearBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 120;
-      if (!nearBottom) return;  // user is reading higher up — don't interrupt
+    const newTurn = messages.length > prevCount.current; // you just sent / a bubble was added
+    prevCount.current = messages.length;
+    // A NEW turn always lands at the bottom — you just typed, you expect to see it. Only
+    // mid-stream growth respects the gate, so reading history isn't yanked.
+    if (c && !newTurn) {
+      const nearBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 160;
+      if (!nearBottom) return;
     }
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length, tailLen]);
+  }, [messages.length, tailLen, tailDelib]);
+
 
   return (
     <div
