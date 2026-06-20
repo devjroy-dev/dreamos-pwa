@@ -153,9 +153,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
         }}>
           <div className="atelier-card atelier-card-ornate" style={{
             padding: 0,
-            background: isLight
-              ? `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)`
-              : 'linear-gradient(180deg, rgba(35,26,21,0.97) 0%, rgba(28,21,17,0.99) 100%)',
+            background: `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)`, // theme-aware (navy under Flair, was hardcoded espresso)
             backdropFilter: 'blur(32px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
             boxShadow: isLight
