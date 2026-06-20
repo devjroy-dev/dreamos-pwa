@@ -923,6 +923,14 @@ html.theme-light .atelier-hot-ribbon {
   border-bottom: 0.5px solid rgba(122,56,40,0.22);
 }
 
+/* Flair — the hot-dates ribbon in navy/ember (was falling back to the warm
+   :root gradient + brass borders, the one bar left espresso under Flair). */
+html.theme-flair .atelier-hot-ribbon {
+  background: linear-gradient(90deg, rgba(201,154,99,0.05) 0%, rgba(201,154,99,0.10) 50%, rgba(201,154,99,0.05) 100%);
+  border-top: 0.5px solid rgba(233,228,217,0.16);
+  border-bottom: 0.5px solid rgba(233,228,217,0.16);
+}
+
 /* ── Header + Nav backdrop ───────────────────────────────────── */
 [data-atelier-backdrop="warm"] {
   background: var(--atelier-header-bg) !important;
