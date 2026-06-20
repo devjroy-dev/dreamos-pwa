@@ -9,6 +9,7 @@
 
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
 import type { VendorSession } from '@/lib/vendor/session';
+import { supabase } from '@/lib/supabase';
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ??
@@ -62,17 +63,16 @@ async function refreshSession(): Promise<boolean> {
       const session = readSession();
       if (!session?.refresh_token) return false;
 
-      // Supabase token refresh endpoint
-      const res = await fetch(`${API_BASE}/api/v2/vendor/auth/refresh`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ refresh_token: session.refresh_token }),
+      // Supabase client-side refresh: exchange the stored refresh_token for a
+      // fresh session. Replaces the old dream-os /auth/refresh (mintSession) path.
+      const { data: refreshed, error } = await supabase.auth.refreshSession({
+        refresh_token: session.refresh_token,
       });
-
-      if (!res.ok) return false;
-
-      const data = await res.json().catch(() => null);
-      if (!data?.access_token) return false;
+      if (error || !refreshed?.session?.access_token) return false;
+      const data = {
+        access_token:  refreshed.session.access_token,
+        refresh_token: refreshed.session.refresh_token,
+      };
 
       // Update stored tokens
       writeSession({
