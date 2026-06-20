@@ -17,6 +17,93 @@ interface Props {
   scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
+// ── The pair at work ────────────────────────────────────────────────────────
+// While the turn streams, an animated "The pair is working…" line (three dots
+// fading, ported from dreamai's desk). Once it lands, the line collapses to a
+// tappable "The work ›" that expands to the Victor↔Operator exchange beneath the
+// reply — answer first, the working folded away until asked for.
+function PairWork({ beats, streaming, T }: {
+  beats?: ChatMessage['deliberation'];
+  streaming?: boolean;
+  T: ReturnType<typeof useT>;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!beats || beats.length === 0) return null;
+
+  const dim    = T.isLight ? 'rgba(26,15,8,0.5)'  : 'rgba(233,228,217,0.42)';
+  const spine  = T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(233,228,217,0.16)';
+  const accent = T.accent;
+
+  // Live: the pair is working — animated three-dot fade.
+  if (streaming) {
+    return (
+      <div style={{ padding: '2px 22px 9px 38px' }}>
+        <span style={{
+          fontFamily: F.label, fontSize: 11, fontWeight: 300, letterSpacing: '0.04em',
+          color: dim, display: 'inline-flex', alignItems: 'center', gap: 5,
+        }}>
+          <span style={{ color: accent }}>▸</span>
+          The pair is working
+          <span className="pw-dots" style={{ display: 'inline-flex', gap: 3, marginLeft: 1 }}>
+            <i /><i /><i />
+          </span>
+        </span>
+        <style>{`
+          .pw-dots i { width: 4px; height: 4px; border-radius: 50%; background: ${accent}; display: inline-block; animation: pwWk 1s infinite; }
+          .pw-dots i:nth-child(2) { animation-delay: .15s; }
+          .pw-dots i:nth-child(3) { animation-delay: .3s; }
+          @keyframes pwWk { 0%, 80%, 100% { opacity: .25 } 40% { opacity: 1 } }
+          @media (prefers-reduced-motion: reduce) { .pw-dots i { animation: none } }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Done: collapsed "The work ›" — tap to reveal the exchange.
+  return (
+    <div style={{ padding: '2px 22px 9px 38px' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          fontFamily: F.label, fontSize: 11, fontWeight: 300, letterSpacing: '0.04em',
+          color: dim, background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+        }}
+      >
+        The work
+        <span style={{
+          display: 'inline-block', color: accent,
+          transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1)',
+          transform: open ? 'rotate(90deg)' : 'none',
+        }}>›</span>
+      </button>
+      {open && (
+        <div style={{
+          marginTop: 6, paddingLeft: 12, display: 'flex', flexDirection: 'column', gap: 3,
+          borderLeft: `2px solid ${spine}`,
+          animation: 'pwOpen 200ms cubic-bezier(0.22,1,0.36,1) both',
+        }}>
+          <style>{`@keyframes pwOpen { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }`}</style>
+          {beats.map((beat, i) => {
+            const line =
+              beat.kind === 'handoff' ? 'Handed to the operator'
+              : beat.kind === 'operator_action' ? `Operator \u00b7 ${beat.action}${beat.detail ? ' \u2014 ' + beat.detail : ''}`
+              : `Operator reported \u00b7 ${beat.message}`;
+            return (
+              <div key={i} style={{
+                fontFamily: F.label, fontSize: 11, fontWeight: 300, lineHeight: 1.5,
+                letterSpacing: '0.01em', color: dim,
+              }}>{line}</div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
   const T = useT();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -56,29 +143,7 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
 
           {/* The pair at work (5-B): Myra's reply is the bubble above; her
               operator's deliberation reads quietly beneath — answer first. */}
-          {m.deliberation && m.deliberation.length > 0 && (
-            <div style={{ padding: '0 22px 9px 38px' }}>
-              <div style={{
-                display: 'flex', flexDirection: 'column', gap: 3,
-                paddingLeft: 12,
-                borderLeft: `2px solid ${T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(233,228,217,0.16)'}`,
-              }}>
-              {m.deliberation.map((beat, i) => {
-                const line =
-                  beat.kind === 'handoff' ? 'Handed to the operator'
-                  : beat.kind === 'operator_action' ? `Operator \u00b7 ${beat.action}${beat.detail ? ' \u2014 ' + beat.detail : ''}`
-                  : `Operator reported \u00b7 ${beat.message}`;
-                return (
-                  <div key={i} style={{
-                    fontFamily: F.label, fontSize: 11, fontWeight: 300, lineHeight: 1.5,
-                    letterSpacing: '0.01em',
-                    color: T.isLight ? 'rgba(26,15,8,0.5)' : 'rgba(233,228,217,0.42)',
-                  }}>{line}</div>
-                );
-              })}
-              </div>
-            </div>
-          )}
+          <PairWork beats={m.deliberation} streaming={m.streaming} T={T} />
           {/* Clarify chips — brass in dark, oxblood in light */}
           {m.clarify?.options && m.clarify.options.length > 0 && (
             <div style={{
