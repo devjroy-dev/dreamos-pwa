@@ -112,22 +112,28 @@ function BarRow({
   const T = useT();
   const [pressed, setPressed] = useState(false);
 
+  // Flair = the dreamai navy room — route the dark branch to ember/bone so the bar
+  // stops reading brass/cream over navy. Dark + light are left byte-identical.
+  const isFlair = T.pageBg === '#090d17';
+  const gold = isFlair ? 'rgba(201,154,99' : 'rgba(201,168,76'; // ember vs brass base
+  const bone = isFlair ? 'rgba(233,228,217' : 'rgba(240,230,210'; // bone vs warm cream
+
   const borderColor = pressed
-    ? T.isLight ? 'rgba(122,56,40,0.38)' : 'rgba(201,168,76,0.38)'
-    : T.isLight ? 'rgba(122,56,40,0.12)' : 'rgba(201,168,76,0.1)';
+    ? T.isLight ? 'rgba(122,56,40,0.38)' : `${gold},0.38)`
+    : T.isLight ? 'rgba(122,56,40,0.12)' : `${gold},0.1)`;
   const bgColor = pressed
-    ? T.isLight ? 'rgba(122,56,40,0.05)' : 'rgba(201,168,76,0.06)'
-    : T.isLight ? 'rgba(26,15,8,0.02)'   : 'rgba(245,235,212,0.02)';
+    ? T.isLight ? 'rgba(122,56,40,0.05)' : `${gold},0.06)`
+    : T.isLight ? 'rgba(26,15,8,0.02)'   : (isFlair ? `${bone},0.02)` : 'rgba(245,235,212,0.02)');
 
   const asideColor = asideAlert
     ? T.isLight ? '#7A3828' : '#E07B5C'
     : T.inkDim;
-  const routeColor  = T.isLight ? 'rgba(26,15,8,0.18)'   : 'rgba(240,230,210,0.14)';
-  const trackBg     = T.isLight ? 'rgba(26,15,8,0.07)'   : 'rgba(240,230,210,0.06)';
-  const chipBorder  = T.isLight ? 'rgba(26,15,8,0.1)'    : 'rgba(240,230,210,0.1)';
-  const chipText    = T.isLight ? 'rgba(26,15,8,0.3)'    : 'rgba(240,230,210,0.28)';
+  const routeColor  = T.isLight ? 'rgba(26,15,8,0.18)'   : `${bone},0.14)`;
+  const trackBg     = T.isLight ? 'rgba(26,15,8,0.07)'   : `${bone},0.06)`;
+  const chipBorder  = T.isLight ? 'rgba(26,15,8,0.1)'    : `${bone},0.1)`;
+  const chipText    = T.isLight ? 'rgba(26,15,8,0.3)'    : `${bone},0.28)`;
   const gapColor    = T.isLight ? 'rgba(122,56,40,0.7)'  : 'rgba(224,123,92,0.65)';
-  const arrowColor  = T.isLight ? 'rgba(122,56,40,0.38)' : 'rgba(201,168,76,0.35)';
+  const arrowColor  = T.isLight ? 'rgba(122,56,40,0.38)' : `${gold},0.35)`;
 
   return (
     <button
