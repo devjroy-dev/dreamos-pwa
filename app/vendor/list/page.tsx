@@ -63,6 +63,10 @@ const MONEY: Item[] = [
   { href: '/vendor/list/expenses', label: 'Expenses', description: 'what went out',     glyph: '×' },
 ];
 
+const NOTES: Item[] = [
+  { href: '/vendor/studio/notes', label: 'Notes to Self', description: 'thoughts you’ve jotted', glyph: '✎' },
+];
+
 function Row({ item }: { item: Item }) {
   return (
     <Link href={item.href} style={{
@@ -112,6 +116,8 @@ export default function BusinessPage() {
         {PIPELINE.map(item => <Row key={item.href} item={item} />)}
         <SectionLabel label="Money" />
         {MONEY.map(item => <Row key={item.href} item={item} />)}
+        <SectionLabel label="Notes" />
+        {NOTES.map(item => <Row key={item.href} item={item} />)}
       </div>
     </div>
   );
