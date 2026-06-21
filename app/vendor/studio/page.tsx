@@ -44,6 +44,7 @@ const LISTS: Item[] = [
   { href: '/vendor/list/invoices', label: 'Invoices', desc: 'who owes me money',      glyph: 'I' },
   { href: '/vendor/list/events',   label: 'Events',   desc: 'schedule and shoots',    glyph: '◐' },
   { href: '/vendor/list/expenses', label: 'Expenses', desc: 'what went out',          glyph: '×' },
+  { href: '/vendor/studio/notes',  label: 'Notes to Self', desc: 'thoughts you’ve jotted', glyph: '✎' },
 ];
 
 const STUDIO_ITEMS: Item[] = [

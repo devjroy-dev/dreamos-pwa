@@ -949,6 +949,18 @@ export function deleteTask(taskId: string): Promise<{ ok: boolean; task: TeamTas
   return deleteJson('/api/v2/vendor/studio/tasks/' + taskId);
 }
 
+// ── Notes to Self (owner's scratchpad) ──────────────────────────────────────
+export type OwnerNote = { id: string; body: string; binder_id: string | null; created_at: string };
+export function fetchNotes(): Promise<{ ok: boolean; notes: OwnerNote[] } | ApiErr> {
+  return getJson('/api/v2/vendor/notes');
+}
+export function createNote(body: string): Promise<{ ok: boolean; note: OwnerNote } | ApiErr> {
+  return postJson('/api/v2/vendor/notes', { body });
+}
+export function deleteNote(id: string): Promise<{ ok: boolean; deleted: true } | ApiErr> {
+  return deleteJson('/api/v2/vendor/notes/' + id);
+}
+
 // Messages
 export function fetchTeamMessages(): Promise<{ ok: boolean; messages: TeamMessage[] } | ApiErr> {
   return getJson('/api/v2/vendor/studio/messages');
