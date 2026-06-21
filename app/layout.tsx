@@ -82,7 +82,7 @@ export default function RootLayout({
             __html: `(function(){try{
   var path=location.pathname||'';
   var FROST_DARK='#1E0A0E', FROST_LIGHT='#F0EEE8';
-  var VENDOR_LIGHT='#F5F2EE';
+  var VENDOR_LIGHT='#F5F2EE', VENDOR_FLAIR='#090d17';
   var isFrost=path.indexOf('/frost')===0||path.indexOf('/coplanner')===0||path.indexOf('/circle')===0;
   var isVendor=path.indexOf('/vendor')===0;
   var isAdmin=path.indexOf('/admin')===0;
@@ -102,6 +102,9 @@ export default function RootLayout({
     if(vt==='light'){
       document.documentElement.classList.add('theme-light');
       bg=VENDOR_LIGHT;
+    } else if(vt==='flair'){
+      document.documentElement.classList.add('theme-flair');
+      bg=VENDOR_FLAIR;
     }
   } else if(isAdmin){
     bg='#18293E';
