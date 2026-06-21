@@ -298,17 +298,19 @@ export function CommandBar({
   // Bar 4 — Hot dates availability
   const hotScore        = scoreHotDates(hotDates, blocks);
 
-  // ── Theme tokens ─────────────────────────────────────────────────
-  const brassColor  = T.isLight ? T.accent       : '#C9A84C';
-  const barBg       = T.isLight ? 'rgba(245,242,238,0.94)' : 'rgba(18,12,8,0.88)';
-  const stripBorder = T.isLight ? 'rgba(122,56,40,0.09)'   : 'rgba(201,168,76,0.09)';
-  const panelSep    = T.isLight ? 'rgba(122,56,40,0.07)'   : 'rgba(201,168,76,0.07)';
-  const trackBg     = T.isLight ? 'rgba(26,15,8,0.07)'     : 'rgba(240,230,210,0.06)';
-  const dotColor    = T.isLight ? T.accent       : '#C9A84C';
-  const chevColor   = T.isLight ? 'rgba(122,56,40,0.38)'   : 'rgba(201,168,76,0.36)';
-  const dimColor    = T.isLight ? T.inkDim       : 'rgba(240,230,210,0.35)';
-  const brassWarm   = T.isLight ? T.accent       : 'rgba(201,168,76,0.82)';
-  const redColor    = T.isLight ? '#7A3828'      : '#E07B5C';
+  // ── Theme tokens — Flair = dreamai navy room: navy strip, ember accents, bone dims.
+  // (barBg is the actual strip background — was hardcoded espresso-black for all non-light.)
+  const isFlair = T.pageBg === '#090d17';
+  const brassColor  = T.isLight ? T.accent                 : isFlair ? '#c99a63'                 : '#C9A84C';
+  const barBg       = T.isLight ? 'rgba(245,242,238,0.94)' : isFlair ? 'rgba(11,17,32,0.88)'      : 'rgba(18,12,8,0.88)';
+  const stripBorder = T.isLight ? 'rgba(122,56,40,0.09)'   : isFlair ? 'rgba(233,228,217,0.10)'   : 'rgba(201,168,76,0.09)';
+  const panelSep    = T.isLight ? 'rgba(122,56,40,0.07)'   : isFlair ? 'rgba(233,228,217,0.08)'   : 'rgba(201,168,76,0.07)';
+  const trackBg     = T.isLight ? 'rgba(26,15,8,0.07)'     : isFlair ? 'rgba(233,228,217,0.06)'   : 'rgba(240,230,210,0.06)';
+  const dotColor    = T.isLight ? T.accent                 : isFlair ? '#c99a63'                 : '#C9A84C';
+  const chevColor   = T.isLight ? 'rgba(122,56,40,0.38)'   : isFlair ? 'rgba(201,154,99,0.40)'    : 'rgba(201,168,76,0.36)';
+  const dimColor    = T.isLight ? T.inkDim                 : isFlair ? 'rgba(233,228,217,0.35)'   : 'rgba(240,230,210,0.35)';
+  const brassWarm   = T.isLight ? T.accent                 : isFlair ? 'rgba(201,154,99,0.85)'    : 'rgba(201,168,76,0.82)';
+  const redColor    = T.isLight ? '#7A3828'                : '#E07B5C';
 
   // ── Collapsed strip prose ────────────────────────────────────────
   const parts: { text: string; color: string }[] = [];
