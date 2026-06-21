@@ -45,6 +45,7 @@ export default function NotesPage() {
 
 function NotesScreen({ vendorName }: { vendorName: string | null }) {
   const { toast, show } = useToast();
+  const router = useRouter();
   const [notes, setNotes]     = useState<OwnerNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery]     = useState('');
@@ -152,6 +153,11 @@ function NotesScreen({ vendorName }: { vendorName: string | null }) {
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
             <span style={{ fontFamily: F.label, fontSize: 9, color: D.muted, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
+            <button type="button" onClick={() => router.push('/vendor?draft=' + encodeURIComponent(selected.body))} style={{
+              padding: '12px 0', backgroundColor: D.gold, border: 'none', borderRadius: 8,
+              cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
+              color: '#111', letterSpacing: '0.15em', textTransform: 'uppercase',
+            }}>Send to Chat</button>
             <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
               padding: '12px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.red}`, borderRadius: 8,
               cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10,

@@ -441,6 +441,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   const autoSendPrimer = searchParams?.get('primer') ?? '';
   const autoSend       = searchParams?.get('autoSend') === '1';
   const aiPrimer       = searchParams?.get('aiPrimer') ?? '';
+  const draft          = searchParams?.get('draft') ?? '';
 
   const { messages, loading, context, send, injectAiMessage } = useChat({ vendorId });
   const [justDoIt, setJustDoIt] = useState(false);
@@ -514,7 +515,9 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
       {/* ── Input bar ── */}
       <Toast toast={noteToast} />
-      <InputBar onSend={send} onSendNote={sendNote} disabled={loading} />
+      <InputBar onSend={send} onSendNote={sendNote} disabled={loading}
+        initialValue={draft || undefined}
+        onPrimerApplied={() => router.replace(pathname ?? '/vendor')} />
 
       <OnboardingOverlay onSend={send} />
     </div>
