@@ -49,6 +49,48 @@ function primaryAmount(r: CabinetBinder): number | null {
   return null;
 }
 
+// ── money state for a binder: received / pending / paid|partial|owed ─────────
+type MoneyState = 'paid' | 'partial' | 'owed' | null;
+function moneyOf(r: CabinetBinder): { recv: number; pend: number; state: MoneyState } {
+  const recv = r.amount_received ?? 0;
+  const pend = r.amount_pending != null
+    ? Math.max(r.amount_pending, 0)
+    : Math.max((r.amount ?? 0) - recv, 0);
+  let state: MoneyState = null;
+  if (recv > 0 && pend <= 0) state = 'paid';
+  else if (recv > 0 && pend > 0) state = 'partial';
+  else if (pend > 0) state = 'owed';
+  return { recv, pend, state };
+}
+const BADGE: Record<'paid' | 'partial' | 'owed', { label: string; color: string }> = {
+  paid:    { label: 'Paid',    color: '#3E8B4A' },
+  partial: { label: 'Partial', color: 'var(--cab-accent, #C99A63)' },
+  owed:    { label: 'Owed',    color: '#C0563B' },
+};
+function MoneyBadge({ state }: { state: MoneyState }) {
+  if (!state) return null;
+  const bd = BADGE[state];
+  return (
+    <span style={{
+      fontSize: 9, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase',
+      padding: '1px 6px', borderRadius: 3, color: bd.color,
+      border: `0.5px solid ${bd.color}`, opacity: 0.92, whiteSpace: 'nowrap', lineHeight: 1.4,
+    }}>{bd.label}</span>
+  );
+}
+// Money split line: "Rs X in · Rs Y due" — reused across skins.
+function MoneySplit({ r }: { r: CabinetBinder }) {
+  const { recv, pend } = moneyOf(r);
+  if (recv <= 0 && pend <= 0) return null;
+  return (
+    <span style={{ fontSize: 10.5, letterSpacing: '0.01em', opacity: 0.7, whiteSpace: 'nowrap' }}>
+      {recv > 0 && <span>{fmtINR(recv)} in</span>}
+      {recv > 0 && pend > 0 && <span style={{ opacity: 0.5 }}>{'  ·  '}</span>}
+      {pend > 0 && <span>{fmtINR(pend)} due</span>}
+    </span>
+  );
+}
+
 // ── adapt the six slices into columns ───────────────────────────────────────
 function toColumns(cab: CabinetResponse): Column[] {
   const binderRec = (b: CabinetBinder): BinderRec => ({ _t: 'binder', ...b });
@@ -73,8 +115,6 @@ function toColumns(cab: CabinetResponse): Column[] {
   return [
     { key: 'clients',   label: 'Clients',   count: c?.clients   ?? cab.clients.length,   records: cab.clients.map(binderRec) },
     { key: 'leads',     label: 'Leads',     count: c?.leads     ?? cab.leads.length,     records: cab.leads.map(binderRec) },
-    { key: 'paid',      label: 'Paid',      count: c?.paid      ?? cab.paid.length,      records: cab.paid.map(binderRec) },
-    { key: 'owed',      label: 'Owed',      count: c?.owed      ?? cab.owed.length,      records: cab.owed.map(binderRec) },
     { key: 'booked',    label: 'Booked',    count: c?.booked    ?? cab.booked.length,    records: cab.booked.map(eventRec) },
     { key: 'reminders', label: 'Reminders', count: c?.reminders ?? cab.reminders.length, records: cab.reminders.map(reminderRec) },
   ];
@@ -91,9 +131,12 @@ function BinderCard({ r }: { r: BinderRec }) {
     <div className="dd-card">
       <div className="dd-card-top">
         <span className="dd-card-client">{r.client ?? 'Unnamed'}</span>
-        {r.direction && (
-          <span className={`dd-card-dir ${r.direction}`}>{r.direction === 'in' ? 'in' : 'out'}</span>
-        )}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <MoneyBadge state={moneyOf(r).state} />
+          {r.direction && (
+            <span className={`dd-card-dir ${r.direction}`}>{r.direction === 'in' ? 'in' : 'out'}</span>
+          )}
+        </span>
       </div>
       {isMoney && (
         <div className="dd-card-money">
@@ -197,8 +240,12 @@ function WorkbenchSkin({ cols }: { cols: Column[] }) {
               const note = recNote(r);
               return (
                 <div key={r.id} className="cab-wb-card">
-                  <div className="cab-wb-name">{recName(r)}</div>
+                  <div className="cab-wb-name" style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 6 }}>
+                    <span>{recName(r)}</span>
+                    {r._t === 'binder' && <MoneyBadge state={moneyOf(r).state} />}
+                  </div>
                   {amt != null && <div className={`cab-wb-amt ${inDir ? 'in' : ''}`}>{fmtINR(amt)}</div>}
+                  {r._t === 'binder' && <div className="cab-wb-meta"><MoneySplit r={r} /></div>}
                   {note && <div className="cab-wb-note">{note.split('.')[0]}.</div>}
                   <div className="cab-wb-meta">{recMeta(r)}</div>
                 </div>
@@ -226,8 +273,11 @@ function AccountsSkin({ cols }: { cols: Column[] }) {
         return (
           <div key={r.id} className="cab-acc-row">
             <div className="cab-acc-l">
-              <div className="cab-acc-name">{recName(r)}</div>
-              <div className="cab-acc-tag">{tag}</div>
+              <div className="cab-acc-name" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span>{recName(r)}</span>
+                {r._t === 'binder' && <MoneyBadge state={moneyOf(r).state} />}
+              </div>
+              <div className="cab-acc-tag">{tag}{r._t === 'binder' ? <>{'  ·  '}<MoneySplit r={r} /></> : null}</div>
             </div>
             {note && <div className="cab-acc-note">{note}</div>}
             {amt != null && <div className={`cab-acc-amt ${inDir ? 'in' : ''}`}>{fmtINR(amt)}</div>}
@@ -280,6 +330,19 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
   const filled = (cols ?? []).filter((c) => c.count > 0);
   const allCols = cols ?? [];
 
+  // Money summary across every binder on file (clients + leads), each counted ONCE.
+  const allBinders = (cols ?? [])
+    .filter((c) => c.key === 'clients' || c.key === 'leads')
+    .flatMap((c) => c.records)
+    .filter((r): r is BinderRec => r._t === 'binder');
+  const totalIn  = allBinders.reduce((s, r) => s + (r.amount_received ?? 0), 0);
+  const totalDue = allBinders.reduce((s, r) => {
+    const recv = r.amount_received ?? 0;
+    const pend = r.amount_pending != null ? Math.max(r.amount_pending, 0) : Math.max((r.amount ?? 0) - recv, 0);
+    return s + pend;
+  }, 0);
+  const showMoneyHead = totalIn > 0 || totalDue > 0;
+
   return (
     <div className="dd-cab">
       <button className={`cab-orn ${lifting ? 'lifting' : ''}`} aria-label="Open your books" onClick={lift}>
@@ -305,6 +368,22 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
           <div className="cab-head-t"><small>Your books</small>Everything kept</div>
           <button className="cab-x" onClick={() => setOpen(false)}>Close</button>
         </div>
+
+        {loaded && showMoneyHead && (
+          <div style={{
+            display: 'flex', gap: 22, padding: '8px 20px 12px',
+            borderBottom: '0.5px solid var(--cab-rule, rgba(140,120,100,0.14))',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.45 }}>Received</span>
+              <span style={{ fontSize: 15, color: '#3E8B4A', letterSpacing: '0.01em' }}>{fmtINR(totalIn)}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.45 }}>Outstanding</span>
+              <span style={{ fontSize: 15, color: '#C0563B', letterSpacing: '0.01em' }}>{fmtINR(totalDue)}</span>
+            </div>
+          </div>
+        )}
 
         {loaded && filled.length > 0 && (
           <div className="cab-skins" role="tablist">
