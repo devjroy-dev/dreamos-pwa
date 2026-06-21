@@ -33,6 +33,7 @@ const BLOCK_REASONS = [
 ];
 
 interface BlockInfo { id: string; reason: string | null; }
+interface DaySheetEvent { id: string; title: string; kind: string; event_time: string | null; state: string; }
 interface Props {
   open: boolean;
   dateIso: string | null;
@@ -40,6 +41,7 @@ interface Props {
   onClose: () => void;
   onToast: (msg: string, kind?: ToastKind) => void;
   onRefresh: () => void;
+  events?: DaySheetEvent[];
 }
 
 function fmtDate(iso: string) {
@@ -77,7 +79,7 @@ function PillPicker({ options, value, onChange }: {
 }
 
 export function CalendarBlockSheet({
-  open, dateIso, existingBlock, onClose, onToast, onRefresh,
+  open, dateIso, existingBlock, onClose, onToast, onRefresh, events,
 }: Props) {
   const [reason,  setReason]  = useState('Out of town');
   const [custom,  setCustom]  = useState('');
@@ -149,6 +151,25 @@ export function CalendarBlockSheet({
 
         {/* Body */}
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {(() => {
+            const onDay = (events ?? []).filter((e) => e.state !== 'cancelled');
+            if (!onDay.length) return null;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 12, borderBottom: D.border }}>
+                <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>On this day</span>
+                {onDay.map((e) => (
+                  <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
+                      {e.event_time ? e.event_time.slice(0, 5) : 'all day'}
+                    </span>
+                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.cream, flex: 1 }}>
+                      {e.title}{e.kind ? <span style={{ color: D.muted }}> · {e.kind}</span> : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
           {existingBlock ? (
             <>
               {existingBlock.reason && (

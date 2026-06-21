@@ -525,6 +525,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         onClose={() => setBlockSel(null)}
         onToast={showToast}
         onRefresh={refreshBlocks}
+        events={blockSel ? (byDate.get(blockSel) ?? []) : []}
       />
       <AddSheet
         open={addOpen}
