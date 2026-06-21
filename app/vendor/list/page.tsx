@@ -56,6 +56,7 @@ interface Item { href: string; label: string; description: string; glyph: string
 const PIPELINE: Item[] = [
   { href: '/vendor/list/leads',   label: 'Leads',   description: 'who do I follow up with', glyph: 'L' },
   { href: '/vendor/list/clients', label: 'Clients', description: 'your people',             glyph: 'C' },
+  { href: '/vendor/list/events',  label: 'Events',  description: 'schedule and shoots',     glyph: '◐' },
 ];
 
 const MONEY: Item[] = [
