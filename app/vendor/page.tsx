@@ -20,6 +20,9 @@ import { setVendorSession } from '@/lib/vendor/session';
 
 import { getJson } from '@/lib/vendor/api/_base';
 import { useChat } from '@/hooks/vendor/useChat';
+import { useToast } from '@/hooks/vendor/useToast';
+import { Toast } from '@/components/vendor/Toast';
+import { createNote } from '@/lib/vendor/api/vendor';
 
 import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
@@ -441,6 +444,12 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
   const { messages, loading, context, send, injectAiMessage } = useChat({ vendorId });
   const [justDoIt, setJustDoIt] = useState(false);
+  const { toast: noteToast, show: showNote } = useToast();
+  async function sendNote(text: string) {
+    const r = await createNote(text);
+    if (r.ok) showNote('Noted', 'success');
+    else showNote((r as { error?: string }).error ?? 'Could not save note', 'error');
+  }
 
   const autoSentRef = useRef(false);
   const sendRef     = useRef(send);     sendRef.current = send;
@@ -504,7 +513,8 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
       />
 
       {/* ── Input bar ── */}
-      <InputBar onSend={send} disabled={loading} />
+      <Toast toast={noteToast} />
+      <InputBar onSend={send} onSendNote={sendNote} disabled={loading} />
 
       <OnboardingOverlay onSend={send} />
     </div>
