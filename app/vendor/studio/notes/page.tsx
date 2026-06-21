@@ -139,7 +139,7 @@ function NotesScreen({ vendorName }: { vendorName: string | null }) {
 
       {/* FAB */}
       <button type="button" onClick={() => setAddOpen(true)} aria-label="New note" style={{
-        position: 'fixed', bottom: 32, right: 24, width: 52, height: 52,
+        position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', right: 24, width: 52, height: 52,
         borderRadius: '50%', backgroundColor: 'var(--atelier-accent-text)', border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
         boxShadow: '0 4px 20px var(--atelier-overlay-bg)',
@@ -149,39 +149,62 @@ function NotesScreen({ vendorName }: { vendorName: string | null }) {
 
       {/* Detail sheet */}
       {selected && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setSelected(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
-            <span style={{ fontFamily: F.label, fontSize: 9, color: D.muted, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
-            <button type="button" onClick={() => router.push('/vendor?draft=' + encodeURIComponent(selected.body))} style={{
-              padding: '12px 0', backgroundColor: D.gold, border: 'none', borderRadius: 8,
-              cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
-              color: '#111', letterSpacing: '0.15em', textTransform: 'uppercase',
-            }}>Send to Chat</button>
-            <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
-              padding: '12px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.red}`, borderRadius: 8,
-              cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10,
-              color: D.red, letterSpacing: '0.15em', textTransform: 'uppercase',
-            }}>Delete</button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setSelected(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-top)',
+            borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: '0.5px solid var(--atelier-card-border)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+            padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
+            </div>
+            <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
+              <span style={{ fontFamily: F.label, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
+              <button type="button" onClick={() => router.push('/vendor?draft=' + encodeURIComponent(selected.body))} style={{
+                width: '100%', padding: '13px 0', background: 'var(--atelier-accent-text)', border: 'none', borderRadius: 999,
+                cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
+                color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',
+              }}>Send to Chat</button>
+              <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
+                width: '100%', padding: '13px 0',
+                background: saving ? 'rgba(122,26,26,0.4)' : 'rgba(180,40,40,0.18)',
+                border: '0.5px solid rgba(224,112,112,0.4)', borderRadius: 999,
+                cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
+                color: D.red, letterSpacing: '0.3em', textTransform: 'uppercase',
+              }}>{saving ? 'Working…' : 'Delete'}</button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Create sheet */}
       {addOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setAddOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>Note to Self</div>
-            <textarea
-              value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
-              placeholder="Jot it down — just for you"
-              style={{ ...inputStyle, resize: 'none', minHeight: 96, lineHeight: 1.5 }}
-            />
-            <button type="button" onClick={doCreate} disabled={!canSave || saving} style={{
-              padding: '13px 0', backgroundColor: canSave && !saving ? D.gold : 'var(--atelier-input-border)',
-              border: 'none', borderRadius: 8, cursor: canSave && !saving ? 'pointer' : 'not-allowed',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase',
-            }}>{saving ? 'Saving…' : 'Save Note'}</button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setAddOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-top)',
+            borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: '0.5px solid var(--atelier-card-border)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+            padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
+            </div>
+            <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>Note to Self</div>
+              <textarea
+                value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
+                placeholder="Jot it down — just for you"
+                style={{ ...inputStyle, resize: 'none', minHeight: 96, lineHeight: 1.5 }}
+              />
+              <button type="button" onClick={doCreate} disabled={!canSave || saving} style={{
+                width: '100%', padding: '13px 0',
+                background: canSave && !saving ? 'var(--atelier-accent-text)' : 'var(--atelier-input-border)',
+                border: 'none', borderRadius: 999, cursor: canSave && !saving ? 'pointer' : 'not-allowed',
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',
+              }}>{saving ? 'Saving…' : 'Save Note'}</button>
+            </div>
           </div>
         </div>
       )}
