@@ -500,7 +500,7 @@ export default function Home() {
       if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');
       } else if (isVendor) {
-        router.push(pinSet ? '/vendor/pin-login' : '/vendor/pin');
+        router.push(pinSet ? '/vendor/pin-login' : '/vendor/field');
       } else {
         router.push(pinSet ? '/couple/pin-login' : '/couple/pin');
       }
