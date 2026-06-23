@@ -142,7 +142,7 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
   useThemeInit();
   const pathname = usePathname() ?? '/vendor';
   const router   = useRouter();
-  const onLogin  = pathname === '/' || pathname.startsWith('/vendor/auth') || pathname.startsWith('/vendor/pin-login');
+  const onLogin  = pathname === '/' || pathname.startsWith('/vendor/auth') || pathname.startsWith('/vendor/pin');
 
   const currentPanelIdx = panelIndexForPath(pathname);
   const swipeEnabled    = !onLogin;

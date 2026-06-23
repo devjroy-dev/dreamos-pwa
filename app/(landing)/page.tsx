@@ -255,6 +255,7 @@ export default function Home() {
   const [inviteCode, setInviteCode]     = useState('');
   const [inviteError, setInviteError]   = useState('');
   const [inviteName, setInviteName]     = useState('');
+  const [inviteCategory, setInviteCategory] = useState('');
   const [phone, setPhone]               = useState('');
   const [otp, setOtp]                   = useState(['', '', '', '', '', '']);
 
@@ -460,7 +461,7 @@ export default function Home() {
       const pRes = await fetch(provEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ phone: e164 }),
+        body: JSON.stringify({ phone: e164, name: inviteName.trim() || undefined, category: isVendor ? (inviteCategory || undefined) : undefined }),
       });
       const d = await pRes.json();
       if (!d.ok) { showToast(d.error || 'Could not complete sign-in.'); return; }
@@ -500,7 +501,7 @@ export default function Home() {
       if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');
       } else if (isVendor) {
-        router.push(pinSet ? '/vendor/pin-login' : '/vendor/field');
+        router.push(pinSet ? '/vendor/pin-login' : '/vendor/pin');
       } else {
         router.push(pinSet ? '/couple/pin-login' : '/couple/pin');
       }
@@ -546,6 +547,16 @@ export default function Home() {
 
 
   const MAKER_CATEGORIES = ['Photographer', 'MUA', 'Designer', 'Jeweller', 'Venue', 'Decorator', 'Event Manager', 'Choreographer', 'Other'];
+  // The six fields that map to a preset/Codex (categoryPreset.js keys). Value sent
+  // to provision is the exact key; label is what the vendor taps.
+  const VENDOR_FIELDS = [
+    { label: 'Makeup',        value: 'makeup' },
+    { label: 'Photography',   value: 'photography' },
+    { label: 'Planning',      value: 'planning' },
+    { label: 'Designer',      value: 'designer' },
+    { label: 'Venue & Décor', value: 'venue & decor' },
+    { label: 'Jewellery',     value: 'jewellery' },
+  ];
   const SEASONS = [
     { key: 'jan_mar', label: 'Jan – Mar' },
     { key: 'apr_jun', label: 'Apr – Jun' },
@@ -948,7 +959,23 @@ export default function Home() {
                   </button>
                   <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
                 </div>
-                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits} />
+                {role === 'Maker' && (
+                  <>
+                    <Label text="Your craft" />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                      {VENDOR_FIELDS.map(f => (
+                        <button key={f.value} onClick={() => setInviteCategory(f.value)} style={{
+                          padding: '6px 12px', borderRadius: 100, border: 'none',
+                          background: inviteCategory === f.value ? '#C9A84C' : 'rgba(255,255,255,0.08)',
+                          color: inviteCategory === f.value ? '#0C0A09' : 'rgba(248,247,245,0.7)',
+                          fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+                          letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                        }}>{f.label}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits || (role === 'Maker' && !inviteCategory)} />
               </>
             )}
 
