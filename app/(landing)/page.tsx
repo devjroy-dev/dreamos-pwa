@@ -552,7 +552,7 @@ export default function Home() {
   const VENDOR_FIELDS = [
     { label: 'Makeup',        value: 'makeup' },
     { label: 'Photography',   value: 'photography' },
-    { label: 'Planning',      value: 'planning' },
+    { label: 'Event Manager', value: 'planning' },
     { label: 'Designer',      value: 'designer' },
     { label: 'Venue & Décor', value: 'venue & decor' },
     { label: 'Jewellery',     value: 'jewellery' },
