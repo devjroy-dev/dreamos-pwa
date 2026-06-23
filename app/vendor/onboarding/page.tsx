@@ -47,7 +47,7 @@ export default function VendorOnboardingPage() {
   const router = useRouter();
   const T      = useT();
 
-  const [name,         setName]        = useState('');
+  const [name,         setName]        = useState(() => getVendorSession()?.name || '');
   const [igHandle,     setIgHandle]    = useState('');
   const [businessName, setBusiness]    = useState('');
   const [category,     setCategory]    = useState('');
@@ -62,17 +62,13 @@ export default function VendorOnboardingPage() {
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
 
   const submit = useCallback(async () => {
-    if (!name.trim())    { showToast('Your first name is required.'); return; }
-    if (!category)       { showToast('Select a category.'); return; }
     if (!city.trim())    { showToast('City is required.'); return; }
     if (submitting)      return;
     setSubmitting(true);
     try {
       const res = await postJson<OnboardResp>('/api/v2/vendor/onboarding', {
-        name:             name.trim(),
         instagram_handle: igHandle.trim().replace(/^@/, '') || undefined,
         business_name:    businessName.trim() || undefined,
-        category,
         city:             city.trim(),
         open_to_travel:   travel,
         stated_rate:      rate.trim() || undefined,
@@ -165,10 +161,6 @@ export default function VendorOnboardingPage() {
           Two minutes. Your clients will use this to reach you.
         </p>
 
-        {/* Name */}
-        <label style={lbl}>Your first name *</label>
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Kavya" style={inp} />
-
         {/* Instagram */}
         <label style={lbl}>Instagram handle</label>
         <input
@@ -184,27 +176,6 @@ export default function VendorOnboardingPage() {
         {/* Business name */}
         <label style={lbl}>Studio or business name</label>
         <input value={businessName} onChange={e => setBusiness(e.target.value)} placeholder="optional" style={inp} />
-
-        {/* Category */}
-        <label style={lbl}>What do you do? *</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              style={{
-                padding: '7px 14px', borderRadius: 100, border: 'none', cursor: 'pointer',
-                background: category === cat ? BRASS : `color-mix(in srgb, ${BORDER} 30%, transparent)`,
-                color: category === cat ? '#0C0A09' : MUTE,
-                fontFamily: 'var(--font-jost, system-ui, sans-serif)',
-                fontWeight: 300, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-                transition: 'all 160ms ease',
-              }}
-            >
-              {CAT_LABEL[cat]}
-            </button>
-          ))}
-        </div>
 
         {/* City */}
         <label style={lbl}>Based in *</label>
