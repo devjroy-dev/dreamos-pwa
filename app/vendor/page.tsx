@@ -512,6 +512,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
         onCancel={() => {}}
         onChipTap={send}
         scrollRef={chatScrollRef}
+        onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user'); if (last?.text) send(last.text); }}
       />
 
       {/* ── Input bar ── */}

@@ -1,4 +1,5 @@
 'use client';
+import { FilingChip } from '@/components/vendor/FilingChip';
 import { useEffect, useRef, useState } from 'react';
 import { MessageBubble } from './MessageBubble';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
@@ -89,8 +90,9 @@ function PairWork({ beats, streaming, T }: {
           {beats.map((beat, i) => {
             const line =
               beat.kind === 'handoff' ? 'Handed to the operator'
-              : beat.kind === 'operator_action' ? `Operator \u00b7 ${beat.action}${beat.detail ? ' \u2014 ' + beat.detail : ''}`
-              : `Operator reported \u00b7 ${beat.message}`;
+              : beat.kind === 'operator_action' || beat.kind === 'error'
+                ? `Operator \u00b7 ${beat.action ?? ''}${beat.detail ? ' \u2014 ' + beat.detail : ''}`
+              : `Operator reported \u00b7 ${(beat as { message?: string }).message ?? ''}`;
             return (
               <div key={i} style={{
                 fontFamily: F.label, fontSize: 11, fontWeight: 300, lineHeight: 1.5,
@@ -104,7 +106,7 @@ function PairWork({ beats, streaming, T }: {
   );
 }
 
-export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
+export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLast }: Props & { onRetryLast?: () => void }) {
   const T = useT();
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -153,6 +155,11 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef }: Props) {
           {/* The pair at work (5-B): Myra's reply is the bubble above; her
               operator's deliberation reads quietly beneath — answer first. */}
           <PairWork beats={m.deliberation} streaming={m.streaming} T={T} />
+          {(m.deliberation ?? [])
+            .filter((b: any) => (b.kind === 'operator_action' || b.kind === 'error') && b.summary)
+            .map((b: any, i: number) => (
+              <FilingChip key={`chip-${i}`} beat={b} onRetry={onRetryLast} />
+            ))}
           {/* Clarify chips — brass in dark, oxblood in light */}
           {m.clarify?.options && m.clarify.options.length > 0 && (
             <div style={{

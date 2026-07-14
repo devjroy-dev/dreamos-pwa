@@ -242,10 +242,30 @@ export type StreamDonePayload = {
 
 // The pair-at-work beats the firewall emits on the wire (3-B). Myra's prose
 // rides as text_delta; these three describe what her operator did underneath.
+export type UndoSpec = { method: string; path: string; body?: Record<string, unknown> };
+export type FilingBeat = {
+  kind: 'operator_action' | 'error'; action?: string; detail?: string;
+  summary?: string; record_ref?: { plane: string; id: string };
+  undo?: UndoSpec; retryable?: boolean;
+};
 export type StreamBeat =
   | { kind: 'handoff'; message: string }
-  | { kind: 'operator_action'; action: string; detail: string }
+  | ({ kind: 'operator_action' } & Omit<FilingBeat, 'kind'>)
+  | ({ kind: 'error' } & Omit<FilingBeat, 'kind'>)
   | { kind: 'operator_report'; message: string };
+
+// TDW_02 P6: fire an undo through its witnessed door. True on ok.
+export async function undoCall(undo: UndoSpec): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}${undo.path}`, {
+      method: undo.method,
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      ...(undo.body ? { body: JSON.stringify(undo.body) } : {}),
+    });
+    const j = await res.json().catch(() => null);
+    return !!(j && j.ok);
+  } catch { return false; }
+}
 
 export function streamChat(
   vendorId: string,
@@ -337,7 +357,12 @@ export function streamChat(
           } else if (event.type === 'handoff') {
             onBeat?.({ kind: 'handoff', message: event.message ?? '' });
           } else if (event.type === 'operator_action') {
-            onBeat?.({ kind: 'operator_action', action: event.kind ?? '', detail: event.detail ?? '' });
+            onBeat?.({
+              kind: event.kind === 'error' ? 'error' : 'operator_action',
+              action: event.kind ?? '', detail: event.detail ?? '',
+              summary: event.summary, record_ref: event.record_ref,
+              undo: event.undo, retryable: event.retryable, // TDW_02 P6
+            });
           } else if (event.type === 'operator_report') {
             onBeat?.({ kind: 'operator_report', message: event.message ?? '' });
           } else if (event.type === 'done') {
