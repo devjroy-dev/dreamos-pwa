@@ -138,8 +138,12 @@ export function BinderCard({ binder, onChanged, onToast }: {
   const timeline = noteTimeline(binder.note);
 
   function askVictor() {
+    // Prefill-not-fire (standing grammar, CE micro-ruling 2). The Hub's
+    // prefill param is `draft` (ln 445/522 — composer initialValue);
+    // `primer` without autoSend=1 is a no-op. Spec literal said `primer`;
+    // code is truth — drift logged in the sitting handover.
     const primer = `What would you like to change about ${binder.client ?? 'this binder'}?`;
-    router.push(`/vendor?primer=${encodeURIComponent(primer)}`); // prefill, never autoSend (standing grammar)
+    router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
   }
 
   return (

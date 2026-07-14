@@ -20,6 +20,7 @@ export default function ExpensesSlice({ vendorId }: { vendorId: string }) {
   const deleteRequest = (sel: Row) => ({
     url: `${API_BASE}/api/v2/vendor/binders/${vendorId}/${sel.id}/hide`,
     method: 'POST',
+    successMessage: 'Expense removed.',
   });
   return <SliceScreen slice="expenses" vendorId={vendorId} useData={useExpensesData} toRows={toRows} deleteRequest={deleteRequest} />;
 }

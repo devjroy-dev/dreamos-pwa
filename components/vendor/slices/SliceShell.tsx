@@ -201,8 +201,10 @@ export interface SliceScreenProps<T extends { id: string }> {
   useData: (vendorId: string | null) => SliceDataState<T>;
   toRows: (data: T[]) => Row[];
   /** Delete/cancel request per the slice's route. 'unsupported' preserves the
-      monofile's chat-redirect message for any future slice without a door. */
-  deleteRequest: (sel: Row) => { url: string; method: string; body?: string } | 'unsupported';
+      monofile's chat-redirect message for any future slice without a door.
+      successMessage (optional) overrides the door's raw reply — some doors
+      answer in tool-display prose with record ids aboard (founder-ruled polish). */
+  deleteRequest: (sel: Row) => { url: string; method: string; body?: string; successMessage?: string } | 'unsupported';
 }
 
 export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest }: SliceScreenProps<T>) {
@@ -309,7 +311,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
       const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
       if (!res.ok || !data.ok) setDeleteMsg(data.error ?? 'Something went wrong. Try again.');
-      else { setDeleteMsg(data.message ?? 'Done.'); setTimeout(() => { setSel(null); setConfirmDel(false); setDeleteMsg(null); }, 1200); }
+      else { setDeleteMsg(req.successMessage ?? data.message ?? 'Done.'); setTimeout(() => { setSel(null); setConfirmDel(false); setDeleteMsg(null); }, 1200); }
     } catch { setDeleteMsg('Network error. Try again.'); }
     finally { setDeleting(false); }
   }
