@@ -2,10 +2,8 @@
 // One exported async function per vendor contract endpoint.
 // Screen components import from here — never raw fetch.
 
-import { getJson, postJson, patchJson, API_BASE, getAuthHeader, USE_MOCKS } from './_base';
+import { getJson, postJson, patchJson, API_BASE, getAuthHeader } from './_base';
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
-import { getMockContext, getMockLeads, getMockClients, getMockInvoices,
-         getMockExpenses, getMockEvents, getMockMe } from '../mocks/vendor';
 import type {
   MeResponse, VendorContextResponse, TodayResponse,
   LeadsResponse,
@@ -17,13 +15,11 @@ import type {
 
 // ── Profile ───────────────────────────────────────────────────────────────
 export function fetchMe(): Promise<MeResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockMe());
   return getJson<MeResponse>('/api/v2/vendor/me');
 }
 
 // ── Context (snapshot panel) ──────────────────────────────────────────────
 export function fetchContext(vendorId: string): Promise<VendorContextResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockContext());
   return getJson<VendorContextResponse>(`/api/v2/vendor/context/${vendorId}`);
 }
 
@@ -82,7 +78,6 @@ export function fetchCabinet(vendorId: string): Promise<CabinetResponse> {
 
 export type LedgerResponse = { ok: boolean; count: number; binders: CabinetBinder[]; error?: string };
 export function fetchLedger(vendorId: string): Promise<LedgerResponse> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, count: 0, binders: [] });
   return getJson<LedgerResponse>(`/api/v2/vendor/binders/${vendorId}`);
 }
 
@@ -150,28 +145,16 @@ function binderBase(v: string) { return `/api/v2/vendor/binders/${v}`; }
 export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };
 export type ChatHistoryResponse = { ok: boolean; messages: ChatHistoryMessage[]; error?: string };
 export function fetchChatHistory(vendorId: string, limit = 10): Promise<ChatHistoryResponse> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, messages: [] });
   return getJson<ChatHistoryResponse>(`/api/v2/vendor/chat/history/${vendorId}?limit=${limit}`);
 }
 
 // ── Today dashboard ───────────────────────────────────────────────────────
 export function fetchToday(vendorId: string): Promise<TodayResponse> {
-  if (USE_MOCKS) {
-    return Promise.resolve({
-      ok: true,
-      vendor: { name: 'Dev', category: 'photography', city: 'Delhi' },
-      needs_attention: { overdue_invoices: [], new_leads: [], events_today: [] },
-      this_week: [],
-      money_snapshot: { total_outstanding: 0, unpaid_count: 0, advance_paid_count: 0 },
-      open_leads_count: 0,
-    });
-  }
   return getJson<TodayResponse>(`/api/v2/vendor/today/${vendorId}`);
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────
 export async function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
-  if (USE_MOCKS) return getMockLeads();
   const cab = await fetchCabinet(vendorId);
   let leads = (cab.leads ?? []).map(binderToLead);
   if (state !== 'all') leads = leads.filter((l) => (l.state ?? '').toLowerCase() === state.toLowerCase());
@@ -179,7 +162,6 @@ export async function fetchLeads(vendorId: string, state = 'all'): Promise<Leads
 }
 
 export async function patchLeadState(leadId: string, state: string, _reason?: string): Promise<LeadStateResponse> {
-  if (USE_MOCKS) return { ok: true, lead: { id: leadId, state } };
   const v = currentVendorId();
   if (!v) return { ok: false, lead: { id: leadId, state } };
   const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${leadId}/stage`, { stage: state });
@@ -188,23 +170,12 @@ export async function patchLeadState(leadId: string, state: string, _reason?: st
 
 // ── Clients ───────────────────────────────────────────────────────────────
 export async function fetchClients(vendorId: string): Promise<ClientsResponse> {
-  if (USE_MOCKS) return getMockClients();
   const cab = await fetchCabinet(vendorId);
   const clients = (cab.clients ?? []).map(binderToClient);
   return { ok: cab.ok, clients, total: clients.length };
 }
 
 export async function fetchClientDetail(vendorId: string, clientId: string): Promise<ClientDetailResponse> {
-  if (USE_MOCKS) {
-    const clients = getMockClients().clients;
-    const client = clients.find(c => c.id === clientId) ?? clients[0];
-    return {
-      ok: true,
-      client: { id: client.id, name: client.name, phone: client.phone, email: client.email, notes: client.notes },
-      leads: [],
-      invoices: [],
-    };
-  }
   const led = await fetchLedger(vendorId);
   const b = (led.binders ?? []).find((x) => x.id === clientId);
   const client = b
@@ -215,7 +186,6 @@ export async function fetchClientDetail(vendorId: string, clientId: string): Pro
 
 // ── Invoices ──────────────────────────────────────────────────────────────
 export async function fetchInvoices(vendorId: string, state = 'all'): Promise<InvoicesResponse> {
-  if (USE_MOCKS) return getMockInvoices();
   const cab = await fetchCabinet(vendorId);
   const byId = new Map<string, CabinetBinder>();
   for (const b of [...(cab.paid ?? []), ...(cab.owed ?? [])]) byId.set(b.id, b);
@@ -230,7 +200,6 @@ export async function fetchInvoices(vendorId: string, state = 'all'): Promise<In
 
 // ── Expenses ──────────────────────────────────────────────────────────────
 export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse> {
-  if (USE_MOCKS) return getMockExpenses();
   const led = await fetchLedger(vendorId);
   const expenses = (led.binders ?? []).filter((b) => b.direction === 'out').map(binderToExpense);
   const total_spent = expenses.reduce((s, e) => s + e.amount, 0);
@@ -239,15 +208,11 @@ export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse>
 
 // ── Events ────────────────────────────────────────────────────────────────
 export function fetchEvents(vendorId: string, state = 'upcoming'): Promise<EventsResponse> {
-  if (USE_MOCKS) return Promise.resolve(getMockEvents());
   return getJson<EventsResponse>(`/api/v2/vendor/events/${vendorId}?state=${state}`);
 }
 
 // ── Chat — JSON fallback (mock / non-streaming clients) ───────────────────
 export function sendChat(vendorId: string, message: string, history: {role:string;content:string}[], aiPrimer?: string): Promise<ChatResponse> {
-  if (USE_MOCKS) {
-    return Promise.resolve({ ok: true, reply: `Mock reply to: "${message}"`, tool_calls: [] });
-  }
   const body: Record<string,unknown> = { vendor_id: vendorId, message, history };
   if (aiPrimer) body.ai_primer = aiPrimer;
   return postJson<ChatResponse>('/api/v2/vendor/chat', body);
@@ -463,18 +428,13 @@ import type {
   AvailabilityResponse, BlockDateRequest, BlockDateResponse,
   // Hot dates
   HotDatesResponse,
-  // Shared row types for mocks
+  // Shared row types
   Lead, Client, Invoice, Expense, VendorEvent,
 } from '../types/vendor';
-import {
-  makeMockLead, makeMockClient, makeMockInvoice,
-  makeMockExpense, makeMockEvent,
-} from '../mocks/vendor';
 
 // ── Leads ─────────────────────────────────────────────────────────────────
 
 export async function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse | ApiErr> {
-  if (USE_MOCKS) return { ok: true, data: makeMockLead(body), deduped: false };
   const v = currentVendorId();
   if (!v) return noVendor();
   const note = foldNote(
@@ -494,10 +454,6 @@ export async function createLead(body: CreateLeadRequest): Promise<CreateLeadRes
 }
 
 export async function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const base = makeMockLead({ name: body.name ?? 'Mock Lead', ...body });
-    return { ok: true, lead: { ...base, id: leadId } };
-  }
   const v = currentVendorId();
   if (!v) return noVendor();
   const note = foldNote(
@@ -516,10 +472,6 @@ export async function updateLead(leadId: string, body: UpdateLeadRequest): Promi
 }
 
 export async function fetchLeadDetail(leadId: string): Promise<LeadDetailResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const lead = makeMockLead({ name: 'Mock Lead Detail' });
-    return { ok: true, lead: { ...lead, id: leadId }, vendor_summary: null, conversation: [], invoices: [], events: [] };
-  }
   const v = currentVendorId();
   if (!v) return noVendor();
   const led = await fetchLedger(v);
@@ -536,7 +488,6 @@ export function loseLead(leadId: string, reason?: string): Promise<LeadStateResp
 // ── Clients ───────────────────────────────────────────────────────────────
 
 export async function createClient(body: CreateClientRequest): Promise<CreateClientResponse | ApiErr> {
-  if (USE_MOCKS) return { ok: true, client: makeMockClient(body), deduped: false, restored: false };
   const v = currentVendorId();
   if (!v) return noVendor();
   const note = foldNote(body.notes, body.email ? `Email: ${body.email}` : null);
@@ -548,10 +499,6 @@ export async function createClient(body: CreateClientRequest): Promise<CreateCli
 }
 
 export async function updateClient(clientId: string, body: UpdateClientRequest): Promise<UpdateClientResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const base = makeMockClient({ name: body.name ?? 'Mock Client', ...body });
-    return { ok: true, client: { ...base, id: clientId } };
-  }
   const v = currentVendorId();
   if (!v) return noVendor();
   const note = foldNote(body.notes, body.email ? `Email: ${body.email}` : null);
@@ -564,7 +511,6 @@ export async function updateClient(clientId: string, body: UpdateClientRequest):
 
 /** Hard delete — leads.client_id and invoices.client_id are SET NULL on delete. */
 export async function deleteClient(clientId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
-  if (USE_MOCKS) return { ok: true, deleted: true };
   const v = currentVendorId();
   if (!v) return noVendor();
   const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${clientId}/hide`, {});
@@ -575,7 +521,6 @@ export async function deleteClient(clientId: string): Promise<{ ok: true; delete
 // ── Invoices ──────────────────────────────────────────────────────────────
 
 export async function createInvoice(body: CreateInvoiceRequest): Promise<CreateInvoiceResponse | ApiErr> {
-  if (USE_MOCKS) return { ok: true, invoice: makeMockInvoice(body), pdf_pending: true };
   const v = currentVendorId();
   if (!v) return noVendor();
   const total = body.amount_total ?? 0;
@@ -601,10 +546,6 @@ export async function createInvoice(body: CreateInvoiceRequest): Promise<CreateI
 }
 
 export async function updateInvoice(invoiceId: string, body: UpdateInvoiceRequest): Promise<UpdateInvoiceResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const base = makeMockInvoice({ amount_total: body.amount_total ?? 0, ...body });
-    return { ok: true, invoice: { ...base, id: invoiceId } };
-  }
   const v = currentVendorId();
   if (!v) return noVendor();
   // 1. Non-money cells through /edit (note grows).
@@ -641,7 +582,6 @@ export async function updateInvoice(invoiceId: string, body: UpdateInvoiceReques
 }
 
 export async function recordPayment(invoiceId: string, body: RecordPaymentRequest): Promise<RecordPaymentResponse | ApiErr> {
-  if (USE_MOCKS) return { ok: true, invoice: null, payment_recorded: body.amount, new_state: 'advance_paid' };
   const v = currentVendorId();
   if (!v) return noVendor();
   // Ground-truth before mutation: read the real figures, never the screen's copy.
@@ -660,23 +600,18 @@ export async function recordPayment(invoiceId: string, body: RecordPaymentReques
 }
 
 export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse | ApiErr> {
-  if (USE_MOCKS) {
-    return Promise.resolve({ ok: true, pdf_url: 'https://example.com/mock.pdf', expires_in: 3600 });
-  }
   return getJson<InvoicePdfResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/pdf`);
 }
 
 /** Cancel invoice — sets state to 'cancelled'. Alias: "delete" / "remove" per standing rule. */
 export { patchInvoiceCancel as cancelInvoice };
 function patchInvoiceCancel(invoiceId: string): Promise<{ ok: true; invoice: { id: string; state: string } } | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, invoice: { id: invoiceId, state: 'cancelled' } });
   return patchJson<{ ok: true; invoice: { id: string; state: string } } | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/cancel`, {});
 }
 
 // ── Expenses ──────────────────────────────────────────────────────────────
 
 export async function createExpense(body: CreateExpenseRequest): Promise<CreateExpenseResponse | ApiErr> {
-  if (USE_MOCKS) return { ok: true, expense: makeMockExpense(body) };
   const v = currentVendorId();
   if (!v) return noVendor();
   const note = foldNote(body.description, body.category ? `Category: ${body.category}` : null, body.notes);
@@ -689,10 +624,6 @@ export async function createExpense(body: CreateExpenseRequest): Promise<CreateE
 }
 
 export async function updateExpense(expenseId: string, body: UpdateExpenseRequest): Promise<UpdateExpenseResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const base = makeMockExpense({ amount: body.amount ?? 0, ...body });
-    return { ok: true, expense: { ...base, id: expenseId } };
-  }
   const v = currentVendorId();
   if (!v) return noVendor();
   // Non-money cells through /edit.
@@ -714,7 +645,6 @@ export async function updateExpense(expenseId: string, body: UpdateExpenseReques
 }
 
 export async function deleteExpense(expenseId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
-  if (USE_MOCKS) return { ok: true, deleted: true };
   const v = currentVendorId();
   if (!v) return noVendor();
   const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/hide`, {});
@@ -725,62 +655,32 @@ export async function deleteExpense(expenseId: string): Promise<{ ok: true; dele
 // ── Events ────────────────────────────────────────────────────────────────
 
 export function createEvent(body: CreateEventRequest): Promise<CreateEventResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, event: makeMockEvent(body) });
   return postJson<CreateEventResponse | ApiErr>('/api/v2/vendor/events', body);
 }
 
 export function updateEvent(eventId: string, body: UpdateEventRequest): Promise<UpdateEventResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const base = makeMockEvent({ title: body.title ?? 'Event', event_date: body.event_date ?? new Date().toISOString().split('T')[0], ...body });
-    return Promise.resolve({ ok: true, event: { ...base, id: eventId } });
-  }
   return patchJson<UpdateEventResponse | ApiErr>(`/api/v2/vendor/events/${eventId}`, body);
 }
 
 export function deleteEvent(eventId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
   return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/events/${eventId}`);
 }
 
 export function cancelEvent(eventId: string): Promise<{ ok: true; event: { id: string; state: string } } | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, event: { id: eventId, state: 'cancelled' } });
   return patchJson<{ ok: true; event: { id: string; state: string } } | ApiErr>(`/api/v2/vendor/events/${eventId}/cancel`, {});
 }
 
 // ── Profile ───────────────────────────────────────────────────────────────
 
 export function updateMe(body: UpdateMeRequest): Promise<UpdateMeResponse | ApiErr> {
-  if (USE_MOCKS) {
-    return Promise.resolve({
-      ok: true,
-      vendor: {
-        id: '2eb5d3fb-31eb-4b26-859a-cf10ae477d53',
-        name: 'Dev Jroy',
-        business_name: body.business_name ?? 'Frost Studio',
-        city: body.city ?? 'Delhi',
-        open_to_travel: body.open_to_travel ?? true,
-        upi_id: body.upi_id ?? null,
-        gstin: body.gstin ?? null,
-        aesthetic_tags: body.aesthetic_tags ?? [],
-        rate_min: body.rate_min ?? null,
-        rate_max: body.rate_max ?? null,
-        discover_preview: false,
-      },
-    });
-  }
   return patchJson<UpdateMeResponse | ApiErr>('/api/v2/vendor/me', body);
 }
 
 export function updateRoutingHandle(body: UpdateRoutingHandleRequest): Promise<UpdateRoutingHandleResponse | ApiErr> {
-  if (USE_MOCKS) {
-    const h = body.routing_handle.toUpperCase();
-    return Promise.resolve({ ok: true, routing_handle: h, wa_link: `https://wa.me/917982159047?text=TDW-${h}` });
-  }
   return patchJson<UpdateRoutingHandleResponse | ApiErr>('/api/v2/vendor/me/routing-handle', body);
 }
 
 export function updateInvoicePrefix(body: UpdateInvoicePrefixRequest): Promise<UpdateInvoicePrefixResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, prefix: body.prefix.toUpperCase(), current_counter: 16 });
   return patchJson<UpdateInvoicePrefixResponse | ApiErr>('/api/v2/vendor/me/invoice-prefix', body);
 }
 
@@ -791,29 +691,20 @@ export function fetchAvailability(vendorId: string, from?: string, to?: string):
   if (from) params.set('from', from);
   if (to)   params.set('to', to);
   const qs = params.toString() ? `?${params.toString()}` : '';
-  if (USE_MOCKS) return Promise.resolve({ ok: true, blocks: [], total: 0 });
   return getJson<AvailabilityResponse | ApiErr>(`/api/v2/vendor/availability/${vendorId}${qs}`);
 }
 
 export function blockDate(body: BlockDateRequest): Promise<BlockDateResponse | ApiErr> {
-  if (USE_MOCKS) {
-    return Promise.resolve({
-      ok: true,
-      block: { id: 'mock-block-' + Date.now(), blocked_date: body.blocked_date, reason: body.reason ?? null, created_at: new Date().toISOString() },
-    });
-  }
   return postJson<BlockDateResponse | ApiErr>('/api/v2/vendor/availability', body);
 }
 
 export function unblockDate(blockId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, deleted: true });
   return deleteJson<{ ok: true; deleted: true } | ApiErr>(`/api/v2/vendor/availability/${blockId}`);
 }
 
 // ── Hot dates ─────────────────────────────────────────────────────────────
 
 export function fetchHotDates(): Promise<HotDatesResponse | ApiErr> {
-  if (USE_MOCKS) return Promise.resolve({ ok: true, dates: [], total: 0 });
   return getJson<HotDatesResponse | ApiErr>('/api/v2/hot-dates');
 }
 
