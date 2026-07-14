@@ -13,10 +13,13 @@ function toRows(expenses: Expense[]): Row[] {
   return expenses.map(exp => ({ id: exp.id, primary: exp.description??'Expense', secondary: exp.category??undefined, meta: exp.expense_date?fmtDate(exp.expense_date):undefined, badge: fmtRs(exp.amount), aiPrimer: `What would you like to change about the expense "${exp.description??'this expense'}" — ${fmtRs(exp.amount)}?`, deletePrimer: `Delete expense "${exp.description??'this expense'}" — ${fmtRs(exp.amount)} (id: ${exp.id}).`, detail: [{label:'Amount',value:fmtRs(exp.amount)},{label:'Category',value:exp.category??'—'},{label:'Description',value:exp.description??'—'},{label:'Date',value:fmtDate(exp.expense_date)},{label:'Client',value:exp.client_name??'—'}] }));
 }
 
-function deleteRequest(sel: Row) {
-  return { url: `${API_BASE}/api/v2/vendor/expenses/${sel.id}`, method: 'DELETE' };
-}
-
 export default function ExpensesSlice({ vendorId }: { vendorId: string }) {
+  // TDW_03 (B), CE-ruled: expenses are money-OUT binders (6-B) — the typed
+  // DELETE can't know binder ids (F4). Delete = the binder /hide door: the
+  // same soft-delete covenant, reversible via unarchive.
+  const deleteRequest = (sel: Row) => ({
+    url: `${API_BASE}/api/v2/vendor/binders/${vendorId}/${sel.id}/hide`,
+    method: 'POST',
+  });
   return <SliceScreen slice="expenses" vendorId={vendorId} useData={useExpensesData} toRows={toRows} deleteRequest={deleteRequest} />;
 }

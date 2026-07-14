@@ -96,13 +96,9 @@ export function fetchLedger(vendorId: string): Promise<LedgerResponse> {
 function binderToClient(b: CabinetBinder): ClientsResponse['clients'][number] {
   return { id: b.id, name: b.client ?? '', phone: b.phone ?? null, email: null, notes: b.note ?? null, created_at: b.created_at ?? '' };
 }
-function binderToLead(b: CabinetBinder): Lead {
-  return {
-    id: b.id, name: b.client ?? null, phone: b.phone ?? null, wedding_date: b.date ?? null,
-    wedding_city: null, budget_total: null, state: b.stage ?? 'lead',
-    source: null, referrer: null, raw_message: b.note ?? null, created_at: b.created_at ?? '',
-  };
-}
+// binderToLead RETIRED (TDW_03 (A), CE-ruled): the leads adapter crossed LD-1.
+// Clients/invoices/expenses adapters stay — records own binders and money.
+
 function invoiceState(b: CabinetBinder): string {
   const owed = b.amount_pending ?? 0;
   const paid = b.amount_received ?? 0;
@@ -182,18 +178,18 @@ export function fetchToday(vendorId: string): Promise<TodayResponse> {
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────
-export async function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
-  const cab = await fetchCabinet(vendorId);
-  let leads = (cab.leads ?? []).map(binderToLead);
-  if (state !== 'all') leads = leads.filter((l) => (l.state ?? '').toLowerCase() === state.toLowerCase());
-  return { ok: cab.ok, leads, total: leads.length };
+// TDW_03 (A) repoint, CE-ruled 2026-07-14: leads read the TYPED plane again.
+// LD-1: typed tables own leads. 02-P1 moved the writes to public.leads; the
+// Piece 4-A binder adapter kept the reads on cabinet.leads — retired as drift.
+// The typed route carries the full P3 wire (draft + wishbone) per row.
+export function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
+  return getJson<LeadsResponse>(`/api/v2/vendor/leads/${vendorId}?state=${state}`);
 }
 
-export async function patchLeadState(leadId: string, state: string, _reason?: string): Promise<LeadStateResponse> {
-  const v = currentVendorId();
-  if (!v) return { ok: false, lead: { id: leadId, state } };
-  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${leadId}/stage`, { stage: state });
-  return { ok: r.ok, lead: { id: leadId, state: r.binder?.stage ?? state } };
+export function patchLeadState(leadId: string, state: string, reason?: string): Promise<LeadStateResponse> {
+  // TDW_03 (A): typed door restored — PATCH /leads/:id/state (reason optional,
+  // lands in the notes trail per the handler's own contract).
+  return patchJson<LeadStateResponse>(`/api/v2/vendor/leads/${leadId}/state`, reason ? { state, reason } : { state });
 }
 
 // ── Clients ───────────────────────────────────────────────────────────────
@@ -489,50 +485,23 @@ import type {
 
 // ── Leads ─────────────────────────────────────────────────────────────────
 
-export async function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse | ApiErr> {
-  const v = currentVendorId();
-  if (!v) return noVendor();
-  const note = foldNote(
-    body.raw_message, body.notes,
-    body.wedding_city ? `City: ${body.wedding_city}` : null,
-    rupeeLine(body.budget_min, body.budget_max),
-    body.event_types?.length ? `Events: ${body.event_types.join(', ')}` : null,
-    body.source ? `Source: ${body.source}` : null,
-    body.referrer_name ? `Referred by: ${body.referrer_name}` : null,
-    body.email ? `Email: ${body.email}` : null,
-  );
-  const r = await postJson<BinderWriteResponse>(binderBase(v), {
-    client: body.name, phone: body.phone, date: body.wedding_date, note, stage: 'lead',
-  });
-  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not create lead.' };
-  return { ok: true, data: binderToLead(r.binder), deduped: false };
+export function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse | ApiErr> {
+  // TDW_03 (A): typed door — POST /leads takes every field natively (city,
+  // budget, source, referrer, email, event_types); the note-folding shim is
+  // retired with the adapter. Returns {ok, data, deduped} per the handler.
+  return postJson<CreateLeadResponse>('/api/v2/vendor/leads', body);
 }
 
-export async function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
-  const v = currentVendorId();
-  if (!v) return noVendor();
-  const note = foldNote(
-    body.wedding_city ? `City: ${body.wedding_city}` : null,
-    rupeeLine(body.budget_min, body.budget_max),
-    body.source ? `Source: ${body.source}` : null,
-    body.referrer_name ? `Referred by: ${body.referrer_name}` : null,
-    body.email ? `Email: ${body.email}` : null,
-    body.raw_message, body.notes,
-  );
-  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${leadId}/edit`, {
-    client: body.name, date: body.wedding_date, phone: body.phone, note,
-  });
-  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not update lead.' };
-  return { ok: true, lead: binderToLead(r.binder) };
+export function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
+  // TDW_03 (A): typed door — PATCH /leads/:id, native fields, {ok, lead} back.
+  // This is also P3's complete_inline target; one door, both callers.
+  return patchJson<UpdateLeadResponse>(`/api/v2/vendor/leads/${leadId}`, body);
 }
 
-export async function fetchLeadDetail(leadId: string): Promise<LeadDetailResponse | ApiErr> {
-  const v = currentVendorId();
-  if (!v) return noVendor();
-  const led = await fetchLedger(v);
-  const b = (led.binders ?? []).find((x) => x.id === leadId);
-  if (!b) return { ok: false, error: 'Lead not found.' };
-  return { ok: true, lead: binderToLead(b), vendor_summary: null, conversation: [], invoices: [], events: [] };
+export function fetchLeadDetail(leadId: string): Promise<LeadDetailResponse | ApiErr> {
+  // TDW_03 (A): typed detail restored — vendor_summary + the couple
+  // conversation ride the handler (the adapter shim returned them empty).
+  return getJson<LeadDetailResponse>(`/api/v2/vendor/leads/${leadId}/detail`);
 }
 
 /** Convenience wrapper — sets state to 'lost'. */
