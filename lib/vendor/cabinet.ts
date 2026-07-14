@@ -88,3 +88,16 @@ export function noteTimeline(note: string | null | undefined): string[] {
   if (!note) return [];
   return note.split('\n').map((l) => l.trim()).filter(Boolean);
 }
+
+// ── R1(b) cross-plane chip (CE-ruled 2026-07-14) ────────────────
+// Phone is the identity + merge key (masterplan law). Normalize to the last
+// 10 digits (Indian numbers; strips +91/0 prefixes and formatting) so both
+// planes compare on the same key. DISCLOSED LIMITATION: a phone-asymmetric
+// twin (binder without a phone — the Kavya case) will NOT match; the chip's
+// absence means "no phone match", never "no twin". Display-only consumers.
+export function phoneKey(p: string | null | undefined): string | null {
+  if (!p) return null;
+  const digits = p.replace(/\D/g, '');
+  if (digits.length < 10) return null;
+  return digits.slice(-10);
+}

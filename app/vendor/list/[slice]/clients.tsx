@@ -8,7 +8,8 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCabinetData } from '@/hooks/vendor/useVendorData';
+import { useCabinetData, useLeadsData } from '@/hooks/vendor/useVendorData';
+import { phoneKey } from '@/lib/vendor/cabinet';
 import { SliceShell } from '@/components/vendor/slices/SliceShell';
 import { BinderCard } from '@/components/vendor/slices/BinderCard';
 import { A, F } from '@/components/vendor/slices/SliceRow';
@@ -20,6 +21,15 @@ import type { ToastKind } from '@/hooks/vendor/useToast';
 export default function ClientsSlice({ vendorId }: { vendorId: string }) {
   const router = useRouter();
   const cab = useCabinetData(vendorId);
+  const typedLeads = useLeadsData(vendorId); // R1(b): the typed plane, for the cross-chip
+  const leadByPhone = useMemo(() => {
+    const m = new Map<string, { state: string }>();
+    for (const l of typedLeads.data ?? []) {
+      const k = phoneKey(l.phone);
+      if (k && !m.has(k)) m.set(k, { state: l.state });
+    }
+    return m;
+  }, [typedLeads.data]);
   const [query, setQuery] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const { toast, show: showToast } = useToast();
@@ -68,6 +78,7 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
               binder={b}
               onChanged={cab.refresh}
               onToast={(msg, kind) => showToast(msg, kind)}
+              crossLead={(() => { const k = phoneKey(b.phone); return k ? leadByPhone.get(k) : undefined; })()}
             />
           ))}
         </>

@@ -58,6 +58,10 @@ export interface Row {
   badge?: string; badgeAlert?: boolean; phone?: string; client_phone?: string;
   aiPrimer: string; deletePrimer: string;
   detail: { label: string; value: string }[];
+  /** R1(b) cross-plane chip (CE-ruled): display-only whisper — "the other
+      plane also knows this person". Reads, never writes. Absence means "no
+      phone match", never "no twin". */
+  crossChip?: string;
 }
 
 export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : `Rs ${n.toLocaleString('en-IN')}`; }
@@ -139,6 +143,13 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             color: A.inkMute, letterSpacing: '0.01em', marginTop: 3,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{detailLine}</div>
+          {row.crossChip && (
+            <div style={{
+              fontFamily: F.label, fontWeight: 300, fontSize: 9,
+              color: A.inkMute, letterSpacing: '0.08em', textTransform: 'uppercase',
+              marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>{row.crossChip}</div>
+          )}
         </div>
 
         {/* State pill — same chrome regardless of detail-line content */}

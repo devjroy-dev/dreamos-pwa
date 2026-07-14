@@ -116,10 +116,13 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
   );
 }
 
-export function BinderCard({ binder, onChanged, onToast }: {
+export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   binder: CabinetBinder;
   onChanged: () => void;
   onToast: (msg: string, kind?: 'success' | 'error') => void;
+  /** R1(b), CE-ruled: display-only — the typed plane also knows this person.
+      Reads, never writes; absence means "no phone match", never "no twin". */
+  crossLead?: { state: string };
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -186,6 +189,15 @@ export function BinderCard({ binder, onChanged, onToast }: {
               </>
             )}
           </div>
+        )}
+
+        {/* R1(b) cross-plane whisper — the postcard from 16's spine */}
+        {crossLead && (
+          <div style={{
+            fontFamily: F.label, fontWeight: 300, fontSize: 9,
+            color: A.inkMute, letterSpacing: '0.08em', textTransform: 'uppercase',
+            marginTop: 6,
+          }}>Also a lead · {cap(crossLead.state)}</div>
         )}
 
         {/* Line 3 — stage word (manifest tone) + last touch */}
