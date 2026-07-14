@@ -13,6 +13,9 @@ import {
   type CabinetEvent,
   type CabinetReminder,
 } from '@/lib/vendor/api/vendor';
+// TDW_03 P2: money math + tones now live in lib/vendor/cabinet.ts — one truth,
+// two consumers (this Hub sheet + the Clients slice binder cards). Do not fork.
+import { fmtINR, primaryAmount, moneyOf, BADGE, type MoneyState } from '@/lib/vendor/cabinet';
 
 type Skin = 'workbench' | 'cards' | 'accounts';
 const SKIN_KEY = 'dreamwedding_cabinet_skin';
@@ -38,35 +41,7 @@ type FollowRec = {
 type CabRec = BinderRec | EventRec | FollowRec;
 type Column = { key: string; label: string; count: number; records: CabRec[] };
 
-function fmtINR(n: number | null | undefined): string {
-  if (n == null) return '—';
-  return 'Rs ' + Math.round(n).toLocaleString('en-IN');
-}
-function primaryAmount(r: CabinetBinder): number | null {
-  if (r.amount != null) return r.amount;
-  if (r.amount_pending != null) return r.amount_pending;
-  if (r.amount_received != null) return r.amount_received;
-  return null;
-}
-
-// ── money state for a binder: received / pending / paid|partial|owed ─────────
-type MoneyState = 'paid' | 'partial' | 'owed' | null;
-function moneyOf(r: CabinetBinder): { recv: number; pend: number; state: MoneyState } {
-  const recv = r.amount_received ?? 0;
-  const pend = r.amount_pending != null
-    ? Math.max(r.amount_pending, 0)
-    : Math.max((r.amount ?? 0) - recv, 0);
-  let state: MoneyState = null;
-  if (recv > 0 && pend <= 0) state = 'paid';
-  else if (recv > 0 && pend > 0) state = 'partial';
-  else if (pend > 0) state = 'owed';
-  return { recv, pend, state };
-}
-const BADGE: Record<'paid' | 'partial' | 'owed', { label: string; color: string }> = {
-  paid:    { label: 'Paid',    color: '#3E8B4A' },
-  partial: { label: 'Partial', color: 'var(--cab-accent, #C99A63)' },
-  owed:    { label: 'Owed',    color: '#C0563B' },
-};
+// (fmtINR / primaryAmount / MoneyState / moneyOf / BADGE moved to lib/vendor/cabinet.ts — TDW_03 P2)
 function MoneyBadge({ state }: { state: MoneyState }) {
   if (!state) return null;
   const bd = BADGE[state];

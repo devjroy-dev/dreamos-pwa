@@ -9,7 +9,7 @@
 //   After a successful write: invalidateSlice('leads')
 //   Hooks subscribe on mount via subscribeToSlice().
 
-export type Slice = 'leads' | 'clients' | 'invoices' | 'expenses' | 'events';
+export type Slice = 'leads' | 'clients' | 'invoices' | 'expenses' | 'events' | 'cabinet'; // 'cabinet' added TDW_03 P2 (raw-cabinet loader key)
 
 type Listener = () => void;
 const listeners = new Map<Slice, Set<Listener>>();

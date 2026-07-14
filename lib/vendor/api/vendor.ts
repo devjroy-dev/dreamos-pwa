@@ -39,6 +39,18 @@ export type CabinetBinder = {
   followup_note: string | null;
   phone: string | null;
   created_at?: string | null;
+  // TDW_03 P2: the rest of the live payload (vendor-engine/cabinet.js
+  // RECORD_SELECT + the TDW_02 P3 completeness wire) — typed to code truth.
+  updated_at?: string | null;
+  reason_for_action?: string | null;
+  doc_ref?: string | null;
+  repeat_every?: string | null;
+  missing_cells?: string[];
+  draft?: {
+    missing: string[];
+    complete_inline: { method: 'POST'; path: string };
+    tell_victor: { path: '/vendor'; primer: string };
+  };
 };
 export type CabinetEvent = {
   id: string;
@@ -140,6 +152,22 @@ function rupeeLine(min?: number | null, max?: number | null): string | null {
   return null;
 }
 function binderBase(v: string) { return `/api/v2/vendor/binders/${v}`; }
+
+// TDW_03 P2 — the binder edit door (POST, the door's real verb; SCHEMA.md
+// appendix corrected the spec literal's PATCH). Field names are the handler's
+// exactly (vendor-engine/binderWrite.js /edit → donna_edit): client, date,
+// note, phone, doc_ref, stage. NOTE APPENDS through this door — a line beneath
+// what stands (verified: donna_edit passes appendAlso {'note'}); the UI labels
+// it as adding to the story, never as replacing.
+export type BinderEditFields = {
+  client?: string; date?: string; note?: string;
+  phone?: string; doc_ref?: string; stage?: string;
+};
+export function editBinder(binderId: string, fields: BinderEditFields): Promise<BinderWriteResponse> {
+  const v = currentVendorId();
+  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session — please sign in again.' });
+  return postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/edit`, fields);
+}
 
 // ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
 export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };

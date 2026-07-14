@@ -9,14 +9,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   fetchClients, fetchLeads, fetchInvoices,
-  fetchExpenses, fetchEvents,
+  fetchExpenses, fetchEvents, fetchCabinet,
+  type CabinetResponse,
 } from '@/lib/vendor/api/vendor';
 import type {
   Client, Lead, Invoice, Expense, VendorEvent,
 } from '@/lib/vendor/types/vendor';
 import { subscribeToSlice } from '@/lib/vendor/cache/invalidate';
 
-type Kind = 'clients' | 'leads' | 'invoices' | 'expenses' | 'events';
+type Kind = 'clients' | 'leads' | 'invoices' | 'expenses' | 'events' | 'cabinet';
 
 
 type CacheEntry<T> = { data: T; ts: number };
@@ -129,6 +130,21 @@ export function useEventsData(vendorId: string | null): LoadState<VendorEvent[]>
     (id) => fetchEvents(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.events) ? (raw.events as VendorEvent[]) : null,
   );
+}
+
+// TDW_03 P2 — the RAW cabinet for the binder cards (the adapted useClientsData
+// flattens binders into the typed Client shape and loses the story). Same
+// loader, cache, and TTL; its own cache key; ALSO listens to 'clients'
+// invalidations so form writes that bust the adapted view bust this one too.
+export function useCabinetData(vendorId: string | null): LoadState<CabinetResponse> {
+  const state = useLoader<CabinetResponse>(
+    vendorId, 'cabinet',
+    (id) => fetchCabinet(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
+    (raw) => (raw as unknown as CabinetResponse) ?? null,
+  );
+  const { refresh } = state;
+  useEffect(() => subscribeToSlice('clients', () => refresh()), [refresh]);
+  return state;
 }
 
 // ── Block 1b — subscribe to pub/sub invalidation per slice ────────────────

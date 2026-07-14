@@ -1,23 +1,87 @@
 'use client';
-// app/vendor/list/[slice]/clients.tsx — TDW_03 P1
-// Clients slice module. toRows + delete route verbatim from the monofile.
-// P2 replaces this module's rendering with binder cards from the Cabinet
-// (records plane) — the crown jewel. Until then: typed rows, unchanged.
+// app/vendor/list/[slice]/clients.tsx — TDW_03 P2 · binder cards
+// The Clients slice reads the records plane raw: cabinet.clients, the same
+// population the P1 adapter flattened — presentation upgraded to the story.
+// Chrome stays SliceShell (Door + search + FAB); the list is BinderCards via
+// renderList. AddSheet behavior unchanged until P5. No DetailSheet here —
+// the card expands in place.
 
-import { useClientsData } from '@/hooks/vendor/useVendorData';
-import { SliceScreen } from '@/components/vendor/slices/SliceShell';
-import { fmtDate, type Row } from '@/components/vendor/slices/SliceRow';
-import { API_BASE } from '@/lib/vendor/api/_base';
-import type { Client } from '@/lib/vendor/types/vendor';
-
-function toRows(clients: Client[]): Row[] {
-  return clients.map(c => ({ id: c.id, primary: c.name, secondary: c.phone ?? undefined, meta: c.email ?? undefined, phone: c.phone ?? undefined, aiPrimer: `What would you like to change about ${c.name}?`, deletePrimer: `Delete client ${c.name} (id: ${c.id}).`, detail: [{label:'Phone',value:c.phone??'—'},{label:'Email',value:c.email??'—'},{label:'Notes',value:c.notes??'—'},{label:'Added',value:fmtDate(c.created_at)}] }));
-}
-
-function deleteRequest(sel: Row) {
-  return { url: `${API_BASE}/api/v2/vendor/clients/${sel.id}`, method: 'DELETE' };
-}
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCabinetData } from '@/hooks/vendor/useVendorData';
+import { SliceShell } from '@/components/vendor/slices/SliceShell';
+import { BinderCard } from '@/components/vendor/slices/BinderCard';
+import { A, F } from '@/components/vendor/slices/SliceRow';
+import { AddSheet } from '@/components/vendor/AddSheet';
+import { Toast } from '@/components/vendor/Toast';
+import { useToast } from '@/hooks/vendor/useToast';
+import type { ToastKind } from '@/hooks/vendor/useToast';
 
 export default function ClientsSlice({ vendorId }: { vendorId: string }) {
-  return <SliceScreen slice="clients" vendorId={vendorId} useData={useClientsData} toRows={toRows} deleteRequest={deleteRequest} />;
+  const router = useRouter();
+  const cab = useCabinetData(vendorId);
+  const [query, setQuery] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const { toast, show: showToast } = useToast();
+
+  const binders = useMemo(() => {
+    const all = cab.data?.clients ?? [];
+    if (!query.trim()) return all;
+    const q = query.trim().toLowerCase();
+    return all.filter(b =>
+      (b.client ?? '').toLowerCase().includes(q) ||
+      (b.stage ?? '').toLowerCase().includes(q) ||
+      (b.note ?? '').toLowerCase().includes(q));
+  }, [cab.data, query]);
+
+  const empty = !cab.loading && !cab.error && binders.length === 0;
+
+  return (
+    <SliceShell
+      slice="clients"
+      vendorName={cab.data?.vendor?.name ?? null}
+      onBack={() => router.back()}
+      query={query}
+      setQuery={setQuery}
+      loading={cab.loading}
+      error={cab.error}
+      rows={[]}
+      onSelect={() => {}}
+      onAdd={() => setAddOpen(true)}
+      renderList={
+        <>
+          {empty && (
+            <div style={{
+              padding: '40px 24px', textAlign: 'center',
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+              color: A.inkMute, lineHeight: 1.6,
+            }}>
+              {query
+                ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
+                : <>Your client stories live here.<br/>
+                    <span style={{ color: A.brassWarm }}>Tell Victor about a client — even just a name — and a binder opens.</span></>}
+            </div>
+          )}
+          {binders.map(b => (
+            <BinderCard
+              key={b.id}
+              binder={b}
+              onChanged={cab.refresh}
+              onToast={(msg, kind) => showToast(msg, kind)}
+            />
+          ))}
+        </>
+      }
+    >
+      <Toast toast={toast} />
+      <AddSheet
+        open={addOpen}
+        slice="clients"
+        onClose={() => setAddOpen(false)}
+        onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
+        existing={null}
+        existingId={undefined}
+      />
+    </SliceShell>
+  );
 }
