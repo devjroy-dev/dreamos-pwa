@@ -146,7 +146,7 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLas
     <div
       ref={containerRef}
       className="hide-scrollbar"
-      style={{ flex: 1, overflowY: 'auto', paddingTop: 12, paddingBottom: 8 }}
+      style={{ flex: 1, overflowY: 'auto', paddingTop: 12, paddingBottom: 64 /* TDW UI fix 2026-07-14: clear the fixed 'Your books' handle (bottom:76, h:40) so PairWork + FilingChips never sit under it */ }}
     >
       {messages.map((m, idx) => (
         <div key={m.id ?? idx}>
