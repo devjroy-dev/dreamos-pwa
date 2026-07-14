@@ -232,6 +232,7 @@ export type SuggestionsPayload = {
 };
 
 export type StreamDonePayload = {
+  meta?: { tier: string; turns_used: number; turns_cap: number; state: 'ok' | 'nearing' | 'capped'; upgrade?: { label: string; href: string } }; // TDW_02 P5
   tool_calls: string[];
   refresh?: boolean;
   contact?: ContactCard;
@@ -345,6 +346,7 @@ export function streamChat(
               refresh:    event.refresh,
               contact:    event.contact,
               clarify:    event.clarify,
+              meta:       event.meta, // TDW_02 P5: the tier meter, every turn
             });
           } else if (event.type === 'error') {
             onError(event.message ?? 'Agent error. Try again.');

@@ -14,6 +14,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { Header } from '@/components/vendor/Header';
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
+import { TierMeter } from '@/components/vendor/TierMeter'; // TDW_02 P5
 import { CommandBar } from '@/components/vendor/CommandBar';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { setVendorSession } from '@/lib/vendor/session';
@@ -443,7 +444,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   const aiPrimer       = searchParams?.get('aiPrimer') ?? '';
   const draft          = searchParams?.get('draft') ?? '';
 
-  const { messages, loading, context, send, injectAiMessage } = useChat({ vendorId });
+  const { messages, loading, context, send, injectAiMessage, meta } = useChat({ vendorId }); // TDW_02 P5: +meta
   const [justDoIt, setJustDoIt] = useState(false);
   const { toast: noteToast, show: showNote } = useToast();
   async function sendNote(text: string) {
@@ -515,7 +516,8 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
       {/* ── Input bar ── */}
       <Toast toast={noteToast} />
-      <InputBar onSend={send} onSendNote={sendNote} disabled={loading}
+      <TierMeter meta={meta} />
+      <InputBar onSend={send} onSendNote={sendNote} disabled={loading || (meta && meta.state === 'capped')}
         initialValue={draft || undefined}
         onPrimerApplied={() => router.replace(pathname ?? '/vendor')} />
 

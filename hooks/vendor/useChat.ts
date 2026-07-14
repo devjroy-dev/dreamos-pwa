@@ -27,6 +27,7 @@ function nextId() { return `${Date.now()}-${Math.random().toString(36).slice(2,8
 
 interface UseChatArgs { vendorId: string; }
 interface UseChatReturn {
+  meta: { tier: string; turns_used: number; turns_cap: number; state: 'ok' | 'nearing' | 'capped'; upgrade?: { label: string; href: string } } | null; // TDW_02 P5
   messages:        ChatMessage[];
   loading:         boolean;
   context:         VendorContextResponse | null;
@@ -40,6 +41,7 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
   const [loading,       setLoading]       = useState(false);
   const [context,       setContext]       = useState<VendorContextResponse | null>(null);
   const [lastToolCalls, setLastToolCalls] = useState<string[]>([]);
+  const [meta, setMeta] = useState<any>(null); // TDW_02 P5: tier meter state
 
   const pendingPrimerRef = useRef<string>('');
   const abortRef         = useRef<(() => void) | null>(null);
@@ -143,6 +145,7 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
             : m
         ));
         setLastToolCalls(result.tool_calls ?? []);
+        if (result.meta) setMeta(result.meta); // TDW_02 P5
         setLoading(false);
         abortRef.current = null;
 
@@ -170,5 +173,5 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
     abortRef.current = abort;
   }, [vendorId, loading, refreshContext]);
 
-  return { messages, loading, context, send, injectAiMessage, lastToolCalls };
+  return { messages, loading, context, send, injectAiMessage, meta, lastToolCalls };
 }

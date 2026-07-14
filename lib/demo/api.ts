@@ -98,6 +98,7 @@ export async function fetchDemoDiscoverFeed(): Promise<{
 }
 
 export interface StreamDonePayload {
+  meta?: { tier: string; turns_used: number; turns_cap: number; state: 'ok' | 'nearing' | 'capped'; upgrade?: { label: string; href: string } }; // TDW_02 P5
   tool_calls: string[];
   refresh:    boolean;
 }
