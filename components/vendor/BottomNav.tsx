@@ -95,7 +95,10 @@ type SubItem = { href: string; label: string; glyph: string; exact?: boolean; lo
 
 const STUDIO_ITEMS: SubItem[] = [
   { href: '/vendor/calendar', label: 'Calendar', glyph: '◐' },
-  { href: '/vendor/list',     label: 'Business', glyph: '≡', exact: true },
+  // TDW_03 P1 (CE ruling Q1, 2026-07-14): exact-match dropped so the tab
+  // highlights on /vendor/list/* now that the landing redirects to a slice.
+  // Behavior preservation, not nav redesign — Block 09's rebuild inherits this.
+  { href: '/vendor/list',     label: 'Business', glyph: '≡' },
   { href: '/vendor/more',     label: 'More',     glyph: '⋯', exact: true },
 ];
 

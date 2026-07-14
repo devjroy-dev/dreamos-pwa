@@ -21,6 +21,20 @@ function readInitial(): ListSlice {
   return DEFAULT_SLICE;
 }
 
+// TDW_03 P1 (CE ruling Q2, 2026-07-14): read-only, null-aware view of the
+// stored slice. Unlike readInitial() this does NOT fall back to the hook's
+// default — the landing redirect needs to distinguish "nothing stored" (spec
+// default: leads) from "stored clients". Same key, read-only; consumes the
+// existing localStorage pattern, extends nothing. No new writes ride here.
+export function readStoredSlice(): ListSlice | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (raw && VALID.includes(raw as ListSlice)) return raw as ListSlice;
+  } catch { /* ignore */ }
+  return null;
+}
+
 export function useLastSlice(): [ListSlice, (s: ListSlice) => void] {
   const [slice, setSliceState] = useState<ListSlice>(() => readInitial());
 
