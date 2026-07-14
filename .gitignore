@@ -51,3 +51,6 @@ web/
 
 phase3_0_b_pkg/
 phase3_0_c2_pkg/
+
+# delivery artifacts are applied then discarded — never committed
+/*.zip
