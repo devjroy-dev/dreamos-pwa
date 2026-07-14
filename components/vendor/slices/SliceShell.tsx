@@ -12,9 +12,9 @@
 // Zero behavior change is the P1 contract.
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import type { ListSlice } from '@/hooks/vendor/useLastSlice';
+import { useLastSlice, type ListSlice } from '@/hooks/vendor/useLastSlice';
 import { Header } from '@/components/vendor/Header';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
@@ -32,6 +32,67 @@ import { DetailSheet } from './DetailSheet';
 // so opening an invoice doesn't fire a 404 against a route that isn't built yet.
 const SCHEDULE_ENABLED: boolean = false;
 
+// ── The Slice Door · CE addendum 2026-07-14 (F1 successor) ──────
+// The five slices as chips, canonical order, directly under the brass label.
+// Active state derives from the route param (never local state). Tap writes
+// the last-slice key through the EXISTING hook's write path, then navigates —
+// a real route change (the P1 remount nuance is a live path now; P4 judges it
+// per the standing ruling). Counts slot reserved — TDW_09 may add.
+const DOOR_ORDER: ListSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events'];
+
+function SliceDoor({ active }: { active: ListSlice }) {
+  const router = useRouter();
+  const [, setSlice] = useLastSlice();
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const activeRef = useRef<HTMLButtonElement | null>(null);
+
+  // Active chip auto-scrolled into view on entry and on slice change.
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [active]);
+
+  return (
+    <div ref={rowRef} style={{
+      display: 'flex', gap: 4, padding: '0 22px 6px',
+      overflowX: 'auto', scrollbarWidth: 'none',
+      borderBottom: '0.5px solid var(--atelier-card-border)',
+    }}>
+      {DOOR_ORDER.map(s => {
+        const isActive = s === active;
+        return (
+          <button
+            key={s}
+            ref={isActive ? activeRef : undefined}
+            type="button"
+            aria-current={isActive ? 'page' : undefined}
+            onClick={() => { if (!isActive) { setSlice(s); router.push(`/vendor/list/${s}`); } }}
+            style={{
+              flexShrink: 0,
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              minHeight: 24, padding: '8px 10px', // pads the 24px line to a 40px touch target
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+            }}>
+            <span style={{
+              fontFamily: F.label, fontWeight: isActive ? 400 : 300, fontSize: 10,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: 'var(--atelier-ink)', opacity: isActive ? 0.9 : 0.45,
+              transition: 'opacity 200ms ease',
+            }}>
+              {LABELS[s]}
+              {/* counts slot reserved — TDW_09 may add */}
+            </span>
+            <span aria-hidden style={{
+              display: 'block', width: '100%', height: 2, borderRadius: 1,
+              background: isActive ? 'var(--atelier-accent-text)' : 'transparent',
+              transition: 'background 200ms ease',
+            }} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── SliceShell · pure chrome ─────────────────────────────────────
 // Masthead slot (P5 fills it), search, list + empty state, FAB.
 // Sheets/overlays/toast are passed through as children by SliceScreen.
@@ -46,19 +107,26 @@ interface SliceShellProps {
   rows: Row[];
   onSelect: (row: Row) => void;
   onAdd: () => void;
+  /** TDW_03 P2: when present, rendered INSTEAD of the default rows/empty-state
+      block (the clients slice supplies binder cards + its own empty state).
+      Other slices untouched. */
+  renderList?: ReactNode;
   children?: ReactNode;
 }
 
-export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, children }: SliceShellProps) {
+export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
       <Header vendorName={vendorName} />
 
       {/* Sub-header: back + brass label — the P5 masthead replaces this */}
-      <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+      <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
       </div>
+
+      {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
+      <SliceDoor active={slice} />
 
       {/* Search */}
       <div style={{ padding: '12px 22px 6px' }}>
@@ -83,18 +151,22 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
-        {!loading && !error && rows.length === 0 && (
-          <div style={{
-            padding: '40px 24px', textAlign: 'center',
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
-            color: A.inkMute, lineHeight: 1.5,
-          }}>
-            {query
-              ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
-              : <>Nothing here yet.<br/><span style={{ color: A.brassWarm }}>Tap the + to add one.</span></>}
-          </div>
+        {renderList ?? (
+          <>
+            {!loading && !error && rows.length === 0 && (
+              <div style={{
+                padding: '40px 24px', textAlign: 'center',
+                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+                color: A.inkMute, lineHeight: 1.5,
+              }}>
+                {query
+                  ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
+                  : <>Nothing here yet.<br/><span style={{ color: A.brassWarm }}>Tap the + to add one.</span></>}
+              </div>
+            )}
+            {rows.map(row => <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
+          </>
         )}
-        {rows.map(row => <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
       </div>
 
       {/* Brass-key FAB */}
