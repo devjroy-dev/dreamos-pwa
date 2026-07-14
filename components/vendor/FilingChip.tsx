@@ -11,14 +11,22 @@
 import React, { useEffect, useState } from 'react';
 import { undoCall, type FilingBeat } from '@/lib/vendor/api/vendor';
 
-const INK = 'rgba(12,10,9,0.78)';
-const INK_DIM = 'rgba(12,10,9,0.50)';
-const HAIRLINE = 'rgba(12,10,9,0.10)';
-const SURFACE = 'rgba(12,10,9,0.030)';
+// v2.1 (2026-07-14): theme-aware. v2 shipped ink-on-dark — illegible on the dark
+// hub (founder-reported). Palette now derives from isLight, matching PairWork's
+// convention; light values = v2's originals, dark values mirror the .dd-cab family.
+const PALETTE = (isLight: boolean) => ({
+  INK:       isLight ? 'rgba(12,10,9,0.78)'  : 'rgba(240,230,210,0.88)',
+  INK_DIM:   isLight ? 'rgba(12,10,9,0.50)'  : 'rgba(240,230,210,0.55)',
+  HAIRLINE:  isLight ? 'rgba(12,10,9,0.10)'  : 'rgba(240,230,210,0.14)',
+  SURFACE:   isLight ? 'rgba(12,10,9,0.030)' : 'rgba(245,235,212,0.055)',
+  PILL_EDGE: isLight ? 'rgba(12,10,9,0.25)'  : 'rgba(240,230,210,0.30)',
+  PILL_INK:  isLight ? 'rgba(12,10,9,0.70)'  : 'rgba(240,230,210,0.75)',
+  TERRACOTTA:isLight ? '#B85C38' : '#E07B5C',
+});
 const BRASS = '#C9A84C';
-const TERRACOTTA = '#B85C38';
 
-export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () => void }) {
+export function FilingChip({ beat, onRetry, isLight = true }: { beat: FilingBeat; onRetry?: () => void; isLight?: boolean }) {
+  const { INK, INK_DIM, HAIRLINE, SURFACE, PILL_EDGE, PILL_INK, TERRACOTTA } = PALETTE(isLight);
   const [phase, setPhase] = useState<'live' | 'expired' | 'undoing' | 'undone' | 'undo_failed'>('live');
   const isError = beat.kind === 'error';
 
@@ -76,7 +84,7 @@ export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () =
           <button onClick={onRetry} style={{ ...pill, border: `1px solid ${TERRACOTTA}55`, color: TERRACOTTA }}>Retry</button>
         )}
         {!isError && beat.undo && phase === 'live' && (
-          <button onClick={doUndo} style={{ ...pill, border: '1px solid rgba(12,10,9,0.25)', color: 'rgba(12,10,9,0.70)' }}>Undo</button>
+          <button onClick={doUndo} style={{ ...pill, border: `1px solid ${PILL_EDGE}`, color: PILL_INK }}>Undo</button>
         )}
         {phase === 'undoing' && (
           <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 13, color: INK_DIM }}>…</span>

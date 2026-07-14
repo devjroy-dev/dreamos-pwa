@@ -158,7 +158,7 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLas
           {(m.deliberation ?? [])
             .filter((b: any) => (b.kind === 'operator_action' || b.kind === 'error') && b.summary)
             .map((b: any, i: number) => (
-              <FilingChip key={`chip-${i}`} beat={b} onRetry={onRetryLast} />
+              <FilingChip key={`chip-${i}`} beat={b} onRetry={onRetryLast} isLight={T.isLight} />
             ))}
           {/* Clarify chips — brass in dark, oxblood in light */}
           {m.clarify?.options && m.clarify.options.length > 0 && (
