@@ -1,4 +1,4 @@
-// lib/api/vendor.ts
+// lib/vendor/api/vendor.ts
 // One exported async function per vendor contract endpoint.
 // Screen components import from here — never raw fetch.
 

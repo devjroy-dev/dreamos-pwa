@@ -1,4 +1,4 @@
-// lib/mocks/vendor.ts
+// lib/vendor/mocks/vendor.ts
 // Dense mock data for visual stress-testing: 15+ rows per slice.
 // Returned by lib/api/vendor.ts when NEXT_PUBLIC_USE_MOCKS=true.
 // All shapes match API_CONTRACTS.md exactly.

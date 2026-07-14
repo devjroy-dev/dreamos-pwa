@@ -1,4 +1,4 @@
-// lib/types/vendor.ts
+// lib/vendor/types/vendor.ts
 // TypeScript interfaces mirroring vendor contract request/response shapes.
 // Every endpoint in lib/api/vendor.ts has a corresponding interface here.
 // Contract drift = TypeScript compile error, not runtime bug.

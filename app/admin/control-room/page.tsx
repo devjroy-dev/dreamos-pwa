@@ -534,7 +534,6 @@ function TabLaunch() {
         {[
           ['Razorpay', 'Required for couple tier upgrades, vendor subscriptions, Lock Date, Couture appointments. Currently mock.', 'coming-soon'],
           ['Twilio paid upgrade', '~$20/mo. Required for DreamAi WhatsApp in production. Currently sandbox.', 'coming-soon'],
-          ['Cover photos SQL table', 'Run: CREATE TABLE cover_photos. Already wired on backend.', 'coming-soon'],
           ['Discovery feed SQL fix', 'Run the UPDATE vendors SET discover_listed=true SQL for existing vendors.', 'coming-soon'],
           ['Push notifications', 'PWA push + Play Store. Not yet built.', 'coming-soon'],
           ['Play Store submission', 'React Native build needed.', 'coming-soon'],

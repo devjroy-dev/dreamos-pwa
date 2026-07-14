@@ -10,7 +10,7 @@
 //   - Response handling and error normalisation
 //   - Session helpers (read vendorId from same keys login writes)
 //
-// CONTRACT: every function in lib/frost-api/vendor.ts uses these helpers. No screen
+// CONTRACT: every function in the lib/frost-api modules uses these helpers. No screen
 // or component imports from this file directly. If you find yourself reaching
 // for fetch() outside lib/api/, stop — add a typed function in vendor.ts.
 //

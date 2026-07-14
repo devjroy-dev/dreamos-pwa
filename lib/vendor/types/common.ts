@@ -1,4 +1,4 @@
-// lib/types/common.ts
+// lib/vendor/types/common.ts
 // Shared enum union types — single source of truth for state/kind values.
 // Mirrors the Supabase schema (BLOCK 13, DEVS_HOLY_GRAIL.md).
 
