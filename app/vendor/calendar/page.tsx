@@ -109,9 +109,21 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
 
   const todayIso = iso(today.getFullYear(), today.getMonth(), today.getDate());
 
+  // ── TDW_04 B1 SEAL RIDER — F-04.36 (CE-ruled 2026-07-15) ──────────────────
+  // A BLOCK IS NOT AN ENGAGEMENT. Before B1, blocks lived in vendor_availability and
+  // no events reader could see them. B1's convergence made them public.events rows,
+  // so this filter — which never had a `kind` clause because it never needed one —
+  // began listing them. Founder specimen 2026-07-15: "JUL 22 · BLOCKED · Out of town"
+  // rendered under NEXT ENGAGEMENTS beside "JUL 19 · RECCE · Ananya - recce".
+  // "Am I free that day" is the GRID's job (blockMap, the hatch). This rail answers
+  // "what's coming up", and a day you've held is not a thing that's coming up.
+  //
+  // SCOPE: this is the ONE reader witnessed leaking. The general census — which of
+  // the 57 public.events readers now see blocks, and which should — is B5's opening
+  // item per the CE's split. Not attempted here.
   const nextThree = useMemo(() =>
     (events ?? [])
-      .filter(e => e.event_date >= todayIso && e.state === 'upcoming')
+      .filter(e => e.event_date >= todayIso && e.state === 'upcoming' && e.kind !== 'blocked')
       .sort((a,b) => a.event_date < b.event_date ? -1 : 1)
       .slice(0, 3),
   [events, todayIso]);

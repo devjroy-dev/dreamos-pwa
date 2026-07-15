@@ -81,7 +81,25 @@ function PillPicker({ options, value, onChange }: {
 export function CalendarBlockSheet({
   open, dateIso, existingBlock, onClose, onToast, onRefresh, events,
 }: Props) {
-  const [reason,  setReason]  = useState('Out of town');
+  // ── TDW_04 B1 SEAL RIDER — F-04.35 (CE-ruled 2026-07-15) ──────────────────
+  // The default was 'Out of town'. That was a harmless UX shrug for as long as
+  // `reason` wrote to vendor_availability.reason — a column NOTHING rendered. B1's
+  // convergence made `reason` become public.events.title: shown on the grid, in the
+  // day sheet, through /api/v2/vendor/events, and across all of B5. So a vendor who
+  // blocks a date for a family wedding and never touches the pill now has "Out of
+  // town" PRINTED ON THEIR CALENDAR. (Founder specimen 2026-07-15: the 22nd reads
+  // "Out of town"; he never chose it.) B1 didn't cause the default — it made it
+  // visible, and a shrug against a dead column is a correctness bug against a title.
+  //
+  // 'Blocked' is never wrong, and it matches the backend's ruled fallback (Q-B1-6:
+  // title = reason verbatim, else 'Blocked').
+  //
+  // NOTE, DISCLOSED: 'Blocked' is deliberately NOT in BLOCK_REASONS, so the picker
+  // opens with NO pill highlighted. That is intended here — it incidentally delivers
+  // the "no default" behaviour logged as B5 polish: nothing is pre-chosen, and a
+  // vendor who picks nothing gets a title that is merely true. If the CE would rather
+  // 'Blocked' render as a selectable pill, add it to BLOCK_REASONS — one line.
+  const [reason,  setReason]  = useState('Blocked');
   const [custom,  setCustom]  = useState('');
   const [working, setWorking] = useState(false);
 
