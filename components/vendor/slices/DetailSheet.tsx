@@ -114,8 +114,11 @@ export function DetailSheet({
                       Q7 boundary: utility copy, drafted, listed in the handover
                       for founder veto. Any clause naming Victor/Donna is his
                       words and is deliberately not written here. */}
+                  {/* TDW_04 A4 (founder copy law, ruled 2026-07-15): persona names
+                      never in chrome. The leads line is the FOUNDER'S RULED WORDING,
+                      first variant, verbatim. */}
                   {slice === 'invoices' ? 'Invoice will be marked cancelled.' :
-                   slice === 'leads'    ? 'Lead is removed from your list. Undo for 30 seconds.' :
+                   slice === 'leads'    ? 'Leaves your list and your assistant\u2019s memory. Undo for 30 seconds.' :
                    slice === 'events'   ? 'Event will be cancelled.' :
                    slice === 'expenses' ? 'Expense is set aside — recoverable, never destroyed.' :
                    'This will be removed.'}

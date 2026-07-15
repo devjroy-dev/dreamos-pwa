@@ -27,6 +27,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { usePathname, useRouter } from 'next/navigation';
+import { Splash } from '@/components/vendor/Splash'; // TDW_04 A4 (P6): cold-open hero
 import { useEffect, useRef, useState } from 'react';
 import { BottomNav } from '@/components/vendor/BottomNav';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
@@ -296,6 +297,7 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
 
   return (
     <ThemeProvider>
+    {!onLogin && <Splash />}{/* TDW_04 A4 (P6): cold-open only; nav never re-triggers */}
     <div style={{
       height: '100dvh', width: '100%', overflowX: 'clip', overflowY: 'hidden',
       userSelect: 'none' as const, WebkitUserSelect: 'none' as const,

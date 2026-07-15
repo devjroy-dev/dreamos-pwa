@@ -118,7 +118,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
           <div style={{ marginTop: 14 }}>
             {victorOnly ? (
               <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 13, color: A.inkSoft, lineHeight: 1.5 }}>
-                Money is edited with Victor — the witnessed door. Tell him and it files with the full trail.
+                Money is edited in chat — the witnessed door. Say it there and it files with the full trail.
               </div>
             ) : (
               <input
@@ -153,7 +153,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
                 border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
-              }}>{victorOnly ? 'Tell Victor' : 'Ask Victor instead'}</button>
+              }}>{victorOnly ? 'Send to chat' : 'Ask in chat instead'}</button> {/* A4 copy law: persona-free chrome */}
             </div>
           </div>
         )}

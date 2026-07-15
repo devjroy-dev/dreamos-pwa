@@ -89,7 +89,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
         <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
         <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: -6 }}>
-          Money is edited with Victor — the witnessed door. Everything else lives here.
+          Money is edited in chat — the witnessed door. Everything else lives here.
         </div>
 
         <div><span style={labelStyle}>Client</span><input style={inputStyle} placeholder={binder.client ?? '—'} value={fields.client ?? ''} onChange={set('client')} /></div>
@@ -160,7 +160,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   // TDW_04 A2 — the approved swipe table, clients row: right = Ask Victor
   // (prefill-not-fire), left = Call (only when a phone stands). Both
   // non-destructive; no confirm needed.
-  const swipeRight = { label: 'Ask Victor', onTrigger: askVictor };
+  const swipeRight = { label: 'Ask in chat', onTrigger: askVictor }; // A4 copy law: persona-free chrome
   const swipeLeft = binder.phone ? { label: 'Call', onTrigger: () => { window.location.href = `tel:${binder.phone}`; } } : undefined;
 
   // TDW_04 A2 — Hide: the clients destructive action (TDW_03 residue: "/hide
@@ -288,7 +288,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             </div>
           ) : (
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12.5, color: A.inkMute }}>
-              No story yet — it grows as you and Victor talk.
+              No story yet — it grows as you talk in chat.
             </div>
           )}
 
@@ -298,7 +298,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               border: '0.5px solid #E0BC6E',
               fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
               letterSpacing: '0.32em', textTransform: 'uppercase',
-            }}>Ask Victor</button>
+            }}>Ask in chat</button>
             <button type="button" onClick={() => setEditOpen(true)} style={{
               flex: 1, padding: '11px 14px', background: 'transparent',
               border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',

@@ -24,10 +24,11 @@ import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
 import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gesture engine
 import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
+import { FilterRail, type FilterChip } from './FilterRail'; // TDW_04 A4: P4's rail
 import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth for money mastheads
 import { deriveMoney, deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
-import { queueUndoable, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure
+import { queueUndoable, flushAllPending, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure · A4: F-04.14 ruled
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
@@ -145,10 +146,14 @@ interface SliceShellProps {
   renderRow?: (row: Row) => ReactNode;
   /** TDW_04 A3: the P5 masthead, composed by the owner (it knows its figures). */
   masthead?: ReactNode;
+  /** TDW_04 A4: the P4 FilterRail, rendered sticky under the search field. */
+  filterRail?: ReactNode;
+  /** TDW_04 A4: the sort caret, rendered at the masthead row's right. */
+  sortControl?: ReactNode;
   children?: ReactNode;
 }
 
-export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, children }: SliceShellProps) {
+export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
       <Header vendorName={vendorName} />
@@ -169,7 +174,10 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
 
       {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
           the same function the hub Ledger reads. */}
-      {masthead}
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>{masthead}</div>
+        {sortControl && <div style={{ padding: '14px 22px 0 0' }}>{sortControl}</div>}
+      </div>
 
       {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
       <SliceDoor active={slice} />
@@ -194,6 +202,9 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
           />
         </div>
       </div>
+
+      {/* TDW_04 A4: the P4 FilterRail — sticky chips under search */}
+      {filterRail}
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
@@ -342,6 +353,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [badgeOverride, setBadgeOverride] = useState<Record<string, string>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
   const [markLostConfirm, setMarkLostConfirm] = useState(false);
+  // TDW_04 A4 (P4): FilterRail single-select + the masthead sort toggle.
+  const [filterKey, setFilterKey] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<'recent' | 'amount' | 'date'>('recent');
   const [lostReason, setLostReason] = useState(''); // F-04.12: the optional reason, lands in notes
   const longPress = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -364,16 +378,71 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     });
   }
 
+  // ── TDW_04 A4 (P4): FilterRail chips per slice, counts from the raw rows ──
+  // leads = state segments w/ counts · invoices = payment states · expenses =
+  // month chips (last 6) · events = this week / later / done. Clients keeps the
+  // cabinet's own grouping (its list isn't row-based; no rail there).
+  const monthKey = (iso?: string | null) => (iso ?? '').slice(0, 7);
+  const monthLabel = (k: string) => { const [y, m] = k.split('-'); return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }); };
+  const filterChips: FilterChip[] = useMemo(() => {
+    const count = (fn: (r: Row) => boolean) => rawRows.filter(fn).length;
+    if (slice === 'leads') return ['new', 'contacted', 'quoted', 'booked', 'lost']
+      .map(k => ({ key: k, label: k, count: count(r => (r.badge ?? '').toLowerCase() === k) }));
+    if (slice === 'invoices') return ['overdue', 'unpaid', 'advance_paid', 'paid']
+      .map(k => ({ key: k, label: k === 'advance_paid' ? 'part-paid' : k,
+        count: k === 'overdue' ? count(r => !!r.badgeAlert) : count(r => (r.badge ?? '').toLowerCase().replace(' ', '_') === k) }));
+    if (slice === 'expenses') {
+      const keys = [...new Set(rawRows.map(r => monthKey(r.sortDate)).filter(Boolean))].sort().reverse().slice(0, 6);
+      return keys.map(k => ({ key: k, label: monthLabel(k), count: count(r => monthKey(r.sortDate) === k) }));
+    }
+    if (slice === 'events') {
+      const today = new Date().toISOString().slice(0, 10);
+      const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      return [
+        { key: 'week', label: 'this week', count: count(r => (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming') },
+        { key: 'later', label: 'later', count: count(r => (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming') },
+        { key: 'done', label: 'done', count: count(r => (r.badge ?? '') === 'done') },
+      ];
+    }
+    return [];
+  }, [slice, rawRows]);
+
+  const passesFilter = (r: Row): boolean => {
+    if (!filterKey) return true;
+    if (slice === 'leads') return (r.badge ?? '').toLowerCase() === filterKey;
+    if (slice === 'invoices') return filterKey === 'overdue' ? !!r.badgeAlert : (r.badge ?? '').toLowerCase().replace(' ', '_') === filterKey;
+    if (slice === 'expenses') return monthKey(r.sortDate) === filterKey;
+    if (slice === 'events') {
+      const today = new Date().toISOString().slice(0, 10);
+      const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      if (filterKey === 'week') return (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming';
+      if (filterKey === 'later') return (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming';
+      return (r.badge ?? '') === 'done';
+    }
+    return true;
+  };
+
   const rows = useMemo(() => {
     // TDW_04 A2: optimistic layer — deferred deletes hide rows now; deferred
     // state moves override the badge now; UNDO reverts both (lib/vendor/undo).
     let out = rawRows.filter(r => !hiddenIds.has(r.id)).map(r => badgeOverride[r.id] ? { ...r, badge: badgeOverride[r.id], badgeAlert: badgeOverride[r.id] === 'lost' } : r);
+    out = out.filter(passesFilter); // TDW_04 A4: the rail's single-select
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       out = out.filter(r => r.primary.toLowerCase().includes(q)||(r.secondary??'').toLowerCase().includes(q)||(r.meta??'').toLowerCase().includes(q));
     }
+    // TDW_04 A4 (P4): sort toggle — recent (wire order) · amount · date.
+    if (sortKey === 'amount') out = [...out].sort((a, b) => (b.payAmount ?? b.pipelineValue ?? 0) - (a.payAmount ?? a.pipelineValue ?? 0));
+    else if (sortKey === 'date') out = [...out].sort((a, b) => (a.sortDate ?? '9999') < (b.sortDate ?? '9999') ? -1 : 1);
     return out;
-  }, [rawRows, query, hiddenIds, badgeOverride]);
+  }, [rawRows, query, hiddenIds, badgeOverride, filterKey, sortKey, slice]);
+
+  // TDW_04 A4 (F-04.14, CE-RATIFIED — returns ruled after the A3.2 revert):
+  // slice→slice navigation REMOUNTS (A2's verdict), so the optimistic badge
+  // reverted while its write sat in the 30s window — read as data loss.
+  // Leaving the screen COMMITS what's pending: the undo window is a courtesy
+  // for the moment you're looking at the row, not a vote to discard the write.
+  useEffect(() => () => { flushAllPending(); }, []);
 
   // Fetch lead detail when a lead row is selected
   useEffect(() => {
@@ -835,6 +904,16 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       onSelect={(row) => { setSel(row); setConfirmDel(false); }}
       renderRow={renderRow}
       masthead={masthead}
+      filterRail={<FilterRail slice={slice} chips={filterChips} active={filterKey} onSelect={setFilterKey} />}
+      sortControl={filterChips.length > 0 || slice === 'clients' ? (
+        <button type="button"
+          onClick={() => setSortKey(k => k === 'recent' ? 'amount' : k === 'amount' ? 'date' : 'recent')}
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 0',
+            fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.22em',
+            textTransform: 'uppercase', color: A.inkMute, whiteSpace: 'nowrap',
+          }}>{sortKey} ⌄</button>
+      ) : undefined}
       onAdd={onAdd}
     >
       <Toast toast={toast} />

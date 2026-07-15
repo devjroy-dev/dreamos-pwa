@@ -141,12 +141,33 @@ function normalisePhone(v: string): string {
   return v.trim() || '';
 }
 
+// TDW_04 A4 (P5's AddSheet rebuild, draft-first): a create opens with ONLY the
+// essential field(s); everything else lives behind "All details ↓". On success
+// the sheet STAYS: the missing fields appear as chips beneath a hairline — fill
+// any inline, or Done. Closing with gaps toasts "Filed — N details pending".
+// The vendor files the moment they have a name; the form stops being a toll.
+const ESSENTIAL: Record<ListSlice, string[]> = {
+  leads:    ['name'],
+  clients:  ['name'],
+  invoices: ['client_name', 'amount_total'],
+  expenses: ['amount'],
+  events:   ['title'],
+};
+
 export function AddSheet({ open, slice, onClose, onToast, existing, existingId }: Props) {
   const router = useRouter();
   const schema = SCHEMAS[slice];
   const isEdit = !!existing && !!existingId;
 
   const [values, setValues] = useState<Record<string, string>>({});
+  // TDW_04 A4 draft-first state: phase 'form' (essential-or-all) → 'chips'
+  // (created; gaps offered). Edit mode always shows the full form (unchanged).
+  const [showAll, setShowAll] = useState(false);
+  const [phase, setPhase] = useState<'form' | 'chips'>('form');
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [chipField, setChipField] = useState<string | null>(null);
+  const [chipSaving, setChipSaving] = useState(false);
+  const missingKeys = schema.fields.filter(f => !ESSENTIAL[slice].includes(f.key) && !values[f.key]?.trim()).map(f => f.key);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const isDirty = useRef(false);
@@ -163,6 +184,10 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
     }
     setErrors({});
     setSubmitting(false);
+    setShowAll(false);
+    setPhase('form');
+    setCreatedId(null);
+    setChipField(null);
     isDirty.current = false;
     if (existing && Object.keys(existing).length > 1) {
       // existing has real data (more than just {id})
@@ -190,8 +215,11 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
-    for (const f of schema.fields) {
-      if (f.required && !values[f.key]?.trim()) errs[f.key] = 'Required';
+    // Draft-first: a create only gates on the fields the vendor can SEE
+    // (essential set, or everything when expanded). Edit gates as before.
+    const gate = isEdit || showAll ? schema.fields : schema.fields.filter(f => ESSENTIAL[slice].includes(f.key));
+    for (const f of gate) {
+      if ((f.required || ESSENTIAL[slice].includes(f.key)) && !values[f.key]?.trim()) errs[f.key] = 'Required';
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -281,9 +309,17 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
       }
 
       invalidateSlice(slice);
-      const label = { leads: 'Lead', clients: 'Client', invoices: 'Invoice', expenses: 'Expense', events: 'Event' }[slice];
-      onToast(`${label} ${isEdit ? 'updated' : 'added'}`, 'success');
-      onClose();
+      if (isEdit) {
+        onToast('Updated.', 'success');
+        onClose();
+      } else {
+        // TDW_04 A4 draft-first: the sheet STAYS — the row already exists; the
+        // gaps become chips. Fill any, or Done.
+        const rec = result as unknown as { lead?: { id: string }; client?: { id: string }; invoice?: { id: string }; expense?: { id: string }; event?: { id: string } };
+        const newId = rec.lead?.id ?? rec.client?.id ?? rec.invoice?.id ?? rec.expense?.id ?? rec.event?.id ?? null;
+        setCreatedId(newId);
+        setPhase('chips');
+      }
     } catch {
       onToast('Network error. Try again.', 'error');
     } finally {
@@ -291,12 +327,39 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
     }
   }
 
+  async function saveChip(key: string) {
+    if (!createdId || chipSaving) return;
+    const val = values[key]?.trim();
+    if (!val) { setChipField(null); return; }
+    setChipSaving(true);
+    try {
+      const body: Record<string, unknown> = { [key]: key === 'phone' ? normalisePhone(val) : val };
+      let r: { ok: boolean; error?: string } | undefined;
+      if (slice === 'leads') r = await updateLead(createdId, body as UpdateLeadRequest);
+      else if (slice === 'clients') r = await updateClient(createdId, body as UpdateClientRequest);
+      else if (slice === 'invoices') r = await updateInvoice(createdId, body as UpdateInvoiceRequest);
+      else if (slice === 'expenses') r = await updateExpense(createdId, body as UpdateExpenseRequest);
+      else r = await updateEvent(createdId, body as UpdateEventRequest);
+      if (!r?.ok) { onToast(r?.error ?? 'Could not save that.', 'error'); return; }
+      invalidateSlice(slice);
+      setChipField(null);
+    } catch { onToast('Network error. Try again.', 'error'); }
+    finally { setChipSaving(false); }
+  }
+
+  function finishDraft() {
+    const n = missingKeys.length;
+    onToast(n === 0 ? 'Filed.' : n === 1 ? 'Filed — 1 detail pending' : `Filed — ${n} details pending`, 'success');
+    onClose();
+  }
+
   function goToChat() {
     onClose();
     router.push(`/wedding?aiPrimer=${encodeURIComponent(ADD_PRIMERS[slice])}`);
   }
 
-  const requiredMet = schema.fields.filter(f => f.required).every(f => values[f.key]?.trim());
+  const gateFields = isEdit || showAll ? schema.fields : schema.fields.filter(f => ESSENTIAL[slice].includes(f.key));
+  const requiredMet = gateFields.filter(f => f.required || ESSENTIAL[slice].includes(f.key)).every(f => values[f.key]?.trim());
 
   return (
     <>
@@ -338,7 +401,16 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
 
         {/* Fields */}
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {schema.fields.map((f, idx) => (
+          {/* TDW_04 A4 draft-first: create shows the essential field(s); "All
+              details ↓" reveals the rest; edit unchanged. In the chips phase
+              only the tapped chip's field renders. */}
+          {schema.fields
+            .filter(f => {
+              if (phase === 'chips') return f.key === chipField;
+              if (isEdit || showAll) return true;
+              return ESSENTIAL[slice].includes(f.key);
+            })
+            .map((f, idx) => (
             <div key={f.key}>
               <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: errors[f.key] ? D.red : D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
                 {f.label}{f.required && <span style={{ color: D.gold }}> *</span>}
@@ -374,24 +446,65 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
               )}
             </div>
           ))}
+
+          {/* TDW_04 A4: "All details ↓" — the expander for control-minded vendors */}
+          {!isEdit && phase === 'form' && (
+            <button type="button" onClick={() => setShowAll(v => !v)} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted,
+              letterSpacing: '0.22em', textTransform: 'uppercase', textAlign: 'left',
+            }}>{showAll ? 'Fewer details ↑' : 'All details ↓'}</button>
+          )}
+
+          {/* TDW_04 A4: the chips phase — filed; the gaps offered, never demanded */}
+          {phase === 'chips' && (
+            <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 14 }}>
+              <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: D.muted, marginBottom: 10 }}>
+                Filed. Anything else while it&rsquo;s open?
+              </div>
+              {missingKeys.length > 0 && !chipField && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {missingKeys.map(k => {
+                    const f = schema.fields.find(x => x.key === k)!;
+                    return (
+                      <button key={k} type="button" onClick={() => setChipField(k)} style={{
+                        padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
+                        border: `0.5px solid ${D.border}`, background: 'transparent',
+                        fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                        letterSpacing: '0.18em', textTransform: 'uppercase', color: D.gold,
+                      }}>+ {f.label}</button>
+                    );
+                  })}
+                </div>
+              )}
+              {chipField && (
+                <button type="button" disabled={chipSaving} onClick={() => { void saveChip(chipField); }} style={{
+                  marginTop: 8, padding: '9px 16px', borderRadius: 999, cursor: chipSaving ? 'default' : 'pointer',
+                  border: 'none', background: D.gold, opacity: chipSaving ? 0.6 : 1,
+                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#111',
+                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                }}>{chipSaving ? 'Saving…' : 'Save detail'}</button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Submit */}
         <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${D.border}` }}>
           <button
             type="button"
-            onClick={submit}
-            disabled={submitting || !requiredMet}
+            onClick={phase === 'chips' ? finishDraft : submit}
+            disabled={phase === 'chips' ? false : (submitting || !requiredMet)}
             style={{
               width: '100%', padding: '14px 0',
-              backgroundColor: submitting || !requiredMet ? 'var(--atelier-input-border)' : D.gold,
-              border: 'none', borderRadius: 999, cursor: submitting || !requiredMet ? 'default' : 'pointer',
+              backgroundColor: phase === 'chips' ? D.gold : submitting || !requiredMet ? 'var(--atelier-input-border)' : D.gold,
+              border: 'none', borderRadius: 999, cursor: phase === 'chips' ? 'pointer' : submitting || !requiredMet ? 'default' : 'pointer',
               fontFamily: F.label, fontWeight: 400, fontSize: 10,
               color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',
               transition: 'background-color 200ms',
             }}
           >
-            {submitting ? 'Working…' : isEdit ? 'Save changes' : schema.submit}
+            {phase === 'chips' ? 'Done' : submitting ? 'Working…' : isEdit ? 'Save changes' : schema.submit}
           </button>
         </div>
       </div>

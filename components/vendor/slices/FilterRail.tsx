@@ -1,9 +1,7 @@
 'use client';
-// components/vendor/slices/FilterRail.tsx — TDW_03 P1 skeleton
-// Sticky filter chips under search. UNMOUNTED at P1 — P4 mounts this with
-// the per-slice chip sets (leads state segments w/ counts, invoice states,
-// expense month chips, event windows, client manifest columns). Single-select,
-// tap again to clear. Created at P1 so the spec's tree exists in one cut.
+// components/vendor/slices/FilterRail.tsx — TDW_04 A4 (P4's rail, built).
+// Sticky chips under search. Per-slice sets (owner supplies chips+counts);
+// single-select; tap the active chip again to clear. Pure presentational.
 
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 
@@ -16,6 +14,30 @@ export interface FilterRailProps {
   onSelect: (key: string | null) => void;
 }
 
-export function FilterRail(_props: FilterRailProps) {
-  return null; // P4 builds the rail
+const F = { label: 'var(--font-jost), system-ui, sans-serif' };
+
+export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
+  if (!chips.length) return null;
+  return (
+    <div style={{
+      display: 'flex', gap: 6, overflowX: 'auto', padding: '2px 22px 10px',
+      scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
+    }}>
+      {chips.map(c => {
+        const on = active === c.key;
+        return (
+          <button key={c.key} type="button" onClick={() => onSelect(on ? null : c.key)} style={{
+            flexShrink: 0, padding: '6px 11px', borderRadius: 999, cursor: 'pointer',
+            border: `0.5px solid ${on ? 'var(--atelier-brass, #C9A84C)' : 'var(--atelier-card-border)'}`,
+            background: on ? 'rgba(201,168,76,0.12)' : 'transparent',
+            fontFamily: F.label, fontWeight: on ? 400 : 300, fontSize: 9,
+            letterSpacing: '0.18em', textTransform: 'uppercase',
+            color: on ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute, #8a8578)',
+          }}>
+            {c.label}{c.count != null ? ` · ${c.count}` : ''}
+          </button>
+        );
+      })}
+    </div>
+  );
 }

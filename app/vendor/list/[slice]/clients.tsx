@@ -76,7 +76,7 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
               {query
                 ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
                 : <>Your client stories live here.<br/>
-                    <span style={{ color: A.brassWarm }}>Tell Victor about a client — even just a name — and a binder opens.</span></>}
+                    <span style={{ color: A.brassWarm }}>Tell your assistant about a client — even just a name — and a binder opens.</span></>}
             </div>
           )}
           {binders.map(b => (

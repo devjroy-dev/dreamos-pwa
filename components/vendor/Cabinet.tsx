@@ -16,6 +16,7 @@ import {
 // TDW_03 P2: money math + tones now live in lib/vendor/cabinet.ts — one truth,
 // two consumers (this Hub sheet + the Clients slice binder cards). Do not fork.
 import { fmtINR, primaryAmount, moneyOf, BADGE, type MoneyState } from '@/lib/vendor/cabinet';
+import { pendingOf } from '@/lib/vendor/derive'; // TDW_04 A4 (L-10): the money oracle
 
 type Skin = 'workbench' | 'cards' | 'accounts';
 const SKIN_KEY = 'dreamwedding_cabinet_skin';
@@ -311,11 +312,13 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
     .flatMap((c) => c.records)
     .filter((r): r is BinderRec => r._t === 'binder');
   const totalIn  = allBinders.reduce((s, r) => s + (r.amount_received ?? 0), 0);
-  const totalDue = allBinders.reduce((s, r) => {
-    const recv = r.amount_received ?? 0;
-    const pend = r.amount_pending != null ? Math.max(r.amount_pending, 0) : Math.max((r.amount ?? 0) - recv, 0);
-    return s + pend;
-  }, 0);
+  // TDW_04 A4 (L-10/ST-7 executed): the drawer's OUTSTANDING rides the canon —
+  // derive.ts::pendingOf(), the ruled F-04.13 rule. This inline arithmetic was
+  // the LAST independent money computation in the product (and, historical
+  // credit: the one surface that was RIGHT while the slices undercounted —
+  // its inference became the ruled rule). It dies anyway: right twice by two
+  // rules is still two rules; one oracle, every renderer a consumer.
+  const totalDue = allBinders.reduce((s, r) => s + pendingOf(r as unknown as Parameters<typeof pendingOf>[0]), 0);
   const showMoneyHead = totalIn > 0 || totalDue > 0;
 
   return (
