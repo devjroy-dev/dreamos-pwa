@@ -40,6 +40,14 @@ export function Toast({ toast }: { toast: ToastState | null }) {
       }}>
         {toast.message}
       </span>
+      {toast.action && (
+        <button type="button" onClick={toast.action.onAction} style={{
+          background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px 4px',
+          fontFamily: F.label, fontWeight: 500, fontSize: 12, letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: T.isLight && !isErr ? T.accent : '#E0BC6E',
+        }}>{toast.action.label}</button>
+      )}
       <style>{`@keyframes toastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}`}</style>
     </div>
   );

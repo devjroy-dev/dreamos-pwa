@@ -492,6 +492,26 @@ export function createLead(body: CreateLeadRequest): Promise<CreateLeadResponse 
   return postJson<CreateLeadResponse>('/api/v2/vendor/leads', body);
 }
 
+// TDW_04 A2 (L-2, F-04.2's cure): the REAL soft-delete door — removes the
+// snapshot line server-side. The masquerade (PATCH state:'lost' as "delete")
+// is dead; every delete caller routes here.
+export function deleteLead(leadId: string): Promise<{ ok: boolean; deleted?: { id: string }; error?: string }> {
+  return deleteJson(`/api/v2/vendor/leads/${leadId}`);
+}
+
+// TDW_04 A2: binder hide/unarchive — the honest undo pair (a REAL reversal
+// door exists, so hide commits immediately and UNDO calls /unarchive).
+export function hideBinder(binderId: string): Promise<BinderWriteResponse> {
+  const v = currentVendorId();
+  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session — please sign in again.' });
+  return postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/hide`, {});
+}
+export function unarchiveBinder(binderId: string): Promise<BinderWriteResponse> {
+  const v = currentVendorId();
+  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session — please sign in again.' });
+  return postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/unarchive`, {});
+}
+
 export function updateLead(leadId: string, body: UpdateLeadRequest): Promise<UpdateLeadResponse | ApiErr> {
   // TDW_03 (A): typed door — PATCH /leads/:id, native fields, {ok, lead} back.
   // This is also P3's complete_inline target; one door, both callers.

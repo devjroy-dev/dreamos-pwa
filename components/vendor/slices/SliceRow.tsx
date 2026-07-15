@@ -65,6 +65,8 @@ export interface Row {
   /** TDW_04 A1: the lead's wishbone wire (missing cells) — the detail sheet
       renders tappable chips into the WishboneSheet when present. */
   draftMissing?: string[];
+  /** TDW_04 A2: invoices stash — the outstanding amount the mark-paid swipe pays. */
+  payAmount?: number;
 }
 
 export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : `Rs ${n.toLocaleString('en-IN')}`; }

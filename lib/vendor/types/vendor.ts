@@ -468,6 +468,7 @@ export interface Lead {
   source:                  string | null;
   referrer:                string | null;
   raw_message:             string | null;
+  notes?:                  string | null; // TDW_04 A2 (F-04.7): on the wire for the read-row
   created_at:              string;
   // TDW_04 A1: the P3 wishbone wire, typed to leadDraftWire's exact shape
   // (leads.js, verified at HEAD 5773888). Present only while cells are missing;

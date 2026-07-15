@@ -77,7 +77,7 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
               key={b.id}
               binder={b}
               onChanged={cab.refresh}
-              onToast={(msg, kind) => showToast(msg, kind)}
+              onToast={(msg, kind, opts) => showToast(msg, kind, opts)}
               crossLead={(() => { const k = phoneKey(b.phone); return k ? leadByPhone.get(k) : undefined; })()}
             />
           ))}

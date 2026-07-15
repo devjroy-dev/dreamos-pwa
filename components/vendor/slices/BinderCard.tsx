@@ -15,6 +15,8 @@ import { useRouter } from 'next/navigation';
 import type { CabinetBinder, BinderEditFields } from '@/lib/vendor/api/vendor';
 import { editBinder } from '@/lib/vendor/api/vendor';
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: the chips' tap target
+import { SwipeRow } from './SwipeRow'; // TDW_04 A2: clients swipes (Ask Victor / Call)
+import { hideBinder, unarchiveBinder } from '@/lib/vendor/api/vendor'; // TDW_04 A2: the honest undo pair
 import {
   amountWordsAdjacent, fmtINR, moneyOf, noteTimeline, primaryAmount,
   relativeTouch, stageTone, type StageTone,
@@ -120,7 +122,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
 export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   binder: CabinetBinder;
   onChanged: () => void;
-  onToast: (msg: string, kind?: 'success' | 'error') => void;
+  onToast: (msg: string, kind?: 'success' | 'error', opts?: { action?: { label: string; onAction: () => void }; durationMs?: number }) => void; // TDW_04 A2: undo rides through
   /** R1(b), CE-ruled: display-only — the typed plane also knows this person.
       Reads, never writes; absence means "no phone match", never "no twin". */
   crossLead?: { state: string };
@@ -129,6 +131,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
+  const [hideConfirm, setHideConfirm] = useState(false);   // TDW_04 A2: hide w/ real-door undo
 
   const { recv, pend } = moneyOf(binder);
   const amt = primaryAmount(binder);
@@ -151,8 +154,30 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
     router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
   }
 
+  // TDW_04 A2 — the approved swipe table, clients row: right = Ask Victor
+  // (prefill-not-fire), left = Call (only when a phone stands). Both
+  // non-destructive; no confirm needed.
+  const swipeRight = { label: 'Ask Victor', onTrigger: askVictor };
+  const swipeLeft = binder.phone ? { label: 'Call', onTrigger: () => { window.location.href = `tel:${binder.phone}`; } } : undefined;
+
+  // TDW_04 A2 — Hide: the clients destructive action (TDW_03 residue: "/hide
+  // door ready"). Commits IMMEDIATELY and wires UNDO to the REAL /unarchive
+  // door — the one place the undo toast rides an honest reversal door rather
+  // than deferred fire.
+  async function hide() {
+    setHideConfirm(false); setOpen(false);
+    const res = await hideBinder(binder.id);
+    if (!res.ok) { onToast(res.error || 'Could not hide.', 'error'); return; }
+    onChanged();
+    onToast(`${binder.client ?? 'Binder'} hidden.`, 'success', {
+      action: { label: 'Undo', onAction: async () => { const r = await unarchiveBinder(binder.id); if (r.ok) { onChanged(); onToast('Restored.', 'success'); } else onToast(r.error || 'Could not restore.', 'error'); } },
+      durationMs: 30000,
+    });
+  }
+
   return (
     <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+      <SwipeRow right={swipeRight} left={swipeLeft}>
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} style={{
         width: '100%', display: 'block', textAlign: 'left',
         padding: '16px 22px 14px', background: 'transparent', border: 'none', cursor: 'pointer',
@@ -241,6 +266,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           </div>
         )}
       </button>
+      </SwipeRow>
 
       {/* Expand — the story timeline + actions */}
       {open && (
@@ -272,6 +298,21 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
               letterSpacing: '0.32em', textTransform: 'uppercase',
             }}>Edit</button>
+            {!hideConfirm ? (
+              <button type="button" onClick={() => setHideConfirm(true)} style={{
+                padding: '11px 14px', background: 'transparent',
+                border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
+                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute, #8a8578)',
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+              }}>Hide</button>
+            ) : (
+              <button type="button" onClick={() => { void hide(); }} style={{
+                padding: '11px 14px', background: 'transparent',
+                border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#E07070',
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+              }}>Sure?</button>
+            )}
           </div>
         </div>
       )}
@@ -297,7 +338,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             const fields: BinderEditFields = { [cell]: value };
             const res = await editBinder(binder.id, fields);
             if (!res.ok) return res.error || 'Could not file it — try again.';
-            onToast(res.message ?? 'Filed.', 'success');
+            onToast('Filed.', 'success'); // F-04.5 (CE-ruled): human words at the boundary — the door's raw reply (record UUID aboard) stays in the ledger, not the toast
             onChanged();
             return null;
           }}

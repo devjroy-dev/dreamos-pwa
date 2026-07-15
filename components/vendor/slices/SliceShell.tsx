@@ -21,7 +21,10 @@ import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
-import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead } from '@/lib/vendor/api/vendor';
+import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
+import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gesture engine
+import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
+import { queueUndoable, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
@@ -124,10 +127,12 @@ interface SliceShellProps {
       block (the clients slice supplies binder cards + its own empty state).
       Other slices untouched. */
   renderList?: ReactNode;
+  /** TDW_04 A2: per-row decorator (swipe + selection) — default plain SliceRow. */
+  renderRow?: (row: Row) => ReactNode;
   children?: ReactNode;
 }
 
-export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, children }: SliceShellProps) {
+export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
       <Header vendorName={vendorName} />
@@ -183,7 +188,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
                   : <>Nothing here yet.<br/><span style={{ color: A.brassWarm }}>Tap the + to add one.</span></>}
               </div>
             )}
-            {rows.map(row => <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
+            {rows.map(row => renderRow ? <div key={row.id}>{renderRow(row)}</div> : <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
           </>
         )}
       </div>
@@ -249,7 +254,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [scheduleSaving,  setScheduleSaving]  = useState(false);
   const [addOpen,     setAddOpen]     = useState(false);
   const [editRow,     setEditRow]     = useState<Record<string,unknown> | null>(null);
-  const { toast, show: showToast }   = useToast();
+  const { toast, show: showToast, dismiss: dismissToast } = useToast();
   const [pdfBusy, setPdfBusy] = useState(false);
   const [leadDetail, setLeadDetail] = useState<{ vendor_summary: string | null; conversation: ConversationMessage[] } | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -295,11 +300,39 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     setPdfBusy(false);
   }
 
+  // TDW_04 A2 — interaction state: long-press select mode, optimistic hides
+  // (deferred deletes), optimistic badge overrides (deferred state moves),
+  // and the leads-only Mark-lost confirm (L-2's deliberate separate action).
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const selectMode = selected.size > 0;
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [badgeOverride, setBadgeOverride] = useState<Record<string, string>>({});
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [markLostConfirm, setMarkLostConfirm] = useState(false);
+  const longPress = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hideRow = (id: string) => setHiddenIds(s => new Set(s).add(id));
+  const unhideRow = (id: string) => setHiddenIds(s => { const n = new Set(s); n.delete(id); return n; });
+  const setBadge = (id: string, b: string | null) => setBadgeOverride(m => { const n = { ...m }; if (b == null) delete n[id]; else n[id] = b; return n; });
+
+  // One undoable single-row mutation: optimistic apply now, write on the 30s
+  // lapse, UNDO reverts (deferred-fire — see lib/vendor/undo.ts for why).
+  function undoableMutation(opts: { apply: () => void; revert: () => void; commit: () => Promise<void>; toastMsg: string }) {
+    opts.apply();
+    const { undo } = queueUndoable({ slice, commit: opts.commit, revert: opts.revert });
+    showToast(opts.toastMsg, 'success', { action: { label: 'Undo', onAction: () => { undo(); dismissToast(); } }, durationMs: UNDO_WINDOW_MS });
+  }
+
   const rows = useMemo(() => {
-    if (!query.trim()) return rawRows;
-    const q = query.trim().toLowerCase();
-    return rawRows.filter(r => r.primary.toLowerCase().includes(q)||(r.secondary??'').toLowerCase().includes(q)||(r.meta??'').toLowerCase().includes(q));
-  }, [rawRows, query]);
+    // TDW_04 A2: optimistic layer — deferred deletes hide rows now; deferred
+    // state moves override the badge now; UNDO reverts both (lib/vendor/undo).
+    let out = rawRows.filter(r => !hiddenIds.has(r.id)).map(r => badgeOverride[r.id] ? { ...r, badge: badgeOverride[r.id], badgeAlert: badgeOverride[r.id] === 'lost' } : r);
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      out = out.filter(r => r.primary.toLowerCase().includes(q)||(r.secondary??'').toLowerCase().includes(q)||(r.meta??'').toLowerCase().includes(q));
+    }
+    return out;
+  }, [rawRows, query, hiddenIds, badgeOverride]);
 
   // Fetch lead detail when a lead row is selected
   useEffect(() => {
@@ -317,6 +350,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // via the invalidation bus (the F2 lesson).
   const [wishboneRow, setWishboneRow] = useState<Row | null>(null);
 
+
   function onEditHere(row: Row) {
     setSel(null);
     let raw: Record<string,unknown> | null = null;
@@ -327,19 +361,160 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   }
   function onAdd() { setEditRow(null); setAddOpen(true); }
 
-  async function confirmDelete() {
+  // TDW_04 A2 (F2's cure): the destructive confirm is now OPTIMISTIC — the row
+  // hides at once, the sheet closes, and the write fires when the 30s undo
+  // window lapses (deferred-fire; see lib/vendor/undo.ts). UNDO restores the
+  // row and no write ever happens. On commit failure the bus refetch restores
+  // truth and an error toast says so.
+  function confirmDelete() {
     if (!sel || deleting) return;
-    setDeleting(true);
-    try {
-      const req = deleteRequest(sel);
-      if (req === 'unsupported') { setDeleteMsg("Can't delete from here yet. Use the chat."); setDeleting(false); return; }
+    const row = sel;
+    const req = deleteRequest(row);
+    if (req === 'unsupported') { setDeleteMsg("Can't delete from here yet. Use the chat."); return; }
+    setSel(null); setConfirmDel(false); setDeleteMsg(null);
+    undoableMutation({
+      apply:  () => hideRow(row.id),
+      revert: () => unhideRow(row.id),
+      commit: async () => {
+        const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
+        const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
+        if (!res.ok || !data.ok) { unhideRow(row.id); showToast(data.error ?? 'Delete failed — the row is back.', 'error'); }
+      },
+      toastMsg: req.successMessage ?? 'Removed.',
+    });
+  }
 
-      const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
-      const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
-      if (!res.ok || !data.ok) setDeleteMsg(data.error ?? 'Something went wrong. Try again.');
-      else { setDeleteMsg(req.successMessage ?? data.message ?? 'Done.'); setTimeout(() => { setSel(null); setConfirmDel(false); setDeleteMsg(null); }, 1200); }
-    } catch { setDeleteMsg('Network error. Try again.'); }
-    finally { setDeleting(false); }
+  // TDW_04 A2 (L-2): Mark lost — the deliberate, SEPARATE action with its own
+  // confirm. State move, not a delete; deferred-fire + undo like every mutation.
+  function markLost(row: Row) {
+    setMarkLostConfirm(false);
+    setSel(null);
+    const prevBadge = row.badge ?? 'new';
+    undoableMutation({
+      apply:  () => setBadge(row.id, 'lost'),
+      revert: () => setBadge(row.id, null),
+      commit: async () => {
+        const res = await patchLeadState(row.id, 'lost');
+        setBadge(row.id, null); // bus refetch takes over as truth
+        if (!('ok' in res) || !res.ok) showToast(`Could not mark ${row.primary} lost — still ${prevBadge}.`, 'error');
+      },
+      toastMsg: `${row.primary} marked lost.`,
+    });
+  }
+
+
+  // ── TDW_04 A2: the approved swipe table per slice (TDW_03 P4, absorbed) ──
+  // leads R: state→booked · leads L: Call if phone else Mark lost (confirm)
+  // invoices R: mark fully paid (payments door) · L: cancel (existing confirm)
+  // expenses R: repeat last (A4's AddSheet rebuild owns the prefill — deferred,
+  //   logged) · L: delete (existing confirm)
+  // events R: state→done · L: cancel (existing confirm)
+  // Non-destructive moves are deferred-fire + undo; destructive gestures open
+  // the standing confirm sheet (whose confirm is itself undoable now).
+  function swipeSidesFor(row: Row): { right?: SwipeSide; left?: SwipeSide } {
+    if (slice === 'leads') return {
+      right: { label: 'Booked', onTrigger: () => undoableMutation({
+        apply: () => setBadge(row.id, 'booked'), revert: () => setBadge(row.id, null),
+        commit: async () => { const r = await patchLeadState(row.id, 'booked'); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Could not book ${row.primary}.`, 'error'); },
+        toastMsg: `${row.primary} → booked.` }) },
+      left: row.phone
+        ? { label: 'Call', onTrigger: () => { window.location.href = `tel:${row.phone}`; } }
+        : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
+    };
+    if (slice === 'invoices') return {
+      right: { label: 'Mark paid', onTrigger: () => {
+        const owed = row.payAmount ?? 0;
+        if (owed <= 0) { showToast('Already settled.', 'success'); return; }
+        undoableMutation({
+          apply: () => setBadge(row.id, 'paid'), revert: () => setBadge(row.id, null),
+          commit: async () => { const r = await recordPayment(row.id, { amount: owed }); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); },
+          toastMsg: `${row.secondary ?? row.primary} marked fully paid.` });
+      } },
+      left: { label: 'Cancel', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
+    };
+    if (slice === 'expenses') return {
+      right: { label: 'Repeat', onTrigger: () => showToast('Repeat-last lands with the AddSheet rebuild (A4).', 'success') },
+      left: { label: 'Delete', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
+    };
+    if (slice === 'events') return {
+      // P4 backend-note law: the events PATCH allowlist has NO `state`
+      // (EDITABLE = title/date/time/kind/notes, verified at HEAD) — "mark
+      // done" is stubbed honest, gap logged as F-04.8 for the 10-minute
+      // backend rider on founder approval. Cancel has its real door.
+      right: { label: 'Done', onTrigger: () => showToast('Mark-done needs its door — logged for the backend rider.', 'success') },
+      left: { label: 'Cancel', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
+    };
+    return {};
+  }
+
+  // Long-press (500ms) enters select mode; taps toggle while selecting.
+  // The RELEASE of a long-press also synthesizes a click — which would toggle
+  // the fresh selection straight back off. Suppress that one click.
+  const longPressFired = useRef(false);
+  function rowPressHandlers(row: Row) {
+    return {
+      onPointerDown: () => { longPress.current = setTimeout(() => { longPressFired.current = true; setSelected(s => new Set(s).add(row.id)); }, 500); },
+      onPointerUp:   () => { if (longPress.current) clearTimeout(longPress.current); },
+      onPointerMove: () => { if (longPress.current) clearTimeout(longPress.current); },
+      onPointerCancel: () => { if (longPress.current) clearTimeout(longPress.current); },
+      onClickCapture: (e: React.MouseEvent) => { if (longPressFired.current) { longPressFired.current = false; e.preventDefault(); e.stopPropagation(); } },
+    };
+  }
+  function toggleSelected(row: Row) {
+    setSelected(s => { const n = new Set(s); if (n.has(row.id)) n.delete(row.id); else n.add(row.id); return n; });
+  }
+
+  const renderRow = (row: Row) => (
+    <div {...rowPressHandlers(row)} style={{ position: 'relative' }}>
+      {selectMode && (
+        <span aria-hidden style={{
+          position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
+          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-brass, #C9A84C)',
+          background: selected.has(row.id) ? 'var(--atelier-brass, #C9A84C)' : 'transparent',
+        }} />
+      )}
+      <div style={selectMode ? { paddingLeft: 18 } : undefined}>
+        <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
+          <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row) : (setSel(row), setConfirmDel(false))} />
+        </SwipeRow>
+      </div>
+    </div>
+  );
+
+  // ── TDW_04 A2: bulk (P4-verbatim): sequential calls, per-row result,
+  //    `n done · m failed (retry)` summary; retry re-runs the failures. Bulk
+  //    commits immediately (the spec's own summary grammar), single-row
+  //    mutations carry the undo window.
+  const bulkActions: BulkAction[] =
+    slice === 'leads'    ? [{ key: 'contacted', label: 'Mark contacted' }, { key: 'lose', label: 'Lose', destructive: true }]
+    : slice === 'invoices' ? [{ key: 'paid', label: 'Mark paid' }]
+    : slice === 'expenses' ? [{ key: 'delete', label: 'Delete', destructive: true }]
+    : slice === 'events'   ? [] /* F-04.8: mark-done bulk returns with its door */
+    : [];
+
+  async function runBulk(key: string, ids?: string[]) {
+    const targets = ids ?? Array.from(selected);
+    if (!targets.length) return;
+    setBulkBusy(true);
+    const failed: string[] = [];
+    for (const id of targets) {
+      const row = rawRows.find(r => r.id === id);
+      try {
+        let ok = false;
+        if (slice === 'leads' && key === 'contacted') { const r = await patchLeadState(id, 'contacted'); ok = 'ok' in r && r.ok; }
+        else if (slice === 'leads' && key === 'lose') { const r = await patchLeadState(id, 'lost'); ok = 'ok' in r && r.ok; }
+        else if (slice === 'invoices' && key === 'paid') { const owed = row?.payAmount ?? 0; if (owed <= 0) { ok = true; } else { const r = await recordPayment(id, { amount: owed }); ok = 'ok' in r && r.ok; } }
+        else if (slice === 'expenses' && key === 'delete') { const r = await deleteExpense(id); ok = 'ok' in r && r.ok === true; }
+        else if (slice === 'events' && key === 'done') { ok = false; /* F-04.8: no state door — bulk fails honestly into the retry set */ }
+        if (!ok) failed.push(id);
+      } catch { failed.push(id); }
+    }
+    setBulkBusy(false);
+    setSelected(new Set(failed));
+    invalidateSlice(slice);
+    const done = targets.length - failed.length;
+    if (failed.length) showToast(`${done} done · ${failed.length} failed`, 'error', { action: { label: 'Retry', onAction: () => { void runBulk(key, failed); } }, durationMs: 8000 });
+    else showToast(`${done} done.`, 'success');
   }
 
   // Per-slice detail extras — verbatim from the monofile; P2/P4/P5 migrate
@@ -476,8 +651,37 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   );
 
   // Per-slice footer extras — leads WhatsApp/Call row, verbatim
+  // TDW_04 A2 (L-2): the deliberate Mark-lost block for the leads detail sheet.
+  const markLostBlock = slice === 'leads' && sel && sel.badge !== 'lost' ? (
+    <div style={{ marginBottom: 10 }}>
+      {!markLostConfirm ? (
+        <button type="button" onClick={() => setMarkLostConfirm(true)} style={{
+          width: '100%', padding: '11px 14px', background: 'transparent',
+          border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
+          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute, #8a8578)',
+          letterSpacing: '0.32em', textTransform: 'uppercase',
+        }}>Mark lost</button>
+      ) : (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={() => sel && markLost(sel)} style={{
+            flex: 1, padding: '11px 14px', background: 'transparent',
+            border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
+            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#E07070',
+            letterSpacing: '0.32em', textTransform: 'uppercase',
+          }}>Yes — mark {sel?.primary} lost</button>
+          <button type="button" onClick={() => setMarkLostConfirm(false)} style={{
+            padding: '11px 14px', background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)',
+            borderRadius: 2, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
+            color: 'var(--atelier-ink-mute, #8a8578)', letterSpacing: '0.32em', textTransform: 'uppercase',
+          }}>Keep</button>
+        </div>
+      )}
+    </div>
+  ) : null;
+
   const footerExtra = (
     <>
+      {!confirmDel && markLostBlock}
       {slice === 'leads' && sel?.phone && !confirmDel && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
           <a href={`https://wa.me/${sel.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
@@ -518,6 +722,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       error={error}
       rows={rows}
       onSelect={(row) => { setSel(row); setConfirmDel(false); }}
+      renderRow={renderRow}
       onAdd={onAdd}
     >
       <Toast toast={toast} />
@@ -649,6 +854,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           </div>
         </div>
       )}
+
+      {/* TDW_04 A2: select-mode bar (long-press a row to enter) */}
+      <BulkBar slice={slice} selectedCount={selected.size} actions={bulkActions} busy={bulkBusy}
+        onAction={(k) => { void runBulk(k); }} onCancel={() => setSelected(new Set())} />
 
       <DetailSheet
         slice={slice}
