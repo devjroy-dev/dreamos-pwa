@@ -58,10 +58,23 @@ const QUICK_ACTIONS = [
 ];
 
 // ── Rs formatter — keeps L/Cr suffixes for snapshot density ─────
+// TDW_04 A3 (ST-4's acceptance, executor judgment — flagged for CE review):
+// the compact form must not ROUND AWAY the agreement it exists to prove. The
+// old one-decimal L (and whole-number K) printed Rs 1,25,000 as "1.3L" and
+// Rs 65,400 as "65K" — while the Invoices masthead, reading the SAME
+// derivation, printed the exact figure. A vendor comparing the two saw a
+// disagreement that wasn't there. Compaction is a design need (this brass cell
+// is ~120px wide); rounding is not. So: keep the compact scale, drop the lie —
+// trailing zeros stripped, real precision kept (1.25L, 65.4K, 1.3L when it IS
+// 1.3L). Only used by the Owed cell (verified: one call site, ln ~181).
 function fmtRs(n: number): string {
-  if (n >= 10000000) return `${(n / 10000000).toFixed(1)}Cr`;
-  if (n >= 100000)   return `${(n / 100000).toFixed(1)}L`;
-  if (n >= 1000)     return `${(n / 1000).toFixed(0)}K`;
+  const compact = (v: number, suffix: string) => {
+    const s = v.toFixed(2).replace(/\.?0+$/, '');
+    return `${s}${suffix}`;
+  };
+  if (n >= 10000000) return compact(n / 10000000, 'Cr');
+  if (n >= 100000)   return compact(n / 100000, 'L');
+  if (n >= 1000)     return compact(n / 1000, 'K');
   return String(n);
 }
 function fmtEventDate(iso: string): string {
