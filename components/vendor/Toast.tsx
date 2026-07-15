@@ -48,7 +48,11 @@ export function Toast({ toast }: { toast: ToastState | null }) {
           color: T.isLight && !isErr ? T.accent : '#E0BC6E',
         }}>{toast.action.label}</button>
       )}
-      <style>{`@keyframes toastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <style>{`@keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) translateY(-8px)}to{opacity:1;transform:translate(-50%,-50%)}}`}</style>
+      {/* A2 smoke fix: the animation's end-state transform was REPLACING the
+          centering translate(-50%,-50%) (fill-mode both) — every toast anchored
+          its left edge at 50% and clipped off narrow phones. The keyframes now
+          carry the centering transform through. */}
     </div>
   );
 }

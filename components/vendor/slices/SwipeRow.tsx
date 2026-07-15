@@ -7,7 +7,7 @@
 // the gesture only captures once horizontal intent is clear (|dx| > 12 and
 // |dx| > |dy|).
 
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 const THRESHOLD = 96;
 
@@ -28,6 +28,21 @@ export function SwipeRow({ children, right, left, disabled }: {
 }) {
   const [dx, setDx] = useState(0);
   const [springing, setSpringing] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const capturedRef = useRef(false);
+
+  // A2 phone-smoke fix: `touch-action: pan-y` alone doesn't stop the browser's
+  // own horizontal gestures (page swipe / back navigation) from stealing the
+  // touch mid-drag — the founder's left-swipes were swiping the PAGE. A
+  // NON-PASSIVE touchmove listener preventDefault()s only AFTER horizontal
+  // capture, so vertical scroll stays native and the row owns the swipe.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const onTouchMove = (e: TouchEvent) => { if (capturedRef.current) e.preventDefault(); };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, []);
   const start = useRef<{ x: number; y: number; captured: boolean } | null>(null);
   // A captured drag must NOT also fire the row's click (browsers synthesize a
   // click after pointerup; a real touch-drag doesn't tap, and neither may we —
@@ -47,6 +62,7 @@ export function SwipeRow({ children, right, left, disabled }: {
     if (!s.captured) {
       if (Math.abs(ddx) < 12 || Math.abs(ddx) <= Math.abs(ddy)) return; // scroll wins
       s.captured = true;
+      capturedRef.current = true;
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     }
     let next = ddx;
@@ -55,6 +71,7 @@ export function SwipeRow({ children, right, left, disabled }: {
     setDx(Math.max(-140, Math.min(140, next)));
   }
   function onPointerEnd() {
+    capturedRef.current = false;
     const s = start.current;
     start.current = null;
     if (!s?.captured) { setDx(0); return; }
@@ -70,7 +87,7 @@ export function SwipeRow({ children, right, left, disabled }: {
   const revealOn = Math.abs(dx) >= THRESHOLD;
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}>
+    <div ref={rootRef} style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y', overscrollBehaviorX: 'contain' }}>
       {reveal && dx !== 0 && (
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
