@@ -15,7 +15,7 @@ import {
 import type {
   Client, Lead, Invoice, Expense, VendorEvent,
 } from '@/lib/vendor/types/vendor';
-import { subscribeToSlice } from '@/lib/vendor/cache/invalidate';
+import { subscribeToSlice, consumeDirty } from '@/lib/vendor/cache/invalidate';
 
 type Kind = 'clients' | 'leads' | 'invoices' | 'expenses' | 'events' | 'cabinet';
 
@@ -75,7 +75,10 @@ function useLoader<T>(
     }
   }, [vendorId, key, fetcher, extract]);
 
-  useEffect(() => { run(false); }, [run]);
+  // TDW_04 A4.1 (F-04.20): if a write landed for this slice while no hook was
+  // mounted (deferred commit after navigation), the bus holds a debt — consume
+  // it and force past the TTL cache; otherwise the normal cached path.
+  useEffect(() => { run(consumeDirty(kind)); }, [run, kind]);
 
   // Block 1b: subscribe to pub/sub invalidation bus.
   // When form-driven writes call invalidateSlice(slice), this hook refetches.

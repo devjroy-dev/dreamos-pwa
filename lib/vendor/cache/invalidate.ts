@@ -19,11 +19,27 @@ function getOrCreate(slice: Slice): Set<Listener> {
   return listeners.get(slice)!;
 }
 
+// TDW_04 A4.1 (F-04.20, founder-smoke-caught): the bus used to DROP an
+// invalidation when no hook for that slice was mounted — exactly what happens
+// when a deferred write commits AFTER navigation away (F-04.14's flush). The
+// write landed; the notification died in an empty room; the returning screen
+// served its stale cache and the vendor read it as a cancelled action. The bus
+// now keeps a debt ledger: undeliverable invalidations are remembered, and the
+// next mounting hook for that slice consumes the debt and refetches.
+const dirty = new Set<Slice>();
+
 /** Call after any successful POST / PATCH / DELETE for the given slice. */
 export function invalidateSlice(slice: Slice): void {
   const subs = listeners.get(slice);
-  if (!subs) return;
+  if (!subs || subs.size === 0) { dirty.add(slice); return; }
+  dirty.delete(slice);
   subs.forEach(fn => fn());
+}
+
+/** Consume the dirty flag for a slice — true means "a write landed while you
+    weren't looking; refetch". Mounting hooks call this once. */
+export function consumeDirty(slice: Slice): boolean {
+  return dirty.delete(slice);
 }
 
 /** Invalidate all slices — e.g. after a bulk import. */
