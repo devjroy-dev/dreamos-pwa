@@ -23,6 +23,9 @@ import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
 import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gesture engine
+import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
+import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth for money mastheads
+import { deriveMoney, deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
 import { queueUndoable, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
@@ -35,6 +38,17 @@ import { A, F, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
 // TDW_04 A1 (L-1, ST-1) — the lane declarations, house voice, LOCKED wording:
 // Leads "Enquiries pipeline"; Clients/Invoices/Expenses "From your binders";
 // Events "Your calendar". The cabinet's own line lives in Cabinet.tsx.
+// TDW_04 A3 (L-3/ST-2): what each chip-bearing list cannot see, in its own
+// words. Leads/invoices match by phone (phone-asymmetric twins stay invisible —
+// Exhibit A's flagship pair among them); events match by the binder the row
+// itself names (an event that names none wears no chip). Silence about a
+// blindness is the lie this block exists to kill.
+const CHIP_BLINDNESS: Partial<Record<ListSlice, string>> = {
+  leads:    'Some entries may also exist as binders — phones connect them.',
+  invoices: 'Some entries may also exist as enquiries — phones connect them.',
+  events:   'Some dates may also sit in a binder — the entry has to name it.',
+};
+
 const LANE_LINE: Record<ListSlice, string> = {
   leads:    'Enquiries pipeline',
   clients:  'From your binders',
@@ -129,15 +143,19 @@ interface SliceShellProps {
   renderList?: ReactNode;
   /** TDW_04 A2: per-row decorator (swipe + selection) — default plain SliceRow. */
   renderRow?: (row: Row) => ReactNode;
+  /** TDW_04 A3: the P5 masthead, composed by the owner (it knows its figures). */
+  masthead?: ReactNode;
   children?: ReactNode;
 }
 
-export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, children }: SliceShellProps) {
+export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
       <Header vendorName={vendorName} />
 
-      {/* Sub-header: back + brass label — the P5 masthead replaces this */}
+      {/* Sub-header: back + brass label. TDW_04 A3: the P5 masthead now sits
+          beneath the lane line — the back/label row stays (navigation), the
+          masthead carries THE number. */}
       <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
@@ -148,6 +166,10 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
       <div style={{ padding: '0 22px 2px', marginTop: -4 }}>
         <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 11.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
       </div>
+
+      {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
+          the same function the hub Ledger reads. */}
+      {masthead}
 
       {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
       <SliceDoor active={slice} />
@@ -189,6 +211,17 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
               </div>
             )}
             {rows.map(row => renderRow ? <div key={row.id}>{renderRow(row)}</div> : <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
+
+            {/* TDW_04 A3 (L-3, ST-2): each chip-bearing list discloses its
+                blindness ONCE — the chip's absence is not evidence of absence.
+                Said plainly, at the foot of the list, in the house voice. */}
+            {!loading && !error && rows.length > 0 && CHIP_BLINDNESS[slice] && (
+              <div style={{
+                padding: '14px 22px 20px',
+                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 11,
+                color: A.inkMute, lineHeight: 1.5,
+              }}>{CHIP_BLINDNESS[slice]}</div>
+            )}
           </>
         )}
       </div>
@@ -309,6 +342,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [badgeOverride, setBadgeOverride] = useState<Record<string, string>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
   const [markLostConfirm, setMarkLostConfirm] = useState(false);
+  const [lostReason, setLostReason] = useState(''); // F-04.12: the optional reason, lands in notes
   const longPress = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hideRow = (id: string) => setHiddenIds(s => new Set(s).add(id));
@@ -386,15 +420,28 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
 
   // TDW_04 A2 (L-2): Mark lost — the deliberate, SEPARATE action with its own
   // confirm. State move, not a delete; deferred-fire + undo like every mutation.
+  // F-04.12 (founder-ruled 2026-07-15): UNGATED BUT CONFESSED. Any state may go
+  // to lost — a booked client can walk at any stage and the vendor must be able
+  // to say so. But a backwards-unusual leap (from booked/consult) gets one line
+  // of confession in the confirm, plus an optional reason that lands in `notes`
+  // through the door. No hard gate: the product warns, the vendor rules, the
+  // record remembers.
+  const BACKWARD_UNUSUAL = ['booked', 'consult'];
+  const isBackwardUnusual = (badge?: string) => BACKWARD_UNUSUAL.includes((badge ?? '').toLowerCase());
+
   function markLost(row: Row) {
     setMarkLostConfirm(false);
     setSel(null);
     const prevBadge = row.badge ?? 'new';
+    const reason = lostReason.trim();
+    setLostReason('');
     undoableMutation({
       apply:  () => setBadge(row.id, 'lost'),
       revert: () => setBadge(row.id, null),
       commit: async () => {
-        const res = await patchLeadState(row.id, 'lost');
+        // The reason rides the door's own contract (PATCH /state takes `reason`
+        // and lands it in the notes trail — verified at HEAD, leads.js).
+        const res = await patchLeadState(row.id, 'lost', reason || undefined);
         setBadge(row.id, null); // bus refetch takes over as truth
         if (!('ok' in res) || !res.ok) showToast(`Could not mark ${row.primary} lost — still ${prevBadge}.`, 'error');
       },
@@ -437,11 +484,13 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       left: { label: 'Delete', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
     };
     if (slice === 'events') return {
-      // P4 backend-note law: the events PATCH allowlist has NO `state`
-      // (EDITABLE = title/date/time/kind/notes, verified at HEAD) — "mark
-      // done" is stubbed honest, gap logged as F-04.8 for the 10-minute
-      // backend rider on founder approval. Cancel has its real door.
-      right: { label: 'Done', onTrigger: () => showToast('Mark-done needs its door — logged for the backend rider.', 'success') },
+      // TDW_04 A3 (F-04.8, CE-ratified): the state door now stands — A2 stubbed
+      // this honest rather than inventing a route, and the rider shipped with
+      // A3's mastheads. Mark-done is a real write again.
+      right: { label: 'Done', onTrigger: () => undoableMutation({
+        apply: () => setBadge(row.id, 'done'), revert: () => setBadge(row.id, null),
+        commit: async () => { const r = await updateEvent(row.id, { state: 'done' }); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Could not mark ${row.primary} done.`, 'error'); },
+        toastMsg: `${row.primary} → done.` }) },
       left: { label: 'Cancel', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
     };
     return {};
@@ -463,6 +512,40 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   function toggleSelected(row: Row) {
     setSelected(s => { const n = new Set(s); if (n.has(row.id)) n.delete(row.id); else n.add(row.id); return n; });
   }
+
+  // ── TDW_04 A3 (P5/ST-4/L-4): THE mastheads ─────────────────────────────
+  // Every figure rides lib/vendor/derive.ts — the same function the hub Ledger
+  // reads, over the same rows. Invoices' "outstanding" here IS the hub's "Owed":
+  // one derivation, two renderers, agreement by construction.
+  const cabForMoney = useCabinetData(slice === 'invoices' || slice === 'clients' ? vendorId : null);
+  const masthead = useMemo(() => {
+    if (slice === 'invoices') {
+      const m = deriveMoney(cabForMoney.data);
+      return <Masthead eyebrow="Outstanding" value={m.outstanding} isMoney
+        sub={m.owedCount === 0 ? 'from your binders · settled' : `from your binders · across ${m.owedCount} open`} />;
+    }
+    if (slice === 'clients') {
+      const c = deriveClients(cabForMoney.data);
+      return <Masthead eyebrow="Active engagements" value={c.count}
+        sub={c.count === 1 ? 'from your binders · 1 client' : 'from your binders · client-stage binders'} />;
+    }
+    if (slice === 'leads') {
+      const p = derivePipeline(rawRows.map(r => ({ state: r.badge, budget_total: r.pipelineValue })));
+      return <Masthead eyebrow="Pipeline value" value={p.value} isMoney
+        sub={p.count === 0 ? 'enquiries · nothing open' : `enquiries · across ${p.count} open`} />;
+    }
+    if (slice === 'expenses') {
+      const e = deriveExpensesThisMonth(rawRows.map(r => ({ amount: r.pipelineValue, expense_date: r.sortDate })));
+      return <Masthead eyebrow="This month" value={e.total} isMoney
+        sub={e.count === 0 ? 'from your binders · nothing filed' : `from your binders · ${e.count} filed`} />;
+    }
+    if (slice === 'events') {
+      const w = deriveEventsThisWeek(rawRows.map(r => ({ event_date: r.sortDate, state: r.badge?.toLowerCase() })));
+      return <Masthead eyebrow="This week" value={w.count}
+        sub={w.count === 0 ? 'your calendar · nothing booked' : w.count === 1 ? 'your calendar · 1 event' : 'your calendar · events ahead'} />;
+    }
+    return null;
+  }, [slice, cabForMoney.data, rawRows]);
 
   const renderRow = (row: Row) => (
     <div {...rowPressHandlers(row)} style={{ position: 'relative' }}>
@@ -489,7 +572,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     slice === 'leads'    ? [{ key: 'contacted', label: 'Mark contacted' }, { key: 'lose', label: 'Lose', destructive: true }]
     : slice === 'invoices' ? [{ key: 'paid', label: 'Mark paid' }]
     : slice === 'expenses' ? [{ key: 'delete', label: 'Delete', destructive: true }]
-    : slice === 'events'   ? [] /* F-04.8: mark-done bulk returns with its door */
+    : slice === 'events'   ? [{ key: 'done', label: 'Mark done' }] // TDW_04 A3: the door landed (F-04.8)
     : [];
 
   async function runBulk(key: string, ids?: string[]) {
@@ -505,7 +588,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         else if (slice === 'leads' && key === 'lose') { const r = await patchLeadState(id, 'lost'); ok = 'ok' in r && r.ok; }
         else if (slice === 'invoices' && key === 'paid') { const owed = row?.payAmount ?? 0; if (owed <= 0) { ok = true; } else { const r = await recordPayment(id, { amount: owed }); ok = 'ok' in r && r.ok; } }
         else if (slice === 'expenses' && key === 'delete') { const r = await deleteExpense(id); ok = 'ok' in r && r.ok === true; }
-        else if (slice === 'events' && key === 'done') { ok = false; /* F-04.8: no state door — bulk fails honestly into the retry set */ }
+        else if (slice === 'events' && key === 'done') { const r = await updateEvent(id, { state: 'done' }); ok = 'ok' in r && r.ok; }
         if (!ok) failed.push(id);
       } catch { failed.push(id); }
     }
@@ -662,7 +745,27 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Mark lost</button>
       ) : (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div>
+          {/* F-04.12's confession — one line, only when the leap is backwards-unusual */}
+          {isBackwardUnusual(sel?.badge) && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12.5, color: A.inkSoft, lineHeight: 1.5, marginBottom: 8 }}>
+                This one&rsquo;s further along — marking lost will keep the record, state the reason?
+              </div>
+              <input
+                type="text"
+                value={lostReason}
+                onChange={e => setLostReason(e.target.value)}
+                placeholder="Optional — it lands in the notes"
+                style={{
+                  width: '100%', padding: '9px 12px', boxSizing: 'border-box',
+                  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
+                  borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 13, color: A.ink,
+                }}
+              />
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={() => sel && markLost(sel)} style={{
             flex: 1, padding: '11px 14px', background: 'transparent',
             border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
@@ -674,6 +777,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             borderRadius: 2, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
             color: 'var(--atelier-ink-mute, #8a8578)', letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Keep</button>
+          </div>
         </div>
       )}
     </div>
@@ -723,6 +827,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       rows={rows}
       onSelect={(row) => { setSel(row); setConfirmDel(false); }}
       renderRow={renderRow}
+      masthead={masthead}
       onAdd={onAdd}
     >
       <Toast toast={toast} />

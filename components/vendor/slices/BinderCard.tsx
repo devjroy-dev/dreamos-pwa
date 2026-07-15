@@ -150,7 +150,10 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
     // prefill param is `draft` (ln 445/522 — composer initialValue);
     // `primer` without autoSend=1 is a no-op. Spec literal said `primer`;
     // code is truth — drift logged in the sitting handover.
-    const primer = `What would you like to change about ${binder.client ?? 'this binder'}?`;
+    // F-04.9 (founder-ruled 2026-07-15): tell_victor grammar — mid-sentence,
+    // completable, NEVER a question. No primer ends in a question mark; a
+    // question invites an answer, a stem invites the fact.
+    const primer = `About ${binder.client ?? 'this binder'}: `;
     router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
   }
 
@@ -220,11 +223,15 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
 
         {/* R1(b) cross-plane whisper — the postcard from 16's spine */}
         {crossLead && (
-          <div style={{
+          // TDW_04 A3 (L-3): the whisper becomes a door — tap jumps to the twin's
+          // canonical slice. Still reads-only; nothing is linked or merged (16's
+          // spine still owns the real join).
+          <a href="/vendor/list/leads" onClick={e => e.stopPropagation()} style={{
+            display: 'inline-block', textDecoration: 'none',
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: A.inkMute, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: A.brassWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
             marginTop: 6,
-          }}>Also a lead · {cap(crossLead.state)}</div>
+          }}>Also a lead · {cap(crossLead.state)} ›</a>
         )}
 
         {/* Line 3 — stage word (manifest tone) + last touch */}

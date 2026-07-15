@@ -4,15 +4,18 @@
 // The schedule/PDF machinery stays in SliceScreen verbatim for P1 (guarded by
 // slice === 'invoices'); P4 migrates it here when swipe/mark-paid lands.
 
-import { useInvoicesData } from '@/hooks/vendor/useVendorData';
+import { useCallback, useMemo } from 'react';
+import { useInvoicesData, useLeadsData } from '@/hooks/vendor/useVendorData';
 import { SliceScreen } from '@/components/vendor/slices/SliceShell';
 import { fmtRs, fmtDate, cap, type Row } from '@/components/vendor/slices/SliceRow';
+import { phoneKey } from '@/lib/vendor/cabinet';
+import type { Lead } from '@/lib/vendor/types/vendor';
 import { API_BASE } from '@/lib/vendor/api/_base';
 import type { Invoice } from '@/lib/vendor/types/vendor';
 
 function toRows(invoices: Invoice[]): Row[] {
   const today = new Date().toISOString().slice(0,10);
-  return invoices.map(inv => ({ id: inv.id, primary: inv.client_name, secondary: inv.invoice_number, meta: inv.due_date?`due ${fmtDate(inv.due_date)}`:undefined, badge: cap(inv.state), badgeAlert: inv.state==='unpaid'&&!!inv.due_date&&inv.due_date<today, client_phone: inv.client_phone??undefined, payAmount: inv.amount_owed, aiPrimer: `What would you like to change about invoice ${inv.invoice_number} for ${inv.client_name}?`, deletePrimer: `Delete invoice ${inv.invoice_number} for ${inv.client_name} — ${fmtRs(inv.amount_total)} (id: ${inv.id}).`, detail: [{label:'Invoice #',value:inv.invoice_number},{label:'Total',value:fmtRs(inv.amount_total)},{label:'Paid',value:fmtRs(inv.amount_paid)},{label:'Owed',value:fmtRs(inv.amount_owed)},{label:'State',value:inv.state},{label:'Due',value:fmtDate(inv.due_date)}] }));
+  return invoices.map(inv => ({ id: inv.id, primary: inv.client_name, secondary: inv.invoice_number, meta: inv.due_date?`due ${fmtDate(inv.due_date)}`:undefined, badge: cap(inv.state), badgeAlert: inv.state==='unpaid'&&!!inv.due_date&&inv.due_date<today, client_phone: inv.client_phone??undefined, payAmount: inv.amount_owed, aiPrimer: `About the invoice for ${inv.client_name}: `, deletePrimer: `Delete invoice ${inv.invoice_number} for ${inv.client_name} — ${fmtRs(inv.amount_total)} (id: ${inv.id}).`, detail: [{label:'Invoice #',value:inv.invoice_number},{label:'Total',value:fmtRs(inv.amount_total)},{label:'Paid',value:fmtRs(inv.amount_paid)},{label:'Owed',value:fmtRs(inv.amount_owed)},{label:'State',value:inv.state},{label:'Due',value:fmtDate(inv.due_date)}] }));
 }
 
 function deleteRequest(sel: Row) {
@@ -20,5 +23,23 @@ function deleteRequest(sel: Row) {
 }
 
 export default function InvoicesSlice({ vendorId }: { vendorId: string }) {
-  return <SliceScreen slice="invoices" vendorId={vendorId} useData={useInvoicesData} toRows={toRows} deleteRequest={deleteRequest} />;
+  // TDW_04 A3 (L-3): the cross-chip reaches invoices — a money row whose client
+  // shares a phone with a typed enquiry says so, and jumps there. Display-only;
+  // phone-asymmetric twins wear no chip (disclosed, per ST-2).
+  const leads = useLeadsData(vendorId);
+  const leadByPhone = useMemo(() => {
+    const m = new Map<string, Lead>();
+    for (const l of leads.data ?? []) { const k = phoneKey(l.phone); if (k && !m.has(k)) m.set(k, l); }
+    return m;
+  }, [leads.data]);
+
+  const toRowsChipped = useCallback((invoices: Parameters<typeof toRows>[0]): Row[] =>
+    toRows(invoices).map(row => {
+      const k = phoneKey(row.client_phone);
+      const l = k ? leadByPhone.get(k) : undefined;
+      if (!l) return row;
+      return { ...row, crossChip: `Also an enquiry · ${cap(l.state)}`, crossChipHref: '/vendor/list/leads' };
+    }), [leadByPhone]);
+
+  return <SliceScreen slice="invoices" vendorId={vendorId} useData={useInvoicesData} toRows={toRowsChipped} deleteRequest={deleteRequest} />;
 }

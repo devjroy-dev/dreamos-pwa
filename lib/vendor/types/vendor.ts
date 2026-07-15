@@ -237,6 +237,9 @@ export interface InvoicesResponse {
   ok: boolean;
   invoices: Array<{
     id: string; invoice_number: string; client_name: string;
+    /** TDW_04 A3 (L-3): the binder's phone, for the cross-chip's key. Optional —
+        a binder without a phone simply wears no chip (disclosed blindness). */
+    client_phone?: string;
     amount_total: number; amount_paid: number; amount_owed: number;
     state: string; due_date: string | null; created_at: string;
   }>;
@@ -369,6 +372,9 @@ export interface CreateEventResponse {
 
 // ── PATCH /api/v2/vendor/events/:eventId ──────────────────────────────────
 export interface UpdateEventRequest {
+  /** TDW_04 A3 (F-04.8): the events state door — values mirror the handler's
+      ALLOWED_STATES, which mirror the DB CHECK. */
+  state?:          'upcoming' | 'done' | 'cancelled';
   title?:          string;
   event_date?:     string;
   event_time?:     string;
@@ -511,6 +517,11 @@ export interface VendorEvent {
   event_time: string | null;
   state:      string;
   lead_id:    string | null;
+  /** TDW_04 A3 (L-3): the calendar row's twin binder — closes TDW_03's logged
+      upstream gap (the column existed; the wire never carried it). OPTIONAL by
+      design: payloads that predate the wire (and demo fixtures) simply carry no
+      chip, which is ST-2's disclosed blindness, not a lie. */
+  linked_binder_id?: string | null;
   notes:      string | null;
 }
 

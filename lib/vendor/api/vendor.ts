@@ -117,6 +117,11 @@ function binderToInvoice(b: CabinetBinder): InvoicesResponse['invoices'][number]
   const total = (paid + owed) || (b.amount ?? 0);
   return {
     id: b.id, invoice_number: '', client_name: b.client ?? '',
+    // TDW_04 A3 (L-3): the binder's phone rides through — the cross-chip needs a
+    // key to match the typed enquiry on. Same class as A2.2's defect (a mapper
+    // silently dropping a field the surface depends on); caught by the pass this
+    // time, not the founder's phone.
+    client_phone: b.phone ?? undefined,
     amount_total: total, amount_paid: paid, amount_owed: owed,
     state: invoiceState(b), due_date: b.date ?? null, created_at: b.created_at ?? '',
   };
@@ -211,9 +216,11 @@ export async function fetchClientDetail(vendorId: string, clientId: string): Pro
 // ── Invoices ──────────────────────────────────────────────────────────────
 export async function fetchInvoices(vendorId: string, state = 'all'): Promise<InvoicesResponse> {
   const cab = await fetchCabinet(vendorId);
-  const byId = new Map<string, CabinetBinder>();
-  for (const b of [...(cab.paid ?? []), ...(cab.owed ?? [])]) byId.set(b.id, b);
-  let invoices = [...byId.values()].map(binderToInvoice);
+  // TDW_04 A3 (ST-4/L-4): the row set comes from lib/vendor/derive.ts — the SAME
+  // function the hub Ledger and every masthead read. The hub used to total
+  // public.invoices while this page totalled binders; two derivations cannot
+  // agree by luck. One function, two renderers.
+  let invoices = moneyBinders(cab).map(binderToInvoice);
   if (state !== 'all') invoices = invoices.filter((i) => i.state.toLowerCase() === state.toLowerCase());
   const summary = {
     total_outstanding: invoices.reduce((s, i) => s + i.amount_owed, 0),
@@ -450,6 +457,7 @@ export function forgotPin(phone: string): Promise<SendOtpResponse> {
 // ════════════════════════════════════════════════════════════════════
 
 import { deleteJson } from './_base';
+import { moneyBinders } from '@/lib/vendor/derive'; // TDW_04 A3: one derivation
 import type {
   // Common
   ApiErr,

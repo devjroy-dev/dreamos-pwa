@@ -62,11 +62,21 @@ export interface Row {
       plane also knows this person". Reads, never writes. Absence means "no
       phone match", never "no twin". */
   crossChip?: string;
+  /** TDW_04 A3 (L-3): where the chip jumps — the twin's canonical slice. */
+  crossChipHref?: string;
+  /** TDW_04 A3 (L-3): the binder this row names (events carry it on the wire). */
+  twinBinderId?: string;
   /** TDW_04 A1: the lead's wishbone wire (missing cells) — the detail sheet
       renders tappable chips into the WishboneSheet when present. */
   draftMissing?: string[];
   /** TDW_04 A2: invoices stash — the outstanding amount the mark-paid swipe pays. */
   payAmount?: number;
+  /** TDW_04 A3 masthead stashes — the RAW figures behind the row, filled by the
+      slice module that fetched them. The shell derives mastheads from these,
+      never by parsing the formatted strings above (a masthead that reads its own
+      display text is a masthead that lies the moment formatting changes). */
+  pipelineValue?: number;   // leads: budget_max · expenses: amount
+  sortDate?: string | null; // events: event_date · expenses: expense_date (ISO)
 }
 
 export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : `Rs ${n.toLocaleString('en-IN')}`; }
@@ -149,11 +159,24 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{detailLine}</div>
           {row.crossChip && (
-            <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9,
-              color: A.inkMute, letterSpacing: '0.08em', textTransform: 'uppercase',
-              marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{row.crossChip}</div>
+            // TDW_04 A3 (L-3): the chip is TAPPABLE when it knows where the twin
+            // lives — tap jumps to the twin's canonical slice. Still display-only:
+            // it reads and links, it never writes (the R2 boundary — dispatch may
+            // announce, never link a spine; that spine waits for TDW_16).
+            row.crossChipHref ? (
+              <a href={row.crossChipHref} onClick={e => e.stopPropagation()} style={{
+                display: 'inline-block', textDecoration: 'none',
+                fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                color: A.brassWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
+                marginTop: 4, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{row.crossChip} ›</a>
+            ) : (
+              <div style={{
+                fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                color: A.inkMute, letterSpacing: '0.08em', textTransform: 'uppercase',
+                marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{row.crossChip}</div>
+            )
           )}
         </div>
 

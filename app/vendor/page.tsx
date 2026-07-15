@@ -10,13 +10,15 @@
 // Only the visual layer changes.
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Header } from '@/components/vendor/Header';
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
 import { TierMeter } from '@/components/vendor/TierMeter'; // TDW_02 P5
 import { CommandBar } from '@/components/vendor/CommandBar';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth, already cached on this screen
+import { deriveMoney, type MoneyDerivation } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { setVendorSession } from '@/lib/vendor/session';
 
 import { getJson } from '@/lib/vendor/api/_base';
@@ -82,15 +84,19 @@ function timeOfDayGreeting(): string {
 }
 
 // ── Greeting line — Cormorant italic. Reads as a butler announcing the moment ──
-function GreetingLine({ context }: { context: VendorContextResponse | null }) {
+function GreetingLine({ context, money }: { context: VendorContextResponse | null; money: MoneyDerivation }) {
   const T = useT();
   const greeting = timeOfDayGreeting();
   const timeOfDay = greeting.toLowerCase().includes('evening') ? 'evening'
                   : greeting.toLowerCase().includes('afternoon') ? 'afternoon'
                   : 'morning';
 
+  // TDW_04 A3 (ST-4/L-4): letters stay TYPED (enquiries are typed rows);
+  // the money count is BINDER-derived — the same figure the Invoices page
+  // shows, because it's the same function (lib/vendor/derive.ts). The old
+  // read totalled public.invoices and could greet you with phantoms.
   const leads = context?.new_leads?.length ?? 0;
-  const owedCount = (context?.pending_invoices ?? []).length;
+  const owedCount = money.owedCount;
 
   let line: string;
   if (!context) {
@@ -135,11 +141,14 @@ function spell(n: number): string {
 }
 
 // ── The Ledger — three brass cells with a ◆ printer's mark above ──
-function Ledger({ context }: { context: VendorContextResponse | null }) {
+function Ledger({ context, money }: { context: VendorContextResponse | null; money: MoneyDerivation }) {
   const T = useT();
+  // TDW_04 A3 (ST-4/L-4) — one derivation, two renderers: `owed` here and
+  // `outstanding` on the Invoices masthead are the same call into
+  // lib/vendor/derive.ts over the same binder rows. They cannot drift.
   const leads      = context?.new_leads?.length ?? 0;
-  const owed       = (context?.pending_invoices ?? []).reduce((s, i) => s + i.amount_owed, 0);
-  const owedCount  = (context?.pending_invoices ?? []).length;
+  const owed       = money.outstanding;
+  const owedCount  = money.owedCount;
   const nextEvent  = context?.upcoming_events?.[0] ?? null;
 
   return (
@@ -164,14 +173,16 @@ function Ledger({ context }: { context: VendorContextResponse | null }) {
         big={String(leads)}
         bigSize={48}
         label="Letters"
-        sub={leads === 0 ? 'all replied' : 'awaiting reply'}
+        // L-4's lane clause: enquiries stay typed — the sub-line says whose plane.
+        sub={leads === 0 ? 'enquiries · all replied' : 'enquiries · awaiting reply'}
         accent={leads > 0}
       />
       <LedgerCell
         big={owed > 0 ? fmtRs(owed) : '—'}
         bigSize={owed > 0 ? 34 : 48}
         label="Owed"
-        sub={owedCount === 0 ? 'nothing pending' : owedCount === 1 ? 'across 1 invoice' : `across ${owedCount} invoices`}
+        // Lane honesty: this figure is your binders' truth, not a stale invoice table.
+        sub={owedCount === 0 ? 'from your binders · settled' : owedCount === 1 ? 'from your binders · 1 open' : `from your binders · ${owedCount} open`}
         accent={owed > 0}
         bigColor={owed > 0 ? (T.isLight ? T.accent : A.brassWarm) : undefined}
         divider
@@ -445,6 +456,12 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   const draft          = searchParams?.get('draft') ?? '';
 
   const { messages, loading, context, send, injectAiMessage, meta } = useChat({ vendorId }); // TDW_02 P5: +meta
+  // TDW_04 A3 (ST-4/L-4): the hub's money leaves the typed plane. The cabinet
+  // is already on this screen (the YOUR BOOKS drawer reads it through the same
+  // cached hook — no new network call), and deriveMoney is the same function
+  // the Invoices page runs. That is the repoint: not new numbers, the SAME ones.
+  const cab = useCabinetData(vendorId);
+  const money = useMemo(() => deriveMoney(cab.data), [cab.data]);
   const [justDoIt, setJustDoIt] = useState(false);
   const { toast: noteToast, show: showNote } = useToast();
   async function sendNote(text: string) {
@@ -501,8 +518,8 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
       />
 
       {/* ── Hub top stack ── */}
-      <GreetingLine context={context} />
-      <Ledger context={context} />
+      <GreetingLine context={context} money={money} />
+      <Ledger context={context} money={money} />
 
       {/* ── Conversation thread ── */}
       <ChatThread

@@ -12,6 +12,8 @@ import { useCabinetData, useLeadsData } from '@/hooks/vendor/useVendorData';
 import { phoneKey } from '@/lib/vendor/cabinet';
 import { SliceShell } from '@/components/vendor/slices/SliceShell';
 import { BinderCard } from '@/components/vendor/slices/BinderCard';
+import { Masthead } from '@/components/vendor/slices/Masthead'; // TDW_04 A3
+import { deriveClients } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { A, F } from '@/components/vendor/slices/SliceRow';
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
@@ -58,6 +60,11 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
       rows={[]}
       onSelect={() => {}}
       onAdd={() => setAddOpen(true)}
+      // TDW_04 A3 (P5/ST-4): this slice drives SliceShell directly (binder cards,
+      // not rows), so it composes its own masthead — from the SAME derivation the
+      // hub and the other mastheads read.
+      masthead={<Masthead eyebrow="Active engagements" value={deriveClients(cab.data).count}
+        sub={deriveClients(cab.data).count === 1 ? 'from your binders · 1 client' : 'from your binders · client-stage binders'} />}
       renderList={
         <>
           {empty && (
