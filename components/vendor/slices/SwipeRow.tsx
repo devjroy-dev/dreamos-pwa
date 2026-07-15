@@ -87,7 +87,14 @@ export function SwipeRow({ children, right, left, disabled }: {
   const revealOn = Math.abs(dx) >= THRESHOLD;
 
   return (
-    <div ref={rootRef} style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y', overscrollBehaviorX: 'contain' }}>
+    <div
+      ref={rootRef}
+      // The app shell (app/vendor/layout.tsx) is a panel pager that owns
+      // horizontal drags. This attribute is its documented opt-out: a
+      // horizontal gesture starting on this row belongs to the row.
+      data-pager-inert="true"
+      style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y', overscrollBehaviorX: 'contain' }}
+    >
       {reveal && dx !== 0 && (
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',

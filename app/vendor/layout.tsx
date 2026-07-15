@@ -109,6 +109,13 @@ function shouldSuppressPager(el: HTMLElement | null, stopAt: HTMLElement | null,
   let node: HTMLElement | null = el;
   while (node && node !== stopAt) {
     const tag = node.tagName;
+    // TDW_04 A2.3 (founder phone smoke): explicit opt-out for row-level swipe
+    // surfaces (components/vendor/slices/SwipeRow.tsx). A horizontal drag that
+    // STARTS on a swipeable row belongs to the row — the more specific surface
+    // wins; the pager stays inert for that gesture. Page-swiping still works
+    // from every other pixel (mastheads, chrome, empty space). Without this the
+    // pager ate every row swipe and slid the whole panel instead.
+    if (node.dataset && node.dataset.pagerInert === 'true') return true;
     // Form controls with text input — suppress pager so user can type/select
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
       return true;
