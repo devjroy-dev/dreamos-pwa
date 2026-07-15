@@ -90,7 +90,7 @@ function toColumns(cab: CabinetResponse): Column[] {
   return [
     { key: 'clients',   label: 'Clients',   count: c?.clients   ?? cab.clients.length,   records: cab.clients.map(binderRec) },
     { key: 'leads',     label: 'Leads',     count: c?.leads     ?? cab.leads.length,     records: cab.leads.map(binderRec) },
-    { key: 'booked',    label: 'Booked',    count: c?.booked    ?? cab.booked.length,    records: cab.booked.map(eventRec) },
+    { key: 'booked',    label: 'On the calendar', count: c?.booked    ?? cab.booked.length,    records: cab.booked.map(eventRec) }, // TDW_04 A1 (L-1): "Booked" renamed to its truth — the column is the BOOKED_KINDS calendar whitelist, not booked clients
     { key: 'reminders', label: 'Reminders', count: c?.reminders ?? cab.reminders.length, records: cab.reminders.map(reminderRec) },
   ];
 }
@@ -340,7 +340,10 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
       <div className={`cab-sheet ${open ? 'open' : ''}`}>
         <button className="cab-grip" aria-label="Close" onClick={() => setOpen(false)}><span /></button>
         <div className="cab-head">
-          <div className="cab-head-t"><small>Your books</small>Everything kept</div>
+          {/* TDW_04 A1 (L-1, ST-1): the cabinet stops claiming totality it
+              doesn't have — "Everything kept" dies; the lane declaration lands.
+              (A4/L-10 later demotes this whole surface to a chat-adjacent glance.) */}
+          <div className="cab-head-t"><small>Your books</small>Everything you&rsquo;ve filed — your working binders + calendar</div>
           <button className="cab-x" onClick={() => setOpen(false)}>Close</button>
         </div>
 

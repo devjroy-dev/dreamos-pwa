@@ -62,6 +62,9 @@ export interface Row {
       plane also knows this person". Reads, never writes. Absence means "no
       phone match", never "no twin". */
   crossChip?: string;
+  /** TDW_04 A1: the lead's wishbone wire (missing cells) — the detail sheet
+      renders tappable chips into the WishboneSheet when present. */
+  draftMissing?: string[];
 }
 
 export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : `Rs ${n.toLocaleString('en-IN')}`; }

@@ -16,7 +16,7 @@ import type { Lead } from '@/lib/vendor/types/vendor';
 import type { CabinetBinder } from '@/lib/vendor/api/vendor';
 
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: l.wedding_date?fmtLeadDate(l.wedding_date, l.wedding_date_precision):undefined, badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `What would you like to change about the ${l.name??'unnamed'} lead?`, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, detail: [{label:'State',value:l.state},{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'}] }));
+  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: l.wedding_date?fmtLeadDate(l.wedding_date, l.wedding_date_precision):undefined, badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `What would you like to change about the ${l.name??'unnamed'} lead?`, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, detail: [{label:'State',value:l.state},{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'}] }));
 }
 
 function deleteRequest(sel: Row) {

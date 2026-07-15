@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CabinetBinder, BinderEditFields } from '@/lib/vendor/api/vendor';
 import { editBinder } from '@/lib/vendor/api/vendor';
+import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: the chips' tap target
 import {
   amountWordsAdjacent, fmtINR, moneyOf, noteTimeline, primaryAmount,
   relativeTouch, stageTone, type StageTone,
@@ -127,6 +128,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
 
   const { recv, pend } = moneyOf(binder);
   const amt = primaryAmount(binder);
@@ -215,15 +217,19 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           )}
         </div>
 
-        {/* Missing-cell chips — render truth; tap wakes at P3 */}
+        {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1, the P3
+            charter landing). Tap → WishboneSheet: inline through the POST /edit
+            door for client/phone/date; `amount` routes to Victor only (the
+            witnessed-door law — donna_edit refuses money by design). */}
         {chips.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}
+            onClick={e => { e.stopPropagation(); setWishboneOpen(true); }}>
             {chips.map(c => (
-              <span key={c} style={{
+              <span key={c} role="button" style={{
                 fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkMute,
                 letterSpacing: '0.06em',
                 border: '0.5px solid var(--atelier-ink-dim)', borderRadius: 2,
-                padding: '3px 8px',
+                padding: '3px 8px', cursor: 'pointer',
               }}>+ {c}</span>
             ))}
             {overflow > 0 && (
@@ -276,6 +282,26 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           onClose={() => setEditOpen(false)}
           onSaved={(msg) => { onToast(msg ?? 'Filed.', 'success'); onChanged(); }}
           onFail={(err) => onToast(err, 'error')}
+        />
+      )}
+
+      {/* TDW_04 A1 — the wishbone, binder plane. Same door the EditSheet uses
+          (one door, both callers); saves refetch via onChanged (the F2 bus). */}
+      {wishboneOpen && (
+        <WishboneSheet
+          missing={missing}
+          personLabel={binder.client ?? 'this binder'}
+          onComplete={async (cell, value) => {
+            // Only client/phone/date reach inline completion (amount is
+            // victorOnly in the sheet) — all three are BinderEditFields keys.
+            const fields: BinderEditFields = { [cell]: value };
+            const res = await editBinder(binder.id, fields);
+            if (!res.ok) return res.error || 'Could not file it — try again.';
+            onToast(res.message ?? 'Filed.', 'success');
+            onChanged();
+            return null;
+          }}
+          onDone={() => setWishboneOpen(false)}
         />
       )}
     </div>

@@ -469,6 +469,14 @@ export interface Lead {
   referrer:                string | null;
   raw_message:             string | null;
   created_at:              string;
+  // TDW_04 A1: the P3 wishbone wire, typed to leadDraftWire's exact shape
+  // (leads.js, verified at HEAD 5773888). Present only while cells are missing;
+  // completion promotes the row and the wire disappears.
+  draft?: {
+    missing: string[];
+    complete_inline: { method: 'PATCH'; path: string };
+    tell_victor: { path: '/vendor'; primer: string };
+  };
 }
 
 export interface Invoice {

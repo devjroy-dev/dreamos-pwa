@@ -21,11 +21,24 @@ import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
-import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf } from '@/lib/vendor/api/vendor';
+import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead } from '@/lib/vendor/api/vendor';
+import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
+import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
 import { ConversationThread } from '@/components/vendor/ConversationThread';
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
-import { A, F, LABELS, WaIcon, SliceRow, type Row } from './SliceRow';
+import { A, F, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
+
+// TDW_04 A1 (L-1, ST-1) — the lane declarations, house voice, LOCKED wording:
+// Leads "Enquiries pipeline"; Clients/Invoices/Expenses "From your binders";
+// Events "Your calendar". The cabinet's own line lives in Cabinet.tsx.
+const LANE_LINE: Record<ListSlice, string> = {
+  leads:    'Enquiries pipeline',
+  clients:  'From your binders',
+  invoices: 'From your binders',
+  expenses: 'From your binders',
+  events:   'Your calendar',
+};
 import { DetailSheet } from './DetailSheet';
 
 // Payment schedule endpoint lands with Step 10 (artifact hands). Off until then,
@@ -123,6 +136,12 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
       <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
+      </div>
+      {/* TDW_04 A1 (L-1, ST-1): the lane declaration — one provenance line under
+          every record-surface title, house voice. No surface claims totality it
+          doesn't have. */}
+      <div style={{ padding: '0 22px 2px', marginTop: -4 }}>
+        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 11.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
       </div>
 
       {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
@@ -291,6 +310,13 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     }).catch(() => {}).finally(() => setLoadingDetail(false));
   }, [sel, slice]);
 
+  // TDW_04 A1 — the leads-plane wishbone. DetailSheet's own P3 comment named
+  // this injection; the sheet itself is a module (tenancy law: machinery
+  // migrates out as phases rebuild it). Completion goes through updateLead —
+  // the wire's complete_inline door, "one door, both callers" — and refetches
+  // via the invalidation bus (the F2 lesson).
+  const [wishboneRow, setWishboneRow] = useState<Row | null>(null);
+
   function onEditHere(row: Row) {
     setSel(null);
     let raw: Record<string,unknown> | null = null;
@@ -320,6 +346,25 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // these into their modules as those phases rebuild them.
   const detailExtra = (
     <>
+      {/* TDW_04 A1 — the wishbone chips, leads plane. Render truth (the wire's
+          missing set); tap opens the WishboneSheet. */}
+      {slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 8 }}>
+            Still missing — tap to complete:
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {sel.draftMissing!.map(c => (
+              <button key={c} type="button" onClick={() => setWishboneRow(sel)} style={{
+                fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkMute,
+                letterSpacing: '0.06em', border: '0.5px solid var(--atelier-ink-dim)',
+                borderRadius: 2, padding: '3px 8px', background: 'transparent', cursor: 'pointer',
+              }}>+ {cap(c.replace(/_/g, ' '))}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Invoice payment schedule */}
       {slice === 'invoices' && sel && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
@@ -619,6 +664,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         detailExtra={detailExtra}
         footerExtra={footerExtra}
       />
+
+      {/* TDW_04 A1 — the wishbone, leads plane. */}
+      {wishboneRow && (
+        <WishboneSheet
+          missing={wishboneRow.draftMissing ?? []}
+          personLabel={wishboneRow.primary}
+          onComplete={async (cell, value) => {
+            // Cells here ∈ LEAD_EXPECTED = name/phone/wedding_date/wedding_city/
+            // budget_max — all UpdateLeadRequest keys; budget is numeric.
+            const body: Record<string, string | number> = { [cell]: cell === 'budget_max' ? Number(value) : value };
+            const res = await updateLead(wishboneRow.id, body);
+            if (!res.ok) return ('error' in res && res.error) || 'Could not file it — try again.';
+            invalidateSlice('leads');
+            return null;
+          }}
+          onDone={() => { setWishboneRow(null); setSel(null); }}
+        />
+      )}
     </SliceShell>
   );
 }
