@@ -1,13 +1,30 @@
 'use client';
+import { useEffect, useState } from 'react';
 import type { ToastState } from '@/hooks/vendor/useToast';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const F = { label: 'var(--font-jost), system-ui, sans-serif' };
 
+const SHRINK_AFTER_MS = 5000;
+
 export function Toast({ toast }: { toast: ToastState | null }) {
   const T = useT();
+  // TDW_04 A3.3 (F-04.16(a), CE-ruled): a 30-second undo window forces a
+  // 30-second affordance — but not a 30-second announcement. After ~5s the
+  // toast sheds its message and becomes a small tappable pill: the undo stays
+  // reachable for its whole ruled life, the vendor's screen gets it back.
+  // Zero mechanism change — the window is untouched.
+  const [shrunk, setShrunk] = useState(false);
+  useEffect(() => {
+    setShrunk(false);
+    if (!toast?.action) return;
+    const t = setTimeout(() => setShrunk(true), SHRINK_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [toast?.id, toast?.action]);
+
   if (!toast) return null;
   const isErr = toast.kind === 'error';
+  const asPill = shrunk && !!toast.action;
   return (
     <div key={toast.id} style={{
       position: 'fixed', top: '50%',
@@ -20,7 +37,8 @@ export function Toast({ toast }: { toast: ToastState | null }) {
       WebkitBackdropFilter: 'blur(20px)',
       border: `0.5px solid ${isErr ? 'rgba(224,112,112,0.4)' : T.isLight ? T.sheetBorder : 'rgba(201,168,76,0.35)'}`,
       borderRadius: 999,
-      padding: '10px 18px',
+      padding: asPill ? '8px 14px' : '10px 18px',
+      transition: 'padding 220ms cubic-bezier(0.22,1,0.36,1)',
       display: 'flex', alignItems: 'center', gap: 8,
       boxShadow: T.isLight
         ? isErr ? '0 8px 24px rgba(90,20,20,0.25)' : `0 8px 24px rgba(26,15,8,0.15)`
@@ -32,14 +50,16 @@ export function Toast({ toast }: { toast: ToastState | null }) {
         width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
         backgroundColor: isErr ? '#E07070' : T.isLight ? T.accent : '#C9A84C',
       }} />
-      <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 12,
-        color: T.isLight && !isErr ? T.ink : 'var(--atelier-ink)',
-        letterSpacing: '0.02em',
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-      }}>
-        {toast.message}
-      </span>
+      {!asPill && (
+        <span style={{
+          fontFamily: F.label, fontWeight: 300, fontSize: 12,
+          color: T.isLight && !isErr ? T.ink : 'var(--atelier-ink)',
+          letterSpacing: '0.02em',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {toast.message}
+        </span>
+      )}
       {toast.action && (
         <button type="button" onClick={toast.action.onAction} style={{
           background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px 4px',

@@ -354,7 +354,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   function undoableMutation(opts: { apply: () => void; revert: () => void; commit: () => Promise<void>; toastMsg: string }) {
     opts.apply();
     const { undo } = queueUndoable({ slice, commit: opts.commit, revert: opts.revert });
-    showToast(opts.toastMsg, 'success', { action: { label: 'Undo', onAction: () => { undo(); dismissToast(); } }, durationMs: UNDO_WINDOW_MS });
+    // TDW_04 A3.3 (CE meta-finding): an undo that just makes the toast vanish
+    // leaves the vendor unable to tell whether his own undo landed — twice now
+    // that ambiguity has cost a debugging session (Rahul Sharma's trail, and
+    // F-04.14's report). The undo's outcome is now legible after the fact.
+    showToast(opts.toastMsg, 'success', {
+      action: { label: 'Undo', onAction: () => { undo(); showToast('Restored.', 'success'); } },
+      durationMs: UNDO_WINDOW_MS,
+    });
   }
 
   const rows = useMemo(() => {

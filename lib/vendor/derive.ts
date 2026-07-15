@@ -20,6 +20,33 @@
 
 import type { CabinetResponse, CabinetBinder } from '@/lib/vendor/api/vendor';
 
+// ── F-04.13 (CE-RATIFIED 2026-07-15) — THE money rule, and its only home ──
+//
+//   pending = amount_pending ?? max(amount - amount_received, 0)   [direction 'in' only]
+//
+// This function is the CANON. src/api/vendor-engine/cabinet.js carries a mirror
+// (different repo, same rule); nothing else may compute "owed" by any other
+// means. Every renderer is a consumer.
+//
+// WHY (the founder's phone proved it): money filed through Victor's donna_money
+// door writes `amount` and never touches the settlement cells — only money-edit
+// writes those. The old predicate read an UNFILED cell as ZERO OWED, hiding
+// Rs 85,000 across two unpaid clients who appeared on no money surface at all,
+// while the cabinet drawer — which inferred — showed the truth. The CE's
+// ruling: an unfiled cell means unfiled, not Rs 0. An explicit cell still wins:
+// a binder filed as settled (pending 0) stays settled.
+//
+// The direction guard is load-bearing: without it an expense binder (direction
+// 'out', amount 5000, no cells) would infer Rs 5,000 "owed" and invent debt.
+export function pendingOf(b: CabinetBinder): number {
+  if ((b.direction ?? 'in').toLowerCase() === 'out') return 0;
+  const explicit = b.amount_pending;
+  if (explicit !== null && explicit !== undefined) {
+    return Math.max(Number(explicit) || 0, 0);
+  }
+  return Math.max((Number(b.amount) || 0) - (Number(b.amount_received) || 0), 0);
+}
+
 export type MoneyDerivation = {
   /** Σ amount_pending across binders that owe — the vendor's outstanding. */
   outstanding: number;
@@ -47,7 +74,7 @@ export function deriveMoney(cab: CabinetResponse | null | undefined): MoneyDeriv
   const rows = moneyBinders(cab);
   let outstanding = 0, received = 0, owedCount = 0, advanceCount = 0, unpaidCount = 0;
   for (const b of rows) {
-    const owed = Number(b.amount_pending) || 0;
+    const owed = pendingOf(b); // F-04.13: the ruled rule, never the raw cell
     const recv = Number(b.amount_received) || 0;
     received += recv;
     if (owed > 0) {

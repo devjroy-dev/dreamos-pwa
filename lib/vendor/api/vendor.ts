@@ -100,7 +100,7 @@ function binderToClient(b: CabinetBinder): ClientsResponse['clients'][number] {
 // Clients/invoices/expenses adapters stay — records own binders and money.
 
 function invoiceState(b: CabinetBinder): string {
-  const owed = b.amount_pending ?? 0;
+  const owed = pendingOf(b); // F-04.13: the ruled rule — the pill can't contradict the masthead
   const paid = b.amount_received ?? 0;
   // Derive from the real figures so the pill never contradicts the paid/owed shown.
   if (paid > 0 || owed > 0) {
@@ -113,7 +113,7 @@ function invoiceState(b: CabinetBinder): string {
 }
 function binderToInvoice(b: CabinetBinder): InvoicesResponse['invoices'][number] {
   const paid = b.amount_received ?? 0;
-  const owed = b.amount_pending ?? 0;
+  const owed = pendingOf(b); // F-04.13: the ruled rule
   const total = (paid + owed) || (b.amount ?? 0);
   return {
     id: b.id, invoice_number: '', client_name: b.client ?? '',
@@ -457,7 +457,7 @@ export function forgotPin(phone: string): Promise<SendOtpResponse> {
 // ════════════════════════════════════════════════════════════════════
 
 import { deleteJson } from './_base';
-import { moneyBinders } from '@/lib/vendor/derive'; // TDW_04 A3: one derivation
+import { moneyBinders, pendingOf } from '@/lib/vendor/derive'; // TDW_04 A3: one derivation · A3.3: one money rule
 import type {
   // Common
   ApiErr,
