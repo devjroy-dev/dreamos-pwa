@@ -103,17 +103,10 @@ export function DetailSheet({
               <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, textAlign: 'center', lineHeight: 1.6 }}>
                 {slice === 'invoices' ? 'Cancel' : 'Remove'} <span style={{ color: 'var(--atelier-ink)', fontStyle: 'normal' }}>{sel?.primary}</span>?<br/>
                 <span style={{ fontSize: 12, color: A.inkMute }}>
-                  {/* TDW_04 A3.2 (F-04.15): this copy told two lies. It said leads
-                      would be "marked as lost" — the M3 masquerade's own words,
-                      which outlived the masquerade A2 killed (the button now calls
-                      the real DELETE door). And it said expenses would be
-                      "permanently deleted" when the door is /hide — recoverable.
-                      Each line now names what its door actually does. */}
                   {slice === 'invoices' ? 'Invoice will be marked cancelled.' :
-                   slice === 'leads'    ? 'Lead leaves your list — and Victor\u2019s memory. Undo for 30 seconds.' :
+                   slice === 'leads'    ? 'Lead will be marked as lost.' :
                    slice === 'events'   ? 'Event will be cancelled.' :
-                   slice === 'expenses' ? 'Expense is set aside — recoverable, never destroyed.' :
-                   'This will be removed.'}
+                   'This will be permanently deleted.'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>

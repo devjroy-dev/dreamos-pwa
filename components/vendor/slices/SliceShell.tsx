@@ -27,7 +27,7 @@ import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
 import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth for money mastheads
 import { deriveMoney, deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
-import { queueUndoable, flushAllPending, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure
+import { queueUndoable, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
@@ -367,15 +367,6 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     }
     return out;
   }, [rawRows, query, hiddenIds, badgeOverride]);
-
-  // TDW_04 A3.2 (F-04.14, founder-smoke-caught): slice→slice navigation REMOUNTS
-  // (A2's recorded verdict), so the optimistic badge — component state — reverted
-  // while the write still sat in its 30s window. The vendor saw the swipe undo
-  // itself and reasonably read that as data loss. Leaving the screen now COMMITS
-  // what's pending: the undo window is a courtesy for the moment you're looking
-  // at the row, not a vote to discard the write. (pagehide/visibilitychange
-  // already flushed on tab-close; client-side nav fires neither.)
-  useEffect(() => () => { flushAllPending(); }, []);
 
   // Fetch lead detail when a lead row is selected
   useEffect(() => {
