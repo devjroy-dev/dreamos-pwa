@@ -3,7 +3,7 @@
 // Bottom sheet for blocking/unblocking a calendar date.
 // Custom pill-picker replaces native <select> — no OS popup.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { blockDate, unblockDate } from '@/lib/vendor/api/vendor';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
@@ -102,14 +102,30 @@ export function CalendarBlockSheet({
   const [reason,  setReason]  = useState('Blocked');
   const [custom,  setCustom]  = useState('');
   const [working, setWorking] = useState(false);
+  // ── TDW_04 B6 rider — F-04.77's RENDER half (Q-S2-1 ADOPTED) ──────────────
+  // The shared Toast is a single-line pill (nowrap + ellipsis); the exclusivity
+  // refusal, which R-B6-17 REQUIRES to name the existing blocks, cannot fit one
+  // line by construction — the founder watched his own refusal truncate (smoke
+  // steps 2/8). A refusal the vendor can't finish reading is F-04.55's disease
+  // at the render layer. Cure: this sheet gains the day sheet's OWN inline
+  // verdict line — ONE rendering convention for refusals (F-04.36's shape
+  // argued forward): refusals render inline and whole, verbatim off the wire;
+  // toasts keep successes and transport errors (both fit a line). Styles are
+  // CalendarDaySheet's verdict block, carried byte-for-byte — the same panel
+  // the founder witnessed legible in porcelain at the Move verdict.
+  const [verdict, setVerdict] = useState<string | null>(null);
+  useEffect(() => { setVerdict(null); }, [open, dateIso]);
 
   async function doBlock() {
     if (!dateIso || working) return;
     setWorking(true);
     try {
       const r = reason === 'Other' ? custom.trim() || 'Other' : reason;
+      setVerdict(null);
       const res = await blockDate({ blocked_date: dateIso, reason: r });
-      if (!res.ok) { onToast((res as { error?: string }).error ?? 'Failed to block date.', 'error'); return; }
+      // F-04.77: the refusal renders INLINE, whole, the wire's own sentence —
+      // never the one-line toast (which truncated it).
+      if (!res.ok) { setVerdict((res as { error?: string }).error ?? 'Failed to block date.'); return; }
       onToast('Date blocked', 'success');
       onRefresh(); onClose();
     } catch { onToast('Network error.', 'error'); }
@@ -120,8 +136,9 @@ export function CalendarBlockSheet({
     if (!existingBlock || working) return;
     setWorking(true);
     try {
+      setVerdict(null);
       const res = await unblockDate(existingBlock.id);
-      if (!res.ok) { onToast((res as { error?: string }).error ?? 'Failed to unblock.', 'error'); return; }
+      if (!res.ok) { setVerdict((res as { error?: string }).error ?? 'Failed to unblock.'); return; }  // F-04.77: same convention
       onToast('Date unblocked', 'success');
       onRefresh(); onClose();
     } catch { onToast('Network error.', 'error'); }
@@ -169,6 +186,15 @@ export function CalendarBlockSheet({
 
         {/* Body */}
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* The verdict line — the wire's sentence, verbatim, never softened.
+              (F-04.77's cure; the day sheet's own block, styles byte-for-byte.) */}
+          {verdict && (
+            <div style={{
+              padding: '10px 14px', borderRadius: 10,
+              border: '0.5px solid rgba(224,112,112,0.4)', background: 'rgba(180,40,40,0.10)',
+              fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.red,
+            }}>{verdict}</div>
+          )}
           {(() => {
             const onDay = (events ?? []).filter((e) => e.state !== 'cancelled');
             if (!onDay.length) return null;
