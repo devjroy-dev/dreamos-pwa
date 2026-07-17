@@ -13,6 +13,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Header } from '@/components/vendor/Header';
 import { ChatThread } from '@/components/vendor/ChatThread';
+import { FreshThreadControl } from '@/components/vendor/FreshThreadControl'; // TDW_06 D-7
 import { InputBar } from '@/components/vendor/InputBar';
 import { TierMeter } from '@/components/vendor/TierMeter'; // TDW_02 P5
 import { CommandBar } from '@/components/vendor/CommandBar';
@@ -468,7 +469,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   const aiPrimer       = searchParams?.get('aiPrimer') ?? '';
   const draft          = searchParams?.get('draft') ?? '';
 
-  const { messages, loading, context, send, injectAiMessage, meta } = useChat({ vendorId }); // TDW_02 P5: +meta
+  const { messages, loading, context, send, injectAiMessage, meta, freshThread } = useChat({ vendorId }); // TDW_02 P5: +meta · TDW_06 D-7: +freshThread
   // TDW_04 A3 (ST-4/L-4): the hub's money leaves the typed plane. The cabinet
   // is already on this screen (the YOUR BOOKS drawer reads it through the same
   // cached hook — no new network call), and deriveMoney is the same function
@@ -533,6 +534,10 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
       {/* ── Hub top stack ── */}
       <GreetingLine context={context} money={money} />
       <Ledger context={context} money={money} />
+
+      {/* ── Fresh thread (TDW_06 D-7) — one button; the divider in the thread
+             below is its confirmation, the scrollback visibly persisting. ── */}
+      <FreshThreadControl onConfirm={freshThread} disabled={loading} />
 
       {/* ── Conversation thread ── */}
       <ChatThread

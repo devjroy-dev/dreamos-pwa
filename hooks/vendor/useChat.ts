@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchContext, fetchChatHistory, streamChat, type StreamBeat } from '@/lib/vendor/api/vendor';
+import { fetchContext, fetchChatHistory, streamChat, startFreshThread, type StreamBeat } from '@/lib/vendor/api/vendor';
 import { getVendorSession } from '@/lib/vendor/session';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
 import type { ClarifyPayload, ContactCard } from '@/lib/vendor/types/vendor';
@@ -19,6 +19,10 @@ export interface ChatMessage {
   suggestions?: SuggestionsPayload;  // 3.0-C2: optional next-step cards under a completed action
   streaming?: boolean;         // true while SSE stream is in progress
   deliberation?: StreamBeat[]; // 5-B: the operator's work beneath Myra's reply
+  divider?: boolean;           // TDW_06 D-7: a fresh-thread seam — rendered as a
+                               // rule line, never a bubble. The scrollback above
+                               // it STAYS ON SCREEN; that is the rider's visible
+                               // truth, not a caption claim.
 }
 
 export interface BackendHistoryMessage { role: 'user' | 'assistant'; content: string; }
@@ -34,6 +38,10 @@ interface UseChatReturn {
   send:            (text: string, displayText?: string) => void;
   injectAiMessage: (text: string) => void;
   lastToolCalls:   string[];
+  // TDW_06 D-7: close the active thread cleanly (server abandons; never deletes)
+  // and mark the seam in the on-screen scrollback. Resolves true when the
+  // endpoint answered ok (including the idempotent nothing-active case).
+  freshThread:     () => Promise<boolean>;
 }
 
 export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
@@ -173,5 +181,30 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
     abortRef.current = abort;
   }, [vendorId, loading, refreshContext]);
 
-  return { messages, loading, context, send, injectAiMessage, meta, lastToolCalls };
+  // ── Fresh thread (TDW_06 D-7) ─────────────────────────────────────────
+  // One endpoint call; on ok, a divider joins the on-screen thread so the
+  // seam is VISIBLE and everything above it visibly persists (nothing is
+  // cleared — D-4's law: the button must not say, or act like, "Clear chat").
+  // Guarded against double-tap and against firing mid-stream.
+  const freshPendingRef = useRef(false);
+  const freshThread = useCallback(async (): Promise<boolean> => {
+    if (loading || freshPendingRef.current) return false;
+    freshPendingRef.current = true;
+    try {
+      const r = await startFreshThread();
+      if (!r.ok) return false;
+      setMessages((prev: ChatMessage[]) => {
+        if (prev.length === 0) return prev;                      // nothing to seam
+        if (prev[prev.length - 1].divider) return prev;          // already seamed
+        return [...prev, { id: nextId(), role: 'ai', text: '', divider: true }];
+      });
+      return true;
+    } catch {
+      return false;
+    } finally {
+      freshPendingRef.current = false;
+    }
+  }, [loading]);
+
+  return { messages, loading, context, send, injectAiMessage, meta, lastToolCalls, freshThread };
 }

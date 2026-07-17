@@ -177,6 +177,16 @@ export function fetchChatHistory(vendorId: string, limit = 10): Promise<ChatHist
   return getJson<ChatHistoryResponse>(`/api/v2/vendor/chat/history/${vendorId}?limit=${limit}`);
 }
 
+// ── Fresh thread (TDW_06 D-7 — the new-thread button's one endpoint) ───────
+// Closes the active conversation cleanly (memory.ts's own abandonment shape,
+// server-side; never a delete — the scrollback persists on the estate). The
+// next message starts a fresh thread, exactly as the 30-minute timeout does.
+// Idempotent: `closed: null` means nothing was active — already fresh.
+export type FreshThreadResponse = { ok: boolean; closed: string | null; error?: string };
+export function startFreshThread(): Promise<FreshThreadResponse> {
+  return postJson<FreshThreadResponse>('/api/v2/vendor/chat/thread/fresh', {});
+}
+
 // ── Today dashboard ───────────────────────────────────────────────────────
 export function fetchToday(vendorId: string): Promise<TodayResponse> {
   return getJson<TodayResponse>(`/api/v2/vendor/today/${vendorId}`);

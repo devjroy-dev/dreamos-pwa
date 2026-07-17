@@ -150,6 +150,27 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLas
     >
       {messages.map((m, idx) => (
         <div key={m.id ?? idx}>
+          {/* TDW_06 D-7 — the fresh-thread seam. A rule line, never a bubble:
+              the scrollback above it stays exactly where it was (the visible
+              truth D-7 requires), and the new thread continues beneath. Copy
+              ("Fresh thread") is on the veto-on-sight list; persona-free per
+              the A4 copy law. */}
+          {m.divider ? (
+            <div aria-label="Fresh thread starts here" style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '14px 22px 10px',
+            }}>
+              <span style={{ flex: 1, height: '0.5px', background: T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(201,168,76,0.22)' }} />
+              <span style={{
+                fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                letterSpacing: '0.34em', textTransform: 'uppercase' as const,
+                color: T.isLight ? 'rgba(26,15,8,0.45)' : 'rgba(201,168,76,0.6)',
+                whiteSpace: 'nowrap',
+              }}>Fresh thread</span>
+              <span style={{ flex: 1, height: '0.5px', background: T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(201,168,76,0.22)' }} />
+            </div>
+          ) : (
+          <>
           <MessageBubble message={m} />
 
           {/* The pair at work (5-B): Myra's reply is the bubble above; her
@@ -224,6 +245,8 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLas
                 ))}
               </div>
             </div>
+          )}
+          </>
           )}
         </div>
       ))}
