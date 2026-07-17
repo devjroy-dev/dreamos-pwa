@@ -33,13 +33,17 @@ function emphasizeRs(seg: string, T: Tok, salt: string): ReactNode[] {
   const parts = seg.split(/(Rs\.?\s?[\d,]+(?:\.\d+)?(?:\s?(?:lakh|cr|crore|k))?)/gi);
   return parts.map((p, i) => {
     if (/^Rs\.?\s?[\d,]/i.test(p)) {
-      return <span key={`${salt}r${i}`} style={{ color: T.accent, fontStyle: 'normal', fontWeight: 500 }}>{p}</span>;
+      return <span key={`${salt}r${i}`} style={{ color: T.accent, fontStyle: 'italic', fontWeight: 500 }}>{p}</span>;
     }
     return <span key={`${salt}n${i}`}>{p}</span>;
   });
 }
-// Italic emphasis: the prose is already italic Cormorant, so *word* / _word_ reads as
-// emphasis by going UPRIGHT + a touch heavier — it lifts out of the surrounding slant.
+// Italic emphasis — founder-ruled WHOLE REGISTER (TDW_06 economics sitting open,
+// verbatim: "it should be italics. thats victors voice reserved"): *word* / _word_
+// stays in the italic register; WEIGHT alone (500) is the emphasis. The earlier
+// upright-inversion rationale is retired with the ruling — same warrant as the
+// **bold** branch below (ZIP 8), extended by his word to em, the Rs accent, and
+// headings. `code` deliberately stays upright — not on his list, machine text.
 function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
   const out: ReactNode[] = [];
   const re = /\*(?!\s)([^*\n]+?)\*|_(?!\s)([^_\n]+?)_/g;
@@ -47,7 +51,7 @@ function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
     const inner = m[1] !== undefined ? m[1] : (m[2] as string);
-    out.push(<em key={`${salt}i${k++}`} style={{ fontStyle: 'normal', fontWeight: 500 }}>{emphasizeRs(inner, T, `${salt}${k}`)}</em>);
+    out.push(<em key={`${salt}i${k++}`} style={{ fontStyle: 'italic', fontWeight: 500 }}>{emphasizeRs(inner, T, `${salt}${k}`)}</em>);
     last = re.lastIndex;
   }
   if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last), T, `${salt}${k}`)}</span>);
@@ -65,8 +69,8 @@ function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
       // Founder-ruled (2026-07-18, the riders smoke): **bold** keeps the bubble's
       // italic register — WEIGHT alone is the emphasis. The dreamai-ported
       // inversion (upright bold) read as a second voice breaking Victor's serif
-      // on the live screens. Siblings deliberately untouched pending his word:
-      // *em* (:50) and the Rs accent (:36) still invert upright; headings too.
+      // on the live screens. His word arrived at the economics sitting's open:
+      // the WHOLE register is italic — em, Rs accent, and headings joined (this ZIP).
       out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'italic', fontWeight: 600 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
     } else {
       out.push(<code key={`${salt}c${k++}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontStyle: 'normal', fontSize: '0.86em', background: T.isLight ? 'rgba(26,15,8,0.06)' : 'rgba(233,228,217,0.08)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
@@ -116,7 +120,7 @@ function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode
     } else if (isHeading) {
       const level = (nonEmpty[0].match(/^#{1,3}/) || ['#'])[0].length;
       out.push(
-        <p key={`h${bi}`} style={{ ...pStyle, fontStyle: 'normal', fontWeight: 600, fontSize: level === 1 ? 21 : level === 2 ? 19 : 18 }}>
+        <p key={`h${bi}`} style={{ ...pStyle, fontStyle: 'italic', fontWeight: 600, fontSize: level === 1 ? 21 : level === 2 ? 19 : 18 }}>
           {inlineNodes(nonEmpty[0].replace(HEADING, ''), T, `${bi}-h-`)}
         </p>
       );
