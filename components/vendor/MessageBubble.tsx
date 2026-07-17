@@ -62,7 +62,12 @@ function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
     if (m[1] !== undefined) {
-      out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'normal', fontWeight: 600 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
+      // Founder-ruled (2026-07-18, the riders smoke): **bold** keeps the bubble's
+      // italic register — WEIGHT alone is the emphasis. The dreamai-ported
+      // inversion (upright bold) read as a second voice breaking Victor's serif
+      // on the live screens. Siblings deliberately untouched pending his word:
+      // *em* (:50) and the Rs accent (:36) still invert upright; headings too.
+      out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'italic', fontWeight: 600 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
     } else {
       out.push(<code key={`${salt}c${k++}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontStyle: 'normal', fontSize: '0.86em', background: T.isLight ? 'rgba(26,15,8,0.06)' : 'rgba(233,228,217,0.08)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
     }
