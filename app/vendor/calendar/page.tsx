@@ -8,7 +8,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { useEventsData } from '@/hooks/vendor/useVendorData';
+import { useEventsData, useEventsWindow } from '@/hooks/vendor/useVendorData';
 import { useHotDates } from '@/hooks/vendor/useHotDates';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import { Header } from '@/components/vendor/Header';
@@ -77,9 +77,28 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   // Tap-to-edit a calendar event opens the form (direct write), never the AI.
   const [editRow, setEditRow] = useState<Record<string, unknown> | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  // B6-S1 (R-B6-18's hedge): create-mode seed for the day-popup's + — the date,
+  // prefilled. Cleared with the sheet.
+  const [addSeed, setAddSeed] = useState<Record<string, string> | null>(null);
   const { toast, show: showToast } = useToast();
 
   const { data: events, refresh: refreshEvents } = useEventsData(vendorId);
+
+  // ── TDW_04 B6-S1 — surfaces item 3, THE HORIZON CONTRACT (F-04.47's cure) ──
+  // The GRID reads a deliberate window: the visible month ± one month, RE-FETCHED
+  // on month-nav (before this, ‹/› moved React state over one stale 400-day fetch,
+  // and HARD_CAP's .limit(200) silently truncated a busy studio). The RAIL below
+  // stays on useEventsData's default horizon on purpose: "what's coming up" wants
+  // the head of a date-asc sort, which truncation cannot touch — windowing it
+  // would empty the rail for a season booked five months out.
+  const win = useMemo(() => {
+    const fy = month === 0 ? year - 1 : year;
+    const fm = month === 0 ? 11 : month - 1;
+    const ty = month === 11 ? year + 1 : year;
+    const tm = month === 11 ? 0 : month + 1;
+    return { from: iso(fy, fm, 1), to: iso(ty, tm, new Date(ty, tm + 1, 0).getDate()) };
+  }, [year, month]);
+  const { data: winData, refresh: refreshWindow } = useEventsWindow(vendorId, win.from, win.to);
 
   useEffect(() => {
     fetchAvailability(vendorId).then(res => { if (res.ok) setBlocks(res.blocks); }).catch(() => {});
@@ -99,13 +118,21 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
 
   const byDate = useMemo(() => {
     const map = new Map<string, VendorEvent[]>();
-    for (const ev of events ?? []) {
+    // B6-S1: the grid's engagements come from the WINDOWED read (item 3).
+    // RATIFY-OR-REVERT (named in the S1 census, F-04.36's exact shape): blocks are
+    // excluded here. byDate feeds three surfaces — the day-cell engagement dot,
+    // the day-popup list, and the BlockSheet's "on this day" list — and in all
+    // three a block row was masquerading as an engagement (the dot lit on a
+    // block-only day; the sheet listed the block beside itself). "Is this day
+    // held" is blockMap's job (the hatch), fed by the blocks projection.
+    for (const ev of winData?.events ?? []) {
+      if (ev.kind === 'blocked') continue;
       const list = map.get(ev.event_date) ?? [];
       list.push(ev);
       map.set(ev.event_date, list);
     }
     return map;
-  }, [events]);
+  }, [winData]);
 
   const todayIso = iso(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -150,7 +177,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   async function handleCancelEvent(eventId: string) {
     try {
       const res = await cancelEvent(eventId);
-      if (res.ok) { setSel(null); refreshEvents(); }
+      if (res.ok) { setSel(null); refreshEvents(); refreshWindow(); }
     } catch { /* silent */ }
   }
 
@@ -358,6 +385,15 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         })}
       </div>
 
+      {/* B6-S1 (item 3): the cap's honest tell. Copy on the veto-on-sight list. */}
+      {winData?.truncated && (
+        <div style={{
+          padding: '2px 22px 10px',
+          fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+          fontSize: 12, color: A.inkMute,
+        }}>Over 200 entries in this span — the furthest are not drawn.</div>
+      )}
+
       {/* ── Next Engagements ──────────────────────────────────── */}
       <div style={{ padding: '0 22px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0 12px' }}>
@@ -469,7 +505,17 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   </span>
                 )}
               </div>
-              <button type="button" onClick={onAdd} className="atelier-fab" style={{
+              {/* B6-S1 — R-B6-18's hedge: the day-popup's + opens the AddSheet in
+                  CREATE mode with the date prefilled — the vendor's first mechanical
+                  path to his own calendar FROM the calendar (the founder's priced
+                  gap). The FAB's + keeps the chat primer, per the ruling's own words. */}
+              <button type="button" onClick={() => {
+                const d = sel;
+                setSel(null);
+                setEditRow(null);
+                setAddSeed(d ? { event_date: d } : null);
+                setAddOpen(true);
+              }} className="atelier-fab" style={{
                 width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: F.display, fontSize: 18, lineHeight: 1, fontWeight: 400,
@@ -544,7 +590,8 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         slice="events"
         existing={editRow}
         existingId={editRow?.id as string | undefined}
-        onClose={() => { setAddOpen(false); setEditRow(null); }}
+        initialValues={addSeed ?? undefined}
+        onClose={() => { setAddOpen(false); setEditRow(null); setAddSeed(null); }}
         onToast={showToast}
       />
     </div>

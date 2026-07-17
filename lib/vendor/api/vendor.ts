@@ -238,8 +238,13 @@ export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse>
 }
 
 // ── Events ────────────────────────────────────────────────────────────────
-export function fetchEvents(vendorId: string, state = 'upcoming'): Promise<EventsResponse> {
-  return getJson<EventsResponse>(`/api/v2/vendor/events/${vendorId}?state=${state}`);
+// TDW_04 B6-S1 (surfaces item 3, the horizon contract — F-04.47's real cure):
+// the client can now SAY its window. Windowless calls keep the server default
+// (400 days from today, the ruled interim) — existing behaviour is sacred for
+// the callers that still want "everything ahead" (the list slice, the rail).
+export function fetchEvents(vendorId: string, state = 'upcoming', from?: string, to?: string): Promise<EventsResponse> {
+  const win = from && to ? `&from=${from}&to=${to}` : '';
+  return getJson<EventsResponse>(`/api/v2/vendor/events/${vendorId}?state=${state}${win}`);
 }
 
 // ── Chat — JSON fallback (mock / non-streaming clients) ───────────────────

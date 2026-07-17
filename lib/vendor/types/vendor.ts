@@ -29,6 +29,12 @@ export interface MeResponse {
     rate_min: number | null;
     rate_max: number | null;
     discover_preview: boolean;
+    // TDW_04 B6-S1 (surfaces item 2): the capacity row. slot_capacity NULL = the
+    // category default; capacity_default/capacity_applicable are computed BACKEND-
+    // SIDE from occupancy.js's one-home map — the PWA never carries a copy.
+    slot_capacity: number | null;
+    capacity_default: number | null;
+    capacity_applicable: boolean;
   };
 }
 
@@ -47,6 +53,8 @@ export interface UpdateMeRequest {
   aesthetic_tags?:   string[];
   rate_min?:         number;
   rate_max?:         number;
+  // B6-S1: null is MEANINGFUL here — it resets to the category default.
+  slot_capacity?:    number | null;
 }
 
 export interface UpdateMeResponse {
@@ -62,6 +70,7 @@ export interface UpdateMeResponse {
     aesthetic_tags:   string[];
     rate_min:         number | null;
     rate_max:         number | null;
+    slot_capacity:    number | null;   // B6-S1
     discover_preview: boolean;
   };
 }
@@ -353,6 +362,9 @@ export interface EventsResponse {
     event_time: string | null; state: string; lead_id: string | null; notes: string | null;
   }>;
   total: number;
+  // B6-S1 (surfaces item 3, the horizon contract): the cap's honest tell —
+  // true when the server's exact count exceeded the 200-row capped list.
+  truncated?: boolean;
 }
 
 // ── POST /api/v2/vendor/events ───────────────────────────────────────────

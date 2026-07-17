@@ -24,8 +24,8 @@ type CacheEntry<T> = { data: T; ts: number };
 const cache = new Map<string, CacheEntry<unknown>>();
 const CACHE_TTL = 30_000;
 
-function cacheKey(vendorId: string, kind: Kind) {
-  return `${vendorId}:${kind}`;
+function cacheKey(vendorId: string, kind: Kind, suffix?: string) {
+  return suffix ? `${vendorId}:${kind}:${suffix}` : `${vendorId}:${kind}`;
 }
 
 interface LoadState<T> {
@@ -40,8 +40,10 @@ function useLoader<T>(
   kind: Kind,
   fetcher: (id: string) => Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
   extract: (raw: Record<string, unknown>) => T | null,
+  keySuffix?: string,  // B6-S1: windowed entries get their own cache rows; the
+                       // kind stays the same so the invalidation bus reaches them.
 ): LoadState<T> {
-  const key = vendorId ? cacheKey(vendorId, kind) : null;
+  const key = vendorId ? cacheKey(vendorId, kind, keySuffix) : null;
   const cached = key ? (cache.get(key) as CacheEntry<T> | undefined) : undefined;
 
   const [data, setData] = useState<T | null>(cached?.data ?? null);
@@ -89,8 +91,13 @@ function useLoader<T>(
 }
 
 // Public invalidation — call after agent writes
+// B6-S1: prefix delete — windowed entries (`vendor:events:from:to`) fall with
+// their kind; before this, a windowed row would have survived its slice's bust.
 export function invalidateSlice(vendorId: string, kind: Kind) {
-  cache.delete(cacheKey(vendorId, kind));
+  const prefix = cacheKey(vendorId, kind);
+  for (const k of Array.from(cache.keys())) {
+    if (k === prefix || k.startsWith(prefix + ':')) cache.delete(k);
+  }
 }
 
 // ── Public hooks ──────────────────────────────────────────────────────────
@@ -133,6 +140,39 @@ export function useEventsData(vendorId: string | null): LoadState<VendorEvent[]>
     (id) => fetchEvents(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.events) ? (raw.events as VendorEvent[]) : null,
   );
+}
+
+// TDW_04 B6-S1 (surfaces item 3, the horizon contract). The GRID's data: the
+// visible month ± a buffer, re-fetched on month-nav, with the server's honest
+// truncation tell riding along. This hook is a SIBLING of useEventsData, never
+// its replacement: the rail ("what's coming up") keeps the default horizon,
+// whose date-asc sort makes its head rows immune to tail truncation — windowing
+// the rail would have emptied it for a far-out season, a regression. Two
+// questions, two reads, each honest about what it witnessed.
+export interface EventsWindowData {
+  events: VendorEvent[];
+  total: number;
+  truncated: boolean;
+}
+
+export function useEventsWindow(
+  vendorId: string | null, from: string, to: string,
+): LoadState<EventsWindowData> {
+  const fetcher = useCallback(
+    (id: string) => fetchEvents(id, 'upcoming', from, to) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
+    [from, to],
+  );
+  const extract = useCallback(
+    (raw: Record<string, unknown>) => Array.isArray(raw.events)
+      ? {
+          events: raw.events as VendorEvent[],
+          total: typeof raw.total === 'number' ? raw.total : 0,
+          truncated: raw.truncated === true,
+        }
+      : null,
+    [],
+  );
+  return useLoader<EventsWindowData>(vendorId, 'events', fetcher, extract, `${from}:${to}`);
 }
 
 // TDW_03 P2 — the RAW cabinet for the binder cards (the adapted useClientsData

@@ -21,10 +21,16 @@ export interface SettingsState {
   briefing_enabled:  boolean;
   invoice_prefix:    string;
   routing_handle:    string;
+  // TDW_04 B6-S1 (surfaces item 2): '' = NULL = category default; the number as a
+  // string otherwise ('0' is a lawful posture, Q-SP-1 — never coerced away).
+  slot_capacity:     string;
   // Read-only
   tier:              string;
   founding_cohort:   boolean;
   discover_preview:  boolean;
+  // Read-only, computed backend-side from occupancy's one-home map (B6-S1):
+  capacity_default:    number | null;
+  capacity_applicable: boolean;
 }
 
 const EMPTY: SettingsState = {
@@ -33,7 +39,9 @@ const EMPTY: SettingsState = {
   upi_id: '', gstin: '', rate_min: '', rate_max: '',
   aesthetic_tags: '', briefing_enabled: true,
   invoice_prefix: '', routing_handle: '',
+  slot_capacity: '',
   tier: '', founding_cohort: false, discover_preview: false,
+  capacity_default: null, capacity_applicable: false,
 };
 
 export function useSettings() {
@@ -62,12 +70,15 @@ export function useSettings() {
         rate_min:         v.rate_min != null ? String(v.rate_min) : '',
         rate_max:         v.rate_max != null ? String(v.rate_max) : '',
         aesthetic_tags:   (v.aesthetic_tags ?? []).join(', '),
+        slot_capacity:    v.slot_capacity != null ? String(v.slot_capacity) : '',
         briefing_enabled: true,
         invoice_prefix:   '',
         routing_handle:   v.handle ?? '',
         tier:             v.tier ?? '',
         founding_cohort:  v.founding_cohort ?? false,
         discover_preview: v.discover_preview ?? false,
+        capacity_default:    v.capacity_default ?? null,
+        capacity_applicable: v.capacity_applicable ?? false,
       };
       setSaved(s);
       setCurrent(s);

@@ -132,6 +132,10 @@ interface Props {
   /** When provided: edit mode — pre-fill form with existing values (raw data object, not display Row) */
   existing?: Record<string,unknown> | null;
   existingId?: string;
+  /** TDW_04 B6-S1 (R-B6-18, the +Booking hedge): CREATE-mode seed values — e.g.
+   *  the day-popup's + prefilling event_date. Never flips the sheet into edit
+   *  mode (that is existing + existingId's job); ignored when editing. */
+  initialValues?: Record<string, string>;
 }
 
 function normalisePhone(v: string): string {
@@ -154,7 +158,7 @@ const ESSENTIAL: Record<ListSlice, string[]> = {
   events:   ['title'],
 };
 
-export function AddSheet({ open, slice, onClose, onToast, existing, existingId }: Props) {
+export function AddSheet({ open, slice, onClose, onToast, existing, existingId, initialValues }: Props) {
   const router = useRouter();
   const schema = SCHEMAS[slice];
   const isEdit = !!existing && !!existingId;
@@ -201,11 +205,13 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId }
       // New record or fallback — set defaults only
       const defaults: Record<string, string> = {};
       if (slice === 'expenses') defaults.expense_date = new Date().toISOString().split('T')[0];
+      // B6-S1 (R-B6-18): create-mode seeds ride on top of the defaults.
+      if (initialValues) Object.assign(defaults, initialValues);
       setValues(defaults);
     }
   // existing is intentionally in deps — it's a new ref each time onEditHere fires
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, existing]);
+  }, [open, existing, initialValues]);
 
   function set(key: string, val: string) {
     isDirty.current = true;

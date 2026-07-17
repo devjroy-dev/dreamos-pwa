@@ -179,6 +179,69 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           />
         </SCard>
 
+        {/* TDW_04 B6-S1 — surfaces item 2 (F-04.64's first half, spec P3's ruled row).
+            Rendered for function artists only: capacity_applicable is computed
+            BACKEND-SIDE from occupancy's one-home map — this surface holds no copy
+            of the category table (F-04.36's law). '' = NULL = category default;
+            0 is a lawful posture and saves as 0, never coerced (Q-SP-1).
+            All strings below are on the founder's veto-on-sight list. */}
+        {current.capacity_applicable && (
+          <SCard title="Working Capacity">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <button type="button" aria-label="Fewer" onClick={() => {
+                const base = current.slot_capacity === '' ? (current.capacity_default ?? 0) : Number(current.slot_capacity);
+                update({ slot_capacity: String(Math.max(0, base - 1)) });
+              }} style={{
+                width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+                background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
+                color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
+              }}>−</button>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontFamily: F.display, fontSize: 30, color: A.ink, lineHeight: 1 }}>
+                  {current.slot_capacity === ''
+                    ? (current.capacity_default != null ? String(current.capacity_default) : '—')
+                    : current.slot_capacity}
+                </div>
+                <div style={{
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                  color: A.brassWarm, marginTop: 5,
+                }}>
+                  {current.slot_capacity === ''
+                    ? (current.capacity_default != null ? 'Category default' : 'Not counting yet')
+                    : 'Bookings per slot'}
+                </div>
+              </div>
+              <button type="button" aria-label="More" onClick={() => {
+                const base = current.slot_capacity === '' ? (current.capacity_default ?? 0) : Number(current.slot_capacity);
+                update({ slot_capacity: String(base + 1) });
+              }} style={{
+                width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+                background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
+                color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
+              }}>+</button>
+            </div>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 8 }}>
+              How many bookings each slot of a day can hold. The calendar refuses the one after.
+            </div>
+            {current.slot_capacity !== '' && (
+              <button type="button" onClick={() => update({ slot_capacity: '' })} style={{
+                marginTop: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                letterSpacing: '0.28em', textTransform: 'uppercase', color: A.brassWarm,
+              }}>Use category default{current.capacity_default != null ? ` (${current.capacity_default})` : ''}</button>
+            )}
+            <SaveBtn
+              dirty={isDirty(['slot_capacity'])}
+              loading={saving === 'capacity'}
+              onSave={() => saveMe('capacity', ['slot_capacity'], {
+                // null is MEANINGFUL: it resets to the category default. '0' saves as 0.
+                slot_capacity: current.slot_capacity === '' ? null : Number(current.slot_capacity),
+              })}
+            />
+          </SCard>
+        )}
+
         <SCard title="Aesthetic Tags">
           <SField label="Tags (comma-separated)" value={current.aesthetic_tags} onChange={v => update({ aesthetic_tags: v })} placeholder="moody, editorial, film" />
           <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 4 }}>Used in Discover recommendations.</div>
