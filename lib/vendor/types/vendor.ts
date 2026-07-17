@@ -393,6 +393,9 @@ export interface UpdateEventRequest {
   kind?:           EventKind;
   linked_lead_id?: string;
   notes?:          string;
+  /** TDW_04 B6-S2: the day sheet's Move picker sends date + slot in one PATCH.
+      The door validates against C2's four values (the mirrored-CHECK sentence). */
+  slot?:           'morning' | 'noon' | 'evening' | 'full_day';
 }
 
 export interface UpdateEventResponse {
@@ -406,6 +409,9 @@ export interface AvailabilityBlock {
   blocked_date: string;
   reason:       string | null;
   created_at:   string;
+  /** TDW_04 B6-S2 (0078): the block's slot — additive on the frozen wire.
+      Pre-0078 payloads carry it as 'full_day'; absent means full_day. */
+  slot?:        'morning' | 'noon' | 'evening' | 'full_day';
 }
 
 export interface AvailabilityResponse {
@@ -418,6 +424,8 @@ export interface AvailabilityResponse {
 export interface BlockDateRequest {
   blocked_date: string;
   reason?:      string;
+  /** TDW_04 B6-S2 (0078): omit = full_day (the pre-0078 behaviour, byte-identical). */
+  slot?:        'morning' | 'noon' | 'evening' | 'full_day';
 }
 
 export interface BlockDateResponse {
@@ -430,6 +438,52 @@ export interface HotDate {
   date:   string;
   note:   string | null;
   region: string | null;
+}
+
+// ── GET /api/v2/vendor/day/:vendorId/:date (TDW_04 B6-S2, item 4 / P5) ────
+export interface DayEvent {
+  id:               string;
+  title:            string;
+  kind:             string;
+  slot:             string | null;
+  event_time:       string | null;
+  state:            string;
+  notes:            string | null;
+  lead_id:          string | null;
+  linked_binder_id: string | null;
+  /** Binder chip name (engine hop, fail-soft): null = no chip, ST-2's disclosed blindness. */
+  binder_name:      string | null;
+}
+export interface DayBlock {
+  id:     string;
+  slot:   'morning' | 'noon' | 'evening' | 'full_day';
+  reason: string | null;
+  title:  string;
+}
+export interface DayMilestone {
+  id:             string;
+  invoice_id:     string;
+  label:          string;
+  amount_due:     number;
+  client_name:    string | null;
+  invoice_number: string | null;
+  ordinal:        number;
+  of:             number | null;
+}
+export interface DayFollowup {
+  id:           string;
+  client:       string | null;
+  note:         string | null;
+  repeat_every: string | null;
+}
+export interface VendorDayResponse {
+  ok:         true;
+  date:       string;
+  events:     DayEvent[];
+  blocks:     DayBlock[];
+  hot:        { note: string | null; label: string | null } | null;
+  milestones: DayMilestone[];
+  followups:  DayFollowup[];
 }
 
 export interface HotDatesResponse {

@@ -13,11 +13,12 @@ import { useHotDates } from '@/hooks/vendor/useHotDates';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import { Header } from '@/components/vendor/Header';
 import { CalendarBlockSheet } from '@/components/vendor/CalendarBlockSheet';
+import { CalendarDaySheet } from '@/components/vendor/CalendarDaySheet';
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
-import { fetchAvailability, fetchHotDates, cancelEvent } from '@/lib/vendor/api/vendor';
-import type { AvailabilityBlock, HotDate } from '@/lib/vendor/types/vendor';
+import { fetchAvailability, fetchHotDates } from '@/lib/vendor/api/vendor';
+import type { AvailabilityBlock, HotDate, DayEvent } from '@/lib/vendor/types/vendor';
 
 // ── Atelier tokens ──────────────────────────────────────────────
 const A = {
@@ -69,7 +70,11 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const today  = useMemo(() => new Date(), []);
   const [year, setYear]   = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
-  const [sel, setSel]     = useState<string | null>(null);
+  // B6-S2 (item 4): the DAY SHEET is the tap surface for every day — the old
+  // `sel` popup's affordances (list, edit, cancel, the + prefill) all moved
+  // into it, enriched per P5 (slots, chips, followups, muhurat, money due,
+  // block toggles, Move with the inline verdict). One day, one surface.
+  const [daySel, setDaySel] = useState<string | null>(null);
   const [hotOn, setHotOn] = useHotDates();
   const [blocks,   setBlocks]   = useState<AvailabilityBlock[]>([]);
   const [hotDates, setHotDates] = useState<HotDate[]>([]);
@@ -110,9 +115,18 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   }
 
   const hotSet = useMemo(() => new Set(hotDates.map(h => h.date)), [hotDates]);
+  // B6-S2 (0078): a date can hold SEVERAL blocks (per-slot) — the map becomes
+  // date -> block[]. The full hatch + dim is reserved for a FULL-DAY hold;
+  // partial holds draw the dashed ring undimmed (the day still sells) — an
+  // interim treatment, honest about "held" vs "gone", until the pips rider
+  // (R-B6-19: heat-grid pips are post-S2 polish).
   const blockMap = useMemo(() => {
-    const m = new Map<string, AvailabilityBlock>();
-    for (const b of blocks) m.set(b.blocked_date, b);
+    const m = new Map<string, AvailabilityBlock[]>();
+    for (const b of blocks) {
+      const list = m.get(b.blocked_date) ?? [];
+      list.push(b);
+      m.set(b.blocked_date, list);
+    }
     return m;
   }, [blocks]);
 
@@ -166,20 +180,25 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const prevDays    = new Date(year, month, 0).getDate();
 
   function onAdd() {
-    const primer = sel
-      ? `What would you like me to add for ${fmtShort(sel)}?`
-      : `What would you like me to add to the calendar? Give me a title, date, and time.`;
-    router.push(`/vendor?aiPrimer=${encodeURIComponent(primer)}`);
+    // The FAB's + keeps the chat primer (R-B6-18's ruling, unchanged). The
+    // per-date variant retired with the popup: a date-anchored add now lives on
+    // the day sheet's + Booking (mechanical, per the founder's priced gap).
+    router.push(`/vendor?aiPrimer=${encodeURIComponent('What would you like me to add to the calendar? Give me a title, date, and time.')}`);
   }
 
-  const selEvents = sel ? (byDate.get(sel) ?? []) : [];
+  function refreshAll() { refreshEvents(); refreshWindow(); refreshBlocks(); }
 
-  async function handleCancelEvent(eventId: string) {
+  // B6-S2 (item 6(b)): the AddSheet's "Block this day instead →" can arrive
+  // from the LIST page via /vendor/calendar?block=YYYY-MM-DD — read once on
+  // mount (window.location, no useSearchParams: keeps the page free of a
+  // Suspense boundary and framework-agnostic per the native clause).
+  useEffect(() => {
     try {
-      const res = await cancelEvent(eventId);
-      if (res.ok) { setSel(null); refreshEvents(); refreshWindow(); }
-    } catch { /* silent */ }
-  }
+      const q = new URLSearchParams(window.location.search).get('block');
+      if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) setBlockSel(q);
+    } catch { /* no-op */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
@@ -312,21 +331,23 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           const d = i + 1;
           const dateIso = iso(year, month, d);
           const isToday   = dateIso === todayIso;
-          const isSel     = dateIso === sel;
+          const isSel     = dateIso === daySel;
           const evCount   = (byDate.get(dateIso) ?? []).length;
           const isHot     = hotSet.has(dateIso) && hotOn;
-          const isBlocked = blockMap.has(dateIso);
+          const dayBlocks = blockMap.get(dateIso) ?? [];
+          const isFullDayBlocked = dayBlocks.some(b => (b.slot ?? 'full_day') === 'full_day');
+          const isBlocked = dayBlocks.length > 0;
 
           return (
             <button key={d} type="button"
               onClick={() => {
-                if (isBlocked || (!byDate.has(dateIso) && !isSel)) {
-                  setSel(null);
-                  setBlockSel(prev => prev === dateIso ? null : dateIso);
-                } else {
-                  setBlockSel(null);
-                  setSel(prev => prev === dateIso ? null : dateIso);
-                }
+                // B6-S2 (item 4): every day tap opens THE DAY SHEET. The block
+                // flow (reason picker / unblock) is reachable FROM it — one
+                // surface for a day, per P5's own words ("Day sheet (tap a
+                // day)"). Disclosed routing change: blocked/empty days used to
+                // open the BlockSheet directly; nothing is lost, one hop moved.
+                setBlockSel(null);
+                setDaySel(prev => prev === dateIso ? null : dateIso);
               }}
               style={{
                 position: 'relative',
@@ -335,7 +356,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontFamily: F.display, fontWeight: 400, fontSize: 22,
                 color: isToday ? '#1A120E' : (isSel ? '#1A120E' : A.ink),
-                opacity: isBlocked ? 0.45 : 1,
+                opacity: isFullDayBlocked ? 0.45 : 1,   // a partial hold still sells — no dim (interim until pips)
               }}>
               {/* Today brass coin (behind numeral) */}
               {isToday && (
@@ -471,119 +492,37 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         cursor: 'pointer', border: '0.5px solid #E0BC6E',
       }}>+</button>
 
-      {/* Date popup (kept functional) */}
-      {sel && (
-        <>
-          <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, zIndex: 30, backgroundColor: 'var(--atelier-overlay)' }} />
-          <div style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
-            background: 'var(--atelier-sheet-bg)',
-            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            boxShadow: '0 -4px 24px rgba(0,0,0,0.12), inset 0 1px 0 var(--atelier-ink-dim)',
-            borderTopLeftRadius: 4, borderTopRightRadius: 4,
-            borderTop: `0.5px solid ${A.brassLine}`,
-            padding: '16px 24px calc(24px + env(safe-area-inset-bottom))',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  letterSpacing: '0.42em', textTransform: 'uppercase',
-                  color: A.brass,
-                }}>{fmtShort(sel)}</div>
-                {hotSet.has(sel) && hotOn && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: A.terracotta }} />
-                    <span style={{
-                      fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                      letterSpacing: '0.32em', textTransform: 'uppercase',
-                      color: A.terracotta,
-                    }}>Hot Date</span>
-                  </span>
-                )}
-              </div>
-              {/* B6-S1 — R-B6-18's hedge: the day-popup's + opens the AddSheet in
-                  CREATE mode with the date prefilled — the vendor's first mechanical
-                  path to his own calendar FROM the calendar (the founder's priced
-                  gap). The FAB's + keeps the chat primer, per the ruling's own words. */}
-              <button type="button" onClick={() => {
-                const d = sel;
-                setSel(null);
-                setEditRow(null);
-                setAddSeed(d ? { event_date: d } : null);
-                setAddOpen(true);
-              }} className="atelier-fab" style={{
-                width: 32, height: 32, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: F.display, fontSize: 18, lineHeight: 1, fontWeight: 400,
-                cursor: 'pointer', border: '0.5px solid #E0BC6E',
-              }}>+</button>
-            </div>
-            {selEvents.length === 0 ? (
-              <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 18, color: A.inkMute,
-              }}>Nothing scheduled.</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{
-                  fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)',
-                }}>{selEvents.length} {selEvents.length > 1 ? 'engagements' : 'engagement'}</div>
-                {selEvents.map(ev => (
-                  <div key={ev.id} className="atelier-card" style={{
-                    padding: '12px 14px',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                        letterSpacing: '0.32em', textTransform: 'uppercase',
-                        color: 'var(--atelier-label)', marginBottom: 3,
-                      }}>{ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
-                      <div style={{
-                        fontFamily: F.script, fontWeight: 500, fontSize: 17,
-                        color: A.ink, letterSpacing: '0.005em',
-                      }}>{ev.title}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button type="button" onClick={() => {
-                        setSel(null);
-                        setEditRow(ev as unknown as Record<string, unknown>);
-                        setAddOpen(true);
-                      }} style={{
-                        background: 'none', border: `0.5px solid rgba(201,168,76,0.28)`,
-                        borderRadius: 999, padding: '5px 10px', cursor: 'pointer',
-                        fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                        letterSpacing: '0.28em', textTransform: 'uppercase',
-                        color: A.brassWarm,
-                      }}>Edit</button>
-                      <button type="button" onClick={() => handleCancelEvent(ev.id)} style={{
-                        background: 'none', border: '0.5px solid rgba(224,123,92,0.4)',
-                        borderRadius: 999, padding: '5px 10px', cursor: 'pointer',
-                        fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                        letterSpacing: '0.28em', textTransform: 'uppercase',
-                        color: A.terracotta,
-                      }}>Cancel</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      {/* B6-S2: the Date popup RETIRED into the day sheet (item 4) — its list,
+          Edit, Cancel, and + affordances all live there now, enriched per P5.
+          Nothing lost; one surface per day. */}
       <Toast toast={toast} />
+      {/* The full-day block flow (reason picker / unblock), reachable from the
+          day sheet — existingBlock is the FULL-DAY hold specifically; slot
+          blocks are the day sheet's toggles' business. */}
       <CalendarBlockSheet
         open={!!blockSel}
         dateIso={blockSel}
-        existingBlock={blockSel ? (blockMap.get(blockSel) ?? null) : null}
+        existingBlock={blockSel ? ((blockMap.get(blockSel) ?? []).find(b => (b.slot ?? 'full_day') === 'full_day') ?? null) : null}
         onClose={() => setBlockSel(null)}
         onToast={showToast}
-        onRefresh={refreshBlocks}
+        onRefresh={() => { refreshBlocks(); refreshWindow(); }}
         events={blockSel ? (byDate.get(blockSel) ?? []) : []}
+      />
+      <CalendarDaySheet
+        open={!!daySel}
+        dateIso={daySel}
+        vendorId={vendorId}
+        muhuratLocal={!!daySel && hotSet.has(daySel) && hotOn}
+        onClose={() => setDaySel(null)}
+        onToast={showToast}
+        onRefresh={refreshAll}
+        onAddBooking={(d) => { setDaySel(null); setEditRow(null); setAddSeed({ event_date: d }); setAddOpen(true); }}
+        onFullDayBlock={(d) => { setDaySel(null); setBlockSel(d); }}
+        onEdit={(ev: DayEvent) => {
+          setDaySel(null);
+          setEditRow({ id: ev.id, title: ev.title, kind: ev.kind, event_date: daySel ?? '', event_time: ev.event_time ?? '', notes: ev.notes ?? '' });
+          setAddOpen(true);
+        }}
       />
       <AddSheet
         open={addOpen}
@@ -593,6 +532,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         initialValues={addSeed ?? undefined}
         onClose={() => { setAddOpen(false); setEditRow(null); setAddSeed(null); }}
         onToast={showToast}
+        onBlockInstead={(d) => { setAddOpen(false); setEditRow(null); setAddSeed(null); setBlockSel(d); }}
       />
     </div>
   );

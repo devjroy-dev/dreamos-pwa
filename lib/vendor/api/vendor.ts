@@ -765,11 +765,19 @@ export function fetchHotDates(): Promise<HotDatesResponse | ApiErr> {
   return getJson<HotDatesResponse | ApiErr>('/api/v2/hot-dates');
 }
 
+// ── Day sheet (TDW_04 B6-S2, item 4 / P5) ─────────────────────────────────
+// The sheet's ONE round trip: events + blocks + muhurat note + milestones +
+// followup projection. Mark-paid stays markMilestonePaid (the existing door).
+export function fetchDay(vendorId: string, date: string): Promise<VendorDayResponse | ApiErr> {
+  return getJson<VendorDayResponse | ApiErr>(`/api/v2/vendor/day/${vendorId}/${date}`);
+}
+
 // ════════════════════════════════════════════════════════════════════
 // Block 5 — Discover / Portfolio / Couture / Featured
 // ════════════════════════════════════════════════════════════════════
 
 import type {
+  VendorDayResponse,
   PortfolioImage, PortfolioListResponse, UploadUrlResponse,
   DiscoverStatus, CoutureSlot, CoutureAppointment, FeaturedSubmission,
 } from '../types/vendor';

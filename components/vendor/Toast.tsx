@@ -53,7 +53,16 @@ export function Toast({ toast }: { toast: ToastState | null }) {
       {!asPill && (
         <span style={{
           fontFamily: F.label, fontWeight: 300, fontSize: 12,
-          color: T.isLight && !isErr ? T.ink : 'var(--atelier-ink)',
+          // F-04.75 (B6-S2, the CE's legibility line — found by contrast
+          // arithmetic, not by eye): the error variant's background is DARK RED
+          // in BOTH themes, but this color fell through to var(--atelier-ink),
+          // which is THEME-DEPENDENT — #1A0F08 (near-black) in porcelain.
+          // Near-black on dark red measured 1.5:1 (WCAG floor is 4.5:1): the
+          // refusal sentence was unreadable in the light theme. Literal cream
+          // now, both themes: 11.5–13.1:1 computed. The dark theme's
+          // var(--atelier-ink) IS #F0E6D2, so dark renders byte-identically.
+          // RATIFY-OR-REVERT (the R-B6-20 one-liner convention, named).
+          color: isErr ? '#F0E6D2' : T.isLight ? T.ink : 'var(--atelier-ink)',
           letterSpacing: '0.02em',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>

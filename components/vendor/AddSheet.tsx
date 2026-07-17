@@ -136,6 +136,14 @@ interface Props {
    *  the day-popup's + prefilling event_date. Never flips the sheet into edit
    *  mode (that is existing + existingId's job); ignored when editing. */
   initialValues?: Record<string, string>;
+  /** TDW_04 B6-S2 (item 6(b), F-04.37's CRUD-door class): when the vendor is
+   *  typing a BLOCK into the events create form (title says so), the sheet
+   *  offers the real mechanism instead of letting a fake block file as an
+   *  engagement (ALLOWED_KINDS excludes 'blocked' by door policy — a "blocked"
+   *  titled 'other' event would be a lie on the grid). Provided by pages that
+   *  can open the block flow; when absent the offer routes via
+   *  /vendor/calendar?block=<date>. */
+  onBlockInstead?: (date: string) => void;
 }
 
 function normalisePhone(v: string): string {
@@ -155,10 +163,20 @@ const ESSENTIAL: Record<ListSlice, string[]> = {
   clients:  ['name'],
   invoices: ['client_name', 'amount_total'],
   expenses: ['amount'],
-  events:   ['title'],
+  // TDW_04 B6-S2 (R-B6-28, F-04.73's cure — "events cannot file on their
+  // essential"): the door requires title + event_date + kind unconditionally
+  // (eventWrite's own validation), so a collapsed create showing only Title
+  // could never file — the vendor's first tap ended in the door's 400. The
+  // ESSENTIAL set becomes the door's required set. The Kind choice is a
+  // VISIBLE required select with no default — a server default or a silent
+  // client 'other' is refused as a guess wearing a save (the ruling's words).
+  // Where a path seeds the date (the day sheet's + Booking, the day-popup's +),
+  // the Date field renders pre-filled and editable; hiding it when unseeded
+  // would recreate F-04.73 at the list page, so it always renders.
+  events:   ['title', 'event_date', 'kind'],
 };
 
-export function AddSheet({ open, slice, onClose, onToast, existing, existingId, initialValues }: Props) {
+export function AddSheet({ open, slice, onClose, onToast, existing, existingId, initialValues, onBlockInstead }: Props) {
   const router = useRouter();
   const schema = SCHEMAS[slice];
   const isEdit = !!existing && !!existingId;
@@ -452,6 +470,25 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               )}
             </div>
           ))}
+
+          {/* TDW_04 B6-S2 (item 6(b)): the Block offer. A vendor typing "block"
+              into an event title is reaching for the block machinery through the
+              wrong door — teach the right one, never coerce (F-04.37's class).
+              Offered only in CREATE mode with a date to block. Copy on the
+              veto-on-sight list. */}
+          {!isEdit && phase === 'form' && slice === 'events'
+            && /\bblock/i.test(values.title ?? '') && (values.event_date ?? '').trim() !== '' && (
+            <button type="button" onClick={() => {
+              const d = values.event_date.trim();
+              onClose();
+              if (onBlockInstead) onBlockInstead(d);
+              else router.push(`/vendor/calendar?block=${d}`);
+            }} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,
+              letterSpacing: '0.22em', textTransform: 'uppercase', textAlign: 'left',
+            }}>Block this day instead →</button>
+          )}
 
           {/* TDW_04 A4: "All details ↓" — the expander for control-minded vendors */}
           {!isEdit && phase === 'form' && (
