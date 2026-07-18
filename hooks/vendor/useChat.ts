@@ -42,6 +42,10 @@ interface UseChatReturn {
   // and mark the seam in the on-screen scrollback. Resolves true when the
   // endpoint answered ok (including the idempotent nothing-active case).
   freshThread:     () => Promise<boolean>;
+  // TDW_06 P7d (item 3): mark the fresh-thread seam in the scrollback WITHOUT a POST —
+  // the chip's PATCH already abandoned the thread server-side (F-06.8 rides thread_reset),
+  // so the chip flip renders the SAME visible seam the button renders, no second abandon.
+  markFreshThread: () => void;
 }
 
 export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
@@ -206,5 +210,14 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
     }
   }, [loading]);
 
-  return { messages, loading, context, send, injectAiMessage, meta, lastToolCalls, freshThread };
+  // TDW_06 P7d (item 3): the seam-only half of freshThread — same append, no endpoint call.
+  const markFreshThread = useCallback(() => {
+    setMessages((prev: ChatMessage[]) => {
+      if (prev.length === 0) return prev;                      // nothing to seam
+      if (prev[prev.length - 1].divider) return prev;          // already seamed
+      return [...prev, { id: nextId(), role: 'ai', text: '', divider: true }];
+    });
+  }, []);
+
+  return { messages, loading, context, send, injectAiMessage, meta, lastToolCalls, freshThread, markFreshThread };
 }

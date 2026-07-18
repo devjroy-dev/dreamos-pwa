@@ -470,7 +470,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   const aiPrimer       = searchParams?.get('aiPrimer') ?? '';
   const draft          = searchParams?.get('draft') ?? '';
 
-  const { messages, loading, context, send, injectAiMessage, meta, freshThread } = useChat({ vendorId }); // TDW_02 P5: +meta · TDW_06 D-7: +freshThread
+  const { messages, loading, context, send, injectAiMessage, meta, freshThread, markFreshThread } = useChat({ vendorId }); // TDW_02 P5: +meta · TDW_06 D-7: +freshThread
   // TDW_04 A3 (ST-4/L-4): the hub's money leaves the typed plane. The cabinet
   // is already on this screen (the YOUR BOOKS drawer reads it through the same
   // cached hook — no new network call), and deriveMoney is the same function
@@ -526,7 +526,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
       {/* ── Victor mode (Business·Advisor) — TDW_06 P6d (R-2); placement rides the founder's veto ── */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
-        <VictorModeChip />
+        <VictorModeChip onThreadReset={markFreshThread} />
       </div>
 
       {/* ── CommandBar — sticky accountability bar ── */}

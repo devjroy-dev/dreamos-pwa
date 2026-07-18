@@ -5,7 +5,7 @@
 // (the 774-line monofile) — commit 1 of the P1 split. No behavior change.
 // P4 adds swipe/bulk affordances; P3 adds draft chips. Not here.
 
-import type { ListSlice } from '@/hooks/vendor/useLastSlice';
+import type { ListSlice, DoorSlice } from '@/hooks/vendor/useLastSlice';
 
 export const A = {
   ink:       'var(--atelier-ink)',
@@ -25,7 +25,7 @@ export const F = {
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
 
-export const LABELS: Record<ListSlice, string> = { clients: 'Clients', leads: 'Leads', invoices: 'Invoices', events: 'Events', expenses: 'Expenses' };
+export const LABELS: Record<DoorSlice, string> = { clients: 'Clients', leads: 'Leads', invoices: 'Invoices', events: 'Events', expenses: 'Expenses', notes: 'Notes' };
 export const GLYPHS: Record<ListSlice, string> = { clients: 'C', leads: 'L', invoices: 'I', events: '◐', expenses: '×' };
 
 // State pill color per state — used as colored border + colored text

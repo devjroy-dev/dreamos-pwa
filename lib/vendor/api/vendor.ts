@@ -24,7 +24,7 @@ export function fetchMe(): Promise<MeResponse> {
 // ModePill, localStorage 'vendor_app_mode') — this is engine.agents.victor_mode, read
 // and written through the vendor-e mode door. No localStorage; the server is the truth.
 export type VictorMode = 'business' | 'advisor';
-export type VictorModeResponse = { ok: boolean; victor_mode: VictorMode };
+export type VictorModeResponse = { ok: boolean; victor_mode: VictorMode; thread_reset?: boolean };
 
 export function fetchVictorMode(): Promise<VictorModeResponse> {
   return getJson<VictorModeResponse>('/api/v2/vendor-e/mode');

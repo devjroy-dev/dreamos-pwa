@@ -25,7 +25,7 @@ const SEGMENTS: { key: VictorMode; label: string }[] = [
   { key: 'advisor',  label: 'Advisor'  },
 ];
 
-export function VictorModeChip() {
+export function VictorModeChip({ onThreadReset }: { onThreadReset?: () => void } = {}) {
   const T = useT();
   const { mode, loading, saving, change } = useVictorMode();
   const busy = loading || saving;
@@ -53,7 +53,7 @@ export function VictorModeChip() {
             role="radio"
             aria-checked={active}
             disabled={busy}
-            onClick={() => { if (!busy && mode !== seg.key) change(seg.key); }}
+            onClick={() => { if (!busy && mode !== seg.key) { void change(seg.key).then((reset) => { if (reset) onThreadReset?.(); }); } }}
             style={{
               padding: '6px 13px', borderRadius: 999, border: 'none',
               cursor: busy ? 'default' : 'pointer',

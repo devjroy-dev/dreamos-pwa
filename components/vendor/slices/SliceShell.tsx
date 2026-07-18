@@ -14,7 +14,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { useLastSlice, type ListSlice } from '@/hooks/vendor/useLastSlice';
+import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
 import { Header } from '@/components/vendor/Header';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
@@ -69,9 +69,9 @@ const SCHEDULE_ENABLED: boolean = false;
 // the last-slice key through the EXISTING hook's write path, then navigates —
 // a real route change (the P1 remount nuance is a live path now; P4 judges it
 // per the standing ruling). Counts slot reserved — TDW_09 may add.
-const DOOR_ORDER: ListSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events'];
+const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
 
-function SliceDoor({ active }: { active: ListSlice }) {
+export function SliceDoor({ active }: { active: DoorSlice }) {
   const router = useRouter();
   const [, setSlice] = useLastSlice();
   const rowRef = useRef<HTMLDivElement | null>(null);
