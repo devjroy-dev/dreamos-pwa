@@ -12,6 +12,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Header } from '@/components/vendor/Header';
+import { VictorModeChip } from '@/components/vendor/VictorModeChip'; // TDW_06 P6d (R-2)
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { FreshThreadControl } from '@/components/vendor/FreshThreadControl'; // TDW_06 D-7
 import { InputBar } from '@/components/vendor/InputBar';
@@ -522,6 +523,11 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
       {/* ── Header ── */}
       <Header vendorName={displayName} />
+
+      {/* ── Victor mode (Business·Advisor) — TDW_06 P6d (R-2); placement rides the founder's veto ── */}
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
+        <VictorModeChip />
+      </div>
 
       {/* ── CommandBar — sticky accountability bar ── */}
       <CommandBar

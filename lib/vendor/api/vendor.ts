@@ -18,6 +18,22 @@ export function fetchMe(): Promise<MeResponse> {
   return getJson<MeResponse>('/api/v2/vendor/me');
 }
 
+// ── Victor mode (Business·Advisor) ─────────────────────────────────────────
+// TDW_06 P6d (R-2): the SERVER-persisted victor_mode that governs Victor's ROOM
+// (business vs advisor routing). Distinct from the client nav mode (useVendorMode /
+// ModePill, localStorage 'vendor_app_mode') — this is engine.agents.victor_mode, read
+// and written through the vendor-e mode door. No localStorage; the server is the truth.
+export type VictorMode = 'business' | 'advisor';
+export type VictorModeResponse = { ok: boolean; victor_mode: VictorMode };
+
+export function fetchVictorMode(): Promise<VictorModeResponse> {
+  return getJson<VictorModeResponse>('/api/v2/vendor-e/mode');
+}
+
+export function setVictorMode(victor_mode: VictorMode): Promise<VictorModeResponse> {
+  return patchJson<VictorModeResponse>('/api/v2/vendor-e/mode', { victor_mode });
+}
+
 // ── Context (snapshot panel) ──────────────────────────────────────────────
 export function fetchContext(vendorId: string): Promise<VendorContextResponse> {
   return getJson<VendorContextResponse>(`/api/v2/vendor/context/${vendorId}`);
