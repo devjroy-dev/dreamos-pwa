@@ -2,7 +2,7 @@
   "name": "The Dream Wedding",
   "short_name": "TDW",
   "description": "The Curated Wedding OS",
-  "start_url": "https://app.thedreamwedding.in/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#F8F7F5",
   "theme_color": "#F8F7F5",
@@ -33,7 +33,7 @@
       "purpose": "maskable"
     }
   ],
-  "scope": "https://app.thedreamwedding.in/",
+  "scope": "/",
   "id": "in.thedreamwedding.app",
   "categories": [
     "lifestyle",
