@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/vendor/useToast';
 import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/lib/vendor/api/vendor';
 
 const D = {
-  border: '0.5px solid var(--atelier-card-border)', muted: 'rgba(248,247,245,0.45)',
+  border: '0.5px solid var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)', red: '#E07070',
 };
 const F = {
@@ -27,7 +27,7 @@ const F = {
   body:    'var(--font-dm-sans), system-ui, sans-serif',
 };
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', backgroundColor: 'rgba(255,255,255,0.04)',
+  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid ${D.border}`, borderRadius: 8, color: D.cream,
   fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
 };
@@ -111,20 +111,30 @@ export function NotesBody() {
           )}
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(note => (
-            <div key={note.id} onClick={() => setSelected(note)} style={{
-              padding: '16px 24px', borderBottom: `1px solid ${D.border}`, cursor: 'pointer',
-              display: 'flex', alignItems: 'flex-start', gap: 12,
+            // TDW_06 P7e: a paper card via the design system's own .atelier-card class, so it
+            // wears each theme's card treatment (bg · border · lift · the per-theme inset
+            // highlight) — dark, light and flair all correct, nothing hardcoded. The only
+            // note-specific touches: a thin accent margin-rule down the left (the jotted
+            // notebook cue) and compact padding + a 2-line clamp so more notes fit. Date kept,
+            // quiet, in the corner — all colours are theme tokens.
+            <div key={note.id} onClick={() => setSelected(note)} className="atelier-card" style={{
+              borderLeft: '2px solid var(--atelier-accent-text)',
+              padding: '10px 13px 11px 15px',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'flex-start', gap: 10,
             }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: 15, color: D.cream, lineHeight: 1.5,
-                  overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
-                  WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                }}>{note.body}</div>
-              </div>
-              <span style={{ fontFamily: F.label, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{fmtDate(note.created_at)}</span>
+              <div style={{
+                flex: 1, minWidth: 0,
+                fontFamily: F.body, fontWeight: 300, fontSize: 13.5, color: 'var(--atelier-ink)', lineHeight: 1.45,
+                overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
+                WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+              }}>{note.body}</div>
+              <span style={{
+                fontFamily: F.label, fontSize: 8.5, color: 'var(--atelier-ink-mute)',
+                letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 2, whiteSpace: 'nowrap',
+              }}>{fmtDate(note.created_at)}</span>
             </div>
           ))}
         </div>
