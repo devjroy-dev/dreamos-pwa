@@ -70,8 +70,10 @@ export default function VendorPinResetPage() {
   const [stage,   setStage]   = useState<'pin' | 'confirm'>('pin');
 
   // Carried from verify-otp's response body into the set-pin step.
-  const [vendorId,    setVendorId]    = useState('');
-  const [accessToken, setAccessToken] = useState('');
+  const [vendorId,     setVendorId]     = useState('');
+  const [userId,       setUserId]       = useState('');
+  const [accessToken,  setAccessToken]  = useState('');
+  const [refreshToken, setRefreshToken] = useState('');
 
   const [shaking, setShaking] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -127,7 +129,9 @@ export default function VendorPinResetPage() {
       const res = await verifyResetOtp(phone.trim(), otpStr);
       if (res.ok && res.vendor_id) {
         setVendorId(res.vendor_id);
+        setUserId(res.user_id || '');
         setAccessToken(res.access_token || '');
+        setRefreshToken(res.refresh_token || '');
         setStep('pin');
         setStage('pin');
         setPin(['', '', '', '']);
@@ -159,8 +163,26 @@ export default function VendorPinResetPage() {
     try {
       const res = await setPinWithToken(vendorId, pinStr, accessToken);
       if (res.ok) {
+        // F-05.11-δ: persist the auth token from verify-otp into the session so
+        // /vendor's JWT verify (app/vendor/page.tsx:415) passes. Mirrors pin-login's
+        // success write exactly — WITHOUT access_token here, getVendorSession() yields
+        // a token-less session, /vendor 401s on verify, and bounces to landing (the
+        // live-witness defect). Also mirror the standalone token keys, as pin-login does.
+        try { localStorage.setItem('access_token', accessToken); } catch {}
+        try { localStorage.setItem('refresh_token', refreshToken || accessToken); } catch {}
         const existing = readVendorSession() || {};
-        const updated = { ...existing, id: vendorId, phone: phone.trim(), pin_set: true, _v: 2 };
+        const updated = {
+          ...existing,
+          id:            vendorId,
+          user_id:       userId || existing.user_id,
+          phone:         phone.trim(),
+          name:          existing.name ?? null,
+          tier:          existing.tier ?? 'essential',
+          access_token:  accessToken,
+          refresh_token: refreshToken || accessToken,
+          pin_set:       true,
+          _v:            2,
+        };
         writeVendorSession(updated);
         router.replace('/vendor');
       } else {
@@ -168,7 +190,7 @@ export default function VendorPinResetPage() {
       }
     } catch { showToast('Network error. Try again.'); }
     finally { setLoading(false); }
-  }, [pin, confirm, vendorId, accessToken, phone, router]);
+  }, [pin, confirm, vendorId, userId, accessToken, refreshToken, phone, router]);
 
   // Auto-submit OTP when all six are filled.
   useEffect(() => {
