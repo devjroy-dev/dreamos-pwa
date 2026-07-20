@@ -2,7 +2,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../lib/api';
-import { supabase } from '../../lib/supabase';
+// F-05.9: signup + returning-no-PIN moved off the dead Supabase Phone-OTP (Twilio) onto
+// the backend Meta OTP endpoints (send-otp / verify-otp / provision). No browser Supabase
+// client is needed on this screen anymore.
 
 // iOS Safari (normal browsing, installed PWA, or ITP-restricted contexts) can
 // throw on localStorage.setItem even when the network is fine. The login flow
@@ -425,17 +427,24 @@ export default function Home() {
   };
 
   const sendOtp = async (phoneNum: string) => {
+    const isVendor = role === 'Maker';
     const digits = phoneNum.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
 
-    // Path 1: Supabase Phone-OTP. signInWithOtp self-mints the Supabase auth user
-    // (shouldCreateUser) and sends the code over SMS — open signup, any number.
+    // F-05.9: the backend delivers the OTP over Meta (WhatsApp) and self-mints
+    // public.users + the role row — open signup, any number. The dead Supabase
+    // Phone-OTP (Twilio) path is gone; the auth identity is created at verify time.
+    const endpoint = isVendor
+      ? `${API_BASE}/api/v2/vendor/auth/send-otp`
+      : `${API_BASE}/api/v2/couple/auth/send-otp`;
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: e164,
-        options: { shouldCreateUser: true },
+      const r = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: e164 }),
       });
-      if (error) { showToast(error.message || 'Could not send code. Try again.'); return; }
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || d.error) { showToast(d.error || 'Could not send code. Try again.'); return; }
       setScreen(screen === 'signin_phone' ? 'signin_otp' : 'invite_otp');
     } catch { showToast('Could not send code. Try again.'); }
   };
@@ -445,13 +454,17 @@ export default function Home() {
     const digits = phone.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
     try {
-      // 1 — Supabase verifies the SMS code and mints the session (client-side).
-      const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
-        phone: e164, token: otp.join(''), type: 'sms',
+      // 1 — Backend verifies the Meta OTP, creates-or-heals the auth identity, and mints
+      //     the session (F-05.9). Returns ids + tokens directly.
+      const vRes = await fetch(`${API_BASE}/api/v2/${isVendor ? 'vendor' : 'couple'}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: e164, otp: otp.join(''), purpose: 'login' }),
       });
-      if (vErr || !vData.session) { showToast(vErr?.message || 'Incorrect code.'); return; }
-      const accessToken  = vData.session.access_token;
-      const refreshToken = vData.session.refresh_token;
+      const v = await vRes.json().catch(() => ({}));
+      if (!vRes.ok || !v.ok || !v.access_token) { showToast(v.error || 'Incorrect code.'); return; }
+      const accessToken  = v.access_token;
+      const refreshToken = v.refresh_token;
 
       // 2 — Provision the vendor|couple row for this Supabase identity (idempotent;
       //     phone-fallback re-binds a legacy account). Returns ids + pin_set, no tokens.
