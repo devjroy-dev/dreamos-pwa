@@ -2,7 +2,7 @@
 // One exported async function per vendor contract endpoint.
 // Screen components import from here — never raw fetch.
 
-import { getJson, postJson, patchJson, API_BASE, getAuthHeader } from './_base';
+import { getJson, postJson, patchJson, API_BASE, getAuthHeader, handleResponse } from './_base';
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
 import type {
   MeResponse, VendorContextResponse, TodayResponse,
@@ -481,6 +481,36 @@ export function setPin(vendorId: string, pin: string): Promise<{ ok: boolean }> 
 
 export function forgotPin(phone: string): Promise<SendOtpResponse> {
   return postJson<SendOtpResponse>('/api/v2/vendor/auth/forgot-pin', { phone }, false);
+}
+
+// F-05.11: verify the reset OTP. Distinct from verifyOtp() above, which hardcodes
+// purpose:'login' — the reset rail MUST send purpose:'reset' so the server routes
+// through the reset branch (auth.js:335, which clears any lockout and mints tokens).
+// Shape fits VerifyOtpResponse exactly: {ok, vendor_id, user_id, pin_set, tokens}.
+export function verifyResetOtp(phone: string, otp: string): Promise<VerifyOtpResponse> {
+  return postJson<VerifyOtpResponse>('/api/v2/vendor/auth/verify-otp', { phone, otp, purpose: 'reset' }, false);
+}
+
+// F-05.11 + F-05.13(i) forward-compat (CE ruling, Fork B): the reset rail's set-pin
+// call SENDS Authorization: Bearer <access_token from verify-otp> even though the
+// server ignores it today (set-pin is unauthenticated — F-05.13 filed, dream-os).
+// When the server guard lands, this caller already complies. It deliberately does
+// NOT use the session-store auth path: no vendor session exists at this step (we
+// write it only on set-pin success), and routing through fetchWithAuth would fire
+// its 401→refresh→redirect-to-'/' machinery on a store-less context. The token is
+// passed explicitly from verify-otp's response body.
+export async function setPinWithToken(
+  vendorId: string, pin: string, accessToken: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/v2/vendor/auth/set-pin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ vendor_id: vendorId, pin }),
+  });
+  return handleResponse<{ ok: boolean; error?: string }>(res);
 }
 
 // ════════════════════════════════════════════════════════════════════

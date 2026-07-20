@@ -196,9 +196,9 @@ export default function VendorPinLoginPage() {
               ))}
             </div>
             {loading && <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:20 }}>Verifying…</p>}
-            <p onClick={() => { localStorage.removeItem('vendor_web_session'); localStorage.removeItem('vendor_session'); router.replace('/'); }}
+            <p onClick={() => { router.push('/vendor/pin-reset'); }}
               style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(248,247,245,0.25)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
-            >Forgot PIN? Sign in again</p>
+            >Forgot PIN?</p>
           </div>
         </div>
       </div>
