@@ -14,6 +14,7 @@ import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import { Header } from '@/components/vendor/Header';
 import { CalendarBlockSheet } from '@/components/vendor/CalendarBlockSheet';
 import { CalendarDaySheet } from '@/components/vendor/CalendarDaySheet';
+import { CalendarCrewSheet } from '@/components/vendor/CalendarCrewSheet';
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -81,6 +82,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const [blockSel, setBlockSel] = useState<string | null>(null);
   // Tap-to-edit a calendar event opens the form (direct write), never the AI.
   const [editRow, setEditRow] = useState<Record<string, unknown> | null>(null);
+  const [crewEvent, setCrewEvent] = useState<DayEvent | null>(null);   // TDW_04.5 P1 #6 — the crew picker's target booking
   const [addOpen, setAddOpen] = useState(false);
   // B6-S1 (R-B6-18's hedge): create-mode seed for the day-popup's + — the date,
   // prefilled. Cleared with the sheet.
@@ -523,6 +525,14 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           setEditRow({ id: ev.id, title: ev.title, kind: ev.kind, event_date: daySel ?? '', event_time: ev.event_time ?? '', notes: ev.notes ?? '' });
           setAddOpen(true);
         }}
+        onAssignCrew={(ev: DayEvent) => { setDaySel(null); setCrewEvent(ev); }}
+      />
+      <CalendarCrewSheet
+        open={!!crewEvent}
+        event={crewEvent}
+        onClose={() => setCrewEvent(null)}
+        onToast={showToast}
+        onRefresh={refreshAll}
       />
       <AddSheet
         open={addOpen}

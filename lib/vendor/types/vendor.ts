@@ -396,6 +396,10 @@ export interface UpdateEventRequest {
   /** TDW_04 B6-S2: the day sheet's Move picker sends date + slot in one PATCH.
       The door validates against C2's four values (the mirrored-CHECK sentence). */
   slot?:           'morning' | 'noon' | 'evening' | 'full_day';
+  /** TDW_04.5 P1 #6 (CE Ruling №10, seam a): the full crew SET for this booking.
+      Backend semantics (writeEvent, 435a0dc): omitted = untouched · array = SET ·
+      [] = clear. The day-sheet crew picker sends the whole toggled set on commit. */
+  assigned_member_ids?: string[];
 }
 
 export interface UpdateEventResponse {
@@ -453,6 +457,10 @@ export interface DayEvent {
   linked_binder_id: string | null;
   /** Binder chip name (engine hop, fail-soft): null = no chip, ST-2's disclosed blindness. */
   binder_name:      string | null;
+  /** TDW_04.5 P1 #6 (CE Ruling №10, seam b): the crew on this booking. The day-fetch
+      normalizes null/absent to [] so this is ALWAYS an array — the picker seeds its
+      toggles from it and computes the full-array SET it PATCHes back. */
+  assigned_member_ids: string[];
 }
 export interface DayBlock {
   id:     string;

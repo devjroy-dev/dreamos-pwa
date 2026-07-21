@@ -88,10 +88,12 @@ interface Props {
   onFullDayBlock: (date: string) => void;
   /** Open the edit form for a booking (the existing AddSheet edit mount). */
   onEdit: (ev: DayEvent) => void;
+  /** TDW_04.5 P1 #6 (CE Ruling №10): open the "Assign crew" picker for this booking. */
+  onAssignCrew: (ev: DayEvent) => void;
 }
 
 export function CalendarDaySheet({
-  open, dateIso, vendorId, muhuratLocal, onClose, onToast, onRefresh, onAddBooking, onFullDayBlock, onEdit,
+  open, dateIso, vendorId, muhuratLocal, onClose, onToast, onRefresh, onAddBooking, onFullDayBlock, onEdit, onAssignCrew,
 }: Props) {
   const router = useRouter();
   const [day, setDay] = useState<VendorDayResponse | null>(null);
@@ -320,6 +322,7 @@ export function CalendarDaySheet({
                     </div>
                     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                       <button type="button" onClick={() => { setVerdict(null); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn(D.gold)}>Move</button>
+                      <button type="button" onClick={() => { onClose(); onAssignCrew(ev); }} style={pillBtn('var(--atelier-label)')}>Crew</button>
                       <button type="button" onClick={() => { onClose(); onEdit(ev); }} style={pillBtn('var(--atelier-label)')}>Edit</button>
                       <button type="button" onClick={() => void doCancel(ev)} style={pillBtn(D.terracotta, 'rgba(224,123,92,0.4)')}>Cancel</button>
                     </div>
