@@ -629,7 +629,7 @@ export interface ChatResponse {
 
 // ── Auth endpoints ────────────────────────────────────────────────────────
 export interface SendOtpResponse    { ok: boolean; error?: string; }
-export interface VerifyOtpResponse  { ok: boolean; access_token?: string; refresh_token?: string; vendor_id?: string; user_id?: string; pin_set?: boolean; error?: string; }
+export interface VerifyOtpResponse  { ok: boolean; access_token?: string; refresh_token?: string; vendor_id?: string; user_id?: string; pin_set?: boolean; tier?: string; name?: string; category?: string; error?: string; }
 export interface PinStatusResponse  { ok: boolean; has_pin: boolean; }
 export interface PinLoginResponse   { ok: boolean; access_token?: string; vendor_id?: string; name?: string; error?: string; }
 

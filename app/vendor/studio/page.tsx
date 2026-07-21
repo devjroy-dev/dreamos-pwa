@@ -93,9 +93,9 @@ export default function StudioPage() {
   const isPrestige = session.tier === 'prestige';
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <Header vendorName={session.name ?? null} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden', paddingBottom: 32 }}>
+      <div style={{ flex: 1, paddingBottom: 32 }}>
         <SectionLabel label="Your Studio" first />
         {LISTS.map(item => <Row key={item.href} item={item} />)}
 

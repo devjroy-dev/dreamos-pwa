@@ -74,6 +74,14 @@ export default function VendorPinResetPage() {
   const [userId,       setUserId]       = useState('');
   const [accessToken,  setAccessToken]  = useState('');
   const [refreshToken, setRefreshToken] = useState('');
+  // F-04.94 CURE 2b: the reset rail hits /verify-otp (purpose:'reset'), whose
+  // response carries tier/name/category (auth.js:369-371). Capture them here so
+  // the session write below restores the real feature flags instead of defaulting
+  // a Prestige vendor down to 'essential'. (pin-login's endpoint does NOT carry
+  // these — see F-04.96; that path is unfixable in the frontend.)
+  const [tier,     setTier]     = useState('');
+  const [vName,    setVName]    = useState('');
+  const [category, setCategory] = useState('');
 
   const [shaking, setShaking] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -132,6 +140,9 @@ export default function VendorPinResetPage() {
         setUserId(res.user_id || '');
         setAccessToken(res.access_token || '');
         setRefreshToken(res.refresh_token || '');
+        setTier(res.tier || '');
+        setVName(res.name || '');
+        setCategory(res.category || '');
         setStep('pin');
         setStage('pin');
         setPin(['', '', '', '']);
@@ -176,8 +187,9 @@ export default function VendorPinResetPage() {
           id:            vendorId,
           user_id:       userId || existing.user_id,
           phone:         phone.trim(),
-          name:          existing.name ?? null,
-          tier:          existing.tier ?? 'essential',
+          name:          vName    || existing.name     || null,
+          tier:          tier     || existing.tier     || 'essential',
+          category:      category || existing.category || null,
           access_token:  accessToken,
           refresh_token: refreshToken || accessToken,
           pin_set:       true,
