@@ -90,18 +90,19 @@ export default function VendorPinLoginPage() {
         if (d.access_token)  { try { localStorage.setItem('access_token', d.access_token); } catch {} }
         if (d.refresh_token) { try { localStorage.setItem('refresh_token', d.refresh_token); } catch {} }
         const existing = readVendorSession() || {};
-        // Write stamped vendor session for dreamai session hardening
-        // pin-login endpoint returns {ok, user_id, vendor_id, access_token, refresh_token}
-        // but NOT name/tier/category — restore these from the existing session so
-        // the vendor app has the right display name and feature flags.
+        // Write stamped vendor session for dreamai session hardening.
+        // F-04.96: pin-login now returns name/category/tier (verify-otp's dialect), so
+        // read tier off THIS login response — a returning PIN sign-in on a cleared
+        // session no longer floors a Prestige vendor to 'essential'. Existing session
+        // is the fallback only when a field is absent from the response.
         const updated = {
           ...existing,
           id:         d.vendor_id  || existing.id,
           user_id:    d.user_id    || existing.user_id,
-          name:       existing.name       || existing.vendorName || null,
+          name:       d.name     || existing.name     || existing.vendorName || null,
           phone:      session.phone,
-          tier:       existing.tier       || 'essential',
-          category:   existing.category   || null,
+          tier:       d.tier     || existing.tier     || 'essential',
+          category:   d.category || existing.category || null,
           access_token:  d.access_token,
           refresh_token: d.refresh_token || d.access_token,
           pin_set: true,
