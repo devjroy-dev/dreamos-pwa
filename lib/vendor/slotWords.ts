@@ -48,3 +48,20 @@ export function slotWord(slot: string | null | undefined): string | null {
   if (!slot) return null;
   return SLOT_HEADINGS[slot] ?? null;
 }
+
+// ── TDW_04.5 P4 rider — the CALL TIME's one home ────────────────────────────
+// Founder-caught at the seal walk: the crew page rendered `19:00` and the
+// owner's sheet `19:00:00`, for the same booking. The sheet exists precisely to
+// mirror the crew page, so the two reading differently is the drift this file
+// was created to prevent — the same argument as F8(d)'s slot-word hoist, now
+// applied to the field beside it.
+//
+// MOVED, not rewritten: byte-identical to the copy that lived at
+// app/crew/[token]/page.tsx:73. `when` vocabulary belongs together, and this
+// file was already imported by both surfaces, so the hoist adds no new import
+// anywhere.
+export function hhmm(t: string | null) {
+  if (!t) return null;
+  const m = /^(\d{2}):(\d{2})/.exec(t);
+  return m ? `${m[1]}:${m[2]}` : t;
+}

@@ -42,7 +42,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { API_BASE } from '@/lib/api';
-import { slotWord } from '@/lib/vendor/slotWords';
+import { slotWord, hhmm } from '@/lib/vendor/slotWords';
 import type { CrewAssignment, CrewTask, CrewPageResponse } from '@/lib/vendor/types/vendor';
 
 const C = {
@@ -70,12 +70,6 @@ function dayMonth(iso: string) {
   return `${parseInt(m[3], 10)} ${MONTHS[parseInt(m[2], 10) - 1]}`;
 }
 /** '18:30:00' -> '18:30'. Trimmed, never reformatted into a clock the estate doesn't keep. */
-function hhmm(t: string | null) {
-  if (!t) return null;
-  const m = /^(\d{2}):(\d{2})/.exec(t);
-  return m ? `${m[1]}:${m[2]}` : t;
-}
-
 const labelStyle: React.CSSProperties = {
   fontFamily: F.label, fontWeight: 300, fontSize: 9, color: C.faint,
   letterSpacing: '0.22em', textTransform: 'uppercase',

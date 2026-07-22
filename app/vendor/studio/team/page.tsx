@@ -7,8 +7,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { fetchMemberAssignments, MemberAssignment } from '@/lib/vendor/api/roster';
-import { confirmationWord, confirmationTone } from '@/lib/vendor/assignmentWords';
-import { slotWord } from '@/lib/vendor/slotWords';
+import { confirmationWord, confirmationTone, ASSIGNMENTS_ERROR_MSG } from '@/lib/vendor/assignmentWords';
+import { slotWord, hhmm } from '@/lib/vendor/slotWords';
 import { Header } from '@/components/vendor/Header';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -65,6 +65,9 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
   // The member's board, fetched when the sheet opens. Read-only.
   const [assignments, setAssignments]     = useState<MemberAssignment[]>([]);
   const [assignLoading, setAssignLoading] = useState(false);
+  // THREE states, not two. Loaded-and-empty and could-not-load are different
+  // facts and the screen must not conflate them.
+  const [assignError, setAssignError]     = useState(false);
   const [saving, setSaving]       = useState(false);
   // form fields
   const [name, setName]           = useState('');
@@ -101,10 +104,16 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
     setSheet('edit');
     // Fetched per-open rather than cached: the owner may have just assigned them
     // on another screen, and a stale board is worse than a moment's spinner.
-    setAssignments([]); setAssignLoading(true);
+    setAssignments([]); setAssignError(false); setAssignLoading(true);
     fetchMemberAssignments(m.id)
-      .then(r => { if (r && r.ok) setAssignments(r.assignments || []); })
-      .catch(() => { /* soft — the empty state is honest when the read fails */ })
+      .then(r => {
+        // A non-ok body is a FAILURE, not an empty board. getJson does not throw
+        // on a 404 — it returns the envelope — so the ok flag is the only thing
+        // that distinguishes "none" from "could not tell".
+        if (r && r.ok) setAssignments(r.assignments || []);
+        else setAssignError(true);
+      })
+      .catch(() => setAssignError(true))
       .finally(() => setAssignLoading(false));
   }
 
@@ -255,6 +264,8 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                 <div style={labelStyle}>Assignments</div>
                 {assignLoading ? (
                   <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>Loading…</div>
+                ) : assignError ? (
+                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.red }}>{ASSIGNMENTS_ERROR_MSG}</div>
                 ) : assignments.length === 0 ? (
                   <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>No assignments yet.</div>
                 ) : (
@@ -262,7 +273,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                     {assignments.map(a => (
                       <div key={a.event_id} style={{ borderLeft: `2px solid ${confirmationTone(a.confirmation)}`, paddingLeft: 12 }}>
                         <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 13, color: D.cream }}>
-                          {fmtAssignDate(a.date)}{slotWord(a.slot) ? ` · ${slotWord(a.slot)}` : ''}{a.call_time ? ` · ${a.call_time}` : ''}
+                          {fmtAssignDate(a.date)}{slotWord(a.slot) ? ` · ${slotWord(a.slot)}` : ''}{hhmm(a.call_time) ? ` · ${hhmm(a.call_time)}` : ''}
                         </div>
                         <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream, marginTop: 2 }}>
                           {a.title}{a.wedding ? ` — ${a.wedding}` : ''}
