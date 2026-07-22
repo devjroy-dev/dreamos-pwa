@@ -39,6 +39,9 @@ export interface MintDeps {
 
 // FOUNDER VETO, CLOSED (CE-59 relay). Exact bytes.
 export const MINT_ACTION_LABEL = 'Add to crew';
+// D1 (founder veto, shape (b)): once the identity exists the label FLIPS. The
+// row stops offering an action that has already happened — it reports a state.
+export const MINT_DONE_LABEL   = 'On crew';
 export const MINT_SUCCESS_MSG  = "They're on your crew list — assign them from any booking.";
 export const MINT_ERROR_MSG    = 'Could not add. Try again.';
 

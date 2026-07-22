@@ -11,6 +11,10 @@ export interface RosterEntry {
   category:         string | null;
   source:           'collab_accepted' | 'manual';
   created_at?:      string;
+  /** D1 — this entry already has a team_members identity. The server decides
+   *  this (one read for the page); the row never infers it. Deactivated bridge
+   *  rows count as bridged: ensureBridgeMember REVIVES rather than re-mints. */
+  bridged?:         boolean;
 }
 
 export interface BridgeMember {

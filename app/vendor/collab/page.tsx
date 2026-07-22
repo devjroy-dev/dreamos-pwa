@@ -10,7 +10,9 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
 import { getJson, postJson, patchJson } from '@/lib/vendor/api/_base';
 import { fetchRoster, addRosterEntry, bridgeRosterEntry, RosterEntry } from '@/lib/vendor/api/roster';
-import { mintCrewIdentity, MINT_ACTION_LABEL } from '@/lib/vendor/rosterMint';
+import { mintCrewIdentity, MINT_ACTION_LABEL, MINT_DONE_LABEL } from '@/lib/vendor/rosterMint';
+// D2 — the option list, its alias map and the match ladder have ONE home.
+import { CITIES, matchCity } from '@/lib/vendor/cityMatch';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -90,8 +92,6 @@ const REQUIREMENT_TYPES = [
 ];
 const EVENT_TYPES     = ['wedding','pre_wedding','engagement','editorial','brand_shoot','portrait','other'];
 const PAYMENT_PERIODS = ['per_day','per_shoot','total','tbd'];
-const CITIES          = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa','Other'];
-
 type Tab = 'opportunities' | 'my_posts' | 'roster';
 
 export default function CollabPage() {
@@ -110,7 +110,7 @@ function readPrefill(sp: URLSearchParams | null): Prefill {
   return {
     open: sp?.get('post') === '1',
     date: sp?.get('date') || '',
-    city: sp?.get('city') || '',
+    city: matchCity(sp?.get('city') || ''),
     type: sp?.get('type') || '',
   };
 }
@@ -429,9 +429,17 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 Open to everyone.
               </div>
             )}
+            {/* D3 — each line tells only its own truth. "All filled" is the
+                AUTO-CLOSE's sentence: it means every requirement found someone.
+                A poster who taps Mark Filled closes the post without any item
+                being filled, and borrowing the auto-close's words for that made
+                the screen say something untrue. Derived client-side from data
+                my-posts already sends — no new field, no second source. */}
             {post.state === 'filled' && (
               <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft, marginBottom: 12 }}>
-                All filled. This post is closed.
+                {itemsOf(post).every(i => !!i.filled_by_response_id)
+                  ? 'All filled. This post is closed.'
+                  : 'This post is closed.'}
               </div>
             )}
 
@@ -531,14 +539,22 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
               )}
               {/* MINT ONLY. This gives the external an identity on your plane;
                   assignment happens in the booking pickers that already ship. */}
-              <button type="button" onClick={() => void addToCrew(r.id)} disabled={minting === r.id} style={{
-                padding: '6px 11px', background: 'transparent', borderRadius: 2,
-                border: '0.5px solid var(--atelier-sheet-border)',
-                cursor: minting === r.id ? 'default' : 'pointer', flexShrink: 0,
-                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
-                letterSpacing: '0.28em', textTransform: 'uppercase',
-                opacity: minting === r.id ? 0.6 : 1,
-              }}>{minting === r.id ? 'Adding…' : MINT_ACTION_LABEL}</button>
+              {/* D1 — a done action stops offering itself. Once the identity
+                  exists this is a STATE, not a control: label flipped, dimmed,
+                  disabled, no handler. `bridged` is the server's answer (one
+                  read for the page); the row never infers it. */}
+              <button type="button"
+                onClick={r.bridged ? undefined : () => void addToCrew(r.id)}
+                disabled={!!r.bridged || minting === r.id}
+                style={{
+                  padding: '6px 11px', background: 'transparent', borderRadius: 2,
+                  border: '0.5px solid var(--atelier-sheet-border)',
+                  cursor: r.bridged || minting === r.id ? 'default' : 'pointer', flexShrink: 0,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                  color: r.bridged ? A.inkMute : A.brassWarm,
+                  letterSpacing: '0.28em', textTransform: 'uppercase',
+                  opacity: r.bridged ? 0.45 : (minting === r.id ? 0.6 : 1),
+                }}>{r.bridged ? MINT_DONE_LABEL : (minting === r.id ? 'Adding…' : MINT_ACTION_LABEL)}</button>
             </div>
           ))}
           {outcome && (

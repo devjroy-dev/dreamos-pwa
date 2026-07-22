@@ -253,7 +253,22 @@ function DayCard({ a, token, onSaved }: { a: CrewAssignment; token: string; onSa
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <Btn onClick={() => respond('confirmed')} disabled={saving} tone="gold">Confirm</Btn>
+          {/* D4 (founder-caught at the P4 smoke) — "You're confirmed." was
+              rendering above a live gold Confirm. A completed action must stop
+              presenting itself as an action, so once confirmed this dims and
+              takes no handler.
+
+              CAN'T MAKE IT STAYS LIVE, DELIBERATELY. Someone who confirms and
+              then can't come has to be able to say so; dimming both would trap
+              them with no way to tell the vendor. The decline path is open in
+              both directions, always.
+
+              P3 RIDER, disclosed: this file is P3's surface (sealed CE-58), not
+              P4's. Two-line change, founder-chartered, recorded as a rider
+              rather than folded in silently. Zero new strings — the page
+              already says "You're confirmed." above this row. */}
+          <Btn onClick={a.confirmation === 'confirmed' ? () => {} : () => respond('confirmed')}
+               disabled={saving || a.confirmation === 'confirmed'} tone="gold">Confirm</Btn>
           <Btn onClick={() => setDeclining(true)} disabled={saving} tone="quiet">Can&rsquo;t make it</Btn>
         </div>
       )}
