@@ -246,7 +246,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
               </select>
             </div>
             <div><div style={labelStyle}>Phone</div><input style={inputStyle} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 9000000000" /></div>
-            <div><div style={labelStyle}>Day Rate (Rs)</div><input style={{ ...inputStyle }} type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="5000" /></div>
+            <div><div style={labelStyle}>Rate per event (Rs)</div><input style={{ ...inputStyle }} type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="5000" /></div>
             <div><div style={labelStyle}>Notes</div><input style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Available weekends only" /></div>
 
             {/* ── ASSIGNMENTS (TDW_04.5 P4, founder-chartered) ──────────────

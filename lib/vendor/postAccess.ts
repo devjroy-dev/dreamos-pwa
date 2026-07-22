@@ -28,11 +28,19 @@
 // The gate keys on WHAT THE POST HAS, never on what state it is in. A response
 // is a fact about people; a post state is a fact about a requirement. Only the
 // first has any bearing on whether the poster may look at his own connections.
+//
+// And "what the post has" means EVERY response — see `responseCount` for why
+// the obvious field was the wrong one.
 
 /** The narrow shape this predicate needs. Structural — any post row satisfies it. */
 export interface PostAccessShape {
   state?:            string | null;
+  /** `state='interested'` ONLY. Drops to zero the moment you connect. */
   interested_count?: number | null;
+  /** `state='accepted'` — the people you actually connected with. */
+  accepted_count?:   number | null;
+  /** The server's own sum (`collab.js:305`). Preferred when present. */
+  total_responses?:  number | null;
 }
 
 /**
@@ -46,7 +54,29 @@ export interface PostAccessShape {
  * still the record of who answered.
  */
 export function canViewResponses(post: PostAccessShape): boolean {
-  return (post.interested_count ?? 0) > 0;
+  return responseCount(post) > 0;
+}
+
+/**
+ * How many responses this post has, of ANY kind.
+ *
+ * ── THE SECOND MISS, OWNED (founder-caught, same night as the first) ────────
+ * The first cure keyed on `interested_count`, and that field counts
+ * `state='interested'` ONLY (`collab.js:293`). **Connecting flips a response to
+ * `accepted`, which REMOVES it from that count.** So a post you had connected on
+ * reported zero responses, the gate refused, and the card stayed shut.
+ *
+ * F-04.118's own disease, one layer down: the vendor's connections were still
+ * being hidden by the act of connecting. A cure that reproduces the finding it
+ * cures is worth naming plainly rather than quietly re-patching.
+ *
+ * `total_responses` is the server's own sum and is preferred. The explicit
+ * addition is the fallback for any caller shipping the parts without the sum —
+ * never `interested_count` alone, which is the field that lied.
+ */
+export function responseCount(post: PostAccessShape): number {
+  if (post.total_responses != null) return post.total_responses;
+  return (post.interested_count ?? 0) + (post.accepted_count ?? 0);
 }
 
 /**

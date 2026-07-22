@@ -44,13 +44,43 @@ handler cannot double-fire.
 
 ---
 
+## THE SECOND MISS, OWNED — MY CURE REPRODUCED ITS OWN FINDING
+
+The first cut of this micro keyed the gate on `interested_count`. **That field
+counts `state='interested'` ONLY (`collab.js:293`), so CONNECTING removes a
+response from it.** A post the vendor had connected on reported zero responses,
+the gate refused, and the card stayed shut — founder-caught on the deploy, on the
+same row that produced F-04.118 in the first place.
+
+F-04.118 is *"a filled post hides your connections."* My cure still hid them,
+because connecting is the act that empties the field I chose. **Same disease, one
+layer down, inside its own fix.** Named rather than quietly re-patched.
+
+The cure: `responseCount` prefers the server's own `total_responses`
+(`collab.js:305`, already shipped) and falls back to `interested + accepted` —
+never `interested` alone.
+
+**A second miss of the same shape, same night:** F-04.117 was applied to the Team
+page's list row and NOT to its edit sheet, whose label read **DAY RATE (RS)**. My
+grep matched the rendered value and missed a static label string. Now
+**`Rate per event (Rs)`**. `grep -ni day` over the whole file returns only a
+date formatter. Both misses are one failure: I greped for the shape I expected
+instead of the word itself.
+
 ## PROOF
 
-**`postAccess.proof` — 16/16 (new).** Drives the REAL predicate.
+**`postAccess.proof` — 25/25 (new).** Drives the REAL predicate.
 
-**Non-vacuous by PRODUCTION mutation:** restoring the shipped gate
-(`&& post.state === 'open'`) → **9/7 RED**, and the seven are exactly the
-state-blindness asserts including the founder's own blocked row. Revert → 16/16.
+**Non-vacuous by PRODUCTION mutation:**
+
+| Mutation | Result |
+|---|---|
+| **my own miss** — count `interested` alone | **18/7 RED** |
+| the original shipped gate — `&& state === 'open'` | **15/10 RED** |
+| revert | **25/25 restored** |
+
+§5 exists solely because of the second miss, and its first assert is the
+founder's own row: `filled`, one accepted, zero interested — reachable.
 
 **`settleWords.proof` — 41/41** (was 37; §3 gains four for the vocabulary and the
 plural).

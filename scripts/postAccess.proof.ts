@@ -17,13 +17,18 @@
 // The whole cure is the removal of a term, so the proof is mostly a table of
 // states — because the states are exactly what the old gate got wrong.
 
-import { canViewResponses, cardIsTappable, type PostAccessShape } from '../lib/vendor/postAccess';
+import { canViewResponses, cardIsTappable, responseCount, type PostAccessShape } from '../lib/vendor/postAccess';
 
 let pass = 0, fail = 0;
 const ok = (c: boolean, m: string) => { if (c) { pass++; console.log('  PASS  ' + m); } else { fail++; console.log('  FAIL  ' + m); } };
 
+/** A post with N *interested* responses and none accepted. */
 const post = (state: string | null, n: number | null): PostAccessShape =>
-  ({ state, interested_count: n });
+  ({ state, interested_count: n, accepted_count: 0, total_responses: n ?? 0 });
+
+/** The shape the FOUNDER'S OWN ROW had: connected, so nobody is "interested". */
+const connected = (state: string, accepted: number): PostAccessShape =>
+  ({ state, interested_count: 0, accepted_count: accepted, total_responses: accepted });
 
 function main() {
   console.log('\n── §1 a response is reachable in EVERY post state ──');
@@ -70,6 +75,26 @@ function main() {
   }
   ok(canViewResponses(post('filled', 1)) === canViewResponses(post('open', 1)),
     'filled and open are indistinguishable to this gate');
+
+  console.log('\n── §5 THE SECOND MISS: connecting must not hide the connection ──');
+  // `interested_count` counts state='interested' ONLY (collab.js:293), so
+  // CONNECTING removes a response from it. The first cure keyed on that field
+  // and therefore reproduced the very defect it was curing: the founder's
+  // filled post, with one accepted response, still would not open.
+  ok(canViewResponses(connected('filled', 1)),
+    'FILLED + 1 ACCEPTED, zero interested -> reachable (the second miss, asserted)');
+  ok(canViewResponses(connected('open', 1)), 'open + accepted -> reachable');
+  ok(canViewResponses(connected('closed', 2)), 'closed + accepted -> reachable');
+  ok(cardIsTappable(connected('filled', 1)), 'and the card opens, not just the button');
+  ok(responseCount(connected('filled', 1)) === 1, 'an accepted response is still a response');
+  ok(responseCount({ interested_count: 2, accepted_count: 3 }) === 5,
+    'without the server sum, the parts add — never interested alone');
+  ok(responseCount({ interested_count: 0, accepted_count: 0, total_responses: 0 }) === 0,
+    'a post nobody answered still counts zero');
+  ok(!canViewResponses(connected('filled', 0)), 'and no responses is still no screen');
+  // The server's sum wins when present; the addition is only a fallback.
+  ok(responseCount({ interested_count: 1, accepted_count: 1, total_responses: 7 }) === 7,
+    'total_responses is preferred over the parts');
 
   console.log(`\n══ postAccess.proof: ${pass} passed, ${fail} failed ══\n`);
   process.exit(fail ? 1 : 0);
