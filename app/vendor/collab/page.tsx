@@ -9,7 +9,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
 import { getJson, postJson, patchJson } from '@/lib/vendor/api/_base';
-import { fetchRoster, addRosterEntry, RosterEntry } from '@/lib/vendor/api/roster';
+import { fetchRoster, addRosterEntry, bridgeRosterEntry, RosterEntry } from '@/lib/vendor/api/roster';
+import { mintCrewIdentity, MINT_ACTION_LABEL } from '@/lib/vendor/rosterMint';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -475,6 +476,21 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
 // otherwise think the tab was broken.
 function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => void }) {
   const [adding, setAdding] = useState(false);
+  // Per-row outcome. The logic lives in lib/vendor/rosterMint (framework-agnostic,
+  // proof-driven); this is its UI shell — the crewCommit precedent.
+  const [minting, setMinting] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<{ id: string; msg: string; kind: 'success' | 'error' } | null>(null);
+
+  async function addToCrew(rosterId: string) {
+    if (minting) return;
+    setMinting(rosterId); setOutcome(null);
+    await mintCrewIdentity(rosterId, {
+      bridge:    bridgeRosterEntry,
+      onResult:  (msg, kind) => setOutcome({ id: rosterId, msg, kind }),
+      onRefresh: onAdded,
+    });
+    setMinting(null);
+  }
 
   return (
     <>
@@ -513,8 +529,24 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
                   border: `0.5px solid rgba(201,168,76,0.4)`, borderRadius: 2, padding: '3px 8px', flexShrink: 0,
                 }}>Collab</span>
               )}
+              {/* MINT ONLY. This gives the external an identity on your plane;
+                  assignment happens in the booking pickers that already ship. */}
+              <button type="button" onClick={() => void addToCrew(r.id)} disabled={minting === r.id} style={{
+                padding: '6px 11px', background: 'transparent', borderRadius: 2,
+                border: '0.5px solid var(--atelier-sheet-border)',
+                cursor: minting === r.id ? 'default' : 'pointer', flexShrink: 0,
+                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+                letterSpacing: '0.28em', textTransform: 'uppercase',
+                opacity: minting === r.id ? 0.6 : 1,
+              }}>{minting === r.id ? 'Adding…' : MINT_ACTION_LABEL}</button>
             </div>
           ))}
+          {outcome && (
+            <div style={{
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13,
+              color: outcome.kind === 'error' ? A.red : A.inkSoft, lineHeight: 1.5,
+            }}>{outcome.msg}</div>
+          )}
         </div>
       )}
 
