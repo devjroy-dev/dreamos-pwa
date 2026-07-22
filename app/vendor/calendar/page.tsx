@@ -271,41 +271,16 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         </div>
       </div>
 
-      {/* ── THE BAND BOARD (P2) — the toggle swaps the whole reading surface.
-             F5 ruled HIDE: the Next Engagements rail returns with Month, because on
-             this board the band IS the horizon. ── */}
-      {view === 'weddings' && (
-        <CalendarBands
-          vendorId={vendorId}
-          from={win.from}
-          to={win.to}
-          muhuratDates={hotOn ? hotSet : new Set<string>()}
-          onOpenDay={(d) => { setBlockSel(null); setDaySel(d); }}
-          onAssignCrew={(fn: BandFunction) => {
-            // CE ruling F3: a gap pip opens the SHIPPED picker, byte-untouched. The
-            // band's function carries everything CalendarCrewSheet's DayEvent contract
-            // needs; the fields it does not use are honestly null rather than invented.
-            setDaySel(null);
-            setCrewEvent({
-              id: fn.event_id,
-              title: fn.title,
-              kind: fn.kind,
-              slot: fn.slot,
-              event_time: fn.event_time,
-              state: 'upcoming',
-              notes: null,
-              lead_id: null,
-              linked_binder_id: null,
-              binder_name: null,
-              assigned_member_ids: fn.crew.map(c => c.member_id),
-            });
-          }}
-          refreshKey={bandsRefresh}
-        />
-      )}
-
-      {view === 'month' && (<>
-      {/* ── Month spread ──────────────────────────────────────── */}
+      {/* ── Month spread — SHARED BY BOTH VIEWS (F-04.105) ────────────────────
+          HOISTED ABOVE THE VIEW FORK, founder-caught at the P2 smoke: this header
+          carries the ‹ › month navigation, and while it lived inside the month-only
+          branch the band board was STRANDED on whatever month you left behind —
+          reachable only by toggling to Month, navigating, and toggling back.
+          `win` derives from this same month/year state (see the horizon contract
+          above), so the board follows it with zero new wiring. ONE navigator, one
+          home — a second prev/next inside CalendarBands would be a second control
+          for one piece of state. The grid, weekday labels, hot-dates ribbon and the
+          Next Engagements rail stay month-only (F5). ── */}
       <div style={{
         position: 'relative',
         textAlign: 'center',
@@ -341,6 +316,43 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 26, lineHeight: 1,
           }}>›</button>
       </div>
+
+      {/* ── THE BAND BOARD (P2) — the toggle swaps the whole reading surface.
+             F5 ruled HIDE: the Next Engagements rail returns with Month, because on
+             this board the band IS the horizon. ── */}
+      {view === 'weddings' && (
+        <CalendarBands
+          vendorId={vendorId}
+          from={win.from}
+          to={win.to}
+          muhuratDates={hotOn ? hotSet : new Set<string>()}
+          onOpenDay={(d) => { setBlockSel(null); setDaySel(d); }}
+          onAssignCrew={(fn: BandFunction) => {
+            // CE ruling F3: a gap pip opens the SHIPPED picker, byte-untouched. The
+            // band's function carries everything CalendarCrewSheet's DayEvent contract
+            // needs; the fields it does not use are honestly null rather than invented.
+            setDaySel(null);
+            setCrewEvent({
+              id: fn.event_id,
+              title: fn.title,
+              kind: fn.kind,
+              slot: fn.slot,
+              event_time: fn.event_time,
+              state: 'upcoming',
+              notes: null,
+              lead_id: null,
+              linked_binder_id: null,
+              binder_name: null,
+              assigned_member_ids: fn.crew.map(c => c.member_id),
+            });
+          }}
+          refreshKey={bandsRefresh}
+        />
+      )}
+
+      {view === 'month' && (<>
+      {/* The month spread that stood here is HOISTED above the view fork (F-04.105) —
+          both surfaces share one navigator. Nothing was lost; one block moved up. */}
 
       {/* Brass divider with hot-dates toggle on the right */}
       <div style={{
