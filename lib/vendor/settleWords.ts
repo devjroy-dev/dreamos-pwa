@@ -45,12 +45,20 @@ export const NO_AMOUNT_QUOTED    = 'No amount quoted';
 // three makeups, not one day's fee — so the "overcharge" a per-date count would
 // have prevented is, in this market, the CORRECT bill.
 //
-// The WORD follows the ARITHMETIC it describes. Saying "days" over a count of
-// functions would be the app telling the vendor something untrue about its own
-// number (F-04.114's law), so the line says functions because it counts
-// functions.
+// THE WORD IS THE FOUNDER'S: "event". Not the chair's "function", not the
+// column's "day" — one vocabulary from his mouth to the screen, and the Team
+// page's rate now reads "per event" in the same breath (F-04.117).
+//
+// The word follows the ARITHMETIC it describes. Saying "days" over a count of
+// engagements would be the app telling the vendor something untrue about its
+// own number (F-04.114's law).
+//
+// AND IT COUNTS. "1 events" was shipped, predicted at the smoke and witnessed
+// there — a hardcoded plural is a small lie told confidently, which is the only
+// kind this estate keeps finding.
 export function suggestionLine(amountInr: number, functions: number, rateInr: number): string {
-  return `Rs ${fmt(amountInr)} suggested — ${functions} functions at Rs ${fmt(rateInr)} each`;
+  const unit = functions === 1 ? 'event' : 'events';
+  return `Rs ${fmt(amountInr)} suggested — ${functions} ${unit} at Rs ${fmt(rateInr)} each`;
 }
 
 /** Indian digit grouping, the estate's one presentation of a rupee figure. */

@@ -208,7 +208,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                 {m.role && <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 2 }}>{m.role.replace(/_/g, ' ')}</div>}
                 {m.phone && <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 2 }}>{m.phone}</div>}
               </div>
-              {m.daily_rate_inr && <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 11, color: D.muted }}>Rs {m.daily_rate_inr.toLocaleString('en-IN')}/day</span>}
+              {m.daily_rate_inr && <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 11, color: D.muted }}>Rs {m.daily_rate_inr.toLocaleString('en-IN')} per event</span>}
             </div>
           ))}
         </div>

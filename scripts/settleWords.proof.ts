@@ -64,12 +64,18 @@ async function main() {
   ok(collabNote('abc-123').includes('abc-123'), 'the post id is greppable inside it');
   ok(!collabNote('post-1').includes(' '), 'no whitespace to break a grep');
 
-  console.log('\n── §3 the suggestion line (the founder\'s unit, in words) ──');
+  console.log('\n── §3 the suggestion line (the founder\'s word, and it counts) ──');
   const line = suggestionLine(120000, 3, 40000);
-  ok(line.includes('3 functions'), 'the line says FUNCTIONS, matching what it counts');
+  ok(line.includes('3 events'), 'the line says EVENTS — the founder\'s word, not the chair\'s');
   ok(!line.toLowerCase().includes('day'), 'the struck unit does not survive in the copy');
+  ok(!line.includes('function'), 'nor does the chair\'s word, superseded');
   ok(line.includes('Rs 1,20,000'), 'the amount is grouped the Indian way');
   ok(line.includes('Rs 40,000 each'), 'the rate is per engagement, and says so');
+  // "1 events" shipped and was witnessed at the smoke. A hardcoded plural is a
+  // small lie told confidently.
+  ok(suggestionLine(40000, 1, 40000).includes('1 event at'), 'ONE reads singular');
+  ok(!suggestionLine(40000, 1, 40000).includes('1 events'), 'and never "1 events" again');
+  ok(suggestionLine(80000, 2, 40000).includes('2 events at'), 'TWO reads plural');
   ok(fmt(125000) === '1,25,000', 'fmt is the estate\'s one rupee presentation');
 
   console.log('\n── §4 the wedding label ──');

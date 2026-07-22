@@ -183,6 +183,23 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
   // The gate is the one home's, so the button and the writer cannot disagree
   // about what a loggable draft is. A MISSING FUNCTION IS NOT A BLOCKER — no
   // pick is lawful and lands in the loose lane (C2).
+  // ── THE TRUTH GAP, CURED (founder-caught at the smoke) ───────────────────
+  // The same payment row rendered `ANANYA · RECCE · 2026-07-25` on the By
+  // wedding board and a bare "Payment" here. One row, two surfaces, and only
+  // one of them could read what the money was for.
+  //
+  // NO SERVER CHANGE WAS NEEDED, and that is the point: the function link is
+  // already in the by-wedding payload this page fetches on the same reload.
+  // Widening `GET /` to join events would have put a SECOND resolution of the
+  // same fact in the estate — F-04.104's class, and on a money surface. The
+  // board's endpoint stays the one home; this view just asks it.
+  const linkOf = new Map<string, { title: string | null; date: string | null }>();
+  if (board) {
+    for (const l of [...board.weddings.flatMap(w => w.payments), ...board.loose.payments]) {
+      linkOf.set(l.id, { title: l.event_title, date: l.event_date });
+    }
+  }
+
   const canLog = canSettle({ teamMemberId: memberId || null, amount, linkedEventId: eventId || null, description: desc, notes: null });
 
   return (
@@ -275,7 +292,14 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream }}>{p.description || 'Payment'}</div>
-                        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>{p.created_at.slice(0,10)}</div>
+                        {/* What the money is FOR when the row knows, when it was
+                            logged when it doesn't. Each line tells only its own
+                            truth — never a stand-in for the other. */}
+                        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
+                          {linkOf.get(p.id)?.title
+                            ? `${linkOf.get(p.id)!.title} · ${linkOf.get(p.id)!.date ?? ''}`
+                            : p.created_at.slice(0,10)}
+                        </div>
                       </div>
                       <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, color: D.gold, flexShrink: 0, marginLeft: 12 }}>Rs {p.amount_inr.toLocaleString('en-IN')}</span>
                     </div>
@@ -290,7 +314,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                     <div>
                       <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.cream }}>{p.description || 'Payment'}</div>
                       <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
-                        Paid {p.paid_at ? new Date(p.paid_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}{p.paid_via ? ` · ${p.paid_via.toUpperCase()}` : ''}
+                        {linkOf.get(p.id)?.title ? `${linkOf.get(p.id)!.title} · ` : ''}Paid {p.paid_at ? new Date(p.paid_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}{p.paid_via ? ` · ${p.paid_via.toUpperCase()}` : ''}
                       </div>
                     </div>
                     <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 14, color: D.muted, flexShrink: 0, marginLeft: 12 }}>Rs {p.amount_inr.toLocaleString('en-IN')}</span>

@@ -11,6 +11,7 @@ import { Header } from '@/components/vendor/Header';
 import { getJson, postJson, patchJson } from '@/lib/vendor/api/_base';
 import { fetchRoster, addRosterEntry, bridgeRosterEntry, RosterEntry } from '@/lib/vendor/api/roster';
 import { mintCrewIdentity, MINT_ACTION_LABEL, MINT_DONE_LABEL } from '@/lib/vendor/rosterMint';
+import { canViewResponses, cardIsTappable } from '@/lib/vendor/postAccess';
 // D2 — the option list, its alias map and the match ladder have ONE home.
 import { CITIES, matchCity } from '@/lib/vendor/cityMatch';
 
@@ -372,8 +373,15 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
       {posts.map(post => {
         const open = post.state === 'open';
         const stateColor = open ? A.brassWarm : A.inkMute;
+        // F-04.118(a): the card is its own way in. The button below can be
+        // absent for good reasons (a post nobody answered), but a card that
+        // HAS connections and offers no way to reach them is the app hiding
+        // the vendor's own people from him.
+        const tappable = cardIsTappable(post);
         return (
-          <div key={post.id} className="atelier-card" style={{ padding: '18px 20px', opacity: open ? 1 : 0.55 }}>
+          <div key={post.id} className="atelier-card"
+            onClick={tappable ? () => onViewResponses(post.id) : undefined}
+            style={{ padding: '18px 20px', opacity: open ? 1 : 0.55, cursor: tappable ? 'pointer' : 'default' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 4 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
@@ -449,18 +457,28 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
               </div>
             )}
 
-            {open && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                {(post.interested_count ?? 0) > 0 && (
-                  <button type="button" onClick={() => onViewResponses(post.id)} style={{
-                    flex: 2, padding: '10px 0',
+            {/* F-04.118(a): the ACTION ROW's own gate stays on `open` — you do
+                not mark a closed post filled again. But VIEW RESPONSES is not
+                an action on the post, it is a look at the people, so it moved
+                OUT of that gate and now keys on `canViewResponses` alone. */}
+            {canViewResponses(post) && (
+              <div style={{ display: 'flex', gap: 8, marginBottom: open ? 8 : 0 }}>
+                <button type="button"
+                  onClick={e => { e.stopPropagation(); onViewResponses(post.id); }}
+                  style={{
+                    flex: 1, padding: '10px 0',
                     background: 'rgba(201,168,76,0.10)',
                     border: '0.5px solid rgba(201,168,76,0.4)', borderRadius: 2, cursor: 'pointer',
                     fontFamily: F.label, fontWeight: 400, fontSize: 10, color: A.brassWarm,
                     letterSpacing: '0.32em', textTransform: 'uppercase',
                   }}>View Responses</button>
-                )}
-                <button type="button" onClick={() => onMarkFilled(post.id)} style={{
+              </div>
+            )}
+            {open && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button"
+                  onClick={e => { e.stopPropagation(); onMarkFilled(post.id); }}
+                  style={{
                   flex: 1, padding: '10px 0',
                   background: 'transparent',
                   border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
