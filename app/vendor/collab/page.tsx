@@ -647,7 +647,12 @@ function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
 
       if (data.ok) onSuccess();
       else if (data.error === 'upgrade_required') setError('Upgrade to Signature to post collab requirements.');
-      else setError(data.message || 'Something went wrong. Try again.');
+      // F-04.110's second half: the server's refusal sentence travels in
+      // `error` (src/lib/response.js's envelope), not `message`. Reading only
+      // `message` swallowed every real sentence into the generic fallback —
+      // the founder's screenshot showed "Something went wrong. Try again."
+      // where a specific, actionable refusal had been written and shipped.
+      else setError(data.message || data.error || 'Something went wrong. Try again.');
     } catch { setError('Something went wrong. Try again.'); }
     finally { setSubmitting(false); }
   }
