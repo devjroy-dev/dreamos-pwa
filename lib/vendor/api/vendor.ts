@@ -828,12 +828,21 @@ export function fetchDay(vendorId: string, date: string): Promise<VendorDayRespo
   return getJson<VendorDayResponse | ApiErr>(`/api/v2/vendor/day/${vendorId}/${date}`);
 }
 
+// ── Band view (TDW_04.5 P2) ───────────────────────────────────────────────
+// The board's ONE round trip: bands (grouped by binder) + loose functions +
+// default_view. Rides the SAME window the grid reads (page.tsx's `win`), so
+// month-nav re-fetches both together — F-04.47's lesson, applied at birth.
+export function fetchBands(vendorId: string, from: string, to: string): Promise<BandsResponse | ApiErr> {
+  return getJson<BandsResponse | ApiErr>(`/api/v2/vendor/bands/${vendorId}?from=${from}&to=${to}`);
+}
+
 // ════════════════════════════════════════════════════════════════════
 // Block 5 — Discover / Portfolio / Couture / Featured
 // ════════════════════════════════════════════════════════════════════
 
 import type {
   VendorDayResponse,
+  BandsResponse,   // TDW_04.5 P2 — the band view's wire contract
   PortfolioImage, PortfolioListResponse, UploadUrlResponse,
   DiscoverStatus, CoutureSlot, CoutureAppointment, FeaturedSubmission,
 } from '../types/vendor';

@@ -494,6 +494,65 @@ export interface VendorDayResponse {
   followups:  DayFollowup[];
 }
 
+// ── GET /api/v2/vendor/bands/:vendorId?from&to (TDW_04.5 P2 — the band view) ──
+// The wire contract of src/api/vendor/bands.js. Every field below is what that
+// handler actually returns; nothing is aspirational.
+export interface BandCrew {
+  member_id:    string;
+  name:         string;
+  /** "Swati Rao" -> "SR". Computed backend-side so both repos can never disagree. */
+  initials:     string;
+  role:         string | null;
+  /** 0087 §D's three states — the RING vocabulary: pending = hollow ·
+      confirmed = solid brass-line · declined = terracotta (CE ruling F6). */
+  confirmation: 'pending' | 'confirmed' | 'declined';
+  /** P4's assign-external bridge row. False for every crew member today. */
+  external:     boolean;
+}
+export interface BandFunction {
+  event_id:   string;
+  date:       string;
+  slot:       string | null;
+  kind:       string;
+  title:      string;
+  event_time: string | null;
+  crew:       BandCrew[];
+  /** occupying && crew empty — decided backend-side by occupancy.js's `isOccupying`,
+      never by a client-side kind list. Renders the hollow pulsing pip. */
+  gap:        boolean;
+}
+/** The FOUR RAW WITNESSED CELLS (CE ruling F2(b)) — engine.records amount/direction/
+    amount_received/amount_pending. NOT a money story: the band view applies the estate's
+    CANON (derive.ts::pendingOf, F-04.13) to these. No second rule exists anywhere. */
+export interface BandMoneyCells {
+  amount:          number | null;
+  direction:       string | null;
+  amount_received: number | null;
+  amount_pending:  number | null;
+}
+export interface Band {
+  binder_id: string;
+  /** null = the binder didn't resolve; the view renders "Untitled wedding". */
+  title:     string | null;
+  span:      { start: string; end: string };
+  /** null = no cells, or the engine hop failed => NO whisper is drawn, never ₹0. */
+  money:     BandMoneyCells | null;
+  functions: BandFunction[];
+}
+export interface BandsResponse {
+  ok:    true;
+  bands: Band[];
+  /** Functions with no linked_binder_id — rendered, never dropped. */
+  loose: BandFunction[];
+  /** CE ruling F1(c): computed server-side by normaliseCategory — the predicate's one
+      home. The client obeys; absent/unknown falls to 'month'. */
+  default_view: 'weddings' | 'month';
+  /** The category default_view was computed FROM — makes the founder's smoke witness
+      self-evidencing without a DB pre-read. */
+  category:  string | null;
+  truncated: boolean;
+}
+
 export interface HotDatesResponse {
   ok: true;
   dates: HotDate[];

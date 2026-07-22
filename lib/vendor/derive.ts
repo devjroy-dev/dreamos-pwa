@@ -38,10 +38,35 @@ import type { CabinetResponse, CabinetBinder } from '@/lib/vendor/api/vendor';
 //
 // The direction guard is load-bearing: without it an expense binder (direction
 // 'out', amount 5000, no cells) would infer Rs 5,000 "owed" and invent debt.
-export function pendingOf(b: CabinetBinder): number {
+// ── F-04.104 (CE-ruled 2026-07-22, TDW_04.5 P2 — a DISCLOSED LABELED RIDER) ──
+// The canon and its mirror were declared "one rule, written twice" and had drifted
+// by exactly one clause: cabinet.js:105 tested `explicit !== ''`, this function did
+// not. An empty string therefore took DIFFERENT paths in the two repos — the mirror
+// inferred from amount − received, the canon ran `Number('') || 0` and returned 0.
+//
+// ALIGNMENT DIRECTION, ruled by the estate's own law: "an unfiled cell means
+// unfiled, not Rs 0." An empty string IS unfiled, so it must fall through to the
+// inference — cabinet.js's semantic. The canon moves to the mirror, not the reverse.
+//
+// WHY IT RODE THIS SITTING: P2's band-view money whisper imports THIS function.
+// Shipping a new consumer onto a rule with a known divergence is wiring a convicted
+// class knowingly; the one-clause rider is cheaper than the finding it prevents.
+// TYPE-ONLY WIDENING, disclosed (TDW_04.5 P2, an inescapable consequence of CE ruling
+// F2(b), not scope creep): the band view must apply THIS canon to the four raw cells the
+// bands endpoint ships, and those cells are not a whole CabinetBinder. The rule has only
+// ever READ these four fields — the signature now says so. `CabinetBinder` is structurally
+// assignable to `MoneyCells`, so every existing call site is untouched and unchanged.
+// ZERO runtime bytes change here; the only runtime delta in this function is F-04.104's clause.
+export interface MoneyCells {
+  direction:       string | null | undefined;
+  amount:          number | string | null | undefined;
+  amount_received: number | string | null | undefined;
+  amount_pending:  number | string | null | undefined;
+}
+export function pendingOf(b: MoneyCells): number {
   if ((b.direction ?? 'in').toLowerCase() === 'out') return 0;
   const explicit = b.amount_pending;
-  if (explicit !== null && explicit !== undefined) {
+  if (explicit !== null && explicit !== undefined && (explicit as unknown) !== '') {
     return Math.max(Number(explicit) || 0, 0);
   }
   return Math.max((Number(b.amount) || 0) - (Number(b.amount_received) || 0), 0);

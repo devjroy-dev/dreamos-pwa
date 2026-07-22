@@ -15,11 +15,13 @@ import { Header } from '@/components/vendor/Header';
 import { CalendarBlockSheet } from '@/components/vendor/CalendarBlockSheet';
 import { CalendarDaySheet } from '@/components/vendor/CalendarDaySheet';
 import { CalendarCrewSheet } from '@/components/vendor/CalendarCrewSheet';
+import { CalendarBands } from '@/components/vendor/CalendarBands';   // TDW_04.5 P2 — the band view
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAvailability, fetchHotDates } from '@/lib/vendor/api/vendor';
-import type { AvailabilityBlock, HotDate, DayEvent } from '@/lib/vendor/types/vendor';
+import type { AvailabilityBlock, HotDate, DayEvent, BandFunction, BandsResponse } from '@/lib/vendor/types/vendor';
+import { fetchBands } from '@/lib/vendor/api/vendor';
 
 // ── Atelier tokens ──────────────────────────────────────────────
 const A = {
@@ -84,6 +86,22 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const [editRow, setEditRow] = useState<Record<string, unknown> | null>(null);
   const [crewEvent, setCrewEvent] = useState<DayEvent | null>(null);   // TDW_04.5 P1 #6 — the crew picker's target booking
   const [addOpen, setAddOpen] = useState(false);
+
+  // ── TDW_04.5 P2 — THE MONTH · WEDDINGS TOGGLE ─────────────────────────────
+  // IN-MEMORY ONLY, by spec §3 and §P2 both ("choice remembered per session
+  // (in-memory, no storage APIs)"): plain React state. It survives month-nav and
+  // every sheet, and it RESETS on a fresh load — the law witnessed by its own
+  // amnesia, which is exactly what smoke step 2 checks.
+  //
+  // The DEFAULT is the server's to give (CE ruling F1(c)): `default_view` is computed
+  // by normaliseCategory at src/api/vendor/bands.js, the same predicate's one home the
+  // staffing-gap line asks. The client never re-decides who is a planner — which also
+  // makes it immune to the real hazard the thumb-path derivation surfaced: sessions
+  // minted before F-04.96 carry NO `category` at all, so any client-side test would
+  // have silently floored every planner to Month.
+  const [view, setView] = useState<'month' | 'weddings'>('month');
+  const [viewSeeded, setViewSeeded] = useState(false);
+  const [bandsRefresh, setBandsRefresh] = useState(0);
   // B6-S1 (R-B6-18's hedge): create-mode seed for the day-popup's + — the date,
   // prefilled. Cleared with the sheet.
   const [addSeed, setAddSeed] = useState<Record<string, string> | null>(null);
@@ -188,7 +206,26 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
     router.push(`/vendor?aiPrimer=${encodeURIComponent('What would you like me to add to the calendar? Give me a title, date, and time.')}`);
   }
 
-  function refreshAll() { refreshEvents(); refreshWindow(); refreshBlocks(); }
+  function refreshAll() { refreshEvents(); refreshWindow(); refreshBlocks(); setBandsRefresh(n => n + 1); }
+
+  // TDW_04.5 P2: seed the opening view from the server's `default_view` — ONCE per
+  // mount, and never again, so the vendor's own toggle is never overwritten by a
+  // later re-fetch (a month-nav must not silently throw them back to Weddings).
+  // Any failure leaves `view` at its 'month' initial value: the ruled fallback.
+  useEffect(() => {
+    if (viewSeeded) return;
+    let live = true;
+    fetchBands(vendorId, win.from, win.to)
+      .then((r) => {
+        if (!live) return;
+        const d = r as BandsResponse;
+        if (d && d.ok && d.default_view === 'weddings') setView('weddings');
+      })
+      .catch(() => { /* soft — Month stands, the ruled fallback */ })
+      .finally(() => { if (live) setViewSeeded(true); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendorId]);
 
   // B6-S2 (item 6(b)): the AddSheet's "Block this day instead →" can arrive
   // from the LIST page via /vendor/calendar?block=YYYY-MM-DD — read once on
@@ -210,6 +247,64 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
       {/* Scrollable body — calendar grid + engagements scroll together */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
 
+      {/* ── TDW_04.5 P2 — the MONTH · WEDDINGS toggle (spec §P2: Jost, top-right) ──
+          Two words, one hairline divider between them; the live one is brass, the
+          other recedes. Same pill vocabulary as the Hot Dates toggle below, so the
+          screen gains no second dialect. Copy founder-vetoed YES 2026-07-22. */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 22px 0' }}>
+        <div role="group" aria-label="Calendar view" style={{
+          display: 'flex', alignItems: 'center', gap: 9,
+          border: `0.5px solid ${A.brassLine}`, borderRadius: 999, padding: '5px 12px',
+        }}>
+          {(['month', 'weddings'] as const).map((v, i) => (
+            <span key={v} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              {i === 1 && <span style={{ width: '0.5px', height: 9, background: A.brassLine }} />}
+              <button type="button" onClick={() => setView(v)} aria-pressed={view === v}
+                style={{
+                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                  color: view === v ? A.brassWarm : A.inkMute,
+                }}>{v === 'month' ? 'Month' : 'Weddings'}</button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── THE BAND BOARD (P2) — the toggle swaps the whole reading surface.
+             F5 ruled HIDE: the Next Engagements rail returns with Month, because on
+             this board the band IS the horizon. ── */}
+      {view === 'weddings' && (
+        <CalendarBands
+          vendorId={vendorId}
+          from={win.from}
+          to={win.to}
+          muhuratDates={hotOn ? hotSet : new Set<string>()}
+          onOpenDay={(d) => { setBlockSel(null); setDaySel(d); }}
+          onAssignCrew={(fn: BandFunction) => {
+            // CE ruling F3: a gap pip opens the SHIPPED picker, byte-untouched. The
+            // band's function carries everything CalendarCrewSheet's DayEvent contract
+            // needs; the fields it does not use are honestly null rather than invented.
+            setDaySel(null);
+            setCrewEvent({
+              id: fn.event_id,
+              title: fn.title,
+              kind: fn.kind,
+              slot: fn.slot,
+              event_time: fn.event_time,
+              state: 'upcoming',
+              notes: null,
+              lead_id: null,
+              linked_binder_id: null,
+              binder_name: null,
+              assigned_member_ids: fn.crew.map(c => c.member_id),
+            });
+          }}
+          refreshKey={bandsRefresh}
+        />
+      )}
+
+      {view === 'month' && (<>
       {/* ── Month spread ──────────────────────────────────────── */}
       <div style={{
         position: 'relative',
@@ -483,6 +578,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           </div>
         )}
       </div>{/* end Next Engagements */}
+      </>)}{/* end view === 'month' */}
       </div>{/* end scroll wrapper */}
 
       {/* Brass-key FAB */}
