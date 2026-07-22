@@ -782,6 +782,43 @@ export interface TeamMember {
   deleted_at:     string | null;
   created_at:     string;
   updated_at:     string;
+  // TDW_04.5 P3 — 0087 §B. The crew page's capability token. It has always been on
+  // the wire (team.js answered `select('*')`); it was simply undeclared here. The
+  // backend now answers with an explicit column list (F-04.106) of which this is a
+  // decided member, because "Send page" builds the link from it.
+  // TREAT AS A SECRET: never render it, never log it, never put it in a query string
+  // that leaves the vendor's own device except as the crew link itself.
+  page_token:     string;
+}
+
+// TDW_04.5 P3 — the public crew page's wire contract (GET /api/v2/crew/:token).
+// THE SHAPE IS THE SECURITY BOUNDARY: there is no money, no phone, no member id and
+// no other member anywhere in it, by construction rather than by filtering. `note` is
+// the crew member's OWN note from crew_confirmations — never events.notes (CE ruling
+// F7). If you are tempted to widen this interface, that is the conversation.
+export interface CrewAssignment {
+  event_id:     string;
+  date:         string;
+  slot:         string | null;
+  title:        string;
+  wedding:      string | null;
+  call_time:    string | null;
+  confirmation: 'pending' | 'confirmed' | 'declined';
+  note:         string | null;
+}
+export interface CrewTask {
+  task_id:     string;
+  title:       string;
+  description: string | null;
+  due_date:    string | null;
+  priority:    string | null;
+}
+export interface CrewPageResponse {
+  ok:          true;
+  member:      { name: string };
+  vendor:      { name: string | null };
+  assignments: CrewAssignment[];
+  tasks:       CrewTask[];
 }
 
 export interface TeamTask {

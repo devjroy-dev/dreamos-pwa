@@ -948,6 +948,14 @@ export function updateTeamMember(memberId: string, body: {
 export function deleteTeamMember(memberId: string): Promise<{ ok: boolean; member: TeamMember } | ApiErr> {
   return deleteJson('/api/v2/vendor/studio/team/' + memberId);
 }
+// TDW_04.5 P3 (CE ruling F9) — mint a new crew-page token. THE BODY IS EMPTY AND THE
+// SERVER NEVER READS ONE: the token is generated server-side, so no caller can choose
+// it. The spec's "PATCH allowlist addition" was struck on the record as a
+// capability-forging hole; there is deliberately no way to SET a token from here.
+// The old link dies the moment this resolves.
+export function rotateTeamMemberToken(memberId: string): Promise<{ ok: boolean; member: TeamMember } | ApiErr> {
+  return postJson('/api/v2/vendor/studio/team/' + memberId + '/rotate-token', {});
+}
 
 // Tasks
 export function fetchTasks(params?: { state?: string; assigned_to?: string }): Promise<{ ok: boolean; tasks: TeamTask[] } | ApiErr> {

@@ -9,7 +9,7 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
-import { fetchTeam, addTeamMember, updateTeamMember, deleteTeamMember } from '@/lib/vendor/api/vendor';
+import { fetchTeam, addTeamMember, updateTeamMember, deleteTeamMember, rotateTeamMemberToken } from '@/lib/vendor/api/vendor';
 import type { TeamMember } from '@/lib/vendor/types/vendor';
 
 const D = {
@@ -66,6 +66,10 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
   const [phone, setPhone]         = useState('');
   const [rate, setRate]           = useState('');
   const [notes, setNotes]         = useState('');
+  // TDW_04.5 P3 — the crew-page actions live INSIDE the edit sheet (CE ruling F10(b)):
+  // the row's only affordance is already "open the sheet", and adding a second one
+  // would mint an interaction model this app does not otherwise have. Zero new gestures.
+  const [confirmRotate, setConfirmRotate] = useState(false);
 
   useEffect(() => {
     fetchTeam().then(r => { if (r.ok) setMembers((r as { members: TeamMember[] }).members); })
@@ -74,10 +78,12 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
 
   function openAdd() {
     setName(''); setRole(''); setPhone(''); setRate(''); setNotes('');
+    setConfirmRotate(false);
     setSheet('add');
   }
   function openEdit(m: TeamMember) {
     setSelected(m);
+    setConfirmRotate(false);
     setName(m.name); setRole(m.role ?? ''); setPhone(m.phone ?? '');
     setRate(m.daily_rate_inr?.toString() ?? ''); setNotes(m.notes ?? '');
     setSheet('edit');
@@ -98,6 +104,39 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
     const res = await updateTeamMember(selected.id, { name: name.trim(), role: role || undefined, phone: phone || undefined, daily_rate_inr: rate ? Number(rate) : undefined, notes: notes || undefined });
     if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); }
     else { show('Updated', 'success'); setMembers(prev => prev.map(m => m.id === selected.id ? (res as { member: TeamMember }).member : m)); setSheet(null); }
+    setSaving(false);
+  }
+
+  // ── THE CREW PAGE, distribution half (spec §P3:66) ──────────────────────
+  // The link is built from THIS APP'S OWN ORIGIN, never from API_BASE (CE ruling F6):
+  // API_BASE points at the dream-os backend on Railway, and the crew page is a route
+  // in this PWA. window.location.origin is correct in production, in preview builds and
+  // locally, and needs no env var. Named consequence: on the demo subdomain the minted
+  // link is visibly dead (middleware.ts:47 rewrites /crew/* to /demo/not-found there)
+  // rather than quietly wrong.
+  function crewUrl(m: TeamMember) {
+    return `${window.location.origin}/crew/${m.page_token}`;
+  }
+  function sendPage(m: TeamMember) {
+    const text  = `Your assignments with ${vendorName ?? 'us'}: ${crewUrl(m)}`;
+    const digits = (m.phone || '').replace(/[^0-9]/g, '');
+    // No phone on file -> open WhatsApp with the message and let the vendor pick the
+    // contact, rather than refusing the action or inventing a number.
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  }
+
+  async function doRotate() {
+    if (!selected || saving) return;
+    setSaving(true);
+    const res = await rotateTeamMemberToken(selected.id);
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); }
+    else {
+      const updated = (res as { member: TeamMember }).member;
+      show('New link created.', 'success');
+      setMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+      setSelected(updated);
+      setConfirmRotate(false);
+    }
     setSaving(false);
   }
 
@@ -181,6 +220,27 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
             <div><div style={labelStyle}>Phone</div><input style={inputStyle} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 9000000000" /></div>
             <div><div style={labelStyle}>Day Rate (Rs)</div><input style={{ ...inputStyle }} type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="5000" /></div>
             <div><div style={labelStyle}>Notes</div><input style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Available weekends only" /></div>
+
+            {sheet === 'edit' && selected && (
+              <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={labelStyle}>Crew page</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button type="button" onClick={() => sendPage(selected)} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.cream, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Send page</button>
+                  <button type="button" onClick={() => setConfirmRotate(true)} disabled={saving} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Rotate link</button>
+                </div>
+                {/* Rotation is irreversible and immediate, so it is asked before it is
+                    done — the warning is the whole reason the second tap exists. */}
+                {confirmRotate && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0 }}>The old link stops working.</p>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button type="button" onClick={() => setConfirmRotate(false)} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Cancel</button>
+                      <button type="button" onClick={doRotate} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.red}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.red, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Rotate link</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {!canSave && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.red, margin: 0 }}>Name is required to save.</p>}
 

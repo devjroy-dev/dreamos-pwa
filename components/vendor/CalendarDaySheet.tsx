@@ -28,6 +28,7 @@ import {
 import type {
   VendorDayResponse, DayEvent, DayBlock, ApiErr,
 } from '@/lib/vendor/types/vendor';
+import { SLOT_LABELS, SLOT_ORDER, SLOT_HEADINGS } from '@/lib/vendor/slotWords';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
 const D = {
@@ -51,15 +52,11 @@ const SHEET: React.CSSProperties = {
   WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
 };
 
-const SLOT_LABELS: { key: 'morning' | 'noon' | 'evening'; label: string }[] = [
-  { key: 'morning', label: 'Morning' },
-  { key: 'noon',    label: 'Noon' },
-  { key: 'evening', label: 'Evening' },
-];
-const SLOT_ORDER = ['morning', 'noon', 'evening', 'full_day', null] as (string | null)[];
-const SLOT_HEADINGS: Record<string, string> = {
-  morning: 'Morning', noon: 'Noon', evening: 'Evening', full_day: 'Full day', _none: 'Unslotted',
-};
+// TDW_04.5 P3, CE ruling F8(d) — LABELED HOIST, behaviour-identical: SLOT_LABELS,
+// SLOT_ORDER and SLOT_HEADINGS moved verbatim to lib/vendor/slotWords.ts so the public
+// crew page can import the SAME words instead of declaring a second copy (F-04.104's
+// class). Byte-for-byte the same values; this file's only change is where they live.
+// The import rides the block above.
 
 function fmtDate(iso: string) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
