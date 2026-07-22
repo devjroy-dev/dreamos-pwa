@@ -85,6 +85,11 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   // Tap-to-edit a calendar event opens the form (direct write), never the AI.
   const [editRow, setEditRow] = useState<Record<string, unknown> | null>(null);
   const [crewEvent, setCrewEvent] = useState<DayEvent | null>(null);   // TDW_04.5 P1 #6 — the crew picker's target booking
+  // TDW_04.5 P4 · F10(b): the picker's Post-to-Collab prefill needs the function's
+  // DATE, which DayEvent does not carry. Both entry points already know it — the
+  // band pip from fn.date, the day sheet from the day it is showing — so it is
+  // handed down rather than re-derived inside the sheet.
+  const [crewDate, setCrewDate] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   // ── TDW_04.5 P2 — THE MONTH · WEDDINGS TOGGLE ─────────────────────────────
@@ -332,6 +337,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             // band's function carries everything CalendarCrewSheet's DayEvent contract
             // needs; the fields it does not use are honestly null rather than invented.
             setDaySel(null);
+            setCrewDate(fn.date);
             setCrewEvent({
               id: fn.event_id,
               title: fn.title,
@@ -633,12 +639,13 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           setEditRow({ id: ev.id, title: ev.title, kind: ev.kind, event_date: daySel ?? '', event_time: ev.event_time ?? '', notes: ev.notes ?? '' });
           setAddOpen(true);
         }}
-        onAssignCrew={(ev: DayEvent) => { setDaySel(null); setCrewEvent(ev); }}
+        onAssignCrew={(ev: DayEvent) => { setCrewDate(daySel); setDaySel(null); setCrewEvent(ev); }}
       />
       <CalendarCrewSheet
         open={!!crewEvent}
         event={crewEvent}
-        onClose={() => setCrewEvent(null)}
+        eventDate={crewDate}
+        onClose={() => { setCrewEvent(null); setCrewDate(null); }}
         onToast={showToast}
         onRefresh={refreshAll}
       />

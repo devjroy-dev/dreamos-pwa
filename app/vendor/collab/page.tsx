@@ -5,10 +5,11 @@
 // detail lines, atelier-fab buttons, atelier sheet for the post form.
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
 import { getJson, postJson, patchJson } from '@/lib/vendor/api/_base';
+import { fetchRoster, addRosterEntry, RosterEntry } from '@/lib/vendor/api/roster';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -28,9 +29,23 @@ const F = {
 } as const;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
+// TDW_04.5 P4 — a post is now a list of requirements. `items` ALWAYS arrives
+// (a legacy post wraps to exactly one), so this client needs no legacy branch;
+// `requirement_type` stays only as the back-compat mirror of items[0].
+interface CollabItem {
+  id:                    string | null;
+  position:              number;
+  requirement_type:      string;
+  note:                  string | null;
+  filled_by_response_id: string | null;
+  wrapped:               boolean;
+}
+
 interface CollabPost {
   id:               string;
   requirement_type: string;
+  items?:           CollabItem[];
+  first_look_until?: string | null;
   event_date:       string;
   city:             string;
   budget_inr?:      number;
@@ -76,7 +91,7 @@ const EVENT_TYPES     = ['wedding','pre_wedding','engagement','editorial','brand
 const PAYMENT_PERIODS = ['per_day','per_shoot','total','tbd'];
 const CITIES          = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa','Other'];
 
-type Tab = 'opportunities' | 'my_posts';
+type Tab = 'opportunities' | 'my_posts' | 'roster';
 
 export default function CollabPage() {
   const { session, loading: sl } = useVendorSession();
@@ -86,18 +101,42 @@ export default function CollabPage() {
   return <CollabScreen vendorId={session.id} vendorName={session.name} tier={session.tier} />;
 }
 
+// F10(b)'s prefill arrives in the URL, not in storage — browser storage is
+// forbidden here and the gap pip lives on a different screen entirely. Query
+// params also mean the composer opens prefilled on a hard refresh.
+interface Prefill { open: boolean; date: string; city: string; type: string; }
+function readPrefill(sp: URLSearchParams | null): Prefill {
+  return {
+    open: sp?.get('post') === '1',
+    date: sp?.get('date') || '',
+    city: sp?.get('city') || '',
+    type: sp?.get('type') || '',
+  };
+}
+
 function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendorName: string | null; tier: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefill = readPrefill(searchParams);
+
   const [tab,      setTab]      = useState<Tab>('opportunities');
   const [feed,     setFeed]     = useState<CollabPost[]>([]);
   const [myPosts,  setMyPosts]  = useState<CollabPost[]>([]);
+  const [roster,   setRoster]   = useState<RosterEntry[]>([]);
   const [loading,  setLoading]  = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(prefill.open);
 
   useEffect(() => {
-    Promise.all([fetchFeed(), fetchMyPosts()]).finally(() => setLoading(false));
+    Promise.all([fetchFeed(), fetchMyPosts(), loadRoster()]).finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function loadRoster() {
+    try {
+      const data = await fetchRoster();
+      if (data.ok) setRoster(data.roster);
+    } catch { /* silent — the tab renders its own empty state */ }
+  }
 
   async function fetchFeed() {
     try {
@@ -151,15 +190,15 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
 
       {/* Tabs */}
       <div style={{ display: 'flex', padding: '0 22px', marginBottom: 4 }}>
-        {(['opportunities', 'my_posts'] as Tab[]).map(t => (
+        {(['opportunities', 'my_posts', 'roster'] as Tab[]).map(t => (
           <button key={t} type="button" onClick={() => setTab(t)} style={{
             flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer',
             fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,
             color: tab === t ? A.brassWarm : A.inkMute,
-            letterSpacing: '0.42em', textTransform: 'uppercase',
+            letterSpacing: '0.32em', textTransform: 'uppercase',
             borderBottom: tab === t ? `0.5px solid ${A.brass}` : '0.5px solid rgba(201,168,76,0.10)',
             transition: `all 200ms ${EASE}`,
-          }}>{t === 'opportunities' ? 'Opportunities' : 'My Posts'}</button>
+          }}>{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My Posts' : 'Roster'}</button>
         ))}
       </div>
 
@@ -169,18 +208,21 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
           <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute }}>Loading…</div>
         ) : tab === 'opportunities' ? (
           <OpportunitiesTab feed={feed} onRespond={respond} />
-        ) : (
+        ) : tab === 'my_posts' ? (
           <MyPostsTab
             posts={myPosts}
             onMarkFilled={markFilled}
             onViewResponses={id => router.push(`/vendor/collab/${id}/responses`)}
           />
+        ) : (
+          <RosterTab roster={roster} onAdded={loadRoster} />
         )}
       </div>
 
       {showForm && (
         <PostCollabForm
           vendorTier={tier}
+          prefill={prefill}
           onClose={() => setShowForm(false)}
           onSuccess={() => { setShowForm(false); fetchMyPosts(); setTab('my_posts'); }}
         />
@@ -211,6 +253,18 @@ function OpportunitiesTab({ feed, onRespond }: {
       {feed.map(post => <OpportunityCard key={post.id} post={post} onRespond={onRespond} />)}
     </div>
   );
+}
+
+// A post ALWAYS has items — the server wraps legacy posts to one. This helper
+// exists only so a stale cached response can't crash the card.
+function itemsOf(post: CollabPost): CollabItem[] {
+  return post.items && post.items.length > 0
+    ? post.items
+    : [{ id: null, position: 0, requirement_type: post.requirement_type, note: null, filled_by_response_id: null, wrapped: true }];
+}
+
+function inFirstLook(post: CollabPost): boolean {
+  return !!post.first_look_until && new Date(post.first_look_until).getTime() > Date.now();
 }
 
 function OpportunityCard({ post, onRespond }: {
@@ -244,8 +298,19 @@ function OpportunityCard({ post, onRespond }: {
         Requirement
       </div>
       <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 6 }}>
-        {fmtType(post.requirement_type)} needed
+        {fmtType(itemsOf(post)[0]?.requirement_type ?? post.requirement_type)} needed
       </div>
+      {itemsOf(post).length > 1 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+          {itemsOf(post).slice(1).map((it, n) => (
+            <span key={it.id ?? n} style={{
+              fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+              letterSpacing: '0.28em', textTransform: 'uppercase',
+              border: `0.5px solid rgba(201,168,76,0.28)`, borderRadius: 2, padding: '3px 8px',
+            }}>{it.requirement_type.replace(/_/g, ' ')}</span>
+          ))}
+        </div>
+      )}
       <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, marginBottom: 12, lineHeight: 1.4 }}>
         {post.city} · {fmtDate(post.event_date)} · {fmtBudget(post.budget_inr, post.payment_period)}
       </div>
@@ -314,7 +379,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                   My Post
                 </div>
                 <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
-                  {fmtType(post.requirement_type)} needed
+                  {fmtType(itemsOf(post)[0]?.requirement_type ?? post.requirement_type)} needed
                 </div>
               </div>
               <span style={{
@@ -328,6 +393,46 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft, marginBottom: 12 }}>
               {post.city} · {fmtDate(post.event_date)} · {fmtBudget(post.budget_inr, post.payment_period)}
             </div>
+
+            {/* Every requirement, and which of them are already spoken for. The
+                filled state comes from the item's own filled_by_response_id —
+                the same field the server's auto-close reads, so the screen and
+                the state machine can never disagree. */}
+            {itemsOf(post).length > 1 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                {itemsOf(post).map((it, n) => {
+                  const done = !!it.filled_by_response_id;
+                  return (
+                    <span key={it.id ?? n} style={{
+                      fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                      color: done ? A.inkMute : A.brassWarm,
+                      letterSpacing: '0.28em', textTransform: 'uppercase',
+                      border: `0.5px solid ${done ? 'var(--atelier-sheet-border)' : 'rgba(201,168,76,0.28)'}`,
+                      borderRadius: 2, padding: '3px 8px',
+                      textDecoration: done ? 'line-through' : 'none',
+                    }}>{it.requirement_type.replace(/_/g, ' ')}</span>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* First look, and the auto-close. Both describe state the server
+                owns; neither is computed twice. */}
+            {open && inFirstLook(post) && (
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 12 }}>
+                Your roster sees this first. Open to everyone in 12 hours.
+              </div>
+            )}
+            {open && !inFirstLook(post) && post.first_look_until && (
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 12 }}>
+                Open to everyone.
+              </div>
+            )}
+            {post.state === 'filled' && (
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft, marginBottom: 12 }}>
+                All filled. This post is closed.
+              </div>
+            )}
 
             {(post.interested_count ?? 0) > 0 && (
               <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 14, color: A.brassWarm, marginBottom: 12 }}>
@@ -362,19 +467,143 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
   );
 }
 
+
+// ── Roster ──────────────────────────────────────────────────────────────────
+// TDW_04.5 P4 spec §P4.2. Two ways in: edges arrive on their own every time a
+// collab connection is accepted, and a vendor can add someone by hand. The
+// empty state says both, because a vendor who has never connected would
+// otherwise think the tab was broken.
+function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => void }) {
+  const [adding, setAdding] = useState(false);
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        <button type="button" onClick={() => setAdding(true)} style={{
+          padding: '8px 14px', background: 'transparent', borderRadius: 2,
+          border: '0.5px solid var(--atelier-sheet-border)', cursor: 'pointer',
+          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+          letterSpacing: '0.32em', textTransform: 'uppercase',
+        }}>Add someone</button>
+      </div>
+
+      {roster.length === 0 ? (
+        <div style={{ padding: '48px 32px', textAlign: 'center' }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
+            No one on your roster yet.
+          </div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55 }}>
+            Vendors you connect with here are added automatically.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {roster.map(r => (
+            <div key={r.id} className="atelier-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 17, color: A.ink, lineHeight: 1.2 }}>{r.name}</div>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 2 }}>
+                  {[r.category ? fmtType(r.category) : null, r.phone].filter(Boolean).join(' · ')}
+                </div>
+              </div>
+              {r.source === 'collab_accepted' && (
+                <span style={{
+                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.brass,
+                  letterSpacing: '0.28em', textTransform: 'uppercase',
+                  border: `0.5px solid rgba(201,168,76,0.4)`, borderRadius: 2, padding: '3px 8px', flexShrink: 0,
+                }}>Collab</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {adding && <AddToRosterSheet onClose={() => setAdding(false)} onAdded={() => { setAdding(false); onAdded(); }} />}
+    </>
+  );
+}
+
+function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const [name, setName]         = useState('');
+  const [phone, setPhone]       = useState('');
+  const [category, setCategory] = useState('');
+  const [error, setError]       = useState('');
+  const [saving, setSaving]     = useState(false);
+
+  async function submit() {
+    if (!name.trim() || !phone.trim()) { setError('Name and phone are required.'); return; }
+    setSaving(true); setError('');
+    const res = await addRosterEntry({ name: name.trim(), phone: phone.trim(), category: category || undefined });
+    setSaving(false);
+    // The duplicate refusal is the SERVER's sentence, shown verbatim. The dedup
+    // decision lives in one place and this screen does not re-derive it — a
+    // client-side "is this already here" check would disagree with the server
+    // the first time a phone was typed in a different format.
+    if (res.ok) { onAdded(); return; }
+    setError(res.message || 'Something went wrong. Try again.');
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--atelier-overlay)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92dvh', overflowY: 'auto', background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)', borderTop: '0.5px solid var(--atelier-sheet-border)', padding: '0 0 calc(32px + env(safe-area-inset-bottom))' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
+          <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+        </div>
+        <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 26, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Add someone</div>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.brassWarm, fontFamily: F.display, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
+        </div>
+        <div style={{ padding: '0 24px' }}>
+          <Label>Name</Label>
+          <input value={name} onChange={e => setName(e.target.value)} style={{ ...inputStyle, marginBottom: 18 }} />
+          <Label>Phone</Label>
+          <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" style={{ ...inputStyle, marginBottom: 18 }} />
+          <Label>Category</Label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 22 }}>
+            {REQUIREMENT_TYPES.map(t => (
+              <Pill key={t} active={category === t} onClick={() => setCategory(category === t ? '' : t)}>
+                {t.replace(/_/g, ' ')}
+              </Pill>
+            ))}
+          </div>
+          {error && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.red, marginBottom: 14 }}>{error}</div>}
+          <button type="button" onClick={submit} disabled={saving} className="atelier-fab" style={{
+            width: '100%', padding: '14px 0', borderRadius: 2, border: '0.5px solid #E0BC6E',
+            cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
+            color: '#1A120E', letterSpacing: '0.5em', textTransform: 'uppercase', opacity: saving ? 0.6 : 1,
+          }}>{saving ? 'Saving…' : 'Add to roster'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Post form sheet ─────────────────────────────────────────────
-function PostCollabForm({ vendorTier, onClose, onSuccess }: {
+function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
   vendorTier: string;
+  prefill: Prefill;
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const canPost = ['signature', 'prestige', 'trial'].includes(vendorTier);
 
+  // 1–8 requirements per post (spec §P4.1). Always at least one row, so the
+  // form has one shape whether the vendor needs a florist or a whole crew.
+  // The prefill seeds items[0] only — the gap pip knows about one gap.
+  const [items, setItems] = useState<{ requirement_type: string; note: string }[]>(
+    [{ requirement_type: prefill.type, note: '' }]
+  );
   const [form, setForm] = useState({
-    requirement_type: '', event_date: '', city: '',
+    requirement_type: '', event_date: prefill.date, city: prefill.city,
     budget_inr: '', payment_period: 'per_shoot',
     event_type: '', details: '', open_to_other_cities: false,
   });
+
+  function setItem(i: number, patch: Partial<{ requirement_type: string; note: string }>) {
+    setItems(prev => prev.map((it, n) => (n === i ? { ...it, ...patch } : it)));
+  }
+  function addItem()      { setItems(prev => (prev.length >= 8 ? prev : [...prev, { requirement_type: '', note: '' }])); }
+  function removeItem(i: number) { setItems(prev => (prev.length <= 1 ? prev : prev.filter((_, n) => n !== i))); }
   const [submitting, setSubmitting] = useState(false);
   const [error,      setError]      = useState('');
 
@@ -384,13 +613,25 @@ function PostCollabForm({ vendorTier, onClose, onSuccess }: {
 
   async function handleSubmit() {
     if (!canPost) return;
-    if (!form.requirement_type || !form.event_date || !form.city) {
+    const chosen = items.filter(i => i.requirement_type);
+    if (chosen.length === 0 || !form.event_date || !form.city) {
       setError('Please fill in what you need, the date, and the city.'); return;
+    }
+    // F10(b)'s two in-sheet refusals — REFUSED HERE, IN WORDS, never by a
+    // disabled button the vendor can't interpret. The server refuses a past
+    // date too; this one exists so the vendor is told why before a round trip.
+    if (new Date(form.event_date) < new Date(new Date().toDateString())) {
+      setError('This date has passed. Collab posts need a future date.'); return;
+    }
+    if (!form.city.trim()) {
+      setError('Add a city to your profile before posting.'); return;
     }
     setSubmitting(true); setError('');
     try {
       const payload: Record<string, unknown> = {
-        requirement_type:     form.requirement_type,
+        items: items
+          .filter(i => i.requirement_type)
+          .map(i => ({ requirement_type: i.requirement_type, note: i.note || undefined })),
         event_date:           form.event_date,
         city:                 form.city,
         open_to_other_cities: form.open_to_other_cities,
@@ -454,13 +695,43 @@ function PostCollabForm({ vendorTier, onClose, onSuccess }: {
             </div>
           ) : (
             <>
-              <Label>What do you need?</Label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 22 }}>
-                {REQUIREMENT_TYPES.map(type => (
-                  <Pill key={type} active={form.requirement_type === type} onClick={() => set('requirement_type', type)}>
-                    {type.replace(/_/g, ' ')}
-                  </Pill>
-                ))}
+              <Label>What you need</Label>
+              {items.map((item, i) => (
+                <div key={i} style={{ marginBottom: 14 }}>
+                  {items.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute }}>
+                        {i + 1} of {items.length}
+                      </span>
+                      <button type="button" onClick={() => removeItem(i)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+                        fontFamily: F.display, fontSize: 18, lineHeight: 1, color: A.brassWarm,
+                      }}>×</button>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {REQUIREMENT_TYPES.map(type => (
+                      <Pill key={type} active={item.requirement_type === type}
+                        onClick={() => setItem(i, { requirement_type: item.requirement_type === type ? '' : type })}>
+                        {type.replace(/_/g, ' ')}
+                      </Pill>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {items.length < 8 && (
+                <button type="button" onClick={addItem} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginBottom: 22,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                }}>Add another</button>
+              )}
+              {items.length >= 8 && <div style={{ marginBottom: 22 }} />}
+
+              {/* First look — stated before the post exists, not discovered
+                  afterwards. The window is server-owned; this line describes it. */}
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute, lineHeight: 1.55, marginBottom: 22 }}>
+                Your roster sees this first. Open to everyone in 12 hours.
               </div>
 
               <Label>Date needed</Label>
@@ -520,7 +791,7 @@ function PostCollabForm({ vendorTier, onClose, onSuccess }: {
                 fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 opacity: submitting ? 0.6 : 1,
-              }}>{submitting ? 'Posting…' : 'Post Requirement'}</button>
+              }}>{submitting ? 'Posting…' : 'Post'}</button>
             </>
           )}
         </div>

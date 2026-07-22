@@ -9,7 +9,9 @@
 // in lib/vendor/crewCommit.ts (framework-agnostic, proof-driven); this file is its UI shell.
 
 import { useEffect, useState } from 'react';
-import { fetchTeam, updateEvent } from '@/lib/vendor/api/vendor';
+import { useRouter } from 'next/navigation';
+import { fetchTeam, updateEvent, fetchMe } from '@/lib/vendor/api/vendor';
+import { requirementForKind } from '@/lib/vendor/api/roster';
 import { commitCrew } from '@/lib/vendor/crewCommit';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import type { TeamMember, DayEvent } from '@/lib/vendor/types/vendor';
@@ -36,19 +38,35 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 // COPY (founder veto standing — proposals ship unless vetoed):
 const EMPTY_STATE = 'No one on your team yet — add crew in Studio.';
 
+// TDW_04.5 P4 · ruling F10(b) — the veto ledger's exact bytes.
+const POST_TO_COLLAB = 'Post to Collab';
+const PAST_DATE      = 'This date has passed. Collab posts need a future date.';
+const NO_CITY        = 'Add a city to your profile before posting.';
+
 interface Props {
   open: boolean;
   event: DayEvent | null;
+  /** The function's date (YYYY-MM-DD). The DayEvent contract does not carry it —
+      the day sheet and the band board each know it, so they hand it down rather
+      than the sheet guessing. Absent = the date refusal fires, which is the
+      honest failure. */
+  eventDate?: string | null;
   onClose: () => void;
   onToast: (msg: string, kind?: ToastKind) => void;
   onRefresh: () => void;
 }
 
-export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: Props) {
+export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, onRefresh }: Props) {
+  const router = useRouter();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [working, setWorking] = useState(false);
+  // F10(b): the city the post would carry. Read once when the sheet opens, from
+  // the SAME /me the profile screen reads — never guessed, never cached across
+  // sessions (no browser storage in this estate).
+  const [city, setCity] = useState<string | null>(null);
+  const [collabRefusal, setCollabRefusal] = useState('');
 
   // On open: fetch the ACTIVE team (fetchTeam reused — no new fetch shape), seed the
   // toggles from THIS booking's crew (day-fetch's always-an-array assigned_member_ids).
@@ -61,6 +79,10 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
       .then((r) => { if (live && r && (r as { ok?: boolean }).ok) setMembers((r as { members: TeamMember[] }).members || []); })
       .catch(() => { /* soft — empty list renders the empty state */ })
       .finally(() => { if (live) setLoading(false); });
+    fetchMe()
+      .then((r) => { if (live) setCity(((r as { vendor?: { city?: string } })?.vendor?.city) || null); })
+      .catch(() => { /* soft — a null city fires the in-sheet refusal, not a crash */ });
+    setCollabRefusal('');
     return () => { live = false; };
   }, [open, event]);
 
@@ -85,6 +107,31 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
     } finally {
       setWorking(false);
     }
+  }
+
+  // ── F10(b): POST TO COLLAB ────────────────────────────────────────────────
+  // The gap you are looking at IS the requirement. Rather than make the vendor
+  // retype the date, the city and the category on another screen, the sheet
+  // hands them to the composer in the URL.
+  //
+  // BOTH REFUSALS FIRE HERE, IN WORDS, BEFORE NAVIGATION. Sending someone to a
+  // composer that will reject them is the failure this row exists to avoid —
+  // and a disabled button would tell them nothing about why.
+  function postToCollab() {
+    if (!event) return;
+    if (!eventDate || new Date(eventDate) < new Date(new Date().toDateString())) {
+      setCollabRefusal(PAST_DATE); return;
+    }
+    if (!city) { setCollabRefusal(NO_CITY); return; }
+
+    // Appendix A's map, from its one home. `other`/`blocked`/unknown prefill
+    // NOTHING — a wrong chip is worse than an empty one — and the two-chip ASK
+    // (fitting/trial) deliberately prefills nothing so the vendor chooses.
+    const type = requirementForKind(event.kind);
+    const qs = new URLSearchParams({ post: '1', date: eventDate, city });
+    if (type) qs.set('type', type);
+    onClose();
+    router.push(`/vendor/collab?${qs.toString()}`);
   }
 
   const rate = (m: TeamMember) => (m.daily_rate_inr != null ? `₹${m.daily_rate_inr.toLocaleString('en-IN')}` : null);
@@ -164,8 +211,26 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
           )}
         </div>
 
-        {/* Commit — the one gold */}
+        {/* F10(b) — Post to Collab. A ROW, deliberately not a button: the Save
+            CTA below is this screen's ONE GOLD and stays that way. This is the
+            same brass-outline vocabulary the estate uses for secondary acts. */}
         <div style={{ padding: '12px 24px 0', borderTop: D.border }}>
+          <button type="button" onClick={postToCollab} style={{
+            width: '100%', padding: '11px 0', background: 'transparent',
+            border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 12,
+            cursor: 'pointer',
+            fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)',
+            letterSpacing: '0.3em', textTransform: 'uppercase',
+          }}>{POST_TO_COLLAB}</button>
+          {collabRefusal && (
+            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 8, lineHeight: 1.5 }}>
+              {collabRefusal}
+            </p>
+          )}
+        </div>
+
+        {/* Commit — the one gold */}
+        <div style={{ padding: '12px 24px 0' }}>
           <button type="button" disabled={working || !event} onClick={() => void save()} style={{
             padding: '13px 0', width: '100%', border: 'none', borderRadius: 999,
             background: working || !event ? 'var(--atelier-input-border)' : D.gold,

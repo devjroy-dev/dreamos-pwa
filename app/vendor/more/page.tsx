@@ -58,8 +58,12 @@ const DISCOVER_ITEMS: Item[] = [
   { href: '/vendor/featured',  label: 'Featured',        description: 'promoted slots and promos',          glyph: '✦' },
 ];
 
+// TDW_04.5 P4 · F11(c) — Team Hub now has its own route, and this row points at
+// it. The description is the VETO LEDGER's cure (founder YES, CE-59): the screen
+// it lands on shows Team, Tasks and Team Payments, so "briefing" named something
+// that was never there.
 const TEAM_ITEMS: Item[] = [
-  { href: '/vendor/studio', label: 'Team Hub', description: 'team, tasks, and briefing', glyph: 'T' },
+  { href: '/vendor/team-hub', label: 'Team Hub', description: 'team, tasks, and payments', glyph: 'T' },
 ];
 
 const FINANCE_ITEMS: Item[] = [
