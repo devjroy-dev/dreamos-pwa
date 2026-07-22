@@ -80,3 +80,22 @@ export function requirementForKind(kind: string | null | undefined): string | nu
   // that was about attire is exactly the guess Appendix A refuses to make.
   return typeof hit === 'string' ? hit : null;
 }
+
+// ── TDW_04.5 P4 — the owner's view of one member's board ────────────────────
+export interface MemberAssignment {
+  event_id:     string;
+  date:         string;
+  slot:         string | null;
+  title:        string;
+  wedding:      string | null;
+  call_time:    string | null;
+  confirmation: 'pending' | 'confirmed' | 'declined';
+  /** crew_confirmations.note ONLY (F7). Founder-vetoed to show: a decline
+   *  without its reason just sends the owner hunting. */
+  note:         string | null;
+}
+
+export function fetchMemberAssignments(memberId: string):
+  Promise<{ ok: boolean; assignments: MemberAssignment[] }> {
+  return getJson(`/api/v2/vendor/studio/team/${memberId}/assignments`);
+}

@@ -6,6 +6,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { fetchMemberAssignments, MemberAssignment } from '@/lib/vendor/api/roster';
+import { confirmationWord, confirmationTone } from '@/lib/vendor/assignmentWords';
+import { slotWord } from '@/lib/vendor/slotWords';
 import { Header } from '@/components/vendor/Header';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -59,6 +62,9 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
   const [loading, setLoading]     = useState(true);
   const [sheet, setSheet]         = useState<'add' | 'edit' | null>(null);
   const [selected, setSelected]   = useState<TeamMember | null>(null);
+  // The member's board, fetched when the sheet opens. Read-only.
+  const [assignments, setAssignments]     = useState<MemberAssignment[]>([]);
+  const [assignLoading, setAssignLoading] = useState(false);
   const [saving, setSaving]       = useState(false);
   // form fields
   const [name, setName]           = useState('');
@@ -81,12 +87,25 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
     setConfirmRotate(false);
     setSheet('add');
   }
+  // "2 Aug" — the crew page's own register, so the two surfaces read alike.
+  function fmtAssignDate(iso: string): string {
+    try { return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); }
+    catch { return iso; }
+  }
+
   function openEdit(m: TeamMember) {
     setSelected(m);
     setConfirmRotate(false);
     setName(m.name); setRole(m.role ?? ''); setPhone(m.phone ?? '');
     setRate(m.daily_rate_inr?.toString() ?? ''); setNotes(m.notes ?? '');
     setSheet('edit');
+    // Fetched per-open rather than cached: the owner may have just assigned them
+    // on another screen, and a stale board is worse than a moment's spinner.
+    setAssignments([]); setAssignLoading(true);
+    fetchMemberAssignments(m.id)
+      .then(r => { if (r && r.ok) setAssignments(r.assignments || []); })
+      .catch(() => { /* soft — the empty state is honest when the read fails */ })
+      .finally(() => setAssignLoading(false));
   }
 
   async function doAdd() {
@@ -220,6 +239,51 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
             <div><div style={labelStyle}>Phone</div><input style={inputStyle} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 9000000000" /></div>
             <div><div style={labelStyle}>Day Rate (Rs)</div><input style={{ ...inputStyle }} type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="5000" /></div>
             <div><div style={labelStyle}>Notes</div><input style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Available weekends only" /></div>
+
+            {/* ── ASSIGNMENTS (TDW_04.5 P4, founder-chartered) ──────────────
+                Clicking a member used to tell the owner nothing about what they
+                were on — he had to walk the calendar and read the marks. The
+                crew page already renders this exact set for the MEMBER; the
+                owner now sees the same thing, from the SAME assembly.
+
+                READ-ONLY, deliberately. Assignment happens in the booking
+                pickers, through the events PATCH that routes to eventWrite. A
+                second write path to the calendar from here is exactly what the
+                one-writer law forbids. */}
+            {sheet === 'edit' && selected && (
+              <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={labelStyle}>Assignments</div>
+                {assignLoading ? (
+                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>Loading…</div>
+                ) : assignments.length === 0 ? (
+                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>No assignments yet.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {assignments.map(a => (
+                      <div key={a.event_id} style={{ borderLeft: `2px solid ${confirmationTone(a.confirmation)}`, paddingLeft: 12 }}>
+                        <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 13, color: D.cream }}>
+                          {fmtAssignDate(a.date)}{slotWord(a.slot) ? ` · ${slotWord(a.slot)}` : ''}{a.call_time ? ` · ${a.call_time}` : ''}
+                        </div>
+                        <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream, marginTop: 2 }}>
+                          {a.title}{a.wedding ? ` — ${a.wedding}` : ''}
+                        </div>
+                        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: confirmationTone(a.confirmation), marginTop: 4 }}>
+                          {confirmationWord(a.confirmation)}
+                        </div>
+                        {/* The note travels only on a decline in practice, but it
+                            is rendered whenever it exists — a reason the member
+                            took the trouble to write should not be swallowed. */}
+                        {a.note && (
+                          <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 3, fontStyle: 'italic' }}>
+                            {a.note}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {sheet === 'edit' && selected && (
               <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
