@@ -11,6 +11,15 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchPaymentBalance, fetchTeam, logPayment, fetchTeamPayments, markPaymentPaid } from '@/lib/vendor/api/vendor';
 import type { TeamPaymentBalance, TeamMember, TeamPayment } from '@/lib/vendor/types/vendor';
+import {
+  fetchPaymentsByWedding, fetchPayableFunctions, fetchPaymentSuggestion,
+  type ByWeddingResponse, type PayableFunction, type WeddingPayment,
+} from '@/lib/vendor/api/payments';
+import {
+  settle, canSettle, suggestionLine, weddingLabel, fmt,
+  FUNCTION_LABEL, NO_WEDDING_OPTION, BY_WEDDING_LABEL, SUBTOTAL_LABEL,
+  NOTHING_OWED, NO_PAYOUTS, EDIT_BEFORE_SAVING, NO_RATE_ON_FILE, NO_AMOUNT_QUOTED,
+} from '@/lib/vendor/settleWords';
 
 const D = {
   card: 'rgba(255,255,255,0.035)',
@@ -71,6 +80,17 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
   // mark paid form
   const [paidVia, setPaidVia]     = useState('upi');
   const [paidNotes, setPaidNotes] = useState('');
+  // ── P5 · the money loop ──────────────────────────────────────────────────
+  // The view choice is REACT STATE and nothing else — no localStorage, no
+  // sessionStorage (house law, and P2's band toggle set the precedent: the
+  // toggle is allowed to forget, and its amnesia is witnessed rather than
+  // worked around).
+  const [view, setView]           = useState<'crew' | 'wedding'>('crew');
+  const [board, setBoard]         = useState<ByWeddingResponse | null>(null);
+  const [functions, setFunctions] = useState<PayableFunction[]>([]);
+  const [eventId, setEventId]     = useState('');
+  const [suggestion, setSuggestion] = useState<{ amount_inr: number; functions: number; rate_inr: number } | null>(null);
+  const [suggestReason, setSuggestReason] = useState<string | null>(null);
 
   function reload() {
     return Promise.all([
@@ -78,11 +98,15 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
       fetchTeam(),
       fetchTeamPayments({ state: 'owed' }),
       fetchTeamPayments({ state: 'paid' }),
-    ]).then(([br, mr, pr, paidR]) => {
+      fetchPaymentsByWedding(),
+      fetchPayableFunctions(),
+    ]).then(([br, mr, pr, paidR, bw, fn]) => {
       if (br.ok) { setBalances((br as { balances: TeamPaymentBalance[]; total_owed_inr: number }).balances); setTotalOwed((br as { total_owed_inr: number }).total_owed_inr); }
       if (mr.ok) setMembers((mr as { members: TeamMember[] }).members);
       if (pr.ok) setOwedPayments((pr as { payments: TeamPayment[] }).payments);
       if (paidR.ok) setPaidPayments((paidR as { payments: TeamPayment[] }).payments);
+      if (bw.ok) setBoard(bw as ByWeddingResponse);
+      if (fn.ok) setFunctions((fn as { functions: PayableFunction[] }).functions);
     }).finally(() => setLoading(false));
   }
 
@@ -103,14 +127,49 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
     setSaving(false);
   }
 
+  // The draft travels through lib/vendor/settleWords::settle — one home, driven
+  // by the proof in plain node. SUGGEST-NEVER-COMMIT is structural here: the
+  // number that travels is `amount`, the field the vendor could edit, never the
+  // suggestion object.
   async function doLog() {
-    if (!memberId || !amount || Number(amount) <= 0 || saving) return;
+    if (saving) return;
+    const draft = {
+      teamMemberId:  memberId || null,
+      amount,
+      linkedEventId: eventId || null,
+      description:   desc,
+      notes:         null,
+    };
+    if (!canSettle(draft)) return;
     setSaving(true);
-    const res = await logPayment({ team_member_id: memberId, amount_inr: Number(amount), description: desc || undefined });
-    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); }
-    else { show('Payment logged', 'success'); setAddSheet(false); setMemberId(''); setAmount(''); setDesc(''); reload(); }
+    await settle(draft, {
+      log:      logPayment,
+      onResult: (msg, kind) => show(msg, kind),
+      onDone:   () => {
+        setAddSheet(false); setMemberId(''); setAmount(''); setDesc('');
+        setEventId(''); setSuggestion(null); setSuggestReason(null);
+        reload();
+      },
+    });
     setSaving(false);
   }
+
+  // ── THE AUTO-SUGGEST (F1 + the founder's per-function unit) ───────────────
+  // Asked only when BOTH a member and a function are on the draft, because the
+  // scope of the count is the function's wedding. Never written, never forced
+  // into the field behind the vendor's back: it PREFILLS an empty amount and
+  // leaves a typed one alone, so a number he has already touched is his.
+  useEffect(() => {
+    let live = true;
+    if (!memberId || !eventId) { setSuggestion(null); setSuggestReason(null); return; }
+    fetchPaymentSuggestion(memberId, eventId).then(r => {
+      if (!live || !r.ok) return;
+      setSuggestion(r.suggestion);
+      setSuggestReason(r.reason);
+      if (r.suggestion) setAmount(prev => (prev.trim() === '' ? String(r.suggestion!.amount_inr) : prev));
+    }).catch(() => { /* a missing suggestion is silence, never a zero */ });
+    return () => { live = false; };
+  }, [memberId, eventId]);
 
   async function doMarkPaid() {
     if (!paySheet || saving) return;
@@ -121,7 +180,10 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
     setSaving(false);
   }
 
-  const canLog = memberId.length > 0 && Number(amount) > 0;
+  // The gate is the one home's, so the button and the writer cannot disagree
+  // about what a loggable draft is. A MISSING FUNCTION IS NOT A BLOCKER — no
+  // pick is lawful and lands in the loose lane (C2).
+  const canLog = canSettle({ teamMemberId: memberId || null, amount, linkedEventId: eventId || null, description: desc, notes: null });
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative' }}>
@@ -135,12 +197,62 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
       ) : (
         <div style={{ flex: 1, overflowY: 'auto' }}>
 
+          {/* ── P5 · the view control ──────────────────────────────────────
+              ONE CHIP, NOT A PAIR. The obvious shape was a two-way toggle
+              (`By crew · By wedding`, P2's `Month · Weddings` pattern) — but
+              the second word was never put to the founder and the veto ledger
+              for this sitting is CLOSED. Rather than mint a vendor-facing
+              string on my own authority, the control is a filter that is on or
+              off and speaks only the word that carries his YES.
+              Brass-line, never gold: the total banner below owns this screen's
+              one gold, and a second would break the house law. */}
+          <div style={{ display: 'flex', padding: '14px 16px 0' }}>
+            <button type="button" onClick={() => setView(view === 'wedding' ? 'crew' : 'wedding')} style={{
+              padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+              backgroundColor: 'transparent',
+              border: `0.5px solid ${view === 'wedding' ? 'rgba(201,168,76,0.45)' : D.border}`,
+              fontFamily: F.label, fontWeight: 300, fontSize: 9,
+              color: view === 'wedding' ? D.cream : D.muted,
+              letterSpacing: '0.2em', textTransform: 'uppercase',
+            }}>{BY_WEDDING_LABEL}</button>
+          </div>
+
           {/* Total owed banner */}
           <div style={{ margin: 16, padding: '18px 20px', backgroundColor: totalOwed > 0 ? 'rgba(201,168,76,0.08)' : 'rgba(255,255,255,0.03)', border: `0.5px solid ${totalOwed > 0 ? 'rgba(201,168,76,0.3)' : D.border}`, borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Total Owed</span>
             <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: totalOwed > 0 ? D.gold : D.muted }}>Rs {totalOwed.toLocaleString('en-IN')}</span>
           </div>
 
+          {/* ── P5 · THE PER-WEDDING SETTLEMENT VIEW ───────────────────────
+              Payment-spined and unwindowed. Subtotals are sums of the lines on
+              screen — acceptance item 7's "reconciles by hand" means the vendor
+              counts the rows and gets the number, so nothing invisible
+              contributes a rupee. */}
+          {view === 'wedding' ? (
+            !board || (board.weddings.length === 0 && board.loose.payments.length === 0) ? (
+              <div style={{ padding: '32px 24px', textAlign: 'center' }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted }}>{NO_PAYOUTS}</p>
+              </div>
+            ) : (
+              <>
+                {board.weddings.map(w => (
+                  <WeddingLane key={w.binder_id} title={weddingLabel(w.title)}
+                    owed={w.owed_inr} paid={w.paid_inr} lines={w.payments} />
+                ))}
+                {/* THE LOOSE LANE (E1) — trailing, P2's learned vocabulary, and
+                    NOT an error. Every collab-born settlement lands here unless
+                    the vendor picked a function: the collab plane carries no
+                    event of its own, and silence is the honest answer to
+                    "which wedding?". */}
+                {board.loose.payments.length > 0 && (
+                  <WeddingLane title={NO_WEDDING_OPTION}
+                    owed={board.loose.owed_inr} paid={board.loose.paid_inr}
+                    lines={board.loose.payments} />
+                )}
+              </>
+            )
+          ) : (
+          <>
           {/* Per-member balances */}
           {balances.length === 0 ? (
             <div style={{ padding: '32px 24px', textAlign: 'center' }}>
@@ -187,11 +299,13 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
               </div>
             ))
           )}
+          </>
+          )}
         </div>
       )}
 
       {/* FAB */}
-      <button type="button" onClick={() => { setAddSheet(true); setMemberId(''); setAmount(''); setDesc(''); }} style={{
+      <button type="button" onClick={() => { setAddSheet(true); setMemberId(''); setAmount(''); setDesc(''); setEventId(''); setSuggestion(null); setSuggestReason(null); }} style={{
         position: 'fixed', bottom: 32, right: 24, width: 52, height: 52,
         borderRadius: '50%', backgroundColor: 'var(--atelier-accent-text)', border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
@@ -212,7 +326,36 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                 {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
-            <div><div style={labelStyle}>Amount (Rs) *</div><input style={inputStyle} type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="12000" /></div>
+            {/* ── C1 · THE FUNCTION PICKER ─────────────────────────────────
+                The vendor's hand supplies what the data cannot. Nothing on the
+                collab plane carries an event, so rather than invent a linkage
+                the sheet ASKS — and "no pick" is a lawful answer that sends the
+                payout to the loose lane (C2), never a forced guess. */}
+            <div>
+              <div style={labelStyle}>{FUNCTION_LABEL}</div>
+              <select value={eventId} onChange={e => setEventId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+                <option value="">{NO_WEDDING_OPTION}</option>
+                {functions.map(f => (
+                  <option key={f.event_id} value={f.event_id}>
+                    {f.title} · {f.event_date}{f.wedding_title ? ` · ${f.wedding_title}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div><div style={labelStyle}>Amount (Rs) *</div><input style={inputStyle} type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder={NO_AMOUNT_QUOTED} /></div>
+            {/* ── F1 · THE SUGGESTION ──────────────────────────────────────
+                Prefilled, editable, never auto-saved. Absence is NAMED, never
+                zeroed: a member with no rate on file gets a sentence, not an
+                Rs 0 that would read as a settled debt. */}
+            {suggestion && (
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0, lineHeight: 1.6 }}>
+                {suggestionLine(suggestion.amount_inr, suggestion.functions, suggestion.rate_inr)}
+                <br />{EDIT_BEFORE_SAVING}
+              </p>
+            )}
+            {!suggestion && suggestReason === 'no_rate' && (
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
+            )}
             <div><div style={labelStyle}>Description</div><input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="2-day shoot for Priya wedding" /></div>
             {!canLog && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.red, margin: 0 }}>Select a member and enter a valid amount to save.</p>}
             <button type="button" onClick={doLog} disabled={!canLog || saving} style={{ padding: '13px 0', backgroundColor: canLog && !saving ? D.gold : 'rgba(201,168,76,0.3)', border: 'none', borderRadius: 8, cursor: canLog && !saving ? 'pointer' : 'not-allowed', fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
@@ -247,6 +390,69 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * One wedding's lane: its name, its subtotal, and the lines behind the number.
+ *
+ * The lines are rendered so the subtotal can be CHECKED, not merely believed —
+ * that is the whole point of acceptance item 7's "reconcile by hand". A vendor
+ * who cannot count the rows has been handed a figure, not a ledger.
+ */
+function WeddingLane({ title, owed, paid, lines }: {
+  title: string; owed: number; paid: number; lines: WeddingPayment[];
+}) {
+  return (
+    <div style={{ margin: '0 16px 10px', padding: '16px 18px', background: D.card,
+      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+      border: `0.5px solid ${D.border}`, borderRadius: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+        <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 19, color: D.cream }}>{title}</span>
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', flexShrink: 0 }}>
+          {SUBTOTAL_LABEL}
+        </span>
+      </div>
+
+      {/* Each line tells only its own truth (F-04.114): owed and paid are two
+          facts, so they are two lines. A single netted figure would be a third
+          number that matches neither column. */}
+      <div style={{ display: 'flex', gap: 14, marginTop: 6, alignItems: 'baseline' }}>
+        {owed > 0
+          ? <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, color: D.gold }}>Rs {fmt(owed)} owed</span>
+          : <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>{NOTHING_OWED}</span>}
+        {paid > 0 && (
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Paid: Rs {fmt(paid)}
+          </span>
+        )}
+      </div>
+
+      {lines.map(l => (
+        <div key={l.id} style={{ marginTop: 10, padding: '10px 12px',
+          backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 8,
+          border: `0.5px solid ${D.border}`, display: 'flex',
+          justifyContent: 'space-between', alignItems: 'center',
+          opacity: l.state === 'paid' ? 0.6 : 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream }}>
+              {l.member_name ?? '—'}
+            </div>
+            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted,
+              letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
+              {/* The function's own name where one exists; silence where it
+                  does not. Never a stand-in. */}
+              {l.event_title ?? l.description ?? ''}
+              {l.event_date ? ` · ${l.event_date}` : ''}
+            </div>
+          </div>
+          <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16,
+            color: l.state === 'paid' ? D.muted : D.gold, flexShrink: 0, marginLeft: 12 }}>
+            Rs {fmt(l.amount_inr)}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
