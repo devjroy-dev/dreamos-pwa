@@ -11,15 +11,10 @@
 // the P2-7a contract spec.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { USE_MOCKS, API_BASE, apiGet, apiPost, mockDelay, getAccessToken } from './_base';
-
-function isBrideDemoMode(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const s = localStorage.getItem('tdw_bride_demo_session');
-    return !!s && JSON.parse(s).demo === true;
-  } catch { return false; }
-}
+// F-05.39 (R2): isBrideDemoMode arrives from _base — the estate's ONE home.
+// The six-line private copy that stood here was byte-identical to it and is
+// deleted; every call site below is unchanged.
+import { USE_MOCKS, API_BASE, apiGet, apiPost, mockDelay, getAccessToken, isBrideDemoMode } from './_base';
 import {
   MOCK_COUPLE_ME, MOCK_COUPLE_TODAY, MOCK_COUPLE_MUSE,
   MOCK_COUPLE_CIRCLE, MOCK_COUPLE_EVENTS, MOCK_COUPLE_BOOKINGS,

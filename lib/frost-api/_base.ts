@@ -35,6 +35,29 @@ export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE
   || 'https://dream-os-production.up.railway.app';
 
+// ─── Demo mode authority (F-05.39, CE ruling R2) ────────────────────────────
+// THE ONE HOME. Before this cure the identical six-line body lived as three
+// byte-identical private copies (app/(frost)/layout.tsx — dead, zero callers;
+// lib/frost-api/muse.ts; lib/frost-api/couple.ts) while lib/frost/journey.ts
+// — the CIRCLE-INVITE machinery and the sanctuary's data layer — consulted
+// NONE of them. That split is F-05.39's disease: on any device that has ever
+// held a real couple login, the real access_token survives under the demo
+// blob, so couple.ts/muse.ts served mocks while journey.ts wrote REAL rows to
+// the REAL couple. One authority, imported everywhere, is the cure.
+//
+// The blob is written by app/demo/bride/page.tsx on "Start Exploring". NOTE
+// (F-05.65, filed): nothing in this repo ever REMOVES it — demo mode is
+// permanent on a device until site storage is cleared by hand. Whether a
+// demo-exit control ships is a product decision on a bride surface and is
+// deliberately not this cure's.
+export function isBrideDemoMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const s = localStorage.getItem('tdw_bride_demo_session');
+    return !!s && JSON.parse(s).demo === true;
+  } catch { return false; }
+}
+
 // ─── Session helpers ────────────────────────────────────────────────────────
 // Login (app/vendor/pin-login/page.tsx) writes BOTH 'vendor_web_session' AND
 // 'vendor_session' (mirror) to localStorage on successful PIN verify, plus

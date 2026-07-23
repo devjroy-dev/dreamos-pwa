@@ -30,14 +30,10 @@ const FrostCtx = createContext<FrostModeCtx>({
 
 export const useFrostMode = () => useContext(FrostCtx);
 
-// Demo mode detection
-function isBrideDemoMode(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const s = localStorage.getItem('tdw_bride_demo_session');
-    return !!s && JSON.parse(s).demo === true;
-  } catch { return false; }
-}
+// F-05.39 (R2): a third byte-identical copy of isBrideDemoMode stood here with
+// ZERO callers in this file. Deleted, not re-pointed — the one home is
+// lib/frost-api/_base.ts. Any surface in this tree that needs the demo
+// authority imports it from there.
 
 
 

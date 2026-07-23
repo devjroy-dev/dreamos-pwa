@@ -1,19 +1,14 @@
 // lib/frost-api/muse.ts
 // Typed muse API client. Requires couple auth JWT.
 
-import { USE_MOCKS, apiGet, apiPost, apiDelete, getCoupleSession } from './_base';
+// F-05.39 (R2): isBrideDemoMode arrives from _base — the estate's ONE home.
+// The six-line private copy that stood below was byte-identical to it and is
+// deleted; every call site in this file is unchanged.
+import { USE_MOCKS, apiGet, apiPost, apiDelete, getCoupleSession, isBrideDemoMode } from './_base';
 import type { MuseSave, MuseActivityResponse } from '../types/discover';
 
 // ── Demo mode helpers ────────────────────────────────────────────────────────
 const DEMO_MUSE_KEY = 'tdw_demo_muse_saves';
-
-function isBrideDemoMode(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const s = localStorage.getItem('tdw_bride_demo_session');
-    return !!s && JSON.parse(s).demo === true;
-  } catch { return false; }
-}
 
 // Aspirational demo saves — what a bride dreams of pinning
 const DEMO_MUSE_SAVES: MuseSave[] = [

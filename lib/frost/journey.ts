@@ -6,20 +6,45 @@
 // FLIP TO REAL: NEXT_PUBLIC_USE_MOCKS=false — zero code changes.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// F-05.39 (CE rulings R2 + R3). This module — the circle-invite machinery and
+// the sanctuary's data layer — used to gate its mocks on its OWN authority and
+// consult the demo session NEVER. The consequence was not that a demo bride
+// fell through to a harmless 401: it was CROSS-SESSION CONTAMINATION. On any
+// device that had ever held a real couple login the real token survives under
+// the demo blob (nothing clears either — F-05.65), so couple.ts and muse.ts
+// served mocks off the blob while THIS file wrote real rows to that real
+// couple. Both authorities live, on one device, disagreeing.
+//
+// The cure imports the one authority from _base and lets it win first, in the
+// sibling pattern couple.ts and muse.ts already use. The token reads fold onto
+// getAccessToken — the cookie-before-localStorage source (F-05.29's own cure,
+// the D2 pattern) — because the iOS-Safari law forbids shipping NEW
+// localStorage-only reads and the correct source is one import away.
+//
+// KNOWN INHERITED PROPERTY, named exactly as sanctuary/page.tsx names it:
+// getAccessToken falls back to the VENDOR cookie for couple surfaces
+// (_base.ts, F-05.30). That is filed to the coordinated auth sitting and is
+// NOT this micro's to resolve — it arrives here with its eyes open.
+import { isBrideDemoMode, getAccessToken } from '../frost-api/_base';
+
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
-// Runtime override: if a couple session token exists, always use real API
-// regardless of USE_MOCKS env var. Prevents "member not found" and empty
-// canvases when NEXT_PUBLIC_USE_MOCKS is not set in Vercel.
+// Demo mode is the FIRST authority: a demo walk is served mocks whatever the
+// env var says and whatever token happens to be sitting on the device.
+// Below it, the pre-existing runtime override is untouched — if a real couple
+// token exists, always use the real API regardless of USE_MOCKS. Prevents
+// "member not found" and empty canvases when NEXT_PUBLIC_USE_MOCKS is not set
+// in Vercel.
 function shouldUseMocks(): boolean {
+  if (isBrideDemoMode()) return true;
   if (!USE_MOCKS) return false;
   if (typeof window === 'undefined') return true;
-  try { return !localStorage.getItem('access_token'); } catch { return true; }
+  try { return !getAccessToken(); } catch { return true; }
 }
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  try { return localStorage.getItem('access_token'); } catch { return null; }
+  try { return getAccessToken(); } catch { return null; }
 }
 
 function getCoupleId(): string | null {
@@ -377,9 +402,12 @@ export async function fetchCircle(): Promise<CircleData> {
 }
 
 export async function fetchMemberFeed(memberId: string): Promise<MemberFeedData | null> {
+  // F-05.39 (R2): this site never went through shouldUseMocks — it read the env
+  // var and the token raw, so a demo walk reached the real member feed here too.
+  // Demo mode now wins first; the token read folds onto getAccessToken (R3).
   // Always hit real API if a token exists — USE_MOCKS mock returns null which shows "Member not found"
-  const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('access_token');
-  if (USE_MOCKS && !hasToken) return delay(null);
+  const hasToken = typeof window !== 'undefined' && !!getAccessToken();
+  if (isBrideDemoMode() || (USE_MOCKS && !hasToken)) return delay(null);
   try {
     const r: any = await apiFetch(`/api/v2/couple/circle/member/${memberId}`);
     return {
