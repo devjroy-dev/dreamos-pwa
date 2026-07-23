@@ -209,9 +209,17 @@ export default function CouplePinLoginPage() {
             <input type="password" name="password" autoComplete="current-password"
               value={pin.join('')} readOnly
               style={{ position:'absolute', opacity:0, pointerEvents:'none', width:1, height:1, top:0, left:0 }} />
-            <p onClick={() => { localStorage.removeItem('couple_web_session'); localStorage.removeItem('couple_session'); router.replace('/'); }}
+            {/* F-05.11-γ — this cleared the session and bounced to landing: there was no
+                reset rail on the couple side at all, so "Forgot PIN" meant "start over".
+                It now goes to the real rail. The session is deliberately NOT cleared on
+                the way — the rail prefills the phone from it, and a bride who taps this by
+                accident can walk back with "Back to PIN entry" and still be signed in.
+                COPY (V3, founder-ruled): the words were "Forgot PIN? Sign in again", which
+                described behaviour that no longer exists. Both lanes now say exactly
+                "Forgot PIN?" — lane parity, the founder's own reasoning. */}
+            <p onClick={() => router.push('/couple/pin-reset')}
               style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(248,247,245,0.25)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
-            >Forgot PIN? Sign in again</p>
+            >Forgot PIN?</p>
           </div>
         </div>
       </div>

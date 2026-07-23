@@ -2,7 +2,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { CitySearchDropdown, ALL_CITIES } from '../../../components/CitySearchDropdown';
 import { API_BASE } from '../../../../lib/api';
+// CROSSES NAMESPACES DELIBERATELY (F-05.18, fork D2). getAccessToken lives under
+// lib/frost-api because that is where the couple's fetch layer grew up, but it is not
+// frost-specific: it is the estate's ONE token reader that carries the iOS-Safari ITP
+// cookie mirror + restore. Lifting it to a neutral lib/ home is a refactor, and a
+// refactor riding a cure was refused under scope law — so the import crosses, and says so
+// here rather than leaving the next reader a puzzle.
+import { getAccessToken } from '@/lib/frost-api/_base';
 
+// DORMANT, DELIBERATELY KEPT (F-05.18, ruling A3-c / U3). This set and the predicate
+// below fed a client-computed `user_segment` that was posted to a column which did not
+// exist and to a reader which does not exist — a census found ZERO readers of
+// user_segment estate-wide, on both planes. It is no longer computed or sent: a
+// derivable is derived on read, not stored raw from a client. The set is NOT deleted
+// because it is the witnessed 73-city vocabulary that a server-side derivation will have
+// to port on the day a reader is finally born, and that port was explicitly priced to
+// THAT sitting rather than this one. Unreferenced today; tree-shaken from the bundle.
 const INDIA_CITY_SET = new Set([
   'Delhi','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Udaipur','Pune','Ahmedabad',
   'Chandigarh','Lucknow','Kochi','Goa','Amritsar','Surat','Jodhpur','Agra','Varanasi','Bhopal','Indore',
@@ -96,26 +111,52 @@ export default function CoupleOnboardingPage() {
     try {
       const raw = localStorage.getItem('couple_web_session') || localStorage.getItem('couple_session');
       const session = JSON.parse(raw || '{}');
-      const userId = session.id || session.userId;
-      const phone = session.phone;
+
+      // F-05.18(a) — the request had NO auth. The handler is wrapped in
+      // requireCoupleAuth, which wants `Bearer <token>` or a tdw_couple_token cookie;
+      // this fetch sent neither and no `credentials`, so every submit 401'd before the
+      // body was read. getAccessToken() is the ruled source (fork D2) rather than a bare
+      // localStorage read, because it carries the iOS-Safari ITP cookie mirror the
+      // house law requires — a localStorage-only read in new code is forbidden by name.
+      const token = getAccessToken();
+      if (!token) { showToast('Session expired. Please sign in again.'); router.replace('/'); return; }
 
       const r = await fetch(API_BASE + '/api/v2/couple/onboarding', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        // F-05.18(c) — the field contract. This posted seven keys, five of which had zero
+        // columns anywhere, while the handler's own wedding_city was never sent. Each key
+        // below now has a witnessed home (see the handler's header for the ruling):
+        //   name           → users.name              (existing writer)
+        //   wedding_city   → couples.wedding_city    (existing column — this field asks
+        //                    "where will your wedding take place", and the dropdown
+        //                    yields cities; it was posted as `wedding_country`)
+        //   residence_city → couples.residence_city  (0100, new)
+        //   wedding_style  → couples.wedding_style   (0100, new)
+        // `user_segment` is NOT sent: it is derivable from the two place fields and has
+        // zero readers estate-wide, so it is derived on read if a reader is ever born
+        // rather than stored raw from a client. `userId`/`phone` are not sent either —
+        // the handler takes the couple from the JWT and always did.
         body: JSON.stringify({
-          userId,
-          phone,
           name: name.trim(),
           partner_name: partnerName.trim() || null,
           wedding_date: buildWeddingDate(),
-          residence_country: residenceCountry,
-          wedding_country: weddingCountry,
+          wedding_city: weddingCountry,
+          residence_city: residenceCountry,
           wedding_style: weddingStyle.toLowerCase(),
-          user_segment: (isIndiaCity(residenceCountry) && isIndiaCity(weddingCountry)) ? 'india' : (!isIndiaCity(residenceCountry)) ? (isIndiaCity(weddingCountry) ? 'nri' : 'global') : 'india',
         }),
       });
       const d = await r.json();
-      if (!d.success) throw new Error(d.error || 'Failed');
+      // F-05.18(b) — this read `d.success`. The estate's dialect is `{ ok: true }`
+      // (src/lib/response.js), so the old read threw even on a successful write.
+      if (!d.ok) {
+        if (r.status === 401 || r.status === 403) {
+          showToast('Session expired. Please sign in again.');
+          router.replace('/');
+          return;
+        }
+        throw new Error(d.error || 'Failed');
+      }
 
       // Update both session keys with name
       const updated = { ...session, name: name.trim(), partner_name: partnerName.trim() || null };
