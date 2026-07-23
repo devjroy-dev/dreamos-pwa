@@ -18,6 +18,11 @@ import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 import { waNumberFor } from '@/lib/waNumbers';
+// F-05.29 (CE-64 filed, CE-65 micro): the front-door guard below reads the
+// cookie mirror the whole lane maintains, instead of localStorage alone.
+// IMPORTED, NEVER MODIFIED — F-05.30 (the cross-lane fallback inside this
+// function) is filed to the coordinated auth sitting and is not this micro's.
+import { getAccessToken } from '../../../../../lib/frost-api/_base';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|'expenses'|'vendors'|'settings'|null;
@@ -3567,7 +3572,23 @@ export default function SanctuaryPage() {
 
   useEffect(()=>{
     // ── Auth guard — if no session, go to landing ──────────────────────────
-    const token = localStorage.getItem('access_token');
+    // F-05.29: this read was localStorage-only while lib/frost-api/_base.ts:134
+    // writes a tdw_couple_token cookie on EVERY token read, built precisely so an
+    // iOS ITP wipe cannot strand a bride. It stranded her anyway: seven days idle,
+    // valid credentials in the cookie, bounced to landing.
+    //
+    // THE SESSION LEG IS DELIBERATELY LEFT ALONE, derived not assumed:
+    //   (a) the guard short-circuits on the token, so a cookie-restored token
+    //       satisfies it without touching the session read at all;
+    //   (b) getAccessToken RESTORES the recovered token to localStorage, and this
+    //       effect runs at mount — so the ~20 later localStorage-only token reads
+    //       in this file heal on their own. That is what makes a two-line diff
+    //       sufficient here rather than merely small;
+    //   (c) giving the session leg its own cookie fallback would admit a
+    //       TOKEN-LESS bride into a surface whose every fetch needs a Bearer.
+    //       She would get an empty sanctuary instead of a landing page she can
+    //       sign in from. That widens a pre-existing weak branch for no gain.
+    const token = getAccessToken();
     const session = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
     if(!token && !session){ window.location.replace('/'); return; }
 
