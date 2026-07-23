@@ -3601,11 +3601,93 @@ export default function SanctuaryPage() {
         headers:{'Authorization':`Bearer ${token}`},
       })
       .then(r=>r.json())
-      .then(d=>{
-        const state = d?.couple?.onboarding_state;
+      .then(async d=>{
+        const c = d?.couple as Record<string, unknown> | undefined;
+        const state = c?.onboarding_state as string | undefined;
         if(state && state!=='complete'){
           window.location.replace('/frost/canvas/onboarding');
+          return;
         }
+        if(!c) return;
+
+        // ── F-05.38 — HEAL THE SESSION BLOB FROM SERVER TRUTH ───────────────
+        // getWeddingDate/getEngagementDate/getBrideName (:38-40) read
+        // couple_session from localStorage ONLY and fall through to demo
+        // constants. F-05.29's cure restores the TOKEN from the cookie mirror
+        // but nothing restores the BLOB, so an ITP-wiped bride was let in and
+        // greeted as "Priya", counting down to a stranger's wedding.
+        //
+        // Pattern COPIED, not invented: pin-login/page.tsx:103-118 already
+        // enriches the session from /couple/me at sign-in, and :20-28 is the
+        // write shape reproduced below (both localStorage keys + the
+        // tdw_couple_session cookie at SameSite=Lax — deliberately Lax, which
+        // is the session cookie's own convention; _base.ts's token cookie uses
+        // None and is a different cookie with a different job).
+        //
+        // WHY THE SECOND FETCH, disclosed as a charter deviation: the ruled
+        // cure said restore from THIS existing bare fetch. The bare route
+        // (me.js:100-106) does NOT select users(name) — only the param route
+        // (me.js:18-56) returns bride_name. So the bare response alone heals
+        // the countdown and leaves "Priya" on screen, which is the finding's
+        // own headline and this micro's own P1 evidence. The second call is
+        // therefore CONDITIONAL: it fires only when the blob has no name at
+        // all, i.e. only on a wiped session. A normal load makes zero extra
+        // requests and, per the equality check below, zero writes and zero
+        // re-renders.
+        //
+        // DECLARED AND UNHEALABLE: engagement_date has NO home in
+        // public.couples (witnessed schema, grep-zero), so getEngagementDate
+        // keeps DEMO_ENGAGEMENT permanently. Named, not silently left.
+        let existing: Record<string, unknown> = {};
+        try {
+          const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
+          if(raw) existing = JSON.parse(raw) as Record<string, unknown>;
+        } catch { /* wiped or blocked — treat as empty */ }
+
+        let brideName = (existing.user_name||existing.bride_name||existing.name||null) as string|null;
+        if(!brideName && c.id){
+          try {
+            const r2 = await fetch(`https://dream-os-production.up.railway.app/api/v2/couple/me/${c.id as string}`,{
+              headers:{'Authorization':`Bearer ${token}`},
+            });
+            const d2 = await r2.json();
+            brideName = (d2?.couple?.bride_name as string|undefined) || null;
+          } catch { /* non-fatal — the countdown still heals without it */ }
+        }
+
+        // Server value wins, existing survives, nothing invented (pin-login's
+        // merge shape). Only fields me.js actually witnessed are written.
+        const healed: Record<string, unknown> = { ...existing };
+        const put = (k:string, v:unknown) => { if(v!==null && v!==undefined) healed[k]=v; };
+        put('id',               c.id);
+        put('wedding_date',     c.wedding_date);
+        put('wedding_city',     c.wedding_city);
+        put('partner_name',     c.partner_name);
+        put('budget_total',     c.budget_total);
+        put('onboarding_state', c.onboarding_state);
+        put('planning_state',   c.planning_state);
+        if(brideName) healed.bride_name = brideName;
+
+        // IDEMPOTENCE BY CONSTRUCTION — P3's property, not a promise:
+        // an unchanged blob writes nothing and re-renders nothing.
+        const after = JSON.stringify(healed);
+        if(JSON.stringify(existing) === after) return;
+
+        try {
+          localStorage.setItem('couple_web_session', after);
+          localStorage.setItem('couple_session',     after);
+        } catch { /* iOS storage blocked — the cookie covers it */ }
+        try {
+          document.cookie = `tdw_couple_session=${encodeURIComponent(after)}; max-age=${7*24*60*60}; path=/; SameSite=Lax; Secure`;
+        } catch { /* ignore */ }
+
+        // The three helpers already ran SYNCHRONOUSLY below this fetch, off the
+        // wiped blob — so healing the blob alone would leave "Priya" on screen
+        // until some other state change forced a render. Re-derive here, and
+        // only here, now that the blob is true.
+        const w2 = getWeddingDate(), e2 = getEngagementDate(), days2 = daysUntil(w2);
+        setDays(days2); setProgress(arcProgress(days2)); setName(getBrideName());
+        setProseLine(prose(days2)); setSinceYes(daysSince(e2));
       })
       .catch(()=>{/* non-fatal */});
     }
