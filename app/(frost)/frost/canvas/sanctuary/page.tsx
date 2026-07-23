@@ -17,6 +17,7 @@ import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl,
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
+import { waNumberFor } from '@/lib/waNumbers';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type RoomKey = 'dream'|'circle'|'muse'|'discover'|'people'|'pages'|'moments'|'events'|'meridian'|'expenses'|'vendors'|'settings'|null;
@@ -88,9 +89,14 @@ const BASE_SLICES=[
   {key:'meridian'as RoomKey, label:'Meridian',     candle:false, premium:true},
   {key:'settings'as RoomKey, label:'Settings',     candle:false, premium:false},
 ];
-// WhatsApp DreamAI link — opens WA with prefilled Hi
-const DREAMAI_WA_NUMBER = '14787788550';
-const DREAMAI_WA_LINK   = `https://wa.me/${DREAMAI_WA_NUMBER}?text=Hi`;
+// WhatsApp link — opens WA with prefilled Hi.
+// F-05.24 (TDW_05 P4 closing micro): this read `const DREAMAI_WA_NUMBER =
+// '14787788550'` — the DEAD Twilio sandbox number — and rendered it as a live
+// <a href> at two places below. A bride tapping it reached a number that does not
+// answer. It resolves through lib/waNumbers.ts now: the BRIDE lane, because this
+// is a bride-facing surface. See that file for why it is a declared drift pair
+// with dream-os's src/lib/waNumbers.js rather than an import.
+const DREAMAI_WA_LINK   = `https://wa.me/${waNumberFor('bride')}?text=Hi`;
 
 const DREAM_PROMPTS=[
   'How many days until my wedding?',
