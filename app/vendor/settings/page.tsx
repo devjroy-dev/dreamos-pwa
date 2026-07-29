@@ -12,16 +12,10 @@ import { Header } from '@/components/vendor/Header';
 import { updateMe, updateRoutingHandle, updateInvoicePrefix } from '@/lib/vendor/api/vendor';
 import { clearVendorSession, getVendorSession, setVendorSession } from '@/lib/vendor/session';
 
-const A = {
-  ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', red: '#E07B5C',
-} as const;
-const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script: 'var(--font-cormorant), Georgia, serif',
-  body: 'var(--font-dm-sans), system-ui, sans-serif',
-  label: 'var(--font-jost), system-ui, sans-serif',
-} as const;
+// TDW_07 P2 — PURE MOVE. A, F and the five form primitives now live in one home so
+// Discover Profile speaks the identical grammar instead of a second copy of it. This
+// screen's rendered output is unchanged; only where the code lives moved.
+import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F } from '@/components/vendor/AtelierForm';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -108,43 +102,37 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 22px calc(40px + env(safe-area-inset-bottom))' }}>
 
+        {/* TDW_07 P2 · CE ruling §C — ONE EDITOR PER FIELD, and the criterion is
+            mechanical: a field Discover RENDERS or profileScore SCORES moved to Discover
+            Profile; a field serving operations or the engine stayed here. So business_name
+            and city left (card headline + filter), aesthetic_tags left (vibe chips + the
+            tags term), the rate pair left (starting_price + the rate term), the Instagram
+            handle left (the chip + the ig term) and the travel pair left (the travel term,
+            new this sitting). `name` and `style_notes` STAYED: users.name is the engine's
+            greeting, and style_notes is written by WhatsApp onboarding and read by the
+            admin detail view — neither is rendered or scored by Discover.
+            Deep links hold: this route persists, with its remaining fields. */}
         <SCard title="Business">
           <SField label="Your Name" value={current.name} onChange={v => update({ name: v })} placeholder="Dev Roy" />
-          <SField label="Business name" value={current.business_name} onChange={v => update({ business_name: v })} />
-          <SField label="City" value={current.city} onChange={v => update({ city: v })} />
           <SField label="Style notes" value={current.style_notes} onChange={v => update({ style_notes: v })} multiline />
           <SaveBtn
-            dirty={isDirty(['name', 'business_name', 'city', 'style_notes'])}
+            dirty={isDirty(['name', 'style_notes'])}
             loading={saving === 'business'}
-            onSave={() => saveMe('business', ['name', 'business_name', 'city', 'style_notes'], {
+            onSave={() => saveMe('business', ['name', 'style_notes'], {
               name: current.name || undefined,
-              business_name: current.business_name || undefined,
-              city: current.city || undefined,
               style_notes: current.style_notes || undefined,
             })}
           />
         </SCard>
 
-        <SCard title="Travel">
-          <SToggle label="Open to travel" value={current.open_to_travel} onChange={v => update({ open_to_travel: v })} />
-          <SField label="Travel notes" value={current.travel_notes} onChange={v => update({ travel_notes: v })} multiline />
-          <SaveBtn
-            dirty={isDirty(['open_to_travel', 'travel_notes'])}
-            loading={saving === 'travel'}
-            onSave={() => saveMe('travel', ['open_to_travel', 'travel_notes'], {
-              open_to_travel: current.open_to_travel,
-              travel_notes: current.travel_notes || undefined,
-            })}
-          />
-        </SCard>
-
-        <SCard title="Contact">
-          <SField label="Instagram handle" value={current.instagram_handle} onChange={v => update({ instagram_handle: v })} placeholder="@yourhandle" />
-          <SaveBtn
-            dirty={isDirty(['instagram_handle'])}
-            loading={saving === 'contact'}
-            onSave={() => saveMe('contact', ['instagram_handle'], { instagram_handle: current.instagram_handle || undefined })}
-          />
+        {/* FOUNDER-VETOED 2026-07-29 (copy slot 7, 「 go 」). One line where five sections
+            used to be — a vendor who looks for a field that moved is told where it went,
+            in the interface's own voice, with the route one tap away. */}
+        <SCard title="Discover Profile">
+          <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
+            background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.brassWarm,
+          }}>Moved to your Discover Profile. ›</button>
         </SCard>
 
         <SCard title="Payments">
@@ -160,24 +148,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           />
         </SCard>
 
-        <SCard title="Rate Range">
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <SField label="Min (Rs)" value={current.rate_min} onChange={v => update({ rate_min: v })} inputMode="numeric" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <SField label="Max (Rs)" value={current.rate_max} onChange={v => update({ rate_max: v })} inputMode="numeric" />
-            </div>
-          </div>
-          <SaveBtn
-            dirty={isDirty(['rate_min', 'rate_max'])}
-            loading={saving === 'rates'}
-            onSave={() => saveMe('rates', ['rate_min', 'rate_max'], {
-              rate_min: current.rate_min ? Number(current.rate_min) : undefined,
-              rate_max: current.rate_max ? Number(current.rate_max) : undefined,
-            })}
-          />
-        </SCard>
+        
 
         {/* TDW_04 B6-S1 — surfaces item 2 (F-04.64's first half, spec P3's ruled row).
             Rendered for function artists only: capacity_applicable is computed
@@ -242,17 +213,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           </SCard>
         )}
 
-        <SCard title="Aesthetic Tags">
-          <SField label="Tags (comma-separated)" value={current.aesthetic_tags} onChange={v => update({ aesthetic_tags: v })} placeholder="moody, editorial, film" />
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 4 }}>Used in Discover recommendations.</div>
-          <SaveBtn
-            dirty={isDirty(['aesthetic_tags'])}
-            loading={saving === 'tags'}
-            onSave={() => saveMe('tags', ['aesthetic_tags'], {
-              aesthetic_tags: current.aesthetic_tags.split(',').map(t => t.trim()).filter(Boolean),
-            })}
-          />
-        </SCard>
+        
 
         <SCard title="TDW Enquiry Link">
           <SField label="Handle" value={current.routing_handle} onChange={v => update({ routing_handle: v.toUpperCase().replace(/[^A-Z0-9]/g, '') })} placeholder="YOURHANDLE" />
@@ -308,86 +269,5 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
         }}>Sign Out</button>
       </div>
     </div>
-  );
-}
-
-// ── Sub-components · Atelier ────────────────────────────────────
-
-function SCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 22 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass }}>{title}</span>
-        <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function SField({ label, value, onChange, multiline, placeholder, inputMode }: {
-  label: string; value: string; onChange: (v: string) => void;
-  multiline?: boolean; placeholder?: string; inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
-}) {
-  const base: React.CSSProperties = {
-    width: '100%', padding: '11px 14px', boxSizing: 'border-box',
-    background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
-    caretColor: A.brass, resize: 'none' as const, colorScheme: 'dark',
-  };
-  return (
-    <div>
-      <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</label>
-      {multiline
-        ? <textarea value={value} onChange={e => onChange(e.target.value)} rows={2} style={base} placeholder={placeholder} />
-        : <input value={value} onChange={e => onChange(e.target.value)} style={base} placeholder={placeholder} inputMode={inputMode} />
-      }
-    </div>
-  );
-}
-
-function SToggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <span style={{ fontFamily: F.script, fontWeight: 400, fontSize: 15, color: A.ink, letterSpacing: '0.005em' }}>{label}</span>
-      <button type="button" onClick={() => onChange(!value)} style={{
-        width: 44, height: 24, borderRadius: 999, border: '0.5px solid var(--atelier-input-border)',
-        cursor: 'pointer', flexShrink: 0,
-        background: value ? 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)' : 'var(--atelier-input-bg)',
-        position: 'relative', transition: 'background 200ms',
-      }}>
-        <span style={{
-          position: 'absolute', top: 2, left: value ? 22 : 2, width: 18, height: 18, borderRadius: '50%',
-          background: value ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
-          transition: 'left 200ms', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-        }} />
-      </button>
-    </div>
-  );
-}
-
-function SReadRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
-      <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase' }}>{label}</span>
-      <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 14, color: A.ink, letterSpacing: '0.005em' }}>{value}</span>
-    </div>
-  );
-}
-
-function SaveBtn({ dirty, loading, onSave }: { dirty: boolean; loading: boolean; onSave: () => void }) {
-  if (!dirty && !loading) return null;
-  return (
-    <button type="button" onClick={onSave} disabled={loading || !dirty} className={dirty && !loading ? 'atelier-fab' : undefined} style={{
-      alignSelf: 'flex-end', padding: '8px 16px', borderRadius: 2,
-      border: '0.5px solid #E0BC6E',
-      cursor: loading || !dirty ? 'default' : 'pointer',
-      fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
-      letterSpacing: '0.36em', textTransform: 'uppercase',
-      background: !dirty || loading ? 'rgba(201,168,76,0.18)' : undefined,
-      opacity: loading || !dirty ? 0.6 : 1,
-    }}>{loading ? 'Saving…' : 'Save'}</button>
   );
 }

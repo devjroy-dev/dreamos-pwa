@@ -188,7 +188,11 @@ export function Header({ vendorName }: { vendorName: string | null }) {
 
             {/* ATELIER section */}
             <SectionLabel isLight={isLight}>Atelier</SectionLabel>
-            <DItem glyph="◈" label="Discover Profile"    subtitle="How couples see you" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/settings'); }} />
+            {/* TDW_07 P2: this entry has said "Discover Profile" since long before the screen
+                existed, and pointed at /vendor/settings for want of anywhere better. The
+                screen exists now, in DISCOVER mode where it belongs. The label was always
+                this feature's name arriving early; only the destination changes. */}
+            <DItem glyph="◈" label="Discover Profile"    subtitle="How couples see you" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/discover/profile'); }} />
             <DItem glyph="★" label="The Dream Wedding"   isLight={isLight} onClick={() => { setProfileOpen(false); window.open('https://thedreamwedding.in', '_blank'); }} />
             <DItem glyph="◈" label="Tips &amp; Features" subtitle="Mini manual" isLight={isLight} onClick={() => { setProfileOpen(false); setTipsOpen(true); }} accent />
 

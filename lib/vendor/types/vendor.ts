@@ -35,6 +35,23 @@ export interface MeResponse {
     slot_capacity: number | null;
     capacity_default: number | null;
     capacity_applicable: boolean;
+    // ── TDW_07 P2 ──────────────────────────────────────────────────────────
+    // F-07.9's cure, client half. These fields ALWAYS existed as columns and the
+    // vendor could always PATCH them; GET simply never returned them, so
+    // hooks/vendor/useSettings.ts initialised five of them to '' and the screen
+    // showed a placeholder over a stored value. instagram_handle was the worst of
+    // them: the response DID carry it and the hook dropped it anyway. Declared here
+    // so a field the editor writes is a field the editor can read.
+    // instagram_handle was RETURNED by GET /me since before this sitting and never
+    // declared here — which is part of how the hook came to drop it unnoticed.
+    instagram_handle: string | null;
+    style_notes: string | null;
+    travel_notes: string | null;
+    about: string | null;
+    invoice_prefix: string | null;
+    briefing_enabled: boolean;
+    rate_display: boolean;
+    discover_paused: boolean;
   };
 }
 
@@ -55,6 +72,12 @@ export interface UpdateMeRequest {
   rate_max?:         number;
   // B6-S1: null is MEANINGFUL here — it resets to the category default.
   slot_capacity?:    number | null;
+  // TDW_07 P2 — the three additive allowlist entries (src/api/vendor/me.js).
+  // `about` is F-07.8's cure: scored at 0.135 and rendered on the Discover card,
+  // with zero writers anywhere in the estate until this sitting.
+  about?:            string;
+  rate_display?:     boolean;
+  discover_paused?:  boolean;
 }
 
 export interface UpdateMeResponse {
@@ -729,6 +752,11 @@ export interface DiscoverStatus {
   discover_request_state: string;
   discover_eligible: boolean;
   portfolio_summary: { total: number; approved: number; pending: number; rejected: number };
+  // TDW_07 P2 · CE ruling §F — the SERVER carries the floor so the client renders a
+  // number it was told rather than one it typed. Optional because a client may run
+  // against a backend deployed before this field; DISCOVER_PHOTO_FLOOR in
+  // lib/vendor/discoverFloor.ts is the comment-bound fallback, never the authority.
+  min_portfolio_images?: number;
   saves_count?: number;
   current_request: { id: string; state: string; decided_at: string | null } | null;
   last_decision_reason: string | null;

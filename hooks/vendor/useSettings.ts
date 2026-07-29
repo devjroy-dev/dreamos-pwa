@@ -19,6 +19,11 @@ export interface SettingsState {
   rate_max:          string;
   aesthetic_tags:    string;  // comma-separated
   briefing_enabled:  boolean;
+  // TDW_07 P2 — Discover Profile's three. `about` is F-07.8's cure (scored and
+  // feed-rendered with zero writers until this sitting); the two booleans are 0101's.
+  about:             string;
+  rate_display:      boolean;
+  discover_paused:   boolean;
   invoice_prefix:    string;
   routing_handle:    string;
   // TDW_04 B6-S1 (surfaces item 2): '' = NULL = category default; the number as a
@@ -38,6 +43,7 @@ const EMPTY: SettingsState = {
   open_to_travel: false, travel_notes: '', instagram_handle: '',
   upi_id: '', gstin: '', rate_min: '', rate_max: '',
   aesthetic_tags: '', briefing_enabled: true,
+  about: '', rate_display: true, discover_paused: false,
   invoice_prefix: '', routing_handle: '',
   slot_capacity: '',
   tier: '', founding_cohort: false, discover_preview: false,
@@ -60,19 +66,33 @@ export function useSettings() {
       const s: SettingsState = {
         name:             v.name ?? '',
         business_name:    v.business_name ?? '',
-        style_notes:      '',
+        // ── F-07.9 CURED (TDW_07 P2) ─────────────────────────────────────────
+        // These five read '' / true regardless of what the vendor had stored. The
+        // defect was WITNESSED live on the test account: the settings screen showed
+        // its routing HANDLE populated two cards below an Instagram field rendering
+        // its placeholder, while the column held 'Makeupbyswatiroy' — and GET /me
+        // returned it. The fetch worked, the render worked, and the value was
+        // dropped here. briefing_enabled was worse than a blank: hardcoded `true`
+        // mis-rendered every opted-out vendor AND, because isDirty compares against
+        // that same constant, made re-enabling impossible from this screen at all.
+        // GET /me now carries all five (src/api/vendor/me.js), so all five arrive.
+        style_notes:      v.style_notes ?? '',
         city:             v.city ?? '',
         open_to_travel:   v.open_to_travel ?? false,
-        travel_notes:     '',
-        instagram_handle: '',
+        travel_notes:     v.travel_notes ?? '',
+        instagram_handle: v.instagram_handle ?? '',
         upi_id:           v.upi_id ?? '',
         gstin:            v.gstin ?? '',
         rate_min:         v.rate_min != null ? String(v.rate_min) : '',
         rate_max:         v.rate_max != null ? String(v.rate_max) : '',
         aesthetic_tags:   (v.aesthetic_tags ?? []).join(', '),
         slot_capacity:    v.slot_capacity != null ? String(v.slot_capacity) : '',
-        briefing_enabled: true,
-        invoice_prefix:   '',
+        briefing_enabled: v.briefing_enabled ?? true,
+        about:            v.about ?? '',
+        // Both NOT NULL with defaults server-side, so `?? default` is exact.
+        rate_display:     v.rate_display ?? true,
+        discover_paused:  v.discover_paused ?? false,
+        invoice_prefix:   v.invoice_prefix ?? '',
         routing_handle:   v.handle ?? '',
         tier:             v.tier ?? '',
         founding_cohort:  v.founding_cohort ?? false,

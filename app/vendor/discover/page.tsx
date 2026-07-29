@@ -11,6 +11,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+// TDW_07 P2 · CE ruling §F — the floor comes from the server when it speaks, from the
+// one comment-bound constant when it does not. This screen used to hold the number twice.
+import { photoFloor } from '@/lib/vendor/discoverFloor';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
 import { fetchDiscoverStatus, fetchPortfolio } from '@/lib/vendor/api/vendor';
@@ -67,6 +70,10 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
 
   const state = status?.discover_request_state || 'not_requested';
   const portfolioTotal = status?.portfolio_summary?.total ?? 0;
+  // FOUNDER-VETOED 2026-07-29 (copy slot 2, 「 go 」): the sentence is unchanged in shape
+  // and the numeral is now live. F-07.4 as ruled: this gate counts EVERY row, because
+  // requesting Discover stays self-serve — the score and the feed count approved only.
+  const floor = photoFloor(status?.min_portfolio_images);
   const hero = portfolio.find(p => p.is_hero) ?? portfolio[0] ?? null;
   const collection = portfolio.filter(p => !hero || p.id !== hero.id).slice(0, 6);
 
@@ -173,7 +180,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               fontSize: 14, color: A.inkMute, textAlign: 'center', padding: 20,
             }}>Loading…</div>
           ) : state === 'not_requested' ? (
-            portfolioTotal < 5 ? (
+            portfolioTotal < floor ? (
               <>
                 <button type="button" onClick={() => router.push('/vendor/portfolio')}
                   style={{
@@ -191,7 +198,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
                   fontSize: 13, color: A.inkMute, textAlign: 'center',
                 }}>
-                  Upload at least five pieces to request access. You have {portfolioTotal}.
+                  Upload at least {floor} pieces to request access. You have {portfolioTotal}.
                 </div>
               </>
             ) : (
