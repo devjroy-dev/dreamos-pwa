@@ -27,7 +27,7 @@ import { getJson } from '@/lib/vendor/api/_base';
 import { useChat } from '@/hooks/vendor/useChat';
 import { useToast } from '@/hooks/vendor/useToast';
 import { Toast } from '@/components/vendor/Toast';
-import { createNote } from '@/lib/vendor/api/vendor';
+import { createNote, reportGlitch } from '@/lib/vendor/api/vendor'; // TDW_06 M-3: the Report chip's route
 
 import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
@@ -552,6 +552,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
         onConfirm={() => {}}
         onCancel={() => {}}
         onChipTap={send}
+        onReportGlitch={async () => { await reportGlitch(); }} // TDW_06 M-3: its OWN wire, never onChipTap
         scrollRef={chatScrollRef}
         onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user'); if (last?.text) send(last.text); }}
       />

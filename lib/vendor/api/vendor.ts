@@ -203,6 +203,15 @@ export function startFreshThread(): Promise<FreshThreadResponse> {
   return postJson<FreshThreadResponse>('/api/v2/vendor/chat/thread/fresh', {});
 }
 
+// TDW_06 F-06.130 — the Report chip's endpoint. FORK 6b: it posts NOTHING but the session.
+// The backend resolves the newest DELIVERED witness for this agent inside its own window, so
+// this leg and the WhatsApp REPORT word can never disagree about which turn is being flagged,
+// and no internal row id crosses the wire. Sited on `startFreshThread`'s exact pattern.
+export type GlitchReportResponse = { ok: boolean; filed: boolean; message: string };
+export function reportGlitch(): Promise<GlitchReportResponse> {
+  return postJson<GlitchReportResponse>('/api/v2/vendor/chat/glitch-report', {});
+}
+
 // ── Today dashboard ───────────────────────────────────────────────────────
 export function fetchToday(vendorId: string): Promise<TodayResponse> {
   return getJson<TodayResponse>(`/api/v2/vendor/today/${vendorId}`);
@@ -300,6 +309,14 @@ export type StreamDonePayload = {
   contact?: ContactCard;
   clarify?: ClarifyPayload;
   suggestions?: SuggestionsPayload;
+  // TDW_06 M-3 (the wire guard's Stage 2, SSE seat). ADDITIVE. The model's body has already
+  // streamed token-by-token by the time the guard runs, so this seat cannot intercept before
+  // delivery — it replaces AT DONE, and the transient glimpse was put to the founder and
+  // accepted. `text` is the founder's vetoed line; the client swaps the message wholesale.
+  // The three sibling SSE consumers (lib/demo/api.ts's own independent StreamDonePayload,
+  // lib/frost-api/couple.ts, the sanctuary page) take no payload on `done` and are untouched
+  // by this field — asserted by command, not assumed.
+  intercept?: { replaced: boolean; text: string };
 };
 
 // The pair-at-work beats the firewall emits on the wire (3-B). Myra's prose
@@ -434,6 +451,7 @@ export function streamChat(
               contact:    event.contact,
               clarify:    event.clarify,
               meta:       event.meta, // TDW_02 P5: the tier meter, every turn
+              intercept:  event.intercept, // TDW_06 M-3: the wire guard's replacement, if any
             });
           } else if (event.type === 'error') {
             onError(event.message ?? 'Agent error. Try again.');

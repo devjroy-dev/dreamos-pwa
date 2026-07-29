@@ -15,6 +15,10 @@ interface Props {
   onConfirm: (id: string) => void;
   onCancel:  (id: string) => void;
   onChipTap: (text: string, displayText?: string) => void;
+  // TDW_06 M-3 — THE REPORT CHIP'S OWN WIRE. Deliberately NOT onChipTap: that prop is wired
+  // to `send` at app/vendor/page.tsx, so routing the chip through it would post the label
+  // into the thread as a vendor message. The chip calls the glitch-report route instead.
+  onReportGlitch?: () => Promise<void> | void;
   scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -106,8 +110,12 @@ function PairWork({ beats, streaming, T }: {
   );
 }
 
-export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLast }: Props & { onRetryLast?: () => void }) {
+export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrollRef, onRetryLast }: Props & { onRetryLast?: () => void }) {
   const T = useT();
+  // SLOT FIVE, founder-vetoed: after one tap the chip DIMS AND DISABLES. No new words — the
+  // InputBar's own disabled pattern. A second tap would file a second finding against the
+  // same turn and inflate the very measurement this week exists to take.
+  const [reported, setReported] = useState<Record<string, boolean>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -209,6 +217,37 @@ export function ChatThread({ messages, loading, onChipTap, scrollRef, onRetryLas
                 >{label}</button>
                 );
               })}
+            </div>
+          )}
+
+          {/* TDW_06 M-3 — THE REPORT CHIP. Mirrors the suggestions block's position and
+              register; renders ONLY on a reply the wire guard actually replaced. On the demo
+              surface (app/demo/vendor/[handle]/studio/page.tsx renders this same component
+              through useDemoChat) `intercepted` is never set, so the chip is dormant there BY
+              CONSTRUCTION — asserted as a negative cell, never assumed. */}
+          {m.intercepted && (
+            <div style={{ padding: '2px 22px 10px 38px' }}>
+              <button
+                type="button"
+                disabled={!!reported[m.id]}
+                onClick={async () => {
+                  if (reported[m.id]) return;
+                  setReported((prev) => ({ ...prev, [m.id]: true }));
+                  try { await onReportGlitch?.(); } catch { /* the chip never throws at the vendor */ }
+                }}
+                style={{
+                  height: 30, paddingInline: 12,
+                  background: 'transparent',
+                  border: `0.5px dashed ${T.isLight ? 'rgba(122,56,40,0.35)' : 'rgba(201,168,76,0.38)'}`,
+                  borderRadius: 2,
+                  cursor: reported[m.id] ? 'default' : 'pointer',
+                  opacity: reported[m.id] ? 0.4 : 1,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                  letterSpacing: '0.2em', textTransform: 'uppercase' as const,
+                  color: T.isLight ? 'rgba(122,56,40,0.85)' : 'rgba(201,168,76,0.8)',
+                  whiteSpace: 'nowrap',
+                }}
+              >REPORT THIS GLITCH</button>
             </div>
           )}
 

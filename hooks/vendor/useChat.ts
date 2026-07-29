@@ -19,6 +19,11 @@ export interface ChatMessage {
   suggestions?: SuggestionsPayload;  // 3.0-C2: optional next-step cards under a completed action
   streaming?: boolean;         // true while SSE stream is in progress
   deliberation?: StreamBeat[]; // 5-B: the operator's work beneath Myra's reply
+  intercepted?: boolean;       // TDW_06 M-3: the wire guard replaced this reply with the
+                               // founder's vetoed line. Carries the Report chip and nothing
+                               // else — the flag is the ONLY new field, and it is OPTIONAL so
+                               // the demo hook (which returns this same type deliberately)
+                               // never sets it and the chip is dormant there by construction.
   divider?: boolean;           // TDW_06 D-7: a fresh-thread seam — rendered as a
                                // rule line, never a bubble. The scrollback above
                                // it STAYS ON SCREEN; that is the rider's visible
@@ -147,7 +152,13 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
           m.id === aiMsgId
             ? {
                 ...m,
-                text:       accumulated || (result.clarify ? result.clarify.question : 'Got it.'),
+                // TDW_06 M-3: replace-at-done. This expression ALREADY rewrote the text
+                // wholesale at `done`; the guard's replacement simply takes precedence over
+                // the accumulated stream, which is what "replace at done" means mechanically.
+                text:       result.intercept?.replaced
+                              ? result.intercept.text
+                              : (accumulated || (result.clarify ? result.clarify.question : 'Got it.')),
+                intercepted: result.intercept?.replaced === true,
                 streaming:  false,
                 toolCalls:  result.tool_calls,
                 contact:    result.contact,
