@@ -12,6 +12,27 @@ export interface DiscoverVendor {
   vibe_tags: string[];
   about: string | null;
   enquire_link: string | null;
+
+  // ── TDW_07 P1 · three fields, all ADDITIVE and all optional ──────────────────
+  // `is_demo` is NOT new on the wire — src/api/couple/discover.js has sent it since
+  // the two-branch feed was born (:81 false / :122 true) and this type never declared
+  // it. That gap is F-07.3, "a type behind its own contract"; it is cured here.
+  //
+  // All three are optional so every existing consumer compiles unchanged: the demo
+  // subdomain surface (app/demodiscover) and the sanctuary feed
+  // (app/(frost)/frost/canvas/sanctuary/page.tsx:1416/:1425) both read this type and
+  // neither is touched by P1.
+  is_demo?: boolean;
+
+  /** Bare Instagram username — no '@', no URL. Server-normalised; null when absent
+   *  or unusable. D-3's chip renders only when this is a non-empty string. */
+  instagram_handle?: string | null;
+
+  /** TRUE only where an approved vendor_featured_submissions row's scheduled window
+   *  contains this instant (CE ruling §C/F5). NOT vendors.featured_eligible, which
+   *  answers eligibility. The Manual honesty law: marked, always — and marked only
+   *  when true. */
+  featured?: boolean;
 }
 
 export interface FeaturedCollection {

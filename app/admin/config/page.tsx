@@ -3,7 +3,18 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, GoldBtn, Toast } from '../_components/AdminUI';
 import { getConfig, patchConfig, type ConfigRow } from '../../../lib/admin-api/index';
 
-type Group = { label: string; keys: string[] };
+type Group = {
+  label: string;
+  keys: string[];
+  /** TDW_07 P1 — per-key display names. The token-cap groups derive theirs from the
+   *  key's own shape (keyLabel below); the Discover ranking keys do not have that
+   *  shape, so they carry their names explicitly rather than being force-parsed into
+   *  a tier/period pair that means nothing for them. */
+  labels?: Record<string, { tier: string; period: string }>;
+  /** Optional non-integer input step. The caps are whole numbers; weights are not. */
+  step?: string;
+  note?: string;
+};
 
 const GROUPS: Group[] = [
   { label: 'Vendor WhatsApp',
@@ -18,6 +29,21 @@ const GROUPS: Group[] = [
   { label: 'Couple PWA',
     keys: ['couple_pwa_daily_basic','couple_pwa_daily_gold','couple_pwa_daily_platinum',
            'couple_pwa_monthly_basic','couple_pwa_monthly_gold','couple_pwa_monthly_platinum'] },
+  // ── TDW_07 P1 · D-5's "hand-tunable" weights ──────────────────────────────────
+  // The three keys are seeded by db/migrations/0101_profile_controls.sql. They MUST
+  // exist as rows before this group can do anything: the PATCH route 404s on a key
+  // with no row (src/api/admin/config.js:31-32) and there is no insert route — so an
+  // unseeded key shows blank here and refuses to save. That is the honest failure, not
+  // a bug: run 0101 first.
+  { label: 'Discover ranking',
+    step: '0.05',
+    note: 'Feed order = w_spotlight·spotlight + w_freshness·recency + w_completeness·profile. Weights need not sum to 1 — only their ratio decides the order. Takes effect on the next fetch (60s cache).',
+    keys: ['discover.rank.w_spotlight','discover.rank.w_freshness','discover.rank.w_completeness'],
+    labels: {
+      'discover.rank.w_spotlight':    { tier: 'Spotlight',    period: 'active editorial card' },
+      'discover.rank.w_freshness':    { tier: 'Freshness',    period: 'vendor activity recency' },
+      'discover.rank.w_completeness': { tier: 'Completeness', period: 'profile fill' },
+    } },
 ];
 
 function keyLabel(key: string): { tier: string; period: string } {
@@ -71,8 +97,11 @@ export default function ConfigPage() {
         GROUPS.map(group => (
           <div key={group.label} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 14, padding: '20px', marginBottom: 16 }}>
             <p style={{ fontFamily: T.ff.label, fontWeight: 200, fontSize: 8, color: T.gold, letterSpacing: '0.3em', textTransform: 'uppercase' as const, marginBottom: 16 }}>{group.label}</p>
+            {group.note && (
+              <p style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, lineHeight: 1.5, marginTop: -8, marginBottom: 16 }}>{group.note}</p>
+            )}
             {group.keys.map(key => {
-              const { tier, period } = keyLabel(key);
+              const { tier, period } = group.labels?.[key] ?? keyLabel(key);
               const val  = getValue(key);
               const dirty = isDirty(key);
               return (
@@ -83,6 +112,7 @@ export default function ConfigPage() {
                   </div>
                   <input
                     type="number"
+                    step={group.step ?? '1'}
                     value={val}
                     onChange={e => setEdits(prev => ({ ...prev, [key]: e.target.value }))}
                     style={{ width: 70, background: 'rgba(255,255,255,0.06)', border: `0.5px solid ${dirty ? T.gold : T.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: T.ff.body, fontSize: 15, color: dirty ? T.gold : T.ink, textAlign: 'center', outline: 'none', minHeight: 44 }}

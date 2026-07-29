@@ -35,6 +35,9 @@ function isBrideDemoDiscover(): boolean {
   if (typeof window === 'undefined') return false;
   try { return localStorage.getItem('tdw_demo_discover') === 'true'; } catch { return false; }
 }
+// TDW_07 P1 · D-3 — the IG chip's mechanics live in one home, shared with detail,
+// P4's VendorProfileView and P6's editorial pass. See lib/frost/igLink.ts.
+import { openInstagram, normalizeIgHandle } from '../../../../../lib/frost/igLink';
 import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 
@@ -279,6 +282,76 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
   );
 }
 
+// ── TDW_07 P1 · D-3 the IG chip · D-5 the FEATURED eyebrow ───────────────────
+//
+// GESTURE LAW (spec §3): "Frost gesture mechanics byte-identical through P1/P6 (data
+// and skin changes only)." Every gesture handler in this file — onTouchStart/Move/End
+// on the root deck, the swipe constants, the tap/double-tap timers, the overlay's drag
+// dismiss — is BYTE-UNCHANGED by this sitting. What follows is render only.
+//
+// THE ONE CARVE-OUT, DISCLOSED RATHER THAN HIDDEN: on the card, the chip is a tappable
+// element sitting on the deck's own touch surface. Its handlers call stopPropagation so
+// a tap on the chip opens Instagram instead of opening the overlay. That means the
+// deck's onTouchStart does not fire for the chip's own ~130×30px. The deck's CODE is
+// untouched; the chip simply consumes its own touches, the way the overlay's buttons
+// already do (the Enquire/Circle buttons stopPropagation today — this is that pattern,
+// not a new one). The chip's container is pointerEvents:'none' so ONLY the chip itself
+// consumes anything; the rest of that band swipes exactly as before.
+
+function IgChip({ handle, onTap }: { handle: string | null | undefined; onTap?: () => void }) {
+  const h = normalizeIgHandle(handle);
+  if (!h) return null;   // renders on truth or not at all
+  return (
+    <button
+      onClick={(e: React.MouseEvent) => { e.stopPropagation(); openInstagram(h); onTap?.(); }}
+      onTouchStart={(e: React.TouchEvent) => { e.stopPropagation(); }}
+      onTouchEnd={(e: React.TouchEvent) => { e.stopPropagation(); }}
+      aria-label={`Open @${h} on Instagram`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '5px 10px', borderRadius: 14,
+        background: 'rgba(12,10,9,0.32)',
+        backdropFilter: 'blur(18px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
+        border: '0.5px solid rgba(255,255,255,0.16)',
+        fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300,
+        letterSpacing: '0.06em',
+        // ink-dim per D-3 — the chip is a whisper, and the screen's one gold is
+        // Enquire's (spec §3: one gold per screen).
+        color: 'rgba(248,247,245,0.62)',
+        cursor: 'pointer', pointerEvents: 'auto', touchAction: 'manipulation' as const,
+      }}
+    >
+      {/* Instagram glyph, inline so no icon dependency is added to a gesture file */}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+      </svg>
+      @{h}
+    </button>
+  );
+}
+
+// The eyebrow. Manual honesty law: marked, ALWAYS — and only where the server says
+// `featured` is true, which is an approved submission inside its scheduled window
+// (CE ruling §C/F5). Non-interactive by construction: it never touches the deck.
+function FeaturedEyebrow({ featured }: { featured?: boolean }) {
+  if (!featured) return null;
+  return (
+    <span style={{
+      fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
+      letterSpacing: '0.28em', textTransform: 'uppercase' as const,
+      color: 'rgba(248,247,245,0.72)',
+      textShadow: '0 1px 4px rgba(0,0,0,0.45)',
+      pointerEvents: 'none' as const,
+    }}>
+      FEATURED
+    </span>
+  );
+}
+
 // ── GlassOverlay — vendor profile, true frosted glass ────────────────────────
 // Photo clearly visible through the overlay.
 
@@ -339,6 +412,12 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
       )}
 
       <div style={{ padding: '0 24px' }}>
+        {/* TDW_07 P1 · D-5 — the eyebrow on detail, above the category line */}
+        {vendor.featured && (
+          <div style={{ margin: '0 0 6px' }}>
+            <FeaturedEyebrow featured={vendor.featured} />
+          </div>
+        )}
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
           {vendor.category}&nbsp;·&nbsp;{vendor.city}
         </p>
@@ -363,6 +442,14 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
           <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.15em', color: 'rgba(248,247,245,0.55)', margin: '0 0 20px' }}>
             {vendor.vibe_tags.join(' · ')}
           </p>
+        )}
+
+        {/* TDW_07 P1 · D-3 — the chip on detail. Blind mode hides identity, so the
+            handle (which IS the identity) is withheld there, exactly as the name is. */}
+        {!isBlind && vendor.instagram_handle && (
+          <div style={{ margin: '0 0 16px' }}>
+            <IgChip handle={vendor.instagram_handle} />
+          </div>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -807,6 +894,23 @@ function DiscoveryFeedContent({
         />
 
         {isBlind && <BlindCentreToast hint={blindHint} />}
+
+        {/* TDW_07 P1 — the card band: FEATURED eyebrow + IG chip, above the hint.
+            The CONTAINER is pointerEvents:'none' so the deck's swipe surface is
+            unchanged everywhere except the chip's own box (see IgChip's note). */}
+        {!isBlind && !overlayVisible && (vendor.featured || vendor.instagram_handle) && (
+          <div style={{
+            position: 'fixed',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 56px)',
+            left: 0, right: 0, zIndex: 11,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+            pointerEvents: 'none',
+            animation: 'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)',
+          }}>
+            <FeaturedEyebrow featured={vendor.featured} />
+            {vendor.instagram_handle && <IgChip handle={vendor.instagram_handle} />}
+          </div>
+        )}
 
         {/* Hint */}
         {!isBlind && !overlayVisible && (
