@@ -22,93 +22,6 @@ interface Props {
   scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-// ── The pair at work ────────────────────────────────────────────────────────
-// While the turn streams, an animated "The pair is working…" line (three dots
-// fading, ported from dreamai's desk). Once it lands, the line collapses to a
-// tappable "The work ›" that expands to the Victor↔Operator exchange beneath the
-// reply — answer first, the working folded away until asked for.
-function PairWork({ beats, streaming, T }: {
-  beats?: ChatMessage['deliberation'];
-  streaming?: boolean;
-  T: ReturnType<typeof useT>;
-}) {
-  const [open, setOpen] = useState(false);
-  if (!beats || beats.length === 0) return null;
-
-  const dim    = T.isLight ? 'rgba(26,15,8,0.5)'  : 'rgba(233,228,217,0.42)';
-  const spine  = T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(233,228,217,0.16)';
-  const accent = T.accent;
-
-  // Live: the pair is working — animated three-dot fade.
-  if (streaming) {
-    return (
-      <div style={{ padding: '2px 22px 9px 38px' }}>
-        <span style={{
-          fontFamily: F.label, fontSize: 11, fontWeight: 300, letterSpacing: '0.04em',
-          color: dim, display: 'inline-flex', alignItems: 'center', gap: 5,
-        }}>
-          <span style={{ color: accent }}>▸</span>
-          The pair is working
-          <span className="pw-dots" style={{ display: 'inline-flex', gap: 3, marginLeft: 1 }}>
-            <i /><i /><i />
-          </span>
-        </span>
-        <style>{`
-          .pw-dots i { width: 4px; height: 4px; border-radius: 50%; background: ${accent}; display: inline-block; animation: pwWk 1s infinite; }
-          .pw-dots i:nth-child(2) { animation-delay: .15s; }
-          .pw-dots i:nth-child(3) { animation-delay: .3s; }
-          @keyframes pwWk { 0%, 80%, 100% { opacity: .25 } 40% { opacity: 1 } }
-          @media (prefers-reduced-motion: reduce) { .pw-dots i { animation: none } }
-        `}</style>
-      </div>
-    );
-  }
-
-  // Done: collapsed "The work ›" — tap to reveal the exchange.
-  return (
-    <div style={{ padding: '2px 22px 9px 38px' }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        style={{
-          fontFamily: F.label, fontSize: 11, fontWeight: 300, letterSpacing: '0.04em',
-          color: dim, background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-        }}
-      >
-        The work
-        <span style={{
-          display: 'inline-block', color: accent,
-          transition: 'transform 180ms cubic-bezier(0.22,1,0.36,1)',
-          transform: open ? 'rotate(90deg)' : 'none',
-        }}>›</span>
-      </button>
-      {open && (
-        <div style={{
-          marginTop: 6, paddingLeft: 12, display: 'flex', flexDirection: 'column', gap: 3,
-          borderLeft: `2px solid ${spine}`,
-          animation: 'pwOpen 200ms cubic-bezier(0.22,1,0.36,1) both',
-        }}>
-          <style>{`@keyframes pwOpen { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }`}</style>
-          {beats.map((beat, i) => {
-            const line =
-              beat.kind === 'handoff' ? 'Handed to the operator'
-              : beat.kind === 'operator_action' || beat.kind === 'error'
-                ? `Operator \u00b7 ${beat.action ?? ''}${beat.detail ? ' \u2014 ' + beat.detail : ''}`
-              : `Operator reported \u00b7 ${(beat as { message?: string }).message ?? ''}`;
-            return (
-              <div key={i} style={{
-                fontFamily: F.label, fontSize: 11, fontWeight: 300, lineHeight: 1.5,
-                letterSpacing: '0.01em', color: dim,
-              }}>{line}</div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrollRef, onRetryLast }: Props & { onRetryLast?: () => void }) {
   const T = useT();
@@ -132,8 +45,12 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
   // history, we leave them be rather than yanking them back down mid-stream.
   const tail = messages[messages.length - 1];
   const tailLen = tail ? tail.text.length : 0;
-  // Also follow when the pair-at-work line appears (a deliberation beat with no text yet) —
-  // otherwise it lands below the fold and the user has to scroll by hand.
+  // Also follow when a deliberation beat lands with no text yet — otherwise the turn's
+  // first visible motion sits below the fold and the user has to scroll by hand.
+  // TDW_06 F-06.133: this line's ORIGINAL subject (the pair-at-work line) is deleted with
+  // `PairWork`; the EXPRESSION is byte-unmoved because its behaviour is still correct — a
+  // FilingChip can land beat-first, and the scroll must follow it. Comment corrected rather
+  // than left lying (the F-06.85 class); zero behavioural bytes moved.
   const tailDelib = tail?.deliberation?.length ?? 0;
   const prevCount = useRef(0);
   useEffect(() => {
@@ -154,7 +71,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
     <div
       ref={containerRef}
       className="hide-scrollbar"
-      style={{ flex: 1, overflowY: 'auto', paddingTop: 12, paddingBottom: 64 /* TDW UI fix 2026-07-14: clear the fixed 'Your books' handle (bottom:76, h:40) so PairWork + FilingChips never sit under it */ }}
+      style={{ flex: 1, overflowY: 'auto', paddingTop: 12, paddingBottom: 64 /* TDW UI fix 2026-07-14: clear the fixed 'Your books' handle (bottom:76, h:40) so the FilingChips never sit under it (TDW_06 F-06.133: PairWork removed; comment corrected, padding byte-unmoved) */ }}
     >
       {messages.map((m, idx) => (
         <div key={m.id ?? idx}>
@@ -181,9 +98,25 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
           <>
           <MessageBubble message={m} />
 
-          {/* The pair at work (5-B): Myra's reply is the bubble above; her
-              operator's deliberation reads quietly beneath — answer first. */}
-          <PairWork beats={m.deliberation} streaming={m.streaming} T={T} />
+          {/* TDW_06 F-06.133 (founder-ruled twice; CE closing arc, fork C-1(b)) — THE WORK
+              DRAWER IS REMOVED OUTRIGHT. `PairWork` is DELETED WHOLE, both branches: the
+              collapsed expansion drawer AND its own three-dot streaming line. The
+              working state is `TypingDots` alone (MessageBubble.tsx:149, `streaming && !text`)
+              — ONE animation, ONE home, no caption, zero new bytes. THREE vendor-facing strings
+              died with it — the drawer label + chevron, the streaming caption, and the beat
+              renderer's prose — all three vetoed for deletion verbatim 「 approve all 」.
+              THE BYTES THEMSELVES ARE DELIBERATELY NOT QUOTED HERE: the removal proof asserts
+              their absence from this file COMMENTS INCLUDED (M-2c §5.9's precedent, which is
+              the stricter arm), and this comment's first draft reproduced two of them and was
+              convicted by that cell. Naming a deleted string is not the same act as keeping it.
+              WHAT SURVIVES, and it is a DIFFERENT SURFACE: the FilingChip map below. It reads
+              the same `deliberation` array but only `operator_action`/`error` beats CARRYING
+              `summary` — F-04.41's verified-write chip, untouched by this movement.
+              THE ORPHANED BEATS STAY ON THE WIRE BY RULING: `handoff`, `operator_report`, and
+              summary-less `operator_action` (chat.js translateBeat :263/:278/:291) now have no
+              renderer. DISPLAY DIES, DATA LIVES — the engine is 0-line and `useChat` still
+              collects every beat, so the trace lives on in engine.messages.tool_calls and the
+              guard log exactly as the ruling requires. */}
           {(m.deliberation ?? [])
             .filter((b: any) => (b.kind === 'operator_action' || b.kind === 'error') && b.summary)
             .map((b: any, i: number) => (
