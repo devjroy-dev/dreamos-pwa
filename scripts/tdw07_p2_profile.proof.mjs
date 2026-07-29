@@ -128,6 +128,21 @@ section('§3 · THE §C SPLIT — ONE EDITOR PER FIELD');
   ok('§3.5 ★ routing_handle keeps its own endpoint and is NOT re-editable on the new '
     + 'screen — a locked field\'s editor stays where its uniqueness check lives',
     /updateRoutingHandle/.test(SETTINGS) && !/updateRoutingHandle/.test(PROFILE));
+  // MICRO 1 — the cell that would have caught the miss. The delivery shipped a screen
+  // whose ONLY doors were an avatar dropdown and a forwarding card in the room the
+  // fields had just left. The read-first had NAMED the discover-root door in prose and
+  // no cell asserted it, so nothing failed. A stated thumb-path now has a bench.
+  ok('§3.5b ★ THE DISCOVER ROOT CARRIES THE DOOR — the panel root a vendor lands on when '
+    + 'they tap DISCOVER links to the profile, above the state branches so it is present '
+    + 'in every discover state',
+    /router\.push\('\/vendor\/discover\/profile'\)/.test(DISCOVER)
+    && DISCOVER.indexOf("router.push('/vendor/discover/profile')") < DISCOVER.indexOf("state === 'not_requested'"),
+    'the door is missing or sits inside a state branch');
+  ok('§3.5c the door mints NO new vendor-facing copy — its label and subtitle are '
+    + 'byte-identical to the entry already shipped in Header.tsx',
+    /Discover Profile/.test(DISCOVER) && /How couples see you/.test(DISCOVER)
+    && /How couples see you/.test(HEADER));
+
   ok('§3.6 the Header entry re-points — the label always said "Discover Profile"',
     /label="Discover Profile"[\s\S]{0,220}\/vendor\/discover\/profile/.test(HEADER)
     && !/label="Discover Profile"[\s\S]{0,220}\/vendor\/settings/.test(HEADER));

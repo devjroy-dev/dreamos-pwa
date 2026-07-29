@@ -134,6 +134,38 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           </div>
         </div>
 
+        {/* ── DISCOVER PROFILE — the door I stated and did not build ─────────
+            TDW_07 P2 MICRO. The P2 read-first named this thumb-path in words ("reached
+            from the DISCOVER home screen you land on, plus the re-pointed Header entry")
+            and the delivery shipped only the Header entry, which lives inside the avatar
+            dropdown. The founder's walk found it in one minute: the screen was reachable
+            only through Settings' forwarding card and a menu nobody opens. A stated path
+            that is not built is the witness-path law's own failure class.
+            SITED ABOVE THE STATE BRANCHES, deliberately: the profile is editable in every
+            discover state — before requesting, while under review, after approval, after
+            denial — so its door must not live inside any one branch.
+            ZERO NEW COPY. The label and subtitle are BYTE-IDENTICAL to the entry already
+            shipped at components/vendor/Header.tsx:191, which has been live and vetoed
+            since before this sitting. No unvetoed vendor-facing string is minted here. */}
+        <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: 'calc(100% - 44px)', margin: '18px 22px 0', padding: '14px 0',
+          background: 'none', border: 'none', borderBottom: '0.5px solid rgba(201,168,76,0.22)',
+          cursor: 'pointer', textAlign: 'left',
+        }}>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em',
+              textTransform: 'uppercase', color: A.brassWarm,
+            }}>Discover Profile</span>
+            <span style={{
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+              fontSize: 13, color: A.inkMute, letterSpacing: '0.01em',
+            }}>How couples see you</span>
+          </span>
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 13, color: A.brassWarm }}>›</span>
+        </button>
+
         {/* ── 4-cell ledger ──────────────────────────────────────── */}
         {status?.portfolio_summary && (
           <div style={{
