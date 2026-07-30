@@ -50,9 +50,23 @@ ok('§1.2 the anchor carries NO onClick — nothing runs between finger and nav'
   })());
 ok('§1.3 the old awaiting handler `igConnect` is GONE by name',
   !/function\s+igConnect\s*\(/.test(C) && !/onClick=\{igConnect\}/.test(C));
-ok('§1.4 NO script-assigned navigation survives anywhere in the file',
-  !/window\.location\.href\s*=/.test(C),
-  'a location assignment remains in CODE (comments are stripped before this cell)');
+// ── LABELED AMENDMENT, P4b probe (count preserved 1→1) ──────────────────────
+// THIS CELL SAID "no script-assigned navigation ANYWHERE in the file". That was
+// the right law when the file had one navigation. The CE-approved ?igprobe
+// ladder deliberately ships shape D — a bare location assignment — because it
+// is the one form never cleanly tested (its only prior instance ran against the
+// wrong host, so its failure is unattributable between host and form).
+//
+// THE LAW THE CELL PROTECTS IS UNCHANGED and is now stated precisely: THE
+// VENDOR-FACING PATH carries no script navigation. The probe panel is excised
+// before the test, so a script navigation leaking OUT of the probe and into the
+// submitted surface still reddens — which is the failure worth catching.
+{
+  const outsideProbe = C.replace(/\{igProbe && \(([\s\S]*?)\n            \)\}/, '');
+  ok('§1.4 NO script-assigned navigation on the VENDOR-FACING path',
+    !/window\.location\.href\s*=/.test(outsideProbe),
+    'a location assignment reached the submitted surface');
+}
 ok('§1.5 the retry control is a BUTTON, and buttons here never navigate',
   /onClick=\{igConnectRetry\}/.test(C)
   && (() => {
@@ -64,10 +78,15 @@ ok('§1.6 the unminted state is a real control, not a hrefless <a> (F-07.13 clas
 
 sec('§2 · THE DESTINATION EXISTS BEFORE THE TAP');
 ok('§2.1 mintIgAuthUrl is a stable useCallback', /const mintIgAuthUrl = useCallback\(/.test(C));
-ok('§2.2 the mint is gated on this vendor actually needing to connect',
-  /const igNeedsConnect = Boolean\(/.test(C) && /if \(!igNeedsConnect\)/.test(C));
-ok('§2.3 a connected vendor arms no nonce — the url is dropped when not needed',
-  /if \(!igNeedsConnect\) \{ setIgAuthUrl\(null\)/.test(C));
+// LABELED AMENDMENT, P4b probe (counts preserved 2→2): the gate was renamed
+// igNeedsConnect -> igWantsUrl when the probe gained its one lawful exception
+// (the founder's account is CONNECTED, so the ladder needs a url anyway). The
+// PREDICATE the cells protect is unchanged, and §1.7 of the probe bench proves
+// the new gate reduces to the old one whenever the probe is off.
+ok('§2.2 the mint is gated on this vendor actually wanting a url',
+  /const igNeedsConnect = Boolean\(/.test(C) && /const igWantsUrl = /.test(C) && /if \(!igWantsUrl\)/.test(C));
+ok('§2.3 a vendor who needs no url arms no nonce — it is dropped when not wanted',
+  /if \(!igWantsUrl\) \{ setIgAuthUrl\(null\)/.test(C));
 {
   // DERIVED, NOT ASSERTED: the refresh threshold is read out of the file and
   // compared against the server's own TTL. A cell that hard-coded 8 minutes
@@ -107,8 +126,12 @@ ok('§4.1 H15 byte-exact',  /H15: 'Reel',/.test(R));
 ok('§4.2 H16 byte-exact',  /H16: 'Album',/.test(R));
 ok('§4.3 H17 byte-exact',  /H17: 'Reels come in as their cover photo\.',/.test(R));
 ok('§4.4 H18 byte-exact',  /H18: 'Connected as @\{handle\}',/.test(R));
-ok('§4.5 no `DRAFT — veto owed` marker survives in the file',
-  !/DRAFT — veto owed/.test(R));
+// LABELED AMENDMENT, P4b probe (count preserved 1→1): H19 ships as a MARKED
+// DRAFT by CE ruling (the iOS fallback, built dark, veto owed). A blanket
+// no-drafts assertion would now redden an honestly-marked slot — the exact
+// inversion of what this cell exists for. Scoped to the four it was written for.
+ok('§4.5 no `DRAFT — veto owed` marker survives on H15..H18',
+  ['H15','H16','H17','H18'].every(k => !new RegExp(`${k}: .*DRAFT — veto owed`).test(R)));
 ok('§4.6 all four carry the executed veto\'s date',
   ['H15','H16','H17','H18'].every(k => new RegExp(`${k}: .*// VETOED 2026-07-30`).test(R)));
 ok('§4.7 H18\'s presence-mandatory constraint is stated IN-FILE',

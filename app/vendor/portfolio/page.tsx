@@ -173,7 +173,41 @@ const COPY = {
   // │ place. The lesson now protects us in the other direction.               │
   // └─────────────────────────────────────────────────────────────────────────┘
   H18: 'Connected as @{handle}',                                // VETOED 2026-07-30
+
+  // ── H19 — THE iOS FALLBACK. BUILT DARK. VETO OWED. (CE-ruled, P4b) ────────
+  // RULED A STANDING OPTION so that no outcome of the ?igprobe ladder requires a
+  // scramble: if all four shapes are claimed by the Instagram app, this line
+  // arms and vendors get a path that WORKS TONIGHT rather than an apology.
+  //
+  // IT IS NOT RENDERED. IOS_FALLBACK_ARMED is false below and the ladder has not
+  // returned. Arming it is a one-constant change plus the founder's veto on
+  // these bytes — deliberately two acts, because a line that blames the vendor's
+  // phone is the kind of copy that should cost a decision.
+  //
+  // The bytes say what to do FIRST and why SECOND, per the H3 ordering doctrine
+  // (position in a paragraph is instruction): the vendor gets a working action
+  // before they get an explanation of somebody else's bug.
+  H19: 'On iPhone: press and hold the button above, then choose "Open in New Tab". A normal tap gets caught by the Instagram app.', // DRAFT — veto owed
 } as const;
+
+// ── THE iOS FALLBACK'S ARMING CONSTANT (CE-ruled dark at P4b) ───────────────
+// ONE constant, ONE home. Flipping this to true is the entire arming act, and
+// it is gated on BOTH the ladder returning all-claimed AND the founder's veto of
+// H19. Named rather than inlined so the next sitting changes one byte and the
+// bench can see it.
+const IOS_FALLBACK_ARMED = false;
+
+// The probe controls share ONE style object so that the four shapes differ in
+// NOTHING a finger can perceive. If they looked different, a difference in
+// outcome could be argued to come from the target size or position rather than
+// the navigation form, and the walk would prove less than it costs.
+const PROBE_BTN: React.CSSProperties = {
+  display: 'block', width: '100%', padding: '11px 0', marginBottom: 8,
+  boxSizing: 'border-box', background: 'transparent', textAlign: 'center',
+  textDecoration: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
+  borderRadius: 2, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 300,
+  fontSize: 11, color: '#C9A84C', letterSpacing: '0.08em',
+};
 
 // ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
 // WHY THIS IS ITS OWN COMPONENT AND NOT AN INLINE MAP BODY:
@@ -280,6 +314,17 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   // carries a 10-minute TTL and a tab left open outlives it.
   const [igAuthUrl, setIgAuthUrl]         = useState<string | null>(null);
   const [igAuthMintedAt, setIgAuthMintedAt] = useState<number | null>(null);
+  // ── TDW_07 P4b · THE ?igprobe=1 LADDER (CE-approved, ships before P4b's body)
+  // OFF unless the query says otherwise, and that is the whole safety story: a
+  // vendor — or Meta's reviewer — arriving at this page normally renders the
+  // SUBMITTED SURFACE BYTE-FOR-BYTE. The probe adds nothing to their screen.
+  // F-07.24's lesson running in its protective direction: a filing's claims are
+  // read against the surface, so the surface under review does not move.
+  const [igProbe, setIgProbe] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIgProbe(new URLSearchParams(window.location.search).get('igprobe') === '1');
+  }, []);
   const fileRef = useRef<HTMLInputElement>(null);
   const tileRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastCommitted = useRef<string>('');
@@ -447,12 +492,20 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   // Mint as soon as the server says the seam is wired and THIS vendor still has
   // to connect. Not before: minting for a connected vendor arms a nonce nobody
   // will spend.
+  //
+  // THE PROBE IS THE ONE EXCEPTION, and it has to be. The founder's account is
+  // now CONNECTED — tonight's long-press walk completed — so `igNeedsConnect` is
+  // false for exactly the person who has to run the ladder. Without this the
+  // probe would render with no destination and prove nothing. Re-authorising an
+  // already-connected account is idempotent (Instagram shows "you previously
+  // connected…" and Allow simply refreshes), so the probe costs nothing.
   const igNeedsConnect = Boolean(ig && ig.ig_import_enabled && (!ig.connected || ig.connection_state === 'expired'));
+  const igWantsUrl = igNeedsConnect || Boolean(igProbe && ig && ig.ig_import_enabled);
   useEffect(() => {
-    if (!igNeedsConnect) { setIgAuthUrl(null); setIgAuthMintedAt(null); return; }
+    if (!igWantsUrl) { setIgAuthUrl(null); setIgAuthMintedAt(null); return; }
     if (igAuthUrl) return;
     void mintIgAuthUrl();
-  }, [igNeedsConnect, igAuthUrl, mintIgAuthUrl]);
+  }, [igWantsUrl, igAuthUrl, mintIgAuthUrl]);
 
   // THE RETRY PATH, and it is a BUTTON on purpose. It re-mints and does NOT
   // navigate, so the activation window is irrelevant to it — the anchor above is
@@ -490,7 +543,18 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       // TTL while the vendor was elsewhere. Re-mint rather than let the anchor
       // point at a link that will come back "expired" — the failure the vendor
       // would read as the connect being broken a second time.
-      if (igNeedsConnect && igAuthMintedAt !== null && Date.now() - igAuthMintedAt > MINT_REFRESH_MS) {
+      //
+      // IN PROBE MODE THE RE-MINT IS UNCONDITIONAL, and this is load-bearing for
+      // the ladder's VALIDITY rather than its comfort. The state is single-use:
+      // if one shape reaches consent and the founder taps Allow or Cancel, that
+      // nonce is spent or dead, and the NEXT shape would fail on a dead state
+      // while looking exactly like a shape that got intercepted. That would
+      // write a false negative into the record the ladder exists to produce.
+      // Every probe tap therefore departs on a state minted since the last
+      // return, and the fingerprint rendered beside the buttons lets the founder
+      // SEE that it changed rather than take my word for it.
+      if (igProbe && igWantsUrl) { void mintIgAuthUrl(); return; }
+      if (igWantsUrl && igAuthMintedAt !== null && Date.now() - igAuthMintedAt > MINT_REFRESH_MS) {
         void mintIgAuthUrl();
       }
     };
@@ -501,7 +565,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       window.removeEventListener('pageshow', onShow);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [igNeedsConnect, igAuthMintedAt, mintIgAuthUrl, MINT_REFRESH_MS]);
+  }, [igProbe, igWantsUrl, igAuthMintedAt, mintIgAuthUrl, MINT_REFRESH_MS]);
 
   // STABLE across renders — without this every tile's props change on every tap
   // and memo() buys nothing. The functional updater is what makes it stable: no
@@ -948,15 +1012,25 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
                 }}>{COPY.H2}</p>
-                {/* F-07.22 CURE (b) — A REAL LINK, OVER A DESTINATION THAT
-                    ALREADY EXISTS. No onClick, no await, nothing between the
-                    finger and the navigation. The full reasoning lives at
-                    mintIgAuthUrl above; the short version is that iOS suppresses
-                    Universal Links on navigation made inside a user activation
-                    and claims them outside it, and a link tap is the inside case.
+                {/* THE CONNECT CONTROL — a real link over a destination that
+                    already exists. No onClick, no await, nothing between the
+                    finger and the navigation.
+
+                    THIS SHAPE IS SHAPE A, AND SHAPE A IS KNOWN CLAIMED. The
+                    founder's 2026-07-30 walk shows a plain anchor tap being
+                    taken by the Instagram app, which cannot render consent. The
+                    comment that used to sit here asserted the opposite physics
+                    and was wrong; see igOAuth.js's standing header in dream-os.
+
+                    IT STAYS AS IT IS ON PURPOSE. This is the SUBMITTED SURFACE
+                    and it does not move while App Review is open. The ?igprobe=1
+                    ladder below tests the alternatives without touching it, and
+                    the winning shape replaces this one in a later, ruled act.
+
                     When the mint has not landed the control is a BUTTON that
                     re-mints and does not navigate — an honest second state
-                    rather than a hrefless <a>, which would be a dead control. */}
+                    rather than a hrefless anchor, which would be a dead
+                    control. */}
                 {igAuthUrl ? (
                   <a href={igAuthUrl}
                     style={{
@@ -976,6 +1050,14 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
                       color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.H4}</button>
+                )}
+
+                {/* THE iOS FALLBACK — DARK. See H19 and IOS_FALLBACK_ARMED. */}
+                {IOS_FALLBACK_ARMED && (
+                  <p style={{
+                    fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
+                    margin: '12px 0 0', lineHeight: 1.6,
+                  }}>{COPY.H19}</p>
                 )}
               </>
             ) : (
@@ -1011,6 +1093,69 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                     fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute,
                   }}>{COPY.H13}</button>
               </>
+            )}
+
+            {/* ══ THE ?igprobe=1 LADDER — CE-APPROVED, DIAGNOSTIC ONLY ═══════
+                RENDERS ONLY WITH ?igprobe=1 IN THE URL. A vendor, or Meta's
+                reviewer, never sees one byte of this.
+
+                WHY IT EXISTS: the founder's 2026-07-30 walk proved a plain
+                anchor tap is claimed by the Instagram app and long-press → Open
+                in New Tab escapes. Everything between those two facts is
+                unknown, and this estate has now written three confident
+                deviceless physics paragraphs and had all three inverted. So the
+                next sentence gets to be a measurement.
+
+                ONE PRE-MINTED URL, FOUR NAVIGATION SHAPES. The URL is identical
+                across all four — only the FORM of the navigation varies, which
+                is what makes the comparison mean anything. The fingerprint is
+                rendered so the founder can SEE the state change between taps
+                rather than trust that it did.
+
+                THESE STRINGS ARE DIAGNOSTIC, NOT VENDOR-FACING COPY, and carry
+                no veto: they are unreachable without the query parameter and
+                they die with the ladder. */}
+            {igProbe && (
+              <div style={{ marginTop: 28, paddingTop: 20, borderTop: '0.5px dashed rgba(201,168,76,0.35)' }}>
+                <div style={{
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
+                  textTransform: 'uppercase', color: A.brassWarm, marginBottom: 6,
+                }}>Navigation probe</div>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute, margin: '0 0 4px', lineHeight: 1.6 }}>
+                  Tap each in order. Screenshot what you get. Come back to this
+                  page between taps — the link refreshes itself every time.
+                </p>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute, margin: '0 0 14px' }}>
+                  State: <strong>{igAuthUrl ? igAuthUrl.slice(-8) : 'minting…'}</strong>
+                </p>
+
+                {igAuthUrl ? (
+                  <>
+                    {/* A — the control. Known claimed; included so the walk
+                        carries its own baseline instead of relying on memory
+                        of last night. */}
+                    <a href={igAuthUrl} style={PROBE_BTN}>A — plain link</a>
+
+                    {/* B — a new tab. The closest mechanical relative of the
+                        long-press path that is already proven to escape. */}
+                    <a href={igAuthUrl} target="_blank" rel="noopener noreferrer" style={PROBE_BTN}>B — link, new tab</a>
+
+                    {/* C — window.open from inside the tap. */}
+                    <button type="button" style={PROBE_BTN}
+                      onClick={() => { window.open(igAuthUrl, '_blank', 'noopener'); }}>C — window.open</button>
+
+                    {/* D — a bare location assignment with NO await before it.
+                        Never cleanly tested: the only prior instance ran against
+                        the wrong host, so its failure is unattributable between
+                        host and form. */}
+                    <button type="button" style={PROBE_BTN}
+                      onClick={() => { window.location.href = igAuthUrl; }}>D — location.href</button>
+
+                    <button type="button" style={{ ...PROBE_BTN, borderStyle: 'dashed' }}
+                      onClick={() => { void mintIgAuthUrl(); }}>Refresh the link</button>
+                  </>
+                ) : null}
+              </div>
             )}
           </div>
         )}

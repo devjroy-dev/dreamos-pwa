@@ -204,13 +204,24 @@ sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');
     ok(`§5.2.${slot} ${slot} carries a DATED veto, not a bare claim`,
        /VETOED 2026-07-30/.test(line), line.trim().slice(0, 70));
   }
-  // H15/H16/H17 were minted AFTER the 2026-07-30 card, when the founder found
-  // reels and photos indistinguishable. They must not inherit a card that
-  // predates them — the same law that kept the first two cards distinct.
+  // ── LABELED AMENDMENT, 2026-07-30 P4b (counts preserved 3→3) ──────────────
+  // THESE THREE CELLS ASSERTED "marked DRAFT, veto owed" — a SITTING-SCOPED
+  // POSTURE that the founder's 「 ok 」 at P4b's read-first discharged. The
+  // marking changed from owed to granted, which is the outcome the marking
+  // existed to produce; leaving the cells would redden a correct ledger.
+  //
+  // THE DURABLE LAW IS UNMOVED and is what they now assert: every vendor-facing
+  // string carries a DATED veto and none wears a stamp it did not earn. Exactly
+  // the amendment §5.2's own header above made for H5..H14 one sitting earlier —
+  // the same law, the same shape, one card later.
+  //
+  // DISCLOSED: this bench went RED AT ORIGIN between slice 1's push and this
+  // amendment, because slice 1's floor ran the dream-os benches and the new pwa
+  // bench but NOT the pwa's existing P-series. See the P4b probe handover, §3.
   for (const slot of ['H15', 'H16', 'H17']) {
     const line = copyBlock.split('\n').find(l => new RegExp(`^\\s*${slot}:`).test(l)) || '';
-    ok(`§5.2.${slot} ${slot} is marked DRAFT — minted after the card, so it does `
-       + `not inherit it`, /DRAFT — veto owed/.test(line), line.trim().slice(0, 70));
+    ok(`§5.2.${slot} ${slot} carries a DATED veto, not a bare claim`,
+       /VETOED 2026-07-30/.test(line), line.trim().slice(0, 70));
   }
   // THE TWO CARDS STAY DISTINCT. H1/H2/H3/H4/H12 were vetoed 2026-07-29 「 1.ok 」;
   // the nine above on 2026-07-30 「 all ok 」, AFTER shipping as executor drafts.
@@ -240,8 +251,17 @@ ok('§7.3 the handle comes from the SERVER, never from anything the client guess
 {
   const copyBlock = COPY_BLOCK;
   const line = copyBlock.split('\n').find(l => /^\s*H18:/.test(l)) || '';
-  ok('§7.4 H18 is marked DRAFT — minted after the 2026-07-30 card, so it does not '
-     + 'inherit it', /DRAFT — veto owed/.test(line), line.trim().slice(0, 60));
+  // LABELED AMENDMENT, 2026-07-30 P4b (count preserved 1→1) — same ground as
+  // §5.2's above. H18's veto landed with the other three.
+  //
+  // AND THE CELL GAINS THE STRONGER HALF, which is the one that actually
+  // protects the filing: the App Review submission claims this line is visible,
+  // so its PRESENCE is mandatory even though its wording is not. A future
+  // sitting deleting the line is the failure this cell now catches; a future
+  // sitting rewording it is lawful and must not redden.
+  ok('§7.4 H18 carries a DATED veto', /VETOED 2026-07-30/.test(line), line.trim().slice(0, 60));
+  ok('§7.4b H18\'s presence-mandatory constraint is stated in-file',
+     /PRESENCE IS MANDATORY\. WORDING IS NOT\./.test(COPY_BLOCK));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
