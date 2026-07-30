@@ -143,18 +143,36 @@ const COPY = {
   H11: 'Your Instagram connection has expired. Connect again to import more photos.', // VETOED 2026-07-30
   H13: 'Disconnect Instagram',                                  // VETOED 2026-07-30
   H14: 'Instagram disconnected. Your photos stay where they are.', // VETOED 2026-07-30
-  // H15/H16 — the media-type badges. DRAFT, veto owed: they were minted after the
-  // 2026-07-30 card, when the founder found reels and photos indistinguishable in
-  // the picker. Marked honestly rather than folded into the card that predates them.
-  H15: 'Reel',                                                  // DRAFT — veto owed
-  H16: 'Album',                                                 // DRAFT — veto owed
+  // ── THE THIRD COPY CARD — FOUNDER-VETOED 2026-07-30 「 ok 」 (P4b slice 1) ──
+  // H15-H18 were minted AFTER the second card, so they could not inherit it and
+  // shipped as marked executor drafts. The fifteenth chair routed them to the
+  // founder at P4b's read-first ruling and he returned 「 ok 」 on all four. They
+  // are byte-exact as drafted — no wording moved between draft and final, which
+  // is stated so a later reader does not go looking for a diff that isn't there.
+  //
+  // H15/H16 — the media-type badges. The founder found reels and photos
+  // indistinguishable in the picker; a vendor cannot choose well from a grid
+  // they cannot read.
+  H15: 'Reel',                                                  // VETOED 2026-07-30
+  H16: 'Album',                                                 // VETOED 2026-07-30
   // H17 — the reel warning. A reel imports as its COVER FRAME, not as video;
   // saying so before the tap is the difference between a choice and a surprise.
-  H17: 'Reels come in as their cover photo.',                   // DRAFT — veto owed
-  // H18 — the connected-account line. The App Review submission filed 2026-07-30
-  // states in two places that this is visible; it was not, and F-07.24 is the
-  // correction. DRAFT: minted after the 2026-07-30 card, so it does not inherit it.
-  H18: 'Connected as @{handle}',                                // DRAFT — veto owed
+  H17: 'Reels come in as their cover photo.',                   // VETOED 2026-07-30
+  // H18 — the connected-account line.
+  //
+  // ┌─ PRESENCE IS MANDATORY. WORDING IS NOT. (CE-ruled, P4b) ────────────────┐
+  // │ The App Review submission filed 2026-07-30 states in TWO places that the │
+  // │ connected Instagram username is visible to the vendor in this section.   │
+  // │ F-07.24 was filed because it was not, and this line is the correction    │
+  // │ that made the claim true.                                               │
+  // │                                                                         │
+  // │ So these BYTES may be re-authored freely — but the LINE may not be       │
+  // │ removed, hidden, or made conditional on anything beyond the handle       │
+  // │ existing. Deleting it silently re-falsifies a filed claim, and a claim   │
+  // │ read against the surface is exactly how F-07.24 was caught in the first  │
+  // │ place. The lesson now protects us in the other direction.               │
+  // └─────────────────────────────────────────────────────────────────────────┘
+  H18: 'Connected as @{handle}',                                // VETOED 2026-07-30
 } as const;
 
 // ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
@@ -255,6 +273,13 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const [igItems, setIgItems] = useState<IgMediaItem[]>([]);
   const [igPicked, setIgPicked] = useState<string[]>([]);
   const [igBusy, setIgBusy]   = useState<string | null>(null);
+  // ── TDW_07 P4b SLICE 1 · F-07.22, CURE (b) — THE PRE-MINTED AUTHORIZE URL ──
+  // The connect action is an ANCHOR, so its destination must exist BEFORE the
+  // tap. That is the whole cure: see the block comment at igConnectRetry below.
+  // `igAuthMintedAt` is the mint's own clock, kept because the server's state
+  // carries a 10-minute TTL and a tab left open outlives it.
+  const [igAuthUrl, setIgAuthUrl]         = useState<string | null>(null);
+  const [igAuthMintedAt, setIgAuthMintedAt] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const tileRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastCommitted = useRef<string>('');
@@ -347,21 +372,136 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
     if (outcome === 'connected')      { show(COPY.H8); loadIg(); }
     else if (outcome === 'cancelled') { show(COPY.H3); }
     else                              { show(COPY.H10); }
+    // THE EXPLICIT RESET — the second half of the stuck-button cure. A flow that
+    // came back has ended, whatever it ended as, so the connect control re-arms
+    // here by statement rather than by hoping the document was rebuilt. Scoped
+    // to 'connect' for the reason given at the pageshow handler below.
+    setIgBusy(b => (b === 'connect' ? null : b));
     window.history.replaceState({}, '', window.location.pathname);
   }, [loadIg, show]);
 
-  // The connect handshake. The URL is built by the SERVER because it carries the
-  // signed, single-use, vendor-bound state — a state a browser minted would be a
-  // state an attacker can mint.
-  async function igConnect() {
-    setIgBusy('connect');
+  // ══ TDW_07 P4b SLICE 1 · F-07.22 — THE CONNECT NAVIGATION, CURE (b) ═══════
+  //
+  // THE DISEASE, AS THE EVIDENCE LEFT IT. On the founder's iPhone the connect
+  // tap reached Instagram and the Instagram APP claimed the navigation, landing
+  // him on a blank error instead of the consent screen. Two on-device
+  // experiments killed the two obvious theories: the Safari-session theory
+  // NEGATIVE, the native-consent theory NEGATIVE. What was left isolated was the
+  // NAVIGATION FORM itself.
+  //
+  // WHAT THE OLD CODE DID, AND WHY IT WAS THE AMBIGUOUS THIRD THING. It was an
+  // async handler that AWAITED /ig/authorize and THEN assigned
+  // `window.location.href`. The await spends the tap's transient activation
+  // before the navigation happens — so what reached iOS was neither a clean
+  // user-initiated navigation nor a server redirect, but a script-initiated one
+  // arriving after the user's gesture had lapsed. iOS suppresses Universal Links
+  // on navigation made WITHIN a user activation and claims them otherwise, so
+  // the old shape sat on exactly the wrong side of that line.
+  //
+  // F-07.7 IS THE SAME PHYSICS, ALREADY FILED, ON A DIFFERENT SITE: the IG chip's
+  // web fallback fires inside a 300ms timer, outside the tap's transient
+  // activation, and gets a popup prompt for it. This estate had already paid for
+  // this lesson once and did not recognise it here.
+  //
+  // THE CURE (CE-ruled (b), with (c)'s insight absorbed): the destination is
+  // minted BEFORE render, and the control is a real <a href>. A link tap is the
+  // most user-initiated navigation iOS recognises — the one form every piece of
+  // evidence says gets suppressed rather than claimed. There is no `await`
+  // anywhere between the vendor's finger and the navigation, because there is no
+  // handler at all.
+  //
+  // (a) — a server 302 from a start route — WAS REFUSED, and the reason is
+  // recorded because it is the trap: that is the exact hop F-07.23's cure
+  // DELETED. Rebuilding it would have re-armed the interception point on
+  // purpose. See src/lib/vendor/igOAuth.js's header in dream-os.
+  //
+  // STATED AS A HYPOTHESIS, NOT A CURE. If the founder's one-tap retest still
+  // fails, navigation form is cleanly eliminated as a variable and that is a
+  // FINDING, not a failure — the next discriminant gets ruled then. This comment
+  // is amended in that case rather than left standing.
+  //
+  // MANUAL UPLOAD REMAINS THE PERMANENT FALLBACK (the addendum's law, and H3
+  // says so above this control on screen). Nothing here assumes a Safari session
+  // or a completed flow.
+  //
+  // THE ONE HAZARD, NAMED RATHER THAN DISCOVERED: /ig/authorize ARMS a nonce
+  // server-side, and each mint overwrites the last. So exactly one state is live
+  // per vendor at a time, and re-minting while a flow is in flight would make
+  // the returning callback look like a replay. The re-mint below therefore fires
+  // only when the tab is VISIBLE — a vendor sitting on Instagram's consent
+  // screen has this tab hidden, so their armed state is never pulled out from
+  // under them.
+  const MINT_REFRESH_MS = 8 * 60 * 1000; // server TTL is 10 min; 2 min of headroom.
+
+  const mintIgAuthUrl = useCallback(async () => {
     try {
       const res = await fetchIgAuthorizeUrl();
       const url = (res as { authorize_url?: string })?.authorize_url;
-      if (!url) { show(COPY.H10); setIgBusy(null); return; }
-      window.location.href = url;
-    } catch { show(COPY.H10); setIgBusy(null); }
+      if (!url) { setIgAuthUrl(null); return false; }
+      setIgAuthUrl(url);
+      setIgAuthMintedAt(Date.now());
+      return true;
+    } catch { setIgAuthUrl(null); return false; }
+  }, []);
+
+  // Mint as soon as the server says the seam is wired and THIS vendor still has
+  // to connect. Not before: minting for a connected vendor arms a nonce nobody
+  // will spend.
+  const igNeedsConnect = Boolean(ig && ig.ig_import_enabled && (!ig.connected || ig.connection_state === 'expired'));
+  useEffect(() => {
+    if (!igNeedsConnect) { setIgAuthUrl(null); setIgAuthMintedAt(null); return; }
+    if (igAuthUrl) return;
+    void mintIgAuthUrl();
+  }, [igNeedsConnect, igAuthUrl, mintIgAuthUrl]);
+
+  // THE RETRY PATH, and it is a BUTTON on purpose. It re-mints and does NOT
+  // navigate, so the activation window is irrelevant to it — the anchor above is
+  // still the only thing that ever navigates. Rendering a dead <a> with no href
+  // instead would be F-07.13's dead control wearing a link's clothes.
+  async function igConnectRetry() {
+    setIgBusy('connect');
+    const got = await mintIgAuthUrl();
+    if (!got) show(COPY.H10);
+    setIgBusy(null);
   }
+
+  // ══ THE STUCK-MUTED CONNECT BUTTON — FOUNDER-FOUND, CURED HERE ════════════
+  //
+  // THE DISEASE. The connect control sets `igBusy` and never clears it, which is
+  // correct while the document is unloading and wrong the moment it is not. iOS
+  // restores this page from the back-forward cache with React state INTACT — so
+  // a vendor who opens Instagram and swipes back comes home to a control muted
+  // at 0.4 opacity with no way to re-arm it but a hard reload. The flow was
+  // abandoned; the button believed it was still in flight.
+  //
+  // WHY THE RESET IS SCOPED TO 'connect' AND NOT A BLANKET setIgBusy(null).
+  // `igBusy` also guards the picker, the import and the disconnect — and those
+  // are IN-PAGE async operations that clear themselves. Blanket-clearing on a
+  // visibility change would re-arm the import button while an import was still
+  // in flight, which buys a stuck button by trading it for a double import.
+  // 'connect' is the only value that survives a navigation by design, so it is
+  // the only value with any business being reset here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const rearm = () => setIgBusy(b => (b === 'connect' ? null : b));
+    const onShow = () => {
+      rearm();
+      // A restored page's minted state may have aged past the server's 10-minute
+      // TTL while the vendor was elsewhere. Re-mint rather than let the anchor
+      // point at a link that will come back "expired" — the failure the vendor
+      // would read as the connect being broken a second time.
+      if (igNeedsConnect && igAuthMintedAt !== null && Date.now() - igAuthMintedAt > MINT_REFRESH_MS) {
+        void mintIgAuthUrl();
+      }
+    };
+    const onVis = () => { if (document.visibilityState === 'visible') onShow(); };
+    window.addEventListener('pageshow', onShow);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('pageshow', onShow);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [igNeedsConnect, igAuthMintedAt, mintIgAuthUrl, MINT_REFRESH_MS]);
 
   // STABLE across renders — without this every tile's props change on every tap
   // and memo() buys nothing. The functional updater is what makes it stable: no
@@ -808,14 +948,35 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
                 }}>{COPY.H2}</p>
-                <button type="button" disabled={igBusy !== null} onClick={igConnect}
-                  style={{
-                    width: '100%', padding: '13px 0', background: 'transparent',
-                    border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
-                    cursor: igBusy ? 'default' : 'pointer', opacity: igBusy ? 0.4 : 1,
-                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                    color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
-                  }}>{COPY.H4}</button>
+                {/* F-07.22 CURE (b) — A REAL LINK, OVER A DESTINATION THAT
+                    ALREADY EXISTS. No onClick, no await, nothing between the
+                    finger and the navigation. The full reasoning lives at
+                    mintIgAuthUrl above; the short version is that iOS suppresses
+                    Universal Links on navigation made inside a user activation
+                    and claims them outside it, and a link tap is the inside case.
+                    When the mint has not landed the control is a BUTTON that
+                    re-mints and does not navigate — an honest second state
+                    rather than a hrefless <a>, which would be a dead control. */}
+                {igAuthUrl ? (
+                  <a href={igAuthUrl}
+                    style={{
+                      display: 'block', width: '100%', padding: '13px 0', boxSizing: 'border-box',
+                      background: 'transparent', textAlign: 'center', textDecoration: 'none',
+                      border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                      cursor: 'pointer',
+                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                    }}>{COPY.H4}</a>
+                ) : (
+                  <button type="button" disabled={igBusy !== null} onClick={igConnectRetry}
+                    style={{
+                      width: '100%', padding: '13px 0', background: 'transparent',
+                      border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                      cursor: igBusy ? 'default' : 'pointer', opacity: igBusy ? 0.4 : 1,
+                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                    }}>{COPY.H4}</button>
+                )}
               </>
             ) : (
               <>
