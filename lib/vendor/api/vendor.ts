@@ -913,6 +913,10 @@ export type IgStatus = {
   ig_import_enabled: boolean;
   connected: boolean;
   connection_state?: 'none' | 'live' | 'expired';
+  // F-07.24 — the vendor's own public handle, so the surface can show WHICH
+  // account is linked. Nullable: a failed profile read leaves a working
+  // connection with no display name rather than no connection.
+  ig_username?: string | null;
   connected_at?: string | null;
   expires_at?: string | null;
 };

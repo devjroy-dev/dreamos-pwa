@@ -224,6 +224,27 @@ sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+sec('§7 · F-07.24 — THE CLAIM THE SUBMISSION MADE, MADE TRUE');
+
+// The App Review submission filed 2026-07-30 states, twice, that the connected
+// Instagram username is shown in the "Import from Instagram" section. IT WAS NOT.
+// The executor wrote that from Meta's screencast requirement without checking the
+// surface, and the founder submitted it in good faith. These cells are the
+// correction, and they exist so the claim cannot silently become false again.
+ok('§7.1 the connected handle renders in the Import section',
+   /COPY\.H18\.replace\('\{handle\}', ig\.ig_username\)/.test(M));
+ok('§7.2 …only when the server actually has one — a failed profile read omits the '
+   + 'line rather than printing an empty @', /\{ig\.ig_username && \(/.test(M));
+ok('§7.3 the handle comes from the SERVER, never from anything the client guesses',
+   /ig_username\?: string \| null;/.test(C));
+{
+  const copyBlock = COPY_BLOCK;
+  const line = copyBlock.split('\n').find(l => /^\s*H18:/.test(l)) || '';
+  ok('§7.4 H18 is marked DRAFT — minted after the 2026-07-30 card, so it does not '
+     + 'inherit it', /DRAFT — veto owed/.test(line), line.trim().slice(0, 60));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 sec('§6 · HOUSE LAWS');
 
 ok('§6.1 no localStorage anywhere in the manager', !/localStorage/.test(M));
@@ -246,6 +267,7 @@ console.log('    V-5  manager   picked urls collected into a Set (order lost)  �
 console.log('    V-6  manager   a vetoed slot loses its DATE                    ⇒ §5.2 RED');
 console.log('    V-7  manager   the client builds its own authorize URL        ⇒ §3.2 RED');
 console.log('    V-8  manager   partial failure flattened to a success         ⇒ §4.6 RED');
+console.log('    V-16 manager   the handle line rendered unconditionally       ⇒ §7.2 RED');
 console.log('    V-13 manager   the action moved back inside the scroller      ⇒ §4.17 RED');
 console.log('    V-14 manager   the selection scrim removed                    ⇒ §4.18 RED');
 console.log('─'.repeat(72));

@@ -151,6 +151,10 @@ const COPY = {
   // H17 — the reel warning. A reel imports as its COVER FRAME, not as video;
   // saying so before the tap is the difference between a choice and a surprise.
   H17: 'Reels come in as their cover photo.',                   // DRAFT — veto owed
+  // H18 — the connected-account line. The App Review submission filed 2026-07-30
+  // states in two places that this is visible; it was not, and F-07.24 is the
+  // correction. DRAFT: minted after the 2026-07-30 card, so it does not inherit it.
+  H18: 'Connected as @{handle}',                                // DRAFT — veto owed
 } as const;
 
 // ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
@@ -815,6 +819,18 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               </>
             ) : (
               <>
+                {/* F-07.24 — WHICH ACCOUNT IS LINKED. A vendor about to copy
+                    photographs into their public storefront should be able to
+                    read the handle without leaving the page. Rendered only when
+                    the server has one: a failed profile read omits the line
+                    rather than printing an empty @. */}
+                {ig.ig_username && (
+                  <p style={{
+                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                    letterSpacing: '0.18em', textTransform: 'uppercase',
+                    color: A.brassWarm, margin: '0 0 10px',
+                  }}>{COPY.H18.replace('{handle}', ig.ig_username)}</p>
+                )}
                 <p style={{
                   fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
