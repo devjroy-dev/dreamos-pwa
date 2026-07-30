@@ -37,6 +37,7 @@ import {
   deletePortfolioImage, updatePortfolioImage, reorderPortfolio, fetchDiscoverStatus,
 } from '@/lib/vendor/api/vendor';
 import { imgUrl, lqipUrl } from '@/lib/vendor/img';
+import { moveIndex, canMove } from '@/lib/vendor/reorder';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 
 // Restored per CE §0.2 ruling (a). These tabs exist on the live surface and a
@@ -93,6 +94,11 @@ const COPY = {
   // G3 — the filter/drag interlock line. Founder-vetoed byte-exact 2026-07-29.
   // Rendered ONLY while a non-`all` filter is active; never otherwise.
   G3: 'Switch to All to reorder — filters show only some of your photos.',
+  // G4/G5 — Cure B's gestureless reorder. CHAIR-WORDED, FOUNDER VETO OUTSTANDING
+  // (the ruling named the bytes; it did not route them through the founder's card).
+  // These are the only two vendor-facing strings in this sitting not yet vetoed.
+  G4: 'Move up',
+  G5: 'Move down',
   G2: 'Order saved',
   // H1/H2/H3/H12 are FOUNDER-VETOED AND PARKED, not rendered this sitting (CE §B).
   // They are kept here so the action sitting inherits an executed veto instead of
@@ -145,6 +151,28 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   // A completed drag must not also open the sheet. dragId is already null by the
   // time click fires, so the click needs its own suppression flag.
   const didDrag    = useRef(false);
+  // CURE A's mirror: a native listener registered once cannot read React state,
+  // so the armed flag lives in a ref the listener can consult on every touchmove.
+  const dragIdRef  = useRef<string | null>(null);
+  const scrollRef  = useRef<HTMLDivElement | null>(null);
+  // ── CURE A (CE-ruled, third and final shape) ──────────────────────────────
+  // `touch-action` is read when the BROWSER CLASSIFIES the gesture — at finger-
+  // down. Any placement of that property conditioned on `dragId` is therefore
+  // late by construction: container, tile, anywhere. I made that error twice.
+  // This listener does not depend on the property at all. Registered once with
+  // { passive: false } — the default for touchmove is passive, and a passive
+  // listener's preventDefault() is IGNORED, which is the whole reason this must
+  // be a native registration rather than a React onTouchMove prop. While a drag
+  // is armed it cancels the scroll outright, so the browser never steals the
+  // gesture and `pointercancel` never fires mid-drag.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const block = (e: TouchEvent) => { if (dragIdRef.current) e.preventDefault(); };
+    el.addEventListener('touchmove', block, { passive: false });
+    return () => el.removeEventListener('touchmove', block);
+  }, []);
+
   const clearPress = () => { if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; } pressAt.current = null; };
   useEffect(() => () => clearPress(), []);
 
@@ -229,14 +257,33 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
     finally { setUploading(false); setProgress(COPY.B1); }
   }
 
-  async function commitOrder(next: PortfolioImage[]) {
+  async function commitOrder(next: PortfolioImage[]): Promise<PortfolioImage[] | null> {
     const ids = next.map(i => i.id);
-    if (ids.join(',') === lastCommitted.current) return;
+    if (ids.join(',') === lastCommitted.current) return null;
     const res = await reorderPortfolio(ids);
-    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed.', 'error'); load(); return; }
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed.', 'error'); load(); return null; }
     setImages(res.images);
     lastCommitted.current = res.images.map(i => i.id).join(',');
     show(COPY.G2, 'success');
+    return res.images;
+  }
+
+  // ── CURE B (CE-ruled): REORDER WITHOUT A GESTURE ──────────────────────────
+  // The doctrine this sitting minted: when an interaction cannot be witnessed
+  // from the build container, the surface ships a deterministic equivalent that
+  // CAN be proven by cells, and the gesture is the enhancement on top — never
+  // the only path. These two buttons are that equivalent. They are keyboard- and
+  // screen-reader-reachable by construction, which is worth having on its own
+  // merits. Move-to-front is NOT a third control: under the one-hand law
+  // position 0 ⟺ cover, so "make it first" IS E2's existing cover action, and a
+  // second set of words for one act would be two authorities in copy form.
+  // Gated on canReorder for the same mechanical reason the drag is: a filtered
+  // view holds a subset, and the server fail-closes on an incomplete id list.
+  async function moveBy(imageId: string, delta: -1 | 1) {
+    const from = images.findIndex(i => i.id === imageId);
+    if (!canMove(images.length, from, delta)) return;
+    const fresh = await commitOrder(moveIndex(images, from, delta));
+    if (fresh) setSel(fresh.find(i => i.id === imageId) ?? null);
   }
 
   // ── POINTER DRAG (spec §6: "pointer events portable to Gesture Handler") ────
@@ -253,10 +300,13 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
     const pid = e.pointerId;
     pressTimer.current = setTimeout(() => {
       pressTimer.current = null;
-      didDrag.current = true;
+      // didDrag is NOT set here. A long-press that goes nowhere must still open
+      // the sheet on release rather than dying silently; only real movement
+      // makes this a drag. Set on first move, below.
       // Capture the pointer at the moment of arming so the rest of the gesture
       // belongs to this tile even if the finger leaves its box.
       try { el.setPointerCapture(pid); } catch { /* not fatal */ }
+      dragIdRef.current = id;
       setDragId(id);
     }, 350);
   }
@@ -270,6 +320,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       if (dx > 8 || dy > 8) clearPress();
     }
     if (!dragId || !canReorder) return;
+    didDrag.current = true;   // real movement while armed — this is a drag
     const over = images.find(img => {
       const el = tileRefs.current[img.id];
       if (!el) return false;
@@ -289,6 +340,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   function onPointerUp() {
     clearPress();
     if (!dragId) return;
+    dragIdRef.current = null;
     setDragId(null);
     commitOrder(images);
   }
@@ -399,6 +451,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       </div>
 
       <div
+        ref={scrollRef}
         style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 16px 32px', touchAction: dragId ? 'none' : 'auto' }}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -555,6 +608,28 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
                 color: A.brassWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Save caption</button>
+
+            {/* CURE B — the deterministic path. Disabled at the ends rather than
+                hidden, so the control's shape never shifts under the thumb. */}
+            {canReorder && images.length > 1 && !confirming && (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                {([['up', -1], ['down', 1]] as const).map(([dir, delta]) => {
+                  const idx  = images.findIndex(i => i.id === sel.id);
+                  const dead = !canMove(images.length, idx, delta);
+                  return (
+                    <button key={dir} type="button" disabled={dead}
+                      onClick={() => moveBy(sel.id, delta)}
+                      style={{
+                        flex: 1, padding: '11px 0', background: 'transparent',
+                        border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                        cursor: dead ? 'default' : 'pointer', opacity: dead ? 0.35 : 1,
+                        fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                        color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                      }}>{delta === -1 ? COPY.G4 : COPY.G5}</button>
+                  );
+                })}
+              </div>
+            )}
 
             {!confirming ? (
               <div style={{ display: 'flex', gap: 8 }}>

@@ -31,6 +31,7 @@ const CANVAS   = 'app/(frost)/frost/canvas/discover/page.tsx';
 
 const { imgUrl, lqipUrl, isTransformable, IMG_VARIANTS, IMG_LQIP } =
   await import(path.join(ROOT, IMG));
+const { moveIndex, canMove } = await import(path.join(ROOT, 'lib/vendor/reorder.ts'));
 
 sec('§1 · THE ONE IMG MODULE (Fork 5(b))');
 ok('§1.1 the variant table holds exactly card/thumb/full',
@@ -109,6 +110,56 @@ sec('§5 · THE CAP AND THE GATE COME FROM THE SERVER');
     !/\{COPY\.H1\}/.test(m) && !/\{COPY\.H2\}/.test(m) && !/\{COPY\.H3\}/.test(m) && !/\{COPY\.H12\}/.test(m));
   ok('§5.6 and the pwa does not read ig_import_enabled at all', !/ig_import_enabled/.test(m));
   ok('§5.5 F-07.13 — in_carousel is surfaced NOWHERE on this screen', !/in_carousel/.test(m));
+}
+
+sec('§12 · CURE B — GESTURELESS REORDER, PROVEN END-TO-END');
+{
+  // The ordering arithmetic is a PURE function precisely so it can be executed
+  // here rather than shape-asserted. This is the doctrine's provable half.
+  const L = ['a', 'b', 'c', 'd'];
+  ok('§12.1 move down swaps with the next', moveIndex(L, 1, 1).join('') === 'acbd');
+  ok('§12.2 move up swaps with the previous', moveIndex(L, 2, -1).join('') === 'acbd');
+  ok('§12.3 moving the last item down is a NO-OP, input unchanged', moveIndex(L, 3, 1) === L);
+  ok('§12.4 moving the first item up is a NO-OP, input unchanged', moveIndex(L, 0, -1) === L);
+  ok('§12.5 an out-of-range index is refused', moveIndex(L, 9, -1) === L && moveIndex(L, -1, 1) === L);
+  ok('§12.6 the source array is never mutated', (() => { const c = L.slice(); moveIndex(c, 1, 1); return c.join('') === 'abcd'; })());
+  ok('§12.7 every legal move is a PERMUTATION — no loss, no duplication', (() => {
+    for (let i = 0; i < L.length; i++) for (const d of [-1, 1]) {
+      const r = moveIndex(L, i, d);
+      if (r.length !== L.length) return false;
+      if ([...r].sort().join('') !== [...L].sort().join('')) return false;
+    } return true;
+  })());
+  ok('§12.8 moving to index 0 makes that item the COVER — the one-hand law holds',
+    moveIndex(L, 1, -1)[0] === 'b');
+  ok('§12.9 canMove is false at both ends and true in the middle',
+    !canMove(4, 0, -1) && !canMove(4, 3, 1) && canMove(4, 1, -1) && canMove(4, 1, 1));
+  ok('§12.10 canMove refuses an empty list', !canMove(0, 0, 1) && !canMove(0, 0, -1));
+
+  const m = code(MANAGER);
+  ok('§12.11 the manager uses the proven function, holding no arithmetic of its own',
+    /moveIndex\(images, from, delta\)/.test(m) && !/nextIds\.splice/.test(m));
+  ok('§12.12 the buttons\' disabled state comes from the SAME predicate as the guard',
+    (m.match(/canMove\(/g) || []).length >= 2);
+  ok('§12.13 both directions render', /COPY\.G4/.test(m) && /COPY\.G5/.test(m));
+  ok('§12.14 B is interlocked with the filter for the same reason the drag is',
+    /canReorder && images\.length > 1 && !confirming/.test(m));
+  ok('§12.15 the sheet follows the moved photo rather than going stale',
+    /setSel\(fresh\.find\(i => i\.id === imageId\)/.test(m));
+}
+
+sec('§13 · CURE A — THE NATIVE LISTENER (MECHANISM ONLY; AFFORDANCE IS THE WALK)');
+{
+  const m = code(MANAGER);
+  ok('§13.1 the listener is NATIVE and NON-PASSIVE — a passive preventDefault is ignored',
+    /addEventListener\('touchmove', block, \{ passive: false \}\)/.test(m));
+  ok('§13.2 it cancels the scroll ONLY while a drag is armed',
+    /const block = \(e: TouchEvent\) => \{ if \(dragIdRef\.current\) e\.preventDefault\(\); \}/.test(m));
+  ok('§13.3 the armed flag lives in a REF — a listener registered once cannot read state',
+    /dragIdRef\.current = id;/.test(m) && /dragIdRef\.current = null;/.test(m));
+  ok('§13.4 the listener is removed on unmount', /removeEventListener\('touchmove', block\)/.test(m));
+  ok('§13.5 didDrag is set on MOVEMENT, not at arm — a still long-press opens the sheet',
+    /didDrag\.current = true;   \/\/ real movement while armed/.test(raw(MANAGER)));
 }
 
 sec('§10 · F-1 — THE DRAG\'S TOUCH DEFENCES (MECHANISM CELLS ONLY)');
