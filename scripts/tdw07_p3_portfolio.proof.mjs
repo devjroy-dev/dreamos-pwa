@@ -106,9 +106,21 @@ sec('§5 · THE CAP AND THE GATE COME FROM THE SERVER');
   // CE §B TIGHTENED: nothing IG renders this sitting, and the pwa must not even
   // read the config flag — a founder setting env vars early must not conjure an
   // entry whose action does not exist. These cells guard the ABSENCE.
-  ok('§5.4 no IG entry renders — not H1, not an explainer, not a connect',
-    !/\{COPY\.H1\}/.test(m) && !/\{COPY\.H2\}/.test(m) && !/\{COPY\.H3\}/.test(m) && !/\{COPY\.H12\}/.test(m));
-  ok('§5.6 and the pwa does not read ig_import_enabled at all', !/ig_import_enabled/.test(m));
+  // ── §5.4 / §5.6 · LABELED AMENDMENTS, TDW_07 P4a (counts preserved 1→1) ──
+  // BOTH CELLS ASSERTED A SITTING-SCOPED POSTURE — "the IG entry is dark this
+  // sitting" — and P4a is the sitting chartered to end it. Deleting them would
+  // drop the property they protected; leaving them would redden a correct build.
+  // Re-scoped to the DURABLE law, which has not changed: the entry may never
+  // render on configuration alone (F-07.13's dead control). P3 satisfied that by
+  // rendering nothing at all; P4a satisfies it by rendering behind the SERVER's
+  // combined answer. Same class as F-07.5's "0101 stays unreserved" cells,
+  // re-scoped per the M0_RANGE precedent.
+  // TITLES RE-AUTHORED: a green cell under a false title is a small hollow green.
+  ok('§5.4 the IG entry renders ONLY behind the server\'s word — never on '
+     + 'configuration alone (F-07.13\'s dead control, the durable law)',
+    /\{ig && ig\.ig_import_enabled && \(/.test(m));
+  ok('§5.6 the pwa holds NO opinion about whether the seam is wired — it asks '
+     + '/ig/status and obeys', /fetchIgStatus\(\)/.test(m) && !/IG_APP_ID|IG_REDIRECT_URI/.test(m));
   ok('§5.5 F-07.13 — in_carousel is surfaced NOWHERE on this screen', !/in_carousel/.test(m));
 }
 
@@ -250,8 +262,17 @@ sec('§6 · THE VETOED COPY, BYTE-EXACT (founder 2026-07-29 「 1.ok 」)');
   for (const [id, s] of Object.entries(slots)) ok(`§6.${id} verbatim`, m.includes(s), s.slice(0, 40));
   // The vetoed IG bytes are PARKED, not rendered (CE §B). The veto record is
   // preserved by their presence in COPY; the action sitting inherits it executed.
-  ok('§6.H-parked — the four vetoed IG strings are held in COPY, unrendered',
-    ['H1:', 'H2:', 'H3:', 'H12:'].every(k => m.includes(k)) && !/\{COPY\.H\d/.test(m));
+  // ── §6.H-parked · LABELED AMENDMENT, TDW_07 P4a (count preserved 1→1) ────
+  // WAS: the four vetoed IG strings are held in COPY and NOT rendered.
+  // P4a renders them, which is what the parking was FOR — P3 parked them so the
+  // action sitting would inherit an executed veto rather than re-run the
+  // founder's card. The durable property is that the bytes are unchanged, so
+  // that is what this now asserts: the founder's 2026-07-29 words reach the
+  // screen verbatim, not an executor's paraphrase of them.
+  ok('§6.H-rendered — the founder-vetoed IG strings reach the screen VERBATIM, '
+     + 'which is what P3 parked them for',
+    ['H1:', 'H2:', 'H3:', 'H4:', 'H12:'].every(k => m.includes(k))
+      && /\{COPY\.H1\}/.test(m) && /\{COPY\.H3\}/.test(m) && /\{COPY\.H4\}/.test(m));
   ok('§6.A1 interpolates the SERVER cap rather than minting a second 20',
     /\$\{n\} of \$\{max\} photos/.test(m));
 }
@@ -284,7 +305,7 @@ console.log('    W-2  lib/img.ts       isTransformable drops the ^v\\d+$   ⇒ �
 console.log('    W-3  lib/vendor/img.ts re-declares its own w_800 table    ⇒ §1.6/§1.7 RED');
 console.log('    W-4  manager          COVER badge keyed on img.is_hero    ⇒ §4.3 RED');
 console.log('    W-5  manager          the cap literal 20 hard-coded       ⇒ §5.2 RED');
-console.log('    W-6  manager          the igEnabled gate removed          ⇒ §5.4 RED');
+console.log('    W-6  manager          the igEnabled gate removed          ⇒ §5.4 RED  [P4a labeled amendment]');
 console.log('    W-7  manager          H3 moved below H2                   ⇒ §6.H3-position RED');
 console.log('    W-8  canvas           second img layer loses pointerEvents⇒ §7.1 RED');
 console.log('─'.repeat(72));

@@ -35,7 +35,9 @@ import { useToast } from '@/hooks/vendor/useToast';
 import {
   fetchPortfolio, fetchUploadUrl, registerPortfolioImage, setHeroImage,
   deletePortfolioImage, updatePortfolioImage, reorderPortfolio, fetchDiscoverStatus,
+  fetchIgStatus, fetchIgAuthorizeUrl, fetchIgMedia, importIgPhotos, disconnectIg,
 } from '@/lib/vendor/api/vendor';
+import type { IgStatus, IgMediaItem } from '@/lib/vendor/api/vendor';
 import { imgUrl, lqipUrl } from '@/lib/vendor/img';
 import { moveIndex, canMove } from '@/lib/vendor/reorder';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
@@ -112,6 +114,30 @@ const COPY = {
   H3: 'Instagram is just the quicker way. Uploading from your phone works exactly the same, always.',
   H4: 'Connect Instagram',
   H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
+
+  // ── TDW_07 P4a · SLOTS WITHOUT SURVIVING BYTES — VETO OWED, NOT CLAIMED ───
+  // The CE addendum states H5-H11 carry an executed veto and only the CODE is
+  // absent. DERIVED AT THE REPO, THAT IS NOT SO: the BYTES of H5, H6, H7, H9 and
+  // H11 exist nowhere in either repository. Two fragments survive in prose and
+  // are reconstructed below with their sources; the rest are EXECUTOR DRAFTS.
+  //
+  // They are marked so nobody mistakes a draft for a founder's word. Shipping
+  // invented copy under a veto stamp would be the costume class applied to the
+  // copy ledger — a string claiming an authority it does not have. Filed F-07.21.
+  //
+  // RECONSTRUCTED (fragment survives, full sentence is the executor's):
+  //   H8  — FINDINGS_LOG:3183 records H8 "keeps 'live on Discover now'".
+  //   H10 — quoted verbatim inside the P3 render-site comment at :540.
+  H8:  'Imported photos are live on Discover now.',            // RECONSTRUCTED — veto owed
+  H10: "We couldn't reach Instagram just now.",                // RECONSTRUCTED — verbatim fragment
+  // DRAFTS — the executor's words, awaiting the founder's card:
+  H5:  'Choose your photos',                                    // DRAFT — veto owed
+  H6:  'Selected {n} of {r}',                                   // DRAFT — veto owed
+  H7:  'Add {n} to my portfolio',                               // DRAFT — veto owed
+  H9:  '{n} added. {f} could not be copied — you can upload those from your phone.', // DRAFT — veto owed
+  H11: 'Your Instagram connection has expired. Connect again to import more photos.', // DRAFT — veto owed
+  H13: 'Disconnect Instagram',                                  // DRAFT — veto owed
+  H14: 'Instagram disconnected. Your photos stay where they are.', // DRAFT — veto owed
 } as const;
 
 export default function PortfolioPage() {
@@ -136,6 +162,14 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const [maxImages, setMaxImages] = useState<number | null>(null);
   const [dragId, setDragId]   = useState<string | null>(null);
   const [filter, setFilter]   = useState<string>('all');
+  // TDW_07 P4a — the IG action's state. `ig` is null until the server answers,
+  // and the block renders on nothing until then: an entry that appears and then
+  // corrects itself is a flicker the vendor reads as a bug.
+  const [ig, setIg]           = useState<IgStatus | null>(null);
+  const [igPicker, setIgPicker] = useState(false);
+  const [igItems, setIgItems] = useState<IgMediaItem[]>([]);
+  const [igPicked, setIgPicked] = useState<string[]>([]);
+  const [igBusy, setIgBusy]   = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const tileRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastCommitted = useRef<string>('');
@@ -195,10 +229,97 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       if (!res || !(res as { ok?: boolean }).ok) return;
       const s = res as { max_portfolio_images?: number };
       if (typeof s.max_portfolio_images === 'number') setMaxImages(s.max_portfolio_images);
-      // ig_import_enabled is NOT read here, by ruling (CE §B). See the note at the
-      // IG render site: the block binds to the action, not to configuration.
+      // ig_import_enabled travels on this status too, but the IG block does NOT
+      // read it from here — it reads /ig/status, which answers the two questions
+      // together (is the seam wired AND is THIS vendor connected). One door, one
+      // answer; two sources would let the screen render a half-truth.
     }).catch(() => { /* the manager works without the status; the server still enforces */ });
   }, []);
+
+  // ── TDW_07 P4a · THE IG STATUS ────────────────────────────────────────────
+  // P3's binding rule, now satisfiable: render the block when THE ACTION EXISTS
+  // (it does, from this sitting) AND the server reports the seam configured.
+  // Never on configuration alone — that was F-07.13's dead control.
+  const loadIg = useCallback(() => {
+    fetchIgStatus().then(res => {
+      if (!res || !(res as { ok?: boolean }).ok) return;
+      setIg(res as IgStatus);
+    }).catch(() => { /* absence is the safe state: the block simply does not render */ });
+  }, []);
+  useEffect(() => { loadIg(); }, [loadIg]);
+
+  // ── THE RETURN FROM INSTAGRAM ─────────────────────────────────────────────
+  // /ig/callback hands the browser back here with ?ig=… . Every outcome gets a
+  // WORD, including cancellation — a vendor who taps Cancel on Instagram's own
+  // consent screen made a choice, and a screen that says nothing leaves them
+  // wondering whether it broke. The query is stripped afterwards so a refresh
+  // does not replay a stale toast.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search);
+    const outcome = q.get('ig');
+    if (!outcome) return;
+    if (outcome === 'connected')      { show(COPY.H8); loadIg(); }
+    else if (outcome === 'cancelled') { show(COPY.H3); }
+    else                              { show(COPY.H10); }
+    window.history.replaceState({}, '', window.location.pathname);
+  }, [loadIg, show]);
+
+  // The connect handshake. The URL is built by the SERVER because it carries the
+  // signed, single-use, vendor-bound state — a state a browser minted would be a
+  // state an attacker can mint.
+  async function igConnect() {
+    setIgBusy('connect');
+    try {
+      const res = await fetchIgAuthorizeUrl();
+      const url = (res as { authorize_url?: string })?.authorize_url;
+      if (!url) { show(COPY.H10); setIgBusy(null); return; }
+      window.location.href = url;
+    } catch { show(COPY.H10); setIgBusy(null); }
+  }
+
+  async function igOpenPicker() {
+    setIgBusy('media');
+    try {
+      const res = await fetchIgMedia();
+      if (!res || !(res as { ok?: boolean }).ok) { show(COPY.H10); setIgBusy(null); return; }
+      setIgItems((res as { items: IgMediaItem[] }).items || []);
+      setIgPicked([]);
+      setIgPicker(true);
+    } catch { show(COPY.H10); }
+    setIgBusy(null);
+  }
+
+  async function igImport() {
+    if (igPicked.length === 0) return;
+    setIgBusy('import');
+    try {
+      const res = await importIgPhotos(igPicked);
+      const r = res as { ok?: boolean; imported_count?: number; failed_count?: number };
+      if (!r || !r.ok) { show(COPY.H10); setIgBusy(null); return; }
+      const added  = r.imported_count ?? 0;
+      const failed = r.failed_count ?? 0;
+      // PARTIAL SUCCESS IS A FIRST-CLASS OUTCOME (igImport.js's own law): nine of
+      // twelve landing is nine photos the vendor did not re-upload, and H9 tells
+      // them the truth about the other three rather than reporting a flat success.
+      show(failed > 0
+        ? COPY.H9.replace('{n}', String(added)).replace('{f}', String(failed))
+        : COPY.H8);
+      setIgPicker(false);
+      await load();
+    } catch { show(COPY.H10); }
+    setIgBusy(null);
+  }
+
+  async function igDisconnect() {
+    setIgBusy('disconnect');
+    try {
+      await disconnectIg();
+      show(COPY.H14);
+      loadIg();
+    } catch { show(COPY.H10); }
+    setIgBusy(null);
+  }
 
   // ── THE FILTER/DRAG INTERLOCK (CE §0.2 ruling (a)) ─────────────────────────
   // Reorder is INERT under any non-`all` filter, and the reason is mechanical, not
@@ -553,8 +674,163 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
             THE BINDING RULE, FOR THE SITTING THAT ADDS THE ACTION: render this
             block when the action exists AND the server reports the seam
-            configured. Never on configuration alone. */}
+            configured. Never on configuration alone.
+
+            ── TDW_07 P4a: THE ACTION NOW EXISTS, SO THE BLOCK RENDERS. ──
+            The rule is satisfied, not relaxed: `ig` is null until /ig/status
+            answers, and `ig_import_enabled` is the server's word on whether the
+            seam is wired — which now ALSO asserts the redirect URI ends at our
+            canonical callback path, so a config that could only ever fail keeps
+            the entry dark and logs why. Absence remains the safe state. */}
+
+        {ig && ig.ig_import_enabled && (
+          <div style={{ marginTop: 34, paddingTop: 26, borderTop: '0.5px solid rgba(201,168,76,0.18)' }}>
+            <div style={{
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
+              textTransform: 'uppercase', color: A.brassWarm, marginBottom: 12,
+            }}>{COPY.H1}</div>
+
+            {/* H3 SITS ABOVE THE ACTION AND THAT IS INSTRUCTION, NOT LAYOUT.
+                The addendum's law is MANUAL UPLOAD IS THE PERMANENT FALLBACK,
+                NEVER A WALL — and TDW_06's doctrine is that position in a
+                paragraph is instruction. A vendor who reads the connect button
+                first and the reassurance second has been sold to; the other way
+                round, they have been told the truth first. */}
+            <p style={{
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14,
+              color: A.inkSoft, margin: '0 0 14px', lineHeight: 1.55,
+            }}>{COPY.H3}</p>
+
+            {ig.connection_state === 'expired' ? (
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.red, margin: '0 0 14px' }}>
+                {COPY.H11}
+              </p>
+            ) : null}
+
+            {!ig.connected || ig.connection_state === 'expired' ? (
+              <>
+                <p style={{
+                  fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
+                  margin: '0 0 16px', lineHeight: 1.6,
+                }}>{COPY.H2}</p>
+                <button type="button" disabled={igBusy !== null} onClick={igConnect}
+                  style={{
+                    width: '100%', padding: '13px 0', background: 'transparent',
+                    border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                    cursor: igBusy ? 'default' : 'pointer', opacity: igBusy ? 0.4 : 1,
+                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                    color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                  }}>{COPY.H4}</button>
+              </>
+            ) : (
+              <>
+                <p style={{
+                  fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
+                  margin: '0 0 16px', lineHeight: 1.6,
+                }}>{COPY.H12}</p>
+                <button type="button" disabled={igBusy !== null || full} onClick={igOpenPicker}
+                  style={{
+                    width: '100%', padding: '13px 0', background: 'transparent',
+                    border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                    cursor: (igBusy || full) ? 'default' : 'pointer', opacity: (igBusy || full) ? 0.4 : 1,
+                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                    color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                  }}>{COPY.H1}</button>
+                <button type="button" disabled={igBusy !== null} onClick={igDisconnect}
+                  style={{
+                    width: '100%', padding: '10px 0', marginTop: 8, background: 'transparent',
+                    border: 'none', cursor: igBusy ? 'default' : 'pointer',
+                    fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute,
+                  }}>{COPY.H13}</button>
+              </>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* ── TDW_07 P4a · THE PICKER ────────────────────────────────────────
+          The cap governs the pick, not just the import: the vendor cannot select
+          more than the free slots, so the refusal happens at the tap rather than
+          after the upload. That is cap site 3's reasoning applied to a hand —
+          the same law the batch upload learned at P3 (F2-3). */}
+      {igPicker && (
+        <div
+          onClick={() => { if (!igBusy) setIgPicker(false); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(12,10,9,0.55)',
+            display: 'flex', alignItems: 'flex-end',
+          }}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxHeight: '86vh', overflowY: 'auto',
+              background: 'var(--atelier-paper, #F8F7F5)', borderRadius: '14px 14px 0 0',
+              padding: '22px 18px calc(env(safe-area-inset-bottom,0px) + 22px)',
+            }}>
+            <div style={{
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
+              textTransform: 'uppercase', color: A.brassWarm, marginBottom: 4,
+            }}>{COPY.H5}</div>
+            <div style={{
+              fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 16,
+            }}>
+              {COPY.H6.replace('{n}', String(igPicked.length))
+                      .replace('{r}', String(Math.max(0, cap - images.length)))}
+            </div>
+
+            {igItems.length === 0 ? (
+              <p style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute }}>
+                {COPY.H10}
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                {igItems.map(item => {
+                  const on   = igPicked.includes(item.source_url);
+                  const room = Math.max(0, cap - images.length);
+                  // A tile that cannot be chosen says so by dimming; it never
+                  // accepts the tap and then quietly drops the photo.
+                  const dead = !on && igPicked.length >= room;
+                  return (
+                    <button key={item.id} type="button" disabled={dead}
+                      onClick={() => setIgPicked(prev =>
+                        prev.includes(item.source_url)
+                          ? prev.filter(u => u !== item.source_url)
+                          : [...prev, item.source_url])}
+                      style={{
+                        position: 'relative', aspectRatio: '1', padding: 0, border: 'none',
+                        borderRadius: 2, overflow: 'hidden', cursor: dead ? 'default' : 'pointer',
+                        opacity: dead ? 0.3 : 1, background: 'rgba(0,0,0,0.06)',
+                      }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.source_url} alt="" draggable={false}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      {on && (
+                        <span style={{
+                          position: 'absolute', inset: 0, border: '2px solid var(--atelier-accent-text)',
+                          borderRadius: 2, pointerEvents: 'none',
+                        }} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <button type="button" disabled={igPicked.length === 0 || igBusy !== null}
+              onClick={igImport}
+              style={{
+                width: '100%', marginTop: 18, padding: '13px 0',
+                background: igPicked.length ? 'var(--atelier-accent-text)' : 'transparent',
+                border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                cursor: igPicked.length ? 'pointer' : 'default',
+                opacity: (igPicked.length === 0 || igBusy) ? 0.4 : 1,
+                fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                color: igPicked.length ? '#F8F7F5' : A.brassWarm,
+                letterSpacing: '0.28em', textTransform: 'uppercase',
+              }}>{COPY.H7.replace('{n}', String(igPicked.length))}</button>
+          </div>
+        </div>
+      )}
 
       {sel && (
         <>

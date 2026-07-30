@@ -904,6 +904,52 @@ export function fetchDiscoverStatus(): Promise<DiscoverStatus | ApiErr> {
   return getJson<DiscoverStatus | ApiErr>('/api/v2/vendor/discover/status');
 }
 
+// ── TDW_07 P4a · THE INSTAGRAM CONNECT ACTION ───────────────────────────────
+// Every door below is the server's. This client holds NO opinion about scopes,
+// token lifetimes or Meta's endpoints — the authorize URL arrives fully built,
+// carrying the signed state, because a state minted in a browser is not a state.
+export type IgStatus = {
+  ok: boolean;
+  ig_import_enabled: boolean;
+  connected: boolean;
+  connection_state?: 'none' | 'live' | 'expired';
+  connected_at?: string | null;
+  expires_at?: string | null;
+};
+
+export type IgMediaItem = {
+  id: string;
+  caption: string | null;
+  media_type: string | null;
+  source_url: string;
+  timestamp: string | null;
+};
+
+export function fetchIgStatus(): Promise<IgStatus | ApiErr> {
+  return getJson<IgStatus | ApiErr>('/api/v2/vendor/ig/status');
+}
+
+export function fetchIgAuthorizeUrl(): Promise<{ ok: boolean; authorize_url: string } | ApiErr> {
+  return getJson('/api/v2/vendor/ig/authorize');
+}
+
+export function fetchIgMedia(): Promise<{ ok: boolean; items: IgMediaItem[]; truncated: boolean } | ApiErr> {
+  return getJson('/api/v2/vendor/ig/media');
+}
+
+// The vendor's PICK ORDER is the array order, and the server takes what fits in
+// that order — so the first photos they chose are the ones that land.
+export function importIgPhotos(sourceUrls: string[]): Promise<{
+  ok: boolean; imported_count: number; requested_count: number;
+  failed_count: number; no_room_count: number;
+} | ApiErr> {
+  return postJson('/api/v2/vendor/ig/import', { source_urls: sourceUrls });
+}
+
+export function disconnectIg(): Promise<{ ok: boolean; disconnected: boolean } | ApiErr> {
+  return deleteJson('/api/v2/vendor/ig/disconnect');
+}
+
 export function submitDiscoverRequest(body: {
   rate_min: number; rate_max: number; aesthetic_tags: string[];
   pitch?: string; instagram_handle?: string; sample_image_ids?: string[];
