@@ -192,18 +192,57 @@ section('§5 · THE VETOED COPY, BYTE-EXACT (founder 2026-07-29, 「 go 」)');
   slot(1, 'Hidden from Discover. Your approval stays. Enquiries already in flight still reach you.', PROFILE);
   slot(2, 'Upload at least {floor} pieces to request access. You have {portfolioTotal}.', DISCOVER);
   slot(3, '{floor} photos required for Discover — you have {total} uploaded, {approved} approved. Couples see the approved ones.', PROFILE);
-  ok('§5.4 slot 4 — the six hint strings verbatim, and the DROPPED enquiry-recency hint '
-    + 'is nowhere (its reason is in-file so nobody re-adds it from the spec)',
-    ['Add ${Math.max(0, (g.need ?? 0) - (g.have ?? 0))} more photos', 'Write your About',
-     'Add ${Math.max(0, (g.need ?? 0) - (g.have ?? 0))} more aesthetic tags',
-     'Choose a hero image', 'Add your Instagram handle', 'State your travel policy']
-      .filter((s) => !PROFILE.includes(s)).length === 0
+  // LABELED AMENDMENT (micro 2, founder-vetoed 2026-07-30). COUNT PRESERVED. The four
+  // fixed hints are unchanged; the two counted ones gained singular forms and the photos
+  // one gained its pending branch, and the rate one gained its half-set branch. This cell
+  // correctly reddened on the old bytes — it is re-aimed at the NEW vetoed bytes, never
+  // loosened to accept both. The dropped enquiry-recency hint stays nowhere.
+  ok('§5.4 slot 4 — the hint strings verbatim at their new forms, and the DROPPED '
+    + 'enquiry-recency hint is nowhere (its reason is in-file so nobody re-adds it)',
+    ['Write your About', 'Choose a hero image', 'Add your Instagram handle',
+     'State your travel policy', 'Set your starting rate',
+     'Add the top of your rate range', 'awaiting review',
+     "'more photo', 'more photos'", "'more tag', 'more aesthetic tags'"]
+      .filter((t) => !PROFILE.includes(t)).length === 0
     && !/last enquiry sat/.test(PROFILE));
+
   ok('§5.5 slot 5 — the section labels verbatim',
     ['Portfolio', 'About', 'Aesthetic tags', 'Travel policy', 'Starting rate', 'Instagram', 'Pause profile']
       .filter((t) => !PROFILE.includes(`title="${t}"`)).length === 0);
   slot(6, 'This is the name couples see and the name on your invoices.', PROFILE);
   slot(7, 'Moved to your Discover Profile.', SETTINGS);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────
+section('§7 · THE HINTS AT REAL NUMBERS (micro 2 — the founder\'s walk found all three)');
+{
+  // These three defects were found by the founder walking his own account, not by any
+  // cell here. Each was a sentence that read correctly in the abstract and wrongly at a
+  // real value. The cells assert the SENTENCE, because the sentence is the product.
+  ok('§7.1 ★ THE SINGULAR — "Add 1 more photo", never "1 more photos". The vetoed template '
+    + 'was never walked to n = 1, and it reads broken exactly when a vendor is nearly done',
+    /n === 1 \? one : many/.test(PROFILE)
+    && /'more photo', 'more photos'/.test(PROFILE)
+    && /'more tag', 'more aesthetic tags'/.test(PROFILE));
+  ok('§7.2 ★ PENDING REACHES THE COPY — the gate line was cured to carry both counts and '
+    + 'this hint was not, so one screen could read "7 uploaded" above "add 1 more photo". '
+    + 'The SCORE still ignores pending rows; only the sentence learns they exist',
+    /awaiting review/.test(PROFILE)
+    && /pending: o\.pending/.test(PROFILE)
+    && /setPending\(res\.portfolio_summary\?\.pending/.test(PROFILE));
+  ok('§7.3 the pending branch is ORDERED — fully covered says "awaiting review" alone, '
+    + 'partially covered says both halves, none says the plain add',
+    /if \(pending >= short\) return/.test(PROFILE)
+    && /if \(pending > 0\) return/.test(PROFILE));
+  ok('§7.4 ★ THE HALF-SET RATE — a min without a max asks for the TOP, not for the rate. '
+    + 'The term stays unmet (requestDiscover needs both bounds); only the copy learns which '
+    + 'half is missing, so a saved number never reads as a lost save',
+    /partial \? 'Add the top of your rate range' : 'Set your starting rate'/.test(PROFILE)
+    && /partial: o\.rateMin !== '' && o\.rateMax === ''/.test(PROFILE));
+  ok('§7.5 the score is UNTOUCHED by all three — no weight, term or gap moved; `pending` '
+    + 'and `partial` are facts the copy reads, never terms the meter counts',
+    !/W\.pending|W\.partial/.test(PROFILE)
+    && /photos: 0\.270/.test(PROFILE) && /rate: 0\.135/.test(PROFILE));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────
@@ -214,6 +253,9 @@ console.log('      W-3  useSettings.ts    instagram_handle back to \'\'         
 console.log('      W-4  Header.tsx        the entry re-pointed at /vendor/settings ⇒ §3.6 RED');
 console.log('      W-5  profile/page      a second #C9A84C added                   ⇒ §4.3 RED');
 console.log('      W-6  profile/page      formatRs swapped for a ₹ template        ⇒ §4.4 RED');
+console.log('      W-7  profile/page      the plural() helper reverted to `${n} photos` ⇒ §7.1 RED');
+console.log('      W-8  profile/page      pending dropped from the photos hint       ⇒ §7.2 RED');
+console.log('      W-9  profile/page      the rate hint loses its partial branch      ⇒ §7.4 RED');
 
 console.log('');
 const total = pass + fail;

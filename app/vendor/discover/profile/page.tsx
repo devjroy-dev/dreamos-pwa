@@ -56,23 +56,36 @@ const SECTION_ORDER = ['hero', 'about', 'photos', 'tags', 'travel', 'rate', 'ig'
 type Term = typeof SECTION_ORDER[number];
 const MIN_TAGS = 3;
 
-type Gaps = Record<Term, { met: boolean; gap: number; have?: number; need?: number }>;
+// TDW_07 P2 micro 2 — the gap record carries two extra FACTS, not two extra terms:
+//   `pending`  photos uploaded and awaiting an admin. The SCORE must keep ignoring them
+//              (a couple sees approved rows only) but the COPY must not, or the screen
+//              tells a vendor to upload what they just uploaded.
+//   `partial`  a rate with a min and no max. The term is correctly unmet — requestDiscover
+//              needs both bounds — but "Set your starting rate" to someone who set one
+//              reads as a failed save.
+// Neither changes a weight, a gap, or the score. They change only what the sentence knows.
+type Gaps = Record<Term, {
+  met: boolean; gap: number; have?: number; need?: number;
+  pending?: number; partial?: boolean;
+}>;
 
 function buildGaps(o: {
-  approved: number; floor: number; hasHero: boolean; about: string; tags: string[];
-  travelNotes: string; rateMin: string; rateMax: string; ig: string;
+  approved: number; pending: number; floor: number; hasHero: boolean; about: string;
+  tags: string[]; travelNotes: string; rateMin: string; rateMax: string; ig: string;
 }): Gaps {
   const photoHave = Math.min(o.approved, o.floor);
   const tagHave = Math.min(o.tags.length, MIN_TAGS);
   return {
     hero:   { met: o.hasHero, gap: o.hasHero ? 0 : 1 },
     about:  { met: o.about.trim() !== '', gap: o.about.trim() !== '' ? 0 : 1 },
-    photos: { met: o.approved >= o.floor, gap: o.floor > 0 ? (o.floor - photoHave) / o.floor : 0, have: o.approved, need: o.floor },
+    photos: { met: o.approved >= o.floor, gap: o.floor > 0 ? (o.floor - photoHave) / o.floor : 0,
+              have: o.approved, need: o.floor, pending: o.pending },
     tags:   { met: o.tags.length >= MIN_TAGS, gap: (MIN_TAGS - tagHave) / MIN_TAGS, have: o.tags.length, need: MIN_TAGS },
     // The STATED policy, never the boolean — a vendor who has written "Delhi NCR only"
     // has a complete travel policy and must not be penalised for answering honestly.
     travel: { met: o.travelNotes.trim() !== '', gap: o.travelNotes.trim() !== '' ? 0 : 1 },
-    rate:   { met: o.rateMin !== '' && o.rateMax !== '', gap: (o.rateMin !== '' && o.rateMax !== '') ? 0 : 1 },
+    rate:   { met: o.rateMin !== '' && o.rateMax !== '', gap: (o.rateMin !== '' && o.rateMax !== '') ? 0 : 1,
+              partial: o.rateMin !== '' && o.rateMax === '' },
     ig:     { met: o.ig.trim() !== '', gap: o.ig.trim() !== '' ? 0 : 1 },
   };
 }
@@ -86,14 +99,35 @@ const scoreOf = (g: Gaps) => SECTION_ORDER.reduce((sum, k) => sum + W[k] * (1 - 
 // written by four hands including AI harvest, so a bump is not "the vendor replied". The
 // substitute is the unmet terms by weight × gap, tie-broken by SECTION_ORDER so the same
 // profile always yields the same three.
+// TDW_07 P2 micro 2 · FOUNDER-VETOED 2026-07-30. Three defects, all found by the founder
+// walking his own account rather than by any cell, and all of the same family: a sentence
+// that was right in the abstract and wrong at a real number.
+//   (a) THE SINGULAR. "Add 1 more photos" — the vetoed template was `Add {n} more photos`
+//       and nobody, including the executor, walked it to n = 1. It reads broken at exactly
+//       the moment a vendor is closest to done.
+//   (b) PENDING. The gate line was fixed to carry BOTH counts (F-07.4's reconciliation)
+//       and this hint was not — so a screen could read "you have 7 uploaded" three lines
+//       above "add 1 more photo". The score is right to ignore pending rows; the copy is
+//       not. Same finding, one element up, cured where it actually lands on the vendor.
+//   (c) THE HALF-SET RATE. min without max is correctly unmet (requestDiscover requires
+//       both bounds) but "Set your starting rate" to someone who set one reads as a lost
+//       save. The term is unchanged; only the sentence learns to say which half.
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
 const HINT_COPY: Record<Term, (g: Gaps[Term]) => string> = {
-  photos: (g) => `Add ${Math.max(0, (g.need ?? 0) - (g.have ?? 0))} more photos`,
+  photos: (g) => {
+    const short = Math.max(0, (g.need ?? 0) - (g.have ?? 0));
+    const pending = g.pending ?? 0;
+    if (pending >= short) return `${plural(pending, 'photo', 'photos')} awaiting review`;
+    if (pending > 0) return `Add ${plural(short - pending, 'more photo', 'more photos')} — ${pending} awaiting review`;
+    return `Add ${plural(short, 'more photo', 'more photos')}`;
+  },
   about:  () => 'Write your About',
-  tags:   (g) => `Add ${Math.max(0, (g.need ?? 0) - (g.have ?? 0))} more aesthetic tags`,
+  tags:   (g) => `Add ${plural(Math.max(0, (g.need ?? 0) - (g.have ?? 0)), 'more tag', 'more aesthetic tags')}`,
   hero:   () => 'Choose a hero image',
   ig:     () => 'Add your Instagram handle',
   travel: () => 'State your travel policy',
-  rate:   () => 'Set your starting rate',
+  rate:   (g) => (g.partial ? 'Add the top of your rate range' : 'Set your starting rate'),
 };
 
 function topHints(g: Gaps, limit = 3) {
@@ -119,6 +153,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const [saving, setSaving] = useState<string | null>(null);
   const [approved, setApproved] = useState(0);
   const [total, setTotal] = useState(0);
+  const [pending, setPending] = useState(0);
   const [hasHero, setHasHero] = useState(false);
   const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
 
@@ -128,6 +163,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       if (!active || !res.ok) return;
       setTotal(res.portfolio_summary?.total ?? 0);
       setApproved(res.portfolio_summary?.approved ?? 0);
+      setPending(res.portfolio_summary?.pending ?? 0);
       setServerFloor(res.min_portfolio_images);
     }).catch(() => { /* the meter degrades to zeros; it never blocks the editor */ });
     fetchPortfolio(vendorId, 'approved').then((res) => {
@@ -161,7 +197,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const floor = photoFloor(serverFloor);
   const tags = current.aesthetic_tags.split(',').map((t) => t.trim()).filter(Boolean);
   const gaps = buildGaps({
-    approved, floor, hasHero, about: current.about, tags,
+    approved, pending, floor, hasHero, about: current.about, tags,
     travelNotes: current.travel_notes, rateMin: current.rate_min, rateMax: current.rate_max,
     ig: current.instagram_handle,
   });
