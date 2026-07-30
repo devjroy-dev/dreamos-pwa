@@ -104,7 +104,15 @@ section('§2 · F-07.9\'s CLIENT CURE (the witnessed lie)');
 section('§3 · THE §C SPLIT — ONE EDITOR PER FIELD');
 {
   // Moved: rendered by Discover or scored by profileScore.
-  const moved = ['business_name', 'aesthetic_tags', 'rate_min', 'rate_max', 'instagram_handle',
+  // LABELED AMENDMENT (TDW_07 P4b · F4, WIDENED) — `rate_max` LEAVES THIS LIST.
+  // P2's §3 asserts that every field MOVED out of settings ARRIVED on Discover Profile —
+  // "the move landed, it did not merely delete". `rate_max` is no longer editable on either
+  // screen, and that is correct: P4b retired the upper bound from the estate's rate model
+  // (server gate min-only, write dropped, PATCH allowlist dormant). A field that is RETIRED
+  // is not a field that failed to arrive, and asserting its arrival would demand the estate
+  // re-open a control the ruling closed. §3.2b below pins the retirement so the removal
+  // cannot be mistaken for the arrival failure this cell exists to catch.
+  const moved = ['business_name', 'aesthetic_tags', 'rate_min', 'instagram_handle',
                  'travel_notes', 'open_to_travel', 'city'];
   const stillEditable = (src, f) => new RegExp(`update\\(\\{ ${f}:`).test(src);
   const leftovers = moved.filter((f) => stillEditable(SETTINGS, f));
@@ -114,6 +122,10 @@ section('§3 · THE §C SPLIT — ONE EDITOR PER FIELD');
   ok('§3.2 every moved field IS editable from Discover Profile — the move landed, '
     + 'it did not merely delete',
     arrived.length === moved.length, `arrived ${arrived.length}/${moved.length}`);
+
+  // F4's retirement, pinned in BOTH directions so it cannot be read as a lost move.
+  ok('§3.2b rate_max is editable NOWHERE — retired by ruling, not lost in transit',
+    !/update\(\{ rate_max:/.test(SETTINGS) && !/update\(\{ rate_max:/.test(PROFILE));
 
   // Stayed: operations and the engine.
   const stayed = ['name', 'style_notes', 'upi_id', 'gstin', 'briefing_enabled'];
@@ -201,7 +213,10 @@ section('§5 · THE VETOED COPY, BYTE-EXACT (founder 2026-07-29, 「 go 」)');
     + 'enquiry-recency hint is nowhere (its reason is in-file so nobody re-adds it)',
     ['Write your About', 'Choose a hero image', 'Add your Instagram handle',
      'State your travel policy', 'Set your starting rate',
-     'Add the top of your rate range', 'awaiting review',
+     // F4 — 'Add the top of your rate range' RETIRED with the bound it asked for. There is
+     // no partial rate state any more: a starting price is set or it is not. Removed from
+     // the verbatim list rather than the list being weakened; §5.4b asserts its absence.
+     'awaiting review',
      "'more photo', 'more photos'", "'more tag', 'more aesthetic tags'"]
       .filter((t) => !PROFILE.includes(t)).length === 0
     && !/last enquiry sat/.test(PROFILE));
@@ -234,11 +249,21 @@ section('§7 · THE HINTS AT REAL NUMBERS (micro 2 — the founder\'s walk found
     + 'partially covered says both halves, none says the plain add',
     /if \(pending >= short\) return/.test(PROFILE)
     && /if \(pending > 0\) return/.test(PROFILE));
-  ok('§7.4 ★ THE HALF-SET RATE — a min without a max asks for the TOP, not for the rate. '
-    + 'The term stays unmet (requestDiscover needs both bounds); only the copy learns which '
-    + 'half is missing, so a saved number never reads as a lost save',
-    /partial \? 'Add the top of your rate range' : 'Set your starting rate'/.test(PROFILE)
-    && /partial: o\.rateMin !== '' && o\.rateMax === ''/.test(PROFILE));
+  ok('§7.4 ★ THE MIN-ONLY RATE IS COMPLETE — F4 retired the upper bound, so the term is '
+    + 'earned on a starting price alone, the mirror follows the server predicate exactly, '
+    + 'and the retired "which half is missing" copy is gone from the screen',
+    // ── LABELED AMENDMENT (TDW_07 P4b · F4, WIDENED) — THE HALF-SET RATE NO LONGER EXISTS.
+    // This cell asserted the RETIRED law: that a min without a max left the term unmet and
+    // the copy asked for the missing half. P4b retires `rate_max` from the estate's rate
+    // model entirely — the server's gate is min-only and its score earns the term on a min
+    // alone. A min-only rate is now the COMPLETE shape, so the "which half is missing"
+    // question has no referent. The title is re-authored rather than left describing a
+    // world that ended, and the assertion is INVERTED, not weakened: it still pins the
+    // exact hint string, the exact predicate, and now also that the retired branch is gone.
+    /rate:   \(\) => 'Set your starting rate'/.test(PROFILE)
+    && /partial: false/.test(PROFILE)
+    && !/Add the top of your rate range/.test(PROFILE)
+    && /met: o\.rateMin !== ''/.test(PROFILE));
   ok('§7.5 the score is UNTOUCHED by all three — no weight, term or gap moved; `pending` '
     + 'and `partial` are facts the copy reads, never terms the meter counts',
     !/W\.pending|W\.partial/.test(PROFILE)
@@ -255,7 +280,7 @@ console.log('      W-5  profile/page      a second #C9A84C added                
 console.log('      W-6  profile/page      formatRs swapped for a ₹ template        ⇒ §4.4 RED');
 console.log('      W-7  profile/page      the plural() helper reverted to `${n} photos` ⇒ §7.1 RED');
 console.log('      W-8  profile/page      pending dropped from the photos hint       ⇒ §7.2 RED');
-console.log('      W-9  profile/page      the rate hint loses its partial branch      ⇒ §7.4 RED');
+console.log('      W-9  profile/page      the rate mirror re-demands a max bound       ⇒ §7.4 RED');
 
 console.log('');
 const total = pass + fail;

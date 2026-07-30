@@ -749,6 +749,26 @@ export interface UploadUrlResponse {
   };
 }
 
+// ── TDW_07 P4b · F5 — THE PREVIEW'S PAYLOAD ───────────────────────────────────────────
+// GET /api/v2/vendor/discover/preview. `vendor` is shaped by the SAME backend function the
+// public feed uses (src/lib/discover/shapeVendor.js), so this is deliberately typed as the
+// couple-facing `DiscoverVendor` and NOT as a vendor-shaped near-miss. If the two ever
+// needed different types, they would have already stopped being the same card.
+//
+// The flags around it are production truths, not preview decoration: they answer "can a
+// couple reach this card right now", which is precisely what the vendor came to find out.
+export interface DiscoverPreviewResponse {
+  ok: true;
+  vendor: import('@/lib/types/discover').DiscoverVendor;
+  discover_paused: boolean;
+  discover_eligible: boolean;
+  is_live: boolean;
+  /** Every approved photo the vendor holds. */
+  approved_photo_count: number;
+  /** How many of them reach the card — the five-photo display rule, server-decided. */
+  displayed_photo_count: number;
+}
+
 export interface DiscoverStatus {
   ok: boolean;
   discover_request_state: string;

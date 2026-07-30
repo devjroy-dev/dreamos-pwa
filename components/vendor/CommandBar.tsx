@@ -37,30 +37,32 @@ function shouldAutoExpand(): boolean {
   } catch { return false; }
 }
 
-// ── Discover profile completeness ─────────────────────────────────
-// 5 checkpoints, each worth 20%:
-// 1. business_name set
-// 2. aesthetic_tags filled (≥1)
-// 3. rate_min + rate_max both set
-// 4. portfolio ≥5 approved images
-// 5. discover request submitted (state !== 'not_requested')
-function scoreDiscover(
-  me: MeResponse | null,
-  status: DiscoverStatus | null,
-): { pct: number; missing: string[] } {
-  if (!me || !status) return { pct: 0, missing: [] };
-  const v = me.vendor;
-  const checks: { label: string; pass: boolean }[] = [
-    { label: 'Business name',    pass: !!(v.business_name?.trim()) },
-    { label: 'Style tags',       pass: !!(v.aesthetic_tags && v.aesthetic_tags.length > 0) },
-    { label: 'Rate range',       pass: !!(v.rate_min && v.rate_max) },
-    { label: '5 portfolio pics', pass: (status.portfolio_summary?.approved ?? 0) >= 5 },
-    { label: 'Request sent',     pass: status.discover_request_state !== 'not_requested' },
-  ];
-  const passed  = checks.filter(c => c.pass).length;
-  const missing = checks.filter(c => !c.pass).map(c => c.label);
-  return { pct: Math.round((passed / checks.length) * 100), missing };
-}
+// ── TDW_07 P4b · F-07.15 — scoreDiscover IS DEAD. ─────────────────────────────────────
+// This bar carried its OWN completeness score: a five-check list re-implementing, in
+// TypeScript, in another repo, a question `src/lib/vendor/profileScore.js` is the one
+// authority on. It was a second authority and it was WRONG in two specific ways at the
+// moment it died:
+//
+//   · a stale `>= 5` portfolio floor. The floor moved to SIX at P2, at one server constant,
+//     and this copy never heard. It told a vendor with five approved photos that his
+//     portfolio check PASSED while the server rejected his Discover request.
+//   · a both-bounds rate check (`v.rate_min && v.rate_max`). P4b retires `rate_max` from
+//     the estate's rate model entirely, so that check now demands a field nothing collects.
+//
+// Both are the same disease: a number that lives twice drifts, and the copy that is not the
+// authority is the one that lies. The fix is not to correct the copy — a corrected copy
+// drifts again at the next ruling. The fix is that the copy stops existing.
+//
+// WHAT THE BAR DOES NOW: it LINKS. Title, and a tap that routes to the Discover Profile,
+// where the real meter renders. It asserts NO percentage and NO gap list, because it has no
+// authority to assert them from.
+//
+// THE RICHER BRANCH OF THE RULING IS NOT REACHABLE YET, AND THAT IS REPORTED, NOT WORKED
+// AROUND. F-07.15 rules the bar consumes "the server's one-authority score+hints OR links
+// only". `GET /api/v2/vendor/discover/status` carries neither a score nor hints today —
+// derived by reading DiscoverStatus at the P4b tips, not assumed. Publishing them is a
+// backend movement nobody chartered this sitting, so the bar takes the ruling's second arm.
+// The first arm stays available the moment the server carries the number.
 
 // ── Hot dates availability ────────────────────────────────────────
 // Hot dates from today → Dec 31 this year.
@@ -292,8 +294,7 @@ export function CommandBar({
     gap:   !l.name ? 'no name' : !l.wedding_date ? 'no date' : 'no budget',
   }));
 
-  // Bar 3 — Discover profile
-  const discover        = scoreDiscover(me, status);
+  // Bar 3 — Discover profile. F-07.15: no local score. The bar links; the meter scores.
 
   // Bar 4 — Hot dates availability
   const hotScore        = scoreHotDates(hotDates, blocks);
@@ -318,8 +319,10 @@ export function CommandBar({
     parts.push({ text: `${enquiryTotal} unread`, color: brassWarm });
   if (incompleteLeads.length > 0)
     parts.push({ text: `${incompleteLeads.length} incomplete`, color: dimColor });
-  if (!fetching && discover.pct < 100)
-    parts.push({ text: `Discover ${discover.pct}%`, color: dimColor });
+  // F-07.15 — the collapsed strip's "Discover NN%" retires WITH the score that fed it.
+  // It was the same false number in a smaller font: stale 5-photo floor, both-bounds rate.
+  // There is no honest percentage to print here until the server publishes one, and
+  // printing an honest-looking wrong one is the disease, not the symptom.
   if (!fetching && hotScore.remaining > 0)
     parts.push({ text: `${hotScore.remaining} hot dates open`, color: redColor });
   if (parts.length === 0)
@@ -392,7 +395,10 @@ export function CommandBar({
           {[
             { pct: enquiryPct,   skip: false },
             { pct: profilePct,   skip: false },
-            { pct: discover.pct, skip: fetching },
+            // F-07.15 — the Discover dot retires with its score. A dot is a READOUT, not a
+            // control: it rendered a fill proportional to a number that no longer exists,
+            // and there is no value to give it that would not be invented. The row is three
+            // dots now, disclosed rather than backfilled with a placeholder.
             { pct: hotScore.pct, skip: fetching },
           ].map((b, i) => (
             <span key={i} style={{
@@ -457,17 +463,17 @@ export function CommandBar({
           <div style={{ height: '0.5px', background: panelSep }} />
 
           {/* Bar 3 — Discover profile */}
+          {/* F-07.15 — a LINK, not a second score. `aside` states where the number lives
+              rather than inventing one here; `pct={0}` draws no progress fill, which is
+              honest: this bar measures nothing. Deleting the bar outright was refused —
+              the vendor would lose his route to the Discover Profile, and a control removed
+              because its data was wrong is the control-inventory law's exact subject. */}
           <BarRow
             title="Discover Profile"
-            aside={discover.pct === 100 ? 'complete' : `${discover.pct}% done`}
-            asideAlert={discover.pct < 60}
-            pct={discover.pct}
+            aside="open"
+            pct={0}
             route="/discover"
             loading={fetching}
-            sublabels={discover.missing.slice(0, 3).map(m => ({
-              label: m,
-              color: T.isLight ? 'rgba(122,56,40,0.4)' : 'rgba(224,123,92,0.5)',
-            }))}
             onTap={() => router.push('/vendor/discover')}
           />
 

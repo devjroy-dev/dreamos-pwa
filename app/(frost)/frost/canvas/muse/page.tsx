@@ -11,6 +11,8 @@ import { useFrostMode } from '../../../layout';
 import { MUSE_LOOKS, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
 import { fetchMuseSaves, deleteMuseSave, fetchSaveActivity, uploadMuseImage, createMuseSaveFromUrl } from '../../../../../lib/frost-api/muse';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
+// TDW_07 P4b · F-07.16 — the estate's one money donor. Locked register: Rs 1,50,000.
+import { formatRs } from '@/lib/vendor/format';
 
 type MuseCeremony = 'all' | 'haldi' | 'mehendi' | 'sangeet' | 'reception' | 'wedding';
 type SourceFilter = 'all' | 'bride' | 'circle_member';
@@ -122,11 +124,12 @@ function FullBleedOverlay({
             <h2 style={{ fontFamily: FF.display, fontSize: 26, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', lineHeight: 1.1 }}>
               {save.vendor_name}
             </h2>
-            {save.vendor_starting_price && (
+            {/* TDW_07 P4b · F-07.16 — the register. Was "Rs 1.5L onwards"; the vendor is
+                promised "Rs 1,50,000" on his own Discover Profile and the couple now reads
+                the same number in the same words. Copy ④, founder-vetoed. */}
+            {save.vendor_starting_price != null && (
               <p style={{ fontFamily: FF.body, fontSize: 13, fontWeight: 300, color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
-                {save.vendor_starting_price >= 100000
-                  ? `Rs ${(save.vendor_starting_price / 100000).toFixed(save.vendor_starting_price % 100000 === 0 ? 0 : 1)}L onwards`
-                  : `Rs ${(save.vendor_starting_price / 1000).toFixed(0)}K onwards`}
+                Starting at {formatRs(save.vendor_starting_price)}
               </p>
             )}
             {save.vendor_vibe_tags.length > 0 && (

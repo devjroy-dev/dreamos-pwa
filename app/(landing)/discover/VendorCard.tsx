@@ -58,6 +58,32 @@ export default function VendorCard({ card, imageIndex, revealLevel, entering }: 
           </p>
         )}
 
+        {/* ══ TDW_07 P4b · F-07.27 — DORMANT BY COMMENT, RULED. NOT CURED, AND WHY. ══════
+            This is a couple-facing money render carrying the forbidden register (the glyph
+            AND the L/K short forms). F-07.16 retired that register everywhere else this
+            sitting. It was DELIBERATELY NOT converted here, on the CE's ruling, because
+            converting it would have been a cure in costume:
+
+            1. THE SURFACE IS DEAD. useDiscoverFeed.ts fetches `/api/v2/discovery/feed`.
+               That route does not exist in dream-os — zero router hits, no handler, no
+               `price_min` column in any schema. The fetch fails, the catch sets an error,
+               `cards` stays empty and nothing below ever renders. Derived by command
+               against the backend at the P4b tips, not assumed from the name.
+
+            2. THE UNITS ARE UNDERIVABLE. The literal divides by 100 for the L form, so
+               `price_min` is denominated in THOUSANDS, not rupees. Every other money site
+               in the estate divides by 100000. Piping this straight into formatRs would
+               render "Rs 100" where the vendor means Rs 1,00,000 — a hundredfold
+               understatement on a couple-facing surface. And because the endpoint does not
+               exist, there is no contract to derive the true unit FROM. Authoring the
+               conversion would mean authoring money from a conjecture, which was refused.
+
+            RETIRE-OR-WIRE IS FOUNDER-SEQUENCED. The chair's read: it dies at P6's editorial
+            pass or Block 09's nav. Until then these bytes stay exactly as they are.
+
+            THE REGISTER BENCH CARRIES A NAMED EXEMPTION FOR THIS SITE, keyed on F-07.27 —
+            so the repo-wide cell never reddens silently over a ruled dormancy, and never
+            narrows quietly to hide one. Re-wiring this surface must re-open the cell. ══ */}
         {revealLevel >= 2 && (
           <p style={{ fontFamily: "'Jost', sans-serif", fontWeight: 300, fontSize: 14, color: "#C9A84C", margin: "4px 0 0", animation: "dissolve 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards" }}>
             {card.price_min >= 100 ? `₹${(card.price_min / 100).toFixed(1)}L` : `₹${card.price_min}K`}

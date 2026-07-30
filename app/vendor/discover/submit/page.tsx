@@ -39,7 +39,8 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
   const { toast, show } = useToast();
   const [step, setStep] = useState(1);
   const [rateMin, setRateMin] = useState('');
-  const [rateMax, setRateMax] = useState('');
+  // TDW_07 P4b · F4 — `rateMax` state RETIRED with its field. Nothing collects it, nothing
+  // sends it, nothing gates on it.
   const [tags, setTags] = useState<string[]>([]);
   const [pitch, setPitch] = useState('');
   const [images, setImages] = useState<PortfolioImage[]>([]);
@@ -63,7 +64,10 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
     setSubmitting(true);
     try {
       const res = await submitDiscoverRequest({
-        rate_min: Number(rateMin), rate_max: Number(rateMax),
+        // F4 — `rate_max` is no longer sent. The server's gate is min-only and its write
+        // no longer stores the column; sending a value nothing reads is a lie about the
+        // contract, and sending Number('') would have posted NaN.
+        rate_min: Number(rateMin),
         aesthetic_tags: tags, pitch: pitch.trim() || undefined,
         sample_image_ids: sampleIds,
       });
@@ -116,14 +120,17 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Brides on Discover see your range. Be honest — Swati matches by budget fit.
             </div>
+            {/* TDW_07 P4b · F4 (WIDENED) — THE MAX FIELD IS REMOVED-BY-RULING.
+                Control inventory (CE-115): the Max (Rs) input is the ONE control this
+                sitting removes from a live surface, and it is removed by ruling rather than
+                by tidying. Couples read a STARTING price; `rate_max` never reached a couple
+                surface for a real vendor. It was a required field gating a vendor's entry to
+                Discover on a number nobody would ever read.
+                The Min field is untouched, and its label already carried the register. */}
             <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</label>
                 <input type="number" value={rateMin} onChange={e => setRateMin(e.target.value)} style={inputStyle} placeholder="100000" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Max (Rs)</label>
-                <input type="number" value={rateMax} onChange={e => setRateMax(e.target.value)} style={inputStyle} placeholder="500000" />
               </div>
             </div>
           </>
@@ -230,7 +237,9 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
         {step < 4 ? (
           <button type="button" onClick={() => setStep(s => s + 1)}
             disabled={
-              (step === 1 && (!rateMin || !rateMax || Number(rateMin) > Number(rateMax))) ||
+              // F4 — min-only, mirroring the server's gate exactly. The min>max comparison
+              // retires with the bound it compared against.
+              (step === 1 && !rateMin) ||
               (step === 2 && tags.length === 0) ||
               (step === 3 && pitch.trim().length === 0)
             }

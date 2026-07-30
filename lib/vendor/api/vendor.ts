@@ -862,7 +862,7 @@ import type {
   VendorDayResponse,
   BandsResponse,   // TDW_04.5 P2 — the band view's wire contract
   PortfolioImage, PortfolioListResponse, UploadUrlResponse,
-  DiscoverStatus, CoutureSlot, CoutureAppointment, FeaturedSubmission,
+  DiscoverStatus, DiscoverPreviewResponse, CoutureSlot, CoutureAppointment, FeaturedSubmission,
 } from '../types/vendor';
 
 export function fetchUploadUrl(filename: string): Promise<UploadUrlResponse | ApiErr> {
@@ -902,6 +902,18 @@ export function reorderPortfolio(orderedIds: string[]): Promise<PortfolioListRes
 
 export function fetchDiscoverStatus(): Promise<DiscoverStatus | ApiErr> {
   return getJson<DiscoverStatus | ApiErr>('/api/v2/vendor/discover/status');
+}
+
+// TDW_07 P4b · F5 — "See your profile as couples do". The card is shaped SERVER-side by the
+// feed's own function; this client assembles nothing. That is the whole design: a client
+// that built the card from /me and the portfolio would be a second implementation of the
+// couple-facing shape, in another language, where nothing could prove it agreed.
+//
+// Reachable pre-approval by design — the route carries auth and ownership but NO
+// eligibility guard, because the spec calls the pre-approval preview "the strongest
+// self-serve motivation to hit the 6-photo floor".
+export function fetchDiscoverPreview(): Promise<DiscoverPreviewResponse | ApiErr> {
+  return getJson<DiscoverPreviewResponse | ApiErr>('/api/v2/vendor/discover/preview');
 }
 
 // ── TDW_07 P4a · THE INSTAGRAM CONNECT ACTION ───────────────────────────────
@@ -955,7 +967,10 @@ export function disconnectIg(): Promise<{ ok: boolean; disconnected: boolean } |
 }
 
 export function submitDiscoverRequest(body: {
-  rate_min: number; rate_max: number; aesthetic_tags: string[];
+  // TDW_07 P4b · F4 — `rate_max` REMOVED from the request contract. The server's gate is
+  // min-only and its write no longer stores the column, so a required field here would be a
+  // client demanding a value the server discards.
+  rate_min: number; aesthetic_tags: string[];
   pitch?: string; instagram_handle?: string; sample_image_ids?: string[];
 }): Promise<{ ok: boolean; request_id: string } | ApiErr> {
   return postJson('/api/v2/vendor/discover/request', body);

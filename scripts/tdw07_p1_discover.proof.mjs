@@ -31,6 +31,20 @@ const IG    = read('lib/frost/igLink.ts');
 const ADMIN = read('app/admin/config/page.tsx');
 const PAGE  = read('app/(frost)/frost/canvas/discover/page.tsx');
 
+// ── LABELED AMENDMENT (TDW_07 P4b · F1-b) — THE CHIP AND THE EYEBROW MOVED HOUSE. ──────
+// P1's §4 cells asserted IgChip and FeaturedEyebrow's properties against the canvas file,
+// which is where both components were DEFINED at the time. P4b extracted the couple-facing
+// profile into components/shared/VendorProfileView.tsx so the vendor's preview mounts the
+// identical renderer, and the two components moved with it (MOVED, not copied — the canvas
+// imports them back, and the P4b harness pins that exactly one definition of each exists).
+//
+// NOT ONE PROPERTY IS RELAXED. Every cell below asserts the same thing it always did; the
+// only change is that it looks where the code now lives. `SURFACE` is the two files read as
+// one, because the deck's rendered surface IS both files after the extraction — the cells
+// were always about what a couple sees, never about which file it was typed in.
+const VIEW_ = read('components/shared/VendorProfileView.tsx');
+const SURFACE = PAGE + '\n' + VIEW_;
+
 section('§1 · DiscoverVendor declares its contract (F-07.3 cured)');
 ok('§1.1 is_demo is declared — the wire has sent it since the two-branch feed was born',
   /is_demo\?:\s*boolean/.test(TYPES));
@@ -94,22 +108,22 @@ ok('§4.3 the overlay\'s drag-dismiss is intact',
 ok('§4.4 the card band CONTAINER is pointerEvents:none — the swipe surface is unchanged outside the chip',
   /gap: 8,\s*\n\s*pointerEvents: 'none',/.test(PAGE));
 ok('§4.5 the chip is the ONLY element that consumes its own touches',
-  /onTouchStart=\{\(e: React\.TouchEvent\) => \{ e\.stopPropagation\(\); \}\}/.test(PAGE));
+  /onTouchStart=\{\(e: React\.TouchEvent\) => \{ e\.stopPropagation\(\); \}\}/.test(SURFACE));
 ok('§4.6 the FEATURED eyebrow is non-interactive by construction',
-  /FeaturedEyebrow[\s\S]{0,900}pointerEvents: 'none' as const/.test(PAGE));
+  /FeaturedEyebrow[\s\S]{0,900}pointerEvents: 'none' as const/.test(SURFACE));
 ok('§4.7 the eyebrow renders ONLY on featured — the Manual honesty law, marked when true',
-  /function FeaturedEyebrow[\s\S]{0,200}if \(!featured\) return null;/.test(PAGE));
+  /function FeaturedEyebrow[\s\S]{0,200}if \(!featured\) return null;/.test(SURFACE));
 ok('§4.8 the chip renders ONLY on a usable handle — on truth, or not at all',
-  /function IgChip[\s\S]{0,320}if \(!h\) return null;/.test(PAGE));
+  /function IgChip[\s\S]{0,320}if \(!h\) return null;/.test(SURFACE));
 ok('§4.9 the eyebrow is Jost and letterspaced (V-2 as vetoed)',
-  /FeaturedEyebrow[\s\S]{0,700}'Jost',sans-serif[\s\S]{0,300}letterSpacing: '0\.28em'/.test(PAGE));
-ok('§4.10 the eyebrow word is exactly FEATURED', /\n\s*FEATURED\n\s*<\/span>/.test(PAGE));
+  /FeaturedEyebrow[\s\S]{0,700}'Jost',sans-serif[\s\S]{0,300}letterSpacing: '0\.28em'/.test(SURFACE));
+ok('§4.10 the eyebrow word is exactly FEATURED', /\n\s*FEATURED\n\s*<\/span>/.test(SURFACE));
 ok('§4.11 the card chip is withheld while the overlay is open — it cannot sit under the sheet',
   /!isBlind && !overlayVisible && \(vendor\.featured \|\| vendor\.instagram_handle\)/.test(PAGE));
 ok('§4.12 blind mode withholds the handle exactly as it withholds the name (identity is identity)',
-  /\{!isBlind && vendor\.instagram_handle && \(/.test(PAGE));
+  /\{!isBlind && vendor\.instagram_handle && \(/.test(SURFACE));
 ok('§4.13 the chip carries no gold — the screen\'s one gold stays Enquire\'s (spec §3)',
-  !/function IgChip[\s\S]{0,1400}#C9A84C/.test(PAGE));
+  !/function IgChip[\s\S]{0,1400}#C9A84C/.test(SURFACE));
 ok('§4.14 P1 adds NO localStorage read or write to the canvas page',
   (PAGE.match(/localStorage/g) || []).length === 1);   // the pre-existing isBrideDemoDiscover only
 ok('§4.15 the unreachable demo branch is left BYTE-UNTOUCHED per the CE ruling (F-07.1)',
@@ -120,7 +134,7 @@ console.log('');
 console.log('§5 · MUTATION LEDGER (production source, cmp-restored)');
 console.log('      P-1  igLink.ts: `instagram://user?username=` → `https://instagram.com/`  ⇒ §2.1 RED');
 console.log('      P-2  igLink.ts: IG_FALLBACK_MS 300 → 0                                  ⇒ §2.3 RED');
-console.log('      P-3  page.tsx: FeaturedEyebrow `if (!featured) return null;` deleted     ⇒ §4.7 RED');
+console.log('      P-3  VendorProfileView.tsx: FeaturedEyebrow `if (!featured) return null;` deleted ⇒ §4.7 RED');
 console.log('      P-4  page.tsx: card band pointerEvents \'none\' → \'auto\'                  ⇒ §4.4 RED');
 console.log('      P-5  config page: the Discover ranking group removed                     ⇒ §3.1/§3.2 RED');
 console.log('      P-6  types: `is_demo?: boolean` deleted                                  ⇒ §1.1/§1.4 RED');

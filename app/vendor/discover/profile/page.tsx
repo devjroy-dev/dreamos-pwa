@@ -71,7 +71,7 @@ type Gaps = Record<Term, {
 
 function buildGaps(o: {
   approved: number; pending: number; floor: number; hasHero: boolean; about: string;
-  tags: string[]; travelNotes: string; rateMin: string; rateMax: string; ig: string;
+  tags: string[]; travelNotes: string; rateMin: string; ig: string;
 }): Gaps {
   const photoHave = Math.min(o.approved, o.floor);
   const tagHave = Math.min(o.tags.length, MIN_TAGS);
@@ -84,8 +84,14 @@ function buildGaps(o: {
     // The STATED policy, never the boolean — a vendor who has written "Delhi NCR only"
     // has a complete travel policy and must not be penalised for answering honestly.
     travel: { met: o.travelNotes.trim() !== '', gap: o.travelNotes.trim() !== '' ? 0 : 1 },
-    rate:   { met: o.rateMin !== '' && o.rateMax !== '', gap: (o.rateMin !== '' && o.rateMax !== '') ? 0 : 1,
-              partial: o.rateMin !== '' && o.rateMax === '' },
+    // TDW_07 P4b · F4 — MIN-ONLY, mirroring src/lib/vendor/rateMet.js exactly. This term
+    // MUST move in the same sitting as the server's, or the meter tells the vendor his rate
+    // is incomplete while the server scores it complete — two authorities on one number,
+    // which is the disease F-07.15 killed one surface over.
+    // `partial` retires with the upper bound: there is no half-set rate any more. A
+    // starting price is set or it is not, and `partial: false` is the honest constant
+    // rather than a field left computing over a retired input.
+    rate:   { met: o.rateMin !== '', gap: o.rateMin !== '' ? 0 : 1, partial: false },
     ig:     { met: o.ig.trim() !== '', gap: o.ig.trim() !== '' ? 0 : 1 },
   };
 }
@@ -127,7 +133,9 @@ const HINT_COPY: Record<Term, (g: Gaps[Term]) => string> = {
   hero:   () => 'Choose a hero image',
   ig:     () => 'Add your Instagram handle',
   travel: () => 'State your travel policy',
-  rate:   (g) => (g.partial ? 'Add the top of your rate range' : 'Set your starting rate'),
+  // F4 — the "top of your rate range" hint retires with the bound. There is no partial
+  // rate state any more: a starting price is set or it is not.
+  rate:   () => 'Set your starting rate',
 };
 
 function topHints(g: Gaps, limit = 3) {
@@ -198,7 +206,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const tags = current.aesthetic_tags.split(',').map((t) => t.trim()).filter(Boolean);
   const gaps = buildGaps({
     approved, pending, floor, hasHero, about: current.about, tags,
-    travelNotes: current.travel_notes, rateMin: current.rate_min, rateMax: current.rate_max,
+    travelNotes: current.travel_notes, rateMin: current.rate_min,
     ig: current.instagram_handle,
   });
   const score = scoreOf(gaps);
@@ -218,6 +226,26 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
         {/* ── THE METER — this screen's ONE gold ──────────────────────────── */}
         <Meter score={score} />
+        {/* ── TDW_07 P4b · F5 — "SEE YOUR PROFILE AS COUPLES DO" ─────────────────
+            Copy ①, founder-vetoed, byte-exact. Sited directly under the meter because
+            the meter states a NUMBER and this states what the number is about — the
+            vendor reads "72%" and the very next thing he can do is look at the thing
+            being scored. Reachable at every state incl. pre-approval, deliberately:
+            F5 calls the pre-approval preview "the strongest self-serve motivation to
+            hit the 6-photo floor", and a button that hid until approval would withhold
+            the motivation from exactly the vendors who need it.
+
+            NOT this screen's gold — the meter owns that (house law: one gold per
+            screen). A quiet bordered control, the same register as Save. */}
+        <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
+          display: 'block', width: '100%', margin: '18px 0 0', padding: '13px 0',
+          background: 'none', border: `0.5px solid ${A.brassWarm}`, borderRadius: 2,
+          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
+          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.brassWarm,
+        }}>
+          See your profile as couples do
+        </button>
+
 
         {hints.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '18px 0 26px' }}>
@@ -291,12 +319,17 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         </SCard>
 
         <SCard title="Starting rate">
+          {/* TDW_07 P4b · F4 (WIDENED) — THE MAX FIELD IS REMOVED-BY-RULING, AND LEAVING IT
+              WOULD HAVE BEEN WORSE THAN REMOVING IT. `rate_max` is now dormant in the
+              server's PATCH allowlist, so a Max input left standing here would accept the
+              vendor's typing, show a dirty Save, report success, and silently discard the
+              value. That is F-07.13's dead-control class with a write path attached — the
+              most expensive shape of this defect, because the vendor believes he answered.
+              Control inventory (CE-115): REMOVED-BY-RULING, the only control this surface
+              loses. Min, the toggle, the couples-see line and Save are all KEPT. */}
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
               <SField label="Min (Rs)" value={current.rate_min} onChange={(v) => update({ rate_min: v })} inputMode="numeric" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <SField label="Max (Rs)" value={current.rate_max} onChange={(v) => update({ rate_max: v })} inputMode="numeric" />
             </div>
           </div>
           <SToggle label="Show starting price on Discover"
@@ -308,10 +341,9 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               ? (rateShown ? `Couples see: from ${rateShown}` : 'Couples see your starting price once you set one.')
               : 'Your starting price is hidden from Discover.'}
           </div>
-          <SaveBtn dirty={isDirty(['rate_min', 'rate_max', 'rate_display'])} loading={saving === 'rates'}
-                   onSave={() => save('rates', ['rate_min', 'rate_max', 'rate_display'], {
+          <SaveBtn dirty={isDirty(['rate_min', 'rate_display'])} loading={saving === 'rates'}
+                   onSave={() => save('rates', ['rate_min', 'rate_display'], {
                      rate_min: current.rate_min ? Number(current.rate_min) : undefined,
-                     rate_max: current.rate_max ? Number(current.rate_max) : undefined,
                      rate_display: current.rate_display,
                    })} />
         </SCard>

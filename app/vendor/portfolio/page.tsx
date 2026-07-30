@@ -826,6 +826,28 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           onChange={e => { const fs = Array.from(e.target.files ?? []); if (fs.length) handleUpload(fs); e.target.value = ''; }} />
       </div>
 
+      {/* ── TDW_07 P4b · F5 — "SEE YOUR PROFILE AS COUPLES DO" ─────────────────────
+          Copy ①, founder-vetoed, byte-exact. The spec puts this button on "the Profile
+          Studio and portfolio surfaces" — both, because the vendor who has just finished
+          dragging photos into an order is exactly the vendor who wants to see what that
+          order LOOKS like, and sending him to another screen to find the button loses him.
+
+          GHOST, NEVER FILLED. Upload is this screen's one filled gold (house law: one gold
+          per screen) and that is not being taken away from it.
+
+          It does not gate on the photo floor. A vendor below six photos sees the preview
+          with what he has — F5's whole argument for the pre-approval mount. */}
+      <div style={{ padding: '10px 22px 0' }}>
+        <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
+          display: 'block', width: '100%', padding: '11px 0',
+          background: 'none', border: `0.5px solid ${A.brassWarm}`, borderRadius: 2,
+          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
+          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.brassWarm,
+        }}>
+          See your profile as couples do
+        </button>
+      </div>
+
       {/* Filter pills — restored (CE §0.2 (a)). Ghost/bordered only: the screen's
           one filled gold stays the Upload action. */}
       <div style={{ display: 'flex', gap: 8, padding: '12px 22px 0', flexWrap: 'wrap' }}>

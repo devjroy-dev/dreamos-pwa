@@ -42,6 +42,9 @@ import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 // TDW_07 P3 · Fork 5(b) — the ONE img module at its frost-api address.
 import { imgUrl, lqipUrl } from '../../../../../lib/frost-api/img';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
+// TDW_07 P4b · F1-b — the ONE couple-facing profile renderer. IgChip and FeaturedEyebrow
+// moved with it (the card below imports them back) so no second copy of either exists.
+import VendorProfileView, { IgChip, FeaturedEyebrow } from '@/components/shared/VendorProfileView';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -300,59 +303,9 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
 // not a new one). The chip's container is pointerEvents:'none' so ONLY the chip itself
 // consumes anything; the rest of that band swipes exactly as before.
 
-function IgChip({ handle, onTap }: { handle: string | null | undefined; onTap?: () => void }) {
-  const h = normalizeIgHandle(handle);
-  if (!h) return null;   // renders on truth or not at all
-  return (
-    <button
-      onClick={(e: React.MouseEvent) => { e.stopPropagation(); openInstagram(h); onTap?.(); }}
-      onTouchStart={(e: React.TouchEvent) => { e.stopPropagation(); }}
-      onTouchEnd={(e: React.TouchEvent) => { e.stopPropagation(); }}
-      aria-label={`Open @${h} on Instagram`}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '5px 10px', borderRadius: 14,
-        background: 'rgba(12,10,9,0.32)',
-        backdropFilter: 'blur(18px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(18px) saturate(1.4)',
-        border: '0.5px solid rgba(255,255,255,0.16)',
-        fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300,
-        letterSpacing: '0.06em',
-        // ink-dim per D-3 — the chip is a whisper, and the screen's one gold is
-        // Enquire's (spec §3: one gold per screen).
-        color: 'rgba(248,247,245,0.62)',
-        cursor: 'pointer', pointerEvents: 'auto', touchAction: 'manipulation' as const,
-      }}
-    >
-      {/* Instagram glyph, inline so no icon dependency is added to a gesture file */}
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <rect x="2" y="2" width="20" height="20" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-      </svg>
-      @{h}
-    </button>
-  );
-}
+// IgChip MOVED to components/shared/VendorProfileView.tsx and imported above — one home.
 
-// The eyebrow. Manual honesty law: marked, ALWAYS — and only where the server says
-// `featured` is true, which is an approved submission inside its scheduled window
-// (CE ruling §C/F5). Non-interactive by construction: it never touches the deck.
-function FeaturedEyebrow({ featured }: { featured?: boolean }) {
-  if (!featured) return null;
-  return (
-    <span style={{
-      fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
-      letterSpacing: '0.28em', textTransform: 'uppercase' as const,
-      color: 'rgba(248,247,245,0.72)',
-      textShadow: '0 1px 4px rgba(0,0,0,0.45)',
-      pointerEvents: 'none' as const,
-    }}>
-      FEATURED
-    </span>
-  );
-}
+// FeaturedEyebrow MOVED to components/shared/VendorProfileView.tsx and imported above.
 
 // ── GlassOverlay — vendor profile, true frosted glass ────────────────────────
 // Photo clearly visible through the overlay.
@@ -413,71 +366,28 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
         </div>
       )}
 
-      <div style={{ padding: '0 24px' }}>
-        {/* TDW_07 P1 · D-5 — the eyebrow on detail, above the category line */}
-        {vendor.featured && (
-          <div style={{ margin: '0 0 6px' }}>
-            <FeaturedEyebrow featured={vendor.featured} />
-          </div>
-        )}
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
-          {vendor.category}&nbsp;·&nbsp;{vendor.city}
-        </p>
-        {!isBlind && (
-          <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
-            {vendor.name}
-          </h2>
-        )}
-        {vendor.about && (
-          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, fontStyle: 'italic', color: 'rgba(248,247,245,0.7)', margin: '0 0 12px', lineHeight: 1.5 }}>
-            {vendor.about}
-          </p>
-        )}
-        {!isBlind && vendor.starting_price && (
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'rgba(248,247,245,0.55)', margin: '0 0 20px' }}>
-            {vendor.starting_price >= 100000
-              ? `Rs ${(vendor.starting_price / 100000).toFixed(vendor.starting_price % 100000 === 0 ? 0 : 1)}L onwards`
-              : `Rs ${(vendor.starting_price / 1000).toFixed(0)}K onwards`}
-          </p>
-        )}
-        {isBlind && vendor.vibe_tags.length > 0 && (
-          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.15em', color: 'rgba(248,247,245,0.55)', margin: '0 0 20px' }}>
-            {vendor.vibe_tags.join(' · ')}
-          </p>
-        )}
+      {/* ── TDW_07 P4b · F1-b — THE CONTENT IS THE SHARED RENDERER'S. ──────────────
+          What lived here inline (:416–:480 at the P4b charter tip) is now
+          components/shared/VendorProfileView.tsx, mounted identically by the vendor's own
+          preview at /vendor/discover/preview. The spec's §3 guardrail — "a second
+          implementation anywhere is a failed session" — is satisfied structurally: one
+          component over one backend shaper, so the two mounts cannot drift.
 
-        {/* TDW_07 P1 · D-3 — the chip on detail. Blind mode hides identity, so the
-            handle (which IS the identity) is withheld there, exactly as the name is. */}
-        {!isBlind && vendor.instagram_handle && (
-          <div style={{ margin: '0 0 16px' }}>
-            <IgChip handle={vendor.instagram_handle} />
-          </div>
-        )}
+          EVERYTHING ABOVE THIS LINE STAYED. The drag-to-dismiss handlers, the transform,
+          the glass sheet, the grab handle and the Circle toast are deck CHROME and
+          GESTURES, and §3 requires those byte-identical through P1/P6. The surest way to
+          keep a gesture byte-identical is not to move it.
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <button
-            onClick={(e: React.MouseEvent) => { e.stopPropagation(); if (enquireLink) window.open(enquireLink, '_blank'); }}
-            style={{ width: '100%', padding: '14px 0', background: 'rgba(248,247,245,0.92)', border: 'none', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, touchAction: 'manipulation' }}
-          >
-            <MessageCircle size={14} strokeWidth={1.5} /> Enquire
-          </button>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              disabled
-              style={{ flex: 1, padding: '12px 0', background: 'rgba(255,255,255,0.1)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.6)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-            >
-              <Lock size={12} strokeWidth={1.5} /> Lock Date
-              <span style={{ fontSize: 7, fontStyle: 'italic', color: 'rgba(248,247,245,0.3)', textTransform: 'none', letterSpacing: 0 }}>beta</span>
-            </button>
-            <button
-              onClick={(e: React.MouseEvent) => { e.stopPropagation(); setCircleToast(true); setTimeout(() => setCircleToast(false), 2500); }}
-              style={{ flex: 1, padding: '12px 0', background: 'rgba(255,255,255,0.1)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, touchAction: 'manipulation' }}
-            >
-              <Users size={12} strokeWidth={1.5} /> Circle
-            </button>
-          </div>
-        </div>
-      </div>
+          The Circle TAP is raised out of the component through onCircleTap because the
+          toast it opens is positioned against this sheet. Button = content; toast =
+          chrome; the prop is the seam. */}
+      <VendorProfileView
+        vendor={vendor}
+        mode="live"
+        isBlind={isBlind}
+        enquireLink={enquireLink}
+        onCircleTap={() => { setCircleToast(true); setTimeout(() => setCircleToast(false), 2500); }}
+      />
     </div>
   );
 }

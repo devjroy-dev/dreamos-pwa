@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic';
 // Filter sheet opens with all sections — Apply is cosmetic (resets to show all demo vendors).
 
 import React, { useCallback, useEffect, useRef, useState, Suspense } from 'react';
+// TDW_07 P4b · F-07.16 — the estate's one money donor. Locked register: Rs 1,50,000.
+import { formatRs } from '@/lib/vendor/format';
 import { MessageCircle, Lock, Users, SlidersHorizontal, X } from 'lucide-react';
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
@@ -206,9 +208,12 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: { vendor:DemoVendor
         {vendor.about && (
           <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:300, fontStyle:'italic', color:'rgba(248,247,245,0.7)', margin:'0 0 12px', lineHeight:1.5 }}>{vendor.about}</p>
         )}
-        {!isBlind && vendor.starting_price && (
+        {/* TDW_07 P4b · F-07.16 — the register, on the demo-subdomain surface too. A demo
+            card that priced in a different register from the live feed would teach the
+            wrong number to exactly the audience the demo exists to convince. Copy ④. */}
+        {!isBlind && vendor.starting_price != null && (
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:300, color:'rgba(248,247,245,0.55)', margin:'0 0 20px' }}>
-            {vendor.starting_price>=100000 ? `Rs ${(vendor.starting_price/100000).toFixed(vendor.starting_price%100000===0?0:1)}L onwards` : `Rs ${(vendor.starting_price/1000).toFixed(0)}K onwards`}
+            Starting at {formatRs(vendor.starting_price)}
           </p>
         )}
         {isBlind && vendor.vibe_tags.length>0 && (

@@ -18,6 +18,8 @@ import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 import { waNumberFor } from '@/lib/waNumbers';
+// TDW_07 P4b · F-07.16 — the estate's one money donor. Locked register: Rs 1,50,000.
+import { formatRs } from '@/lib/vendor/format';
 // F-05.29 (CE-64 filed, CE-65 micro): the front-door guard below reads the
 // cookie mirror the whole lane maintains, instead of localStorage alone.
 // IMPORTED, NEVER MODIFIED — F-05.30 (the cross-lane fallback inside this
@@ -164,7 +166,12 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
     }).catch(()=>setLoading(false));
   },[]);
 
-  const fmtRs = (n:number) => n>=100000?`₹${(n/100000).toFixed(n%100000===0?0:1)}L`:n>=1000?`₹${(n/1000).toFixed(0)}K`:`₹${n}`;
+  // TDW_07 P4b · F-07.16 — THE REGISTER. This was a local L/K/glyph formatter; it now
+  // delegates to the estate's ONE money donor, which renders "Rs 1,50,000" — grouped Indian
+  // digits, the word Rs, no glyph, no short form. Cured at the DONOR rather than at each of
+  // its call sites: one edit moves every figure this screen renders, and a call site the
+  // executor missed cannot keep rendering the old register.
+  const fmtRs = (n:number) => formatRs(n);
   function fmtDate(d:string|null|undefined):string {
     if(!d) return '';
     const dt=new Date(d+'T00:00:00');
@@ -461,7 +468,12 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
     fetchEnquiries().then(setEnquiries).catch(()=>{});
   },[]);
 
-  const fmtRs = (n:number) => n>=100000?`₹${(n/100000).toFixed(n%100000===0?0:1)}L`:n>=1000?`₹${(n/1000).toFixed(0)}K`:`₹${n}`;
+  // TDW_07 P4b · F-07.16 — THE REGISTER. This was a local L/K/glyph formatter; it now
+  // delegates to the estate's ONE money donor, which renders "Rs 1,50,000" — grouped Indian
+  // digits, the word Rs, no glyph, no short form. Cured at the DONOR rather than at each of
+  // its call sites: one edit moves every figure this screen renders, and a call site the
+  // executor missed cannot keep rendering the old register.
+  const fmtRs = (n:number) => formatRs(n);
 
   const openEdit = (b:CoupleBooking) => {
     setEditName(b.vendor_name); setEditCat(b.category as VendorCategory);
@@ -756,7 +768,7 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
 
         {/* Info rows */}
         <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)}/>
-        {profile?.budget_total&&<Row label="Total budget" value={profile.budget_total>=100000?`₹${(profile.budget_total/100000).toFixed(0)}L`:`₹${profile.budget_total}`}/>}
+        {profile?.budget_total&&<Row label="Total budget" value={formatRs(profile.budget_total)}/>}
 
         {/* Mode toggle */}
         <div style={{padding:'10px 0 4px',marginTop:8}}>
@@ -1240,7 +1252,7 @@ function DiscVendorPanel({vendor,visible,onClose,accent,onEnquire,onCircleShare}
         {/* Price */}
         {vendor.starting_price&&(
           <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.45)',letterSpacing:'.12em',margin:'0 0 6px'}}>
-            {vendor.starting_price>=100000?`Rs ${(vendor.starting_price/100000).toFixed(vendor.starting_price%100000===0?0:1)}L onwards`:`Rs ${(vendor.starting_price/1000).toFixed(0)}K onwards`}
+            Starting at {formatRs(vendor.starting_price)}
           </p>
         )}
 
@@ -1794,7 +1806,7 @@ function MuseOverlay({save,activity,onClose,onRemove,accent,dark}:{
           <div style={{padding:'0 24px'}}>
             <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>{save.vendor_category}&nbsp;·&nbsp;{save.vendor_city}</p>
             <h2 style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:300,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.1}}>{save.vendor_name}</h2>
-            {save.vendor_starting_price&&<p style={{fontFamily:"'Fraunces',serif",fontSize:13,fontWeight:300,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>{save.vendor_starting_price>=100000?`Rs ${(save.vendor_starting_price/100000).toFixed(save.vendor_starting_price%100000===0?0:1)}L onwards`:`Rs ${(save.vendor_starting_price/1000).toFixed(0)}K onwards`}</p>}
+            {save.vendor_starting_price&&<p style={{fontFamily:"'Fraunces',serif",fontSize:13,fontWeight:300,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>Starting at {formatRs(save.vendor_starting_price)}</p>}
             {save.vendor_vibe_tags.length>0&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(248,247,245,.45)',letterSpacing:'.12em',margin:'0 0 20px'}}>{save.vendor_vibe_tags.join(' · ')}</p>}
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={handleEnquire} style={{width:'100%',padding:'14px 0',background:'rgba(248,247,245,.9)',border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#111',cursor:'pointer'}}>Enquire ↗</button>
@@ -3777,7 +3789,10 @@ export default function SanctuaryPage() {
           const books = d?.bookings||[];
           const paid = books.reduce((s:number,b:any)=>s+(b.amount_paid||0),0);
           if(paid>0){
-            const fmt = paid>=100000?`Rs ${(paid/100000).toFixed(1)}L`:paid>=1000?`Rs ${Math.round(paid/1000)}K`:`Rs ${paid}`;
+            // TDW_07 P4b · F-07.16 — a THIRD local formatter this screen carried, found by
+            // the register cell rather than by the executor's enumeration. Same register,
+            // same donor. Three copies of one rule is exactly why the rule now has a home.
+            const fmt = formatRs(paid);
             setExpensesHint(`${fmt} logged`);
           }
           if(books.length>0) setVendorsHint(`${books.length} confirmed`);
