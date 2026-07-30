@@ -127,24 +127,31 @@ sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');
   for (const slot of ['H1', 'H2', 'H3', 'H4', 'H12']) {
     ok(`§5.1.${slot} ${slot} — the founder-vetoed byte survives`, new RegExp(`\\b${slot}:`).test(copyBlock));
   }
-  // THE POINT OF THIS SECTION. The CE addendum stated H5–H11 carry an executed
-  // veto and only the code was missing. Derived at the repo, the BYTES of H5,
-  // H6, H7, H9 and H11 exist nowhere in either repository. Shipping executor
-  // drafts under a founder's stamp would be the costume class applied to the
-  // copy ledger — a string claiming an authority it does not have.
-  for (const slot of ['H5', 'H6', 'H7', 'H9', 'H11', 'H13', 'H14']) {
+  // ── §5.2 / §5.3 · LABELED AMENDMENT, 2026-07-30 (counts preserved 7→7, 2→2) ──
+  // THESE CELLS ASSERTED A SITTING-SCOPED POSTURE: "these slots are marked
+  // DRAFT / RECONSTRUCTED, veto owed." The founder then ran the card against the
+  // rendered strings and returned 「 all ok 」, which is the outcome the marking
+  // existed to produce. Leaving the cells would redden a correct ledger.
+  //
+  // THE DURABLE LAW HAS NOT MOVED and is what they now assert: EVERY vendor-
+  // facing string carries a DATED veto, and no string wears a stamp it did not
+  // earn. The marking changed from "owed" to "granted"; the requirement that the
+  // ledger be honest about which is which did not. Third instance this sitting
+  // of a cell re-scoped rather than deleted (b07_p3 §8.3, tdw07_p3 §5.4/§5.6).
+  for (const slot of ['H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'H11', 'H13', 'H14']) {
     const line = copyBlock.split('\n').find(l => new RegExp(`^\\s*${slot}:`).test(l)) || '';
-    ok(`§5.2.${slot} ${slot} is marked DRAFT — veto owed, never claimed`,
-       /DRAFT — veto owed/.test(line), line.trim().slice(0, 70));
+    ok(`§5.2.${slot} ${slot} carries a DATED veto, not a bare claim`,
+       /VETOED 2026-07-30/.test(line), line.trim().slice(0, 70));
   }
-  for (const slot of ['H8', 'H10']) {
-    const line = copyBlock.split('\n').find(l => new RegExp(`^\\s*${slot}:`).test(l)) || '';
-    ok(`§5.3.${slot} ${slot} is marked RECONSTRUCTED with its surviving source`,
-       /RECONSTRUCTED/.test(line), line.trim().slice(0, 70));
-  }
-  ok('§5.4 the ledger states WHY the addendum\'s claim could not be honoured, so '
-     + 'the next reader finds a derivation instead of a contradiction',
-     /exist nowhere in either repository/.test(copyBlock));
+  // THE TWO CARDS STAY DISTINCT. H1/H2/H3/H4/H12 were vetoed 2026-07-29 「 1.ok 」;
+  // the nine above on 2026-07-30 「 all ok 」, AFTER shipping as executor drafts.
+  // Collapsing them would erase the fact that these bytes were a proposal before
+  // they were the founder's word — exactly the provenance a later sitting needs.
+  ok('§5.3 the two copy cards are recorded as SEPARATE events with distinct dates',
+     /2026-07-29/.test(copyBlock) && /2026-07-30/.test(copyBlock));
+  ok('§5.4 the ledger still records WHY these slots needed a second card — the '
+     + 'addendum\'s claim, and the derivation that contradicted it',
+     /existed nowhere in either repository/.test(copyBlock));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -167,7 +174,7 @@ console.log('    V-2  manager   H3 moved BELOW the connect button              �
 console.log('    V-3  manager   the cancelled branch deleted                   ⇒ §2.3 RED');
 console.log('    V-4  manager   the picker stops honouring free slots          ⇒ §4.3 RED');
 console.log('    V-5  manager   picked urls collected into a Set (order lost)  ⇒ §4.4 RED');
-console.log('    V-6  manager   a DRAFT slot restamped as vetoed               ⇒ §5.2 RED');
+console.log('    V-6  manager   a vetoed slot loses its DATE                    ⇒ §5.2 RED');
 console.log('    V-7  manager   the client builds its own authorize URL        ⇒ §3.2 RED');
 console.log('    V-8  manager   partial failure flattened to a success         ⇒ §4.6 RED');
 console.log('─'.repeat(72));

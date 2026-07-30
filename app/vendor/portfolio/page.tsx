@@ -115,29 +115,34 @@ const COPY = {
   H4: 'Connect Instagram',
   H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
 
-  // ── TDW_07 P4a · SLOTS WITHOUT SURVIVING BYTES — VETO OWED, NOT CLAIMED ───
-  // The CE addendum states H5-H11 carry an executed veto and only the CODE is
-  // absent. DERIVED AT THE REPO, THAT IS NOT SO: the BYTES of H5, H6, H7, H9 and
-  // H11 exist nowhere in either repository. Two fragments survive in prose and
-  // are reconstructed below with their sources; the rest are EXECUTOR DRAFTS.
+  // ── TDW_07 P4a · THE SECOND COPY CARD — FOUNDER-VETOED 2026-07-30 「 all ok 」
   //
-  // They are marked so nobody mistakes a draft for a founder's word. Shipping
-  // invented copy under a veto stamp would be the costume class applied to the
-  // copy ledger — a string claiming an authority it does not have. Filed F-07.21.
+  // HOW THESE SLOTS GOT HERE, recorded because the route matters:
+  // The CE addendum stated H5-H11 already carried an executed veto and only the
+  // CODE was absent. DERIVED AT THE REPO, THAT WAS NOT SO — the BYTES of H5, H6,
+  // H7, H9 and H11 existed nowhere in either repository. Two fragments survived
+  // in prose (H8's clause in FINDINGS_LOG:3183, H10 quoted verbatim inside P3's
+  // own render-site comment at :540); the rest did not exist at all.
   //
-  // RECONSTRUCTED (fragment survives, full sentence is the executor's):
-  //   H8  — FINDINGS_LOG:3183 records H8 "keeps 'live on Discover now'".
-  //   H10 — quoted verbatim inside the P3 render-site comment at :540.
-  H8:  'Imported photos are live on Discover now.',            // RECONSTRUCTED — veto owed
-  H10: "We couldn't reach Instagram just now.",                // RECONSTRUCTED — verbatim fragment
-  // DRAFTS — the executor's words, awaiting the founder's card:
-  H5:  'Choose your photos',                                    // DRAFT — veto owed
-  H6:  'Selected {n} of {r}',                                   // DRAFT — veto owed
-  H7:  'Add {n} to my portfolio',                               // DRAFT — veto owed
-  H9:  '{n} added. {f} could not be copied — you can upload those from your phone.', // DRAFT — veto owed
-  H11: 'Your Instagram connection has expired. Connect again to import more photos.', // DRAFT — veto owed
-  H13: 'Disconnect Instagram',                                  // DRAFT — veto owed
-  H14: 'Instagram disconnected. Your photos stay where they are.', // DRAFT — veto owed
+  // They therefore shipped in ZIP 2b as EXECUTOR DRAFTS, marked as such, rather
+  // than stamped with an authority they did not have — that would have been the
+  // costume class applied to the copy ledger (F-07.21). The founder then ran the
+  // card against the rendered strings and returned 「 all ok 」 on 2026-07-30.
+  //
+  // SO THE VETO IS REAL NOW AND ITS DATE IS 2026-07-30, NOT 2026-07-29. The two
+  // cards are kept distinct on purpose: H1/H2/H3/H4/H12 carry the FIRST card
+  // 「 1.ok 」, these carry the SECOND. A ledger that collapsed them would lose
+  // the fact that these bytes were the executor's proposal before they were the
+  // founder's word, and that is exactly the provenance a later sitting needs.
+  H5:  'Choose your photos',                                    // VETOED 2026-07-30
+  H6:  'Selected {n} of {r}',                                   // VETOED 2026-07-30
+  H7:  'Add {n} to my portfolio',                               // VETOED 2026-07-30
+  H8:  'Imported photos are live on Discover now.',             // VETOED 2026-07-30 (clause 「 3. visible 」)
+  H9:  '{n} added. {f} could not be copied — you can upload those from your phone.', // VETOED 2026-07-30
+  H10: "We couldn't reach Instagram just now.",                 // VETOED 2026-07-30
+  H11: 'Your Instagram connection has expired. Connect again to import more photos.', // VETOED 2026-07-30
+  H13: 'Disconnect Instagram',                                  // VETOED 2026-07-30
+  H14: 'Instagram disconnected. Your photos stay where they are.', // VETOED 2026-07-30
 } as const;
 
 export default function PortfolioPage() {
