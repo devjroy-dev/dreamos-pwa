@@ -107,10 +107,38 @@ sec('§4 · THE PICKER — the cap governs the TAP, not just the import');
 ok('§4.1 the picker renders behind its own flag', /\{igPicker && \(/.test(M));
 ok('§4.2 the free-slot room is derived from the SERVER cap and the live count',
    /cap - images\.length/.test(M));
+// §4.3 / §4.4 — RE-AIMED after the perf cure moved both expressions. The
+// PROPERTIES are unchanged; their addresses are not. The dead calc now rides the
+// grid's map (one place, not twenty-five), and the append rides the stable
+// igToggle callback. Counts preserved 1→1 each.
 ok('§4.3 a tile past the room is DEAD — it never accepts the tap and then '
-   + 'quietly drops the photo', /const dead = !on && igPicked\.length >= room;/.test(M));
+   + 'quietly drops the photo',
+   /dead=\{!igPicked\.includes\(item\.source_url\) && igPicked\.length >= igRoom\}/.test(M));
 ok('§4.4 selection preserves the vendor\'s PICK ORDER (append, not a set) — the '
-   + 'server takes what fits in that order', /\[\.\.\.prev, item\.source_url\]/.test(M));
+   + 'server takes what fits in that order', /\[\.\.\.prev, url\]/.test(M));
+
+// ── §4.8–§4.11 · THE PERF CURE, benched as source properties ─────────────
+// The founder reported taps "not registering". They were registering; the frame
+// was late. Twenty-five full-resolution CDN images re-rendered on every tap.
+ok('§4.8 the tile is MEMOISED — one tap re-renders one tile, not the grid',
+   /const IgTile = memo\(/.test(M));
+ok('§4.9 the toggle is a STABLE useCallback with a functional updater — without '
+   + 'it every tile\'s props churn and memo buys nothing',
+   /const igToggle = useCallback\(\(url: string\) => \{/.test(M)
+     && /setIgPicked\(prev =>/.test(M));
+ok('§4.10 off-screen tiles stay off the main thread', /loading="lazy"/.test(M) && /decoding="async"/.test(M));
+ok('§4.11 the free-slot count is derived ONCE per render, not per tile',
+   /const igRoom = Math\.max\(0, cap - images\.length\);/.test(M));
+
+// ── §4.12–§4.14 · MEDIA TYPE IS RENDERED, not merely consumed ────────────
+// media_type was in the payload from the first build and was used to pick a
+// still for videos — but never SHOWN. A reel and a photo looked identical, so a
+// vendor could not make a good choice about their own storefront.
+ok('§4.12 VIDEO items carry a visible badge', /const isVideo = item\.media_type === 'VIDEO';/.test(M));
+ok('§4.13 CAROUSEL_ALBUM items do too', /const isAlbum = item\.media_type === 'CAROUSEL_ALBUM';/.test(M));
+ok('§4.14 the reel caveat is said BEFORE the tap, not after the import — a reel '
+   + 'arrives as its cover frame, and learning that afterwards is a surprise',
+   /igItems\.some\(i => i\.media_type === 'VIDEO'\)/.test(M) && /COPY\.H17/.test(M));
 ok('§4.5 the import button is inert with nothing picked', /igPicked\.length === 0 \|\| igBusy !== null/.test(M));
 ok('§4.6 PARTIAL SUCCESS is reported honestly — H9 names how many failed rather '
    + 'than flattening to a success', /failed > 0/.test(M) && /COPY\.H9/.test(M));
@@ -142,6 +170,14 @@ sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');
     const line = copyBlock.split('\n').find(l => new RegExp(`^\\s*${slot}:`).test(l)) || '';
     ok(`§5.2.${slot} ${slot} carries a DATED veto, not a bare claim`,
        /VETOED 2026-07-30/.test(line), line.trim().slice(0, 70));
+  }
+  // H15/H16/H17 were minted AFTER the 2026-07-30 card, when the founder found
+  // reels and photos indistinguishable. They must not inherit a card that
+  // predates them — the same law that kept the first two cards distinct.
+  for (const slot of ['H15', 'H16', 'H17']) {
+    const line = copyBlock.split('\n').find(l => new RegExp(`^\\s*${slot}:`).test(l)) || '';
+    ok(`§5.2.${slot} ${slot} is marked DRAFT — minted after the card, so it does `
+       + `not inherit it`, /DRAFT — veto owed/.test(line), line.trim().slice(0, 70));
   }
   // THE TWO CARDS STAY DISTINCT. H1/H2/H3/H4/H12 were vetoed 2026-07-29 「 1.ok 」;
   // the nine above on 2026-07-30 「 all ok 」, AFTER shipping as executor drafts.

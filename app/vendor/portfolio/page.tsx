@@ -26,7 +26,7 @@
 // "20" exists — the rendered bytes are identical to the vetoed draft, which is
 // P2's own precedent for the photo floor.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -143,7 +143,64 @@ const COPY = {
   H11: 'Your Instagram connection has expired. Connect again to import more photos.', // VETOED 2026-07-30
   H13: 'Disconnect Instagram',                                  // VETOED 2026-07-30
   H14: 'Instagram disconnected. Your photos stay where they are.', // VETOED 2026-07-30
+  // H15/H16 — the media-type badges. DRAFT, veto owed: they were minted after the
+  // 2026-07-30 card, when the founder found reels and photos indistinguishable in
+  // the picker. Marked honestly rather than folded into the card that predates them.
+  H15: 'Reel',                                                  // DRAFT — veto owed
+  H16: 'Album',                                                 // DRAFT — veto owed
+  // H17 — the reel warning. A reel imports as its COVER FRAME, not as video;
+  // saying so before the tap is the difference between a choice and a surprise.
+  H17: 'Reels come in as their cover photo.',                   // DRAFT — veto owed
 } as const;
+
+// ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
+// WHY THIS IS ITS OWN COMPONENT AND NOT AN INLINE MAP BODY:
+// The first build rendered 25 tiles inline. Every tap called setIgPicked, which
+// produced a new array, which re-rendered the WHOLE grid — twenty-five full
+// resolution Instagram CDN images re-evaluated per tap. On a phone that reads as
+// "the taps aren't registering", which is exactly what the founder saw. The
+// selection was landing; the frame to show it was hundreds of milliseconds late.
+//
+// React.memo + a STABLE onToggle means one tap re-renders ONE tile. `loading` and
+// `decoding` keep the off-screen images off the main thread entirely.
+const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
+  item: IgMediaItem; on: boolean; dead: boolean; onToggle: (u: string) => void;
+}) {
+  // media_type was ALREADY in the payload and ALREADY used to choose a still for
+  // videos — it was simply never rendered, so a reel looked identical to a photo.
+  // A vendor cannot make a good choice about a portfolio they cannot read.
+  const isVideo = item.media_type === 'VIDEO';
+  const isAlbum = item.media_type === 'CAROUSEL_ALBUM';
+  return (
+    <button type="button" disabled={dead} onClick={() => onToggle(item.source_url)}
+      style={{
+        position: 'relative', aspectRatio: '1', padding: 0, border: 'none',
+        borderRadius: 2, overflow: 'hidden', cursor: dead ? 'default' : 'pointer',
+        opacity: dead ? 0.3 : 1, background: 'rgba(0,0,0,0.06)',
+        // The tap must feel instant even before React repaints the border.
+        WebkitTapHighlightColor: 'transparent', transform: on ? 'scale(0.96)' : 'none',
+        transition: 'transform 120ms ease',
+      }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={item.source_url} alt="" draggable={false} loading="lazy" decoding="async"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      {(isVideo || isAlbum) && (
+        <span style={{
+          position: 'absolute', top: 5, right: 5, padding: '2px 5px', borderRadius: 2,
+          background: 'rgba(12,10,9,0.72)', color: '#F8F7F5',
+          fontFamily: F.label, fontWeight: 300, fontSize: 7.5, letterSpacing: '0.18em',
+          textTransform: 'uppercase', pointerEvents: 'none',
+        }}>{isVideo ? COPY.H15 : COPY.H16}</span>
+      )}
+      {on && (
+        <span style={{
+          position: 'absolute', inset: 0, border: '2px solid var(--atelier-accent-text)',
+          borderRadius: 2, pointerEvents: 'none',
+        }} />
+      )}
+    </button>
+  );
+});
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -283,6 +340,13 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
     } catch { show(COPY.H10); setIgBusy(null); }
   }
 
+  // STABLE across renders — without this every tile's props change on every tap
+  // and memo() buys nothing. The functional updater is what makes it stable: no
+  // dependency on igPicked, so the identity never churns.
+  const igToggle = useCallback((url: string) => {
+    setIgPicked(prev => prev.includes(url) ? prev.filter(u => u !== url) : [...prev, url]);
+  }, []);
+
   async function igOpenPicker() {
     setIgBusy('media');
     try {
@@ -337,6 +401,9 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const canReorder = filter === 'all';
   const cap  = maxImages ?? 0;
   const full = cap > 0 && images.length >= cap;
+  // TDW_07 P4a — the free-slot count, derived ONCE per render rather than
+  // recomputed inside all twenty-five picker tiles.
+  const igRoom = Math.max(0, cap - images.length);
 
   async function uploadOne(file: File): Promise<boolean> {
     const urlRes = await fetchUploadUrl(file.name);
@@ -777,11 +844,18 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               textTransform: 'uppercase', color: A.brassWarm, marginBottom: 4,
             }}>{COPY.H5}</div>
             <div style={{
-              fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 16,
+              fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 4,
             }}>
-              {COPY.H6.replace('{n}', String(igPicked.length))
-                      .replace('{r}', String(Math.max(0, cap - images.length)))}
+              {COPY.H6.replace('{n}', String(igPicked.length)).replace('{r}', String(igRoom))}
             </div>
+            {/* Said BEFORE the tap, not after the import. A reel arrives as a
+                still frame; a vendor who learns that afterwards has been
+                surprised by their own storefront. */}
+            {igItems.some(i => i.media_type === 'VIDEO') && (
+              <div style={{
+                fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute, marginBottom: 14,
+              }}>{COPY.H17}</div>
+            )}
 
             {igItems.length === 0 ? (
               <p style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute }}>
@@ -789,35 +863,12 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               </p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
-                {igItems.map(item => {
-                  const on   = igPicked.includes(item.source_url);
-                  const room = Math.max(0, cap - images.length);
-                  // A tile that cannot be chosen says so by dimming; it never
-                  // accepts the tap and then quietly drops the photo.
-                  const dead = !on && igPicked.length >= room;
-                  return (
-                    <button key={item.id} type="button" disabled={dead}
-                      onClick={() => setIgPicked(prev =>
-                        prev.includes(item.source_url)
-                          ? prev.filter(u => u !== item.source_url)
-                          : [...prev, item.source_url])}
-                      style={{
-                        position: 'relative', aspectRatio: '1', padding: 0, border: 'none',
-                        borderRadius: 2, overflow: 'hidden', cursor: dead ? 'default' : 'pointer',
-                        opacity: dead ? 0.3 : 1, background: 'rgba(0,0,0,0.06)',
-                      }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.source_url} alt="" draggable={false}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      {on && (
-                        <span style={{
-                          position: 'absolute', inset: 0, border: '2px solid var(--atelier-accent-text)',
-                          borderRadius: 2, pointerEvents: 'none',
-                        }} />
-                      )}
-                    </button>
-                  );
-                })}
+                {igItems.map(item => (
+                  <IgTile key={item.id} item={item}
+                    on={igPicked.includes(item.source_url)}
+                    dead={!igPicked.includes(item.source_url) && igPicked.length >= igRoom}
+                    onToggle={igToggle} />
+                ))}
               </div>
             )}
 
