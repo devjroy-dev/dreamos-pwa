@@ -145,6 +145,39 @@ ok('§4.6 PARTIAL SUCCESS is reported honestly — H9 names how many failed rath
 ok('§4.7 the grid reloads after an import so the vendor sees what landed',
    /await load\(\);/.test(M));
 
+// ── §4.15–§4.18 · THE SHEET'S LAYOUT, benched because both faults were REAL ──
+// The founder walked it with a real vendor's real account — roughly a hundred
+// items — and found two things no bench had asked about: the import action sat
+// below the entire grid, and the selected state was a 2px border invisible on a
+// busy photograph. Both are properties of the surface, so both get cells.
+ok('§4.15 the sheet is a flex COLUMN — header, scroller, pinned action',
+   /display: 'flex', flexDirection: 'column'/.test(M));
+// ── §4.16 / §4.17 · BOTH TAKES WERE MY HARNESS'S FAULT, NOT THE CODE'S. ────
+// §4.16 counted `overflowY` FILE-WIDE and caught two pre-existing sheets that
+// have nothing to do with the picker. §4.17 grepped for COMMENT TEXT inside the
+// STRIPPED source — where comments, by construction, no longer exist. It could
+// never have passed. Fourth scoping error of this sitting, and the lesson has
+// not changed: slice to the region you are asserting about, and assert on CODE.
+{
+  const pStart = M.indexOf('{igPicker && (');
+  const pEnd   = M.indexOf('{sel && (', pStart);
+  const PICKER = pStart >= 0 && pEnd > pStart ? M.slice(pStart, pEnd) : '';
+  ok('§4.16 exactly ONE region inside the PICKER scrolls; the sheet itself does not',
+     (PICKER.match(/overflowY: 'auto'/g) || []).length === 1, `${PICKER.length} chars`);
+  // Asserted on code: the scroller's own closing precedes the pinned footer's
+  // padding, which is the structural fact the comment merely describes.
+  const scroller = PICKER.indexOf("flex: 1, overflowY: 'auto'");
+  const footer   = PICKER.indexOf("borderTop: '0.5px solid rgba(201,168,76,0.18)'");
+  const button   = PICKER.indexOf('onClick={igImport}');
+  ok('§4.17 the import action lives OUTSIDE the scroller — a control the vendor '
+     + 'must hunt for is a control that does not exist',
+     scroller > 0 && footer > scroller && button > footer, `${scroller}/${footer}/${button}`);
+}
+ok('§4.18 the selected state carries THREE redundant signals — scrim, frame and '
+   + 'tick — because any one alone can vanish on a busy photograph',
+   /rgba\(12,10,9,0.42\)/.test(M) && /3px solid var\(--atelier-accent-text\)/.test(M)
+     && /✓/.test(M));
+
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');
 
@@ -213,6 +246,8 @@ console.log('    V-5  manager   picked urls collected into a Set (order lost)  �
 console.log('    V-6  manager   a vetoed slot loses its DATE                    ⇒ §5.2 RED');
 console.log('    V-7  manager   the client builds its own authorize URL        ⇒ §3.2 RED');
 console.log('    V-8  manager   partial failure flattened to a success         ⇒ §4.6 RED');
+console.log('    V-13 manager   the action moved back inside the scroller      ⇒ §4.17 RED');
+console.log('    V-14 manager   the selection scrim removed                    ⇒ §4.18 RED');
 console.log('─'.repeat(72));
 console.log('\n' + (fail === 0 ? 'GREEN' : 'RED') + ` — tdw07_p4a_ig ${pass}/${pass + fail}`);
 process.exit(fail === 0 ? 0 : 1);

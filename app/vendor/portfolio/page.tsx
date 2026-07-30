@@ -192,11 +192,30 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
           textTransform: 'uppercase', pointerEvents: 'none',
         }}>{isVideo ? COPY.H15 : COPY.H16}</span>
       )}
+      {/* THE SELECTED STATE WAS TOO QUIET — a 2px border on a busy photograph is
+          invisible, and a vendor who cannot see what they picked cannot trust
+          the count. Three signals now, deliberately redundant: a scrim that
+          darkens the image, a thick accent frame, and a filled tick. Any one of
+          them reads on any photograph. */}
       {on && (
-        <span style={{
-          position: 'absolute', inset: 0, border: '2px solid var(--atelier-accent-text)',
-          borderRadius: 2, pointerEvents: 'none',
-        }} />
+        <>
+          <span style={{
+            position: 'absolute', inset: 0, background: 'rgba(12,10,9,0.42)',
+            pointerEvents: 'none',
+          }} />
+          <span style={{
+            position: 'absolute', inset: 0, border: '3px solid var(--atelier-accent-text)',
+            borderRadius: 2, pointerEvents: 'none',
+          }} />
+          <span style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%)',
+            width: 26, height: 26, borderRadius: '50%',
+            background: 'var(--atelier-accent-text)', color: '#F8F7F5',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, lineHeight: 1, pointerEvents: 'none',
+          }}>✓</span>
+        </>
       )}
     </button>
   );
@@ -834,11 +853,18 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           }}>
           <div
             onClick={(e) => e.stopPropagation()}
+            // THE IMPORT ACTION MUST NOT LIVE AT THE BOTTOM OF THE SCROLL.
+            // The first build put it after the grid — fine with twelve photos,
+            // useless with Swati's hundred: she picked four and then had to
+            // scroll past every reel she owns to find the button. A control the
+            // vendor has to hunt for is a control that does not exist.
+            // So: a flex COLUMN. Header fixed, grid scrolls, action pinned.
             style={{
-              width: '100%', maxHeight: '86vh', overflowY: 'auto',
+              width: '100%', maxHeight: '86vh',
+              display: 'flex', flexDirection: 'column',
               background: 'var(--atelier-paper, #F8F7F5)', borderRadius: '14px 14px 0 0',
-              padding: '22px 18px calc(env(safe-area-inset-bottom,0px) + 22px)',
             }}>
+            <div style={{ padding: '22px 18px 12px', flexShrink: 0 }}>
             <div style={{
               fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
               textTransform: 'uppercase', color: A.brassWarm, marginBottom: 4,
@@ -857,6 +883,10 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               }}>{COPY.H17}</div>
             )}
 
+            </div>
+
+            {/* THE ONLY SCROLLING REGION. */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 18px 16px' }}>
             {igItems.length === 0 ? (
               <p style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute }}>
                 {COPY.H10}
@@ -872,18 +902,29 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               </div>
             )}
 
-            <button type="button" disabled={igPicked.length === 0 || igBusy !== null}
-              onClick={igImport}
-              style={{
-                width: '100%', marginTop: 18, padding: '13px 0',
-                background: igPicked.length ? 'var(--atelier-accent-text)' : 'transparent',
-                border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
-                cursor: igPicked.length ? 'pointer' : 'default',
-                opacity: (igPicked.length === 0 || igBusy) ? 0.4 : 1,
-                fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                color: igPicked.length ? '#F8F7F5' : A.brassWarm,
-                letterSpacing: '0.28em', textTransform: 'uppercase',
-              }}>{COPY.H7.replace('{n}', String(igPicked.length))}</button>
+            </div>
+
+            {/* THE PINNED ACTION. Outside the scroller, so it is on screen from
+                the first tap to the last regardless of how much media the vendor
+                has. The hairline separates it from the grid scrolling beneath. */}
+            <div style={{
+              flexShrink: 0, padding: '12px 18px calc(env(safe-area-inset-bottom,0px) + 16px)',
+              borderTop: '0.5px solid rgba(201,168,76,0.18)',
+              background: 'var(--atelier-paper, #F8F7F5)',
+            }}>
+              <button type="button" disabled={igPicked.length === 0 || igBusy !== null}
+                onClick={igImport}
+                style={{
+                  width: '100%', padding: '14px 0',
+                  background: igPicked.length ? 'var(--atelier-accent-text)' : 'transparent',
+                  border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                  cursor: igPicked.length ? 'pointer' : 'default',
+                  opacity: (igPicked.length === 0 || igBusy) ? 0.4 : 1,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                  color: igPicked.length ? '#F8F7F5' : A.brassWarm,
+                  letterSpacing: '0.28em', textTransform: 'uppercase',
+                }}>{COPY.H7.replace('{n}', String(igPicked.length))}</button>
+            </div>
           </div>
         </div>
       )}
