@@ -111,6 +111,49 @@ sec('§5 · THE CAP AND THE GATE COME FROM THE SERVER');
   ok('§5.5 F-07.13 — in_carousel is surfaced NOWHERE on this screen', !/in_carousel/.test(m));
 }
 
+sec('§10 · F-1 — THE DRAG\'S TOUCH DEFENCES (MECHANISM CELLS ONLY)');
+{
+  const m = code(MANAGER);
+  // RULED SPLIT: these cells assert the MECHANISM. The AFFORDANCE — that a finger
+  // on the founder's own device actually lifts a tile — is a WALK witness,
+  // declared-not-claimed, and no cell here may be read as standing in for it.
+  // The class is minted: benched-the-mechanism-not-the-affordance.
+  ok('§10.1 both tile image layers are draggable={false} (the Frost pattern)',
+    (m.match(/draggable=\{false\}/g) || []).length >= 2);
+  ok('§10.2 the tile suppresses the native context menu', /onContextMenu=\{e => e\.preventDefault\(\)\}/.test(m));
+  ok('§10.3 callout and selection are off on the tile',
+    /WebkitTouchCallout: 'none'/.test(m) && /WebkitUserSelect: 'none'/.test(m) && /userSelect: 'none'/.test(m));
+  ok('§10.4 touch-action goes none ONLY on the armed tile — grid scroll survives',
+    /touchAction: dragId === img\.id \? 'none' : 'auto'/.test(m));
+  ok('§10.5 the drag does NOT arm on contact — a press timer does',
+    /pressTimer\.current = setTimeout\(/.test(m) && !/onPointerDown\(id: string, e: React\.PointerEvent\) \{\s*if \(!canReorder\) return;\s*setDragId/.test(m));
+  ok('§10.6 the timer is ~350ms', /\}, 350\);/.test(m));
+  ok('§10.7 MOVE FIRST CANCELS — travel past slop kills the timer and scrolling wins',
+    /if \(dx > 8 \|\| dy > 8\) clearPress\(\);/.test(m));
+  ok('§10.8 a completed drag does not also open the sheet',
+    /if \(didDrag\.current\) \{ didDrag\.current = false; return; \}/.test(m));
+  ok('§10.9 the timer is cleared on unmount — no stray arm after navigation',
+    /useEffect\(\(\) => \(\) => clearPress\(\), \[\]\)/.test(m));
+}
+
+sec('§11 · F-2 — BATCH UPLOAD, TRUNCATED AT REMAINING');
+{
+  const m = code(MANAGER); const r = raw(MANAGER);
+  ok('§11.1 the input accepts multiple files', /<input[^>]*\bmultiple\b/s.test(m));
+  ok('§11.2 the handler takes a LIST, not a file', /async function handleUpload\(files: File\[\]\)/.test(m));
+  ok('§11.3 the loop is SEQUENTIAL — parallel registers would race for position',
+    /for \(let i = 0; i < batch\.length; i\+\+\)/.test(m) && /await uploadOne\(batch\[i\]\)/.test(m) && !/Promise\.all/.test(m));
+  ok('§11.4 the batch is TRUNCATED at the free slots', /const batch = files\.slice\(0, room\)/.test(m) && /Math\.max\(0, cap - images\.length\)/.test(m));
+  ok('§11.5 truncation SAYS SO rather than silently dropping',
+    /if \(batch\.length < files\.length\) show\(COPY\.F2_3\(room\)/.test(m));
+  ok('§11.6 a full portfolio refuses the batch with the cap sentence', /if \(batch\.length === 0\) \{ show\(COPY\.A2\(cap\)/.test(m));
+  ok('§11.7 progress counts through the batch', /COPY\.F2_1\(i \+ 1, batch\.length\)/.test(m));
+  ok('§11.8 a single upload keeps the SINGULAR copy B2', /done === 1 && batch\.length === 1\) show\(COPY\.B2/.test(m));
+  ok('§11.9 F2-1 verbatim', r.includes('`Uploading ${i} of ${n}…`'));
+  ok('§11.10 F2-2 verbatim', r.includes('`${n} photos added — with our team for review.`'));
+  ok('§11.11 F2-3 verbatim', r.includes('`Room for ${r} more — adding the first ${r}.`'));
+}
+
 sec('§9 · THE FILTER TABS AND THE DRAG INTERLOCK (CE §0.2 ruling (a))');
 {
   const m = code(MANAGER);
@@ -119,7 +162,7 @@ sec('§9 · THE FILTER TABS AND THE DRAG INTERLOCK (CE §0.2 ruling (a))');
   ok('§9.2 the list read honours the filter again', /fetchPortfolio\(vendorId, filter\)/.test(m));
   ok('§9.3 the interlock exists as ONE derived boolean', /const canReorder = filter === 'all'/.test(m));
   ok('§9.4 drag is INERT under a filter — every entry point consults it',
-    /onPointerDown\(id: string\) \{ if \(!canReorder\) return;/.test(m) &&
+    /onPointerDown\(id: string, e: React\.PointerEvent\) \{\s*if \(!canReorder\) return;/.test(m) &&
     /if \(!dragId \|\| !canReorder\) return;/.test(m));
   ok('§9.5 G1 renders only when reorder is LIVE', /canReorder && \(\s*<div[\s\S]{0,220}COPY\.G1/.test(m));
   ok('§9.6 G3 renders only when it is NOT', /!canReorder && \(\s*<div[\s\S]{0,220}COPY\.G3/.test(m));

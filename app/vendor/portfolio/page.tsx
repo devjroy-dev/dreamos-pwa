@@ -68,6 +68,11 @@ const COPY = {
   A1: (n: number, max: number) => `${n} of ${max} photos`,
   A2: (max: number) => `You've reached ${max} photos. Remove one to add another.`,
   B1: 'Uploading…',
+  // F2-1/2/3 — the batch set. Founder-vetoed byte-exact 2026-07-29 (F-2's cure).
+  // Single-file uploads keep B1/B2; these render only for a batch of two or more.
+  F2_1: (i: number, n: number) => `Uploading ${i} of ${n}…`,
+  F2_2: (n: number) => `${n} photos added — with our team for review.`,
+  F2_3: (r: number) => `Room for ${r} more — adding the first ${r}.`,
   B2: 'Photo added — with our team for review',
   B3: "That upload didn't go through. Try again.",
   C1: 'Remove this photo?',
@@ -121,12 +126,27 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const [confirming, setConfirming] = useState(false);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress]   = useState<string>(COPY.B1);
   const [maxImages, setMaxImages] = useState<number | null>(null);
   const [dragId, setDragId]   = useState<string | null>(null);
   const [filter, setFilter]   = useState<string>('all');
   const fileRef = useRef<HTMLInputElement>(null);
   const tileRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastCommitted = useRef<string>('');
+  // ── F-1's PRESS TIMER (CE-ruled) ──────────────────────────────────────────
+  // The drag must NOT arm on contact. Arming immediately meant the browser was
+  // still free to treat the press as a long-press on an image, and Chrome's
+  // native image menu won the gesture before any handler ran — the reorder was
+  // shipped unusable on the only device it was built for. Now: a press must
+  // survive ~350ms WITHOUT moving. Move first and the timer is cancelled and the
+  // page scrolls exactly as it always did; hold still and the drag arms.
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressAt    = useRef<{ x: number; y: number } | null>(null);
+  // A completed drag must not also open the sheet. dragId is already null by the
+  // time click fires, so the click needs its own suppression flag.
+  const didDrag    = useRef(false);
+  const clearPress = () => { if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; } pressAt.current = null; };
+  useEffect(() => () => clearPress(), []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -164,26 +184,49 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   const cap  = maxImages ?? 0;
   const full = cap > 0 && images.length >= cap;
 
-  async function handleUpload(file: File) {
+  async function uploadOne(file: File): Promise<boolean> {
+    const urlRes = await fetchUploadUrl(file.name);
+    // The server refuses at the signing door when the portfolio is full (cap
+    // site 3), so its sentence — not ours — is what the vendor reads.
+    if (!urlRes.ok) { show((urlRes as { error?: string }).error ?? COPY.B3, 'error'); return false; }
+    const { upload_url, params } = urlRes;
+    const form = new FormData();
+    Object.entries(params).forEach(([k, v]) => form.append(k, String(v)));
+    form.append('file', file);
+    const cloudRes = await fetch(upload_url, { method: 'POST', body: form });
+    if (!cloudRes.ok) { show(COPY.B3, 'error'); return false; }
+    const cloudData = await cloudRes.json();
+    const regRes = await registerPortfolioImage({ image_url: cloudData.secure_url });
+    if (!regRes.ok) { show((regRes as { error?: string }).error ?? COPY.B3, 'error'); return false; }
+    return true;
+  }
+
+  // ── F-2: BATCH UPLOAD, TRUNCATED AT `remaining` ───────────────────────────
+  // Twenty uploads at one tap each was the wrong answer for a twenty-slot cap.
+  // Sequential rather than parallel on purpose: each register call reads the
+  // count to assign the next position, so concurrent registers would race for
+  // the same index and the grid's order would be luck. Slower, correct.
+  // A batch larger than the free slots takes what fits and SAYS SO (F2-3) rather
+  // than uploading bytes the server will refuse — the same reasoning as cap site 3.
+  async function handleUpload(files: File[]) {
+    if (files.length === 0) return;
+    const room  = cap > 0 ? Math.max(0, cap - images.length) : files.length;
+    const batch = files.slice(0, room);
+    if (batch.length === 0) { show(COPY.A2(cap), 'error'); return; }
+    if (batch.length < files.length) show(COPY.F2_3(room), 'error');
+
     setUploading(true);
+    let done = 0;
     try {
-      const urlRes = await fetchUploadUrl(file.name);
-      // The server refuses at the signing door when the portfolio is full (cap
-      // site 3), so its sentence — not ours — is what the vendor reads.
-      if (!urlRes.ok) { show((urlRes as { error?: string }).error ?? COPY.B3, 'error'); return; }
-      const { upload_url, params } = urlRes;
-      const form = new FormData();
-      Object.entries(params).forEach(([k, v]) => form.append(k, String(v)));
-      form.append('file', file);
-      const cloudRes = await fetch(upload_url, { method: 'POST', body: form });
-      if (!cloudRes.ok) { show(COPY.B3, 'error'); return; }
-      const cloudData = await cloudRes.json();
-      const regRes = await registerPortfolioImage({ image_url: cloudData.secure_url });
-      if (!regRes.ok) { show((regRes as { error?: string }).error ?? COPY.B3, 'error'); return; }
-      show(COPY.B2, 'success');
-      load();
+      for (let i = 0; i < batch.length; i++) {
+        setProgress(batch.length > 1 ? COPY.F2_1(i + 1, batch.length) : COPY.B1);
+        if (await uploadOne(batch[i])) done++;
+      }
+      if (done === 1 && batch.length === 1) show(COPY.B2, 'success');
+      else if (done > 0) show(COPY.F2_2(done), 'success');
+      if (done > 0) load();
     } catch { show(COPY.B3, 'error'); }
-    finally { setUploading(false); }
+    finally { setUploading(false); setProgress(COPY.B1); }
   }
 
   async function commitOrder(next: PortfolioImage[]) {
@@ -202,8 +245,30 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   // whole order. The commit sends the FULL id list because the server is
   // fail-closed on completeness — a move instruction could half-apply, a
   // permutation cannot. Optimistic locally, authoritative from the response.
-  function onPointerDown(id: string) { if (!canReorder) return; setDragId(id); }
+  function onPointerDown(id: string, e: React.PointerEvent) {
+    if (!canReorder) return;
+    didDrag.current = false;
+    pressAt.current = { x: e.clientX, y: e.clientY };
+    const el = e.currentTarget as HTMLElement;
+    const pid = e.pointerId;
+    pressTimer.current = setTimeout(() => {
+      pressTimer.current = null;
+      didDrag.current = true;
+      // Capture the pointer at the moment of arming so the rest of the gesture
+      // belongs to this tile even if the finger leaves its box.
+      try { el.setPointerCapture(pid); } catch { /* not fatal */ }
+      setDragId(id);
+    }, 350);
+  }
   function onPointerMove(e: React.PointerEvent) {
+    // MOVE FIRST CANCELS TO SCROLL. While the timer is pending, any real travel
+    // means the vendor is scrolling the grid, not lifting a tile — so the timer
+    // dies and the browser keeps the gesture. 8px of slop for a resting thumb.
+    if (pressTimer.current && pressAt.current) {
+      const dx = Math.abs(e.clientX - pressAt.current.x);
+      const dy = Math.abs(e.clientY - pressAt.current.y);
+      if (dx > 8 || dy > 8) clearPress();
+    }
     if (!dragId || !canReorder) return;
     const over = images.find(img => {
       const el = tileRefs.current[img.id];
@@ -222,6 +287,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
     });
   }
   function onPointerUp() {
+    clearPress();
     if (!dragId) return;
     setDragId(null);
     commitOrder(images);
@@ -280,11 +346,12 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             color: '#1A120E', letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: (uploading || full) ? 0.5 : 1,
           }}>
-          {uploading ? COPY.B1 : '+ Upload'}
+          {uploading ? progress : '+ Upload'}
         </button>
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic"
+          multiple
           style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
+          onChange={e => { const fs = Array.from(e.target.files ?? []); if (fs.length) handleUpload(fs); e.target.value = ''; }} />
       </div>
 
       {/* Filter pills — restored (CE §0.2 (a)). Ghost/bordered only: the screen's
@@ -353,22 +420,37 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 key={img.id}
                 ref={el => { tileRefs.current[img.id] = el; }}
                 role="button" tabIndex={0}
-                onPointerDown={() => onPointerDown(img.id)}
-                onClick={() => { if (!dragId) { setSel(img); setCaption(img.caption ?? ''); setConfirming(false); } }}
+                onPointerDown={e => onPointerDown(img.id, e)}
+                onContextMenu={e => e.preventDefault()}
+                onClick={() => {
+                  // A completed drag must not also open the sheet.
+                  if (didDrag.current) { didDrag.current = false; return; }
+                  setSel(img); setCaption(img.caption ?? ''); setConfirming(false);
+                }}
                 onKeyDown={e => { if (e.key === 'Enter') { setSel(img); setCaption(img.caption ?? ''); } }}
                 style={{
                   position: 'relative', aspectRatio: '3/4', overflow: 'hidden',
                   border: '0.5px solid rgba(201,168,76,0.2)', borderRadius: 2,
                   cursor: 'pointer', background: 'none', padding: 0,
+                  // ── F-1's DEFENSES ────────────────────────────────────────
+                  // Chrome's long-press image menu took the gesture before any
+                  // handler ran. These four lines are why it no longer can. The
+                  // touch-action flips to 'none' only on the ARMED tile, so
+                  // vertical scrolling over the grid is untouched — a blanket
+                  // 'none' would have cured the drag by breaking the scroll.
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                  userSelect: 'none',
+                  touchAction: dragId === img.id ? 'none' : 'auto',
                   opacity: dragId === img.id ? 0.5 : 1,
                   transform: dragId === img.id ? 'scale(0.97)' : 'none',
                   transition: dragId ? 'none' : 'transform 140ms ease, opacity 140ms ease',
                 }}>
                 {/* LQIP under the real image: the blurred 24px wash paints first,
                     the card variant fades over it. No spinner on the floor. */}
-                <img src={lqipUrl(img.image_url)} alt="" aria-hidden
+                <img src={lqipUrl(img.image_url)} alt="" aria-hidden draggable={false}
                   style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', filter: 'blur(8px)', transform: 'scale(1.06)' }} />
-                <img src={imgUrl(img.image_url, 'card')} alt={img.caption ?? ''} loading="lazy"
+                <img src={imgUrl(img.image_url, 'card')} alt={img.caption ?? ''} loading="lazy" draggable={false}
                   style={{ position: 'relative', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
                 {/* Under a filter, render index 0 is NOT the cover. The badge
                     keys on the ROW's own position, which is the server's word;
