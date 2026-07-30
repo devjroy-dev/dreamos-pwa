@@ -727,6 +727,8 @@ export interface PortfolioImage {
   approval_state: 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
   created_at:     string;
+  /** TDW_07 P3 (0102) — the ordering authority. position 0 is the cover. */
+  position?:      number;
 }
 
 export interface PortfolioListResponse {
@@ -757,6 +759,10 @@ export interface DiscoverStatus {
   // against a backend deployed before this field; DISCOVER_PHOTO_FLOOR in
   // lib/vendor/discoverFloor.ts is the comment-bound fallback, never the authority.
   min_portfolio_images?: number;
+  /** TDW_07 P3 · cap site 4 — the server's number; the surface never mints its own. */
+  max_portfolio_images?: number;
+  /** TDW_07 P3 · CE §B — the IG entry renders only when the seam is configured. */
+  ig_import_enabled?: boolean;
   saves_count?: number;
   current_request: { id: string; state: string; decided_at: string | null } | null;
   last_decision_reason: string | null;

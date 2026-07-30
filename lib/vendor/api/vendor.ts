@@ -893,6 +893,13 @@ export function deletePortfolioImage(imageId: string): Promise<{ ok: boolean; de
   return deleteJson('/api/v2/vendor/portfolio/' + imageId);
 }
 
+// TDW_07 P3 — the manager's drag. The server is fail-closed: it demands the FULL
+// id list exactly once each, so the client sends the whole order rather than a
+// move instruction, and a stale client can never half-apply a permutation.
+export function reorderPortfolio(orderedIds: string[]): Promise<PortfolioListResponse | ApiErr> {
+  return patchJson<PortfolioListResponse | ApiErr>('/api/v2/vendor/portfolio/reorder', { ordered_ids: orderedIds });
+}
+
 export function fetchDiscoverStatus(): Promise<DiscoverStatus | ApiErr> {
   return getJson<DiscoverStatus | ApiErr>('/api/v2/vendor/discover/status');
 }

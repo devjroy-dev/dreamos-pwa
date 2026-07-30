@@ -39,6 +39,8 @@ function isBrideDemoDiscover(): boolean {
 // P4's VendorProfileView and P6's editorial pass. See lib/frost/igLink.ts.
 import { openInstagram, normalizeIgHandle } from '../../../../../lib/frost/igLink';
 import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
+// TDW_07 P3 · Fork 5(b) — the ONE img module at its frost-api address.
+import { imgUrl, lqipUrl } from '../../../../../lib/frost-api/img';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -739,7 +741,10 @@ function DiscoveryFeedContent({
     const toPreload: string[] = [];
     for (let i = imageIdx + 1; i < Math.min(vendor.photos.length, imageIdx + 3); i++) toPreload.push(vendor.photos[i]);
     if (vendorIdx + 1 < vendors.length && vendors[vendorIdx + 1].photos[0]) toPreload.push(vendors[vendorIdx + 1].photos[0]);
-    toPreload.forEach(src => { const img = new Image(); img.src = src; });
+    // TDW_07 P3: preload the DELIVERED variant, not the original. Preloading the
+    // raw upload warmed a cache the render never reads, so the deck paid full
+    // bytes twice. RENDER-ONLY — no gesture handler, constant or timer is touched.
+    toPreload.forEach(src => { const img = new Image(); img.src = imgUrl(src, 'card'); });
   }, [vendorIdx, imageIdx, vendor, vendors]);
 
   const goNextVendor = useCallback(() => {
@@ -872,7 +877,15 @@ function DiscoveryFeedContent({
         {/* Photo */}
         <div key={dissolveKey} style={{ position: 'absolute', inset: 0, zIndex: 1, animation: 'dissolveIn 260ms cubic-bezier(0.22,1,0.36,1)' }}>
           {(isBlind ? blindPhoto : currentPhoto) ? (
-            <img src={(isBlind ? blindPhoto : currentPhoto)!} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+            <>
+              {/* TDW_07 P3 — LQIP beneath, card variant over. Both layers are
+                  pointerEvents:'none' exactly as the single layer was, so the
+                  deck's touch surface is byte-for-byte the surface it was: the
+                  gesture law is preserved by construction, not by inspection.
+                  Skeletons are LQIP + fade; no spinner on the floor (spec P6). */}
+              <img src={lqipUrl((isBlind ? blindPhoto : currentPhoto)!)} alt="" aria-hidden draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', filter: 'blur(12px)', transform: 'scale(1.08)' }} />
+              <img src={imgUrl((isBlind ? blindPhoto : currentPhoto)!, 'card')} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+            </>
           ) : (
             <div style={{ position: 'absolute', inset: 0, background: '#1a1714', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
               <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(248,247,245,0.2)' }}>No photo yet</span>
