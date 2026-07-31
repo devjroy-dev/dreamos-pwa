@@ -585,6 +585,23 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.vendor_name||'Vendor'}</div>
                     {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{meta}</div>}
+                    {/* ── TDW_07 P5 · THE JOURNEY'S STATE (CE-ruled 2026-07-31, §D) ──────
+                        SENT ships alone, and it is not a placeholder for a pair.
+                        `couple_enquiries` has NO state column (9 columns, witnessed
+                        PUBLIC_SCHEMA.md) and no writer of "replied" exists anywhere in
+                        the estate — so THE ROW'S EXISTENCE IS THE STATE, and this label
+                        is the honest whole of what we know.
+
+                        The spec's §P5.4 asked this surface to "read sent/replied from
+                        existing enquiries routes". It was reading a ghost: the route
+                        (`/api/v2/couple/enquiries`, mounted at couple/core.js:49) serves
+                        rows that have never carried a reply state. REPLIED is chartered
+                        to the bride blocks, where reply-detection actually lives.
+
+                        Rendered as its own element rather than folded into `meta`,
+                        because `PHOTOGRAPHY · DELHI · SENT` reads as a third attribute
+                        of the vendor rather than the status of her enquiry. */}
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:3,opacity:.72}}>Sent</div>
                   </div>
                   <a href={waLink} target="_blank" rel="noopener noreferrer"
                     onClick={e2=>e2.stopPropagation()}
