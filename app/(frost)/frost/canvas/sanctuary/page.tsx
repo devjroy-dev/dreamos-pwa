@@ -1775,7 +1775,14 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
       {!isBlind&&vendor&&(
         <DiscVendorPanel
           vendor={vendor}
-          visible={panelOpen}
+          // FORK B FOLLOW-ON (founder-caught on the walk): the panel used to be
+          // hidden by the sheet's own height. The done-state is far shorter than
+          // the form, so the panel's top re-emerged BELOW the sheet and the
+          // surface read as two stacked cards with two drag handles. The panel
+          // slides away while the sheet is up and returns when it closes —
+          // `panelOpen` itself is untouched, so nothing about the card's own
+          // open/close behaviour changes.
+          visible={panelOpen && !sheetOpen}
           onClose={()=>setPanelOpen(false)}
           accent={accent}
           onEnquire={handleEnquire}
