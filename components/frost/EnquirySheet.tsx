@@ -74,6 +74,16 @@ const LABEL_DATE      = 'Wedding date';
 const LABEL_CITY      = 'City';
 const LABEL_BUDGET    = 'Budget';
 const SUBMIT_WORD     = 'Send enquiry';
+// ── FORK B (CE-ruled) · THE FROZEN CONFIRMATION, RE-HOMED ────────────────────
+// These two are the V6 vetoed toasts, BYTE-IDENTICAL to sanctuary:1806's
+// success arms. They are not new copy: the founder's word moved WHERE they
+// render, not WHAT they say. The `enquiry_saved` conditional is the same one.
+// The FAILURE arm ('Could not send. Try again.') deliberately does NOT move —
+// it stays a toast, byte-and-firing untouched, because it is F-07.45's arm.
+const CONFIRM_SAVED   = 'Enquiry sent ✦ saved in Vendors';
+const CONFIRM_PLAIN   = 'Enquiry sent';
+// The one NEW string this sitting ships. Founder-vetoed verbatim 2026-07-31.
+const CONTINUE_WORD   = 'Continue on WhatsApp';
 const EXPECTATION     = 'Replies on WhatsApp, usually within a day.';
 
 const FF = {
@@ -116,6 +126,9 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
   const [city, setCity]         = React.useState<string>('');
   const [band, setBand]         = React.useState<string | null>(null);
   const [bandOpen, setBandOpen] = React.useState(false);
+  // FORK B: the sheet no longer vanishes on success. `done` holds the server's
+  // own result and turns this surface into the confirming one.
+  const [done, setDone] = React.useState<EnquiryResult | null>(null);
 
   // One frame after mount, flip to the resting transform — the sheet RISES
   // rather than appearing. Without it the sheet popped in while the panel beneath
@@ -145,7 +158,22 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
         setCity(r.couple.wedding_city || '');
         const b = bandForAmount(r.couple.budget_total);
         setBand(b ? b.value : null);
-      } catch { /* prefill is a courtesy; its absence never blocks the enquiry */ }
+      } catch (err) {
+        // ── P2 SCOPE (CE Ruling 3) · THE SWALLOWED BODY IS NOW LOUD ────────────
+        // This catch discarded the ONE byte that identified the failure. The
+        // prefill 403 was diagnosed from a Content-Length in a screenshot because
+        // the message never reached a log: 'No couple profile found.' (the auth
+        // identity resolved to no couple) and 'Forbidden.' (the id did not match)
+        // are different diseases and this line made them the same silence.
+        // The MECHANISM cure is the AUTH SITTING's by name — the shared
+        // `access_token` key that lets a vendor login overwrite a bride's token.
+        // Prefill stays a courtesy: its absence still never blocks the enquiry.
+        console.warn(
+          `[enquiry] prefill unavailable for couple ${coupleId} — ` +
+          `${err instanceof Error ? err.message : String(err)}. ` +
+          'The sheet renders empty and editable; the enquiry is unaffected.',
+        );
+      }
     })();
     return () => { alive = false; };
   }, [coupleId]);
@@ -204,14 +232,19 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
     }
     setSending(false);
 
-    // ── F1(a): POST FIRST, THEN HAND OFF ─────────────────────────────────────
-    // The handoff runs even when the post failed. She tapped Enquire to reach a
-    // vendor, and the wa.me window is the path that has always worked; refusing
-    // it because our own pipeline stumbled would punish her for our defect. The
-    // toast tells her the truth about the pipeline either way.
-    if (enquireLink) {
-      try { window.open(enquireLink, '_blank'); } catch { /* popup blocked; the toast still lands */ }
-    }
+    // ── F1(b) CURED (CE-ruled, Option 3) · THE AUTO-FIRE IS DEAD ─────────────
+    // This handler used to open the wa.me window itself, unasked, in the same
+    // tick as the POST. Two channels opened from one tap: the enquiry landed in
+    // our pipeline AND WhatsApp took the screen, so she could not tell which of
+    // the two had actually reached the vendor. The link SURVIVES — it is the
+    // vendor line's arrival contract — but it is now a DELIBERATE affordance she
+    // taps, rendered in the done-state below, never a thing that happens to her.
+    //
+    // The demo species reaches this with `enquireLink === null` by construction
+    // (both mints null it: couple/discover.js's demo branch and demo/vendor.js),
+    // so a demo card renders the confirmation and NO affordance. That is the
+    // F-07.54 cure showing through the surface.
+    if (result.ok) setDone(result);
     onDone(result);
   }
 
@@ -265,7 +298,37 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
           {EXPECTATION}
         </div>
 
-        {(
+        {done ? (
+          /* ── FORK B · THE DONE-STATE ─────────────────────────────────────────
+             The confirming surface. It renders the frozen string (same
+             `enquiry_saved` conditional as the toast it replaces) and, ONLY when
+             a lawful address exists, the affordance. No wa.me link is derivable
+             for a demo row, so a demo card ends here with the confirmation alone.
+             The sheet's single gold moves from the submit button to this control,
+             which keeps the one-gold-per-screen house law exactly satisfied. */
+          <div style={{ paddingTop: 4 }}>
+            <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 15, color: 'rgba(248,247,245,0.92)', marginBottom: 4 }}>
+              {done.enquiry_saved ? CONFIRM_SAVED : CONFIRM_PLAIN}
+            </div>
+            <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 13, color: 'rgba(248,247,245,0.42)', marginBottom: 20 }}>
+              {EXPECTATION}
+            </div>
+            {enquireLink && (
+              <button
+                onClick={() => { try { window.open(enquireLink, '_blank'); } catch { /* popup blocked; the enquiry is already stored */ } }}
+                style={{
+                  width: '100%', padding: '14px 0',
+                  background: GOLD, border: 'none', borderRadius: 10,
+                  fontFamily: FF.label, fontSize: 10, fontWeight: 300,
+                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                  color: '#0C0A09', cursor: 'pointer', touchAction: 'manipulation',
+                }}
+              >
+                {CONTINUE_WORD}
+              </button>
+            )}
+          </div>
+        ) : (
           <>
             {/* FUNCTIONS — read-only on a demo card (no demo_leads column) */}
             <div style={rowStyle}>

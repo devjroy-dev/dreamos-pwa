@@ -1793,6 +1793,15 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           enquireLink={vendor.enquire_link||(vendor.routing_handle?makeEnquireLink(vendor.routing_handle):null)}
           onClose={()=>setSheetOpen(false)}
           onDone={(r)=>{
+              // ── FORK B (CE-ruled) · THE SUCCESS TOAST DOES NOT FIRE HERE ──
+              // The sheet's done-state is now the confirming surface and renders
+              // the SAME frozen bytes. Firing this too would double-confirm, and
+              // the toast (zIndex 130) sits inside the sheet's band (zIndex 121)
+              // at bottom+96px — it would cover the affordance for its full
+              // 2600ms, exactly when she would tap it. The FAILURE arm below is
+              // byte-and-firing UNTOUCHED: it is F-07.45's arm, the sheet has
+              // nothing good to say on that path, and it still closes and warns.
+              if (r.ok) return;
             setSheetOpen(false);
             // F-07.45 SURFACE ARM. `r.ok` is now the SERVER's fact about whether
             // the enquiry EXISTS where the vendor will find it — until this
@@ -1803,7 +1812,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
             // `vendor_notified` is read at ONE home (EnquirySheet's submit),
             // where the response arrives; duplicating the read here would be a
             // second reader of the same fact for no gain.
-            setEnquiryToast(!r.ok?'Could not send. Try again.':r.enquiry_saved?'Enquiry sent ✦ saved in Vendors':'Enquiry sent');
+            setEnquiryToast('Could not send. Try again.');
             setTimeout(()=>setEnquiryToast(null),2600);
           }}
         />

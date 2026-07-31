@@ -488,8 +488,15 @@ ok('§10.9 the Enquire line ships byte-exact',
   raw(VIEW).includes('Couples tap this to message you on WhatsApp.'));
 ok('§10.10 the Circle line ships byte-exact',
   raw(VIEW).includes('Couples tap this to save you to their Circle.'));
+// LABELED AMENDMENT (F-07.53, CE-ruled, §9 BOTH-SIDES CLAUSE): this pinned the
+// OLD live-tap shape. F1(a) lawfully changed the caller — the live tap now
+// prefers the sheet (`onEnquire`) and falls back to the direct open only when no
+// sheet is mounted. A green over a shape nobody sends is indistinguishable from
+// no test at all, so the old shape's green is RETIRED, not retained. Same
+// question — do these fire only in preview, does the live card still act — asked
+// of the shape the caller actually has.
 ok('§10.11 they fire only in PREVIEW — the live card still acts',
-  /if \(isLive\) \{ if \(enquireLink\) window\.open/.test(code(VIEW)));
+  /if \(isLive\) \{\s*if \(onEnquire\) onEnquire\(\);\s*else if \(enquireLink\) window\.open/.test(code(VIEW)));
 ok('§10.12 Lock Date raises NO toast — disabled as live, its beta chip is its own explanation',
   !/onPreviewToast[\s\S]{0,200}Lock Date/.test(code(VIEW)));
 ok('§10.13 the mount renders the toast — chrome lives at the mount, copy with the control',

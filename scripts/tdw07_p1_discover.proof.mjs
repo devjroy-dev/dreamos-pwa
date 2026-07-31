@@ -18,6 +18,14 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
+// ── LABELED AMENDMENT (F-07.52, CE-ruled) · THE STRIPPER, PORTED ──────────────
+// Lifted VERBATIM from scripts/tdw07_p4b_body.proof.mjs:35-38 — the estate's one
+// comment-stripper, lines first then blocks then JSX blocks. Ported rather than
+// re-authored so the two proofs cannot drift into two definitions of "code".
+const stripComments = (src) => src
+  .replace(/(^|[^:])\/\/.*$/gm, '$1')
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
 let pass = 0, fail = 0;
 const ok = (label, cond, detail) => {
@@ -141,8 +149,14 @@ ok('§4.12 blind mode withholds the handle exactly as it withholds the name (ide
   /\{!isBlind && vendor\.instagram_handle && \(/.test(SURFACE));
 ok('§4.13 the chip carries no gold — the screen\'s one gold stays Enquire\'s (spec §3)',
   !/function IgChip[\s\S]{0,1400}#C9A84C/.test(SURFACE));
+// LABELED AMENDMENT (F-07.52, CE-ruled): the cell counted RAW occurrences and
+// went red when 5de3324's founder-ruled diagnosis COMMENT used the word
+// "localStorage" in prose (page.tsx:864, inside a {/* */} block). The comment is
+// evidence and STAYS — a green bought by deleting it is the cure this estate
+// refuses by name (P2 precedent). The COUNT is what was wrong: it judged prose.
+// Cells judge CODE. Same question, same number, now asked of code only.
 ok('§4.14 P1 adds NO localStorage read or write to the canvas page',
-  (PAGE.match(/localStorage/g) || []).length === 1);   // the pre-existing isBrideDemoDiscover only
+  (stripComments(PAGE).match(/localStorage/g) || []).length === 1);   // the pre-existing isBrideDemoDiscover only
 ok('§4.15 the unreachable demo branch is left BYTE-UNTOUCHED per the CE ruling (F-07.1)',
   PAGE.includes('const res  = await fetch(`${BACKEND}/api/v2/demo/discover`);') &&
   PAGE.includes("window.location.href = 'https://demodiscover.thedreamwedding.in';"));
