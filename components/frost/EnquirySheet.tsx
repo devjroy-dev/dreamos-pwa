@@ -310,9 +310,12 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
             <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 15, color: 'rgba(248,247,245,0.92)', marginBottom: 4 }}>
               {done.enquiry_saved ? CONFIRM_SAVED : CONFIRM_PLAIN}
             </div>
-            <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 13, color: 'rgba(248,247,245,0.42)', marginBottom: 20 }}>
-              {EXPECTATION}
-            </div>
+            {/* THE EXPECTATION LINE IS THE HEADER'S, AND IT RENDERS UNCONDITIONALLY
+                ABOVE (:298). The first take repeated it here and the founder's walk
+                caught it: "Replies on WhatsApp, usually within a day." appeared
+                twice, once under the vendor name and once under "Enquiry sent".
+                A presence-cell cannot see a duplicate — §18.1 asserted the frozen
+                string was THERE, which it was, twice. §18.8 now counts. */}
             {enquireLink && (
               <button
                 onClick={() => { try { window.open(enquireLink, '_blank'); } catch { /* popup blocked; the enquiry is already stored */ } }}
