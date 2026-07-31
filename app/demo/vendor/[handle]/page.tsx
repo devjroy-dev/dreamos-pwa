@@ -272,7 +272,7 @@ export default function DemoLandingPage() {
             {claimError ? (
               <div style={{ textAlign:'center', padding:'20px 0' }}>
                 <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:26, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>That didn&apos;t go through.</div>
-                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7, marginBottom:20 }}>Your claim wasn&apos;t saved. Please try again.</div>
+                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7, marginBottom:20 }}>Something went wrong on our end. Please try again.</div>
                 <button
                   onClick={() => { setClaimError(false); }}
                   style={{ padding:'12px 28px', background:'rgba(248,247,245,0.92)', border:'none', borderRadius:10, fontFamily:F.label, fontSize:10, fontWeight:300, letterSpacing:'0.22em', textTransform:'uppercase', color:'#0C0A09', cursor:'pointer' }}

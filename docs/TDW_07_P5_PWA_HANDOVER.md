@@ -39,7 +39,7 @@ Stated precisely, because the honest claim is narrower than "no localStorage": t
 
 1. **`BUDGET_OPTIONS` / `DISC_BUDGETS` survive as local aliases** of `BUDGET_BANDS` rather than being renamed at every use site. The cure is one list and one register; renaming ~6 references would enlarge the diff without changing a fact.
 2. **`bandLabelFor` / `bandForAmount` have no caller yet.** They exist for the sheet (ZIP 3) and are exported now so the bands file is written once. Named here rather than discovered as dead code.
-3. **The demo landing's failure line is NEW COPY** — `That didn't go through.` / `Your claim wasn't saved. Please try again.` / `Try again`. This is V7, which the chair held pending exactly this derivation: **the landing had no failure affordance at all** — the success screen was unconditional. So a string was needed. **Founder veto owed on these three.**
+3. **The demo landing's failure line is NEW COPY, VETO EXECUTED 2026-07-31** — `That didn't go through.` / `Something went wrong on our end. Please try again.` / `Try again`. This is V7, which the chair held pending exactly this derivation: **the landing had no failure affordance at all** — the success screen was unconditional, so a string was genuinely needed. The founder chose option (c) for the body: the blame sits with us, not with a vendor we messaged out of nowhere. Bytes above are his, verbatim.
 
 ## 5 · WHAT REMAINS — ZIP 3, THE LAST MOVEMENT
 
