@@ -17,7 +17,6 @@ import { ChatThread } from '@/components/vendor/ChatThread';
 import { FreshThreadControl } from '@/components/vendor/FreshThreadControl'; // TDW_06 D-7
 import { InputBar } from '@/components/vendor/InputBar';
 import { TierMeter } from '@/components/vendor/TierMeter'; // TDW_02 P5
-import { CommandBar } from '@/components/vendor/CommandBar';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth, already cached on this screen
 import { deriveMoney, type MoneyDerivation } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
@@ -477,7 +476,10 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   // the Invoices page runs. That is the repoint: not new numbers, the SAME ones.
   const cab = useCabinetData(vendorId);
   const money = useMemo(() => deriveMoney(cab.data), [cab.data]);
-  const [justDoIt, setJustDoIt] = useState(false);
+  // TDW_07 MICRO-2 · F-07.31 — `justDoIt` RETIRED with the CommandBar. It was state that
+  // fed exactly one thing: the bar's own toggle colours. Nothing persisted it, no endpoint
+  // received it, and no behaviour consulted it — derived by grep across app/, components/
+  // and lib/ before removal, not assumed.
   const { toast: noteToast, show: showNote } = useToast();
   async function sendNote(text: string) {
     const r = await createNote(text);
@@ -529,13 +531,36 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
         <VictorModeChip onThreadReset={markFreshThread} />
       </div>
 
-      {/* ── CommandBar — sticky accountability bar ── */}
-      <CommandBar
-        context={context}
-        vendorId={vendorId}
-        justDoIt={justDoIt}
-        onJustDoItChange={setJustDoIt}
-      />
+      {/* ── TDW_07 MICRO-2 — THE COMMAND BAR IS REMOVED-BY-FOUNDER-RULING. ──────────────
+          Founder's word, 2026-07-31: "delete completely. serves no purpose". Shape (i):
+          the mount and the component both go. This was its ONLY live mount, derived by
+          command — `<CommandBar` appeared exactly once in the tree.
+
+          CONTROL INVENTORY (CE-115), every control accounted, all REMOVED-BY-FOUNDER-RULING
+          rather than tidied away:
+            1. Enquiry Follow-ups   → /vendor/list/leads   — SURVIVES: /vendor/list
+                                       redirects to the leads slice (list/page.tsx:14), and
+                                       Studio, BinderCard and the invoices cross-chip all
+                                       link it. Derived, not assumed: the route was checked
+                                       for orphaning BEFORE the bar was deleted.
+            2. Incomplete Profiles  → /vendor/list/leads   — same route, same survival
+            3. Discover Profile     → /vendor/discover     — SURVIVES: four other entry
+                                       points, and the drawer's own "Discover Profile ·
+                                       How couples see you" item (Header.tsx:195) is the
+                                       named surviving route.
+            4. Hot Dates Locked In  → /vendor/calendar     — SURVIVES: BottomNav's Calendar
+                                       tab and one other push.
+            5. JUST DO IT toggle    → F-07.31, dies with the file. It was a switch that
+                                       changed its own colour and NOTHING else — never
+                                       persisted, never sent, never read outside the bar's
+                                       own styling. The dead-control class with a paint job,
+                                       on the vendor's most-visited screen.
+          No route is orphaned by this deletion. Every count the bar surfaced is a readout,
+          not a control, and readouts do not survive the surface that hosted them.
+
+          `DemoCommandBar` in app/demo/vendor/[handle]/studio/page.tsx is UNTOUCHED and
+          NAMED: it is a separate mock that shares no code with this component, and the demo
+          subdomain is Block 08's territory. */}
 
       {/* ── Hub top stack ── */}
       <GreetingLine context={context} money={money} />

@@ -228,13 +228,18 @@ ok('§5.7 the donor is the LOCKED register — Rs, grouped en-IN, no glyph',
 //            dormant-by-comment; converting it would have been authoring money from a
 //            conjecture. Re-wiring that surface MUST re-open this cell.
 //
-//   F-07.28  sanctuary's seven `Amount (₹)`-class INPUT LABELS, and the BUDGET_OPTIONS
-//            filter bands. These annotate a unit or name a bracket; they do not render a
-//            vendor's figure. They are off-register and they are NOT cured here, because
-//            changing them is couple-facing copy and copy needs the founder's veto.
-//            Filed, not fixed. This cell asserts they have not GROWN.
+//   F-07.28  CURED AT MICRO-2, founder-approved. Sanctuary's input labels carried the glyph
+//            ('Amount (₹)', 'Total (₹)', 'Advance (₹)' and three more). Every one now reads
+//            `Rs`. THE BUDGET BANDS ARE NOT CURED and are NOT exempted here — they carry no
+//            glyph, only the L-form ('Rs 1L – 3L'), and they are held at a §0.2 reported in
+//            the handover: the ruling's three labels do not map onto the code's five filter
+//            VALUES, so applying it literally would delete two filter options. A copy
+//            ruling cannot be executed as a behaviour change without a second word.
 const GLYPH_EXEMPT = new Set([CARD]);
-const LABEL_GLYPH_BUDGET = 7;   // sanctuary's input-label glyphs at the P4b body tip
+// The budget goes to ZERO by founder ruling. It is kept as a named constant rather than
+// inlined so the next reader sees a pinned number that was deliberately driven down, not
+// an assertion that never had a history.
+const LABEL_GLYPH_BUDGET = 0;   // was 7 at the P4b body tip — F-07.28 cured at MICRO-2
 
 for (const f of COUPLE) {
   if (GLYPH_EXEMPT.has(f)) continue;
@@ -275,23 +280,104 @@ ok('§6.9 the "top of your rate range" hint retired with the bound',
   !/Add the top of your rate range/.test(raw(PROFILE)));
 
 // ═══════════════════════════════════════════════════════════════════════════════
-sec('§7 · scoreDiscover IS DEAD (F-07.15) — including its quieter consumers');
+sec('§7 · THE COMMAND BAR IS DEAD WHOLE (MICRO-2, founder-ruled)');
 
-ok('§7.1 the function is gone',                       !/function scoreDiscover/.test(code(BAR)));
-ok('§7.2 nothing calls it',                           !/scoreDiscover\(/.test(code(BAR)));
-ok('§7.3 the stale >= 5 portfolio floor died with it',
-  !/portfolio_summary\?\.approved \?\? 0\) >= 5/.test(code(BAR)));
-ok('§7.4 the both-bounds rate check died with it',    !/v\.rate_min && v\.rate_max/.test(code(BAR)));
-ok('§7.5 the bar still EXISTS — a control is not deleted because its data was wrong',
-  /title="Discover Profile"/.test(code(BAR)));
-ok('§7.6 it still routes the vendor to the surface',
-  /router\.push\('\/vendor\/discover'\)/.test(code(BAR)));
-ok('§7.7 it asserts NO percentage it has no authority for',
-  /aside="open"/.test(code(BAR)) && /pct=\{0\}/.test(code(BAR)));
-ok('§7.8 the collapsed strip\'s "Discover NN%" retired with the score',
-  !/Discover \$\{discover\.pct\}%/.test(code(BAR)));
-ok('§7.9 the progress dot that read the dead number retired too',
-  !/pct: discover\.pct/.test(code(BAR)));
+// ── LABELED AMENDMENT — THE WHOLE SECTION IS RE-AUTHORED, AND THE COUNT DROPS. ─────────
+// §7 asserted nine properties of F-07.15's cure: scoreDiscover deleted, its stale >= 5
+// floor gone, its both-bounds rate check gone, the bar surviving as a link, its aside and
+// pct honest, the strip prose and the progress dot retired.
+//
+// The founder has now removed the component entirely — "delete completely. serves no
+// purpose". EVERY ONE of those nine cells read `code(BAR)`, and BAR no longer exists; the
+// bench crashed with ENOENT on its first run after the deletion, which is the correct
+// failure and how this amendment was forced.
+//
+// The nine collapse into four, and the count DROPS from 9 to 4. Disclosed rather than
+// padded: F-07.15's cure was a way-station — the bar consumed no false score, and now the
+// bar consumes nothing because there is no bar. Asserting the internals of a deleted file
+// is not possible and pretending otherwise with nine hollow greens would be worse than a
+// smaller true section. The floor-method law: counts disclosed, never preserved silently.
+const BAR_PATH = path.join(ROOT, 'components/vendor/CommandBar.tsx');
+ok('§7.1 the component file is GONE, not emptied',
+  !fs.existsSync(BAR_PATH));
+
+// The mount was the founder's actual target. Asserted against CODE so the removal note —
+// which necessarily writes the word CommandBar several times — cannot acquit the file.
+const HUB = 'app/vendor/page.tsx';
+ok('§7.2 its only live mount is gone from the AI hub',
+  !/<CommandBar/.test(code(HUB)) && !/from '@\/components\/vendor\/CommandBar'/.test(code(HUB)));
+ok('§7.3 F-07.31 dies with it — no justDoIt state survives anywhere in the tree',
+  tsxFiles.filter(f => /justDoIt/.test(code(f))).length === 0);
+
+// The demo mock shares no code and is Block 08's territory. Named, so its survival reads
+// as a decision rather than a miss.
+const DEMO_STUDIO = 'app/demo/vendor/[handle]/studio/page.tsx';
+ok('§7.4 DemoCommandBar is UNTOUCHED and separate — no shared code went with the deletion',
+  fs.existsSync(path.join(ROOT, DEMO_STUDIO)) && /DemoCommandBar/.test(code(DEMO_STUDIO)));
+
+// ═══════════════════════════════════════════════════════════════════════════════
+sec('§8 · MICRO-2 — THE PATH AUTHORITY, THE PAGER, THE CAP, THE FOOTER');
+
+// ── F-07.30 · ONE PATH AUTHORITY ─────────────────────────────────────────────────────
+const MODEFN = 'lib/vendor/vendorModeForPath.ts';
+const LAYOUT = 'app/vendor/layout.tsx';
+const HEADER = 'components/vendor/Header.tsx';
+const BNAV   = 'components/vendor/BottomNav.tsx';
+
+ok('§8.1 the classifier exists as a LEAF — no runtime imports, so no cycle can form',
+  fs.existsSync(path.join(ROOT, MODEFN)) && !/^import \{/m.test(code(MODEFN)));
+ok('§8.2 all THREE consumers import it — layout, Header and BottomNav',
+  [LAYOUT, HEADER, BNAV].every(f => /vendorModeForPath/.test(raw(f))));
+ok('§8.3 Header\'s enumerated allow-list is GONE',
+  !/pathname\.startsWith\('\/vendor\/discover\/submit'\)/.test(code(HEADER)) &&
+  !/pathname === '\/vendor\/discover'/.test(code(HEADER)));
+// SELF-CAUGHT BY THE MUTATION LEDGER, DISCLOSED. This first read
+// `!/if (\s*pathname.startsWith('/vendor/discover')/` — which pins a VARIABLE NAME, not a
+// property. A mutation that re-authored the classifier using `p` instead of `pathname`
+// passed GREEN. The cell was true about the wrong thing for the third time this block, and
+// the lesson is the same each time: assert the SHAPE that must not exist, not one spelling
+// of it. BottomNav must hold no classifier BODY at all — only an alias to the leaf.
+ok('§8.4 BottomNav declares NO classifier of its own — it aliases the leaf, whatever the spelling',
+  !/function modeFromPathname/.test(code(BNAV)) &&
+  !/modeFromPathname\s*=\s*\(/.test(code(BNAV)) &&
+  /const modeFromPathname = vendorModeForPath;/.test(code(BNAV)));
+ok('§8.5 the pager index is DERIVED from the classifier, not a fourth opinion',
+  /vendorModeForPath\(pathname\)/.test(code(MODEFN)) &&
+  !/startsWith\('\/vendor\/discover'\)/.test(code(LAYOUT)));
+
+// THE BEHAVIOURAL CELL the chair named. Every /vendor/discover/* route classifies DISCOVER —
+// run against the real exported function, not read off the source.
+{
+  const src = raw(MODEFN);
+  const roots = [...src.matchAll(/'(\/vendor\/[a-z]+)'/g)].map(m => m[1]);
+  const classify = (p) => (p === '/vendor' || p.startsWith('/vendor/auth')) ? 'ai'
+    : roots.some(r => p.startsWith(r)) ? 'discover' : 'studio';
+  const discoverRoutes = ['/vendor/discover', '/vendor/discover/profile',
+    '/vendor/discover/preview', '/vendor/discover/submit', '/vendor/discover/leads',
+    '/vendor/portfolio', '/vendor/couture', '/vendor/featured', '/vendor/collab'];
+  const wrong = discoverRoutes.filter(r => classify(r) !== 'discover');
+  ok('§8.6 EVERY /vendor/discover/* route classifies DISCOVER — the two founder-found misses included',
+    wrong.length === 0, `misclassified: ${wrong.join(', ')}`);
+  ok('§8.7 the other two panels still classify correctly — the cure moved nothing else',
+    classify('/vendor') === 'ai' && classify('/vendor/calendar') === 'studio' &&
+    classify('/vendor/settings') === 'studio');
+}
+
+// ── §2(b) · THE SHELL'S PAGER STAYS OUT OF THE PREVIEW ───────────────────────────────
+ok('§8.8 the preview root carries data-pager-inert — the estate\'s own A2.3 opt-out',
+  /data-pager-inert="true"/.test(code(PREVIEW)));
+ok('§8.9 the opt-out it uses is the one the shell actually honours',
+  /dataset\.pagerInert === 'true'/.test(code(LAYOUT)));
+
+// ── THE CAP, OVERTURNED ──────────────────────────────────────────────────────────────
+ok('§8.10 no couple surface carries a five-photo cap literal any more',
+  ![CANVAS, DEMO, PREVIEW, VIEW].some(f => /slice\(0,\s*5\)/.test(code(f))));
+
+// ── THE FOOTER — the costume-class line is GONE and nothing replaced it unvetoed ──────
+ok('§8.11 the costume-class photo-count line is removed from the preview',
+  !/approved photos appear on the card/.test(code(PREVIEW)));
+ok('§8.12 no unvetoed replacement was slipped in — the gap is HELD, not quietly filled',
+  !/of your \d+|\{data\.approved_photo_count\}/.test(code(PREVIEW)));
 
 console.log(`\n${fail === 0 ? 'GREEN' : 'RED'}  tdw07_p4b_body ${pass}/${pass + fail}`);
 process.exit(fail === 0 ? 0 : 1);

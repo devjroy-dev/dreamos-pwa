@@ -8,8 +8,14 @@
 // by luck; they can only agree by being one function.
 //
 // This is that function. Every money/count figure the vendor sees — hub Ledger,
-// hub greeting, CommandBar, and every slice masthead — comes from HERE, off the
-// cabinet payload the surfaces already fetch. The Invoices slice's own mapper
+// hub greeting, and every slice masthead — comes from HERE, off the
+// cabinet payload the surfaces already fetch.
+//
+// TDW_07 MICRO-2: the CommandBar was a fourth consumer and is removed-by-founder-ruling
+// ("delete completely. serves no purpose"). Struck from the list rather than left standing,
+// because a census that names a deleted component teaches the next reader to look for it.
+//
+// The Invoices slice's own mapper
 // (binderToInvoice in api/vendor.ts) feeds the same rows through the same
 // arithmetic, so "outstanding" on the hub and "outstanding" on the Invoices
 // page are the same number by construction, not by coincidence.

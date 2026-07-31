@@ -17,7 +17,9 @@
 //     right.  (STUDIO → AI,  AI → DISCOVER)
 //   • Vertical-dominant gestures (|dy| > |dx| × 0.65) cancel the pager — the
 //     page scrolls normally.
-//   • Pill state auto-updates because Header.tsx derives mode from pathname.
+//   • Pill state auto-updates because Header.tsx consumes the SAME path classifier this
+//     file does (lib/vendor/vendorModeForPath.ts) — TDW_07 MICRO-2 · F-07.30. It used to
+//     derive its own from an enumerated list, and the list went stale.
 //
 // Visual model:
 //   While dragging, the active panel's content follows the finger via CSS
@@ -30,6 +32,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Splash } from '@/components/vendor/Splash'; // TDW_04 A4 (P6): cold-open hero
 import { useEffect, useRef, useState } from 'react';
 import { BottomNav } from '@/components/vendor/BottomNav';
+// TDW_07 MICRO-2 · F-07.30 — the ONE path authority. See the leaf's header for the
+// three-way drift this closes and why it is sited with no runtime edges.
+import { panelIndexForPath } from '@/lib/vendor/vendorModeForPath';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 
 // Apply saved theme class immediately on mount to avoid flash
@@ -82,25 +87,12 @@ function useThemeInit() {
 // ── Panel order ──────────────────────────────────────────────────────────────
 const PANEL_ROOTS = ['/vendor/calendar', '/vendor', '/vendor/discover'] as const;
 
-// Returns the panel index for ANY path under /wedding. Mirrors BottomNav's
-// modeFromPathname() so swipe works from every sub-page.
-//
-// Mapping (must match components/BottomNav.tsx::modeFromPathname):
-//   AI       (1) — /wedding (exact), /wedding/auth/*
-//   Discover (2) — /wedding/discover, /wedding/portfolio, /wedding/couture,
-//                  /wedding/featured, /wedding/collab (and sub-pages)
-//   Studio   (0) — everything else under /wedding
-function panelIndexForPath(pathname: string): number {
-  if (pathname === '/vendor' || pathname.startsWith('/vendor/auth')) return 1; // AI
-  if (
-    pathname.startsWith('/vendor/discover')  ||
-    pathname.startsWith('/vendor/portfolio') ||
-    pathname.startsWith('/vendor/couture')   ||
-    pathname.startsWith('/vendor/featured')  ||
-    pathname.startsWith('/vendor/collab')
-  ) return 2; // Discover
-  return 0;   // Studio (calendar, list, more, settings, contracts, tds, studio)
-}
+// TDW_07 MICRO-2 · F-07.30 — panelIndexForPath MOVED to lib/vendor/vendorModeForPath.ts
+// and imported above. It was one of THREE independent answers to "which panel is this
+// path?"; this one and BottomNav's agreed, Header's enumerated list did not, and the
+// vendor read a STUDIO pill on his Discover Profile. The classifier now has one home and
+// this file is a consumer. The prefix behaviour is unchanged — the leaf carries the same
+// roots in the same order — so no route the pager already handled moves.
 
 // Walks up from `el` to `stopAt`. Returns true if any ancestor along the
 // way is an element where the pager should stay inert — either an

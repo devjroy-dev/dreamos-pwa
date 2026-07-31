@@ -79,10 +79,29 @@ export default function DiscoverPreviewPage() {
   const hero   = vendor?.photos?.[0] ?? null;
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 60, background: INK,
-      display: 'flex', flexDirection: 'column', overflow: 'hidden',
-    }}>
+    <div
+      // ── TDW_07 MICRO-2 · §2(b) — THE SHELL'S PAGER STAYS OUT OF THIS SCREEN. ──────────
+      // app/vendor/layout.tsx runs a three-panel horizontal pager (STUDIO · AI · DISCOVER).
+      // Without this flag it ate every horizontal swipe on the preview and slid the vendor
+      // to AI chat — founder-found on device, 2026-07-31.
+      //
+      // THE ESTATE ALREADY OWNED THE CURE AND I DID NOT USE IT. `data-pager-inert` is
+      // TDW_04 A2.3's opt-out, minted from an earlier founder phone smoke whose comment
+      // reads: "Without this the pager ate every row swipe and slid the whole panel
+      // instead." The mechanism was there; P4b minted this full-screen route into a shell
+      // it never read. The read-first gap is filed, not papered.
+      //
+      // CORRECT TODAY AND PREREQUISITE TOMORROW: under ruling (iii) the preview is
+      // single-photo, so today this simply stops the screen from navigating when a vendor
+      // swipes a photo that does not move. When P6 gives the preview the shared pager, the
+      // horizontal swipe becomes MEANINGFUL here and this flag is what lets it be heard.
+      // The two cures do not fight.
+      data-pager-inert="true"
+      style={{
+        position: 'fixed', inset: 0, zIndex: 60, background: INK,
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      }}
+    >
       {/* ── The full-bleed photo, exactly as the deck renders it ─────────────────── */}
       {hero && (
         <div style={{
@@ -180,18 +199,27 @@ export default function DiscoverPreviewPage() {
               </p>
             )}
 
-            {/* The photo arithmetic, honest in both directions. The vendor holds N approved
-                photos and the card shows five; a preview that showed five without saying so
-                would teach him his portfolio was smaller than it is. Both numbers are the
-                server's — this page does no counting. */}
-            {data.approved_photo_count > data.displayed_photo_count && (
-              <p style={{
-                fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300,
-                color: 'rgba(248,247,245,0.42)', margin: '14px 0 0', padding: '0 24px',
-              }}>
-                {data.displayed_photo_count} of your {data.approved_photo_count} approved photos appear on the card.
-              </p>
-            )}
+            {/* ── TDW_07 MICRO-2 — THE PHOTO-COUNT FOOTER IS REMOVED. TWO REASONS. ──────
+                (1) IT WAS COSTUME-CLASS AND THAT IS THE EXECUTOR'S OWN DIAGNOSIS, ADOPTED
+                INTO THE FINDING RECORD. It read "5 of your 9 approved photos appear on the
+                card." Every word was TRUE — five did reach the card — and on a screen
+                showing ONE photo with no way to reach the others it read as a promise the
+                surface did not keep. Accurate, fluent, misleading: the exact shape this
+                block exists to catch, shipped by the seat that wrote the law into the
+                handover.
+
+                (2) ITS CONDITION IS NOW DEAD ANYWAY. The founder retired the display cap
+                ("couples should be able to see all approved photos on discover"), so
+                `displayed_photo_count` always equals `approved_photo_count` and
+                `approved > displayed` can never be true again.
+
+                WHAT IS STILL OWED, AND HELD: the preview is single-photo by ruling (iii)
+                while the card now carries every approved photo, so a vendor with nine
+                approved photos sees one here and is told nothing about it. That gap wants a
+                sentence, the sentence is vendor-facing copy, and copy is the founder's
+                veto — it is NOT shipped unvetoed. Proposals are in the handover's §0.2.
+                A silent gap is worse than nothing; it is not worse than a false promise,
+                which is why the old line goes now rather than waiting for its replacement. */}
           </>
         )}
       </div>

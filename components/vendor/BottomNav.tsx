@@ -10,6 +10,8 @@
 
 import { usePathname } from 'next/navigation';
 import { useVendorMode, type VendorMode } from '@/hooks/vendor/useVendorMode';
+// TDW_07 MICRO-2 · F-07.30 — the ONE path authority.
+import { vendorModeForPath } from '@/lib/vendor/vendorModeForPath';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const A = {
@@ -27,17 +29,12 @@ const F = {
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 // ── Mode from pathname ───────────────────────────────────────────
-function modeFromPathname(pathname: string): VendorMode {
-  if (pathname === '/vendor' || pathname.startsWith('/vendor/auth')) return 'ai';
-  if (
-    pathname.startsWith('/vendor/discover') ||
-    pathname.startsWith('/vendor/portfolio') ||
-    pathname.startsWith('/vendor/couture') ||
-    pathname.startsWith('/vendor/featured') ||
-    pathname.startsWith('/vendor/collab')
-  ) return 'discover';
-  return 'studio';
-}
+// TDW_07 MICRO-2 · F-07.30 — modeFromPathname MOVED to lib/vendor/vendorModeForPath.ts.
+// This implementation was CORRECT (prefix-based, agreeing with the layout's pager); it is
+// retired anyway, because two correct copies of one rule are still two copies, and the
+// third copy — Header's enumerated list — is what shipped the defect. One home is the cure,
+// not one home plus two that happen to agree today.
+const modeFromPathname = vendorModeForPath;
 
 // ── ModePill (Atelier-styled, brass-bordered) ───────────────────
 interface ModePillProps {

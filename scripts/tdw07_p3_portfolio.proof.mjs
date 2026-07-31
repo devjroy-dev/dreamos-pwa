@@ -67,15 +67,34 @@ ok('§2.7 isTransformable is the positive ^v\\d+$ rule, not a negative guess',
 
 sec('§3 · THE MANAGER LIVES AT /vendor/portfolio (Fork 3(b)) — ZERO EDGES MOVE');
 {
-  const edges = [
+  // ── LABELED AMENDMENT (TDW_07 MICRO-2 · F-07.30) — THE CENSUS SPLITS IN TWO. ─────────
+  // This counted eleven raw occurrences of `/vendor/portfolio` and asserted none moved.
+  // Fork 3(b)'s doctrine — the manager lives at that route and no edge moves — is INTACT
+  // and this cell still defends it. What changed is that three of the eleven were never
+  // navigation at all: they sat inside the THREE duplicated path classifiers
+  // (BottomNav::modeFromPathname, Header's inline list, layout::panelIndexForPath), where
+  // the string was a route PREFIX being matched, not a destination being linked.
+  //
+  // F-07.30 collapsed those three classifiers into one leaf, so those three references
+  // became one. Counting both kinds together made a consolidation look like an edge loss —
+  // the same classifier-versus-navigator confusion that produced F-07.30 itself, now
+  // showing up in the bench that measures it.
+  //
+  // The two are now counted separately, which STRENGTHENS the cell: a navigation edge going
+  // missing still reddens exactly as before, and the classifier count is pinned at one so a
+  // fourth copy cannot reappear unnoticed.
+  const navEdges = [
     ['app/vendor/discover/profile/page.tsx', 1], ['app/vendor/discover/submit/page.tsx', 1],
     ['app/vendor/discover/page.tsx', 4], ['app/vendor/more/page.tsx', 1],
-    ['components/vendor/BottomNav.tsx', 2], ['components/vendor/Header.tsx', 1],
-    ['app/vendor/layout.tsx', 1],
+    ['components/vendor/BottomNav.tsx', 1],   // the SUB_ITEMS href; its classifier ref moved
   ];
-  const counts = edges.map(([f, n]) => [f, (code(f).match(/\/vendor\/portfolio/g) || []).length, n]);
-  ok('§3.1 all eleven inbound edges still point here, unmoved',
+  const counts = navEdges.map(([f, n]) => [f, (code(f).match(/\/vendor\/portfolio/g) || []).length, n]);
+  ok('§3.1 all EIGHT navigation edges still point here, unmoved — Fork 3(b) holds',
     counts.every(([, got, want]) => got === want), JSON.stringify(counts));
+  ok('§3.1b the three duplicated classifiers are now ONE — the route prefix lives in the leaf',
+    (code('lib/vendor/vendorModeForPath.ts').match(/\/vendor\/portfolio/g) || []).length === 1 &&
+    (code('components/vendor/Header.tsx').match(/\/vendor\/portfolio/g) || []).length === 0 &&
+    (code('app/vendor/layout.tsx').match(/\/vendor\/portfolio/g) || []).length === 0);
   ok('§3.2 the manager file is the one that grew', code(MANAGER).length > 6000);
 }
 
