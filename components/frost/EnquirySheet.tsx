@@ -39,8 +39,24 @@ export interface EnquirySheetVendor {
 }
 
 export interface EnquiryResult {
+  /**
+   * F-07.45 SURFACE ARM. `ok` is the SERVER's fact about whether the enquiry
+   * EXISTS where the vendor will find it (the lead row / the demo_leads row) —
+   * it is no longer hardcoded true at the door, so V6's failure toast is
+   * reachable for the first time.
+   */
   ok: boolean;
   sent?: boolean;
+  /**
+   * Whether the WhatsApp PING left. INDEPENDENT of `ok` by ruling: the toast
+   * claims the ROW, not the PING, and the enquiry reaches his Leads tab either
+   * way. Carried so the fact is witnessable rather than inferred; it drives NO
+   * copy — a visible line about a refused ping would be a NEW user-facing
+   * string and belongs in a veto slot, not in a build.
+   */
+  vendor_notified?: boolean;
+  /** The typed refusal code when the ping did not leave (e.g. 'window_closed'). */
+  notify_refusal?: string | null;
   enquiry_saved?: boolean;
 }
 
@@ -170,8 +186,19 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
       result = {
         ok: true,
         sent: (data as { sent?: boolean }).sent,
+        vendor_notified: (data as { vendor_notified?: boolean }).vendor_notified,
+        notify_refusal: (data as { notify_refusal?: string | null }).notify_refusal ?? null,
         enquiry_saved: (data as { enquiry_saved?: boolean }).enquiry_saved,
       };
+      // The ping's fate is LOGGED, never rendered. It is the line the founder's
+      // walk reads to witness F-07.45's transport arm end to end, and it is the
+      // only place a refused ping is visible on this surface by design.
+      if (result.vendor_notified === false) {
+        console.warn(
+          `[enquiry] stored, but the vendor's WhatsApp ping did not leave ` +
+          `(refusal: ${result.notify_refusal ?? 'unknown'}). His Leads tab still has it.`,
+        );
+      }
     } catch {
       result = { ok: false };
     }

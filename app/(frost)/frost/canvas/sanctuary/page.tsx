@@ -1794,6 +1794,15 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           onClose={()=>setSheetOpen(false)}
           onDone={(r)=>{
             setSheetOpen(false);
+            // F-07.45 SURFACE ARM. `r.ok` is now the SERVER's fact about whether
+            // the enquiry EXISTS where the vendor will find it — until this
+            // sitting the door returned ok:true unconditionally and this
+            // failure branch was UNREACHABLE BY CONSTRUCTION. The vetoed copy
+            // is unchanged: the toast claims the ROW, not the ping, and stays
+            // true when the row landed and the WhatsApp ping was refused.
+            // `vendor_notified` is read at ONE home (EnquirySheet's submit),
+            // where the response arrives; duplicating the read here would be a
+            // second reader of the same fact for no gain.
             setEnquiryToast(!r.ok?'Could not send. Try again.':r.enquiry_saved?'Enquiry sent ✦ saved in Vendors':'Enquiry sent');
             setTimeout(()=>setEnquiryToast(null),2600);
           }}
