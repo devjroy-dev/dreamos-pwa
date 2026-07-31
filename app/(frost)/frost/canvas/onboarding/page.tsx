@@ -102,6 +102,31 @@ export default function BrideOnboardingPage() {
         body:    JSON.stringify(body),
       });
       const d = await res.json();
+      // ── F-07.71 PARTIALLY CURED · THE AUTH BRANCH, BY LANE PARITY ───────────
+      // FOUNDER VETO 2026-08-01, verbatim 「 b 」: this site adopts its sibling's
+      // SHIPPED status branch — app/(auth)/couple/onboarding/page.tsx:153-157 —
+      // and the string below is that sibling's byte, moved not authored. Zero new
+      // copy; the V3 lane-parity precedent (the founder's own reasoning when he
+      // ruled "Forgot PIN?" identical on both lanes).
+      //
+      // WHAT THIS LINE DID. It read `d.error` with no status check and toasted
+      // the SERVER's raw string. `/api/v2/couple/onboarding` sits behind
+      // requireCoupleAuth (onboarding.js:58), so on the auth sitting's own
+      // specimen a bride was shown "No couple profile found." — a sentence
+      // written for a log, on her phone. F-05.28's V1 ruling says the raw
+      // "Unauthorised." must never reach a bride; the raw 403 twin was reaching
+      // her already, which is how this was found.
+      //
+      // THE REMAINDER IS FILED, NOT PAPERED. The fallthrough below still renders
+      // `d.error` for NON-auth failures (a 500 "Could not fetch profile.", a
+      // 400). That half stays OPEN under F-07.71 for its own small cure — named
+      // here so the next reader inherits the gap instead of assuming this line
+      // closed it.
+      if (res.status === 401 || res.status === 403) {
+        showToast('Session expired. Please sign in again.');
+        setSubmitting(false);
+        return;
+      }
       if (!d.ok) { showToast(d.error || 'Something went wrong. Try again.'); setSubmitting(false); return; }
       setDone(true);
     } catch {

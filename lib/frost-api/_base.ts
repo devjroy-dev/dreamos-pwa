@@ -82,7 +82,11 @@ export interface VendorSession {
 // Safari wipes localStorage after 7 days. We mirror tokens to cookies which
 // survive ITP. Not httpOnly so frontend JS can read for Authorization header.
 const COUPLE_COOKIE  = 'tdw_couple_token';
-const VENDOR_COOKIE  = 'tdw_vendor_token';
+// F-07.65: `VENDOR_COOKIE = 'tdw_vendor_token'` stood here and had exactly two
+// readers, both inside getAccessToken, both cross-lane. The reversal removed the
+// readers, so the binding is removed with them rather than left as a dead const
+// for a future reader to wonder about. The NAME survives in the prose at the two
+// sites so the provenance of what was removed is still legible.
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
 function writeCookie(name: string, value: string): void {
@@ -148,25 +152,87 @@ export function getCoupleSession(): CoupleSession | null {
   return null;
 }
 
+// ── F-07.65 CURED · THE LANE ASSERTION (fork 1(b), CE-ruled) ─────────────────
+// `access_token` is ONE localStorage slot written by SEVEN writers across BOTH
+// lanes — the lane-agnostic OTP front door at app/(landing)/page.tsx:492 plus
+// five lane pages plus this file's own cookie-restore. A vendor sign-in
+// therefore CLOBBERS a bride's token in place, and every couple surface below
+// this function then presents an effectively-vendor identity as if it were hers.
+//
+// THE TEST, AND WHY IT IS EVIDENCE RATHER THAN A HEURISTIC. The vendor lane
+// records its own token INSIDE its session blob, at all three of its writers —
+// (landing):505, vendor/pin-login:105, vendor/pin-reset:193 — and
+// lib/vendor/session.ts treats that field as the lane's authority. So the blob
+// is a WITNESS of what the vendor lane most recently wrote. If the bare slot is
+// byte-identical to it, the slot is holding the vendor's token. That is not an
+// inference about who the user is; it is a comparison against the other lane's
+// own record.
+//
+// THE INVERSE TEST WAS CONSIDERED AND REJECTED, by command. Comparing the slot
+// against the COUPLE blob's token would look symmetrical and would be wrong:
+// couple/pin-login, couple/pin and couple/pin-reset write the fresh token ONLY
+// to the bare key and never into their blob (they spread `existing`, whose token
+// is the stale landing-OTP one). A couple-side comparison would therefore refuse
+// every bride who signed in with her PIN — a cure that logs out its own subject.
+//
+// WHAT THIS COSTS, STATED AS A PROPERTY AND NOT DISCOVERED LATER: a human who
+// holds BOTH roles on one users row and who has signed into the vendor lane but
+// never into the couple lane on this device is refused here and sees the
+// existing, already-vetoed "Session expired. Please sign in again." One couple
+// sign-in fixes it permanently. The CE ruled this trade explicitly when it
+// reversed F-05.30: a silent wrong-self is worse than an honest sign-in.
+//
+// SCOPE, RULED: this assertion lives in THIS FILE ONLY. sanctuary/page.tsx makes
+// twelve direct localStorage reads that bypass this authority entirely and keeps
+// the disease — that is F-07.70, chartered as its own one-file micro, and it is
+// a stated split rather than an oversight.
+function vendorLaneToken(): string | null {
+  try {
+    const raw =
+      localStorage.getItem('vendor_session') ||
+      localStorage.getItem('vendor_web_session');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { access_token?: string };
+    return parsed && typeof parsed.access_token === 'string' && parsed.access_token
+      ? parsed.access_token
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
     const fromStorage = localStorage.getItem('access_token');
     if (fromStorage) {
+      // THE ASSERTION RUNS BEFORE THE COOKIE WRITE, deliberately. The old order
+      // laundered a vendor JWT into the couple cookie on every read (the sync at
+      // the line below), so the crossover survived even a localStorage wipe.
+      // Refusing first means the couple cookie can only ever hold a token this
+      // function was willing to return.
+      if (fromStorage === vendorLaneToken()) return null;
       // Sync to cookie on every read — refreshes TTL, keeps cookie alive
       writeCookie(COUPLE_COOKIE, fromStorage);
       return fromStorage;
     }
-    // localStorage cleared by iOS ITP — try cookie fallback
-    const fromCookie = readCookie(COUPLE_COOKIE) || readCookie(VENDOR_COOKIE);
+    // localStorage cleared by iOS ITP — try the COUPLE cookie only.
+    // F-05.30 REVERSED BY RULING: this read was `readCookie(COUPLE_COOKIE) ||
+    // readCookie(VENDOR_COOKIE)` — the vendor arm was ratified as
+    // defensible-by-design when the alternative was a logged-out bride; the P2
+    // prefill specimen proved it mis-serves IDENTITY instead. Its server-side
+    // twins died in the same motion at requireCoupleAuth:14 and requireAuth:18.
+    const fromCookie = readCookie(COUPLE_COOKIE);
     if (fromCookie) {
       // Restore to localStorage for this session
       try { localStorage.setItem('access_token', fromCookie); } catch { /* ignore */ }
     }
     return fromCookie;
   } catch {
-    // localStorage fully blocked (private mode) — cookie only
-    return readCookie(COUPLE_COOKIE) || readCookie(VENDOR_COOKIE);
+    // localStorage fully blocked (private mode) — couple cookie only.
+    // The lane assertion cannot run here (it needs localStorage), so this arm is
+    // narrowed instead: with no way to check, it declines to guess.
+    return readCookie(COUPLE_COOKIE);
   }
 }
 
