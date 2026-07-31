@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ModePill } from '@/components/vendor/BottomNav';
+import { DemoClaimSheet } from '@/components/demo/DemoClaimSheet';
 import { useTheme } from '@/hooks/vendor/useTheme';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorMode } from '@/hooks/vendor/useVendorMode';
@@ -48,6 +49,8 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
   const T        = useT();
   const [theme, toggleTheme] = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
+  // F-07.60: the claim sheet is now a thing this header OPENS, not a place it SENDS you.
+  const [claimOpen, setClaimOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const isLight = theme === 'light';
 
@@ -130,7 +133,22 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
             </button>
 
             {/* Claim studio CTA */}
-            <button type="button" onClick={() => { setProfileOpen(false); router.push(`/demo/vendor/${handle}?claim=1`); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 20px 14px', border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', marginTop: 2 }}>
+            {/* ── F-07.60 CURED ────────────────────────────────────────────────
+                THIS LINE READ: `router.push(`/demo/vendor/${handle}?claim=1`)`.
+                It was a FULL navigation — from whatever demo surface the vendor was
+                standing on, onto the marketing landing (hero re-load, founder-captured
+                at 18 requests / 1.3 MB on throttled 4G), which then auto-opened the
+                claim sheet as an overlay anyway. The destination was never the point;
+                the sheet was. The vendor paid his whole studio to reach a form.
+                Now the sheet opens where he already is. Zero navigation.
+
+                NOTE FOR THE NEXT READER: this `?claim=1` push was the ONLY producer
+                of that query string in either repo (derived by unrestricted grep at
+                adf573d — the WhatsApp alert's {{3}} lands on the BARE landing,
+                dream-os src/lib/discover/demoLeadAlert.js:55/:95, no query string).
+                Its consumer on the landing survives byte-untouched by CE ruling C1:
+                a public URL is a contract even after its last producer is gone. */}
+            <button type="button" onClick={() => { setProfileOpen(false); setClaimOpen(true); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '11px 20px 14px', border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', marginTop: 2 }}>
               <span style={{ flexShrink: 0, width: 22, textAlign: 'center', fontFamily: F.display, fontWeight: 400, fontSize: 18, color: '#E0BC6E', lineHeight: 1 }}>→</span>
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, color: '#E0BC6E', letterSpacing: '0.005em', lineHeight: 1.15 }}>Claim Your Studio</span>
@@ -144,6 +162,33 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
       {/* Brass under-rule */}
       <div style={{ position: 'absolute', left: 20, right: 20, bottom: 0, height: '0.5px', background: 'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.4) 20%, rgba(201,168,76,0.4) 80%, transparent 100%)', pointerEvents: 'none' }} />
     </header>
+
+    {/* ── F-07.60 · THE SHEET MOUNTS HERE, AND THE POSITION IS LAW ────────────
+        THIS ELEMENT MUST REMAIN A SIBLING **AFTER** `</header>`, NEVER A CHILD OF IT.
+
+        Not style — physics. The <header> above carries
+            backdropFilter: 'blur(40px) saturate(1.8)'
+        (see its style block), and a non-`none` backdrop-filter CREATES A CONTAINING
+        BLOCK FOR FIXED-POSITION DESCENDANTS. The claim sheet is `position: fixed`.
+        Rendered inside the header it would be contained and clipped into the header's
+        own ~56px box on all eighteen mounts — a bottom sheet trapped in a top bar.
+        The bench asserts this ordering directly and REDS if the element is moved
+        inside, because the failure is silent to tsc and invisible to a component test.
+
+        THE REST OF THE ANCESTRY IS CLEAR AT REST, derived at adf573d:
+          · app/demo/vendor/[handle]/layout.tsx:235  outer div — no transform/filter
+          · layout.tsx:236–248  swipe stage — sets `transform` ONLY while dragOffset
+            !== 0 and `willChange:'auto'` at rest; a bare `transition` creates no
+            containing block, and the sheet is never open mid-drag
+          · layout.tsx:249  overflow:auto — overflow does not create one
+          · lib/vendor/ThemeContext ThemeProvider — renders NO wrapper element at all
+        So the fixed sheet reaches the viewport on every surface this header sits on. */}
+    <DemoClaimSheet
+      open={claimOpen}
+      onClose={() => setClaimOpen(false)}
+      handle={handle}
+      vendorName={vendorName}
+    />
     </>
   );
 }

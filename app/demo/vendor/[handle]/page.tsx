@@ -11,9 +11,12 @@ import { useSearchParams } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
 import { fetchDemoVendor } from '@/lib/demo/api';
 import type { DemoVendor, DemoPhoto } from '@/lib/demo/api';
+import { DemoClaimSheet } from '@/components/demo/DemoClaimSheet';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
+// F-07.60: API_BASE left with the claim POST when handleClaim moved into
+// components/demo/DemoClaimSheet.tsx. This file makes no direct fetch — its vendor
+// read goes through lib/demo/api, which carries its own copy of the constant.
 
 // Exact font stack from real app
 const F = {
@@ -34,16 +37,26 @@ export default function DemoLandingPage() {
   const [entered,  setEntered]  = useState(false);
   const [reveal,   setReveal]   = useState(false);
 
-  // Claim flow
-  const [claimOpen,    setClaimOpen]    = useState(false);
-  const [claimPhone,   setClaimPhone]   = useState('');
-  const [claimSending, setClaimSending] = useState(false);
-  // F-07.37: a failed claim now has somewhere true to land.
-  const [claimError, setClaimError] = useState(false);
-  const [claimDone,    setClaimDone]    = useState(false);
+  // Claim flow — F-07.60: the sheet, its phone/sending/error/done state and its
+  // submit hand now live in components/demo/DemoClaimSheet.tsx, shared with the
+  // header so that EVERY demo surface opens the same sheet in place. This page keeps
+  // only the question it is entitled to answer: is the sheet open on THIS surface.
+  const [claimOpen, setClaimOpen] = useState(false);
 
   const searchParams = useSearchParams();
 
+  // ── F-07.60 · THIS CONSUMER IS PRESERVED BY RULING (CE fork C1) ─────────────
+  // The line below still says "from header dropdown". As of this sitting that is
+  // history, not description: the header no longer pushes `?claim=1` — it opens the
+  // shared sheet in place — and an unrestricted grep of BOTH repos at adf573d found
+  // the header to have been the query string's ONLY producer anywhere. The WhatsApp
+  // alert's {{3}} lands on the BARE landing (dream-os demoLeadAlert.js:55/:95).
+  //
+  // The block is nonetheless kept BYTE-UNTOUCHED, by ruling: a public URL is a
+  // contract, bookmarks and pasted links outlive the button that minted them, and
+  // this path's lifecycle belongs to Block 08. The original comment is left standing
+  // rather than edited so that the preserved bytes stay literally preserved; this
+  // note carries the correction instead.
   // Auto-open claim sheet if ?claim=1 (from header dropdown)
   useEffect(() => {
     if (searchParams?.get('claim') === '1') {
@@ -84,37 +97,10 @@ export default function DemoLandingPage() {
 
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
 
-  async function handleClaim() {
-    if (!claimPhone.trim() || claimSending) return;
-    setClaimSending(true);
-    // ── F-07.37 CURED · THE SCREEN HALF ───────────────────────────────────────
-    // THIS BLOCK READ: `catch { /* silent — still show success */ }` followed by
-    // an unconditional `setClaimDone(true)`. Both halves lied. The catch swallowed
-    // network failure, and `res.ok` was never checked at all — so a 4xx/5xx
-    // resolved normally and still ran the success screen. A vendor whose claim
-    // never landed was shown "we'll be in touch" and then waited for a call that
-    // could not come, because the row the founder's queue reads was never written.
-    //
-    // The server half shipped in this sitting's backend ZIP: the route now returns
-    // 502 with `ok:false` instead of `ok:true` (src/api/demo/vendor.js). This is
-    // the screen learning to believe it.
-    //
-    // P5 is why it matters now: demo_lead_alert's {{3}} points real, unregistered
-    // vendors at this exact page. It is the first thing we ever say to them.
-    try {
-      const res = await fetch(`${API_BASE}/api/v2/demo/vendor/${handle}/claim`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: claimPhone.trim(), vendor_name: vendor?.display_name ?? handle }),
-      });
-      const data = await res.json().catch(() => ({} as any));
-      if (!res.ok || data?.ok === false) throw new Error(`claim refused: ${res.status}`);
-      setClaimDone(true);
-    } catch {
-      setClaimError(true);
-    }
-    setClaimSending(false);
-  }
+  // F-07.60: `handleClaim` — the POST to /api/v2/demo/vendor/:handle/claim, with
+  // F-07.37's res.ok check intact — moved WHOLE into DemoClaimSheet. The pipe, its
+  // copy and its cure travelled together on purpose: an extraction that leaves a
+  // cured finding behind on the old surface is how cures die quietly.
 
   const photos = (vendor?.photos ?? []).map((p: DemoPhoto) => p.url).filter(Boolean) as string[];
   const hasPhotos = photos.length > 0;
@@ -260,57 +246,17 @@ export default function DemoLandingPage() {
         </div>
       </div>
 
-      {/* Claim sheet */}
-      {claimOpen && (
-        <>
-          <div onClick={() => { setClaimOpen(false); setClaimDone(false); setClaimError(false); setClaimPhone(''); }} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(12,10,9,0.5)' }} />
-          <div onClick={e => e.stopPropagation()} style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:101, background:'rgba(12,10,9,0.88)', backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)', borderTop:'0.5px solid rgba(255,255,255,0.12)', borderRadius:'20px 20px 0 0', padding:`20px 24px calc(env(safe-area-inset-bottom, 16px) + 24px)` }}>
-            {/* F-07.37 — THE FAILURE HAS A SCREEN. Ordered FIRST so a failed claim can
-                never fall through into the welcome. The line is deliberately plain and
-                actionable: it does not apologise, it does not blame the vendor, and it
-                does not promise a follow-up we have no row to make. */}
-            {claimError ? (
-              <div style={{ textAlign:'center', padding:'20px 0' }}>
-                <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:26, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>That didn&apos;t go through.</div>
-                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7, marginBottom:20 }}>Something went wrong on our end. Please try again.</div>
-                <button
-                  onClick={() => { setClaimError(false); }}
-                  style={{ padding:'12px 28px', background:'rgba(248,247,245,0.92)', border:'none', borderRadius:10, fontFamily:F.label, fontSize:10, fontWeight:300, letterSpacing:'0.22em', textTransform:'uppercase', color:'#0C0A09', cursor:'pointer' }}
-                >Try again</button>
-              </div>
-            ) : claimDone ? (
-              <div style={{ textAlign:'center', padding:'20px 0' }}>
-                <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:32, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>Welcome to TDW.</div>
-                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7 }}>Our team will reach out shortly.<br />We verify every profile personally.</div>
-              </div>
-            ) : (
-              <>
-                <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:22, color:'rgba(248,247,245,0.9)', marginBottom:4 }}>Claim Your Studio.</div>
-                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.45)', marginBottom:20 }}>Enter your number. We&apos;ll reach out on WhatsApp.</div>
-                <div style={{ display:'flex', alignItems:'center', borderBottom:'1px solid rgba(255,255,255,0.2)', marginBottom:20 }}>
-                  <span style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.45)', paddingRight:12, borderRight:'1px solid rgba(255,255,255,0.15)', marginRight:12 }}>+91</span>
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                    placeholder="00000 00000"
-                    value={claimPhone}
-                    onChange={e => setClaimPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    style={{ flex:1, background:'transparent', border:'none', outline:'none', fontFamily:F.body, fontWeight:300, fontSize:15, color:'rgba(248,247,245,0.9)', padding:'8px 0' }}
-                  />
-                </div>
-                <button
-                  onClick={e => { e.stopPropagation(); handleClaim(); }}
-                  disabled={claimPhone.length < 10 || claimSending}
-                  style={{ width:'100%', height:52, background: claimPhone.length >= 10 && !claimSending ? '#C9A84C' : 'rgba(201,168,76,0.3)', border:'none', borderRadius:100, cursor: claimPhone.length >= 10 && !claimSending ? 'pointer' : 'default', fontFamily:F.label, fontSize:10, fontWeight:400, letterSpacing:'0.2em', textTransform:'uppercase', color: claimPhone.length >= 10 && !claimSending ? '#0C0A09' : 'rgba(12,10,9,0.4)' }}
-                >
-                  {claimSending ? 'Sending…' : 'Claim Studio →'}
-                </button>
-              </>
-            )}
-          </div>
-        </>
-      )}
+      {/* Claim sheet — F-07.60: ONE shared component, opened here and by the header.
+          The markup that stood here moved to components/demo/DemoClaimSheet.tsx byte
+          for byte, copy and geometry and POST alike. Both of this page's own entries
+          into it survive unchanged: the ?claim=1 deep link above (:60–66) and the
+          text link above (:237–243). */}
+      <DemoClaimSheet
+        open={claimOpen}
+        onClose={() => setClaimOpen(false)}
+        handle={handle}
+        vendorName={vendor?.display_name ?? null}
+      />
     </div>
   );
 }
