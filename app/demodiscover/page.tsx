@@ -1,5 +1,5 @@
-import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 'use client';
+import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 export const dynamic = 'force-dynamic';
 
 // app/demodiscover/page.tsx

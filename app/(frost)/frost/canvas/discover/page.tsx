@@ -1,6 +1,6 @@
+'use client';
 import EnquirySheet from '@/components/frost/EnquirySheet';
 import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
-'use client';
 
 export const dynamic = 'force-dynamic';
 

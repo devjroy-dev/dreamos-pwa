@@ -1,6 +1,6 @@
+'use client';
 import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
 import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
-'use client';
 
 // sanctuary/page.tsx — V5 BLOOM ARCHITECTURE
 // Every slice opens IN THIS PAGE. No router.push. No history stack.
