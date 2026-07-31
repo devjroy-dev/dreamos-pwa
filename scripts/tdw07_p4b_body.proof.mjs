@@ -379,5 +379,139 @@ ok('§8.11 the costume-class photo-count line is removed from the preview',
 ok('§8.12 no unvetoed replacement was slipped in — the gap is HELD, not quietly filled',
   !/of your \d+|\{data\.approved_photo_count\}/.test(code(PREVIEW)));
 
+// ═══════════════════════════════════════════════════════════════════════════════
+sec('§9 · P4b-FINAL — THE SHARED CAROUSEL, AND THE GESTURE PROOF (part a)');
+
+const PAGER = 'lib/frost/photoPager.ts';
+const DOTS  = 'components/shared/ImageDots.tsx';
+
+ok('§9.1 the pager exists as ONE home',      fs.existsSync(path.join(ROOT, PAGER)));
+ok('§9.2 the shared dots exist as ONE home', fs.existsSync(path.join(ROOT, DOTS)));
+
+// ── PROOF PART (a) — EVERY GESTURE TOKEN AND THRESHOLD VALUE, ASSERTED IDENTICAL. ─────
+// The chair restated the gesture-stability law for this extraction: bytes must move, so
+// what must not move is the COUPLE'S MECHANICS. These are the six numbers that ARE the
+// mechanics, pinned by value at the new home. A tuning pass that moves one now reddens.
+const PAGER_SRC = raw(PAGER);
+for (const [name, value] of [
+  ['SWIPE_THRESHOLD', '45'], ['SWIPE_VELOCITY', '0.3'], ['TAP_MAX_MOVE', '10'],
+  ['TAP_MAX_TIME', '250'], ['DOUBLE_TAP_MS', '280'], ['OVERLAY_DISMISS', '80'],
+]) {
+  ok(`§9.3 ${name} = ${value} at the shared home — unchanged from the deck`,
+    new RegExp(`export const ${name}\\s*=\\s*${value.replace('.', '\\.')};`).test(PAGER_SRC));
+}
+
+// And the canvas must no longer DECLARE them — a second copy at the old address would let
+// the two mounts drift while every value above still read correctly.
+ok('§9.4 the canvas declares NONE of them any more — it imports them back',
+  !/^const SWIPE_THRESHOLD/m.test(code(CANVAS)) && !/^const OVERLAY_DISMISS/m.test(code(CANVAS)) &&
+  /from '@\/lib\/frost\/photoPager'/.test(raw(CANVAS)));
+ok('§9.5 the haptic moved too — a tap that buzzes on one mount only is a mechanics difference',
+  /export const haptic/.test(PAGER_SRC) && !/^const haptic = /m.test(code(CANVAS)));
+
+// ── BOTH MOUNTS CONSUME IT ───────────────────────────────────────────────────────────
+ok('§9.6 the canvas mounts the shared pager hook',   /usePhotoPager\(/.test(code(CANVAS)));
+ok('§9.7 the preview mounts the SAME hook',          /usePhotoPager\(/.test(code(PREVIEW)));
+ok('§9.8 the canvas no longer owns a photo cursor of its own',
+  !/const \[imageIdx,\s+setImageIdx\]\s+= useState/.test(code(CANVAS)));
+// SCOPED TO THE COUPLE PLANE MINUS F-07.29's DEFERRED SURFACE, and the scoping is a real
+// finding rather than a convenience. `app/demodiscover/page.tsx` carries its OWN ImageDots,
+// exactly as it carries its own GlassOverlay — the same second-implementation surface
+// F-07.29 filed and the chair DEFERRED to Block 08, whose P3 restructures that landing.
+// The exemption carries F-07.29's number so converting demodiscover must DELETE this entry,
+// not edit it, and so this cell can never narrow quietly.
+{
+  const dotsDefs = tsxFiles.filter(f => /function ImageDots\(/.test(code(f)));
+  const DEFERRED_TO_08 = new Set(['app/demodiscover/page.tsx']);   // F-07.29
+  const unexplained = dotsDefs.filter(f => f !== DOTS && !DEFERRED_TO_08.has(f));
+  ok('§9.9 ImageDots has ONE definition on the live couple plane, plus F-07.29 named',
+    dotsDefs.includes(DOTS) && unexplained.length === 0, `unexplained: ${unexplained.join(', ')}`);
+  ok('§9.9b F-07.29\'s duplicate surface has not spread — still exactly one deferred copy',
+    dotsDefs.filter(f => DEFERRED_TO_08.has(f)).length === 1);
+}
+ok('§9.10 both mounts render the shared dots',
+  /<ImageDots/.test(code(CANVAS)) && /<ImageDots/.test(code(PREVIEW)));
+
+// ── THE DISPATCH — asserted by BEHAVIOUR, not by reading the source. ──────────────────
+// `photoStepFor` is the `:746` comparison extracted. Re-derived here from the file's own
+// threshold so the cell cannot pass on a hard-coded 45 that the source no longer uses.
+{
+  const th = Number((PAGER_SRC.match(/export const SWIPE_THRESHOLD\s*=\s*(\d+)/) || [])[1]);
+  const stepFor = (dx) => (dx < -th ? 1 : dx > th ? -1 : 0);
+  ok('§9.11 a left drag past the threshold advances the carousel', stepFor(-(th + 1)) === 1);
+  ok('§9.12 a right drag past the threshold retreats it',          stepFor(th + 1) === -1);
+  ok('§9.13 exactly AT the threshold does nothing — the deck\'s strict comparison survives',
+    stepFor(-th) === 0 && stepFor(th) === 0);
+  ok('§9.14 the extracted function agrees with those bounds',
+    /if \(dx < -SWIPE_THRESHOLD\) return 1;/.test(PAGER_SRC) &&
+    /if \(dx >  SWIPE_THRESHOLD\) return -1;/.test(PAGER_SRC));
+}
+ok('§9.15 the carousel does NOT wrap at either end — the deck never wrapped',
+  /if \(i >= photoCount - 1\) return i;/.test(PAGER_SRC) && /if \(i <= 0\) return i;/.test(PAGER_SRC));
+// SELF-CAUGHT BY THE MUTATION LEDGER — the second spelling-not-property cell this sitting.
+// This first read `!/slice(0, N)/ && !/DISPLAY_PHOTO_LIMIT/`, and a mutation that clamped
+// with `Math.min(photoCountRaw, 5)` passed GREEN: it named neither forbidden spelling while
+// restoring the exact rule the founder retired. A cap can be written a dozen ways; the cell
+// must assert the PROPERTY. The pager's bound must be the caller's count, unclamped and
+// unmodified — so no truncating arithmetic may appear in the file at all.
+const PAGER_CODE = PAGER_SRC
+  .replace(/(^|[^:])\/\/.*$/gm, '$1').replace(/\/\*[\s\S]*?\*\//g, '');
+ok('§9.16 no display cap grew back inside the shared pager — in ANY spelling',
+  !/slice\(/.test(PAGER_CODE) && !/Math\.min/.test(PAGER_CODE) &&
+  !/DISPLAY_PHOTO_LIMIT/.test(PAGER_CODE));
+ok('§9.16b the bound is the caller\'s count, used unmodified',
+  /if \(i >= photoCount - 1\) return i;/.test(PAGER_CODE) &&
+  /usePhotoPager\(photoCount: number\)/.test(PAGER_CODE));
+
+// ═══════════════════════════════════════════════════════════════════════════════
+sec('§10 · P4b-FINAL — THE PREVIEW\'S RULED MECHANICS');
+
+ok('§10.1 the card is HIDDEN by default — the screen opens on the photograph',
+  /useState\(false\)/.test(code(PREVIEW)) && /cardVisible/.test(code(PREVIEW)));
+ok('§10.2 a tap TOGGLES the card — the founder\'s "tapping reveals / tapping outside removes"',
+  /if \(g\.kind === 'tap'\)/.test(code(PREVIEW)) && /setCardVisible\(\(v\) => !v\)/.test(code(PREVIEW)));
+ok('§10.3 the card stops its own touches — that is what makes "outside" mean outside',
+  /onTouchEnd=\{\(e\) => e\.stopPropagation\(\)\}/.test(code(PREVIEW)));
+ok('§10.4 swipe-down over a shown card dismisses it, on the DECK\'s constant',
+  /dy > OVERLAY_DISMISS/.test(code(PREVIEW)));
+ok('§10.5 the preview classifies gestures with the SHARED function, not its own rules',
+  /classifyGesture\(/.test(code(PREVIEW)));
+ok('§10.6 the scrim cannot swallow taps — pointerEvents none over the gesture layer',
+  /pointerEvents: 'none'[\s\S]{0,120}linear-gradient\(to bottom/.test(code(PREVIEW)));
+ok('§10.7 data-pager-inert survives — the carousel\'s swipe needs the shell to stay out',
+  /data-pager-inert="true"/.test(code(PREVIEW)));
+ok('§10.8 the dissolveIn keyframe is DECLARED here — it is local to each Frost surface',
+  /@keyframes dissolveIn/.test(raw(PREVIEW)));
+
+// ── §4 · THE INSTRUCTIVE TOASTS, founder-vetoed, byte-exact ──────────────────────────
+ok('§10.9 the Enquire line ships byte-exact',
+  raw(VIEW).includes('Couples tap this to message you on WhatsApp.'));
+ok('§10.10 the Circle line ships byte-exact',
+  raw(VIEW).includes('Couples tap this to save you to their Circle.'));
+ok('§10.11 they fire only in PREVIEW — the live card still acts',
+  /if \(isLive\) \{ if \(enquireLink\) window\.open/.test(code(VIEW)));
+ok('§10.12 Lock Date raises NO toast — disabled as live, its beta chip is its own explanation',
+  !/onPreviewToast[\s\S]{0,200}Lock Date/.test(code(VIEW)));
+ok('§10.13 the mount renders the toast — chrome lives at the mount, copy with the control',
+  /onPreviewToast=\{showToast\}/.test(code(PREVIEW)));
+
+// ── §3 · THE FOOTER IS DEAD ──────────────────────────────────────────────────────────
+ok('§10.14 the photo-count footer is gone — the carousel is the answer it was compensating for',
+  !/approved photos appear on the card/.test(code(PREVIEW)));
+
+// ── F-07.33 · INSTRUMENTED, NOT GUESSED ──────────────────────────────────────────────
+// FOURTH INSTANCE OF ONE DEFECT IN THIS BLOCK, AND I AM NAMING IT AS A PATTERN RATHER THAN
+// AN ACCIDENT. This counted the header in RAW text and got 4, because the file's own
+// explanatory comment names the header once. Prose counted as mechanism — the same shape as
+// §3.4 (P4b), §5b.3 (MICRO-2) and §8.4 (MICRO-2). The tooling to prevent it has been sitting
+// in this file since P4b. The habit that fails is reaching for `raw()` when the assertion is
+// about behaviour; `raw()` is correct ONLY for copy, where the bytes a human reads ARE the
+// artifact. Written down here because three disclosures did not change my reach and a fourth
+// deserves a rule instead of an apology.
+ok('§10.15 every synthetic 503 in the service worker names its branch',
+  (code('public/sw.js').match(/X-TDW-SW-Synthetic/g) || []).length === 3);
+ok('§10.16 the finding records that Railway is EXCLUDED by derivation, not by opinion',
+  /Railway cold start cannot produce this line/.test(raw('public/sw.js')));
+
 console.log(`\n${fail === 0 ? 'GREEN' : 'RED'}  tdw07_p4b_body ${pass}/${pass + fail}`);
 process.exit(fail === 0 ? 0 : 1);

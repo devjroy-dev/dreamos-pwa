@@ -1,5 +1,36 @@
 // The Dream Wedding — Service Worker v5
 // Strategy: Cache images only. Never cache pages or API. Always network-first for HTML/JS.
+//
+// ── TDW_07 P4b-FINAL · F-07.33 — THE 503s IN THIS FILE ARE MANUFACTURED HERE. ──────────
+// A recurring `discover:1  Failed to load resource: the server responded with a status of
+// 503 ()` was sighted twice on founder walks (P1, then the P4b preview walk), both times
+// beside a Service-Worker update line, with DevTools "Preserve log" on.
+//
+// DERIVED, NOT GUESSED — what this file does:
+//   Every `.catch()` below synthesises a Response. `fetch()` only REJECTS on a
+//   network-layer failure (offline, DNS, connection reset, an SW terminated mid-flight);
+//   an HTTP error status RESOLVES and passes through untouched. So a 503 logged by the
+//   browser is EITHER a real upstream 503 that passed through, OR one of these synthetic
+//   ones. From the page's side the two are indistinguishable, because to the page the
+//   service worker IS the server. That ambiguity is the reason this finding stayed open.
+//
+// ONE CANDIDATE IS EXCLUDED BY DERIVATION: `discover:1` is the `/discover` PAGE DOCUMENT,
+// which is a Next.js route served by Vercel (app/(landing)/discover). The Railway branch
+// below keys on `railway.app`, `/api/` or `/admin` — a page document matches none of them,
+// and Railway never serves that path. **A Railway cold start cannot produce this line.**
+//
+// THE REMAINING CANDIDATE, and why it fits: `install` calls `skipWaiting()` and `activate`
+// purges EVERY cache then calls `clients.claim()`. So an updating worker takes over a live
+// page and wipes the caches underneath it. Requests in flight across that handover can have
+// their `fetch()` rejected, fall into a `.catch()`, find the cache just emptied, and get a
+// synthetic 503 — self-inflicted, harmless, and looking exactly like an upstream outage.
+// That matches both sightings sitting beside an SW-update line.
+//
+// NOT CLOSED — INSTRUMENTED. The above is a mechanism that FITS the evidence, and a fit is
+// not a proof. Each synthetic response below now carries `X-TDW-SW-Synthetic` naming the
+// branch that made it, so the NEXT sighting identifies itself: a header means this file
+// produced it, no header means the 503 is real and upstream. The finding closes on that
+// evidence rather than on this paragraph.
 
 const CACHE_NAME = 'tdw-v5';
 const IMAGE_CACHE = 'tdw-images-v5';
@@ -31,7 +62,11 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/admin')
   ) {
     event.respondWith(
-      fetch(request).catch(() => new Response('', { status: 503 }))
+      // F-07.33 instrumentation — see the header. `api-or-railway` means the network call
+      // to the backend REJECTED; it does not mean the backend returned 503.
+      fetch(request).catch(() => new Response('', {
+        status: 503, headers: { 'X-TDW-SW-Synthetic': 'api-or-railway' },
+      }))
     );
     return;
   }
@@ -44,8 +79,13 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.html')
   ) {
     event.respondWith(
+      // F-07.33 instrumentation. THIS is the branch a page document such as `/discover`
+      // falls into — `request.mode === 'navigate'`. If the next sighting carries this
+      // header, the 503 was made here and no server was ever unhealthy.
       fetch(request).catch(() =>
-        caches.match(request).then((cached) => cached || new Response('Offline', { status: 503 }))
+        caches.match(request).then((cached) => cached || new Response('Offline', {
+          status: 503, headers: { 'X-TDW-SW-Synthetic': 'navigate' },
+        }))
       )
     );
     return;
@@ -74,8 +114,11 @@ self.addEventListener('fetch', (event) => {
 
   // Everything else: network-first, no caching
   event.respondWith(
+    // F-07.33 instrumentation — the catch-all branch (fonts, JSON, anything unclassified).
     fetch(request).catch(() =>
-      caches.match(request).then((cached) => cached || new Response('', { status: 503 }))
+      caches.match(request).then((cached) => cached || new Response('', {
+        status: 503, headers: { 'X-TDW-SW-Synthetic': 'other' },
+      }))
     )
   );
 });

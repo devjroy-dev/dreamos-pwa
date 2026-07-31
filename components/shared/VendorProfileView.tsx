@@ -43,13 +43,19 @@
 // Nothing was removed. Nothing was added.
 //
 // ── MODE ──────────────────────────────────────────────────────────────────────────────
-// `mode` changes NOTHING about what renders. It changes only whether the two outward
-// ACTIONS fire. In preview the vendor is looking at his own profile: an Enquire tap that
-// opened WhatsApp would send him an enquiry about himself, and a Circle tap would speak to
-// a Circle he does not have. The controls therefore look identical — which is the entire
-// point of a preview — and do not act. This is a DISCLOSED executor decision, not a ruled
-// one: the charter ruled the renderer and the mount, and left the actions' behaviour in
-// preview unstated. Stated here rather than settled silently.
+// `mode` changes NOTHING about what renders. It changes what the two outward ACTIONS DO.
+//
+// P4b shipped them INERT in preview and that was wrong. The reasoning was sound as far as it
+// went — an Enquire tap would send the vendor an enquiry about himself — but it justified
+// the behaviour without asking what the vendor's finger would learn. Three of the four
+// controls in the sheet did nothing, and the founder read the screen as broken, because a
+// screen where most taps do nothing IS broken however defensible each individual gate was.
+// It was also the same defect this block deleted the CommandBar for: a control that looks
+// live and changes nothing.
+//
+// RULED SHAPE (ii), P4b-FINAL §4: in preview the controls EXPLAIN. The copy is founder-
+// vetoed and ships byte-exact. Lock Date stays disabled exactly as it is on the live card —
+// no toast, because its `beta` chip already says what it is.
 //
 // ── isBlind ───────────────────────────────────────────────────────────────────────────
 // Blind mode is a Frost deck feature that hides vendor identity (name, handle, price) and
@@ -142,10 +148,16 @@ export interface VendorProfileViewProps {
   enquireLink?: string | null;
   /** Raised to the mount: the toast that answers this tap is chrome and stayed canvas-side. */
   onCircleTap?: () => void;
+  /** PREVIEW ONLY — raises the instructive line for the mount's own toast chrome to render.
+   *  The component decides WHAT to say (the strings are vetoed copy and belong with the
+   *  control they explain); the mount decides WHERE a toast lives, because toast positioning
+   *  is chrome and the two mounts have different chrome. Lock Date raises nothing: it is
+   *  disabled on the live card too, and its `beta` chip is already its own explanation. */
+  onPreviewToast?: (line: string) => void;
 }
 
 export default function VendorProfileView({
-  vendor, mode, isBlind = false, enquireLink = null, onCircleTap,
+  vendor, mode, isBlind = false, enquireLink = null, onCircleTap, onPreviewToast,
 }: VendorProfileViewProps) {
   const isLive = mode === 'live';
 
@@ -200,7 +212,13 @@ export default function VendorProfileView({
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             // Inert in preview by construction — see MODE in this file's header.
-            if (isLive && enquireLink) window.open(enquireLink, '_blank');
+            // TDW_07 P4b-FINAL §4 — shape (ii), founder-vetoed copy. In preview the tap
+            // TEACHES instead of acting: opening WhatsApp would send the vendor an enquiry
+            // about himself, but a control that looks live and does nothing is the
+            // dead-control class — "a tap that does nothing teaches nothing" (executor's
+            // own diagnosis, credited into the record at CE-116). So it explains.
+            if (isLive) { if (enquireLink) window.open(enquireLink, '_blank'); }
+            else onPreviewToast?.('Couples tap this to message you on WhatsApp.');
           }}
           style={{ width: '100%', padding: '14px 0', background: 'rgba(248,247,245,0.92)', border: 'none', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, touchAction: 'manipulation' }}
         >
@@ -220,7 +238,9 @@ export default function VendorProfileView({
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation();
               // The toast this raises is chrome and lives at the mount.
+              // Same law as Enquire: act when live, explain when previewing.
               if (isLive) onCircleTap?.();
+              else onPreviewToast?.('Couples tap this to save you to their Circle.');
             }}
             style={{ flex: 1, padding: '12px 0', background: 'rgba(255,255,255,0.1)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, touchAction: 'manipulation' }}
           >

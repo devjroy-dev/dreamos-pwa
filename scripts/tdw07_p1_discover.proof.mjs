@@ -91,16 +91,33 @@ ok('§3.6 the group carries the note that a weight takes effect on the next fetc
   /next fetch/.test(ADMIN));
 
 section('§4 · THE GESTURE LAW — spec §3, byte-identical mechanics');
+// ── LABELED AMENDMENT (TDW_07 P4b-FINAL) — THE CONSTANTS CHANGED ADDRESS, NOT VALUE. ──
+// This asserted the six gesture constants were byte-present IN THE CANVAS. P4b-FINAL
+// extracted the photo carousel to lib/frost/photoPager.ts so the vendor's preview runs the
+// couple's mechanics rather than a second copy of them, and the constants went with it.
+//
+// THE CHAIR RESTATED THE GESTURE-STABILITY LAW FOR EXACTLY THIS: an extraction cannot leave
+// bytes where they were, so the law's object is the COUPLE'S MECHANICS, not the byte
+// position. This cell is proof part (a) and it is STRONGER than what it replaces — it pins
+// each value at the new home AND pins that the canvas no longer declares its own, which the
+// old form could not do. A second copy left behind at the old address would have satisfied
+// the old cell perfectly while letting the two mounts drift.
+const PAGER_SRC = read('lib/frost/photoPager.ts');
 const GESTURE_BYTES = [
-  'const SWIPE_THRESHOLD = 45;',
-  'const SWIPE_VELOCITY  = 0.3;',
-  'const TAP_MAX_MOVE    = 10;',
-  'const TAP_MAX_TIME    = 250;',
-  'const DOUBLE_TAP_MS   = 280;',
-  'const OVERLAY_DISMISS = 80;',
+  'export const SWIPE_THRESHOLD = 45;',
+  'export const SWIPE_VELOCITY  = 0.3;',
+  'export const TAP_MAX_MOVE    = 10;',
+  'export const TAP_MAX_TIME    = 250;',
+  'export const DOUBLE_TAP_MS   = 280;',
+  'export const OVERLAY_DISMISS = 80;',
 ];
-ok('§4.1 every swipe/tap constant is byte-present and unchanged (all six, count asserted)',
-  GESTURE_BYTES.filter(b => PAGE.includes(b)).length === GESTURE_BYTES.length);
+ok('§4.1 every swipe/tap constant is byte-present and unchanged at the SHARED home (all six)',
+  GESTURE_BYTES.filter(b => PAGER_SRC.includes(b)).length === GESTURE_BYTES.length);
+ok('§4.1b the canvas declares NONE of them — one home, so the two mounts cannot drift',
+  !/^const SWIPE_THRESHOLD/m.test(PAGE) && !/^const TAP_MAX_MOVE/m.test(PAGE) &&
+  !/^const OVERLAY_DISMISS/m.test(PAGE));
+ok('§4.1c and it imports them back, so the deck still runs on the same numbers',
+  /from '@\/lib\/frost\/photoPager'/.test(PAGE));
 ok('§4.2 the deck still binds onTouchStart and onTouchEnd and nothing else',
   PAGE.includes('onTouchStart={onTouchStart}') && PAGE.includes('onTouchEnd={onTouchEnd}'));
 ok('§4.3 the overlay\'s drag-dismiss is intact',

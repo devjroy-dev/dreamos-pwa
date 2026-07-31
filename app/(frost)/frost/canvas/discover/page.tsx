@@ -42,6 +42,13 @@ import { saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 // TDW_07 P3 · Fork 5(b) — the ONE img module at its frost-api address.
 import { imgUrl, lqipUrl } from '../../../../../lib/frost-api/img';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
+// TDW_07 P4b-FINAL · F1b — the ONE photo carousel: its constants, its haptic, its gesture
+// classification and its cursor. The vendor's preview mounts the identical mechanics.
+import {
+  SWIPE_THRESHOLD, SWIPE_VELOCITY, TAP_MAX_MOVE, TAP_MAX_TIME, DOUBLE_TAP_MS,
+  OVERLAY_DISMISS, haptic, usePhotoPager,
+} from '@/lib/frost/photoPager';
+import ImageDots from '@/components/shared/ImageDots';
 // TDW_07 P4b · F1-b — the ONE couple-facing profile renderer. IgChip and FeaturedEyebrow
 // moved with it (the card below imports them back) so no second copy of either exists.
 import VendorProfileView, { IgChip, FeaturedEyebrow } from '@/components/shared/VendorProfileView';
@@ -67,18 +74,12 @@ type CategoryId = 'venues'|'photographers'|'mua'|'designers'|'jewellery'|'choreo
 
 // ── Swipe constants ───────────────────────────────────────────────────────────
 
-const SWIPE_THRESHOLD = 45;
-const SWIPE_VELOCITY  = 0.3;
-const TAP_MAX_MOVE    = 10;
-const TAP_MAX_TIME    = 250;
-const DOUBLE_TAP_MS   = 280;
-const OVERLAY_DISMISS = 80;
-
-const haptic = (ms: number) => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    try { navigator.vibrate(ms); } catch {}
-  }
-};
+// TDW_07 P4b-FINAL · F1b — THE SWIPE CONSTANTS AND THE HAPTIC MOVED TO ONE HOME.
+// They now live at lib/frost/photoPager.ts and are imported above. They are byte-identical
+// there — the couple's mechanics did not change, they changed ADDRESS, because the vendor's
+// preview is now the same carousel and must run on the same numbers rather than on a second
+// copy of them. The gesture-stability law's object is the mechanics, not the byte position
+// (chair-restated at P4b-FINAL); the three-part proof is in photoPager.ts's header.
 
 // ── Shared glass token — one source of truth ──────────────────────────────────
 // Used by every overlay, pill, and sheet.
@@ -394,16 +395,8 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
 
 // ── Image dots ────────────────────────────────────────────────────────────────
 
-function ImageDots({ total, current }: { total: number; current: number }) {
-  if (total <= 1) return null;
-  return (
-    <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top,0px) + 20px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 24, pointerEvents: 'none' }}>
-      {Array.from({ length: Math.min(total, 8) }).map((_, i) => (
-        <div key={i} style={{ width: i === current ? 16 : 5, height: 5, borderRadius: 3, background: i === current ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)', transition: 'all 240ms cubic-bezier(0.22,1,0.36,1)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
-      ))}
-    </div>
-  );
-}
+// ImageDots MOVED to components/shared/ImageDots.tsx and imported above — one home, so
+// the vendor's preview shows the couple's indicator rather than a look-alike.
 
 function BlindCentreToast({ hint }: { hint: 'dismiss' | null }) {
   if (!hint) return null;
@@ -584,9 +577,22 @@ function DiscoveryFeedContent({
 
   const [vendors,        setVendors]        = useState<DiscoverVendor[]>([]);
   const [vendorIdx,      setVendorIdx]      = useState(0);
-  const [imageIdx,       setImageIdx]       = useState(0);
+  // TDW_07 P4b-FINAL · F1b — the photo cursor is the SHARED pager's, not this file's.
+  // `imageIdx`, its advance/retreat and the dissolve key all come from lib/frost/photoPager,
+  // which the vendor's preview mounts too. The deck's OWN verbs — vendor paging, Muse
+  // double-tap, blind mode — stay here; only the carousel moved. The boundary and the full
+  // verb enumeration are stated in photoPager.ts's header (CE-116 clause 2).
   const [overlayVisible, setOverlayVisible] = useState(false);
-  const [dissolveKey,    setDissolveKey]    = useState(0);
+
+  // THE SHARED CAROUSEL. `photoCount` is read off the current vendor — the hook takes the
+  // count rather than the array so it re-bounds when the deck moves vendor without caring
+  // what the photos are. `dissolveKey` comes from the hook because the deck ALSO keys its
+  // vendor-change and blind-swipe cross-fades off it: one key, one transition language, and
+  // the preview's photo dissolve is literally the deck's.
+  const photoCount = vendors[vendorIdx]?.photos.length ?? 0;
+  const {
+    imageIdx, setImageIdx, dissolveKey, setDissolveKey, nextImage, prevImage,
+  } = usePhotoPager(photoCount);
   const [blindHint,      setBlindHint]      = useState<'dismiss' | null>(null);
   const [blindIdx,       setBlindIdx]       = useState(0);
   const [currentPage,    setCurrentPage]    = useState(0);
@@ -667,13 +673,9 @@ function DiscoveryFeedContent({
     setVendorIdx(i => i - 1); setImageIdx(0); setOverlayVisible(false); setDissolveKey(k => k + 1); haptic(5);
   }, [vendorIdx]);
 
-  const nextImage = useCallback(() => {
-    if (vendor && imageIdx < vendor.photos.length - 1) { setImageIdx(i => i + 1); setDissolveKey(k => k + 1); haptic(4); }
-  }, [imageIdx, vendor]);
-
-  const prevImage = useCallback(() => {
-    if (imageIdx > 0) { setImageIdx(i => i - 1); setDissolveKey(k => k + 1); haptic(4); }
-  }, [imageIdx]);
+  // nextImage / prevImage now come from the shared pager (destructured above). The bounds
+  // logic is identical — no wrap at either end — and it lives in one place so the preview's
+  // carousel cannot drift from the deck's.
 
   const handleSingleTap = useCallback(() => {
     if (isBlind) return;
