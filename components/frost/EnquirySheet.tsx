@@ -178,11 +178,29 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
     <>
       <div
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(12,10,9,0.55)' }}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(12,10,9,0.55)', touchAction: 'auto' }}
       />
       <div
         onClick={(e) => e.stopPropagation()}
+        // ── GESTURE ISOLATION — ONE HOME, EVERY MOUNT ────────────────────────
+        // Both surfaces that host this sheet sit inside gesture-owning
+        // containers: the canvas deck's drawer has onTouchStart/Move/End for
+        // drag-to-dismiss, and sanctuary's DiscoverRoom root has its own touch
+        // handlers plus `touchAction:'none'`. Without this, a touch on a FIELD
+        // bubbles up and is read as a deck swipe — which is precisely how the
+        // card vanished the moment the founder tapped an input.
+        //
+        // Isolating HERE rather than at each mount means a third surface
+        // inherits the fix instead of rediscovering the bug. `touchAction:'auto'`
+        // re-enables native input behaviour that an ancestor's 'none' suppresses.
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
         style={{
+          touchAction: 'auto',
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 121,
           background: 'rgba(12,10,9,0.90)',
           backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',

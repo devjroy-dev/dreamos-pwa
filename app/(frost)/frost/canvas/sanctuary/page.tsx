@@ -1,4 +1,5 @@
 'use client';
+import EnquirySheet from '@/components/frost/EnquirySheet';
 import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
 import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 
@@ -1426,6 +1427,8 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const [vIdx,       setVIdx]       = React.useState(0);
   const [imgIdx,     setImgIdx]     = React.useState(0);
   const [panelOpen,  setPanelOpen]  = React.useState(false);
+  const [sheetOpen,  setSheetOpen]  = React.useState(false);
+  const [enquiryToast, setEnquiryToast] = React.useState<string|null>(null);
   const [dissolve,   setDissolve]   = React.useState(0);
   const [isBlind,    setIsBlind]    = React.useState(false);
   const [undoStack,  setUndoStack]  = React.useState<number[]>([]); // prev vIdx values
@@ -1618,37 +1621,23 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   //     replaces had no fallback — so on the exact devices the fallback exists to
   //     rescue, this handler was silently posting as a logged-out bride and losing
   //     her enquiry row. That is a cure, not a tidy-up.
-  const handleEnquire=React.useCallback(async ()=>{
-    if(!vendor||enquiring)return;
-    setEnquiring(true);
+  // ── F1(a) ON THE LIVE SURFACE (CE-ruled F-A, 2026-07-31) ──────────────────
+  // This handler USED to post to /enquire directly. That work now belongs to
+  // EnquirySheet, which prefills from her profile, lets her correct it, posts
+  // the four fields, and performs the wa.me handoff itself. Keeping a second
+  // posting path here would be two implementations of one contract on the same
+  // screen — the shape §3 exists to forbid.
+  //
+  // This surface is the one couples actually reach: /frost replaces to
+  // /frost/canvas/sanctuary (frost/page.tsx:11), and /frost/canvas/discover has
+  // ZERO inbound navigation (F-07.43). The canvas mount is the twin; the
+  // two-mount upkeep is TEMPORARY and bounded by F-07.43's resolution, which is
+  // the founder's product word at P6's opening.
+  const handleEnquire=React.useCallback(()=>{
+    if(!vendor)return;
     setPanelOpen(false);
-    try {
-      const session=getCoupleSession();
-      const res=await fetch(`${API_BASE}/api/v2/discover/enquire`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          vendor_id:vendor.id,
-          // `getCoupleSession` already normalises the legacy `coupleId` key onto
-          // `id` (_base.ts:135), so the two-key fallback the raw parse needed is
-          // dead here — the authority owns it. `name` is the interface's field;
-          // `bride_name` never existed on it and only compiled before because
-          // JSON.parse returned `any`. The tsc gate caught both.
-          couple_id:session?.id||undefined,
-          bride_name:session?.name||undefined,
-        }),
-      });
-      if(!res.ok) throw new Error(`enquire refused: ${res.status}`);
-      const data=await res.json().catch(()=>({} as any));
-      if(data && data.ok===false) throw new Error('enquire reported failure');
-      // V6, founder-vetoed byte-exact. `enquiry_saved` is the server's own fact —
-      // never inferred here, because inferring it is how the old sentence lied.
-      spawnDiscToast(data?.enquiry_saved ? 'Enquiry sent ✦ saved in Vendors' : 'Enquiry sent');
-    } catch {
-      spawnDiscToast('Could not send. Try again.');
-    }
-    setEnquiring(false);
-  },[vendor,enquiring]);
+    setSheetOpen(true);
+  },[vendor]);
 
   const handleCircleShare=React.useCallback(()=>{
     if(!vendor)return;
@@ -1788,6 +1777,31 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           onEnquire={handleEnquire}
           onCircleShare={handleCircleShare}
         />
+      )}
+
+      {/* The sheet is a SIBLING of the panel, never a child — DiscVendorPanel's
+          root carries `transform: translateY(...)`, which would make a fixed
+          descendant resolve against that drawer instead of the viewport. The
+          sheet's own gesture isolation handles this room's touch handlers. */}
+      {sheetOpen&&vendor&&(
+        <EnquirySheet
+          vendor={{id:vendor.id,name:vendor.name,is_demo:(vendor as {is_demo?:boolean}).is_demo}}
+          enquireLink={vendor.enquire_link||(vendor.routing_handle?makeEnquireLink(vendor.routing_handle):null)}
+          onClose={()=>setSheetOpen(false)}
+          onDone={(r)=>{
+            setSheetOpen(false);
+            setEnquiryToast(!r.ok?'Could not send. Try again.':r.enquiry_saved?'Enquiry sent ✦ saved in Vendors':'Enquiry sent');
+            setTimeout(()=>setEnquiryToast(null),2600);
+          }}
+        />
+      )}
+
+      {enquiryToast&&(
+        <div style={{position:'fixed',bottom:'calc(env(safe-area-inset-bottom,0px) + 96px)',left:0,right:0,display:'flex',justifyContent:'center',zIndex:130,pointerEvents:'none'}}>
+          <span style={{background:'rgba(8,6,8,.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'0.5px solid rgba(255,255,255,.12)',borderRadius:20,padding:'8px 18px',fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:300,color:'rgba(248,247,245,.88)',whiteSpace:'nowrap'}}>
+            {enquiryToast}
+          </span>
+        </div>
       )}
 
       {/* Filter sheet */}

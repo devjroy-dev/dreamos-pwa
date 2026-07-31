@@ -1,5 +1,7 @@
 'use client';
 import EnquirySheet from '@/components/frost/EnquirySheet';
+// TDW_07 P4b · F-07.16 — the estate's one money donor. Locked register: Rs 1,50,000.
+import { formatRs } from '@/lib/vendor/format';
 import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 
 export const dynamic = 'force-dynamic';
@@ -309,15 +311,25 @@ function FilterSheet({ visible, onClose, filters, onApply, isBlind }: {
 // ── GlassOverlay — vendor profile, true frosted glass ────────────────────────
 // Photo clearly visible through the overlay.
 
-function GlassOverlay({ vendor, visible, onClose, isBlind }: {
+function GlassOverlay({ vendor, visible, onClose, isBlind, onEnquire }: {
   vendor: DiscoverVendor; visible: boolean; onClose: () => void; isBlind: boolean;
+  // ── §D's CONTAINING-BLOCK CURE — WHY THE SHEET IS NOT MOUNTED IN HERE ───────
+  // This component's root div carries `transform: translateY(...)`. A CSS
+  // transform on an ancestor creates a CONTAINING BLOCK for `position: fixed`
+  // descendants, so a fixed overlay mounted inside resolves `inset: 0` against
+  // this ~300px drawer instead of the viewport — a black screen, a card needing
+  // a second tap, and clicks landing on the wrong element.
+  //
+  // Worse: this drawer owns onTouchStart/Move/End for drag-to-dismiss, so a
+  // touch on a FIELD inside it fed the deck's drag gesture and dismissed the
+  // card. Both defects die by hoisting the sheet to the PAGE root; this
+  // component only raises the verb, the same seam `onCircleTap` already uses.
+  onEnquire: () => void;
 }) {
   const dragStartY  = useRef(0);
   const [dragDelta, setDragDelta] = useState(0);
   const isDragging  = useRef(false);
   const [circleToast, setCircleToast] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [enquiryToast, setEnquiryToast] = useState<string | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
     dragStartY.current = e.touches[0].clientY;
@@ -387,45 +399,10 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
         mode="live"
         isBlind={isBlind}
         enquireLink={enquireLink}
-        onEnquire={() => setSheetOpen(true)}
+        onEnquire={onEnquire}
         onCircleTap={() => { setCircleToast(true); setTimeout(() => setCircleToast(false), 2500); }}
       />
 
-      {/* ── TDW_07 P5 · F1(a) — THE SHEET LIVES WITH THE DECK'S CHROME ─────────
-          Mounted here, not inside VendorProfileView, for the same reason the
-          Circle toast is: it is positioned against THIS glass sheet. The shared
-          renderer stays a renderer.
-
-          THE SIX MISROUTED DEMO LINKS DIE HERE. A demo card's `enquire_link` is
-          wa.me/<TDW's own vendor number>?text=TDW-<demo ig_handle> — a token that
-          matches no real routing_handle, so every demo Enquire has been walking
-          couples into our own inbox with an unresolvable code. The sheet now
-          posts to /enquire first, which resolves the species from the database
-          and fires the free-lead hook. */}
-      {sheetOpen && (
-        <EnquirySheet
-          vendor={{ id: vendor.id, name: vendor.name, is_demo: vendor.is_demo }}
-          enquireLink={enquireLink}
-          onClose={() => setSheetOpen(false)}
-          onDone={(r) => {
-            setSheetOpen(false);
-            // V6, founder-vetoed byte-exact. `enquiry_saved` is the SERVER's own
-            // fact — never inferred here, because inferring it is how the old
-            // handler promised a saved link to logged-out brides.
-            setEnquiryToast(
-              !r.ok ? 'Could not send. Try again.'
-                    : r.enquiry_saved ? 'Enquiry sent ✦ saved in Vendors' : 'Enquiry sent',
-            );
-            setTimeout(() => setEnquiryToast(null), 2600);
-          }}
-        />
-      )}
-
-      {enquiryToast && (
-        <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom,0px) + 96px)', left: '50%', transform: 'translateX(-50%)', zIndex: 130, ...GLASS.pill, borderRadius: 20, padding: '8px 18px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'rgba(248,247,245,0.88)', whiteSpace: 'nowrap' }}>
-          {enquiryToast}
-        </div>
-      )}
     </div>
   );
 }
@@ -620,6 +597,10 @@ function DiscoveryFeedContent({
   // double-tap, blind mode — stay here; only the carousel moved. The boundary and the full
   // verb enumeration are stated in photoPager.ts's header (CE-116 clause 2).
   const [overlayVisible, setOverlayVisible] = useState(false);
+  // F1(a) — owned HERE, at the page root, deliberately outside GlassOverlay's
+  // transformed drawer. See that component's header for why.
+  const [sheetOpen,     setSheetOpen]     = useState(false);
+  const [enquiryToast,  setEnquiryToast]  = useState<string | null>(null);
 
   // THE SHARED CAROUSEL. `photoCount` is read off the current vendor — the hook takes the
   // count rather than the array so it re-bounds when the deck moves vendor without caring
@@ -874,6 +855,51 @@ function DiscoveryFeedContent({
           </div>
         )}
 
+        {/* ── THE ARRIVAL STATE (founder-ruled 2026-07-31) ─────────────────────
+            「 canvas/discover is blind swipe whereas the sanctuary/discover is
+              carousel swipe by default and thats how it should be also 」
+
+            THE DIAGNOSIS THIS CURES — it was never the blind toggle. `isBlindMode`
+            defaults false (:913), the only persistence is ?blind=1, and no
+            localStorage sibling exists. The canvas simply rendered NOTHING
+            identifying while the card was closed: a photo, a chip and a tap hint.
+            Sanctuary's closed state has always shown name · category · city
+            (sanctuary:1706). Blind-by-omission, not blind-by-toggle — which is
+            exactly why it felt like blind mode with blind mode off.
+
+            So the cure is ADDITIVE and narrow: the identity becomes visible at
+            t=0 on this surface too. The tap-reveal card still owns the full
+            sheet, and the deck's gestures are byte-untouched — this container is
+            pointerEvents:'none', so the swipe surface underneath is unchanged. */}
+        {!isBlind && !overlayVisible && (
+          <div style={{
+            position: 'fixed',
+            bottom: 'calc(env(safe-area-inset-bottom,0px) + 92px)',
+            left: 0, right: 0, zIndex: 11,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            pointerEvents: 'none',
+            animation: 'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)',
+          }}>
+            {(vendor.category || vendor.city) && (
+              <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)' }}>
+                {[vendor.category, vendor.city].filter(Boolean).join(' · ')}
+              </span>
+            )}
+            {vendor.name && (
+              <span style={{ fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic', fontWeight: 300, fontSize: 26, color: 'rgba(248,247,245,0.95)', textAlign: 'center', padding: '0 24px' }}>
+                {vendor.name}
+              </span>
+            )}
+            {/* D-1: the vendor's own rate-display switch governs this, server-side.
+                A null starting_price is his choice and renders as absence. */}
+            {vendor.starting_price != null && (
+              <span style={{ fontFamily: "'DM Sans',sans-serif", fontWeight: 300, fontSize: 12, color: 'rgba(248,247,245,0.55)' }}>
+                Starting at {formatRs(vendor.starting_price)}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Hint */}
         {!isBlind && !overlayVisible && (
           <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom,0px) + 28px)', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10, pointerEvents: 'none', animation: 'slideInUp 400ms cubic-bezier(0.22,1,0.36,1)' }}>
@@ -890,7 +916,37 @@ function DiscoveryFeedContent({
             visible={overlayVisible}
             onClose={() => setOverlayVisible(false)}
             isBlind={isBlind}
+            onEnquire={() => setSheetOpen(true)}
           />
+        )}
+
+        {/* THE SHEET AND ITS TOAST LIVE AT THE PAGE ROOT — no transformed
+            ancestor, no drag handlers, so `position: fixed` means the viewport
+            and a touch on a field is a touch on a field. */}
+        {sheetOpen && vendor && (
+          <EnquirySheet
+            vendor={{ id: vendor.id, name: vendor.name, is_demo: vendor.is_demo }}
+            enquireLink={vendor.enquire_link || (vendor.routing_handle ? makeEnquireLink(vendor.routing_handle) : null)}
+            onClose={() => setSheetOpen(false)}
+            onDone={(r) => {
+              setSheetOpen(false);
+              // V6, founder-vetoed byte-exact. `enquiry_saved` is the SERVER's
+              // fact, never inferred here.
+              setEnquiryToast(
+                !r.ok ? 'Could not send. Try again.'
+                      : r.enquiry_saved ? 'Enquiry sent ✦ saved in Vendors' : 'Enquiry sent',
+              );
+              setTimeout(() => setEnquiryToast(null), 2600);
+            }}
+          />
+        )}
+
+        {enquiryToast && (
+          <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom,0px) + 96px)', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 130, pointerEvents: 'none' }}>
+            <span style={{ ...GLASS.pill, borderRadius: 20, padding: '8px 18px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'rgba(248,247,245,0.88)', whiteSpace: 'nowrap' }}>
+              {enquiryToast}
+            </span>
+          </div>
         )}
       </div>
     </>
