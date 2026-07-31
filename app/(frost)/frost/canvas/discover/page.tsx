@@ -1,3 +1,4 @@
+import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 'use client';
 
 export const dynamic = 'force-dynamic';
@@ -61,13 +62,9 @@ const CATEGORIES = [
 ];
 const CITIES       = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa'];
 const VIBE_OPTIONS = ['Candid','Traditional','Luxury','Cinematic','Boho','Festive','Minimalist','Royal','Destination','Contemporary'];
-const BUDGET_OPTIONS = [
-  { label: 'Under Rs 1L',  value: '100000'  },
-  { label: 'Rs 1L – 3L',  value: '300000'  },
-  { label: 'Rs 3L – 5L',  value: '500000'  },
-  { label: 'Rs 5L – 10L', value: '1000000' },
-  { label: 'Rs 10L+',     value: ''        },
-];
+// F-07.34 — one home. The five labels are founder-vetoed full-register bytes and
+// the values are byte-identical to the three copies this replaces (zero filter loss).
+const BUDGET_OPTIONS = BUDGET_BANDS;
 const MODE_OPTIONS = ['Couture','Spotlight','Featured','Look Book'];
 
 type CategoryId = 'venues'|'photographers'|'mua'|'designers'|'jewellery'|'choreographers'|'content-creators'|'dj'|'event-managers'|'bridal-wellness';

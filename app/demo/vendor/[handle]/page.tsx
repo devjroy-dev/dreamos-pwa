@@ -38,6 +38,8 @@ export default function DemoLandingPage() {
   const [claimOpen,    setClaimOpen]    = useState(false);
   const [claimPhone,   setClaimPhone]   = useState('');
   const [claimSending, setClaimSending] = useState(false);
+  // F-07.37: a failed claim now has somewhere true to land.
+  const [claimError, setClaimError] = useState(false);
   const [claimDone,    setClaimDone]    = useState(false);
 
   const searchParams = useSearchParams();
@@ -85,15 +87,33 @@ export default function DemoLandingPage() {
   async function handleClaim() {
     if (!claimPhone.trim() || claimSending) return;
     setClaimSending(true);
+    // ── F-07.37 CURED · THE SCREEN HALF ───────────────────────────────────────
+    // THIS BLOCK READ: `catch { /* silent — still show success */ }` followed by
+    // an unconditional `setClaimDone(true)`. Both halves lied. The catch swallowed
+    // network failure, and `res.ok` was never checked at all — so a 4xx/5xx
+    // resolved normally and still ran the success screen. A vendor whose claim
+    // never landed was shown "we'll be in touch" and then waited for a call that
+    // could not come, because the row the founder's queue reads was never written.
+    //
+    // The server half shipped in this sitting's backend ZIP: the route now returns
+    // 502 with `ok:false` instead of `ok:true` (src/api/demo/vendor.js). This is
+    // the screen learning to believe it.
+    //
+    // P5 is why it matters now: demo_lead_alert's {{3}} points real, unregistered
+    // vendors at this exact page. It is the first thing we ever say to them.
     try {
-      await fetch(`${API_BASE}/api/v2/demo/vendor/${handle}/claim`, {
+      const res = await fetch(`${API_BASE}/api/v2/demo/vendor/${handle}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: claimPhone.trim(), vendor_name: vendor?.display_name ?? handle }),
       });
-    } catch { /* silent — still show success */ }
+      const data = await res.json().catch(() => ({} as any));
+      if (!res.ok || data?.ok === false) throw new Error(`claim refused: ${res.status}`);
+      setClaimDone(true);
+    } catch {
+      setClaimError(true);
+    }
     setClaimSending(false);
-    setClaimDone(true);
   }
 
   const photos = (vendor?.photos ?? []).map((p: DemoPhoto) => p.url).filter(Boolean) as string[];
@@ -243,9 +263,22 @@ export default function DemoLandingPage() {
       {/* Claim sheet */}
       {claimOpen && (
         <>
-          <div onClick={() => { setClaimOpen(false); setClaimDone(false); setClaimPhone(''); }} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(12,10,9,0.5)' }} />
+          <div onClick={() => { setClaimOpen(false); setClaimDone(false); setClaimError(false); setClaimPhone(''); }} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(12,10,9,0.5)' }} />
           <div onClick={e => e.stopPropagation()} style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:101, background:'rgba(12,10,9,0.88)', backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)', borderTop:'0.5px solid rgba(255,255,255,0.12)', borderRadius:'20px 20px 0 0', padding:`20px 24px calc(env(safe-area-inset-bottom, 16px) + 24px)` }}>
-            {claimDone ? (
+            {/* F-07.37 — THE FAILURE HAS A SCREEN. Ordered FIRST so a failed claim can
+                never fall through into the welcome. The line is deliberately plain and
+                actionable: it does not apologise, it does not blame the vendor, and it
+                does not promise a follow-up we have no row to make. */}
+            {claimError ? (
+              <div style={{ textAlign:'center', padding:'20px 0' }}>
+                <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:26, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>That didn&apos;t go through.</div>
+                <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7, marginBottom:20 }}>Your claim wasn&apos;t saved. Please try again.</div>
+                <button
+                  onClick={() => { setClaimError(false); }}
+                  style={{ padding:'12px 28px', background:'rgba(248,247,245,0.92)', border:'none', borderRadius:10, fontFamily:F.label, fontSize:10, fontWeight:300, letterSpacing:'0.22em', textTransform:'uppercase', color:'#0C0A09', cursor:'pointer' }}
+                >Try again</button>
+              </div>
+            ) : claimDone ? (
               <div style={{ textAlign:'center', padding:'20px 0' }}>
                 <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:32, color:'rgba(248,247,245,0.95)', marginBottom:12 }}>Welcome to TDW.</div>
                 <div style={{ fontFamily:F.body, fontWeight:300, fontSize:14, color:'rgba(248,247,245,0.55)', lineHeight:1.7 }}>Our team will reach out shortly.<br />We verify every profile personally.</div>

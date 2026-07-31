@@ -1,3 +1,5 @@
+import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
+import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 'use client';
 
 // sanctuary/page.tsx — V5 BLOOM ARCHITECTURE
@@ -1107,7 +1109,8 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
 const DISC_CATEGORIES = ['Venues','Photographers','Makeup Artists','Designers','Jewellery','Choreographers','Content Creators','DJ & Music','Event Managers','Bridal Wellness'];
 const DISC_CITIES     = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa'];
 const DISC_VIBES      = ['Candid','Traditional','Luxury','Cinematic','Boho','Festive','Minimalist','Royal','Destination','Contemporary'];
-const DISC_BUDGETS    = [{label:'Under Rs 1L',value:'100000'},{label:'Rs 1L – 3L',value:'300000'},{label:'Rs 3L – 5L',value:'500000'},{label:'Rs 5L – 10L',value:'1000000'},{label:'Rs 10L+',value:''}];
+// F-07.34 — one home (see lib/frost/budgetBands.ts). Vetoed labels, values untouched.
+const DISC_BUDGETS    = BUDGET_BANDS;
 
 const DISC_SWIPE_THRESH = 42;
 const DISC_TAP_MOVE     = 10;
@@ -1571,24 +1574,59 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     }
   };
 
+  // ── F-07.39 CURED · THE SUCCESS TOAST THAT COULD NOT FAIL ─────────────────
+  // THIS HANDLER READ: `await fetch(...)` with NO `res.ok` check, then
+  // `spawnDiscToast('Vendor notified ✦ link saved in Vendors')` unconditionally.
+  // `fetch` rejects only on NETWORK failure — a 400, 404 or 422 RESOLVES and fell
+  // straight into the success toast. The door has exactly those three refusal
+  // exits (enquire.js:29 no vendor_id · :41 not discover-eligible · :52 no vendor
+  // phone), so a bride could be told "Vendor notified" when nothing was notified
+  // and nothing was saved. It is the founding-lie family on the couple plane, and
+  // it is the standing explanation for `couple_enquiries` holding ZERO rows while
+  // this was the pipeline's only caller.
+  //
+  // THE SECOND HALF WAS ALSO FALSE. The toast promised two things — a notified
+  // vendor AND a saved link — but the row only writes when `couple_id` is present
+  // (enquire.js:99). A logged-out bride got the identical sentence and no row.
+  // V6's split (founder-vetoed 2026-07-31) says the true thing in each case, and
+  // the server now reports `sent` / `lead_created` / `enquiry_saved` field by
+  // field so this surface can only ever repeat back what actually happened.
+  //
+  // ── THE TWO ADJACENT FACTS, BOUND AS ALREADY-LAW (CE-ruled) ───────────────
+  // (1) THE HARDCODED BASE IS GONE. `API_BASE` is the one authority
+  //     (lib/frost-api/_base.ts:34) and follows NEXT_PUBLIC_API_BASE.
+  // (2) THE RAW localStorage READ IS GONE. `getCoupleSession()` (_base.ts:127) is
+  //     the one session authority, and it carries the `tdw_couple_session` COOKIE
+  //     FALLBACK that protocol §4 names settled for iOS Safari. The raw read this
+  //     replaces had no fallback — so on the exact devices the fallback exists to
+  //     rescue, this handler was silently posting as a logged-out bride and losing
+  //     her enquiry row. That is a cure, not a tidy-up.
   const handleEnquire=React.useCallback(async ()=>{
     if(!vendor||enquiring)return;
     setEnquiring(true);
     setPanelOpen(false);
     try {
-      const API='https://dream-os-production.up.railway.app';
-      const raw=typeof window!=='undefined'?(localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session')):null;
-      const session=raw?JSON.parse(raw):null;
-      await fetch(`${API}/api/v2/discover/enquire`,{
+      const session=getCoupleSession();
+      const res=await fetch(`${API_BASE}/api/v2/discover/enquire`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           vendor_id:vendor.id,
-          couple_id:session?.coupleId||session?.id||undefined,
-          bride_name:session?.bride_name||session?.name||undefined,
+          // `getCoupleSession` already normalises the legacy `coupleId` key onto
+          // `id` (_base.ts:135), so the two-key fallback the raw parse needed is
+          // dead here — the authority owns it. `name` is the interface's field;
+          // `bride_name` never existed on it and only compiled before because
+          // JSON.parse returned `any`. The tsc gate caught both.
+          couple_id:session?.id||undefined,
+          bride_name:session?.name||undefined,
         }),
       });
-      spawnDiscToast('Vendor notified ✦ link saved in Vendors');
+      if(!res.ok) throw new Error(`enquire refused: ${res.status}`);
+      const data=await res.json().catch(()=>({} as any));
+      if(data && data.ok===false) throw new Error('enquire reported failure');
+      // V6, founder-vetoed byte-exact. `enquiry_saved` is the server's own fact —
+      // never inferred here, because inferring it is how the old sentence lied.
+      spawnDiscToast(data?.enquiry_saved ? 'Enquiry sent ✦ saved in Vendors' : 'Enquiry sent');
     } catch {
       spawnDiscToast('Could not send. Try again.');
     }
