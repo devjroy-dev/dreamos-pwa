@@ -83,3 +83,38 @@ F-07.44's cookie check — the SQL branch is **exonerated** (`auth_user_id` link
 `users_id` matches), leaving line 14's vendor-token fallback as the only remaining
 explanation. Unconvicted until the founder reports which cookies are present, so the
 middleware cure is NOT built.
+
+---
+
+# ADDENDUM — THE GLITCH AND THE DELAY (same sitting, post-walk)
+
+The founder's walk on sanctuary: the sheet opens, **late**, and is briefly seen
+"rising from behind the enquire card."
+
+**Two causes, both mine.**
+
+1. **The delay was my own design flaw.** The sheet's entire body was gated behind
+   `loading`, and `loading` waited on `fetchCoupleMe` — one of the six endpoints
+   returning 403 under F-07.44. So the wait was a full round-trip that could never
+   succeed. The comment in that very function said *"prefill is a courtesy; its
+   absence never blocks the enquiry"* while the code made it a precondition. The
+   gate is gone: fields render immediately and populate if the profile arrives.
+
+2. **The glitch was two animations disagreeing.** `handleEnquire` called
+   `setPanelOpen(false)`, starting the panel's 340ms slide-out, while the sheet
+   mounted instantly with no transition. Cured on both sides: the panel now STAYS
+   OPEN (the sheet's scrim at z-120 already covers it at z-60), and the sheet has
+   a deliberate rise — `translateY(100%) → 0` over the same 340ms curve the estate
+   uses everywhere, with the scrim fading in.
+
+   Leaving the panel open is also the truer behaviour: dismissing the sheet returns
+   her to where she was, not to a deck she never asked to go back to.
+
+**On the WhatsApp handoff** — tapping `Send enquiry` posting AND opening WhatsApp
+with `TDW-<handle>` is F1(a) working exactly as ruled: the sheet feeds the pipeline,
+then performs the handoff that has always worked. If the founder wants the handoff
+to stop once the pipeline is trusted, that is fork F1(b) and it is his word plus a
+chair ruling, not a defect.
+
+**Proof:** `next build` — 0 code errors; the 4 remaining are the container's Google
+Fonts fetch.

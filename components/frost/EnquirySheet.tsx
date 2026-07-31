@@ -87,13 +87,28 @@ const valueStyle: React.CSSProperties = {
 export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: Props) {
   const isDemo = !!vendor.is_demo;
 
-  const [loading, setLoading]   = React.useState(true);
+  // ── PREFILL NEVER BLOCKS THE RENDER ────────────────────────────────────────
+  // The body was gated behind `loading`, and `loading` waited on fetchCoupleMe —
+  // one of the six endpoints returning 403 under F-07.44. So the sheet waited on
+  // a round-trip that could not succeed, and the founder watched it arrive late.
+  // The comment below already said "prefill is a courtesy"; the code made it a
+  // precondition. Fields render at once and fill in if the profile arrives.
+  const [entered, setEntered]   = React.useState(false);
   const [sending, setSending]   = React.useState(false);
   const [functions, setFunctions] = React.useState<string>('');
   const [weddingDate, setWeddingDate] = React.useState<string>('');
   const [city, setCity]         = React.useState<string>('');
   const [band, setBand]         = React.useState<string | null>(null);
   const [bandOpen, setBandOpen] = React.useState(false);
+
+  // One frame after mount, flip to the resting transform — the sheet RISES
+  // rather than appearing. Without it the sheet popped in while the panel beneath
+  // was still playing its own 340ms slide, and two animations disagreeing is what
+  // the founder saw as the form "rising from behind the enquire card".
+  React.useEffect(() => {
+    const t = setTimeout(() => setEntered(true), 16);
+    return () => clearTimeout(t);
+  }, []);
 
   const session = React.useMemo(() => getCoupleSession(), []);
   const coupleId = session?.id || undefined;
@@ -106,7 +121,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
   React.useEffect(() => {
     let alive = true;
     (async () => {
-      if (!coupleId) { setLoading(false); return; }
+      if (!coupleId) return;
       try {
         const r = await fetchCoupleMe(coupleId);
         if (!alive || !r?.couple) return;
@@ -115,7 +130,6 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
         const b = bandForAmount(r.couple.budget_total);
         setBand(b ? b.value : null);
       } catch { /* prefill is a courtesy; its absence never blocks the enquiry */ }
-      finally { if (alive) setLoading(false); }
     })();
     return () => { alive = false; };
   }, [coupleId]);
@@ -181,7 +195,8 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
         onTouchStart={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
-        style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(12,10,9,0.55)', touchAction: 'auto' }}
+        style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(12,10,9,0.55)', touchAction: 'auto',
+                 opacity: entered ? 1 : 0, transition: 'opacity 260ms ease' }}
       />
       <div
         onClick={(e) => e.stopPropagation()}
@@ -208,6 +223,8 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
           borderRadius: '20px 20px 0 0',
           padding: '20px 24px calc(env(safe-area-inset-bottom, 16px) + 22px)',
           maxHeight: '82vh', overflowY: 'auto',
+          transform: entered ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 340ms cubic-bezier(0.22,1,0.36,1)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
@@ -221,11 +238,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
           {EXPECTATION}
         </div>
 
-        {loading ? (
-          <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 13, color: 'rgba(248,247,245,0.4)', padding: '20px 0' }}>
-            One moment…
-          </div>
-        ) : (
+        {(
           <>
             {/* FUNCTIONS — read-only on a demo card (no demo_leads column) */}
             <div style={rowStyle}>

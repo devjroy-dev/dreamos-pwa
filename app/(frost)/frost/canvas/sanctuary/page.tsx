@@ -1635,7 +1635,11 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   // the founder's product word at P6's opening.
   const handleEnquire=React.useCallback(()=>{
     if(!vendor)return;
-    setPanelOpen(false);
+    // THE PANEL STAYS OPEN, DELIBERATELY. Closing it started its own 340ms
+    // slide-out while the sheet was rising — two animations disagreeing, which is
+    // what the founder saw as the form "rising from behind the enquire card". The
+    // sheet's scrim (z 120) already covers the panel (z 60), so leaving it is both
+    // calmer and truer: dismissing the sheet returns her exactly where she was.
     setSheetOpen(true);
   },[vendor]);
 
