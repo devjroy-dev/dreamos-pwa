@@ -146,6 +146,16 @@ export interface VendorProfileViewProps {
   /** The enquire target. The canvas derives it from the deck's own fallback logic; the
    *  preview mount passes null, because a vendor does not enquire with himself. */
   enquireLink?: string | null;
+  /** ── F1(a), TDW_07 P5 · THE ENQUIRE VERB MOVES UP ───────────────────────────
+   *  Raised out of this component for exactly the reason `onCircleTap` was: the
+   *  UI it opens — the enquiry sheet — is positioned against the DECK's glass
+   *  sheet, not against this content. Button lives here; sheet lives there; the
+   *  prop is the seam. Same precedent, same shape.
+   *
+   *  WHEN ABSENT, THE OLD BEHAVIOUR STANDS. Mounts that have not adopted the
+   *  sheet (Muse, and any future one) keep the direct wa.me handoff rather than
+   *  losing their Enquire to a half-migration. */
+  onEnquire?: () => void;
   /** Raised to the mount: the toast that answers this tap is chrome and stayed canvas-side. */
   onCircleTap?: () => void;
   /** PREVIEW ONLY — raises the instructive line for the mount's own toast chrome to render.
@@ -157,7 +167,7 @@ export interface VendorProfileViewProps {
 }
 
 export default function VendorProfileView({
-  vendor, mode, isBlind = false, enquireLink = null, onCircleTap, onPreviewToast,
+  vendor, mode, isBlind = false, enquireLink = null, onEnquire, onCircleTap, onPreviewToast,
 }: VendorProfileViewProps) {
   const isLive = mode === 'live';
 
@@ -217,7 +227,14 @@ export default function VendorProfileView({
             // about himself, but a control that looks live and does nothing is the
             // dead-control class — "a tap that does nothing teaches nothing" (executor's
             // own diagnosis, credited into the record at CE-116). So it explains.
-            if (isLive) { if (enquireLink) window.open(enquireLink, '_blank'); }
+            // F1(a): SHEET FIRST when the mount provides one — it posts to
+            // /enquire and then performs this same handoff itself, so the
+            // pipeline is fed AND the working path is preserved. Without a
+            // sheet, the direct open is unchanged.
+            if (isLive) {
+              if (onEnquire) onEnquire();
+              else if (enquireLink) window.open(enquireLink, '_blank');
+            }
             else onPreviewToast?.('Couples tap this to message you on WhatsApp.');
           }}
           style={{ width: '100%', padding: '14px 0', background: 'rgba(248,247,245,0.92)', border: 'none', borderRadius: 10, fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, touchAction: 'manipulation' }}

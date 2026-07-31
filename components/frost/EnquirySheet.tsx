@@ -1,0 +1,312 @@
+'use client';
+// ─────────────────────────────────────────────────────────────────────────────
+// components/frost/EnquirySheet.tsx
+// TDW_07 P5 — THE ENQUIRY SHEET.
+//
+// One tap on Enquire opens this; it prefills from her profile, she confirms or
+// corrects, and it posts to POST /api/v2/discover/enquire — THEN hands off to
+// WhatsApp (F1(a), CE-ruled: the sheet posts, then the wa.me handoff runs, so
+// the pipeline is fed AND the only path that has ever worked keeps working).
+//
+// ── THE READ-ONLY ASYMMETRY IS THE HONEST PART OF THIS FILE ─────────────────
+// `functions` and `budget` land on `leads.event_types` / `leads.budget_max` for
+// a REAL vendor. `demo_leads` has NO column for either (13 columns, witnessed).
+// So on a DEMO card those two rows render display-only.
+//
+// CE-ruled 2026-07-31, and the reasoning is worth keeping where the code is: a
+// sheet that shows a field, lets her EDIT it, posts, and silently discards the
+// edit is the costume class in form-shape. She corrects her budget, the door
+// throws the correction away, and nothing in the interface ever says so.
+// Display-and-confirm is honest. Edit-and-discard is not.
+//
+// ── NO localStorage IN THIS FILE ────────────────────────────────────────────
+// Session comes from `getCoupleSession()` (lib/frost-api/_base.ts:127), the one
+// authority — which carries the `tdw_couple_session` COOKIE FALLBACK that
+// protocol §4 names settled for iOS Safari. A raw storage read has no fallback
+// and loses the session on exactly the devices the fallback exists to rescue.
+//
+// RN-PORTABLE (spec §6): presentational over a typed client, no <form>, no
+// browser-only API in the logic. Pointer/press handlers only.
+import React from 'react';
+import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
+import { fetchCoupleMe } from '@/lib/frost-api/couple';
+import { BUDGET_BANDS, bandForAmount } from '@/lib/frost/budgetBands';
+
+export interface EnquirySheetVendor {
+  id: string;
+  name: string | null;
+  is_demo?: boolean;
+}
+
+export interface EnquiryResult {
+  ok: boolean;
+  sent?: boolean;
+  enquiry_saved?: boolean;
+}
+
+interface Props {
+  vendor: EnquirySheetVendor;
+  /** The wa.me destination. F1(a): opened AFTER the post, never instead of it. */
+  enquireLink: string | null;
+  onClose: () => void;
+  onDone: (r: EnquiryResult) => void;
+}
+
+// FOUNDER-VETOED 2026-07-31, byte-exact. A change here needs a new veto.
+const LABEL_FUNCTIONS = 'Functions';
+const LABEL_DATE      = 'Wedding date';
+const LABEL_CITY      = 'City';
+const LABEL_BUDGET    = 'Budget';
+const SUBMIT_WORD     = 'Send enquiry';
+const EXPECTATION     = 'Replies on WhatsApp, usually within a day.';
+
+const FF = {
+  script: "'Cormorant Garamond',serif",
+  label:  "'Jost',sans-serif",
+  body:   "'DM Sans',sans-serif",
+};
+
+// The one gold on this screen belongs to the submit control (§3: one gold per
+// screen, Enquire owns it). Nothing else here may use it.
+const GOLD = '#C9A84C';
+
+const rowStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  gap: 12, padding: '13px 0',
+  borderBottom: '0.5px solid rgba(255,255,255,0.10)',
+};
+const labelStyle: React.CSSProperties = {
+  fontFamily: FF.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.18em',
+  textTransform: 'uppercase', color: 'rgba(248,247,245,0.42)', flexShrink: 0,
+};
+const valueStyle: React.CSSProperties = {
+  fontFamily: FF.body, fontWeight: 300, fontSize: 14,
+  color: 'rgba(248,247,245,0.92)', textAlign: 'right', minWidth: 0,
+};
+
+export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: Props) {
+  const isDemo = !!vendor.is_demo;
+
+  const [loading, setLoading]   = React.useState(true);
+  const [sending, setSending]   = React.useState(false);
+  const [functions, setFunctions] = React.useState<string>('');
+  const [weddingDate, setWeddingDate] = React.useState<string>('');
+  const [city, setCity]         = React.useState<string>('');
+  const [band, setBand]         = React.useState<string | null>(null);
+  const [bandOpen, setBandOpen] = React.useState(false);
+
+  const session = React.useMemo(() => getCoupleSession(), []);
+  const coupleId = session?.id || undefined;
+
+  // ── PREFILL ───────────────────────────────────────────────────────────────
+  // `CoupleMe` carries wedding_date, wedding_city and budget_total — witnessed
+  // at lib/types/bride.ts:24-32. It carries NO functions field, so that row
+  // starts EMPTY and editable: there is nothing to prefill it from, and an
+  // invented default would be a claim about her wedding she never made.
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!coupleId) { setLoading(false); return; }
+      try {
+        const r = await fetchCoupleMe(coupleId);
+        if (!alive || !r?.couple) return;
+        setWeddingDate(r.couple.wedding_date || '');
+        setCity(r.couple.wedding_city || '');
+        const b = bandForAmount(r.couple.budget_total);
+        setBand(b ? b.value : null);
+      } catch { /* prefill is a courtesy; its absence never blocks the enquiry */ }
+      finally { if (alive) setLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, [coupleId]);
+
+  const bandLabel = React.useMemo(
+    () => BUDGET_BANDS.find((b) => b.value === band)?.label ?? null,
+    [band],
+  );
+
+  async function submit() {
+    if (sending) return;
+    setSending(true);
+    let result: EnquiryResult = { ok: false };
+    try {
+      const res = await fetch(`${API_BASE}/api/v2/discover/enquire`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendor_id:  vendor.id,
+          couple_id:  coupleId,
+          bride_name: session?.name || undefined,
+          // THE FOUR. Sent only where the door can honestly land them — the two
+          // read-only rows on a demo card are never posted, because the demo leg
+          // has no column for them and posting would invite exactly the
+          // edit-and-discard this sheet's shape exists to prevent.
+          functions:    isDemo ? undefined : splitFunctions(functions),
+          wedding_date: weddingDate || undefined,
+          city:         city || undefined,
+          budget_band:  isDemo ? undefined : (band ?? undefined),
+        }),
+      });
+      // res.ok is CHECKED. A 4xx resolves normally from fetch, and an unchecked
+      // await is how the old sanctuary handler told brides "Vendor notified"
+      // over three different refusals (F-07.39).
+      if (!res.ok) throw new Error(`enquire refused: ${res.status}`);
+      const data = await res.json().catch(() => ({} as Record<string, unknown>));
+      if (data && (data as { ok?: boolean }).ok === false) throw new Error('enquire reported failure');
+      result = {
+        ok: true,
+        sent: (data as { sent?: boolean }).sent,
+        enquiry_saved: (data as { enquiry_saved?: boolean }).enquiry_saved,
+      };
+    } catch {
+      result = { ok: false };
+    }
+    setSending(false);
+
+    // ── F1(a): POST FIRST, THEN HAND OFF ─────────────────────────────────────
+    // The handoff runs even when the post failed. She tapped Enquire to reach a
+    // vendor, and the wa.me window is the path that has always worked; refusing
+    // it because our own pipeline stumbled would punish her for our defect. The
+    // toast tells her the truth about the pipeline either way.
+    if (enquireLink) {
+      try { window.open(enquireLink, '_blank'); } catch { /* popup blocked; the toast still lands */ }
+    }
+    onDone(result);
+  }
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(12,10,9,0.55)' }}
+      />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 121,
+          background: 'rgba(12,10,9,0.90)',
+          backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
+          borderTop: '0.5px solid rgba(255,255,255,0.12)',
+          borderRadius: '20px 20px 0 0',
+          padding: '20px 24px calc(env(safe-area-inset-bottom, 16px) + 22px)',
+          maxHeight: '82vh', overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.18)' }} />
+        </div>
+
+        <div style={{ fontFamily: FF.script, fontStyle: 'italic', fontWeight: 300, fontSize: 24, color: 'rgba(248,247,245,0.95)', marginBottom: 2 }}>
+          {vendor.name || 'This vendor'}
+        </div>
+        <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 13, color: 'rgba(248,247,245,0.42)', marginBottom: 16 }}>
+          {EXPECTATION}
+        </div>
+
+        {loading ? (
+          <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 13, color: 'rgba(248,247,245,0.4)', padding: '20px 0' }}>
+            One moment…
+          </div>
+        ) : (
+          <>
+            {/* FUNCTIONS — read-only on a demo card (no demo_leads column) */}
+            <div style={rowStyle}>
+              <span style={labelStyle}>{LABEL_FUNCTIONS}</span>
+              {isDemo ? (
+                <span style={{ ...valueStyle, color: 'rgba(248,247,245,0.55)' }}>{functions || '—'}</span>
+              ) : (
+                <input
+                  value={functions}
+                  onChange={(e) => setFunctions(e.target.value)}
+                  placeholder="Mehendi, Sangeet…"
+                  style={{ ...valueStyle, background: 'none', border: 'none', outline: 'none', flex: 1 }}
+                />
+              )}
+            </div>
+
+            <div style={rowStyle}>
+              <span style={labelStyle}>{LABEL_DATE}</span>
+              <input
+                type="date"
+                value={weddingDate}
+                onChange={(e) => setWeddingDate(e.target.value)}
+                style={{ ...valueStyle, background: 'none', border: 'none', outline: 'none', colorScheme: 'dark' }}
+              />
+            </div>
+
+            <div style={rowStyle}>
+              <span style={labelStyle}>{LABEL_CITY}</span>
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="—"
+                style={{ ...valueStyle, background: 'none', border: 'none', outline: 'none', flex: 1 }}
+              />
+            </div>
+
+            {/* BUDGET — read-only on a demo card (no demo_leads column) */}
+            <div style={{ ...rowStyle, borderBottom: 'none' }}>
+              <span style={labelStyle}>{LABEL_BUDGET}</span>
+              {isDemo ? (
+                <span style={{ ...valueStyle, color: 'rgba(248,247,245,0.55)' }}>{bandLabel || '—'}</span>
+              ) : (
+                <button
+                  onClick={() => setBandOpen((v) => !v)}
+                  style={{ ...valueStyle, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  {bandLabel || '—'}
+                </button>
+              )}
+            </div>
+
+            {bandOpen && !isDemo && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '4px 0 12px' }}>
+                {BUDGET_BANDS.map((b) => (
+                  <button
+                    key={b.label}
+                    onClick={() => { setBand(b.value); setBandOpen(false); }}
+                    style={{
+                      padding: '7px 12px', borderRadius: 8, cursor: 'pointer',
+                      fontFamily: FF.body, fontWeight: 300, fontSize: 12,
+                      background: band === b.value ? 'rgba(248,247,245,0.14)' : 'transparent',
+                      border: '0.5px solid rgba(255,255,255,0.16)',
+                      color: 'rgba(248,247,245,0.86)',
+                    }}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={submit}
+              disabled={sending}
+              style={{
+                width: '100%', marginTop: 18, padding: '14px 0',
+                background: GOLD, border: 'none', borderRadius: 10,
+                fontFamily: FF.label, fontSize: 10, fontWeight: 300,
+                letterSpacing: '0.22em', textTransform: 'uppercase',
+                color: '#0C0A09', cursor: sending ? 'default' : 'pointer',
+                opacity: sending ? 0.6 : 1, touchAction: 'manipulation',
+              }}
+            >
+              {SUBMIT_WORD}
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+/**
+ * "Mehendi, Sangeet" → ['Mehendi','Sangeet'].
+ * Mirrors the door's own `normalizeFunctions` contract: blanks are dropped, and
+ * an empty result is `undefined` — absent, never an empty ARRAY write, because
+ * an empty array claims she told us she has no functions.
+ */
+function splitFunctions(raw: string): string[] | undefined {
+  const parts = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts : undefined;
+}

@@ -1,3 +1,4 @@
+import EnquirySheet from '@/components/frost/EnquirySheet';
 import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
 'use client';
 
@@ -315,6 +316,8 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
   const [dragDelta, setDragDelta] = useState(0);
   const isDragging  = useRef(false);
   const [circleToast, setCircleToast] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [enquiryToast, setEnquiryToast] = useState<string | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
     dragStartY.current = e.touches[0].clientY;
@@ -384,8 +387,45 @@ function GlassOverlay({ vendor, visible, onClose, isBlind }: {
         mode="live"
         isBlind={isBlind}
         enquireLink={enquireLink}
+        onEnquire={() => setSheetOpen(true)}
         onCircleTap={() => { setCircleToast(true); setTimeout(() => setCircleToast(false), 2500); }}
       />
+
+      {/* ── TDW_07 P5 · F1(a) — THE SHEET LIVES WITH THE DECK'S CHROME ─────────
+          Mounted here, not inside VendorProfileView, for the same reason the
+          Circle toast is: it is positioned against THIS glass sheet. The shared
+          renderer stays a renderer.
+
+          THE SIX MISROUTED DEMO LINKS DIE HERE. A demo card's `enquire_link` is
+          wa.me/<TDW's own vendor number>?text=TDW-<demo ig_handle> — a token that
+          matches no real routing_handle, so every demo Enquire has been walking
+          couples into our own inbox with an unresolvable code. The sheet now
+          posts to /enquire first, which resolves the species from the database
+          and fires the free-lead hook. */}
+      {sheetOpen && (
+        <EnquirySheet
+          vendor={{ id: vendor.id, name: vendor.name, is_demo: vendor.is_demo }}
+          enquireLink={enquireLink}
+          onClose={() => setSheetOpen(false)}
+          onDone={(r) => {
+            setSheetOpen(false);
+            // V6, founder-vetoed byte-exact. `enquiry_saved` is the SERVER's own
+            // fact — never inferred here, because inferring it is how the old
+            // handler promised a saved link to logged-out brides.
+            setEnquiryToast(
+              !r.ok ? 'Could not send. Try again.'
+                    : r.enquiry_saved ? 'Enquiry sent ✦ saved in Vendors' : 'Enquiry sent',
+            );
+            setTimeout(() => setEnquiryToast(null), 2600);
+          }}
+        />
+      )}
+
+      {enquiryToast && (
+        <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom,0px) + 96px)', left: '50%', transform: 'translateX(-50%)', zIndex: 130, ...GLASS.pill, borderRadius: 20, padding: '8px 18px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'rgba(248,247,245,0.88)', whiteSpace: 'nowrap' }}>
+          {enquiryToast}
+        </div>
+      )}
     </div>
   );
 }
