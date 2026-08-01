@@ -22,6 +22,17 @@ export interface DiscoverFeedResponse {
   vendors: DiscoverVendor[];
   page: number;
   has_more: boolean;
+  /** TDW_07 P6 · Fork 5(b) — THE SUBSTITUTION REPORT.
+   *  F-07.3's law: no field arrives behind its own type. `substituted` is the server's
+   *  word that it WIDENED the city filter and got rows back — it is the only honest
+   *  trigger for the cold-start line, because a low card count cannot distinguish
+   *  "few in this city" from "these are from elsewhere". Optional because a server
+   *  that has not shipped this field yet must not break the client. */
+  cold_start?: {
+    substituted: boolean;
+    city: string | null;
+    matched_in_city: number | null;
+  };
   total: number;
 }
 
@@ -32,7 +43,8 @@ export async function fetchDiscoverFeed(params?: {
   vibes?: string;
   page?: number;
 }): Promise<DiscoverFeedResponse> {
-  if (USE_MOCKS) return { ok: true, vendors: [], has_more: false, page: 0, total: 0 };
+  if (USE_MOCKS) return { ok: true, vendors: [], has_more: false, page: 0, total: 0,
+    cold_start: { substituted: false, city: null, matched_in_city: null } };
   return apiGet<DiscoverFeedResponse>('/api/v2/discover/feed', params as Record<string, string | number | undefined | null>);
 }
 

@@ -1,7 +1,7 @@
 'use client';
 import EnquirySheet from '@/components/frost/EnquirySheet';
 import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
-import { BUDGET_BANDS } from '@/lib/frost/budgetBands';
+import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
 
 // sanctuary/page.tsx — V5 BLOOM ARCHITECTURE
 // Every slice opens IN THIS PAGE. No router.push. No history stack.
@@ -1375,10 +1375,16 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
 
   const hasActiveFilters = !!(filters.category||filters.city||filters.vibes.length||filters.budget);
 
+  // TDW_07 P6 · Fork 5(b) — the SERVER's substitution report, held verbatim. The room
+  // never infers it: a thin result and a widened result look identical from here, and
+  // only one of them may carry the founder's "the closest to you" line.
+  const [coldStart,setColdStart] = React.useState<{substituted:boolean;city:string|null}|null>(null);
+
   React.useEffect(()=>{
     setLoading(true);
     fetchDiscoverFeed({page:0,category:filters.category??undefined,city:filters.city??undefined,budget:filters.budget??undefined,vibes:filters.vibes.length?filters.vibes.join(','):undefined})
-      .then(({vendors:v,has_more})=>{setVendors(v);setHasMore(has_more);setVIdx(0);setImgIdx(0);setPage(0);})
+      .then(({vendors:v,has_more,cold_start})=>{setVendors(v);setHasMore(has_more);setVIdx(0);setImgIdx(0);setPage(0);
+        setColdStart(cold_start?{substituted:cold_start.substituted,city:cold_start.city}:null);})
       .catch(()=>{}).finally(()=>setLoading(false));
   },[filters]);
 
@@ -1579,10 +1585,29 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     </div>
   );
 
+  // ── TDW_07 P6 · THE EMPTY STATES SPLIT — founder-vetoed bytes, frozen ──────────────
+  // ONE SENTENCE SERVED TWO SITUATIONS AND WAS FALSE IN ONE OF THEM. "All seen." is true
+  // at the end of a deck she has paged through. It is a LIE when her filters matched
+  // nothing: she has seen none of them, and there are none to see. The founder ruled the
+  // split and approved both pairs; the CLEAR FILTERS affordance is ADDED-BY-RULING and
+  // enters the control inventory as such.
   if(!vendor&&!isBlind) return (
-    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12}}>
-      <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1}}>All seen.</span>
-      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12,padding:'0 32px'}}>
+      {hasActiveFilters ? (
+        <>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1,textAlign:'center'}}>Nothing matches those filters yet.</span>
+          <button
+            onClick={()=>{setFilters({category:null,city:null,vibes:[],budget:null});haptic(6);}}
+            style={{background:'none',border:'none',cursor:'pointer',padding:'8px 4px',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:accent}}>
+            Clear filters
+          </button>
+        </>
+      ) : (
+        <>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1,textAlign:'center'}}>That&rsquo;s everyone, for now.</span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
+        </>
+      )}
     </div>
   );
 
@@ -1703,6 +1728,47 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         </>
       )}
 
+      {/* ── TDW_07 P6 · THE COLD-START LINE — RENDERED ONLY ON THE SERVER'S WORD ──────
+          Founder-vetoed bytes, slot 1 → B. It renders if and only if `cold_start
+          .substituted` is TRUE: the handler widened the city filter and got rows back.
+          A thin result alone never fires it, because from here a thin list and a
+          substituted list are indistinguishable — and a sentence that says "the closest
+          to you" over cards that were never substituted is a lie in a serif. */}
+      {!isBlind&&!panelOpen&&coldStart?.substituted&&coldStart.city&&(
+        <div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 74px)',left:0,right:0,zIndex:10,display:'flex',flexDirection:'column',alignItems:'center',gap:5,padding:'0 32px',pointerEvents:'none'}}>
+          <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:'rgba(248,247,245,.92)',textAlign:'center',lineHeight:1.25,textShadow:'0 1px 12px rgba(0,0,0,.5)'}}>
+            The {coldStart.city} list is still being curated.
+          </span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)'}}>
+            Meanwhile — the closest to you
+          </span>
+        </div>
+      )}
+
+      {/* ── TDW_07 P6 · THE ACTIVE-FILTER BREADCRUMB ──────────────────────────────────
+          Values only, never field names — she chose them and knows what they were.
+          THE MONEY BAND IS THE ONE MIXED-CASE ELEMENT, deliberately: `bandLabelFor`
+          returns the founder-vetoed byte `Rs 1,00,000 – 3,00,000`, and uppercasing the
+          line would render it `RS 1,00,000 – 3,00,000`. The byte is unchanged either
+          way, so the frozen-copy law is not violated — but a vetoed money byte reading
+          back as RS is exactly the class the register law exists to police, so the band
+          keeps its own case and the rest of the line keeps the label grammar.
+          Chair-pre-ratified with this reason. */}
+      {!isBlind&&!panelOpen&&hasActiveFilters&&(
+        <div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 52px)',left:0,right:0,zIndex:10,display:'flex',justifyContent:'center',padding:'0 56px',pointerEvents:'none'}}>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:'rgba(248,247,245,.45)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+            {[
+              filters.city     ? filters.city.toUpperCase() : null,
+              filters.category ? filters.category.toUpperCase() : null,
+              filters.vibes.length
+                ? filters.vibes[0].toUpperCase()+(filters.vibes.length>1?` +${filters.vibes.length-1}`:'')
+                : null,
+              filters.budget ? bandLabelFor(filters.budget) : null,
+            ].filter(Boolean).join('  ·  ')}
+          </span>
+        </div>
+      )}
+
       {/* ── TDW_07 P6 · THE CARD BAND — F-07.67 CURED + D-3's CHIP ARRIVES ────────────
           F-07.67: this feed interleaves FEATURED vendors (couple/discover.js ranks then
           interleaves, and the shaper ships `featured`) and has NEVER MARKED THEM. Spec §3
@@ -1729,6 +1795,35 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           <FeaturedEyebrow featured={vendor.featured}/>
           {vendor.instagram_handle&&<IgChip handle={vendor.instagram_handle}/>}
         </div>
+      )}
+
+      {/* ── TDW_07 P6 · SAVE TO MUSE — THE HEART (Fork 6(a), CE-ruled) ─────────────────
+          The pin was already wired; what did not exist was a way to SEE that it existed.
+          Double-tap is a gesture nobody announces, so the deck's Muse save was reachable
+          only by couples who guessed. The heart calls the IDENTICAL function on the
+          IDENTICAL arguments — the provable-equivalent doctrine applied to an affordance
+          rather than a gesture — so the double-tap survives as the enhancement and this
+          is the discoverable path. Two doors, one room; there is no second save.
+          It consumes its own touches so the swipe surface under it is unchanged. */}
+      {!isBlind&&!panelOpen&&vendor&&(
+        <button
+          onClick={e=>{e.stopPropagation();spawnDiscHeart(accent);saveVendorToMuse(vendor.id,photos[imgIdx]||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));}}
+          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+          aria-label="Save to Muse"
+          style={{
+            position:'absolute',
+            bottom:'calc(env(safe-area-inset-bottom,0px) + 150px)', right:22, zIndex:12,
+            width:40,height:40,borderRadius:20,
+            background:'rgba(8,6,8,.42)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)' as any,
+            border:'0.5px solid rgba(248,247,245,.16)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:0,
+          }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M12 20.5s-7.5-4.7-7.5-10a4.3 4.3 0 017.5-2.8 4.3 4.3 0 017.5 2.8c0 5.3-7.5 10-7.5 10z"
+              stroke="rgba(248,247,245,.82)" strokeWidth="1.4" strokeLinejoin="round"/>
+          </svg>
+        </button>
       )}
 
       {/* Image dots — bottom, above the name line */}

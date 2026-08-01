@@ -174,6 +174,15 @@ ok('§5.7 the undo corpse is gone — a verb with no caller and a stack read by 
   !/const undoSkip=/.test(S) && !/setUndoStack/.test(S));
 ok('§5.8 the unmounted nav is gone', !/function DiscPeekNav/.test(S));
 
+// ── M-13's HOLE, CLOSED HERE (CE-ruled) ──────────────────────────────────────────────
+// The ZIP 1 mutation ledger ran `OVERLAY_DISMISS` → a bare `80` and THIS BENCH STAYED
+// GREEN; only `tdw07_p1_discover §4.3` caught it. A bench whose hole is covered by a
+// neighbour is covered by accident: the neighbour can be re-aimed, retired or re-scoped
+// without anyone noticing this file stopped watching. The fold's own floor owns the
+// fold's own bytes.
+ok('§5.9 the panel dismiss runs on the SHARED threshold — no bare literal',
+  /if\(delta>OVERLAY_DISMISS\)/.test(S) && !/if\(delta>80\)/.test(S));
+
 // ═══════════════════════════════════════════════════════════════════════════════
 sec('§6 · F-07.58 + F-07.69 — THE ENQUIRED ROW STOPPED LYING');
 // TWO DEFECTS IN ONE TEMPLATE LITERAL. The number was a raw copy against waNumbers.ts:45's
@@ -216,6 +225,56 @@ ok('§8.3 the preloader warms the DELIVERED variant, not the raw original',
   /img\.src=imgUrl\(s,'card'\)/.test(S));
 ok('§8.4 zero spinners on the deck — the shimmer is the LQIP, per spec P6',
   !/Spinner|spinner/.test(S.slice(S.indexOf('function DiscoverRoom'))));
+
+// ═══════════════════════════════════════════════════════════════════════════════
+sec('§10 · FORK 5(b) — THE COLD-START LINE SPEAKS ONLY ON THE SERVER\'S WORD');
+// The whole point of siting the report server-side: from the room, a thin result and a
+// substituted result are INDISTINGUISHABLE. A line reading "the closest to you" over
+// cards that were never substituted would be a lie in a serif — so the condition must be
+// the server's flag, never a card count.
+
+ok('§10.1 the line is conditioned on cold_start.substituted, never on a low count',
+  /coldStart\?\.substituted&&coldStart\.city&&\(/.test(S));
+ok('§10.2 it renders no count-derived condition — no vendors.length threshold near it',
+  !/vendors\.length\s*<\s*\d/.test(S));
+ok('§10.3 the founder\'s vetoed bytes, frozen',
+  /The \{coldStart\.city\} list is still being curated\./.test(S) &&
+  /Meanwhile — the closest to you/.test(S));
+ok('§10.4 the wire declares the field — no value arrives behind its own type (F-07.3)',
+  /cold_start\?: \{/.test(raw('lib/frost-api/discover.ts')));
+
+sec('§11 · THE EMPTY STATES — one sentence stopped serving two truths');
+ok('§11.1 the filtered-empty state does NOT claim she has seen them',
+  /Nothing matches those filters yet\./.test(S));
+ok('§11.2 the end-of-deck state is the one that says everyone',
+  /That&rsquo;s everyone, for now\./.test(S));
+ok('§11.3 they are SPLIT on hasActiveFilters — not one string for both',
+  /\{hasActiveFilters \? \(/.test(S));
+ok('§11.4 CLEAR FILTERS is a real affordance — it resets every axis, not just one',
+  /setFilters\(\{category:null,city:null,vibes:\[\],budget:null\}\)/.test(S));
+
+sec('§12 · THE BREADCRUMB AND THE HEART');
+ok('§12.1 the breadcrumb renders VALUES, never field names',
+  !/Category:|City:|Budget:|Vibe:/.test(S.slice(S.indexOf('THE ACTIVE-FILTER BREADCRUMB'), S.indexOf('THE CARD BAND'))));
+// THE MONEY REGISTER, PINNED. `bandLabelFor` returns the founder's vetoed byte; the band
+// must not be swept into the line's uppercase or it reads back as `RS 1,00,000`.
+ok('§12.2 the money band comes from the ONE donor and is NOT uppercased',
+  /filters\.budget \? bandLabelFor\(filters\.budget\) : null/.test(S));
+// SELF-CAUGHT, DISCLOSED. This first tested `\d+\s*[LkK]` against the whole room and
+// reddened on `5.945L` — SVG PATH DATA, where L is the lineto command. The room is full
+// of inline icons, so any money regex must exclude path geometry or it convicts on
+// drawings. `d="..."` attributes are stripped before the test; the register law itself is
+// unchanged and still absolute.
+{
+  const noPaths = S.replace(/d="[^"]*"/g, '');
+  ok('§12.3 no forbidden money form anywhere in the room (path geometry excluded)',
+    !/₹/.test(noPaths) && !/\b\d+(\.\d+)?\s*[LkK]\b/.test(noPaths) && !/\bCr\b/.test(noPaths));
+}
+ok('§12.4 the heart calls the IDENTICAL save the double-tap calls — one save, two doors',
+  (S.match(/saveVendorToMuse\(vendor\.id,photos\[imgIdx\]\|\|null\)/g) || []).length === 2);
+ok('§12.5 the heart consumes its own touches — the swipe surface is unchanged under it',
+  /aria-label="Save to Muse"/.test(S) &&
+  /onClick=\{e=>\{e\.stopPropagation\(\);spawnDiscHeart/.test(S));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 sec('§9 · W-1 AND THE FENCE');
