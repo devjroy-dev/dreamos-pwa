@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import {
   CREAM, GOLD, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideName, memberName,
+  useCircleSession, brideName, memberName, clearCircleToken,
 } from '../CircleSessionContext';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -24,6 +24,10 @@ export default function CoplannerSettings() {
     try {
       localStorage.removeItem('circle_session');
       localStorage.removeItem('circle_last_path');
+      // F-07.72 — a sign-out that left the credential behind would be a sign-out
+      // in name only: the next visitor to this device would hold a valid,
+      // 90-day, subject-bound token for a session the screen says is over.
+      clearCircleToken();
     } catch {}
     router.replace('/');
   };

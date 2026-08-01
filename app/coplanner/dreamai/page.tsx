@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName,
+  useCircleSession, brideId, brideName, circleAuthHeaders,
 } from '../CircleSessionContext';
 
 interface ChatTurn {
@@ -54,7 +54,9 @@ export default function CoplannerDreamAi() {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await fetch(`${API}/api/v2/dreamai/circle-member-history/${session.user_id}`);
+        const r = await fetch(`${API}/api/v2/dreamai/circle-member-history/${session.user_id}`, {
+        headers: circleAuthHeaders(),
+      });
         const d = await r.json();
         if (!cancelled && d.success) setTurns(normalizeHistory((d.data || []) as HistoryRow[]));
       } catch {}
@@ -110,7 +112,7 @@ export default function CoplannerDreamAi() {
     try {
       const r = await fetch(`${API}/api/v2/dreamai/circle-member-chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: circleAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           user_id: session.user_id,
           primary_user_id: bride_id,

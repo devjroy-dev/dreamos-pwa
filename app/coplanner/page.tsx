@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   API, CREAM, GOLD, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, memberName,
+  useCircleSession, brideId, brideName, memberName, circleAuthHeaders,
 } from './CircleSessionContext';
 
 interface FeedEvent {
@@ -62,7 +62,8 @@ export default function CoplannerHome() {
       try {
         const [pr, fr] = await Promise.all([
           fetch(`${API}/api/v2/couple/profile/${bride_id}`).then(r => r.json()).catch(() => null),
-          fetch(`${API}/api/v2/frost/circle/feed/${bride_id}?limit=10`).then(r => r.json()).catch(() => null),
+          fetch(`${API}/api/v2/frost/circle/feed/${bride_id}?limit=10`, { headers: circleAuthHeaders() })
+            .then(r => r.json()).catch(() => null),
         ]);
         if (cancelled) return;
         if (pr?.success && pr.data) setProfile(pr.data as CoupleProfile);

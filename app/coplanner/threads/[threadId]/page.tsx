@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, memberName,
+  useCircleSession, brideId, brideName, memberName, circleAuthHeaders,
 } from '../../CircleSessionContext';
 
 interface Message {
@@ -58,7 +58,8 @@ export default function ThreadDetail() {
   const load = async () => {
     try {
       const r = await fetch(
-        `${API}/api/v2/frost/circle/threads/${bride_id}/${encodeURIComponent(thread_id)}/messages`
+        `${API}/api/v2/frost/circle/threads/${bride_id}/${encodeURIComponent(thread_id)}/messages`,
+        { headers: circleAuthHeaders() }
       );
       const d = await r.json();
       if (d.success) setMessages((d.data || []) as Message[]);
@@ -84,7 +85,7 @@ export default function ThreadDetail() {
     try {
       await fetch(`${API}/api/v2/frost/circle/messages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: circleAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           userId: bride_id,
           thread_id,

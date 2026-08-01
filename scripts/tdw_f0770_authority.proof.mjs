@@ -147,17 +147,35 @@ ok('§1.2 the cell judges CODE — the phrase still stands in PROSE and was NOT 
 // disclosed seventh (meridian). FIVE call the authority directly: they never had
 // a demo fallback to keep. The guard is a sixth direct caller and predates this
 // cure. The helper itself calls the authority once, and is declared once.
-ok('§1.3 SEVEN sites go through the one door (the six ruled + the disclosed seventh)',
-  count(S, /\bcoupleAccessToken\(\)/g) - count(S, /function coupleAccessToken\(\)/g) === 7,
-  `found ${count(S, /\bcoupleAccessToken\(\)/g) - count(S, /function coupleAccessToken\(\)/g)} call sites, expected 7`);
+//
+// ── LABELED AMENDMENT (F-07.72) · 7 → 8, AND THE MOVEMENT IS THE CURE ───────
+// An EIGHTH site joined at F-07.72: sanctuary's `POST /frost/circle/messages`
+// (the bride's send into her own circle chat) had always gone out with no
+// credential at all, while its GET sibling at the thread poll carried one the
+// server ignored. That door becomes dual-lane in the same delivery, so the send
+// had to start carrying her token or the enforcement ZIP would refuse the bride
+// her own conversation.
+//
+// THE NUMBER MOVED THE RIGHT WAY. This cell exists to catch a site LEAVING the
+// one door — a new direct `localStorage` read, a second authority, a private
+// copy. It has instead recorded a site ARRIVING at it: the new call site was
+// written as `coupleAccessToken()` rather than as a fourth token read, which is
+// exactly the discipline F-07.70 spent a sitting installing. Amended by label,
+// count disclosed, never smoothed.
+ok('§1.3 EIGHT sites go through the one door (six ruled + meridian + F-07.72\'s circle send)',
+  count(S, /\bcoupleAccessToken\(\)/g) - count(S, /function coupleAccessToken\(\)/g) === 8,
+  `found ${count(S, /\bcoupleAccessToken\(\)/g) - count(S, /function coupleAccessToken\(\)/g)} call sites, expected 8`);
 
 ok('§1.4 SEVEN direct authority calls — 5 cured sites + the guard + the helper\'s own',
   count(S, /\bgetAccessToken\(\)/g) === 7,
   `found ${count(S, /\bgetAccessToken\(\)/g)}, expected 7`);
 
-ok('§1.5 twelve cured sites, and the room still reads a token at every one of them',
+// LABELED AMENDMENT (F-07.72) · 12 → 13, carrying §1.3's eighth site through the
+// same arithmetic. The direct-authority leg (§1.4) is UNMOVED at seven, which is
+// the discriminating fact: the new site arrived through the one door, not around it.
+ok('§1.5 thirteen cured sites, and the room still reads a token at every one of them',
   (count(S, /\bcoupleAccessToken\(\)/g) - count(S, /function coupleAccessToken\(\)/g)) +
-  (count(S, /\bgetAccessToken\(\)/g) - 2) === 12,
+  (count(S, /\bgetAccessToken\(\)/g) - 2) === 13,
   'the disease was deleted rather than cured — some site stopped reading a token at all');
 
 ok('§1.6 the one door is declared exactly ONCE',

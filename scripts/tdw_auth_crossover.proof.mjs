@@ -57,6 +57,10 @@ const code = (rel) => stripComments(raw(rel));
 
 const BASE_P    = 'lib/frost-api/_base.ts';
 const FROST_P   = 'app/(frost)/frost/canvas/onboarding/page.tsx';
+// F-07.72 — the third lane's client half.
+const CTX_P     = 'app/coplanner/CircleSessionContext.tsx';
+const LAYOUT_P  = 'app/coplanner/layout.tsx';
+const JOURNEY_P = 'lib/frost/journey.ts';
 const SIBLING_P = 'app/(auth)/couple/onboarding/page.tsx';
 
 const B  = code(BASE_P),  Br  = raw(BASE_P);
@@ -207,6 +211,52 @@ ok('§5.1 sanctuary/page.tsx is NOT in this delivery (P6 owns it; the residue is
 ok('§5.2 the ruled scope is stated at the cure, so the next reader inherits it',
   /SCOPE, RULED: this assertion lives in THIS FILE ONLY/.test(Br));
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§6.5 · THE TRIANGLE (F-07.72) — a THIRD lane joined, and it must not cross');
+// F-07.65 proved the couple and vendor lanes refuse each other's credentials.
+// F-07.72 gave the CIRCLE lane a credential of its own, and a two-lane proof
+// cannot catch a three-lane crossing: these very cells would have gone on
+// passing while the new lane crossed both of them. Extended by CE ruling §3(4);
+// the count movement is DISCLOSED, never smoothed.
+{
+  const CTX    = code(CTX_P);
+  const LAYOUT = code(LAYOUT_P);
+  const JOUR   = code(JOURNEY_P);
+
+  ok('§6.5.1 the circle credential has its OWN keys — it does not ride any couple or vendor slot',
+    /CIRCLE_TOKEN_KEY\s*=\s*'circle_token'/.test(CTX) &&
+    /CIRCLE_TOKEN_COOKIE\s*=\s*'tdw_circle_token'/.test(CTX),
+    'the circle token shares a storage slot with another lane — the F-05.39 contamination shape');
+
+  ok('§6.5.2 the circle reader NEVER reaches for a couple or vendor slot',
+    !/couple_session|couple_web_session|tdw_couple_token|vendor_session|vendor_web_session|tdw_vendor_token/
+      .test(CTX.slice(CTX.indexOf('function getCircleToken'))),
+    'the circle read authority falls back across lanes — F-05.30\'s reversed disease, third instance');
+
+  ok('§6.5.3 the co-planner sends the CIRCLE token and never getAccessToken()',
+    !/getAccessToken/.test(CTX) && !/getAccessToken/.test(LAYOUT),
+    'the co-planner reaches for the couple/vendor read authority');
+
+  ok('§6.5.4 the BRIDE sends her OWN authority to the shared doors, not a second implementation',
+    /function circleBrideHeaders/.test(JOUR) && /const t = getToken\(\);/.test(JOUR),
+    'journey.ts minted a fourth token read instead of borrowing F-07.70\'s one authority');
+
+  ok('§6.5.5 COOKIE BEFORE localStorage — the house law, on the new credential too',
+    JOUR !== null &&
+    CTX.indexOf('document.cookie.split') < CTX.indexOf("localStorage.getItem(CIRCLE_TOKEN_KEY)"),
+    'the circle credential is localStorage-first — §4 forbids it');
+
+  ok('§6.5.6 NO CREDENTIAL IS INVENTED — a tokenless client sends no Authorization header',
+    /const t = getCircleToken\(\);\s*return t \? \{ \.\.\.\(extra \|\| \{\}\), Authorization: `Bearer \$\{t\}` \} : \{ \.\.\.\(extra \|\| \{\}\) \};/
+      .test(CTX),
+    'circleAuthHeaders sends a header with no token behind it — `Bearer null` is a credential invented from nothing');
+
+  ok('§6.5.7 SIGN-OUT TAKES THE CREDENTIAL WITH IT',
+    /clearCircleToken\(\);/.test(code('app/coplanner/settings/page.tsx')),
+    'a sign-out that leaves a 90-day token on the device is a sign-out in name only');
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§6 · THE SIBLING HALF');
 
@@ -248,6 +298,16 @@ if (!CELLS_ONLY) {
     [FROST_P, "showToast('Session expired. Please sign in again.');\n        setSubmitting(false);\n        return;",
               "showToast('Session expired.');\n        setSubmitting(false);\n        return;",
               'M-6 the parity byte drifted to sanctuary\'s bare twin ⇒ §3.3 RED'],
+    // ── F-07.72 · the triangle's own inverses ────────────────────────────
+    [CTX_P,   "  try { return localStorage.getItem(CIRCLE_TOKEN_KEY) || null; } catch { return null; }",
+              "  try { return localStorage.getItem(CIRCLE_TOKEN_KEY) || localStorage.getItem('couple_session') || null; } catch { return null; }",
+              'M-7 the circle reader crosses into the couple slot     ⇒ §6.5.2 RED'],
+    [CTX_P,   "  const t = getCircleToken();\n  return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };",
+              "  const t = getCircleToken();\n  return { ...(extra || {}), Authorization: `Bearer ${t}` };",
+              'M-8 a header invented with no token behind it          ⇒ §6.5.6 RED'],
+    [JOURNEY_P, '  const t = getToken();\n  return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };',
+              "  const t = localStorage.getItem('couple_session');\n  return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };",
+              'M-9 the bride\'s header mints a FOURTH token read      ⇒ §6.5.4 RED'],
   ];
 
   let mutPass = 0;

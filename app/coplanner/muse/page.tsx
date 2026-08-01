@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName,
+  useCircleSession, brideId, brideName, circleAuthHeaders,
 } from '../CircleSessionContext';
 import AddMuseSheet from './AddMuseSheet';
 
@@ -29,7 +29,8 @@ export default function CoplannerMuse() {
   const load = async () => {
     try {
       const r = await fetch(
-        `${API}/api/v2/circle/muse/${bride_id}?memberUserId=${session.user_id}`
+        `${API}/api/v2/circle/muse/${bride_id}?memberUserId=${session.user_id}`,
+          { headers: circleAuthHeaders() }
       );
       const d = await r.json();
       if (d.success) setTiles((d.data || []) as MuseTile[]);

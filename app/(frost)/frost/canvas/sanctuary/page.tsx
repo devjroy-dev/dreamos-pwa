@@ -2892,9 +2892,17 @@ function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
       const coupleId = getCoupleIdForFrost();
       if(coupleId) {
         // No thread_id → backend resolves the canonical per-couple circle thread.
+        // F-07.72 — the bride's Bearer joins the POST. Her GET sibling at the
+        // thread poll has always sent one (ignored until this delivery); this
+        // send never did. The circle doors are dual-lane and take a resolver,
+        // never a circle-member guard: without this header the enforcement
+        // delivery would refuse the bride her own circle chat.
+        const circleToken = coupleAccessToken();
         await fetch(`${API}/api/v2/frost/circle/messages`,{
           method:'POST',
-          headers:{'Content-Type':'application/json'},
+          headers: circleToken
+            ? {'Content-Type':'application/json', Authorization:`Bearer ${circleToken}`}
+            : {'Content-Type':'application/json'},
           body:JSON.stringify({userId:coupleId,body:msg,sender_name:'Bride',sender_role:'bride'}),
         });
       }

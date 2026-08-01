@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import {
   API, INK, CREAM, GOLD, MUTED, HAIRLINE, FONT_EYEBROW, FONT_DISPLAY, FONT_BODY,
   CircleSession, CircleSessionContext,
+  setCircleToken, clearCircleToken, circleAuthHeaders,
 } from './CircleSessionContext';
 import TabBar from './TabBar';
 
@@ -14,6 +15,9 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
   const pathname = usePathname() || '';
   const [session, setSession] = useState<CircleSession | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'no_session' | 'error'>('loading');
+  // F-07.72 — set when the hydration refresh is REFUSED (401) rather than merely
+  // failing. See `hydrate` below for why the two are not the same event.
+  const [expired, setExpired] = useState(false);
 
   // Persist last path so a returning install lands where Mom left off.
   useEffect(() => {
@@ -43,7 +47,30 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
 
       // Refresh permissions in the background. Don't block the UI.
       try {
-        const r = await fetch(`${API}/api/v2/circle/session/${cached.user_id}`);
+        const r = await fetch(`${API}/api/v2/circle/session/${cached.user_id}`, {
+          headers: circleAuthHeaders(),
+        });
+        // ── F-07.72 · A REFUSAL AND A NETWORK BLIP ARE NOT THE SAME EVENT ────
+        // A 401 means the credential is gone or spent, and the only honest answer
+        // is to ask for the PIN again. Anything else — a 500, a timeout, an
+        // offline phone — keeps the cached session on screen exactly as this file
+        // has always behaved, because signing someone out over a dropped packet
+        // is a worse failure than showing her slightly stale permissions.
+        //
+        // THIS BRANCH CANNOT FIRE IN THIS DELIVERY, BY CONSTRUCTION AND ON PURPOSE.
+        // The lane enforces nothing yet: no circle door returns 401 at this tip.
+        // It is wired now so the enforcement delivery is a SERVER change alone,
+        // and so this path ships proven rather than written-and-first-run against
+        // a live member — which is the shape F-07.72 exists to punish.
+        if (r.status === 401) {
+          if (cancelled) return;
+          clearCircleToken();
+          try { localStorage.removeItem(SESSION_KEY); } catch {}
+          setSession(null);
+          setExpired(true);
+          setState('no_session');
+          return;
+        }
         const d = await r.json();
         if (cancelled) return;
         if (d.success && d.data) {
@@ -72,9 +99,11 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
 
       {state === 'no_session' && (
         <CoplannerSignIn
+          expired={expired}
           onSuccess={(s: CircleSession) => {
             localStorage.setItem(SESSION_KEY, JSON.stringify(s));
             setSession(s);
+            setExpired(false);
             setState('ready');
           }}
         />
@@ -117,40 +146,63 @@ function FullScreenMessage({ title, sub }: { title: string; sub: string }) {
   );
 }
 
-function CoplannerSignIn({ onSuccess }: { onSuccess: (session: CircleSession) => void }) {
+// ── F-07.104 CURED · THE RETURNING MEMBER'S SIGN-IN ──────────────────────────
+// THE DISEASE. This screen opened by calling
+//   GET /api/v2/auth/pin-status?phone=<10 digits>&role=couple
+// and that call could never have worked, on FOUR independent counts, each
+// derived at F-07.72's read-first against the tree:
+//   1. VERB      — src/api/pin-status.js:51 is the only handler and it is POST.
+//                  One mount, router.js:24. A GET returns 404.
+//   2. FORMAT    — :49 demands E.164; this sent ten bare digits.
+//   3. FIELDS    — the server answers `exists` / `user_id`; this read
+//                  `d.found` / `d.userId`.
+//   4. SEMANTICS — role:'couple' looks up a `couples` row by the MEMBER's
+//                  users.id, and a circle member owns no couples row. Even a
+//                  syntactically perfect call answers exists:false.
+// So the "Welcome back." screen could only ever say it did not recognise her,
+// and src/api/circle/verifyPin.js — the door this lane is named for — had no
+// reachable caller in production. F-07.66's class one lane over: a page from a
+// design the estate abandoned, wearing a working name.
+//
+// THE CURE IS A DELETION, NOT A CORRECTION. verifyPin.js:37 calls toE164 itself
+// (src/lib/phone.js:26-31 — ten bare digits become +91…), so the pre-check was
+// structurally moot and pin-status leaves this flow entirely rather than being
+// repaired into it. Phone → PIN → verify-pin, which now returns the userId AND
+// the lane's signed session in one call.
+//
+// CONTROL INVENTORY (CE-115, tabled at the read-first and ruled):
+//   KEPT    — phone input · +91 label · Continue → · Enter-to-submit · the four
+//             PIN inputs and their focus advance · THE AUTO-SUBMIT VERB (a
+//             capability one layer above the inputs, CLAUSE 2) · "Auto-submits
+//             when complete." · the three step captions · the step machine ·
+//             the error slot · the post-verify session fetch.
+//   CHANGED — Continue's handler (no fetch; it advances the step) · onSuccess
+//             (writes the session AND the token) · the hydration refresh
+//             (carries the token; tells a refusal from a blip).
+//   REMOVED-BY-RULING — the pin-status fetch · the `userId` state, whose only
+//             writer was that fetch; verify-pin returns the id now.
+//   MOVED   — the two guard sentences. They were client-side strings fired after
+//             the pre-check at the PHONE step. They are now the SERVER's words
+//             at the PIN step (verifyPin.js's 404 and 403/400), founder-vetoed
+//             and frozen at the byte. The error slot did not move; its SOURCES
+//             did, and that is the whole of the user-visible difference.
+function CoplannerSignIn({ expired, onSuccess }: {
+  expired: boolean;
+  onSuccess: (session: CircleSession) => void;
+}) {
   const [step, setStep] = useState<'phone' | 'pin' | 'verifying'>('phone');
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState(['', '', '', '']);
-  const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const submitPhone = async () => {
+  const submitPhone = () => {
     const bare = phone.replace(/\D/g, '').slice(-10);
     if (bare.length < 10) { setError('Enter a 10-digit phone number'); return; }
     setError('');
-    setStep('verifying');
-    try {
-      const r = await fetch(`${API}/api/v2/auth/pin-status?phone=${bare}&role=couple`);
-      const d = await r.json();
-      if (!d.found) {
-        setError("We don't recognise this number. Use your original invite link to join first.");
-        setStep('phone');
-        return;
-      }
-      if (!d.pin_set) {
-        setError('No PIN set on this account yet. Use your invite link.');
-        setStep('phone');
-        return;
-      }
-      setUserId(d.userId);
-      setStep('pin');
-      setPin(['', '', '', '']);
-      setTimeout(() => pinRefs.current[0]?.focus(), 100);
-    } catch {
-      setError('Could not check phone. Try again.');
-      setStep('phone');
-    }
+    setStep('pin');
+    setPin(['', '', '', '']);
+    setTimeout(() => pinRefs.current[0]?.focus(), 100);
   };
 
   const submitPin = async (pinStr: string) => {
@@ -163,18 +215,27 @@ function CoplannerSignIn({ onSuccess }: { onSuccess: (session: CircleSession) =>
         body: JSON.stringify({
           phone: phone.replace(/\D/g, '').slice(-10),
           pin: pinStr,
-          role: 'couple',
-          userId,
         }),
       });
       const vd = await vr.json();
       if (!vd.success) {
-        setError(vd.error || 'Incorrect PIN');
+        // The server's own sentence, verbatim — those bytes are the founder's,
+        // frozen 2026-08-02. The fallback covers a transport-shaped failure that
+        // carried no `error` field at all; it is never a paraphrase of a message
+        // the server did send.
+        setError(vd.error || 'Could not sign you in. Try again.');
         setStep('pin');
         setPin(['', '', '', '']);
         return;
       }
-      const sr = await fetch(`${API}/api/v2/circle/session/${userId}`);
+
+      // F-07.72 — hold the credential BEFORE the session fetch, so that fetch is
+      // the first request in this lane's history to carry one.
+      if (vd.token) setCircleToken(vd.token);
+
+      const sr = await fetch(`${API}/api/v2/circle/session/${vd.userId}`, {
+        headers: circleAuthHeaders(),
+      });
       const sd = await sr.json();
       if (!sd.success) {
         setError("Couldn't load your Circle. Try again or use your invite link.");
@@ -216,9 +277,16 @@ function CoplannerSignIn({ onSuccess }: { onSuccess: (session: CircleSession) =>
           fontFamily: FONT_BODY, fontWeight: 300, fontSize: 13,
           color: MUTED, margin: '0 0 32px', textAlign: 'center', lineHeight: 1.6,
         }}>
-          {step === 'phone' && 'Enter your number to sign back in.'}
-          {step === 'pin' && 'Enter your 4-digit PIN.'}
-          {step === 'verifying' && 'One moment…'}
+          {/* The founder's byte, frozen 2026-08-02. Shown in place of the step
+              caption when a refused credential sent her back here: the reason
+              she is looking at this screen is the most useful thing to say. */}
+          {expired && step !== 'verifying'
+            ? 'Your sign-in expired. Enter your PIN again.'
+            : (<>
+                {step === 'phone' && 'Enter your number to sign back in.'}
+                {step === 'pin' && 'Enter your 4-digit PIN.'}
+                {step === 'verifying' && 'One moment…'}
+              </>)}
         </p>
 
         {step === 'phone' && (

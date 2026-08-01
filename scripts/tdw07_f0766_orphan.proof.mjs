@@ -35,6 +35,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
@@ -57,10 +58,50 @@ function walk(dir, acc = []) {
 }
 const FILES = walk(ROOT);
 const readAll = (p) => fs.readFileSync(p, 'utf8');
+// ── LABELED AMENDMENT (F-07.72) · §5.4 RE-AIMED, COUNT PRESERVED 21 ─────────
+// §5.4 counted vocabulary-4 CONSUMERS by testing the RAW file text, and F-07.72
+// added a comment to CircleSessionContext.tsx that names `circle_session` while
+// consuming nothing — the count went 3 → 4 on a sentence. A census that counts
+// prose as code is the same witness error this repo has now filed four times
+// (F-07.95's regex route table, F-07.74's stripper, the resolver mount whose
+// mutation only commented itself out). Re-aimed at the STRIPPED source, so a
+// mention is a mention and a consumer is a consumer, and the corrected census
+// the ARC-2 handover pinned — exactly THREE — stands as written.
+const codeOnly = (p) => stripComments(readAll(p));
+
+// ── §0 · THE CANARY — TDW_STRIPPER_CANARY (CE-120's law; F-07.74's cure) ────
+// This proof did not strip anything until F-07.72 re-aimed §5.4 at code rather
+// than prose. The moment it imported the stripper, the §0 CANARY LAW bound it —
+// and the law's whole point is that a swallow must REDDEN rather than acquit.
+// Head, waist and tail of the one file this proof now strips, plus the mid-token
+// specimen and its vacuity twin.
+function canaryCells() {
+  const LIVING = path.join(ROOT, 'app/circle/join/[token]/page.tsx');
+  const c = stripComments(fs.readFileSync(LIVING, 'utf8'));
+  ok('§0.1 canary α-head survives stripping — the living join page', c.includes("'use client';"));
+  ok('§0.2 canary α-waist survives stripping', c.includes('const OTP_LEN = 6;'));
+  ok('§0.3 canary α-tail survives stripping', c.includes('export default function CircleJoinPage()'));
+  ok('§0.4 β — real comments ARE removed, so the stripper is doing work',
+    fs.readFileSync(LIVING, 'utf8').includes('//') && !c.includes('// '));
+  // The specimen needs a CLOSING `*/` for the twin to be meaningful: the naive
+  // rule swallows from the mid-token `/*` to the next one, so without a closer
+  // there is nothing for it to swallow TO and the twin proves nothing.
+  const spec = 'const a = 1;\nconst input = { accept: "image/*" };\n' +
+               'const KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(spec).includes('KEEP_ME') && stripComments(spec).includes('ALSO_KEEP'));
+  ok('§0.Y γ VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this proof really CALLS its stripper',
+    (stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'))
+      .match(/stripComments\(/g) || []).length >= 3);
+}
 
 console.log('TDW_07 · ARC 2 — F-07.66: the orphan join page is gone');
 
 // ═══════════════════════════════════════════════════════════════════════════
+canaryCells();
+
 sec('§1 · THE ORPHAN IS GONE, WHOLE');
 
 ok('§1.1 app/(landing)/join/[code]/page.tsx does not exist',
@@ -152,7 +193,7 @@ ok('§5.3 vocabulary 3 — the `tdw_*_session` cookies live',
   FILES.some(f => /tdw_vendor_session/.test(readAll(f))));
 
 ok('§5.4 vocabulary 4 — `circle_session`, tokenless, exactly THREE consumer files',
-  FILES.filter(f => /circle_session/.test(readAll(f))).length === 3,
+  FILES.filter(f => /circle_session/.test(codeOnly(f))).length === 3,
   'the circle_session consumer set moved — the corrected census needs re-deriving');
 
 // ═══════════════════════════════════════════════════════════════════════════

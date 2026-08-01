@@ -47,6 +47,31 @@ function getToken(): string | null {
   try { return getAccessToken(); } catch { return null; }
 }
 
+
+// ── F-07.72 · THE BRIDE'S CREDENTIAL REACHES THE SHARED CIRCLE DOORS ─────────
+// Three of the circle doors are DUAL-LANE: the co-planner reaches them and so
+// does the bride, from here and from sanctuary. `src/api/circle/messages.js:27`
+// was built for exactly that ("The bride passes her couple_id directly; a circle
+// member passes their users.id"), which is why those doors take a RESOLVER and
+// not a circle-member guard — a guard would answer the bride's own circle chat
+// with "Not a circle member."
+//
+// These three fetches sent NO credential at all. `sanctuary:2585` had been
+// sending its Bearer since it was written and the server ignored it; these
+// siblings never sent one, so a census that looked only at that call site would
+// have concluded the bride was already covered. She was not, on four of her five
+// call sites, and the enforcement delivery would have locked her out of her own
+// conversation. Named at the read-first, ratified into this ZIP.
+//
+// NO NEW AUTHORITY IS INTRODUCED: `getToken()` above is F-07.70's one authority
+// (cookie-before-localStorage via `_base`'s `getAccessToken`), already imported
+// and already used by this module. The iOS-Safari law is satisfied by borrowing
+// it rather than by writing a fourth token read.
+function circleBrideHeaders(extra?: Record<string, string>): Record<string, string> {
+  const t = getToken();
+  return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };
+}
+
 function getCoupleId(): string | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -435,7 +460,9 @@ export async function fetchCircleThreads(): Promise<CircleThread[]> {
   if (shouldUseMocks()) return delay([]);
   const id = getCoupleId();
   if (!id) return [];
-  const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}`);
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}`, {
+    headers: circleBrideHeaders(),
+  });
   const r: any = await res.json();
   return r?.data ?? [];
 }
@@ -445,7 +472,9 @@ export async function fetchThreadMessages(threadId: string): Promise<CircleMessa
   if (shouldUseMocks()) return delay([]);
   const id = getCoupleId();
   if (!id) return [];
-  const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}/${threadId}/messages`);
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/threads/${id}/${threadId}/messages`, {
+    headers: circleBrideHeaders(),
+  });
   const r: any = await res.json();
   return r?.data ?? [];
 }
@@ -457,7 +486,7 @@ export async function sendThreadMessage(threadId: string, messageBody: string): 
     const id = getCoupleId();
     await fetch(`${API_BASE}/api/v2/frost/circle/messages`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: circleBrideHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ userId: id, thread_id: threadId, body: messageBody, sender_name: 'couple' }),
     });
     return true;

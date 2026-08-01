@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   API, CREAM, GOLD, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName,
+  useCircleSession, brideId, brideName, circleAuthHeaders,
 } from '../CircleSessionContext';
 
 // Shape matches GET /api/v2/frost/circle/threads/:userId (backend ~15883).
@@ -60,7 +60,9 @@ export default function CoplannerThreads() {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await fetch(`${API}/api/v2/frost/circle/threads/${bride_id}`);
+        const r = await fetch(`${API}/api/v2/frost/circle/threads/${bride_id}`, {
+        headers: circleAuthHeaders(),
+      });
         const d = await r.json();
         if (!cancelled && d.success) setThreads((d.data || []) as Thread[]);
       } catch {}

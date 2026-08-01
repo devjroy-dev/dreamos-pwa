@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession,
+  useCircleSession, circleAuthHeaders,
 } from '../CircleSessionContext';
 
 const CLOUDINARY_CLOUD  = 'dccso5ljv';
@@ -46,7 +46,7 @@ export default function AddMuseSheet({
     try {
       const r = await fetch(`${API}/api/v2/circle/muse/save`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: circleAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           memberUserId: session.user_id,
           image_url,

@@ -2,6 +2,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { API_BASE } from '../../../../lib/api';
+// F-07.72 — the co-planner's token authority, imported rather than re-implemented.
+// This page is the lane's SECOND mint point (`/circle/join/accept` now returns a
+// signed session), and it already writes `circle_session` by string literal. A
+// second local copy of the credential's storage rules is exactly the geometry
+// F-07.70 spent a sitting removing from sanctuary; one authority, two callers.
+import { setCircleToken, circleAuthHeaders } from '../../../coplanner/CircleSessionContext';
 
 
 const GOLD = '#C9A84C';
@@ -112,6 +118,10 @@ export default function CircleJoinPage() {
       const d = await r.json();
       if (!d.success) { showToast(d.error || 'Verification failed.'); setLoading(false); return; }
       setUserId(d.data.user_id);
+      // F-07.72 — /accept mints the lane's session. Held BEFORE the partial
+      // session is written, so a member who joins and closes the tab mid-flow
+      // still returns holding a credential.
+      if (d.data.token) setCircleToken(d.data.token);
       // Save partial session
       localStorage.setItem('circle_session', JSON.stringify(d.data));
       if (d.data.pin_set) {
@@ -144,7 +154,9 @@ export default function CircleJoinPage() {
       const d = await r.json();
       if (!d.success) { showToast(d.error || 'Could not set PIN.'); setLoading(false); return; }
       // Fetch full session
-      const sr = await fetch(`${API_BASE}/api/v2/circle/session/${userId}`);
+      const sr = await fetch(`${API_BASE}/api/v2/circle/session/${userId}`, {
+        headers: circleAuthHeaders(),
+      });
       const sd = await sr.json();
       if (sd.success) localStorage.setItem('circle_session', JSON.stringify(sd.data));
       router.push('/coplanner');
