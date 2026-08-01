@@ -5,28 +5,60 @@ import { PageHeader, StatCard, T } from './_components/AdminUI';
 import { getVendors, getCouples, getInvites, getPhotoQueue, getDiscoverQueue } from '../../lib/admin-api/index';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
+// ── F-07.90 CURED HERE TOO — SIX TILES THAT LIED ────────────────────────────
+// EVERY ARM BELOW READ: `.catch(() => ({ requests: [] }))` and its five
+// siblings. A failed call became an empty collection, an empty collection became
+// a zero, and a zero became a confident stat tile on the founder's FIRST daily
+// screen. 「 DISCOVER QUEUE · 0 · Under review 」 was not zero — it was a 401 the
+// page threw away (F-07.91: `requireAuth` standing in front of `requireAdmin`
+// on ten admin routes, so the queue was unreachable, not empty).
+//
+// A dashboard that cannot reach a queue must say so. Nothing here invents a
+// number it does not have: a failed arm renders UNKNOWN, never 0. Zero remains
+// available and honest — it means the server answered with nothing in the list.
+//
+// THE DISTINCTION THIS CURE RESTS ON: `0` is an ANSWER. `—` is the absence of
+// one. Collapsing the second into the first is what made a broken guard look
+// like a quiet Tuesday for as long as it has been broken.
+//
+// VETO PENDING: UNKNOWN_VALUE / UNKNOWN_SUB are the LE's DRAFT — the only new
+// bytes of copy in this delivery.
+const UNKNOWN_VALUE = '—';
+const UNKNOWN_SUB   = 'Could not load';
+
+// A unique sentinel. `null`/`undefined` would be indistinguishable from a real
+// empty payload, which is the exact confusion this cure exists to end.
+const FAILED = Symbol('admin-dashboard-arm-failed');
+type Arm<T> = T | typeof FAILED;
+const failed = (x: unknown): boolean => x === FAILED;
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ vendors: 0, couples: 0, pending_photos: 0, pending_discover: 0, unused_invites: 0, new_requests: 0 });
+  const [stats, setStats] = useState<{
+    vendors: number | null; couples: number | null; pending_photos: number | null;
+    pending_discover: number | null; unused_invites: number | null; new_requests: number | null;
+  }>({ vendors: 0, couples: 0, pending_photos: 0, pending_discover: 0, unused_invites: 0, new_requests: 0 });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    Promise.all([
-      getVendors().catch(() => ({ vendors: [] })),
-      getCouples().catch(() => ({ couples: [] })),
-      getPhotoQueue({ state: 'pending' }).catch(() => ({ photos: [] })),
-      getDiscoverQueue().catch(() => ({ requests: [] })),
-      getInvites().catch(() => ({ invites: [] })),
+    Promise.all<Arm<any>>([
+      getVendors().catch(() => FAILED),
+      getCouples().catch(() => FAILED),
+      getPhotoQueue({ state: 'pending' }).catch(() => FAILED),
+      getDiscoverQueue().catch(() => FAILED),
+      getInvites().catch(() => FAILED),
       fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app'}/api/v2/admin/waitlist?status=new`,
-        { headers: adminHeaders() }).then(r=>r.json()).catch(()=>({ signups: [] })),
+        { headers: adminHeaders() })
+        .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .catch(() => FAILED),
     ]).then(([v, c, p, d, i, w]) => {
       setStats({
-        vendors:          (v as any).vendors?.length ?? 0,
-        couples:          (c as any).couples?.length ?? 0,
-        pending_photos:   (p as any).photos?.length ?? 0,
-        pending_discover: (d as any).requests?.filter((r: any) => r.discover_request_state === 'under_review').length ?? 0,
-        unused_invites:   (i as any).invites?.filter((x: any) => !x.consumed_at).length ?? 0,
-        new_requests:     (w as any).signups?.length ?? 0,
+        vendors:          failed(v) ? null : ((v as any).vendors?.length ?? 0),
+        couples:          failed(c) ? null : ((c as any).couples?.length ?? 0),
+        pending_photos:   failed(p) ? null : ((p as any).photos?.length ?? 0),
+        pending_discover: failed(d) ? null : ((d as any).requests?.filter((r: any) => r.discover_request_state === 'under_review').length ?? 0),
+        unused_invites:   failed(i) ? null : ((i as any).invites?.filter((x: any) => !x.consumed_at).length ?? 0),
+        new_requests:     failed(w) ? null : ((w as any).signups?.length ?? 0),
       });
       setLoading(false);
     });
@@ -47,13 +79,13 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
-          <StatCard label="Makers" value={stats.vendors} sub="Total vendors" />
-          <StatCard label="Dreamers" value={stats.couples} sub="Total couples" />
-          <StatCard label="Photo Queue" value={stats.pending_photos} sub="Pending approval" />
-          <StatCard label="Discover Queue" value={stats.pending_discover} sub="Under review" />
-          <StatCard label="Open Invites" value={stats.unused_invites} sub="Unconsumed codes" />
+          <StatCard label="Makers" value={stats.vendors ?? UNKNOWN_VALUE} sub={stats.vendors === null ? UNKNOWN_SUB : "Total vendors"} />
+          <StatCard label="Dreamers" value={stats.couples ?? UNKNOWN_VALUE} sub={stats.couples === null ? UNKNOWN_SUB : "Total couples"} />
+          <StatCard label="Photo Queue" value={stats.pending_photos ?? UNKNOWN_VALUE} sub={stats.pending_photos === null ? UNKNOWN_SUB : "Pending approval"} />
+          <StatCard label="Discover Queue" value={stats.pending_discover ?? UNKNOWN_VALUE} sub={stats.pending_discover === null ? UNKNOWN_SUB : "Under review"} />
+          <StatCard label="Open Invites" value={stats.unused_invites ?? UNKNOWN_VALUE} sub={stats.unused_invites === null ? UNKNOWN_SUB : "Unconsumed codes"} />
           <div onClick={()=>router.push('/admin/invite-requests')} style={{cursor:'pointer'}}>
-            <StatCard label="New Requests" value={stats.new_requests} sub="Awaiting review" />
+            <StatCard label="New Requests" value={stats.new_requests ?? UNKNOWN_VALUE} sub={stats.new_requests === null ? UNKNOWN_SUB : "Awaiting review"} />
           </div>
         </div>
       )}
