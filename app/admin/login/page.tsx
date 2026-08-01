@@ -1,11 +1,39 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { adminLogin } from '@/lib/admin-api/_base';
 
-const PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? '';
-const G = '#C44058';
-const INK = '#F0EAE0';
-const SOFT = 'rgba(240,234,224,0.5)';
+// ── F-07.84 CURED — THE CREDENTIAL HAS LEFT THE CLIENT ───────────────────────
+// THIS FILE READ, until this delivery:
+//     const PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? '';
+//     if (password === PWD) { localStorage.setItem('admin_session','true'); }
+// Two defects in three lines. Next inlines every NEXT_PUBLIC_* into the public
+// bundle, so wherever that var was set the LIVE admin password was served to
+// every visitor of the site — view-source was the whole attack. And the gate it
+// guarded was a localStorage boolean, so anyone with devtools could type one
+// line and own the panel without knowing any password at all.
+//
+// The password now goes to the BACKEND and nothing comes back that contains it.
+// The var is gone from source; deleting it on Vercel is the founder's step.
+//
+// REFUSED IN INK, and recorded here so it is never proposed again: setting the
+// Vercel var to the ROTATED value would have published a live credential to
+// replace a dead one. That is not a fix. It was never performed.
+//
+// ── VETO PENDING — ONE STRING (the packet's only new byte of copy) ───────────
+// NETWORK_FAIL below is the LE's DRAFT, not an approved byte. A fetch can now
+// fail in a way this screen could not fail before, and "Incorrect password."
+// cannot honestly describe a 502 — that sentence would blame the operator for
+// the server being down. The founder words it in one line and this constant is
+// the only thing that changes.
+const NETWORK_FAIL = 'Could not reach the server. Try again.';
+const WRONG_PWD    = 'Incorrect password.';
+
+// Frozen bytes, unchanged from before this delivery — the design-system palette
+// this screen has always used. Moved with the header rewrite, not re-authored.
+const G      = '#C44058';
+const INK    = '#F0EAE0';
+const SOFT   = 'rgba(240,234,224,0.5)';
 const BORDER = 'rgba(255,255,255,0.12)';
 
 export default function AdminLogin() {
@@ -14,17 +42,22 @@ export default function AdminLogin() {
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  function handleLogin() {
+  async function handleLogin() {
     setLoading(true); setError('');
-    setTimeout(() => {
-      if (password === PWD) {
-        localStorage.setItem('admin_session', 'true');
+    try {
+      const result = await adminLogin(password);
+      if (result.ok === true) {
         router.replace('/admin');
-      } else {
-        setError('Incorrect password.');
-        setLoading(false);
+        return;
       }
-    }, 400);
+      // 401 is a wrong password. Anything else (503 mis-provisioned, 5xx, CORS)
+      // is the server's problem, not the operator's, and is not reported as a
+      // bad password — the F-07.37 claimed-truth class applied to a login screen.
+      setError(result.status === 401 ? WRONG_PWD : NETWORK_FAIL);
+    } catch {
+      setError(NETWORK_FAIL);
+    }
+    setLoading(false);
   }
 
   return (

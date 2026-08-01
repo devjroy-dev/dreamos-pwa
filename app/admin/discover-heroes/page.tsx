@@ -2,8 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, hasAdminSession, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const ADMIN_PASSWORD = 'Liza@2551354';
 
 interface DiscoverHero {
   id: string;
@@ -59,7 +59,7 @@ async function uploadHero(file: File, onProgress: (p: number) => void): Promise<
   formData.append('file', new Blob([compressed], { type: 'image/jpeg' }), `hero_${Date.now()}.jpg`);
   const res = await fetch(`${API_BASE}/api/v2/admin/discover-heroes/upload`, {
     method: 'POST',
-    headers: { 'x-admin-password': ADMIN_PASSWORD },
+    headers: adminHeaders(),
     body: formData,
   });
   onProgress(90);
@@ -93,8 +93,10 @@ export default function AdminDiscoverHeroesPage() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   useEffect(() => {
-    const session = localStorage.getItem('admin_session');
-    if (!session) { router.push('/admin/login'); return; }
+    // F-07.84: the SECOND independent reader of the retired boolean. A cure that
+    // only converted the layout would have left this screen with its own opinion
+    // about who is signed in. Same authority, same answer, one place.
+    if (!hasAdminSession()) { router.push('/admin/login'); return; }
     fetchHeroes();
   }, []);
 
@@ -118,7 +120,7 @@ export default function AdminDiscoverHeroesPage() {
     try {
       await fetch(`${API_BASE}/api/v2/admin/discover-heroes/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+        headers: adminHeaders(),
         body: JSON.stringify(body),
       });
       await fetchHeroes();
@@ -131,7 +133,7 @@ export default function AdminDiscoverHeroesPage() {
     if (!confirm('Remove this hero photo?')) return;
     await fetch(`${API_BASE}/api/v2/admin/discover-heroes/${id}`, {
       method: 'DELETE',
-      headers: { 'x-admin-password': ADMIN_PASSWORD },
+      headers: adminHeaders(),
     });
     await fetchHeroes();
   };
@@ -161,7 +163,7 @@ export default function AdminDiscoverHeroesPage() {
     try {
       await fetch(`${API_BASE}/api/v2/admin/discover-heroes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+        headers: adminHeaders(),
         body: JSON.stringify({
           ...addForm,
           display_order: heroes.length + 1,
@@ -193,7 +195,7 @@ export default function AdminDiscoverHeroesPage() {
       await Promise.all(heroes.map((h, i) =>
         fetch(`${API_BASE}/api/v2/admin/discover-heroes/${h.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+          headers: adminHeaders(),
           body: JSON.stringify({ display_order: i + 1 }),
         })
       ));

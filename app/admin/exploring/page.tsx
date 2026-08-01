@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const PWD = 'Liza@2551354';
 
 interface ExploringPhoto {
   id: string;
@@ -72,7 +72,7 @@ export default function ExploringPhotosAdmin() {
     setLoading(true);
     try {
       const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos`, {
-        headers: { 'x-admin-password': PWD },
+        headers: adminHeaders(),
       });
       const d = await r.json();
       if (d.success) setPhotos(d.data);
@@ -96,7 +96,7 @@ export default function ExploringPhotosAdmin() {
       setUploadProgress(60);
       const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos/upload`, {
         method: 'POST',
-        headers: { 'x-admin-password': PWD },
+        headers: adminHeaders(),
         body: form,
       });
       setUploadProgress(90);
@@ -124,7 +124,7 @@ export default function ExploringPhotosAdmin() {
     try {
       const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos/${photo.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': PWD },
+        headers: adminHeaders(),
         body: JSON.stringify({ active: !photo.active }),
       });
       const d = await r.json();
@@ -151,7 +151,7 @@ export default function ExploringPhotosAdmin() {
       await Promise.all(photos.map((p, i) =>
         fetch(`${API_BASE}/api/v2/admin/exploring-photos/${p.id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'x-admin-password': PWD },
+          headers: adminHeaders(),
           body: JSON.stringify({ display_order: i + 1 }),
         })
       ));
@@ -165,7 +165,7 @@ export default function ExploringPhotosAdmin() {
     try {
       const r = await fetch(`${API_BASE}/api/v2/admin/exploring-photos/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-password': PWD },
+        headers: adminHeaders(),
       });
       const d = await r.json();
       if (d.success) {

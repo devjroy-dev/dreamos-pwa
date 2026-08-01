@@ -3,13 +3,13 @@
 // Admin: create/manage demo vendor profiles and seed mock leads.
 
 import { useEffect, useState, useCallback } from 'react';
+import { adminHeaders } from '@/lib/admin-api/_base';
 import {
   PageHeader, T, GoldBtn, GhostBtn, Toast,
   FieldInput, FieldSelect,
 } from '../_components/AdminUI';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
-const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Liza@2551354';
 
 const CATEGORIES = [
   { value: 'makeup',       label: 'Makeup Artist'  },
@@ -53,7 +53,7 @@ interface ClaimRequest {
 async function adminFetch(path: string, opts?: RequestInit) {
   const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD, ...(opts?.headers || {}) },
+    headers: adminHeaders((opts?.headers as Record<string,string>) || {}),
   });
   return res.json();
 }
@@ -121,7 +121,7 @@ export default function DemoAdminPage() {
       const [vRes, lRes, cRes] = await Promise.all([
         adminFetch('/api/v2/admin/demo/vendors'),
         adminFetch('/api/v2/admin/demo/leads'),
-        fetch(`${API_BASE}/api/v2/admin/demo/claims`, { headers: { 'x-admin-password': ADMIN_PWD } }).then(r => r.json()).catch(() => ({ ok: false })),
+        fetch(`${API_BASE}/api/v2/admin/demo/claims`, { headers: adminHeaders() }).then(r => r.json()).catch(() => ({ ok: false })),
       ]);
       if (vRes.ok) setVendors(vRes.vendors || []);
       if (lRes.ok) setLeads(lRes.leads || []);
@@ -389,7 +389,7 @@ export default function DemoAdminPage() {
                         try {
                           await fetch(`${API_BASE}/api/v2/admin/demo/claims/${cl.id}/contacted`, {
                             method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+                            headers: adminHeaders(),
                             body: JSON.stringify({ contacted: !cl.contacted }),
                           });
                           setClaims(prev => prev.map(x => x.id === cl.id ? { ...x, contacted: !cl.contacted } : x));

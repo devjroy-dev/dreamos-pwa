@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
@@ -23,7 +23,7 @@ export default function ImageApprovalsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const r = await fetch(`${API_BASE}/api/v3/admin/images/pending`, { headers: H });
+    const r = await fetch(`${API_BASE}/api/v3/admin/images/pending`, { headers: adminHeaders() });
     const d = await r.json();
     if (d.success) setImages(d.data || []);
     setLoading(false);
@@ -33,7 +33,7 @@ export default function ImageApprovalsPage() {
 
   async function approve(id: string) {
     setProcessing(id);
-    await fetch(`${API_BASE}/api/v3/admin/images/${id}`, { method: 'PATCH', headers: H, body: JSON.stringify({ approved: true }) });
+    await fetch(`${API_BASE}/api/v3/admin/images/${id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ approved: true }) });
     setImages(prev => prev.filter(i => i.id !== id));
     setToast('Image approved');
     setProcessing(null);
@@ -41,7 +41,7 @@ export default function ImageApprovalsPage() {
 
   async function reject(id: string, reason: string) {
     setProcessing(id);
-    await fetch(`${API_BASE}/api/v3/admin/images/${id}`, { method: 'PATCH', headers: H, body: JSON.stringify({ approved: false, rejection_reason: reason }) });
+    await fetch(`${API_BASE}/api/v3/admin/images/${id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ approved: false, rejection_reason: reason }) });
     setImages(prev => prev.filter(i => i.id !== id));
     setRejectTarget(null); setRejectReason('');
     setToast('Image rejected');
@@ -51,7 +51,7 @@ export default function ImageApprovalsPage() {
   async function approveAllForVendor(vendorId: string) {
     const vendorImages = images.filter(i => i.vendor_id === vendorId);
     for (const img of vendorImages) {
-      await fetch(`${API_BASE}/api/v3/admin/images/${img.id}`, { method: 'PATCH', headers: H, body: JSON.stringify({ approved: true }) });
+      await fetch(`${API_BASE}/api/v3/admin/images/${img.id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ approved: true }) });
     }
     setImages(prev => prev.filter(i => i.vendor_id !== vendorId));
     setToast(`All images approved for ${vendorImages[0]?.vendor_name}`);

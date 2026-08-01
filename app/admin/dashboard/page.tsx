@@ -2,8 +2,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtINR(n: number) { return '₹' + n.toLocaleString('en-IN'); }
 function timeAgo(d: string) {
@@ -53,7 +53,7 @@ export default function CommandCentrePage() {
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(`${API_BASE}/api/v3/admin/command-centre`, { headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/command-centre`, { headers: adminHeaders() });
       const d = await r.json();
       if (d.success) setData(d);
     } finally { setLoading(false); }
@@ -64,7 +64,7 @@ export default function CommandCentrePage() {
   async function backfill() {
     setBackfilling(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v3/admin/data/backfill-all`, { method: 'POST', headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/data/backfill-all`, { method: 'POST', headers: adminHeaders() });
       const d = await r.json();
       if (d.success) setToast(`✓ ${d.links_attempted} links backfilled across ${d.couples_processed} Dreamers`);
       else setToast('Backfill failed');

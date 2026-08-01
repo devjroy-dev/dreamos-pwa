@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { PageHeader, GoldBtn, GhostBtn, Toast, T } from '../_components/AdminUI';
 import { API_BASE } from '../../../lib/admin-api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 const SEASON_LABELS: Record<string,string> = {
   jan_mar: 'Jan – Mar',
@@ -33,21 +34,19 @@ const STATUS_LABELS: Record<string,string> = {
   new:'NEW', contacted:'CONTACTED', onboarded:'ONBOARDED', rejected:'REJECTED',
 };
 
-const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
-const h = () => ({ 'Content-Type':'application/json','x-admin-password':ADMIN_PWD });
 
 async function fetchSignups(kind: string): Promise<WaitlistSignup[]> {
-  const res = await fetch(`${API_BASE}/api/v2/admin/waitlist?kind=${kind}`,{headers:h()});
+  const res = await fetch(`${API_BASE}/api/v2/admin/waitlist?kind=${kind}`,{headers: adminHeaders()});
   if(!res.ok) throw new Error('Failed');
   return (await res.json()).signups || [];
 }
 async function patchSignup(id:string, patch:{status?:string;notes?:string}) {
-  const res = await fetch(`${API_BASE}/api/v2/admin/waitlist/${id}`,{method:'PATCH',headers:h(),body:JSON.stringify(patch)});
+  const res = await fetch(`${API_BASE}/api/v2/admin/waitlist/${id}`,{method:'PATCH',headers: adminHeaders(),body:JSON.stringify(patch)});
   if(!res.ok) throw new Error('Failed');
   return res.json();
 }
 async function deleteSignup(id:string) {
-  const res = await fetch(`${API_BASE}/api/v2/admin/waitlist/${id}`,{method:'DELETE',headers:h()});
+  const res = await fetch(`${API_BASE}/api/v2/admin/waitlist/${id}`,{method:'DELETE',headers: adminHeaders()});
   if(!res.ok) throw new Error('Failed');
 }
 

@@ -2,9 +2,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, Toast, FieldInput, ActionChip } from '../_components/AdminUI';
 import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../../lib/admin-api/index';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
-const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 
 const TIERS = ['trial','essential','signature','prestige'];
 
@@ -48,7 +48,7 @@ export default function MakersPage() {
     try {
       const res = await fetch(`${API_BASE}/api/v2/admin/vendors/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+        headers: adminHeaders(),
         body: JSON.stringify({ confirm: true }),
       });
       if (!res.ok) throw new Error('Failed');

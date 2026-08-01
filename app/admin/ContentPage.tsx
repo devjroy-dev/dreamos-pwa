@@ -5,6 +5,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, Toast, UploadZone, ImageGrid, LoadingGrid, Counter, SectionDivider, type ImageGridItem } from './_components/AdminUI';
 import { adminUploadFile } from '../../lib/admin-api/_base';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 export type ContentPageConfig = {
   title:       string;
@@ -24,14 +25,13 @@ export default function ContentPage({ cfg }: { cfg: ContentPageConfig }) {
   const [activeCount, setActiveCount] = useState(0);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
-  const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}${cfg.adminBase}`, { headers: { 'x-admin-password': ADMIN_PWD } });
+      const res = await fetch(`${API_BASE}${cfg.adminBase}`, { headers: adminHeaders() });
       const d = await res.json();
       const raw = d[cfg.listKey] || d.images || d.photos || d.heroes || [];
       const mapped: ImageGridItem[] = raw.map((r: any) => ({
@@ -42,7 +42,7 @@ export default function ContentPage({ cfg }: { cfg: ContentPageConfig }) {
       setActiveCount(d.active_count ?? mapped.filter((i: ImageGridItem) => i.active).length);
     } catch { showToast('Failed to load.', true); }
     finally { setLoading(false); }
-  }, [cfg.adminBase, cfg.listKey, API_BASE, ADMIN_PWD]);
+  }, [cfg.adminBase, cfg.listKey, API_BASE]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -50,7 +50,7 @@ export default function ContentPage({ cfg }: { cfg: ContentPageConfig }) {
     setUploading(true);
     try {
       const { image_url, cloudinary_public_id } = await adminUploadFile(`${cfg.adminBase}/upload-url`, file);
-      await fetch(`${API_BASE}${cfg.adminBase}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD }, body: JSON.stringify({ image_url, cloudinary_public_id }) });
+      await fetch(`${API_BASE}${cfg.adminBase}`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ image_url, cloudinary_public_id }) });
       showToast('Uploaded.');
       load();
     } catch { showToast('Upload failed.', true); }
@@ -60,7 +60,7 @@ export default function ContentPage({ cfg }: { cfg: ContentPageConfig }) {
   const handleUrl = async (url: string) => {
     setUploading(true);
     try {
-      await fetch(`${API_BASE}${cfg.adminBase}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD }, body: JSON.stringify({ image_url: url }) });
+      await fetch(`${API_BASE}${cfg.adminBase}`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ image_url: url }) });
       showToast('Added.');
       load();
     } catch { showToast('Failed to add URL.', true); }
@@ -69,7 +69,7 @@ export default function ContentPage({ cfg }: { cfg: ContentPageConfig }) {
 
   const toggle = async (id: string, currentActive: boolean) => {
     try {
-      await fetch(`${API_BASE}${cfg.adminBase}/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD }, body: JSON.stringify({ active: !currentActive }) });
+      await fetch(`${API_BASE}${cfg.adminBase}/${id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ active: !currentActive }) });
       setItems(prev => prev.map(i => i.id === id ? { ...i, active: !currentActive } : i));
       setActiveCount(prev => currentActive ? prev - 1 : prev + 1);
     } catch { showToast('Failed.', true); }
@@ -77,7 +77,7 @@ export default function ContentPage({ cfg }: { cfg: ContentPageConfig }) {
 
   const remove = async (id: string) => {
     try {
-      await fetch(`${API_BASE}${cfg.adminBase}/${id}`, { method: 'DELETE', headers: { 'x-admin-password': ADMIN_PWD } });
+      await fetch(`${API_BASE}${cfg.adminBase}/${id}`, { method: 'DELETE', headers: adminHeaders() });
       setItems(prev => { const updated = prev.filter(i => i.id !== id); setActiveCount(updated.filter(i => i.active).length); return updated; });
       showToast('Deleted.');
     } catch { showToast('Failed to delete.', true); }

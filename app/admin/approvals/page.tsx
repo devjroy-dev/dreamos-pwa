@@ -6,8 +6,8 @@
 // Drawer: full profile view with per-photo approve/reject.
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H   = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Vendor {
@@ -147,7 +147,7 @@ function ReviewDrawer({
     setWorking(true);
     try {
       await fetch(`${API_BASE}/api/v3/admin/images/${imgId}`, {
-        method: 'PATCH', headers: H,
+        method: 'PATCH', headers: adminHeaders(),
         body: JSON.stringify({ approved: true }),
       });
       setLocalImages(prev => prev.map(i => i.id === imgId ? { ...i, approved: true, rejection_reason: null } : i));
@@ -161,7 +161,7 @@ function ReviewDrawer({
     setWorking(true);
     try {
       await fetch(`${API_BASE}/api/v3/admin/images/${imgId}`, {
-        method: 'PATCH', headers: H,
+        method: 'PATCH', headers: adminHeaders(),
         body: JSON.stringify({ approved: false, rejection_reason: note }),
       });
       setLocalImages(prev => prev.map(i => i.id === imgId ? { ...i, approved: false, rejection_reason: note } : i));
@@ -178,7 +178,7 @@ function ReviewDrawer({
     setWorking(true);
     try {
       await fetch(`${API_BASE}/api/v3/admin/makers/${vendor.id}`, {
-        method: 'PATCH', headers: H,
+        method: 'PATCH', headers: adminHeaders(),
         body: JSON.stringify({
           is_approved: true,
           discover_listed: true,
@@ -198,7 +198,7 @@ function ReviewDrawer({
     setWorking(true);
     try {
       await fetch(`${API_BASE}/api/v3/admin/makers/${vendor.id}`, {
-        method: 'PATCH', headers: H,
+        method: 'PATCH', headers: adminHeaders(),
         body: JSON.stringify({
           is_approved: false,
           discover_listed: false,
@@ -207,7 +207,7 @@ function ReviewDrawer({
       });
       // Set rejection reason on vendors row
       await fetch(`${API_BASE}/api/vendors/${vendor.id}`, {
-        method: 'PATCH', headers: H,
+        method: 'PATCH', headers: adminHeaders(),
         body: JSON.stringify({ discover_rejected_reason: denyReason }),
       });
       showToast(`Profile denied — ${vendor.name} notified`);
@@ -223,7 +223,7 @@ function ReviewDrawer({
     setWorking(true);
     try {
       await fetch(`${API_BASE}/api/v2/admin/vendors/${vendor.id}/revoke`, {
-        method: 'PATCH', headers: H,
+        method: 'PATCH', headers: adminHeaders(),
       });
       showToast(`${vendor.name} removed from feed`);
       onRevoked(vendor.id);
@@ -571,7 +571,7 @@ export default function ApprovalsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v3/admin/makers?limit=200`, { headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/makers?limit=200`, { headers: adminHeaders() });
       const d = await r.json();
       if (d.success) setVendors(d.data || []);
     } finally { setLoading(false); }
@@ -583,7 +583,7 @@ export default function ApprovalsPage() {
   async function openDrawer(vendorId: string) {
     setLoadingDetail(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v3/admin/makers/${vendorId}`, { headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/makers/${vendorId}`, { headers: adminHeaders() });
       const d = await r.json();
       if (d.success) setSelected(d.data);
     } catch { showToast('Failed to load vendor detail'); }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader, StatCard, T } from './_components/AdminUI';
 import { getVendors, getCouples, getInvites, getPhotoQueue, getDiscoverQueue } from '../../lib/admin-api/index';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ vendors: 0, couples: 0, pending_photos: 0, pending_discover: 0, unused_invites: 0, new_requests: 0 });
@@ -10,7 +11,6 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
     Promise.all([
       getVendors().catch(() => ({ vendors: [] })),
       getCouples().catch(() => ({ couples: [] })),
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
       getDiscoverQueue().catch(() => ({ requests: [] })),
       getInvites().catch(() => ({ invites: [] })),
       fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app'}/api/v2/admin/waitlist?status=new`,
-        { headers: { 'x-admin-password': ADMIN_PWD } }).then(r=>r.json()).catch(()=>({ signups: [] })),
+        { headers: adminHeaders() }).then(r=>r.json()).catch(()=>({ signups: [] })),
     ]).then(([v, c, p, d, i, w]) => {
       setStats({
         vendors:          (v as any).vendors?.length ?? 0,

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
 function timeAgo(d: string) { const diff = Date.now() - new Date(d).getTime(); const h = Math.floor(diff/3600000); const dd = Math.floor(diff/86400000); if (h < 1) return 'just now'; if (h < 24) return `${h}h ago`; if (dd < 7) return `${dd}d ago`; return fmtDate(d); }
@@ -24,7 +24,7 @@ export default function MessagesPage() {
 
   const loadFlagged = useCallback(async () => {
     setLoading(true);
-    const r = await fetch(`${API_BASE}/api/v3/admin/messages/flagged`, { headers: H });
+    const r = await fetch(`${API_BASE}/api/v3/admin/messages/flagged`, { headers: adminHeaders() });
     const d = await r.json();
     if (d.success) setFlagged(d.data || []);
     setLoading(false);
@@ -32,7 +32,7 @@ export default function MessagesPage() {
 
   const loadThreads = useCallback(async () => {
     setLoading(true);
-    const r = await fetch(`${API_BASE}/api/v3/admin/messages/threads`, { headers: H });
+    const r = await fetch(`${API_BASE}/api/v3/admin/messages/threads`, { headers: adminHeaders() });
     const d = await r.json();
     if (d.success) setThreads(d.data || []);
     setLoading(false);

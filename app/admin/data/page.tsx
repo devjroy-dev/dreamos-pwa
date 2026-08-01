@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
@@ -20,14 +20,14 @@ export default function DataToolsPage() {
   const [showBackfillConfirm, setShowBackfillConfirm] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/v3/admin/data/entity-link-stats`, { headers: H })
+    fetch(`${API_BASE}/api/v3/admin/data/entity-link-stats`, { headers: adminHeaders() })
       .then(r => r.json()).then(d => { if (d.success) setLinkStats(d.data || []); setStatsLoading(false); }).catch(() => setStatsLoading(false));
   }, [backfillResult]);
 
   async function runBackfill() {
     setBackfilling(true); setShowBackfillConfirm(false);
     try {
-      const r = await fetch(`${API_BASE}/api/v3/admin/data/backfill-all`, { method: 'POST', headers: H });
+      const r = await fetch(`${API_BASE}/api/v3/admin/data/backfill-all`, { method: 'POST', headers: adminHeaders() });
       const d = await r.json();
       if (d.success) { setBackfillResult(d); setToast(`✓ ${d.links_attempted} links across ${d.couples_processed} Dreamers`); }
       else setToast('Backfill failed');

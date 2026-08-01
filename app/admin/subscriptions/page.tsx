@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtDate(d: string) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
 function fmtINR(n: number) { return '₹' + (n || 0).toLocaleString('en-IN'); }
@@ -26,7 +26,7 @@ export default function SubscriptionsPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/v3/admin/makers`, { headers: H })
+    fetch(`${API_BASE}/api/v3/admin/makers`, { headers: adminHeaders() })
       .then(r => r.json())
       .then(d => {
         if (d.success) {

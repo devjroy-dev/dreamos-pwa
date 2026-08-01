@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function fmtINR(n: number) { return '₹' + (n || 0).toLocaleString('en-IN'); }
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
@@ -35,7 +35,7 @@ export default function MoneyPage() {
   const [toast, setToast] = useState('');
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/v3/admin/money/overview`, { headers: H })
+    fetch(`${API_BASE}/api/v3/admin/money/overview`, { headers: adminHeaders() })
       .then(r => r.json())
       .then(d => { if (d.success) setData(d.data); setLoading(false); })
       .catch(() => setLoading(false));

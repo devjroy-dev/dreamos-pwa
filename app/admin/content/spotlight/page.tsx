@@ -3,9 +3,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, GoldBtn, GhostBtn, Toast, UploadZone, ImageGrid, LoadingGrid, SectionDivider, FieldInput, type ImageGridItem } from '../../_components/AdminUI';
 import { spotlightApi, getVendors, type SpotlightItem, type AdminVendor } from '../../../../lib/admin-api/index';
 import { adminUploadFile } from '../../../../lib/admin-api/_base';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
-const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 
 export default function SpotlightPage() {
   const [items, setItems]       = useState<SpotlightItem[]>([]);
@@ -47,7 +47,7 @@ export default function SpotlightPage() {
         const r = await adminUploadFile('/api/v2/admin/spotlight/upload-url', pendingFile);
         image_url = r.image_url; cloudinary_public_id = r.cloudinary_public_id;
       }
-      await fetch(`${API_BASE}/api/v2/admin/spotlight`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD }, body: JSON.stringify({ image_url, cloudinary_public_id, vendor_id: vendorId || null, caption: caption || null, week_label: weekLabel || null }) });
+      await fetch(`${API_BASE}/api/v2/admin/spotlight`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ image_url, cloudinary_public_id, vendor_id: vendorId || null, caption: caption || null, week_label: weekLabel || null }) });
       showToast('Added to Spotlight.');
       setShowAdd(false); resetForm();
       load();
@@ -57,14 +57,14 @@ export default function SpotlightPage() {
 
   const toggle = async (id: string, currentActive: boolean) => {
     try {
-      await fetch(`${API_BASE}/api/v2/admin/spotlight/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD }, body: JSON.stringify({ active: !currentActive }) });
+      await fetch(`${API_BASE}/api/v2/admin/spotlight/${id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ active: !currentActive }) });
       setItems(prev => prev.map(i => i.id === id ? { ...i, active: !currentActive } : i));
     } catch { showToast('Failed.', true); }
   };
 
   const remove = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/api/v2/admin/spotlight/${id}`, { method: 'DELETE', headers: { 'x-admin-password': ADMIN_PWD } });
+      await fetch(`${API_BASE}/api/v2/admin/spotlight/${id}`, { method: 'DELETE', headers: adminHeaders() });
       setItems(prev => prev.filter(i => i.id !== id));
       showToast('Deleted.');
     } catch { showToast('Failed.', true); }

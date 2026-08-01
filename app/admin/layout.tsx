@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { hasAdminSession, clearAdminSession } from '@/lib/admin-api/_base';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 const G    = '#C44058';
@@ -207,7 +208,7 @@ function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       {/* Footer */}
       <div style={{ padding:'14px 18px', borderTop:`0.5px solid ${BORDER}`, flexShrink:0 }}>
         <button
-          onClick={() => { localStorage.removeItem('admin_session'); router.replace('/admin/login'); }}
+          onClick={() => { clearAdminSession(); router.replace('/admin/login'); }}
           style={{ background:'none', border:'none', fontFamily:'"Jost",sans-serif', fontWeight:400, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:DIM, padding:0, minHeight:36, cursor:'pointer', transition:`color 150ms ${EASE}` }}
           onMouseEnter={e => (e.currentTarget.style.color = SOFT)}
           onMouseLeave={e => (e.currentTarget.style.color = DIM)}
@@ -226,8 +227,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
-    const s = typeof window !== 'undefined' ? localStorage.getItem('admin_session') : null;
-    if (!s && pathname !== '/admin/login') router.replace('/admin/login');
+    // ── F-07.84 CURED — THE BOOLEAN OPENS NOTHING ────────────────────────────
+    // THIS READ: `localStorage.getItem('admin_session')`, admitting on the mere
+    // PRESENCE of a string anyone could type into devtools in four seconds. The
+    // gate now demands a real, unexpired, server-minted session token; a hand-set
+    // `admin_session='true'` satisfies nothing, and clearAdminSession() removes
+    // that retired key from any browser still carrying it.
+    const ok = hasAdminSession();
+    if (!ok && pathname !== '/admin/login') { clearAdminSession(); router.replace('/admin/login'); }
     else setAuthed(true);
   }, [pathname, router]);
 

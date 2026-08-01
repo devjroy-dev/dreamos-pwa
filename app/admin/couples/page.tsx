@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const PWD = 'Liza@2551354';
-const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
 
@@ -26,7 +25,7 @@ export default function AdminCouplesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v2/admin/couples`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/couples`, { headers: adminHeaders() });
       const d = await r.json();
       setCouples(d.couples || []);
     } finally { setLoading(false); }
@@ -35,13 +34,13 @@ export default function AdminCouplesPage() {
   useEffect(() => { load(); }, []);
 
   const changeTier = async (id: string, tier: string) => {
-    await fetch(`${API_BASE}/api/v2/admin/couples/${id}/tier`, { method: 'PATCH', headers: h, body: JSON.stringify({ tier }) });
+    await fetch(`${API_BASE}/api/v2/admin/couples/${id}/tier`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ tier }) });
     setCouples(c => c.map(x => x.id === id ? { ...x, dreamer_type: tier } : x));
     showToast('Tier updated.');
   };
 
   const revoke = async (id: string) => {
-    await fetch(`${API_BASE}/api/v2/admin/couples/${id}/revoke`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/couples/${id}/revoke`, { method: 'PATCH', headers: adminHeaders() });
     setConfirmRevoke(null);
     showToast('Access revoked.');
     load();
@@ -51,7 +50,7 @@ export default function AdminCouplesPage() {
     if (!form.name || !form.phone) return;
     setCreating(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v2/admin/couples/create`, { method: 'POST', headers: h, body: JSON.stringify(form) });
+      const r = await fetch(`${API_BASE}/api/v2/admin/couples/create`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify(form) });
       const d = await r.json();
       if (d.success) { setShowCreate(false); setForm({ name: '', phone: '', partner_name: '', wedding_date: '', tier: 'lite' }); load(); showToast('Dreamer created.'); }
       else showToast(d.error || 'Failed.');

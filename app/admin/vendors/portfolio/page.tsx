@@ -3,9 +3,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, GoldBtn, GhostBtn, Toast, UploadZone, ImageGrid, LoadingGrid, SectionDivider, FieldInput, type ImageGridItem } from '../../_components/AdminUI';
 import { getVendors, type AdminVendor } from '../../../../lib/admin-api/index';
 import { adminUploadFile } from '../../../../lib/admin-api/_base';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
-const ADMIN_PWD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 
 type PortfolioPhoto = {
   id: string; image_url: string; caption: string | null;
@@ -38,7 +38,7 @@ export default function VendorPortfolioPage() {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/v2/admin/vendors/${vid}/portfolio`, {
-        headers: { 'x-admin-password': ADMIN_PWD },
+        headers: adminHeaders(),
       });
       const d = await res.json();
       setPhotos(d.photos || []);
@@ -82,7 +82,7 @@ export default function VendorPortfolioPage() {
       }
       await fetch(`${API_BASE}/api/v2/admin/vendors/${vendorId}/portfolio`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+        headers: adminHeaders(),
         body: JSON.stringify({ image_url, caption: caption.trim() || null }),
       });
       showToast('Photo added.');
@@ -96,7 +96,7 @@ export default function VendorPortfolioPage() {
   const deletePhoto = async (id: string) => {
     try {
       await fetch(`${API_BASE}/api/v2/admin/vendors/${vendorId}/portfolio/${id}`, {
-        method: 'DELETE', headers: { 'x-admin-password': ADMIN_PWD },
+        method: 'DELETE', headers: adminHeaders(),
       });
       setPhotos(prev => prev.filter(p => p.id !== id));
       showToast('Deleted.');
@@ -107,7 +107,7 @@ export default function VendorPortfolioPage() {
     try {
       await fetch(`${API_BASE}/api/v2/admin/vendors/${vendorId}/portfolio/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+        headers: adminHeaders(),
         body: JSON.stringify({ is_hero: !currentHero }),
       });
       setPhotos(prev => prev.map(p => ({ ...p, is_hero: p.id === id ? !currentHero : (currentHero ? false : p.is_hero) })));
@@ -203,7 +203,7 @@ export default function VendorPortfolioPage() {
                   try {
                     await fetch(`${API_BASE}/api/v2/admin/vendors/${vendorId}/portfolio/${id}`, {
                       method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PWD },
+                      headers: adminHeaders(),
                       body: JSON.stringify({ in_carousel: !active }),
                     });
                     setPhotos(prev => prev.map(p => p.id === id ? { ...p, in_carousel: !active } : p));

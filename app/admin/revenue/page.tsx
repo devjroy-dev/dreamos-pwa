@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const PWD = 'Liza@2551354';
-const h = { 'x-admin-password': PWD };
 
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
 
@@ -26,7 +25,7 @@ export default function AdminRevenuePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/v2/admin/revenue`, { headers: h })
+    fetch(`${API_BASE}/api/v2/admin/revenue`, { headers: adminHeaders() })
       .then(r => r.json())
       .then(d => { if (d.success) setData(d); })
       .finally(() => setLoading(false));

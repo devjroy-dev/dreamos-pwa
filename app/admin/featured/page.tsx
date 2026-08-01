@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const H = { 'Content-Type': 'application/json', 'x-admin-password': 'Liza@2551354' };
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
@@ -20,7 +20,7 @@ export default function FeaturedPage() {
   const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/v3/admin/makers?limit=200`, { headers: H })
+    fetch(`${API_BASE}/api/v3/admin/makers?limit=200`, { headers: adminHeaders() })
       .then(r => r.json())
       .then(d => {
         if (d.success) {
@@ -33,7 +33,7 @@ export default function FeaturedPage() {
   }, []);
 
   async function toggleFeatured(vendor: FeaturedVendor, currentlyFeatured: boolean) {
-    await fetch(`${API_BASE}/api/v3/admin/makers/${vendor.id}`, { method: 'PATCH', headers: H, body: JSON.stringify({ featured: !currentlyFeatured }) });
+    await fetch(`${API_BASE}/api/v3/admin/makers/${vendor.id}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ featured: !currentlyFeatured }) });
     if (currentlyFeatured) {
       setFeatured(prev => prev.filter(v => v.id !== vendor.id));
       setToast(`${vendor.name} removed from featured`);

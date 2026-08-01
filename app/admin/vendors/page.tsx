@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
+import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
-const PWD = 'Liza@2551354';
-const h = { 'Content-Type': 'application/json', 'x-admin-password': PWD };
 
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
 
@@ -26,7 +25,7 @@ export default function AdminVendorsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v2/admin/vendors`, { headers: h });
+      const r = await fetch(`${API_BASE}/api/v2/admin/vendors`, { headers: adminHeaders() });
       const d = await r.json();
       setVendors(d.vendors || []);
     } finally { setLoading(false); }
@@ -35,23 +34,23 @@ export default function AdminVendorsPage() {
   useEffect(() => { load(); }, []);
 
   const approve = async (id: string) => {
-    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/approve`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/approve`, { method: 'PATCH', headers: adminHeaders() });
     setVendors(v => v.map(x => x.id === id ? { ...x, is_approved: !x.is_approved } : x));
   };
 
   const changeTier = async (id: string, tier: string) => {
-    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/tier`, { method: 'PATCH', headers: h, body: JSON.stringify({ tier }) });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/tier`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ tier }) });
     setVendors(v => v.map(x => x.id === id ? { ...x, tier } : x));
     showToast('Tier updated.');
   };
 
   const toggleDreamAi = async (id: string, access: boolean) => {
-    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/dreamai`, { method: 'PATCH', headers: h, body: JSON.stringify({ access: !access }) });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/dreamai`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ access: !access }) });
     setVendors(v => v.map(x => x.id === id ? { ...x, dreamai_access: !access } : x));
   };
 
   const revoke = async (id: string) => {
-    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/revoke`, { method: 'PATCH', headers: h });
+    await fetch(`${API_BASE}/api/v2/admin/vendors/${id}/revoke`, { method: 'PATCH', headers: adminHeaders() });
     setVendors(v => v.map(x => x.id === id ? { ...x, is_approved: false } : x));
     setConfirmRevoke(null);
     showToast('Access revoked.');
@@ -61,7 +60,7 @@ export default function AdminVendorsPage() {
     if (!form.business_name || !form.phone) return;
     setCreating(true);
     try {
-      const r = await fetch(`${API_BASE}/api/v2/admin/vendors/create`, { method: 'POST', headers: h, body: JSON.stringify(form) });
+      const r = await fetch(`${API_BASE}/api/v2/admin/vendors/create`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify(form) });
       const d = await r.json();
       if (d.success) { setShowCreate(false); setForm({ business_name: '', category: 'Photographer', city: '', phone: '', tier: 'signature' }); load(); showToast('Maker created.'); }
       else showToast(d.error || 'Failed to create.');
