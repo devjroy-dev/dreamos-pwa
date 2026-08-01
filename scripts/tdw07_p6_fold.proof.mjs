@@ -248,8 +248,24 @@ ok('§11.1 the filtered-empty state does NOT claim she has seen them',
   /Nothing matches those filters yet\./.test(S));
 ok('§11.2 the end-of-deck state is the one that says everyone',
   /That&rsquo;s everyone, for now\./.test(S));
+// ── LABELED RE-AIM · F-07.73 (F-07.52/.53 precedent; disclosed, never smoothed) ──
+// THE CELL WAS TRUE AND STAYS TRUE; its SPELLING moved by ruling. P6 wrote the
+// split as `{hasActiveFilters ? (`. F-07.73's cure (C′, CE-ratified) added the
+// virtual end slot, which made this branch reachable at the END of a WALKED deck
+// for the first time — and on a filtered deck the old spelling would have told
+// her "Nothing matches those filters yet." about cards she had just looked at one
+// by one. That is P6's own false-sentence class returning through a door P6 could
+// not see, so the arm now also requires the result to be actually empty.
+//
+// THE MECHANISM-NOT-RESEMBLANCE TEST, applied: this cell's subject was never the
+// literal. It is "two situations get two sentences, chosen by whether she has
+// filters up." That is still exactly what the code does. The cell is re-aimed at
+// the mechanism and gains a TRIPWIRE arm — the RETIRED spelling must NOT return,
+// because its return would be the regression, not the cure.
 ok('§11.3 they are SPLIT on hasActiveFilters — not one string for both',
-  /\{hasActiveFilters \? \(/.test(S));
+  /\{hasActiveFilters && vendors\.length === 0 \? \(/.test(S) &&
+  !/\{hasActiveFilters \? \(/.test(S),
+  'the split is gone, or the pre-F-07.73 spelling has returned and with it the lie at a walked deck\'s end');
 ok('§11.4 CLEAR FILTERS is a real affordance — it resets every axis, not just one',
   /setFilters\(\{category:null,city:null,vibes:\[\],budget:null\}\)/.test(S));
 

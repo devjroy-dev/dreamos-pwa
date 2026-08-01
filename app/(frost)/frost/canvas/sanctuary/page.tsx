@@ -12,7 +12,7 @@ import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useFrostMode } from '../../../layout';
 import { setFrostMode } from '../../../../../lib/frost/tokens';
-import { EASE, FROST_COPY, daysUntil } from '../../../../../lib/frost/tokens';
+import { EASE, FROST_COPY, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
@@ -54,6 +54,41 @@ const DEMO_ENGAGEMENT = new Date('2026-04-11T00:00:00+05:30');
 function getWeddingDate():Date{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);if(s?.wedding_date)return new Date(s.wedding_date);}}catch{}return DEMO_WEDDING; }
 function getEngagementDate():Date{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);if(s?.engagement_date)return new Date(s.engagement_date);}}catch{}return DEMO_ENGAGEMENT; }
 function getBrideName():string{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);const n=(s?.user_name||s?.bride_name||s?.name||'').trim().split(' ')[0];if(n)return n;}}catch{}return 'Priya'; }
+// ── F-07.70 · THE ONE TOKEN DOOR FOR THIS FILE (fork A′-iii, CE-ruled) ────────
+// EVERY token read on this surface now goes through here, and here goes through
+// lib/frost-api/_base.ts's `getAccessToken()` — the authority that carries
+// F-07.65's LANE ASSERTION. Before this cure TWELVE reads in this file called
+// localStorage.getItem('access_token') directly and were therefore blind to that
+// assertion: on a device where a vendor signed in last, the bare slot holds HIS
+// JWT, the authority refuses it, and these twelve handed it to the server anyway
+// as if it were hers. That is the crossover disease, and this room was the last
+// one in the estate still carrying it.
+//
+// THE FALLBACK IS THE DEMO LANE'S ONLY DOOR, and naming its mechanism here is
+// F-06.85's standing law rather than politeness: app/demo/bride/page.tsx:42
+// writes `access_token: 'demo_bride_token'` INSIDE the couple_session blob and
+// never writes the bare key at all. Six sites in this file carried
+// `bare || s?.token || s?.access_token` for exactly that reason, and dropping it
+// would have logged the demo bride out of six surfaces. If that writer ever moves
+// its token to the bare key, this fallback becomes dead and should be REMOVED,
+// not left to rot.
+//
+// THE FALLBACK CANNOT RE-ADMIT THE CROSSOVER, which is the whole reason it is
+// allowed to survive: it reads the COUPLE blob, and the couple blob is the couple
+// lane's own record. The assertion refuses the bare slot by comparing it against
+// the VENDOR blob (_base.ts:189-202). No writer in this repo puts a vendor token
+// into couple_session, so this door is not one the vendor can walk through.
+function coupleAccessToken(): string | null {
+  const authoritative = getAccessToken();
+  if (authoritative) return authoritative;
+  try {
+    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
+    if (!raw) return null;
+    const s = JSON.parse(raw) as { token?: string; access_token?: string };
+    return s?.token || s?.access_token || null;
+  } catch { return null; }
+}
+
 function daysSince(d:Date):number{const t=new Date();t.setHours(0,0,0,0);const e=new Date(d);e.setHours(0,0,0,0);return Math.max(0,Math.round((t.getTime()-e.getTime())/86400000));}
 function arcProgress(d:number):number{return Math.max(0,Math.min(1,1-d/365));}
 function arcPoint(t:number){const p0={x:18,y:92},p1={x:160,y:4},p2={x:302,y:92};const u=1-t;return{x:u*u*p0.x+2*u*t*p1.x+t*t*p2.x,y:u*u*p0.y+2*u*t*p1.y+t*t*p2.y};}
@@ -204,9 +239,8 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
     if(!newVendor.trim()||!newAmount) return;
     setSaving(true);
     try {
-      const token    = typeof window!=='undefined'?localStorage.getItem('access_token'):null;
-      const raw      = typeof window!=='undefined'?(localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session')):null;
-      const coupleId = raw?JSON.parse(raw)?.id:null;
+      const token    = getAccessToken();
+      const coupleId = getCoupleIdForFrost();
       if(token&&coupleId){
         const res = await fetch(`https://dream-os-production.up.railway.app/api/v2/couple/expenses/${coupleId}`,{
           method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
@@ -1411,10 +1445,31 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     toLoad.forEach(s=>{const img=new Image();img.src=imgUrl(s,'card');});
   },[vIdx,imgIdx,vendor,vendors,photos]);
 
+  // ── F-07.73 CURED · THE VIRTUAL END SLOT (fork C1, CE-ratified) ──────────────
+  // THE STATE THE FOUNDER APPROVED COULD NOT BE REACHED. The empty state below
+  // ("That's everyone, for now." + CHECK BACK SOON) gates on `!vendor`, and this
+  // clamp read `vIdx >= vendors.length - 1` — so on a populated deck `vendors[vIdx]`
+  // was NEVER undefined and the approved sentence had no path. She walked to the
+  // last card and the deck simply stopped moving, which says nothing at all.
+  //
+  // THE CLAMP NOW DEPENDS ON `hasMore`, and that is the whole cure. `hasMore` is
+  // the SERVER's word, not this room's inference: the prefetch effect above fires
+  // three cards from the end and only sets it false when a page comes back empty.
+  // So while the feed may still have pages, the clamp holds at the last card and
+  // the end state cannot render over an unexhausted feed. Once the server has said
+  // it is done, `vIdx` is allowed to reach `vendors.length` — a slot with no vendor
+  // in it — and the existing branch renders the founder's approved pair unchanged.
+  // ZERO new copy: the sentence was always written, it simply had no door.
+  //
+  // goPrevV needs nothing: from the virtual slot `vIdx <= 0` is false, so swipe-down
+  // already walks her back onto the last card. The prefetch effect short-circuits on
+  // `!hasMore` and the preload effect on `!vendor`, so neither runs at the slot.
+  // Blind mode is a separate axis (`blindIdx`, clamped independently) and the empty
+  // branch excludes it by `!isBlind` — the slot is invisible to blind by construction.
   const goNextV=React.useCallback(()=>{
-    if(vIdx>=vendors.length-1)return;
+    if(vIdx>=vendors.length-(hasMore?1:0))return;
     setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);haptic(5);
-  },[vIdx,vendors.length]);
+  },[vIdx,vendors.length,hasMore]);
 
   const goPrevV=React.useCallback(()=>{
     if(vIdx<=0)return;
@@ -1593,7 +1648,14 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   // enters the control inventory as such.
   if(!vendor&&!isBlind) return (
     <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12,padding:'0 32px'}}>
-      {hasActiveFilters ? (
+      {/* ── F-07.73 · C′ (CE-ratified) — THE FALSE SENTENCE DIES AT ITS SECOND
+           APPEARANCE. This arm used to fire on `hasActiveFilters` alone. With the
+           virtual end slot above, a bride who FILTERS and then walks the whole
+           filtered deck arrives here — and would have been told "Nothing matches
+           those filters yet." about cards she had just looked at one by one. That
+           is the same lie P6's split was vetoed to kill, wearing the other half's
+           clothes. The arm now also requires the result to be actually empty. */}
+      {hasActiveFilters && vendors.length === 0 ? (
         <>
           <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1,textAlign:'center'}}>Nothing matches those filters yet.</span>
           <button
@@ -2037,7 +2099,7 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(()=>{
-    const token=typeof window!=='undefined'?localStorage.getItem('access_token'):null;
+    const token=getAccessToken();
     if(token){ fetch('https://dream-os-production.up.railway.app/api/v2/couple/taste/profile',{headers:{'Authorization':`Bearer ${token}`}}).then(r=>r.json()).then(d=>{if(!d.taste_quiz_done)setShowTagOverlay(true);}).catch(()=>{}); }
   },[]);
 
@@ -2088,7 +2150,7 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
 
   const saveTags=async()=>{
     if(!selectedTags.length) return; setSavingTags(true);
-    try{ const token=typeof window!=='undefined'?localStorage.getItem('access_token'):null; if(token){ await fetch('https://dream-os-production.up.railway.app/api/v2/couple/taste',{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({tags:selectedTags})}); } setTagsSaved(true); setTimeout(()=>setShowTagOverlay(false),3000); }catch{}
+    try{ const token=getAccessToken(); if(token){ await fetch('https://dream-os-production.up.railway.app/api/v2/couple/taste',{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({tags:selectedTags})}); } setTagsSaved(true); setTimeout(()=>setShowTagOverlay(false),3000); }catch{}
     setSavingTags(false);
   };
 
@@ -2461,10 +2523,8 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
     let alive = true;
     const loadMessages = async () => {
       try {
-        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-        const s = raw ? JSON.parse(raw) : null;
-        const coupleId = s?.coupleId||s?.id;
-        const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+        const coupleId = getCoupleIdForFrost();
+        const token = coupleAccessToken();
         if(!coupleId) return;
         const res = await fetch(`${API_CIRCLE}/api/v2/frost/circle/messages/${coupleId}`,{
           headers: token?{Authorization:`Bearer ${token}`}:undefined,
@@ -2773,9 +2833,7 @@ function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
     setText('');
     setSending(true);
     try {
-      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-      const s = raw ? JSON.parse(raw) : null;
-      const coupleId = s?.coupleId||s?.id;
+      const coupleId = getCoupleIdForFrost();
       if(coupleId) {
         // No thread_id → backend resolves the canonical per-couple circle thread.
         await fetch(`${API}/api/v2/frost/circle/messages`,{
@@ -2848,12 +2906,11 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
   React.useEffect(()=>{
     const load = async () => {
       try {
-        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-        if(!raw) return;
-        const s = JSON.parse(raw);
-        const coupleId = s?.coupleId||s?.id;
-        // Token: check standalone key first (real brides), fall back to session object (demo)
-        const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+        // F-07.70: the `if(!raw) return` guard that stood here is subsumed by the
+        // `!coupleId||!token` guard below — getCoupleIdForFrost() returns null with
+        // no blob, so the same brides are turned away by the same line.
+        const coupleId = getCoupleIdForFrost();
+        const token = coupleAccessToken();
         if(!coupleId||!token) return;
         const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
         const res = await fetch(`${API}/api/v2/couple/pages/${coupleId}?limit=50`,{headers:{Authorization:`Bearer ${token}`}});
@@ -2885,10 +2942,12 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
     if(!selectedMood||!body.trim()||saving) return;
     setSaving(true);
     try {
+      // F-07.70: the blob guard is KEPT byte-for-behaviour — it is this caller's
+      // only "is she signed in" test, and the token check below cannot replace it
+      // now that the token may arrive from the authority without a blob present.
       const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
       if(!raw) return;
-      const s = JSON.parse(raw);
-      const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+      const token = coupleAccessToken();
       if(!token) return;
       const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
       const res = await fetch(`${API}/api/v2/couple/pages`,{
@@ -3119,9 +3178,7 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
   const saveCaption = async (id:string) => {
     setSavingCap(true);
     try {
-      const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-      const s = raw ? JSON.parse(raw) : null;
-      const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+      const token = coupleAccessToken();
       const res = await fetch(`${API}/api/v2/couple/muse/caption/${id}`,{
         method:'PATCH',
         headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
@@ -3159,11 +3216,10 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
   React.useEffect(()=>{
     const load = async () => {
       try {
-        const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-        if(!raw){setLoading(false);return;}
-        const s = JSON.parse(raw);
-        const coupleId = s?.coupleId||s?.id;
-        const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
+        // F-07.70: the `if(!raw)` guard is subsumed by the guard below, which sets
+        // the same loading state and turns away the same brides.
+        const coupleId = getCoupleIdForFrost();
+        const token = coupleAccessToken();
         if(!coupleId||!token){setLoading(false);return;}
         const res = await fetch(`${API}/api/v2/couple/moments/${coupleId}`,{headers:{Authorization:`Bearer ${token}`}});
         if(!res.ok){setLoading(false);return;}
@@ -3179,11 +3235,16 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
     const files = Array.from(e.target.files||[]).filter((f:File)=>f.type.startsWith('image/')) as File[];
     if(!files.length) return;
     setUploading(true);
+    // F-07.70: the blob guard is KEPT — it carries its own distinct copy and is
+    // this caller's only "is she signed in" test.
     const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
     if(!raw){showToast('Please log in to add moments.');setUploading(false);return;}
-    const s = JSON.parse(raw);
-    const token = localStorage.getItem('access_token')||s?.token||s?.access_token;
-    if(!token){showToast('Session expired.');setUploading(false);return;}
+    const token = coupleAccessToken();
+    // F-07.70 · THE PARITY BYTE, founder-ruled unconditionally at charter. This
+    // site spoke a bare twin of a sentence four sibling sites speak whole
+    // ((auth)/couple/onboarding:122,:154 · (frost)/canvas/onboarding:85,:126).
+    // The byte below is theirs, byte-identical — moved, never re-authored.
+    if(!token){showToast('Session expired. Please sign in again.');setUploading(false);return;}
     let added = 0;
     for(const file of files){
       try {
@@ -3374,7 +3435,7 @@ function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConcierge
     if(state==='sending'||state==='sent') return;
     setState('sending');
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getAccessToken();
       const res = await fetch(`${API}/api/v2/couple/concierge/request`,{
         method:'POST',
         headers:{'Authorization':`Bearer ${token||''}`,'Content-Type':'application/json'},
@@ -3512,8 +3573,13 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
     const aiId = uid();
     setMsgs(prev=>[...prev,{id:aiId,role:'assistant',content:'',pending:true}]);
 
-    const raw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-    const token = localStorage.getItem('access_token')||(raw?JSON.parse(raw)?.access_token:null);
+    // F-07.70 · DISCLOSED DEVIATION-BY-INCLUSION. The ruling named SIX fallback
+    // sites carrying `bare || s?.token || s?.access_token`. This is a SEVENTH,
+    // spelled differently (`bare || raw.access_token`) and therefore missed by the
+    // read-first's shape-match. It is the same class — the same demo-lane blob
+    // fallback, strictly narrower — so it adopts the same helper rather than being
+    // left as the one direct read the boundary cell would then have to excuse.
+    const token = coupleAccessToken();
 
     const ctrl = new AbortController();
     cancelRef.current = ()=>ctrl.abort();
@@ -3694,6 +3760,9 @@ export default function SanctuaryPage() {
   const [vendorsHint, setVendorsHint] = useState('');
   const [weekday,    setWeekday]    = useState('Wednesday morning');
   const [dateStamp,  setDateStamp]  = useState('');
+  // F-07.70 · fork B2's byte needs somewhere to land. This page carried no toast of
+  // its own — the four other toasts in this file belong to rooms, not to the shell.
+  const [bounceToast, setBounceToast] = useState('');
 
   // Bloom state
   const [activeRoom, setActiveRoom]   = useState<RoomKey>(null);
@@ -3750,30 +3819,67 @@ export default function SanctuaryPage() {
 
   useEffect(()=>{
     // ── Auth guard — if no session, go to landing ──────────────────────────
-    // F-05.29: this read was localStorage-only while lib/frost-api/_base.ts:134
-    // writes a tdw_couple_token cookie on EVERY token read, built precisely so an
-    // iOS ITP wipe cannot strand a bride. It stranded her anyway: seven days idle,
-    // valid credentials in the cookie, bounced to landing.
+    // F-05.29: this read was localStorage-only while lib/frost-api/_base.ts's
+    // getAccessToken writes a tdw_couple_token cookie on EVERY token read, built
+    // precisely so an iOS ITP wipe cannot strand a bride. It stranded her anyway:
+    // seven days idle, valid credentials in the cookie, bounced to landing.
     //
-    // THE SESSION LEG IS DELIBERATELY LEFT ALONE, derived not assumed:
-    //   (a) the guard short-circuits on the token, so a cookie-restored token
-    //       satisfies it without touching the session read at all;
-    //   (b) getAccessToken RESTORES the recovered token to localStorage, and this
-    //       effect runs at mount — so the ~20 later localStorage-only token reads
-    //       in this file heal on their own. That is what makes a two-line diff
-    //       sufficient here rather than merely small;
-    //   (c) giving the session leg its own cookie fallback would admit a
-    //       TOKEN-LESS bride into a surface whose every fetch needs a Bearer.
-    //       She would get an empty sanctuary instead of a landing page she can
-    //       sign in from. That widens a pre-existing weak branch for no gain.
+    // ── F-07.70 · THE HEALING SENTENCE THAT STOPPED BEING TRUE ────────────────
+    // WHAT STOOD HERE, and it was true when it was written: "getAccessToken
+    // RESTORES the recovered token to localStorage, and this effect runs at mount
+    // — so the ~20 later localStorage-only token reads in this file heal on their
+    // own. That is what makes a two-line diff sufficient here rather than merely
+    // small." F-07.65's cure made every clause of that false, and this amendment
+    // is F-06.85's law firing exactly as designed: a soul sentence conditioned on
+    // a mechanical fact must name the mechanism, so that the mechanism's next
+    // sitting is forced to re-read the sentence. This sitting was.
+    //
+    // THE NEW MECHANISM, stated so the next reader inherits it:
+    //   (a) THE RESTORE NO LONGER RUNS ON THE CASE THAT MATTERS. getAccessToken
+    //       asserts the lane BEFORE any cookie work (_base.ts:214). On a crossed
+    //       device the bare slot is non-empty — it holds the VENDOR's JWT — so the
+    //       function returns null down the first branch and never reaches the
+    //       restore. There is nothing to heal and nothing doing the healing.
+    //   (b) THE TWELVE READS NO LONGER EXIST TO HEAL. Every token read in this
+    //       file now goes through `coupleAccessToken()` (:57-90) and therefore
+    //       through the authority. The premise of the old sentence — direct reads
+    //       downstream, waiting to be rescued by a value in localStorage — has been
+    //       deleted rather than repaired.
+    //   (c) THIS GUARD IS NOW THE FRONT DOOR'S TRUTH, not a formality the later
+    //       reads made redundant. Fork B2, CE-ruled: it refuses on the TOKEN,
+    //       because a refused token with a surviving couple_session blob is exactly
+    //       the crossover — she gets a room that loads and then fails every fetch
+    //       inside it. A half-alive room is the silent wrong-self wearing a
+    //       different coat, and F-05.30's reversal already ruled against it.
+    //   (d) THE DEMO LANE IS SACRED AND IS WHY THIS IS NOT `if(!token)`.
+    //       app/demo/bride/page.tsx writes NO bare access_token — her token lives
+    //       inside the blob — so getAccessToken() returns null for every demo
+    //       bride. Bouncing on the token alone would evict the entire demo lane.
+    //       The blob's own `demo:true` is the exemption, and it is the blob's word
+    //       about itself, not an inference about her.
+    //   (e) giving the session leg its own cookie fallback would admit a TOKEN-LESS
+    //       bride into a surface whose every fetch needs a Bearer. Unchanged.
     const token = getAccessToken();
     const session = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-    if(!token && !session){ window.location.replace('/'); return; }
+    const isDemo = (() => { try { const s = JSON.parse(session||'{}'); return !!s?.demo; } catch { return false; } })();
+    if(!token && !isDemo){
+      // THE PARITY BYTE AT THE GUARD (founder-ruled, this site named and approved).
+      // The frozen sentence, byte-identical to its four siblings. THE BOUNCE IS
+      // DELAYED ON PURPOSE, and this is the executor's disclosed choice rather than
+      // a ruled one: window.location.replace is a HARD navigation, so a toast shown
+      // in the same tick is destroyed before it paints. A sentence nobody can read
+      // is not an honest sign-in, it is the silent bounce with extra code. The delay
+      // is the shortest that lets the byte land.
+      setBounceToast('Session expired. Please sign in again.');
+      setTimeout(()=>{ window.location.replace('/'); }, 1600);
+      return;
+    }
 
     // ── Onboarding guard — if onboarding not complete, go to onboarding ───
     // Check via API so we always have fresh state, not just cached session.
     // Non-fatal: if fetch fails, proceed to Sanctuary normally.
-    const isDemo = (() => { try { const s = JSON.parse(localStorage.getItem('couple_session')||'{}'); return !!s?.demo; } catch { return false; } })();
+    // F-07.70: `isDemo` is derived once at the guard above and reused here — it was
+    // the same question asked twice off two separate reads of the same blob.
     if(token && !isDemo) {
       fetch('https://dream-os-production.up.railway.app/api/v2/couple/me',{
         headers:{'Authorization':`Bearer ${token}`},
@@ -3894,10 +4000,8 @@ export default function SanctuaryPage() {
     } catch {}
 
     // ── Live hints fetch ──────────────────────────────────────────────────
-    const hintsRaw = localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');
-    const hintsToken = localStorage.getItem('access_token');
-    const hintsSession = hintsRaw ? JSON.parse(hintsRaw) : null;
-    const coupleId = hintsSession?.coupleId||hintsSession?.id;
+    const hintsToken = getAccessToken();
+    const coupleId = getCoupleIdForFrost();
     const API = 'https://dream-os-production.up.railway.app';
     if(coupleId && hintsToken) {
       // Circle + people hints
@@ -4421,6 +4525,11 @@ function timeAgoShort(iso:string):string {
           </div>
         </div>
       )}
+
+      {/* F-07.70 · fork B2's frozen byte. Render shape copied from the MomentsRoom
+          toast in this same file rather than invented, so the shell speaks in the
+          room's own voice on the way out. */}
+      {bounceToast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px)+16px)',left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:900,pointerEvents:'none',whiteSpace:'nowrap'}}>{bounceToast}</div>}
     </div>
   );
 }
