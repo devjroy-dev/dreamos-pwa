@@ -3,6 +3,23 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, Toast } from '../../_components/AdminUI';
 import { getVendorThreads, getMessages, type ConversationThread, type Message } from '../../../../lib/admin-api/index';
 
+// ── F-b CURED — THE EMPTY ROOM THAT WASN'T ──────────────────────────────────
+// THIS READ: `.catch(() => setLoading(false))`. The error was swallowed, the
+// list stayed [], and the screen rendered 「 No conversations yet 」 — a FALSE
+// SENTENCE over a 500. The founder watched this page tell him he had no vendor
+// conversations while the server was answering "column conversations.channel
+// does not exist". F-a fixed that query; this fixes the screen's honesty, and
+// the two are separate cures because the next server error will not be a
+// phantom column.
+//
+// Both conversation screens carry the identical shape. The sibling was cured in
+// the same delivery even though it has never errored — a class that survives on
+// one screen is a class that survives (the F-07.68 geometry).
+//
+// VETO PENDING: LOAD_FAILED is the LE's DRAFT, the only new byte of copy here.
+const LOAD_FAILED = 'Could not load conversations.';
+const RETRY       = 'Try again';
+
 function timeAgo(d: string) {
   const diff = Date.now() - new Date(d).getTime();
   const m = Math.floor(diff / 60000);
@@ -37,6 +54,7 @@ function MessageBubble({ msg }: { msg: Message }) {
 export default function VendorConversationsPage() {
   const [threads, setThreads]   = useState<ConversationThread[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [openId, setOpenId]     = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
@@ -44,7 +62,9 @@ export default function VendorConversationsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    getVendorThreads().then(d => { setThreads(d.threads); setLoading(false); }).catch(() => setLoading(false));
+    setLoadFailed(false);
+    getVendorThreads().then(d => { setThreads(d.threads); setLoading(false); })
+      .catch(() => { setLoadFailed(true); setLoading(false); });
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -67,6 +87,11 @@ export default function VendorConversationsPage() {
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
           {[1,2,3,4].map(i => <div key={i} className="shimmer" style={{ background: T.card, borderRadius: 12, height: 68 }} />)}
+        </div>
+      ) : loadFailed ? (
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <div style={{ color: T.muted, fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 18 }}>{LOAD_FAILED}</div>
+          <div onClick={load} style={{ marginTop: 14, display: 'inline-block', cursor: 'pointer', fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: T.gold }}>{RETRY}</div>
         </div>
       ) : threads.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: T.muted, fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 18 }}>No conversations yet</div>
