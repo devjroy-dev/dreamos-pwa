@@ -2,6 +2,7 @@
 // scripts/tdw07_f0789_conversations.proof.mjs
 // F-b — the false empty state on BOTH conversation screens.
 import fs from 'fs'; import path from 'path'; import { fileURLToPath } from 'url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
@@ -12,20 +13,12 @@ const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
 // requires it to do. A cell that reads prose convicts the documentation of the
 // cure. Greens are never bought by deleting evidence (the F-07.52 ruling): the
 // comment stays, the cell moved to code.
-function strip(src) {
-  let o='', i=0, q=null, ln=false, bl=false;
-  while (i < src.length) {
-    const c = src[i], n = src[i+1];
-    if (ln)  { if (c === '\n') { ln = false; o += c; } i++; continue; }
-    if (bl)  { if (c === '*' && n === '/') { bl = false; i += 2; } else i++; continue; }
-    if (q)   { o += c; if (c === '\\') { o += src[i+1] || ''; i += 2; continue; } if (c === q) q = null; i++; continue; }
-    if (c === "'" || c === '"' || c === '`') { q = c; o += c; i++; continue; }
-    if (c === '/' && n === '/') { ln = true; i += 2; continue; }
-    if (c === '/' && n === '*') { bl = true; i += 2; continue; }
-    o += c; i++;
-  }
-  return o;
-}
+// ── F-07.74 · CONVERGED ON THE ONE MODULE ────────────────────────────────────
+// This bench shipped its own copy of the cured scanner after CE-120. Three copies
+// of a correct rule are still three definitions of "code"; the module is the one
+// home, and it additionally preserves newlines inside stripped comments, which
+// this inline copy did not.
+const strip = stripComments;
 let pass=0, fail=0;
 const ok=(n,c)=>{ if(c){pass++;console.log(`  PASS  ${n}`);} else {fail++;console.log(`  FAIL  ${n}`);} };
 const sec=t=>console.log(`\n${t}`);
@@ -34,6 +27,38 @@ const SCREENS = [
   ['vendors', 'app/admin/conversations/vendors/page.tsx'],
   ['brides',  'app/admin/conversations/brides/page.tsx'],
 ];
+
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §0 · THE CANARY — TDW_STRIPPER_CANARY (CE-120's law; F-07.74's cure)
+// ═════════════════════════════════════════════════════════════════════════════
+// The retired stripper treated the `/*` inside `accept="image/*"` as a comment
+// open and deleted to the next real `*/`. Every absence-cell downstream of that
+// deletion was acquitting over code it could not see — proven per instance by the
+// plant-inside-the-bite probe, which stayed GREEN with the forbidden specimens
+// planted inside the bite and REDDENS under the cure.
+//
+// The anchors below are LIVE CODE at the head, waist and tail of this bench's
+// principal subject file. If a future stripper eats a region it eats one of them
+// and this section reddens FIRST. §0.X drives the stripper directly (the mechanism,
+// not the source — a planted `image/*` in production code is correctly harmless
+// now), §0.Y is its vacuity twin, and §0.Z is F-07.99's cell: a definition with no
+// call-site fooled this estate for a whole block, so the call-site is asserted.
+sec('§0 · THE CANARY — the stripper must not swallow live code');
+{
+  const _c = strip(read('app/admin/conversations/vendors/page.tsx'));
+  ok('§0.1 canary survives stripping — page.tsx: const m = Math.floor(diff / 60000);', _c.includes('const m = Math.floor(diff / 60000);'));
+  ok('§0.2 canary survives stripping — page.tsx: getVendorThreads().then(d => { setThreads(d.', _c.includes('getVendorThreads().then(d => { setThreads(d.threads); setLoading(false); })'));
+  ok('§0.3 canary survives stripping — page.tsx: <div style={{ flex: 1, minWidth: 0 }}>', _c.includes('<div style={{ flex: 1, minWidth: 0 }}>'));
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bstrip\s*\(/g) || []).length >= 2; })());
+}
 
 sec('§1 · THE SWALLOWED ERROR IS DEAD ON BOTH SCREENS');
 for (const [name, p] of SCREENS) {

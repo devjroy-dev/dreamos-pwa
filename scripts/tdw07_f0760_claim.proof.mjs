@@ -32,6 +32,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
@@ -46,9 +47,12 @@ const sec = (t) => console.log('\n' + t);
 // `?claim=1` both survive in prose at the very sites that no longer perform them.
 // A cell reading raw text would acquit or convict on a comment. CELLS JUDGE CODE.
 const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const code = (rel) => raw(rel)
-  .split('\n').map(l => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n')
-  .replace(/\/\*[\s\S]*?\*\//g, '');
+// ── F-07.74 CURED · THE ONE STRIPPER (CE-ruled F1→(b1), F2→(a)) ──────────────
+// This file used to carry its own copy of the naive rule. Eleven such copies
+// existed across ten proofs and every one of them swallowed live code from an
+// `accept="image/*"` to the next real `*/`. The definition now lives at
+// scripts/lib/stripComments.mjs and nowhere else. §0 below carries the canaries.
+const code = (rel) => stripComments(raw(rel));
 
 const SHEET_P   = 'components/demo/DemoClaimSheet.tsx';
 const HEADER_P  = 'components/demo/DemoVendorHeader.tsx';
@@ -61,6 +65,38 @@ const L = code(LANDING_P), Lr = raw(LANDING_P);
 console.log('TDW_07 · F-07.60 — the claim flow opens in place');
 
 // ═══════════════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §0 · THE CANARY — TDW_STRIPPER_CANARY (CE-120's law; F-07.74's cure)
+// ═════════════════════════════════════════════════════════════════════════════
+// The retired stripper treated the `/*` inside `accept="image/*"` as a comment
+// open and deleted to the next real `*/`. Every absence-cell downstream of that
+// deletion was acquitting over code it could not see — proven per instance by the
+// plant-inside-the-bite probe, which stayed GREEN with the forbidden specimens
+// planted inside the bite and REDDENS under the cure.
+//
+// The anchors below are LIVE CODE at the head, waist and tail of this bench's
+// principal subject file. If a future stripper eats a region it eats one of them
+// and this section reddens FIRST. §0.X drives the stripper directly (the mechanism,
+// not the source — a planted `image/*` in production code is correctly harmless
+// now), §0.Y is its vacuity twin, and §0.Z is F-07.99's cell: a definition with no
+// call-site fooled this estate for a whole block, so the call-site is asserted.
+sec('§0 · THE CANARY — the stripper must not swallow live code');
+{
+  const _c = code('app/(landing)/page.tsx');
+  ok('§0.1 canary survives stripping — page.tsx: portfolio_images: string[];', _c.includes('portfolio_images: string[];'));
+  ok('§0.2 canary survives stripping — page.tsx: if (digits && i < 5) otpRefs.current[i + 1]?', _c.includes('if (digits && i < 5) otpRefs.current[i + 1]?.focus();'));
+  ok('§0.3 canary survives stripping — page.tsx: width: i === exploringIdx ? 20 : 4, height: ', _c.includes('width: i === exploringIdx ? 20 : 4, height: 4, borderRadius: 2,'));
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bcode\s*\(/g) || []).length >= 2; })());
+}
+
 sec('§1 · THE HEADER OPENS, IT NO LONGER SENDS');
 
 ok('§1.1 NO navigation to the claim query string survives in code',

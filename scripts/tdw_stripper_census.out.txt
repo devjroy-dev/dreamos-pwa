@@ -1,0 +1,60 @@
+═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
+repo tip: 5535e24c0c51214da6054da0754dbcaaed419295
+files scanned: 284
+
+app/(frost)/frost/canvas/muse/page.tsx
+   FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
+   BITE 1: chars 30545-30688  lines 527-533  span 143  LIVE 112
+
+app/(frost)/frost/canvas/onboarding/page.tsx
+   FALSE CLOSE :68   …ace(/,/g, '').replace(/RS\.?\s*/i, '
+
+app/(frost)/frost/canvas/sanctuary/page.tsx
+   FALSE OPEN  :2304   …Ref} type="file" accept="image/*" mu
+   FALSE OPEN  :3473   …Ref} type="file" accept="image/*" mu
+   BITE 1: chars 173869-177982  lines 2304-2380  span 4113  LIVE 3727
+   BITE 2: chars 239079-242178  lines 3473-3542  span 3099  LIVE 2792
+
+app/admin/_components/AdminUI.tsx
+   FALSE OPEN  :363   …nUrl, loading, accept = 'image/*' }:
+   BITE 1: chars 15534-16275  lines 363-383  span 741  LIVE 723
+
+app/admin/demo/page.tsx
+   FALSE OPEN  :260   …nput type="file" accept="image/*" on
+   BITE 1: chars 15022-15548  lines 260-272  span 526  LIVE 516
+
+app/admin/discover-heroes/page.tsx
+   FALSE OPEN  :430   …Ref} type="file" accept="image/*" on
+   BITE 1: chars 19260-19359  lines 430-432  span 99  LIVE 83
+
+app/admin/exploring/page.tsx
+   FALSE OPEN  :397   …                 accept="image/*"\n  
+   BITE 1: chars 17567-17721  lines 397-402  span 154  LIVE 141
+
+app/coplanner/muse/AddMuseSheet.tsx
+   FALSE OPEN  :166   …ile"\n            accept="image/*"\n  
+
+eslint.config.mjs
+   FALSE OPEN  :11   …eslint-config-next:\n    ".next/**",\n
+   FALSE OPEN  :12   …next:\n    ".next/**",\n    "out/**",\n
+   FALSE OPEN  :13   …/**",\n    "out/**",\n    "build/**",\n
+
+─── TOTALS ───
+false opens: 11 · false closes: 1
+false bites the RETIRED rule would take: 7 · span 8875 · LIVE CODE 8094
+
+─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
+   DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
+   DIVERGES from the lexer: app/(frost)/frost/canvas/dream/page.tsx
+   DIVERGES from the lexer: app/(frost)/frost/canvas/journey/people/page.tsx
+   DIVERGES from the lexer: app/(frost)/frost/canvas/sanctuary/page.tsx
+   DIVERGES from the lexer: app/(landing)/page.tsx
+   DIVERGES from the lexer: app/admin/dashboard/page.tsx
+   DIVERGES from the lexer: app/demo/vendor/[handle]/discover/page.tsx
+   DIVERGES from the lexer: components/vendor/ChatThread.tsx
+   DIVERGES from the lexer: components/vendor/MessageBubble.tsx
+   DIVERGES from the lexer: lib/frost/igLink.ts
+   10 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
+
+─── THE RETIRED RULE, FOR CONTRAST ───
+   the retired naive rule disagrees with the compiler on 134 file(s).

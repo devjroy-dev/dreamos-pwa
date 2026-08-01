@@ -2,21 +2,18 @@
 // scripts/tdw07_f0790_dashboard.proof.mjs
 // F-07.90 at the DASHBOARD — six tiles that turned failures into confident zeros.
 import fs from 'fs'; import path from 'path'; import { fileURLToPath } from 'url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
 let pass=0, fail=0;
 const ok=(n,c)=>{ if(c){pass++;console.log(`  PASS  ${n}`);} else {fail++;console.log(`  FAIL  ${n}`);} };
 const sec=t=>console.log(`\n${t}`);
-function strip(src){let o='',i=0,q=null,ln=false,bl=false;
-  while(i<src.length){const c=src[i],n=src[i+1];
-    if(ln){if(c==='\n'){ln=false;o+=c;}i++;continue;}
-    if(bl){if(c==='*'&&n==='/'){bl=false;i+=2;}else i++;continue;}
-    if(q){o+=c;if(c==='\\'){o+=src[i+1]||'';i+=2;continue;}if(c===q)q=null;i++;continue;}
-    if(c==="'"||c==='"'||c==='`'){q=c;o+=c;i++;continue;}
-    if(c==='/'&&n==='/'){ln=true;i+=2;continue;}
-    if(c==='/'&&n==='*'){bl=true;i+=2;continue;}
-    o+=c;i++;}
-  return o;}
+// ── F-07.74 · CONVERGED ON THE ONE MODULE ────────────────────────────────────
+// This bench shipped its own copy of the cured scanner after CE-120. Three copies
+// of a correct rule are still three definitions of "code"; the module is the one
+// home, and it additionally preserves newlines inside stripped comments, which
+// this inline copy did not.
+const strip = stripComments;
 
 const P = 'app/admin/page.tsx';
 const raw = read(P), src = strip(raw);
@@ -27,6 +24,26 @@ sec('§0 · CANARY');
   ok('§0.1 comment prose is removed', !src.includes('quiet Tuesday'));
   ok('§0.2 CANARY: the component survives stripping', /export default function AdminDashboard/.test(src));
   ok('§0.3 VACUITY TWIN: the stripper is not a no-op', src.length < raw.length);
+
+// ── §0 ADDENDUM · TDW_STRIPPER_CANARY (F-07.74's cure, CE-ruled) ─────────────
+// This bench already carried per-file anchors. What it did not carry — what NO
+// bench carried — is a cell aimed at the STRIPPER itself, and a cell proving the
+// stripper is actually CALLED (F-07.99: a definition with no call-site fooled
+// this estate for a whole block). Both land here, and the coverage cell in
+// tdw_f0774_stripper.proof.mjs derives this list instead of quoting a note.
+{
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              // DERIVED, not guessed: this bench strips exactly ONE file (app/admin/page.tsx)
+              // exactly ONCE, at :22. One call-site is the whole population here.
+              return (self.match(/\bstrip\s*\(/g) || []).length >= 1; })());
+}
+
 }
 
 sec('§1 · NO ARM INVENTS AN EMPTY COLLECTION ANY MORE');

@@ -6,6 +6,7 @@
 import fs   from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -34,25 +35,11 @@ function walk(dir, out = []) {
   return out;
 }
 
-function stripComments(src) {
-  let out = '', i = 0, inS = null, inLine = false, inBlock = false;
-  while (i < src.length) {
-    const c = src[i], n = src[i + 1];
-    if (inLine)  { if (c === '\n') { inLine = false; out += c; } i++; continue; }
-    if (inBlock) { if (c === '*' && n === '/') { inBlock = false; i += 2; } else i++; continue; }
-    if (inS) {
-      out += c;
-      if (c === '\\') { out += src[i + 1] || ''; i += 2; continue; }
-      if (c === inS) inS = null;
-      i++; continue;
-    }
-    if (c === "'" || c === '"' || c === '`') { inS = c; out += c; i++; continue; }
-    if (c === '/' && n === '/') { inLine  = true; i += 2; continue; }
-    if (c === '/' && n === '*') { inBlock = true; i += 2; continue; }
-    out += c; i++;
-  }
-  return out;
-}
+// ── F-07.74 · CONVERGED ON THE ONE MODULE ────────────────────────────────────
+// This bench shipped its own copy of the cured scanner after CE-120. Three copies
+// of a correct rule are still three definitions of "code"; the module is the one
+// home, and it additionally preserves newlines inside stripped comments, which
+// this inline copy did not.
 
 const ADMIN_FILES = walk(R('app/admin'));
 const LIB_FILES   = walk(R('lib/admin-api'));
@@ -68,6 +55,24 @@ sec('§0 · THE CANARY — the stripper does not swallow live code');
   ok('§0.4 VACUITY TWIN: the stripper is not a no-op', s.length < src.length);
   ok('§0.5 CANARY: F-07.74\'s own shape does not swallow the file',
      stripComments(`const a = 'image/*'; const KEEP = 1; /* x */ const B = 2;`).includes('KEEP'));
+
+// ── §0 ADDENDUM · TDW_STRIPPER_CANARY (F-07.74's cure, CE-ruled) ─────────────
+// This bench already carried per-file anchors. What it did not carry — what NO
+// bench carried — is a cell aimed at the STRIPPER itself, and a cell proving the
+// stripper is actually CALLED (F-07.99: a definition with no call-site fooled
+// this estate for a whole block). Both land here, and the coverage cell in
+// tdw_f0774_stripper.proof.mjs derives this list instead of quoting a note.
+{
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bstripComments\s*\(/g) || []).length >= 2; })());
+}
+
 }
 
 // ── §1 · F-07.84 — THE CREDENTIAL HAS LEFT THE CLIENT ────────────────────────

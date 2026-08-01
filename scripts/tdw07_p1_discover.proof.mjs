@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -22,10 +23,16 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 // Lifted VERBATIM from scripts/tdw07_p4b_body.proof.mjs:35-38 — the estate's one
 // comment-stripper, lines first then blocks then JSX blocks. Ported rather than
 // re-authored so the two proofs cannot drift into two definitions of "code".
-const stripComments = (src) => src
-  .replace(/(^|[^:])\/\/.*$/gm, '$1')
-  .replace(/\/\*[\s\S]*?\*\//g, '')
-  .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+// ── F-07.99 CURED · THE PORT THAT WAS NEVER WIRED ────────────────────────────
+// F-07.52 ported the stripper here VERBATIM from p4b_body "so the two proofs
+// cannot drift into two definitions of code". The port was never called: a
+// `grep -c stripComments` on this file returned 1, its own definition, and every
+// cell below read RAW for a whole block while CE-120 named this bench exposed to
+// the swallow. One home nobody lives in. The definition now comes from the shared
+// module AND the reads below actually pass through it; §0's invocation cell
+// proves the call-site exists, because a definition without one has already
+// fooled this estate once.
+// COUNT HELD: 35/35 before and after the wiring, derived by command.
 
 let pass = 0, fail = 0;
 const ok = (label, cond, detail) => {
@@ -34,9 +41,9 @@ const ok = (label, cond, detail) => {
 };
 const section = (t) => console.log(`\n${t}`);
 
-const TYPES = read('lib/types/discover.ts');
-const IG    = read('lib/frost/igLink.ts');
-const ADMIN = read('app/admin/config/page.tsx');
+const TYPES = stripComments(read('lib/types/discover.ts'));
+const IG    = stripComments(read('lib/frost/igLink.ts'));
+const ADMIN = stripComments(read('app/admin/config/page.tsx'));
 // ── LABELED AMENDMENT · TDW_07 P6 · F-07.43 「 F-D 」 (CE-ruled) ──────────────────────
 // `PAGE` WAS THE ORPHAN DECK. The founder folded canvas/discover into sanctuary's Discover
 // room and that route is now a redirect. Every §4 cell below asserted the couple's gesture
@@ -44,7 +51,7 @@ const ADMIN = read('app/admin/config/page.tsx');
 // surface no couple could reach, and after the fold they would be guarding a stub.
 // PAGE is re-pointed at SANCTUARY: the deck the founder walks. Not one law is relaxed; the
 // cells look where the deck now lives, and for the first time they look where she is.
-const PAGE  = read('app/(frost)/frost/canvas/sanctuary/page.tsx');
+const PAGE  = stripComments(read('app/(frost)/frost/canvas/sanctuary/page.tsx'));
 
 // ── LABELED AMENDMENT (TDW_07 P4b · F1-b) — THE CHIP AND THE EYEBROW MOVED HOUSE. ──────
 // P1's §4 cells asserted IgChip and FeaturedEyebrow's properties against the canvas file,
@@ -57,8 +64,42 @@ const PAGE  = read('app/(frost)/frost/canvas/sanctuary/page.tsx');
 // only change is that it looks where the code now lives. `SURFACE` is the two files read as
 // one, because the deck's rendered surface IS both files after the extraction — the cells
 // were always about what a couple sees, never about which file it was typed in.
-const VIEW_ = read('components/shared/VendorProfileView.tsx');
+const VIEW_ = stripComments(read('components/shared/VendorProfileView.tsx'));
 const SURFACE = PAGE + '\n' + VIEW_;
+
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §0 · THE CANARY — TDW_STRIPPER_CANARY (CE-120's law; F-07.74's cure)
+// ═════════════════════════════════════════════════════════════════════════════
+// The retired stripper treated the `/*` inside `accept="image/*"` as a comment
+// open and deleted to the next real `*/`. Every absence-cell downstream of that
+// deletion was acquitting over code it could not see — proven per instance by the
+// plant-inside-the-bite probe, which stayed GREEN with the forbidden specimens
+// planted inside the bite and REDDENS under the cure.
+//
+// The anchors below are LIVE CODE at the head, waist and tail of this bench's
+// principal subject file. If a future stripper eats a region it eats one of them
+// and this section reddens FIRST. §0.X drives the stripper directly (the mechanism,
+// not the source — a planted `image/*` in production code is correctly harmless
+// now), §0.Y is its vacuity twin, and §0.Z is F-07.99's cell: a definition with no
+// call-site fooled this estate for a whole block, so the call-site is asserted.
+section('§0 · THE CANARY — the stripper must not swallow live code');
+{
+  const _c = stripComments(read('app/(frost)/frost/canvas/sanctuary/page.tsx'));
+  ok('§0.1 canary survives stripping — page.tsx: const prevReceipts = receipts;', _c.includes('const prevReceipts = receipts;'));
+  ok('§0.2 canary survives stripping — page.tsx: function fmtTime(t:string|null):string {', _c.includes('function fmtTime(t:string|null):string {'));
+  ok('§0.3 canary survives stripping — page.tsx: const saveTags=async()=>{', _c.includes('const saveTags=async()=>{'));
+  ok('§0.4 canary survives stripping — page.tsx: 0%,100% { opacity:0.5; box-shadow:0 0 6px ${', _c.includes('0%,100% { opacity:0.5; box-shadow:0 0 6px ${accent}44; }'));
+  ok('§0.5 canary survives stripping — page.tsx: const touchStartX = useRef(0);', _c.includes('const touchStartX = useRef(0);'));
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bstripComments\s*\(/g) || []).length >= 2; })());
+}
 
 section('§1 · DiscoverVendor declares its contract (F-07.3 cured)');
 ok('§1.1 is_demo is declared — the wire has sent it since the two-branch feed was born',

@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -33,9 +34,12 @@ const section = (t) => console.log(`\n${t}`);
 // sitting later. The alternative cure (reword the comments until the grep is happy) was
 // refused by name: that is a green earned by editing the evidence. Both cells now judge
 // CODE ONLY, through this stripper, and the comments stay exactly as written.
-const stripComments = (src) => src
-  .replace(/\/\*[\s\S]*?\*\//g, ' ')   // block comments, incl. JSX {/* … */} bodies
-  .replace(/^\s*\/\/.*$/gm, ' ');       // whole-line // comments
+// ── F-07.74 CURED · THE ONE STRIPPER ─────────────────────────────────────────
+// This copy was the only carrier that stripped BLOCKS FIRST — the ordering that
+// lets a line comment carrying a URL glob (`/wedding/auth/*`) open a phantom
+// block, the shape p3_portfolio:20-23 records as having eaten ten thousand
+// characters of app/vendor/layout.tsx once already. The shared module scans
+// characters and has no ordering to get wrong.
 
 const FLOOR    = read('lib/vendor/discoverFloor.ts');
 const DISCOVER = read('app/vendor/discover/page.tsx');
@@ -46,6 +50,38 @@ const HEADER   = read('components/vendor/Header.tsx');
 const FORM     = read('components/vendor/AtelierForm.tsx');
 
 // ─────────────────────────────────────────────────────────────────────────────────
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §0 · THE CANARY — TDW_STRIPPER_CANARY (CE-120's law; F-07.74's cure)
+// ═════════════════════════════════════════════════════════════════════════════
+// The retired stripper treated the `/*` inside `accept="image/*"` as a comment
+// open and deleted to the next real `*/`. Every absence-cell downstream of that
+// deletion was acquitting over code it could not see — proven per instance by the
+// plant-inside-the-bite probe, which stayed GREEN with the forbidden specimens
+// planted inside the bite and REDDENS under the cure.
+//
+// The anchors below are LIVE CODE at the head, waist and tail of this bench's
+// principal subject file. If a future stripper eats a region it eats one of them
+// and this section reddens FIRST. §0.X drives the stripper directly (the mechanism,
+// not the source — a planted `image/*` in production code is correctly harmless
+// now), §0.Y is its vacuity twin, and §0.Z is F-07.99's cell: a definition with no
+// call-site fooled this estate for a whole block, so the call-site is asserted.
+section('§0 · THE CANARY — the stripper must not swallow live code');
+{
+  const _c = stripComments(read('app/vendor/discover/profile/page.tsx'));
+  ok('§0.1 canary survives stripping — page.tsx: tags: string[]; travelNotes: string; rateMin', _c.includes('tags: string[]; travelNotes: string; rateMin: string; ig: string;'));
+  ok('§0.2 canary survives stripping — page.tsx: const res = await updateMe(patch);', _c.includes('const res = await updateMe(patch);'));
+  ok('§0.3 canary survives stripping — page.tsx: onChange={(v) => update({ discover_paused: v', _c.includes('onChange={(v) => update({ discover_paused: v })} />'));
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bstripComments\s*\(/g) || []).length >= 2; })());
+}
+
 section('§1 · THE FLOOR HAS ONE HOME');
 {
   ok('§1.1 lib/vendor/discoverFloor.ts exists and declares the number once',

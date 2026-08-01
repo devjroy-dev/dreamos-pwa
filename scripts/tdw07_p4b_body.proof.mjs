@@ -20,6 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
@@ -32,10 +33,12 @@ const sec = (t) => console.log('\n' + t);
 // "rate_max" all survive in prose at the very sites that no longer perform them. A cell
 // reading raw text would convict on the explanation. Cells judge CODE.
 const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const code = (rel) => raw(rel)
-  .replace(/(^|[^:])\/\/.*$/gm, '$1')
-  .replace(/\/\*[\s\S]*?\*\//g, '')
-  .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+// ── F-07.74 CURED · THE ONE STRIPPER (CE-ruled F1→(b1), F2→(a)) ──────────────
+// This file used to carry its own copy of the naive rule. Eleven such copies
+// existed across ten proofs and every one of them swallowed live code from an
+// `accept="image/*"` to the next real `*/`. The definition now lives at
+// scripts/lib/stripComments.mjs and nowhere else. §0 below carries the canaries.
+const code = (rel) => stripComments(raw(rel));
 
 const VIEW    = 'components/shared/VendorProfileView.tsx';
 // ── LABELED AMENDMENT · TDW_07 P6 · F-07.43 「 F-D 」 (CE-ruled) ──────────────────────
@@ -62,6 +65,40 @@ const API     = 'lib/vendor/api/vendor.ts';
 const GLYPH = '\u20b9';
 
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════════════════
+// §0 · THE CANARY — TDW_STRIPPER_CANARY (CE-120's law; F-07.74's cure)
+// ═════════════════════════════════════════════════════════════════════════════
+// The retired stripper treated the `/*` inside `accept="image/*"` as a comment
+// open and deleted to the next real `*/`. Every absence-cell downstream of that
+// deletion was acquitting over code it could not see — proven per instance by the
+// plant-inside-the-bite probe, which stayed GREEN with the forbidden specimens
+// planted inside the bite and REDDENS under the cure.
+//
+// The anchors below are LIVE CODE at the head, waist and tail of this bench's
+// principal subject file. If a future stripper eats a region it eats one of them
+// and this section reddens FIRST. §0.X drives the stripper directly (the mechanism,
+// not the source — a planted `image/*` in production code is correctly harmless
+// now), §0.Y is its vacuity twin, and §0.Z is F-07.99's cell: a definition with no
+// call-site fooled this estate for a whole block, so the call-site is asserted.
+sec('§0 · THE CANARY — the stripper must not swallow live code');
+{
+  const _c = code('app/(frost)/frost/canvas/sanctuary/page.tsx');
+  ok('§0.1 canary survives stripping — page.tsx: const prevReceipts = receipts;', _c.includes('const prevReceipts = receipts;'));
+  ok('§0.2 canary survives stripping — page.tsx: function fmtTime(t:string|null):string {', _c.includes('function fmtTime(t:string|null):string {'));
+  ok('§0.3 canary survives stripping — page.tsx: const saveTags=async()=>{', _c.includes('const saveTags=async()=>{'));
+  ok('§0.4 canary survives stripping — page.tsx: 0%,100% { opacity:0.5; box-shadow:0 0 6px ${', _c.includes('0%,100% { opacity:0.5; box-shadow:0 0 6px ${accent}44; }'));
+  ok('§0.5 canary survives stripping — page.tsx: const touchStartX = useRef(0);', _c.includes('const touchStartX = useRef(0);'));
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bcode\s*\(/g) || []).length >= 2; })());
+}
+
 sec('§1 · THE ONE RENDERER EXISTS (F1-b)');
 
 ok('§1.1 components/shared/VendorProfileView.tsx exists',
@@ -509,8 +546,8 @@ ok('§9.15b the wrap refuses a zero-or-one photo deck — `% 0` is NaN and `% 1`
 // restoring the exact rule the founder retired. A cap can be written a dozen ways; the cell
 // must assert the PROPERTY. The pager's bound must be the caller's count, unclamped and
 // unmodified — so no truncating arithmetic may appear in the file at all.
-const PAGER_CODE = PAGER_SRC
-  .replace(/(^|[^:])\/\/.*$/gm, '$1').replace(/\/\*[\s\S]*?\*\//g, '');
+// F-07.74: the SECOND inline copy this file carried. One module, one rule.
+const PAGER_CODE = stripComments(PAGER_SRC);
 ok('§9.16 no display cap grew back inside the shared pager — in ANY spelling',
   !/slice\(/.test(PAGER_CODE) && !/Math\.min/.test(PAGER_CODE) &&
   !/DISPLAY_PHOTO_LIMIT/.test(PAGER_CODE));

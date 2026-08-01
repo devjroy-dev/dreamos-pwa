@@ -29,6 +29,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const SELF = fileURLToPath(import.meta.url);
 const ROOT = path.join(path.dirname(SELF), '..');
@@ -70,9 +71,12 @@ const sec = (t) => console.log('\n' + t);
 // keeps this honest: anchors from the head, waist and tail of the file must all
 // survive stripping, so any future swallow REDDENS instead of acquitting.
 const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const code = (rel) => raw(rel)
-  .split('\n').map(l => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n')
-  .replace(/(^|[\s({\[;,=:>+&|?])\/\*[\s\S]*?\*\//g, '$1');
+// ── F-07.74 · CONVERGED ON THE ONE MODULE ────────────────────────────────────
+// F-07.70's own amendment (above) was the estate's FIRST correct answer to this
+// bug: a `/*` opens a comment only after a delimiter. It was right and it was a
+// fourth definition of "code". The module keeps the delimiter guard AND tracks
+// string literals, so this bench loses nothing and the estate gains one rule.
+const code = (rel) => stripComments(raw(rel));
 
 const SANCT_P  = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const BASE_P   = 'lib/frost-api/_base.ts';
@@ -108,6 +112,24 @@ const CANARY = [
 for (const [label, anchor] of CANARY)
   ok(`§0 canary ${label} survived stripping`, S.includes(anchor),
      'the comment stripper swallowed live code — every absence-cell downstream is vacuous');
+
+// ── §0 ADDENDUM · TDW_STRIPPER_CANARY (F-07.74's cure, CE-ruled) ─────────────
+// This bench already carried per-file anchors. What it did not carry — what NO
+// bench carried — is a cell aimed at the STRIPPER itself, and a cell proving the
+// stripper is actually CALLED (F-07.99: a definition with no call-site fooled
+// this estate for a whole block). Both land here, and the coverage cell in
+// tdw_f0774_stripper.proof.mjs derives this list instead of quoting a note.
+{
+  const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
+  ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',
+    stripComments(_spec).includes('KEEP_ME') && stripComments(_spec).includes('ALSO_KEEP'));
+  ok('§0.Y VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen',
+    !NAIVE_RETIRED(_spec).includes('KEEP_ME'));
+  ok('§0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one',
+    (() => { const self = stripComments(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'));
+              return (self.match(/\bcode\s*\(/g) || []).length >= 2; })());
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§1 · THE BOUNDARY — a count, not an eyeball');
