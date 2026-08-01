@@ -1576,6 +1576,55 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     }
   };
 
+  // ── F-07.73 v2 · THE GESTURE THAT WAS NEVER MOUNTED ───────────────────────
+  // THE EXECUTOR'S OWN DEFECT, WITNESSED ON THE FOUNDER WALK (step 4, RED).
+  // The virtual end slot shipped with a comment asserting "goPrevV needs
+  // nothing: from the slot `vIdx <= 0` is false, so swipe-down already walks her
+  // back." Every word of that was true about goPrevV AND IRRELEVANT, because the
+  // end-state branch returns EARLY at its own <div> and the deck's handlers are
+  // attached at the MAIN return below. goPrevV was never unreachable. It was
+  // never CALLED. There is no gesture on that screen at all, and the bride's only
+  // exit was the SANCTUARY chrome — she could walk to the end of the deck and not
+  // walk back, which makes a "virtual slot" a dead end wearing a slot's clothes.
+  //
+  // THE PROOF PASSED OVER IT. Cell §8.5 asserted goPrevV's body and is true and
+  // proves nothing, because the function it examines had no caller on the surface
+  // in question. That is CE-119's inked law — A TRUE CELL AIMED ONE SURFACE OVER —
+  // and it is why the v2 cell below asserts REACHABILITY (handler present on the
+  // end-state mount) rather than correctness of the callee. Existence cells cannot
+  // catch this class; only mount-site cells can.
+  //
+  // WHY THIS IS A DEDICATED HANDLER AND NOT `onTouchEnd` REUSED. The deck's
+  // handler also routes TAPS (:1529 → setPanelOpen(true), a vendor panel opened
+  // over no vendor) and HORIZONTAL swipes (nextImg/prevImg into a pager holding no
+  // photos). Attaching it here would have cured the swipe and minted two new
+  // defects on the same surface. This handler answers exactly one gesture — a
+  // downward swipe — and is deliberately deaf to the rest. Swipe-UP is ignored on
+  // purpose: there is nothing after the end slot, and a silent no-op is the honest
+  // answer to a request the deck cannot satisfy.
+  //
+  // THRESHOLD PARITY IS LOAD-BEARING: it reuses SWIPE_THRESHOLD/SWIPE_VELOCITY, so
+  // the wrist motion that moved her through the deck is the same one that carries
+  // her off the end slot. A different threshold here would be a second gesture
+  // language on the same journey.
+  const endTouchStart = useRef<{x:number;y:number;t:number}|null>(null);
+  const onEndTouchStart=(e:React.TouchEvent<HTMLDivElement>)=>{
+    const t=e.touches[0];
+    endTouchStart.current={x:t.clientX,y:t.clientY,t:Date.now()};
+  };
+  const onEndTouchEnd=(e:React.TouchEvent<HTMLDivElement>)=>{
+    const s=endTouchStart.current; if(!s)return; endTouchStart.current=null;
+    const end=e.changedTouches[0];
+    const dx=end.clientX-s.x, dy=end.clientY-s.y, dt=Date.now()-s.t;
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+    const vel=Math.max(ax,ay)/Math.max(dt,1);
+    if(Math.max(ax,ay)<=SWIPE_THRESHOLD&&vel<=SWIPE_VELOCITY)return;
+    // Vertical-down ONLY. goPrevV is already clamped at `vIdx<=0`, so on the
+    // genuinely-empty and empty-filter arms this is a no-op by the callee's own
+    // guard rather than by a condition duplicated here.
+    if(ay>ax&&dy>SWIPE_THRESHOLD) goPrevV();
+  };
+
   // ── F-07.39 CURED · THE SUCCESS TOAST THAT COULD NOT FAIL ─────────────────
   // THIS HANDLER READ: `await fetch(...)` with NO `res.ok` check, then
   // `spawnDiscToast('Vendor notified ✦ link saved in Vendors')` unconditionally.
@@ -1647,7 +1696,14 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   // split and approved both pairs; the CLEAR FILTERS affordance is ADDED-BY-RULING and
   // enters the control inventory as such.
   if(!vendor&&!isBlind) return (
-    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12,padding:'0 32px'}}>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#080608',gap:12,padding:'0 32px',touchAction:'none',userSelect:'none',WebkitUserSelect:'none' as any}}
+      onTouchStart={onEndTouchStart} onTouchEnd={onEndTouchEnd}>
+      {/* ── F-07.73 v2 — THE MOUNT. This div is the whole reason step 4 came back
+           RED: it is an EARLY RETURN, and the deck's onTouchStart/onTouchEnd live
+           on the main return below it. `touchAction:'none'` joins the handlers
+           deliberately — without it the downward drag is eligible to be consumed
+           as a scroll/pull gesture before the handler ever sees it, which would
+           reproduce the same silence through a different mechanism. */}
       {/* ── F-07.73 · C′ (CE-ratified) — THE FALSE SENTENCE DIES AT ITS SECOND
            APPEARANCE. This arm used to fire on `hasActiveFilters` alone. With the
            virtual end slot above, a bride who FILTERS and then walks the whole

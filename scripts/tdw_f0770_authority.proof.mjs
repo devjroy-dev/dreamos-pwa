@@ -322,8 +322,51 @@ ok('§8.4 THE END STATE CANNOT RENDER OVER AN UNEXHAUSTED FEED — the prefetch 
   /if\(!hasMore\|\|!vendors\.length\|\|vIdx<vendors\.length-3\) return;/.test(S) &&
   /else setHasMore\(false\);/.test(S));
 
-ok('§8.5 swipe-down returns her to the last card — goPrevV is untouched and unguarded against the slot',
+// ── §8.5 RE-AIMED (F-07.73 v2) · THE CELL THAT PASSED OVER A LIVE DEFECT ─────
+// THIS CELL PREVIOUSLY READ: `/const goPrevV=React\.useCallback\(\(\)=>\{\s*\n\s*
+// if\(vIdx<=0\)return;/` — an assertion about goPrevV's BODY. It was true at the
+// shipped tree, it is still true, and it certified a gesture that did not exist:
+// the end-state branch returns early at its own <div> and mounted no handler, so
+// goPrevV had no caller on that surface. Step 4 of the founder walk came back RED
+// against a green bench. CE-119's law — A TRUE CELL AIMED ONE SURFACE OVER — with
+// the executor as its author, hours after quoting it.
+//
+// THE RE-AIM: the callee's correctness is NOT the question and is demoted to §8.5c
+// as a supporting fact. The load-bearing cells assert the MOUNT. An existence cell
+// cannot distinguish "wired" from "written"; only a mount-site cell can.
+ok('§8.5a REACHABILITY — the end-state mount carries a touch-end handler',
+  /padding:'0 32px',touchAction:'none',userSelect:'none',WebkitUserSelect:'none' as any\}\}\s*\n\s*onTouchStart=\{onEndTouchStart\} onTouchEnd=\{onEndTouchEnd\}>/.test(S),
+  'the gesture is mounted on the surface that renders the slot, not one return below it');
+
+// THE HANDLER BODY IS DERIVED, NOT WINDOWED. §8.5d first shipped as a regex with a
+// 900-char lookahead and FAILED on the cured tree — the window ran past the
+// handler's closing brace into unrelated code that legitimately mentions
+// setPanelOpen. A cell whose boundary is a guessed character count is a cell that
+// reports on whatever happens to sit nearby. Slicing to the brace makes every
+// assertion below true of the handler AND ONLY the handler; if it is ever deleted
+// the slice is empty and the presence cells fail rather than silently pass.
+const _ehAt = S.indexOf('const onEndTouchEnd=');
+const END_HANDLER = _ehAt === -1 ? '' : S.slice(_ehAt, S.indexOf('\n  };', _ehAt) + 5);
+
+ok('§8.5b the mounted handler actually routes a downward swipe to goPrevV',
+  /if\(ay>ax&&dy>SWIPE_THRESHOLD\) goPrevV\(\);/.test(END_HANDLER) && END_HANDLER.length > 0);
+
+ok('§8.5c (supporting) goPrevV remains unguarded against the slot',
   /const goPrevV=React\.useCallback\(\(\)=>\{\s*\n\s*if\(vIdx<=0\)return;/.test(S));
+
+ok('§8.5d THE END SLOT IS DEAF TO THE GESTURES IT CANNOT HONOUR — no tap route, no photo route',
+  !/onTouchStart=\{onTouchStart\} onTouchEnd=\{onTouchEnd\}>\s*\n\s*\{\/\* ── F-07\.73 v2 — THE MOUNT/.test(S) &&
+  END_HANDLER.length > 0 &&
+  !/setPanelOpen|nextImg\(\)|prevImg\(\)|handleDoubleTap/.test(END_HANDLER),
+  'reusing the deck handler would have opened a vendor panel over no vendor and paged a photoless pager');
+
+ok('§8.5e gesture parity — the end slot reuses the deck\'s own thresholds',
+  /Math\.max\(ax,ay\)<=SWIPE_THRESHOLD&&vel<=SWIPE_VELOCITY\)return;/.test(END_HANDLER),
+  'one wrist motion for the whole journey');
+
+ok('§8.5f the swipe-down gesture is not consumed before the handler sees it',
+  /justifyContent:'center',background:'#080608',gap:12,padding:'0 32px',touchAction:'none'/.test(S),
+  'touchAction:none on the end mount — the silence had two available mechanisms, both closed');
 
 ok('§8.6 blind mode is a separate axis and the branch still excludes it',
   /if\(!vendor&&!isBlind\) return \(/.test(S) &&
@@ -439,6 +482,25 @@ if (!CELLS_ONLY) {
     [SANCT_P, '{hasActiveFilters && vendors.length === 0 ? (',
               '{hasActiveFilters ? (',
               'M-20 C′ un-gated — the false sentence at a walked deck\'s end ⇒ §8.7 RED'],
+    // ── M-21 IS THE SHIPPED DEFECT ITSELF, REPRODUCED ────────────────────────
+    // This mutation returns the tree to the exact byte-state the founder walked
+    // and step 4 failed against. It is the both-ways proof aimed at the real
+    // disease rather than a proxy for it. Note what it does NOT turn red: §8.5c,
+    // the old cell, stays GREEN under this mutation — which is the demonstration,
+    // in the harness itself, that the retired assertion could never have caught
+    // this. A mutation that leaves a cell green is evidence about the cell.
+    [SANCT_P, '\n      onTouchStart={onEndTouchStart} onTouchEnd={onEndTouchEnd}>',
+              '>',
+              'M-21 THE WALK-WITNESSED DEFECT — end slot unmounts its gesture ⇒ §8.5a/§8.5b RED'],
+    [SANCT_P, 'if(ay>ax&&dy>SWIPE_THRESHOLD) goPrevV();',
+              'if(ay>ax&&dy<-SWIPE_THRESHOLD) goPrevV();',
+              'M-22 the swipe inverted — down does nothing, up walks back ⇒ §8.5b RED'],
+    [SANCT_P, "padding:'0 32px',touchAction:'none',userSelect",
+              "padding:'0 32px',userSelect",
+              'M-23 the drag returns to being scroll-eligible ⇒ §8.5a/§8.5f RED'],
+    [SANCT_P, 'if(ay>ax&&dy>SWIPE_THRESHOLD) goPrevV();',
+              'if(ay>ax&&dy>SWIPE_THRESHOLD) { setPanelOpen(true); goPrevV(); }',
+              'M-24 the end slot given a route it cannot honour ⇒ §8.5d RED'],
   ];
 
   let mutPass = 0;
