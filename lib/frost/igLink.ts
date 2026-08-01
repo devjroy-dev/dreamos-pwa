@@ -66,6 +66,31 @@ export function openInstagram(handle: string | null | undefined): void {
   const h = normalizeIgHandle(handle);
   if (!h) return;
   if (typeof window === 'undefined') return;
+
+  // ── F-07.7 CURED · TDW_07 P6 — CURE (d), THE POINTER-COARSE SPLIT ──────────────────
+  // THE DISEASE. The web fallback fires from inside a 300ms timer, which lands OUTSIDE
+  // the tap's transient activation window. Browsers treat a window.open() with no live
+  // user activation as a popup, so on some browsers the first tap produced a permission
+  // prompt instead of a profile. Both legs worked; the papercut was the prompt.
+  //
+  // THE SPLIT. The probe only earns its timer where an Instagram app could plausibly
+  // claim the scheme — a COARSE pointer, i.e. a finger. On a FINE pointer (a mouse: a
+  // desktop browser, where no `instagram://` handler exists) the timer buys nothing and
+  // costs the activation, so the web profile opens SYNCHRONOUSLY inside the tap's own
+  // activation window and no popup heuristic ever fires.
+  //
+  // WHY `pointer: coarse` AND NOT A UA SNIFF: it asks the question we actually mean —
+  // "is this a finger?" — and it is the property the platform exposes for it. A device
+  // without matchMedia falls through to the probe, which is today's behaviour and the
+  // safe direction: the worst case is the prompt that already exists, never a dead tap.
+  const fine = typeof window.matchMedia === 'function' &&
+               window.matchMedia('(pointer: fine)').matches;
+  if (fine) {
+    try { window.open(igWebUrl(h), '_blank', 'noopener,noreferrer'); }
+    catch { /* popup blocked even inside activation — nothing further to attempt */ }
+    return;
+  }
+
   try {
     // The probe. A same-tab assignment is what lets the OS claim the scheme; opening
     // it in a new tab leaves an orphan blank tab behind on every platform.

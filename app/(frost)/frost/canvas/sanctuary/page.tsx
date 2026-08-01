@@ -21,6 +21,17 @@ import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 import { waNumberFor } from '@/lib/waNumbers';
+// ── TDW_07 P6 · THE FOLD UNDER F-D ────────────────────────────────────────────
+// sanctuary's Discover room IS the couple Discover surface (F-07.43, founder's 「 F-D 」).
+// /frost/canvas/discover is dead and its renderer, chip, eyebrow, dots, image variants and
+// gesture mechanics arrive here through their SHARED homes — never as a second copy.
+import VendorProfileView, { IgChip, FeaturedEyebrow } from '@/components/shared/VendorProfileView';
+import ImageDots from '@/components/shared/ImageDots';
+import { imgUrl, lqipUrl } from '@/lib/frost-api/img';
+import {
+  SWIPE_THRESHOLD, SWIPE_VELOCITY, TAP_MAX_MOVE, TAP_MAX_TIME, DOUBLE_TAP_MS,
+  OVERLAY_DISMISS, haptic, usePhotoPager,
+} from '@/lib/frost/photoPager';
 // TDW_07 P4b · F-07.16 — the estate's one money donor. Locked register: Rs 1,50,000.
 import { formatRs } from '@/lib/vendor/format';
 // F-05.29 (CE-64 filed, CE-65 micro): the front-door guard below reads the
@@ -578,7 +589,22 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
           <div>
             <div style={{padding:'14px 20px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>Enquired</div>
             {enquiries.map(e=>{
-              const waLink=`https://wa.me/917982159047?text=${encodeURIComponent('TDW-'+(e.routing_handle||e.vendor_id))}`;
+              // ── F-07.58 CURED · TDW_07 P6, fork (i) ratified ──────────────────────
+              // TWO DEFECTS IN ONE TEMPLATE LITERAL, both F-07.54's family on the REAL
+              // species. (1) The number was hardcoded against lib/waNumbers.ts:45's one
+              // home — F-07.69, the last raw copy on a couple surface. (2) The fallback
+              // `e.vendor_id` minted `TDW-<uuid>` as a ROUTING TOKEN, and the inbound
+              // resolver matches `vendors.routing_handle` ONLY (vendorInbound.js:723-725).
+              // A uuid reaches nothing: she taps, WhatsApp opens, and her message lands in
+              // a dead end or — at one thread — in an unrelated vendor's.
+              //
+              // FORK (i): handle-only. No handle ⇒ NO LINK, and the row still renders, so
+              // she keeps the information she owns (whom she enquired with) and loses only
+              // the affordance that was lying. That is F-07.54's geometry one plane over:
+              // the token and its link go null TOGETHER, never one without the other.
+              const waLink = e.routing_handle
+                ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + e.routing_handle)}`
+                : null;
               const meta=[e.category,e.city].filter(Boolean).join(' · ');
               return(
                 <div key={e.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
@@ -1130,20 +1156,23 @@ const DISC_VIBES      = ['Candid','Traditional','Luxury','Cinematic','Boho','Fes
 // F-07.34 — one home (see lib/frost/budgetBands.ts). Vetoed labels, values untouched.
 const DISC_BUDGETS    = BUDGET_BANDS;
 
-const DISC_SWIPE_THRESH = 42;
-const DISC_TAP_MOVE     = 10;
-const DISC_TAP_TIME     = 240;
-const DISC_DTAP_MS      = 270;
+// ── TDW_07 P6 · Fork 3(b) — THE GESTURE CONSTANTS LEFT THIS FILE ─────────────────
+// They were `SWIPE_THRESHOLD 42 · TAP_MAX_MOVE 10 · TAP_MAX_TIME 240 · DOUBLE_TAP_MS
+// 270`, and they are now imported from lib/frost/photoPager.ts AT EXACTLY THOSE VALUES.
+// The re-pin ran in that direction — the home adopted THIS room's numbers, not the
+// reverse — because §3 protects the mechanics couples have actually used, and this is the
+// only Discover surface they reach. Zero feel change here by construction; the proof is
+// the pager's own restated three-part cell set.
+//
+// `discHaptic` is likewise gone: `haptic` at the shared home has a byte-identical body.
 
 interface DiscFilterState { category:string|null; city:string|null; vibes:string[]; budget:string|null; }
-
-function discHaptic(ms:number){ if(typeof navigator!=='undefined'&&'vibrate' in navigator){ try{navigator.vibrate(ms);}catch{} } }
 
 function spawnDiscHeart(accent:string){
   if(typeof document==='undefined') return;
   const el=document.createElement('div');
   el.style.cssText=`position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:88px;z-index:9999;pointer-events:none;animation:discHeartPop 700ms cubic-bezier(0.22,1,0.36,1) forwards;color:${accent};`;
-  el.textContent='♥'; document.body.appendChild(el); setTimeout(()=>el.remove(),700); discHaptic(14);
+  el.textContent='♥'; document.body.appendChild(el); setTimeout(()=>el.remove(),700); haptic(14);
 }
 
 function spawnDiscToast(msg:string){
@@ -1232,9 +1261,9 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
 }
 
 // ── Vendor panel (slides up from peek nav tap) ────────────────────────────────
-function DiscVendorPanel({vendor,visible,onClose,accent,onEnquire,onCircleShare}:{
+function DiscVendorPanel({vendor,visible,onClose,onEnquire,onCircleShare}:{
   vendor:DiscoverVendor; visible:boolean; onClose:()=>void;
-  accent:string; onEnquire:()=>void; onCircleShare:()=>void;
+  onEnquire:()=>void; onCircleShare:()=>void;
 }) {
   const dragY   = React.useRef(0);
   const [delta, setDelta] = React.useState(0);
@@ -1252,186 +1281,86 @@ function DiscVendorPanel({vendor,visible,onClose,accent,onEnquire,onCircleShare}
     }}
       onTouchStart={e=>{dragY.current=e.touches[0].clientY;dragging.current=true;setDelta(0);}}
       onTouchMove={e=>{const d=e.touches[0].clientY-dragY.current;if(d>0)setDelta(d);}}
-      onTouchEnd={()=>{dragging.current=false;if(delta>80){setDelta(0);onClose();}else setDelta(0);}}
+      // TDW_07 P6 — the panel's dismiss threshold was an inline `80`, byte-equal to the
+      // shared home's OVERLAY_DISMISS but not JOINED to it. The re-aimed §7 cell caught it
+      // on first contact: a constant that merely agrees is not one home, it is two numbers
+      // that happen to match until someone tunes one. Zero feel change; same number, now
+      // the same source.
+      onTouchEnd={()=>{dragging.current=false;if(delta>OVERLAY_DISMISS){setDelta(0);onClose();}else setDelta(0);}}
     >
       {/* Drag handle */}
       <div style={{display:'flex',justifyContent:'center',padding:'14px 0 18px'}}>
         <div style={{width:40,height:4,borderRadius:2,background:'rgba(255,255,255,.18)'}}/>
       </div>
 
-      <div style={{padding:'0 24px'}}>
-        {/* Category + city */}
-        <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.45)',margin:'0 0 6px'}}>
-          {vendor.category}&nbsp;·&nbsp;{vendor.city}
-        </p>
+      {/* ── TDW_07 P6 · F-07.68 CURED — THE CONTENT IS THE SHARED RENDERER'S ───────────
+          WHAT STOOD HERE WAS THE SECOND IMPLEMENTATION. Spec §3 is absolute: "shared
+          VendorProfileView is the only profile renderer — a second implementation anywhere
+          is a failed session." P4b extracted that renderer out of `canvas/discover`'s
+          GlassOverlay and proved, with identity cells, that one component sat over one
+          shaper. Every cell was true. It could not see this file: the extraction was
+          performed on a deck with ZERO inbound navigation while THIS panel — the profile
+          couples actually open — went on rendering its own category line, its own name,
+          its own price, its own buttons, and NO `about` at all. The guardrail has been
+          broken on production since P4b sealed, and the bench that would have caught it
+          was pointed at the unreachable twin.
 
-        {/* Vendor name */}
-        <h2 style={{fontFamily:"'Fraunces',serif",fontSize:28,fontWeight:300,fontStyle:'italic',color:'#F8F7F5',margin:'0 0 6px',lineHeight:1.1,fontFeatureSettings:'"opsz" 9'}}>
-          {vendor.name}
-        </h2>
+          So the body becomes the shared renderer and the CHROME STAYS. The drag-to-dismiss
+          handlers, the transform, the glass sheet and the grab handle above are deck
+          mechanics under §3 and the surest way to keep a gesture byte-identical is not to
+          move it. That boundary is P4b's own, applied to the surface it missed.
 
-        {/* Price */}
-        {vendor.starting_price&&(
-          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.45)',letterSpacing:'.12em',margin:'0 0 6px'}}>
-            Starting at {formatRs(vendor.starting_price)}
-          </p>
-        )}
-
-        {/* Vibe tags */}
-        {vendor.vibe_tags&&vendor.vibe_tags.length>0&&(
-          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(248,247,245,.35)',letterSpacing:'.1em',margin:'0 0 24px'}}>
-            {vendor.vibe_tags.join(' · ')}
-          </p>
-        )}
-
-        {/* Action buttons */}
-        <div style={{display:'flex',flexDirection:'column',gap:10}}>
-
-          {/* Enquire — silent WA */}
-          <button onClick={onEnquire}
-            style={{width:'100%',padding:'15px 0',background:'rgba(248,247,245,.92)',border:'none',borderRadius:10,
-              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,
-              color:'#0C0A09',cursor:'pointer'}}>
-            Enquire
-          </button>
-
-          <div style={{display:'flex',gap:10}}>
-            {/* Lock date — beta */}
-            <button disabled
-              style={{flex:1,padding:'13px 0',background:'rgba(255,255,255,.05)',
-                border:'0.5px solid rgba(255,255,255,.12)',borderRadius:10,
-                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.16em',
-                textTransform:'uppercase' as any,color:'rgba(248,247,245,.28)',cursor:'not-allowed',
-                display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-              Lock date
-              <span style={{fontSize:6,letterSpacing:'.16em',color:'rgba(201,168,76,.55)',
-                border:'0.5px solid rgba(201,168,76,.3)',borderRadius:4,padding:'1px 5px'}}>
-                BETA
-              </span>
-            </button>
-
-            {/* Circle share */}
-            <button onClick={onCircleShare}
-              style={{flex:1,padding:'13px 0',background:'rgba(255,255,255,.06)',
-                border:'0.5px solid rgba(255,255,255,.14)',borderRadius:10,
-                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.16em',
-                textTransform:'uppercase' as any,color:'rgba(248,247,245,.60)',cursor:'pointer'}}>
-              Share to Circle
-            </button>
-          </div>
-        </div>
-      </div>
+          ── THE onCircleTap RIDER (CE-mandated, its own both-ways cell) ────────────────
+          The canvas mount raised `onCircleTap` to a TOAST — "Add someone to your Circle
+          first" — and nothing else. THIS room's Circle button has always performed a real
+          share: `saveVendorToMuse(vendor.id, photo, true)`. Threading the shared button to
+          the canvas's toast would have regressed a working capability into a message while
+          every identity cell stayed green, which is exactly the class CE-116 clause 2 was
+          minted for. `onCircleTap` therefore carries THIS room's working share. */}
+      <VendorProfileView
+        vendor={vendor}
+        mode="live"
+        isBlind={false}
+        enquireLink={vendor.enquire_link||(vendor.routing_handle?makeEnquireLink(vendor.routing_handle):null)}
+        onEnquire={onEnquire}
+        onCircleTap={onCircleShare}
+      />
     </div>
   );
 }
 
-// ── Image dots ────────────────────────────────────────────────────────────────
-function DiscImageDots({total,current,accent}:{total:number;current:number;accent:string}) {
-  if(total<=1) return null;
-  return (
-    <div style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 92px)',left:'50%',transform:'translateX(-50%)',display:'flex',gap:6,zIndex:24,pointerEvents:'none'}}>
-      {Array.from({length:Math.min(total,7)}).map((_,i)=>(
-        <div key={i} style={{width:i===current?18:5,height:5,borderRadius:3,
-          background:i===current?accent:'rgba(255,255,255,.32)',
-          transition:'all 220ms cubic-bezier(0.22,1,0.36,1)',
-          boxShadow:i===current?`0 0 8px ${accent}88`:'none'}}/>
-      ))}
-    </div>
-  );
-}
-
-// ── Peek nav — glowing horizontal line ───────────────────────────────────────
-function DiscPeekNav({onTap,accent,panelOpen,hasActiveFilters,onFilterTap,isBlind,onBlindTap}:{
-  onTap:()=>void; accent:string; panelOpen:boolean;
-  hasActiveFilters:boolean; onFilterTap:()=>void;
-  isBlind:boolean; onBlindTap:()=>void;
-}) {
-  return (
-    <div style={{
-      position:'absolute',bottom:0,left:0,right:0,zIndex:50,
-      paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 10px)',
-      paddingTop:10,
-      display:'flex',alignItems:'center',justifyContent:'space-between',
-      padding:'10px 18px calc(env(safe-area-inset-bottom,0px) + 10px)',
-      pointerEvents:'none',
-    }}>
-      {/* Blind pill */}
-      <button
-        onClick={e=>{e.stopPropagation();onBlindTap();}}
-        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
-        style={{
-          pointerEvents:'all',
-          height:28,padding:'0 12px',borderRadius:100,
-          border:`0.5px solid ${isBlind?accent:'rgba(255,255,255,.22)'}`,
-          background:isBlind?`${accent}22`:'rgba(8,6,8,.55)',
-          backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',
-          fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
-          textTransform:'uppercase' as any,
-          color:isBlind?accent:'rgba(248,247,245,.65)',
-          cursor:'pointer',touchAction:'manipulation' as any,
-        }}>
-        Blind
-      </button>
-
-      {/* Peek nav line — centre */}
-      <button
-        onClick={e=>{e.stopPropagation();onTap();}}
-        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
-        style={{
-          pointerEvents:'all',
-          flex:1,margin:'0 14px',
-          height:28,
-          background:'none',border:'none',cursor:'pointer',
-          display:'flex',alignItems:'center',justifyContent:'center',
-          touchAction:'manipulation' as any,
-        }}>
-        <style>{`
-          @keyframes peekPulse {
-            0%,100% { opacity:0.55; box-shadow:0 0 6px ${accent}44; }
-            50%      { opacity:1;    box-shadow:0 0 16px ${accent}88; }
-          }
-        `}</style>
-        <div style={{
-          width:'100%',height:3,borderRadius:2,
-          background:panelOpen?accent:`linear-gradient(90deg, transparent 0%, ${accent} 20%, ${accent} 80%, transparent 100%)`,
-          animation:panelOpen?'none':'peekPulse 2.8s ease-in-out infinite',
-          transition:'background 300ms ease',
-        }}/>
-      </button>
-
-      {/* Filter pill */}
-      <button
-        onClick={e=>{e.stopPropagation();onFilterTap();}}
-        onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
-        style={{
-          pointerEvents:'all',
-          width:34,height:28,borderRadius:100,
-          border:`0.5px solid ${hasActiveFilters?accent:'rgba(255,255,255,.22)'}`,
-          background:hasActiveFilters?`${accent}22`:'rgba(8,6,8,.55)',
-          backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',
-          display:'flex',alignItems:'center',justifyContent:'center',
-          cursor:'pointer',touchAction:'manipulation' as any,
-        }}>
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-          <path d="M2 4h12M4 8h8M6 12h4" stroke={hasActiveFilters?accent:'rgba(255,255,255,.8)'} strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-      </button>
-    </div>
-  );
-}
+// ── TDW_07 P6 · TWO COMPONENTS DIED HERE, CENSUSED ───────────────────────────────
+// `DiscImageDots` — a SECOND position indicator (cap 7, bottom, accent) beside
+//   components/shared/ImageDots (cap 8, top, white). Two indicators, two caps, two
+//   positions, and the shared file's own header called the 20-dot question "closed"
+//   while this one answered it differently. The founder ruled ONE component carrying
+//   sanctuary's bottom placement and room accent, cap 8, hairline. This is that deletion;
+//   the survivor is imported at the top of this file.
+//
+// `DiscPeekNav` — a full glowing-line nav bar with Blind, peek and Filter affordances,
+//   declared at :1344 and MOUNTED NOWHERE. Derived by command at 082117a: one occurrence
+//   in the file, the declaration itself. Dead on a live gesture surface, F-07.1's class.
+//   Deleted rather than left for the next reader to wonder about.
 
 interface DiscoverRoomProps { dark:boolean; accent:string; signal:string; }
 
 function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const [vendors,    setVendors]    = React.useState<DiscoverVendor[]>([]);
   const [vIdx,       setVIdx]       = React.useState(0);
-  const [imgIdx,     setImgIdx]     = React.useState(0);
   const [panelOpen,  setPanelOpen]  = React.useState(false);
   const [sheetOpen,  setSheetOpen]  = React.useState(false);
   const [enquiryToast, setEnquiryToast] = React.useState<string|null>(null);
-  const [dissolve,   setDissolve]   = React.useState(0);
+  // THE SHARED CAROUSEL. The hook takes the COUNT, not the array, so it re-bounds when the
+  // deck moves vendor without caring what the photos are; `dissolveKey` is the room's own
+  // cross-fade key too, so vendor-change, photo-change and blind-advance all speak one
+  // transition language — and the vendor's preview literally runs this deck's dissolve.
+  const photoCount = vendors[vIdx]?.photos.length ?? 0;
+  const {
+    imageIdx: imgIdx, setImageIdx: setImgIdx,
+    dissolveKey: dissolve, setDissolveKey: setDissolve,
+    nextImage: nextImg, prevImage: prevImg,
+  } = usePhotoPager(photoCount);
   const [isBlind,    setIsBlind]    = React.useState(false);
-  const [undoStack,  setUndoStack]  = React.useState<number[]>([]); // prev vIdx values
   const [loading,    setLoading]    = React.useState(true);
   const [page,       setPage]       = React.useState(0);
   const [hasMore,    setHasMore]    = React.useState(true);
@@ -1471,46 +1400,38 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     const toLoad:string[]=[];
     for(let i=imgIdx+1;i<Math.min(photos.length,imgIdx+3);i++) toLoad.push(photos[i]);
     if(vendors[vIdx+1]?.photos[0]) toLoad.push(vendors[vIdx+1].photos[0]);
-    toLoad.forEach(s=>{const img=new Image();img.src=s;});
+    // TDW_07 P6 — preload the DELIVERED variant. Warming the raw original heated a cache
+    // the render never reads, so this room paid full bytes twice on every advance.
+    toLoad.forEach(s=>{const img=new Image();img.src=imgUrl(s,'card');});
   },[vIdx,imgIdx,vendor,vendors,photos]);
 
   const goNextV=React.useCallback(()=>{
     if(vIdx>=vendors.length-1)return;
-    setUndoStack(s=>[...s.slice(-4),vIdx]); // keep last 5
-    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
+    setVIdx(i=>i+1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);haptic(5);
   },[vIdx,vendors.length]);
 
   const goPrevV=React.useCallback(()=>{
     if(vIdx<=0)return;
-    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(5);
+    setVIdx(i=>i-1);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);haptic(5);
   },[vIdx]);
 
-  const undoSkip=React.useCallback(()=>{
-    setUndoStack(s=>{
-      if(!s.length) return s;
-      const prev=s[s.length-1];
-      setVIdx(prev);setImgIdx(0);setPanelOpen(false);setDissolve(k=>k+1);discHaptic(8);
-      return s.slice(0,-1);
-    });
-  },[]);
+  // `undoSkip` DIED IN THE FOLD, censused: a full undo-the-skip verb with ZERO callers
+  // (derived by command — one occurrence, its own declaration). `undoStack` was written
+  // on every vendor advance and read ONLY by this unreachable function, so both go. A
+  // couple has never been able to undo a skip on this deck; deleting the code that
+  // pretended otherwise is not a feature loss, it is the removal of a false affordance's
+  // corpse. If undo is wanted it is a product ruling, not a resurrection.
 
-  const cyclePhoto=React.useCallback(()=>{
-    if(!photos.length) return;
-    setImgIdx(i=>(i+1)%photos.length);
-    setDissolve(k=>k+1);discHaptic(4);
-  },[photos.length]);
-
-  const nextImg=React.useCallback(()=>{
-    if(!photos.length) return;
-    setImgIdx(i=>(i+1)%photos.length);
-    setDissolve(k=>k+1);discHaptic(4);
-  },[photos.length]);
-
-  const prevImg=React.useCallback(()=>{
-    if(!photos.length) return;
-    setImgIdx(i=>(i-1+photos.length)%photos.length);
-    setDissolve(k=>k+1);discHaptic(4);
-  },[photos.length]);
+  // ── TDW_07 P6 · η(c) — THE PHOTO CURSOR IS THE SHARED PAGER'S ──────────────────
+  // `nextImg`/`prevImg` and their `(i±1) % photos.length` wrap left this file for
+  // lib/frost/photoPager.ts. The wrap went WITH them: η ruled the one home adopts THIS
+  // room's behaviour, because §3 protects the mechanics couples have used and this room
+  // is the surface they use. The vendor preview moves clamp→wrap instead — the
+  // unprotected side, by the same precedent that re-pinned the thresholds.
+  //
+  // `cyclePhoto` DIED IN THE FOLD, censused: it was byte-identical to `nextImg` and had
+  // ZERO callers (derived by command at 082117a — one occurrence, its own declaration).
+  // Two names for one motion, one of them unreachable.
 
   const handleDoubleTap=React.useCallback(()=>{
     if(!vendor)return;
@@ -1544,9 +1465,9 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
     const ax=Math.abs(dx), ay=Math.abs(dy);
 
     // ── Tap detection ─────────────────────────────────────────────────
-    if(ax<DISC_TAP_MOVE&&ay<DISC_TAP_MOVE&&dt<DISC_TAP_TIME){
+    if(ax<TAP_MAX_MOVE&&ay<TAP_MAX_MOVE&&dt<TAP_MAX_TIME){
       const now=Date.now(),since=now-lastTap.current;
-      if(since<DISC_DTAP_MS&&tapCount.current>=1){
+      if(since<DOUBLE_TAP_MS&&tapCount.current>=1){
         if(tapTimer.current)clearTimeout(tapTimer.current);
         tapCount.current=0;
         if(isBlind){
@@ -1559,37 +1480,37 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           if(tapCount.current===1){
             if(isBlind){
               setBlindIdx(i=>Math.min(i+1,blindItems.length-1));
-              setDissolve(k=>k+1); discHaptic(5);
+              setDissolve(k=>k+1); haptic(5);
             } else {
               // Single tap — open the vendor panel (Enquire / Lock date / Circle)
-              setPanelOpen(true); discHaptic(3);
+              setPanelOpen(true); haptic(3);
             }
           }
           tapCount.current=0;
-        },DISC_DTAP_MS);
+        },DOUBLE_TAP_MS);
       }
       return;
     }
 
     const vel=Math.max(ax,ay)/Math.max(dt,1);
-    if(Math.max(ax,ay)<=DISC_SWIPE_THRESH&&vel<=0.3)return;
+    if(Math.max(ax,ay)<=SWIPE_THRESHOLD&&vel<=SWIPE_VELOCITY)return;
 
     // ── Swipe routing ──────────────────────────────────────────────────
     // Vertical = vendor nav | Horizontal = photo nav within vendor
     if(isBlind){
       if(ay>ax){
-        if(dy<-DISC_SWIPE_THRESH){setBlindIdx(i=>Math.min(i+1,blindItems.length-1));setDissolve(k=>k+1);discHaptic(5);}
-        else if(dy>DISC_SWIPE_THRESH){setBlindIdx(i=>Math.max(i-1,0));setDissolve(k=>k+1);discHaptic(5);}
+        if(dy<-SWIPE_THRESHOLD){setBlindIdx(i=>Math.min(i+1,blindItems.length-1));setDissolve(k=>k+1);haptic(5);}
+        else if(dy>SWIPE_THRESHOLD){setBlindIdx(i=>Math.max(i-1,0));setDissolve(k=>k+1);haptic(5);}
       }
     } else {
       if(ay>ax){
         // Vertical — vendor navigation (Reels/Shorts muscle memory)
-        if(dy<-DISC_SWIPE_THRESH) goNextV();      // swipe UP = next vendor
-        else if(dy>DISC_SWIPE_THRESH) goPrevV();  // swipe DOWN = prev vendor
+        if(dy<-SWIPE_THRESHOLD) goNextV();      // swipe UP = next vendor
+        else if(dy>SWIPE_THRESHOLD) goPrevV();  // swipe DOWN = prev vendor
       } else {
         // Horizontal — photo navigation within same vendor
-        if(dx<-DISC_SWIPE_THRESH) nextImg();      // swipe LEFT = next photo
-        else if(dx>DISC_SWIPE_THRESH) prevImg();  // swipe RIGHT = prev photo
+        if(dx<-SWIPE_THRESHOLD) nextImg();      // swipe LEFT = next photo
+        else if(dx>SWIPE_THRESHOLD) prevImg();  // swipe RIGHT = prev photo
       }
     }
   };
@@ -1676,8 +1597,17 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
 
       {/* Photo */}
       <div key={dissolve} style={{position:'absolute',inset:0,zIndex:1,animation:'discDissolve 240ms cubic-bezier(0.22,1,0.36,1)'}}>
+        {/* TDW_07 P6 — LQIP BENEATH, THE CARD VARIANT OVER (spec P6: "LQIP + shimmer
+            skeletons, zero spinners"). This room served the RAW Cloudinary original at
+            full resolution on every card; the variants module has existed since P3 and
+            this surface never called it. Both layers are pointerEvents:'none' exactly as
+            the single layer was, so the deck's touch surface is byte-for-byte the surface
+            it was — the gesture law is preserved by construction, not by inspection. */}
         {photo
-          ? <img src={photo} alt="" draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
+          ? <>
+              <img src={lqipUrl(photo)} alt="" aria-hidden draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none',filter:'blur(12px)',transform:'scale(1.08)'}}/>
+              <img src={imgUrl(photo,'card')} alt="" draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
+            </>
           : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:'rgba(248,247,245,.2)'}}>No photo yet</span></div>
         }
         {/* Vignette */}
@@ -1698,15 +1628,28 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
       {/* Persistent name · category line — bottom, always visible, tappable */}
       {!isBlind&&!panelOpen&&vendor&&(
         <div
-          onClick={e=>{e.stopPropagation();setPanelOpen(true);discHaptic(3);}}
-          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>{e.stopPropagation();setPanelOpen(true);discHaptic(3);}}
+          onClick={e=>{e.stopPropagation();setPanelOpen(true);haptic(3);}}
+          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>{e.stopPropagation();setPanelOpen(true);haptic(3);}}
           style={{
             position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',
             left:0,right:0,zIndex:10,padding:'0 24px',
             cursor:'pointer',WebkitTapHighlightColor:'transparent',
           }}>
+          {/* ── TDW_07 P6 · D-1's WHISPER, AND A P5 LAW THAT NEVER REACHED THIS SURFACE ──
+              P5 ruled the closed frame render IDENTITY at t=0 — name, category·city, AND
+              the starting price — so a couple knows who and how much before she taps. It
+              was built on `canvas/discover` and proven there. This room, the one she
+              opens, rendered category·city and name and NO price for the whole block.
+              Same shape as F-07.67 and F-07.68: a true cell aimed one surface over.
+              The b07_p5 re-aim caught it, which is the re-aim earning its keep.
+
+              The string is the founder's vetoed byte through the estate's ONE money donor
+              (`formatRs`, F-07.16) — Rs 1,50,000, never a k/L/Cr form, never the ₹ glyph.
+              It renders only on a real number: a whispered price that guesses is worse
+              than a card that stays quiet. */}
           <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.55)',marginBottom:4}}>
             {vendor.category} · {vendor.city}
+            {vendor.starting_price?<> · Starting at {formatRs(vendor.starting_price)}</>:null}
           </div>
           <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:12}}>
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:26,color:'rgba(248,247,245,.97)',lineHeight:1.05,fontFeatureSettings:'"opsz" 9',textShadow:'0 1px 12px rgba(0,0,0,.4)'}}>
@@ -1760,8 +1703,39 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         </>
       )}
 
+      {/* ── TDW_07 P6 · THE CARD BAND — F-07.67 CURED + D-3's CHIP ARRIVES ────────────
+          F-07.67: this feed interleaves FEATURED vendors (couple/discover.js ranks then
+          interleaves, and the shaper ships `featured`) and has NEVER MARKED THEM. Spec §3
+          is not a preference about it — "Featured always marked (Manual honesty law)" —
+          so an unmarked promoted card on the only Discover surface couples reach is a live
+          guardrail violation, and the fold is its cure. The eyebrow is the shared
+          component; there is no second definition anywhere.
+
+          D-3's chip likewise renders here for the first time on this surface. It reads
+          `instagram_handle`, which the shaper normalises for both species — for a demo
+          card it is the truest thing on it.
+
+          THE CONTAINER IS pointerEvents:'none' so the swipe surface underneath is
+          unchanged everywhere except the chip's own box; the chip consumes its own touches
+          the way the panel's buttons already do. */}
+      {!isBlind&&!panelOpen&&vendor&&(vendor.featured||vendor.instagram_handle)&&(
+        <div style={{
+          position:'absolute',
+          bottom:'calc(env(safe-area-inset-bottom,0px) + 108px)',
+          left:0,right:0,zIndex:11,
+          display:'flex',flexDirection:'column',alignItems:'center',gap:8,
+          pointerEvents:'none',
+        }}>
+          <FeaturedEyebrow featured={vendor.featured}/>
+          {vendor.instagram_handle&&<IgChip handle={vendor.instagram_handle}/>}
+        </div>
+      )}
+
       {/* Image dots — bottom, above the name line */}
-      {!isBlind&&!panelOpen&&<DiscImageDots total={photos.length} current={imgIdx} accent={accent}/>}
+      {/* TDW_07 P6 — the estate's ONE position indicator, carrying the ROOM accent.
+          NOT gold: sanctuary's accent is terracotta or slate (:4030 after the fold) and
+          spec §3's "one gold per screen — cards carry none" is why it must stay that way. */}
+      {!isBlind&&!panelOpen&&<ImageDots total={photos.length} current={imgIdx} accent={accent}/>}
 
       {/* Vendor panel + tap-outside scrim */}
       {!isBlind&&vendor&&panelOpen&&(
@@ -1784,7 +1758,6 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           // open/close behaviour changes.
           visible={panelOpen && !sheetOpen}
           onClose={()=>setPanelOpen(false)}
-          accent={accent}
           onEnquire={handleEnquire}
           onCircleShare={handleCircleShare}
         />

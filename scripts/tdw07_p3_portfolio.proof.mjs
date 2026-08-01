@@ -27,6 +27,7 @@ const code = (rel) => raw(rel)
 
 const IMG      = 'lib/img.ts';
 const MANAGER  = 'app/vendor/portfolio/page.tsx';
+const SANCT    = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const CANVAS   = 'app/(frost)/frost/canvas/discover/page.tsx';
 
 const { imgUrl, lqipUrl, isTransformable, IMG_VARIANTS, IMG_LQIP } =
@@ -296,16 +297,36 @@ sec('§6 · THE VETOED COPY, BYTE-EXACT (founder 2026-07-29 「 1.ok 」)');
     /\$\{n\} of \$\{max\} photos/.test(m));
 }
 
-sec('§7 · THE GESTURE LAW (spec §3) — RENDER-ONLY ON THE CANVAS');
+sec('§7 · THE GESTURE LAW (spec §3) — RE-AIMED AT SANCTUARY BY THE P6 FOLD');
 {
-  const c = raw(CANVAS);
+  // ── LABELED AMENDMENT · TDW_07 P6 · F-07.43 「 F-D 」 (CE-ruled) ────────────────────
+  // THE SUBJECT MOVED; THE LAW DID NOT. Every cell in this section asserted spec §3's
+  // gesture and image-delivery guarantees against `canvas/discover`. The founder folded
+  // that deck into sanctuary's Discover room and the route is now a redirect, so read
+  // against CANVAS these cells assert nothing at all — they would pass on an empty file
+  // if the regexes were looser, and fail on it as they are.
+  //
+  // THE RE-AIM IS A STRENGTHENING, NOT A RESCUE. The canvas deck had ZERO inbound
+  // navigation for this block's whole life. A cell protecting the couple's touch surface
+  // there was protecting a surface no couple could reach; pointed at SANCT it protects
+  // the deck under the founder's actual thumb, for the first time. That is F-07.68's
+  // lesson applied to the benches that were meant to catch F-07.68.
+  //
+  // MECHANISM, NOT RESEMBLANCE — the check ruled at CE and run per cell: each assertion
+  // below names a byte sanctuary's room actually executes (the imported constants it
+  // paged on, the two img layers it renders, the preloader it warms), never a shape that
+  // merely looks similar. The §7.1/§7.2 patterns are rewritten to sanctuary's OWN
+  // expression (`photo`, not `isBlind ? blindPhoto : currentPhoto`) rather than kept
+  // verbatim and hoped over, because a regex that matches by luck is the vacuity this
+  // section exists to forbid. COUNT PRESERVED: 9 cells before, 9 after.
+  const c = raw(SANCT);
   for (const id of ['SWIPE_THRESHOLD', 'SWIPE_VELOCITY', 'TAP_MAX_MOVE', 'TAP_MAX_TIME', 'DOUBLE_TAP_MS', 'OVERLAY_DISMISS'])
-    ok(`§7.${id} still present and untouched`, c.includes(id));
+    ok(`§7.${id} still present and untouched — now at sanctuary, the reachable deck`, c.includes(id));
   ok('§7.1 the card layers are BOTH pointerEvents:none — the touch surface is what it was',
-    /lqipUrl\(\(isBlind \? blindPhoto : currentPhoto\)!\)[^>]*pointerEvents: 'none'/.test(c) &&
-    /imgUrl\(\(isBlind \? blindPhoto : currentPhoto\)!, 'card'\)[^>]*pointerEvents: 'none'/.test(c));
-  ok('§7.2 the deck renders through the img module', /imgUrl\(\(isBlind \? blindPhoto : currentPhoto\)!, 'card'\)/.test(c));
-  ok('§7.3 the preloader warms the DELIVERED variant, not the original', /img\.src = imgUrl\(src, 'card'\)/.test(c));
+    /lqipUrl\(photo\)[^>]*pointerEvents:'none'/.test(c) &&
+    /imgUrl\(photo,'card'\)[^>]*pointerEvents:'none'/.test(c));
+  ok('§7.2 the deck renders through the img module', /imgUrl\(photo,'card'\)/.test(c));
+  ok('§7.3 the preloader warms the DELIVERED variant, not the original', /img\.src=imgUrl\(s,'card'\)/.test(c));
 }
 
 sec('§8 · HOUSE LAWS');

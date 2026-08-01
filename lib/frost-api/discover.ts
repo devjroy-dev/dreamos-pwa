@@ -3,8 +3,15 @@
 
 import { USE_MOCKS, API_BASE, apiGet } from './_base';
 import type { DiscoverVendor, FeaturedCollection, DiscoverHero } from '../types/discover';
+import { waNumberFor } from '@/lib/waNumbers';
 
-const WHATSAPP_NUMBER = '917982159047';
+// ── F-07.69 CURED · TDW_07 P6 ────────────────────────────────────────────────
+// This was a raw '917982159047' literal — one of four copies standing against
+// lib/waNumbers.ts:45's one home (F-05.20's class). The vendor line's number is
+// not this file's to know. The two remaining copies are FILED by CE ruling:
+// app/vendor/settings/page.tsx:91 (founder-sequenced) and app/demodiscover/page.tsx:187
+// (Block 08, beside F-07.29).
+const WHATSAPP_NUMBER = waNumberFor('vendor');
 
 export function makeEnquireLink(routingHandle: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=TDW-${routingHandle}`;

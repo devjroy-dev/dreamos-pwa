@@ -38,7 +38,16 @@ const code = (rel) => raw(rel)
   .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
 const VIEW    = 'components/shared/VendorProfileView.tsx';
-const CANVAS  = 'app/(frost)/frost/canvas/discover/page.tsx';
+// ── LABELED AMENDMENT · TDW_07 P6 · F-07.43 「 F-D 」 (CE-ruled) ──────────────────────
+// `CANVAS` WAS THE ORPHAN DECK, AND THAT IS THIS BENCH'S OWN LESSON ABOUT ITSELF.
+// P4b proved one renderer over one shaper with identity cells, and every cell was true —
+// against `canvas/discover`, a route with ZERO inbound navigation. The surface couples
+// actually opened, sanctuary's DiscVendorPanel, went on rendering its own second
+// implementation the whole time (F-07.68). The cells could not see one surface over.
+// After the fold this constant points at a redirect stub, so it is re-pointed at
+// SANCTUARY — and the cells that were meant to catch a second renderer now watch the
+// surface where one was hiding.
+const CANVAS  = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const PREVIEW = 'app/vendor/discover/preview/page.tsx';
 const PROFILE = 'app/vendor/discover/profile/page.tsx';
 const PORT    = 'app/vendor/portfolio/page.tsx';
@@ -65,8 +74,15 @@ ok('§1.4 isBlind travels with it, so the preview cannot lie in blind mode',
   /isBlind/.test(code(VIEW)));
 ok('§1.5 the Circle TAP is raised to the mount — button content, toast chrome',
   /onCircleTap/.test(code(VIEW)));
-ok('§1.6 the toast itself did NOT travel — it stays canvas-side',
-  !/circleToast/.test(code(VIEW)) && /circleToast/.test(code(CANVAS)));
+// ── AMENDED · P6 — THE MOUNT OWNS THE CIRCLE OUTCOME, AND SANCTUARY'S IS A REAL SHARE ──
+// The law: the shared component raises `onCircleTap` and owns NO outcome, so each mount
+// decides what Circle means there. The canvas's outcome was a toast; sanctuary's is an
+// actual `saveVendorToMuse(vendor.id, photo, true)`. Threading the shared button to a
+// toast would have regressed a working capability while every identity cell stayed green
+// — the CE-mandated rider, and this cell is what enforces it.
+ok('§1.6 no outcome travelled into the component — the mount owns it, and sanctuary\'s is the real share',
+  !/circleToast/.test(code(VIEW)) && !/saveVendorToMuse/.test(code(VIEW)) &&
+  /onCircleTap=\{onCircleShare\}/.test(code(CANVAS)));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 sec('§2 · TWO MOUNTS, ONE COMPONENT — no second implementation anywhere');
@@ -81,6 +97,17 @@ ok('§2.1 the canvas MOUNTS the shared component',
 ok('§2.2 the preview MOUNTS the same component',
   /<VendorProfileView[\s/>]/.test(code(PREVIEW)) && /components\/shared\/VendorProfileView'/.test(raw(PREVIEW)));
 ok('§2.3 the canvas passes mode="live"',    /mode="live"/.test(code(CANVAS)));
+// ── VERB 6's TRAP, PINNED (CE-mandated) ───────────────────────────────────────────────
+// This room has THREE save callers, not one, and they save by DIFFERENT identifiers:
+// the deck double-tap and the Circle share both use `vendor.id`, while BLIND MODE saves
+// `item.vId` from `blindItems[blindIdx]` — because in blind mode the rendered vendor is
+// not the deck's current vendor. A fold that re-homed the save path through one caller
+// would have killed blind-mode saving SILENTLY: no type error, no red cell, just a heart
+// that stops meaning anything for the one audience that cannot see whose work she liked.
+ok('§2.3b ALL THREE of sanctuary\'s save callers survived the fold — deck, Circle share, and blind mode',
+  /saveVendorToMuse\(vendor\.id,photos\[imgIdx\]\|\|null\)/.test(code(CANVAS)) &&
+  /saveVendorToMuse\(vendor\.id,photos\[imgIdx\]\|\|null,true\)/.test(code(CANVAS)) &&
+  /saveVendorToMuse\(item\.vId,item\.img\|\|null\)/.test(code(CANVAS)));
 ok('§2.4 the preview passes mode="preview"', /mode="preview"/.test(code(PREVIEW)));
 
 // THE LOAD-BEARING ABSENCE. A second copy of the profile markup anywhere is a failed
@@ -150,13 +177,18 @@ sec('§3 · THE CANVAS\'S CHROME AND GESTURES SURVIVED (spec §3 guardrail)');
 
 const C = code(CANVAS);
 for (const [n, tok] of [
-  ['§3.1 onTouchStart wired',      'onTouchStart={onTouchStart}'],
-  ['§3.2 onTouchMove wired',       'onTouchMove={onTouchMove}'],
-  ['§3.3 onTouchEnd wired',        'onTouchEnd={onTouchEnd}'],
-  ['§3.4 the drag origin ref',     'dragStartY'],
+  // ── AMENDED · P6 — SANCTUARY'S CHROME, AT SANCTUARY'S OWN SPELLINGS ────────────────
+  // The law is untouched: after the body became the shared renderer, the PANEL must still
+  // own its touch lifecycle, its drag origin, its threshold, its transform and its glass.
+  // The tokens are sanctuary's because that is the chrome that now has to survive — a
+  // token copied from the dead deck would match nothing and assert nothing.
+  ['§3.1 onTouchStart wired',      'onTouchStart={e=>{dragY.current='],
+  ['§3.2 onTouchMove wired',       'onTouchMove={e=>{const d=e.touches[0].clientY-dragY.current;'],
+  ['§3.3 onTouchEnd wired',        'onTouchEnd={()=>{dragging.current=false;'],
+  ['§3.4 the drag origin ref',     'dragY'],
   ['§3.5 the dismiss threshold',   'OVERLAY_DISMISS'],
-  ['§3.6 the drag transform',      'translateY(${dragDelta}px)'],
-  ['§3.7 the glass sheet token',   'GLASS.sheet'],
+  ['§3.6 the drag transform',      'transform:visible?`translateY(${delta}px)`'],
+  ['§3.7 the glass sheet token',   'backdropFilter:'],
 ]) ok(n, C.includes(tok));
 ok('§3.8 the overlay still owns its own dismiss — the component did not take onClose',
   /onClose/.test(C) && !/onClose/.test(code(VIEW)));
@@ -394,10 +426,15 @@ ok('§9.2 the shared dots exist as ONE home', fs.existsSync(path.join(ROOT, DOTS
 // mechanics, pinned by value at the new home. A tuning pass that moves one now reddens.
 const PAGER_SRC = raw(PAGER);
 for (const [name, value] of [
-  ['SWIPE_THRESHOLD', '45'], ['SWIPE_VELOCITY', '0.3'], ['TAP_MAX_MOVE', '10'],
-  ['TAP_MAX_TIME', '250'], ['DOUBLE_TAP_MS', '280'], ['OVERLAY_DISMISS', '80'],
+  // ── LABELED AMENDMENT · TDW_07 P6 · Fork 3(b) (CE-ruled) ───────────────────────
+  // Three values re-pinned to sanctuary's — the reachable deck's feel is the object of
+  // spec §3, and it is these numbers. Count preserved (122); the cell text moves from
+  // "unchanged from the deck" to "at its ruled value", because the sentence it used to
+  // assert is no longer the truth this bench is protecting.
+  ['SWIPE_THRESHOLD', '42'], ['SWIPE_VELOCITY', '0.3'], ['TAP_MAX_MOVE', '10'],
+  ['TAP_MAX_TIME', '240'], ['DOUBLE_TAP_MS', '270'], ['OVERLAY_DISMISS', '80'],
 ]) {
-  ok(`§9.3 ${name} = ${value} at the shared home — unchanged from the deck`,
+  ok(`§9.3 ${name} = ${value} at the shared home — at its Fork 3(b) ruled value`,
     new RegExp(`export const ${name}\\s*=\\s*${value.replace('.', '\\.')};`).test(PAGER_SRC));
 }
 
@@ -411,6 +448,9 @@ ok('§9.5 the haptic moved too — a tap that buzzes on one mount only is a mech
 
 // ── BOTH MOUNTS CONSUME IT ───────────────────────────────────────────────────────────
 ok('§9.6 the canvas mounts the shared pager hook',   /usePhotoPager\(/.test(code(CANVAS)));
+ok('§9.6b sanctuary declares no second cursor of its own any more',
+  !/const nextImg=React\.useCallback/.test(code(CANVAS)) &&
+  !/const prevImg=React\.useCallback/.test(code(CANVAS)));
 ok('§9.7 the preview mounts the SAME hook',          /usePhotoPager\(/.test(code(PREVIEW)));
 ok('§9.8 the canvas no longer owns a photo cursor of its own',
   !/const \[imageIdx,\s+setImageIdx\]\s+= useState/.test(code(CANVAS)));
@@ -446,8 +486,23 @@ ok('§9.10 both mounts render the shared dots',
     /if \(dx < -SWIPE_THRESHOLD\) return 1;/.test(PAGER_SRC) &&
     /if \(dx >  SWIPE_THRESHOLD\) return -1;/.test(PAGER_SRC));
 }
-ok('§9.15 the carousel does NOT wrap at either end — the deck never wrapped',
-  /if \(i >= photoCount - 1\) return i;/.test(PAGER_SRC) && /if \(i <= 0\) return i;/.test(PAGER_SRC));
+// ── LABELED AMENDMENT · TDW_07 P6 · η ruled (c) — THE CURSOR WRAPS ────────────────────
+// THE RETIRED SENTENCE: "the carousel does NOT wrap at either end — the deck never
+// wrapped." True of the deck it was written about; false of the home. The clamp came from
+// `canvas/discover`, which no couple reached. Sanctuary's room — the deck they DO reach —
+// has always wrapped, and η ruled the one home adopt that rather than impose the
+// unreachable deck's feel on the reachable one. Same reasoning as Fork 3(b), one layer in:
+// behaviour rather than value.
+//
+// THE TRIPWIRE (the ratified amendment pattern): the retired clamp is asserted ABSENT, so
+// a silent restoration reddens this cell instead of quietly ending the live deck's wrap.
+ok('§9.15 the carousel WRAPS at both ends — sanctuary\'s live mechanics, and the clamp has not grown back',
+  /return \(i \+ 1\) % photoCount;/.test(PAGER_SRC) &&
+  /return \(i - 1 \+ photoCount\) % photoCount;/.test(PAGER_SRC) &&
+  !/if \(i >= photoCount - 1\) return i;/.test(PAGER_SRC) &&
+  !/if \(i <= 0\) return i;/.test(PAGER_SRC));
+ok('§9.15b the wrap refuses a zero-or-one photo deck — `% 0` is NaN and `% 1` burns a dissolve for nothing',
+  (PAGER_SRC.match(/if \(photoCount <= 1\) return;/g) || []).length === 2);
 // SELF-CAUGHT BY THE MUTATION LEDGER — the second spelling-not-property cell this sitting.
 // This first read `!/slice(0, N)/ && !/DISPLAY_PHOTO_LIMIT/`, and a mutation that clamped
 // with `Math.min(photoCountRaw, 5)` passed GREEN: it named neither forbidden spelling while
@@ -459,8 +514,10 @@ const PAGER_CODE = PAGER_SRC
 ok('§9.16 no display cap grew back inside the shared pager — in ANY spelling',
   !/slice\(/.test(PAGER_CODE) && !/Math\.min/.test(PAGER_CODE) &&
   !/DISPLAY_PHOTO_LIMIT/.test(PAGER_CODE));
+// AMENDED · P6 — the bound is still the caller's count; the modulo IS the bound now, and
+// it is the caller's count unclamped. The cap-property assertion above is untouched.
 ok('§9.16b the bound is the caller\'s count, used unmodified',
-  /if \(i >= photoCount - 1\) return i;/.test(PAGER_CODE) &&
+  /% photoCount;/.test(PAGER_CODE) &&
   /usePhotoPager\(photoCount: number\)/.test(PAGER_CODE));
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -57,15 +57,56 @@
 
 import { useCallback, useState } from 'react';
 
-// ── THE CONSTANTS, MOVED VERBATIM FROM THE CANVAS ────────────────────────────────────
-// These are the couple's mechanics. Every value is byte-identical to what the deck carried
-// at the P4b-FINAL charter tip; the canvas now imports them back rather than declaring its
-// own, so a future tuning pass cannot move one mount's feel and leave the other behind.
-export const SWIPE_THRESHOLD = 45;
+// ── THE CONSTANTS — RE-PINNED AT P6 TO SANCTUARY'S VALUES (Fork 3(b), CE-ruled) ──────
+//
+// ── WHAT P4b GOT RIGHT, AND WHAT IT COULD NOT SEE ───────────────────────────────────
+// P4b moved these here from `canvas/discover` and proved them byte-identical to the deck
+// it moved them from. Every one of those cells was true. The audience was wrong: the
+// canvas deck has ZERO inbound navigation (F-07.43, re-derived estate-wide at P6's
+// read-first — no router.push, no <Link>, no middleware rewrite), so "the deck" whose
+// mechanics were being preserved is a surface no couple has ever reached. The surface
+// couples DO reach — sanctuary's Discover room — declared its own divergent set and never
+// joined this home:
+//
+//     THIS FILE (pre-P6)      SANCTUARY (live, :1133-:1136)      DELTA
+//     SWIPE_THRESHOLD 45      DISC_SWIPE_THRESH 42               −3
+//     TAP_MAX_TIME    250     DISC_TAP_TIME     240              −10
+//     DOUBLE_TAP_MS   280     DISC_DTAP_MS      270              −10
+//     TAP_MAX_MOVE    10      DISC_TAP_MOVE     10               none
+//     SWIPE_VELOCITY  0.3     inline `vel<=0.3` (:1573)          none
+//     OVERLAY_DISMISS 80      inline `delta>80` (:1268)          none
+//
+// ── WHY SANCTUARY'S NUMBERS WON, NOT THIS FILE'S ────────────────────────────────────
+// Spec §3: "Frost gesture mechanics byte-identical through P1/P6". The object of that law
+// is the COUPLE'S mechanics — the feel of the deck under the thumb of someone using the
+// product. Sanctuary's values are that feel; they are what every founder walk in this
+// block was performed against. This file's values were only ever the feel of an
+// unreachable twin plus a vendor preview that has never been walked for feel. Adopting 45
+// into sanctuary would have "unified" by changing the one surface the law protects.
+//
+// So the constants move and the mechanics do not. That is the inversion Fork 3(b) ruled.
+//
+// ── THE THREE-PART GESTURE PROOF, RESTATED (bytes move, so the proof must) ──────────
+// P4b's header states the standing form; it is re-run here against the NEW direction:
+//   (a) every token and threshold asserted at its new value AND asserted equal to the
+//       literal sanctuary carried at 082117a — the b07_p6 cells pin all six by value and
+//       carry the pre-fold literals as their expected side, so a silent drift back to 45
+//       reddens
+//   (b) sanctuary's remaining Discover-room chrome byte-diffed, as P3 and P4b did it
+//   (c) the founder's deck walk — a bench proves the numbers survived; only a thumb
+//       proves the deck still feels like itself
+//
+// ── THE COST, NAMED RATHER THAN BURIED ──────────────────────────────────────────────
+// /vendor/discover/preview's gesture feel changes by 3px and 10ms twice. It has no
+// founder-witnessed feel contract (P4b-FINAL's contract was full-bleed carousel · tap
+// reveals card · tap outside dismisses — never a threshold), and parity with the live
+// couple deck is the preview's entire purpose. This is the correct direction for the
+// preview to move.
+export const SWIPE_THRESHOLD = 42;
 export const SWIPE_VELOCITY  = 0.3;
 export const TAP_MAX_MOVE    = 10;
-export const TAP_MAX_TIME    = 250;
-export const DOUBLE_TAP_MS   = 280;
+export const TAP_MAX_TIME    = 240;
+export const DOUBLE_TAP_MS   = 270;
 export const OVERLAY_DISMISS = 80;
 
 // The deck's haptic. Moved with the constants because a tap that buzzes on one mount and
@@ -131,29 +172,54 @@ export function photoStepFor(dx: number): -1 | 0 | 1 {
  *
  * BOUNDED, AND THE BOUND IS THE CALLER'S DATA. There is no cap here. The founder retired
  * the five-photo display rule ("couples should be able to see all approved photos on
- * discover"), so the carousel runs to `photoCount - 1` and the only ceiling is the
- * portfolio's own twenty. A cap asserted here would be the retired rule growing back in a
- * new house.
+ * discover"), so the carousel runs the whole array and the only ceiling is the portfolio's
+ * own twenty. A cap asserted here would be the retired rule growing back in a new house.
+ *
+ * ── LABELED AMENDMENT · TDW_07 P6 · η ruled (c) — THE CURSOR WRAPS ──────────────────
+ * THE SENTENCE THAT STOOD HERE, PRESERVED SO THE CORRECTION IS LEGIBLE:
+ *   "at the end — the deck does not wrap" / "at the start — the deck does not wrap"
+ *
+ * IT WAS TRUE OF THE DECK IT WAS WRITTEN ABOUT AND FALSE OF THIS HOME. P4b lifted the
+ * clamp from `canvas/discover`, which has zero inbound navigation — so "the deck" in that
+ * sentence is a surface no couple reaches. The surface they DO reach, sanctuary's Discover
+ * room, has always WRAPPED: `(i+1) % photos.length` and `(i-1+len) % len` (:1503/:1509 at
+ * 082117a). Fork 3(b) re-pinned the constants to sanctuary's on the reasoning that §3
+ * protects the couple's WITNESSED mechanics; η extends the identical reasoning one layer
+ * in, to behaviour rather than value. The clamp was never the couple's mechanics.
+ *
+ * ── THE MECHANISM THIS LAW IS CONDITIONED ON (F-06.85) ──────────────────────────────
+ * This wrap is conditioned on a mechanical fact and names it, so the mechanism's next
+ * sitting is forced to re-read this sentence: the carousel wraps because the LIVE couple
+ * deck wrapped at 082117a and §3 forbids P6 from changing that feel. If a future ruling
+ * ever makes the couple deck clamp, THIS COMMENT IS THE THING THAT MUST CHANGE FIRST —
+ * not the constant, not the cell, this paragraph.
+ *
+ * WHAT IT COSTS, NAMED: /vendor/discover/preview moves clamp → wrap. That is the
+ * unprotected side by the same precedent that moved its thresholds, and a single-vendor
+ * carousel that loops beats one that dead-ends at the last photo.
+ *
+ * A ZERO-OR-ONE PHOTO GUARD IS STILL REQUIRED — `% 0` is NaN and `% 1` is a no-op that
+ * would still burn a dissolve and a haptic. Both are refused below.
  */
 export function usePhotoPager(photoCount: number) {
   const [imageIdx, setImageIdx]       = useState(0);
   const [dissolveKey, setDissolveKey] = useState(0);
 
   const nextImage = useCallback(() => {
+    if (photoCount <= 1) return;              // nothing to page — no dissolve, no haptic
     setImageIdx((i) => {
-      if (i >= photoCount - 1) return i;      // at the end — the deck does not wrap
       setDissolveKey((k) => k + 1); haptic(4);
-      return i + 1;
+      return (i + 1) % photoCount;            // WRAPS — η(c); sanctuary's live mechanics
     });
   }, [photoCount]);
 
   const prevImage = useCallback(() => {
+    if (photoCount <= 1) return;              // nothing to page — no dissolve, no haptic
     setImageIdx((i) => {
-      if (i <= 0) return i;                   // at the start — the deck does not wrap
       setDissolveKey((k) => k + 1); haptic(4);
-      return i - 1;
+      return (i - 1 + photoCount) % photoCount;  // WRAPS — η(c); sanctuary's live mechanics
     });
-  }, []);
+  }, [photoCount]);
 
   // The deck resets the cursor when the vendor changes. The preview has one vendor and
   // never calls this, but it is the pager's own concern and belongs with the pager.

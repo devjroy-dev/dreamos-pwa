@@ -37,7 +37,14 @@ const section = (t) => console.log(`\n${t}`);
 const TYPES = read('lib/types/discover.ts');
 const IG    = read('lib/frost/igLink.ts');
 const ADMIN = read('app/admin/config/page.tsx');
-const PAGE  = read('app/(frost)/frost/canvas/discover/page.tsx');
+// ── LABELED AMENDMENT · TDW_07 P6 · F-07.43 「 F-D 」 (CE-ruled) ──────────────────────
+// `PAGE` WAS THE ORPHAN DECK. The founder folded canvas/discover into sanctuary's Discover
+// room and that route is now a redirect. Every §4 cell below asserted the couple's gesture
+// and card-band laws against a file with ZERO inbound navigation — so they were guarding a
+// surface no couple could reach, and after the fold they would be guarding a stub.
+// PAGE is re-pointed at SANCTUARY: the deck the founder walks. Not one law is relaxed; the
+// cells look where the deck now lives, and for the first time they look where she is.
+const PAGE  = read('app/(frost)/frost/canvas/sanctuary/page.tsx');
 
 // ── LABELED AMENDMENT (TDW_07 P4b · F1-b) — THE CHIP AND THE EYEBROW MOVED HOUSE. ──────
 // P1's §4 cells asserted IgChip and FeaturedEyebrow's properties against the canvas file,
@@ -74,8 +81,12 @@ ok('§2.5 the fallback is suppressed when the app took the handoff (document.hid
   /document\.hidden/.test(IG));
 ok('§2.6 the fallback opens _blank with noopener — system handoff, never in-app-jacked (spec §3)',
   IG.includes("'_blank'") && IG.includes('noopener'));
-ok('§2.7 openInstagram cannot throw into a gesture surface — BOTH calls are guarded',
-  (IG.match(/catch\s*\{/g) || []).length === 2);
+// ── LABELED AMENDMENT · TDW_07 P6 · F-07.7 cure (d) ────────────────────────────────
+// The cure added a THIRD call site: on a fine pointer the web profile opens synchronously
+// inside the tap's own activation window, so no popup heuristic fires. The law is
+// untouched — every openInstagram call is inside a try — and the count follows the code.
+ok('§2.7 openInstagram cannot throw into a gesture surface — ALL THREE calls are guarded',
+  (IG.match(/catch\s*\{/g) || []).length === 3);
 ok('§2.8 the URL builders are PURE — no window/document above openInstagram (native clause §6)',
   IG.slice(0, IG.indexOf('export function openInstagram')).indexOf('window.') === -1);
 // The word appears once, in the native-clause comment asserting the file does not use
@@ -111,27 +122,53 @@ section('§4 · THE GESTURE LAW — spec §3, byte-identical mechanics');
 // old form could not do. A second copy left behind at the old address would have satisfied
 // the old cell perfectly while letting the two mounts drift.
 const PAGER_SRC = read('lib/frost/photoPager.ts');
+// ── LABELED AMENDMENT · TDW_07 P6 · Fork 3(b) (CE-ruled) ─────────────────────────────
+// THREE OF THE SIX VALUES MOVED, AND THE CELL FOLLOWS THE LAW RATHER THAN THE NUMBER.
+// P4b pinned these at the CANVAS deck's values. P6's read-first derived that the canvas
+// deck has zero inbound navigation — so the "deck" whose mechanics this cell protected is
+// a surface no couple reaches, while the surface they DO reach (sanctuary's Discover room)
+// ran 42/240/270 and had never joined this home. Fork 3(b) ruled the constants re-pinned
+// to SANCTUARY's values: one home, and the couple's witnessed feel unchanged.
+//
+// COUNT PRESERVED (37). The assertion is not weakened — it is re-aimed at the ruled
+// values, and it carries the PRE-FOLD literals below as a second arm so a silent drift
+// BACK to 45/250/280 reddens this cell rather than passing it.
 const GESTURE_BYTES = [
-  'export const SWIPE_THRESHOLD = 45;',
+  'export const SWIPE_THRESHOLD = 42;',
   'export const SWIPE_VELOCITY  = 0.3;',
   'export const TAP_MAX_MOVE    = 10;',
-  'export const TAP_MAX_TIME    = 250;',
-  'export const DOUBLE_TAP_MS   = 280;',
+  'export const TAP_MAX_TIME    = 240;',
+  'export const DOUBLE_TAP_MS   = 270;',
   'export const OVERLAY_DISMISS = 80;',
 ];
-ok('§4.1 every swipe/tap constant is byte-present and unchanged at the SHARED home (all six)',
-  GESTURE_BYTES.filter(b => PAGER_SRC.includes(b)).length === GESTURE_BYTES.length);
+// The retired values. Present at the shared home again = a regression to the unreachable
+// deck's feel, and this cell is the thing that says so.
+const RETIRED_GESTURE_BYTES = [
+  'export const SWIPE_THRESHOLD = 45;',
+  'export const TAP_MAX_TIME    = 250;',
+  'export const DOUBLE_TAP_MS   = 280;',
+];
+ok('§4.1 every swipe/tap constant is byte-present at the SHARED home at its RULED value, and no retired value has grown back (all six)',
+  GESTURE_BYTES.filter(b => PAGER_SRC.includes(b)).length === GESTURE_BYTES.length &&
+  RETIRED_GESTURE_BYTES.every(b => !PAGER_SRC.includes(b)));
 ok('§4.1b the canvas declares NONE of them — one home, so the two mounts cannot drift',
   !/^const SWIPE_THRESHOLD/m.test(PAGE) && !/^const TAP_MAX_MOVE/m.test(PAGE) &&
   !/^const OVERLAY_DISMISS/m.test(PAGE));
 ok('§4.1c and it imports them back, so the deck still runs on the same numbers',
   /from '@\/lib\/frost\/photoPager'/.test(PAGE));
+
+// MECHANISM, NOT RESEMBLANCE: sanctuary binds its handlers inline rather than by named
+// reference, so the assertion names the bytes IT executes. The law is unchanged — the deck
+// owns its touch lifecycle and nothing else consumes the surface.
 ok('§4.2 the deck still binds onTouchStart and onTouchEnd and nothing else',
-  PAGE.includes('onTouchStart={onTouchStart}') && PAGE.includes('onTouchEnd={onTouchEnd}'));
-ok('§4.3 the overlay\'s drag-dismiss is intact',
-  PAGE.includes('if (dragDelta > OVERLAY_DISMISS) { setDragDelta(0); onClose(); }'));
+  PAGE.includes('onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}'));
+// The panel's drag-dismiss, at sanctuary's own expression AND joined to the one home —
+// the P6 re-aim caught this as an inline `80` and the cure joined it. A bare literal here
+// again is the drift this cell now exists to redden.
+ok('§4.3 the panel\'s drag-dismiss is intact and runs on the SHARED threshold',
+  /if\(delta>OVERLAY_DISMISS\)\{setDelta\(0\);onClose\(\);\}/.test(PAGE));
 ok('§4.4 the card band CONTAINER is pointerEvents:none — the swipe surface is unchanged outside the chip',
-  /gap: 8,\s*\n\s*pointerEvents: 'none',/.test(PAGE));
+  /gap:8,\s*\n\s*pointerEvents:'none',/.test(PAGE));
 ok('§4.5 the chip is the ONLY element that consumes its own touches',
   /onTouchStart=\{\(e: React\.TouchEvent\) => \{ e\.stopPropagation\(\); \}\}/.test(SURFACE));
 ok('§4.6 the FEATURED eyebrow is non-interactive by construction',
@@ -143,8 +180,8 @@ ok('§4.8 the chip renders ONLY on a usable handle — on truth, or not at all',
 ok('§4.9 the eyebrow is Jost and letterspaced (V-2 as vetoed)',
   /FeaturedEyebrow[\s\S]{0,700}'Jost',sans-serif[\s\S]{0,300}letterSpacing: '0\.28em'/.test(SURFACE));
 ok('§4.10 the eyebrow word is exactly FEATURED', /\n\s*FEATURED\n\s*<\/span>/.test(SURFACE));
-ok('§4.11 the card chip is withheld while the overlay is open — it cannot sit under the sheet',
-  /!isBlind && !overlayVisible && \(vendor\.featured \|\| vendor\.instagram_handle\)/.test(PAGE));
+ok('§4.11 the card chip is withheld while the panel is open — it cannot sit under the sheet',
+  /!isBlind&&!panelOpen&&vendor&&\(vendor\.featured\|\|vendor\.instagram_handle\)/.test(PAGE));
 ok('§4.12 blind mode withholds the handle exactly as it withholds the name (identity is identity)',
   /\{!isBlind && vendor\.instagram_handle && \(/.test(SURFACE));
 ok('§4.13 the chip carries no gold — the screen\'s one gold stays Enquire\'s (spec §3)',
@@ -155,11 +192,27 @@ ok('§4.13 the chip carries no gold — the screen\'s one gold stays Enquire\'s 
 // evidence and STAYS — a green bought by deleting it is the cure this estate
 // refuses by name (P2 precedent). The COUNT is what was wrong: it judged prose.
 // Cells judge CODE. Same question, same number, now asked of code only.
-ok('§4.14 P1 adds NO localStorage read or write to the canvas page',
-  (stripComments(PAGE).match(/localStorage/g) || []).length === 1);   // the pre-existing isBrideDemoDiscover only
-ok('§4.15 the unreachable demo branch is left BYTE-UNTOUCHED per the CE ruling (F-07.1)',
-  PAGE.includes('const res  = await fetch(`${BACKEND}/api/v2/demo/discover`);') &&
-  PAGE.includes("window.location.href = 'https://demodiscover.thedreamwedding.in';"));
+// ── TWO CELLS RETIRED · TDW_07 P6 (CE-ruled: disclose 37 → 35, never pad) ───────────
+// §4.14 asserted P1 added no localStorage to the canvas page, and §4.15 asserted the
+// canvas's unreachable demo branch was left byte-untouched per F-07.1. Both had the same
+// subject: `canvas/discover/page.tsx`, now a redirect.
+//
+// THEY DO NOT RE-AIM, AND SAYING SO IS THE POINT.
+//
+//   §4.15 is CLOSED BY THE FOLD. F-07.1 protected an unreachable demo branch from being
+//   "fixed" by someone who could not see it was dead. The fold DELETED that branch, so the
+//   finding is closed not because it was cured but because the ground it stood on no
+//   longer exists — a distinct closure class, and this retirement is its witness.
+//
+//   §4.14 cannot be re-aimed HONESTLY. Sanctuary reads localStorage at :43-:45 — bytes
+//   that predate this sitting and sit outside its fence. Pointing this cell at sanctuary
+//   would redden on code P6 never wrote; weakening it to pass would be worse. It retires,
+//   and the remainder is FILED to F-07.70's charter (the room's storage discipline) BY
+//   NAME, so the gap travels with an owner instead of evaporating into a green count.
+//
+// THE COUNT FALLS 37 → 35 AND IS DISCLOSED IN THE FLOOR LINE. A count held level by
+// inventing two cells would be the floor-method law's hazard wearing a green.
+
 
 console.log('');
 console.log('§5 · MUTATION LEDGER (production source, cmp-restored)');
