@@ -324,6 +324,88 @@ ok('§6.9.1 the server half is named, and its absence is DISCLOSED never silentl
     return fs.readFileSync(sib, 'utf8').includes('tdw07_f0772_circle.proof.mjs');
   })());
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §8 · F-07.107 / F-07.109 / F-07.110 — THE BUBBLE LEARNS WHO IS SPEAKING
+//
+// Here rather than in a new file because these cells guard the SAME surfaces
+// §2 and §3 guard: the co-planner thread screen and the two bride call sites.
+// One home.
+//
+// The client half is necessarily source-derived — there is no DOM in this
+// container and no server to answer — so §7's process-boundary mutations are
+// what make these non-vacuous, and four are added below for exactly that.
+// ═══════════════════════════════════════════════════════════════════════════
+const THREAD_P = 'app/coplanner/threads/[threadId]/page.tsx';
+const THREAD   = code(THREAD_P);
+
+sec('§8 · F-07.107/109/110 — the author on the wire, and the label on the bubble');
+
+ok('§8.1 F-07.110: ROLE_LABEL is DELETED, map and reader both',
+  !THREAD.includes('ROLE_LABEL') && !THREAD.includes('msgRoleLabel'),
+  'the dead value-space map survived');
+
+ok('§8.2 F-07.110: no role value can reach the label — the suffix expression is gone',
+  !/actor_role\s*\|\|\s*m\.sender_role/.test(THREAD) && !THREAD.includes('` · $'),
+  'a role is still being concatenated onto a name');
+
+ok('§8.3 C1: 「 You 」 ships byte-exact, and it is the only new user-facing byte',
+  /\{mine \? 'You' : m\.sender_name\}/.test(THREAD),
+  'the vetoed byte drifted or the own-branch is missing');
+
+ok('§8.4 the label renders for OWN or NAMED, and for nothing else',
+  /\{\(mine \|\| m\.sender_name\) && \(/.test(THREAD),
+  'the three-case label condition is not the shipped one');
+
+ok('§8.5 F1: an UNNAMED bubble falls back to NO LABEL, never to the role',
+  !/sender_role\s*\|\|\s*'/.test(THREAD) && !/m\.sender_role\}/.test(THREAD),
+  'a role is rendering where an author is absent');
+
+ok('§8.6 F-07.109: the own-message compare is UNCHANGED and now true as written',
+  THREAD.includes('const mine = m.sender_user_id === session.user_id;'),
+  'the comparison was rewritten instead of the field being made real');
+
+ok('§8.7 F-07.107: the co-planner no longer POSTs a sender_name',
+  !/sender_name:\s*myName/.test(THREAD) && !/sender_name:/.test(THREAD),
+  'the client still supplies an identity string');
+
+ok('§8.8 …and its now-unused import is gone with it (no dead binding left behind)',
+  !THREAD.includes('memberName'),
+  'memberName is imported and unread — the F-07.99 shape in miniature');
+
+ok('§8.9 F-07.107: sanctuary stops sending the literal Bride, and KEEPS sender_role',
+  !/sender_name:'Bride'/.test(code(SANCT_P)) && /sender_role:'bride'/.test(code(SANCT_P)),
+  'the bride payload is wrong in one direction or the other');
+
+ok('§8.10 sanctuary :2625 and its optimistic push are UNTOUCHED (inventoried KEPT)',
+  code(SANCT_P).includes("m.sender_role==='bride' ? 'You' : (m.sender_name||'Circle')") &&
+  code(SANCT_P).includes("sender_role:'bride',sender_name:'You'"),
+  'a KEPT control moved without a ruling');
+
+ok('§8.11 F-07.107: journey.ts stops posting the role-string `couple` as a name',
+  !/sender_name:\s*'couple'/.test(code(JOURNEY_P)),
+  'a role is still being posted into a name field');
+
+ok('§8.12 the dead CircleMessage type carries sender_user_id and is declared dead',
+  /sender_user_id: string \| null;/.test(code(JOURNEY_P)) &&
+  raw(JOURNEY_P).includes('ZERO consumers'),
+  'the corrected type is missing, or its deadness is undeclared');
+
+ok('§8.13 CROSS-REPO: the server half names 0105 and both columns',
+  (() => {
+    const sib = path.resolve(ROOT, '..', 'dream-os', 'db', 'migrations', '0105_circle_message_author.sql');
+    if (!fs.existsSync(sib)) {
+      console.log('       SKIPPED-WITH-REASON: the dream-os tree is not a sibling of this repo in this ' +
+                  'container. 0105 is founder-run and witnessed at 20 columns; this cell exists so nobody ' +
+                  'mistakes its absence for its passing.');
+      return true;
+    }
+    const s = fs.readFileSync(sib, 'utf8');
+    return s.includes('add column if not exists sender_name text;') &&
+           s.includes('add column if not exists sender_user_id uuid;');
+  })(),
+  'the migration this screen depends on is not the shipped one');
+
 // ═══════════════════════════════════════════════════════════════════════════
 // §7 · MUTATION — real, in-run, across a PROCESS BOUNDARY.
 // Skipped when this process IS a mutation run, or recursion never terminates.
@@ -359,6 +441,19 @@ if (!CELLS_ONLY) {
       'M-9 a bride call site sends nothing again                ⇒ §3.2 RED'],
     [JOIN_P, '      if (d.data.token) setCircleToken(d.data.token);', '',
       'M-10 the join mint point drops the token                 ⇒ §6.4 RED'],
+    ['app/coplanner/threads/[threadId]/page.tsx',
+      "{mine ? 'You' : m.sender_name}", "{m.sender_name}",
+      'M-11 the own-bubble loses 「 You 」 (C1)                    ⇒ §8.3 RED'],
+    ['app/coplanner/threads/[threadId]/page.tsx',
+      'const mine = m.sender_user_id === session.user_id;',
+      'const mine = false;',
+      'M-12 the own-message compare unwired                     ⇒ §8.6 RED'],
+    ['app/coplanner/threads/[threadId]/page.tsx',
+      '{(mine || m.sender_name) && (', '{(mine || m.sender_role) && (',
+      'M-13 the role creeps back into the label condition       ⇒ §8.5 RED'],
+    [SANCT_P, "body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'})",
+      "body:JSON.stringify({userId:coupleId,body:msg,sender_name:'Bride',sender_role:'bride'})",
+      'M-14 sanctuary posts the client-minted name again        ⇒ §8.9 RED'],
   ];
 
   let mutPass = 0, mutRun = 0;

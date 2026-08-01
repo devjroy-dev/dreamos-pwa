@@ -205,11 +205,18 @@ export interface CircleThread {
 }
 
 // messages from /api/v2/frost/circle/threads/:brideId/:threadId/messages
+// F-07.107/109 — `sender_name` is now the persisted author (null on pre-0105
+// rows), not the role wearing a name field, and `sender_user_id` joins it.
+// NAMED, NOT SILENTLY CORRECT: these three helpers — fetchCircleThreads,
+// fetchThreadMessages, sendThreadMessage — have ZERO consumers anywhere in this
+// tree (derived by command at F-07.107's read-first). The type is corrected
+// because a dead export with a lying type is what the next reader inherits.
 export interface CircleMessage {
   id: string;
   body: string | null;
   content: string | null;
   sender_name: string | null;
+  sender_user_id: string | null;
   sender_role: string | null;
   created_at: string;
 }
@@ -487,7 +494,9 @@ export async function sendThreadMessage(threadId: string, messageBody: string): 
     await fetch(`${API_BASE}/api/v2/frost/circle/messages`, {
       method: 'POST',
       headers: circleBrideHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ userId: id, thread_id: threadId, body: messageBody, sender_name: 'couple' }),
+      // F-07.107 — `sender_name: 'couple'` was here: not a name at all, a role
+      // string posted into a name field. The server no longer accepts it.
+      body: JSON.stringify({ userId: id, thread_id: threadId, body: messageBody }),
     });
     return true;
   } catch { return false; }

@@ -2903,7 +2903,13 @@ function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
           headers: circleToken
             ? {'Content-Type':'application/json', Authorization:`Bearer ${circleToken}`}
             : {'Content-Type':'application/json'},
-          body:JSON.stringify({userId:coupleId,body:msg,sender_name:'Bride',sender_role:'bride'}),
+          // F-07.107 — `sender_name:'Bride'` was here. The server no longer accepts
+          // the parameter: her ACTUAL name is hydrated from couples.user_id ->
+          // users.name and persisted to 0105's column, so the literal that used to
+          // travel from this line and die at the insert is gone at both ends.
+          // `sender_role` STAYS — it is a role, it is stored as one in sent_by, and
+          // :2625 below reads it to say 「 You 」 on her own bubbles.
+          body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'}),
         });
       }
       onSent(msg);
