@@ -13,6 +13,8 @@
 | `scripts/tdw_f0774_stripper.proof.mjs` | **NEW — 35/35 with the sibling clone present; 34/34 + 1 named skip in a lone checkout.** α/β/γ over all seven `image/*` files, both declared holes canaried, cross-repo identity, derivable coverage. |
 | `scripts/tdw_stripper_census.mjs` | **NEW — the committed census instrument.** TypeScript-lexer oracle. Loud named skip when `node_modules` is absent; gates nothing. |
 | `scripts/tdw_stripper_census.out.txt` | its captured output at this tip. |
+| `scripts/tdw_f0774_vacuity_probe.mjs` | **NEW — the plant-inside-the-bite probe, shipped re-runnable.** The evidence behind the 21 class-(a) findings. Refuses to start on a dirty tree; plants, runs, restores byte-identical, verifies the restore. |
+| `scripts/tdw_f0774_coverage_red_at_5535e24.txt` | the coverage cell's captured RED at the uncured tree. |
 | 14 proof files | converged on the module; each gained a §0 canary section. |
 
 **The eleven naive copies are gone.** `§6.3` derives that by command and reddens if one grows back.
@@ -53,7 +55,9 @@ The intermediate state — module in, canaries not yet — held **every count by
 
 ## 3 · §5's PROBE — 21 hollow greens, minted per instance
 
-Forbidden specimens planted **inside sanctuary's two false bites** (scratch tree; sanctuary restored byte-identical, `cmp` verified).
+**Re-runnable: `node scripts/tdw_f0774_vacuity_probe.mjs`.** Q-SP-5 binds a conviction as hard as a cure — evidence nobody can re-run quietly stops being evidence. The probe anchors to the two `accept="image/*"` sites by TEXT, never by stored character offsets, which rot the moment anyone edits above them; it STOPs on a dirty tree; and it verifies its own restore before exiting. Verified on a clean cured tree: **21 reds, `git status` clean afterwards.**
+
+Forbidden specimens planted **inside sanctuary's two former bites** (sanctuary restored byte-identical, verified).
 
 - **Naive stripper (the tree as it stood):** `p6_fold` 60/60, `p4b_body` 125/125 — **ZERO REDS.**
 - **Cured module, same specimens:** `p6_fold` **48/60**, `p4b_body` **116/125** — **21 REDS.**
@@ -68,6 +72,8 @@ With nothing planted, both benches were 60/60 and 125/125 under **both** strippe
 ---
 
 ## 4 · THE COVERAGE CELL'S RED, CAPTURED (CE §3's demand)
+
+**Committed at `scripts/tdw_f0774_coverage_red_at_5535e24.txt`** — not a chat artefact. A capture that lives only in a transcript is not banked, and the first cut of this delivery made exactly that mistake; the founder caught it before the push.
 
 Against the uncured tree — `5535e24` plus the module and the bench only, nothing else converted:
 

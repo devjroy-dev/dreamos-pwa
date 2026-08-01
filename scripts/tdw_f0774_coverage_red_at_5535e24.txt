@@ -1,0 +1,65 @@
+F-07.74 — THE COVERAGE CELL'S CAPTURED RED
+Captured at dreamos-pwa 5535e24c0c51214da6054da0754dbcaaed419295, on the UNCURED tree:
+the base commit plus scripts/lib/stripComments.mjs and scripts/tdw_f0774_stripper.proof.mjs
+and NOTHING ELSE converted. This is CE \u00a73's demand — the coverage cell authored RED
+against the tree it was written to convict, before the cure landed.
+
+DISCLOSURE, on the record rather than dressed up: \u00a76.3 is what convicts here.
+\u00a76.1 PASSES VACUOUSLY at this state — nothing imports the module yet, so "every
+importer is canaried" is true of a set of one. \u00a76.1 only becomes load-bearing
+after convergence. Both facts belong beside this capture.
+
+════════════════════════════════════════════════════════════════════════
+F-07.74 — the comment stripper, and the class it belongs to
+
+§0 · THE MECHANISM — the stripper itself, driven directly
+  ok   §0.1 a mid-token /* opens nothing — live code after an accept="image/*" survives
+  ok   §0.2 a real block comment is still removed
+  ok   §0.3 VACUITY TWIN — the RETIRED naive rule WOULD swallow that specimen
+  ok   §0.4 the stripper is not a no-op
+  ok   §0.5 template-literal substitutions cannot open a block either
+  ok   §0.6 a `*/` inside a string cannot CLOSE a real comment early
+  ok   §0.7 line structure is preserved — stripped output stays line-stable
+  ok   §0.Z INVOCATION (F-07.99) — this bench really CALLS its stripper, it does not merely hold one
+
+§1 · α — EVERY image/* FILE KEEPS ITS LIVE CODE THROUGH STRIPPING
+  ok   §1 page.tsx — live code from inside the bite survives: function fmtTime(t:string|null):string
+  ok   §1 page.tsx — live code from inside the bite survives: 0%,100% { opacity:0.5; box-shadow:0 0 
+  ok   §1 page.tsx — live code from inside the bite survives: onChange={handleFilesSelected}
+  ok   §1 AdminUI.tsx — live code from inside the bite survives: const [urlFocus, setUrlFocus] = useSta
+  ok   §1 page.tsx — live code from inside the bite survives: onChange={handlePhotoUpload}
+  ok   §1 page.tsx — live code from inside the bite survives: onChange={handleFileSelect}
+  ok   §1 page.tsx — live code from inside the bite survives: onChange={handleFileSelect}
+  ok   §1 AddMuseSheet.tsx — live code from inside the bite survives: }}>JPG or PNG, up to 10 MB.</p>
+  ok   §1.census the estate still has exactly EIGHT image/* sites across SEVEN files
+
+§2 · β — REAL COMMENTS ARE STILL REMOVED (with non-vacuity beside each)
+  ok   §2 page.tsx — the token exists in RAW (non-vacuity)
+  ok   §2 page.tsx — and is GONE from stripped output: DiscImageDots
+  ok   §2 AdminUI.tsx — the token exists in RAW (non-vacuity)
+  ok   §2 AdminUI.tsx — and is GONE from stripped output: Editorial design system
+
+§3 · γ — THE BOTH-WAYS: every α anchor DIES under the restored naive rule
+  ok   §3.1 the naive rule kills 7 of 8 α anchors
+  ok   §3.2 the one survivor is the LATENT carrier, named — not an accident
+
+§4 · THE DECLARED HOLE — regex literals, canaried at named fixtures
+  ok   §4.1 the named false-close fixture is still present (non-vacuity)
+  ok   §4.2 and the live code beneath it survives stripping — the hole is NOT armed here
+  ok   §4.3 both holes are DECLARED in the module, not inherited silently
+  ok   §4.4 H2 fixture present — the regex whose tail trips the line branch
+  ok   §4.5 and the live code around it SURVIVES — the hole costs a regex tail, not a region
+  ok   §4.6 H1 fixture — the known comment leak in sanctuary is still exactly that, a leak
+
+§5 · ONE DEFINITION, TWO REPOS — the cross-repo identity cell
+  SKIP §5.1 cross-repo identity — dream-os sibling clone not present
+       the twin definition could not be read from this container; the identity is UNPROVEN here and is proven in dream-os by scripts/b07_f0774_stripper_bench.js §5. A skip, counted and named — never a pass.
+
+§6 · COVERAGE IS DERIVED, NEVER LISTED (F-07.98)
+  ok   §6.1 every proof importing the stripper carries a canary (1 strippers, 1 canaried)
+  ok   §6.2 and no proof claims a canary without importing the stripper
+  FAIL §6.3 NOBODY else defines a stripper any more — one home, derived
+       a copy of the naive rule has grown back in scripts/
+  ok   §6.4 every stripper-dependent proof proves its own CALL-SITE (F-07.99)
+
+RED — tdw_f0774_stripper 32/33 (1 NAMED SKIP)
