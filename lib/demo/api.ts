@@ -91,6 +91,34 @@ export async function fetchDemoContext(handle: string): Promise<{ ok: true } & D
   return publicGet(`/api/v2/demo/vendor/${handle}/context`);
 }
 
+// ── TDW_08 P1 · G-1 · THE OPEN BEACON (client half) ─────────────────────────
+// Fire-and-forget. It is an ANALYTICS beacon: it stamps `opened_at` server-side
+// and moves invited -> opened, and it mutates no clock (the first-open extension
+// was retired by the founder on 2026-08-02).
+//
+// IT NEVER THROWS AND NEVER SURFACES. A landing page must not degrade because a
+// telemetry write failed — the vendor came to see his studio, not our stamp. It
+// is deliberately NOT routed through publicGet, whose contract is to throw on
+// `ok:false`; that behaviour is right for a read the page renders and wrong for
+// this. The 404 and 429 paths are swallowed here on purpose.
+//
+// THE PATH IS THE MOUNTED ONE. router.js mounts the demo router at
+// `/api/v2/demo/vendor` — the spec's `/api/v2/demo/:handle/opened` is not a
+// served route, and authoring against it would be a phantom call of F-07.95's
+// class. This is the same prefix the claim POST already uses.
+export async function pingDemoOpened(handle: string): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/v2/demo/vendor/${handle}/opened`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    '{}',
+      keepalive: true,
+    });
+  } catch {
+    /* deliberately silent — see above */
+  }
+}
+
 export async function fetchDemoDiscoverFeed(): Promise<{
   ok: true; vendors: DiscoverVendor[]; page: number; has_more: boolean; total: number;
 }> {

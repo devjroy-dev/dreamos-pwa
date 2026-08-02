@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useParams, useRouter } from 'next/navigation';
-import { fetchDemoVendor } from '@/lib/demo/api';
+import { fetchDemoVendor, pingDemoOpened } from '@/lib/demo/api';
 import type { DemoVendor, DemoPhoto } from '@/lib/demo/api';
 import { DemoClaimSheet } from '@/components/demo/DemoClaimSheet';
 
@@ -64,6 +64,22 @@ export default function DemoLandingPage() {
       setClaimOpen(true);
     }
   }, [searchParams]);
+
+  // ── TDW_08 P1 · G-1 · THE OPEN BEACON ──────────────────────────────────────
+  // Fires ONCE per mount. The ref guard is not decoration: React StrictMode runs
+  // effects twice in development, and without it the dev tree would double-fire.
+  // The server is idempotent on `opened_at` regardless, so a double fire is
+  // harmless — this guard keeps the CLIENT honest rather than relying on that.
+  //
+  // NO localStorage, NO sessionStorage, NO storage of any kind. G-6 and the
+  // May-29 zero-localStorage demo-path resolution both forbid it, and a beacon
+  // is exactly the sort of thing that tempts a "have we already pinged?" cache.
+  const beaconFired = useRef(false);
+  useEffect(() => {
+    if (!handle || beaconFired.current) return;
+    beaconFired.current = true;
+    void pingDemoOpened(handle);
+  }, [handle]);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const photosRef   = useRef<string[]>([]);
