@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, circleAuthHeaders,
-} from '../CircleSessionContext';
+  useCircleSession, brideId, brideName, circleAuthHeaders, circleRefused } from '../CircleSessionContext';
 import AddMuseSheet from './AddMuseSheet';
 
 interface MuseTile {
@@ -32,6 +31,9 @@ export default function CoplannerMuse() {
         `${API}/api/v2/circle/muse/${bride_id}?memberUserId=${session.user_id}`,
           { headers: circleAuthHeaders() }
       );
+      // FORK B — one home. A 401 signs her out through the lane's single
+      // refusal path; anything else falls through to this screen's own state.
+      if (circleRefused(r)) { setLoading(false); return; }
       const d = await r.json();
       if (d.success) setTiles((d.data || []) as MuseTile[]);
     } catch {}

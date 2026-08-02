@@ -4,8 +4,7 @@ import { usePathname } from 'next/navigation';
 import {
   API, INK, CREAM, GOLD, MUTED, HAIRLINE, FONT_EYEBROW, FONT_DISPLAY, FONT_BODY,
   CircleSession, CircleSessionContext,
-  setCircleToken, clearCircleToken, circleAuthHeaders,
-} from './CircleSessionContext';
+  setCircleToken, circleAuthHeaders, circleRefused, CIRCLE_REFUSAL_EVENT } from './CircleSessionContext';
 import TabBar from './TabBar';
 
 const SESSION_KEY = 'circle_session';
@@ -62,13 +61,13 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
         // It is wired now so the enforcement delivery is a SERVER change alone,
         // and so this path ships proven rather than written-and-first-run against
         // a live member — which is the shape F-07.72 exists to punish.
-        if (r.status === 401) {
+        // FORK B — this file no longer clears the credential itself. The four
+        // lines that stood here are `circleRefused()` in
+        // CircleSessionContext.tsx, so that EVERY screen on the lane can reach
+        // the same sign-out instead of only this one fetch at only this one
+        // moment. The listener below turns the event back into UI state.
+        if (circleRefused(r)) {
           if (cancelled) return;
-          clearCircleToken();
-          try { localStorage.removeItem(SESSION_KEY); } catch {}
-          setSession(null);
-          setExpired(true);
-          setState('no_session');
           return;
         }
         const d = await r.json();
@@ -84,6 +83,18 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
 
     hydrate();
     return () => { cancelled = true; };
+  }, []);
+
+  // ── FORK B · THE ONE LISTENER ───────────────────────────────────────────────
+  // `circleRefused()` has already cleared the credential and the cached session
+  // by the time this fires; all that is left is the UI half. It is a SEPARATE
+  // effect from the hydration above on purpose: hydration runs once at mount,
+  // and the whole point of this fork is that a refusal can arrive at any moment
+  // afterwards, from any screen.
+  useEffect(() => {
+    const onRefused = () => { setSession(null); setExpired(true); setState('no_session'); };
+    window.addEventListener(CIRCLE_REFUSAL_EVENT, onRefused);
+    return () => window.removeEventListener(CIRCLE_REFUSAL_EVENT, onRefused);
   }, []);
 
   return (
@@ -236,7 +247,11 @@ function CoplannerSignIn({ expired, onSuccess }: {
       const sr = await fetch(`${API}/api/v2/circle/session/${vd.userId}`, {
         headers: circleAuthHeaders(),
       });
-      const sd = await sr.json();
+      // A 401 HERE MEANS THE MINT AND THE GUARD DISAGREE — the door just issued
+      // a token the door beside it will not take. It is not a stale credential
+      // and it must not be reported as one, so it takes the generic sentence
+      // below rather than the expired path.
+      const sd = sr.status === 401 ? { success: false } : await sr.json();
       if (!sd.success) {
         setError("Couldn't load your Circle. Try again or use your invite link.");
         setStep('phone');

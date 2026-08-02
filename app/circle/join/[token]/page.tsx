@@ -157,7 +157,14 @@ export default function CircleJoinPage() {
       const sr = await fetch(`${API_BASE}/api/v2/circle/session/${userId}`, {
         headers: circleAuthHeaders(),
       });
-      const sd = await sr.json();
+      // FORK B DELIBERATELY DOES NOT APPLY HERE, and the reason is worth a line.
+      // `circleRefused()` CLEARS the credential — correct on every screen that
+      // reads a stale one, and wrong on this one, which is holding a token minted
+      // ninety seconds ago at `/accept` (:124). A 401 at this point would mean
+      // the mint and the guard disagree, not that her session went stale, and
+      // throwing away a fresh credential would strand a brand-new member on a
+      // sign-in screen she has no PIN for yet. It falls through to the toast.
+      const sd = sr.status === 401 ? { success: false } : await sr.json();
       if (sd.success) localStorage.setItem('circle_session', JSON.stringify(sd.data));
       router.push('/coplanner');
     } catch { showToast('Something went wrong.'); }

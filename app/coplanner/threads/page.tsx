@@ -4,8 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   API, CREAM, GOLD, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, circleAuthHeaders,
-} from '../CircleSessionContext';
+  useCircleSession, brideId, brideName, circleAuthHeaders, circleRefused } from '../CircleSessionContext';
 
 // Shape matches GET /api/v2/frost/circle/threads/:userId (backend ~15883).
 // Backend sends: thread_id, kind ('dm'|'group'), label, last_message (object), last_active.
@@ -63,6 +62,9 @@ export default function CoplannerThreads() {
         const r = await fetch(`${API}/api/v2/frost/circle/threads/${bride_id}`, {
         headers: circleAuthHeaders(),
       });
+      // FORK B — one home. A 401 signs her out through the lane's single
+      // refusal path; anything else falls through to this screen's own state.
+        if (circleRefused(r)) { if (!cancelled) setLoading(false); return; }
         const d = await r.json();
         if (!cancelled && d.success) setThreads((d.data || []) as Thread[]);
       } catch {}

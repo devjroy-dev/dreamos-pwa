@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, circleAuthHeaders,
-} from '../CircleSessionContext';
+  useCircleSession, brideId, brideName, circleAuthHeaders, circleRefused } from '../CircleSessionContext';
 
 interface ChatTurn {
   id: string;
@@ -57,6 +56,9 @@ export default function CoplannerDreamAi() {
         const r = await fetch(`${API}/api/v2/dreamai/circle-member-history/${session.user_id}`, {
         headers: circleAuthHeaders(),
       });
+      // FORK B — one home. A 401 signs her out through the lane's single
+      // refusal path; anything else falls through to this screen's own state.
+        if (circleRefused(r)) { if (!cancelled) setLoading(false); return; }
         const d = await r.json();
         if (!cancelled && d.success) setTurns(normalizeHistory((d.data || []) as HistoryRow[]));
       } catch {}
@@ -119,6 +121,9 @@ export default function CoplannerDreamAi() {
           message,
         }),
       });
+      // FORK B — one home. A 401 signs her out through the lane's single
+      // refusal path; anything else falls through to this screen's own state.
+      if (circleRefused(r)) return;
       const d = await r.json();
       if (d.success) {
         const reply = d.data?.reply || d.data?.message || d.reply || '';

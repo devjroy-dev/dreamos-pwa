@@ -3,8 +3,7 @@ import { useState } from 'react';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, circleAuthHeaders,
-} from '../CircleSessionContext';
+  useCircleSession, circleAuthHeaders, circleRefused } from '../CircleSessionContext';
 
 const CLOUDINARY_CLOUD  = 'dccso5ljv';
 const CLOUDINARY_PRESET = 'dream_wedding_uploads';
@@ -53,6 +52,9 @@ export default function AddMuseSheet({
           function_tag: 'general',
         }),
       });
+      // FORK B — one home. A 401 signs her out through the lane's single
+      // refusal path; anything else falls through to this screen's own state.
+      if (circleRefused(r)) { setSaving(false); return; }
       const d = await r.json();
       if (d.success) { onSaved(); return; }
       setErr(d.error || 'Could not save.');

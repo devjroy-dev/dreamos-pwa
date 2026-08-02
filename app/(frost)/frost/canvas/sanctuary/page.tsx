@@ -2568,6 +2568,20 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
   const candleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.16)';
 
   const [chatMsgs, setChatMsgs] = React.useState<any[]>([]);
+  // ── F-07.72 ZIP 2 · FORK A(c) · THE BRIDE'S LANDING ────────────────────────
+  // This state exists because ZIP 2 can refuse HER. She is not a
+  // `circle_members` row; the circle doors are dual-lane and take a resolver,
+  // and that resolver admits her only while her couple credential resolves. A
+  // stale JWT, an ITP wipe, a signed-out browser — all three worked before this
+  // delivery, because the server ignored her header and served the couple id in
+  // the path. All three are 401 now.
+  //
+  // AND HER REFUSAL IS THE INVISIBLE KIND, which is why a banner and not a
+  // silence: this poll's `d?.ok` guard means a refusal simply never calls
+  // `setChatMsgs`, so the last messages she loaded stay on screen, refreshing
+  // every ten seconds, looking live. Enforcement without a landing is a security
+  // fix that breaks a real person's screen and does not tell her.
+  const [chatLocked, setChatLocked] = React.useState(false);
   const API_CIRCLE = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
   React.useEffect(()=>{
@@ -2585,6 +2599,11 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
         const res = await fetch(`${API_CIRCLE}/api/v2/frost/circle/messages/${coupleId}`,{
           headers: token?{Authorization:`Bearer ${token}`}:undefined,
         });
+        // ONLY 401 LOCKS. A 500, a timeout, an offline phone keep the last known
+        // messages exactly as this poll has always behaved — telling her to sign
+        // in again over a dropped packet would be its own defect.
+        if(res.status===401){ if(alive) setChatLocked(true); return; }
+        if(alive) setChatLocked(false);
         const d = await res.json();
         if(alive && d?.ok && Array.isArray(d.messages)) setChatMsgs(d.messages);
       } catch { /* keep last known */ }
@@ -2866,19 +2885,31 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
         backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
         borderTop:`0.5px solid ${pgLine}`,
         padding:`10px 16px calc(10px + env(safe-area-inset-bottom,0px))`}}>
+        {chatLocked ? (
+          /* F-07.72 ZIP 2 · FORK A(c) — THE LANDING. It replaces the composer
+             rather than sitting above it: a box she can type into that cannot
+             send is the vanishing-message failure with extra steps. */
+          <div style={{padding:'6px 2px',textAlign:'center' as any,
+            fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,
+            color:pgInkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+            Sign in again to see and send Circle messages.
+          </div>
+        ) : (
         <CircleCompose dark={dark} accent={pgAccent} line={pgLine} ink={pgInk} signal={signal}
+          onRefused={()=>setChatLocked(true)}
           onSent={(msg)=>{
             // Optimistic — append to chatMsgs; next 10s poll reconciles with server truth.
             setChatMsgs(prev=>[...prev,{id:'local-'+Date.now(),content:msg,body:msg,sender_role:'bride',sender_name:'You',created_at:new Date().toISOString()}]);
           }}/>
+        )}
       </div>
     </div>
   );
 }
 
 // ── CIRCLE COMPOSE ─────────────────────────────────────────────────────────────
-interface CircleComposeProps {dark:boolean;accent:string;line:string;ink:string;signal:string;onSent:(msg:string)=>void;}
-function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
+interface CircleComposeProps {dark:boolean;accent:string;line:string;ink:string;signal:string;onSent:(msg:string)=>void;onRefused:()=>void;}
+function CircleCompose({dark,accent,line,ink,onSent,onRefused}:CircleComposeProps){
   const [text,   setText]   = React.useState('');
   const [sending,setSending]= React.useState(false);
   const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
@@ -2898,7 +2929,7 @@ function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
         // never a circle-member guard: without this header the enforcement
         // delivery would refuse the bride her own circle chat.
         const circleToken = coupleAccessToken();
-        await fetch(`${API}/api/v2/frost/circle/messages`,{
+        const res = await fetch(`${API}/api/v2/frost/circle/messages`,{
           method:'POST',
           headers: circleToken
             ? {'Content-Type':'application/json', Authorization:`Bearer ${circleToken}`}
@@ -2911,6 +2942,11 @@ function CircleCompose({dark,accent,line,ink,onSent}:CircleComposeProps){
           // :2625 below reads it to say 「 You 」 on her own bubbles.
           body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'}),
         });
+        // F-07.72 ZIP 2 — this response was DISCARDED, which was harmless while
+        // nothing refused. Under enforcement a discarded 401 is her message
+        // disappearing with no error anywhere. Her text goes back in the box and
+        // the landing takes the composer's place.
+        if(res.status===401){ setText(msg); onRefused(); setSending(false); return; }
       }
       onSent(msg);
     } catch {}

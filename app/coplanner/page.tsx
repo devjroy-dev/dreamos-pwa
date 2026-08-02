@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   API, CREAM, GOLD, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, memberName, circleAuthHeaders,
-} from './CircleSessionContext';
+  useCircleSession, brideId, brideName, memberName, circleAuthHeaders, circleRefused } from './CircleSessionContext';
 
 interface FeedEvent {
   id: string;
@@ -62,8 +61,12 @@ export default function CoplannerHome() {
       try {
         const [pr, fr] = await Promise.all([
           fetch(`${API}/api/v2/couple/profile/${bride_id}`).then(r => r.json()).catch(() => null),
+          // FORK B — one home. `circleRefused` returns true on a 401 (and has
+          // already cleared the credential and fired the event); this screen
+          // then falls through to its own empty state rather than rendering a
+          // refusal as "no activity yet".
           fetch(`${API}/api/v2/frost/circle/feed/${bride_id}?limit=10`, { headers: circleAuthHeaders() })
-            .then(r => r.json()).catch(() => null),
+            .then(r => (circleRefused(r) ? null : r.json())).catch(() => null),
         ]);
         if (cancelled) return;
         if (pr?.success && pr.data) setProfile(pr.data as CoupleProfile);

@@ -136,6 +136,46 @@ export function circleAuthHeaders(extra?: Record<string, string>): Record<string
   return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };
 }
 
+// ── F-07.72 ZIP 2 · FORK B · THE REFUSAL GETS ONE HOME, THE WAY THE CREDENTIAL DID
+//
+// THE HAZARD THIS CLOSES IS ONE THIS DELIVERY CREATES, which is why it ships in
+// the same delivery rather than being named and deferred. Until ZIP 2 no circle
+// door returned 401, so a credential could not go stale underneath an open app.
+// From ZIP 2 it can — and `layout.tsx`'s hydration refresh, the only 401 reader
+// on this lane, runs ONCE at mount with an empty dependency array. A token dying
+// mid-session would therefore leave every screen silently empty (each fetch takes
+// its `d.success` falsy branch and renders an empty state) with no path back to
+// the PIN screen short of a manual reload. The member would see an app that had
+// forgotten her wedding.
+//
+// WHY AN EVENT AND NOT A CONTEXT SETTER: the co-planner's screens are siblings
+// of `layout.tsx`, not children of a state it exposes, and the join page lives
+// outside the layout entirely. A window event is the one carrier every caller
+// already has, and it keeps this module free of React state so a plain fetch
+// helper can use it.
+//
+// A REFUSAL AND A BLIP ARE STILL NOT THE SAME EVENT (§5 of ZIP 1's handover,
+// unchanged): ONLY 401 signs her out. A 500, a timeout, an offline phone keep
+// the cached session on screen, because signing someone out over a dropped
+// packet is a worse failure than slightly stale permissions.
+//
+// 403 IS DELIBERATELY NOT A SIGN-OUT. The server distinguishes them: 401 means
+// no usable credential, 403 means a valid credential whose membership is gone or
+// whose bound couple no longer matches. Sending her to a PIN screen cannot
+// restore a membership the bride revoked, so a 403 falls through to the screen's
+// own empty state and she is not put in a loop she cannot win.
+export const CIRCLE_REFUSAL_EVENT = 'tdw:circle-unauthorised';
+
+export function circleRefused(res: { status: number }): boolean {
+  if (!res || res.status !== 401) return false;
+  clearCircleToken();
+  try { localStorage.removeItem('circle_session'); } catch { /* private mode */ }
+  if (typeof window !== 'undefined') {
+    try { window.dispatchEvent(new Event(CIRCLE_REFUSAL_EVENT)); } catch {}
+  }
+  return true;
+}
+
 export const CircleSessionContext = createContext<CircleSession | null>(null);
 
 export function useCircleSession(): CircleSession {

@@ -192,8 +192,35 @@ ok('§5.3 vocabulary 3 — the `tdw_*_session` cookies live',
   FILES.some(f => /tdw_couple_session/.test(readAll(f))) &&
   FILES.some(f => /tdw_vendor_session/.test(readAll(f))));
 
-ok('§5.4 vocabulary 4 — `circle_session`, tokenless, exactly THREE consumer files',
-  FILES.filter(f => /circle_session/.test(codeOnly(f))).length === 3,
+// ── LABELED AMENDMENT (F-07.72 ZIP 2) · §5.4 THREE → FOUR, COUNT PRESERVED ──
+// THE CENSUS REALLY MOVED, AND THE CELL CAUGHT IT — which is what it is for.
+// Fork B gave the lane's refusal ONE HOME, and a sign-out that clears the
+// credential must also clear the cached session blob, so `circleRefused()` in
+// `CircleSessionContext.tsx` is a genuine FOURTH consumer of vocabulary 4. That
+// file already held the credential; it now holds the un-holding.
+//
+// This is NOT the ZIP-1 movement, and the distinction is the whole reason the
+// cell is worth keeping: that one was 3 → 4 on a COMMENT, prose counted as
+// code, and the cure was to strip. This one is 3 → 4 on a `removeItem` call,
+// and the honest answer is to move the number and say why. The ARC-2 handover's
+// "exactly three" is superseded HERE, in ink, rather than by a silent edit.
+//
+// The set is asserted BY NAME as well as by count: a fifth consumer, or the
+// wrong fourth, reddens.
+ok('§5.4 vocabulary 4 — `circle_session`, tokenless, exactly FOUR consumer files (was three)',
+  (() => {
+    const hits = FILES.filter(f => /circle_session/.test(codeOnly(f)))
+      .map(f => path.relative(ROOT, f).split(path.sep).join('/')).sort();
+    const expected = [
+      'app/circle/join/[token]/page.tsx',
+      'app/coplanner/CircleSessionContext.tsx',   // F-07.72 ZIP 2 — the refusal's one home
+      'app/coplanner/layout.tsx',
+      'app/coplanner/settings/page.tsx',
+    ];
+    const same = hits.length === expected.length && hits.every((h, i) => h === expected[i]);
+    if (!same) console.log('       consumers now: ' + hits.join(', '));
+    return same;
+  })(),
   'the circle_session consumer set moved — the corrected census needs re-deriving');
 
 // ═══════════════════════════════════════════════════════════════════════════

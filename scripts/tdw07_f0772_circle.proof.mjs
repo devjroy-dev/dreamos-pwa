@@ -287,12 +287,21 @@ ok('§5.3 the expired line is shown INSTEAD of the step caption, not beside it',
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§6 · ENFORCE NOTHING — and the join page\'s second mint');
 
-ok('§6.1 the 401 branch exists and is WIRED, so the enforcement ZIP is a server change alone',
-  /if \(r\.status === 401\)/.test(LAY) && /clearCircleToken\(\);/.test(LAY));
+// ── §6.1 / §6.2 RE-AIMED AT ZIP 2, COUNT PRESERVED ─────────────────────────
+// These asserted the 401 branch lived INSIDE layout.tsx and cleared the token
+// there. FORK B moved that body to `circleRefused()` in the context file — one
+// home, reachable from every screen — so the cells follow the behaviour to its
+// new address rather than pinning an address that is no longer where the
+// behaviour is. CE-119's class, the one `b07_f0784_panel` paid for at ZIP 1.
+// WHAT THEY CLAIM IS UNCHANGED: the branch exists, it clears the credential,
+// and ONLY a 401 fires it.
+ok('§6.1 the 401 branch exists and is WIRED — now at the lane\'s ONE refusal home',
+  /if \(circleRefused\(r\)\)/.test(LAY) &&
+  /res\.status !== 401/.test(CTX) && /clearCircleToken\(\);/.test(CTX));
 
 ok('§6.2 A REFUSAL AND A BLIP ARE NOT THE SAME EVENT — only 401 signs her out',
-  LAY.indexOf('if (r.status === 401)') < LAY.indexOf('const d = await r.json();') &&
-  /catch \{\s*\}/.test(LAY.slice(LAY.indexOf('Network blip')) || 'x') === false,
+  /if \(!res \|\| res\.status !== 401\) return false;/.test(CTX) &&
+  LAY.indexOf('if (circleRefused(r))') < LAY.indexOf('const d = await r.json();'),
   'a 500 or a timeout would sign the member out');
 
 ok('§6.3 the cached session still survives a non-401 failure — the old behaviour is preserved',
@@ -407,6 +416,115 @@ ok('§8.13 CROSS-REPO: the server half names 0105 and both columns',
   'the migration this screen depends on is not the shipped one');
 
 // ═══════════════════════════════════════════════════════════════════════════
+// §9 · F-07.72 ZIP 2 — THE CLIENT HALF OF ENFORCEMENT
+//
+// The server half of this ZIP makes eleven doors refuse. That is a SERVER
+// change, and the temptation is to ship it alone. These cells exist because the
+// CE ruled otherwise on two hazards this delivery CREATES:
+//
+//   FORK B — until ZIP 2 no circle door returned 401, so a credential could not
+//   go stale under an open app. It can now, and `layout.tsx`'s hydration refresh
+//   — the lane's only 401 reader — runs ONCE at mount. Without a one-home
+//   refusal every screen would go silently empty with no path back to the PIN
+//   screen short of a manual reload.
+//
+//   FORK A(c) — THE BRIDE. She is not a `circle_members` row; the shared doors
+//   admit her through the resolver's couple arm, and only while her JWT
+//   resolves. Stale, wiped or signed-out all worked before this delivery and are
+//   401 now — and her refusal is THE INVISIBLE KIND: her poll's `d?.ok` guard
+//   means a refusal never calls `setChatMsgs`, so the last messages she loaded
+//   sit on screen refreshing every ten seconds, looking live.
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§9 · ZIP 2 — Fork B\'s one home and Fork A(c)\'s landing');
+
+const SANCT  = code(SANCT_P), SANCTr = raw(SANCT_P);
+
+ok('§9.1 FORK B — the refusal has ONE HOME, beside the credential\'s',
+  /export function circleRefused\(/.test(CTX) &&
+  /export const CIRCLE_REFUSAL_EVENT/.test(CTX));
+
+ok('§9.2 it clears BOTH carriers and the cached session — not just the one the reader remembered',
+  /circleRefused[\s\S]{0,600}?clearCircleToken\(\)/.test(CTX) &&
+  /circleRefused[\s\S]{0,600}?removeItem\('circle_session'\)/.test(CTX),
+  'a sign-out that leaves either half behind is a member who cannot sign back in');
+
+ok('§9.3 ONLY 401 — a 403 is deliberately NOT a sign-out',
+  /if \(!res \|\| res\.status !== 401\) return false;/.test(CTX) &&
+  /403/.test(CTXr),
+  'a revoked membership would loop her through a PIN screen that cannot restore it');
+
+// §9.4 — DERIVED, NEVER LISTED. Every co-planner file that CARRIES the header
+// must also READ a refusal; a twelfth call site added without one reddens here
+// rather than shipping as a screen that goes quietly blank. The census of record
+// is COPLANNER_CALLERS above, itself the read-first's eleven sites.
+ok('§9.4 EVERY co-planner caller reads the refusal — derived by predicate, not a hand list',
+  (() => {
+    const missing = COPLANNER_CALLERS.filter((f) => {
+      const c = code(f);
+      return /circleAuthHeaders\(/.test(c) && !/circleRefused\(/.test(c);
+    });
+    if (missing.length) console.log('       carries the header, ignores the refusal: ' + missing.join(', '));
+    return missing.length === 0;
+  })());
+
+ok('§9.5 THE JOIN PAGE IS THE NAMED EXCEPTION, with its reason in the file',
+  !/circleRefused\(/.test(code(JOIN_P)) &&
+  /sr\.status === 401 \? \{ success: false \}/.test(code(JOIN_P)) &&
+  /mint and the guard disagree/.test(raw(JOIN_P)),
+  'clearing a credential minted ninety seconds ago would strand a brand-new member');
+
+ok('§9.6 the listener is a SEPARATE effect from the once-at-mount hydration',
+  /addEventListener\(CIRCLE_REFUSAL_EVENT/.test(LAY) &&
+  /removeEventListener\(CIRCLE_REFUSAL_EVENT/.test(LAY) &&
+  LAY.indexOf('addEventListener(CIRCLE_REFUSAL_EVENT') > LAY.indexOf('hydrate();'),
+  'a refusal can arrive at any moment after mount — that is the whole fork');
+
+ok('§9.7 the co-planner\'s landing is B2, ALREADY VETOED and unmoved',
+  LAYr.includes("'Your sign-in expired. Enter your PIN again.'"),
+  'the founder-frozen byte drifted');
+
+// ── FORK A(c) — THE BRIDE'S LANDING. The byte below is the founder's, executed
+// in chat 2026-08-02 and frozen. Asserted against the SOURCE TEXT, where an
+// escape or a paraphrase would show (CE-117's law).
+const BRIDE_LANDING = 'Sign in again to see and send Circle messages.';
+
+ok('§9.8 FORK A(c) — the bride\'s landing exists and carries the founder\'s byte VERBATIM',
+  SANCTr.includes(BRIDE_LANDING));
+
+ok('§9.9 the landing REPLACES the composer rather than sitting above it',
+  /\{chatLocked \? \([\s\S]{0,900}?\) : \([\s\S]{0,400}?<CircleCompose/.test(SANCT),
+  'a box she can type into but cannot send is the vanishing-message failure with extra steps');
+
+ok('§9.10 ONLY 401 locks her chat — a blip keeps the last known messages, as this poll always has',
+  /if\(res\.status===401\)\{ if\(alive\) setChatLocked\(true\); return; \}/.test(SANCT) &&
+  /catch \{ \/\* keep last known \*\/ \}/.test(SANCTr));
+
+ok('§9.11 the poll UNLOCKS when the credential comes back — the lock is a state, not a tombstone',
+  /if\(alive\) setChatLocked\(false\);/.test(SANCT));
+
+ok('§9.12 her SEND is no longer discarded — the response is read and a 401 is caught',
+  /const res = await fetch\(`\$\{API\}\/api\/v2\/frost\/circle\/messages`/.test(SANCT) &&
+  /if\(res\.status===401\)\{ setText\(msg\); onRefused\(\); setSending\(false\); return; \}/.test(SANCT),
+  'a discarded 401 is her message vanishing with no error anywhere — F-07.117\'s shape');
+
+ok('§9.13 her TEXT IS RESTORED on a refused send — nothing she typed is lost behind a sign-out',
+  /setText\(msg\);/.test(SANCT));
+
+// ── CONTROL INVENTORY, ASSERTED (CE-115's law, armed by Fork A(c)) ─────────
+// The composer is REPLACED on refusal, so every control it carries is
+// unreachable in that state BY DESIGN and accounted in the handover. What must
+// not happen is a control disappearing in the NORMAL state, which is what these
+// two cells watch.
+ok('§9.14 CONTROL INVENTORY — the composer keeps every control it had, in the unlocked state',
+  /<input value=\{text\}/.test(SANCT) &&
+  /onSent\(msg\)/.test(SANCT) &&
+  /setSending\(true\)/.test(SANCT));
+
+ok('§9.15 CONTROL INVENTORY — sanctuary\'s 「 You 」 control is untouched by this ZIP',
+  /sender_role==='bride' \? 'You'/.test(SANCT),
+  'F-07.107\'s KEPT control was collateral of the landing');
+
+// ═══════════════════════════════════════════════════════════════════════════
 // §7 · MUTATION — real, in-run, across a PROCESS BOUNDARY.
 // Skipped when this process IS a mutation run, or recursion never terminates.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -419,8 +537,8 @@ if (!CELLS_ONLY) {
       "  try { return localStorage.getItem(CIRCLE_TOKEN_KEY) || null; } catch { return null; } // moved",
       'M-1 (control) a no-op edit must NOT redden the cells      ⇒ all GREEN, so skipped'],
     [CTX_P,
-      '  return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };\n}\n\nexport const CircleSessionContext',
-      '  return { ...(extra || {}), Authorization: `Bearer ${t}` };\n}\n\nexport const CircleSessionContext',
+      '  return t ? { ...(extra || {}), Authorization: `Bearer ${t}` } : { ...(extra || {}) };',
+      '  return { ...(extra || {}), Authorization: `Bearer ${t}` };',
       'M-2 a header invented with no token behind it            ⇒ §1.6 RED'],
     [SETTINGS_P, '      clearCircleToken();', '',
       'M-3 sign-out leaves a 90-day credential on the device    ⇒ §1.7 RED'],
@@ -434,7 +552,7 @@ if (!CELLS_ONLY) {
       'M-6 the vetoed B2 byte drifted                           ⇒ §5.1 RED'],
     [LAYOUT_P, "    if (next.every(d => d)) submitPin(next.join(''));", '',
       'M-7 the AUTO-SUBMIT VERB lost in the rewrite (CLAUSE 2)  ⇒ §4.7 RED'],
-    [LAYOUT_P, '        if (r.status === 401) {', '        if (false) {',
+    [LAYOUT_P, '        if (circleRefused(r)) {', '        if (false) {',
       'M-8 the refusal branch unwired                           ⇒ §6.1 RED'],
     [JOURNEY_P, '    headers: circleBrideHeaders(),\n  });\n  const r: any = await res.json();\n  return r?.data ?? [];\n}\n\n// Messages for a specific thread',
       '  });\n  const r: any = await res.json();\n  return r?.data ?? [];\n}\n\n// Messages for a specific thread',
@@ -454,6 +572,24 @@ if (!CELLS_ONLY) {
     [SANCT_P, "body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'})",
       "body:JSON.stringify({userId:coupleId,body:msg,sender_name:'Bride',sender_role:'bride'})",
       'M-14 sanctuary posts the client-minted name again        ⇒ §8.9 RED'],
+
+    // ── ZIP 2's mutations. Anchors are SITE-QUALIFIED where a line repeats —
+    // CE-127's fault (String.replace takes the first occurrence) has now been
+    // paid for twice in the server half of this same finding.
+    [CTX_P, '  if (!res || res.status !== 401) return false;',
+      '  if (!res) return false;',
+      'M-15 any failed request signs her out (a blip = a refusal) ⇒ §9.3 RED'],
+    [CTX_P, "  try { localStorage.removeItem('circle_session'); } catch { /* private mode */ }", '',
+      'M-16 the refusal leaves the cached session behind         ⇒ §9.2 RED'],
+    [LAYOUT_P, '    window.addEventListener(CIRCLE_REFUSAL_EVENT, onRefused);', '',
+      'M-17 the listener is gone — screens refuse, nothing reacts ⇒ §9.6 RED'],
+    [SANCT_P, '            Sign in again to see and send Circle messages.',
+      '            Something went wrong.',
+      'M-18 the founder\'s vetoed landing byte paraphrased        ⇒ §9.8 RED'],
+    [SANCT_P, 'if(res.status===401){ setText(msg); onRefused(); setSending(false); return; }', '',
+      'M-19 her send is discarded again — the message vanishes    ⇒ §9.12 RED'],
+    [SANCT_P, 'if(res.status===401){ if(alive) setChatLocked(true); return; }', '',
+      'M-20 the poll stops locking — stale messages look live     ⇒ §9.10 RED'],
   ];
 
   let mutPass = 0, mutRun = 0;

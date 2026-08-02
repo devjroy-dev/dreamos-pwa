@@ -4,8 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   API, CREAM, GOLD, INK, MUTED, HAIRLINE,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
-  useCircleSession, brideId, brideName, circleAuthHeaders,
-} from '../../CircleSessionContext';
+  useCircleSession, brideId, brideName, circleAuthHeaders, circleRefused } from '../../CircleSessionContext';
 
 interface Message {
   id: string;
@@ -65,6 +64,9 @@ export default function ThreadDetail() {
         `${API}/api/v2/frost/circle/threads/${bride_id}/${encodeURIComponent(thread_id)}/messages`,
         { headers: circleAuthHeaders() }
       );
+      // FORK B — one home. A 401 signs her out through the lane's single
+      // refusal path; anything else falls through to this screen's own state.
+      if (circleRefused(r)) { setLoading(false); return; }
       const d = await r.json();
       if (d.success) setMessages((d.data || []) as Message[]);
     } catch {}
@@ -87,7 +89,7 @@ export default function ThreadDetail() {
     setSending(true);
     setComposing('');
     try {
-      await fetch(`${API}/api/v2/frost/circle/messages`, {
+      const sent = await fetch(`${API}/api/v2/frost/circle/messages`, {
         method: 'POST',
         headers: circleAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
@@ -100,6 +102,12 @@ export default function ThreadDetail() {
           // identity is a forgeable address (F-07.56) and was never stored.
         }),
       });
+      // FORK B — the send half. This response was DISCARDED before ZIP 2, which
+      // was harmless while nothing refused; under enforcement a discarded 401 is
+      // a message that vanishes with no error at all (F-07.117's shape). The
+      // text is restored to the box so nothing she typed is lost behind a
+      // sign-out.
+      if (circleRefused(sent)) { setComposing(body); setSending(false); return; }
       await load();
     } catch {
       setComposing(body);
