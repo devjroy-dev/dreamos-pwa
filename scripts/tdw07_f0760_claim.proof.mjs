@@ -270,19 +270,43 @@ ok('§6.4 the finding\'s evidence comment travelled with the code it explains',
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§7 · THE LANDING\'S TWO OWN ENTRIES SURVIVE (fork C1)');
 
-ok('§7.1 the ?claim=1 consumer is intact, byte for byte',
+// ══ LABELLED AMENDMENT · TDW_08 P3 · FOUR CELLS, ONE CAUSE, RIDING THE SAME ACT ══
+// These cells guarded the `?claim=1` consumer at the F-07.60 tip, when the landing was a
+// ONE-SCREEN, NON-SCROLLABLE entry card. P3 rebuilt it into three movements (G-5), and a
+// scrolling page HAS NO COLLAPSED STRIP — so `setEntered` no longer exists anywhere on
+// the file. Three of these four cells asserted that dead setState; the fourth asserted the
+// faint text link's old label, which the founder replaced with the gold CTA's frozen byte.
+//
+// THE CONTRACT CE-118 C1 PROTECTED IS NOT THE setState. It is that a `?claim=1` arrival —
+// from a bookmark, a pasted link, or the WhatsApp alert's {{3}} — still opens the claim
+// sheet. That half is preserved exactly and is what §7.1 now asserts. §7.2 is INVERTED
+// (§9's both-sides clause): "the strip opens behind the sheet" becomes "the strip is gone
+// estate-wide", which is the load-bearing fact now and which reds if anyone reintroduces
+// an expand state without re-reading this ruling. Cell count unchanged: four in, four out.
+ok('§7.1 the ?claim=1 CONTRACT is intact — a deep link still opens the claim sheet',
   L.includes("if (searchParams?.get('claim') === '1') {") &&
-  /searchParams\?\.get\('claim'\) === '1'\) \{\s*\n\s*setEntered\(true\);\s*\n\s*setClaimOpen\(true\);/.test(L));
-ok('§7.2 the deep link still opens the landing\'s own entry strip behind the sheet',
-  /setEntered\(true\);\s*\n\s*setClaimOpen\(true\);/.test(L));
+  /searchParams\?\.get\('claim'\) === '1'\) \{\s*\n\s*setClaimOpen\(true\);/.test(L));
+ok('§7.2 the collapsed entry strip is GONE — no expand state survives on the landing',
+  !/setEntered/.test(L));
 ok('§7.3 the landing text link is intact and still opens in place',
   /onClick=\{e => \{ e\.stopPropagation\(\); setClaimOpen\(true\); \}\}/.test(L));
-ok('§7.4 its label is unchanged', /\n\s*Claim Your Studio\n\s*<\/button>/.test(L));
+// AMENDED: the faint text link became the page's ONE GOLD and took the founder's frozen
+// byte with it (FORK A, ruled A(a)). The old label is asserted ABSENT as well as the new
+// one present — a cell that only checks the new byte would pass over a tree carrying both.
+ok('§7.4 its label is the founder-frozen gold byte, and the old faint-link byte is gone',
+  /\n\s*Claim your studio — 90 seconds\n\s*<\/button>/.test(L) && !/Claim Your Studio/.test(L));
 ok('§7.5 the landing\'s other two CTAs are untouched — no collateral in the entry strip',
   /router\.push\(`\/demo\/vendor\/\$\{handle\}\/studio`\)/.test(L) &&
   L.includes("window.location.href = `https://demodiscover.thedreamwedding.in`;"));
-ok('§7.6 the ruling that preserved the consumer is recorded at the consumer',
-  /CE fork C1/.test(Lr) && /BYTE-UNTOUCHED/.test(Lr));
+// AMENDED, and the dropped word is the point. This asserted the phrase "BYTE-UNTOUCHED"
+// at the consumer. After P3 the block is NO LONGER byte-untouched — the dead `setEntered`
+// went with the strip — so keeping that word would have made the record lie about itself
+// to protect a cell. What must survive is the RULING and an honest account of the delta,
+// and the landing now carries both. A comment that stays true is worth more than one that
+// stays identical.
+ok('§7.6 the ruling is recorded at the consumer, AND the delta to it is disclosed there',
+  /CE fork C1/.test(Lr) && /a public URL is a contract/.test(Lr) &&
+  /TDW_08 P3 — WHAT CHANGED AND WHY/.test(Lr));
 
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§8 · CONTROL INVENTORY — every control accounted KEPT (CE-115 clause 1)');

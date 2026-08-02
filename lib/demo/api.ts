@@ -6,6 +6,8 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://dream-os-production.up.railway.app';
 
+import type { DiscoverVendor as DiscoverVendorType } from '@/lib/types/discover';
+
 export interface DemoPhoto {
   url: string;
   is_hero?: boolean;
@@ -24,19 +26,39 @@ export interface DemoVendor {
   whatsapp_phone: string | null;
 }
 
+// ── TDW_08 P3 · THIS TYPE WAS A LIE ABOUT ITS OWN WIRE, AND IT IS CORRECTED ──
+// It declared TWELVE fields. THREE were true (`id`, `bride_name`, `created_at`), NINE
+// were phantom, and THREE fields the route actually sends were undeclared. F-07.3's
+// disease — a type behind its own contract — in the module that carries the demo lane.
+//
+// It compiled because the type is what made it compile: `hooks/demo/useDemoVendorData.ts`
+// read `bride_phone`, `bride_wedding_date`, `bride_wedding_city`, `state` and
+// `raw_message` off it, got `undefined` for every one, and `tsc` had no reason to object.
+// The subtitle under every bride's name on `/discover/leads` has been permanently empty
+// since F-07.41's mask landed, and nobody could see it from the compiler.
+//
+// THESE SIX FIELDS ARE THE WIRE, derived at dream-os `97166b1` from
+// `src/lib/demo/maskDemoLead.js`'s `maskDemoLead()`, which is the ONLY shape
+// `GET /api/v2/demo/vendor/:handle/leads` returns (`src/api/demo/vendor.js`).
+//
+// `bride_phone`, `bride_email` and `bride_ig_handle` are ABSENT BY CONSTRUCTION on the
+// server — they are excluded from `MASKED_SELECT`, so they never leave the database.
+// That is G-4's "contact blurred" half, and it is why this type must not name them:
+// a type that declares a secret invites a consumer to read one.
 export interface DemoLead {
-  id:                 string;
-  demo_vendor_id:     string;
-  demo_vendor_handle: string;
-  bride_name:         string;
-  bride_phone:        string;
-  bride_ig_handle:    string | null;
-  bride_wedding_date: string | null;
-  bride_wedding_city: string | null;
-  state:              string | null;
-  raw_message:        string | null;
-  otp_verified:       boolean;
-  created_at:         string;
+  id:           string;
+  /** Masked: first name + surname initial — "Priya Sharma" → "Priya S." */
+  bride_name:   string;
+  /** Month + year, or NULL. NEVER the string 'upcoming' — that is the WhatsApp
+   *  template's fallback and the server stopped handing it to web surfaces at P3.
+   *  NULL means OMIT THE LINE. */
+  wedding_when: string | null;
+  /** NULL means OMIT THE LINE. Never "city not given". */
+  wedding_city: string | null;
+  /** The band's CEILING in whole rupees (`0108`). NULL on every lead captured before
+   *  2026-08-03. NULL means OMIT THE LINE — never a blank, a dash, or a shimmer. */
+  budget_max:   number | null;
+  created_at:   string;
 }
 
 export interface DemoContext {
@@ -56,6 +78,13 @@ export interface DemoContext {
   context_text: string;
 }
 
+// ── TDW_08 P3 · F-08.30 · THE FOURTH DUPLICATE, NAMED WHERE IT LIVES ─────────
+// This is a THIRD declaration of the shape `lib/types/discover.ts:4` already owns,
+// and its only consumer is `fetchDemoDiscoverFeed` below — which has ZERO callers
+// anywhere in the tree. The type and the orphan die in one act, and that act is not
+// P3's: P3 imports the SHARED type for the mirror (see `DiscoverVendorType` above)
+// rather than growing this one a second consumer. Named so its survival reads as a
+// decision rather than an oversight.
 export interface DiscoverVendor {
   id:             string;
   name:           string | null;
@@ -79,7 +108,21 @@ async function publicGet<T>(path: string): Promise<T> {
   return data as T;
 }
 
-export async function fetchDemoVendor(handle: string): Promise<{ ok: true; vendor: DemoVendor }> {
+// ── TDW_08 P3 · `card` ARRIVES BESIDE `vendor`, NOT INSTEAD OF IT ────────────
+// `vendor` is byte-unchanged on the wire and three surfaces still read it by name
+// (this landing's carousel, /discover, /portfolio). `card` is the couple-shaped
+// `DiscoverVendor` that `components/shared/VendorProfileView` requires — produced by
+// the SAME server function the couple feed calls (`src/lib/discover/shapeDemoRow.js`,
+// dream-os `97166b1`), so the mirror is the couple's card by construction and not by
+// a client-side copy that agrees today.
+//
+// `DemoVendor` is NOT a `DiscoverVendor` and never was: four required fields absent
+// (`starting_price`, `vibe_tags`, `enquire_link`, `instagram_handle`), `photos` a
+// different type, two renames. That is why the shim is the server's and not this
+// file's — a second shaper on the client is exactly what P4b's parity law forbids.
+export async function fetchDemoVendor(
+  handle: string,
+): Promise<{ ok: true; vendor: DemoVendor; card: DiscoverVendorType }> {
   return publicGet(`/api/v2/demo/vendor/${handle}`);
 }
 

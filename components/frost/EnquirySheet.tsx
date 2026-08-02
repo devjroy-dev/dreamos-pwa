@@ -195,14 +195,28 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
           vendor_id:  vendor.id,
           couple_id:  coupleId,
           bride_name: session?.name || undefined,
-          // THE FOUR. Sent only where the door can honestly land them — the two
-          // read-only rows on a demo card are never posted, because the demo leg
-          // has no column for them and posting would invite exactly the
-          // edit-and-discard this sheet's shape exists to prevent.
+          // THE FOUR. Sent only where the door can honestly land them.
+          //
+          // ── TDW_08 P3 · THIS PARAGRAPH WAS HALF-TRUE AND IS NOW AMENDED (F-06.85) ──
+          // It used to say "the TWO read-only rows on a demo card are never posted,
+          // because the demo leg has no column for them". The BUDGET half of that is
+          // dead: the founder amended G-4 on 2026-08-03 —「 budget should be visible.
+          // contact blurred 」— and `0108_demo_lead_budget.sql` mints
+          // `demo_leads.budget_max integer`. The band is posted on the demo path now.
+          //
+          // THE FUNCTIONS HALF SURVIVES AND IS THE STRONGER CLAIM. `demo_leads` still
+          // has no function/event-type column, G-4's functions clause is STRUCK, and
+          // `src/api/couple/enquire.js`'s demo leg still refuses `postedFunctions`.
+          //
+          // AND THE ROW STAYS READ-ONLY. Read-only was never about the column — it is
+          // display-and-confirm: she sees the band she already chose upstream and
+          // confirms it rather than authoring it a second time. What ends is the
+          // DISCARD, not the shape. Edit-and-discard is dishonest; display-and-discard
+          // was too, and that is what 0108 ends.
           functions:    isDemo ? undefined : splitFunctions(functions),
           wedding_date: weddingDate || undefined,
           city:         city || undefined,
-          budget_band:  isDemo ? undefined : (band ?? undefined),
+          budget_band:  band ?? undefined,
         }),
       });
       // res.ok is CHECKED. A 4xx resolves normally from fetch, and an unchecked

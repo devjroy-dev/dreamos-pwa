@@ -49,110 +49,24 @@ function fmtEventDate(iso: string): string {
   } catch { return iso; }
 }
 
-// ── Mock CommandBar — exact visual match, no API calls ──────────────────────
-function DemoCommandBar({ newLeads }: { newLeads: number }) {
-  const T = useT();
-  const [open, setOpen] = useState(false);
-
-  const barBg       = T.isLight ? 'rgba(245,242,238,0.94)' : 'rgba(18,12,8,0.88)';
-  const stripBorder = T.isLight ? 'rgba(122,56,40,0.09)'   : 'rgba(201,168,76,0.09)';
-  const panelSep    = T.isLight ? 'rgba(122,56,40,0.07)'   : 'rgba(201,168,76,0.07)';
-  const trackBg     = T.isLight ? 'rgba(26,15,8,0.07)'     : 'rgba(240,230,210,0.06)';
-  const dotColor    = T.isLight ? T.accent                  : '#C9A84C';
-  const chevColor   = T.isLight ? 'rgba(122,56,40,0.38)'   : 'rgba(201,168,76,0.36)';
-  const dimColor    = T.isLight ? T.inkDim                  : 'rgba(240,230,210,0.35)';
-  const brassWarm   = T.isLight ? T.accent                  : 'rgba(201,168,76,0.82)';
-
-  // Mock metrics — demo data
-  const enquiryPct  = newLeads === 0 ? 100 : 0;
-  const discoverPct = 72; // mock — decent but not complete
-  const hotPct      = 40; // mock — some hot dates open
-  const profilePct  = 85; // mock — mostly complete
-
-  const parts: { text: string; color: string }[] = [];
-  if (newLeads > 0) parts.push({ text: `${newLeads} unread`, color: brassWarm });
-  parts.push({ text: 'Discover 72%', color: dimColor });
-  parts.push({ text: '3 hot dates open', color: T.isLight ? '#7A3828' : '#E07B5C' });
-
-  function progressColor(pct: number): string {
-    if (pct < 30) return T.isLight ? '#B02A1A' : '#C0392B';
-    if (pct < 60) return T.isLight ? '#A8811A' : '#D4A017';
-    return T.isLight ? '#2E6E38' : '#3E8B4A';
-  }
-
-  return (
-    <div style={{ flexShrink: 0, background: barBg, backdropFilter: 'blur(20px) saturate(1.4)', WebkitBackdropFilter: 'blur(20px) saturate(1.4)', borderBottom: `0.5px solid ${stripBorder}` }}>
-      <style>{`
-        @keyframes cbPulse { 0%,100%{opacity:1} 50%{opacity:0.38} }
-        @keyframes cbSlide { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
-      `}</style>
-
-      {/* Collapsed strip */}
-      <button type="button" onClick={() => setOpen(o => !o)} style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', padding:'8px 15px', gap:9, background:'none', border:'none', cursor:'pointer' }}>
-        <span style={{ width:5, height:5, borderRadius:'50%', background:dotColor, boxShadow:`0 0 6px ${dotColor}cc`, flexShrink:0, animation: newLeads > 0 ? 'cbPulse 2.2s ease-in-out infinite' : 'none' }} />
-        <span style={{ flex:1, fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:13, lineHeight:1, color:T.inkSoft, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-          {parts.map((p, i) => (
-            <span key={i}>
-              {i > 0 && <span style={{ color: dimColor }}> · </span>}
-              <span style={{ color: p.color }}>{p.text}</span>
-            </span>
-          ))}
-        </span>
-        {/* 4 mini bars */}
-        <span style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
-          {[enquiryPct, profilePct, discoverPct, hotPct].map((pct, i) => (
-            <span key={i} style={{ display:'block', width:20, height:3, background:trackBg, borderRadius:2, overflow:'hidden' }}>
-              <span style={{ display:'block', width:`${pct}%`, height:'100%', background:progressColor(pct), borderRadius:2, transition:`width 700ms ${EASE}` }} />
-            </span>
-          ))}
-        </span>
-        <span style={{ fontSize:13, color:chevColor, flexShrink:0, lineHeight:1, transform: open ? 'rotate(-90deg)' : 'rotate(90deg)', transition:`transform 300ms ${EASE}`, display:'inline-block' }}>›</span>
-      </button>
-
-      {/* Expanded panel */}
-      {open && (
-        <div style={{ borderTop:`0.5px solid ${panelSep}`, padding:'11px 13px 13px', display:'flex', flexDirection:'column', gap:9, animation:`cbSlide 220ms ${EASE} both` }}>
-          {[
-            { title:'Enquiry Follow-ups', aside: newLeads === 0 ? 'all replied' : `${newLeads} awaiting reply`, pct: enquiryPct, alert: newLeads > 0, route:'/leads' },
-            { title:'Incomplete Profiles', aside:'1 of 10 need info', pct: profilePct, alert:false, route:'/leads' },
-            { title:'Discover Profile', aside:'72% done', pct: discoverPct, alert:true, route:'/discover' },
-            { title:'Hot Dates Locked In', aside:'3 of 8 open', pct: hotPct, alert:true, route:'/calendar' },
-          ].map((bar, i, arr) => {
-            const asideColor = bar.alert ? (T.isLight ? '#7A3828' : '#E07B5C') : T.inkDim;
-            const routeColor = T.isLight ? 'rgba(26,15,8,0.18)' : 'rgba(240,230,210,0.14)';
-            const borderColor = T.isLight ? 'rgba(122,56,40,0.12)' : 'rgba(201,168,76,0.1)';
-            const bgColor = T.isLight ? 'rgba(26,15,8,0.02)' : 'rgba(245,235,212,0.02)';
-            return (
-              <div key={bar.title}>
-                <div style={{ width:'100%', textAlign:'left', padding:'9px 11px', border:`0.5px solid ${borderColor}`, borderRadius:3, background:bgColor, display:'flex', flexDirection:'column', gap:6 }}>
-                  <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:6 }}>
-                    <span style={{ fontFamily:F.label, fontSize:7.5, fontWeight:300, letterSpacing:'0.36em', textTransform:'uppercase', color:T.isLight?'rgba(122,56,40,0.62)':'rgba(201,168,76,0.6)', lineHeight:1 }}>{bar.title}</span>
-                    <span style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-                      <span style={{ fontFamily:F.label, fontSize:6.5, fontWeight:300, letterSpacing:'0.14em', textTransform:'uppercase', color:routeColor, padding:'1px 5px', border:`0.5px solid ${T.isLight?'rgba(26,15,8,0.07)':'rgba(240,230,210,0.07)'}`, borderRadius:2 }}>{bar.route}</span>
-                      <span style={{ fontFamily:F.script, fontStyle:'italic', fontSize:10.5, color:asideColor }}>{bar.aside}</span>
-                      <span style={{ fontSize:10, color:T.isLight?'rgba(122,56,40,0.38)':'rgba(201,168,76,0.35)' }}>→</span>
-                    </span>
-                  </div>
-                  <div style={{ width:'100%', height:3.5, background:trackBg, borderRadius:3, overflow:'hidden' }}>
-                    <div style={{ width:`${bar.pct}%`, height:'100%', background:progressColor(bar.pct), borderRadius:3, transition:`width 700ms ${EASE}` }} />
-                  </div>
-                </div>
-                {i < arr.length - 1 && <div style={{ height:'0.5px', background:panelSep, marginTop:9 }} />}
-              </div>
-            );
-          })}
-
-          {/* Collapse */}
-          <button type="button" onClick={() => setOpen(false)} style={{ width:'100%', padding:'4px 0 2px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
-            <span style={{ display:'block', width:32, height:'0.5px', background: T.isLight?'rgba(122,56,40,0.15)':'rgba(201,168,76,0.15)' }} />
-            <span style={{ fontSize:14, color: T.isLight?'rgba(122,56,40,0.35)':'rgba(201,168,76,0.35)', lineHeight:1, transform:'rotate(-90deg)', display:'inline-block' }}>›</span>
-            <span style={{ display:'block', width:32, height:'0.5px', background: T.isLight?'rgba(122,56,40,0.15)':'rgba(201,168,76,0.15)' }} />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+// ── TDW_08 P3 · DemoCommandBar IS DELETED, AND THIS NOTE IS WHY ──────────────
+// The real `CommandBar` was deleted by founder ruling 2026-07-31 —「 delete completely 」
+// (F-07.31) — because it was a control that looked live and changed nothing. This demo
+// re-implementation survived that deletion, so the DEMO app showed a vendor a bar the
+// REAL app no longer has: the mirror drifting away from the thing it mirrors, which is
+// F-08.1's whole disease. Founder ruling, this block:「 kill command bar and other extra
+// things which are not there in tdw 」.
+//
+// A SEALED BENCH ASSERTED ITS SURVIVAL and rides this deletion as a LABELLED AMENDMENT
+// in the same act, never as a silent count movement: `scripts/tdw07_p4b_body.proof.mjs`
+// §7.4 read "DemoCommandBar is UNTOUCHED and separate". It was correct when written —
+// P4b's charter had no authority over the demo tree — and it is retired here by the
+// sitting that gained that authority.
+//
+// F-08.1's OTHER FOUR re-implementations (`GreetingLine`, `LedgerCell`, `Ledger`,
+// `EnquiryCard`) SURVIVE, and that is a decision rather than a stopping point: each has
+// a real-app twin with an INCOMPATIBLE SIGNATURE, so they cannot converge by import
+// without a shape ruling nobody has made. Named so the next sitting finds the reason.
 
 // ── GreetingLine — exact copy from real app ─────────────────────────────────
 function GreetingLine({ vendorName, newLeads, nextDate }: { vendorName: string | null; newLeads: number; nextDate: string | null }) {
@@ -252,7 +166,6 @@ function ChatScreen({ handle, vendorName, category, city }: { handle: string; ve
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
       <DemoVendorHeader vendorName={vendorName} handle={handle} category={category} city={city} />
-      <DemoCommandBar newLeads={newLeads.length} />
       <GreetingLine vendorName={vendorName} newLeads={newLeads.length} nextDate={nextEvent?.event_date ?? null} />
       <Ledger newLeads={newLeads.length} nextEvent={nextEvent} />
       <EnquiryCard leads={newLeads.map(l => ({ name: l.name, wedding_date: l.wedding_date }))} onInject={send} />

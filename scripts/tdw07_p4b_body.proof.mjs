@@ -378,11 +378,26 @@ ok('§7.2 its only live mount is gone from the AI hub',
 ok('§7.3 F-07.31 dies with it — no justDoIt state survives anywhere in the tree',
   tsxFiles.filter(f => /justDoIt/.test(code(f))).length === 0);
 
-// The demo mock shares no code and is Block 08's territory. Named, so its survival reads
-// as a decision rather than a miss.
+// ── LABELLED AMENDMENT · TDW_08 P3 · THIS CELL IS INVERTED, IN THE ACT THAT INVERTS IT ──
+// It read: "§7.4 DemoCommandBar is UNTOUCHED and separate — no shared code went with the
+// deletion", asserting the demo mock SURVIVED F-07.31's deletion of the real CommandBar.
+// That was correct when written and for the right reason: P4b's charter had no authority
+// over the demo tree, so the cell existed to prove the deletion had not over-reached.
+//
+// TDW_08 P3 IS THE SITTING THAT GAINED THAT AUTHORITY, on the founder's word 「 kill
+// command bar and other extra things which are not there in tdw 」. The demo studio was
+// showing a vendor a bar the real app no longer has — the mirror drifting from the thing
+// it mirrors, F-08.1's disease.
+//
+// So the assertion is INVERTED rather than deleted, and it rides the deletion in the SAME
+// ACT — never a silent count movement. §9's BOTH-SIDES CLAUSE: the old shape's green is
+// RETIRED, not retained, and "the demo mock is gone too" is exactly as load-bearing now
+// as "the demo mock survived" was then. COMMENT-STRIPPED, because `code()` strips and the
+// deletion deliberately leaves a NOTE naming DemoCommandBar at the old site — a filename
+// grep would count that note and acquit. Cell count unchanged.
 const DEMO_STUDIO = 'app/demo/vendor/[handle]/studio/page.tsx';
-ok('§7.4 DemoCommandBar is UNTOUCHED and separate — no shared code went with the deletion',
-  fs.existsSync(path.join(ROOT, DEMO_STUDIO)) && /DemoCommandBar/.test(code(DEMO_STUDIO)));
+ok('§7.4 DemoCommandBar is GONE from the demo studio too — the mirror stopped drifting',
+  fs.existsSync(path.join(ROOT, DEMO_STUDIO)) && !/DemoCommandBar/.test(code(DEMO_STUDIO)));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 sec('§8 · MICRO-2 — THE PATH AUTHORITY, THE PAGER, THE CAP, THE FOOTER');
