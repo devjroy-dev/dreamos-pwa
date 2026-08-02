@@ -72,6 +72,37 @@ function timeAgo(d: string): string {
 // to a member. The staleness risk is the drift pair's own and is already declared
 // in all three homes: change one, change the others; nothing will catch you.
 //
+// ── F-07.123 · WHAT THIS TIP MAY PROMISE, DERIVED FROM THE HANDLER ──────────
+//
+// THE FIRST CUT OF THIS TIP SAID: "she knows the wedding and can answer anything
+// about it." It was wrong, it shipped, and the founder's own walk caught it the
+// same hour — Mira answered his test member honestly: 「 I don't have access to
+// the wedding date — that's between you 」. A tip that is the ONLY thing replacing
+// a deleted surface sets the member's whole expectation of Mira, and the first
+// thing she did with it produced a refusal.
+//
+// WHAT THE CIRCLE LANE ACTUALLY DOES, derived by command from the handler's own
+// contract at `src/brideIndex.js:303-320`:
+//   · media, or a Pinterest/Instagram link → `saveToMuse` with
+//     `saved_by_role='circle_member'` — it lands on THE BRIDE'S BOARD
+//   · text-only → a `circle_activity` comment on the bride's feed
+//   · cap: five image/link saves per IST day
+//   · `circleEngine`'s header: NO tools, no agentic capability beyond auto-save;
+//     the model turn is a warm acknowledgment and nothing more
+// Mira on this lane is a CONDUIT TO THE BRIDE'S BOARD, not a wedding-facts
+// oracle. She holds no wedding data here by construction, so her refusal was the
+// honest behaviour working and the copy was the defect.
+//
+// THE BYTES BELOW ARE THE CURE AND THEY ARE THE FOUNDER'S, vetoed 「 approved
+// option B 」 with his own amendment 「 dont write the number 」. They promise the
+// save and nothing else. ANY FUTURE EDIT TO THIS COPY RE-DERIVES THE HANDLER
+// FIRST: this paragraph exists because a capability claim was written from the
+// shape of the feature instead of from the code that implements it.
+//
+// ADJACENT, NAMED, NOT TAKEN: Mira never TELLS a member she can take ideas. That
+// lives in `circleSystemPrompt.js`, a W-1 surface this delivery does not open.
+// Until it is chartered, this screen is the only place she is told.
+
 // F-07.122 — THE GAP, NAMED WHERE IT LIVES. Recognition keys on
 // `circle_members.invitee_phone` (brideInbound.js:167) and that column is
 // NULLABLE at the witness (docs/db/PUBLIC_SCHEMA.md:78). A member whose row
@@ -83,17 +114,19 @@ function timeAgo(d: string): string {
 // zero readers, and re-adding it to power a convenience would reverse a privacy
 // cure.
 
-// Render '917011788380' as '+91 70117 88380'. Shape-checked, never assumed: an
-// unexpected length falls back to a plain '+<digits>', which is still the RIGHT
-// number merely unformatted. Printing a wrong number is the failure this whole
-// block exists to prevent; printing an ugly one is not.
-function displayWaNumber(raw: string): string {
-  const d = String(raw).replace(/\D/g, '');
-  if (d.length === 12 && d.startsWith('91')) {
-    return `+91 ${d.slice(2, 7)} ${d.slice(7)}`;
-  }
-  return `+${d}`;
-}
+// ── THE NUMBER IS NO LONGER RENDERED, AND THAT MOVES THE RISK ───────────────
+// Founder-ruled: the copy does not print the digits. `displayWaNumber`, which
+// formatted them for the eye, is DELETED rather than left unused — a dead
+// formatter is one screen change from being called again by somebody who assumes
+// it was kept for a reason.
+//
+// THE CONSEQUENCE, NAMED. While the number was on screen a wrong one was
+// VISIBLE: the founder's own thumb was the last guard. Now the number exists
+// ONLY inside the `wa.me` href, where nothing human can see it — a member would
+// tap, land in a chat with a stranger or a dead line, and never know why. So the
+// cell that used to check the rendered digits (§14.10) is re-aimed at the HREF,
+// and it is now the ONLY guard between a config change and a member texting the
+// wrong number. That is a stricter obligation than before, not a looser one.
 
 function eventLine(e: FeedEvent): string {
   const who   = e.payload?.member_name || 'Someone';
@@ -198,8 +231,8 @@ export default function CoplannerHome() {
           fontFamily: FONT_BODY, fontWeight: 300, fontSize: 13,
           color: MUTED, margin: '0 0 16px', lineHeight: 1.7,
         }}>
-          Message her on WhatsApp at {displayWaNumber(waNumberFor('bride'))} &mdash; she
-          knows the wedding and can answer anything about it.
+          Share ideas with {brideName(session)} through her. Message her on WhatsApp
+          and it lands on {brideName(session)}&rsquo;s board.
         </p>
 
         <a

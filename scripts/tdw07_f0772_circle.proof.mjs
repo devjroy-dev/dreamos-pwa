@@ -607,23 +607,48 @@ ok('§14.9 THE DERIVED SOURCE STILL AGREES WITH THE ESTATE\'S CANONICAL PAIR',
   /NEXT_PUBLIC_TDW_WA_NUMBER_BRIDE/.test(WANUM),
   'the bride lane constant moved without this tip being re-read');
 
-ok('§14.10 THE RENDERED DIGITS EQUAL THE DERIVED NUMBER — the formatter cannot drift',
-  (() => {
-    // Re-implement displayWaNumber's contract independently and check the source
-    // agrees: 12 digits starting 91 ⇒ '+91 XXXXX XXXXX'; anything else ⇒ '+digits'.
-    const m = HOME.match(/return `\+91 \$\{d\.slice\(2, 7\)\} \$\{d\.slice\(7\)\}`;/);
-    return !!m && /d\.length === 12 && d\.startsWith\('91'\)/.test(HOME) &&
-           /return `\+\$\{d\}`;/.test(HOME);
-  })(),
-  'the display formatter no longer derives its digits from the resolved number');
+// ── §14.10 RE-AIMED AT F-07.123's AMENDMENT — THE HREF IS THE LAST GUARD ────
+// The founder ruled the digits off the screen. While they were rendered, a wrong
+// number was VISIBLE and his own eye was the final check. Now the number lives
+// ONLY in the wa.me href, where nobody can see it: a member would tap, land in a
+// chat with a stranger or a dead line, and never learn why. So this cell stops
+// checking a formatter that no longer exists and checks the LINK instead — and
+// it is now the only thing standing between a config change and a member texting
+// the wrong number.
+ok('§14.10 THE LINK DERIVES ITS NUMBER — the only guard left, now that no eye can catch it',
+  /href=\{`https:\/\/wa\.me\/\$\{waNumberFor\('bride'\)\}`\}/.test(HOMEr) &&
+  // NEGATIVES READ THE STRIPPED CODE, NOT THE RAW FILE — the header DERIVES the
+  // number from 0099's `wa.me/917011788380?text=` and must be allowed to say so.
+  // A cell that forbids the record from citing its own witness is the fault this
+  // proof's dream-os sibling caught at §14.4; this is its second instance, in a
+  // different file, in the same sitting, and the executor owns both.
+  !/wa\.me\/9170/.test(HOME) &&
+  !/displayWaNumber/.test(HOME),
+  'the wa.me link hardcodes a number, or the retired formatter is still standing');
 
-ok('§14.11 THE FOUNDER\'S FOUR TIP BYTES, frozen 「 all, mira 」 — a paraphrase reddens',
+ok('§14.11 THE FOUNDER\'S TIP BYTES, frozen 「 approved option B 」 + 「 dont write the number 」',
   /}}>MIRA<\/p>/.test(HOMEr) &&
   /Mira is \{brideName\(session\)\}&rsquo;s PA\./.test(HOMEr) &&
-  /Message her on WhatsApp at \{displayWaNumber\(waNumberFor\('bride'\)\)\} &mdash; she/.test(HOMEr) &&
-  /knows the wedding and can answer anything about it\./.test(HOMEr) &&
+  /Share ideas with \{brideName\(session\)\} through her\. Message her on WhatsApp/.test(HOMEr) &&
+  /and it lands on \{brideName\(session\)\}&rsquo;s board\./.test(HOMEr) &&
   />Open WhatsApp<\/a>/.test(HOMEr),
   'a founder-vetoed tip byte was reworded');
+
+// ── F-07.123's OWN CELL. The first cut of this tip promised a capability the
+// lane does not have, and only the founder's thumb caught it. A string cell
+// cannot prove Mira's behaviour — but it CAN refuse the specific false claim
+// that shipped, and refuse the digits he ruled off the screen.
+ok('§14.13 F-07.123 — the tip promises the SAVE, not wedding facts, and prints no number',
+  // Same discipline: the F-07.123 paragraph QUOTES the false claim it replaced —
+  // "THE FIRST CUT OF THIS TIP SAID..." — because recording what a cure replaced
+  // is the whole of F-06.85. The negatives therefore read stripped code, where a
+  // live string would still be caught and a remembered one would not.
+  !/knows the wedding/.test(HOME) &&
+  !/answer anything about it/.test(HOME) &&
+  !/70117/.test(HOME) &&
+  !/\+91 /.test(HOME) &&
+  /lands on \{brideName\(session\)\}&rsquo;s board/.test(HOMEr),
+  'the tip claims a capability the circle lane does not have, or prints the number the founder ruled off');
 
 // PERSISTENCE IS PROVEN BY WHAT IS ABSENT, and the absent thing is named: no
 // dismiss state, no hide flag, and no conditional standing between the render
@@ -762,15 +787,15 @@ if (!CELLS_ONLY) {
     [CTX_P, '  can_see_budget: boolean;',
       '  dreamai_access_granted: boolean;\n  can_see_budget: boolean;',
       'M-22 the keyless flag returns to the permissions type      ⇒ §14.5 RED'],
-    [HOME_P, "          Message her on WhatsApp at {displayWaNumber(waNumberFor('bride'))} &mdash; she",
-      '          Message her on WhatsApp at +91 70117 88380 &mdash; she',
-      'M-23 the tip hardcodes the number instead of deriving it   ⇒ §14.8 RED'],
+    [HOME_P, "          href={`https://wa.me/${waNumberFor('bride')}`}",
+      '          href={`https://wa.me/917011788380`}',
+      'M-23 the link hardcodes the number instead of deriving it  ⇒ §14.8/§14.10 RED'],
     [HOME_P, '        }}>Mira is {brideName(session)}&rsquo;s PA.</p>',
       '        }}>Mira is the wedding assistant.</p>',
       'M-24 a founder-vetoed tip byte is paraphrased              ⇒ §14.11 RED'],
-    [HOME_P, "    return `+91 ${d.slice(2, 7)} ${d.slice(7)}`;",
-      "    return '+91 70117 88380';",
-      'M-25 the formatter stops deriving and returns a literal    ⇒ §14.10 RED'],
+    [HOME_P, '          and it lands on {brideName(session)}&rsquo;s board.',
+      '          and she knows the wedding and can answer anything about it.',
+      'M-25 F-07.123 returns — the tip promises facts again       ⇒ §14.11/§14.13 RED'],
     [SETTINGS_P, "  family:       'Family',", '',
       'M-26 `family` leaves the map again — F-07.121 restored     ⇒ §15.1 RED'],
     [SETTINGS_P, '  const roleLbl = ROLE_LABEL[session.role] || session.role;',
