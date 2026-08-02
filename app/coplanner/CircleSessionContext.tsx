@@ -21,10 +21,37 @@ export const FONT_DISPLAY = "'Cormorant Garamond', serif";
 export const FONT_BODY    = "'DM Sans', sans-serif";
 export const FONT_EYEBROW = "'Jost', sans-serif";
 
-export type CircleRole = 'Partner' | 'inner_circle' | 'circle';
+// ── F-07.121 · THE ROLE VALUE-SPACE, DERIVED RATHER THAN REMEMBERED ─────────
+// This type declared `'Partner' | 'inner_circle' | 'circle'`. Two of those three
+// values CANNOT EXIST and the one real value was missing. Derived by command
+// from the database's own CHECK constraint —
+//   docs/db/PUBLIC_SCHEMA.md:1094-1095
+//   CHECK (role = ANY (ARRAY['partner'::text, 'family'::text, 'inner_circle'::text]))
+// — corroborated at every mint and validator: `invite_circle_member`'s guard
+// (db/migrations/0099_circle_invite_link_fix.sql:50), `join.js:128/:300`'s
+// `|| 'family'` default, `couple/circle.js:28`'s VALID_ROLES, and
+// `brideEngine.js:1787`. FIVE independent sites, one answer, all lowercase.
+//
+// `'Partner'` was the same string in the wrong case; `'circle'` was never in the
+// space at all; `'family'` — the DEFAULT every invite takes — was absent. That
+// is F-07.121, and it is F-07.110's twin: the identical dead value-space map,
+// deleted from `threads/[threadId]/page.tsx` at CE-126 and alive one directory
+// over in `settings/page.tsx` until this delivery.
+export type CircleRole = 'partner' | 'family' | 'inner_circle';
 
+// ── F-07.115 · `dreamai_access_granted` IS DELETED FROM THIS BLOCK ──────────
+// It was a hardcoded `false` on the server with no column behind it, and its two
+// client readers — the tab gate and the Dream AI page — are both retired in this
+// delivery. A permission field that can never be true, describing a surface that
+// no longer exists, is not a permission; it is a claim about a column that never
+// existed. The one home (`dream-os src/lib/circlePermissions.js`) drops it in the
+// same arc, and the bench cell there now asserts its ABSENCE so a re-introduction
+// reddens rather than passing quietly.
+//
+// CACHED SESSIONS ARE SAFE: blobs minted before this change still carry the key,
+// and `CircleSession`'s `[extra: string]: unknown` index signature accepts it
+// without a type error. Nothing new reads it.
 export interface CirclePermissions {
-  dreamai_access_granted: boolean;
   can_see_budget: boolean;
   can_see_guests: boolean;
   can_see_vendors: boolean;

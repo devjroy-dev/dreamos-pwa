@@ -4,6 +4,7 @@ import {
   API, CREAM, GOLD, MUTED, HAIRLINE, FROST_PANEL,
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
   useCircleSession, brideId, brideName, memberName, circleAuthHeaders, circleRefused } from './CircleSessionContext';
+import { waNumberFor } from '../../lib/waNumbers';
 
 interface FeedEvent {
   id: string;
@@ -37,6 +38,61 @@ function timeAgo(d: string): string {
   if (diff < 86400)  return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
+// ── F-07.115 · THE TIP'S NUMBER IS DERIVED, NEVER TYPED ─────────────────────
+//
+// The co-planner's Dream AI tab and page are RETIRED in this delivery. Circle
+// members reach Mira on WhatsApp — they always could, and the founder ruled that
+// is the intended shape. This tip is the whole of what replaces the surface, so
+// the one thing it must never do is print a number that does not answer.
+//
+// THE DERIVATION, three homes that agree, all checked by command before a byte
+// was written here:
+//   1. db/migrations/0099_circle_invite_link_fix.sql:108 — the invite link the
+//      member herself receives and taps to claim her seat:
+//        wa_me_link := 'https://wa.me/917011788380?text=' || v_token
+//      This is the strongest witness because it IS her own path in. Applied
+//      2026-07-23, verified from pg_get_functiondef.
+//   2. dream-os src/lib/waNumbers.js — BRIDE_WA_NUMBER, the canonical home.
+//   3. lib/waNumbers.ts — this repo's declared drift TWIN of that home.
+//
+// AND THE RUNTIME PATH, so the tip is a claim about behaviour and not about a
+// constant: her text lands on the BRIDE lane's Meta number
+// (brideIndex.js /webhook/meta on BRIDE_PHONE_NUMBER_ID) → processBrideInbound
+// → the phone match at brideInbound.js:166-170 → handleCircleMemberMessage →
+// runCircleAgenticTurn at brideIndex.js:677. That last call is direct: the
+// WhatsApp lane never touched the /dreamai HTTP doors this arc retires, which is
+// why deleting them cannot break her.
+//
+// SO WE IMPORT `waNumberFor('bride')` RATHER THAN WRITE THE DIGITS. It reads
+// NEXT_PUBLIC_TDW_WA_NUMBER_BRIDE first and falls back to the ruled constant, and
+// the proof asserts that the DIGITS THIS SCREEN RENDERS equal what that function
+// returns — so a config change reddens a cell instead of shipping a wrong number
+// to a member. The staleness risk is the drift pair's own and is already declared
+// in all three homes: change one, change the others; nothing will catch you.
+//
+// F-07.122 — THE GAP, NAMED WHERE IT LIVES. Recognition keys on
+// `circle_members.invitee_phone` (brideInbound.js:167) and that column is
+// NULLABLE at the witness (docs/db/PUBLIC_SCHEMA.md:78). A member whose row
+// carries no phone, or a phone not in E.164, will text this number and NOT be
+// recognised. The tip ships UNCONDITIONAL by ruling because the fixture shows
+// every active member carries one; F-07.122 is filed for the day one does not.
+// If a gate is ever needed it is a DERIVED BOOLEAN on the session payload, never
+// the phone value — CE-125's minimisation removed phone from that payload with
+// zero readers, and re-adding it to power a convenience would reverse a privacy
+// cure.
+
+// Render '917011788380' as '+91 70117 88380'. Shape-checked, never assumed: an
+// unexpected length falls back to a plain '+<digits>', which is still the RIGHT
+// number merely unformatted. Printing a wrong number is the failure this whole
+// block exists to prevent; printing an ugly one is not.
+function displayWaNumber(raw: string): string {
+  const d = String(raw).replace(/\D/g, '');
+  if (d.length === 12 && d.startsWith('91')) {
+    return `+91 ${d.slice(2, 7)} ${d.slice(7)}`;
+  }
+  return `+${d}`;
 }
 
 function eventLine(e: FeedEvent): string {
@@ -105,6 +161,63 @@ export default function CoplannerHome() {
             ? `${days} day${days === 1 ? '' : 's'} to go`
             : 'Date to be announced'}
       </p>
+
+      {/* ── F-07.115 · THE MIRA TIP ─────────────────────────────────────────
+          FOUNDER-VETOED BYTES, frozen 「 all, mira 」 + 「 introduce Mira as
+          (bride's name) PA 」. Four strings; the number inside the third is
+          derived, see displayWaNumber above.
+
+          PLACEMENT — ABOVE the activity panel, deliberately. Activity renders up
+          to ten rows, so a tip beneath it sits below the fold on any busy
+          wedding, and this tip is the only thing standing where a tab used to
+          be. It is also not a feed item: "Mira is X's PA" is a standing fact
+          about the wedding, and it belongs with the countdown rather than in the
+          stream. ONE HOME — the settings screen is the obvious second site and
+          is deliberately NOT taken; two homes for one sentence is the disease
+          this estate keeps curing.
+
+          PERSISTENT, not dismissible: a member who dismissed it would have no
+          path back to the only address Mira answers on.
+
+          CONTROL INVENTORY: this anchor is the FIRST interactive control this
+          screen has ever carried. Everything above and below it is still
+          read-only. */}
+      <section style={{ ...FROST_PANEL, padding: 20, marginBottom: 20 }}>
+        <p style={{
+          fontFamily: FONT_EYEBROW, fontWeight: 300, fontSize: 9,
+          letterSpacing: '0.22em', textTransform: 'uppercase',
+          color: GOLD, margin: '0 0 10px',
+        }}>MIRA</p>
+
+        <p style={{
+          fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontWeight: 300,
+          fontSize: 22, color: CREAM, margin: '0 0 8px',
+        }}>Mira is {brideName(session)}&rsquo;s PA.</p>
+
+        <p style={{
+          fontFamily: FONT_BODY, fontWeight: 300, fontSize: 13,
+          color: MUTED, margin: '0 0 16px', lineHeight: 1.7,
+        }}>
+          Message her on WhatsApp at {displayWaNumber(waNumberFor('bride'))} &mdash; she
+          knows the wedding and can answer anything about it.
+        </p>
+
+        <a
+          href={`https://wa.me/${waNumberFor('bride')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '100%', height: 44,
+            background: 'transparent',
+            border: `0.5px solid ${HAIRLINE}`,
+            borderRadius: 100,
+            textDecoration: 'none',
+            fontFamily: FONT_EYEBROW, fontWeight: 300, fontSize: 10,
+            letterSpacing: '0.24em', textTransform: 'uppercase',
+            color: CREAM,
+          }}>Open WhatsApp</a>
+      </section>
 
       <section style={{ ...FROST_PANEL, padding: 20, marginBottom: 20 }}>
         <p style={{

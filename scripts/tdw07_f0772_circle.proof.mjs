@@ -47,10 +47,20 @@ const SANCT_P    = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 // EVERY co-planner call site, enumerated rather than sampled. The read-first's
 // census is the census of record; a tenth site appearing here without a header
 // must REDDEN §2.2 rather than ride in unnoticed.
+// ── LABELED AMENDMENT · F-07.115 · SEVEN CALLERS BECOME SIX ─────────────────
+// `app/coplanner/dreamai/page.tsx` is DELETED in this delivery, so it leaves the
+// census with the surface it belonged to. `§2.1` is a per-file loop, so the
+// bench's total moves 102 → 101 by that removal alone; the cells added at §14
+// below are separate and additive, and the two movements are stated apart
+// deliberately so neither hides inside the other's arithmetic.
+//
+// This is NOT ARC-2's class of census movement. That one was a number changing
+// because the estate learned something it had got wrong. This one is a number
+// changing because a file the estate deliberately deleted stopped existing —
+// declared before the delivery rather than discovered in the diff.
 const COPLANNER_CALLERS = [
   'app/coplanner/layout.tsx',
   'app/coplanner/page.tsx',
-  'app/coplanner/dreamai/page.tsx',
   'app/coplanner/muse/page.tsx',
   'app/coplanner/muse/AddMuseSheet.tsx',
   'app/coplanner/threads/page.tsx',
@@ -154,7 +164,7 @@ ok('§2.1x EVERY EXEMPTION IS STILL REAL — a named exemption whose call vanish
   EXEMPT_CALLS.every(e => code(e.rel).includes(e.needle)),
   'an exemption is being carried for a call that no longer exists — stale ink protecting nothing');
 
-ok('§2.2 THE CENSUS IS CLOSED — no eighth co-planner file fetches the lane unlisted',
+ok('§2.2 THE CENSUS IS CLOSED — no seventh co-planner file fetches the lane unlisted',
   (() => {
     const found = [];
     const walk = (d) => {
@@ -525,6 +535,159 @@ ok('§9.15 CONTROL INVENTORY — sanctuary\'s 「 You 」 control is untouched b
   'F-07.107\'s KEPT control was collateral of the landing');
 
 // ═══════════════════════════════════════════════════════════════════════════
+// §14 · F-07.115 — THE MIRA RETIREMENT, AND WHAT REPLACED IT
+// Additive to the 102 → 101 census movement declared at COPLANNER_CALLERS; the
+// two are stated apart so neither hides in the other's arithmetic.
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§14 · F-07.115 — the surface is gone, the capability is not');
+
+const TAB_P  = 'app/coplanner/TabBar.tsx';
+const HOME_P = 'app/coplanner/page.tsx';
+const WANUM_P = 'lib/waNumbers.ts';
+const TAB = code(TAB_P), HOME = code(HOME_P), HOMEr = raw(HOME_P), WANUM = code(WANUM_P);
+
+ok('§14.1 THE PAGE IS DELETED — not blanked, not gated, gone from the tree',
+  !fs.existsSync(path.join(ROOT, 'app/coplanner/dreamai/page.tsx')) &&
+  !fs.existsSync(path.join(ROOT, 'app/coplanner/dreamai')),
+  'the Dream AI page survives its own retirement');
+
+ok('§14.2 THE TAB IS GONE, and so is the gate machinery that hid it',
+  !/coplanner\/dreamai/.test(TAB) && !/DREAM AI/.test(TAB) &&
+  !/gated/.test(TAB) && !/dreamai_access_granted/.test(TAB),
+  'the tab or its one-member gate enum is still standing');
+
+ok('§14.3 THE TAB BAR CARRIES EXACTLY FOUR TABS — the rendered-control change, asserted',
+  (TAB.match(/\{ href: '\/coplanner/g) || []).length === 4 &&
+  /'\/coplanner'/.test(TAB) && /'\/coplanner\/muse'/.test(TAB) &&
+  /'\/coplanner\/threads'/.test(TAB) && /'\/coplanner\/settings'/.test(TAB),
+  'the surviving tab set is not the four the control inventory ruled');
+
+ok('§14.4 THE TAB BAR NO LONGER READS THE SESSION — the gate was its only reason to',
+  !/useCircleSession/.test(TAB),
+  'the session is still imported into a component with nothing left to gate');
+
+ok('§14.5 THE FLAG IS DEAD IN THIS REPO — all three sites, by absence',
+  !/dreamai_access_granted/.test(code(CTX_P)) &&
+  !/dreamai_access_granted/.test(TAB) &&
+  !/dreamai_access_granted/.test(HOME),
+  'a reader of the keyless flag survived F-07.115\'s cure');
+
+ok('§14.6 NO CLIENT CALLS THE RETIRED DOORS — anywhere in the tree',
+  (() => {
+    const hits = [];
+    const walk = (d) => {
+      for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) {
+        const rel = path.join(d, e.name);
+        if (e.isDirectory()) { if (e.name === 'node_modules' || e.name === '.next') continue; walk(rel); continue; }
+        if (!/\.tsx?$/.test(e.name)) continue;
+        if (/circle-member-history|circle-member-chat/.test(code(rel))) hits.push(rel);
+      }
+    };
+    for (const d of ['app', 'components', 'lib', 'hooks']) {
+      if (fs.existsSync(path.join(ROOT, d))) walk(d);
+    }
+    return hits.length === 0;
+  })(),
+  'a caller of the retired /dreamai doors is still live in this repo');
+
+// ── THE TIP — and the cell the kickoff asked for by name: a config change must
+// REDDEN rather than ship a wrong number to a member.
+ok('§14.7 THE TIP IS ON THE HOME SCREEN, persistent, one home',
+  /MIRA/.test(HOME) && /Mira is \{brideName\(session\)\}/.test(HOMEr),
+  'the tip that replaces the surface is not on the co-planner home');
+
+ok('§14.8 THE TIP\'S NUMBER IS DERIVED, NEVER TYPED — no digits in the copy',
+  /waNumberFor\('bride'\)/.test(HOME) &&
+  !/\b917011788380\b/.test(HOME) &&
+  !/\b70117\s?88380\b/.test(HOME),
+  'the tip hardcodes a number instead of deriving it — a config change would ship a lie');
+
+ok('§14.9 THE DERIVED SOURCE STILL AGREES WITH THE ESTATE\'S CANONICAL PAIR',
+  /BRIDE_WA_NUMBER\s*=\s*'917011788380'/.test(WANUM) &&
+  /NEXT_PUBLIC_TDW_WA_NUMBER_BRIDE/.test(WANUM),
+  'the bride lane constant moved without this tip being re-read');
+
+ok('§14.10 THE RENDERED DIGITS EQUAL THE DERIVED NUMBER — the formatter cannot drift',
+  (() => {
+    // Re-implement displayWaNumber's contract independently and check the source
+    // agrees: 12 digits starting 91 ⇒ '+91 XXXXX XXXXX'; anything else ⇒ '+digits'.
+    const m = HOME.match(/return `\+91 \$\{d\.slice\(2, 7\)\} \$\{d\.slice\(7\)\}`;/);
+    return !!m && /d\.length === 12 && d\.startsWith\('91'\)/.test(HOME) &&
+           /return `\+\$\{d\}`;/.test(HOME);
+  })(),
+  'the display formatter no longer derives its digits from the resolved number');
+
+ok('§14.11 THE FOUNDER\'S FOUR TIP BYTES, frozen 「 all, mira 」 — a paraphrase reddens',
+  /}}>MIRA<\/p>/.test(HOMEr) &&
+  /Mira is \{brideName\(session\)\}&rsquo;s PA\./.test(HOMEr) &&
+  /Message her on WhatsApp at \{displayWaNumber\(waNumberFor\('bride'\)\)\} &mdash; she/.test(HOMEr) &&
+  /knows the wedding and can answer anything about it\./.test(HOMEr) &&
+  />Open WhatsApp<\/a>/.test(HOMEr),
+  'a founder-vetoed tip byte was reworded');
+
+// PERSISTENCE IS PROVEN BY WHAT IS ABSENT, and the absent thing is named: no
+// dismiss state, no hide flag, and no conditional standing between the render
+// and the eyebrow. A member who could dismiss this has no path back to the only
+// address Mira answers on, so "unconditional" is the load-bearing property here
+// and not a styling preference.
+ok('§14.12 THE TIP IS NOT DISMISSIBLE AND NOT GATED — she cannot lose the only address',
+  !/dismiss|Dismiss|hideTip|tipHidden/.test(HOME) &&
+  !/&&\s*\(?\s*<section[^>]*>\s*<p[^>]*>MIRA/.test(HOMEr.replace(/\s+/g, ' ')) &&
+  /}}>MIRA<\/p>/.test(HOMEr),
+  'the tip acquired a dismiss or a gate; a member who hid it has no path back');
+
+// ── F-07.121 — the twin of F-07.110, one directory over.
+sec('§15 · F-07.121 — the role map that missed the only role most members have');
+
+const SET = code(SETTINGS_P);
+
+ok('§15.1 THE MAP IS KEYED ON THE DATABASE\'S OWN VALUE-SPACE, all three, lowercase',
+  /partner:\s*'Partner · Fiancé'/.test(SET) &&
+  /family:\s*'Family'/.test(SET) &&
+  /inner_circle:\s*'Inner Circle'/.test(SET),
+  'the settings role map does not carry the three lawful roles');
+
+ok('§15.2 THE DEAD KEYS ARE GONE — the wrong case and the value that never existed',
+  !/Partner:\s*'Partner'/.test(SET) && !/circle:\s*'Circle'/.test(SET),
+  'a key that can never match survived the cure — F-07.110\'s exact class');
+
+ok('§15.3 THE FALLBACK NO LONGER ASSERTS A ROLE IT DOES NOT KNOW',
+  /ROLE_LABEL\[session\.role\] \|\| session\.role/.test(SET) &&
+  !/\|\| 'Circle'/.test(SET),
+  'a fourth role would still print a confident wrong label');
+
+ok('§15.4 THE TYPE CARRIES THE SAME SPACE — one drift, not two',
+  /export type CircleRole = 'partner' \| 'family' \| 'inner_circle';/.test(code(CTX_P)),
+  'the type still declares a value-space the database cannot produce');
+
+ok('§15.5 THE LABELS ARE THE BRIDE\'S OWN SHIPPED BYTES — no unvetoed string reached a screen',
+  /partner:'Partner · Fiancé'/.test(SANCT) &&
+  /family:'Family'/.test(SANCT) &&
+  /inner_circle:'Inner Circle'/.test(SANCT),
+  'the bride\'s live map no longer matches the words the member now reads — the pair has drifted');
+
+ok('§15.6 THE CENSUS IS CLOSED — exactly TWO role maps in this repo, and they agree',
+  (() => {
+    const hits = [];
+    const walk = (d) => {
+      for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) {
+        const rel = path.join(d, e.name);
+        if (e.isDirectory()) { if (e.name === 'node_modules' || e.name === '.next') continue; walk(rel); continue; }
+        if (!/\.tsx?$/.test(e.name)) continue;
+        const c = code(rel);
+        if (/inner_circle\s*:\s*'Inner Circle'/.test(c)) hits.push(rel);
+      }
+    };
+    for (const d of ['app', 'components', 'lib', 'hooks']) {
+      if (fs.existsSync(path.join(ROOT, d))) walk(d);
+    }
+    return hits.length === 2 &&
+           hits.includes('app/coplanner/settings/page.tsx') &&
+           hits.includes('app/(frost)/frost/canvas/sanctuary/page.tsx');
+  })(),
+  'a third role map appeared, or one of the two known maps moved — a class with three instances is a shared home, not a twin');
+
+// ═══════════════════════════════════════════════════════════════════════════
 // §7 · MUTATION — real, in-run, across a PROCESS BOUNDARY.
 // Skipped when this process IS a mutation run, or recursion never terminates.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -590,6 +753,32 @@ if (!CELLS_ONLY) {
       'M-19 her send is discarded again — the message vanishes    ⇒ §9.12 RED'],
     [SANCT_P, 'if(res.status===401){ if(alive) setChatLocked(true); return; }', '',
       'M-20 the poll stops locking — stale messages look live     ⇒ §9.10 RED'],
+
+    // ── F-07.115 / F-07.121, this delivery's own. Every one breaks PRODUCTION
+    // SOURCE, never test setup, and every one is cmp-restored by the runner.
+    [TAB_P, "  { href: '/coplanner/settings', label: 'SETTINGS', matches: p => p.startsWith('/coplanner/settings') },",
+      "  { href: '/coplanner/settings', label: 'SETTINGS', matches: p => p.startsWith('/coplanner/settings') },\n  { href: '/coplanner/dreamai',  label: 'DREAM AI', matches: p => p.startsWith('/coplanner/dreamai') },",
+      'M-21 the retired tab is put back on the bar               ⇒ §14.2/§14.3 RED'],
+    [CTX_P, '  can_see_budget: boolean;',
+      '  dreamai_access_granted: boolean;\n  can_see_budget: boolean;',
+      'M-22 the keyless flag returns to the permissions type      ⇒ §14.5 RED'],
+    [HOME_P, "          Message her on WhatsApp at {displayWaNumber(waNumberFor('bride'))} &mdash; she",
+      '          Message her on WhatsApp at +91 70117 88380 &mdash; she',
+      'M-23 the tip hardcodes the number instead of deriving it   ⇒ §14.8 RED'],
+    [HOME_P, '        }}>Mira is {brideName(session)}&rsquo;s PA.</p>',
+      '        }}>Mira is the wedding assistant.</p>',
+      'M-24 a founder-vetoed tip byte is paraphrased              ⇒ §14.11 RED'],
+    [HOME_P, "    return `+91 ${d.slice(2, 7)} ${d.slice(7)}`;",
+      "    return '+91 70117 88380';",
+      'M-25 the formatter stops deriving and returns a literal    ⇒ §14.10 RED'],
+    [SETTINGS_P, "  family:       'Family',", '',
+      'M-26 `family` leaves the map again — F-07.121 restored     ⇒ §15.1 RED'],
+    [SETTINGS_P, '  const roleLbl = ROLE_LABEL[session.role] || session.role;',
+      "  const roleLbl = ROLE_LABEL[session.role] || 'Circle';",
+      'M-27 the fallback asserts a role it does not know          ⇒ §15.3 RED'],
+    [CTX_P, "export type CircleRole = 'partner' | 'family' | 'inner_circle';",
+      "export type CircleRole = 'Partner' | 'inner_circle' | 'circle';",
+      'M-28 the type reverts to the impossible value-space        ⇒ §15.4 RED'],
   ];
 
   let mutPass = 0, mutRun = 0;
