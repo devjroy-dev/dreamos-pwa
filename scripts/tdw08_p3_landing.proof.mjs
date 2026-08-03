@@ -209,6 +209,15 @@ ok('§4.2 Team Hub points at /business — NOT /studio/team (the kickoff\'s own 
 ok('§4.3 Back to Studio is REMOVED-BY-RULING and did not come back',
   !/Back to Studio/.test(L));
 
+// THE HEADER PROMISE, MADE ASSERTABLE. The landing's own header says the chip strip and
+// the tease introduce ZERO new gold. The first index pass broke that with eight brass
+// chevrons and §2.7 acquitted it, because §2.7 counts gold FILLS. A promise no cell can
+// check is a promise that gets broken by the next tidy — this is that cell.
+ok('§4.5g ZERO NEW GOLD below the fold — the strip and the tease add no brass token',
+  !/rgba\(201,168,76[^)]*\)/.test(L.slice(L.indexOf('Explore your studio'))) &&
+  !/#C9A84C/.test(L.slice(L.indexOf('Explore your studio')).replace(/background:'#C9A84C'/, '')),
+  'a gold token appeared below the fold — the header promise is now false');
+
 ok('§4.4 the chip header carries the founder\'s byte',
   /Explore your studio/.test(read(LANDING)));
 

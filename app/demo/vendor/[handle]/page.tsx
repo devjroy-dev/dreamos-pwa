@@ -453,14 +453,33 @@ export default function DemoLandingPage() {
           Explore Discover
         </button>
 
-        <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:16 }}>
-          {CHIPS.map(chip => (
+        {/* ── AN INDEX, NOT A CLOUD ────────────────────────────────────────────
+            These were eight capsules in a wrapping row. Three faults, and the labels
+            were never one of them:
+              · the wrap orphaned two onto a second line — a widow row reads as an
+                accident, and no styling fixes a 6+2;
+              · a pill means TAG or FILTER — selectable, removable. These are doors
+                into rooms, and the page already spends its capsule shape twice above
+                (the gold CTA, the two ghosts), so the chips were a THIRD capsule size
+                and the runt of the three. One shape repeated at shrinking scale is what
+                reads as cheap;
+              · eight identical weights give the eye nothing to do but scan.
+            So: ONE bordered panel with hairline-divided rows — the SAME card idiom the
+            lead cards use, spent twice on the page instead of a third capsule. Labels
+            and targets are byte-frozen; this is layout only. */}
+        <div style={{ marginTop:16, background:'rgba(255,255,255,0.03)', border:'0.5px solid rgba(255,255,255,0.10)', borderRadius:12, overflow:'hidden' }}>
+          {CHIPS.map((chip, i) => (
             <button
               key={chip.label}
               onClick={() => router.push(`/demo/vendor/${handle}${chip.path}`)}
-              style={{ background:'rgba(255,255,255,0.05)', border:'0.5px solid rgba(255,255,255,0.12)', borderRadius:100, padding:'9px 14px', cursor:'pointer', fontFamily:F.label, fontWeight:300, fontSize:8, letterSpacing:'0.16em', textTransform:'uppercase', color:'rgba(248,247,245,0.62)', WebkitTapHighlightColor:'transparent' }}
+              style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', background:'none', border:'none', borderTop: i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.07)', padding:'13px 16px', cursor:'pointer', fontFamily:F.label, fontWeight:300, fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.66)', WebkitTapHighlightColor:'transparent', textAlign:'left' }}
             >
-              {chip.label}
+              <span>{chip.label}</span>
+              {/* NEUTRAL, NOT GOLD. The first pass made these brass and that broke this
+                  file's own header promise — "the chip strip and the tease introduce ZERO
+                  new gold". Eight gold markers would also compete with the one gold fill
+                  the page is allowed. A marker only has to say "this goes somewhere". */}
+              <span aria-hidden style={{ fontFamily:F.display, fontSize:13, lineHeight:1, color:'rgba(248,247,245,0.26)' }}>›</span>
             </button>
           ))}
         </div>
