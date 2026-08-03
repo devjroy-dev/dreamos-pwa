@@ -6,7 +6,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
-import { PeekNav } from '@/components/vendor/PeekNav';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { useDemoChat } from '@/hooks/demo/useDemoChat';
 import { useDemoLeadsData, useDemoEventsData } from '@/hooks/demo/useDemoVendorData';
@@ -171,7 +170,15 @@ function ChatScreen({ handle, vendorName, category, city }: { handle: string; ve
       <EnquiryCard leads={newLeads.map(l => ({ name: l.name, wedding_date: l.wedding_date }))} onInject={send} />
       <ChatThread messages={messages} loading={loading} onConfirm={() => {}} onCancel={() => {}} onChipTap={send} scrollRef={chatScrollRef} />
       <InputBar onSend={send} disabled={loading} />
-      <PeekNav scrollRef={chatScrollRef} context={null} onSend={send} />
+      {/* ── TDW_08 P3 · PeekNav DELETED — 「 kill command bar and other extra things
+          which are not there in tdw 」, the same founder ruling that took DemoCommandBar.
+          Derived before removal, not assumed: an unrestricted grep of app/ and components/
+          found `PeekNav` imported at exactly ONE site — this one. The real vendor app
+          mounts it nowhere. So the demo studio was showing a CREATE/ASK panel the product
+          does not have, which is F-08.1's disease in its second costume: not a
+          re-implementation of something real, but a surface the real app never had.
+          The component file survives untouched; only this mount is gone, so a future
+          sitting that wants it in the REAL app finds it whole. */}
     </div>
   );
 }

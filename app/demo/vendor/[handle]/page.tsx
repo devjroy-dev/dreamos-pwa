@@ -69,6 +69,17 @@ const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 // second colour pretending to be the same one.
 const SURFACE     = '#1F1612';           // === DARK.pageBg
 const SURFACE_RGB = '31,22,18';          // === SURFACE, for gradient stops
+
+// ── TDW_08 P3 · THE LANDING HAD NO MAX WIDTH, AND DEMO LINKS GET OPENED ON LAPTOPS ──
+// This is a phone surface and it was built as one, but a demo link travels by WhatsApp
+// and lands wherever the vendor happens to be. At desktop width every card stretched the
+// full viewport and the gold CTA became a 1400px slab — a screen whose entire job is to
+// look like a product looked like an unstyled document. Witnessed on the founder's walk.
+//
+// One column, capped, centred, and the SAME cap on the fixed bottom bar and the toast, or
+// they would run full-bleed under a capped page. 520 is the ceiling of the phone widths
+// this lane is designed against, so nothing about the handset rendering changes.
+const COLUMN = 520;
 // F-07.60: API_BASE left with the claim POST when handleClaim moved into
 // components/demo/DemoClaimSheet.tsx. This file makes no direct fetch — its vendor
 // read goes through lib/demo/api, which carries its own copy of the constant.
@@ -259,7 +270,7 @@ export default function DemoLandingPage() {
   const teased = (leads ?? []).slice(0, TEASE_CAP);
 
   return (
-    <div style={{ minHeight:'100dvh', background:SURFACE, paddingBottom:'calc(env(safe-area-inset-bottom, 16px) + 96px)' }}>
+    <div style={{ minHeight:'100dvh', background:SURFACE, paddingBottom:'calc(env(safe-area-inset-bottom, 16px) + 96px)', maxWidth:COLUMN, margin:'0 auto', position:'relative', overflowX:'hidden' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Italiana&family=Jost:wght@200;300;400&display=swap');
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -506,7 +517,7 @@ export default function DemoLandingPage() {
       </div>
 
       {/* ═══ MOVEMENT THREE · THE CLAIM CTA — THE PAGE'S ONE GOLD ════════════ */}
-      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:40, padding:'14px 24px calc(env(safe-area-inset-bottom, 12px) + 14px)', background:`linear-gradient(to top, rgba(${SURFACE_RGB},0.97) 60%, rgba(${SURFACE_RGB},0))`, backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)' }}>
+      <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:COLUMN, zIndex:40, padding:'14px 24px calc(env(safe-area-inset-bottom, 12px) + 14px)', background:`linear-gradient(to top, rgba(${SURFACE_RGB},0.97) 60%, rgba(${SURFACE_RGB},0))`, backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)' }}>
         <button
           onClick={e => { e.stopPropagation(); setClaimOpen(true); }}
           style={{ width:'100%', height:48, background:'#C9A84C', border:'none', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:9, fontWeight:400, letterSpacing:'0.22em', textTransform:'uppercase', color:SURFACE, WebkitTapHighlightColor:'transparent' }}
@@ -518,7 +529,7 @@ export default function DemoLandingPage() {
       {/* The mount's own toast chrome — WHERE the vetoed lines appear. WHAT they say lives
           with the controls they explain, inside VendorProfileView. */}
       {toast && (
-        <div style={{ position:'fixed', left:24, right:24, bottom:'calc(env(safe-area-inset-bottom, 12px) + 84px)', zIndex:60, background:`rgba(${SURFACE_RGB},0.94)`, border:'0.5px solid rgba(255,255,255,0.14)', borderRadius:10, padding:'12px 16px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', animation:`fadeUp 240ms ${EASE} both` }}>
+        <div style={{ position:'fixed', left:'50%', transform:'translateX(-50%)', width:'calc(100% - 48px)', maxWidth:COLUMN - 48, bottom:'calc(env(safe-area-inset-bottom, 12px) + 84px)', zIndex:60, background:`rgba(${SURFACE_RGB},0.94)`, border:'0.5px solid rgba(255,255,255,0.14)', borderRadius:10, padding:'12px 16px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', animation:`fadeUp 240ms ${EASE} both` }}>
           <span style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.86)' }}>{toast}</span>
         </div>
       )}

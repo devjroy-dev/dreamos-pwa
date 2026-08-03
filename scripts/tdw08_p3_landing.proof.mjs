@@ -441,6 +441,44 @@ ok('§10.7 the mask asserts a shape the wire actually guarantees — ten digits,
   'the dot count no longer matches the ten-digit Indian mobile the lane normalises to');
 
 // ═════════════════════════════════════════════════════════════════════════════
+H('§11 · ONE COLUMN, AND THE FIXED CHROME COMES WITH IT');
+
+// A demo link travels by WhatsApp and lands wherever the vendor is. At desktop width the
+// uncapped page stretched every card to the viewport and turned the gold CTA into a
+// 1400px slab. Witnessed on the founder's walk, not derived here.
+ok('§11.1 the page is capped to one column and centred',
+  /maxWidth:COLUMN, margin:'0 auto'/.test(L) && /const COLUMN = 520;/.test(L));
+
+// THE HALF THAT IS EASY TO MISS: `position:fixed` elements are laid out against the
+// VIEWPORT, not the capped parent. Capping the page alone would leave the CTA and the
+// toast running full-bleed underneath a 520px column — worse than before, because the
+// mismatch would look deliberate.
+ok('§11.2 the FIXED bottom bar inherits the cap instead of the viewport',
+  /position:'fixed', bottom:0, left:'50%', transform:'translateX\(-50%\)', width:'100%', maxWidth:COLUMN/.test(L),
+  'the gold bar is still viewport-wide under a capped page');
+
+ok('§11.3 the toast inherits it too',
+  /bottom:'calc\(env\(safe-area-inset-bottom, 12px\) \+ 84px\)'/.test(L) &&
+  /maxWidth:COLUMN - 48/.test(L),
+  'the toast still spans the viewport');
+
+// ═════════════════════════════════════════════════════════════════════════════
+H('§12 · PeekNav — THE SECOND COSTUME OF F-08.1');
+
+const STUDIO_CODE = code(STUDIO);
+ok('§12.1 zero PeekNav in the demo studio, comments stripped',
+  !/PeekNav/.test(STUDIO_CODE),
+  'the demo shows a CREATE/ASK panel the real app does not have');
+
+ok('§12.2 the deletion LEFT ITS REASON — a note naming it survives as a comment',
+  /PeekNav/.test(read(STUDIO)),
+  'the reason went with the code; a reader finds an absence instead of a decision');
+
+ok('§12.3 the component FILE survives untouched — only the mount was removed',
+  fs.existsSync(path.join(ROOT, 'components/vendor/PeekNav.tsx')),
+  'the component was deleted; a future sitting wanting it in the REAL app has nothing left');
+
+// ═════════════════════════════════════════════════════════════════════════════
 H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS');
 
 okMutate('§M.1 §1.2 reds when a storage API enters a demo path', LANDING, "  const beaconFired = useRef(false);",
@@ -495,6 +533,15 @@ okMutate('§M.13 §10.6 reds if a real contact field is read onto the card', LAN
 okMutate('§M.14 §9.8 reds if the pin stops owning the page colour', THEME_CTX,
   'const __bg = pin ? t.pageBg', 'const __bg = (false as boolean) ? t.pageBg',
   () => assert.ok(/const __bg = pin \? t\.pageBg/.test(code(THEME_CTX))), '§9.8');
+
+okMutate('§M.15 §11.1 reds if the column cap is removed', LANDING,
+  'const COLUMN = 520;', 'const COLUMN = 99999;',
+  () => assert.ok(/const COLUMN = 520;/.test(code(LANDING))), '§11.1');
+
+okMutate('§M.16 §12.1 reds if PeekNav is remounted on the demo studio', STUDIO,
+  '      <InputBar onSend={send} disabled={loading} />',
+  '      <InputBar onSend={send} disabled={loading} />\n      <PeekNav />',
+  () => assert.ok(!/PeekNav/.test(code(STUDIO))), '§12.1');
 
 okMutate('§M.9 §8.1 reds if the sheet resumes discarding the band on demo', SHEET, 'budget_band:  band ?? undefined,', 'budget_band:  isDemo ? undefined : (band ?? undefined),',
     () => assert.ok(/budget_band:  band \?\? undefined,/.test(code(SHEET))), '§8.1');
