@@ -406,18 +406,38 @@ export default function DemoLandingPage() {
                       MASKED_SELECT on the server, so it never leaves the database and a
                       view-source finds nothing to reveal. That is acceptance §5 met at the
                       only layer that can meet it. */}
-                  {/* WITHHELD MUST LOOK SETTLED, NOT BUSY. This was a gold gradient
-                      sweeping left-to-right — the universal visual language for "still
-                      loading", which on a sales screen reads as a bug. It is now STATIC:
-                      a soft-edged bar at rest, with the label leading rather than
-                      trailing so the eye reads the WORD first and understands the bar as
-                      a redaction instead of a progress track. Nothing animates, because
-                      nothing is coming. */}
-                  <div style={{ display:'flex', alignItems:'center', gap:9, marginTop:11 }}>
-                    <span style={{ fontFamily:F.label, fontWeight:300, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.28)' }}>
+                  {/* ── THE SHAPE, NEVER THE DATA ───────────────────────────────
+                      Two earlier passes were both wrong. The first ANIMATED — a gold
+                      sweep, which is the universal language for "still loading" and on a
+                      sales screen reads as a bug. The second was a static grey bar, and
+                      the founder's verdict on it was exact: an elongated hyphen. It hid
+                      the value without communicating that a value existed.
+
+                      A REAL PARTIAL NUMBER WAS ASKED FOR AND REFUSED, and the refusal is
+                      recorded here because the next reader will have the same instinct:
+                      `src/api/router.js:146` mounts this lane as "Demo public routes — no
+                      auth required", so `/demo/vendor/:handle/leads` answers ANYONE with
+                      no login and demo handles are visible in Discover. Four digits on
+                      that endpoint, beside a real first name and a city, is a
+                      re-identification kit for a bride who never agreed to be in a sales
+                      demo — and the last four digits are India's most common identity
+                      token. It would also put `bride_phone` back on the wire, which
+                      `MASKED_SELECT` exists to keep off it, turning acceptance §5's
+                      absence into CSS theatre. G-4's own 「 contact blurred 」 covers it.
+
+                      SO: the SHAPE, generated entirely client-side from nothing. Zero new
+                      bytes leave the database. It is DERIVED, not decorated —
+                      `src/lib/phone.js:28` normalises this lane at ten digits to +91, and
+                      `demo_leads.bride_phone` is NOT NULL, so every lead genuinely has a
+                      ten-digit Indian mobile. The mask asserts a true shape and reveals
+                      nothing inside it. */}
+                  <div style={{ display:'flex', alignItems:'baseline', gap:10, marginTop:9 }}>
+                    <span style={{ fontFamily:F.label, fontWeight:300, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.30)' }}>
                       Contact
                     </span>
-                    <div aria-hidden style={{ flex:1, height:9, borderRadius:2, background:'rgba(248,247,245,0.055)', border:'0.5px solid rgba(248,247,245,0.07)', maxWidth:132 }} />
+                    <span aria-hidden style={{ fontFamily:F.body, fontWeight:300, fontSize:13, letterSpacing:'0.06em', color:'rgba(248,247,245,0.34)' }}>
+                      +91 ●●●●● ●●●●●
+                    </span>
                   </div>
                 </div>
               );

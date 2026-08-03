@@ -394,14 +394,36 @@ ok('§10.2 the count line still states the TRUE total, not the capped count',
   /couples are waiting/.test(read(LANDING)) && /waiting = leads\?\.length/.test(L),
   'the count was capped too — the remainder would then be stated nowhere');
 
-ok('§10.4 WITHHELD IS STATIC — no animation on the redaction bar',
+ok('§10.4 WITHHELD IS STATIC — nothing on the contact row animates',
   !/animation:'shimmer/.test(L) && !/keyframes shimmer/.test(read(LANDING)),
-  'the contact bar still animates like a loading track');
+  'the contact row animates like a loading track');
 
-ok('§10.5 the Contact label survives and now LEADS the bar',
-  /Contact/.test(read(LANDING)) &&
-  read(LANDING).indexOf('>\n                      Contact') < read(LANDING).indexOf('aria-hidden style={{ flex:1, height:9'),
-  'the label no longer precedes the redaction');
+ok('§10.5 the contact renders the SHAPE of a number, not a bar',
+  /\+91 ●●●●● ●●●●●/.test(read(LANDING)),
+  'the phone mask is gone — a bare bar reads as an elongated hyphen, not as a withheld value');
+
+// ── §10.6 · THE REFUSAL, MADE A CELL ─────────────────────────────────────────
+// A partial phone number was asked for on this card and refused: `src/api/router.js:146`
+// mounts this lane as "Demo public routes — no auth required", so /leads answers anyone
+// with no login. Four real digits there, beside a first name and a city, is a
+// re-identification kit — and it would put `bride_phone` back on a wire `MASKED_SELECT`
+// exists to keep it off, making acceptance §5's absence into CSS theatre.
+//
+// THE NEXT READER WILL HAVE THE SAME INSTINCT. This cell is what stops the instinct
+// becoming a commit: the mask must contain NO DIGIT except the +91 country code, and no
+// lead field that could carry contact may be read on this surface at all.
+const contactRow = read(LANDING).slice(
+  read(LANDING).indexOf('THE SHAPE, NEVER THE DATA'),
+  read(LANDING).indexOf('THE SHAPE, NEVER THE DATA') + 2600);
+ok('§10.6 the contact mask carries NO digit but the country code',
+  /\+91 ●●●●● ●●●●●/.test(contactRow) &&
+  (contactRow.match(/●/g) || []).length === 10 &&
+  !/lead\.(bride_)?phone|lead\.bride_ig_handle|lead\.bride_email/.test(L),
+  'a contact field is being read on the landing, or real digits entered the mask');
+
+ok('§10.7 the mask asserts a shape the wire actually guarantees — ten digits, +91',
+  (read(LANDING).match(/●/g) || []).length === 10,
+  'the dot count no longer matches the ten-digit Indian mobile the lane normalises to');
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS');
@@ -450,6 +472,10 @@ okMutate('§M.11 §9.1 reds if the demo lane stops pinning its theme', LAYOUT,
 okMutate('§M.12 §10.1 reds if the tease goes back to rendering every lead', LANDING,
   '{teased.map((lead, i) => {', '{(leads ?? []).map((lead, i) => {',
   () => assert.ok(/teased\.map\(\(lead, i\) =>/.test(code(LANDING))), '§10.1');
+
+okMutate('§M.13 §10.6 reds if a real contact field is read onto the card', LANDING,
+  '{lead.bride_name}', '{lead.bride_name}{(lead as unknown as {phone?:string}).phone}',
+  () => assert.ok(!/lead\.(bride_)?phone|\.phone\b/.test(code(LANDING))), '§10.6');
 
 okMutate('§M.9 §8.1 reds if the sheet resumes discarding the band on demo', SHEET, 'budget_band:  band ?? undefined,', 'budget_band:  isDemo ? undefined : (band ?? undefined),',
     () => assert.ok(/budget_band:  band \?\? undefined,/.test(code(SHEET))), '§8.1');
