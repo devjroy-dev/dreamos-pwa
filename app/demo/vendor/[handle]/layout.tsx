@@ -232,7 +232,7 @@ function DemoShell({ children }: { children: React.ReactNode }) {
   if (isLanding) return <>{children}</>;
 
   return (
-    <div style={{ height:'100dvh', width:'100%', overflowX:'clip', overflowY:'hidden', userSelect:'none', WebkitUserSelect:'none', background:'transparent', display:'flex', flexDirection:'column' }}>
+    <div style={{ height:'100dvh', width:'100%', overflowX:'clip', overflowY:'hidden', userSelect:'none', WebkitUserSelect:'none', background:'var(--atelier-page-bg)', display:'flex', flexDirection:'column' }}>
       <div
         ref={stageRef}
         onTouchStart={onTouchStart}

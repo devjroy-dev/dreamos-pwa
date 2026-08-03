@@ -379,6 +379,21 @@ ok('§9.5 both values were actually FOUND — a null-vs-null match would pass va
 ok('§9.6 THE LANDING STANDS ON THE LANE\'S OWN SURFACE — SURFACE === DARK.pageBg',
   surfaceLit === darkPageBg, `SURFACE=${surfaceLit} but DARK.pageBg=${darkPageBg}`);
 
+// ── §9.8/§9.9 · THE PIN MUST OWN THE PAGE, NOT JUST THE TYPE ────────────────
+// The first pin flipped the TOKENS and left the page colour to `applyCSSVars`, whose
+// expression paints a body background for LIGHT and FLAIR and for nothing else: on DARK
+// it resolves to '' and `--bg-primary` (#0B0F1A, navy) shows through. Warm brass type on
+// a navy page, one tap from a landing that is warm end to end. A pin that only holds for
+// text is not a pin.
+ok('§9.8 a pinned tree paints its OWN page colour, not globals\' --bg-primary',
+  /const __bg = pin \? t\.pageBg/.test(code(THEME_CTX)),
+  'the pin does not own the page background — the room will inherit the navy again');
+
+ok('§9.9 the demo shell CLAIMS that colour instead of sitting transparent over it',
+  /background:'var\(--atelier-page-bg\)'/.test(code(LAYOUT)) &&
+  /setProperty\('--atelier-page-bg', t\.pageBg\)/.test(code(THEME_CTX)),
+  'the shell is transparent, or the var it needs is never set');
+
 ok('§9.7 no orphaned surface literal survives on the landing',
   !/#0C0A09/.test(code(LANDING)) && !/rgba\(12,\s*10,\s*9/.test(code(LANDING)),
   'the old warm near-black is still hardcoded somewhere');
@@ -476,6 +491,10 @@ okMutate('§M.12 §10.1 reds if the tease goes back to rendering every lead', LA
 okMutate('§M.13 §10.6 reds if a real contact field is read onto the card', LANDING,
   '{lead.bride_name}', '{lead.bride_name}{(lead as unknown as {phone?:string}).phone}',
   () => assert.ok(!/lead\.(bride_)?phone|\.phone\b/.test(code(LANDING))), '§10.6');
+
+okMutate('§M.14 §9.8 reds if the pin stops owning the page colour', THEME_CTX,
+  'const __bg = pin ? t.pageBg', 'const __bg = (false as boolean) ? t.pageBg',
+  () => assert.ok(/const __bg = pin \? t\.pageBg/.test(code(THEME_CTX))), '§9.8');
 
 okMutate('§M.9 §8.1 reds if the sheet resumes discarding the band on demo', SHEET, 'budget_band:  band ?? undefined,', 'budget_band:  isDemo ? undefined : (band ?? undefined),',
     () => assert.ok(/budget_band:  band \?\? undefined,/.test(code(SHEET))), '§8.1');

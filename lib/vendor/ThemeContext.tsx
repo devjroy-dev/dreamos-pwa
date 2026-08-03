@@ -6,7 +6,7 @@ const ThemeCtx = createContext<ThemeTokens>(DARK);
 const KEY = 'dreamai_theme';
 
 // Apply CSS custom properties directly to <html> so they cascade into every component.
-function applyCSSVars(t: ThemeTokens) {
+function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light' | 'flair') {
   const r = document.documentElement.style;
 
   // Base theme vars — flip with theme
@@ -25,8 +25,25 @@ function applyCSSVars(t: ThemeTokens) {
   r.setProperty('--atelier-card-border',  t.cardBorder);
   r.setProperty('--atelier-row-hover',    t.rowHover);
   r.setProperty('--atelier-overlay-bg',   t.overlay);
+  // TDW_08 P3 — the page colour, exposed as a var so a surface can CLAIM it instead of
+  // inheriting `--bg-primary` by accident. Additive: nothing read this before.
+  r.setProperty('--atelier-page-bg', t.pageBg);
+
   // Set body bg directly — prevents one-frame dark flash on swipe
-  const __bg = t.isLight ? '#F5F2EE' : (t.pageBg === '#090d17' ? '#090d17' : '');
+  //
+  // ── TDW_08 P3 · WHY `pin` HAD TO REACH THIS LINE ────────────────────────────
+  // The original expression paints a body background for LIGHT and for FLAIR and for
+  // NOTHING ELSE: on DARK, `pageBg` is '#1F1612', the '#090d17' test fails, and `__bg`
+  // becomes '' — which CLEARS the body background and lets `--bg-primary` (#0B0F1A,
+  // globals.css:124, navy) show through. That was invisible in the real app, whose rooms
+  // sit on their own surfaces, and invisible to the theme pin, which flipped the TOKENS
+  // correctly and never owned the page.
+  //
+  // The result on the demo lane was warm brass type on a navy page, one tap from a
+  // landing that is warm end to end. A pinned tree must own its page colour, or the pin
+  // only holds for text.
+  const __bg = pin ? t.pageBg
+                   : (t.isLight ? '#F5F2EE' : (t.pageBg === '#090d17' ? '#090d17' : ''));
   document.documentElement.style.background = __bg;
   document.body.style.background = __bg;
 }
@@ -61,7 +78,7 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
     document.documentElement.classList.toggle('theme-light', theme === 'light');
     document.documentElement.classList.toggle('theme-flair', theme === 'flair');
     // Apply base vars first
-    applyCSSVars(t);
+    applyCSSVars(t, pinned);
   }
 
   useEffect(() => {
@@ -99,7 +116,7 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
       const t = theme === 'flair' ? FLAIR : theme === 'light' ? LIGHT : DARK;
       setTokens(t);
       setCurrentTheme(theme);
-      applyCSSVars(t);
+      applyCSSVars(t, pinned);
     });
     obs.observe(document.documentElement, {
       attributes: true,
