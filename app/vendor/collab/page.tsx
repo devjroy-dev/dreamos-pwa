@@ -223,7 +223,6 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
 
       {showForm && (
         <PostCollabForm
-          vendorTier={tier}
           prefill={prefill}
           onClose={() => setShowForm(false)}
           onSuccess={() => { setShowForm(false); fetchMyPosts(); setTab('my_posts'); }}
@@ -645,13 +644,23 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
 }
 
 // ── Post form sheet ─────────────────────────────────────────────
-function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
-  vendorTier: string;
+function PostCollabForm({ prefill, onClose, onSuccess }: {
   prefill: Prefill;
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const canPost = ['signature', 'prestige', 'trial'].includes(vendorTier);
+  // ── canPost RETIRED WHOLE — FOUNDER RULING, 2026-08-04 ───────────────────────
+  //   「 collab will be open to everyone including essential 」
+  //
+  // This was a CLIENT-SIDE DUPLICATE of the server allowlist at
+  // src/api/vendor/collab.js, which retired in the same act. It had FOUR sites,
+  // not the two the server's vocabulary made visible: this declaration, the
+  // submit short-circuit below, the `upgrade_required` error mapping, and the
+  // rendered upgrade block. Retiring only the two that named the server's words
+  // would have left an OPEN SERVER BEHIND A CLOSED UI — the compose form still
+  // hidden, the submit still returning before a request left the browser.
+  // The `vendorTier` prop retired with it (zero other readers, derived by
+  // command). Posting a collab requirement is now offered at every tier.
 
   // 1–8 requirements per post (spec §P4.1). Always at least one row, so the
   // form has one shape whether the vendor needs a florist or a whole crew.
@@ -678,7 +687,6 @@ function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
   }
 
   async function handleSubmit() {
-    if (!canPost) return;
     const chosen = items.filter(i => i.requirement_type);
     if (chosen.length === 0 || !form.event_date || !form.city) {
       setError('Please fill in what you need, the date, and the city.'); return;
@@ -712,7 +720,6 @@ function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
       );
 
       if (data.ok) onSuccess();
-      else if (data.error === 'upgrade_required') setError('Upgrade to Signature to post collab requirements.');
       // F-04.110's second half: the server's refusal sentence travels in
       // `error` (src/lib/response.js's envelope), not `message`. Reading only
       // `message` swallowed every real sentence into the generic fallback —
@@ -757,15 +764,7 @@ function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
         </div>
 
         <div style={{ padding: '0 24px' }}>
-          {!canPost ? (
-            <div style={{ padding: '24px 0', textAlign: 'center' }}>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.6 }}>
-                Upgrade to Signature to post collab requirements.<br />
-                You can still browse and respond to others&rsquo; posts.
-              </div>
-            </div>
-          ) : (
-            <>
+          <>
               <Label>What you need</Label>
               {items.map((item, i) => (
                 <div key={i} style={{ marginBottom: 14 }}>
@@ -863,8 +862,7 @@ function PostCollabForm({ vendorTier, prefill, onClose, onSuccess }: {
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 opacity: submitting ? 0.6 : 1,
               }}>{submitting ? 'Posting…' : 'Post'}</button>
-            </>
-          )}
+          </>
         </div>
       </div>
     </div>
