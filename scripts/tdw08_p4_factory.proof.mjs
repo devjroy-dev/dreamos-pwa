@@ -169,13 +169,18 @@ ok('§5.2 the linkage badge names the row that holds it',
   /linked to @\{v\.linkage_held_by\}/.test(code(PAGE)));
 ok('§5.3 the two facts are NOT merged — a shared handset is not always a refusal',
   /v\.shared_handset &&/.test(code(PAGE)) && /v\.linkage_held_by &&/.test(code(PAGE)));
+// RE-AIMED in this sitting's F-08.39 delivery: this cell anchored on the exact
+// expression `!v.linkage_held_by).map(v => v.id)`, which broke the moment the
+// filter legitimately grew a third clause. It now asserts the PROPERTY — that the
+// linkage exclusion is part of the batch filter — which survives the filter
+// growing and still reds if the exclusion is dropped. Same lesson as f0784 §4.3.
 ok('§5.4 a row whose linkage is held elsewhere is excluded from the batch',
-  /!v\.linkage_held_by\)\.map\(v => v\.id\)/.test(code(PAGE)));
+  /const invitableRows = rows\.filter\(v => [^)]*!v\.linkage_held_by/.test(code(PAGE)));
 
 okMutate('§M.7 §5.4 reds if the batch stops excluding held rows', PAGE,
-  'const invitable = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by).map(v => v.id);',
-  'const invitable = rows.filter(v => !!v.whatsapp_phone).map(v => v.id);',
-  () => assert.ok(/!v\.linkage_held_by\)\.map/.test(code(PAGE))), '§5.4');
+  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by && v.active !== false);',
+  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && v.active !== false);',
+  () => assert.ok(/const invitableRows = rows\.filter\(v => [^)]*!v\.linkage_held_by/.test(code(PAGE))), '§5.4');
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§6 · F-08.38 — CORRECTED ON CONTACT, CONFINED NOT ERASED');
@@ -195,6 +200,41 @@ H('§6 · F-08.38 — CORRECTED ON CONTACT, CONFINED NOT ERASED');
   ok('§6.4 the fallback constant itself is UNTOUCHED — a cite fix is not a value change',
     /export const DISCOVER_PHOTO_FLOOR = 6;/.test(read(FLOOR)));
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+H('§7 · F-08.39 PRESENTATION LIMB · F-08.40 LABEL ARITHMETIC');
+
+ok('§7.1 the batch list excludes inactive rows',
+  /v\.active !== false\)/.test(code(PAGE))
+  && /!v\.linkage_held_by && v\.active !== false/.test(code(PAGE)));
+ok('§7.2 the per-card Send invite is gone from an inactive row too',
+  /v\.whatsapp_phone && v\.active !== false && \(/.test(code(PAGE)));
+ok('§7.3 the label counts HANDSETS, never rows',
+  /Send \$\{handsets\} invite/.test(code(PAGE))
+  && !/Send \$\{invitable\.length\} invite/.test(code(PAGE)));
+ok('§7.4 the confirm states the same number the label promised',
+  /Send \$\{count\} demo invite/.test(code(PAGE)));
+ok('§7.5 the batch still sends ALL ids — the ruling refused group-refusal',
+  /handleInviteBatch\(invitable, handsets, state\)/.test(code(PAGE)));
+ok('§7.6 the handset key is the SERVER\'s — this surface normalizes no phone',
+  /v\.handset_key/.test(code(PAGE))
+  && !/whatsapp_phone[\s\S]{0,80}replace\(/.test(code(PAGE))
+  && !/startsWith\('\+'\)/.test(code(PAGE)));
+
+okMutate('§M.8 §7.1 reds if inactive rows re-enter the batch', PAGE,
+  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by && v.active !== false);',
+  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by);',
+  () => assert.ok(/!v\.linkage_held_by && v\.active !== false/.test(code(PAGE))), '§7.1');
+
+okMutate('§M.9 §7.3 reds if the label goes back to counting rows', PAGE,
+  '`Send ${handsets} invite${handsets === 1 ? \'\' : \'s\'}`',
+  '`Send ${invitable.length} invite${invitable.length === 1 ? \'\' : \'s\'}`',
+  () => assert.ok(/Send \$\{handsets\} invite/.test(code(PAGE))), '§7.3');
+
+okMutate('§M.10 §7.2 reds if the card button re-arms on an inactive row', PAGE,
+  "{(state === 'built' || state === 'legacy') && v.whatsapp_phone && v.active !== false && (",
+  "{(state === 'built' || state === 'legacy') && v.whatsapp_phone && (",
+  () => assert.ok(/v\.whatsapp_phone && v\.active !== false && \(/.test(code(PAGE))), '§7.2');
 
 // ═════════════════════════════════════════════════════════════════════════════
 console.log(`\n${fail === 0 ? 'GREEN' : 'RED'} — tdw08_p4_factory ${pass}/${pass + fail}\n`);

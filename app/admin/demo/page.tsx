@@ -67,6 +67,10 @@ interface DemoVendor {
   // ── FORK D(c): the two shared-handset facts, deliberately not merged.
   shared_handset?: boolean;
   linkage_held_by?: string | null;
+  // ── F-08.40: the server's normalized handset key. This surface groups by it
+  // and NEVER derives it — normalizing a phone here would be a second opinion
+  // about phone identity, and F-07.47 exists to stop exactly that.
+  handset_key?: string | null;
 }
 
 interface DemoLead {
@@ -330,9 +334,9 @@ export default function DemoAdminPage() {
   }
 
   // ── BULK INVITE — one column's worth, bounded per run by the server.
-  async function handleInviteBatch(ids: string[], columnLabel: string) {
+  async function handleInviteBatch(ids: string[], count: number, columnLabel: string) {
     if (ids.length === 0) return;
-    if (!window.confirm(`Send ${ids.length} demo invite${ids.length === 1 ? '' : 's'} from ${columnLabel}?`)) return;
+    if (!window.confirm(`Send ${count} demo invite${count === 1 ? '' : 's'} from ${columnLabel}?`)) return;
     setBusy('batch:' + columnLabel);
     try {
       const d = await adminFetch('/api/v2/admin/demo/invite-batch', { method: 'POST', body: JSON.stringify({ ids }) });
@@ -516,7 +520,23 @@ export default function DemoAdminPage() {
             : (
             <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 12 }}>
               {columns.map(([state, rows]) => {
-                const invitable = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by).map(v => v.id);
+                // ── F-08.39, PRESENTATION LIMB (CE-ruled (c), both limbs) ──
+                // `active` joins the filter. The route refuses an inactive demo
+                // because its public landing does not render (the MECHANISM
+                // limb, at _inviteOne); this filter is why the founder never
+                // meets that refusal at a control that looked armed.
+                // NEITHER LIMB STANDS ALONE — the same two-layer shape the photo
+                // floor was ruled into this sitting: the server owns the rule,
+                // the surface renders it and holds no opinion of its own.
+                const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by && v.active !== false);
+                const invitable = invitableRows.map(v => v.id);
+                // ── F-08.40 — THE LABEL COUNTS HANDSETS, THE BATCH SENDS ROWS ─
+                // Two rows on one phone send ONE template: the per-row guard
+                // links the first and refuses the second. Sending both ids is
+                // CORRECT and ruled — refusing the group would send zero where
+                // this sends one. Only the promise on the button was wrong.
+                // The key is the SERVER's; this file never normalizes a phone.
+                const handsets = new Set(invitableRows.map(v => v.handset_key || v.id)).size;
                 const canInvite = state === 'built' || state === 'legacy';
                 return (
                   <div key={state} style={{ minWidth: 288, flex: '0 0 288px', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -526,10 +546,10 @@ export default function DemoAdminPage() {
                     </div>
                     {canInvite && invitable.length > 0 && (
                       <GhostBtn
-                        label={busy === 'batch:' + state ? 'Sending…' : `Send ${invitable.length} invite${invitable.length === 1 ? '' : 's'}`}
+                        label={busy === 'batch:' + state ? 'Sending…' : `Send ${handsets} invite${handsets === 1 ? '' : 's'}`}
                         small
                         disabled={busy !== ''}
-                        onClick={() => handleInviteBatch(invitable, state)}
+                        onClick={() => handleInviteBatch(invitable, handsets, state)}
                       />
                     )}
                     {rows.length === 0 && (
@@ -584,7 +604,7 @@ export default function DemoAdminPage() {
                           </div>
 
                           <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' as const }}>
-                            {(state === 'built' || state === 'legacy') && v.whatsapp_phone && (
+                            {(state === 'built' || state === 'legacy') && v.whatsapp_phone && v.active !== false && (
                               <GhostBtn label={busy === v.id ? 'Sending…' : 'Send invite'} small disabled={busy !== ''} onClick={() => handleInvite(v)} />
                             )}
                             <GhostBtn label="Seed Leads" small disabled={busy !== ''} onClick={() => { if (window.confirm(`Seed 10 mock leads for ${v.display_name}?`)) handleSeedLeads(v); }} />
