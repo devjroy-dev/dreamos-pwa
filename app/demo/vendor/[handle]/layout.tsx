@@ -13,7 +13,7 @@ import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const F = { display:'var(--font-italiana), "GFS Didot", Georgia, serif', label:'var(--font-jost), system-ui, sans-serif' };
-const A = { brassWarm:'var(--atelier-label)', inkMute:'var(--atelier-ink-mute)' };
+const A = { brassWarm:'var(--atelier-label)', inkMute:'var(--atelier-ink-mute)', ink:'var(--atelier-ink)' };
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 
 type DemoMode = 'ai' | 'studio' | 'discover';
@@ -104,7 +104,18 @@ function DemoBottomNav({ handle }: { handle: string }) {
     <nav style={{ position:'sticky', bottom:0, zIndex:9, background:T.headerBg, backdropFilter:'blur(28px) saturate(1.6)', WebkitBackdropFilter:'blur(28px) saturate(1.6)', borderTop:'0.5px solid rgba(201,168,76,0.18)', boxShadow:'0 -1px 0 rgba(255,235,200,0.04)', padding:'10px 8px calc(12px + env(safe-area-inset-bottom))', display:'flex', justifyContent:'space-around', alignItems:'flex-end' }}>
       {items.map(item => {
         const active = pathname === item.href || pathname.startsWith(item.href + '/');
-        const color = active ? A.brassWarm : A.inkMute;
+        // ── LEGIBILITY (founder-reported on the demo TDS room, 2026-08-03) ─────────
+    // The INACTIVE tab read `--atelier-ink-mute` — alpha 0.45 on the espresso
+    // theme and 0.34 on the third — under 8px uppercase at 0.28em tracking. On a
+    // 555px viewport that is not a de-emphasised label, it is an unreadable one:
+    // the founder could not tell the tabs were tabs.
+    //
+    // IT IS RAISED TO THE PRIMARY INK TOKEN, NOT TO `#fff`. A hardcoded white
+    // would go INVISIBLE on the light theme, whose `--atelier-ink` is #1A0F08.
+    // "White" here means "the ink this theme reads with"; the token already knows
+    // which that is. The ACTIVE tab keeps brass, so the two are still distinct —
+    // by hue now rather than by whether you can see one of them.
+    const color = active ? A.brassWarm : A.ink;
         return (
           <button key={item.label} type="button" onClick={() => router.push(item.href)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', padding:'4px 8px', minWidth:56 }}>
             <span style={{ fontFamily:F.display, fontSize:22, lineHeight:1, color, transition:`color 200ms ${EASE}`, textShadow:active?'0 0 12px rgba(224,188,110,0.4)':'none' }}>{item.glyph}</span>

@@ -107,7 +107,26 @@ const DISCOVER_ITEMS: SubItem[] = [
 
 // ── NavTab ───────────────────────────────────────────────────────
 function NavTab({ item, active }: { item: SubItem; active: boolean }) {
-  const color = item.locked ? 'rgba(240,230,210,0.18)' : active ? A.brassWarm : A.inkMute;
+  // ── LEGIBILITY (founder-reported on the demo TDS room, 2026-08-03) ─────────
+  // The INACTIVE tab read `--atelier-ink-mute` — alpha 0.45 on the espresso
+  // theme and 0.34 on the third — under 8px uppercase at 0.28em tracking. On a
+  // 555px viewport that is not a de-emphasised label, it is an unreadable one:
+  // the founder could not tell the tabs were tabs.
+  //
+  // IT IS RAISED TO THE PRIMARY INK TOKEN, NOT TO `#fff`. A hardcoded white
+  // would go INVISIBLE on the light theme, whose `--atelier-ink` is #1A0F08.
+  // "White" here means "the ink this theme reads with"; the token already knows
+  // which that is. The ACTIVE tab keeps brass, so the two are still distinct —
+  // by hue now rather than by whether you can see one of them.
+  //
+  // THE DEMO SHELL CARRIES THE SAME RULE and it moves in the same delivery.
+  // app/demo/vendor/[handle]/layout.tsx is an exact port of this nav and holds
+  // its own copy of this line; curing one alone would leave a claimed vendor
+  // reading tabs he could not see on the very screen the demo promised him.
+  // Filed as the drift it is: two homes for one colour rule, corrected together
+  // this time and NOT folded, because folding a live vendor nav into a demo
+  // shell is an architecture act nobody ruled.
+  const color = item.locked ? 'rgba(240,230,210,0.18)' : active ? A.brassWarm : A.ink;
 
   const inner = (
     <>
