@@ -64,6 +64,10 @@ interface DemoVendor {
   invited_at?: string | null; opened_at?: string | null; engaged_at?: string | null;
   claimed_at?: string | null; removed_at?: string | null; expires_at?: string | null;
   sunset_at?: string | null;
+  // ── TDW_08 P5 · Phase 1 · FORK C(i): the SPENT MARKER, raw from the server.
+  // It is NOT a state and this surface derives no opinion about it beyond the
+  // one predicate below — the fact rides, the route owns the refusal.
+  invite_sent_at?: string | null;
   // ── FORK D(c): the two shared-handset facts, deliberately not merged.
   shared_handset?: boolean;
   linkage_held_by?: string | null;
@@ -564,10 +568,37 @@ export default function DemoAdminPage() {
                 // was typed here twice; it is `demoLifecycle.INVITE_STATES`,
                 // shipped on the list payload beside `states` and the photo
                 // floor. This surface holds no opinion it could contradict.
+                // ── TDW_08 P5 · Phase 1 · FORK C(i) — THE SPENT TERM ────────
+                // A row whose `invite_sent_at` is set has already had a REAL
+                // template despatched to its handset, and the route refuses a
+                // second one (`invite_already_sent`). Without this term the
+                // board would keep offering a button whose only possible answer
+                // is a 409 — the presentation half of the two-layer shape the
+                // route's own header names (F-06.85), and the exact asymmetry
+                // F-08.45 was filed over.
+                //
+                // IT IS THE ONE OPINION THIS SURFACE HOLDS ABOUT THE COLUMN.
+                // The predicate is here; the ENFORCEMENT is the route's, and it
+                // is the route's `if (row.invite_sent_at)` pre-check that makes
+                // the guarantee structural. If that pre-check moves, this term
+                // is decoration and both must be re-read together.
+                //
+                // SITED ABOVE THE `active` CLAUSE, AND THE REASON IS MEASURED,
+                // NOT GUESSED. The sealed cells at
+                // scripts/tdw08_p4_factory.proof.mjs read a 240-character window
+                // from `const canSend` (§5.4, §7.1, §M.10) and §M.8's mutation
+                // anchor is the LAST clause including its semicolon. Appending
+                // here would have destroyed that anchor and forced a labeled
+                // amendment to a sealed bench. Placed here instead, the anchor
+                // survives byte-identical and the window still reaches
+                // `v.active !== false` at 190 of 240 characters — derived by
+                // command at authoring, never estimated. Moving a sealed cell
+                // for a cure that did not need it moved is a cost with no buyer.
                 const canSend = (v: DemoVendor) =>
                   inviteStates.includes(v.state)
                   && !!v.whatsapp_phone
                   && !v.linkage_held_by
+                  && !v.invite_sent_at
                   && v.active !== false;
                 const invitableRows = rows.filter(canSend);
                 const invitable = invitableRows.map(v => v.id);
