@@ -171,8 +171,40 @@ export function ActionChip({ label, tone, onClick, disabled }: {
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
+// ── F-08.42 LIMB 2 · CE-RULED FORK 2(D) ──────────────────────────────────────
+// WAS: `useEffect(() => { const t = setTimeout(onDone, 3000); ... }, [onDone])`
+// with every call site passing an INLINE ARROW. A new arrow identity on every
+// parent render meant the effect tore down and re-armed on every render — so on
+// a surface that re-renders at all often, the three seconds never elapsed and
+// the toast did not dismiss; and where it did, it expired three seconds after
+// the LAST unrelated render rather than after the message appeared.
+//
+// NOW: the timer is keyed on MESSAGE IDENTITY and `onDone` is read through a
+// ref, so the callback's identity cannot restart the clock. Visibility is a
+// prop — an empty message renders nothing — so this component is safe to mount
+// UNCONDITIONALLY, which is the shape this sitting's own surface adopts.
+//
+// WHAT THIS DOES NOT CURE, STATED HERE RATHER THAN DISCOVERED LATER:
+// the React equal-value bail lives in the PAGE's `useState`, not here. When a
+// second identical action writes the same string inside the window, `Object.is`
+// bails and NO render occurs — this component receives no signal and cannot.
+// What changes is that the toast is now reliably on screen for its full three
+// seconds (and, with LIMB 1 cured, on screen AT ALL), which was the symptom.
+// Closing the bail itself means touching the call sites — F-08.48's arc.
+//
+// REACH: fifteen of thirty-one admin toast surfaces. Ten shadow this component
+// with a local `function Toast` carrying this same defect, and six more render
+// their own chrome. F-08.48 holds the rest; see the handover.
 export function Toast({ msg, onDone, error }: { msg: string; onDone: () => void; error?: boolean }) {
-  useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
+  const shown = !!msg;
+  useEffect(() => {
+    if (!shown) return;
+    const t = setTimeout(() => doneRef.current(), 3000);
+    return () => clearTimeout(t);
+  }, [msg, shown]);
+  if (!shown) return null;
   return (
     <div style={{
       position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',
@@ -225,14 +257,22 @@ export function FieldInput({ label, value, onChange, placeholder, type = 'text',
 }
 
 // ── FieldSelect ───────────────────────────────────────────────────────────────
-export function FieldSelect({ label, value, onChange, options }: {
+// `hint` JOINS THE SIGNATURE (V1). `FieldInput` has carried a hint slot since it
+// was written; this component never did — so a required-field affordance could
+// reach three of the create form's four required fields and not the fourth.
+// The slot renders right of the label in the same geometry FieldInput uses, so
+// the two read as one form rather than as two components.
+export function FieldSelect({ label, value, onChange, options, hint }: {
   label: string; value: string; onChange: (v: string) => void;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string }[]; hint?: string;
 }) {
   const [focused, setFocused] = useState(false);
   return (
     <div style={{ marginBottom:18, position:'relative' }}>
-      <label style={{ display:'block', fontFamily:T.ff.label, fontWeight:300, fontSize:8, color: focused ? T.goldDim : T.soft, letterSpacing:'0.26em', textTransform:'uppercase', marginBottom:7, transition:`color 200ms ${EASE}` }}>{label}</label>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:7 }}>
+        <label style={{ fontFamily:T.ff.label, fontWeight:300, fontSize:8, color: focused ? T.goldDim : T.soft, letterSpacing:'0.26em', textTransform:'uppercase', transition:`color 200ms ${EASE}` }}>{label}</label>
+        {hint && <span style={{ fontFamily:T.ff.body, fontSize:10, color:T.dim }}>{hint}</span>}
+      </div>
       <div style={{ position:'relative' }}>
         <select
           value={value} onChange={e => onChange(e.target.value)}

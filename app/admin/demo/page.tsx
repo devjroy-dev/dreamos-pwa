@@ -152,6 +152,11 @@ export default function DemoAdminPage() {
   const [tab,      setTab]      = useState<Tab>('board');
   const [vendors,  setVendors]  = useState<DemoVendor[]>([]);
   const [states,   setStates]   = useState<string[]>([]);
+  // FORK 3(c) — the invite subset is the SERVER's, exactly as `states` is.
+  // Empty until the payload arrives, and empty on a stale deploy that does not
+  // send it: the same absent-on-arrival guard `states` has always carried. An
+  // empty subset arms nothing, which is the safe direction to fail.
+  const [inviteStates, setInviteStates] = useState<string[]>([]);
   const [srvFloor, setSrvFloor] = useState<number | null>(null);
   const [leads,    setLeads]    = useState<DemoLead[]>([]);
   const [claims,   setClaims]   = useState<ClaimRequest[]>([]);
@@ -197,6 +202,7 @@ export default function DemoAdminPage() {
       if (vRes.ok) {
         setVendors(vRes.vendors || []);
         if (Array.isArray(vRes.states)) setStates(vRes.states);
+        if (Array.isArray(vRes.invite_states)) setInviteStates(vRes.invite_states);
         if (typeof vRes.min_portfolio_images === 'number') setSrvFloor(vRes.min_portfolio_images);
       }
       if (lRes.ok) setLeads(lRes.leads || []);
@@ -246,7 +252,11 @@ export default function DemoAdminPage() {
         method: 'POST',
         body: JSON.stringify({ ig_handle: igHandle.trim().toLowerCase(), display_name: dispName.trim(), category, city: city.trim(), whatsapp_phone: waPhone.trim() || null, about: about.trim() || null, rate_display: rateDisplay.trim() || null, photos }),
       });
-      if (!d.ok) { showToast(d.error || 'Failed.', true); setCreating(false); return; }
+      // `detail` FIRST. The register refusals (F-08.44) carry a machine key in
+      // `error` and the founder-frozen sentence in `detail`; every older refusal
+      // carries its sentence in `error` and no `detail` at all, so this ordering
+      // adds the new bytes without moving a single old one.
+      if (!d.ok) { showToast(d.detail || d.error || 'Failed.', true); setCreating(false); return; }
       showToast('Created ✓  ' + d.demo_url);
       setShowCreate(false); resetCreateForm(); load();
     } catch { showToast('Failed to create.', true); }
@@ -415,7 +425,11 @@ export default function DemoAdminPage() {
 
   return (
     <div style={{ padding: '0 0 60px' }}>
-      {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
+      {/* FORK 2(D): mounted UNCONDITIONALLY. Visibility is the message prop
+          now, so the component's own timer is keyed on message identity rather
+          than on this arrow's identity. The conditional mount is what let an
+          unrelated re-render tear the timer down and re-arm it. */}
+      <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />
 
       <PageHeader
         title="Demo Profiles"
@@ -428,10 +442,16 @@ export default function DemoAdminPage() {
         <div style={{ margin: '0 24px 24px', background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20 }}>
           <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Create Demo Profile</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <FieldInput label="IG Handle (becomes URL)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" />
-            <FieldInput label="Display Name" value={dispName} onChange={setDispName} placeholder="Swati Tomar" />
-            <FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} />
-            <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" />
+            {/* V1, founder-vetoed and frozen at the BYTE: `Required`. These are
+                THE FOUR the pre-flight refuses on, and nothing in this form said
+                so — the only signal was the failure itself, delivered by a toast
+                the two F-08.42 limbs had broken. The mark and the message are
+                the same rule stated twice, before and after the press.
+                `FieldSelect` gained its hint slot for the third of them. */}
+            <FieldInput label="IG Handle (becomes URL)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" hint="Required" />
+            <FieldInput label="Display Name" value={dispName} onChange={setDispName} placeholder="Swati Tomar" hint="Required" />
+            <FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} hint="Required" />
+            <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" hint="Required" />
             <FieldInput label="WhatsApp Number" value={waPhone} onChange={setWaPhone} placeholder="+919888294440" />
             {/* C5 — the register. "Rs", grouped Indian, never the glyph and never
                 a k/L/Cr form (lib/vendor/format.ts, Rule V7). The old hint read
@@ -528,7 +548,28 @@ export default function DemoAdminPage() {
                 // NEITHER LIMB STANDS ALONE — the same two-layer shape the photo
                 // floor was ruled into this sitting: the server owns the rule,
                 // the surface renders it and holds no opinion of its own.
-                const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by && v.active !== false);
+                //
+                // ── F-08.45 (CE-ruled 3-ii) ─ ONE PREDICATE, TWO CALL SITES ────
+                // THIS FILTER AND THE PER-CARD BUTTON USED TO BE TWO HAND-WRITTEN
+                // EXPRESSIONS AND THEY DRIFTED. `!linkage_held_by` was here and
+                // absent there, so a row whose linkage is held elsewhere drew a
+                // red border and a `linked to @X` badge beside an ARMED Send
+                // invite that the route answers 409 `shared_handset`. The
+                // archaeology: the concept entered this file at four sites in one
+                // commit and did not reach the fifth; the later commit that
+                // edited BOTH limbs added `active` to each and closed nothing.
+                // `canSend` is now the only place either question is asked.
+                //
+                // THE STATE TERM IS THE SERVER'S (FORK 3(c)). `built`/`legacy`
+                // was typed here twice; it is `demoLifecycle.INVITE_STATES`,
+                // shipped on the list payload beside `states` and the photo
+                // floor. This surface holds no opinion it could contradict.
+                const canSend = (v: DemoVendor) =>
+                  inviteStates.includes(v.state)
+                  && !!v.whatsapp_phone
+                  && !v.linkage_held_by
+                  && v.active !== false;
+                const invitableRows = rows.filter(canSend);
                 const invitable = invitableRows.map(v => v.id);
                 // ── F-08.40 — THE LABEL COUNTS HANDSETS, THE BATCH SENDS ROWS ─
                 // Two rows on one phone send ONE template: the per-row guard
@@ -537,7 +578,7 @@ export default function DemoAdminPage() {
                 // this sends one. Only the promise on the button was wrong.
                 // The key is the SERVER's; this file never normalizes a phone.
                 const handsets = new Set(invitableRows.map(v => v.handset_key || v.id)).size;
-                const canInvite = state === 'built' || state === 'legacy';
+                const canInvite = inviteStates.includes(state);
                 return (
                   <div key={state} style={{ minWidth: 288, flex: '0 0 288px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, paddingBottom: 6, borderBottom: `0.5px solid ${T.border}` }}>
@@ -604,7 +645,7 @@ export default function DemoAdminPage() {
                           </div>
 
                           <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' as const }}>
-                            {(state === 'built' || state === 'legacy') && v.whatsapp_phone && v.active !== false && (
+                            {canSend(v) && (
                               <GhostBtn label={busy === v.id ? 'Sending…' : 'Send invite'} small disabled={busy !== ''} onClick={() => handleInvite(v)} />
                             )}
                             <GhostBtn label="Seed Leads" small disabled={busy !== ''} onClick={() => { if (window.confirm(`Seed 10 mock leads for ${v.display_name}?`)) handleSeedLeads(v); }} />

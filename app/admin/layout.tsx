@@ -42,9 +42,41 @@ const FONTS = `
   button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   option { background: #10171F; }
 
+  /* ── F-08.42 LIMB 1 · CE-RULED FORK 1(e) ──────────────────────────────────
+     THIS KEYFRAME DECLARES NO TRANSFORM, AND THAT IS THE WHOLE CURE.
+
+     It used to run translateY(10px) -> translateY(0). With both fill the
+     to state is RETAINED, so the element kept a transform of
+     translateY(0) — which is not none, and ANY non-none transform makes
+     the element a containing block for its position:fixed descendants.
+     .fade-up sits on the wrapper around {children}, so all forty-one admin
+     surfaces resolved their fixed chrome against a 980px column instead of
+     the viewport: the toast landed below the document fold, the sheets and
+     scrims stopped covering the screen. The founder concluded a button was
+     dead, twice.
+
+     WHY (e) AND NOT A NARROWER ARM. Dropping both, or dropping the
+     transform from the to frame only, both leave a 300ms window in which
+     the transform is interpolating and the trap is live — a timing residual
+     on the founder's own instrument, bought to keep a 10px rise. Moving the
+     class inward is not buildable: the fixed elements ARE inside {children}.
+     Removing it from the wrapper alone would leave the SECOND application
+     (app/admin/invite-requests/_list.tsx) trapping its own drawer and scrim
+     on two surfaces. Curing the CLASS reaches both applications at once.
+
+     THE TRADE, FOUNDER-VETOED AND NAMED: the admin console loses its 10px
+     entrance rise on forty-one surfaces and keeps the fade. Internal
+     instrument; correctness over motion.
+
+     THE NAME SURVIVES DELIBERATELY. fadeUp/.fade-up is applied at exactly
+     two sites and asserted by no cell; renaming would be churn for zero
+     behaviour. This paragraph is why the name no longer describes the motion.
+
+     DO NOT RE-INTRODUCE A TRANSFORM HERE. Guarded both ways at
+     scripts/tdw08_console.proof.mjs, section 1. */
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
   @keyframes shimmer {
     0%   { opacity: 0.35; }

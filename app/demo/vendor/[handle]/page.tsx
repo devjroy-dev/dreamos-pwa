@@ -274,6 +274,22 @@ export default function DemoLandingPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Italiana&family=Jost:wght@200;300;400&display=swap');
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        /* F-08.46 — THE TOAST GETS ITS OWN KEYFRAME, AND THAT IS THE CURE.
+           The toast below is centred by left:50% plus an inline
+           translateX(-50%). It used to animate with the generic fadeUp
+           above, whose to frame declares transform: translateY(0) — and an
+           animation's declarations outrank inline style in the cascade, with
+           both retaining the to state for the element's whole life. The
+           centring transform was overridden the moment the animation started
+           and never came back.
+           EIGHT PRECEDENTS IN THIS ESTATE DO THIS CORRECTLY and every one uses
+           a purpose-built keyframe that carries its own centring in BOTH
+           frames: toastIn in app/admin/_components/AdminUI.tsx, and
+           slideDown at the seven couple- and vendor-auth surfaces. The defect
+           was keyframe REUSE, not a missing convention. This is the ninth.
+           fadeUp above is UNTOUCHED and still correct for the lead cards,
+           which carry no inline transform to clobber. */
+        @keyframes toastRise { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         input::placeholder { color: rgba(240,230,210,0.3); }
       `}</style>
@@ -529,7 +545,7 @@ export default function DemoLandingPage() {
       {/* The mount's own toast chrome — WHERE the vetoed lines appear. WHAT they say lives
           with the controls they explain, inside VendorProfileView. */}
       {toast && (
-        <div style={{ position:'fixed', left:'50%', transform:'translateX(-50%)', width:'calc(100% - 48px)', maxWidth:COLUMN - 48, bottom:'calc(env(safe-area-inset-bottom, 12px) + 84px)', zIndex:60, background:`rgba(${SURFACE_RGB},0.94)`, border:'0.5px solid rgba(255,255,255,0.14)', borderRadius:10, padding:'12px 16px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', animation:`fadeUp 240ms ${EASE} both` }}>
+        <div style={{ position:'fixed', left:'50%', transform:'translateX(-50%)', width:'calc(100% - 48px)', maxWidth:COLUMN - 48, bottom:'calc(env(safe-area-inset-bottom, 12px) + 84px)', zIndex:60, background:`rgba(${SURFACE_RGB},0.94)`, border:'0.5px solid rgba(255,255,255,0.14)', borderRadius:10, padding:'12px 16px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', animation:`toastRise 240ms ${EASE} both` }}>
           <span style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.86)' }}>{toast}</span>
         </div>
       )}

@@ -174,13 +174,24 @@ ok('§5.3 the two facts are NOT merged — a shared handset is not always a refu
 // filter legitimately grew a third clause. It now asserts the PROPERTY — that the
 // linkage exclusion is part of the batch filter — which survives the filter
 // growing and still reds if the exclusion is dropped. Same lesson as f0784 §4.3.
+//
+// ── LABELED AMENDMENT ①, THE CONSOLE SITTING (F-08.45, CE-ruled 3-ii) ────────
+// AND IT IS THE SAME LESSON A THIRD TIME. The re-aim above still named the
+// SHAPE `rows.filter(v => …)`, and the shape moved: the two hand-written
+// predicates are now one `canSend`, which is the whole content of F-08.45's
+// cure. The property is unchanged and so is this cell's job — the linkage
+// exclusion must be part of what the batch filters on. It is asserted against
+// the predicate BY NAME now, and against the fact that the batch applies it.
+// COUNT PRESERVED. Its mutation moves with it.
 ok('§5.4 a row whose linkage is held elsewhere is excluded from the batch',
-  /const invitableRows = rows\.filter\(v => [^)]*!v\.linkage_held_by/.test(code(PAGE)));
+  /const canSend = \(v: DemoVendor\) =>[\s\S]{0,240}!v\.linkage_held_by/.test(code(PAGE))
+  && /rows\.filter\(canSend\)/.test(code(PAGE)));
 
 okMutate('§M.7 §5.4 reds if the batch stops excluding held rows', PAGE,
-  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by && v.active !== false);',
-  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && v.active !== false);',
-  () => assert.ok(/const invitableRows = rows\.filter\(v => [^)]*!v\.linkage_held_by/.test(code(PAGE))), '§5.4');
+  '                  && !v.linkage_held_by\n',
+  '\n',
+  () => assert.ok(/const canSend = \(v: DemoVendor\) =>[\s\S]{0,240}!v\.linkage_held_by/.test(code(PAGE))
+    && /rows\.filter\(canSend\)/.test(code(PAGE))), '§5.4');
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§6 · F-08.38 — CORRECTED ON CONTACT, CONFINED NOT ERASED');
@@ -204,11 +215,20 @@ H('§6 · F-08.38 — CORRECTED ON CONTACT, CONFINED NOT ERASED');
 // ═════════════════════════════════════════════════════════════════════════════
 H('§7 · F-08.39 PRESENTATION LIMB · F-08.40 LABEL ARITHMETIC');
 
+// ── LABELED AMENDMENT ②, THE CONSOLE SITTING (F-08.45, CE-ruled 3-ii) ────────
+// §7.1 and §7.2 asserted F-08.39's `active` term at TWO separate byte-shapes,
+// one per hand-written predicate — which is exactly the duplication F-08.45
+// convicted. Both now assert the SAME property against the ONE predicate, and
+// §7.2 additionally asserts that the card's button is mounted THROUGH it. That
+// is a stronger cell than the string it replaces: the old §7.2 would have
+// passed on a per-card expression that repeated `active` and still omitted the
+// linkage term, which is the defect this sitting cured. COUNT PRESERVED.
 ok('§7.1 the batch list excludes inactive rows',
-  /v\.active !== false\)/.test(code(PAGE))
-  && /!v\.linkage_held_by && v\.active !== false/.test(code(PAGE)));
+  /const canSend = \(v: DemoVendor\) =>[\s\S]{0,240}v\.active !== false/.test(code(PAGE))
+  && /rows\.filter\(canSend\)/.test(code(PAGE)));
 ok('§7.2 the per-card Send invite is gone from an inactive row too',
-  /v\.whatsapp_phone && v\.active !== false && \(/.test(code(PAGE)));
+  /\{canSend\(v\) && \(/.test(code(PAGE))
+  && !/state === 'built' \|\| state === 'legacy'/.test(code(PAGE)));
 ok('§7.3 the label counts HANDSETS, never rows',
   /Send \$\{handsets\} invite/.test(code(PAGE))
   && !/Send \$\{invitable\.length\} invite/.test(code(PAGE)));
@@ -221,20 +241,24 @@ ok('§7.6 the handset key is the SERVER\'s — this surface normalizes no phone'
   && !/whatsapp_phone[\s\S]{0,80}replace\(/.test(code(PAGE))
   && !/startsWith\('\+'\)/.test(code(PAGE)));
 
+// LABELED AMENDMENT ③ — the anchor follows the term into `canSend`.
 okMutate('§M.8 §7.1 reds if inactive rows re-enter the batch', PAGE,
-  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by && v.active !== false);',
-  'const invitableRows = rows.filter(v => !!v.whatsapp_phone && !v.linkage_held_by);',
-  () => assert.ok(/!v\.linkage_held_by && v\.active !== false/.test(code(PAGE))), '§7.1');
+  '                  && v.active !== false;',
+  ';',
+  () => assert.ok(/const canSend = \(v: DemoVendor\) =>[\s\S]{0,240}v\.active !== false/.test(code(PAGE))
+    && /rows\.filter\(canSend\)/.test(code(PAGE))), '§7.1');
 
 okMutate('§M.9 §7.3 reds if the label goes back to counting rows', PAGE,
   '`Send ${handsets} invite${handsets === 1 ? \'\' : \'s\'}`',
   '`Send ${invitable.length} invite${invitable.length === 1 ? \'\' : \'s\'}`',
   () => assert.ok(/Send \$\{handsets\} invite/.test(code(PAGE))), '§7.3');
 
-okMutate('§M.10 §7.2 reds if the card button re-arms on an inactive row', PAGE,
-  "{(state === 'built' || state === 'legacy') && v.whatsapp_phone && v.active !== false && (",
-  "{(state === 'built' || state === 'legacy') && v.whatsapp_phone && (",
-  () => assert.ok(/v\.whatsapp_phone && v\.active !== false && \(/.test(code(PAGE))), '§7.2');
+// LABELED AMENDMENT ④ — the mutation now bypasses the predicate rather than
+// editing a copy of it, which is the only way to break a consolidated rule.
+okMutate('§M.10 §7.2 reds if the card button stops going through the predicate', PAGE,
+  '{canSend(v) && (',
+  '{!!v.whatsapp_phone && (',
+  () => assert.ok(/\{canSend\(v\) && \(/.test(code(PAGE))), '§7.2');
 
 // ═════════════════════════════════════════════════════════════════════════════
 console.log(`\n${fail === 0 ? 'GREEN' : 'RED'} — tdw08_p4_factory ${pass}/${pass + fail}\n`);
