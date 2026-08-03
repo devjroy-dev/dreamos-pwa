@@ -53,6 +53,22 @@ import VendorProfileView from '@/components/shared/VendorProfileView';
 import { formatRs } from '@/lib/vendor/format';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
+
+// ── TDW_08 P3 · THE LANE HAS ONE SURFACE, AND THIS IS IT ─────────────────────────────
+// SURFACE MUST EQUAL `DARK.pageBg` in lib/vendor/theme.ts. The landing bypasses the
+// demo layout's chrome entirely (layout.tsx returns children bare when isLanding), so it
+// cannot inherit the token and must restate it — and a restated token drifts unless
+// something watches it. `scripts/tdw08_p3_landing.proof.mjs` §9 asserts the equality by
+// reading BOTH files, so the day someone retunes the palette this reds instead of leaving
+// the landing stranded at a colour the rooms no longer use.
+//
+// It was `#0C0A09` — a warm near-black that belonged to nothing. Against the rooms it
+// read as a different product, and the chip strip turns that seam from one jump into
+// nine. The rooms are pinned to DARK (layout.tsx); the landing now stands on the same
+// value, and every gradient stop below is that value at varying alpha rather than a
+// second colour pretending to be the same one.
+const SURFACE     = '#1F1612';           // === DARK.pageBg
+const SURFACE_RGB = '31,22,18';          // === SURFACE, for gradient stops
 // F-07.60: API_BASE left with the claim POST when handleClaim moved into
 // components/demo/DemoClaimSheet.tsx. This file makes no direct fetch — its vendor
 // read goes through lib/demo/api, which carries its own copy of the constant.
@@ -168,8 +184,8 @@ export default function DemoLandingPage() {
   //
   // ACCEPTANCE §5 IS SATISFIED AT THE SERVER, NOT HERE. `MASKED_SELECT` excludes
   // `bride_phone` / `bride_email` / `bride_ig_handle`, so the contact never leaves the
-  // database. The shimmer below stands over data that is genuinely absent from this
-  // payload — it is not CSS hiding a value that view-source would reveal.
+  // database. The redaction bar below stands over data that is genuinely absent from
+  // this payload — it is not CSS hiding a value that view-source would reveal.
   useEffect(() => {
     if (!handle) return;
     fetchDemoLeads(handle)
@@ -213,13 +229,13 @@ export default function DemoLandingPage() {
   const hasPhotos = photos.length > 0;
 
   if (loading) return (
-    <div style={{ position:'fixed', inset:0, background:'#0C0A09', display:'flex', alignItems:'center', justifyContent:'center' }}>
+    <div style={{ position:'fixed', inset:0, background:SURFACE, display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ fontFamily:F.script, fontStyle:'italic', fontSize:18, color:'rgba(240,230,210,0.35)' }}>One moment…</div>
     </div>
   );
 
   if (!vendor) return (
-    <div style={{ position:'fixed', inset:0, background:'#0C0A09', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
+    <div style={{ position:'fixed', inset:0, background:SURFACE, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
       <div style={{ fontFamily:F.display, fontSize:28, color:'rgba(240,230,210,0.9)' }}>Profile not found.</div>
       <div style={{ fontFamily:F.script, fontStyle:'italic', fontSize:16, color:'rgba(240,230,210,0.4)' }}>This demo link may have expired.</div>
     </div>
@@ -228,12 +244,25 @@ export default function DemoLandingPage() {
   const vendorDisplayName = vendor.display_name || handle;
   const waiting = leads?.length ?? 0;
 
+  // ── TDW_08 P3 · IT IS A TEASE, NOT A LIST ─────────────────────────────────
+  // The first build rendered every lead. On the walked account that is NINE
+  // near-identical cards, which is the opposite of a tease: it answers the
+  // question the claim CTA is supposed to make him want answered, and it makes
+  // the count line meaningless by sitting nine visible couples directly under
+  // the words "9 couples are waiting".
+  //
+  // TWO IS THE CAP, AND IT NEEDS NO NEW STRING. The count line already states
+  // the total, so the remainder is carried by copy the founder has vetoed
+  // rather than by a new byte he has not seen. A tease shows enough to be real
+  // and stops short of being enough.
+  const TEASE_CAP = 2;
+  const teased = (leads ?? []).slice(0, TEASE_CAP);
+
   return (
-    <div style={{ minHeight:'100dvh', background:'#0C0A09', paddingBottom:'calc(env(safe-area-inset-bottom, 16px) + 96px)' }}>
+    <div style={{ minHeight:'100dvh', background:SURFACE, paddingBottom:'calc(env(safe-area-inset-bottom, 16px) + 96px)' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Italiana&family=Jost:wght@200;300;400&display=swap');
         @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{background-position:-180px 0} 100%{background-position:180px 0} }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         input::placeholder { color: rgba(240,230,210,0.3); }
       `}</style>
@@ -250,7 +279,7 @@ export default function DemoLandingPage() {
         <div style={{ position:'absolute', inset:0, zIndex:2, pointerEvents:'none', background:'radial-gradient(ellipse at 50% 60%, transparent 20%, rgba(0,0,0,0.55) 100%)' }} />
 
         {/* Bottom gradient */}
-        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'52%', zIndex:3, pointerEvents:'none', background:'linear-gradient(to top, rgba(12,10,9,0.98) 0%, rgba(12,10,9,0.45) 55%, transparent 100%)' }} />
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'52%', zIndex:3, pointerEvents:'none', background:`linear-gradient(to top, rgba(${SURFACE_RGB},0.98) 0%, rgba(${SURFACE_RGB},0.45) 55%, transparent 100%)` }} />
 
         {/* TDW wordmark — exact from real landing */}
         <div style={{ position:'absolute', top:'calc(env(safe-area-inset-top, 0px) + 22px)', left:22, zIndex:10, opacity: reveal ? 1 : 0, transition:`opacity 1.2s ${EASE} 0.3s` }}>
@@ -283,10 +312,14 @@ export default function DemoLandingPage() {
         <p style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:16, color:'rgba(248,247,245,0.62)', margin:0, lineHeight:1.5, letterSpacing:'0.01em' }}>
           This is how couples see you. You&apos;re live in Discover now.
         </p>
-        <div style={{ display:'flex', alignItems:'center', gap:12, margin:'16px 0 18px' }}>
-          <div style={{ flex:1, height:'0.5px', background:'linear-gradient(to right, rgba(201,168,76,0.6), rgba(201,168,76,0.12))' }} />
-          <span style={{ fontFamily:F.display, fontSize:10, color:'#C9A84C', letterSpacing:'0.3em', lineHeight:1 }}>◆</span>
-          <div style={{ flex:1, height:'0.5px', background:'linear-gradient(to left, rgba(201,168,76,0.6), rgba(201,168,76,0.12))' }} />
+        {/* The hairlines ran 0.6 → 0.12 alpha and vanished on a near-black surface, so
+            only the ◆ survived and read as a stray dot. Reversed to fade OUTWARD from a
+            solid centre: the rule is brightest beside the diamond, which is where the eye
+            already is, and it dies at the margin instead of at the middle. */}
+        <div style={{ display:'flex', alignItems:'center', gap:10, margin:'18px 0 20px' }}>
+          <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, rgba(201,168,76,0.55), rgba(201,168,76,0))' }} />
+          <span style={{ fontFamily:F.display, fontSize:9, color:'rgba(201,168,76,0.85)', letterSpacing:0, lineHeight:1 }}>◆</span>
+          <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, rgba(201,168,76,0.55), rgba(201,168,76,0))' }} />
         </div>
       </div>
 
@@ -341,7 +374,7 @@ export default function DemoLandingPage() {
           </p>
 
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            {(leads ?? []).map((lead, i) => {
+            {teased.map((lead, i) => {
               // Built as a LIST so an absent fact is absent, never an empty segment between
               // two separators. The omission rule as a data structure rather than as a
               // string of conditionals.
@@ -373,11 +406,18 @@ export default function DemoLandingPage() {
                       MASKED_SELECT on the server, so it never leaves the database and a
                       view-source finds nothing to reveal. That is acceptance §5 met at the
                       only layer that can meet it. */}
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:10 }}>
-                    <div aria-hidden style={{ height:11, width:112, borderRadius:3, background:'linear-gradient(90deg, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0.26) 50%, rgba(201,168,76,0.10) 100%)', backgroundSize:'360px 100%', animation:'shimmer 2.6s linear infinite' }} />
-                    <span style={{ fontFamily:F.label, fontWeight:300, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.32)' }}>
+                  {/* WITHHELD MUST LOOK SETTLED, NOT BUSY. This was a gold gradient
+                      sweeping left-to-right — the universal visual language for "still
+                      loading", which on a sales screen reads as a bug. It is now STATIC:
+                      a soft-edged bar at rest, with the label leading rather than
+                      trailing so the eye reads the WORD first and understands the bar as
+                      a redaction instead of a progress track. Nothing animates, because
+                      nothing is coming. */}
+                  <div style={{ display:'flex', alignItems:'center', gap:9, marginTop:11 }}>
+                    <span style={{ fontFamily:F.label, fontWeight:300, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.28)' }}>
                       Contact
                     </span>
+                    <div aria-hidden style={{ flex:1, height:9, borderRadius:2, background:'rgba(248,247,245,0.055)', border:'0.5px solid rgba(248,247,245,0.07)', maxWidth:132 }} />
                   </div>
                 </div>
               );
@@ -427,10 +467,10 @@ export default function DemoLandingPage() {
       </div>
 
       {/* ═══ MOVEMENT THREE · THE CLAIM CTA — THE PAGE'S ONE GOLD ════════════ */}
-      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:40, padding:'14px 24px calc(env(safe-area-inset-bottom, 12px) + 14px)', background:'linear-gradient(to top, rgba(12,10,9,0.97) 60%, rgba(12,10,9,0))', backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)' }}>
+      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:40, padding:'14px 24px calc(env(safe-area-inset-bottom, 12px) + 14px)', background:`linear-gradient(to top, rgba(${SURFACE_RGB},0.97) 60%, rgba(${SURFACE_RGB},0))`, backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)' }}>
         <button
           onClick={e => { e.stopPropagation(); setClaimOpen(true); }}
-          style={{ width:'100%', height:48, background:'#C9A84C', border:'none', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:9, fontWeight:400, letterSpacing:'0.22em', textTransform:'uppercase', color:'#0C0A09', WebkitTapHighlightColor:'transparent' }}
+          style={{ width:'100%', height:48, background:'#C9A84C', border:'none', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:9, fontWeight:400, letterSpacing:'0.22em', textTransform:'uppercase', color:SURFACE, WebkitTapHighlightColor:'transparent' }}
         >
           Claim your studio — 90 seconds
         </button>
@@ -439,7 +479,7 @@ export default function DemoLandingPage() {
       {/* The mount's own toast chrome — WHERE the vetoed lines appear. WHAT they say lives
           with the controls they explain, inside VendorProfileView. */}
       {toast && (
-        <div style={{ position:'fixed', left:24, right:24, bottom:'calc(env(safe-area-inset-bottom, 12px) + 84px)', zIndex:60, background:'rgba(12,10,9,0.94)', border:'0.5px solid rgba(255,255,255,0.14)', borderRadius:10, padding:'12px 16px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', animation:`fadeUp 240ms ${EASE} both` }}>
+        <div style={{ position:'fixed', left:24, right:24, bottom:'calc(env(safe-area-inset-bottom, 12px) + 84px)', zIndex:60, background:`rgba(${SURFACE_RGB},0.94)`, border:'0.5px solid rgba(255,255,255,0.14)', borderRadius:10, padding:'12px 16px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', animation:`fadeUp 240ms ${EASE} both` }}>
           <span style={{ fontFamily:F.body, fontWeight:300, fontSize:13, color:'rgba(248,247,245,0.86)' }}>{toast}</span>
         </div>
       )}

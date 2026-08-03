@@ -265,7 +265,21 @@ function DemoShell({ children }: { children: React.ReactNode }) {
 
 export default function DemoVendorLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>
+    // ── TDW_08 P3 · G-6 · THE DEMO LANE IS THEME-PINNED ────────────────────────
+    // WITHOUT `pinned`, this provider reads `localStorage['dreamai_theme']` — a key the
+    // REAL vendor app writes — and the demo lane rendered whatever palette the visitor's
+    // own product session had last chosen. Two vendors on the same URL could see two
+    // different products; a vendor who had never opened TDW saw the default while one
+    // who had saw FLAIR's navy against a landing hardcoded warm.
+    //
+    // G-6 forbids storage APIs on any vendor demo path. This tree contains no
+    // `localStorage` call of its own, which is exactly why a file-scoped census passed
+    // over it — the reach was one import away. CE-115 clause 2's warning, verbatim: a
+    // capability one layer above a component is invisible to identity cells.
+    //
+    // `dark` is DERIVED, not chosen: it is the provider's own default and the palette
+    // the landing's surface literal is pinned to (see that file's SURFACE constant).
+    <ThemeProvider pinned="dark">
       <DemoShell>{children}</DemoShell>
     </ThemeProvider>
   );

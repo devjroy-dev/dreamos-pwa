@@ -326,6 +326,75 @@ ok('§8.4 the half-true paragraph is amended and names the surviving half',
   /THE FUNCTIONS HALF SURVIVES/.test(read(SHEET)));
 
 // ═════════════════════════════════════════════════════════════════════════════
+H('§9 · ONE LANE, ONE SURFACE — G-6 BY TRANSITIVE REACH');
+
+// The demo tree contains no `localStorage` call of its own, so §1.2 passed honestly and
+// G-6 was broken anyway: `layout.tsx` wraps the tree in `ThemeProvider`, which read
+// `localStorage['dreamai_theme']` — a key the REAL vendor app writes. A vendor's demo
+// therefore rendered whichever palette the visitor's own product session last chose.
+// CE-115 clause 2, verbatim: a capability one layer above a component is invisible to
+// identity cells. These cells are the layer above.
+const THEME_CTX = 'lib/vendor/ThemeContext.tsx';
+const THEME     = 'lib/vendor/theme.ts';
+const LAYOUT    = 'app/demo/vendor/[handle]/layout.tsx';
+
+ok('§9.1 the demo lane is THEME-PINNED — the provider gets an explicit palette',
+  /<ThemeProvider pinned="dark">/.test(code(LAYOUT)),
+  'the demo tree inherits the real app\'s stored theme again');
+
+ok('§9.2 a pinned provider has NO PATH to storage — the guard PRECEDES the read',
+  /if \(pinned\) \{ applyTheme\(pinned\); return; \}/.test(code(THEME_CTX)) &&
+  code(THEME_CTX).indexOf('if (pinned) { applyTheme(pinned); return; }') <
+  code(THEME_CTX).indexOf('localStorage.getItem(KEY)'),
+  'the pin guard does not precede the storage read — a pinned tree can still reach it');
+
+ok('§9.3 the pin WINS over an <html> class flip, or it only holds until the first nav',
+  /const theme = pinned \?\? \(isFlair/.test(code(THEME_CTX)));
+
+ok('§9.4 the unpinned provider is UNTOUCHED — the real app keeps its preference',
+  /localStorage\.getItem\(KEY\)/.test(code(THEME_CTX)) &&
+  code(THEME_CTX).includes("window.addEventListener('storage', storageHandler)"),
+  'existing behaviour was not preserved — this was meant to be additive');
+
+// THE RESTATED TOKEN, WATCHED. The landing bypasses the layout's chrome entirely
+// (`isLanding` returns children bare), so it cannot inherit `pageBg` and must restate it.
+// A restated token drifts silently; this reads BOTH files so a palette retune reds here
+// instead of stranding the landing at a colour the rooms no longer use.
+const surfaceLit = code(LANDING).match(/const SURFACE\s*=\s*'(#[0-9A-Fa-f]{6})'/)?.[1];
+const darkPageBg = code(THEME).slice(code(THEME).indexOf('export const DARK'))
+  .match(/pageBg:\s*'(#[0-9A-Fa-f]{6})'/)?.[1];
+
+ok('§9.5 both values were actually FOUND — a null-vs-null match would pass vacuously',
+  Boolean(surfaceLit) && Boolean(darkPageBg), `SURFACE=${surfaceLit} DARK.pageBg=${darkPageBg}`);
+
+ok('§9.6 THE LANDING STANDS ON THE LANE\'S OWN SURFACE — SURFACE === DARK.pageBg',
+  surfaceLit === darkPageBg, `SURFACE=${surfaceLit} but DARK.pageBg=${darkPageBg}`);
+
+ok('§9.7 no orphaned surface literal survives on the landing',
+  !/#0C0A09/.test(code(LANDING)) && !/rgba\(12,\s*10,\s*9/.test(code(LANDING)),
+  'the old warm near-black is still hardcoded somewhere');
+
+// ═════════════════════════════════════════════════════════════════════════════
+H('§10 · IT IS A TEASE, NOT A LIST');
+
+ok('§10.1 the tease is CAPPED and renders the capped slice, not the collection',
+  /const TEASE_CAP = 2;/.test(L) && /teased\.map\(\(lead, i\) =>/.test(L),
+  'every lead renders — that is a list, and it answers the question the CTA exists to ask');
+
+ok('§10.2 the count line still states the TRUE total, not the capped count',
+  /couples are waiting/.test(read(LANDING)) && /waiting = leads\?\.length/.test(L),
+  'the count was capped too — the remainder would then be stated nowhere');
+
+ok('§10.4 WITHHELD IS STATIC — no animation on the redaction bar',
+  !/animation:'shimmer/.test(L) && !/keyframes shimmer/.test(read(LANDING)),
+  'the contact bar still animates like a loading track');
+
+ok('§10.5 the Contact label survives and now LEADS the bar',
+  /Contact/.test(read(LANDING)) &&
+  read(LANDING).indexOf('>\n                      Contact') < read(LANDING).indexOf('aria-hidden style={{ flex:1, height:9'),
+  'the label no longer precedes the redaction');
+
+// ═════════════════════════════════════════════════════════════════════════════
 H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS');
 
 okMutate('§M.1 §1.2 reds when a storage API enters a demo path', LANDING, "  const beaconFired = useRef(false);",
@@ -356,6 +425,22 @@ okMutate('§M.7 §7.5 reds when the hook goes back to the phantom city field', H
 okMutate('§M.8 §6.1 reds if DemoCommandBar is restored to the demo studio', STUDIO, '      <DemoVendorHeader vendorName={vendorName} handle={handle} category={category} city={city} />',
     '      <DemoVendorHeader vendorName={vendorName} handle={handle} category={category} city={city} />\n      <DemoCommandBar newLeads={0} />',
     () => assert.ok(!/DemoCommandBar/.test(code(STUDIO))), '§6.1');
+
+okMutate('§M.10 §9.6 reds when the landing surface drifts from the palette', LANDING,
+  "const SURFACE     = '#1F1612';", "const SURFACE     = '#0C0A09';",
+  () => {
+    const x = code(LANDING).match(/const SURFACE\s*=\s*'(#[0-9A-Fa-f]{6})'/)?.[1];
+    const y = code(THEME).slice(code(THEME).indexOf('export const DARK')).match(/pageBg:\s*'(#[0-9A-Fa-f]{6})'/)?.[1];
+    assert.strictEqual(x, y);
+  }, '§9.6');
+
+okMutate('§M.11 §9.1 reds if the demo lane stops pinning its theme', LAYOUT,
+  '<ThemeProvider pinned="dark">', '<ThemeProvider>',
+  () => assert.ok(/<ThemeProvider pinned="dark">/.test(code(LAYOUT))), '§9.1');
+
+okMutate('§M.12 §10.1 reds if the tease goes back to rendering every lead', LANDING,
+  '{teased.map((lead, i) => {', '{(leads ?? []).map((lead, i) => {',
+  () => assert.ok(/teased\.map\(\(lead, i\) =>/.test(code(LANDING))), '§10.1');
 
 okMutate('§M.9 §8.1 reds if the sheet resumes discarding the band on demo', SHEET, 'budget_band:  band ?? undefined,', 'budget_band:  isDemo ? undefined : (band ?? undefined),',
     () => assert.ok(/budget_band:  band \?\? undefined,/.test(code(SHEET))), '§8.1');

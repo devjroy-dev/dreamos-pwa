@@ -33,9 +33,26 @@ function applyCSSVars(t: ThemeTokens) {
 
 
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [tokens, setTokens] = useState<ThemeTokens>(DARK);
-  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'flair'>('dark');
+// ── TDW_08 P3 · `pinned` · G-6 · ADDITIVE, EXISTING BEHAVIOUR SACRED ────────────
+// Without `pinned` this provider behaves EXACTLY as before: reads the stored
+// preference, listens for cross-tab changes, watches <html> for class flips. The real
+// vendor app passes nothing and is untouched.
+//
+// WITH `pinned`, the provider is SEALED to one palette: no localStorage read, no
+// storage listener, no preference of any kind. The demo lane passes `pinned="dark"`
+// because G-6 forbids storage APIs on any vendor demo path and this provider reached
+// one TRANSITIVELY — the demo tree contains no `localStorage` call, so a file-scoped
+// census passes over it while a vendor's demo silently renders whatever palette the
+// REAL app last stored. A vendor who had never opened the product could be shown one
+// theme and a vendor who had could be shown another, on the same URL.
+//
+// The <html> class observer stays live even when pinned, but re-applies the PINNED
+// tokens rather than the class's: the demo tree shares a document with the real app's
+// classes, and the pin must win over them or it is not a pin.
+export function ThemeProvider({ children, pinned }: { children: ReactNode; pinned?: 'dark' | 'light' | 'flair' }) {
+  const initial = pinned === 'flair' ? FLAIR : pinned === 'light' ? LIGHT : DARK;
+  const [tokens, setTokens] = useState<ThemeTokens>(initial);
+  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'flair'>(pinned ?? 'dark');
 
   function applyTheme(theme: 'dark' | 'light' | 'flair') {
     const t = theme === 'flair' ? FLAIR : theme === 'light' ? LIGHT : DARK;
@@ -48,6 +65,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    // TDW_08 P3 · G-6 — a PINNED provider never touches storage. The read and the
+    // listener are both inside this guard, so a pinned tree has no path to either.
+    if (pinned) { applyTheme(pinned); return; }
+
     // Read stored preference
     try {
       const stored = localStorage.getItem(KEY) as 'dark' | 'light' | 'flair' | null;
@@ -61,7 +82,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     window.addEventListener('storage', storageHandler);
     return () => window.removeEventListener('storage', storageHandler);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pinned]);
 
   // Watch for class changes on <html>:
   // 1. theme-light toggle (from user preference)
@@ -71,9 +92,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const html = document.documentElement;
       const isLight = html.classList.contains('theme-light');
       const isFlair = html.classList.contains('theme-flair');
-      const t = isFlair ? FLAIR : isLight ? LIGHT : DARK;
+      // TDW_08 P3 · G-6 — THE PIN WINS OVER THE CLASS. The demo tree shares a document
+      // with the real app's <html> classes; if a class flip could move a pinned tree the
+      // pin would only hold until the first navigation, which is not a pin.
+      const theme = pinned ?? (isFlair ? 'flair' : isLight ? 'light' : 'dark');
+      const t = theme === 'flair' ? FLAIR : theme === 'light' ? LIGHT : DARK;
       setTokens(t);
-      setCurrentTheme(isFlair ? 'flair' : isLight ? 'light' : 'dark');
+      setCurrentTheme(theme);
       applyCSSVars(t);
     });
     obs.observe(document.documentElement, {
@@ -81,7 +106,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       attributeFilter: ['class'],
     });
     return () => obs.disconnect();
-  }, []);
+  }, [pinned]);
 
   return <ThemeCtx.Provider value={tokens}>{children}</ThemeCtx.Provider>;
 }
