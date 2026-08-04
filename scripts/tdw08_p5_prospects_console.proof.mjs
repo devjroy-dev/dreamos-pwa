@@ -193,11 +193,52 @@ H('§8 · THE PASTE PARSER — one per line, either order');
 
 ok('§8.1 blank lines are dropped rather than sent as empty rows',
   /\.map\(l => l\.trim\(\)\)\.filter\(Boolean\)/.test(C));
-ok('§8.2 `name, phone` and `phone, name` both work — the half with more digits is the phone',
-  /digits\(a\) > digits\(b\)/.test(C));
+// ── LABELED AMENDMENT · COUNT PRESERVED (F-08.83 limb 2) ───────────────────
+// The parser was a two-field guess. It is now POSITIONAL across five columns,
+// with the two-field swap kept as a forgiving fallback for what a person
+// actually types. The cell asserts both halves rather than the old expression.
+ok('§8.2 two fields still swap by digit count — `Kanupriya, 91…` is what a person types',
+  /p\.length === 2 && digits\(p\[1\]\) > digits\(p\[0\]\)/.test(C));
+ok('§8.2b beyond two fields the order IS the order — a screen guessing across five columns invents data',
+  /ig_handle: p\[2\] \|\| null/.test(C) && /city:\s*p\[4\] \|\| null/.test(C));
 ok('§8.3 per-row results are rendered, because on this door a refusal IS the row that mattered',
   /setPasteResult\(lines\)/.test(C)
   && /\(r\.refused\s*\|\|\s*\[\]\)/.test(C));
+
+// ═════════════════════════════════════════════════════════════════════════════
+H('§9 · F-08.83 LIMB 2 — THE FORM ASKS FOR WHAT THE SOUL WAS BUILT AROUND');
+
+ok('§9.1 the three fields the API has taken since Block 05 are finally rendered',
+  /label="Instagram \(optional\)"/.test(C)
+  && /label="Trade \(optional\)"/.test(C)
+  && /label="City \(optional\)"/.test(C));
+ok('§9.2 and they reach the wire — the form is not decoration',
+  /ig_handle: igHandle \|\| null/.test(C)
+  && /category: category \|\| null/.test(C)
+  && /city: city \|\| null/.test(C));
+ok('§9.3 they clear on a successful add, so the next row starts empty',
+  /setIgHandle\(''\); setCategory\(''\); setCity\(''\)/.test(C));
+ok('§9.4 the paste placeholder teaches the five-column order',
+  /phone, name, instagram, trade, city/.test(C));
+
+ok('§9.5 THE BOARD SHOWS THE GAP — a bare row says so in words',
+  /Mira has nothing of theirs to work with/.test(C));
+ok('§9.6 and shows what it has when it has it, never a placeholder dash',
+  /\[p\.ig_handle, p\.category, p\.city\]\.filter\(Boolean\)\.join/.test(C));
+
+okMutate('§M.5 a form that collects the fields but does not send them is decoration',
+  PAGE,
+  'ig_handle: igHandle || null,',
+  '',
+  () => assert.ok(/ig_handle: igHandle \|\| null/.test(code(PAGE))),
+  '§9.2');
+
+okMutate('§M.6 a bare row that LOOKS full hides the thing the founder needs to see',
+  PAGE,
+  'No handle, trade or city — Mira has nothing of theirs to work with.',
+  '',
+  () => assert.ok(/Mira has nothing of theirs to work with/.test(code(PAGE))),
+  '§9.5');
 
 console.log(`\n${'═'.repeat(60)}`);
 console.log(`tdw08_p5_prospects_console: ${pass} passed, ${fail} failed`);

@@ -76,6 +76,14 @@ export default function ProspectsPage() {
 
   const [phone, setPhone]       = useState('');
   const [name, setName]         = useState('');
+  // F-08.83 limb 2 — the API has taken these three since Block 05 and the form
+  // never rendered them. A prospect added with her handle and city arms the
+  // specificity the soul was built around; without them the context tells Mira
+  // "you know nothing about their work" and she asks instead of selling. The
+  // founder's own first live evening was three questions on a bare row.
+  const [igHandle, setIgHandle] = useState('');
+  const [category, setCategory] = useState('');
+  const [city, setCity]         = useState('');
   const [paste, setPaste]       = useState('');
   const [pasteResult, setPasteResult] = useState<string[] | null>(null);
   const [busy, setBusy]         = useState(false);
@@ -108,24 +116,40 @@ export default function ProspectsPage() {
   async function addOne() {
     if (!phone.trim() || busy) return;
     setBusy(true);
-    const r = await call('/', { method: 'POST', body: JSON.stringify({ phone, name: name || null }) });
+    const r = await call('/', { method: 'POST', body: JSON.stringify({
+      phone, name: name || null, ig_handle: igHandle || null,
+      category: category || null, city: city || null,
+    }) });
     setBusy(false);
-    if (r?.ok) { setPhone(''); setName(''); setToast({ msg: 'Added to the board' }); load(); }
+    if (r?.ok) {
+      setPhone(''); setName(''); setIgHandle(''); setCategory(''); setCity('');
+      setToast({ msg: 'Added to the board' }); load();
+    }
     else setToast({ msg: refusalLine(r?.code, r?.error), error: true });
   }
 
   // ONE NUMBER PER LINE, `name, phone` or a bare phone. Parsed here rather than
   // asking the founder to build JSON on a phone keyboard at eleven at night.
+  // F-08.83 limb 2 — POSITIONAL: phone, name, handle, category, city. Trailing
+  // fields are optional per line, so a bare phone still works and a full row
+  // arms every specificity the soul has.
+  //
+  // THE TWO-FIELD SWAP SURVIVES, and it is a forgiving fallback rather than a
+  // second format: `Kanupriya, 919000000123` is what a person actually types,
+  // and the half with more digits is the phone. Beyond two fields the order is
+  // the order — guessing across five columns would be a screen inventing data.
   function parsePaste(text: string) {
+    const digits = (x: string) => (x.match(/\d/g) || []).length;
     return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
-      const parts = line.split(',').map(x => x.trim()).filter(Boolean);
-      if (parts.length >= 2) {
-        // Whichever half has more digits than letters is the phone.
-        const digits = (x: string) => (x.match(/\d/g) || []).length;
-        const [a, b] = parts;
-        return digits(a) > digits(b) ? { phone: a, name: b } : { phone: b, name: a };
-      }
-      return { phone: parts[0] };
+      const p = line.split(',').map(x => x.trim());
+      if (p.length === 2 && digits(p[1]) > digits(p[0])) return { phone: p[1], name: p[0] };
+      return {
+        phone: p[0],
+        name:      p[1] || null,
+        ig_handle: p[2] || null,
+        category:  p[3] || null,
+        city:      p[4] || null,
+      };
     });
   }
 
@@ -215,6 +239,9 @@ export default function ProspectsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, alignItems: 'end' }}>
         <FieldInput label="Phone" value={phone} onChange={setPhone} placeholder="91 98882 94440" hint="With the country code." />
         <FieldInput label="Name (optional)" value={name} onChange={setName} placeholder="Kanupriya" />
+        <FieldInput label="Instagram (optional)" value={igHandle} onChange={setIgHandle} placeholder="kanupriyasethi.studio" hint="Arms what Mira can say about their work." />
+        <FieldInput label="Trade (optional)" value={category} onChange={setCategory} placeholder="photography" />
+        <FieldInput label="City (optional)" value={city} onChange={setCity} placeholder="Chandigarh" />
         <div style={{ paddingBottom: 18 }}>
           <GoldBtn label={busy ? 'Adding…' : 'Add prospect'} onClick={addOne} disabled={busy || !phone.trim()} />
         </div>
@@ -227,7 +254,7 @@ export default function ProspectsPage() {
         <textarea
           value={paste}
           onChange={e => setPaste(e.target.value)}
-          placeholder={'One per line\n919888294440\nKanupriya, 919000000123'}
+          placeholder={'One per line — phone, name, instagram, trade, city\n919888294440\nKanupriya, 919000000123\n919000000456, Meher, meherstudio, photography, Jaipur'}
           rows={5}
           style={{
             width: '100%', background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12,
@@ -271,6 +298,18 @@ export default function ProspectsPage() {
               <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.soft, marginTop: 6 }}>
                 {p.state.replace('_', ' ')} · {p.source || 'manual'} · last activity {when(p.session_opened_at || p.last_template_at || p.created_at)}
               </div>
+              {/* WHAT SHE HAS TO WORK WITH — rendered only when it exists, so a
+                  bare row LOOKS bare and the founder can see the gap he is
+                  handing her. Absence is the signal. */}
+              {(p.ig_handle || p.category || p.city) ? (
+                <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted, marginTop: 5 }}>
+                  {[p.ig_handle, p.category, p.city].filter(Boolean).join(' · ')}
+                </div>
+              ) : (
+                <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.dim, marginTop: 5 }}>
+                  No handle, trade or city — Mira has nothing of theirs to work with.
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {confirmSend === p.id
