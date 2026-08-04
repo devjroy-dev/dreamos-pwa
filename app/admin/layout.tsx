@@ -129,6 +129,7 @@ const NAV = [
   ]},
   { group: 'Outreach', items: [
     { label:'Demo Profiles', path:'/admin/demo',                    icon:'demo' },
+    { label:'Prospects',     path:'/admin/prospects',               icon:'inbox' },
   ]},
   { group: 'Config', items: [
     { label:'AI Caps',       path:'/admin/config',                  icon:'config' },
