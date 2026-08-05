@@ -225,10 +225,50 @@ ok('§4.3 Back to Studio is REMOVED-BY-RULING and did not come back',
 // the tease introduce ZERO new gold. The first index pass broke that with eight brass
 // chevrons and §2.7 acquitted it, because §2.7 counts gold FILLS. A promise no cell can
 // check is a promise that gets broken by the next tidy — this is that cell.
-ok('§4.5g ZERO NEW GOLD below the fold — the strip and the tease add no brass token',
-  !/rgba\(201,168,76[^)]*\)/.test(L.slice(L.indexOf('Explore your studio'))) &&
-  !/#C9A84C/.test(L.slice(L.indexOf('Explore your studio')).replace(/background:'#C9A84C'/, '')),
-  'a gold token appeared below the fold — the header promise is now false');
+//
+// TDW_09 F-09.40 · R-O6 — LABELLED AMENDMENT, COUNT MOVES 88 -> 89 AND IS RECONCILED:
+// 1 cell becomes 2. The added cell is §4.5g0, a vacuity guard — a resolver that returned
+// null for every token would make §4.5g pass over anything, so the resolver is asserted to
+// actually resolve before its verdict is trusted. Stated rather than absorbed.
+// THE CELL WAS ONE MIGRATION AWAY FROM LYING GREEN. It matched two brass LITERALS and
+// was blind to a ROLE TOKEN that resolves to brass on this lane: migrate a below-the-fold
+// edge to `var(--atelier-input-border)` — the boundary role a theme-blind sweep would
+// choose for it — and the page renders a gold edge while this cell stays green, because
+// `DARK.inputBorder` is `rgba(201,168,76,0.52)` and the source now says `var(…)`.
+// Reproduced at the desk before this re-author: two edges migrated, cell green, pixels
+// gold. The cure is the pattern §9.5/§9.6 already use in this same file — RESOLVE the
+// token against DARK, then assert. Every `var(--…)` below the fold is now looked up in
+// theme.ts's DARK set and tested as the colour it actually paints.
+// The BEHAVIOUR under test is unchanged: zero new brass below the fold. Only the cell's
+// reach moved, from spelling to resolved value.
+const BELOW = L.slice(L.indexOf('Explore your studio'));
+// `THEME` is declared at §9, below this section; this cell needs the same file here, so
+// it reads it by its own const rather than reordering existing declarations.
+const THEME_FILE = 'lib/vendor/theme.ts';
+const THEME_SRC = code(THEME_FILE);
+const DARK_AT = THEME_SRC.indexOf('export const DARK');
+const NEXT_EXPORT = THEME_SRC.indexOf('export const', DARK_AT + 1);
+const DARKSET = THEME_SRC.slice(DARK_AT, NEXT_EXPORT === -1 ? THEME_SRC.length : NEXT_EXPORT);
+const resolveRole = (name) =>
+  DARKSET.match(new RegExp(`${name.replace(/^--(atelier|role)-/, '').replace(/-([a-z])/g, (_, c) => c.toUpperCase())}:\\s*'([^']+)'`))?.[1] ?? null;
+const brass = (v) => v != null && (/rgba?\(\s*201\s*,\s*168\s*,\s*76/.test(v) || /#C9A84C/i.test(v));
+// THE ONE SANCTIONED GOLD IS EXCLUDED, exactly as the literal form was. The claim CTA's
+// fill sits below the fold and is the page's permitted single gold (§2.7 asserts there is
+// precisely one of it). The original cell stripped `background:'#C9A84C'` for the same
+// reason; the token spelling gets the same exemption and no other.
+const BELOW_MINUS_CTA = BELOW.replace(/background:'var\(--role-metal\)'/, '');
+const belowTokens = [...new Set((BELOW_MINUS_CTA.match(/var\(--[a-z-]+\)/g) || []).map(t => t.slice(4, -1)))];
+const brassTokens = belowTokens.filter(t => brass(resolveRole(t)));
+
+ok('§4.5g0 the resolver actually resolves — a null-for-everything lookup would pass vacuously',
+  DARKSET.length > 0 && resolveRole('--atelier-input-border') !== null && brass(resolveRole('--atelier-input-border')),
+  `DARK set ${DARKSET.length} chars; inputBorder resolved to ${resolveRole('--atelier-input-border')}`);
+
+ok('§4.5g ZERO NEW GOLD below the fold — no brass LITERAL and no token that RESOLVES brass',
+  !/rgba\(201,168,76[^)]*\)/.test(BELOW) &&
+  !/#C9A84C/.test(BELOW.replace(/background:'#C9A84C'/, '')) &&
+  brassTokens.length === 0,
+  `a gold token appeared below the fold — the header promise is now false (brass-resolving tokens: ${brassTokens.join(', ')})`);
 
 ok('§4.4 the chip header carries the founder\'s byte',
   /Explore your studio/.test(read(LANDING)));

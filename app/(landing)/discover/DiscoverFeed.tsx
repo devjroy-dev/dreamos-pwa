@@ -178,8 +178,17 @@ export default function DiscoverFeed({ isSignedIn = false, profileComplete = fal
         />
       </div>
 
+      {/* TDW_09 O-1 · F-09.17 CURED (R-O2). This CTA navigated to "/auth/signup",
+            which has never existed: the group is `(auth)` and route-group parentheses
+            never reach a URL. The public feed's only in-graph exit 404'd at the exact
+            moment a visitor decided to convert. R-X7 rules the discover CTA
+            couple-first, so per R-O9 it enters the landing with the couple door
+            already chosen — the visitor does not re-answer a question their own
+            behaviour just answered. The landing's reader degrades an unrecognised
+            value to the plain door; it never crashes and never picks a role silently. */}
+
       {showNudge && !isSignedIn && (
-        <SignupNudge onDismiss={() => setShowNudge(false)} onCTA={() => { setShowNudge(false); window.location.href = "/auth/signup"; }} />
+        <SignupNudge onDismiss={() => setShowNudge(false)} onCTA={() => { setShowNudge(false); window.location.href = "/?role=couple"; }} />
       )}
 
       {showSheet && isSignedIn && (

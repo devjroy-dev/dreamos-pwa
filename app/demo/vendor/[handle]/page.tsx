@@ -37,6 +37,31 @@ export const dynamic = 'force-dynamic';
 // hairline) are untouched and are a filed, pre-existing drift against the house law's
 // max-3× — NOT P3's to cure, and deliberately not smuggled into this sitting.
 //
+// ── TDW_09 O-1 · R-O6 · WHY THE 22 NEAR-WHITE / WHITE-TINT LITERALS ON THIS PAGE
+//    ARE HELD AS LITERALS, AND THE MECHANISM THAT GUARDS THEM ──────────────────────────
+// Q-5 returned this surface to the theme-blind species sweep at O-1, and the sweep was
+// then REFUSED here on its own evidence. The record, so the next reader does not
+// "finish" a migration that was decided against:
+//
+//   THE MECHANISM THAT MAKES THIS SAFE: `layout.tsx` wraps this tree in
+//   `<ThemeProvider pinned="dark">`. The species — a near-white literal that is legible
+//   on espresso and invisible on Editorial Paper — is ONLY a defect where a light theme
+//   can arrive. It cannot arrive here. THE TRIGGER THAT REOPENS THIS: the day that pin
+//   is lifted, or this page is rendered outside that layout, every literal below becomes
+//   the defect the sweep was built for. Re-read this comment then, not before.
+//
+//   WHY NOT MIGRATE ANYWAY: 20 of the 22 sites map to a role correctly and 2 do not —
+//   the two ghost buttons' near-white EDGES score as ink because the ink test precedes
+//   the border test, and the boundary role they should take is brass on this lane
+//   (DARK.inputBorder = rgba(201,168,76,0.52)), which would put a second and third gold
+//   on a screen whose header law is one gold. Migrating the other 20 would move fifteen
+//   founder-ratified colour values from the #F8F7F5 family to the warm #F0E6D2 family on
+//   a surface vetoed line by line — churn against a veto, buying legibility on a theme
+//   that cannot reach the page.
+//
+// The census still holds this file out; that array is the MECHANISM, and this comment is
+// the DECISION. A script array can be deleted by a sweep that never read it. This cannot.
+//
 // ── G-6, CONSTITUTIONALLY ────────────────────────────────────────────────────────────
 // NO localStorage, NO sessionStorage, NO storage of any kind, anywhere on this path.
 // The May-29 zero-localStorage demo resolution and G-6 both forbid it. A beacon and a

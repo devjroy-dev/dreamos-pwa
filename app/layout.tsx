@@ -41,7 +41,7 @@ const jost = Jost({
 
 export const metadata: Metadata = {
   title: 'The Dream Wedding',
-  description: "India's First Wedding OS",
+  description: 'The Wedding OS',
 };
 
 export const viewport = {
@@ -83,9 +83,11 @@ export default function RootLayout({
   var path=location.pathname||'';
   var FROST_DARK='#1E0A0E', FROST_LIGHT='#F0EEE8';
   var VENDOR_LIGHT='#F5F2EE';
+  var LANDING_BG='#0C0A09';
   var isFrost=path.indexOf('/frost')===0||path.indexOf('/coplanner')===0||path.indexOf('/circle')===0;
   var isVendor=path.indexOf('/vendor')===0;
   var isAdmin=path.indexOf('/admin')===0;
+  var isLanding=path==='/'||path.indexOf('/discover')===0||path.indexOf('/about')===0;
   var bg=null;
   if(isFrost){
     var stored=null, manual=null;
@@ -110,6 +112,22 @@ export default function RootLayout({
     }
   } else if(isAdmin){
     bg='#18293E';
+  } else if(isLanding){
+    // TDW_09 O-1 - R-O7 (F-09.39(b), R-T6). The public landing stands on #0C0A09 and
+    // wore Frost's Wine Night in the browser chrome, because none of the three branches
+    // above matches the root path. The cure is a landing BRANCH, deliberately NOT a
+    // change to the static default on the theme-color meta tag: that default is what
+    // four other lanes inherit (demo, circle, crew, privacy) and this sitting charters
+    // one lane.
+    //
+    // NAMED GAP, FILED NOT CURED - F-09.41: the demo lane still inherits #1E0A0E while
+    // its pinned-dark page is #1F1612. Pre-existing, outside this charter's radius,
+    // homed to the demo lane's next touch.
+    //
+    // NOTE FOR ANYONE EDITING THIS COMMENT: it lives inside a template literal. A
+    // backtick, or a dollar sign followed by a brace, breaks the build from inside a
+    // comment. tsc caught exactly that on this comment's first two drafts.
+    bg=LANDING_BG;
   }
   if(bg){
     document.documentElement.style.background=bg;

@@ -13,6 +13,19 @@ import { API_BASE } from '../../lib/api';
 // sign-in. These helpers isolate storage writes and mirror the session to a
 // first-party cookie, which works in contexts where localStorage throws — so
 // login completes regardless of localStorage state.
+// ── TDW_09 O-1 · R-O6 · THIS FILE'S NEAR-WHITE LITERALS ARE HELD, AND HERE IS WHY ──
+// The theme-blind surface census (scripts/tdw09_surface_census.mjs) finds 50 sites on
+// this page in its species — near-white ink and low-alpha white tint — and holds every
+// one of them.
+//   THE MECHANISM THAT GUARDS THEM: this route group has NO ThemeProvider anywhere.
+//   `app/(landing)/layout.tsx` is a bare passthrough, so no light theme can reach this
+//   surface; it stands on #0C0A09 and always has. The species is only a defect where a
+//   light theme can arrive.
+//   THE TRIGGER THAT REOPENS THIS: the day a ThemeProvider is introduced to this group,
+//   or this page is rendered under one, every literal here becomes the defect the census
+//   was built for. Re-read this then, not before.
+// The census's HELD_OUT array is the mechanism; this comment is the decision, and it
+// lives here so it cannot be deleted by a sweep that never read it.
 const SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
 function safeSetItem(key: string, value: string): void {
@@ -37,8 +50,6 @@ const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
   'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_24-03-2026-22-59-53_f2tfsy',
 ];
-
-const MOTTO = 'Not just happily married. Getting married happily.';
 
 // ─── Country list (NRI-focused, curated) ─────────────────────────────────────
 const COUNTRIES = [
@@ -88,23 +99,27 @@ function CountrySheet({ visible, onSelect, onClose }: {
   );
 }
 
-// Screen states — what the glass panel shows
+// Screen states — what the glass panel shows.
+//
+// TDW_09 O-1 · R-X10 arm (a) + R-O3/R-O4. Eleven screens became six. The four
+// `request_*` screens and the dead `invite_code` screen are REMOVED BY RULING: the
+// ceremony gated nothing (the acquisition path was already open phone-OTP self-mint,
+// F-05.9), `invite_code` was reachable from nowhere, and its backend route no longer
+// exists at all. Curation is real and lives at the Discover approval queue, which is
+// the only surface a couple ever sees — a signup gate would duplicate a working one.
+//
+// R-O4: `invite_phone`/`invite_otp` are renamed `join_phone`/`join_otp` so the machine
+// stops carrying the retired gate's vocabulary. Behaviour is unchanged; the names are
+// internal and no rendered byte moves with them.
 type Screen =
-  | 'entry'          // The 3 dot-selector entry panel
-  | 'exploring'      // "Just Exploring" blind swipe preview
-  | 'request_who'    // Dreamer or Maker choice
-  | 'request_dreamer'// Dreamer request form
-  | 'request_maker'  // Maker request form
-  | 'request_done'   // Confirmation + 60s edit window
-  | 'invite_code'    // Enter invite code
-  | 'invite_phone'   // Enter phone (after code validated)
-  | 'invite_otp'     // Enter OTP
+  | 'entry'          // The two-door entry panel (L-B), opened
+  | 'exploring'      // The couple path's first screen — the feed, before any field
+  | 'join_phone'     // Enter name + phone (was `invite_phone`)
+  | 'join_otp'       // Enter OTP (was `invite_otp`)
   | 'signin_phone'   // Returning member phone
   | 'signin_otp';    // Returning member OTP
 
 type Role = 'Dreamer' | 'Maker';
-type DateStatus = 'exact' | 'season' | 'browsing' | null;
-type Season = 'jan_mar' | 'apr_jun' | 'jul_sep' | 'oct_jan' | null;
 
 interface PreviewVendor {
   id: string;
@@ -142,30 +157,24 @@ const INPUT: React.CSSProperties = {
   fontSize: 15, color: '#F8F7F5', padding: '8px 0', marginBottom: 16,
 };
 
-// ─── Dot selector ─────────────────────────────────────────────────────────────
-function DotOption({ label, selected, onSelect, sublabel }: {
-  label: string; selected: boolean; onSelect: () => void; sublabel?: string;
-}) {
+// ─── TDW_09 O-1 · R-O5 · THE R-X24 ROW RULE, APPLIED INLINE ───────────────────
+// R-X24's measured acceptance: same-line letters sat on different planes because rows
+// aligned on `center`, so two line-boxes of different heights had their CENTRES matched
+// and their BASELINES left ~1px apart. The rule, applied here rather than as the canon
+// Row primitive (which is the canon sitting's mint, R-O5): rows align on `baseline`;
+// every text node in a shared row takes the token line-height so the line-boxes agree;
+// and a glyph that is not text — the country flag — sits in a FIXED SQUARE SLOT instead
+// of participating in text alignment, because its box is the device's to draw and no
+// alignment rule can reach it.
+const ROW_LINE_HEIGHT = 1.5;
+
+function FlagSlot({ flag }: { flag: string }) {
   return (
-    <button onClick={onSelect} style={{
-      display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-      background: 'none', border: 'none', cursor: 'pointer',
-      padding: '10px 0', touchAction: 'manipulation',
-    }}>
-      <span style={{
-        width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-        border: `1.5px solid ${selected ? '#C9A84C' : 'rgba(248,247,245,0.5)'}`,
-        background: selected ? '#C9A84C' : 'transparent',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'all 200ms cubic-bezier(0.22,1,0.36,1)',
-      }}>
-        {selected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0C0A09' }} />}
-      </span>
-      <div style={{ textAlign: 'left' }}>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 300, color: '#F8F7F5', margin: 0 }}>{label}</p>
-        {sublabel && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 300, color: 'rgba(248,247,245,0.5)', margin: '2px 0 0' }}>{sublabel}</p>}
-      </div>
-    </button>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: 20, height: 20, flexShrink: 0, fontSize: 16, lineHeight: 1,
+      transform: 'translateY(2px)',
+    }}>{flag}</span>
   );
 }
 
@@ -229,7 +238,6 @@ export default function Home() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const slidesRef   = useRef<string[]>(FALLBACK_SLIDES);
   const otpRefs     = useRef<(HTMLInputElement | null)[]>([]);
-  const editTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [slides, setSlides] = useState<string[]>(FALLBACK_SLIDES);
   const [cur, setCur] = useState(0);
@@ -237,27 +245,14 @@ export default function Home() {
   const [role, setRole] = useState<Role | null>(null);
   const [toast, setToast] = useState('');
 
-  // Request form fields
-  const [reqName, setReqName]           = useState('');
-  const [reqPhone, setReqPhone]         = useState('');
-  const [reqInstagram, setReqInstagram] = useState('');
-  const [reqCategory, setReqCategory]   = useState('Photographer');
-  const [reqCategoryOther, setReqCategoryOther] = useState('');
-  const [dateStatus, setDateStatus]     = useState<DateStatus>(null);
-  const [exactDate, setExactDate]       = useState('');
-  const [season, setSeason]             = useState<Season>(null);
-  const [editSecondsLeft, setEditSecondsLeft] = useState(0);
-  const [submitting, setSubmitting]     = useState(false);
-
   // Country picker
   const [country, setCountry]               = useState(COUNTRIES[0]);
   const [showCountrySheet, setShowCountrySheet] = useState(false);
 
-  // Invite / OTP fields
-  const [inviteCode, setInviteCode]     = useState('');
-  const [inviteError, setInviteError]   = useState('');
-  const [inviteName, setInviteName]     = useState('');
-  const [inviteCategory, setInviteCategory] = useState('');
+  // Join / OTP fields (R-O4: the two survivors renamed off the gate's vocabulary;
+  // `inviteCode`/`inviteError` died with the screen that was their only reader).
+  const [joinName, setJoinName]         = useState('');
+  const [joinCategory, setJoinCategory] = useState('');
   const [phone, setPhone]               = useState('');
   const [otp, setOtp]                   = useState(['', '', '', '', '', '']);
 
@@ -265,18 +260,35 @@ export default function Home() {
   const [exploringPhotos, setExploringPhotos] = useState<ExploringPhoto[]>([]);
   const [exploringIdx, setExploringIdx] = useState(0);
   const [exploringDone, setExploringDone] = useState(false);
-  const [entryExpanded, setEntryExpanded] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
   useEffect(() => { slidesRef.current = slides; }, [slides]);
 
   // Reset OTP digits whenever OTP screen appears
   useEffect(() => {
-    if (screen === 'signin_otp' || screen === 'invite_otp') {
+    if (screen === 'signin_otp' || screen === 'join_otp') {
       setOtp(['', '', '', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 150);
     }
   }, [screen]);
+
+  // ── TDW_09 O-1 · R-O9 · THE ROLE-FROM-QUERY READ ─────────────────────────
+  // The public Discover feed's signup nudge (app/(landing)/discover/DiscoverFeed.tsx)
+  // used to navigate to `/auth/signup`, a route that has never existed — the feed's
+  // only in-graph exit 404'd at the exact moment a visitor decided to convert
+  // (F-09.17). R-X7 rules that CTA couple-first, so it now arrives HERE with the
+  // couple door already chosen, and the visitor does not re-answer a question their
+  // own behaviour just answered.
+  //
+  // DEGRADES TO THE PLAIN DOOR, BY RULING (R-O9). An unrecognised value — or no value
+  // — leaves `screen` at 'entry' and `role` null. It never crashes and it never picks
+  // a role silently: only the two named values move anything.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search).get('role');
+    if (q === 'couple') { setRole('Dreamer'); setScreen('exploring'); }
+    else if (q === 'vendor') { setRole('Maker'); setScreen('join_phone'); }
+  }, []);
 
   // ── Vendor subdomain auto-routing ─────────────────────────────────────────
   // If on vendor.thedreamwedding.in, pre-select Maker and skip to sign-in.
@@ -321,7 +333,6 @@ export default function Home() {
     startCarousel();
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (editTimerRef.current) clearInterval(editTimerRef.current);
     };
   }, [startCarousel]);
 
@@ -361,52 +372,12 @@ export default function Home() {
   };
 
 
-  // ── Request form submit ───────────────────────────────────────────────────
-  const submitRequest = async (isEdit = false) => {
-    if (!reqPhone.trim() || submitting) return;
-    setSubmitting(true);
-    try {
-      const payload: any = {
-        phone: country.dialCode + reqPhone.replace(/\D/g, ''),
-        instagram_handle: reqInstagram || null,
-        kind: role === 'Dreamer' ? 'dreamer' : 'maker',
-        name: reqName || null,
-      };
-      if (role === 'Maker') {
-        payload.category = reqCategory;
-        payload.category_other = reqCategory === 'Other' ? reqCategoryOther : null;
-      }
-      if (dateStatus === 'exact' && exactDate) {
-        payload.wedding_date = exactDate;
-        payload.wedding_date_status = 'exact';
-      } else if (dateStatus === 'season' && season) {
-        payload.wedding_date_season = season;
-        payload.wedding_date_status = 'season';
-      } else if (dateStatus === 'browsing') {
-        payload.wedding_date_status = 'browsing';
-      }
-
-      await fetch(`${API_BASE}/api/v2/waitlist/signup`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!isEdit) {
-        setScreen('request_done');
-        // 60-second edit window countdown
-        setEditSecondsLeft(60);
-        editTimerRef.current = setInterval(() => {
-          setEditSecondsLeft(s => {
-            if (s <= 1) { clearInterval(editTimerRef.current!); return 0; }
-            return s - 1;
-          });
-        }, 1000);
-      } else {
-        showToast('Details updated.');
-      }
-    } catch { showToast('Could not submit. Try again.'); }
-    setSubmitting(false);
-  };
+  // ── THE REQUEST-INVITE SUBMIT IS GONE ────────────────────────────────────
+  // `submitRequest` was the only caller of POST /api/v2/waitlist/signup anywhere in
+  // this repo. It died with the four `request_*` screens under R-X10 arm (a). Its
+  // death is what un-gates the dream-os T3-3 tail (`src/api/waitlist.js`): that route
+  // had exactly one live caller and this file was it. dream-os is zero-byte this
+  // sitting by charter, so the retirement is NAMED-HANDED and gated on this deploy.
 
   // ── OTP / PIN (preserved from original) ──────────────────────────────────
   const handleOtpInput = (i: number, val: string) => {
@@ -445,7 +416,7 @@ export default function Home() {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) { showToast(d.error || 'Could not send code. Try again.'); return; }
-      setScreen(screen === 'signin_phone' ? 'signin_otp' : 'invite_otp');
+      setScreen(screen === 'signin_phone' ? 'signin_otp' : 'join_otp');
     } catch { showToast('Could not send code. Try again.'); }
   };
 
@@ -474,7 +445,7 @@ export default function Home() {
       const pRes = await fetch(provEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ phone: e164, name: inviteName.trim() || undefined, category: isVendor ? (inviteCategory || undefined) : undefined }),
+        body: JSON.stringify({ phone: e164, name: joinName.trim() || undefined, category: isVendor ? (joinCategory || undefined) : undefined }),
       });
       const d = await pRes.json();
       if (!d.ok) { showToast(d.error || 'Could not complete sign-in.'); return; }
@@ -483,11 +454,13 @@ export default function Home() {
       const userId = d.user_id;
       const pinSet = !!d.pin_set;
 
-      if (!userId || !roleId) {
-        setScreen('request_who');
-        showToast('No account found. Request an invite to join.');
-        return;
-      }
+      // R-X10 arm (a): there is no ceremony to divert into. Provision self-mints
+      // `public.users` and the role row at verify time, so a number this estate has
+      // never seen is admitted like any other. If ids are still missing the write
+      // genuinely failed, and it is reported as the failure it is — never dressed as
+      // an exclusivity gate. The byte below already exists on this screen's other
+      // failure path; no new copy is minted here.
+      if (!userId || !roleId) { showToast('Could not complete sign-in.'); return; }
 
       if (accessToken)  safeSetItem('access_token', accessToken);
       if (refreshToken) safeSetItem('refresh_token', refreshToken);
@@ -533,11 +506,10 @@ export default function Home() {
       });
       const d = await r.json();
 
-      if (!d.ok || !d.exists) {
-        setScreen('request_who');
-        showToast('No account found — request an invite to join.');
-        return;
-      }
+      // R-X10 arm (a): an unrecognised number on the returning path simply proceeds.
+      // The OTP send self-mints on verify, so a visitor who taps `Sign in` before they
+      // have an account is not turned away — they are signed up. Zero copy bytes.
+      if (!d.ok || !d.exists) { sendOtp(phone); return; }
 
       if (d.pin_set) {
         const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
@@ -559,7 +531,6 @@ export default function Home() {
   const ease = 'cubic-bezier(0.22,1,0.36,1)';
 
 
-  const MAKER_CATEGORIES = ['Photographer', 'MUA', 'Designer', 'Jeweller', 'Venue', 'Decorator', 'Event Manager', 'Choreographer', 'Other'];
   // The six fields that map to a preset/Codex (categoryPreset.js keys). Value sent
   // to provision is the exact key; label is what the vendor taps.
   const VENDOR_FIELDS = [
@@ -569,12 +540,6 @@ export default function Home() {
     { label: 'Designer',      value: 'designer' },
     { label: 'Venue & Décor', value: 'venue & decor' },
     { label: 'Jewellery',     value: 'jewellery' },
-  ];
-  const SEASONS = [
-    { key: 'jan_mar', label: 'Jan – Mar' },
-    { key: 'apr_jun', label: 'Apr – Jun' },
-    { key: 'jul_sep', label: 'Jul – Sep' },
-    { key: 'oct_jan', label: 'Oct – Jan' },
   ];
 
   return (
@@ -628,65 +593,70 @@ export default function Home() {
 
       
 
-      {/* ── Entry strip — bottom of screen, tappable ─────────────────────── */}
+      {/* ── TDW_09 O-1 · L-B · THE TWO DOORS (R-O3, Fork 1(a)) ─────────────────
+          WHAT THIS REPLACED, AND WHAT WENT WITH IT (CE-115 control inventory):
+            (i)   tap-to-expand the strip    REMOVED BY RULING — the panel opens
+                                             expanded. Five decisions became two.
+            (ii)  `I'm a vendor`             KEPT, re-copied, keeps the gold fill
+            (iii) `Plan my wedding`          KEPT, re-copied as the couple door
+            (iv)  `Sign in`                  MOVED to the top-right chrome link, where
+                                             returning members look and where it stops
+                                             competing with acquisition
+            (v)   `Just exploring`           MOVED — it is no longer a fourth peer
+                                             choice; the feed IS the couple door's
+                                             first screen
+          The couple door leads with the product because R-X7 rules the couple side
+          sees work before it is asked for anything; the vendor door goes straight to
+          the join screen because a vendor arriving here already knows what this is. */}
       {screen === 'entry' && (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, overflow: 'hidden' }}>
-          <div
-            onClick={() => setEntryExpanded(true)}
+        <>
+          {/* Sign in — chrome, top right */}
+          <button
+            onClick={() => { setRole(null); setScreen('signin_phone'); }}
             style={{
-              background: 'rgba(12,10,9,0.35)',
-              backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-              borderTop: '0.5px solid rgba(255,255,255,0.1)',
-              padding: entryExpanded
-                ? '20px 24px calc(env(safe-area-inset-bottom, 16px) + 28px)'
-                : '14px 24px calc(env(safe-area-inset-bottom, 12px) + 16px)',
-              transition: 'padding 400ms cubic-bezier(0.22,1,0.36,1)',
-              cursor: entryExpanded ? 'default' : 'pointer',
+              position: 'absolute', zIndex: 25,
+              top: 'calc(env(safe-area-inset-top, 0px) + 20px)', right: 20,
+              background: 'none', border: 'none', padding: '6px 4px',
+              cursor: 'pointer', touchAction: 'manipulation',
+              fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+              letterSpacing: '0.18em', textTransform: 'uppercase',
+              color: 'rgba(248,247,245,0.6)',
             }}
-          >
-            {/* Brand row — always visible */}
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{
-                  fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic',
-                  fontWeight: 300, fontSize: 20, color: '#F8F7F5',
-                  margin: 0, lineHeight: 1.15, letterSpacing: '0.02em',
-                }}>The Dream Wedding</p>
-                <p style={{
-                  fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 7,
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
-                  color: '#C9A84C', margin: '4px 0 0',
-                }}>THE CURATED WEDDING OS</p>
-              </div>
-              {!entryExpanded && (
-                <p style={{
-                  fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 8,
-                  letterSpacing: '0.18em', textTransform: 'uppercase',
-                  color: 'rgba(248,247,245,0.28)', margin: 0,
-                  animation: 'breathe 3s ease-in-out infinite',
-                }}>tap</p>
-              )}
-            </div>
+          >Sign in</button>
 
-            {/* Buttons — animate in on expand */}
-            <div style={{
-              maxHeight: entryExpanded ? '240px' : '0px',
-              overflow: 'hidden',
-              transition: 'max-height 440ms cubic-bezier(0.22,1,0.36,1)',
-            }}>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, overflow: 'hidden' }}>
+            <div
+              style={{
+                background: 'rgba(12,10,9,0.35)',
+                backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                borderTop: '0.5px solid rgba(255,255,255,0.1)',
+                padding: '20px 24px calc(env(safe-area-inset-bottom, 16px) + 28px)',
+              }}
+            >
+              {/* Brand row */}
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{
+                    fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic',
+                    fontWeight: 300, fontSize: 20, color: '#F8F7F5',
+                    margin: 0, lineHeight: 1.15, letterSpacing: '0.02em',
+                  }}>The Dream Wedding</p>
+                  {/* F-09.14 resolves to ONE line, founder-ruled (R-O11): `The Wedding OS`
+                      replaces BOTH `THE CURATED WEDDING OS` and `India's First Wedding OS`
+                      at all three homes — here, the exploring sites, and the document
+                      description meta in app/layout.tsx. */}
+                  <p style={{
+                    fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 7,
+                    letterSpacing: '0.32em', textTransform: 'uppercase',
+                    color: '#C9A84C', margin: '4px 0 0',
+                  }}>The Wedding OS</p>
+                </div>
+              </div>
+
+              {/* The two doors */}
               <div style={{ paddingTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
-                  onClick={e => { e.stopPropagation(); setRole('Maker'); setScreen('invite_phone'); }}
-                  style={{
-                    width: '100%', height: 48, background: '#C9A84C', border: 'none',
-                    borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
-                    fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
-                    letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
-                  }}
-                >I'm a vendor</button>
-
-                <button
-                  onClick={e => { e.stopPropagation(); setRole('Dreamer'); setScreen('invite_phone'); }}
+                  onClick={() => { setRole('Dreamer'); startExploring(); }}
                   style={{
                     width: '100%', height: 48, background: 'transparent',
                     border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
@@ -694,36 +664,21 @@ export default function Home() {
                     fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
                     letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F8F7F5',
                   }}
-                >Plan my wedding</button>
+                >I&apos;m getting married</button>
 
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={e => { e.stopPropagation(); setRole(null); setScreen('signin_phone'); }}
-                    style={{
-                      flex: 1, height: 42, background: 'transparent',
-                      border: '0.5px solid rgba(248,247,245,0.12)', borderRadius: 100,
-                      cursor: 'pointer', touchAction: 'manipulation',
-                      fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200,
-                      letterSpacing: '0.18em', textTransform: 'uppercase',
-                      color: 'rgba(248,247,245,0.45)',
-                    }}
-                  >Sign in</button>
-                  <button
-                    onClick={e => { e.stopPropagation(); startExploring(); }}
-                    style={{
-                      flex: 1, height: 42, background: 'transparent',
-                      border: '0.5px solid rgba(248,247,245,0.12)', borderRadius: 100,
-                      cursor: 'pointer', touchAction: 'manipulation',
-                      fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200,
-                      letterSpacing: '0.18em', textTransform: 'uppercase',
-                      color: 'rgba(248,247,245,0.45)',
-                    }}
-                  >Just exploring</button>
-                </div>
+                <button
+                  onClick={() => { setRole('Maker'); setScreen('join_phone'); }}
+                  style={{
+                    width: '100%', height: 48, background: '#C9A84C', border: 'none',
+                    borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
+                    fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
+                    letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
+                  }}
+                >I&apos;m a wedding vendor</button>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ── Glass panel — all non-entry, non-exploring screens — BOTTOM ─────── */}
@@ -741,246 +696,49 @@ export default function Home() {
             boxSizing: 'border-box',
           }}>
 
-            {/* ── REQUEST: WHO ARE YOU ──────────────────────────────────────── */}
-            {screen === 'request_who' && (
-              <>
-                <BackBtn onClick={() => setScreen('entry')} />
-                <p style={{
-                  fontFamily: "'Cormorant Garamond', serif", fontWeight: 300,
-                  fontSize: 20, color: '#F8F7F5', margin: '0 0 12px', lineHeight: 1.15,
-                }}>Request an invite.</p>
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 300,
-                  color: 'rgba(248,247,245,0.55)', margin: '0 0 12px',
-                }}>Are you a:</p>
-                <DotOption
-                  label="Dreamer"
-                  sublabel="Planning a wedding"
-                  selected={role === 'Dreamer'}
-                  onSelect={() => setRole('Dreamer')}
-                />
-                <DotOption
-                  label="Maker"
-                  sublabel="A wedding professional"
-                  selected={role === 'Maker'}
-                  onSelect={() => setRole('Maker')}
-                />
-                <GoldBtn
-                  label="Continue →"
-                  onClick={() => setScreen(role === 'Dreamer' ? 'request_dreamer' : 'request_maker')}
-                  disabled={!role}
-                />
-              </>
-            )}
-
-            {/* ── REQUEST: DREAMER FORM ─────────────────────────────────────── */}
-            {screen === 'request_dreamer' && (
-              <div style={{ overflowY: 'auto', maxHeight: '70vh' }}>
-                <BackBtn onClick={() => setScreen('request_who')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 12px' }}>Your details.</p>
-
-                <Label text="Your name" />
-                <input value={reqName} onChange={e => setReqName(e.target.value)} placeholder="Full name" style={INPUT} />
-
-                <Label text="Phone" />
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.3)', marginBottom: 16 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
-                    <span style={{ fontSize: 16 }}>{country.flag}</span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
-                  </button>
-                  <input value={reqPhone} onChange={e => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
-                </div>
-
-                <Label text="Instagram" />
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.3)', marginBottom: 16 }}>
-                  <input value={reqInstagram} onChange={e => setReqInstagram(e.target.value)} placeholder="@yourhandle" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
-                  <a href="instagram://user?username=" target="_blank" rel="noreferrer" style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, color: '#C9A84C', textDecoration: 'none', flexShrink: 0, marginLeft: 8 }}>Open IG →</a>
-                </div>
-
-                <Label text="Wedding date" />
-                <DotOption label="Yes — I know the date" selected={dateStatus === 'exact'} onSelect={() => setDateStatus('exact')} />
-                {dateStatus === 'exact' && (
-                  <input type="date" value={exactDate} onChange={e => setExactDate(e.target.value)} style={{ ...INPUT, marginTop: 8 }} />
-                )}
-                <DotOption label="Roughly — a season" selected={dateStatus === 'season'} onSelect={() => setDateStatus('season')} />
-                {dateStatus === 'season' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '8px 0 8px' }}>
-                    {SEASONS.map(s => (
-                      <button key={s.key} onClick={() => setSeason(s.key as Season)} style={{
-                        padding: '10px 0', borderRadius: 8, border: 'none',
-                        background: season === s.key ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                        color: season === s.key ? '#0C0A09' : 'rgba(248,247,245,0.7)',
-                        fontFamily: "'Jost', sans-serif", fontSize: 10, fontWeight: 300,
-                        letterSpacing: '0.1em', cursor: 'pointer',
-                      }}>{s.label}</button>
-                    ))}
-                  </div>
-                )}
-                <DotOption label="Just browsing" selected={dateStatus === 'browsing'} onSelect={() => setDateStatus('browsing')} />
-
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'rgba(248,247,245,0.4)', margin: '8px 0 0', fontStyle: 'italic' }}>
-                  Helps us recommend Makers available around your dates.
-                </p>
-
-                <GoldBtn label={submitting ? 'Submitting...' : 'Request Invite →'} onClick={() => submitRequest()} disabled={!reqPhone.trim() || submitting} />
-              </div>
-            )}
-
-            {/* ── REQUEST: MAKER FORM ───────────────────────────────────────── */}
-            {screen === 'request_maker' && (
-              <div style={{ overflowY: 'auto', maxHeight: '70vh' }}>
-                <BackBtn onClick={() => setScreen('request_who')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 12px' }}>Your details.</p>
-
-                <Label text="Business / studio name" />
-                <input value={reqName} onChange={e => setReqName(e.target.value)} placeholder="Your name or studio" style={INPUT} />
-
-                <Label text="Phone" />
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.3)', marginBottom: 16 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
-                    <span style={{ fontSize: 16 }}>{country.flag}</span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
-                  </button>
-                  <input value={reqPhone} onChange={e => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
-                </div>
-
-                <Label text="Instagram" />
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.3)', marginBottom: 16 }}>
-                  <input value={reqInstagram} onChange={e => setReqInstagram(e.target.value)} placeholder="@yourhandle" style={{ ...INPUT, marginBottom: 0, borderBottom: 'none', flex: 1 }} />
-                  <a href="instagram://user?username=" target="_blank" rel="noreferrer" style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, color: '#C9A84C', textDecoration: 'none', flexShrink: 0, marginLeft: 8 }}>Open IG →</a>
-                </div>
-
-                <Label text="Category" />
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-                  {MAKER_CATEGORIES.map(cat => (
-                    <button key={cat} onClick={() => setReqCategory(cat)} style={{
-                      padding: '6px 12px', borderRadius: 100, border: 'none',
-                      background: reqCategory === cat ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                      color: reqCategory === cat ? '#0C0A09' : 'rgba(248,247,245,0.7)',
-                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                      letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-                    }}>{cat}</button>
-                  ))}
-                </div>
-                {reqCategory === 'Other' && (
-                  <>
-                    <Label text="Tell us your speciality" />
-                    <input value={reqCategoryOther} onChange={e => setReqCategoryOther(e.target.value)} placeholder="e.g. Mehndi artist" style={INPUT} />
-                  </>
-                )}
-
-                <GoldBtn label={submitting ? 'Submitting...' : 'Request Invite →'} onClick={() => submitRequest()} disabled={!reqPhone.trim() || submitting} />
-              </div>
-            )}
-
-            {/* ── REQUEST: DONE + 60s EDIT WINDOW ──────────────────────────── */}
-            {screen === 'request_done' && (
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontWeight: 300, fontSize: 38, color: '#F8F7F5', margin: '0 0 12px' }}>Received.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 300, color: 'rgba(248,247,245,0.6)', lineHeight: 1.7, margin: '0 0 8px' }}>
-                  We verify every profile personally.<br />We'll reach out on Instagram or WhatsApp.
-                </p>
-
-                {/* 60-second edit window */}
-                {editSecondsLeft > 0 && (
-                  <div style={{ marginTop: 20 }}>
-                    <div style={{
-                      height: 2, background: 'rgba(255,255,255,0.1)',
-                      borderRadius: 1, overflow: 'hidden', marginBottom: 10,
-                    }}>
-                      <div style={{
-                        height: '100%', background: '#C9A84C', borderRadius: 1,
-                        width: `${(editSecondsLeft / 60) * 100}%`,
-                        transition: 'width 1s linear',
-                      }} />
-                    </div>
-                    <button
-                      onClick={() => setScreen(role === 'Dreamer' ? 'request_dreamer' : 'request_maker')}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                        color: 'rgba(248,247,245,0.5)', fontStyle: 'italic',
-                      }}
-                    >Made a mistake? Edit your details → ({editSecondsLeft}s)</button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── INVITE: ENTER CODE ────────────────────────────────────────── */}
-            {screen === 'invite_code' && (
-              <>
-                <BackBtn onClick={() => setScreen('entry')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Enter your invite.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 24px' }}>Your code unlocks access.</p>
-
-                <Label text="Are you a" />
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  {(['Dreamer', 'Maker'] as Role[]).map(r => (
-                    <button key={r} onClick={() => setRole(r)} style={{
-                      flex: 1, height: 40, border: 'none', borderRadius: 100, cursor: 'pointer',
-                      background: role === r ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                      color: role === r ? '#0C0A09' : 'rgba(248,247,245,0.6)',
-                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                      letterSpacing: '0.15em', textTransform: 'uppercase',
-                    }}>{r}</button>
-                  ))}
-                </div>
-
-                <Label text="Invite code" />
-                <input
-                  value={inviteCode}
-                  onChange={e => { setInviteCode(e.target.value.toUpperCase()); setInviteError(''); }}
-                  type="text" maxLength={8} placeholder="XXXXXX"
-                  style={{ ...INPUT, textAlign: 'center', letterSpacing: '0.2em', fontSize: 20 }}
-                />
-                {inviteError && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#E57373', margin: '0 0 12px', textAlign: 'center' }}>{inviteError}</p>}
-
-                <GoldBtn label="Continue →" onClick={async () => {
-                  if (!inviteCode.trim() || !role) { setInviteError('Select Dreamer or Maker and enter your code.'); return; }
-                  try {
-                    const r = await fetch(`${API_BASE}/api/v2/invite/validate`, {
-                      method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ code: inviteCode.trim(), kind: role === 'Dreamer' ? 'dreamer' : 'maker' }),
-                    });
-                    const d = await r.json();
-                    if (d.valid) setScreen('invite_phone');
-                    else setInviteError(d.error || 'Invalid or expired code.');
-                  } catch { setInviteError('Could not verify code. Try again.'); }
-                }} disabled={!inviteCode.trim() || !role} />
-              </>
-            )}
-
-            {/* ── INVITE: PHONE ─────────────────────────────────────────────── */}
-            {screen === 'invite_phone' && (
+            {/* ── THE FIVE REMOVED SCREENS ──────────────────────────────────────
+                REMOVED BY RULING (R-X10 arm (a), founder-ratified): `request_who`,
+                `request_dreamer`, `request_maker`, `request_done` with its 60-second
+                edit window, and the dead `invite_code` screen. The ceremony they made
+                gated nothing — the two acquisition doors already walked past it into
+                open phone-OTP self-mint, and `invite_code` was reachable from no
+                `setScreen` call in the machine. Its backend route is gone too.
+                Curation is real and lives at the Discover approval queue, the only
+                surface a couple ever sees. Nothing here was demoted; it was retired.
+                The controls that MOVED rather than died are named in the handover's
+                control inventory, each accounted KEPT / MOVED / REMOVED-BY-RULING. */}
+            {/* ── JOIN: NAME + PHONE (was `invite_phone`) ───────────────────── */}
+            {screen === 'join_phone' && (
               <>
                 <BackBtn onClick={() => setScreen('entry')} />
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome. Let’s begin.</p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>Enter your details. We’ll send a code to your WhatsApp.</p>
                 <Label text="Your first name" />
                 <input
-                  value={inviteName}
-                  onChange={e => setInviteName(e.target.value)}
+                  value={joinName}
+                  onChange={e => setJoinName(e.target.value)}
                   placeholder="First name"
                   style={{ ...INPUT }}
                 />
                 <Label text="Phone number" />
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
-                    <span style={{ fontSize: 16 }}>{country.flag}</span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                {/* R-O5 · R-X24 ACCEPTANCE SHOT ① — baseline row, shared line-height,
+                    the flag in a fixed square slot. Measured ~1px above before. */}
+                <div style={{ display: 'flex', alignItems: 'baseline', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'baseline', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <FlagSlot flag={country.flag} />
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
                   </button>
-                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
+                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
                 </div>
                 {role === 'Maker' && (
                   <>
                     <Label text="Your craft" />
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
                       {VENDOR_FIELDS.map(f => (
-                        <button key={f.value} onClick={() => setInviteCategory(f.value)} style={{
+                        <button key={f.value} onClick={() => setJoinCategory(f.value)} style={{
                           padding: '6px 12px', borderRadius: 100, border: 'none',
-                          background: inviteCategory === f.value ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                          color: inviteCategory === f.value ? '#0C0A09' : 'rgba(248,247,245,0.7)',
+                          background: joinCategory === f.value ? '#C9A84C' : 'rgba(255,255,255,0.08)',
+                          color: joinCategory === f.value ? '#0C0A09' : 'rgba(248,247,245,0.7)',
                           fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
                           letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                         }}>{f.label}</button>
@@ -988,14 +746,14 @@ export default function Home() {
                     </div>
                   </>
                 )}
-                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits || (role === 'Maker' && !inviteCategory)} />
+                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits || (role === 'Maker' && !joinCategory)} />
               </>
             )}
 
             {/* ── OTP ENTRY ─────────────────────────────────────────────────── */}
-            {(screen === 'invite_otp' || screen === 'signin_otp') && (
+            {(screen === 'join_otp' || screen === 'signin_otp') && (
               <>
-                <BackBtn onClick={() => setScreen(screen === 'invite_otp' ? 'invite_phone' : 'signin_phone')} />
+                <BackBtn onClick={() => setScreen(screen === 'join_otp' ? 'join_phone' : 'signin_phone')} />
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Check your messages.</p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 16px' }}>Enter the 6-digit code we sent you.</p>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
@@ -1042,13 +800,20 @@ export default function Home() {
                   ))}
                 </div>
                 <Label text="Phone number" />
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'center', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
-                    <span style={{ fontSize: 16 }}>{country.flag}</span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                {/* R-O5 · R-X24 ACCEPTANCE SHOT ② — the same rule, second surface. */}
+                <div style={{ display: 'flex', alignItems: 'baseline', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'baseline', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <FlagSlot flag={country.flag} />
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
                   </button>
-                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1 }} />
+                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
                 </div>
+                {/* R-O3, RULED WITH FORK 1: THE ROLE TOGGLE STAYS. `handleSignIn` computes
+                    `isVendor = role === 'Maker'`, and the chrome `Sign in` link is reachable
+                    with role null — without this control (or this guard) a returning VENDOR
+                    would be signed in as a couple, silently, against the couple endpoints.
+                    The `!role` guard below is asserted as a bench cell for exactly that
+                    reason. Do not remove either half without replacing the other. */}
                 <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits || !role} />
               </>
             )}
@@ -1128,7 +893,7 @@ export default function Home() {
                   fontFamily: "'Jost', sans-serif", fontWeight: 200,
                   fontSize: 6, letterSpacing: '0.25em', textTransform: 'uppercase',
                   color: '#C9A84C', margin: '2px 0 0',
-                }}>India's First Wedding OS</p>
+                }}>The Wedding OS</p>
               </div>
 
               {/* Bottom CTA */}
@@ -1152,6 +917,9 @@ export default function Home() {
                   color: 'rgba(248,247,245,0.35)', margin: '0 0 10px',
                 }}>{exploringIdx + 1} of {exploringPhotos.length}</p>
 
+                {/* The `Request invite` companion button is REMOVED BY RULING — it
+                    diverted a visitor mid-fold into a form that admitted nobody. The
+                    advance control keeps the row to itself. */}
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={nextExploring} style={{
                     flex: 1, height: 50, background: '#C9A84C', border: 'none',
@@ -1161,15 +929,6 @@ export default function Home() {
                   }}>
                     {exploringIdx >= exploringPhotos.length - 1 ? 'See the full catalogue →' : 'Next →'}
                   </button>
-                  <button onClick={() => setScreen('request_who')} style={{
-                    height: 50, padding: '0 18px',
-                    background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)',
-                    border: '0.5px solid rgba(255,255,255,0.2)', borderRadius: 100,
-                    cursor: 'pointer', touchAction: 'manipulation',
-                    fontFamily: "'Jost', sans-serif", fontSize: 8,
-                    color: 'rgba(248,247,245,0.7)', letterSpacing: '0.12em',
-                    whiteSpace: 'nowrap',
-                  }}>Request invite</button>
                 </div>
               </div>
             </>
@@ -1192,7 +951,7 @@ export default function Home() {
                   fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic',
                   fontWeight: 300, fontSize: 11, letterSpacing: '0.3em',
                   textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 16px',
-                }}>India's First Wedding OS</p>
+                }}>The Wedding OS</p>
 
                 <p style={{
                   fontFamily: "'Cormorant Garamond', serif", fontWeight: 300,
@@ -1215,17 +974,25 @@ export default function Home() {
                   color: 'rgba(248,247,245,0.55)', margin: '0 0 36px',
                   lineHeight: 1.7, textAlign: 'center', maxWidth: 300,
                 }}>
-                  Every Maker on TDW is personally curated. Interested in an invite to India's first curated wedding OS?
+                  {/* FOUNDER'S OWN BYTE, R-O11 #4, shipped verbatim. The invite
+                      question died with the ceremony; the curation claim survives
+                      because it is TRUE — the Discover approval queue gates the feed,
+                      which is the only surface a couple ever sees. */}
+                  Every vendor on TDW is Curated
                 </p>
 
                 <div style={{ width: '100%', maxWidth: 340 }}>
-                  <button onClick={() => setScreen('request_who')} style={{
+                  {/* The closing moment keeps its full bleed; only its CTA changes.
+                      It carries the couple door's own label and enters the couple
+                      door's flow — the fold IS that door's first screen, so its end is
+                      that door's continuation, not a request form. */}
+                  <button onClick={() => { setRole('Dreamer'); setScreen('join_phone'); }} style={{
                     width: '100%', height: 54, background: '#C9A84C', border: 'none',
                     borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
                     fontFamily: "'Jost', sans-serif", fontSize: 10, fontWeight: 400,
                     letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
                     marginBottom: 12,
-                  }}>Request an Invite →</button>
+                  }}>I&apos;m getting married</button>
 
                   <button onClick={() => setScreen('entry')} style={{
                     width: '100%', height: 46, background: 'transparent',
@@ -1245,7 +1012,7 @@ export default function Home() {
       {/* ── Country picker bottom sheet ─────────────────────────────── */}
       <CountrySheet
         visible={showCountrySheet}
-        onSelect={c => { setCountry(c); setReqPhone(''); setPhone(''); }}
+        onSelect={c => { setCountry(c); setPhone(''); }}
         onClose={() => setShowCountrySheet(false)}
       />
     </div>

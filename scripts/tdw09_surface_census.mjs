@@ -53,7 +53,10 @@ for (const probe of ['package.json', 'lib/vendor/theme.ts', 'app/globals.css']) 
 const APPLY = process.argv.includes('--apply');
 
 // ── the lane under this instrument's care ─────────────────────────────────────
-const LANES = ['app/vendor', 'app/demo/vendor', 'components/vendor'];
+// TDW_09 O-1: `app/(landing)` JOINS this instrument's care. It was not in any lane
+// before, which meant its 50 species sites were not held out — they were INVISIBLE, and
+// an instrument that cannot see a lane cannot be said to have cleared it.
+const LANES = ['app/vendor', 'app/demo/vendor', 'components/vendor', 'app/(landing)'];
 
 // ── NAMED EXCLUSION, disclosed for ratify-or-reverse ──────────────────────────
 // The demo LANDING is held out of the sweep on three grounds, none of them taste:
@@ -73,7 +76,22 @@ const LANES = ['app/vendor', 'app/demo/vendor', 'components/vendor'];
 // species cure lands there regardless, and a permanent exclusion would fossilize
 // the disease behind a veto that was about bytes, not about health. Delete this
 // array at O-1's charter.
-const HELD_OUT = ['app/demo/vendor/[handle]/page.tsx'];
+// TDW_09 O-1 · R-O6 · THE HOLD'S REASONS NOW LIVE IN THE FILES THEY GOVERN.
+// Q-5's return condition fired at O-1 and the sweep was refused on its own evidence: a
+// blind apply maps two founder-ratified control EDGES to an ink rung (this comment's own
+// prediction, above) and breaks a floor mutation's anchor. Both files below are rendered
+// under a SINGLE THEME and no light theme can reach either, so the species is not a
+// defect on them — that is the predicate, and it is absent for every site on both.
+// Each file now carries its own decision comment naming its guard and its trigger, so
+// the reasoning survives the deletion of this array rather than dying with it.
+//   · app/demo/vendor/[handle]/page.tsx — guarded by `<ThemeProvider pinned="dark">`
+//   · app/(landing)/page.tsx            — guarded by there being NO ThemeProvider on
+//                                         this route group at all (its layout is a bare
+//                                         passthrough); the surface is #0C0A09, always.
+const HELD_OUT = [
+  'app/demo/vendor/[handle]/page.tsx',
+  'app/(landing)/page.tsx',
+];
 const EXTS  = new Set(['.tsx', '.ts', '.css']);
 
 // ── NORMALIZED NUMERIC PARSE ──────────────────────────────────────────────────
