@@ -320,11 +320,11 @@ export default function VendorPinResetPage() {
         ))}
         <div style={{ position:'absolute',inset:0,background:'rgba(12,10,9,0.45)' }} />
         <div style={{ position:'absolute',bottom:0,left:0,right:0,animation:'pinFadeIn 400ms cubic-bezier(0.22,1,0.36,1)' }}>
-          <div style={{ background:'rgba(12,10,9,0.3)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid rgba(255,255,255,0.1)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:'rgba(248,247,245,0.5)',margin:'0 0 2px' }}>The Dream Wedding</p>
+          <div style={{ background:'rgba(12,10,9,0.3)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid var(--atelier-input-border)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:'var(--atelier-ink-dim)',margin:'0 0 2px' }}>The Dream Wedding</p>
             <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:6,letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
             <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize:26,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.15 }}>{heading}</p>
-            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize:13,color:'rgba(248,247,245,0.4)',margin:'0 0 28px' }}>{subtext}</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize:13,color:'var(--atelier-ink-fade)',margin:'0 0 28px' }}>{subtext}</p>
 
             {step === 'phone' && (
               <>
@@ -355,7 +355,7 @@ export default function VendorPinResetPage() {
                   ))}
                 </div>
                 <p onClick={() => { if (!loading) sendCode(); }}
-                  style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:9,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(248,247,245,0.35)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginBottom:8 }}
+                  style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:9,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-fade)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginBottom:8 }}
                 >Resend code</p>
               </>
             )}
@@ -389,7 +389,7 @@ export default function VendorPinResetPage() {
             )}
 
             <p onClick={() => { if (!loading) router.replace('/vendor/pin-login'); }}
-              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(248,247,245,0.25)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginTop:4 }}
+              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-fade)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginTop:4 }}
             >Back to PIN entry</p>
           </div>
         </div>

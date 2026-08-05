@@ -14,8 +14,15 @@ import { fetchTasks, createTask, updateTask, deleteTask, fetchTeam } from '@/lib
 import type { TeamTask, TeamMember } from '@/lib/vendor/types/vendor';
 
 const D = {
-  card: 'rgba(255,255,255,0.035)',
-  border: '0.5px solid var(--atelier-card-border)', muted: 'rgba(248,247,245,0.45)',
+  card: 'var(--role-sheet)',
+  // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
+  // It used to hold the whole shorthand ('0.5px solid var(...)') while most
+  // readers re-prefixed it, producing '0.5px solid 0.5px solid var(...)': a
+  // declaration that parses, then becomes INVALID AT COMPUTED-VALUE TIME once
+  // var() substitutes, so `border` computes to its initial value and NO EDGE
+  // RENDERS AT ALL. 22 sites across 5 files. The rename is the guard: any
+  // reader I failed to migrate is now a tsc error, not a silent missing border.
+  borderCol: 'var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)',
 };
 const F = {
@@ -25,12 +32,17 @@ const F = {
 };
 
 const PRIORITY_COLOR: Record<string, string> = {
-  low: 'rgba(248,247,245,0.3)', normal: D.muted, high: 'var(--role-caution)', urgent: D.red,
+  low: 'var(--atelier-ink-fade)', normal: D.muted, high: 'var(--role-caution)', urgent: D.red,
 };
 
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', backgroundColor: 'rgba(255,255,255,0.04)',
-  border: `0.5px solid ${D.border}`, borderRadius: 8, color: D.cream,
+  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
   fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
@@ -52,7 +64,7 @@ export default function TasksPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
           <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: D.cream }}>Tasks</p>
           <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
-          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
+          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
         </div>
       </div>
     );
@@ -127,7 +139,7 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: `1px solid ${D.border}`, flexShrink: 0 }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${D.borderCol}`, flexShrink: 0 }}>
         {TAB_LABELS.map(t => (
           <button key={t.key} type="button" onClick={() => setTab(t.key)} style={{
             flex: 1, padding: '14px 0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer',
@@ -151,7 +163,7 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {filtered.map(task => (
             <div key={task.id} onClick={() => setSelected(task)} style={{
-              padding: '16px 24px', borderBottom: `1px solid ${D.border}`, cursor: 'pointer',
+              padding: '16px 24px', borderBottom: `1px solid ${D.borderCol}`, cursor: 'pointer',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>

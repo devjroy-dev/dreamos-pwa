@@ -33,14 +33,32 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+// TDW_09 F-09.30 · R-S5 arm (b) — A READER THAT REFUSES WITH A REASON.
+// This harness crashed with a raw ENOENT stack because it read a file F-09.20 had
+// retired. A bench that dies on its own read set tells you nothing about the tree
+// it was guarding: the operator sees a stack trace and cannot tell a deleted
+// fixture from a broken cure. The independent-method law's clause 1 applied to the
+// harness itself — a check whose failure mode is an unnamed crash is not a check.
+const read = (rel) => {
+  const abs = path.join(ROOT, rel);
+  if (!fs.existsSync(abs)) {
+    console.error(`\nHARNESS REFUSED — read set is stale: ${rel} does not exist at ${ROOT}.`);
+    console.error('A surface this bench guards has been retired. Amend the read set and the cells that stood on it,');
+    console.error('with the count movement labelled — do not delete the cell silently.\n');
+    process.exit(1);
+  }
+  return fs.readFileSync(abs, 'utf8');
+};
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 const code = (rel) => strip(read(rel));
 
 const LAYOUT  = 'app/admin/layout.tsx';
 const UI      = 'app/admin/_components/AdminUI.tsx';
 const PAGE    = 'app/admin/demo/page.tsx';
-const LIST    = 'app/admin/invite-requests/_list.tsx';
+// TDW_09 F-09.30 · R-S5 arm (a) — `app/admin/invite-requests/_list.tsx` LEFT THE
+// READ SET. F-09.20 retired the screen; the two cells below that stood on it are
+// removed rather than re-pointed, because there is no surviving surface carrying
+// the second application they were written to guard.
 const LANDING = 'app/demo/vendor/[handle]/page.tsx';
 
 let pass = 0, fail = 0;
@@ -109,11 +127,21 @@ ok('§1.5 the wrapper around {children} still carries the class — the applicat
 // nests INSIDE the layout wrapper on two surfaces (makers, dreamers) and traps
 // its own drawer and scrim by the NEARER ancestor. An arm sited on
 // layout.tsx's application would have left these two broken.
-ok('§1.6 the second application still exists and is reached by the same class',
-  /className="fade-up"/.test(code(LIST)));
-ok('§1.7 and it is the one with fixed chrome of its own — the reason class-siting was ruled',
-  (code(LIST).match(/position:\s*['"]fixed['"]/g) || []).length === 2);
-ok('§1.8 exactly two applications estate-wide — the census the cure was scoped to',
+// §1.6 and §1.7 REMOVED — LABELLED AMENDMENT (F-09.30, R-S5). NO PRIOR COUNT TO
+// PRESERVE, and the reason is the finding: this harness CRASHED at 8066072 before
+// it could print a total, so no baseline number for it exists anywhere in the
+// record. Its first completing run is 55/55, and the two cells named here are the
+// only ones removed. Stated this way rather than inventing a delta from a run that
+// never finished.
+// They asserted the SECOND application of `fade-up`, which lived on the retired
+// invite-requests list. The surface is gone, so the assertion has no referent; a
+// cell re-pointed at a different file would be a new claim wearing an old number.
+// §1.8's census below carries the surviving truth and is re-aimed with it.
+// TDW_09 F-09.30 — RE-AIMED WITH ITS SIBLINGS. Two applications became one when
+// the invite-requests screen retired. The census still asserts the PROPERTY (how
+// many surfaces carry the class), which is why it survives where §1.6/§1.7 could
+// not: it never named the file.
+ok('§1.8 exactly ONE application estate-wide — the census the cure was scoped to',
   (() => {
     const hits = [];
     const walk = (dir) => {
@@ -125,7 +153,7 @@ ok('§1.8 exactly two applications estate-wide — the census the cure was scope
       }
     };
     walk(path.join(ROOT, 'app'));
-    return hits.length === 2;
+    return hits.length === 1;
   })());
 
 // ═════════════════════════════════════════════════════════════════════════════

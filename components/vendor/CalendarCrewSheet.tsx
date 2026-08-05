@@ -189,7 +189,7 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
                   padding: '11px 14px', borderRadius: 12,
                   background: on ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                   border: 'none',
-                  outline: on ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid rgba(255,255,255,0.08)',
+                  outline: on ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
                 }}>
                   {/* selection dot */}
                   <span style={{

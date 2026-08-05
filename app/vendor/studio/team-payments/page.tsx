@@ -22,8 +22,15 @@ import {
 } from '@/lib/vendor/settleWords';
 
 const D = {
-  card: 'rgba(255,255,255,0.035)',
-  border: '0.5px solid var(--atelier-card-border)', muted: 'rgba(248,247,245,0.45)',
+  card: 'var(--role-sheet)',
+  // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
+  // It used to hold the whole shorthand ('0.5px solid var(...)') while most
+  // readers re-prefixed it, producing '0.5px solid 0.5px solid var(...)': a
+  // declaration that parses, then becomes INVALID AT COMPUTED-VALUE TIME once
+  // var() substitutes, so `border` computes to its initial value and NO EDGE
+  // RENDERS AT ALL. 22 sites across 5 files. The rename is the guard: any
+  // reader I failed to migrate is now a tsc error, not a silent missing border.
+  borderCol: 'var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)',
 };
 const F = {
@@ -32,9 +39,14 @@ const F = {
   body:    'var(--font-dm-sans), system-ui, sans-serif',
 };
 
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', backgroundColor: 'rgba(255,255,255,0.04)',
-  border: `0.5px solid ${D.border}`, borderRadius: 8, color: D.cream,
+  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
   fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
@@ -54,7 +66,7 @@ export default function TeamPaymentsPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
           <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: D.cream }}>Team Payments</p>
           <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
-          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
+          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
         </div>
       </div>
     );
@@ -227,7 +239,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
             <button type="button" onClick={() => setView(view === 'wedding' ? 'crew' : 'wedding')} style={{
               padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
               backgroundColor: 'transparent',
-              border: `0.5px solid ${view === 'wedding' ? 'rgba(201,168,76,0.45)' : D.border}`,
+              border: `0.5px solid ${view === 'wedding' ? 'rgba(201,168,76,0.45)' : D.borderCol}`,
               fontFamily: F.label, fontWeight: 300, fontSize: 9,
               color: view === 'wedding' ? D.cream : D.muted,
               letterSpacing: '0.2em', textTransform: 'uppercase',
@@ -235,7 +247,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
           </div>
 
           {/* Total owed banner */}
-          <div style={{ margin: 16, padding: '18px 20px', backgroundColor: totalOwed > 0 ? 'rgba(201,168,76,0.08)' : 'rgba(255,255,255,0.03)', border: `0.5px solid ${totalOwed > 0 ? 'rgba(201,168,76,0.3)' : D.border}`, borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ margin: 16, padding: '18px 20px', backgroundColor: totalOwed > 0 ? 'rgba(201,168,76,0.08)' : 'var(--atelier-section-bg)', border: `0.5px solid ${totalOwed > 0 ? 'rgba(201,168,76,0.3)' : D.borderCol}`, borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Total Owed</span>
             <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: totalOwed > 0 ? D.gold : D.muted }}>Rs {totalOwed.toLocaleString('en-IN')}</span>
           </div>
@@ -277,7 +289,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
             </div>
           ) : (
             balances.map(b => (
-              <div key={b.team_member_id} style={{ margin: '0 16px 10px', padding: '16px 18px', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: `0.5px solid ${D.border}`, borderRadius: 10 }}>
+              <div key={b.team_member_id} style={{ margin: '0 16px 10px', padding: '16px 18px', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: `0.5px solid ${D.borderCol}`, borderRadius: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <span style={{ fontFamily: F.body, fontWeight: 400, fontSize: 15, color: D.cream }}>{b.name}</span>
                   {b.owed_inr > 0 && <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, color: D.gold }}>Rs {b.owed_inr.toLocaleString('en-IN')} owed</span>}
@@ -288,7 +300,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                 </div>
                 {/* Owed line-items for this member */}
                 {owedPayments.filter(p => p.team_member_id === b.team_member_id).map(p => (
-                  <div key={p.id} style={{ marginTop: 10, padding: '10px 12px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 8, border: `0.5px solid ${D.border}` }}>
+                  <div key={p.id} style={{ marginTop: 10, padding: '10px 12px', backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8, border: `0.5px solid ${D.borderCol}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream }}>{p.description || 'Payment'}</div>
@@ -310,7 +322,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                   </div>
                 ))}
                 {paidPayments.filter(p => p.team_member_id === b.team_member_id).map(p => (
-                  <div key={p.id} style={{ marginTop: 8, padding: '10px 12px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 8, border: `0.5px solid ${D.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.6 }}>
+                  <div key={p.id} style={{ marginTop: 8, padding: '10px 12px', backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8, border: `0.5px solid ${D.borderCol}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.6 }}>
                     <div>
                       <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.cream }}>{p.description || 'Payment'}</div>
                       <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
@@ -394,7 +406,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setPaySheet(null)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>Mark as Paid</div>
-            <div style={{ padding: '12px 14px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 8, border: `0.5px solid ${D.border}` }}>
+            <div style={{ padding: '12px 14px', backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8, border: `0.5px solid ${D.borderCol}` }}>
               <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.cream }}>{paySheet.description || 'Payment'}</div>
               <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.gold, marginTop: 4 }}>Rs {paySheet.amount_inr.toLocaleString('en-IN')}</div>
             </div>
@@ -431,7 +443,7 @@ function WeddingLane({ title, owed, paid, lines }: {
   return (
     <div style={{ margin: '0 16px 10px', padding: '16px 18px', background: D.card,
       backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      border: `0.5px solid ${D.border}`, borderRadius: 10 }}>
+      border: `0.5px solid ${D.borderCol}`, borderRadius: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
         <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 19, color: D.cream }}>{title}</span>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', flexShrink: 0 }}>
@@ -455,8 +467,8 @@ function WeddingLane({ title, owed, paid, lines }: {
 
       {lines.map(l => (
         <div key={l.id} style={{ marginTop: 10, padding: '10px 12px',
-          backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 8,
-          border: `0.5px solid ${D.border}`, display: 'flex',
+          backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8,
+          border: `0.5px solid ${D.borderCol}`, display: 'flex',
           justifyContent: 'space-between', alignItems: 'center',
           opacity: l.state === 'paid' ? 0.6 : 1 }}>
           <div style={{ flex: 1, minWidth: 0 }}>

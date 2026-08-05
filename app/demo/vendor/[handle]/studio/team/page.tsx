@@ -4,12 +4,18 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { Toast } from '@/components/vendor/Toast';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const D={card:'rgba(255,255,255,0.035)',muted:'rgba(248,247,245,0.45)',cream:'var(--atelier-ink)',gold:'var(--atelier-accent-text)',red:'var(--role-critical)'};
+const D={card:'var(--role-sheet)',muted:'var(--atelier-ink-mute)',cream:'var(--atelier-ink)',gold:'var(--atelier-accent-text)',red:'var(--role-critical)'};
 const F={display:'var(--font-cormorant), Georgia, serif',label:'var(--font-jost), system-ui, sans-serif',body:'var(--font-dm-sans), system-ui, sans-serif'};
-const inputStyle:React.CSSProperties={width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.04)',border:'0.5px solid var(--atelier-card-border)',borderRadius:8,color:D.cream,fontFamily:F.body,fontWeight:300,fontSize:14,outline:'none',boxSizing:'border-box' as const};
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
+const inputStyle:React.CSSProperties={width:'100%',padding:'11px 14px',backgroundColor:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:8,color:D.cream,fontFamily:F.body,fontWeight:300,fontSize:14,outline:'none',boxSizing:'border-box' as const};
 const labelStyle:React.CSSProperties={fontFamily:F.label,fontWeight:300,fontSize:9,color:D.muted,letterSpacing:'0.2em',textTransform:'uppercase' as const,marginBottom:6};
 interface Member{id:string;name:string;role?:string;phone?:string;daily_rate_inr?:number;notes?:string;}
 const DEMO_MEMBERS:Member[]=[
@@ -39,7 +45,7 @@ export default function DemoTeamPage(){
     {sheet&&(<div style={{position:'fixed',inset:0,backgroundColor:'rgba(0,0,0,0.7)',zIndex:20,display:'flex',alignItems:'flex-end'}} onClick={()=>setSheet(null)}><div onClick={e=>e.stopPropagation()} style={{width:'100%',background:D.card,backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:'16px 16px 0 0',padding:'24px 24px 40px',display:'flex',flexDirection:'column',gap:16}}>
       <div style={{fontFamily:F.display,fontWeight:300,fontSize:22,color:D.cream,marginBottom:4}}>{sheet==='add'?'Add Member':'Edit Member'}</div>
       <div><div style={labelStyle}>Name *</div><input style={inputStyle} value={name} onChange={e=>setName(e.target.value)} placeholder="Rohit Mehta"/></div>
-      <div><div style={labelStyle}>Role</div><select value={role} onChange={e=>setRole(e.target.value)} style={{...inputStyle,appearance:'none' as const}}><option value="">No role</option><option value="second_shooter">Second Shooter</option><option value="assistant">Assistant</option><option value="editor">Editor</option><option value="runner">Runner</option><option value="videographer">Videographer</option><option value="makeup_artist">Makeup Artist</option><option value="coordinator">Coordinator</option><option value="other">Other</option></select></div>
+      <div><div style={labelStyle}>Role</div><select value={role} onChange={e=>setRole(e.target.value)} style={selectStyle(inputStyle)}><option value="">No role</option><option value="second_shooter">Second Shooter</option><option value="assistant">Assistant</option><option value="editor">Editor</option><option value="runner">Runner</option><option value="videographer">Videographer</option><option value="makeup_artist">Makeup Artist</option><option value="coordinator">Coordinator</option><option value="other">Other</option></select></div>
       <div><div style={labelStyle}>Phone</div><input style={inputStyle} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+91 9000000000"/></div>
       <div><div style={labelStyle}>Day Rate (Rs)</div><input style={{...inputStyle}} type="number" value={rate} onChange={e=>setRate(e.target.value)} placeholder="5000"/></div>
       <div><div style={labelStyle}>Notes</div><input style={inputStyle} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Available weekends only"/></div>

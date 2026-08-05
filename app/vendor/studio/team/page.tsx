@@ -9,6 +9,7 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { fetchMemberAssignments, MemberAssignment } from '@/lib/vendor/api/roster';
 import { confirmationWord, confirmationTone, ASSIGNMENTS_ERROR_MSG } from '@/lib/vendor/assignmentWords';
 import { slotWord, hhmm } from '@/lib/vendor/slotWords';
+import { selectStyle } from '@/lib/vendor/controls';
 import { Header } from '@/components/vendor/Header';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -25,7 +26,14 @@ const D = {
   // is what the founder's walk saw and read as a layout collision. Nothing was
   // colliding. Neither literal was individually wrong. The PAIR inverted.
   card: 'var(--role-sheet)',
-  border: '0.5px solid var(--atelier-card-border)', muted: 'rgba(248,247,245,0.45)',
+  // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
+  // It used to hold the whole shorthand ('0.5px solid var(...)') while most
+  // readers re-prefixed it, producing '0.5px solid 0.5px solid var(...)': a
+  // declaration that parses, then becomes INVALID AT COMPUTED-VALUE TIME once
+  // var() substitutes, so `border` computes to its initial value and NO EDGE
+  // RENDERS AT ALL. 22 sites across 5 files. The rename is the guard: any
+  // reader I failed to migrate is now a tsc error, not a silent missing border.
+  borderCol: 'var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)',
 };
 const F = {
@@ -34,9 +42,14 @@ const F = {
   body:    'var(--font-dm-sans), system-ui, sans-serif',
 };
 
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', backgroundColor: 'rgba(255,255,255,0.04)',
-  border: `0.5px solid ${D.border}`, borderRadius: 8, color: D.cream,
+  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
   fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
@@ -56,7 +69,7 @@ export default function TeamPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
           <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: D.cream }}>Team</p>
           <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
-          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
+          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
         </div>
       </div>
     );
@@ -206,7 +219,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
           {members.map((m, idx) => (
             <div key={m.id} onClick={() => openEdit(m)} style={{
               display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 14, cursor: 'pointer',
-              borderBottom: `1px solid ${D.border}`,
+              borderBottom: `1px solid ${D.borderCol}`,
             }}>
               <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, color: D.gold }}>{m.name.charAt(0).toUpperCase()}</span>
@@ -241,7 +254,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
             <div><div style={labelStyle}>Name *</div><input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Rohit Mehta" /></div>
             <div>
               <div style={labelStyle}>Role</div>
-              <select value={role} onChange={e => setRole(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={role} onChange={e => setRole(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="">No role</option>
                 <option value="second_shooter">Second Shooter</option>
                 <option value="assistant">Assistant</option>
@@ -268,7 +281,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                 second write path to the calendar from here is exactly what the
                 one-writer law forbids. */}
             {sheet === 'edit' && selected && (
-              <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ borderTop: `0.5px solid ${D.borderCol}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={labelStyle}>Assignments</div>
                 {assignLoading ? (
                   <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>Loading…</div>
@@ -305,11 +318,11 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
             )}
 
             {sheet === 'edit' && selected && (
-              <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ borderTop: `0.5px solid ${D.borderCol}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={labelStyle}>Crew page</div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <button type="button" onClick={() => sendPage(selected)} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.cream, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Send page</button>
-                  <button type="button" onClick={() => setConfirmRotate(true)} disabled={saving} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Rotate link</button>
+                  <button type="button" onClick={() => sendPage(selected)} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.cream, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Send page</button>
+                  <button type="button" onClick={() => setConfirmRotate(true)} disabled={saving} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Rotate link</button>
                 </div>
                 {/* Rotation is irreversible and immediate, so it is asked before it is
                     done — the warning is the whole reason the second tap exists. */}
@@ -317,7 +330,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0 }}>The old link stops working.</p>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <button type="button" onClick={() => setConfirmRotate(false)} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.border}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Cancel</button>
+                      <button type="button" onClick={() => setConfirmRotate(false)} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Cancel</button>
                       <button type="button" onClick={doRotate} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.red}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.red, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Rotate link</button>
                     </div>
                   </div>

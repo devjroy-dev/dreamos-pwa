@@ -148,9 +148,21 @@ ok('§2.5 onEnquire / enquireLink / onCircleTap are ALL WITHHELD',
 ok('§2.6 THE EYEBROW is present, byte-exact (founder-vetoed)',
   /This is how couples see you\. You&apos;re live in Discover now\./.test(read(LANDING)));
 
+// TDW_09 F-09.31 · R-S5 — LABELLED AMENDMENT, COUNT PRESERVED (1 cell, still 1).
+// The literal `#C9A84C` moved to `var(--role-metal)`; on the pinned-dark lane
+// DARK.metal IS `#C9A84C`, so the CTA renders byte-identical brass and only the
+// SPELLING of the fill changed.
+//
+// WHY THE PAGER DOT STILL DOES NOT COUNT, stated so the next reader does not
+// "fix" it: this regex has always counted only the DIRECT, no-space assignment
+// form `background:'…'`. The pager dot at :321 is written
+// `background: i === cur ? 'var(--role-metal)' : '…'` — a space and a ternary —
+// and the wordmark at :314 is `color:`, not `background:`. Neither matched the old
+// regex and neither matches this one, for exactly the same structural reasons. The
+// discrimination is inherited, not re-invented; ONE gold FILL still means the CTA.
 ok('§2.7 THE CLAIM CTA is present, byte-exact, and it is the page\'s ONE GOLD FILL',
   /Claim your studio — 90 seconds/.test(read(LANDING)) &&
-  (L.match(/background:'#C9A84C'/g) || []).length === 1,
+  (L.match(/background:'var\(--role-metal\)'/g) || []).length === 1,
   'either the CTA byte drifted or a second gold FILL appeared on the screen');
 
 ok('§2.8 Enter Your Studio DEMOTED to a ghost — it no longer carries a gold fill',
@@ -357,8 +369,14 @@ ok('§9.2 a pinned provider has NO PATH to storage — the guard PRECEDES the re
   code(THEME_CTX).indexOf('localStorage.getItem(KEY)'),
   'the pin guard does not precede the storage read — a pinned tree can still reach it');
 
+// TDW_09 F-09.29 · R-S5 — LABELLED AMENDMENT, COUNT PRESERVED (1 cell, still 1).
+// The cell asserted `isFlair`. The retired third theme took that identifier with it
+// (R-U19), and the pin now reads `isLight` at ThemeContext.tsx's MutationObserver.
+// The BEHAVIOUR under test is unchanged and was re-verified before the re-aim: the
+// pin still wins over an <html> class flip. Only the name the production line uses
+// moved, so only the name this regex looks for moves.
 ok('§9.3 the pin WINS over an <html> class flip, or it only holds until the first nav',
-  /const theme = pinned \?\? \(isFlair/.test(code(THEME_CTX)));
+  /const theme = pinned \?\? \(isLight/.test(code(THEME_CTX)));
 
 ok('§9.4 the unpinned provider is UNTOUCHED — the real app keeps its preference',
   /localStorage\.getItem\(KEY\)/.test(code(THEME_CTX)) &&
@@ -489,9 +507,13 @@ okMutate('§M.2 §1.3 reds when the zero-storage declaration is deleted', LANDIN
     '// (declaration removed)',
     () => assert.ok(/NO localStorage, NO sessionStorage, NO storage of any kind\. G-6 and the/.test(read(LANDING))), '§1.3');
 
+// TDW_09 F-09.31 · R-S5 — the mutation follows its cell. It plants a second gold
+// fill on a ghost button and requires §2.7 to red. Both the planted byte and the
+// counted byte move to the token spelling together, or the mutation would plant a
+// fill the re-aimed cell cannot see and go vacuously green.
 okMutate('§M.3 §2.7 reds when a SECOND gold fill appears on the screen', LANDING, "background:'transparent', border:'0.5px solid rgba(248,247,245,0.42)'",
-    "background:'#C9A84C', border:'0.5px solid rgba(248,247,245,0.42)'",
-    () => assert.strictEqual((code(LANDING).match(/background:'#C9A84C'/g) || []).length, 1), '§2.7');
+    "background:'var(--role-metal)', border:'0.5px solid rgba(248,247,245,0.42)'",
+    () => assert.strictEqual((code(LANDING).match(/background:'var\(--role-metal\)'/g) || []).length, 1), '§2.7');
 
 okMutate('§M.4 §3.1 reds when the budget line stops guarding on null', LANDING, '{lead.budget_max != null && (', '{true && (',
     () => assert.ok(/lead\.budget_max != null && \(/.test(code(LANDING))), '§3.1');

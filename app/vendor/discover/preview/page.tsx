@@ -211,7 +211,7 @@ export default function DiscoverPreviewPage() {
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 32, height: 32, borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.18)',
             background: 'rgba(12,10,9,0.32)', backdropFilter: 'blur(18px)',
-            WebkitBackdropFilter: 'blur(18px)', color: 'rgba(248,247,245,0.8)',
+            WebkitBackdropFilter: 'blur(18px)', color: 'var(--atelier-ink-soft)',
             cursor: 'pointer', touchAction: 'manipulation', pointerEvents: 'auto',
           }}
         >
@@ -220,7 +220,7 @@ export default function DiscoverPreviewPage() {
         <span style={{
           fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
           letterSpacing: '0.28em', textTransform: 'uppercase',
-          color: 'rgba(248,247,245,0.72)',
+          color: 'var(--atelier-ink-soft)',
           border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 12,
           padding: '4px 10px', background: 'rgba(12,10,9,0.32)',
           backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
@@ -232,12 +232,12 @@ export default function DiscoverPreviewPage() {
       <div style={{ flex: 1, pointerEvents: 'none' }} />
 
       {loading && (
-        <p style={{ position: 'relative', zIndex: 2, fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'rgba(248,247,245,0.5)', margin: 0, padding: '0 24px 24px' }}>
+        <p style={{ position: 'relative', zIndex: 2, fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-dim)', margin: 0, padding: '0 24px 24px' }}>
           Loading your profile…
         </p>
       )}
       {!loading && error && (
-        <p style={{ position: 'relative', zIndex: 2, fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'rgba(248,247,245,0.6)', margin: 0, padding: '0 24px 24px' }}>
+        <p style={{ position: 'relative', zIndex: 2, fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, padding: '0 24px 24px' }}>
           {error}
         </p>
       )}
@@ -265,7 +265,7 @@ export default function DiscoverPreviewPage() {
           {data.discover_paused && (
             <p style={{
               fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300,
-              letterSpacing: '0.14em', color: 'rgba(248,247,245,0.66)',
+              letterSpacing: '0.14em', color: 'var(--atelier-ink-soft)',
               margin: '0 0 14px', padding: '0 24px',
             }}>
               Paused — hidden from Discover right now.
@@ -284,7 +284,7 @@ export default function DiscoverPreviewPage() {
           {!data.is_live && !data.discover_paused && (
             <p style={{
               fontFamily: "'Cormorant Garamond',serif", fontSize: 13, fontWeight: 300,
-              fontStyle: 'italic', color: 'rgba(248,247,245,0.6)',
+              fontStyle: 'italic', color: 'var(--atelier-ink-mute)',
               margin: '18px 0 0', padding: '0 24px', lineHeight: 1.5,
             }}>
               This is your profile as couples will see it — approval unlocks it on Discover.
@@ -309,7 +309,7 @@ export default function DiscoverPreviewPage() {
           background: 'rgba(12,10,9,0.82)', backdropFilter: 'blur(18px)',
           WebkitBackdropFilter: 'blur(18px)', border: '0.5px solid rgba(255,255,255,0.14)',
           fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300,
-          color: 'rgba(248,247,245,0.88)', textAlign: 'center',
+          color: 'var(--atelier-ink)', textAlign: 'center',
           animation: 'dissolveIn 200ms cubic-bezier(0.22,1,0.36,1)',
         }}>
           {toast}

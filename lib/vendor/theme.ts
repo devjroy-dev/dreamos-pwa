@@ -100,7 +100,18 @@ export const DARK: ThemeTokens = {
   sheetBot:   'rgba(22,16,12,0.99)',
   sheetBorder:'rgba(201,168,76,0.32)',
   inputBg:    'rgba(245,235,212,0.04)',
-  inputBorder:'rgba(201,168,76,0.28)',
+  // ── TDW_09 · R-S3 — THE FIELD BOUNDARY EARNS THE 3:1 UI BAR ────────────────
+  // WAS .28, which composites to #453A1F on the sheet surface (#120F0E) and
+  // measures 1.71:1 — under WCAG 1.4.11's 3:1 bar for "visual information
+  // required to identify a user interface component". A field whose edge you
+  // cannot see is not identifiable as a field. Raised to .52 -> #715F2E, 3.06:1.
+  // Hue held; only lightness moves. Forty readers inherit this, which is the
+  // point: every one of them shared the same sub-bar edge.
+  // MECHANISM (F-06.85's law): the number this alpha must clear is computed
+  // against the COMPOSITED sheet surface, not the page — see `sheet` above. If
+  // `sheet` moves, this value is re-derived, and the bench that guards it
+  // (scripts/tdw09_surface.proof.mjs) asserts the ratio, never the alpha.
+  inputBorder:'rgba(201,168,76,0.52)', //  3.06:1 on the sheet surface
   rowHover:   'rgba(245,235,212,0.03)',
   overlay:    'rgba(0,0,0,0.6)',
   pageBg:     '#1F1612',
@@ -148,7 +159,13 @@ export const LIGHT: ThemeTokens = {
   sheetBot:   '#EDE8DF',
   sheetBorder:'rgba(122,56,40,0.25)',
   inputBg:    'rgba(26,15,8,0.04)',
-  inputBorder:'rgba(122,56,40,0.28)',
+  // TDW_09 · R-S3 — the same bar on paper. WAS .28 -> #DAC7C3, 1.62:1. The fill
+  // cannot carry the box here at all: inputBg over the white sheet is 1.09:1, so
+  // on Editorial Paper the EDGE is the only thing that says "field". Raised to
+  // .58 -> #B28C82, 3.03:1. See F-09.35: this value had a second, divergent home
+  // in globals.css's light block (.22); that home is cured in the same commit or
+  // the pre-mount frame keeps rendering a boundary this file does not hold.
+  inputBorder:'rgba(122,56,40,0.58)', //  3.03:1 on the sheet surface
   rowHover:   'rgba(26,15,8,0.03)',
   overlay:    'rgba(26,15,8,0.55)',
   pageBg:     '#F5F2EE',

@@ -18,7 +18,14 @@ import { useToast } from '@/hooks/vendor/useToast';
 import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/lib/vendor/api/vendor';
 
 const D = {
-  border: '0.5px solid var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
+  // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
+  // It used to hold the whole shorthand ('0.5px solid var(...)') while most
+  // readers re-prefixed it, producing '0.5px solid 0.5px solid var(...)': a
+  // declaration that parses, then becomes INVALID AT COMPUTED-VALUE TIME once
+  // var() substitutes, so `border` computes to its initial value and NO EDGE
+  // RENDERS AT ALL. 22 sites across 5 files. The rename is the guard: any
+  // reader I failed to migrate is now a tsc error, not a silent missing border.
+  borderCol: 'var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)', red: 'var(--role-critical)',
 };
 const F = {
@@ -26,9 +33,14 @@ const F = {
   label:   'var(--font-jost), system-ui, sans-serif',
   body:    'var(--font-dm-sans), system-ui, sans-serif',
 };
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
-  border: `0.5px solid ${D.border}`, borderRadius: 8, color: D.cream,
+  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
   fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
 };
 

@@ -19,8 +19,15 @@ import {
 
 const D = {
   bg:     '#0E0D0B',
-  card:   'rgba(255,255,255,0.035)',
-  border: '0.5px solid var(--atelier-card-border)',
+  card:   'var(--role-sheet)',
+  // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
+  // It used to hold the whole shorthand ('0.5px solid var(...)') while most
+  // readers re-prefixed it, producing '0.5px solid 0.5px solid var(...)': a
+  // declaration that parses, then becomes INVALID AT COMPUTED-VALUE TIME once
+  // var() substitutes, so `border` computes to its initial value and NO EDGE
+  // RENDERS AT ALL. 22 sites across 5 files. The rename is the guard: any
+  // reader I failed to migrate is now a tsc error, not a silent missing border.
+  borderCol: 'var(--atelier-card-border)',
   gold:   'var(--role-metal)',
   cream:  'rgba(245,240,232,0.85)',
   muted:  'rgba(245,240,232,0.40)',
@@ -174,7 +181,7 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
       <Header vendorName={vendorName} />
 
       {/* Page header */}
-      <div style={{ padding: '16px 20px 0', borderBottom: D.border }}>
+      <div style={{ padding: '16px 20px 0', borderBottom: `0.5px solid ${D.borderCol}` }}>
         <button type="button" onClick={() => router.back()} style={{
           background: 'none', border: 'none', color: D.muted, fontSize: 20,
           cursor: 'pointer', padding: '0 0 12px', display: 'block',
@@ -203,7 +210,7 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
         ) : responses.map(r => (
           <div key={r.response_id} style={{
             ...CARD, borderRadius: 12,
-            border: r.state === 'accepted' ? '0.5px solid var(--atelier-sheet-border)' : D.border,
+            border: r.state === 'accepted' ? '0.5px solid var(--atelier-sheet-border)' : `0.5px solid ${D.borderCol}`,
             padding: '18px',
           }}>
             {/* Vendor info */}
@@ -237,7 +244,7 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
                   disabled={preparing === r.response_id}
                   style={{
                     marginTop: 12, width: '100%', padding: '10px 0',
-                    background: 'transparent', border: `0.5px solid ${D.border}`,
+                    background: 'transparent', border: `0.5px solid ${D.borderCol}`,
                     borderRadius: 999, fontFamily: F.label, fontWeight: 300, fontSize: 10,
                     letterSpacing: '0.2em', textTransform: 'uppercase',
                     color: D.cream, cursor: preparing === r.response_id ? 'default' : 'pointer',
@@ -335,7 +342,7 @@ const LABEL: React.CSSProperties = {
   letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,
 };
 const INPUT: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', backgroundColor: 'rgba(255,255,255,0.04)',
-  border: D.border, borderRadius: 8, color: D.cream,
+  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
   fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
 };

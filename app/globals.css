@@ -710,7 +710,11 @@ body {
   --atelier-sheet-bot:   rgba(22,16,12,0.99);
   --atelier-sheet-border:rgba(201,168,76,0.32);
   --atelier-input-bg:    rgba(245,235,212,0.04);
-  --atelier-input-border:rgba(201,168,76,0.28);
+  /* TDW_09 R-S3 + F-09.35 — the field boundary at the 3:1 UI bar. This block is
+     the PRE-MOUNT home; lib/vendor/theme.ts is the token owner and ThemeContext
+     repaints it inline post-mount. Both homes move together or the first frame
+     renders an edge the owner does not hold — which is exactly what F-09.35 is. */
+  --atelier-input-border:rgba(201,168,76,0.52);
   --atelier-overlay:     rgba(0,0,0,0.6);
   --atelier-overlay-bg:  rgba(0,0,0,0.6);
   --atelier-row-hover:   rgba(245,235,212,0.03);
@@ -744,7 +748,9 @@ html.theme-light {
   --atelier-sheet-bot:   #EDE8DF;
   --atelier-sheet-border:rgba(122,56,40,0.25);
   --atelier-input-bg:    rgba(26,15,8,0.04);
-  --atelier-input-border:rgba(122,56,40,0.22);
+  /* TDW_09 R-S3 + F-09.35 — WAS 0.22 here while theme.ts:151 held 0.28: two homes,
+     two values, on the theme the founder's walk convicted. Both now 0.58 (3.03:1). */
+  --atelier-input-border:rgba(122,56,40,0.58);
   --atelier-overlay-bg:  rgba(26,15,8,0.55);
   --atelier-overlay:     rgba(26,15,8,0.55);
   --atelier-row-hover:   rgba(26,15,8,0.03);

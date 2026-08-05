@@ -65,7 +65,7 @@ function PillPicker({ options, value, onChange }: {
           <button key={opt} type="button" onClick={() => onChange(opt)} style={{
             padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
             background: active ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
-            outline: active ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid rgba(255,255,255,0.08)',
+            outline: active ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
             fontFamily: F.label, fontWeight: active ? 400 : 300, fontSize: 10,
             letterSpacing: '0.15em', textTransform: 'uppercase',
             color: active ? D.cream : D.muted,

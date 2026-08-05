@@ -35,6 +35,11 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
   r.setProperty('--atelier-input-border', t.inputBorder);
   r.setProperty('--atelier-card-border',  t.cardBorder);
   r.setProperty('--atelier-row-hover',    t.rowHover);
+  // TDW_09 R-S1-AMENDED — `sectionBg` was authored in theme.ts from the start and
+  // never published, so every surface that wanted a faint inset panel reached for a
+  // hardcoded white tint instead. A role nothing publishes is a role nothing can
+  // read (F-09.28's own sentence). Additive: nothing read this name before.
+  r.setProperty('--atelier-section-bg',   t.sectionBg);
   r.setProperty('--atelier-overlay-bg',   t.overlay);
   // TDW_08 P3 — the page colour, exposed as a var so a surface can CLAIM it instead of
   // inheriting `--bg-primary` by accident. Additive: nothing read this before.

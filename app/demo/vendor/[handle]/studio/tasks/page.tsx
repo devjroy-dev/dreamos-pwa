@@ -7,10 +7,15 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const D={card:'rgba(255,255,255,0.035)',muted:'rgba(248,247,245,0.45)',cream:'var(--atelier-ink)',gold:'var(--atelier-accent-text)',red:'var(--role-critical)'};
+const D={card:'var(--role-sheet)',muted:'var(--atelier-ink-mute)',cream:'var(--atelier-ink)',gold:'var(--atelier-accent-text)',red:'var(--role-critical)'};
 const F={display:'var(--font-cormorant), Georgia, serif',label:'var(--font-jost), system-ui, sans-serif',body:'var(--font-dm-sans), system-ui, sans-serif'};
-const PRIORITY_COLOR:Record<string,string>={low:'rgba(248,247,245,0.3)',normal:D.muted,high:'var(--role-caution)',urgent:D.red};
-const inputStyle:React.CSSProperties={width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.04)',border:'0.5px solid var(--atelier-card-border)',borderRadius:8,color:D.cream,fontFamily:F.body,fontWeight:300,fontSize:14,outline:'none',boxSizing:'border-box' as const};
+const PRIORITY_COLOR:Record<string,string>={low:'var(--atelier-ink-fade)',normal:D.muted,high:'var(--role-caution)',urgent:D.red};
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
+const inputStyle:React.CSSProperties={width:'100%',padding:'11px 14px',backgroundColor:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:8,color:D.cream,fontFamily:F.body,fontWeight:300,fontSize:14,outline:'none',boxSizing:'border-box' as const};
 const labelStyle:React.CSSProperties={fontFamily:F.label,fontWeight:300,fontSize:9,color:D.muted,letterSpacing:'0.2em',textTransform:'uppercase' as const,marginBottom:6};
 type TabState='open'|'in_progress'|'done';
 interface Task{id:string;title:string;description?:string;priority:string;state:TabState;due_date?:string;}
