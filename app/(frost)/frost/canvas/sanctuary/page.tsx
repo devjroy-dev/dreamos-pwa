@@ -220,7 +220,7 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   // digits, the word Rs, no glyph, no short form. Cured at the DONOR rather than at each of
   // its call sites: one edit moves every figure this screen renders, and a call site the
   // executor missed cannot keep rendering the old register.
-  const fmtRs = (n:number) => formatRs(n);
+  const fmtRs = (n:number) => formatRs(n); // TDW_09 R-U25: the file's SECOND identical declaration — both are pass-throughs to the one home // TDW_09 R-U25: a pass-through; the home is lib/vendor/format
   function fmtDate(d:string|null|undefined):string {
     if(!d) return '';
     const dt=new Date(d+'T00:00:00');

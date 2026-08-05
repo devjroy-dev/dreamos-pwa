@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchBands } from '@/lib/vendor/api/vendor';
 import { pendingOf } from '@/lib/vendor/derive';
 import type { Band, BandFunction, BandCrew, BandsResponse } from '@/lib/vendor/types/vendor';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -64,7 +65,7 @@ const LOOSE_LABEL = 'Loose engagements';
 
 /** Indian-grouped rupees: 125000 -> "₹1,25,000". */
 function inr(n: number): string {
-  return '₹' + Math.round(n).toLocaleString('en-IN');
+  return formatRs(Math.round(n)); // TDW_09 R-U25: was the glyph form
 }
 
 /**

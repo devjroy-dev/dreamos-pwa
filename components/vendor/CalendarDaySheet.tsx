@@ -30,6 +30,7 @@ import type {
 } from '@/lib/vendor/types/vendor';
 import { SLOT_LABELS, SLOT_ORDER, SLOT_HEADINGS } from '@/lib/vendor/slotWords';
 import type { ToastKind } from '@/hooks/vendor/useToast';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const D = {
   border: '0.5px solid var(--atelier-card-border)',
@@ -63,10 +64,9 @@ function fmtDate(iso: string) {
   if (!m) return iso;
   return `${parseInt(m[3])} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m[2])-1]} ${m[1]}`;
 }
+// TDW_09 R-U27/R-U28: glyph and shorthand together. A day-sheet line reflows.
 function rupees(n: number) {
-  if (n >= 100000) return `₹${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L`;
-  if (n >= 1000)   return `₹${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
-  return `₹${n}`;
+  return formatRs(n);
 }
 
 interface Props {

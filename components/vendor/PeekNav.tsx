@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const F = {
   label:  'var(--font-jost), system-ui, sans-serif',
@@ -17,11 +18,12 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 const ANALYTICS_REPLY = "We're collecting your data and usage patterns right now. Analytics will be available after your first month — this ensures the insights are accurate and give you a better picture of your business. Stay tuned.";
 
+// TDW_09 R-U27/R-U28: this broke the law in BOTH directions at once — Cr/L/K
+// shorthand with NO currency prefix above a thousand, and the bare glyph below it,
+// so the same strip could read "1.2L" and a glyph-prefixed figure one refresh apart.
+// One home, one register. A strip row reflows; it does not shrink.
 function fmtRs(n: number): string {
-  if (n >= 10000000) return `${(n / 10000000).toFixed(1)}Cr`;
-  if (n >= 100000)   return `${(n / 100000).toFixed(1)}L`;
-  if (n >= 1000)     return `${(n / 1000).toFixed(0)}K`;
-  return `₹${n}`;
+  return formatRs(n);
 }
 
 const CREATES = [

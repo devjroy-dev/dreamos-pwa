@@ -32,6 +32,7 @@ import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
+import { formatRs, fitMoneySize } from '@/lib/vendor/format'; // TDW_09 R-U25/R-U24
 
 // ── Static Atelier tokens (non-theme-sensitive) ──────────────────
 const A = {
@@ -58,7 +59,7 @@ const QUICK_ACTIONS = [
   { label: '+ Lead',    primer: "Tell me about the new enquiry — paste it or describe it and I'll log it." },
 ];
 
-// ── Rs formatter — keeps L/Cr suffixes for snapshot density ─────
+// ── THE COMPACT FORMATTER IS DEAD (TDW_09 R-U24) ─────────────────────
 // TDW_04 A3 (ST-4's acceptance, executor judgment — flagged for CE review):
 // the compact form must not ROUND AWAY the agreement it exists to prove. The
 // old one-decimal L (and whole-number K) printed Rs 1,25,000 as "1.3L" and
@@ -68,15 +69,20 @@ const QUICK_ACTIONS = [
 // is ~120px wide); rounding is not. So: keep the compact scale, drop the lie —
 // trailing zeros stripped, real precision kept (1.25L, 65.4K, 1.3L when it IS
 // 1.3L). Only used by the Owed cell (verified: one call site, ln ~181).
+// THE COMMENT ABOVE IS SUPERSEDED and is kept only as the record of what it argued.
+// It reasoned that compaction was a DESIGN NEED because the brass Owed cell is
+// ~120px wide, and that only the ROUNDING was a lie. R-U24 rules otherwise: the
+// register law forbids the short forms on any rendered byte, and this cell's own
+// ellipsis meant the honest alternative would have rendered a figure the reader
+// cannot tell is incomplete — a worse lie than the compaction ever was.
+//
+// THE MECHANISM THAT REPLACES IT, NAMED HERE SO ITS NEXT SITTING RE-READS THIS
+// SENTENCE (F-06.85): `fitMoneySize` in lib/vendor/format.ts computes the largest
+// type size at which the WHOLE figure fits, and the cell steps down to it.
+// Compaction was the thing the law forbade; type size is free. The Ledger already
+// stepped this cell 48 -> 34 for money, so this extends a mechanism, not invents one.
 function fmtRs(n: number): string {
-  const compact = (v: number, suffix: string) => {
-    const s = v.toFixed(2).replace(/\.?0+$/, '');
-    return `${s}${suffix}`;
-  };
-  if (n >= 10000000) return compact(n / 10000000, 'Cr');
-  if (n >= 100000)   return compact(n / 100000, 'L');
-  if (n >= 1000)     return compact(n / 1000, 'K');
-  return String(n);
+  return formatRs(n);
 }
 function fmtEventDate(iso: string): string {
   try {
@@ -193,7 +199,11 @@ function Ledger({ context, money }: { context: VendorContextResponse | null; mon
       />
       <LedgerCell
         big={owed > 0 ? fmtRs(owed) : '—'}
-        bigSize={owed > 0 ? 34 : 48}
+        // TDW_09 R-U24: the whole figure, at whatever size holds it. ~100px is the
+        // cell's inner width on a 390px viewport (ledger margin 22 each side,
+        // padding 8, three cells, cell padding 4) — deliberately conservative, and
+        // the estimate errs small so a figure never clips.
+        bigSize={owed > 0 ? fitMoneySize(fmtRs(owed), 100, 34, 18) : 48}
         label="Owed"
         // Lane honesty: this figure is your binders' truth, not a stale invoice table.
         sub={owedCount === 0 ? 'from your binders · settled' : owedCount === 1 ? 'from your binders · 1 open' : `from your binders · ${owedCount} open`}
@@ -242,9 +252,15 @@ function LedgerCell({
         lineHeight: 1,
         color: bigColor ?? (accent ? 'var(--atelier-ink)' : 'var(--atelier-ink-dim)'),
         letterSpacing: '-0.01em',
+        // ── TDW_09 R-U24 — THE CLIPPING PROPERTY IS DELETED FROM THIS CELL ─────
+        // Truncating a money figure is its own violation class: the clipped form
+        // reads as a complete number to anyone not counting digits. The cell no
+        // longer needs it — `fitMoneySize` guarantees the whole figure fits before
+        // it renders — and keeping it would leave a silent clipper armed for the
+        // first figure the estimate underserves. `overflow: hidden` stays as the
+        // container's own hygiene; nothing should reach it.
         whiteSpace: 'nowrap',
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
       }}>{big}</div>
       <div style={{
         fontFamily: F.label, fontWeight: 300, fontSize: 8,

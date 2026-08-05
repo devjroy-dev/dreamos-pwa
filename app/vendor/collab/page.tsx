@@ -14,6 +14,7 @@ import { mintCrewIdentity, MINT_ACTION_LABEL, MINT_DONE_LABEL } from '@/lib/vend
 import { canViewResponses, cardIsTappable } from '@/lib/vendor/postAccess';
 // D2 — the option list, its alias map and the match ladder have ONE home.
 import { CITIES, matchCity } from '@/lib/vendor/cityMatch';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -70,7 +71,9 @@ function fmtDate(iso: string): string {
 }
 function fmtBudget(amount?: number, period?: string): string {
   if (!amount) return 'Budget TBD';
-  const f = amount >= 100000 ? `Rs ${(amount / 100000).toFixed(1)}L` : `Rs ${amount.toLocaleString('en-IN')}`;
+  // TDW_09 R-U28: one branch, one home — the 1L threshold was the shorthand's only
+  // reason to exist. List row, so it reflows.
+  const f = formatRs(amount);
   if (period === 'per_day')   return `${f}/day`;
   if (period === 'per_shoot') return `${f}/shoot`;
   return f;

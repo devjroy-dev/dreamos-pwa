@@ -142,10 +142,10 @@ export function MOCK_COUPLE_CHAT_REPLY(message: string): string {
     return `You have 47 saves across all ceremonies. Most are for the reception — 12 looks — and 9 for the wedding. Want me to pull up a specific ceremony?`;
 
   if (/book|vendor|who.*booked|confirmed/.test(m))
-    return `6 vendors confirmed: Aanya Studio (photography), Swati Roy (makeup), Bloom & Petals (decor), Shivam Caterers, The Band Wale, and Reel Makers. Total committed: ₹28L. Paid so far: ₹13.5L.`;
+    return `6 vendors confirmed: Aanya Studio (photography), Swati Roy (makeup), Bloom & Petals (decor), Shivam Caterers, The Band Wale, and Reel Makers. Total committed: Rs 28L. Paid so far: Rs 13.5L.`;
 
   if (/budget|spend|money|paid|cost/.test(m))
-    return `Total committed across all vendors: ₹28,00,000. You've paid ₹13,50,000 so far. Remaining: ₹14,50,000. Largest pending payment: Shivam Caterers (₹4,50,000 balance).`;
+    return `Total committed across all vendors: Rs 28,00,000. You've paid Rs 13,50,000 so far. Remaining: Rs 14,50,000. Largest pending payment: Shivam Caterers (Rs 4,50,000 balance).`;
 
   if (/circle|ananya|riya|mom/.test(m))
     return `Your Circle has 4 members: Ananya (sister), your mom, Riya (best friend), and Rohan's mom. Ananya was active this morning — she saved a look to Muse.`;

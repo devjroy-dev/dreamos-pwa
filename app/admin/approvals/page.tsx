@@ -7,6 +7,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { API_BASE } from '../../../lib/api';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -51,7 +52,7 @@ function fmtDate(d: string | null) {
 }
 function fmtINR(n: number | null) {
   if (!n) return '—';
-  return '₹' + Number(n).toLocaleString('en-IN');
+  return formatRs(Number(n)); // TDW_09 R-U25
 }
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { API_BASE } from '../../../lib/api';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
@@ -99,7 +100,7 @@ export default function AdminCollabPage() {
                     <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#111111', maxWidth: 160 }}>
                       <button onClick={() => setExpanded(expanded === p.id ? null : p.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#111111', cursor: 'pointer', textDecoration: 'underline dotted', textUnderlineOffset: 3 }}>{p.title || '—'}</button>
                     </td>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#555250' }}>{p.budget ? `₹${p.budget.toLocaleString('en-IN')}` : '—'}</td>
+                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#555250' }}>{p.budget ? formatRs(p.budget) : '—'}</td>
                     <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#555250' }}>{p.city || '—'}</td>
                     <td style={{ padding: '11px 14px' }}>{statusPill(p.status)}</td>
                     <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: '#555250', whiteSpace: 'nowrap' }}>{new Date(p.created_at).toLocaleDateString('en-IN')}</td>

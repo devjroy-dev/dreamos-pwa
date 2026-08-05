@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',brassLine:'rgba(201,168,76,0.18)',green:'#7FBE85',red:'#E07B5C'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
@@ -19,7 +20,7 @@ const DEMO_FEED:Post[]=[
   {id:'p1',requirement_type:'videography',event_date:'2026-10-15',city:'Delhi NCR',budget_inr:50000,payment_period:'per_shoot',details:'Looking for a wedding videographer for palace wedding in Delhi. Full day shoot.',poster_category:'photography',state:'open',interested_count:3},
   {id:'p2',requirement_type:'mehendi',event_date:'2026-09-20',city:'Mumbai',budget_inr:15000,payment_period:'total',details:'Need an experienced mehendi artist for an intimate wedding.',poster_category:'makeup',state:'open',interested_count:1},
 ];
-function fmtBudget(amount?:number,period?:string){if(!amount)return'Budget TBD';const f=amount>=100000?`Rs ${(amount/100000).toFixed(1)}L`:`Rs ${amount.toLocaleString('en-IN')}`;if(period==='per_day')return`${f}/day`;if(period==='per_shoot')return`${f}/shoot`;return f;}
+function fmtBudget(amount?:number,period?:string){if(!amount)return'Budget TBD';const f=formatRs(amount);/* TDW_09 R-U28: the demo mirror follows its live twin */if(period==='per_day')return`${f}/day`;if(period==='per_shoot')return`${f}/shoot`;return f;}
 function fmtType(t:string){return t.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());}
 function fmtDate(iso:string){try{return new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}catch{return iso;}}
 function Label({children}:{children:React.ReactNode}){return<div style={{fontFamily:F.label,fontWeight:300,fontSize:8,letterSpacing:'0.42em',textTransform:'uppercase',color:A.inkMute,marginBottom:10}}>{children}</div>;}

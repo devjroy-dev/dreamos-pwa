@@ -26,6 +26,7 @@
 // (_base.ts, F-05.30). That is filed to the coordinated auth sitting and is
 // NOT this micro's to resolve — it arrives here with its eyes open.
 import { isBrideDemoMode, getAccessToken } from '../frost-api/_base';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
 // Demo mode is the FIRST authority: a demo walk is served mocks whatever the
@@ -525,9 +526,10 @@ export async function saveProfile(patch: {
 
 // ─── FORMATTING UTILS ──────────────────────────────────────────────────────
 
+// TDW_09 R-U25: compliant already; consolidated so one place builds a money string.
+// The couple lane already imports this home (sanctuary, muse).
 export function fmtINR(n: number | null | undefined): string {
-  if (!n && n !== 0) return 'Rs 0';
-  return 'Rs ' + n.toLocaleString('en-IN');
+  return formatRs(!n && n !== 0 ? 0 : n);
 }
 
 export function timeAgo(iso: string): string {

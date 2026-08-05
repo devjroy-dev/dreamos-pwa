@@ -3,9 +3,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../../lib/api';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 
-function fmtINR(n: number) { return '₹' + n.toLocaleString('en-IN'); }
+function fmtINR(n: number) { return formatRs(n); } // TDW_09 R-U25
 function timeAgo(d: string) {
   const diff = Date.now() - new Date(d).getTime();
   const m = Math.floor(diff / 60000); const h = Math.floor(diff / 3600000);

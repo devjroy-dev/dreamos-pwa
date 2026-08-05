@@ -11,6 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { A, F } from './SliceRow';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 function useCountUp(target: number, ms = 300): number {
   const [v, setV] = useState(target);
@@ -44,7 +45,7 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
 }) {
   const shown = useCountUp(value);
   const text = isMoney
-    ? (value > 0 ? `Rs ${shown.toLocaleString('en-IN')}` : '—')
+    ? (value > 0 ? formatRs(shown) : '—')  // TDW_09 R-U25
     : String(shown);
 
   return (

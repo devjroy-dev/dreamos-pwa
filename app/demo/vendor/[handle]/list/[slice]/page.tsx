@@ -12,6 +12,7 @@ import { useDemoLeadsData, useDemoClientsData, useDemoInvoicesData, useDemoExpen
 import type { Client, Lead, Invoice, Expense, VendorEvent } from '@/lib/vendor/types/vendor';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import type { ToastKind } from '@/hooks/vendor/useToast';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const A = { ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',inkDim:'var(--atelier-ink-dim)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',green:'#7FBE85',red:'#E07B5C' } as const;
 const F = { display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif' } as const;
@@ -26,7 +27,7 @@ function stateColor(slice:ListSlice,state:string|undefined):string{
   return A.brassWarm;
 }
 interface Row{id:string;primary:string;secondary?:string;meta?:string;badge?:string;badgeAlert?:boolean;phone?:string;aiPrimer:string;deletePrimer:string;detail:{label:string;value:string}[];}
-function fmtRs(n:number|null|undefined){return n==null?'Rs —':`Rs ${n.toLocaleString('en-IN')}`;}
+function fmtRs(n:number|null|undefined){return n==null?'Rs —':formatRs(n);} // TDW_09 R-U25
 function fmtDate(iso:string|null|undefined){if(!iso)return'—';const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso);if(!m)return iso;return`${parseInt(m[3])} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m[2])-1]} ${m[1]}`;}
 function fmtLeadDate(iso:string|null|undefined,precision?:'day'|'month'|'year'|null){if(!iso)return'—';const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso);if(!m)return iso;const ma=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m[2])-1];if(precision==='year')return m[1];if(precision==='month')return`${ma} ${m[1]}`;return`${parseInt(m[3])} ${ma} ${m[1]}`;}
 function cap(s:string|null|undefined):string{if(!s||s==='—')return s??'—';return s.split(/[\s_-]+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');}

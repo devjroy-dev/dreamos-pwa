@@ -15,6 +15,7 @@ import { requirementForKind } from '@/lib/vendor/api/roster';
 import { commitCrew } from '@/lib/vendor/crewCommit';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import type { TeamMember, DayEvent } from '@/lib/vendor/types/vendor';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const SHEET: React.CSSProperties = {
   background: 'var(--atelier-sheet-top)',
@@ -134,7 +135,8 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
     router.push(`/vendor/collab?${qs.toString()}`);
   }
 
-  const rate = (m: TeamMember) => (m.daily_rate_inr != null ? `₹${m.daily_rate_inr.toLocaleString('en-IN')}` : null);
+  // TDW_09 R-U25: was the glyph form. A crew rate is money a vendor reads.
+  const rate = (m: TeamMember) => (m.daily_rate_inr != null ? formatRs(m.daily_rate_inr) : null);
 
   return (
     <>

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
 import { fetchLeads, fetchMe, fetchDiscoverStatus } from '@/lib/vendor/api/vendor';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -33,10 +34,12 @@ type TdwLead = {
   created_at: string;
 };
 
+// TDW_09 R-U28: the L/K forms are gone. This is a LIST ROW, so the figure reflows
+// rather than shrinking — a row that had space does not pay for smaller type.
+// Whole figure or wrap, never ellipsis (R-U24).
 function fmtBudget(n: number | null): string {
   if (!n) return '—';
-  if (n >= 100000) return `Rs ${(n / 100000).toFixed(1)}L`;
-  return `Rs ${(n / 1000).toFixed(0)}K`;
+  return formatRs(n);
 }
 function fmtDate(iso: string | null): string {
   if (!iso) return '—';

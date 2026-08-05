@@ -6,11 +6,15 @@
 // Pure functions only — the native clause rides free.
 
 import type { CabinetBinder } from '@/lib/vendor/api/vendor';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 // ── money (moved VERBATIM from Cabinet.tsx) ─────────────────────
+// TDW_09 R-U23 / F-09.24: already register-compliant — its cure is consolidation,
+// not correction, and it changes no rendered byte. The name stays (eight call sites
+// in Cabinet.tsx read it); it no longer BUILDS the string.
 export function fmtINR(n: number | null | undefined): string {
   if (n == null) return '—';
-  return 'Rs ' + Math.round(n).toLocaleString('en-IN');
+  return formatRs(Math.round(n));
 }
 export function primaryAmount(r: CabinetBinder): number | null {
   if (r.amount != null) return r.amount;
@@ -40,18 +44,16 @@ export const BADGE: Record<'paid' | 'partial' | 'owed', { label: string; color: 
 
 // ── P2 additions (binder cards) ─────────────────────────────────
 
-// Words-adjacent rupees per the card anatomy: ₹2.5L, ₹90k, ₹1.2Cr, ₹850.
+// ── TDW_09 R-U27 — THE SHARPEST SPECIMEN IN THE SWEEP ────────────────────────
+// This broke the register law TWICE — the glyph AND the short forms — and it
+// rendered on the vendor's own leads chips ("In your books / booked / <amount> in").
+// It sat TWELVE LINES BELOW the compliant fmtINR above, which is exactly why a
+// census matched on function NAMES found the clean one and missed this one in the
+// same file. The name survives because the leads cross-chip reads it; the dialect
+// does not. Words-adjacent now means the house register, adjacent to words.
 export function amountWordsAdjacent(n: number | null | undefined): string {
-  if (n == null) return '₹—';
-  const abs = Math.abs(n);
-  const trim = (v: number) => {
-    const one = Math.round(v * 10) / 10;
-    return Number.isInteger(one) ? String(one) : one.toFixed(1);
-  };
-  if (abs >= 1_00_00_000) return `₹${trim(n / 1_00_00_000)}Cr`;
-  if (abs >= 1_00_000)    return `₹${trim(n / 1_00_000)}L`;
-  if (abs >= 1_000)       return `₹${trim(n / 1_000)}k`;
-  return `₹${Math.round(n)}`;
+  if (n == null) return '—';
+  return formatRs(Math.round(n));
 }
 
 // Relative last-touched for the card's third line.

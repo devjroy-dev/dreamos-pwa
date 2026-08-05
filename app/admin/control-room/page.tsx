@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Status = 'live' | 'off' | 'invite-only' | 'coming-soon';
@@ -46,7 +47,8 @@ function Toggle({ value, label, note }: { value: boolean; label: string; note?: 
   );
 }
 
-function PriceField({ label, value, note, prefix = '₹' }: { label: string; value: string; note?: string; prefix?: string }) {
+// TDW_09 R-U28: the default prefix was the glyph. Money renders through the one home.
+function PriceField({ label, value, note, prefix = 'Rs' }: { label: string; value: string; note?: string; prefix?: string }) {
   const [val, setVal] = useState(value);
   return (
     <div style={{ padding: '14px 0', borderBottom: '0.5px solid #F0EEE8' }}>
@@ -158,12 +160,12 @@ function TabCoupleTiers() {
     <div>
       <SectionHeader eyebrow="Couple Tiers" title="The Dreamer journey." subtitle="Three tiers. Each unlocks a layer of the platform. Pricing and access per tier." />
 
-      <NoteBanner text="Currently: Basic is free, Gold is ₹999 one-time, Platinum is ₹2,999 one-time. Discovery is free for all tiers — browsing never costs tokens. This is intentional to maximise top-of-funnel." />
+      <NoteBanner text="Currently: Basic is free, Gold is Rs 999 one-time, Platinum is Rs 2,999 one-time. Discovery is free for all tiers — browsing never costs tokens. This is intentional to maximise top-of-funnel." />
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <TierCard
           tier="Basic" color="#888580" badge="Free"
-          price="₹0" priceNote="Always free — no credit card"
+          price={formatRs(0)} priceNote="Always free — no credit card"
           features={[
             'Discovery feed — unlimited browsing',
             'Muse board — save up to 20 vendors',
@@ -175,7 +177,7 @@ function TabCoupleTiers() {
         />
         <TierCard
           tier="Gold" color="#C9A84C" badge="One-time"
-          price="₹999" priceNote="One-time unlock, lifetime"
+          price={formatRs(999)} priceNote="One-time unlock, lifetime"
           features={[
             'Everything in Basic',
             'Muse board — unlimited saves',
@@ -187,7 +189,7 @@ function TabCoupleTiers() {
         />
         <TierCard
           tier="Platinum" color="#111111" badge="One-time"
-          price="₹2,999" priceNote="One-time unlock, lifetime"
+          price={formatRs(2999)} priceNote="One-time unlock, lifetime"
           features={[
             'Everything in Gold',
             'DreamAi — unlimited queries',
@@ -201,15 +203,15 @@ function TabCoupleTiers() {
 
       <Card>
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Pricing Controls</p>
-        <PriceField label="Gold tier price" value="999" note="One-time payment. Currently ₹999." />
-        <PriceField label="Platinum tier price" value="2999" note="One-time payment. Currently ₹2,999." />
+        <PriceField label="Gold tier price" value="999" note="One-time payment. Currently Rs 999." />
+        <PriceField label="Platinum tier price" value="2999" note="One-time payment. Currently Rs 2,999." />
       </Card>
 
       <Card>
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>DreamAi Token Packs (All Tiers)</p>
-        <PriceField label="50 token pack" value="100" note="₹2 per query" />
-        <PriceField label="200 token pack" value="350" note="₹1.75 per query — 12% saving" />
-        <PriceField label="500 token pack" value="800" note="₹1.60 per query — 20% saving" />
+        <PriceField label="50 token pack" value="100" note="Rs 2 per query" />
+        <PriceField label="200 token pack" value="350" note="Rs 1.75 per query — 12% saving" />
+        <PriceField label="500 token pack" value="800" note="Rs 1.60 per query — 20% saving" />
       </Card>
 
       <Card>
@@ -217,7 +219,7 @@ function TabCoupleTiers() {
         <Toggle value={true} label="Basic: Free browsing of discovery feed" note="Couples should always be able to browse. Remove this gate only if you want discovery to be entirely invite-only." />
         <Toggle value={true} label="Basic: Can send enquiries" note="When OFF: Basic users must upgrade to Gold to send an enquiry. High friction, higher conversion — use carefully." />
         <Toggle value={true} label="Gold: Full vendor profiles (Page 2)" note="Page 2 includes extended portfolio, team, awards, packages. Currently gated to Gold+." />
-        <Toggle value={true} label="Platinum: Couture appointments" note="Couture trial bookings (₹2-5K fee) only available to Platinum couples." />
+        <Toggle value={true} label="Platinum: Couture appointments" note="Couture trial bookings (Rs 2-5K fee) only available to Platinum couples." />
         <Toggle value={false} label="Platinum: Required for DreamAi agentic actions" note="When ON: only Platinum couples can use DreamAi to take actions (complete task, send WhatsApp, etc.). Basic/Gold can only chat." />
       </Card>
     </div>
@@ -234,7 +236,7 @@ function TabVendorTiers() {
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <TierCard
           tier="Essential" color="#888580" badge="Always free"
-          price="₹499/mo" priceNote="Or free after trial"
+          price={formatRs(499) + '/mo'} priceNote="Or free after trial"
           features={[
             'Visible in discovery feed (post-approval)',
             'Basic profile — Page 1 only',
@@ -246,7 +248,7 @@ function TabVendorTiers() {
         />
         <TierCard
           tier="Signature" color="#C9A84C" badge="Recommended"
-          price="₹1,499/mo" priceNote="Monthly subscription"
+          price={formatRs(1499) + '/mo'} priceNote="Monthly subscription"
           features={[
             'Everything in Essential',
             'Full profile — Page 2 unlocked',
@@ -259,7 +261,7 @@ function TabVendorTiers() {
         />
         <TierCard
           tier="Prestige" color="#C9A84C" badge="Invite Only"
-          price="₹3,999/mo" priceNote="Invite only — you assign"
+          price={formatRs(3999) + '/mo'} priceNote="Invite only — you assign"
           features={[
             'Everything in Signature',
             'Lock Date enabled',
@@ -291,7 +293,7 @@ function TabVendorTiers() {
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Prestige Controls</p>
         <Toggle value={true} label="Prestige is invite-only" note="Prestige vendors are hand-picked by you and Swati. Cannot be self-upgraded to." />
         <Toggle value={false} label="Prestige auto-approves all image uploads" note="When ON: Prestige vendor images go live without admin review. When OFF: all images need approval regardless of tier." />
-        <Toggle value={true} label="Prestige vendors can set their own Lock Date amount" note="Each Prestige vendor sets their own deposit amount (₹2K–₹10K range)." />
+        <Toggle value={true} label="Prestige vendors can set their own Lock Date amount" note="Each Prestige vendor sets their own deposit amount (Rs 2K–Rs 10K range)." />
       </Card>
     </div>
   );
@@ -342,7 +344,7 @@ function TabPricing() {
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Stream 6 — Collab Hub</p>
         <PriceField label="Essential post fee" value="100" note="Signature/Prestige post free." />
         <PriceField label="Premium placement (top of feed 48h)" value="500" />
-        <SelectField label="Match fee (% of job value)" value="5%" options={['3%', '5%', '7%', '10%']} note="Capped at ₹2,000 per match. Referral type exempt." />
+        <SelectField label="Match fee (% of job value)" value="5%" options={['3%', '5%', '7%', '10%']} note="Capped at Rs 2,000 per match. Referral type exempt." />
         <PriceField label="Match fee cap" value="2000" />
         <Toggle value={false} label="Collab match fee active" note="Turn ON when you want to start taking the 5% cut from successful matches." />
       </Card>
@@ -485,7 +487,7 @@ function TabFeatures() {
             { label: 'Broadcast WhatsApp', status: 'live' as Status, note: 'Signature+ only.' },
             { label: 'Contracts', status: 'live' as Status, note: 'Download as PDF.' },
             { label: 'Image Hub (6 categories)', status: 'live' as Status, note: 'All tiers. Admin approval required.' },
-            { label: 'Collab Hub', status: 'live' as Status, note: 'Signature+ post free. Essential ₹100/post.' },
+            { label: 'Collab Hub', status: 'live' as Status, note: 'Signature+ post free. Essential Rs 100/post.' },
             { label: 'Discovery Dash (analytics)', status: 'live' as Status, note: 'All tiers.' },
             { label: 'Lock Date (receive deposits)', status: 'coming-soon' as Status, note: 'Prestige only. Razorpay pending.' },
             { label: 'Deluxe Suite (12-tab ops)', status: 'invite-only' as Status, note: 'Prestige only. Assign from admin.' },
@@ -556,7 +558,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'access',       label: 'Access Gates',    icon: '◎' },
   { id: 'couple-tiers', label: 'Couple Tiers',    icon: '♡' },
   { id: 'vendor-tiers', label: 'Vendor Tiers',    icon: '✦' },
-  { id: 'pricing',      label: 'Pricing',         icon: '₹' },
+  { id: 'pricing',      label: 'Pricing',         icon: 'Rs ' },
   { id: 'discovery',    label: 'Discovery',       icon: '⬡' },
   { id: 'dreamai',      label: 'DreamAi',         icon: '⚡' },
   { id: 'features',     label: 'Features',        icon: '◈' },

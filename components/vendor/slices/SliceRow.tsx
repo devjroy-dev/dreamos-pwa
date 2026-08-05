@@ -6,6 +6,7 @@
 // P4 adds swipe/bulk affordances; P3 adds draft chips. Not here.
 
 import type { ListSlice, DoorSlice } from '@/hooks/vendor/useLastSlice';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 export const A = {
   ink:       'var(--atelier-ink)',
@@ -79,7 +80,8 @@ export interface Row {
   sortDate?: string | null; // events: event_date · expenses: expense_date (ISO)
 }
 
-export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : `Rs ${n.toLocaleString('en-IN')}`; }
+// TDW_09 R-U25: the name stays for its importers; the string comes from the one home.
+export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : formatRs(n); }
 export function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
