@@ -50,7 +50,7 @@ const F = {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
   fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -67,8 +67,8 @@ export default function TeamPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
         <Header vendorName={session.name ?? null} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
-          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: D.cream }}>Team</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
+          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: D.cream }}>Team</p>
+          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
           <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
         </div>
       </div>
@@ -211,8 +211,8 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
         </div>
       ) : members.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 40 }}>
-          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>No team members yet</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>Tap + to add your crew</p>
+          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>No team members yet</p>
+          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Tap + to add your crew</p>
         </div>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -222,14 +222,14 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
               borderBottom: `1px solid ${D.borderCol}`,
             }}>
               <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, color: D.gold }}>{m.name.charAt(0).toUpperCase()}</span>
+                <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.gold }}>{m.name.charAt(0).toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 15, color: D.cream }}>{m.name}</div>
+                <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{m.name}</div>
                 {m.role && <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 2 }}>{m.role.replace(/_/g, ' ')}</div>}
-                {m.phone && <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 2 }}>{m.phone}</div>}
+                {m.phone && <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, marginTop: 2 }}>{m.phone}</div>}
               </div>
-              {m.daily_rate_inr && <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 11, color: D.muted }}>Rs {m.daily_rate_inr.toLocaleString('en-IN')} per event</span>}
+              {m.daily_rate_inr && <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Rs {m.daily_rate_inr.toLocaleString('en-IN')} per event</span>}
             </div>
           ))}
         </div>
@@ -249,7 +249,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
       {sheet && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'var(--role-scrim)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setSheet(null)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream, marginBottom: 4 }}>{sheet === 'add' ? 'Add Member' : 'Edit Member'}</div>
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginBottom: 4 }}>{sheet === 'add' ? 'Add Member' : 'Edit Member'}</div>
 
             <div><div style={labelStyle}>Name *</div><input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Rohit Mehta" /></div>
             <div>
@@ -284,19 +284,19 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
               <div style={{ borderTop: `0.5px solid ${D.borderCol}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={labelStyle}>Assignments</div>
                 {assignLoading ? (
-                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>Loading…</div>
+                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Loading…</div>
                 ) : assignError ? (
-                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.red }}>{ASSIGNMENTS_ERROR_MSG}</div>
+                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red }}>{ASSIGNMENTS_ERROR_MSG}</div>
                 ) : assignments.length === 0 ? (
-                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>No assignments yet.</div>
+                  <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>No assignments yet.</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {assignments.map(a => (
                       <div key={a.event_id} style={{ borderLeft: `2px solid ${confirmationTone(a.confirmation)}`, paddingLeft: 12 }}>
-                        <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 13, color: D.cream }}>
+                        <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>
                           {fmtAssignDate(a.date)}{slotWord(a.slot) ? ` · ${slotWord(a.slot)}` : ''}{hhmm(a.call_time) ? ` · ${hhmm(a.call_time)}` : ''}
                         </div>
-                        <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream, marginTop: 2 }}>
+                        <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
                           {a.title}{a.wedding ? ` — ${a.wedding}` : ''}
                         </div>
                         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: confirmationTone(a.confirmation), marginTop: 4 }}>
@@ -306,7 +306,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                             is rendered whenever it exists — a reason the member
                             took the trouble to write should not be swallowed. */}
                         {a.note && (
-                          <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 3, fontStyle: 'italic' }}>
+                          <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, marginTop: 3, fontStyle: 'italic' }}>
                             {a.note}
                           </div>
                         )}
@@ -328,7 +328,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
                     done — the warning is the whole reason the second tap exists. */}
                 {confirmRotate && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0 }}>The old link stops working.</p>
+                    <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, margin: 0 }}>The old link stops working.</p>
                     <div style={{ display: 'flex', gap: 10 }}>
                       <button type="button" onClick={() => setConfirmRotate(false)} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 8, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Cancel</button>
                       <button type="button" onClick={doRotate} disabled={saving} style={{ flex: 1, padding: '10px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.red}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.red, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Rotate link</button>
@@ -338,7 +338,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
               </div>
             )}
 
-            {!canSave && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.red, margin: 0 }}>Name is required to save.</p>}
+            {!canSave && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red, margin: 0 }}>Name is required to save.</p>}
 
             <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
               {sheet === 'edit' && (

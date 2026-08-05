@@ -45,6 +45,21 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
   // inheriting `--bg-primary` by accident. Additive: nothing read this before.
   r.setProperty('--atelier-page-bg', t.pageBg);
 
+  // ── TDW_09 F-09.39 · R-T5 — COLOR-SCHEME IS A ROLE, NOT A CONSTANT ──────────
+  // `color-scheme` governs every surface the browser paints and we do not: the
+  // <select> option list, the date and time pickers, scrollbars, the caret,
+  // autofill. Seventeen surfaces declared it `dark` unconditionally and the root
+  // declared nothing, so on Editorial Paper a tapped dropdown opened a dark OS
+  // picker over a cream sheet — founder-walk-convicted 2026-08-06.
+  //
+  // It is this block's own species in a fourth costume: not a hardcoded colour
+  // but a hardcoded STATEMENT ABOUT colour, one layer above the paint — which is
+  // exactly why an rgba-parsing census could not see it, by construction.
+  //
+  // On iOS Safari this reaches the native wheel picker, so the defect is worse on
+  // a real handset than in device emulation, where only the popup's size misleads.
+  document.documentElement.style.colorScheme = t.isLight ? 'light' : 'dark';
+
   // Set body bg directly — prevents one-frame dark flash on swipe
   //
   // ── TDW_08 P3 · WHY `pin` HAD TO REACH THIS LINE ────────────────────────────

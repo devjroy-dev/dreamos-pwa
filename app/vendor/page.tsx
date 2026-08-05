@@ -146,7 +146,7 @@ function GreetingLine({ context, money }: { context: VendorContextResponse | nul
       }}>{greeting}</div>
       <div style={{
         fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-        fontSize: 19, color: T.inkSoft,
+        fontSize: 20, color: T.inkSoft,
         lineHeight: 1.4, letterSpacing: '0.01em',
         maxWidth: 320, margin: '0 auto',
       }}>{line}</div>
@@ -186,7 +186,7 @@ function Ledger({ context, money }: { context: VendorContextResponse | null; mon
         position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)',
         background: `linear-gradient(180deg, ${T.pageBg} 0%, ${T.pageBg} 60%, transparent 100%)`,
         padding: '0 14px', height: 14, display: 'flex', alignItems: 'center',
-        color: T.isLight ? T.accent : A.brass, fontSize: 9, letterSpacing: '0.3em',
+        color: T.isLight ? T.accent : A.brass, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.3em',
       }}>◆</div>
 
       <LedgerCell
@@ -269,7 +269,7 @@ function LedgerCell({
       }}>{label}</div>
       <div style={{
         fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-        fontSize: 10, color: T.inkDim,
+        fontSize: 16, lineHeight: 1.5, color: T.inkDim,
         marginTop: 2, letterSpacing: '0.02em',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}>{sub}</div>
@@ -324,7 +324,7 @@ function EnquiryCard({ context, onInject }: {
           color: accentC, flex: 1,
         }}>{count === 1 ? '1 New Enquiry' : `${count} New Enquiries`}</span>
         <span style={{
-          fontFamily: F.label, fontSize: 10, color: accentC,
+          fontFamily: F.label, fontSize: 16, lineHeight: 1.5, color: accentC,
           transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
           transition: 'transform 220ms cubic-bezier(0.22,1,0.36,1)',
           display: 'inline-block',
@@ -338,7 +338,7 @@ function EnquiryCard({ context, onInject }: {
           style={{
             marginLeft: 10, width: 16, height: 16, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: T.inkDim, fontSize: 11, cursor: 'pointer', flexShrink: 0,
+            color: T.inkDim, fontSize: 16, lineHeight: 1.5, cursor: 'pointer', flexShrink: 0,
           }}>×</span>
       </button>
 
@@ -374,7 +374,7 @@ function EnquiryCard({ context, onInject }: {
                   {det.length > 0 && (
                     <div style={{
                       fontFamily: F.script, fontStyle: 'italic',
-                      fontSize: 10, color: 'var(--atelier-ink-mute)', marginTop: 1,
+                      fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink-mute)', marginTop: 1,
                     }}>{det.join(' · ')}</div>
                   )}
                 </div>

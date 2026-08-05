@@ -137,6 +137,52 @@ export function census() {
   return { engraved, body, unresolved, sizes };
 }
 
+// ── APPLY (R-T7) ──────────────────────────────────────────────────────────────
+// The instrument that derives the mapping also applies it. A separate applier
+// would be a second implementation of the same rule, free to drift from the one
+// the bench asserts — which is how a census and a cure stop agreeing.
+//
+// LINE-HEIGHT (Q-T-4, ruled): a body site with a size and no leading gets the
+// token default. Engraved sites are left alone — a letterspaced uppercase rule
+// -line is not a paragraph and 1.5 would break the register's own geometry.
+export const LEADING = 1.5;
+
+function applyTo(rel) {
+  const abs = path.join(ROOT, rel);
+  let src = fs.readFileSync(abs, 'utf8');
+  let sized = 0, led = 0;
+  // Right-to-left so earlier indices stay valid as the string changes length.
+  const hits = [...src.matchAll(/fontSize:\s*(\d{1,2})\b/g)].reverse();
+  for (const m of hits) {
+    const size = +m[1];
+    const obj = objectAround(src, m.index);
+    if (!obj) continue;
+    const engraved = /letterSpacing/.test(obj) && /textTransform:\s*'uppercase'/.test(obj);
+    const target = rungFor(size, engraved);
+    const start = m.index, end = start + m[0].length;
+    let replacement = `fontSize: ${target}`;
+    if (!engraved && !/lineHeight/.test(obj)) { replacement += `, lineHeight: ${LEADING}`; led++; }
+    if (target !== size || replacement !== m[0]) {
+      src = src.slice(0, start) + replacement + src.slice(end);
+      if (target !== size) sized++;
+    }
+  }
+  fs.writeFileSync(abs, src);
+  return { sized, led };
+}
+
+const applyIdx = process.argv.indexOf('--apply');
+if (applyIdx !== -1) {
+  const targets = process.argv.slice(applyIdx + 1).filter(a => !a.startsWith('--'));
+  if (!targets.length) { console.error('REFUSED — --apply needs at least one file path, relative to the repo root.'); process.exit(1); }
+  console.log('── APPLYING THE SCALE ──');
+  for (const t of targets) {
+    if (!fs.existsSync(path.join(ROOT, t))) { console.error(`REFUSED — ${t} does not exist at ${ROOT}.`); process.exit(1); }
+    const r = applyTo(t);
+    console.log(`  ${t}: ${r.sized} sizes moved, ${r.led} leading added`);
+  }
+}
+
 // ── report ────────────────────────────────────────────────────────────────────
 const c = census();
 const total = c.engraved.length + c.body.length + c.unresolved.length;
