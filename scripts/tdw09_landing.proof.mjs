@@ -161,7 +161,7 @@ ok('§3.3 ZERO RENDERED BYTES MOVED WITH THE RENAME — greppable, per R-O4',
 H('§4 · THE SIGN-IN ROLE TRAP IS STILL SHUT (R-O3, ruled with Fork 1)');
 
 ok('§4.1 the role toggle SURVIVES on the sign-in screen',
-  /\(\['Dreamer', 'Maker'\] as Role\[\]\)\.map/.test(L),
+  /SIGNIN_ROLES\.map/.test(L) && /onClick=\{\(\) => setRole\(r\.role\)\}/.test(L),
   'the toggle was removed — chrome Sign in reaches this screen with role null');
 
 ok('§4.2 the `!role` guard survives on the sign-in submit',
@@ -268,9 +268,12 @@ ok('§8.1 ZERO roster strings survive in code',
 ok('§8.2 the roster is non-empty and non-trivial — a zero-length roster would pass vacuously',
   ROSTER.length >= 35, `roster carries only ${ROSTER.length} entries`);
 
-ok('§8.3 the THREE SHARED bytes live on, on the screens that kept them',
-  /Are you a:/.test(read(LANDING)) && /Continue →/.test(read(LANDING)) &&
-  /00000 00000/.test(read(LANDING)),
+// RECONCILED AT THE FOUNDER'S WALK: the shared set was THREE and is now TWO.
+// `Are you a:` was shared between `request_who` (dead) and `signin_phone` (alive), and
+// F-09.44 then deleted it from the survivor too — the labels carry the question. That is
+// a deliberate second death, not roster drift, and the count moves with it in ink.
+ok('§8.3 the TWO remaining shared bytes live on, on the screens that kept them',
+  /Continue →/.test(read(LANDING)) && /00000 00000/.test(read(LANDING)),
   'a byte shared with a surviving screen was deleted with the ceremony');
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -350,6 +353,75 @@ ok('§11.4 the value the landing claims is the surface it actually paints',
   'the chrome colour and the page colour disagree');
 
 // ═════════════════════════════════════════════════════════════════════════════
+H('§12 · THE FOUNDER\'S WALK — F-09.42 · F-09.43 · F-09.44');
+
+// F-09.42 — the link must stand on the panel's backdrop, not on a photograph.
+// TIGHTENED AFTER THE NON-VACUITY RUN. The first form measured 200 characters from the
+// `position: 'absolute'` to the label and the shipped button was LONGER than that, so the
+// cell passed over the very tree the founder walked. A negative cell that cannot see the
+// defect it names is worse than no cell. `zIndex: 25` was that button's and nothing
+// else's on this surface, so its absence is the honest assertion.
+ok('§12.1 the Sign in link is NOT absolutely positioned over the hero',
+  !/zIndex: 25/.test(L),
+  'the link floats over the cover photo again — its contrast is whatever that photo is');
+
+ok('§12.2 it lives in the brand row, on the panel\'s own dark backdrop',
+  /The Wedding OS<\/p>[\s\S]{0,900}>Sign in<\/button>/.test(L),
+  'the link left the brand row; whatever it stands on now is unmeasured');
+
+ok('§12.3 it is still NOT a door — it sits above the door stack, not inside it',
+  L.indexOf('>Sign in</button>') < L.indexOf('I&apos;m getting married'),
+  'Sign in moved into or below the door stack and now reads as a third choice');
+
+// F-09.43 — the couple door's first paint.
+ok('§12.4 the fold is WARMED AT MOUNT — the door tap does not start the fetch',
+  (L.match(/exploring-photos/g) || []).length === 2 &&
+  L.indexOf('exploring-photos') < L.indexOf('const loadPreview'),
+  `expected two exploring-photos fetches (the mount prefetch and the door's), found ${(L.match(/exploring-photos/g) || []).length}`);
+
+ok('§12.5 the door NO LONGER DISCARDS a warm fold',
+  !/setExploringPhotos\(\[\]\);/.test(L),
+  'startExploring throws the prefetch away — the warm-up buys nothing');
+
+ok('§12.6 the door only fetches when it has nothing',
+  /if \(exploringPhotos\.length === 0\) loadPreview\(\);/.test(L));
+
+ok('§12.7 THE CAROUSEL HOLDS THE SCREEN until a real photo can replace it',
+  /opacity: \(screen === 'exploring' && exploringPhotos\.length > 0\) \? 0 :/.test(L),
+  'the cover zeroes on the state flip again — that is the black frame, restored');
+
+// SCOPED TO THE PREFETCH BLOCK ITSELF. A window measured in characters from
+// `landing-slides` swept up `loadPreview`'s body, which legitimately DOES flip the flag,
+// and red on a healthy tree. Bounded by the block's own catch instead.
+const PREFETCH = L.slice(L.indexOf('exploring-photos'), L.indexOf('exploring-photos') + 400);
+// TIGHTENED AFTER THE NON-VACUITY RUN, same class as §12.1: matching "a fetch of
+// exploring-photos that sets the photos" passed at the walked tree, because loadPreview
+// has always done exactly that. The DISCRIMINATING fact is that there are now TWO such
+// fetches — the door's and the mount's — where before there was one.
+ok('§12.8 the prefetch does NOT arm the loading card for a screen nobody opened',
+  PREFETCH.length > 50 && !/setLoadingPreview/.test(PREFETCH),
+  'the mount prefetch flips loadingPreview; the "Curating" card is now armed at boot');
+
+// F-09.44 — one vocabulary, not two.
+ok('§12.9 the internal Role union is NO LONGER RENDERED as copy',
+  !/\}\}>\{r\}<\/button>/.test(L),
+  'the type is being printed to users again');
+
+ok('§12.10 the sign-in chips quote THE DOORS, byte-for-byte',
+  /label: "I'm getting married"/.test(L) && /label: "I'm a wedding vendor"/.test(L),
+  'the sign-in vocabulary drifted from the door vocabulary again');
+
+// COMMENT-STRIPPED — the THIRD time this sitting that a cell had to be told the
+// difference between a byte and the note recording its removal. The deletion note names
+// the string it deleted.
+ok('§12.11 `Are you a:` is gone — the labels carry the question',
+  !/Are you a:/.test(L));
+
+ok('§12.12 the Role union itself is UNCHANGED — this was a copy cure, not a type cure',
+  /type Role = 'Dreamer' \| 'Maker';/.test(L),
+  'the union moved; every consumer of `role` now needs re-deriving');
+
+// ═════════════════════════════════════════════════════════════════════════════
 H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS');
 
 okMutate('§M.1 §1.5 reds if the couple door asks for a phone instead of showing work',
@@ -418,6 +490,20 @@ okMutate('§M.12 §10.5 reds if the held demo edges get migrated after all',
 okMutate('§M.13 §11.3 reds if the static theme-color default is moved under this charter',
   LAYOUT, '<meta name="theme-color" content="#1E0A0E" />', '<meta name="theme-color" content="#0C0A09" />',
   () => assert.ok(/<meta name="theme-color" content="#1E0A0E" \/>/.test(read(LAYOUT))), '§11.3');
+
+okMutate('§M.15 §12.5 reds if the door starts discarding the warm fold again',
+  LANDING, 'if (exploringPhotos.length === 0) loadPreview();',
+  'setExploringPhotos([]);\n    loadPreview();',
+  () => assert.ok(!/setExploringPhotos\(\[\]\);/.test(code(LANDING))), '§12.5');
+
+okMutate('§M.16 §12.7 reds if the cover blanks on the state flip again',
+  LANDING, "opacity: (screen === 'exploring' && exploringPhotos.length > 0) ? 0 :",
+  "opacity: (screen === 'exploring') ? 0 :",
+  () => assert.ok(/opacity: \(screen === 'exploring' && exploringPhotos\.length > 0\) \? 0 :/.test(code(LANDING))), '§12.7');
+
+okMutate('§M.17 §12.9 reds if the Role union is printed to users again',
+  LANDING, '}}>{r.label}</button>', '}}>{r.role}</button>',
+  () => assert.ok(!/\}\}>\{r\.role\}<\/button>/.test(code(LANDING))), '§12.9');
 
 okMutate('§M.14 §1.9 reds if the ceremony\'s write comes back',
   LANDING, 'const showToast = (m: string)',

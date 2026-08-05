@@ -330,6 +330,15 @@ export default function Home() {
       .then(r => r.json())
       .then(d => { if (d.slides?.length) setSlides(d.slides.map((p: any) => p.image_url)); })
       .catch(() => {});
+
+    // F-09.43 · WARM THE FOLD AT MOUNT. Success only: a failed prefetch leaves the state
+    // untouched so the door's own `loadPreview` still runs and can still fail honestly.
+    // This deliberately does NOT set `loadingPreview` — nothing is on screen to load yet,
+    // and flipping it here would arm the "Curating..." card for a screen nobody opened.
+    fetch(`${API_BASE}/api/v2/exploring-photos`)
+      .then(r => r.json())
+      .then(d => { if (d.ok && d.photos?.length) setExploringPhotos(d.photos); })
+      .catch(() => {});
     startCarousel();
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -355,12 +364,20 @@ export default function Home() {
     setLoadingPreview(false);
   }, []);
 
+  // F-09.43 · FOUNDER'S WALK — 「 slow and glitchy transition 」.
+  // Three mechanisms stacked to put a BLACK FRAME inside the couple door's first
+  // impression: the carousel dropped to opacity 0 the instant `screen` flipped, this
+  // function then DISCARDED any photos already held, and only then did the fetch begin.
+  // Tap -> photo -> black -> "Curating your preview..." -> photo. That was tolerable
+  // when the fold was a fourth quiet choice; under Fork 1(a) it IS the couple door, and
+  // the S1 paper named this exact LCP exposure as the risk the founder's walk must
+  // settle. It settled it. The discard is gone, the fetch is warmed at mount, and the
+  // cover photo now holds the screen until a real exploring photo is ready to replace it.
   const startExploring = () => {
     setScreen('exploring');
     setExploringIdx(0);
     setExploringDone(false);
-    setExploringPhotos([]);
-    loadPreview();
+    if (exploringPhotos.length === 0) loadPreview();
   };
 
   const nextExploring = () => {
@@ -533,6 +550,25 @@ export default function Home() {
 
   // The six fields that map to a preset/Codex (categoryPreset.js keys). Value sent
   // to provision is the exact key; label is what the vendor taps.
+  // F-09.44 · FOUNDER'S WALK — 「 sign in again shows dreamer and maker 」.
+  // The sign-in toggle rendered the internal `Role` union DIRECTLY as user-facing bytes,
+  // so this surface spoke two vocabularies for one distinction: the doors said
+  // "I'm getting married" while sign-in said "DREAMER". The executor's copy ledger ruled
+  // the door labels to plain speech, retired the role sublabels, and renamed the machine
+  // off the gate's vocabulary — and never opened the one screen that PRINTS the type.
+  // The label is decoupled from the value here; the Role union is unchanged and internal.
+  //
+  // THE TOGGLE ITSELF STAYS, R-O3: `handleSignIn` derives `isVendor` from `role`, and
+  // the chrome Sign in link reaches this screen with role null. Without this control a
+  // returning VENDOR is signed in against the couple endpoints, silently.
+  // THE REAL CURE IS NOT HERE: a returning member should not be asked at all. That needs
+  // `/auth/pin-status` to answer for both roles in one call — a dream-os byte, and
+  // dream-os is zero-byte this sitting. Chartered separately, not faked client-side.
+  const SIGNIN_ROLES: { role: Role; label: string }[] = [
+    { role: 'Dreamer', label: "I'm getting married" },
+    { role: 'Maker',   label: "I'm a wedding vendor" },
+  ];
+
   const VENDOR_FIELDS = [
     { label: 'Makeup',        value: 'makeup' },
     { label: 'Photography',   value: 'photography' },
@@ -559,7 +595,9 @@ export default function Home() {
           ...S,
           backgroundImage: `url(${url})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
-          opacity: screen === 'exploring' ? 0 : (i === cur ? 1 : 0),
+          // F-09.43: hold the cover until a real exploring photo exists to replace it.
+          // Zeroing on the state flip alone is what produced the black frame.
+          opacity: (screen === 'exploring' && exploringPhotos.length > 0) ? 0 : (i === cur ? 1 : 0),
           transition: `opacity 3s ${ease}`,
           willChange: 'opacity',
           filter: 'none',
@@ -610,20 +648,6 @@ export default function Home() {
           the join screen because a vendor arriving here already knows what this is. */}
       {screen === 'entry' && (
         <>
-          {/* Sign in — chrome, top right */}
-          <button
-            onClick={() => { setRole(null); setScreen('signin_phone'); }}
-            style={{
-              position: 'absolute', zIndex: 25,
-              top: 'calc(env(safe-area-inset-top, 0px) + 20px)', right: 20,
-              background: 'none', border: 'none', padding: '6px 4px',
-              cursor: 'pointer', touchAction: 'manipulation',
-              fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-              letterSpacing: '0.18em', textTransform: 'uppercase',
-              color: 'rgba(248,247,245,0.6)',
-            }}
-          >Sign in</button>
-
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, overflow: 'hidden' }}>
             <div
               style={{
@@ -651,6 +675,25 @@ export default function Home() {
                     color: '#C9A84C', margin: '4px 0 0',
                   }}>The Wedding OS</p>
                 </div>
+                {/* F-09.42 · FOUNDER'S WALK. This link first shipped as absolute chrome
+                    at the top right, over the cover PHOTOGRAPH with no scrim — the only
+                    near-white byte on this surface not standing on the panel's backdrop.
+                    Its contrast was therefore whatever that second's photo happened to
+                    be, which is not a contrast at all. It sits in the brand row now: the
+                    same dark blurred backdrop every other byte here stands on, so
+                    legibility is solved BY CONSTRUCTION rather than by stacking furniture
+                    over the hero. It is still chrome and still not a door — it is above
+                    the door stack, small, and right-aligned against the wordmark. */}
+                <button
+                  onClick={() => { setRole(null); setScreen('signin_phone'); }}
+                  style={{
+                    background: 'none', border: 'none', padding: '4px 0 4px 12px',
+                    cursor: 'pointer', touchAction: 'manipulation',
+                    fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+                    letterSpacing: '0.18em', textTransform: 'uppercase',
+                    color: 'rgba(248,247,245,0.55)',
+                  }}
+                >Sign in</button>
               </div>
 
               {/* The two doors */}
@@ -787,16 +830,20 @@ export default function Home() {
               <>
                 <BackBtn onClick={() => setScreen('entry')} />
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome back.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 12px' }}>Are you a:</p>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  {(['Dreamer', 'Maker'] as Role[]).map(r => (
-                    <button key={r} onClick={() => setRole(r)} style={{
-                      flex: 1, height: 40, border: 'none', borderRadius: 100, cursor: 'pointer',
-                      background: role === r ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                      color: role === r ? '#0C0A09' : 'rgba(248,247,245,0.6)',
+                {/* `Are you a:` is deleted — the labels carry the question now. The two
+                    chips STACK rather than sit side by side: the plain-speech bytes are
+                    ~2.5x the width of the words they replace, and a two-across row would
+                    have them at the edge of overflow on a 360px handset. Stacked, they
+                    also echo the door pair they now quote, which is the point. */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                  {SIGNIN_ROLES.map(r => (
+                    <button key={r.role} onClick={() => setRole(r.role)} style={{
+                      width: '100%', height: 40, border: 'none', borderRadius: 100, cursor: 'pointer',
+                      background: role === r.role ? '#C9A84C' : 'rgba(255,255,255,0.08)',
+                      color: role === r.role ? '#0C0A09' : 'rgba(248,247,245,0.6)',
                       fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
                       letterSpacing: '0.15em', textTransform: 'uppercase',
-                    }}>{r}</button>
+                    }}>{r.label}</button>
                   ))}
                 </div>
                 <Label text="Phone number" />

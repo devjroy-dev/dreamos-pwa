@@ -115,3 +115,58 @@ Run on the handset. Paste back what each step shows.
 **Acceptance is `on` for both.**
 
 Sequencing beyond this sitting is the founder's.
+
+---
+
+# RIDER — THE FOUNDER'S WALK · F-09.42 · F-09.43 · F-09.44
+
+**Base:** dreamos-pwa at the O-1 deploy. Three walk findings, three cures, one ZIP. Delta unchanged in shape: same 6 modified, 2 new.
+
+**F-09.42 — the chrome Sign in was illegible by construction.** It shipped as `position:absolute` over the cover **photograph**, the only near-white byte on this surface not standing on the panel's backdrop; its contrast was whatever that second's photo happened to be. Re-homed into the panel's brand row, right-aligned against the wordmark, on the same dark blurred backdrop every other byte here uses. Still chrome, still above the door stack, still not a door — §12.3 asserts that ordering.
+
+**F-09.43 — the couple door's first paint went through black.** Three mechanisms stacked: the carousel zeroed on the `screen` flip, `startExploring` discarded any warm photos, and only then did the fetch begin. The fold is now warmed at mount (success-only, so a failed prefetch still lets the door fetch and fail honestly), the discard is gone, and the cover holds the screen until a real exploring photo exists to replace it. The S1 paper named this LCP exposure as the risk the founder's walk must settle; it settled it.
+
+**F-09.44 — the machine's TYPE was being rendered as copy.** `(['Dreamer','Maker'] as Role[]).map(r => {r})` printed the internal union to users, so the landing spoke two vocabularies for one distinction. The label is decoupled from the value; the union is unchanged and internal. **The toggle stays** — R-O3's trap is unchanged. `Are you a:` is deleted; the labels carry the question. The chips **stack** rather than sit across, because the plain-speech bytes are ~2.5x the width of the words they replace and would sit at the edge of overflow on a 360px handset.
+
+## RIDER DISCLOSURES
+
+**R-1 · F-09.44 is an executor miss, owned.** The copy ledger ruled the door labels to plain speech, retired the role sublabels, and renamed the machine off the gate's vocabulary — and never opened the one screen that prints the type. The ledger had a hole in it and the founder's walk found it.
+
+**R-2 · A roster count moved and is reconciled in ink.** The shared-byte set was THREE; `Are you a:` was shared between the dead `request_who` and the live `signin_phone`, and F-09.44 deleted it from the survivor too. §8.3 now asserts TWO. A deliberate second death, not drift.
+
+**R-3 · The comment-blindness law caught a third instance, mine again.** §12.11 asserted `Are you a:` absent and red on a clean tree, on the note recording its deletion. Comment-stripped.
+
+**R-4 · The non-vacuity run caught two weak cells before they shipped.** §12.1 measured 200 characters between `position:'absolute'` and the label, and the shipped button was longer — so it **passed over the very tree the founder walked**. §12.4 asserted "a fetch of exploring-photos that sets the photos", which `loadPreview` has always done. Both re-authored onto discriminating facts (`zIndex: 25`'s absence; the fetch count moving 1 -> 2). A negative cell that cannot see the defect it names is worse than no cell.
+
+**R-5 · The real cure for F-09.44 is not here.** A returning member should not be asked at all; that needs `/auth/pin-status` to answer for both roles in one call, which is a dream-os byte and dream-os is zero-byte by charter. Chartered separately rather than faked client-side with two requests and an ambiguity nobody has ruled.
+
+## FILED, NOT BUILT
+
+**F-09.45 — THE LANDING RUNS UNCAPPED TO THE VIEWPORT.** Founder-witnessed at desktop width: the sign-in role chips render as ~700px slabs and the CTA as a ~1400px bar. `app/(landing)/page.tsx` sets no column cap anywhere. **The demo tease landing cured this exact class at TDW_08 P3** — `COLUMN = 520`, the page capped and centred, and the `position:fixed` chrome given the same cap because fixed elements lay out against the viewport rather than the capped parent (that second half is the easy one to miss). Two bench cells already assert it next door at §11.1/§11.2. **Unruled, therefore unbuilt.**
+
+## RIDER PROOF
+
+`tdw09_landing` **89/89 GREEN** at the cured tree.
+
+**AT THE TREE THE FOUNDER ACTUALLY WALKED — `origin/main` `5752b1e`, verified byte-identical
+to the O-1 ZIP's payload file by file before the run — the bench is RED 75/89: 10 of the 12
+new walk cells, plus §4.1's re-aim and all three new §M mutations.**
+
+**R-6 · A NON-VACUITY RUN OF MINE WAS ITSELF VACUOUS, AND I CAUGHT IT AT THE LAST GATE.**
+My first "walked tree" was built with `git stash && git archive HEAD` — which produces
+`ed187bb`, the UNCURED tip, not the O-1 deploy. Every walk cell reds trivially against a
+tree where the whole file is different, so the number it produced proved nothing about the
+rider. The tell was the fetch: `origin/main` had moved to `5752b1e` and every one of my
+seven files reported DIFFERS against my supposed comparison tree, which is impossible if
+that tree were the thing the founder pushed. Re-run against `origin/main` proper, with the
+identity of that tree checked against the shipped payload first. **The correct comparison
+tree for a rider is the DEPLOYED one, never the charter tip** — an error the fetch-first
+law caught for me rather than one I reasoned my way out of. `tdw08_p3_landing` 89/89. Full floor byte-stable. `tsc --noEmit` on cleared `.next`: exit 0, zero output. Census unchanged: 8 sites, 0 mapped, 2 held.
+
+## RIDER SMOKE — three steps
+
+1. Open `/`. **`SIGN IN` is legible** in the panel's brand row, opposite the wordmark.
+2. Tap **`I'm getting married`**. **No black frame, no "Curating your preview…"** — the photo should hold and then change.
+3. Tap **`Sign in`**. The two chips read **`I'M GETTING MARRIED`** and **`I'M A WEDDING VENDOR`**, stacked. No `DREAMER`, no `MAKER`, no `Are you a:`.
+
+Plus SHOT ① still owed: the `+91` / digits row on the join screen.
