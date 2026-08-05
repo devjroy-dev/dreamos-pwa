@@ -184,11 +184,17 @@ if (applyIdx !== -1) {
 }
 
 // ── report ────────────────────────────────────────────────────────────────────
+// ONLY WHEN RUN DIRECTLY. `tdw09_type.proof.mjs` imports this module once per
+// mutation cell; a report on import would bury the bench's own output in dozens
+// of censuses and, worse, print mid-mutation numbers that read like real ones.
+const RUN_DIRECT = process.argv[1] && path.resolve(process.argv[1]) === url.fileURLToPath(import.meta.url);
+if (!RUN_DIRECT) { /* imported as a library — say nothing */ }
+else {
 const c = census();
 const total = c.engraved.length + c.body.length + c.unresolved.length;
 if (total === 0) {
-  console.error(`REFUSED — zero fontSize sites found under ${LANES.join(', ')}. That is not a`);
-  console.error('measurement, it is a broken read set. Check TDW_PWA and the lane list.');
+  console.error(`REFUSED — zero fontSize sites found under ${LANES.join(', ')}.`);
+  console.error('That is not a measurement, it is a broken read set. Check TDW_PWA and the lane list.');
   process.exit(1);
 }
 const under = c.body.filter(b => b.size < BODY_FLOOR);
@@ -218,4 +224,5 @@ if (process.argv.includes('--surfaces')) {
   under.forEach(b => by.set(b.file, (by.get(b.file) || 0) + 1));
   console.log(`\n── THE RAISE RADIUS: ${under.length} sub-floor body sites across ${by.size} surfaces ──`);
   [...by].sort((a, b) => b[1] - a[1]).forEach(([f, n]) => console.log(`  ${String(n).padStart(3)}  ${f}`));
+}
 }

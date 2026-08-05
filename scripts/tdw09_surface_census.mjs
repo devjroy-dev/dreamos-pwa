@@ -68,6 +68,11 @@ const LANES = ['app/vendor', 'app/demo/vendor', 'components/vendor'];
 // Migrating it would have re-weighted two founder-ratified ghost buttons (their
 // near-white edge maps to an ink rung, which is the wrong ROLE for a control edge)
 // for zero benefit. Reversed by deleting this array.
+// RETURN CONDITION, ruled at Q-5 (CE-194): this hold is NOT permanent. The landing
+// rejoins the sweep at O-1, the landing cure, when the surface is rebuilt — the
+// species cure lands there regardless, and a permanent exclusion would fossilize
+// the disease behind a veto that was about bytes, not about health. Delete this
+// array at O-1's charter.
 const HELD_OUT = ['app/demo/vendor/[handle]/page.tsx'];
 const EXTS  = new Set(['.tsx', '.ts', '.css']);
 
