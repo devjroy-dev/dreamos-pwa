@@ -5,7 +5,7 @@ import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { useDemoLeadsData } from '@/hooks/demo/useDemoVendorData';
 
-const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',red:'#E07B5C',green:'#7FBE85'} as const;
+const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',red:'var(--role-critical)',green:'var(--role-positive)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 function fmtDate(iso:string|null){if(!iso)return'—';try{return new Date(iso).toLocaleDateString('en-IN',{month:'short',year:'numeric'});}catch{return iso;}}
 function stateLabel(s:string):{text:string;color:string}{switch(s){case'booked':return{text:'Booked',color:A.brassWarm};case'quoted':return{text:'Quoted',color:'#9DBCC8'};case'contacted':return{text:'Contacted',color:A.inkMute};case'lost':return{text:'Lost',color:A.red};default:return{text:'New',color:A.green};}}

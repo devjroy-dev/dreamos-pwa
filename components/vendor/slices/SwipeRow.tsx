@@ -101,7 +101,7 @@ export function SwipeRow({ children, right, left, disabled }: {
           justifyContent: dx > 0 ? 'flex-start' : 'flex-end', padding: '0 22px',
           fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 400,
           fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase',
-          color: reveal.destructive ? '#E07070' : 'var(--atelier-accent-text)',
+          color: reveal.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
           opacity: revealOn ? 1 : 0.45,
         }}>{reveal.label}</div>
       )}

@@ -18,6 +18,13 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
   // (BottomNav's NavTab, the calendar's previous-month cells) which cannot call
   // useT(). Additive — nothing read this name before.
   r.setProperty('--atelier-ink-fade',     t.inkFade);
+  // TDW_09 F-09.28 — a role nothing publishes is a role nothing can read.
+  r.setProperty('--role-positive',        t.positive);
+  r.setProperty('--role-caution',         t.caution);
+  r.setProperty('--role-critical',        t.critical);
+  r.setProperty('--role-metal',           t.metal);
+  r.setProperty('--role-scrim',           t.scrim);
+  r.setProperty('--role-sheet',           t.sheet);
   r.setProperty('--atelier-label',        t.label);
   r.setProperty('--atelier-accent-text',  t.accentText);
   r.setProperty('--atelier-header-bg',    t.headerBg);

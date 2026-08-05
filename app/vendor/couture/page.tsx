@@ -13,7 +13,7 @@ import type { CoutureSlot, CoutureAppointment } from '@/lib/vendor/types/vendor'
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', brassLine: 'rgba(201,168,76,0.18)', red: '#E07B5C',
+  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', brassLine: 'rgba(201,168,76,0.18)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -108,7 +108,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Couture</span>
         {tab === 'availability' && eligible && (
           <button type="button" onClick={() => setAddOpen(true)} className="atelier-fab" style={{
-            padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid #E0BC6E',
+            padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
             fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>+ Slot</button>
@@ -198,7 +198,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
             <button type="button" onClick={doAddSlot} disabled={saving || !slotAt || !feeInr} className="atelier-fab" style={{
               width: '100%', padding: '14px 0', borderRadius: 2,
-              border: '0.5px solid #E0BC6E',
+              border: '0.5px solid var(--atelier-label)',
               cursor: (saving || !slotAt || !feeInr) ? 'default' : 'pointer',
               fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
               letterSpacing: '0.42em', textTransform: 'uppercase',

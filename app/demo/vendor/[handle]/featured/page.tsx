@@ -7,7 +7,7 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'#C9A84C',brassWarm:'var(--atelier-label)',red:'#E07B5C'} as const;
+const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--role-metal)',brassWarm:'var(--atelier-label)',red:'var(--role-critical)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 const SLOT_KINDS=[{value:'spotlight',label:'Spotlight',fee:'Rs 3,000 / week'},{value:'discover_top',label:'Discover Top',fee:'Rs 5,000 / week'},{value:'blind_swipe_priority',label:'Blind Swipe Priority',fee:'Rs 2,000 / week'},{value:'newsletter',label:'Newsletter',fee:'Rs 1,500 / inclusion'}];
 interface Sub{id:string;slot_kind:string;state:string;fee_inr:number;}
@@ -24,7 +24,7 @@ export default function DemoFeaturedPage(){
     <div style={{padding:'12px 22px',display:'flex',alignItems:'center',gap:12,borderBottom:'0.5px solid var(--atelier-card-border)'}}>
       <button type="button" onClick={()=>router.back()} style={{background:'none',border:'none',cursor:'pointer',padding:0,color:A.brassWarm,fontFamily:F.display,fontSize:22,lineHeight:1}}>‹</button>
       <span style={{fontFamily:F.label,fontWeight:300,fontSize:9,letterSpacing:'0.42em',textTransform:'uppercase',color:A.brass,flex:1}}>Featured</span>
-      <button type="button" onClick={()=>setFormOpen(true)} className="atelier-fab" style={{padding:'8px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Apply</button>
+      <button type="button" onClick={()=>setFormOpen(true)} className="atelier-fab" style={{padding:'8px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Apply</button>
     </div>
     <div style={{flex:1,overflowY:'auto',overflowX:'hidden',padding:'20px 22px 32px'}}>
       {submissions.length===0?(<div style={{fontFamily:F.script,fontStyle:'italic',fontWeight:300,fontSize:16,color:A.inkMute,textAlign:'center',paddingTop:32,lineHeight:1.5}}>No submissions yet.<br/><span style={{color:A.brassWarm}}>Apply for your first slot above.</span></div>
@@ -53,7 +53,7 @@ export default function DemoFeaturedPage(){
         </div>
       </div>
       <div style={{padding:'12px 24px calc(20px + env(safe-area-inset-bottom))',borderTop:'0.5px solid var(--atelier-card-border)'}}>
-        <button type="button" onClick={doSubmit} disabled={submitting} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid #E0BC6E',cursor:submitting?'default':'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.5em',textTransform:'uppercase',opacity:submitting?0.5:1}}>{submitting?'Submitting…':'Submit'}</button>
+        <button type="button" onClick={doSubmit} disabled={submitting} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid var(--atelier-label)',cursor:submitting?'default':'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.5em',textTransform:'uppercase',opacity:submitting?0.5:1}}>{submitting?'Submitting…':'Submit'}</button>
       </div>
     </div></>)}
   </div>);

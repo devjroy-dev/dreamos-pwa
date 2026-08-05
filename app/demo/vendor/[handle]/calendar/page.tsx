@@ -10,7 +10,7 @@ import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { useDemoEventsData } from '@/hooks/demo/useDemoVendorData';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
 
-const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',brassDeep:'#B59548',brassLine:'rgba(201,168,76,0.18)',brassSoft:'rgba(201,168,76,0.28)',terracotta:'#E07B5C'} as const;
+const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',brassDeep:'var(--role-metal)',brassLine:'rgba(201,168,76,0.18)',brassSoft:'rgba(201,168,76,0.28)',terracotta:'var(--role-critical)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -46,7 +46,7 @@ function BlockSheet({open,dateIso,existing,onClose,onToast,onBlock,onUnblock}:{o
     <div style={{fontFamily:F.display,fontWeight:400,fontSize:22,color:'var(--atelier-ink)',lineHeight:1.2,marginBottom:16}}>{existing?'Unblock date':'Block date'}</div>
     {!existing&&(<><label style={{display:'block',fontFamily:F.label,fontWeight:300,fontSize:8,color:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase',marginBottom:6}}>Note (optional)</label><input value={note} onChange={e=>setNote(e.target.value)} placeholder="Away, personal, booked elsewhere…" style={{width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',caretColor:A.brass,marginBottom:16}}/></>)}
     {existing?(<div style={{display:'flex',gap:8}}><button type="button" onClick={onClose} style={{flex:1,padding:'12px 0',background:'transparent',border:'0.5px solid var(--atelier-sheet-border)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.brassWarm,letterSpacing:'0.32em',textTransform:'uppercase'}}>Cancel</button><button type="button" onClick={()=>{onUnblock(dateIso);onToast('Date unblocked','success');onClose();}} style={{flex:1,padding:'12px 0',background:'transparent',border:`0.5px solid ${A.terracotta}`,borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.terracotta,letterSpacing:'0.32em',textTransform:'uppercase'}}>Unblock</button></div>
-    ):(<button type="button" onClick={()=>{onBlock(dateIso,note);onToast('Date blocked','success');onClose();setNote('');}} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid #E0BC6E',cursor:'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.42em',textTransform:'uppercase'}}>Block Date</button>)}
+    ):(<button type="button" onClick={()=>{onBlock(dateIso,note);onToast('Date blocked','success');onClose();setNote('');}} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid var(--atelier-label)',cursor:'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.42em',textTransform:'uppercase'}}>Block Date</button>)}
   </div></>);
 }
 
@@ -141,7 +141,7 @@ export default function DemoCalendarPage(){
       </div>
     </div>
     {/* FAB */}
-    <button type="button" onClick={onAdd} aria-label="Add event" className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:30,width:46,height:46,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:22,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid #E0BC6E'}}>+</button>
+    <button type="button" onClick={onAdd} aria-label="Add event" className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:30,width:46,height:46,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:22,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid var(--atelier-label)'}}>+</button>
     {/* Date popup */}
     {sel&&(<><div onClick={()=>setSel(null)} style={{position:'fixed',inset:0,zIndex:30,backgroundColor:'var(--atelier-overlay)'}}/><div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:40,background:'var(--atelier-sheet-bg)',backdropFilter:'blur(40px) saturate(1.8)',WebkitBackdropFilter:'blur(40px) saturate(1.8)',boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',borderTopLeftRadius:4,borderTopRightRadius:4,borderTop:`0.5px solid ${A.brassLine}`,padding:'16px 24px calc(24px + env(safe-area-inset-bottom))'}}>
       <div style={{display:'flex',justifyContent:'center',marginBottom:14}}><div style={{width:36,height:3,borderRadius:2,background:'var(--atelier-label)'}}/></div>
@@ -150,7 +150,7 @@ export default function DemoCalendarPage(){
           <div style={{fontFamily:F.label,fontWeight:300,fontSize:9,letterSpacing:'0.42em',textTransform:'uppercase',color:A.brass}}>{fmtShort(sel)}</div>
           {DEMO_HOT_DATES.has(sel)&&hotOn&&(<span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:5,height:5,borderRadius:'50%',background:A.terracotta}}/><span style={{fontFamily:F.label,fontWeight:300,fontSize:8,letterSpacing:'0.32em',textTransform:'uppercase',color:A.terracotta}}>Hot Date</span></span>)}
         </div>
-        <button type="button" onClick={onAdd} className="atelier-fab" style={{width:32,height:32,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:18,lineHeight:1,fontWeight:400,cursor:'pointer',border:'0.5px solid #E0BC6E'}}>+</button>
+        <button type="button" onClick={onAdd} className="atelier-fab" style={{width:32,height:32,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:18,lineHeight:1,fontWeight:400,cursor:'pointer',border:'0.5px solid var(--atelier-label)'}}>+</button>
       </div>
       {selEvents.length===0?(<div style={{fontFamily:F.script,fontStyle:'italic',fontWeight:300,fontSize:18,color:A.inkMute}}>Nothing scheduled.</div>
       ):(<div style={{display:'flex',flexDirection:'column',gap:10}}>

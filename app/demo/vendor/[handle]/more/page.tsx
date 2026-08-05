@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const A = { ink:'var(--atelier-ink)', inkSoft:'var(--atelier-ink-soft)', inkMute:'var(--atelier-ink-mute)', brass:'var(--atelier-accent-text)', brassWarm:'var(--atelier-label)', red:'#E07B5C' } as const;
+const A = { ink:'var(--atelier-ink)', inkSoft:'var(--atelier-ink-soft)', inkMute:'var(--atelier-ink-mute)', brass:'var(--atelier-accent-text)', brassWarm:'var(--atelier-label)', red:'var(--role-critical)' } as const;
 const F = { display:'var(--font-italiana), "GFS Didot", Georgia, serif', script:'var(--font-cormorant), Georgia, serif', label:'var(--font-jost), system-ui, sans-serif' } as const;
 
 function Chevron() { return <span style={{ color:'var(--atelier-label)', fontFamily:F.display, fontSize:18, lineHeight:1, flexShrink:0 }}>›</span>; }

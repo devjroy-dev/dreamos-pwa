@@ -245,7 +245,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
           width: 46, height: 46, borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: F.body, fontSize: 22, fontWeight: 400, lineHeight: 1,
-          cursor: 'pointer', border: '0.5px solid #E0BC6E',
+          cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
         }}>+</button>
 
       {children}
@@ -628,8 +628,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       {selectMode && (
         <span aria-hidden style={{
           position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
-          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-brass, #C9A84C)',
-          background: selected.has(row.id) ? 'var(--atelier-brass, #C9A84C)' : 'transparent',
+          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-brass, var(--role-metal))',
+          background: selected.has(row.id) ? 'var(--atelier-brass, var(--role-metal))' : 'transparent',
         }} />
       )}
       <div style={selectMode ? { paddingLeft: 18 } : undefined}>
@@ -707,7 +707,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             style={{
               width: '100%', marginBottom: 8, padding: '11px 14px',
               background: pdfBusy ? 'rgba(201,168,76,0.18)' : undefined,
-              border: '0.5px solid #E0BC6E', borderRadius: 3,
+              border: '0.5px solid var(--atelier-label)', borderRadius: 3,
               cursor: pdfBusy ? 'default' : 'pointer', opacity: pdfBusy ? 0.6 : 1,
               fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
               letterSpacing: '0.28em', textTransform: 'uppercase',
@@ -787,7 +787,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   setScheduleSaving(false);
                 }} disabled={scheduleSaving} className="atelier-fab" style={{
                   padding: '5px 10px', borderRadius: 2, cursor: 'pointer',
-                  border: '0.5px solid #E0BC6E',
+                  border: '0.5px solid var(--atelier-label)',
                   fontFamily: F.label, fontWeight: 400, fontSize: 8, color: '#1A120E',
                   letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
                 }}>Paid</button>
@@ -845,7 +845,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <button type="button" onClick={() => sel && markLost(sel)} style={{
             flex: 1, padding: '11px 14px', background: 'transparent',
             border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#E07070',
+            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Yes — mark {sel?.primary} lost</button>
           <button type="button" onClick={() => setMarkLostConfirm(false)} style={{
@@ -1031,7 +1031,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
                     style={{
                       padding: '14px 0', borderRadius: 2,
-                      border: '0.5px solid #E0BC6E',
+                      border: '0.5px solid var(--atelier-label)',
                       cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
                       fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
                       letterSpacing: '0.42em', textTransform: 'uppercase',

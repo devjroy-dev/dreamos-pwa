@@ -7,9 +7,9 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const D={card:'rgba(255,255,255,0.035)',muted:'rgba(248,247,245,0.45)',cream:'var(--atelier-ink)',gold:'var(--atelier-accent-text)',red:'#E07070'};
+const D={card:'rgba(255,255,255,0.035)',muted:'rgba(248,247,245,0.45)',cream:'var(--atelier-ink)',gold:'var(--atelier-accent-text)',red:'var(--role-critical)'};
 const F={display:'var(--font-cormorant), Georgia, serif',label:'var(--font-jost), system-ui, sans-serif',body:'var(--font-dm-sans), system-ui, sans-serif'};
-const PRIORITY_COLOR:Record<string,string>={low:'rgba(248,247,245,0.3)',normal:D.muted,high:'#E0A870',urgent:D.red};
+const PRIORITY_COLOR:Record<string,string>={low:'rgba(248,247,245,0.3)',normal:D.muted,high:'var(--role-caution)',urgent:D.red};
 const inputStyle:React.CSSProperties={width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.04)',border:'0.5px solid var(--atelier-card-border)',borderRadius:8,color:D.cream,fontFamily:F.body,fontWeight:300,fontSize:14,outline:'none',boxSizing:'border-box' as const};
 const labelStyle:React.CSSProperties={fontFamily:F.label,fontWeight:300,fontSize:9,color:D.muted,letterSpacing:'0.2em',textTransform:'uppercase' as const,marginBottom:6};
 type TabState='open'|'in_progress'|'done';

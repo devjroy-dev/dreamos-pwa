@@ -20,7 +20,7 @@ import type {
 } from '@/lib/vendor/types/vendor';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
-const D = { bg: '#111111', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: '#E07070' };
+const D = { bg: '#111111', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)' };
 const F = { display: 'var(--font-cormorant), Georgia, serif', label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
 type FieldType = 'text' | 'textarea' | 'phone' | 'date' | 'time' | 'currency' | 'select';

@@ -23,8 +23,8 @@ const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassLine: 'rgba(201,168,76,0.18)',
-  green:     '#7FBE85',
-  red:       '#E07B5C',
+  green:     'var(--role-positive)',
+  red:       'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -185,7 +185,7 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
           </div>
           <button type="button" onClick={() => setShowForm(true)} className="atelier-fab" style={{
             padding: '8px 14px', borderRadius: 2, cursor: 'pointer',
-            border: '0.5px solid #E0BC6E',
+            border: '0.5px solid var(--atelier-label)',
             fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
             letterSpacing: '0.32em', textTransform: 'uppercase',
             flexShrink: 0, marginTop: 8,
@@ -333,7 +333,7 @@ function OpportunityCard({ post, onRespond }: {
         <button type="button" onClick={() => handle('interested')} disabled={working}
           className="atelier-fab" style={{
             flex: 2, padding: '11px 0', borderRadius: 2,
-            border: '0.5px solid #E0BC6E', cursor: working ? 'default' : 'pointer',
+            border: '0.5px solid var(--atelier-label)', cursor: working ? 'default' : 'pointer',
             fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
             letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: working ? 0.6 : 1,
@@ -636,7 +636,7 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
           </div>
           {error && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.red, marginBottom: 14 }}>{error}</div>}
           <button type="button" onClick={submit} disabled={saving} className="atelier-fab" style={{
-            width: '100%', padding: '14px 0', borderRadius: 2, border: '0.5px solid #E0BC6E',
+            width: '100%', padding: '14px 0', borderRadius: 2, border: '0.5px solid var(--atelier-label)',
             cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
             color: '#1A120E', letterSpacing: '0.5em', textTransform: 'uppercase', opacity: saving ? 0.6 : 1,
           }}>{saving ? 'Saving…' : 'Add to roster'}</button>
@@ -860,7 +860,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
 
               <button type="button" onClick={handleSubmit} disabled={submitting} className="atelier-fab" style={{
                 width: '100%', padding: '14px 0', borderRadius: 2,
-                border: '0.5px solid #E0BC6E', cursor: submitting ? 'default' : 'pointer',
+                border: '0.5px solid var(--atelier-label)', cursor: submitting ? 'default' : 'pointer',
                 fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 opacity: submitting ? 0.6 : 1,

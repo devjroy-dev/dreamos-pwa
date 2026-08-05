@@ -19,7 +19,7 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassDeep: '#B59548',
+  brassDeep: 'var(--role-metal)',
   brassLine: 'rgba(201,168,76,0.18)',
 } as const;
 const F = {

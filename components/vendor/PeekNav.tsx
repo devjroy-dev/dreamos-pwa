@@ -102,8 +102,8 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
   const cueTopLine = T.isLight
     ? 'linear-gradient(90deg, transparent, rgba(122,56,40,0.12), transparent)'
     : 'linear-gradient(90deg, transparent, rgba(201,168,76,0.12), transparent)';
-  const brassC     = T.isLight ? T.accent                  : '#C9A84C';
-  const redC       = T.isLight ? '#7A3828'                 : '#E07B5C';
+  const brassC     = T.isLight ? T.accent                  : 'var(--role-metal)';
+  const redC       = T.isLight ? '#7A3828'                 : 'var(--role-critical)';
   const dimC       = T.isLight ? 'rgba(26,15,8,0.22)'     : 'rgba(240,230,210,0.2)';
 
   const CUES = [

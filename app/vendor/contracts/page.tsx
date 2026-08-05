@@ -14,7 +14,7 @@ import type { Contract } from '@/lib/vendor/types/vendor';
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', green: '#7FBE85', red: '#E07B5C',
+  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', green: 'var(--role-positive)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -168,7 +168,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
           width: 46, height: 46, borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: F.body, fontSize: 22, fontWeight: 400, lineHeight: 1,
-          cursor: 'pointer', border: '0.5px solid #E0BC6E',
+          cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
         }}>+</button>
 
       {uploadOpen && (
@@ -206,7 +206,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
 
             <button type="button" onClick={doUpload} disabled={!canUpload || uploading} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canUpload && !uploading) ? 'pointer' : 'default',
-              border: '0.5px solid #E0BC6E',
+              border: '0.5px solid var(--atelier-label)',
               fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (canUpload && !uploading) ? 1 : 0.5, marginTop: 6,
@@ -244,7 +244,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               <button type="button" onClick={() => doDownload(selected)} className="atelier-fab" style={{
                 flex: '1 1 100%', padding: '13px 0', borderRadius: 2, cursor: 'pointer',
-                border: '0.5px solid #E0BC6E',
+                border: '0.5px solid var(--atelier-label)',
                 fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
                 letterSpacing: '0.42em', textTransform: 'uppercase',
               }}>Download</button>

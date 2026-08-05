@@ -33,7 +33,7 @@ export function confirmationWord(state: string | null | undefined): string {
 export const CONFIRMATION_TONE: Record<string, string> = {
   pending:   'var(--atelier-ink-mute)',
   confirmed: 'var(--atelier-label)',
-  declined:  '#E07B5C',
+  declined:  'var(--role-critical)',
 };
 
 export function confirmationTone(state: string | null | undefined): string {

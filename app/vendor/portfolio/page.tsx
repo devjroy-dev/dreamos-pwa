@@ -54,7 +54,7 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  red:       '#E07B5C',
+  red:       'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -206,7 +206,7 @@ const PROBE_BTN: React.CSSProperties = {
   boxSizing: 'border-box', background: 'transparent', textAlign: 'center',
   textDecoration: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
   borderRadius: 2, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 300,
-  fontSize: 11, color: '#C9A84C', letterSpacing: '0.08em',
+  fontSize: 11, color: 'var(--role-metal)', letterSpacing: '0.08em',
 };
 
 // ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
@@ -813,7 +813,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           style={{
             padding: '8px 16px', borderRadius: 2,
             cursor: (uploading || full) ? 'default' : 'pointer',
-            border: '0.5px solid #E0BC6E',
+            border: '0.5px solid var(--atelier-label)',
             fontFamily: F.label, fontWeight: 400, fontSize: 9,
             color: '#1A120E', letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: (uploading || full) ? 0.5 : 1,
@@ -953,8 +953,8 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 {(canReorder ? idx === 0 : img.position === 0) && (
                   <div style={{
                     position: 'absolute', top: 6, left: 6, padding: '3px 8px',
-                    background: 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)',
-                    border: '0.5px solid #E0BC6E',
+                    background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
+                    border: '0.5px solid var(--atelier-label)',
                     fontFamily: F.label, fontWeight: 400, fontSize: 7,
                     color: '#1A120E', letterSpacing: '0.28em',
                   }}>{COPY.E1}</div>

@@ -9,7 +9,7 @@ import { useDemoContext } from '@/hooks/demo/useDemoContext';
 import { fetchDemoVendor } from '@/lib/demo/api';
 import type { DemoPhoto } from '@/lib/demo/api';
 
-const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',brassLine:'rgba(201,168,76,0.18)',red:'#E07B5C'} as const;
+const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',brassLine:'rgba(201,168,76,0.18)',red:'var(--role-critical)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 const STATE_FILTERS=['all','approved','pending','rejected'] as const;
 
@@ -32,7 +32,7 @@ export default function DemoPortfolioPage(){
       <div style={{padding:'12px 22px',display:'flex',alignItems:'center',gap:12,borderBottom:'0.5px solid var(--atelier-card-border)'}}>
         <button type="button" onClick={()=>router.back()} style={{background:'none',border:'none',cursor:'pointer',padding:0,color:A.brassWarm,fontFamily:F.display,fontSize:22,lineHeight:1}}>‹</button>
         <span style={{fontFamily:F.label,fontWeight:300,fontSize:9,letterSpacing:'0.42em',textTransform:'uppercase',color:A.brass,flex:1}}>Portfolio</span>
-        <button type="button" onClick={()=>show('Upload available in your full studio after signup','success')} className="atelier-fab" style={{padding:'8px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>+ Upload</button>
+        <button type="button" onClick={()=>show('Upload available in your full studio after signup','success')} className="atelier-fab" style={{padding:'8px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>+ Upload</button>
       </div>
       <div style={{display:'flex',gap:8,padding:'12px 22px',flexWrap:'wrap'}}>
         {STATE_FILTERS.map(s=>(
@@ -47,7 +47,7 @@ export default function DemoPortfolioPage(){
             {(filter==='all'?photos:filter==='approved'?photos:[]).map((img,idx)=>(
               <div key={idx} role="button" tabIndex={0} onClick={()=>setSel(img)} style={{position:'relative',aspectRatio:'3/4',overflow:'hidden',border:'0.5px solid rgba(201,168,76,0.2)',cursor:'pointer',background:'none',padding:0,borderRadius:2}}>
                 <img src={img.url} alt="" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center top'}}/>
-                {img.is_hero&&<div style={{position:'absolute',top:6,left:6,padding:'3px 8px',background:'linear-gradient(180deg,#D4B86A 0%,#B59548 100%)',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:7,color:'#1A120E',letterSpacing:'0.28em'}}>HERO</div>}
+                {img.is_hero&&<div style={{position:'absolute',top:6,left:6,padding:'3px 8px',background:'linear-gradient(180deg,var(--role-metal) 0%,var(--role-metal) 100%)',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:7,color:'#1A120E',letterSpacing:'0.28em'}}>HERO</div>}
                 <div style={{position:'absolute',bottom:6,right:6,width:7,height:7,borderRadius:'50%',background:A.brassWarm,boxShadow:'0 0 6px rgba(224,188,110,0.6)'}}/>
               </div>
             ))}
@@ -62,7 +62,7 @@ export default function DemoPortfolioPage(){
             <img src={sel.url} alt="" style={{width:'100%',aspectRatio:'3/4',objectFit:'cover',objectPosition:'center top',borderRadius:2,marginBottom:14,border:'0.5px solid rgba(201,168,76,0.2)'}}/>
             <div style={{fontFamily:F.label,fontWeight:300,fontSize:9,letterSpacing:'0.32em',textTransform:'uppercase',color:A.brassWarm,marginBottom:16}}>approved</div>
             <div style={{display:'flex',gap:8}}>
-              {!sel.is_hero&&<button type="button" onClick={()=>{show('Set hero available in your full studio after signup','success');setSel(null);}} className="atelier-fab" style={{flex:1,padding:'13px 0',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Set Hero</button>}
+              {!sel.is_hero&&<button type="button" onClick={()=>{show('Set hero available in your full studio after signup','success');setSel(null);}} className="atelier-fab" style={{flex:1,padding:'13px 0',borderRadius:2,cursor:'pointer',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Set Hero</button>}
               <button type="button" onClick={()=>{show('Delete available in your full studio after signup','success');setSel(null);}} style={{flex:1,padding:'13px 0',background:'transparent',border:'0.5px solid rgba(224,123,92,0.4)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.red,letterSpacing:'0.32em',textTransform:'uppercase'}}>Delete</button>
             </div>
           </div>

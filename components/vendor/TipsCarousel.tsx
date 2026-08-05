@@ -221,17 +221,17 @@ export function TipsCarousel({ onClose }: Props) {
   const overlayBg  = isLight ? 'rgba(26,15,8,0.55)' : 'rgba(8,6,4,0.62)';
   const cardBg     = isLight ? T.sheetTop : 'rgba(24,19,15,0.98)';
   const cardBorder = isLight ? T.sheetBorder : 'rgba(201,168,76,0.22)';
-  const labelColor = isLight ? T.accent : '#C9A84C';
-  const headColor  = isLight ? T.ink : '#F0E6D2';
+  const labelColor = isLight ? T.accent : 'var(--role-metal)';
+  const headColor  = isLight ? T.ink : 'var(--atelier-ink)';
   const bodyColor  = isLight ? T.inkSoft : 'rgba(240,230,210,0.65)';
   const mutedColor = isLight ? T.inkMute : 'rgba(240,230,210,0.38)';
   const ctaBg      = isLight
     ? 'linear-gradient(180deg, #9B4E38 0%, #7A3828 100%)'
-    : 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)';
+    : 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
   const ctaColor   = isLight ? '#F5F2EE' : '#1A120E';
   const pillActive = isLight
     ? { bg: 'rgba(122,56,40,0.12)', border: 'rgba(122,56,40,0.40)', color: T.accent }
-    : { bg: 'rgba(201,168,76,0.14)', border: 'rgba(201,168,76,0.45)', color: '#C9A84C' };
+    : { bg: 'rgba(201,168,76,0.14)', border: 'rgba(201,168,76,0.45)', color: 'var(--role-metal)' };
   const pillInactive = isLight
     ? { bg: 'transparent', border: 'rgba(122,56,40,0.18)', color: T.inkMute }
     : { bg: 'transparent', border: 'rgba(201,168,76,0.16)', color: 'rgba(240,230,210,0.38)' };
@@ -371,7 +371,7 @@ export function TipsCarousel({ onClose }: Props) {
               width: `${((safeIdx + 1) / filtered.length) * 100}%`,
               background: isLight
                 ? 'linear-gradient(90deg, #9B4E38, #7A3828)'
-                : 'linear-gradient(90deg, #D4B86A, #B59548)',
+                : 'linear-gradient(90deg, var(--role-metal), var(--role-metal))',
               borderRadius: 999,
               transition: 'width 300ms cubic-bezier(0.22,1,0.36,1)',
             }} />

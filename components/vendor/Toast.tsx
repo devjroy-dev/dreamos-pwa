@@ -48,7 +48,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
     }}>
       <span style={{
         width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-        backgroundColor: isErr ? '#E07070' : T.isLight ? T.accent : '#C9A84C',
+        backgroundColor: isErr ? 'var(--role-critical)' : T.isLight ? T.accent : 'var(--role-metal)',
       }} />
       {!asPill && (
         <span style={{
@@ -62,7 +62,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
           // now, both themes: 11.5–13.1:1 computed. The dark theme's
           // var(--atelier-ink) IS #F0E6D2, so dark renders byte-identically.
           // RATIFY-OR-REVERT (the R-B6-20 one-liner convention, named).
-          color: isErr ? '#F0E6D2' : T.isLight ? T.ink : 'var(--atelier-ink)',
+          color: isErr ? 'var(--atelier-ink)' : T.isLight ? T.ink : 'var(--atelier-ink)',
           letterSpacing: '0.02em',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
@@ -74,7 +74,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
           background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px 4px',
           fontFamily: F.label, fontWeight: 500, fontSize: 12, letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          color: T.isLight && !isErr ? T.accent : '#E0BC6E',
+          color: T.isLight && !isErr ? T.accent : 'var(--atelier-label)',
         }}>{toast.action.label}</button>
       )}
       <style>{`@keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) translateY(-8px)}to{opacity:1;transform:translate(-50%,-50%)}}`}</style>

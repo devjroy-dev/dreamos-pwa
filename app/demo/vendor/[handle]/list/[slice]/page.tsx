@@ -14,7 +14,7 @@ import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
-const A = { ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',inkDim:'var(--atelier-ink-dim)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',green:'#7FBE85',red:'#E07B5C' } as const;
+const A = { ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',inkDim:'var(--atelier-ink-dim)',brass:'var(--atelier-accent-text)',brassWarm:'var(--atelier-label)',green:'var(--role-positive)',red:'var(--role-critical)' } as const;
 const F = { display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif' } as const;
 const LABELS: Record<ListSlice,string> = { clients:'Clients',leads:'Leads',invoices:'Invoices',events:'Events',expenses:'Expenses' };
 const GLYPHS: Record<ListSlice,string> = { clients:'C',leads:'L',invoices:'I',events:'◐',expenses:'×' };
@@ -93,7 +93,7 @@ export default function DemoSlicePage(){
         {!loading&&rows.length===0&&<div style={{padding:'40px 24px',textAlign:'center',fontFamily:F.script,fontStyle:'italic',fontWeight:300,fontSize:16,color:A.inkMute,lineHeight:1.5}}>{query?<>Nothing matching <span style={{color:A.brassWarm}}>&ldquo;{query}&rdquo;</span></>:<>Nothing here yet.<br/><span style={{color:A.brassWarm}}>Tap + to add one.</span></>}</div>}
         {rows.map((row:Row)=><div key={row.id}><ListRow row={row} slice={slice} onSelect={()=>{setSel(row);setConfirmDel(false);}}/></div>)}
       </div>
-      <button type="button" onClick={()=>{setEditRow(null);setAddOpen(true);}} aria-label={`Add ${LABELS[slice].toLowerCase()}`} className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:30,width:46,height:46,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:22,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid #E0BC6E'}}>+</button>
+      <button type="button" onClick={()=>{setEditRow(null);setAddOpen(true);}} aria-label={`Add ${LABELS[slice].toLowerCase()}`} className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:30,width:46,height:46,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.body,fontSize:22,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid var(--atelier-label)'}}>+</button>
       <Toast toast={toast}/>
       <AddSheet open={addOpen} slice={slice} onClose={()=>{setAddOpen(false);setEditRow(null);}} onToast={(msg:string,kind?:ToastKind)=>showToast(msg,kind)} existing={editRow} existingId={editRow?.id as string|undefined}/>
       <>
@@ -121,7 +121,7 @@ export default function DemoSlicePage(){
             )}
             {!confirmDel?(
               <div style={{display:'flex',gap:8}}>
-                <button type="button" onClick={()=>{if(sel){setSel(null);setEditRow({id:sel.id});setAddOpen(true);}}} className="atelier-fab" style={{flex:1,padding:'12px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Edit Here</button>
+                <button type="button" onClick={()=>{if(sel){setSel(null);setEditRow({id:sel.id});setAddOpen(true);}}} className="atelier-fab" style={{flex:1,padding:'12px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>Edit Here</button>
                 <button type="button" onClick={()=>{setSel(null);router.push(`/demo/vendor/${handle}/studio`);}} style={{flex:1,padding:'12px 16px',background:'transparent',border:'0.5px solid var(--atelier-sheet-border)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.brassWarm,letterSpacing:'0.32em',textTransform:'uppercase'}}>Via Chat</button>
                 <button type="button" onClick={()=>setConfirmDel(true)} style={{flex:1,padding:'12px 16px',background:'transparent',border:'0.5px solid rgba(224,123,92,0.4)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:9,color:A.red,letterSpacing:'0.32em',textTransform:'uppercase'}}>Delete</button>
               </div>

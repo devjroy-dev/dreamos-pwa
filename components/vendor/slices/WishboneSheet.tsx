@@ -142,7 +142,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
               {!victorOnly && (
                 <button type="button" onClick={save} disabled={saving} className={!saving ? 'atelier-fab' : undefined} style={{
                   flex: 1, padding: '11px 14px', borderRadius: 2, cursor: saving ? 'default' : 'pointer',
-                  border: '0.5px solid #E0BC6E', opacity: saving ? 0.6 : 1,
+                  border: '0.5px solid var(--atelier-label)', opacity: saving ? 0.6 : 1,
                   background: saving ? 'rgba(201,168,76,0.18)' : undefined,
                   fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
                   letterSpacing: '0.32em', textTransform: 'uppercase',

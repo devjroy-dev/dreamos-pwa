@@ -42,7 +42,7 @@ const A = {
   brassLine: 'rgba(201,168,76,0.18)',
   brassSoft: 'rgba(201,168,76,0.28)',
   brassRing: 'rgba(201,168,76,0.55)',
-  terracotta:'#E07B5C',
+  terracotta:'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -131,7 +131,7 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         {muhurat && (
           <span style={{
             position: 'absolute', top: -6, left: '50%', marginLeft: -2.5,
-            width: 5, height: 5, background: '#C9A84C',
+            width: 5, height: 5, background: 'var(--role-metal)',
             transform: 'rotate(45deg)',
           }} />
         )}

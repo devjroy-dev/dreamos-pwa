@@ -38,8 +38,8 @@ const D = {
   muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)',
   gold: 'var(--atelier-accent-text)',
-  red: '#E07070',
-  terracotta: '#E07B5C',
+  red: 'var(--role-critical)',
+  terracotta: 'var(--role-critical)',
 };
 const F = {
   display: 'var(--font-cormorant), Georgia, serif',

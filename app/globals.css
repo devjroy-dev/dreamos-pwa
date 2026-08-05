@@ -726,11 +726,15 @@ body {
    #8B4B37  Sabyasachi monogram accent — deep red-brown
    #C9A84C  brass — same as always, used sparingly
    ──────────────────────────────────────────────── */
+/* TDW_09 F-09.28 — the stale ink duplicates are deleted from this block. They held
+   the PRE-CURE .58 / .38 values that ZIP A raised in lib/vendor/theme.ts. Measured in
+   a real browser: ThemeContext's inline properties on <html> win post-mount, so the
+   ladder was live — but this block still won for one frame before React mounted, and
+   a second home for a value the token system owns is the disease this block belongs to.
+   The remaining declarations here are surface values with no token twin. */
 html.theme-light {
   --atelier-ink:         #1A0F08;
   --atelier-ink-soft:    rgba(26,15,8,0.82);
-  --atelier-ink-mute:    rgba(26,15,8,0.58);
-  --atelier-ink-dim:     rgba(26,15,8,0.38);
   --atelier-card-bg:     linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(245,242,238,0.65) 100%);
   --atelier-card-border: rgba(122,56,40,0.20);
   --atelier-card-shadow: 0 2px 12px -4px rgba(42,26,16,0.08);

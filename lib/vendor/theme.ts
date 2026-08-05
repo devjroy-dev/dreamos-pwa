@@ -9,6 +9,35 @@ export interface ThemeTokens {
   inkSoft: string;
   inkMute: string;
   inkDim: string;
+  // ── TDW_09 F-09.28 · THE SEMANTIC ROLES (R-U35 / R-U37) ────────────────────
+  // Nineteen colour literals sat loose across fifty-three themed files, every one
+  // legible on Espresso and under the 3:1 bar on Editorial Paper, because the roles
+  // they were reaching for did not exist. These are those roles.
+  //
+  // THE DEFINING PROPERTY, F-09.28 as amended at R-U38: the failure class is not
+  // "a literal that fails" but THEME-COHERENCE — any rendered pair whose members
+  // theme independently. The loose literal is the simplest case. The sharpest is an
+  // inverting composite: a themed ink on an untheming surface, where NEITHER value
+  // is individually wrong and the pair is still unreadable. `scrim` and `sheet`
+  // exist because of that case and would not have been minted from the literals.
+  //
+  // SOLVED PER THEME BECAUSE THEY HAD TO BE: no single hex clears 4.5:1 on both
+  // pages for any of the four ink roles — derived before authoring, not discovered
+  // during. Hue is held across the pair; only lightness moves.
+  /** Status: settled, paid, confirmed. */
+  positive: string;
+  /** Status: pending, attention, a soft warning. */
+  caution: string;
+  /** Status: overdue, lost, destructive. */
+  critical: string;
+  /** The brass mark — rules, badges, marks. NEVER body text (F-09.3). */
+  metal: string;
+  /** The veil over page content when a sheet is open. Must DIM the page without
+   *  destroying the ink already on it — on Espresso it blackens, on Paper it must
+   *  grey rather than blacken or the page's dark ink dies behind it. */
+  scrim: string;
+  /** The surface a sheet's own content sits on, ABOVE the scrim. */
+  sheet: string;
   /** TDW_09 F-09.15b — the de-emphasised fade (previous-month numerals, locked
    *  tabs). A TOKEN because the two sites that needed it carried a hardcoded
    *  CREAM literal, which reads as a fade on espresso and as NOTHING on the
@@ -50,6 +79,14 @@ export const DARK: ThemeTokens = {
   inkMute:    'rgba(240,230,210,0.58)', //  5.57:1
   inkDim:     'rgba(240,230,210,0.52)', //  4.71:1
   inkFade:    'rgba(240,230,210,0.37)', //  3.02:1 — the 3:1 UI bar, not the body bar
+  // F-09.28 roles — Espresso keeps the values the estate already reads as these
+  // meanings; it was never the failing side.
+  positive:   '#7FBE85',                //  8.13:1
+  caution:    '#E0A870',                //  8.47:1
+  critical:   '#E07B5C',                //  6.06:1
+  metal:      '#C9A84C',                //  7.78:1
+  scrim:      'rgba(0,0,0,0.7)',        // veiled page ink still reads 16.24:1
+  sheet:      'rgba(255,255,255,0.035)',// form ink on it 15.33:1
   brass:      '#C9A84C',
   brassWarm:  '#E0BC6E',
   brassLine:  'rgba(201,168,76,0.18)',
@@ -87,6 +124,17 @@ export const LIGHT: ThemeTokens = {
   inkMute:    'rgba(26,15,8,0.70)', //  6.72:1
   inkDim:     'rgba(26,15,8,0.62)', //  5.12:1
   inkFade:    'rgba(26,15,8,0.46)', //  3.06:1 — the 3:1 UI bar
+  // F-09.28 roles — the failing side, solved. Same hue as its Espresso twin,
+  // darkened until it clears the body bar on paper.
+  positive:   '#3E7A44',                //  4.62:1  (was #7FBE85 -> 1.96:1)
+  caution:    '#9B5E22',                //  4.68:1  (was #E0A870 -> 1.88:1)
+  critical:   '#BA4723',                //  4.69:1  (was #E07B5C -> 2.63:1)
+  metal:      '#826A27',                //  4.66:1  (was #C9A84C -> 2.05:1)
+  // The veil LIGHTENS here rather than blackening. A black scrim on a cream page
+  // is what made studio/team's Edit Member sheet unreadable: the page's own dark
+  // ink fell to 2.09:1 behind it while the sheet's ink fell to 2.30:1 on it.
+  scrim:      'rgba(26,15,8,0.35)',     // veiled page ink still reads 7.53:1
+  sheet:      '#FFFFFF',                // form ink on it 18.82:1
   brass:      '#C9A84C',
   brassWarm:  '#9B6E1A',           // darker brass — legible on white
   brassLine:  'rgba(122,56,40,0.22)',

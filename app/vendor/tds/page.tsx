@@ -13,7 +13,7 @@ import type { TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', red: '#E07B5C',
+  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -225,7 +225,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
         width: 54, height: 54, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: F.display, fontSize: 28, fontWeight: 400, lineHeight: 1,
-        cursor: 'pointer', border: '0.5px solid #E0BC6E',
+        cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
       }}>+</button>
 
       {addOpen && (
@@ -284,7 +284,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
 
             <button type="button" onClick={doCreate} disabled={!canCreate || saving} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canCreate && !saving) ? 'pointer' : 'default',
-              border: '0.5px solid #E0BC6E',
+              border: '0.5px solid var(--atelier-label)',
               fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (canCreate && !saving) ? 1 : 0.5, marginTop: 6,

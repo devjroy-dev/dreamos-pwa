@@ -13,7 +13,7 @@ import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', red: '#E07B5C',
+  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -216,8 +216,8 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
                         }}>
                           <span style={{
                             width: 26, height: 26, borderRadius: '50%',
-                            background: 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)',
-                            border: '0.5px solid #E0BC6E',
+                            background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
+                            border: '0.5px solid var(--atelier-label)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: '#1A120E', fontFamily: F.display, fontSize: 14, lineHeight: 1,
                           }}>✓</span>
@@ -246,7 +246,7 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
             className="atelier-fab"
             style={{
               width: '100%', padding: '14px 0', borderRadius: 2,
-              border: '0.5px solid #E0BC6E', cursor: 'pointer',
+              border: '0.5px solid var(--atelier-label)', cursor: 'pointer',
               fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
               letterSpacing: '0.5em', textTransform: 'uppercase',
             }}>Continue</button>
@@ -255,7 +255,7 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
             className="atelier-fab"
             style={{
               width: '100%', padding: '14px 0', borderRadius: 2,
-              border: '0.5px solid #E0BC6E',
+              border: '0.5px solid var(--atelier-label)',
               cursor: (submitting || sampleIds.length < 3) ? 'default' : 'pointer',
               fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
               letterSpacing: '0.5em', textTransform: 'uppercase',

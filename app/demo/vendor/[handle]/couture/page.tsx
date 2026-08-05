@@ -7,7 +7,7 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'#C9A84C',brassWarm:'var(--atelier-label)',brassLine:'rgba(201,168,76,0.18)',red:'#E07B5C'} as const;
+const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--role-metal)',brassWarm:'var(--atelier-label)',brassLine:'rgba(201,168,76,0.18)',red:'var(--role-critical)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 const EASE='cubic-bezier(0.22,1,0.36,1)';
 interface Slot{id:string;slot_at:string;fee_inr:number;duration_minutes:number;state:string;}
@@ -31,7 +31,7 @@ export default function DemoCouturePage(){
     <div style={{padding:'12px 22px',display:'flex',alignItems:'center',gap:12,borderBottom:'0.5px solid var(--atelier-card-border)'}}>
       <button type="button" onClick={()=>router.back()} style={{background:'none',border:'none',cursor:'pointer',padding:0,color:A.brassWarm,fontFamily:F.display,fontSize:22,lineHeight:1}}>‹</button>
       <span style={{fontFamily:F.label,fontWeight:300,fontSize:9,letterSpacing:'0.42em',textTransform:'uppercase',color:A.brass,flex:1}}>Couture</span>
-      {tab==='availability'&&<button type="button" onClick={()=>setAddOpen(true)} className="atelier-fab" style={{padding:'8px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>+ Slot</button>}
+      {tab==='availability'&&<button type="button" onClick={()=>setAddOpen(true)} className="atelier-fab" style={{padding:'8px 16px',borderRadius:2,cursor:'pointer',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:9,color:'#1A120E',letterSpacing:'0.32em',textTransform:'uppercase'}}>+ Slot</button>}
     </div>
     <div style={{display:'flex'}}>{(['availability','appointments'] as const).map(t=>(<button key={t} type="button" onClick={()=>setTab(t)} style={{flex:1,padding:'14px 0',background:'none',border:'none',cursor:'pointer',fontFamily:F.label,fontWeight:tab===t?400:300,fontSize:9,color:tab===t?A.brassWarm:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase',borderBottom:tab===t?`0.5px solid ${A.brass}`:'0.5px solid rgba(201,168,76,0.08)'}}>{t}</button>))}</div>
     <div style={{flex:1,overflowY:'auto',overflowX:'hidden',padding:'20px 22px 100px'}}>
@@ -47,7 +47,7 @@ export default function DemoCouturePage(){
       <input type="datetime-local" value={slotAt} onChange={e=>setSlotAt(e.target.value)} style={{width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',colorScheme:'dark',marginBottom:14,caretColor:A.brass}}/>
       <label style={{display:'block',fontFamily:F.label,fontWeight:300,fontSize:8,color:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase',marginBottom:6}}>Fee (Rs)</label>
       <input type="number" value={feeInr} onChange={e=>setFeeInr(e.target.value)} placeholder="3000" style={{width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',marginBottom:16,caretColor:A.brass}}/>
-      <button type="button" onClick={doAddSlot} disabled={!slotAt||!feeInr} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid #E0BC6E',cursor:(!slotAt||!feeInr)?'default':'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.42em',textTransform:'uppercase',opacity:(!slotAt||!feeInr)?0.5:1}}>Add Slot</button>
+      <button type="button" onClick={doAddSlot} disabled={!slotAt||!feeInr} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid var(--atelier-label)',cursor:(!slotAt||!feeInr)?'default':'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.42em',textTransform:'uppercase',opacity:(!slotAt||!feeInr)?0.5:1}}>Add Slot</button>
     </div></>)}
   </div>);
 }

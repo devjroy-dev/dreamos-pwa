@@ -38,10 +38,10 @@ import { formatRs, fitMoneySize } from '@/lib/vendor/format'; // TDW_09 R-U25/R-
 const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassDeep: '#B59548',
+  brassDeep: 'var(--role-metal)',
   brassLine: 'rgba(201,168,76,0.18)',
   brassSoft: 'rgba(201,168,76,0.28)',
-  terracotta:'#E07B5C',
+  terracotta:'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',

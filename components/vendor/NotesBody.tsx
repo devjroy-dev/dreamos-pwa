@@ -19,7 +19,7 @@ import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/lib/vendor
 
 const D = {
   border: '0.5px solid var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
-  cream: 'var(--atelier-ink)', red: '#E07070',
+  cream: 'var(--atelier-ink)', red: 'var(--role-critical)',
 };
 const F = {
   display: 'var(--font-cormorant), Georgia, serif',

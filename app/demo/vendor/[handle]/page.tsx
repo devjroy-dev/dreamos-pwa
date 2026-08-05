@@ -311,14 +311,14 @@ export default function DemoLandingPage() {
         {/* TDW wordmark — exact from real landing */}
         <div style={{ position:'absolute', top:'calc(env(safe-area-inset-top, 0px) + 22px)', left:22, zIndex:10, opacity: reveal ? 1 : 0, transition:`opacity 1.2s ${EASE} 0.3s` }}>
           <div style={{ fontFamily:F.script, fontStyle:'italic', fontWeight:300, fontSize:16, color:'rgba(248,247,245,0.72)', letterSpacing:'0.02em', lineHeight:1 }}>The Dream Wedding</div>
-          <div style={{ fontFamily:F.label, fontWeight:200, fontSize:6, letterSpacing:'0.38em', textTransform:'uppercase', color:'#C9A84C', marginTop:5 }}>India&apos;s First Wedding OS</div>
+          <div style={{ fontFamily:F.label, fontWeight:200, fontSize:6, letterSpacing:'0.38em', textTransform:'uppercase', color:'var(--role-metal)', marginTop:5 }}>India&apos;s First Wedding OS</div>
         </div>
 
         {/* Slide dots */}
         {hasPhotos && photos.length > 1 && (
           <div style={{ position:'absolute', top:'calc(env(safe-area-inset-top, 0px) + 28px)', left:'50%', transform:'translateX(-50%)', display:'flex', gap:5, zIndex:10, opacity: reveal ? 1 : 0, transition:`opacity 1s ${EASE} 0.6s` }}>
             {photos.map((_, i) => (
-              <div key={i} style={{ width: i === cur ? 18 : 4, height:4, borderRadius:2, background: i === cur ? '#C9A84C' : 'rgba(255,255,255,0.22)', transition:`width 400ms ${EASE}, background 400ms ${EASE}` }} />
+              <div key={i} style={{ width: i === cur ? 18 : 4, height:4, borderRadius:2, background: i === cur ? 'var(--role-metal)' : 'rgba(255,255,255,0.22)', transition:`width 400ms ${EASE}, background 400ms ${EASE}` }} />
             ))}
           </div>
         )}
@@ -536,7 +536,7 @@ export default function DemoLandingPage() {
       <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:COLUMN, zIndex:40, padding:'14px 24px calc(env(safe-area-inset-bottom, 12px) + 14px)', background:`linear-gradient(to top, rgba(${SURFACE_RGB},0.97) 60%, rgba(${SURFACE_RGB},0))`, backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)' }}>
         <button
           onClick={e => { e.stopPropagation(); setClaimOpen(true); }}
-          style={{ width:'100%', height:48, background:'#C9A84C', border:'none', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:9, fontWeight:400, letterSpacing:'0.22em', textTransform:'uppercase', color:SURFACE, WebkitTapHighlightColor:'transparent' }}
+          style={{ width:'100%', height:48, background:'var(--role-metal)', border:'none', borderRadius:100, cursor:'pointer', fontFamily:F.label, fontSize:9, fontWeight:400, letterSpacing:'0.22em', textTransform:'uppercase', color:SURFACE, WebkitTapHighlightColor:'transparent' }}
         >
           Claim your studio — 90 seconds
         </button>

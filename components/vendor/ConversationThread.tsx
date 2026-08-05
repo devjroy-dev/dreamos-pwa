@@ -5,7 +5,7 @@
 
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
 
-const D = { card: '#1C1C1C', border: 'rgba(226,222,216,0.1)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: '#C9A84C' };
+const D = { card: '#1C1C1C', border: 'rgba(226,222,216,0.1)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--role-metal)' };
 const F = { label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
 function fmtTime(iso: string) {

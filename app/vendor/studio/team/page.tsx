@@ -16,9 +16,17 @@ import { fetchTeam, addTeamMember, updateTeamMember, deleteTeamMember, rotateTea
 import type { TeamMember } from '@/lib/vendor/types/vendor';
 
 const D = {
-  card: 'rgba(255,255,255,0.035)',
+  // TDW_09 F-09.28 — THE SPECIMEN THAT SHARPENED THE FINDING.
+  // This was a hardcoded near-transparent white over a hardcoded black scrim, with
+  // its ink read from `--atelier-ink`, which themes. On Espresso that composites to
+  // #12100E and the form ink reads 15.33:1. On Editorial Paper the same two literals
+  // composite to #504F4D while the ink flips DARK — form ink 2.30:1, labels 2.95:1,
+  // the SAVE/REMOVE pair 2.62:1, and the member rows behind the veil 2.09:1, which
+  // is what the founder's walk saw and read as a layout collision. Nothing was
+  // colliding. Neither literal was individually wrong. The PAIR inverted.
+  card: 'var(--role-sheet)',
   border: '0.5px solid var(--atelier-card-border)', muted: 'rgba(248,247,245,0.45)',
-  cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: '#E07070',
+  cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)',
 };
 const F = {
   display: 'var(--font-cormorant), Georgia, serif',
@@ -226,7 +234,7 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
 
       {/* Sheet */}
       {sheet && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setSheet(null)}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'var(--role-scrim)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setSheet(null)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream, marginBottom: 4 }}>{sheet === 'add' ? 'Add Member' : 'Edit Member'}</div>
 

@@ -107,7 +107,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
           className={dirty && !saving ? 'atelier-fab' : undefined}
           style={{
             padding: '14px 0', borderRadius: 2, marginTop: 4,
-            border: '0.5px solid #E0BC6E',
+            border: '0.5px solid var(--atelier-label)',
             cursor: dirty && !saving ? 'pointer' : 'default',
             fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
             letterSpacing: '0.42em', textTransform: 'uppercase',
@@ -295,7 +295,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
             <button type="button" onClick={askVictor} className="atelier-fab" style={{
               flex: 1, padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
-              border: '0.5px solid #E0BC6E',
+              border: '0.5px solid var(--atelier-label)',
               fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
               letterSpacing: '0.32em', textTransform: 'uppercase',
             }}>Ask in chat</button>
@@ -316,7 +316,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               <button type="button" onClick={() => { void hide(); }} style={{
                 padding: '11px 14px', background: 'transparent',
                 border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#E07070',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Sure?</button>
             )}

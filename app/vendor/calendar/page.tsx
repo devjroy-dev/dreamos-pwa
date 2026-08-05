@@ -30,10 +30,10 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassDeep: '#B59548',
+  brassDeep: 'var(--role-metal)',
   brassLine: 'rgba(201,168,76,0.18)',
   brassSoft: 'rgba(201,168,76,0.28)',
-  terracotta:'#E07B5C',
+  terracotta:'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -611,7 +611,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         width: 46, height: 46, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: F.body, fontSize: 22, fontWeight: 400, lineHeight: 1,
-        cursor: 'pointer', border: '0.5px solid #E0BC6E',
+        cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
       }}>+</button>
 
       {/* B6-S2: the Date popup RETIRED into the day sheet (item 4) — its list,

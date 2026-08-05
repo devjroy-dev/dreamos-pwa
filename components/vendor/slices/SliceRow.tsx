@@ -16,8 +16,8 @@ export const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassLine: 'rgba(201,168,76,0.18)',
-  green:     '#7FBE85',
-  red:       '#E07B5C',
+  green:     'var(--role-positive)',
+  red:       'var(--role-critical)',
 } as const;
 export const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -121,7 +121,7 @@ export const WaIcon = () => (
 export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice; onSelect: () => void }) {
   const A = {
     ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-    brass: '#C9A84C', brassWarm: 'var(--atelier-label)', green: '#7FBE85', red: '#E07B5C',
+    brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', green: 'var(--role-positive)', red: 'var(--role-critical)',
   };
 
   // Build detail line — always has content, never blank

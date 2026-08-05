@@ -194,19 +194,19 @@ export function OnboardingOverlay({ onSend }: Props) {
   const overlayFill   = isLight ? 'rgba(26,15,8,0.60)'  : 'rgba(10,8,6,0.72)';
   const cardBg        = isLight ? T.sheetTop             : 'rgba(24,19,15,0.98)';
   const cardBorder    = isLight ? T.sheetBorder          : 'rgba(201,168,76,0.25)';
-  const labelColor    = isLight ? T.accent               : '#C9A84C';
-  const headColor     = isLight ? T.ink                  : '#F0E6D2';
+  const labelColor    = isLight ? T.accent               : 'var(--role-metal)';
+  const headColor     = isLight ? T.ink                  : 'var(--atelier-ink)';
   const bodyColor     = isLight ? T.inkSoft              : 'rgba(240,230,210,0.65)';
   const mutedColor    = isLight ? T.inkMute              : 'rgba(240,230,210,0.38)';
-  const ringColor     = isLight ? T.accent               : '#C9A84C';
+  const ringColor     = isLight ? T.accent               : 'var(--role-metal)';
   const ctaBg         = isLight
     ? 'linear-gradient(180deg, #9B4E38 0%, #7A3828 100%)'
-    : 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)';
+    : 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
   const ctaColor      = isLight ? '#F5F2EE' : '#1A120E';
   const topAccent     = isLight
     ? `linear-gradient(90deg, transparent, ${T.accent}55, transparent)`
     : 'linear-gradient(90deg, transparent, rgba(201,168,76,0.45), transparent)';
-  const dotActive     = isLight ? T.accent : '#C9A84C';
+  const dotActive     = isLight ? T.accent : 'var(--role-metal)';
   const dotInactive   = isLight ? 'rgba(26,15,8,0.16)' : 'rgba(201,168,76,0.18)';
 
   // ── SVG mask path ──────────────────────────────────────────────

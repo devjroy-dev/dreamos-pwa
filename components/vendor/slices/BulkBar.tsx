@@ -29,7 +29,7 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
       padding: '12px 18px calc(14px + env(safe-area-inset-bottom))',
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <span style={{ fontFamily: F.label, fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-brass, #C9A84C)' }}>
+      <span style={{ fontFamily: F.label, fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-brass, var(--role-metal))' }}>
         {selectedCount} selected
       </span>
       <div style={{ flex: 1, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -39,7 +39,7 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
             border: `0.5px solid ${a.destructive ? 'rgba(224,112,112,0.5)' : 'var(--atelier-sheet-border)'}`,
             background: 'transparent', opacity: busy ? 0.5 : 1,
             fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
-            color: a.destructive ? '#E07070' : 'var(--atelier-accent-text)',
+            color: a.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
           }}>{a.label}</button>
         ))}
         <button type="button" onClick={onCancel} style={{

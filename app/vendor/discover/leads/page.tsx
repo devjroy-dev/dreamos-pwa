@@ -17,8 +17,8 @@ const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassLine: 'rgba(201,168,76,0.18)',
-  red:       '#E07B5C',
-  green:     '#7FBE85',
+  red:       'var(--role-critical)',
+  green:     'var(--role-positive)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',

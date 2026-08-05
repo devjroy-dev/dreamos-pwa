@@ -13,7 +13,7 @@ import type { FeaturedSubmission, PortfolioImage } from '@/lib/vendor/types/vend
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', red: '#E07B5C',
+  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -87,7 +87,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             Featured promos unlock once you&apos;re approved for Discover.
           </div>
           <button type="button" onClick={() => router.push('/vendor/discover')} className="atelier-fab" style={{
-            padding: '12px 24px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid #E0BC6E',
+            padding: '12px 24px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
             fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
             letterSpacing: '0.42em', textTransform: 'uppercase',
           }}>Apply for Discover</button>
@@ -113,7 +113,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Featured</span>
         {eligible && (
           <button type="button" onClick={() => setFormOpen(true)} className="atelier-fab" style={{
-            padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid #E0BC6E',
+            padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
             fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Apply</button>
@@ -189,7 +189,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             <div style={{ padding: '12px 24px calc(20px + env(safe-area-inset-bottom))', borderTop: '0.5px solid var(--atelier-card-border)' }}>
               <button type="button" onClick={doSubmit} disabled={submitting} className="atelier-fab" style={{
                 width: '100%', padding: '14px 0', borderRadius: 2,
-                border: '0.5px solid #E0BC6E', cursor: submitting ? 'default' : 'pointer',
+                border: '0.5px solid var(--atelier-label)', cursor: submitting ? 'default' : 'pointer',
                 fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 opacity: submitting ? 0.5 : 1,

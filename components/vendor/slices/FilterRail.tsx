@@ -28,7 +28,7 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
         return (
           <button key={c.key} type="button" onClick={() => onSelect(on ? null : c.key)} style={{
             flexShrink: 0, padding: '6px 11px', borderRadius: 999, cursor: 'pointer',
-            border: `0.5px solid ${on ? 'var(--atelier-brass, #C9A84C)' : 'var(--atelier-card-border)'}`,
+            border: `0.5px solid ${on ? 'var(--atelier-brass, var(--role-metal))' : 'var(--atelier-card-border)'}`,
             background: on ? 'rgba(201,168,76,0.12)' : 'transparent',
             fontFamily: F.label, fontWeight: on ? 400 : 300, fontSize: 9,
             letterSpacing: '0.18em', textTransform: 'uppercase',

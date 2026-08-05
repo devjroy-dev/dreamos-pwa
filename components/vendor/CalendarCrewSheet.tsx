@@ -27,7 +27,7 @@ const D = {
   borderStrong: '0.5px solid rgba(201,168,76,0.35)',
   muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)',
-  gold: '#C9A84C',
+  gold: 'var(--role-metal)',
 };
 const F = {
   display: 'var(--font-cormorant), Georgia, serif',

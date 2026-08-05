@@ -26,7 +26,7 @@ const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassLine: 'rgba(201,168,76,0.18)',
-  red:       '#E07B5C',
+  red:       'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -239,7 +239,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 style={{
                   width: '100%', padding: '15px 0',
                   borderRadius: 2, cursor: 'pointer',
-                  border: '0.5px solid #E0BC6E',
+                  border: '0.5px solid var(--atelier-label)',
                   fontFamily: F.label, fontWeight: 400, fontSize: 10,
                   color: '#1A120E', letterSpacing: '0.5em', textTransform: 'uppercase',
                 }}>
@@ -305,7 +305,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 style={{
                   width: '100%', padding: '14px 0',
                   borderRadius: 2, cursor: 'pointer',
-                  border: '0.5px solid #E0BC6E',
+                  border: '0.5px solid var(--atelier-label)',
                   fontFamily: F.label, fontWeight: 400, fontSize: 10,
                   color: '#1A120E', letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}>

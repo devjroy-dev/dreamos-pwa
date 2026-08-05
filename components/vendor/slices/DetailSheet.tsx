@@ -80,7 +80,7 @@ export function DetailSheet({
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={() => sel && onEditHere(sel)} className="atelier-fab" style={{
                 flex: 1, padding: '12px 16px', borderRadius: 2, cursor: 'pointer',
-                border: '0.5px solid #E0BC6E',
+                border: '0.5px solid var(--atelier-label)',
                 fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Edit Here</button>

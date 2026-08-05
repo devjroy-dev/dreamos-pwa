@@ -15,7 +15,7 @@ import React from 'react';
 
 export const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: '#C9A84C', brassWarm: 'var(--atelier-label)', red: '#E07B5C',
+  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
 export const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -66,7 +66,7 @@ export function SToggle({ label, value, onChange }: { label: string; value: bool
       <button type="button" onClick={() => onChange(!value)} style={{
         width: 44, height: 24, borderRadius: 999, border: '0.5px solid var(--atelier-input-border)',
         cursor: 'pointer', flexShrink: 0,
-        background: value ? 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)' : 'var(--atelier-input-bg)',
+        background: value ? 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)' : 'var(--atelier-input-bg)',
         position: 'relative', transition: 'background 200ms',
       }}>
         <span style={{
@@ -93,7 +93,7 @@ export function SaveBtn({ dirty, loading, onSave }: { dirty: boolean; loading: b
   return (
     <button type="button" onClick={onSave} disabled={loading || !dirty} className={dirty && !loading ? 'atelier-fab' : undefined} style={{
       alignSelf: 'flex-end', padding: '8px 16px', borderRadius: 2,
-      border: '0.5px solid #E0BC6E',
+      border: '0.5px solid var(--atelier-label)',
       cursor: loading || !dirty ? 'default' : 'pointer',
       fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
       letterSpacing: '0.36em', textTransform: 'uppercase',

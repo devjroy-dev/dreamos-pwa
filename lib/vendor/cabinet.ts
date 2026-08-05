@@ -38,7 +38,7 @@ export function moneyOf(r: CabinetBinder): { recv: number; pend: number; state: 
 }
 export const BADGE: Record<'paid' | 'partial' | 'owed', { label: string; color: string }> = {
   paid:    { label: 'Paid',    color: '#3E8B4A' },
-  partial: { label: 'Partial', color: 'var(--cab-accent, #C99A63)' },
+  partial: { label: 'Partial', color: 'var(--cab-accent, var(--role-metal))' },
   owed:    { label: 'Owed',    color: '#C0563B' },
 };
 

@@ -88,15 +88,15 @@ export default function BrideDemoPage() {
 
         {/* Demo pill with vendor count */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(201,168,76,0.12)', border: '0.5px solid rgba(201,168,76,0.3)', borderRadius: 20, padding: '5px 12px', marginBottom: 24, alignSelf: 'flex-start' }}>
-          <span style={{ color: '#C9A84C', fontSize: 8 }}>✦</span>
-          <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', color: '#C9A84C', textTransform: 'uppercase' }}>
+          <span style={{ color: 'var(--role-metal)', fontSize: 8 }}>✦</span>
+          <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', color: 'var(--role-metal)', textTransform: 'uppercase' }}>
             {vendorCount !== null ? `${vendorCount} Maker${vendorCount !== 1 ? 's' : ''} · Demo` : 'Bride Demo'}
           </span>
         </div>
 
         <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 40, lineHeight: 1.12, color: '#F5F0E8', marginBottom: 14 }}>
           Not just happily married.<br />
-          <em style={{ color: '#C9A84C' }}>Getting married happily.</em>
+          <em style={{ color: 'var(--role-metal)' }}>Getting married happily.</em>
         </h1>
 
         <p style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, lineHeight: 1.65, color: 'rgba(245,240,232,0.5)', marginBottom: 36, maxWidth: 300 }}>
@@ -108,7 +108,7 @@ export default function BrideDemoPage() {
           disabled={entering}
           style={{
             width: '100%', padding: '17px 24px',
-            background: entering ? 'rgba(201,168,76,0.6)' : '#C9A84C',
+            background: entering ? 'rgba(201,168,76,0.6)' : 'var(--role-metal)',
             border: 'none', borderRadius: 40,
             fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 11,
             letterSpacing: '0.18em', textTransform: 'uppercase',

@@ -15,7 +15,7 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  red:       '#E07B5C',
+  red:       'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',

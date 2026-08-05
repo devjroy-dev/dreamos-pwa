@@ -14,7 +14,7 @@ import type { DemoVendor } from '@/lib/demo/api';
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: 'var(--atelier-accent-text)', brassWarm: 'var(--atelier-label)', brassLine: 'rgba(201,168,76,0.18)', red: '#E07B5C',
+  brass: 'var(--atelier-accent-text)', brassWarm: 'var(--atelier-label)', brassLine: 'rgba(201,168,76,0.18)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -84,7 +84,7 @@ export default function DemoDiscoverPage() {
             <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#7FBE85', boxShadow: '0 0 6px rgba(127,190,133,0.5)', flexShrink: 0 }} />
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--role-positive)', boxShadow: '0 0 6px rgba(127,190,133,0.5)', flexShrink: 0 }} />
             <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)' }}>Live on Discover</span>
           </div>
           <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute, marginTop: 6, lineHeight: 1.5 }}>

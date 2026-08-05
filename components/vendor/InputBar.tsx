@@ -49,9 +49,9 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
   const canSend = !!value.trim() && !disabled;
 
   // Brass accents for the toggle + note-mode tint.
-  const brassGrad = 'linear-gradient(180deg, #D4B86A 0%, #B59548 100%)';
+  const brassGrad = 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
   const toggleOffBg = T.isLight ? 'rgba(139,75,55,0.08)' : 'rgba(201,168,76,0.10)';
-  const noteBorder = inNote ? '#E0BC6E' : T.inputBorder;
+  const noteBorder = inNote ? 'var(--atelier-label)' : T.inputBorder;
 
   return (
     <div style={{
@@ -75,7 +75,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           title={inNote ? 'Note to self — on' : 'Note to self'}
           style={{
             width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
-            border: `0.5px solid ${inNote ? '#E0BC6E' : T.inputBorder}`,
+            border: `0.5px solid ${inNote ? 'var(--atelier-label)' : T.inputBorder}`,
             background: inNote ? brassGrad : toggleOffBg,
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -115,7 +115,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
       />
       <button type="button" onClick={send} disabled={!canSend} aria-label={inNote ? 'Save note' : 'Send'} style={{
         width: 42, height: 42, borderRadius: '50%',
-        border: '0.5px solid #E0BC6E',
+        border: '0.5px solid var(--atelier-label)',
         background: canSend
           ? brassGrad
           : T.isLight ? 'rgba(139,75,55,0.12)' : 'rgba(201,168,76,0.15)',

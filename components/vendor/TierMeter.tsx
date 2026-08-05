@@ -24,7 +24,7 @@ export function TierMeter({ meta }: { meta: TierMeta | null }) {
         <div className="relative h-px flex-1 bg-[#0C0A09]/10 overflow-visible">
           <div
             className="absolute left-0 -top-px h-[3px] rounded-full transition-all duration-500"
-            style={{ width: `${pct}%`, backgroundColor: capped ? '#B85C38' : '#C9A84C' }}
+            style={{ width: `${pct}%`, backgroundColor: capped ? '#B85C38' : 'var(--role-metal)' }}
           />
         </div>
         <span

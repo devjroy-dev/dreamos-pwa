@@ -387,7 +387,7 @@ function Meter({ score }: { score: number }) {
         <path d="M 18 70 A 52 52 0 0 1 122 70" fill="none"
               stroke="rgba(201,168,76,0.16)" strokeWidth="3" strokeLinecap="round" />
         <path d="M 18 70 A 52 52 0 0 1 122 70" fill="none"
-              stroke="#C9A84C" strokeWidth="3" strokeLinecap="round"
+              stroke="var(--role-metal)" strokeWidth="3" strokeLinecap="round"
               strokeDasharray={`${C * pct} ${C}`}
               style={{ transition: 'stroke-dasharray 420ms cubic-bezier(0.22,1,0.36,1)' }} />
       </svg>

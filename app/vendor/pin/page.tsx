@@ -38,7 +38,7 @@ function writeVendorSession(session: Record<string, unknown>): void {
   } catch { /* ignore */ }
 }
 
-const GOLD = '#C9A84C';
+const GOLD = 'var(--role-metal)';
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
   'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',

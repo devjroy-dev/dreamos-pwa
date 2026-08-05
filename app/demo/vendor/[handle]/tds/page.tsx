@@ -7,7 +7,7 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
-const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'#C9A84C',brassWarm:'var(--atelier-label)',red:'#E07B5C'} as const;
+const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--role-metal)',brassWarm:'var(--atelier-label)',red:'var(--role-critical)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',caretColor:A.brass,colorScheme:'dark'};
 const labelStyle:React.CSSProperties={fontFamily:F.label,fontWeight:300,fontSize:8,color:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase' as const,marginBottom:6};
@@ -60,7 +60,7 @@ export default function DemoTdsPage(){
         <button type="button" onClick={()=>doDelete(e.id)} style={{padding:'6px 10px',background:'transparent',border:'0.5px solid rgba(224,123,92,0.4)',borderRadius:2,cursor:'pointer',fontFamily:F.label,fontWeight:300,fontSize:8,color:A.red,letterSpacing:'0.28em',textTransform:'uppercase',flexShrink:0}}>Delete</button>
       </div>))}
     </div>)}
-    <button type="button" onClick={()=>setAddOpen(true)} aria-label="Add TDS entry" className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:10,width:54,height:54,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.display,fontSize:28,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid #E0BC6E'}}>+</button>
+    <button type="button" onClick={()=>setAddOpen(true)} aria-label="Add TDS entry" className="atelier-fab" style={{position:'fixed',bottom:'calc(82px + env(safe-area-inset-bottom))',right:20,zIndex:10,width:54,height:54,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:F.display,fontSize:28,fontWeight:400,lineHeight:1,cursor:'pointer',border:'0.5px solid var(--atelier-label)'}}>+</button>
     {addOpen&&(<div style={{position:'fixed',inset:0,background:'var(--atelier-overlay)',zIndex:20,display:'flex',alignItems:'flex-end'}} onClick={()=>setAddOpen(false)}><div onClick={e=>e.stopPropagation()} style={{width:'100%',background:'var(--atelier-sheet-bg)',backdropFilter:'blur(40px) saturate(1.8)',WebkitBackdropFilter:'blur(40px) saturate(1.8)',borderTop:'0.5px solid var(--atelier-sheet-border)',padding:'20px 24px calc(24px + env(safe-area-inset-bottom))',display:'flex',flexDirection:'column',gap:12,maxHeight:'85vh',overflowY:'auto'}}>
       <div style={{display:'flex',justifyContent:'center',marginBottom:8}}><div style={{width:36,height:3,borderRadius:2,background:'var(--atelier-label)'}}/></div>
       <div style={{fontFamily:F.label,fontWeight:300,fontSize:9,letterSpacing:'0.42em',textTransform:'uppercase',color:A.brass,marginBottom:2}}>New Entry</div>
@@ -75,7 +75,7 @@ export default function DemoTdsPage(){
       <div><div style={labelStyle}>Client TAN</div><input style={inputStyle} value={tan} onChange={e=>setTan(e.target.value.toUpperCase())} placeholder="DELS01234C"/></div>
       <div><div style={labelStyle}>Certificate / Form 16A No.</div><input style={inputStyle} value={certNo} onChange={e=>setCertNo(e.target.value)} placeholder="Optional"/></div>
       {!canCreate&&<div style={{fontFamily:F.script,fontStyle:'italic',fontSize:12,color:A.red,marginTop:2}}>Client name and gross amount are required.</div>}
-      <button type="button" onClick={doCreate} disabled={!canCreate} className="atelier-fab" style={{padding:'14px 0',borderRadius:2,cursor:canCreate?'pointer':'default',border:'0.5px solid #E0BC6E',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.42em',textTransform:'uppercase',opacity:canCreate?1:0.5,marginTop:6}}>Log Entry</button>
+      <button type="button" onClick={doCreate} disabled={!canCreate} className="atelier-fab" style={{padding:'14px 0',borderRadius:2,cursor:canCreate?'pointer':'default',border:'0.5px solid var(--atelier-label)',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.42em',textTransform:'uppercase',opacity:canCreate?1:0.5,marginTop:6}}>Log Entry</button>
     </div></div>)}
   </div>);
 }

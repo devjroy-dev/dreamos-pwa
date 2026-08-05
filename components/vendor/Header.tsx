@@ -21,7 +21,7 @@ const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassLine: 'rgba(201,168,76,0.18)',
-  red:       '#E07B5C',
+  red:       'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -253,8 +253,8 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight 
 }) {
   const [hov, setHov] = useState(false);
   const baseInk = isLight ? '#2C1F14' : 'var(--atelier-ink)';
-  const color = danger ? '#E07B5C' : accent ? (isLight ? '#7A3828' : '#E0BC6E') : baseInk;
-  const glyphColor = danger ? '#E07B5C' : isLight ? '#7A3828' : '#E0BC6E';
+  const color = danger ? 'var(--role-critical)' : accent ? (isLight ? '#7A3828' : 'var(--atelier-label)') : baseInk;
+  const glyphColor = danger ? 'var(--role-critical)' : isLight ? '#7A3828' : 'var(--atelier-label)';
   const hoverBg = isLight ? 'rgba(44,31,20,0.04)' : 'var(--atelier-row-hover)';
   const subtitleColor = isLight ? 'rgba(44,31,20,0.4)' : 'rgba(240,230,210,0.4)';
 

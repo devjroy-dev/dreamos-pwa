@@ -24,7 +24,7 @@ import {
 const D = {
   card: 'rgba(255,255,255,0.035)',
   border: '0.5px solid var(--atelier-card-border)', muted: 'rgba(248,247,245,0.45)',
-  cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: '#E07070',
+  cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)',
 };
 const F = {
   display: 'var(--font-cormorant), Georgia, serif',

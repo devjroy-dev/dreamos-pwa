@@ -4,7 +4,7 @@ import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
 import { TypingDots } from './TypingDots';
 
-const A = { brass: '#C9A84C', brassWarm: '#E0BC6E' } as const;
+const A = { brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)' } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
   script:  'var(--font-cormorant), Georgia, serif',
@@ -164,7 +164,7 @@ function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: bo
           display: "inline-flex", alignItems: "center", justifyContent: "center",
           background: "transparent", border: "none", cursor: "pointer",
           color: copied
-            ? (T.isLight ? T.accent : "#C9A84C")
+            ? (T.isLight ? T.accent : "var(--role-metal)")
             : (T.isLight ? T.inkMute : "rgba(240,230,210,0.45)"),
           transition: "color 200ms",
         }}
@@ -241,9 +241,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 background: 'rgba(37,211,102,0.10)', border: '0.5px solid rgba(37,211,102,0.4)',
                 borderRadius: 2, textDecoration: 'none',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                letterSpacing: '0.22em', textTransform: 'uppercase', color: '#5BD68A',
+                letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--role-positive)',
               }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="#5BD68A"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.849L0 24l6.318-1.658A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.371l-.359-.213-3.72.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--role-positive)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.849L0 24l6.318-1.658A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.371l-.359-.213-3.72.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
               WhatsApp {contact.name.split(' ')[0]}
             </a>
             <a href={`tel:${contact.phone}`} style={{

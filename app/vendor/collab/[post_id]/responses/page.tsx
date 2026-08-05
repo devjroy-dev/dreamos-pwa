@@ -21,7 +21,7 @@ const D = {
   bg:     '#0E0D0B',
   card:   'rgba(255,255,255,0.035)',
   border: '0.5px solid var(--atelier-card-border)',
-  gold:   '#C9A84C',
+  gold:   'var(--role-metal)',
   cream:  'rgba(245,240,232,0.85)',
   muted:  'rgba(245,240,232,0.40)',
 };
