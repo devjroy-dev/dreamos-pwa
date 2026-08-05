@@ -4,6 +4,7 @@
 // Add payment sheet. Mark paid sheet. Save disabled with message if invalid.
 
 import { useEffect, useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -47,7 +48,7 @@ const F = {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
   fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -64,8 +65,8 @@ export default function TeamPaymentsPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
         <Header vendorName={session.name ?? null} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
-          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: D.cream }}>Team Payments</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
+          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: D.cream }}>Team Payments</p>
+          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
           <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
         </div>
       </div>
@@ -249,7 +250,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
           {/* Total owed banner */}
           <div style={{ margin: 16, padding: '18px 20px', backgroundColor: totalOwed > 0 ? 'rgba(201,168,76,0.08)' : 'var(--atelier-section-bg)', border: `0.5px solid ${totalOwed > 0 ? 'rgba(201,168,76,0.3)' : D.borderCol}`, borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Total Owed</span>
-            <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: totalOwed > 0 ? D.gold : D.muted }}>Rs {totalOwed.toLocaleString('en-IN')}</span>
+            <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: totalOwed > 0 ? D.gold : D.muted }}>Rs {totalOwed.toLocaleString('en-IN')}</span>
           </div>
 
           {/* ── P5 · THE PER-WEDDING SETTLEMENT VIEW ───────────────────────
@@ -260,7 +261,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
           {view === 'wedding' ? (
             !board || (board.weddings.length === 0 && board.loose.payments.length === 0) ? (
               <div style={{ padding: '32px 24px', textAlign: 'center' }}>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted }}>{NO_PAYOUTS}</p>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>{NO_PAYOUTS}</p>
               </div>
             ) : (
               <>
@@ -285,14 +286,14 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
           {/* Per-member balances */}
           {balances.length === 0 ? (
             <div style={{ padding: '32px 24px', textAlign: 'center' }}>
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted }}>No payment records yet</p>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>No payment records yet</p>
             </div>
           ) : (
             balances.map(b => (
               <div key={b.team_member_id} style={{ margin: '0 16px 10px', padding: '16px 18px', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: `0.5px solid ${D.borderCol}`, borderRadius: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <span style={{ fontFamily: F.body, fontWeight: 400, fontSize: 15, color: D.cream }}>{b.name}</span>
-                  {b.owed_inr > 0 && <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, color: D.gold }}>Rs {b.owed_inr.toLocaleString('en-IN')} owed</span>}
+                  <span style={{ fontFamily: F.body, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{b.name}</span>
+                  {b.owed_inr > 0 && <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.gold }}>Rs {b.owed_inr.toLocaleString('en-IN')} owed</span>}
                   {b.owed_inr === 0 && <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Settled</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 14 }}>
@@ -303,7 +304,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                   <div key={p.id} style={{ marginTop: 10, padding: '10px 12px', backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8, border: `0.5px solid ${D.borderCol}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream }}>{p.description || 'Payment'}</div>
+                        <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{p.description || 'Payment'}</div>
                         {/* What the money is FOR when the row knows, when it was
                             logged when it doesn't. Each line tells only its own
                             truth — never a stand-in for the other. */}
@@ -313,7 +314,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                             : p.created_at.slice(0,10)}
                         </div>
                       </div>
-                      <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, color: D.gold, flexShrink: 0, marginLeft: 12 }}>Rs {p.amount_inr.toLocaleString('en-IN')}</span>
+                      <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.gold, flexShrink: 0, marginLeft: 12 }}>Rs {p.amount_inr.toLocaleString('en-IN')}</span>
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                       <button type="button" onClick={() => { setPaySheet(p); setPaidVia('upi'); setPaidNotes(''); }} disabled={saving} style={{ flex: 2, padding: '8px 0', backgroundColor: 'var(--atelier-accent-text)', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#111', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Mark Paid</button>
@@ -324,12 +325,12 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                 {paidPayments.filter(p => p.team_member_id === b.team_member_id).map(p => (
                   <div key={p.id} style={{ marginTop: 8, padding: '10px 12px', backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8, border: `0.5px solid ${D.borderCol}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.6 }}>
                     <div>
-                      <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.cream }}>{p.description || 'Payment'}</div>
+                      <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{p.description || 'Payment'}</div>
                       <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
                         {linkOf.get(p.id)?.title ? `${linkOf.get(p.id)!.title} · ` : ''}Paid {p.paid_at ? new Date(p.paid_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}{p.paid_via ? ` · ${p.paid_via.toUpperCase()}` : ''}
                       </div>
                     </div>
-                    <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 14, color: D.muted, flexShrink: 0, marginLeft: 12 }}>Rs {p.amount_inr.toLocaleString('en-IN')}</span>
+                    <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, flexShrink: 0, marginLeft: 12 }}>Rs {p.amount_inr.toLocaleString('en-IN')}</span>
                   </div>
                 ))}
               </div>
@@ -354,10 +355,10 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
       {addSheet && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setAddSheet(false)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>Log Payment</div>
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>Log Payment</div>
             <div>
               <div style={labelStyle}>Team Member *</div>
-              <select value={memberId} onChange={e => setMemberId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={memberId} onChange={e => setMemberId(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="">Select member</option>
                 {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
@@ -369,7 +370,7 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                 payout to the loose lane (C2), never a forced guess. */}
             <div>
               <div style={labelStyle}>{FUNCTION_LABEL}</div>
-              <select value={eventId} onChange={e => setEventId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={eventId} onChange={e => setEventId(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="">{NO_WEDDING_OPTION}</option>
                 {functions.map(f => (
                   <option key={f.event_id} value={f.event_id}>
@@ -384,16 +385,16 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
                 zeroed: a member with no rate on file gets a sentence, not an
                 Rs 0 that would read as a settled debt. */}
             {suggestion && (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, margin: 0, lineHeight: 1.6 }}>
                 {suggestionLine(suggestion.amount_inr, suggestion.functions, suggestion.rate_inr)}
                 <br />{EDIT_BEFORE_SAVING}
               </p>
             )}
             {!suggestion && suggestReason === 'no_rate' && (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
             )}
             <div><div style={labelStyle}>Description</div><input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="2-day shoot for Priya wedding" /></div>
-            {!canLog && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.red, margin: 0 }}>Select a member and enter a valid amount to save.</p>}
+            {!canLog && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red, margin: 0 }}>Select a member and enter a valid amount to save.</p>}
             <button type="button" onClick={doLog} disabled={!canLog || saving} style={{ padding: '13px 0', backgroundColor: canLog && !saving ? D.gold : 'rgba(201,168,76,0.3)', border: 'none', borderRadius: 8, cursor: canLog && !saving ? 'pointer' : 'not-allowed', fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
               {saving ? 'Saving…' : 'Log Payment'}
             </button>
@@ -405,14 +406,14 @@ function PaymentsScreen({ vendorName }: { vendorName: string | null }) {
       {paySheet && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setPaySheet(null)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>Mark as Paid</div>
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>Mark as Paid</div>
             <div style={{ padding: '12px 14px', backgroundColor: 'var(--atelier-section-bg)', borderRadius: 8, border: `0.5px solid ${D.borderCol}` }}>
-              <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.cream }}>{paySheet.description || 'Payment'}</div>
-              <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.gold, marginTop: 4 }}>Rs {paySheet.amount_inr.toLocaleString('en-IN')}</div>
+              <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{paySheet.description || 'Payment'}</div>
+              <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.gold, marginTop: 4 }}>Rs {paySheet.amount_inr.toLocaleString('en-IN')}</div>
             </div>
             <div>
               <div style={labelStyle}>Paid Via</div>
-              <select value={paidVia} onChange={e => setPaidVia(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={paidVia} onChange={e => setPaidVia(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="upi">UPI</option>
                 <option value="cash">Cash</option>
                 <option value="bank">Bank Transfer</option>
@@ -445,7 +446,7 @@ function WeddingLane({ title, owed, paid, lines }: {
       backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       border: `0.5px solid ${D.borderCol}`, borderRadius: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-        <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 19, color: D.cream }}>{title}</span>
+        <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 20, lineHeight: 1.5, color: D.cream }}>{title}</span>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', flexShrink: 0 }}>
           {SUBTOTAL_LABEL}
         </span>
@@ -456,8 +457,8 @@ function WeddingLane({ title, owed, paid, lines }: {
           number that matches neither column. */}
       <div style={{ display: 'flex', gap: 14, marginTop: 6, alignItems: 'baseline' }}>
         {owed > 0
-          ? <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, color: D.gold }}>Rs {fmt(owed)} owed</span>
-          : <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>{NOTHING_OWED}</span>}
+          ? <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.gold }}>Rs {fmt(owed)} owed</span>
+          : <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>{NOTHING_OWED}</span>}
         {paid > 0 && (
           <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Paid: Rs {fmt(paid)}
@@ -472,7 +473,7 @@ function WeddingLane({ title, owed, paid, lines }: {
           justifyContent: 'space-between', alignItems: 'center',
           opacity: l.state === 'paid' ? 0.6 : 1 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream }}>
+            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>
               {l.member_name ?? '—'}
             </div>
             <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted,
@@ -483,7 +484,7 @@ function WeddingLane({ title, owed, paid, lines }: {
               {l.event_date ? ` · ${l.event_date}` : ''}
             </div>
           </div>
-          <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16,
+          <span style={{ fontFamily: F.display, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
             color: l.state === 'paid' ? D.muted : D.gold, flexShrink: 0, marginLeft: 12 }}>
             Rs {fmt(l.amount_inr)}
           </span>

@@ -4,6 +4,7 @@
 // FAB taps open this; chat path preserved as secondary affordance inside.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
@@ -413,7 +414,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
 
         {/* Header */}
         <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream, letterSpacing: '0.01em' }}>
+          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, letterSpacing: '0.01em' }}>
             {isEdit ? schema.editTitle : schema.title}
           </h2>
           {!isEdit && (
@@ -450,7 +451,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
                 <select
                   value={values[f.key] ?? ''}
                   onChange={e => set(f.key, e.target.value)}
-                  style={{ ...inputStyle(!!errors[f.key]), appearance: 'none', WebkitAppearance: 'none' }}
+                  style={selectStyle(inputStyle(!!errors[f.key]))}
                 >
                   <option value="">Select…</option>
                   {f.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -466,7 +467,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
                 />
               )}
               {errors[f.key] && (
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 11, color: D.red, marginTop: 4 }}>{errors[f.key]}</p>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red, marginTop: 4 }}>{errors[f.key]}</p>
               )}
             </div>
           ))}
@@ -502,7 +503,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
           {/* TDW_04 A4: the chips phase — filed; the gaps offered, never demanded */}
           {phase === 'chips' && (
             <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 14 }}>
-              <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: D.muted, marginBottom: 10 }}>
+              <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, marginBottom: 10 }}>
                 Filed. Anything else while it&rsquo;s open?
               </div>
               {missingKeys.length > 0 && !chipField && (
@@ -562,8 +563,8 @@ function inputStyle(hasError: boolean): React.CSSProperties {
     border: `0.5px solid ${hasError ? 'rgba(224,112,112,0.6)' : 'rgba(226,222,216,0.15)'}`,
     borderRadius: 10,
     fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
-    fontWeight: 300, fontSize: 14, color: 'var(--atelier-ink)',
+    fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink)',
     outline: 'none',
-    colorScheme: 'dark',
+    
   };
 }

@@ -45,8 +45,8 @@ export function SField({ label, value, onChange, multiline, placeholder, inputMo
   const base: React.CSSProperties = {
     width: '100%', padding: '11px 14px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
-    caretColor: A.brass, resize: 'none' as const, colorScheme: 'dark',
+    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+    caretColor: A.brass, resize: 'none' as const, 
   };
   return (
     <div>
@@ -62,7 +62,7 @@ export function SField({ label, value, onChange, multiline, placeholder, inputMo
 export function SToggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <span style={{ fontFamily: F.script, fontWeight: 400, fontSize: 15, color: A.ink, letterSpacing: '0.005em' }}>{label}</span>
+      <span style={{ fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{label}</span>
       <button type="button" onClick={() => onChange(!value)} style={{
         width: 44, height: 24, borderRadius: 999, border: '0.5px solid var(--atelier-input-border)',
         cursor: 'pointer', flexShrink: 0,
@@ -83,7 +83,7 @@ export function SReadRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
       <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase' }}>{label}</span>
-      <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 14, color: A.ink, letterSpacing: '0.005em' }}>{value}</span>
+      <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{value}</span>
     </div>
   );
 }

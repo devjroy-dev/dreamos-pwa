@@ -51,7 +51,7 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
   return (
     <div style={{ padding: '10px 22px 12px' }}>
       <div style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13,
+        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         letterSpacing: '0.06em', color: A.inkMute,
       }}>{eyebrow}</div>
       <div style={{
@@ -61,7 +61,7 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
         fontVariantNumeric: 'tabular-nums',
       }}>{text}</div>
       <div style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 10,
+        fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         letterSpacing: '0.08em', color: A.inkMute, marginTop: 2,
       }}>{sub}</div>
     </div>

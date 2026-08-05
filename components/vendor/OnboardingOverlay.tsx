@@ -363,7 +363,7 @@ export function OnboardingOverlay({ onSend }: Props) {
               color: labelColor,
             }}>{current.label}</span>
             <span style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 8,
+              fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
               letterSpacing: '0.08em', color: mutedColor,
             }}>{step + 1} / {STEPS.length}</span>
           </div>
@@ -371,13 +371,13 @@ export function OnboardingOverlay({ onSend }: Props) {
           {/* Headline */}
           <h2 style={{
             fontFamily: F.display, fontStyle: 'italic', fontWeight: 300,
-            fontSize: 30, lineHeight: 1.18, color: headColor,
+            fontSize: 31, lineHeight: 1.18, color: headColor,
             marginBottom: 10, whiteSpace: 'pre-line' as const,
           }}>{current.headline}</h2>
 
           {/* Body */}
           <p style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 13,
+            fontFamily: F.label, fontWeight: 300, fontSize: 16,
             lineHeight: 1.65, color: bodyColor,
             marginBottom: current.id === 'prompts' ? 16 : 20,
           }}>{current.body}</p>
@@ -396,12 +396,12 @@ export function OnboardingOverlay({ onSend }: Props) {
                     border: `0.5px solid ${p.waLink ? 'rgba(37,211,102,0.35)' : isLight ? 'rgba(122,56,40,0.20)' : 'rgba(201,168,76,0.18)'}`,
                     borderRadius: 6, cursor: 'pointer', textAlign: 'left' as const,
                   }}>
-                  <span style={{ fontSize: 8, color: p.waLink ? '#25D366' : labelColor, flexShrink: 0 }}>
+                  <span style={{ fontSize: 16, lineHeight: 1.5, color: p.waLink ? '#25D366' : labelColor, flexShrink: 0 }}>
                     {p.waLink ? '◎' : '✦'}
                   </span>
                   <div style={{ flex: 1 }}>
                     <div style={{
-                      fontFamily: F.display, fontStyle: 'italic', fontSize: 15,
+                      fontFamily: F.display, fontStyle: 'italic', fontSize: 16,
                       color: headColor, lineHeight: 1.3,
                     }}>{p.text}</div>
                     {p.badge && (
@@ -412,7 +412,7 @@ export function OnboardingOverlay({ onSend }: Props) {
                       }}>{p.badge}</div>
                     )}
                   </div>
-                  <span style={{ color: p.waLink ? '#25D366' : labelColor, fontSize: 11, flexShrink: 0 }}>↗</span>
+                  <span style={{ color: p.waLink ? '#25D366' : labelColor, fontSize: 16, lineHeight: 1.5, flexShrink: 0 }}>↗</span>
                 </button>
               ))}
             </div>

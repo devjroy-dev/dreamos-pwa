@@ -64,7 +64,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
     width: '100%', padding: '9px 11px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)',
     border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 13, color: A.ink,
+    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
     outline: 'none', caretColor: A.brass,
   };
   const labelStyle: React.CSSProperties = {
@@ -87,8 +87,8 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
           <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
         </div>
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
-        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: -6 }}>
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
           Money is edited in chat — the witnessed door. Everything else lives here.
         </div>
 
@@ -187,7 +187,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       }}>
         {/* Line 1 — the name */}
         <div style={{
-          fontFamily: F.script, fontWeight: 500, fontSize: 19, color: A.ink,
+          fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink,
           letterSpacing: '0.005em', lineHeight: 1.15,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{binder.client ?? 'Unnamed'}</div>
@@ -196,7 +196,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
         {hasMoney && (
           <div style={{ marginTop: 8 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 15, color: A.ink }}>
+              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>
                 {amountWordsAdjacent(amt ?? total)}
               </span>
               {binder.direction && (
@@ -213,8 +213,8 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
                   <span style={{ width: `${100 - recvPct}%`, background: 'var(--atelier-ink-dim)', opacity: 0.35 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkMute, letterSpacing: '0.04em' }}>{fmtINR(recv)} in</span>
-                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkMute, letterSpacing: '0.04em' }}>{pend > 0 ? `${fmtINR(pend)} due` : 'settled'}</span>
+                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.04em' }}>{fmtINR(recv)} in</span>
+                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.04em' }}>{pend > 0 ? `${fmtINR(pend)} due` : 'settled'}</span>
                 </div>
               </>
             )}
@@ -243,7 +243,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             }}>{cap(binder.stage)}</span>
           )}
           {touched && (
-            <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute }}>
+            <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               {touched}
             </span>
           )}
@@ -258,7 +258,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             onClick={e => { e.stopPropagation(); setWishboneOpen(true); }}>
             {chips.map(c => (
               <span key={c} role="button" style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkMute,
+                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
                 letterSpacing: '0.06em',
                 border: '0.5px solid var(--atelier-ink-dim)', borderRadius: 2,
                 padding: '3px 8px', cursor: 'pointer',
@@ -266,7 +266,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             ))}
             {overflow > 0 && (
               <span style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkMute,
+                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
                 letterSpacing: '0.06em', padding: '3px 2px',
               }}>+{overflow} more</span>
             )}
@@ -282,12 +282,12 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             <div style={{ borderLeft: '0.5px solid rgba(201,168,76,0.35)', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {timeline.map((line, i) => (
                 <div key={i} style={{
-                  fontFamily: F.script, fontWeight: 300, fontSize: 13.5, color: A.inkSoft, lineHeight: 1.55,
+                  fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55,
                 }}>{line}</div>
               ))}
             </div>
           ) : (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12.5, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               No story yet — it grows as you talk in chat.
             </div>
           )}

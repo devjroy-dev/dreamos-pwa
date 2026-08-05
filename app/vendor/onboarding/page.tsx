@@ -94,7 +94,7 @@ export default function VendorOnboardingPage() {
     border: 'none', borderBottom: `1px solid ${BORDER}`,
     outline: 'none',
     fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-    fontWeight: 300, fontSize: 15, color: INK,
+    fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: INK,
     padding: '8px 0', marginBottom: 20, boxSizing: 'border-box',
   };
   const lbl: React.CSSProperties = {
@@ -105,7 +105,7 @@ export default function VendorOnboardingPage() {
   };
 
   const Toast = toast ? (
-    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: 12, color: BRASS, whiteSpace: 'nowrap', zIndex: 99 }}>
+    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, color: BRASS, whiteSpace: 'nowrap', zIndex: 99 }}>
       {toast}
     </div>
   ) : null;
@@ -115,16 +115,16 @@ export default function VendorOnboardingPage() {
     return (
       <div style={{ position: 'fixed', inset: 0, background: T.headerBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px' }}>
         {Toast}
-        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 32, color: INK, margin: '0 0 8px', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 31, lineHeight: 1.5, color: INK, margin: '0 0 8px', textAlign: 'center' }}>
           You&apos;re all set, {name.split(' ')[0]}.
         </p>
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 14, color: MUTE, textAlign: 'center', lineHeight: 1.6, margin: '0 0 28px', maxWidth: 320 }}>
+        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, color: MUTE, textAlign: 'center', lineHeight: 1.6, margin: '0 0 28px', maxWidth: 320 }}>
           Your PA is ready. Share your TDW link — that&apos;s where clients message you.
         </p>
         {tdwLink && (
           <div style={{ background: BG, border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '16px 20px', width: '100%', maxWidth: 360, marginBottom: 24 }}>
             <p style={{ ...lbl, marginBottom: 8 }}>Your TDW link</p>
-            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: 13, color: BRASS, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: BRASS, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
               {tdwLink}
             </p>
             <button
@@ -154,10 +154,10 @@ export default function VendorOnboardingPage() {
         <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 200, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: BRASS, margin: '0 0 12px' }}>
           The Dream Wedding
         </p>
-        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 28, color: INK, lineHeight: 1.15, margin: '0 0 6px' }}>
+        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 25, color: INK, lineHeight: 1.15, margin: '0 0 6px' }}>
           Let&apos;s set up your studio.
         </p>
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 13, color: MUTE, lineHeight: 1.6, margin: '0 0 36px' }}>
+        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, color: MUTE, lineHeight: 1.6, margin: '0 0 36px' }}>
           Two minutes. Your clients will use this to reach you.
         </p>
 
@@ -169,7 +169,7 @@ export default function VendorOnboardingPage() {
           placeholder="@yourhandle"
           style={inp}
         />
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontSize: 11, fontWeight: 300, color: MUTE, margin: '-14px 0 20px', fontStyle: 'italic' }}>
+        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, fontWeight: 300, color: MUTE, margin: '-14px 0 20px', fontStyle: 'italic' }}>
           Your clients tap this to reach your PA. Becomes your TDW link.
         </p>
 
@@ -185,7 +185,7 @@ export default function VendorOnboardingPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <p style={{ ...lbl, margin: 0 }}>Open to travel?</p>
-            <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontSize: 12, fontWeight: 300, color: MUTE, margin: '4px 0 0' }}>
+            <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, fontWeight: 300, color: MUTE, margin: '4px 0 0' }}>
               Destination or outstation weddings
             </p>
           </div>

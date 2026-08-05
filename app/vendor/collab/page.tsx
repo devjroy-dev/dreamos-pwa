@@ -5,6 +5,7 @@
 // detail lines, atelier-fab buttons, atelier sheet for the post form.
 
 import { useEffect, useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -179,7 +180,7 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
             <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 8 }}>
               Discover · Collab
             </div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 30, color: 'var(--atelier-ink)', lineHeight: 1.1, letterSpacing: '-0.005em' }}>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 31, color: 'var(--atelier-ink)', lineHeight: 1.1, letterSpacing: '-0.005em' }}>
               Your industry,<br />your people.
             </div>
           </div>
@@ -210,7 +211,7 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '18px 22px 100px' }}>
         {loading ? (
-          <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute }}>Loading…</div>
+          <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         ) : tab === 'opportunities' ? (
           <OpportunitiesTab feed={feed} onRespond={respond} />
         ) : tab === 'my_posts' ? (
@@ -243,9 +244,9 @@ function OpportunitiesTab({ feed, onRespond }: {
   if (feed.length === 0) {
     return (
       <div style={{ padding: '60px 32px', textAlign: 'center' }}>
-        <div style={{ fontFamily: F.display, fontSize: 28, color: 'var(--atelier-accent-text)', marginBottom: 16 }}>✦</div>
-        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>Quiet for now.</div>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55 }}>
+        <div style={{ fontFamily: F.display, fontSize: 25, lineHeight: 1.5, color: 'var(--atelier-accent-text)', marginBottom: 16 }}>✦</div>
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>Quiet for now.</div>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55 }}>
           No collab opportunities in your area today.<br />
           Post your own to put it out there.
         </div>
@@ -289,7 +290,7 @@ function OpportunityCard({ post, onRespond }: {
   if (responded) {
     return (
       <div className="atelier-card" style={{ padding: '16px 18px', opacity: 0.6 }}>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, lineHeight: 1.5 }}>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>
           You&rsquo;ve expressed interest. We&rsquo;ll let you know if they connect.
         </div>
       </div>
@@ -301,7 +302,7 @@ function OpportunityCard({ post, onRespond }: {
       <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
         Requirement
       </div>
-      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 6 }}>
+      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 6 }}>
         {fmtType(itemsOf(post)[0]?.requirement_type ?? post.requirement_type)} needed
       </div>
       {itemsOf(post).length > 1 && (
@@ -315,17 +316,17 @@ function OpportunityCard({ post, onRespond }: {
           ))}
         </div>
       )}
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, marginBottom: 12, lineHeight: 1.4 }}>
+      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, marginBottom: 12, lineHeight: 1.4 }}>
         {post.city} · {fmtDate(post.event_date)} · {fmtBudget(post.budget_inr, post.payment_period)}
       </div>
 
       {post.details && (
-        <div style={{ fontFamily: F.script, fontWeight: 400, fontSize: 14, color: A.ink, lineHeight: 1.6, marginBottom: 14, letterSpacing: '0.005em' }}>
+        <div style={{ fontFamily: F.script, fontWeight: 400, fontSize: 16, color: A.ink, lineHeight: 1.6, marginBottom: 14, letterSpacing: '0.005em' }}>
           {post.details}
         </div>
       )}
 
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 16 }}>
+      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 16 }}>
         Posted by a {post.poster_category} · {timeAgo(post.posted_ago ?? '')}
       </div>
 
@@ -359,10 +360,10 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
   if (posts.length === 0) {
     return (
       <div style={{ padding: '60px 32px', textAlign: 'center' }}>
-        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
           Nothing posted yet.
         </div>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55 }}>
+        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55 }}>
           Tap <span style={{ color: A.brassWarm }}>+ Post</span> to find your second shooter,<br />
           hair stylist, or any collaborator.
         </div>
@@ -389,7 +390,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
                   My Post
                 </div>
-                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
+                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
                   {fmtType(itemsOf(post)[0]?.requirement_type ?? post.requirement_type)} needed
                 </div>
               </div>
@@ -401,7 +402,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
               }}>{post.state?.toUpperCase()}</span>
             </div>
 
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft, marginBottom: 12 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft, marginBottom: 12 }}>
               {post.city} · {fmtDate(post.event_date)} · {fmtBudget(post.budget_inr, post.payment_period)}
             </div>
 
@@ -430,12 +431,12 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
             {/* First look, and the auto-close. Both describe state the server
                 owns; neither is computed twice. */}
             {open && inFirstLook(post) && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 Your roster sees this first. Open to everyone in 12 hours.
               </div>
             )}
             {open && !inFirstLook(post) && post.first_look_until && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 Open to everyone.
               </div>
             )}
@@ -446,7 +447,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 the screen say something untrue. Derived client-side from data
                 my-posts already sends — no new field, no second source. */}
             {post.state === 'filled' && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft, marginBottom: 12 }}>
                 {itemsOf(post).every(i => !!i.filled_by_response_id)
                   ? 'All filled. This post is closed.'
                   : 'This post is closed.'}
@@ -454,7 +455,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
             )}
 
             {(post.interested_count ?? 0) > 0 && (
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 14, color: A.brassWarm, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.brassWarm, marginBottom: 12 }}>
                 {post.interested_count} interested
               </div>
             )}
@@ -533,10 +534,10 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
 
       {roster.length === 0 ? (
         <div style={{ padding: '48px 32px', textAlign: 'center' }}>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
             No one on your roster yet.
           </div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55 }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55 }}>
             Vendors you connect with here are added automatically.
           </div>
         </div>
@@ -545,8 +546,8 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
           {roster.map(r => (
             <div key={r.id} className="atelier-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 17, color: A.ink, lineHeight: 1.2 }}>{r.name}</div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 2 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, color: A.ink, lineHeight: 1.2 }}>{r.name}</div>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
                   {[r.category ? fmtType(r.category) : null, r.phone].filter(Boolean).join(' · ')}
                 </div>
               </div>
@@ -579,7 +580,7 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
           ))}
           {outcome && (
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13,
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
               color: outcome.kind === 'error' ? A.red : A.inkSoft, lineHeight: 1.5,
             }}>{outcome.msg}</div>
           )}
@@ -618,8 +619,8 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
           <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
         </div>
         <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 26, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Add someone</div>
-          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.brassWarm, fontFamily: F.display, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Add someone</div>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.brassWarm, fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
         </div>
         <div style={{ padding: '0 24px' }}>
           <Label>Name</Label>
@@ -634,7 +635,7 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
               </Pill>
             ))}
           </div>
-          {error && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.red, marginBottom: 14 }}>{error}</div>}
+          {error && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginBottom: 14 }}>{error}</div>}
           <button type="button" onClick={submit} disabled={saving} className="atelier-fab" style={{
             width: '100%', padding: '14px 0', borderRadius: 2, border: '0.5px solid var(--atelier-label)',
             cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
@@ -756,13 +757,13 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
             <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
               New Requirement
             </div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 26, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
               Post a requirement
             </div>
           </div>
           <button type="button" onClick={onClose} style={{
             background: 'none', border: 'none', color: A.brassWarm,
-            fontFamily: F.display, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: 4, flexShrink: 0,
+            fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4, flexShrink: 0,
           }}>×</button>
         </div>
 
@@ -773,12 +774,12 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
                 <div key={i} style={{ marginBottom: 14 }}>
                   {items.length > 1 && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute }}>
+                      <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
                         {i + 1} of {items.length}
                       </span>
                       <button type="button" onClick={() => removeItem(i)} style={{
                         background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-                        fontFamily: F.display, fontSize: 18, lineHeight: 1, color: A.brassWarm,
+                        fontFamily: F.display, fontSize: 16, lineHeight: 1, color: A.brassWarm,
                       }}>×</button>
                     </div>
                   )}
@@ -803,7 +804,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
 
               {/* First look — stated before the post exists, not discovered
                   afterwards. The window is server-owned; this line describes it. */}
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute, lineHeight: 1.55, marginBottom: 22 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginBottom: 22 }}>
                 Your roster sees this first. Open to everyone in 12 hours.
               </div>
 
@@ -813,7 +814,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
 
               <Label>City</Label>
               <select value={form.city} onChange={e => set('city', e.target.value)}
-                style={{ ...inputStyle, marginBottom: 10, appearance: 'none' }}>
+                style={{ ...selectStyle(inputStyle), marginBottom: 10 }}>
                 <option value="">Select city</option>
                 {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -821,7 +822,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
                 <input type="checkbox" checked={form.open_to_other_cities}
                   onChange={e => set('open_to_other_cities', e.target.checked)}
                   style={{ accentColor: A.brass, width: 16, height: 16 }} />
-                <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft }}>
+                <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
                   Also open to vendors who travel
                 </span>
               </label>
@@ -832,7 +833,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
                   onChange={e => set('budget_inr', e.target.value)}
                   style={{ ...inputStyle, flex: 2 }} />
                 <select value={form.payment_period} onChange={e => set('payment_period', e.target.value)}
-                  style={{ ...inputStyle, flex: 1, appearance: 'none' }}>
+                  style={{ ...selectStyle(inputStyle), flex: 1 }}>
                   {PAYMENT_PERIODS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
                 </select>
               </div>
@@ -855,7 +856,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
                 style={{ ...inputStyle, resize: 'none', marginBottom: 22 }} />
 
               {error && (
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.red, marginBottom: 14 }}>{error}</div>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginBottom: 14 }}>{error}</div>
               )}
 
               <button type="button" onClick={handleSubmit} disabled={submitting} className="atelier-fab" style={{
@@ -902,6 +903,6 @@ const inputStyle: React.CSSProperties = {
   border: '0.5px solid var(--atelier-input-border)',
   borderRadius: 2, color: A.ink,
   fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
-  fontSize: 14, fontWeight: 300, outline: 'none', colorScheme: 'dark',
+  fontSize: 16, lineHeight: 1.5, fontWeight: 300, outline: 'none', 
   caretColor: A.brass,
 };

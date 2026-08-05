@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useParams, useRouter } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { Toast } from '@/components/vendor/Toast';
@@ -9,7 +10,7 @@ import { useDemoContext } from '@/hooks/demo/useDemoContext';
 
 const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var(--atelier-ink-mute)',brass:'var(--role-metal)',brassWarm:'var(--atelier-label)',red:'var(--role-critical)'} as const;
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
-const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',caretColor:A.brass,colorScheme:'dark'};
+const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',caretColor:A.brass};
 const labelStyle:React.CSSProperties={fontFamily:F.label,fontWeight:300,fontSize:8,color:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase' as const,marginBottom:6};
 function currentFY(){const now=new Date();const m=now.getMonth()+1;const y=now.getFullYear();if(m>=4)return`FY${y}-${String(y+1).slice(2)}`;return`FY${y-1}-${String(y).slice(2)}`;}
 function fyOptions(){const cur=currentFY();const year=parseInt(cur.slice(2,6));return[cur,`FY${year-1}-${String(year).slice(2)}`,`FY${year-2}-${String(year-1).slice(2)}`];}
@@ -67,9 +68,9 @@ export default function DemoTdsPage(){
       <div style={{fontFamily:F.display,fontWeight:400,fontSize:22,color:'var(--atelier-ink)',lineHeight:1.15,marginBottom:6}}>Log TDS</div>
       <div><div style={labelStyle}>Client / Company *</div><input style={inputStyle} value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="ABC Corp Pvt Ltd"/></div>
       <div><div style={labelStyle}>Gross Amount (Rs) *</div><input style={inputStyle} type="number" value={grossAmt} onChange={e=>setGrossAmt(e.target.value)} placeholder="100000"/></div>
-      <div><div style={labelStyle}>TDS Rate (%)</div><select value={tdsRate} onChange={e=>setTdsRate(e.target.value)} style={{...inputStyle,appearance:'none' as const}}><option value="1">1%</option><option value="2">2%</option><option value="5">5%</option><option value="10">10%</option><option value="20">20%</option></select></div>
+      <div><div style={labelStyle}>TDS Rate (%)</div><select value={tdsRate} onChange={e=>setTdsRate(e.target.value)} style={selectStyle(inputStyle)}><option value="1">1%</option><option value="2">2%</option><option value="5">5%</option><option value="10">10%</option><option value="20">20%</option></select></div>
       {grossAmt&&Number(grossAmt)>0&&(<div style={{padding:'10px 14px',background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-card-border)',borderRadius:2,display:'flex',gap:18,fontFamily:F.script,fontStyle:'italic',fontSize:13}}><span style={{color:A.inkSoft}}>TDS: <strong style={{color:A.red,fontStyle:'normal'}}>Rs {tdsAmt.toLocaleString('en-IN')}</strong></span><span style={{color:A.inkSoft}}>Net: <strong style={{color:A.brassWarm,fontStyle:'normal'}}>Rs {netAmt.toLocaleString('en-IN')}</strong></span></div>)}
-      <div><div style={labelStyle}>Section</div><select value={section} onChange={e=>setSection(e.target.value)} style={{...inputStyle,appearance:'none' as const}}><option value="194J">194J — Professional Services</option><option value="194C">194C — Contractors</option><option value="194I">194I — Rent</option><option value="194H">194H — Commission</option><option value="other">Other</option></select></div>
+      <div><div style={labelStyle}>Section</div><select value={section} onChange={e=>setSection(e.target.value)} style={selectStyle(inputStyle)}><option value="194J">194J — Professional Services</option><option value="194C">194C — Contractors</option><option value="194I">194I — Rent</option><option value="194H">194H — Commission</option><option value="other">Other</option></select></div>
       <div><div style={labelStyle}>Deduction Date</div><input style={inputStyle} type="date" value={dedDate} onChange={e=>setDedDate(e.target.value)}/></div>
       <div><div style={labelStyle}>Client PAN</div><input style={inputStyle} value={pan} onChange={e=>setPan(e.target.value.toUpperCase())} placeholder="AABCS1234X"/></div>
       <div><div style={labelStyle}>Client TAN</div><input style={inputStyle} value={tan} onChange={e=>setTan(e.target.value.toUpperCase())} placeholder="DELS01234C"/></div>

@@ -43,7 +43,7 @@ export default function StudioPage() {
         {!prestige && (
           <div style={{ padding: '24px 28px 8px' }}>
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14,
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
               color: A.inkMute, lineHeight: 1.55, textAlign: 'center',
             }}>
               Team Hub is reserved for Prestige.<br />Contact Swati to upgrade.

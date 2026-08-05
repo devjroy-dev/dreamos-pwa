@@ -212,7 +212,7 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
 
           {/* ── Create shortcuts ── */}
           <div style={{
-            fontFamily: F.label, fontSize: 7, fontWeight: 300,
+            fontFamily: F.label, fontSize: 8, fontWeight: 300,
             letterSpacing: '0.44em', textTransform: 'uppercase',
             color: sectionLbl, marginBottom: 8,
           }}>Create</div>
@@ -232,9 +232,9 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
                   alignItems: 'center', gap: 4, cursor: 'pointer',
                 }}
               >
-                <span style={{ fontSize: 13, color: createIcon }}>{c.icon}</span>
+                <span style={{ fontSize: 16, lineHeight: 1.5, color: createIcon }}>{c.icon}</span>
                 <span style={{
-                  fontFamily: F.label, fontSize: 6.5, fontWeight: 300,
+                  fontFamily: F.label, fontSize: 8, fontWeight: 300,
                   letterSpacing: '0.18em', textTransform: 'uppercase' as const,
                   color: createLbl,
                 }}>{c.label}</span>
@@ -247,7 +247,7 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
 
           {/* ── Ask cue cards ── */}
           <div style={{
-            fontFamily: F.label, fontSize: 7, fontWeight: 300,
+            fontFamily: F.label, fontSize: 8, fontWeight: 300,
             letterSpacing: '0.44em', textTransform: 'uppercase',
             color: T.isLight ? 'rgba(26,15,8,0.22)' : 'rgba(240,230,210,0.2)',
             marginBottom: 7,
@@ -278,7 +278,7 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
 
                 {/* Badge or lock */}
                 {cue.locked ? (
-                  <span style={{ position: 'absolute', top: 7, right: 8, fontSize: 9, opacity: 0.4 }}>🔒</span>
+                  <span style={{ position: 'absolute', top: 7, right: 8, fontSize: 16, lineHeight: 1.5, opacity: 0.4 }}>🔒</span>
                 ) : cue.badge && (
                   <span style={{
                     position: 'absolute', top: 7, right: 8,
@@ -290,13 +290,13 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
 
                 <div style={{
                   fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                  fontSize: 12.5,
+                  fontSize: 16,
                   color: cue.locked ? T.inkDim : T.isLight ? T.inkSoft : 'rgba(240,230,210,0.68)',
                   lineHeight: 1.3, marginBottom: 3, paddingRight: 14,
                 }}>{cue.q}</div>
 
                 <div style={{
-                  fontFamily: F.label, fontSize: 6.5, fontWeight: 300,
+                  fontFamily: F.label, fontSize: 8, fontWeight: 300,
                   letterSpacing: '0.14em', textTransform: 'uppercase' as const,
                   color: dimC,
                 }}>{cue.sub}</div>

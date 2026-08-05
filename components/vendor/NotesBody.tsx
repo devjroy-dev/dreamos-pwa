@@ -41,7 +41,7 @@ const F = {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
 };
 
 function fmtDate(iso: string): string {
@@ -113,11 +113,11 @@ export function NotesBody() {
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 8 }}>
-          <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 20, color: D.cream }}>
+          <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 20, lineHeight: 1.5, color: D.cream }}>
             {query.trim() ? 'Nothing matches' : 'No notes yet'}
           </span>
           {!query.trim() && (
-            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted, lineHeight: 1.6, maxWidth: 260 }}>
+            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6, maxWidth: 260 }}>
               Anything you jot to yourself lands here — a thought to pick up later, kept just for you.
             </span>
           )}
@@ -139,12 +139,12 @@ export function NotesBody() {
             }}>
               <div style={{
                 flex: 1, minWidth: 0,
-                fontFamily: F.body, fontWeight: 300, fontSize: 13.5, color: 'var(--atelier-ink)', lineHeight: 1.45,
+                fontFamily: F.body, fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)', lineHeight: 1.45,
                 overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
                 WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
               }}>{note.body}</div>
               <span style={{
-                fontFamily: F.label, fontSize: 8.5, color: 'var(--atelier-ink-mute)',
+                fontFamily: F.label, fontSize: 8, color: 'var(--atelier-ink-mute)',
                 letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 2, whiteSpace: 'nowrap',
               }}>{fmtDate(note.created_at)}</span>
             </div>
@@ -207,7 +207,7 @@ export function NotesBody() {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
             </div>
             <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>Note to Self</div>
+              <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>Note to Self</div>
               <textarea
                 value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
                 placeholder="Jot it down — just for you"

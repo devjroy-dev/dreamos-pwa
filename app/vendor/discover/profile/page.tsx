@@ -252,7 +252,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {hints.map((h) => (
               <div key={h.term} style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 14, color: A.inkSoft, letterSpacing: '0.01em',
+                fontSize: 16, lineHeight: 1.5, color: A.inkSoft, letterSpacing: '0.01em',
               }}>· {HINT_COPY[h.term](gaps[h.term])}</div>
             ))}
           </div>
@@ -260,7 +260,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
         {/* ── PHOTOS: P3's slot. This screen states the truth and links out. ── */}
         <SCard title="Portfolio">
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             {/* FOUNDER-VETOED 2026-07-29 (copy slot 3, 「 go 」). BOTH numbers, one line —
                 F-07.4's two readings can never contradict each other on a screen that
                 shows them together. The gate counts uploaded; the feed shows approved. */}
@@ -285,7 +285,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           {/* FOUNDER-VETOED 2026-07-29 (copy slot 6, 「 go 」). business_name is the one
               field the ruling sent here despite a second consumer — the card headline AND
               the invoice letterhead. The vendor is told, rather than surprised. */}
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             This is the name couples see and the name on your invoices.
           </div>
           <SField label="City" value={current.city} onChange={(v) => update({ city: v })} />
@@ -334,7 +334,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           </div>
           <SToggle label="Show starting price on Discover"
                    value={current.rate_display} onChange={(v) => update({ rate_display: v })} />
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {/* The register law (tokens.ts:41): always "Rs", never the glyph, never k/L/Cr.
                 formatRs is the on-register donor; lib/vendor/cabinet.ts's short form is not. */}
             {current.rate_display
@@ -363,7 +363,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           {/* FOUNDER-VETOED 2026-07-29 (copy slot 1, 「 go 」). Shown ALWAYS, not only while
               paused: consequences a vendor reads before acting are the point. This switch
               retires the founder-run UPDATE that P1's smoke card step ⑤ required. */}
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             Hidden from Discover. Your approval stays. Enquiries already in flight still reach you.
           </div>
           <SaveBtn dirty={isDirty(['discover_paused'])} loading={saving === 'pause'}
@@ -391,7 +391,7 @@ function Meter({ score }: { score: number }) {
               strokeDasharray={`${C * pct} ${C}`}
               style={{ transition: 'stroke-dasharray 420ms cubic-bezier(0.22,1,0.36,1)' }} />
       </svg>
-      <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: A.ink, marginTop: -18 }}>
+      <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: A.ink, marginTop: -18 }}>
         {Math.round(pct * 100)}
       </div>
       <div style={{

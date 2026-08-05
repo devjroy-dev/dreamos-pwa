@@ -81,8 +81,8 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)', border: '0.5px solid rgba(201,168,76,0.28)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
-    caretColor: A.brass, colorScheme: 'dark',
+    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+    caretColor: A.brass, 
   };
 
   return (
@@ -91,9 +91,9 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid rgba(201,168,76,0.12)' }}>
-        <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Request Discover</span>
-        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 13, color: A.inkMute }}>{step} of 4</span>
+        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 4</span>
       </div>
 
       {/* Step indicator */}
@@ -112,12 +112,12 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
 
         <div>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>Step {step}</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 28, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{STEP_LABELS[step - 1]}</div>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{STEP_LABELS[step - 1]}</div>
         </div>
 
         {step === 1 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Brides on Discover see your range. Be honest — Swati matches by budget fit.
             </div>
             {/* TDW_07 P4b · F4 (WIDENED) — THE MAX FIELD IS REMOVED-BY-RULING.
@@ -138,7 +138,7 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
 
         {step === 2 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Choose up to ten that describe your work. Brides filter by these.
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
@@ -156,13 +156,13 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
                 );
               })}
             </div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute }}>{tags.length} of 10 selected</div>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
           </>
         )}
 
         {step === 3 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Tell Swati why your work belongs. Experience, signature, notable weddings.
             </div>
             <textarea
@@ -170,21 +170,21 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
               onChange={e => setPitch(e.target.value.slice(0, 500))}
               rows={6}
               placeholder="Twelve years of weddings, signature documentary style, recent feature in Vogue India…"
-              style={{ ...inputStyle, resize: 'none', fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: 15, lineHeight: 1.5 }}
+              style={{ ...inputStyle, resize: 'none', fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: 16, lineHeight: 1.5 }}
             />
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
           </>
         )}
 
         {step === 4 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Pick three to five that represent your best work.
             </div>
             {images.length === 0 ? (
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 15, color: A.inkMute, textAlign: 'center', padding: '40px 20px',
+                fontSize: 16, color: A.inkMute, textAlign: 'center', padding: '40px 20px',
                 lineHeight: 1.5,
               }}>
                 No portfolio images yet.<br />
@@ -219,7 +219,7 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
                             background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
                             border: '0.5px solid var(--atelier-label)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#1A120E', fontFamily: F.display, fontSize: 14, lineHeight: 1,
+                            color: '#1A120E', fontFamily: F.display, fontSize: 16, lineHeight: 1,
                           }}>✓</span>
                         </div>
                       )}
@@ -228,7 +228,7 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
                 })}
               </div>
             )}
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, textAlign: 'center' }}>{sampleIds.length} selected · need 3 to 5</div>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center' }}>{sampleIds.length} selected · need 3 to 5</div>
           </>
         )}
       </div>

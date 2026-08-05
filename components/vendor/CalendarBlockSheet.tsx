@@ -179,7 +179,7 @@ export function CalendarBlockSheet({
           <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
             {dateIso ? fmtDate(dateIso) : ''}
           </p>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream, marginTop: 2 }}>
+          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
             {existingBlock ? 'Blocked date' : 'Block this date'}
           </h2>
         </div>
@@ -192,7 +192,7 @@ export function CalendarBlockSheet({
             <div style={{
               padding: '10px 14px', borderRadius: 10,
               border: '0.5px solid rgba(224,112,112,0.4)', background: 'rgba(180,40,40,0.10)',
-              fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.red,
+              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
             }}>{verdict}</div>
           )}
           {(() => {
@@ -203,10 +203,10 @@ export function CalendarBlockSheet({
                 <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>On this day</span>
                 {onDay.map((e) => (
                   <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
+                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
                       {e.event_time ? e.event_time.slice(0, 5) : 'all day'}
                     </span>
-                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.cream, flex: 1 }}>
+                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream, flex: 1 }}>
                       {e.title}{e.kind ? <span style={{ color: D.muted }}> · {e.kind}</span> : null}
                     </span>
                   </div>
@@ -217,7 +217,7 @@ export function CalendarBlockSheet({
           {existingBlock ? (
             <>
               {existingBlock.reason && (
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>
                   Reason: <span style={{ color: D.cream }}>{existingBlock.reason}</span>
                 </p>
               )}
@@ -250,8 +250,8 @@ export function CalendarBlockSheet({
                     width: '100%', padding: '11px 14px', boxSizing: 'border-box',
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 10, fontFamily: F.body, fontWeight: 300, fontSize: 14,
-                    color: D.cream, outline: 'none', colorScheme: 'dark',
+                    borderRadius: 10, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+                    color: D.cream, outline: 'none', 
                   }}
                 />
               )}

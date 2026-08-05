@@ -3,6 +3,7 @@
 // Promo slot submissions. Gated on featured_eligible.
 
 import { useEffect, useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -82,8 +83,8 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <Header vendorName={vendorName} />
         <div className="atelier-card atelier-card-ornate" style={{ margin: '40px 22px', padding: '32px 24px', textAlign: 'center' }}>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>Featured · Locked</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 26, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>Discover first.</div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>Discover first.</div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             Featured promos unlock once you&apos;re approved for Discover.
           </div>
           <button type="button" onClick={() => router.push('/vendor/discover')} className="atelier-fab" style={{
@@ -99,8 +100,8 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
-    colorScheme: 'dark', marginBottom: 14, caretColor: A.brass,
+    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+     marginBottom: 14, caretColor: A.brass,
   };
 
   return (
@@ -109,7 +110,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Featured</span>
         {eligible && (
           <button type="button" onClick={() => setFormOpen(true)} className="atelier-fab" style={{
@@ -129,18 +130,18 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         ) : submissions.map(sub => (
           <div key={sub.id} className="atelier-card" style={{ padding: '14px 18px', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 17, color: A.ink, letterSpacing: '0.005em' }}>{SLOT_KINDS.find(k => k.value === sub.slot_kind)?.label ?? sub.slot_kind}</div>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{SLOT_KINDS.find(k => k.value === sub.slot_kind)?.label ?? sub.slot_kind}</div>
               <span style={{
                 fontFamily: F.label, fontWeight: 400, fontSize: 8, color: stateColor(sub.state),
                 letterSpacing: '0.28em', textTransform: 'uppercase',
                 border: `0.5px solid ${stateColor(sub.state)}`, borderRadius: 2, padding: '4px 9px',
               }}>{sub.state}</span>
             </div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               Rs {sub.fee_inr.toLocaleString('en-IN')}
             </div>
             {sub.rejection_reason && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.red, marginTop: 6 }}>{sub.rejection_reason}</div>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 6 }}>{sub.rejection_reason}</div>
             )}
           </div>
         ))}
@@ -161,15 +162,15 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
               </div>
               <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>New Application</div>
-              <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Apply for Featured</div>
+              <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Apply for Featured</div>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 24px' }}>
               <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Slot type</label>
-              <select value={slotKind} onChange={e => setSlotKind(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={slotKind} onChange={e => setSlotKind(e.target.value)} style={selectStyle(inputStyle)}>
                 {SLOT_KINDS.map(k => <option key={k.value} value={k.value}>{k.label} — {k.fee}</option>)}
               </select>
               <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Hero image</label>
-              <select value={heroImageId} onChange={e => setHeroImageId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={heroImageId} onChange={e => setHeroImageId(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="">None</option>
                 {images.map(img => <option key={img.id} value={img.id}>{img.caption || img.id.slice(0, 8)}</option>)}
               </select>

@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useParams, useRouter } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { Toast } from '@/components/vendor/Toast';
@@ -11,7 +12,7 @@ const A={ink:'var(--atelier-ink)',inkSoft:'var(--atelier-ink-soft)',inkMute:'var
 const F={display:'var(--font-italiana), "GFS Didot", Georgia, serif',script:'var(--font-cormorant), Georgia, serif',body:'var(--font-dm-sans), system-ui, sans-serif',label:'var(--font-jost), system-ui, sans-serif'} as const;
 const SLOT_KINDS=[{value:'spotlight',label:'Spotlight',fee:'Rs 3,000 / week'},{value:'discover_top',label:'Discover Top',fee:'Rs 5,000 / week'},{value:'blind_swipe_priority',label:'Blind Swipe Priority',fee:'Rs 2,000 / week'},{value:'newsletter',label:'Newsletter',fee:'Rs 1,500 / inclusion'}];
 interface Sub{id:string;slot_kind:string;state:string;fee_inr:number;}
-const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',colorScheme:'dark',marginBottom:14,caretColor:A.brass};
+const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,fontFamily:F.body,fontWeight:300,fontSize:14,color:A.ink,outline:'none',marginBottom:14,caretColor:A.brass};
 const stateColor=(s:string)=>['approved','live'].includes(s)?A.brassWarm:s==='rejected'||s==='refunded'?A.red:A.inkMute;
 export default function DemoFeaturedPage(){
   const params=useParams();const handle=typeof params.handle==='string'?params.handle:'';
@@ -44,7 +45,7 @@ export default function DemoFeaturedPage(){
       </div>
       <div style={{flex:1,overflowY:'auto',overflowX:'hidden',padding:'16px 24px'}}>
         <label style={{display:'block',fontFamily:F.label,fontWeight:300,fontSize:8,color:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase',marginBottom:6}}>Slot type</label>
-        <select value={slotKind} onChange={e=>setSlotKind(e.target.value)} style={{...inputStyle,appearance:'none' as const}}>{SLOT_KINDS.map(k=><option key={k.value} value={k.value}>{k.label} — {k.fee}</option>)}</select>
+        <select value={slotKind} onChange={e=>setSlotKind(e.target.value)} style={selectStyle(inputStyle)}>{SLOT_KINDS.map(k=><option key={k.value} value={k.value}>{k.label} — {k.fee}</option>)}</select>
         <label style={{display:'block',fontFamily:F.label,fontWeight:300,fontSize:8,color:A.inkMute,letterSpacing:'0.32em',textTransform:'uppercase',marginBottom:6}}>Caption</label>
         <input value={caption} onChange={e=>setCaption(e.target.value)} placeholder="Award-winning wedding photographer" style={inputStyle}/>
         <div style={{display:'flex',gap:12}}>

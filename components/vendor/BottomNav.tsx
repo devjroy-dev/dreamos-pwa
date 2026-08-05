@@ -68,7 +68,7 @@ export function ModePill({ mode, onChange }: ModePillProps) {
           }}>
             {seg.star && (
               <span style={{
-                fontSize: 9,
+                fontSize: 16,
                 color: active ? A.brassWarm : A.inkMute,
                 transition: `color 200ms ${EASE}`,
                 lineHeight: 1,
@@ -148,7 +148,7 @@ function NavTab({ item, active }: { item: SubItem; active: boolean }) {
     <>
       <span style={{
         fontFamily: F.display,
-        fontSize: 22,
+        fontSize: 20,
         lineHeight: 1,
         color,
         transition: `color 200ms ${EASE}, text-shadow 200ms ${EASE}`,

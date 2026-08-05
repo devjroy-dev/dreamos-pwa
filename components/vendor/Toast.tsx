@@ -52,7 +52,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
       }} />
       {!asPill && (
         <span style={{
-          fontFamily: F.label, fontWeight: 300, fontSize: 12,
+          fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
           // F-04.75 (B6-S2, the CE's legibility line — found by contrast
           // arithmetic, not by eye): the error variant's background is DARK RED
           // in BOTH themes, but this color fell through to var(--atelier-ink),
@@ -72,7 +72,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
       {toast.action && (
         <button type="button" onClick={toast.action.onAction} style={{
           background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px 4px',
-          fontFamily: F.label, fontWeight: 500, fontSize: 12, letterSpacing: '0.12em',
+          fontFamily: F.label, fontWeight: 500, fontSize: 10, letterSpacing: '0.12em',
           textTransform: 'uppercase',
           color: T.isLight && !isErr ? T.accent : 'var(--atelier-label)',
         }}>{toast.action.label}</button>

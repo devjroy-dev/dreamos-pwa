@@ -98,7 +98,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>
           Complete the file
         </div>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontStyle: 'italic', fontSize: 12.5, color: A.inkMute, marginTop: 4 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
           {personLabel} — {remaining.length} detail{remaining.length === 1 ? '' : 's'} missing
         </div>
 
@@ -106,7 +106,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
         <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {remaining.map(c => (
             <button key={c} type="button" onClick={() => { setActive(c); setValue(''); setError(null); }} style={{
-              fontFamily: F.label, fontWeight: c === active ? 400 : 300, fontSize: 10,
+              fontFamily: F.label, fontWeight: c === active ? 400 : 300, fontSize: 16, lineHeight: 1.5,
               color: c === active ? A.ink : A.inkMute, letterSpacing: '0.06em',
               border: `0.5px solid ${c === active ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-dim)'}`,
               borderRadius: 2, padding: '3px 8px', background: 'transparent', cursor: 'pointer',
@@ -117,7 +117,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
         {active && (
           <div style={{ marginTop: 14 }}>
             {victorOnly ? (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 13, color: A.inkSoft, lineHeight: 1.5 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>
                 Money is edited in chat — the witnessed door. Say it there and it files with the full trail.
               </div>
             ) : (
@@ -131,12 +131,12 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
                 style={{
                   width: '100%', padding: '10px 12px', boxSizing: 'border-box',
                   background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
-                  borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink,
+                  borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
                 }}
               />
             )}
             {error && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 12, color: 'var(--atelier-alert, #B4552D)', marginTop: 6 }}>{error}</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-alert, #B4552D)', marginTop: 6 }}>{error}</div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               {!victorOnly && (

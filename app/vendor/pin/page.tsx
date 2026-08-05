@@ -148,7 +148,7 @@ export default function VendorPinPage() {
     width: 48, height: 58, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD,
     fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 400, fontSize: 26, color: '#F8F7F5', textAlign: 'center',
+    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: '#F8F7F5', textAlign: 'center',
     touchAction: 'manipulation', caretColor: GOLD,
   };
 
@@ -165,7 +165,7 @@ export default function VendorPinPage() {
       `}</style>
 
       {toast && (
-        <div style={{ position:'fixed',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.12)',backdropFilter:'blur(12px)',border:'0.5px solid rgba(201,168,76,0.3)',color:GOLD,fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize:13,padding:'10px 20px',borderRadius:100,zIndex:9999,whiteSpace:'nowrap',animation:'slideDown 280ms cubic-bezier(0.22,1,0.36,1)' }}>{toast}</div>
+        <div style={{ position:'fixed',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.12)',backdropFilter:'blur(12px)',border:'0.5px solid rgba(201,168,76,0.3)',color:GOLD,fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,padding:'10px 20px',borderRadius:100,zIndex:9999,whiteSpace:'nowrap',animation:'slideDown 280ms cubic-bezier(0.22,1,0.36,1)' }}>{toast}</div>
       )}
 
       <div style={{ position:'fixed',inset:0,background:'#0C0A09',overflow:'hidden' }}>
@@ -175,12 +175,12 @@ export default function VendorPinPage() {
         <div style={{ position:'absolute',inset:0,background:'rgba(12,10,9,0.45)' }} />
         <div style={{ position:'absolute',bottom:0,left:0,right:0,animation:'pinFadeIn 400ms cubic-bezier(0.22,1,0.36,1)' }}>
           <div style={{ background:'rgba(12,10,9,0.3)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid var(--atelier-input-border)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:'var(--atelier-ink-dim)',margin:'0 0 2px' }}>The Dream Wedding</p>
-            <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:6,letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize:26,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.15 }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-dim)',margin:'0 0 2px' }}>The Dream Wedding</p>
+            <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize: 25,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.15 }}>
               {stage === 'pin' ? 'Create your PIN.' : 'Confirm your PIN.'}
             </p>
-            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize:13,color:'var(--atelier-ink-fade)',margin:'0 0 28px' }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-fade)',margin:'0 0 28px' }}>
               {stage === 'pin' ? 'Four digits. Quick access every time.' : 'Enter the same PIN again.'}
             </p>
 
@@ -209,7 +209,7 @@ export default function VendorPinPage() {
             )}
 
             {loading && (
-              <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:16 }}>
+              <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 9,letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:16 }}>
                 Setting PIN…
               </p>
             )}

@@ -298,7 +298,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             position: 'absolute', left: 14, top: '50%', transform: 'translateY(-30%)',
             width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 26, lineHeight: 1,
+            color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 25, lineHeight: 1,
           }}>‹</button>
 
         <div style={{
@@ -307,7 +307,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           color: 'var(--atelier-label)', marginBottom: 6,
         }}>Anno · {year}</div>
         <div style={{
-          fontFamily: F.display, fontWeight: 400, fontSize: 46,
+          fontFamily: F.display, fontWeight: 400, fontSize: 49,
           color: 'var(--atelier-ink)', lineHeight: 1, letterSpacing: '0.02em',
         }}>{MONTHS[month]}</div>
 
@@ -318,7 +318,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             position: 'absolute', right: 14, top: '50%', transform: 'translateY(-30%)',
             width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 26, lineHeight: 1,
+            color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 25, lineHeight: 1,
           }}>›</button>
       </div>
 
@@ -402,12 +402,12 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           <div style={{
             flex: 1,
             fontFamily: F.script, fontStyle: 'italic',
-            fontSize: 13, fontWeight: 400,
+            fontSize: 16, lineHeight: 1.5, fontWeight: 400,
             color: 'var(--atelier-ink-soft)', letterSpacing: '0.01em',
           }}>
             {hotThisMonth === 1 ? 'One auspicious date this month — peak season approaches' : `${hotThisMonth === 2 ? 'Two' : hotThisMonth === 3 ? 'Three' : hotThisMonth} auspicious dates this month — peak season approaches`}
           </div>
-          <div style={{ fontFamily: F.display, fontSize: 18, color: A.brassWarm }}>
+          <div style={{ fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>
             {hotThisMonth}
           </div>
         </div>
@@ -444,7 +444,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             // numerals did not dim on the light theme, they vanished. Now themed,
             // held at the 3:1 UI bar in each set rather than the body bar, because
             // last month's dates are meant to recede.
-            fontFamily: F.display, fontSize: 16, color: 'var(--atelier-ink-fade)',
+            fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink-fade)',
           }}>{prevDays - firstDow + i + 1}</div>
         ))}
 
@@ -475,7 +475,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 aspectRatio: '1',
                 background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: F.display, fontWeight: 400, fontSize: 22,
+                fontFamily: F.display, fontWeight: 400, fontSize: 20, lineHeight: 1.5,
                 color: isToday ? '#1A120E' : (isSel ? '#1A120E' : A.ink),
                 opacity: isFullDayBlocked ? 0.45 : 1,   // a partial hold still sells — no dim (interim until pips)
               }}>
@@ -532,7 +532,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <div style={{
           padding: '2px 22px 10px',
           fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-          fontSize: 12, color: A.inkMute,
+          fontSize: 16, lineHeight: 1.5, color: A.inkMute,
         }}>Over 200 entries in this span — the furthest are not drawn.</div>
       )}
 
@@ -546,7 +546,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           }}>Next Engagements</div>
           <div style={{ flex: 1, height: '0.5px', background: 'var(--atelier-ink-dim)' }} />
           {nextThree.length > 0 && (
-            <div style={{ fontFamily: F.display, fontSize: 18, color: A.brassWarm }}>
+            <div style={{ fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>
               {nextThree.length}
             </div>
           )}
@@ -555,7 +555,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         {nextThree.length === 0 ? (
           <div style={{
             fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-            fontSize: 15, color: A.inkMute,
+            fontSize: 16, lineHeight: 1.5, color: A.inkMute,
             padding: '4px 0 8px',
           }}>Nothing on the horizon.</div>
         ) : (
@@ -577,7 +577,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                       color: 'var(--atelier-label)', marginBottom: 4,
                     }}>{mm}</div>
                     <div style={{
-                      fontFamily: F.display, fontWeight: 400, fontSize: 44,
+                      fontFamily: F.display, fontWeight: 400, fontSize: 39,
                       color: 'var(--atelier-ink)', lineHeight: 0.95, letterSpacing: '-0.01em',
                     }}>{day}</div>
                   </div>
@@ -592,7 +592,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                       color: 'var(--atelier-label)', marginBottom: 5,
                     }}>{ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
                     <div style={{
-                      fontFamily: F.display, fontWeight: 400, fontSize: 19,
+                      fontFamily: F.display, fontWeight: 400, fontSize: 20,
                       color: 'var(--atelier-ink)', lineHeight: 1.2, letterSpacing: '0.005em',
                     }}>{ev.title}</div>
                   </div>
@@ -610,7 +610,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
         width: 46, height: 46, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.body, fontSize: 22, fontWeight: 400, lineHeight: 1,
+        fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
         cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
       }}>+</button>
 

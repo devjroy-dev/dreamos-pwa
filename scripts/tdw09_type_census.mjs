@@ -123,8 +123,8 @@ export function census() {
   const sizes = new Map();
   for (const f of files()) {
     const src = fs.readFileSync(f, 'utf8');
-    for (const m of src.matchAll(/fontSize:\s*(\d{1,2})\b/g)) {
-      const size = +m[1];
+    for (const m of src.matchAll(/fontSize:\s*(\d{1,2}(?:\.\d+)?)\b/g)) {
+      const size = +m[1];   // may be fractional — 10.5 exists in this estate
       const line = src.slice(0, m.index).split('\n').length;
       const at = { file: path.relative(ROOT, f), line, size };
       sizes.set(size, (sizes.get(size) || 0) + 1);
@@ -152,7 +152,7 @@ function applyTo(rel) {
   let src = fs.readFileSync(abs, 'utf8');
   let sized = 0, led = 0;
   // Right-to-left so earlier indices stay valid as the string changes length.
-  const hits = [...src.matchAll(/fontSize:\s*(\d{1,2})\b/g)].reverse();
+  const hits = [...src.matchAll(/fontSize:\s*(\d{1,2}(?:\.\d+)?)\b/g)].reverse();
   for (const m of hits) {
     const size = +m[1];
     const obj = objectAround(src, m.index);

@@ -102,7 +102,7 @@ function CrewCircle({ c }: { c: BandCrew }) {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         border: `0.5px solid ${stroke}`,
         background: fill,
-        fontFamily: F.label, fontWeight: 400, fontSize: 7,
+        fontFamily: F.label, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
         letterSpacing: '0.04em', color: text,
       }}>{c.initials}</span>
   );
@@ -137,12 +137,12 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         )}
       </span>
       <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 7.5,
+        fontFamily: F.label, fontWeight: 300, fontSize: 8,
         letterSpacing: '0.22em', textTransform: 'uppercase',
         color: A.inkMute, whiteSpace: 'nowrap',
       }}>{fmtShort(fn.date)}</span>
       <span style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 11,
+        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         color: A.inkSoft, maxWidth: 74, overflow: 'hidden',
         textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>{fn.kind}</span>
@@ -217,7 +217,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     return (
       <div style={{
         padding: '18px 22px 26px', fontFamily: F.script, fontStyle: 'italic',
-        fontWeight: 300, fontSize: 15, color: A.inkMute,
+        fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
       }}>The board could not be read just now.</div>
     );
   }
@@ -229,7 +229,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     return (
       <div style={{
         padding: '18px 22px 26px', fontFamily: F.script, fontStyle: 'italic',
-        fontWeight: 300, fontSize: 15, color: A.inkMute, lineHeight: 1.5,
+        fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.5,
       }}>{EMPTY_BOARD}</div>
     );
   }
@@ -256,7 +256,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
                   no destination rather than guessing one. Wire point named in the
                   handover beside F3's Post-to-Collab. */}
               <div style={{
-                fontFamily: F.display, fontWeight: 400, fontSize: 21,
+                fontFamily: F.display, fontWeight: 400, fontSize: 20,
                 color: A.ink, lineHeight: 1.15, letterSpacing: '0.005em',
               }}>{b.title ?? UNTITLED}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
@@ -271,7 +271,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
                 {whisper && (
                   <span style={{
                     fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                    fontSize: 13, color: A.inkMute,
+                    fontSize: 16, lineHeight: 1.5, color: A.inkMute,
                   }}>{whisper}</span>
                 )}
               </div>
@@ -312,7 +312,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
       {data?.truncated && (
         <div style={{
           padding: '10px 22px 0', fontFamily: F.script, fontStyle: 'italic',
-          fontWeight: 300, fontSize: 12, color: A.inkMute,
+          fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
         }}>Over 400 entries in this span — the furthest are not drawn.</div>
       )}
     </div>

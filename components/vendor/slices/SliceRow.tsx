@@ -144,19 +144,19 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
         {/* Monogram glyph — always present, anchors left edge */}
         <span style={{
           flexShrink: 0, width: 28, textAlign: 'center',
-          fontFamily: F.display, fontWeight: 400, fontSize: 22,
+          fontFamily: F.display, fontWeight: 400, fontSize: 20,
           color: A.brassWarm, lineHeight: 1,
         }}>{GLYPHS[slice]}</span>
 
         {/* Name + detail line */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontFamily: F.script, fontWeight: 500, fontSize: 18,
+            fontFamily: F.script, fontWeight: 500, fontSize: 16,
             color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{row.primary}</div>
           <div style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12,
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
             color: A.inkMute, letterSpacing: '0.01em', marginTop: 3,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{detailLine}</div>
@@ -208,7 +208,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
               background: 'rgba(127,190,133,0.10)',
               border: '0.5px solid rgba(127,190,133,0.42)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-              fontFamily: F.display, fontSize: 14, color: A.green, lineHeight: 1,
+              fontFamily: F.display, fontSize: 16, color: A.green, lineHeight: 1,
             }}><WaIcon /></a>
           <a href={`tel:${row.phone}`}
             onClick={e => e.stopPropagation()}
@@ -218,7 +218,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-sheet-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-              fontFamily: F.display, fontSize: 14, color: A.brassWarm, lineHeight: 1,
+              fontFamily: F.display, fontSize: 16, color: A.brassWarm, lineHeight: 1,
             }}>☎</a>
         </div>
       )}

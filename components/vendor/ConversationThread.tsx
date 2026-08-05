@@ -30,7 +30,7 @@ export function ConversationThread({ messages, vendorSummary }: Props) {
           borderRadius: 10, padding: '10px 14px',
         }}>
           <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.gold, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 5 }}>Summary</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream, lineHeight: 1.5 }}>{vendorSummary}</p>
+          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5 }}>{vendorSummary}</p>
         </div>
       )}
 
@@ -54,9 +54,9 @@ export function ConversationThread({ messages, vendorSummary }: Props) {
                   borderRadius: isIn ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
                   padding: '8px 12px',
                 }}>
-                  <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream, lineHeight: 1.5, margin: 0 }}>{msg.body}</p>
+                  <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5, margin: 0 }}>{msg.body}</p>
                 </div>
-                <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.muted, letterSpacing: '0.1em', marginTop: 2, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
+                <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, letterSpacing: '0.1em', marginTop: 2, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
                   {isIn ? 'Bride' : 'DreamAi'} · {fmtTime(msg.created_at)}
                 </span>
               </div>
@@ -66,7 +66,7 @@ export function ConversationThread({ messages, vendorSummary }: Props) {
       )}
 
       {!vendorSummary && messages.length === 0 && (
-        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted, fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>
+        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>
           No conversation yet.
         </p>
       )}

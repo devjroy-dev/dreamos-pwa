@@ -58,7 +58,7 @@ export function Splash() {
       }}>DREAMAI</div>
       <div style={{
         fontFamily: 'var(--font-italiana), var(--font-cormorant), Georgia, serif', fontWeight: 400,
-        fontSize: 30, color: 'var(--atelier-ink, #EDE6D6)', letterSpacing: '0.04em',
+        fontSize: 31, lineHeight: 1.5, color: 'var(--atelier-ink, #EDE6D6)', letterSpacing: '0.04em',
         animation: 'splashIn 900ms 150ms ease both',
       }}>The Dream Wedding</div>
       <div style={{

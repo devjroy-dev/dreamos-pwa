@@ -169,7 +169,7 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
           <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
             {event ? event.title : ''}
           </p>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream, marginTop: 2 }}>
+          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
             Assign crew
           </h2>
         </div>
@@ -177,9 +177,9 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
         {/* Body — the ACTIVE team as toggles, or the empty state */}
         <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
           {loading && members.length === 0 ? (
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>Loading team…</p>
+            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Loading team…</p>
           ) : members.length === 0 ? (
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted }}>{EMPTY_STATE}</p>
+            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>{EMPTY_STATE}</p>
           ) : (
             members.map((m) => {
               const on = selected.has(m.id);
@@ -197,10 +197,10 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
                     border: on ? `1px solid ${D.gold}` : '1px solid var(--atelier-label)',
                     background: on ? D.gold : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, color: '#111', fontWeight: 700,
+                    fontSize: 16, lineHeight: 1.5, color: '#111', fontWeight: 700,
                   }}>{on ? '✓' : ''}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontFamily: F.display, fontWeight: 400, fontSize: 16, color: D.cream }}>{m.name}</span>
+                    <span style={{ display: 'block', fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{m.name}</span>
                     {(m.role || rate(m)) && (
                       <span style={{ display: 'block', marginTop: 2, fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.muted }}>
                         {m.role || 'crew'}{rate(m) ? ` · ${rate(m)}` : ''}
@@ -225,7 +225,7 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
             letterSpacing: '0.3em', textTransform: 'uppercase',
           }}>{POST_TO_COLLAB}</button>
           {collabRefusal && (
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 8, lineHeight: 1.5 }}>
+            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, marginTop: 8, lineHeight: 1.5 }}>
               {collabRefusal}
             </p>
           )}

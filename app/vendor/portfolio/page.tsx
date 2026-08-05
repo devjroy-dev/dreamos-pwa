@@ -206,7 +206,7 @@ const PROBE_BTN: React.CSSProperties = {
   boxSizing: 'border-box', background: 'transparent', textAlign: 'center',
   textDecoration: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
   borderRadius: 2, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 300,
-  fontSize: 11, color: 'var(--role-metal)', letterSpacing: '0.08em',
+  fontSize: 16, lineHeight: 1.5, color: 'var(--role-metal)', letterSpacing: '0.08em',
 };
 
 // ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
@@ -244,7 +244,7 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
         <span style={{
           position: 'absolute', top: 5, right: 5, padding: '2px 5px', borderRadius: 2,
           background: 'rgba(12,10,9,0.72)', color: '#F8F7F5',
-          fontFamily: F.label, fontWeight: 300, fontSize: 7.5, letterSpacing: '0.18em',
+          fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.18em',
           textTransform: 'uppercase', pointerEvents: 'none',
         }}>{isVideo ? COPY.H15 : COPY.H16}</span>
       )}
@@ -269,7 +269,7 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
             width: 26, height: 26, borderRadius: '50%',
             background: 'var(--atelier-accent-text)', color: '#F8F7F5',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, lineHeight: 1, pointerEvents: 'none',
+            fontSize: 16, lineHeight: 1, pointerEvents: 'none',
           }}>✓</span>
         </>
       )}
@@ -800,7 +800,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       }}>
         <button type="button" onClick={() => router.back()} style={{
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-          color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1,
+          color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
         }}>‹</button>
         <span style={{
           fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -871,22 +871,22 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           }}>{COPY.A1(images.length, cap)}</div>
         )}
         {full && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             {COPY.A2(cap)}
           </div>
         )}
         {images.length > 1 && canReorder && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {COPY.G1}
           </div>
         )}
         {images.length > 1 && !canReorder && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {COPY.G3}
           </div>
         )}
         {images.length > 0 && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {COPY.F4}
           </div>
         )}
@@ -900,11 +900,11 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         onPointerCancel={onPointerUp}
       >
         {loading ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: A.inkMute, textAlign: 'center', padding: 40 }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>
             Loading…
           </div>
         ) : images.length === 0 ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 17, color: A.inkMute, textAlign: 'center', padding: '60px 20px', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', padding: '60px 20px', lineHeight: 1.5 }}>
             No images yet. <br />
             <span style={{ color: A.brassWarm }}>Tap upload to add your first.</span>
           </div>
@@ -955,7 +955,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                     position: 'absolute', top: 6, left: 6, padding: '3px 8px',
                     background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
                     border: '0.5px solid var(--atelier-label)',
-                    fontFamily: F.label, fontWeight: 400, fontSize: 7,
+                    fontFamily: F.label, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
                     color: '#1A120E', letterSpacing: '0.28em',
                   }}>{COPY.E1}</div>
                 )}
@@ -963,7 +963,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
                     background: 'rgba(12,10,9,0.55)',
-                    fontFamily: F.label, fontWeight: 300, fontSize: 7,
+                    fontFamily: F.label, fontWeight: 300, fontSize: 8,
                     letterSpacing: '0.24em', textTransform: 'uppercase',
                     color: stateColor(img.approval_state),
                   }}>{stateLabel(img.approval_state)}</div>
@@ -1018,12 +1018,12 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 first and the reassurance second has been sold to; the other way
                 round, they have been told the truth first. */}
             <p style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14,
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
               color: A.inkSoft, margin: '0 0 14px', lineHeight: 1.55,
             }}>{COPY.H3}</p>
 
             {ig.connection_state === 'expired' ? (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.red, margin: '0 0 14px' }}>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, margin: '0 0 14px' }}>
                 {COPY.H11}
               </p>
             ) : null}
@@ -1031,7 +1031,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {!ig.connected || ig.connection_state === 'expired' ? (
               <>
                 <p style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
+                  fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
                 }}>{COPY.H2}</p>
                 {/* THE CONNECT CONTROL — a real link over a destination that
@@ -1077,7 +1077,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 {/* THE iOS FALLBACK — DARK. See H19 and IOS_FALLBACK_ARMED. */}
                 {IOS_FALLBACK_ARMED && (
                   <p style={{
-                    fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
+                    fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
                     margin: '12px 0 0', lineHeight: 1.6,
                   }}>{COPY.H19}</p>
                 )}
@@ -1097,7 +1097,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   }}>{COPY.H18.replace('{handle}', ig.ig_username)}</p>
                 )}
                 <p style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute,
+                  fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
                 }}>{COPY.H12}</p>
                 <button type="button" disabled={igBusy !== null || full} onClick={igOpenPicker}
@@ -1112,7 +1112,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   style={{
                     width: '100%', padding: '10px 0', marginTop: 8, background: 'transparent',
                     border: 'none', cursor: igBusy ? 'default' : 'pointer',
-                    fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute,
+                    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
                   }}>{COPY.H13}</button>
               </>
             )}
@@ -1143,11 +1143,11 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
                   textTransform: 'uppercase', color: A.brassWarm, marginBottom: 6,
                 }}>Navigation probe</div>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute, margin: '0 0 4px', lineHeight: 1.6 }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute, margin: '0 0 4px', lineHeight: 1.6 }}>
                   Tap each in order. Screenshot what you get. Come back to this
                   page between taps — the link refreshes itself every time.
                 </p>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute, margin: '0 0 14px' }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, margin: '0 0 14px' }}>
                   State: <strong>{igAuthUrl ? igAuthUrl.slice(-8) : 'minting…'}</strong>
                 </p>
 
@@ -1214,7 +1214,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               textTransform: 'uppercase', color: A.brassWarm, marginBottom: 4,
             }}>{COPY.H5}</div>
             <div style={{
-              fontFamily: F.body, fontWeight: 300, fontSize: 12, color: A.inkMute, marginBottom: 4,
+              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 4,
             }}>
               {COPY.H6.replace('{n}', String(igPicked.length)).replace('{r}', String(igRoom))}
             </div>
@@ -1223,7 +1223,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 surprised by their own storefront. */}
             {igItems.some(i => i.media_type === 'VIDEO') && (
               <div style={{
-                fontFamily: F.body, fontWeight: 300, fontSize: 11, color: A.inkMute, marginBottom: 14,
+                fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 14,
               }}>{COPY.H17}</div>
             )}
 
@@ -1232,7 +1232,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {/* THE ONLY SCROLLING REGION. */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 18px 16px' }}>
             {igItems.length === 0 ? (
-              <p style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute }}>
+              <p style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
                 {COPY.H10}
               </p>
             ) : (
@@ -1300,13 +1300,13 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             }}>{sel.approval_state}</div>
 
             {sel.rejection_reason && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
                 {sel.rejection_reason}
               </div>
             )}
 
             {sel.position === 0 && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 {COPY.E4}
               </div>
             )}
@@ -1316,7 +1316,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               style={{
                 width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '10px 12px',
                 background: 'transparent', border: '0.5px solid rgba(201,168,76,0.22)', borderRadius: 2,
-                color: A.ink, fontFamily: F.body, fontWeight: 300, fontSize: 13, resize: 'vertical',
+                color: A.ink, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, resize: 'vertical',
               }} />
             <button type="button" onClick={() => doSaveCaption(sel.id)}
               style={{
@@ -1372,10 +1372,10 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                  an irreversible act behind a single touch. Inline rather than a
                  second sheet so the photo stays on screen while they decide. */
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.ink }}>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink }}>
                   {COPY.C1}
                 </div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkSoft, lineHeight: 1.45 }}>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.45 }}>
                   {COPY.C2}
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>

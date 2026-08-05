@@ -344,7 +344,11 @@ function TeamScreen({ vendorName }: { vendorName: string | null }) {
               {sheet === 'edit' && (
                 <button type="button" onClick={doDelete} disabled={saving} style={{ flex: 1, padding: '13px 0', backgroundColor: 'transparent', border: `0.5px solid ${D.red}`, borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.red, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1 }}>Remove</button>
               )}
-              <button type="button" onClick={sheet === 'add' ? doAdd : doEdit} disabled={!canSave || saving} style={{ flex: 2, padding: '13px 0', backgroundColor: canSave && !saving ? D.gold : 'var(--atelier-input-border)', border: 'none', borderRadius: 8, cursor: canSave && !saving ? 'pointer' : 'not-allowed', fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+              <button type="button" onClick={sheet === 'add' ? doAdd : doEdit} disabled={!canSave || saving} style={{ flex: 2, padding: '13px 0', /* TDW_09 F-09.38 — a DISABLED FILL, not a boundary. `--atelier-input-border` is
+                     the 3:1 control-edge role (R-S3); wearing it as a surface made
+                     the dead SAVE read as a dusty slab whose colour meant nothing.
+                     `section-bg` is the recessed-surface role and themes with it. */
+                backgroundColor: canSave && !saving ? D.gold : 'var(--atelier-section-bg)', border: 'none', borderRadius: 8, cursor: canSave && !saving ? 'pointer' : 'not-allowed', fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>

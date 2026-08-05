@@ -4,6 +4,7 @@
 // Identity revealed — poster owns the post.
 
 import { useEffect, useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useParams, useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -183,13 +184,13 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
       {/* Page header */}
       <div style={{ padding: '16px 20px 0', borderBottom: `0.5px solid ${D.borderCol}` }}>
         <button type="button" onClick={() => router.back()} style={{
-          background: 'none', border: 'none', color: D.muted, fontSize: 20,
+          background: 'none', border: 'none', color: D.muted, fontSize: 20, lineHeight: 1.5,
           cursor: 'pointer', padding: '0 0 12px', display: 'block',
         }}>←</button>
-        <h1 style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 26, color: D.cream, marginBottom: 6 }}>
+        <h1 style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 25, lineHeight: 1.5, color: D.cream, marginBottom: 6 }}>
           Interested vendors
         </h1>
-        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, lineHeight: 1.6, paddingBottom: 16 }}>
+        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6, paddingBottom: 16 }}>
           Their identity is revealed to you because you posted the requirement.
           Tap Connect to share contact details with both of you.
         </p>
@@ -199,7 +200,7 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {loading ? (
           <div style={{ padding: '60px 0', textAlign: 'center' }}>
-            <p style={{ fontFamily: F.display, fontStyle: 'italic', fontSize: 18, color: D.muted }}>Loading…</p>
+            <p style={{ fontFamily: F.display, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: D.muted }}>Loading…</p>
           </div>
         ) : responses.length === 0 ? (
           <div style={{ padding: '60px 16px', textAlign: 'center' }}>
@@ -221,7 +222,7 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
                     border: '0.5px solid var(--atelier-card-border)' }} />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, color: D.cream, marginBottom: 3 }}>
+                <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginBottom: 3 }}>
                   {r.vendor.name || 'A vendor'}
                 </p>
                 <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
@@ -234,7 +235,7 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
             {/* Action */}
             {r.state === 'accepted' ? (
               <>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.gold, fontStyle: 'italic' }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.gold, fontStyle: 'italic' }}>
                   ✦ Connected — contact details shared with both of you.
                 </p>
                 {/* THE SETTLE ROW (A3). Brass-line, not gold: the connected
@@ -288,12 +289,12 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
           <div onClick={e => e.stopPropagation()} style={{
             ...CARD, width: '100%', borderRadius: '16px 16px 0 0',
             padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>{SETTLE_TITLE}</div>
-            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.muted }}>{stub.name}</div>
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>{SETTLE_TITLE}</div>
+            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>{stub.name}</div>
 
             <div>
               <div style={LABEL}>{FUNCTION_LABEL}</div>
-              <select value={eventId} onChange={e => setEventId(e.target.value)} style={{ ...INPUT, appearance: 'none' }}>
+              <select value={eventId} onChange={e => setEventId(e.target.value)} style={selectStyle(INPUT)}>
                 <option value="">{NO_WEDDING_OPTION}</option>
                 {functions.map(f => (
                   <option key={f.event_id} value={f.event_id}>
@@ -310,13 +311,13 @@ function ResponsesScreen({ post_id, vendorName }: { post_id: string; vendorName:
             </div>
 
             {suggestion && (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, margin: 0, lineHeight: 1.6 }}>
                 {suggestionLine(suggestion.amount_inr, suggestion.functions, suggestion.rate_inr)}
                 <br />{EDIT_BEFORE_SAVING}
               </p>
             )}
             {!suggestion && suggestReason === 'no_rate' && (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
             )}
 
             <button type="button" onClick={doSettle}
@@ -344,5 +345,5 @@ const LABEL: React.CSSProperties = {
 const INPUT: React.CSSProperties = {
   width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
 };

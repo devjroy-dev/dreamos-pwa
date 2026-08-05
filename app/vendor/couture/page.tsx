@@ -83,8 +83,8 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           margin: '40px 22px', padding: '32px 24px', textAlign: 'center',
         }}>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>Couture · Invite Only</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 28, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             Couture access is reserved for invited makers.<br />Contact Swati to be considered.
           </div>
           <button type="button" onClick={() => router.back()} style={{
@@ -104,7 +104,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Couture</span>
         {tab === 'availability' && eligible && (
           <button type="button" onClick={() => setAddOpen(true)} className="atelier-fab" style={{
@@ -129,15 +129,15 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '20px 22px 100px' }}>
         {loading ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
         ) : tab === 'availability' ? (
           slots.length === 0 ? (
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>No slots yet.<br /><span style={{ color: A.brassWarm }}>Add your first.</span></div>
           ) : slots.map(slot => (
             <div key={slot.id} style={{ display: 'flex', alignItems: 'center', padding: '14px 4px', gap: 14, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 17, color: A.ink, letterSpacing: '0.005em' }}>{fmtDate(slot.slot_at)}</div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute, marginTop: 3 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{fmtDate(slot.slot_at)}</div>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
                   Rs {slot.fee_inr.toLocaleString('en-IN')} · {slot.duration_minutes} min · <span style={{ color: slot.state === 'open' ? A.brassWarm : A.inkMute }}>{slot.state}</span>
                 </div>
               </div>
@@ -153,11 +153,11 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           ))
         ) : (
           appointments.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
           ) : appointments.map(appt => (
             <div key={appt.id} className="atelier-card" style={{ padding: '14px 18px', marginBottom: 10 }}>
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 17, color: A.ink }}>{fmtDate(appt.appointment_at)}</div>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: A.inkMute, marginTop: 3 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{fmtDate(appt.appointment_at)}</div>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
                 Rs {appt.fee_inr.toLocaleString('en-IN')} · {appt.state}
               </div>
             </div>
@@ -184,15 +184,15 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             <input type="datetime-local" value={slotAt} onChange={e => setSlotAt(e.target.value)} style={{
               width: '100%', padding: '12px 14px', boxSizing: 'border-box',
               background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-              fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
-              colorScheme: 'dark', marginBottom: 14, caretColor: A.brass,
+              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+               marginBottom: 14, caretColor: A.brass,
             }} />
 
             <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Fee (Rs)</label>
             <input type="number" value={feeInr} onChange={e => setFeeInr(e.target.value)} placeholder="3000" style={{
               width: '100%', padding: '12px 14px', boxSizing: 'border-box',
               background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-              fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
+              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
               marginBottom: 16, caretColor: A.brass,
             }} />
 

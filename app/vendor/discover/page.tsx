@@ -122,13 +122,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               color: A.brass, marginBottom: 14,
             }}>Your Portfolio</div>
             <div style={{
-              fontFamily: F.display, fontWeight: 400, fontSize: 38,
+              fontFamily: F.display, fontWeight: 400, fontSize: 39,
               color: 'var(--atelier-ink)', lineHeight: 1.08, letterSpacing: '0.005em',
               marginBottom: 10,
             }}>Appear before<br />qualified brides.</div>
             <div style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-              fontSize: 16, color: 'rgba(240,230,210,0.78)',
+              fontSize: 16, lineHeight: 1.5, color: 'rgba(240,230,210,0.78)',
               letterSpacing: '0.01em',
             }}>A curated stage, not a marketplace.</div>
           </div>
@@ -160,10 +160,10 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             }}>Discover Profile</span>
             <span style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-              fontSize: 13, color: A.inkMute, letterSpacing: '0.01em',
+              fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em',
             }}>How couples see you</span>
           </span>
-          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 13, color: A.brassWarm }}>›</span>
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>›</span>
         </button>
 
         {/* ── 4-cell ledger ──────────────────────────────────────── */}
@@ -190,7 +190,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   }} />
                 )}
                 <div style={{
-                  fontFamily: F.display, fontWeight: 400, fontSize: 46,
+                  fontFamily: F.display, fontWeight: 400, fontSize: 49,
                   lineHeight: 1, letterSpacing: '-0.01em',
                   color: accent ? color : 'var(--atelier-ink-dim)',
                 }}>{value}</div>
@@ -209,7 +209,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           {loading ? (
             <div style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-              fontSize: 14, color: A.inkMute, textAlign: 'center', padding: 20,
+              fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 20,
             }}>Loading…</div>
           ) : state === 'not_requested' ? (
             portfolioTotal < floor ? (
@@ -228,7 +228,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 </button>
                 <div style={{
                   fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                  fontSize: 13, color: A.inkMute, textAlign: 'center',
+                  fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center',
                 }}>
                   Upload at least {floor} pieces to request access. You have {portfolioTotal}.
                 </div>
@@ -259,7 +259,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               }}>Under Review</div>
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 15, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
+                fontSize: 16, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
               }}>
                 Your application is being reviewed by Swati. Expected response within five days.
               </div>
@@ -277,7 +277,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               }}>Approved</div>
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 15, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
+                fontSize: 16, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
               }}>
                 You&apos;re on Discover. Your work is live on The Dream Wedding.
               </div>
@@ -297,7 +297,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 }}>Not Approved</div>
                 <div style={{
                   fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                  fontSize: 14, color: A.inkSoft, lineHeight: 1.5,
+                  fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
                 }}>{status?.last_decision_reason ?? 'Application not approved.'}</div>
               </div>
               <button type="button" onClick={() => router.push('/vendor/discover/submit')}
@@ -324,13 +324,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               color: A.brass, marginBottom: 6,
             }}>The Collection</div>
             <div style={{
-              fontFamily: F.display, fontWeight: 400, fontSize: 26,
+              fontFamily: F.display, fontWeight: 400, fontSize: 25,
               color: 'var(--atelier-ink)', lineHeight: 1.1, marginBottom: 4,
               letterSpacing: '0.005em',
             }}>Your latest work</div>
             <div style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-              fontSize: 14, color: A.inkMute, marginBottom: 18,
+              fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 18,
               letterSpacing: '0.01em',
             }}>As brides will see it, curated.</div>
 

@@ -113,8 +113,16 @@ const CAL = read('app/vendor/calendar/page.tsx');
 const CTX = read('lib/vendor/ThemeContext.tsx');
 ok('BottomNav · locked tab reads var(--atelier-ink-fade)',
    /item\.locked \? 'var\(--atelier-ink-fade\)'/.test(NAV));
+// TDW_09 T-1 — LABELLED AMENDMENT, COUNT PRESERVED (1 cell, still 1).
+// This cell asserted the fade token by pinning the FONT SIZE next to it, so it
+// red the moment T-1 inserted a leading between the two properties. The colour
+// never moved. A palette cell has no business pinning type geometry: it made the
+// bench a hostage of an unrelated pass, and it would have gone green over a
+// wrong colour at the right size. Re-aimed to the property it exists to guard —
+// the previous-month cell reads the fade ROLE — with the size left to T-1's own
+// instrument, which owns it.
 ok('calendar · previous-month cells read var(--atelier-ink-fade)',
-   /fontSize: 16, color: 'var\(--atelier-ink-fade\)'/.test(CAL));
+   /color: 'var\(--atelier-ink-fade\)'/.test(CAL));
 ok('ThemeContext · the var is actually published',
    /setProperty\('--atelier-ink-fade',\s*t\.inkFade\)/.test(CTX),
    'a token nothing publishes is a token nothing can read');

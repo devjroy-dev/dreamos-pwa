@@ -78,12 +78,12 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
 
   if (loading) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: A.inkMute }}>Loading…</div>
+      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
     </div>
   );
   if (error) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.red }}>{error}</div>
+      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red }}>{error}</div>
     </div>
   );
 
@@ -96,7 +96,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Settings</span>
       </div>
 
@@ -131,7 +131,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
         <SCard title="Discover Profile">
           <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
             background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.brassWarm,
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.brassWarm,
           }}>Moved to your Discover Profile. ›</button>
         </SCard>
 
@@ -168,7 +168,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                 color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
               }}>−</button>
               <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontFamily: F.display, fontSize: 30, color: A.ink, lineHeight: 1 }}>
+                <div style={{ fontFamily: F.display, fontSize: 31, color: A.ink, lineHeight: 1 }}>
                   {current.slot_capacity === ''
                     ? (current.capacity_default != null ? String(current.capacity_default) : '—')
                     : current.slot_capacity}
@@ -192,7 +192,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                 color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
               }}>+</button>
             </div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 8 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 8 }}>
               How many bookings each slot of a day can hold. The calendar refuses the one after.
             </div>
             {current.slot_capacity !== '' && (
@@ -219,7 +219,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           <SField label="Handle" value={current.routing_handle} onChange={v => update({ routing_handle: v.toUpperCase().replace(/[^A-Z0-9]/g, '') })} placeholder="YOURHANDLE" />
           {handle && (
             <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 12, color: A.inkMute, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{waLink}</div>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{waLink}</div>
               <button type="button" onClick={() => navigator.clipboard.writeText(waLink).then(() => show('Link copied', 'success'))}
                 style={{
                   background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
@@ -235,7 +235,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
         <SCard title="Invoice Settings">
           <SField label="Invoice prefix" value={current.invoice_prefix} onChange={v => update({ invoice_prefix: v })} placeholder="TDW/DEV550" />
           {prefixCounter != null && (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 12, color: A.inkMute, marginTop: 4 }}>
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
               Next invoice: {current.invoice_prefix}/{String(prefixCounter + 1).padStart(2, '0')}
             </div>
           )}

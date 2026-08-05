@@ -122,7 +122,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
           color: A.brass,
         }}>DreamAi</span>
         <span style={{
-          fontFamily: F.display, fontWeight: 400, fontSize: 21,
+          fontFamily: F.display, fontWeight: 400, fontSize: 20,
           color: inkColor, letterSpacing: '0.01em', marginTop: 2, lineHeight: 1,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{headerName}</span>
@@ -141,7 +141,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', flexShrink: 0,
             boxShadow: '0 0 0 3px rgba(201,168,76,0.06), inset 0 1px 2px rgba(255,235,200,0.15)',
-            fontFamily: F.display, fontWeight: 400, fontSize: 14,
+            fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
             color: A.brassWarm, letterSpacing: '0.04em',
           }}>
           {initials(displayName)}
@@ -177,7 +177,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
                 color: A.brass, marginBottom: 8,
               }}>The Maker</div>
               <div style={{
-                fontFamily: F.display, fontWeight: 400, fontSize: 24,
+                fontFamily: F.display, fontWeight: 400, fontSize: 25,
                 color: isLight ? '#2C1F14' : 'var(--atelier-ink)',
                 lineHeight: 1.1, letterSpacing: '0.005em',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -185,7 +185,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
               {subtitle && (
                 <div style={{
                   fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                  fontSize: 13, color: inkMuteColor, marginTop: 5,
+                  fontSize: 16, lineHeight: 1.5, color: inkMuteColor, marginTop: 5,
                   letterSpacing: '0.01em',
                 }}>{subtitle}</div>
               )}
@@ -238,7 +238,7 @@ function SectionLabel({ children, isLight }: { children: React.ReactNode; isLigh
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
       <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 7,
+        fontFamily: F.label, fontWeight: 300, fontSize: 8,
         letterSpacing: '0.5em', textTransform: 'uppercase',
         color: 'var(--atelier-label)',
       }}>{children}</span>
@@ -273,7 +273,7 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight 
       }}>
       <span style={{
         flexShrink: 0, width: 22, textAlign: 'center',
-        fontFamily: F.display, fontWeight: 400, fontSize: 18,
+        fontFamily: F.display, fontWeight: 400, fontSize: 16,
         color: glyphColor, lineHeight: 1,
         textShadow: hov ? '0 0 8px rgba(224,188,110,0.3)' : 'none',
         transition: `text-shadow 150ms ${EASE}`,
@@ -286,7 +286,7 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight 
         {subtitle && (
           <span style={{
             fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-            fontSize: 11, color: subtitleColor, marginTop: 1,
+            fontSize: 16, lineHeight: 1.5, color: subtitleColor, marginTop: 1,
             letterSpacing: '0.01em',
           }}>{subtitle}</span>
         )}

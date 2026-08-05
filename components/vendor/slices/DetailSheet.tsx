@@ -54,7 +54,7 @@ export function DetailSheet({
         {/* Calling-card header */}
         <div style={{ padding: '6px 24px 14px', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>{LABELS[slice]}</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: 'var(--atelier-ink)', letterSpacing: '0.005em', lineHeight: 1.15 }}>{sel?.primary ?? ''}</div>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', letterSpacing: '0.005em', lineHeight: 1.15 }}>{sel?.primary ?? ''}</div>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 24px' }}>
@@ -65,7 +65,7 @@ export function DetailSheet({
               borderBottom: ii < (sel?.detail.length ?? 0) - 1 ? '0.5px solid var(--atelier-card-border)' : 'none',
             }}>
               <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{f.label}</span>
-              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 15, color: A.ink, letterSpacing: '0.005em', textAlign: 'right' }}>{cap(f.value)}</span>
+              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em', textAlign: 'right' }}>{cap(f.value)}</span>
             </div>
           ))}
 
@@ -94,15 +94,15 @@ export function DetailSheet({
             </div>
           ) : deleteMsg ? (
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14,
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
               color: deleteMsg.startsWith('Done') || deleteMsg.includes('cancelled') ? A.brassWarm : A.red,
               textAlign: 'center', lineHeight: 1.5, padding: '8px 0',
             }}>{deleteMsg}</div>
           ) : (
             <>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkSoft, textAlign: 'center', lineHeight: 1.6 }}>
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, textAlign: 'center', lineHeight: 1.6 }}>
                 {slice === 'invoices' ? 'Cancel' : 'Remove'} <span style={{ color: 'var(--atelier-ink)', fontStyle: 'normal' }}>{sel?.primary}</span>?<br/>
-                <span style={{ fontSize: 12, color: A.inkMute }}>
+                <span style={{ fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
                   {/* TDW_04 A3.3 (F-04.15): each line now names what its door
                       actually does. It said leads would be "marked as lost" —
                       the M3 masquerade's own words, still on screen long after

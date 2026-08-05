@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useParams } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { useDemoContext } from '@/hooks/demo/useDemoContext';
@@ -13,7 +14,7 @@ const REQUIREMENT_TYPES=['photography','videography','makeup','mehendi','decor',
 const EVENT_TYPES=['wedding','pre_wedding','engagement','editorial','brand_shoot','portrait','other'];
 const PAYMENT_PERIODS=['per_day','per_shoot','total','tbd'];
 const CITIES=['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa','Other'];
-const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,color:A.ink,fontFamily:'var(--font-dm-sans),system-ui,sans-serif',fontSize:14,fontWeight:300,outline:'none',colorScheme:'dark',caretColor:A.brass};
+const inputStyle:React.CSSProperties={width:'100%',padding:'12px 14px',boxSizing:'border-box' as const,background:'var(--atelier-input-bg)',border:'0.5px solid var(--atelier-input-border)',borderRadius:2,color:A.ink,fontFamily:'var(--font-dm-sans),system-ui,sans-serif',fontSize:14,fontWeight:300,outline:'none',caretColor:A.brass};
 type Tab='opportunities'|'my_posts';
 interface Post{id:string;requirement_type:string;event_date:string;city:string;budget_inr?:number;payment_period?:string;details?:string;poster_category:string;state:string;interested_count:number;}
 const DEMO_FEED:Post[]=[
@@ -76,10 +77,10 @@ export default function DemoCollabPage(){
         <Label>Date needed</Label>
         <input type="date" value={form.event_date} onChange={e=>set('event_date',e.target.value)} style={{...inputStyle,marginBottom:22}}/>
         <Label>City</Label>
-        <select value={form.city} onChange={e=>set('city',e.target.value)} style={{...inputStyle,marginBottom:10,appearance:'none' as const}}><option value="">Select city</option>{CITIES.map(c=><option key={c} value={c}>{c}</option>)}</select>
+        <select value={form.city} onChange={e=>set('city',e.target.value)} style={{...selectStyle(inputStyle),marginBottom:10}}><option value="">Select city</option>{CITIES.map(c=><option key={c} value={c}>{c}</option>)}</select>
         <label style={{display:'flex',alignItems:'center',gap:10,marginBottom:22,cursor:'pointer'}}><input type="checkbox" checked={form.open_to_other_cities} onChange={e=>set('open_to_other_cities',e.target.checked)} style={{accentColor:A.brass,width:16,height:16}}/><span style={{fontFamily:F.script,fontStyle:'italic',fontWeight:300,fontSize:13,color:A.inkSoft}}>Also open to vendors who travel</span></label>
         <Label>Budget offered (optional)</Label>
-        <div style={{display:'flex',gap:8,marginBottom:22}}><input type="number" placeholder="Rs" value={form.budget_inr} onChange={e=>set('budget_inr',e.target.value)} style={{...inputStyle,flex:2}}/><select value={form.payment_period} onChange={e=>set('payment_period',e.target.value)} style={{...inputStyle,flex:1,appearance:'none' as const}}>{PAYMENT_PERIODS.map(p=><option key={p} value={p}>{p.replace('_',' ')}</option>)}</select></div>
+        <div style={{display:'flex',gap:8,marginBottom:22}}><input type="number" placeholder="Rs" value={form.budget_inr} onChange={e=>set('budget_inr',e.target.value)} style={{...inputStyle,flex:2}}/><select value={form.payment_period} onChange={e=>set('payment_period',e.target.value)} style={{...selectStyle(inputStyle),flex:1}}>{PAYMENT_PERIODS.map(p=><option key={p} value={p}>{p.replace('_',' ')}</option>)}</select></div>
         <Label>Details (optional)</Label>
         <textarea value={form.details} onChange={e=>set('details',e.target.value.slice(0,200))} placeholder="Describe what you're looking for…" rows={3} style={{...inputStyle,resize:'none' as const,marginBottom:22}}/>
         {(!form.requirement_type||!form.event_date||!form.city)&&<div style={{fontFamily:F.script,fontStyle:'italic',fontWeight:300,fontSize:13,color:A.red,marginBottom:14}}>Please fill in what you need, the date, and the city.</div>}

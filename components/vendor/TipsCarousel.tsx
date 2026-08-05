@@ -314,7 +314,7 @@ export function TipsCarousel({ onClose }: Props) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{
-                fontFamily: F.label, fontSize: 14, color: labelColor, lineHeight: 1,
+                fontFamily: F.label, fontSize: 16, color: labelColor, lineHeight: 1,
               }}>{tip.glyph}</span>
               <span style={{
                 fontFamily: F.label, fontWeight: 300, fontSize: 8,
@@ -323,7 +323,7 @@ export function TipsCarousel({ onClose }: Props) {
               }}>{tip.section}</span>
             </div>
             <span style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 8,
+              fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
               letterSpacing: '0.08em', color: mutedColor,
             }}>{safeIdx + 1} / {filtered.length}</span>
           </div>
@@ -331,13 +331,13 @@ export function TipsCarousel({ onClose }: Props) {
           {/* Title */}
           <h3 style={{
             fontFamily: F.display, fontStyle: 'italic', fontWeight: 300,
-            fontSize: 24, lineHeight: 1.22, color: headColor,
+            fontSize: 25, lineHeight: 1.22, color: headColor,
             marginBottom: 10,
           }}>{tip.title}</h3>
 
           {/* Body */}
           <p style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 13,
+            fontFamily: F.label, fontWeight: 300, fontSize: 16,
             lineHeight: 1.65, color: bodyColor,
             marginBottom: tip.waLink ? 14 : 22,
           }}>{tip.body}</p>
@@ -356,7 +356,7 @@ export function TipsCarousel({ onClose }: Props) {
                 letterSpacing: '0.22em', textTransform: 'uppercase' as const,
                 color: '#25D366',
               }}>
-              <span style={{ fontSize: 12 }}>◎</span>
+              <span style={{ fontSize: 16, lineHeight: 1.5 }}>◎</span>
               Set up on WhatsApp →
             </button>
           )}

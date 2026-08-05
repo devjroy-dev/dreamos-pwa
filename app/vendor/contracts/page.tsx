@@ -30,7 +30,7 @@ const STATE_COLOR: Record<string, string> = {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', boxSizing: 'border-box',
   background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-  fontFamily: F.body, fontWeight: 300, fontSize: 14, color: A.ink, outline: 'none',
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
   caretColor: A.brass,
 };
 const labelStyle: React.CSSProperties = {
@@ -119,18 +119,18 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Contracts</span>
       </div>
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: A.inkMute }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         </div>
       ) : contracts.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 6 }}>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>No contracts yet.</div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 14, color: A.inkMute }}>Tap the + to upload your first.</div>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>No contracts yet.</div>
+          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Tap the + to upload your first.</div>
         </div>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
@@ -142,10 +142,10 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
             }}>
               <span style={{
                 flexShrink: 0, width: 32, textAlign: 'center',
-                fontFamily: F.display, fontWeight: 400, fontSize: 22, color: A.brassWarm, lineHeight: 1,
+                fontFamily: F.display, fontWeight: 400, fontSize: 20, color: A.brassWarm, lineHeight: 1,
               }}>§</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 17, color: A.ink, letterSpacing: '0.005em', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</div>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, color: A.ink, letterSpacing: '0.005em', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</div>
                 <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: 'var(--atelier-label)', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4 }}>
                   {new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   {c.file_size ? ` · ${Math.round(c.file_size / 1024)} KB` : ''}
@@ -167,7 +167,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
           position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 10,
           width: 46, height: 46, borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: F.body, fontSize: 22, fontWeight: 400, lineHeight: 1,
+          fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
           cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
         }}>+</button>
 
@@ -185,7 +185,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
               <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
             </div>
             <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>New Contract</div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 4 }}>Upload PDF</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 4 }}>Upload PDF</div>
 
             <div><div style={labelStyle}>Title *</div><input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="Booking contract — Priya Sharma" /></div>
             <div>
@@ -195,14 +195,14 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
                 width: '100%', padding: '12px 14px',
                 background: 'var(--atelier-input-bg)',
                 border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.script, fontStyle: file ? 'normal' : 'italic', fontWeight: 300, fontSize: 14,
+                fontFamily: F.script, fontStyle: file ? 'normal' : 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
                 color: file ? A.ink : A.inkMute, textAlign: 'left',
               }}>
                 {file ? file.name : 'Choose a PDF…'}
               </button>
             </div>
-            {(!canUpload && !uploading) && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 12, color: A.red, marginTop: 2 }}>Title and PDF are required.</div>}
-            {uploading && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 13, color: A.brassWarm }}>{uploadProgress}</div>}
+            {(!canUpload && !uploading) && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>Title and PDF are required.</div>}
+            {uploading && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>{uploadProgress}</div>}
 
             <button type="button" onClick={doUpload} disabled={!canUpload || uploading} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canUpload && !uploading) ? 'pointer' : 'default',
@@ -228,18 +228,18 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
               <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 22, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>{selected.title}</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>{selected.title}</div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{
                 fontFamily: F.label, fontWeight: 400, fontSize: 8, color: STATE_COLOR[selected.state],
                 letterSpacing: '0.28em', textTransform: 'uppercase',
                 border: `0.5px solid ${STATE_COLOR[selected.state]}`, borderRadius: 2, padding: '4px 9px',
               }}>{selected.state}</span>
-              {selected.file_size && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 12, color: A.inkMute }}>{Math.round(selected.file_size/1024)} KB</span>}
-              {selected.sent_at && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 12, color: A.inkMute }}>Sent {new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
-              {selected.signed_at && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 12, color: A.green }}>Signed {new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
+              {selected.file_size && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{Math.round(selected.file_size/1024)} KB</span>}
+              {selected.sent_at && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Sent {new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
+              {selected.signed_at && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.green }}>Signed {new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
             </div>
-            {selected.notes && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 14, color: A.inkSoft, lineHeight: 1.5 }}>{selected.notes}</div>}
+            {selected.notes && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>{selected.notes}</div>}
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               <button type="button" onClick={() => doDownload(selected)} className="atelier-fab" style={{

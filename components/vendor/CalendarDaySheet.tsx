@@ -241,7 +241,7 @@ export function CalendarDaySheet({
               <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.3em', textTransform: 'uppercase' }}>
                 {fmtDate(dateIso)}
               </p>
-              <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream, marginTop: 2 }}>
+              <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
                 {fullDayBlock ? 'Blocked day' : 'The day'}
               </h2>
             </div>
@@ -255,7 +255,7 @@ export function CalendarDaySheet({
           {hotNote && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8 }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: D.terracotta, boxShadow: '0 0 6px rgba(224,123,92,0.6)' }} />
-              <span style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 400, fontSize: 13, color: D.terracotta }}>{hotNote}</span>
+              <span style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.terracotta }}>{hotNote}</span>
             </div>
           )}
         </div>
@@ -268,12 +268,12 @@ export function CalendarDaySheet({
             <div style={{
               padding: '10px 14px', borderRadius: 10,
               border: '0.5px solid rgba(224,112,112,0.4)', background: 'rgba(180,40,40,0.10)',
-              fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.red,
+              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
             }}>{verdict}</div>
           )}
 
           {loading && !day && (
-            <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 15, color: D.muted }}>Fetching the day…</div>
+            <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Fetching the day…</div>
           )}
 
           {/* Blocks — the held slots, named, beside the bookings (Q-S-4). */}
@@ -284,7 +284,7 @@ export function CalendarDaySheet({
                   <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: D.muted, minWidth: 64 }}>
                     {b.slot === 'full_day' ? 'All day' : b.slot}
                   </span>
-                  <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 13, color: D.cream }}>
+                  <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>
                     Blocked{b.reason ? <span style={{ color: D.muted }}> · {b.reason}</span> : null}
                   </span>
                 </div>
@@ -294,7 +294,7 @@ export function CalendarDaySheet({
 
           {/* Bookings by slot, binder chips */}
           {groups.length === 0 && !loading && blocks.length === 0 && (
-            <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: D.muted }}>
+            <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>
               Nothing scheduled.
             </div>
           )}
@@ -310,7 +310,7 @@ export function CalendarDaySheet({
                       <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 3 }}>
                         {ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · done' : ''}
                       </div>
-                      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 17, color: D.cream }}>{ev.title}</div>
+                      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{ev.title}</div>
                       {ev.binder_name && (
                         <div style={{ marginTop: 4, display: 'inline-block', padding: '3px 9px', borderRadius: 999, border: '0.5px solid rgba(201,168,76,0.28)', fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: D.gold }}>
                           {ev.binder_name}
@@ -331,8 +331,8 @@ export function CalendarDaySheet({
                       <input type="date" value={moveDate} onChange={(e) => setMoveDate(e.target.value)} style={{
                         width: '100%', padding: '10px 13px', boxSizing: 'border-box',
                         background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
-                        borderRadius: 10, fontFamily: F.body, fontWeight: 300, fontSize: 14,
-                        color: D.cream, outline: 'none', colorScheme: 'dark',
+                        borderRadius: 10, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+                        color: D.cream, outline: 'none', 
                       }} />
                       <div style={{ display: 'flex', gap: 8 }}>
                         {SLOT_LABELS.map(({ key, label }) => (
@@ -365,7 +365,7 @@ export function CalendarDaySheet({
           {(day?.followups?.length ?? 0) > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5, paddingTop: 4, borderTop: D.border }}>
               {day!.followups.map((f) => (
-                <div key={f.id} style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 13, color: D.muted }}>
+                <div key={f.id} style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>
                   Follow up{f.client ? ` — ${f.client}` : ''}{f.note ? `: ${f.note}` : ''}{f.repeat_every ? ` (repeats ${f.repeat_every})` : ''}
                 </div>
               ))}
@@ -378,7 +378,7 @@ export function CalendarDaySheet({
               <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Money due</span>
               {day!.milestones.map((m) => (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ flex: 1, fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.cream }}>
+                  <span style={{ flex: 1, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>
                     {rupees(m.amount_due)} due{m.client_name ? ` — ${m.client_name}` : ''}{m.of ? ` (${m.ordinal} of ${m.of})` : ''}
                   </span>
                   <button type="button" disabled={working} onClick={() => void doMarkPaid(m.id, m.amount_due)} style={pillBtn(D.gold)}>

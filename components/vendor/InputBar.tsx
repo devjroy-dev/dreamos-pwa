@@ -105,7 +105,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           padding: '12px 18px',
           fontFamily: 'var(--font-cormorant), Georgia, serif',
           fontStyle: value ? 'normal' : 'italic',
-          fontWeight: 400, fontSize: 15,
+          fontWeight: 400, fontSize: 16,
           lineHeight: `${LINE_HEIGHT}px`,
           outline: 'none', overflowY: 'hidden',
           caretColor: T.brass,
@@ -123,7 +123,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         color: canSend ? '#1A120E' : T.inkDim,
         fontFamily: 'var(--font-italiana), Georgia, serif',
-        fontSize: 18, lineHeight: 1, fontWeight: 400,
+        fontSize: 16, lineHeight: 1, fontWeight: 400,
         boxShadow: canSend
           ? T.isLight
             ? '0 4px 12px -4px rgba(42,26,16,0.2), inset 0 1px 1px rgba(255,235,200,0.6)'

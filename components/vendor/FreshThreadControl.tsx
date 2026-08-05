@@ -68,7 +68,7 @@ export function FreshThreadControl({ onConfirm, disabled }: {
           maxWidth: 320,
         }}>
           <span style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 11, lineHeight: 1.5,
+            fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
             letterSpacing: '0.01em', color: dim, textAlign: 'right' as const,
           }}>
             A clean start on your next message — everything above stays right here.

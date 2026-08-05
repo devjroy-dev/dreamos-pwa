@@ -59,7 +59,7 @@ function MoneySplit({ r }: { r: CabinetBinder }) {
   const { recv, pend } = moneyOf(r);
   if (recv <= 0 && pend <= 0) return null;
   return (
-    <span style={{ fontSize: 10.5, letterSpacing: '0.01em', opacity: 0.7, whiteSpace: 'nowrap' }}>
+    <span style={{ fontSize: 16, lineHeight: 1.5, letterSpacing: '0.01em', opacity: 0.7, whiteSpace: 'nowrap' }}>
       {recv > 0 && <span>{fmtINR(recv)} in</span>}
       {recv > 0 && pend > 0 && <span style={{ opacity: 0.5 }}>{'  ·  '}</span>}
       {pend > 0 && <span>{fmtINR(pend)} due</span>}
@@ -357,11 +357,11 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <span style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.45 }}>Received</span>
-              <span style={{ fontSize: 15, color: '#3E8B4A', letterSpacing: '0.01em' }}>{fmtINR(totalIn)}</span>
+              <span style={{ fontSize: 16, lineHeight: 1.5, color: '#3E8B4A', letterSpacing: '0.01em' }}>{fmtINR(totalIn)}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <span style={{ fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.45 }}>Outstanding</span>
-              <span style={{ fontSize: 15, color: '#C0563B', letterSpacing: '0.01em' }}>{fmtINR(totalDue)}</span>
+              <span style={{ fontSize: 16, lineHeight: 1.5, color: '#C0563B', letterSpacing: '0.01em' }}>{fmtINR(totalDue)}</span>
             </div>
           </div>
         )}

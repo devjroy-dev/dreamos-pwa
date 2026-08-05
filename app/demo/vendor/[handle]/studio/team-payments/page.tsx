@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useParams } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { Toast } from '@/components/vendor/Toast';
@@ -52,7 +53,7 @@ export default function DemoTeamPaymentsPage(){
     <button type="button" onClick={()=>setAddSheet(true)} style={{position:'fixed',bottom:32,right:24,width:52,height:52,borderRadius:'50%',backgroundColor:D.gold,border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',zIndex:10,boxShadow:'0 4px 20px var(--atelier-overlay-bg)'}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     {addSheet&&(<div style={{position:'fixed',inset:0,backgroundColor:'rgba(0,0,0,0.7)',zIndex:20,display:'flex',alignItems:'flex-end'}} onClick={()=>setAddSheet(false)}><div onClick={e=>e.stopPropagation()} style={{width:'100%',background:D.card,backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderRadius:'16px 16px 0 0',padding:'24px 24px 40px',display:'flex',flexDirection:'column',gap:14}}>
       <div style={{fontFamily:F.display,fontWeight:300,fontSize:22,color:D.cream,marginBottom:4}}>Log Payment</div>
-      <div><div style={labelStyle}>Team Member</div><select value={memberId} onChange={e=>setMemberId(e.target.value)} style={{...inputStyle,appearance:'none' as const}}><option value="">Select member</option>{DEMO_MEMBERS.map(m=><option key={m} value={m}>{m}</option>)}</select></div>
+      <div><div style={labelStyle}>Team Member</div><select value={memberId} onChange={e=>setMemberId(e.target.value)} style={selectStyle(inputStyle)}><option value="">Select member</option>{DEMO_MEMBERS.map(m=><option key={m} value={m}>{m}</option>)}</select></div>
       <div><div style={labelStyle}>Amount (Rs) *</div><input type="number" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="8000" style={inputStyle}/></div>
       <div><div style={labelStyle}>Description</div><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="2-day shoot at venue" style={inputStyle}/></div>
       <button type="button" onClick={doLog} disabled={!memberId||!amount} style={{padding:'13px 0',backgroundColor:memberId&&amount?D.gold:'var(--atelier-input-border)',border:'none',borderRadius:8,cursor:memberId&&amount?'pointer':'not-allowed',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#111',letterSpacing:'0.2em',textTransform:'uppercase',marginTop:4}}>Log Payment</button>

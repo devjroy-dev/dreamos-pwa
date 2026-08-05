@@ -121,7 +121,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <button type="button" onClick={() => router.back()}
           style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            color: A.brassWarm, fontFamily: F.display, fontSize: 22, lineHeight: 1,
+            color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
           }}>‹</button>
         <span style={{
           fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -138,7 +138,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           color: 'rgba(201,168,76,0.7)', marginBottom: 10,
         }}>The Returns</div>
         <div style={{
-          fontFamily: F.display, fontWeight: 400, fontSize: 32,
+          fontFamily: F.display, fontWeight: 400, fontSize: 31,
           color: 'var(--atelier-ink)', lineHeight: 1.1, letterSpacing: '0.005em',
         }}>Your TDW Returns</div>
       </div>
@@ -147,7 +147,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{
             fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-            fontSize: 15, color: A.inkMute,
+            fontSize: 16, lineHeight: 1.5, color: A.inkMute,
           }}>Loading…</div>
         </div>
       ) : (
@@ -165,7 +165,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)',
               background: 'linear-gradient(180deg, #1F1612 0%, #1F1612 60%, transparent 100%)',
               padding: '0 14px', height: 14, display: 'flex', alignItems: 'center',
-              color: A.brass, fontSize: 9, letterSpacing: '0.3em',
+              color: A.brass, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.3em',
             }}>◆</div>
             {[
               { label: 'Saves',     value: saves,     accent: (savesCount ?? 0) > 0, color: (savesCount ?? 0) > 0 ? 'var(--atelier-ink)' : 'var(--atelier-ink-dim)' },
@@ -182,7 +182,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   }} />
                 )}
                 <div style={{
-                  fontFamily: F.display, fontWeight: 400, fontSize: 42,
+                  fontFamily: F.display, fontWeight: 400, fontSize: 39,
                   lineHeight: 1, color: color, letterSpacing: '-0.01em',
                 }}>{value}</div>
                 <div style={{
@@ -203,12 +203,12 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               borderRadius: 4,
             }}>
               <div style={{
-                fontFamily: F.display, fontWeight: 400, fontSize: 22,
+                fontFamily: F.display, fontWeight: 400, fontSize: 20,
                 color: 'var(--atelier-ink)', marginBottom: 10, lineHeight: 1.2,
               }}>No TDW leads yet.</div>
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 14, color: A.inkMute, lineHeight: 1.5,
+                fontSize: 16, color: A.inkMute, lineHeight: 1.5,
               }}>
                 When brides discover you on The Dream Wedding and enquire,<br />
                 they&apos;ll appear here.
@@ -224,7 +224,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 }}>Letters</span>
                 <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
                 <span style={{
-                  fontFamily: F.display, fontSize: 18, color: A.brassWarm,
+                  fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: A.brassWarm,
                 }}>{tdwLeads.length}</span>
               </div>
               {tdwLeads.map((lead, i) => {
@@ -237,12 +237,12 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontFamily: F.script, fontWeight: 500, fontSize: 19,
+                        fontFamily: F.script, fontWeight: 500, fontSize: 20, lineHeight: 1.5,
                         color: A.ink, marginBottom: 3, letterSpacing: '0.005em',
                       }}>{lead.name ?? 'Unknown bride'}</div>
                       <div style={{
                         fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                        fontSize: 13, color: A.inkMute, letterSpacing: '0.005em',
+                        fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.005em',
                       }}>
                         {[lead.wedding_city, fmtDate(lead.wedding_date), fmtBudget(lead.budget_total)]
                           .filter(v => v && v !== '—').join(' · ') || '—'}
@@ -274,7 +274,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             }}>Last Thirty Days</div>
             <div style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-              fontSize: 14, color: 'rgba(240,230,210,0.78)', lineHeight: 1.5,
+              fontSize: 16, color: 'rgba(240,230,210,0.78)', lineHeight: 1.5,
               letterSpacing: '0.005em',
             }}>{insightText()}</div>
           </div>

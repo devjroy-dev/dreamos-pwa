@@ -1,6 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useParams } from 'next/navigation';
 import { DemoVendorHeader } from '@/components/demo/DemoVendorHeader';
 import { Toast } from '@/components/vendor/Toast';
@@ -63,7 +64,7 @@ export default function DemoTasksPage(){
       <div><div style={labelStyle}>Title *</div><input style={inputStyle} value={title} onChange={e=>setTitle(e.target.value)} placeholder="Edit highlight reel"/></div>
       <div><div style={labelStyle}>Description</div><input style={inputStyle} value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Optional details"/></div>
       <div><div style={labelStyle}>Due Date</div><input style={inputStyle} type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}/></div>
-      <div><div style={labelStyle}>Priority</div><select value={priority} onChange={e=>setPriority(e.target.value)} style={{...inputStyle,appearance:'none' as const}}><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+      <div><div style={labelStyle}>Priority</div><select value={priority} onChange={e=>setPriority(e.target.value)} style={selectStyle(inputStyle)}><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
       {!canCreate&&<p style={{fontFamily:F.body,fontWeight:300,fontSize:12,color:D.red,margin:0}}>Title is required to save.</p>}
       <button type="button" onClick={doCreate} disabled={!canCreate} style={{padding:'13px 0',backgroundColor:canCreate?D.gold:'var(--atelier-input-border)',border:'none',borderRadius:8,cursor:canCreate?'pointer':'not-allowed',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#111',letterSpacing:'0.2em',textTransform:'uppercase'}}>Create Task</button>
     </div></div>)}

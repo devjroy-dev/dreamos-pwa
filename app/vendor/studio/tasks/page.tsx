@@ -5,6 +5,7 @@
 // Save disabled with message if title empty.
 
 import { useEffect, useState } from 'react';
+import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -43,7 +44,7 @@ const PRIORITY_COLOR: Record<string, string> = {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
   fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -62,8 +63,8 @@ export default function TasksPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
         <Header vendorName={session.name ?? null} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
-          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 26, color: D.cream }}>Tasks</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
+          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: D.cream }}>Tasks</p>
+          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
           <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
         </div>
       </div>
@@ -157,7 +158,7 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted }}>No {tab.replace('_', ' ')} tasks</span>
+          <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>No {tab.replace('_', ' ')} tasks</span>
         </div>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -167,8 +168,8 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 15, color: D.cream }}>{task.title}</div>
-                  {task.description && <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.muted, marginTop: 3, lineHeight: 1.5 }}>{task.description}</div>}
+                  <div style={{ fontFamily: F.body, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{task.title}</div>
+                  {task.description && <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, marginTop: 3, lineHeight: 1.5 }}>{task.description}</div>}
                   <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
                     {task.team_members && <span style={{ fontFamily: F.label, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{task.team_members.name}</span>}
                     {task.due_date && <span style={{ fontFamily: F.label, fontSize: 9, color: task.due_date < new Date().toISOString().slice(0,10) ? D.red : D.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Due {task.due_date}</span>}
@@ -195,8 +196,8 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
       {selected && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setSelected(null)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>{selected.title}</div>
-            {selected.description && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 14, color: D.muted, margin: 0, lineHeight: 1.5 }}>{selected.description}</p>}
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>{selected.title}</div>
+            {selected.description && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, margin: 0, lineHeight: 1.5 }}>{selected.description}</p>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
               {selected.team_members && <span style={{ fontFamily: F.label, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{selected.team_members.name}</span>}
               {selected.due_date && <span style={{ fontFamily: F.label, fontSize: 9, color: D.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Due {selected.due_date}</span>}
@@ -216,12 +217,12 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
       {addOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setAddOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: D.card, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px 16px 0 0', padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '85vh', overflowY: 'auto' }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 22, color: D.cream }}>New Task</div>
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>New Task</div>
             <div><div style={labelStyle}>Title *</div><input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="Edit highlight reel" /></div>
             <div><div style={labelStyle}>Description</div><input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Optional details" /></div>
             <div>
               <div style={labelStyle}>Assign To</div>
-              <select value={assignedId} onChange={e => setAssignedId(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={assignedId} onChange={e => setAssignedId(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="">Unassigned</option>
                 {members.map(m => <option key={m.id} value={m.id}>{m.name}{m.role ? ` — ${m.role.replace(/_/g,' ')}` : ''}</option>)}
               </select>
@@ -229,14 +230,14 @@ function TasksScreen({ vendorName }: { vendorName: string | null }) {
             <div><div style={labelStyle}>Due Date</div><input style={inputStyle} type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} /></div>
             <div>
               <div style={labelStyle}>Priority</div>
-              <select value={priority} onChange={e => setPriority(e.target.value)} style={{ ...inputStyle, appearance: 'none' }}>
+              <select value={priority} onChange={e => setPriority(e.target.value)} style={selectStyle(inputStyle)}>
                 <option value="low">Low</option>
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
                 <option value="urgent">Urgent</option>
               </select>
             </div>
-            {!canCreate && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 12, color: D.red, margin: 0 }}>Title is required to save.</p>}
+            {!canCreate && <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red, margin: 0 }}>Title is required to save.</p>}
             <button type="button" onClick={doCreate} disabled={!canCreate || saving} style={{ padding: '13px 0', backgroundColor: canCreate && !saving ? D.gold : 'var(--atelier-input-border)', border: 'none', borderRadius: 8, cursor: canCreate && !saving ? 'pointer' : 'not-allowed', fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
               {saving ? 'Saving…' : 'Create Task'}
             </button>

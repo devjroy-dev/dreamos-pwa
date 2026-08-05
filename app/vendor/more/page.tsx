@@ -27,7 +27,7 @@ function Chevron() {
   return (
     <span style={{
       color: 'var(--atelier-label)',
-      fontFamily: F.display, fontSize: 18, lineHeight: 1,
+      fontFamily: F.display, fontSize: 16, lineHeight: 1,
       flexShrink: 0,
     }}>›</span>
   );
@@ -78,19 +78,19 @@ function MoreRow({ item }: { item: Item }) {
         flexShrink: 0,
         width: 36, height: 36,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.display, fontWeight: 400, fontSize: 24,
+        fontFamily: F.display, fontWeight: 400, fontSize: 25,
         color: item.danger ? A.red : A.brassWarm, lineHeight: 1,
       }}>{item.glyph}</span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontFamily: F.script, fontWeight: 500, fontSize: 19,
+          fontFamily: F.script, fontWeight: 500, fontSize: 20,
           color: item.danger ? A.red : A.ink, letterSpacing: '0.005em', lineHeight: 1.15,
         }}>{item.label}</div>
         {item.description && (
           <div style={{
             fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-            fontSize: 12, color: A.inkMute, marginTop: 2, letterSpacing: '0.01em',
+            fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2, letterSpacing: '0.01em',
           }}>{item.description}</div>
         )}
       </div>

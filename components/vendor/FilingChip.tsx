@@ -75,9 +75,9 @@ export function FilingChip({ beat, onRetry, isLight = true }: { beat: FilingBeat
         <span aria-hidden style={{
           width: 16, height: 16, borderRadius: '50%', flex: 'none',
           border: `1px solid ${glyphColor}`, color: glyphColor,
-          fontSize: 10, lineHeight: '14px', textAlign: 'center', fontWeight: 600,
+          fontSize: 16, lineHeight: '14px', textAlign: 'center', fontWeight: 600,
         }}>{glyph}</span>
-        <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 13.5, lineHeight: 1.35, color: failed ? TERRACOTTA : INK }}>
+        <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 16, lineHeight: 1.35, color: failed ? TERRACOTTA : INK }}>
           {text}
         </span>
         {isError && onRetry && (
@@ -87,7 +87,7 @@ export function FilingChip({ beat, onRetry, isLight = true }: { beat: FilingBeat
           <button onClick={doUndo} style={{ ...pill, border: `1px solid ${PILL_EDGE}`, color: PILL_INK }}>Undo</button>
         )}
         {phase === 'undoing' && (
-          <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 13, color: INK_DIM }}>…</span>
+          <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: INK_DIM }}>…</span>
         )}
         {phase === 'undo_failed' && (
           <button onClick={doUndo} style={{ ...pill, border: `1px solid ${TERRACOTTA}55`, color: TERRACOTTA }}>Retry undo</button>
