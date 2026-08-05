@@ -101,7 +101,6 @@ const NAV = [
     { label:'Makers',        path:'/admin/makers',                   icon:'makers' },
     { label:'Portfolios',    path:'/admin/vendors/portfolio',        icon:'portfolio' },
     { label:'Dreamers',      path:'/admin/dreamers',                 icon:'dreamers' },
-    { label:'Invites',       path:'/admin/invites',                  icon:'invites' },
   ]},
   { group: 'Content', items: [
     { label:'Landing',       path:'/admin/content/landing',         icon:'landing' },
@@ -122,10 +121,6 @@ const NAV = [
   { group: 'Commerce', items: [
     { label:'Couture',       path:'/admin/couture',                 icon:'couture' },
     { label:'Hot Dates',     path:'/admin/hot-dates',               icon:'calendar' },
-  ]},
-  { group: 'Invite Requests', items: [
-    { label:'Dreamers',      path:'/admin/invite-requests/dreamers', icon:'inbox' },
-    { label:'Makers',        path:'/admin/invite-requests/makers',   icon:'userplus' },
   ]},
   { group: 'Outreach', items: [
     { label:'Demo Profiles', path:'/admin/demo',                    icon:'demo' },

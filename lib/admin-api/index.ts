@@ -20,12 +20,6 @@ export type AdminCouple = {
   muse_saves: number; circle_members: number; created_at: string;
 };
 
-export type InviteCode = {
-  code: string; kind: string; tier: string | null; intended_phone: string | null;
-  notes: string | null; created_by: string | null;
-  created_at: string; consumed_at: string | null; consumed_by_phone: string | null;
-};
-
 export type ConfigRow = {
   key: string; value: string; description: string | null; updated_at: string;
 };
@@ -87,11 +81,6 @@ export const patchCoupleTier = (id: string, tier: string) => adminPatch(`/api/v2
 
 // ── Invites ───────────────────────────────────────────────────────────────────
 
-export const getInvites = () => adminGet<{ invites: InviteCode[] }>('/api/v2/admin/invites');
-export const getWaLinks = () => adminGet<{ vendor: string; couple: string; note: string }>('/api/v2/admin/invites/whatsapp-links');
-export const generateInvites = (body: { kind: string; tier?: string; intended_phone?: string; name?: string; notes?: string; count?: number }) =>
-  adminPost<{ codes: InviteCode[] }>('/api/v2/admin/invites/generate', body);
-export const deleteInvite = (code: string) => adminDelete(`/api/v2/admin/invites/${code}`);
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
