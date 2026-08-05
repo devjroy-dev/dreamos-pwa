@@ -365,13 +365,19 @@ ok('§12.1 the Sign in link is NOT absolutely positioned over the hero',
   !/zIndex: 25/.test(L),
   'the link floats over the cover photo again — its contrast is whatever that photo is');
 
-ok('§12.2 it lives in the brand row, on the panel\'s own dark backdrop',
-  /The Wedding OS<\/p>[\s\S]{0,900}>Sign in<\/button>/.test(L),
-  'the link left the brand row; whatever it stands on now is unmeasured');
+// F-09.46 — LABELLED RE-AIM, COUNT PRESERVED (2 cells, still 2). The brand-row home was
+// F-09.42's cure for CONTRAST and it held; it was never a cure for PROMINENCE, and the
+// founder's second walk convicted it as a corner nobody reads. These two cells asserted
+// the corner. They now assert the member row, which is the same two facts about the same
+// control: it stands on the panel's backdrop, and it is not a door.
+ok('§12.2 it stands on the panel\'s own dark backdrop, inside the entry card',
+  /Already a member\?\{' '\}[\s\S]{0,600}>Sign in<\/button>/.test(L),
+  'the member row is gone; whatever Sign in stands on now is unmeasured');
 
-ok('§12.3 it is still NOT a door — it sits above the door stack, not inside it',
-  L.indexOf('>Sign in</button>') < L.indexOf('I&apos;m getting married'),
-  'Sign in moved into or below the door stack and now reads as a third choice');
+ok('§12.3 it is still NOT a door — lower weight, beneath the stack, and ONE home only',
+  L.indexOf('>Sign in</button>') > L.indexOf('I&apos;m a wedding vendor') &&
+  (L.match(/>Sign in<\/button>/g) || []).length === 1,
+  'Sign in became a third door, or grew a second home — two homes is how the old panel reached five decisions');
 
 // F-09.43 — the couple door's first paint.
 ok('§12.4 the fold is WARMED AT MOUNT — the door tap does not start the fetch',
@@ -420,6 +426,40 @@ ok('§12.11 `Are you a:` is gone — the labels carry the question',
 ok('§12.12 the Role union itself is UNCHANGED — this was a copy cure, not a type cure',
   /type Role = 'Dreamer' \| 'Maker';/.test(L),
   'the union moved; every consumer of `role` now needs re-deriving');
+
+// ═════════════════════════════════════════════════════════════════════════════
+H('§13 · THE SECOND WALK — F-09.45 · F-09.46 · F-09.47');
+
+ok('§13.1 F-09.47 the fold\'s close MOVES FORWARD — it does not re-ask the door\'s question',
+  /\}\}>Continue →<\/button>/.test(L) &&
+  (L.match(/I&apos;m getting married/g) || []).length === 1,
+  'the closing CTA carries the door label again — she is asked twice what she answered once');
+
+ok('§13.2 F-09.47 minted NO new byte — the label is reused from the sign-in submit',
+  /label="Continue →"/.test(L) && /}}>Continue →<\/button>/.test(L),
+  'a new closing byte was minted where a correct one already lived on this surface');
+
+ok('§13.3 F-09.46 the member row carries its copy, gold on the verb',
+  /Already a member\?/.test(read(LANDING)) && /color: '#C9A84C', textDecoration: 'none'/.test(L),
+  'the member row lost its copy or its emphasis');
+
+ok('§13.4 F-09.45 the column measure is declared once, as a named constant',
+  /const COLUMN = 520;/.test(L),
+  'the cap is a magic number, or it is gone');
+
+ok('§13.5 F-09.45 EVERY panel that holds controls takes the measure',
+  (L.match(/maxWidth: COLUMN, margin: '0 auto'/g) || []).length === 3,
+  `expected the entry panel, the glass panel and the fold's control block — found ${(L.match(/maxWidth: COLUMN, margin: '0 auto'/g) || []).length}`);
+
+// THE HALF THAT IS EASY TO MISS, and the demo landing's §11.2 is why this cell exists:
+// the PHOTOGRAPHY must NOT be capped. This surface is a full-bleed hero with panels over
+// it, not a scrolling document; capping the page would letterbox the one thing the screen
+// exists to show. The divergence from the P3 precedent is deliberate and asserted here so
+// nobody "corrects" it into a letterbox later.
+ok('§13.6 F-09.45 the HERO IS NOT CAPPED — photography stays full-bleed',
+  /position: 'fixed', inset: 0, overflow: 'hidden', background: '#0C0A09'/.test(L) &&
+  !/maxWidth: COLUMN[\s\S]{0,200}backgroundImage/.test(L),
+  'the cover photography was capped too — the hero is letterboxed');
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS');
@@ -504,6 +544,20 @@ okMutate('§M.16 §12.7 reds if the cover blanks on the state flip again',
 okMutate('§M.17 §12.9 reds if the Role union is printed to users again',
   LANDING, '}}>{r.label}</button>', '}}>{r.role}</button>',
   () => assert.ok(!/\}\}>\{r\.role\}<\/button>/.test(code(LANDING))), '§12.9');
+
+okMutate('§M.18 §13.1 reds if the close goes back to re-asking the door\'s question',
+  LANDING, '}}>Continue →</button>', '}}>I&apos;m getting married</button>',
+  () => assert.ok((code(LANDING).match(/I&apos;m getting married/g) || []).length === 1), '§13.1');
+
+okMutate('§M.19 §12.3 reds if Sign in grows a second home',
+  LANDING, '>I&apos;m a wedding vendor</button>',
+  '>I&apos;m a wedding vendor</button><button>Sign in</button>',
+  () => assert.ok((code(LANDING).match(/>Sign in<\/button>/g) || []).length === 1), '§12.3');
+
+okMutate('§M.20 §13.5 reds if a panel loses the measure',
+  LANDING, "{/* F-09.45: the bar spans the viewport, its CONTENTS take the measure. */}\n              <div style={{ maxWidth: COLUMN, margin: '0 auto' }}>",
+  "<div>",
+  () => assert.ok((code(LANDING).match(/maxWidth: COLUMN, margin: '0 auto'/g) || []).length === 3), '§13.5');
 
 okMutate('§M.14 §1.9 reds if the ceremony\'s write comes back',
   LANDING, 'const showToast = (m: string)',

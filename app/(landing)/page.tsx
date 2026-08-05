@@ -26,6 +26,18 @@ import { API_BASE } from '../../lib/api';
 //   was built for. Re-read this then, not before.
 // The census's HELD_OUT array is the mechanism; this comment is the decision, and it
 // lives here so it cannot be deleted by a sweep that never read it.
+// ── F-09.45 · THE COLUMN CAP, FOUNDER-WITNESSED AT DESKTOP WIDTH ─────────────
+// Uncapped, this surface stretched every control to the viewport: the two doors as
+// 1,400px slabs, the phone rule edge to edge, the sign-in chips as banners. The demo
+// tease landing cured the same class at TDW_08 P3 with `COLUMN = 520`.
+//
+// IT IS APPLIED DIFFERENTLY HERE, AND THE DIFFERENCE IS DELIBERATE. The demo landing is
+// a SCROLLING DOCUMENT, so it caps the page itself and centres it. This surface is a
+// full-bleed PHOTOGRAPH with panels floating over it — capping the page would letterbox
+// the photography, which is the one thing this screen exists to show. So the cap is
+// applied to the CONTENT INSIDE each panel while the panel's own blurred bar keeps the
+// full width. Photography full-bleed, controls at a readable measure.
+const COLUMN = 520;
 const SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
 function safeSetItem(key: string, value: string): void {
@@ -657,6 +669,8 @@ export default function Home() {
                 padding: '20px 24px calc(env(safe-area-inset-bottom, 16px) + 28px)',
               }}
             >
+              {/* F-09.45: the bar spans the viewport, its CONTENTS take the measure. */}
+              <div style={{ maxWidth: COLUMN, margin: '0 auto' }}>
               {/* Brand row */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                 <div>
@@ -675,25 +689,6 @@ export default function Home() {
                     color: '#C9A84C', margin: '4px 0 0',
                   }}>The Wedding OS</p>
                 </div>
-                {/* F-09.42 · FOUNDER'S WALK. This link first shipped as absolute chrome
-                    at the top right, over the cover PHOTOGRAPH with no scrim — the only
-                    near-white byte on this surface not standing on the panel's backdrop.
-                    Its contrast was therefore whatever that second's photo happened to
-                    be, which is not a contrast at all. It sits in the brand row now: the
-                    same dark blurred backdrop every other byte here stands on, so
-                    legibility is solved BY CONSTRUCTION rather than by stacking furniture
-                    over the hero. It is still chrome and still not a door — it is above
-                    the door stack, small, and right-aligned against the wordmark. */}
-                <button
-                  onClick={() => { setRole(null); setScreen('signin_phone'); }}
-                  style={{
-                    background: 'none', border: 'none', padding: '4px 0 4px 12px',
-                    cursor: 'pointer', touchAction: 'manipulation',
-                    fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                    letterSpacing: '0.18em', textTransform: 'uppercase',
-                    color: 'rgba(248,247,245,0.55)',
-                  }}
-                >Sign in</button>
               </div>
 
               {/* The two doors */}
@@ -718,6 +713,37 @@ export default function Home() {
                     letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
                   }}
                 >I&apos;m a wedding vendor</button>
+
+                {/* F-09.46 · FOUNDER'S WALK — 「 a lot of people will be landing here
+                    already signed up 」. Two cures were needed and the first shipped only
+                    one of them. F-09.42 fixed CONTRAST — it got this byte off the
+                    photograph and onto the panel's backdrop, and that held. It did not
+                    fix PROMINENCE: a 9px grey text link in the far corner is findable,
+                    not expected, and at desktop width it sat a thousand pixels from
+                    anything a returning member was reading.
+                    Beneath the doors is where a returning user's eye already goes. This
+                    is NOT a fourth peer door and does not ask anyone to classify
+                    themselves — L-B's ruling was against the classification, not against
+                    a member row at lower weight. One home only: the brand-row link is
+                    gone, because two homes for one path is how the old entry panel got
+                    to five decisions deep. */}
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 13,
+                  color: 'rgba(248,247,245,0.5)', textAlign: 'center',
+                  margin: '16px 0 0', lineHeight: 1.5,
+                }}>
+                  Already a member?{' '}
+                  <button
+                    onClick={() => { setRole(null); setScreen('signin_phone'); }}
+                    style={{
+                      background: 'none', border: 'none', padding: 0,
+                      cursor: 'pointer', touchAction: 'manipulation',
+                      fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: 13,
+                      lineHeight: 1.5, color: '#C9A84C', textDecoration: 'none',
+                    }}
+                  >Sign in</button>
+                </p>
+              </div>
               </div>
             </div>
           </div>
@@ -738,7 +764,10 @@ export default function Home() {
             padding: '16px 20px calc(env(safe-area-inset-bottom, 10px) + 16px)',
             boxSizing: 'border-box',
           }}>
+            {/* F-09.45: same rule for the join, OTP and sign-in screens. */}
+            <div style={{ maxWidth: COLUMN, margin: '0 auto' }}>
 
+            </div>
             {/* ── THE FIVE REMOVED SCREENS ──────────────────────────────────────
                 REMOVED BY RULING (R-X10 arm (a), founder-ratified): `request_who`,
                 `request_dreamer`, `request_maker`, `request_done` with its 60-second
@@ -947,6 +976,7 @@ export default function Home() {
               <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 30,
                 padding: '0 20px calc(env(safe-area-inset-bottom, 16px) + 24px)',
+                maxWidth: COLUMN, margin: '0 auto',
               }}>
                 {/* Caption if exists */}
                 {exploringPhotos[exploringIdx].caption && (
@@ -1030,16 +1060,22 @@ export default function Home() {
 
                 <div style={{ width: '100%', maxWidth: 340 }}>
                   {/* The closing moment keeps its full bleed; only its CTA changes.
-                      It carries the couple door's own label and enters the couple
-                      door's flow — the fold IS that door's first screen, so its end is
-                      that door's continuation, not a request form. */}
+                      It enters the couple door's flow — the fold IS that door's first
+                      screen, so its end is that door's continuation, not a request form.
+                      F-09.47 · FOUNDER'S WALK: this button first shipped carrying the
+                      DOOR'S OWN LABEL, so a visitor who had tapped `I'm getting married`
+                      to get in was asked the identical question again three photographs
+                      later. That was the executor's D-4 reading — the destination was
+                      right and the label was not; she has already declared herself and
+                      the close should move her forward. `Continue →` is reused from the
+                      sign-in submit rather than minted, so no new byte enters. */}
                   <button onClick={() => { setRole('Dreamer'); setScreen('join_phone'); }} style={{
                     width: '100%', height: 54, background: '#C9A84C', border: 'none',
                     borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
                     fontFamily: "'Jost', sans-serif", fontSize: 10, fontWeight: 400,
                     letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
                     marginBottom: 12,
-                  }}>I&apos;m getting married</button>
+                  }}>Continue →</button>
 
                   <button onClick={() => setScreen('entry')} style={{
                     width: '100%', height: 46, background: 'transparent',

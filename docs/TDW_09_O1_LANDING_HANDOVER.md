@@ -170,3 +170,41 @@ law caught for me rather than one I reasoned my way out of. `tdw08_p3_landing` 8
 3. Tap **`Sign in`**. The two chips read **`I'M GETTING MARRIED`** and **`I'M A WEDDING VENDOR`**, stacked. No `DREAMER`, no `MAKER`, no `Are you a:`.
 
 Plus SHOT ① still owed: the `+91` / digits row on the join screen.
+
+---
+
+# RIDER 2 — THE SECOND WALK · F-09.45 · F-09.46 · F-09.47
+
+**Base:** dreamos-pwa `1fa2335`, verified byte-identical to rider 1's payload file by file before a byte was written. **Delta: `app/(landing)/page.tsx` + the bench + this doc. Nothing else moved.**
+
+**F-09.47 — the fold's close re-asked a question she had already answered.** The closing CTA carried the **door's own label**: a visitor tapped `I'm getting married` to get in and was asked the identical thing three photographs later. That was the executor's **D-4** reading — the smoke card said the close "lands in the L-B door" and I gave it the door's label as well as the door's destination. The destination was right. `Continue →` now carries it, **reused from the sign-in submit rather than minted**, so no new byte entered and nothing needed a fresh veto.
+
+**F-09.46 — F-09.42 cured contrast and left prominence broken.** Getting the byte off the photograph and onto the panel's backdrop was the right cure for the defect I filed; it was never a cure for the defect the founder actually has, which is that a returning member's whole path was a 9px grey link in a corner, sitting a thousand pixels from anything being read at desktop width. Arm (b): a member row **beneath the doors**, `Already a member? Sign in`, gold on the verb. That is where a returning user's eye already goes. **It is not a fourth peer door** — L-B ruled against the classification, not against a lower-weight member row — and there is **one home only**: the brand-row link is gone, because two homes for one path is exactly how the old entry panel reached five decisions deep. §12.3 asserts the single home mechanically.
+
+**F-09.45 — the landing ran uncapped to the viewport**, founder-witnessed at desktop across four screenshots: doors as 1,400px slabs, the phone rule edge to edge, the sign-in chips as banners.
+
+**THE PRECEDENT IS FOLLOWED IN SUBSTANCE AND DIVERGED FROM IN FORM, deliberately.** The demo tease landing cured this class at TDW_08 P3 by capping **the page** and centring it — correct there, because that surface is a scrolling document. This surface is a **full-bleed photograph with panels floating over it**. Capping the page would letterbox the photography, which is the one thing the screen exists to show. So `COLUMN = 520` is applied to the **contents of each panel** while the blurred bars keep the full width: photography full-bleed, controls at a readable measure. Three sites take it — the entry panel, the glass panel (join · OTP · sign-in), and the fold's bottom control block. **§13.6 asserts the hero is NOT capped**, so a later reader cannot "finish" this cure into a letterbox.
+
+## RIDER 2 DISCLOSURES
+
+**R-7 · F-09.47 is D-4 coming home.** I disclosed that interpretation by name when I shipped it and said one line would flip it. It cost one walk and one line, which is what a named interpretation is supposed to cost. An unnamed one would have cost an argument about what the card meant.
+
+**R-8 · F-09.46 is the same defect filed twice, and the first filing was too narrow.** I convicted the placement on *contrast* — a measurable, arithmetic property — and never asked whether a returning member would find it. The founder's sentence, not my instrument, is what named the real defect. Contrast was necessary and I mistook it for sufficient.
+
+**R-9 · Two cells were RE-AIMED, count preserved (2 cells, still 2).** §12.2/§12.3 asserted the brand-row home. That home was F-09.42's cure and it has now been retired by F-09.46, so the cells assert the member row instead — the same two facts about the same control: it stands on the panel's backdrop, and it is not a door. §12.3 gained the one-home clause.
+
+**R-10 · The divergence from the P3 precedent is disclosed rather than absorbed.** A future reader comparing the two landings will find one capping its page and one capping its panels and should not conclude the second is unfinished. The reason is in-file at the constant and asserted at §13.6.
+
+## RIDER 2 PROOF
+
+`tdw09_landing` **98/98 GREEN** cured. **At the deployed tree `1fa2335` — verified identical to rider 1's payload before the run — RED 89/98: five of the six new §13 cells, both re-aimed §12 cells, and two of the three new mutations.** §13.6 passes at both trees by design: it is an invariant, asserting the hero was never capped and still is not.
+
+`tdw08_p3_landing` 89/89. Full floor byte-stable. Census unchanged: 8 sites, 0 mapped, 2 held. `tsc --noEmit` on cleared `.next`: exit 0, zero output.
+
+## RIDER 2 SMOKE — three steps, one of them at desktop width
+
+1. Open `/` **on the laptop, full width**. The doors, the wordmark and the member row sit at a **readable measure in the middle**, not stretched to the window. **The photograph still fills the screen** — if it is letterboxed, stop and tell me.
+2. **`Already a member? Sign in`** sits beneath the two doors, the verb in gold. Tap it — the sign-in screen opens.
+3. Tap **`I'm getting married`**, run to the end of the fold. The closing button reads **`Continue →`**, not the door's label. Tap it — the couple join screen.
+
+Still owed from the first walk: SHOT ① and SHOT ② in words — `above / on / below` for each.
