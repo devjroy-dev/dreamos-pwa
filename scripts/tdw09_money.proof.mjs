@@ -67,9 +67,16 @@ const GLYPH = '\u20b9';
 const EXEMPT = new Map([
   ['app/(landing)/discover/VendorCard.tsx', 'F-07.27'],
   ['lib/frost/budgetBands.ts',              'F-07.16r'],
-  ['components/vendor/TipsCarousel.tsx',    'copy-veto'],
-  ['components/vendor/PeekNav.tsx',         'icon-glyph'],
 ]);
+// ── TWO EXEMPTIONS DISCHARGED, RECORDED RATHER THAN DELETED ──────────────────
+// TipsCarousel and PeekNav were exempt at the sweep's first delivery. R-U31 shipped
+// the tip's figure into the register (the sentence untouched); R-U32 retired the
+// glyph-as-icon rather than exempting it, on the ground that an exemption today is
+// the hole tomorrow's stray formatter hides in. Both are now swept like everything
+// else. The pair is named here because a shrinking exemption list read from the
+// outside is indistinguishable from a bench being quietly weakened — the cell below
+// asserts the count so neither growth nor silent shrinkage passes.
+const EXEMPT_DISCHARGED = ['components/vendor/TipsCarousel.tsx', 'components/vendor/PeekNav.tsx'];
 
 // ── the sweep, re-derived every run ─────────────────────────────────────────
 const strip = (src) => src
@@ -127,6 +134,12 @@ ok('F-07.27 · its bytes are UNCHANGED — dormancy is not a half-cure',
    /card\.price_min >= 100 \? /.test(read(CARD)));
 ok('every exemption is named in this bench with its ruling key',
    [...EXEMPT.values()].every(v => v && v.length > 3));
+// Pinned in BOTH directions. A grown list hides a new violation; a shrunk one
+// hides a weakened bench. Either way the reader is owed a ruling, so either way
+// this cell reddens and someone has to write one.
+ok('the exemption count is exactly two, and the two discharged are swept',
+   EXEMPT.size === 2 && EXEMPT_DISCHARGED.every(f => !EXEMPT.has(f)),
+   `EXEMPT.size=${EXEMPT.size}`);
 
 // ④ the one home actually is one home
 console.log('\n\u2463 the one home');

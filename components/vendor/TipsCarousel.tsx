@@ -109,7 +109,7 @@ const TIPS: Tip[] = [
   {
     section: 'Invoices',
     glyph: '◇',
-    title: 'Rs 5.3L owed — always visible.',
+    title: 'Rs 5,30,000 owed — always visible.', // TDW_09 R-U31: the figure joins the register; the sentence is unchanged
     body: 'The Hub ledger shows total outstanding amount across all unpaid invoices. Tap it or ask DreamAi "Who owes me money?" for the full list.',
   },
   // ── Studio — Expenses ────────────────────────────────────────────

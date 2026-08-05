@@ -28,7 +28,14 @@ function fmtRs(n: number): string {
 
 const CREATES = [
   { icon: '＋', label: 'Client',  primer: "What are the details of the new client? Give me their name and phone number to start." },
-  { icon: '₹',  label: 'Invoice', primer: "Give me the details for the invoice — client name, total amount, and any advance?" },
+  // TDW_09 R-U32: was the rupee glyph used as an icon. It goes for two reasons —
+  // consistency, and the sharper one: R-U29's property cell asserts NO rendered
+  // glyph byte anywhere, so a glyph-as-icon either fails the invariant or forces
+  // an exemption, and an exemption is the hole a stray formatter hides in later.
+  // The mark is DERIVED, not invented: slices/SliceRow.tsx's GLYPHS map is the
+  // estate's standing iconography and its invoices mark is 'I' — so the peek row
+  // and the Business list now show the same mark for the same object.
+  { icon: 'I',  label: 'Invoice', primer: "Give me the details for the invoice — client name, total amount, and any advance?" },
   { icon: '↙',  label: 'Expense', primer: "What did you spend on? Give me the amount and what it was for." },
   { icon: '◇',  label: 'Event',   primer: "What's the event? Give me a title, date, and time if you have it." },
   { icon: '✉',  label: 'Lead',    primer: "Tell me about the new enquiry — paste it or describe it and I'll log it." },
