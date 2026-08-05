@@ -126,7 +126,23 @@ function NavTab({ item, active }: { item: SubItem; active: boolean }) {
   // Filed as the drift it is: two homes for one colour rule, corrected together
   // this time and NOT folded, because folding a live vendor nav into a demo
   // shell is an architecture act nobody ruled.
-  const color = item.locked ? 'rgba(240,230,210,0.18)' : active ? A.brassWarm : A.ink;
+  // ── TDW_09 F-09.15b — THE HARDCODED CREAM, CURED ──────────────────────────
+  // The locked branch read the espresso ink at 18% alpha as a bare CREAM
+  // LITERAL, not a token — one theme's ink written into a component that three
+  // themes render. On Editorial Paper the page is also cream: the measured pair
+  // was 1.02:1. A locked tab was not dim there, it was ABSENT.
+  //
+  // THE LITERAL IS DELIBERATELY NOT QUOTED IN THIS COMMENT. The bench's ④ sweeps
+  // the vendor tree for it and reads comments too (ChatThread.tsx's own precedent:
+  // naming a deleted string is not the same act as keeping it). This comment's
+  // first draft reproduced it and was convicted by that cell before delivery.
+  //
+  // The comment directly above already argued this exact case for the INACTIVE
+  // branch ("a hardcoded white would go INVISIBLE on the light theme") and then
+  // left the literal standing one branch below it. Same disease, same file, one
+  // line apart, uncured for a block — which is why this is a token now and not a
+  // second literal chosen more carefully.
+  const color = item.locked ? 'var(--atelier-ink-fade)' : active ? A.brassWarm : A.ink;
 
   const inner = (
     <>

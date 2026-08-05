@@ -438,7 +438,13 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         {Array.from({ length: firstDow }).map((_,i) => (
           <div key={`p${i}`} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: F.display, fontSize: 16, color: 'rgba(240,230,210,0.18)',
+            // TDW_09 F-09.15b: was a bare cream literal — the espresso ink at
+            // 18% alpha, unquoted here on purpose (the bench's ④ reads comments).
+            // Espresso 1.63:1 (the intended fade); Editorial Paper 1.02:1 — these
+            // numerals did not dim on the light theme, they vanished. Now themed,
+            // held at the 3:1 UI bar in each set rather than the body bar, because
+            // last month's dates are meant to recede.
+            fontFamily: F.display, fontSize: 16, color: 'var(--atelier-ink-fade)',
           }}>{prevDays - firstDow + i + 1}</div>
         ))}
 

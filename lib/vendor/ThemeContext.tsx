@@ -14,6 +14,10 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light' | 'flair') {
   r.setProperty('--atelier-ink-soft',     t.inkSoft);
   r.setProperty('--atelier-ink-mute',     t.inkMute);
   r.setProperty('--atelier-ink-dim',      t.inkDim);
+  // TDW_09 F-09.15b: the fade token reaches the var-based component consts
+  // (BottomNav's NavTab, the calendar's previous-month cells) which cannot call
+  // useT(). Additive — nothing read this name before.
+  r.setProperty('--atelier-ink-fade',     t.inkFade);
   r.setProperty('--atelier-label',        t.label);
   r.setProperty('--atelier-accent-text',  t.accentText);
   r.setProperty('--atelier-header-bg',    t.headerBg);
