@@ -1,7 +1,7 @@
 // hooks/useTheme.ts
-// Single source of truth for theme preference: dark / light / flair.
+// Single source of truth for theme preference: dark / light. (TDW_09 R-U19 retired a third.)
 // Reads/writes localStorage key 'dreamai_theme'.
-// Applies 'theme-light' / 'theme-flair' classes to <html> on change.
+// Applies the 'theme-light' class to <html> on change. TDW_09 R-U19: 'flair' retired.
 // ThemeContext's MutationObserver watches those classes and repaints the
 // --atelier-* vars, so this hook only owns the class + persistence.
 
@@ -9,12 +9,12 @@ import { useCallback, useEffect, useState } from 'react';
 
 const KEY = 'dreamai_theme';
 
-export type Theme = 'dark' | 'light' | 'flair';
+export type Theme = 'dark' | 'light';
 
 function applyClasses(t: Theme) {
   const html = document.documentElement;
   html.classList.toggle('theme-light', t === 'light');
-  html.classList.toggle('theme-flair', t === 'flair');
+  html.classList.remove('theme-flair'); // TDW_09 R-U19: the retired class, swept off any live document
 }
 
 export function useTheme(): [Theme, () => void, (t: Theme) => void] {
@@ -23,8 +23,14 @@ export function useTheme(): [Theme, () => void, (t: Theme) => void] {
   // On mount — read persisted preference
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(KEY) as Theme | null;
-      const initial: Theme = stored === 'light' ? 'light' : stored === 'flair' ? 'flair' : 'dark';
+      const stored = localStorage.getItem(KEY) as Theme | 'flair' | null; // 'flair' readable for the R-U19 migration only
+      // ── TDW_09 R-U19 · THE MIGRATION ─────────────────────────────────────
+      // A vendor standing in the retired theme must land somewhere DESIGNED.
+      // 'flair' was dark, so 'dark' is the honest neighbour — and the stored
+      // value is REWRITTEN here so the fallback fires once rather than on every
+      // launch for the rest of that device's life.
+      if (stored === 'flair') { try { localStorage.setItem(KEY, 'dark'); } catch {} }
+      const initial: Theme = stored === 'light' ? 'light' : 'dark';
       setThemeState(initial);
       applyClasses(initial);
     } catch { /* localStorage blocked (private mode) — stay dark */ }
@@ -37,10 +43,10 @@ export function useTheme(): [Theme, () => void, (t: Theme) => void] {
     try { localStorage.setItem(KEY, next); } catch { /* silent */ }
   }, []);
 
-  // Cycle dark → light → flair → dark (kept for any toggle-style callers).
+  // Cycle dark -> light -> dark (kept for any toggle-style callers). TDW_09 R-U19.
   const toggle = useCallback(() => {
     setThemeState(prev => {
-      const order: Theme[] = ['dark', 'light', 'flair'];
+      const order: Theme[] = ['dark', 'light'];
       const next = order[(order.indexOf(prev) + 1) % order.length];
       applyClasses(next);
       try { localStorage.setItem(KEY, next); } catch { /* silent */ }

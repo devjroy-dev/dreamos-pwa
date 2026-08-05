@@ -158,7 +158,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
         }}>
           <div className="atelier-card atelier-card-ornate" style={{
             padding: 0,
-            background: `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)`, // theme-aware (navy under Flair, was hardcoded espresso)
+            background: `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)`, // theme-aware (was hardcoded espresso)
             backdropFilter: 'blur(32px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
             boxShadow: isLight
@@ -205,7 +205,8 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             <SectionLabel isLight={isLight}>Display</SectionLabel>
             <DItem glyph="●" label="Dark"  subtitle="Espresso"            isLight={isLight} accent={theme === 'dark'}  onClick={() => { setThemeMode('dark'); }} />
             <DItem glyph="○" label="Light" subtitle="Parchment"           isLight={isLight} accent={theme === 'light'} onClick={() => { setThemeMode('light'); }} />
-            <DItem glyph="✦" label="Flair" subtitle="Navy · bone · ember" isLight={isLight} accent={theme === 'flair'} onClick={() => { setThemeMode('flair'); }} />
+            {/* TDW_09 R-U19: the third theme row is DELETED with its theme. Two rows
+                remain — Dark (Espresso) and Light (Editorial Paper), Addendum A's two. */}
 
             {/* ACTIONS section */}
             <SectionLabel isLight={isLight}>Actions</SectionLabel>

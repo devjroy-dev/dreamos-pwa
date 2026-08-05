@@ -1,12 +1,12 @@
 'use client';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { DARK, LIGHT, FLAIR, type ThemeTokens } from './theme';
+import { DARK, LIGHT, type ThemeTokens } from './theme';
 
 const ThemeCtx = createContext<ThemeTokens>(DARK);
 const KEY = 'dreamai_theme';
 
 // Apply CSS custom properties directly to <html> so they cascade into every component.
-function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light' | 'flair') {
+function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
   const r = document.documentElement.style;
 
   // Base theme vars — flip with theme
@@ -70,17 +70,17 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light' | 'flair') {
 // The <html> class observer stays live even when pinned, but re-applies the PINNED
 // tokens rather than the class's: the demo tree shares a document with the real app's
 // classes, and the pin must win over them or it is not a pin.
-export function ThemeProvider({ children, pinned }: { children: ReactNode; pinned?: 'dark' | 'light' | 'flair' }) {
-  const initial = pinned === 'flair' ? FLAIR : pinned === 'light' ? LIGHT : DARK;
+export function ThemeProvider({ children, pinned }: { children: ReactNode; pinned?: 'dark' | 'light' }) {
+  const initial = pinned === 'light' ? LIGHT : DARK;
   const [tokens, setTokens] = useState<ThemeTokens>(initial);
-  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'flair'>(pinned ?? 'dark');
+  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>(pinned ?? 'dark');
 
-  function applyTheme(theme: 'dark' | 'light' | 'flair') {
-    const t = theme === 'flair' ? FLAIR : theme === 'light' ? LIGHT : DARK;
+  function applyTheme(theme: 'dark' | 'light') {
+    const t = theme === 'light' ? LIGHT : DARK;
     setTokens(t);
     setCurrentTheme(theme);
     document.documentElement.classList.toggle('theme-light', theme === 'light');
-    document.documentElement.classList.toggle('theme-flair', theme === 'flair');
+    document.documentElement.classList.remove('theme-flair'); // TDW_09 R-U19: retired class swept
     // Apply base vars first
     applyCSSVars(t, pinned);
   }
@@ -93,12 +93,15 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
     // Read stored preference
     try {
       const stored = localStorage.getItem(KEY) as 'dark' | 'light' | 'flair' | null;
-      applyTheme(stored === 'light' ? 'light' : stored === 'flair' ? 'flair' : 'dark');
+      // TDW_09 R-U19: the retired theme migrates to its honest neighbour and the
+      // stored value is rewritten, so this branch fires once per device, not forever.
+      if (stored === 'flair') { try { localStorage.setItem(KEY, 'dark'); } catch {} }
+      applyTheme(stored === 'light' ? 'light' : 'dark');
     } catch { applyTheme('dark'); }
 
     // Cross-tab sync
     const storageHandler = (e: StorageEvent) => {
-      if (e.key === KEY) applyTheme((e.newValue as 'dark' | 'light' | 'flair') ?? 'dark');
+      if (e.key === KEY) applyTheme(e.newValue === 'light' ? 'light' : 'dark'); // TDW_09 R-U19
     };
     window.addEventListener('storage', storageHandler);
     return () => window.removeEventListener('storage', storageHandler);
@@ -112,12 +115,12 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
     const obs = new MutationObserver(() => {
       const html = document.documentElement;
       const isLight = html.classList.contains('theme-light');
-      const isFlair = html.classList.contains('theme-flair');
+
       // TDW_08 P3 · G-6 — THE PIN WINS OVER THE CLASS. The demo tree shares a document
       // with the real app's <html> classes; if a class flip could move a pinned tree the
       // pin would only hold until the first navigation, which is not a pin.
-      const theme = pinned ?? (isFlair ? 'flair' : isLight ? 'light' : 'dark');
-      const t = theme === 'flair' ? FLAIR : theme === 'light' ? LIGHT : DARK;
+      const theme = pinned ?? (isLight ? 'light' : 'dark');
+      const t = theme === 'light' ? LIGHT : DARK;
       setTokens(t);
       setCurrentTheme(theme);
       applyCSSVars(t, pinned);

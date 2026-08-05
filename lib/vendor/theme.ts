@@ -110,40 +110,23 @@ export const LIGHT: ThemeTokens = {
   accentText: '#7A3828',
 };
 
-// ---- Flair: the dreamai navy/bone/ember room (third theme) ----
-export const FLAIR: ThemeTokens = {
-  ink:        '#e9e4d9',
-  inkSoft:    'rgba(233,228,217,0.60)',
-  inkMute:    'rgba(233,228,217,0.34)',
-  inkDim:     'rgba(233,228,217,0.18)',
-  // TDW_09: present so ThemeTokens stays satisfiable while this set lives. FLAIR
-  // retires whole in this block's second ZIP (R-U16/R-U19); its rungs are NOT
-  // raised here — raising a theme that is leaving would be bytes spent on a corpse.
-  inkFade:    'rgba(233,228,217,0.38)',
-  brass:      '#c99a63',
-  brassWarm:  '#d8a86f',
-  brassLine:  'rgba(233,228,217,0.09)',
-  brassSoft:  'rgba(201,154,99,0.55)',
-  accent:     '#c99a63',
-  accentLine: 'rgba(201,154,99,0.40)',
-  cardBg:     'rgba(20,28,46,0.55)',
-  cardBorder: 'rgba(233,228,217,0.16)',
-  headerBg:   'rgba(9,13,23,0.82)',
-  sheetTop:   '#0b1120',
-  sheetBot:   '#090d17',
-  sheetBorder:'rgba(233,228,217,0.16)',
-  inputBg:    'rgba(233,228,217,0.04)',
-  inputBorder:'rgba(233,228,217,0.16)',
-  rowHover:   'rgba(233,228,217,0.03)',
-  overlay:    'rgba(0,0,0,0.6)',
-  pageBg:     '#090d17',
-  sectionBg:  'rgba(233,228,217,0.03)',
-  isLight:    false,
-  label:      '#d8a86f',
-  accentText: '#c99a63',
-};
+// ── TDW_09 · R-U16 / R-U19 — FLAIR IS RETIRED, NOT OVERRIDDEN ────────────────
+// The third theme is DELETED WHOLE, on three grounds derived and ruled:
+//   · it posted the worst legibility floor of the three on every measured row
+//     (label 2.65:1, dim 1.56:1) and could not be rescued without becoming a
+//     different theme;
+//   · Addendum A rules exactly two vendor themes — Espresso and Editorial Paper;
+//   · the `html.theme-light *` !important block dies with it (see globals.css).
+// Deletion rather than a token raise is Addendum A's own precedent, set when
+// espresso was retired from the couple lane: a theme that is leaving does not
+// get bytes spent on it.
+//
+// NOT A GROUND, stated so the record is straight: F-09.15's frost filter chip is
+// a DIFFERENT navy in a DIFFERENT lane with its own token file (lib/frost/tokens.ts,
+// accent #4A7A9B). Retiring this theme does not touch it; that cure is the couple
+// lane's own. The chair's first grounds conflated the two and corrected at R-U22.
 
 export function useThemeTokens(): ThemeTokens {
   const [theme] = useTheme();
-  return theme === 'light' ? LIGHT : theme === 'flair' ? FLAIR : DARK;
+  return theme === 'light' ? LIGHT : DARK;
 }

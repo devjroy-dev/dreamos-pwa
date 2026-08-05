@@ -753,28 +753,8 @@ html.theme-light {
    ThemeContext's JS repaints the chrome vars inline; these are the surface
    fills it never touches (card-bg, sheet-bg, grain), so without this block
    the middle stayed espresso while the edges went navy. ── */
-html.theme-flair {
-  --atelier-ink:         #e9e4d9;
-  --atelier-ink-soft:    rgba(233,228,217,0.60);
-  --atelier-ink-mute:    rgba(233,228,217,0.34);
-  --atelier-ink-dim:     rgba(233,228,217,0.18);
-  --atelier-card-bg:     linear-gradient(180deg, rgba(20,28,46,0.55) 0%, rgba(20,28,46,0.30) 100%);
-  --atelier-card-border: rgba(233,228,217,0.16);
-  --atelier-card-shadow: 0 12px 32px -16px rgba(0,0,0,0.6);
-  --atelier-header-bg:   rgba(9,13,23,0.82);
-  --atelier-sheet-bg:    linear-gradient(180deg, #0b1120 0%, #090d17 100%);
-  --atelier-sheet-top:   #0b1120;
-  --atelier-sheet-bot:   #090d17;
-  --atelier-sheet-border:rgba(233,228,217,0.16);
-  --atelier-input-bg:    rgba(233,228,217,0.04);
-  --atelier-input-border:rgba(233,228,217,0.16);
-  --atelier-overlay:     rgba(0,0,0,0.6);
-  --atelier-overlay-bg:  rgba(0,0,0,0.6);
-  --atelier-row-hover:   rgba(233,228,217,0.03);
-  --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(233,228,217,0.012) 1px, transparent 0);
-  --atelier-label:       #d8a86f;
-  --atelier-accent-text: #c99a63;
-}
+/* TDW_09 R-U19 — the token set deleted with the retired theme. */
+
 
 /* ── Hub atmosphere — dark espresso / bone paper ─────────────── */
 html, body {
@@ -798,15 +778,8 @@ html.theme-light body {
 /* ── Flair body — the dreamai navy room with a faint ember glow ──
    Mirrors the espresso html,body rule but in navy/ember, so the !important
    page gradient stops bleeding espresso under Flair. ── */
-html.theme-flair,
-html.theme-flair body {
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(201,154,99,0.10) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(201,154,99,0.05) 0%, transparent 60%),
-    linear-gradient(180deg, #0b1120 0%, #090d17 100%) !important;
-  color: #e9e4d9 !important;
-  background-attachment: fixed !important;
-}
+/* TDW_09 R-U19 — the page paint deleted with the retired theme. */
+
 
 /* ── Studio room ─────────────────────────────────────────────── */
 html.room-studio,
@@ -925,11 +898,8 @@ html.theme-light .atelier-hot-ribbon {
 
 /* Flair — the hot-dates ribbon in navy/ember (was falling back to the warm
    :root gradient + brass borders, the one bar left espresso under Flair). */
-html.theme-flair .atelier-hot-ribbon {
-  background: linear-gradient(90deg, rgba(201,154,99,0.05) 0%, rgba(201,154,99,0.10) 50%, rgba(201,154,99,0.05) 100%);
-  border-top: 0.5px solid rgba(233,228,217,0.16);
-  border-bottom: 0.5px solid rgba(233,228,217,0.16);
-}
+/* TDW_09 R-U19 — the hot-ribbon override deleted with the retired theme. */
+
 
 /* ── Header + Nav backdrop ───────────────────────────────────── */
 [data-atelier-backdrop="warm"] {
@@ -974,14 +944,16 @@ input, textarea, [contenteditable] {
 }
 
 /* ── Light mode text force — catches components not using CSS vars ── */
-html.theme-light * {
-  --atelier-ink:         #2A1A10 !important;
-  --atelier-ink-soft:    rgba(26,15,8,0.82) !important;
-  --atelier-ink-mute:    rgba(26,15,8,0.58) !important;
-  --atelier-ink-dim:     rgba(26,15,8,0.38) !important;
-  --atelier-label:       #7A3828 !important;
-  --atelier-accent-text: #7A3828 !important;
-}
+/* ── TDW_09 R-U16 — THE `html.theme-light *` !important BLOCK IS DELETED ──────
+   It re-declared --atelier-ink / -soft / -mute / -dim / -label / -accent-text on
+   EVERY DESCENDANT with !important. A descendant's own declaration beats the value
+   inherited from <html>, so this block silently overrode whatever ThemeContext
+   published — including ZIP A's raised ladder, which it pinned back to the
+   pre-cure .58/.38 on the light theme for every var() consumer in the vendor tree.
+   Deleted rather than updated: a block that exists to win arguments with the token
+   system will win the next one too. The tokens it duplicated are published by
+   applyCSSVars on <html> and inherit correctly without it. */
+
 
 /* Ensure body text is always dark in light mode */
 html.theme-light,
@@ -1036,22 +1008,8 @@ html.theme-light .dd-cab{
   --cab-out:         #B0573E;
   --cab-on-accent:   #F5F2EE;
 }
-html.theme-flair .dd-cab{
-  --cab-bg:          #090d17;
-  --cab-bg-deep:     #070b14;
-  --cab-surface:     rgba(20,28,46,0.55);
-  --cab-ink:         #e9e4d9;
-  --cab-ink-soft:    rgba(233,228,217,0.60);
-  --cab-ink-mute:    rgba(233,228,217,0.34);
-  --cab-accent:      #c99a63;
-  --cab-accent-warm: #d8a86f;
-  --cab-accent-soft: rgba(201,154,99,0.55);
-  --cab-accent-faint:rgba(201,154,99,0.10);
-  --cab-line:        rgba(233,228,217,0.16);
-  --cab-toolbar-bg:  #0b1120;
-  --cab-out:         #727f9b;
-  --cab-on-accent:   #090d17;
-}
+/* TDW_09 R-U19 — the cabinet override deleted with the retired theme. */
+
 
 /* the ornament handle — sits just above the bottom nav */
 .dd-cab .cab-orn{
