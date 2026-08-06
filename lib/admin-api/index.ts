@@ -37,10 +37,56 @@ export type SpotlightItem = AdminImage & {
   week_label: string | null;
 };
 
+// ── F-10.45 · THIS TYPE WAS A PROMISE THE WIRE NEVER KEPT ───────────────────
+// IT READ:
+//   { id; vendor_id; vendor_name; vendor_category; vendor_city;
+//     discover_request_state; created_at; portfolio_count }
+// The server sent `{id, vendor_id, state, reason, decided_at, created_at,
+// vendor:{…}}`. FIVE of those eight fields did not exist on the wire, and
+// `adminGet<T>` casts, so tsc could not see it. At render `st.replace('_',' ')`
+// ran on `undefined` and THREW — the whole approvals screen, on any non-empty
+// queue. It had never fired only because `vendor_discover_requests` is empty in
+// production (founder-run SELECT, 2026-08-06: `group by state` returned zero
+// rows). The server now sends this shape; every field below was read off
+// `dream-os src/api/admin/discover.js` at `800d7a1`, not assumed.
 export type DiscoverRequest = {
-  id: string; vendor_id: string; vendor_name: string; vendor_category: string;
-  vendor_city: string; discover_request_state: string; created_at: string;
-  portfolio_count: number;
+  id: string;
+  vendor_id: string;
+  /** The server's own state value: 'requested' | 'under_review' | 'approved' | … */
+  state: string;
+  /** The same fact under the name this type has always declared. Echoed by the
+   *  server through the transition so a client either side of the push renders
+   *  rather than throws; P6 retires one of the two. */
+  discover_request_state: string;
+  vendor_name: string;
+  vendor_category: string | null;
+  vendor_city: string | null;
+  vendor_phone: string | null;
+  routing_handle: string | null;
+  discover_eligible: boolean;
+  /** FORK 5 — two labelled counts, never one blended number. `total` is what the
+   *  floor is enforced against (at the request gate AND now at grant); `approved`
+   *  is what a couple will actually see. F-07.4 declared the divergence; the deck
+   *  renders both, each labelled for what it measures. */
+  photos_total: number;
+  photos_approved: number;
+  /** From the enforcing constant itself, so the deck holds no second opinion. */
+  photo_floor: number;
+  meets_floor: boolean;
+  /** F-10.44 — `reason` is double-duty in the database. The server splits it on
+   *  state so a vendor's own pitch can never be rendered back to him as the
+   *  reason he was refused. Exactly one of these is ever non-null. */
+  pitch: string | null;
+  decision_reason: string | null;
+  decided_at: string | null;
+  created_at: string;
+};
+
+export type DiscoverPreview = {
+  ok: boolean;
+  vendor: unknown;
+  is_live?: boolean;
+  discover_paused?: boolean;
 };
 
 export type PhotoQueueItem = {
@@ -133,7 +179,12 @@ export const approvePhoto  = (id: string)                          => adminPost(
 export const rejectPhoto   = (id: string, reason?: string)        => adminPost(`/api/v2/admin/photos/${id}/reject`, { reason });
 export const getDiscoverQueue = ()                                 => adminGet<{ requests: DiscoverRequest[] }>('/api/v2/admin/discover/requests');
 export const grantDiscover    = (vendorId: string)                => adminPost(`/api/v2/admin/discover/grant/${vendorId}`, {});
-export const denyDiscover     = (vendorId: string)                => adminPost(`/api/v2/admin/discover/deny/${vendorId}`, {});
+// THE REASON IS THE POINT. This call posted `{}` — so the deny route's `reason`
+// was ALWAYS null, and the spec's "rejection teaches" promise had no carrier from
+// the one screen that could have sent one. The chips are the reason; the reason is
+// the argument.
+export const denyDiscover     = (vendorId: string, reason?: string) => adminPost(`/api/v2/admin/discover/deny/${vendorId}`, reason ? { reason } : {});
+export const getDiscoverPreview = (vendorId: string) => adminGet<DiscoverPreview>(`/api/v2/admin/discover/preview/${vendorId}`);
 export const revokeDiscover   = (vendorId: string)                => adminPost(`/api/v2/admin/discover/revoke/${vendorId}`, {});
 
 // ── Conversations ─────────────────────────────────────────────────────────────

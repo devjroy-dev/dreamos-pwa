@@ -26,7 +26,7 @@
    ── WHERE THE VALUES CAME FROM, BY COMMAND ──────────────────────────────────
    The espresso family the vendor lane already runs on:
        DARK.pageBg      #1F1612      the page ground
-       DARK.sheetBot    rgba(22,16,12,.99)  -> #160F0C
+       DARK.sheetBot    rgba(22,16,12,.99)  -> #16100C
        the COMPOSITED sheet surface #120F0E, which theme.ts names itself in the
        mechanism comment at DARK.inputBorder
    Nothing is invented. Three donor values, in descending lightness, become the
@@ -55,6 +55,24 @@
    the whole argument for the law below, made by the law itself before it was a
    day old. A hand can check the value it is looking at; only an instrument checks
    the ones it is not.
+
+   ── F-10.46 · AND THE CURE'S OWN CENSUS WAS HAND-MADE ───────────────────────
+   TDW_10 P3 found TWO MORE SITES: `--admin-nav-top` and the `--admin-nav-bg`
+   gradient stop, both carrying #160F0C while citing DARK.sheetBot, and the
+   mapping comment at the top of this file carrying the same wrong byte a third
+   time. Three more instances of one transcription, surviving the cure that was
+   written for it.
+
+   THE REASON IS THE FINDING. F-10.34's widened pair set was enumerated from what
+   the HAND had found — bg-mid, sheet, option-bg — not derived from every token
+   whose comment names a DARK.* symbol. So it covered the three sites already
+   known and could not reach the two nobody had looked at. The paragraph above
+   says it in its own words — "only an instrument checks the ones it is not" —
+   and then the instrument was built from the hand's list.
+   `scripts/tdw10_p2_retint.proof.mjs` now DERIVES its pairs by reading this
+   file's own citation comments, so a token that cites a donor is compared to it
+   whether or not anyone remembered to add it. CITATION-NEEDS-A-CELL, closed at
+   its own author's open end.
 
    THE PIXEL IS STILL NOT THE POINT. One unit of green is imperceptible, and
    bg-mid has no consumer outside the gradient — though `sheet` and `option-bg`
@@ -113,9 +131,9 @@
      reads as chrome and not as content. Both stops are donor values; the nav
      starts where the page ENDS, which is what preserves that relationship
      without minting a fourth espresso value nobody derived. */
-  --admin-nav-top:       #160F0C;  /* theme.ts DARK.sheetBot */
+  --admin-nav-top:       #16100C;  /* theme.ts DARK.sheetBot */
   --admin-nav-bot:       #120F0E;  /* composited sheet surface */
-  --admin-nav-bg:        linear-gradient(180deg, #160F0C 0%, #120F0E 100%);
+  --admin-nav-bg:        linear-gradient(180deg, #16100C 0%, #120F0E 100%);
 
   /* The bar ground: the page at rest, translucent, blurred. The donor's own
      header idiom — DARK.headerBg is rgba(31,22,18,0.78), i.e. pageBg at .78. */

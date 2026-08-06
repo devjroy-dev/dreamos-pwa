@@ -87,26 +87,64 @@ section('§2  EVERY VALUE CITES A DONOR, AND THE DONOR STILL HOLDS');
   // with no cell behind it is prose. Every citation in tokens.css that can be
   // compared to a symbol is compared here; the one that cannot (bg-bot, whose
   // donor is a composite) is COMPUTED in the cell below instead.
-  const PAIRS = [
-    ['bg-top',    'pageBg'],
-    ['bg-mid',    'sheetBot'],   // F-10.34's cure, and the cell that would have caught it
-    ['sheet',     'sheetBot'],
-    ['option-bg', 'sheetBot'],
-    ['ink',       'ink'],
-    ['ink-soft',  'inkSoft'],
-    ['ink-mute',  'inkMute'],
-    ['ink-dim',   'inkDim'],
-    ['ink-fade',  'inkFade'],
-    ['positive',  'positive'],
-    ['caution',   'caution'],
-    ['critical',  'critical'],
-    ['metal',     'metal'],
-    ['scrim',     'scrim'],
-    ['card-bg',   'sheet'],
-    ['input-bg',  'inputBg'],
-    ['row-hover', 'rowHover'],
-    ['shell',     'pageBg'],
+  // ── F-10.46 · THE PAIR SET IS DERIVED, NOT LISTED ───────────────────────────
+  // THIS BLOCK READ, until P3 — a hand-written array of eighteen [role, donor]
+  // pairs, opening:
+  //     const PAIRS = [
+  //       ['bg-top',    'pageBg'],
+  //       ['bg-mid',    'sheetBot'],   // F-10.34's cure, and the cell that would have caught it
+  //       ['sheet',     'sheetBot'],
+  //       ['option-bg', 'sheetBot'],
+  //       … fourteen more …
+  //     ];
+  //
+  // It was enumerated from what the HAND had already found. So when F-10.34 was
+  // widened "to all three ground stops", it reached the three sites someone had
+  // looked at and could not reach `--admin-nav-top` or the `--admin-nav-bg`
+  // gradient stop — both of which cite DARK.sheetBot in this very file and both
+  // of which still carried the wrong byte. F-10.46 is that gap; the paragraph in
+  // tokens.css says the rest.
+  //
+  // NOW DERIVED FROM THE FILE'S OWN CITATIONS. Every declaration whose trailing
+  // comment names a `DARK.<symbol>` is paired with that symbol automatically, so
+  // a token that cites a donor is compared to it whether or not anyone remembered
+  // to add a row. A citation cannot exist without its cell any more — which is
+  // what CITATION-NEEDS-A-CELL asked for and what its own instrument did not do.
+  //
+  // THE FAILURE MODE IS NOT A SILENT ZERO (protocol §9, independent-method): the
+  // derived count is asserted against a floor below, so a regex that stopped
+  // matching would redden here rather than quietly pair nothing.
+  const DERIVED = [];
+  // READ THE RAW FILE, NOT `DECLS`. `DECLS` is `strip(TOKENS)` — comment-stripped,
+  // which is right for the hex-literal cells and exactly wrong here: the citations
+  // ARE comments. The first draft of this derivation read DECLS and found ZERO
+  // pairs, and the floor cell below is why that surfaced as a red instead of as a
+  // silently empty loop. A check whose failure mode is a silent zero is not a
+  // check (protocol §9).
+  // SAME-LINE ONLY (`[ \t]*`, never `\s*`). A trailing comment is a CITATION; the
+  // next block's leading comment is not. With `\s*` the loop paired
+  // `--admin-nav-bg` — a gradient with no trailing comment — against the prose
+  // block beneath it, and reported a donor mismatch that was the regex's own
+  // reach rather than a defect. Caught by reading the red instead of relaxing it.
+  for (const m of TOKENS.matchAll(/--admin-([a-z-]+):[ \t]*([^;]+);[ \t]*\/\*([^*]*)\*\//g)) {
+    const [, role, , comment] = m;
+    const d = comment.match(/DARK\.([A-Za-z]+)/);
+    if (d) DERIVED.push([role, d[1]]);
+  }
+  ok(`the pair set DERIVES from tokens.css's own citations (${DERIVED.length} found, floor 12)`,
+     DERIVED.length >= 12, `${DERIVED.length}`);
+  ok('the derived set reaches --admin-nav-top, the site the hand-listed one could not',
+     DERIVED.some(([r, d]) => r === 'nav-top' && d === 'sheetBot'));
+
+  // Roles whose donor is a COMPOSITE rather than a symbol keep their explicit
+  // pairing — bg-top and shell cite `pageBg` in prose the regex above cannot
+  // reach, and bg-bot's donor is computed in its own cell below.
+  const EXPLICIT = [
+    ['bg-top', 'pageBg'],
+    ['shell',  'pageBg'],
   ];
+  const seen = new Set(DERIVED.map(([r]) => r));
+  const PAIRS = [...DERIVED, ...EXPLICIT.filter(([r]) => !seen.has(r))];
   // A donor may be rgba() where the admin role must be OPAQUE — a <meta>, an
   // <option> and a gradient stop cannot carry alpha. So the comparison is on the
   // RGB TRIPLE, resolved from either notation. Comparing the raw strings would

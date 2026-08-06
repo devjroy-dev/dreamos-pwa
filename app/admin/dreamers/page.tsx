@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, Toast, FieldInput, ActionChip } from '../_components/AdminUI';
+import { PageHeader, T, Toast, FieldInput, ActionChip, GhostBtn } from '../_components/AdminUI';
+import MintSheet from '../_components/MintSheet';
 import { getCouples, patchCoupleTier, type AdminCouple } from '../../../lib/admin-api/index';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
@@ -15,6 +16,9 @@ export default function DreamersPage() {
   const [openId, setOpenId]   = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
   const [toast, setToast]     = useState('');
+  // TDW_10 P3 — People -> + New -> one sheet. The mint lives in ONE component;
+  // this screen owns only the door and the reload after a birth.
+  const [minting, setMinting]   = useState(false);
   const [toastErr, setToastErr] = useState(false);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
@@ -49,7 +53,9 @@ export default function DreamersPage() {
 
   return (
     <div>
-      <PageHeader title="Dreamers" sub={`${couples.length} total couples`} />
+      <PageHeader title="Dreamers" sub={`${couples.length} total couples`}
+        action={<GhostBtn label="+ New" onClick={() => setMinting(true)} small />} />
+      <MintSheet visible={minting} kind="couple" onClose={() => setMinting(false)} onMinted={load} />
       <FieldInput label="Search" value={search} onChange={setSearch} placeholder="Name or phone…" />
 
       {loading ? (
