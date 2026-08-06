@@ -233,7 +233,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 <div style={{
                   fontFamily: F.label, fontWeight: 300, fontSize: 8,
                   letterSpacing: '0.36em', textTransform: 'uppercase',
-                  color: 'rgba(201,168,76,0.72)', marginTop: 12,
+                  color: A.brassWarm, marginTop: 12, /* F-09.87's species, the Discover page's own member (founder second shoot 2026-08-07): theme-blind gold-alpha ink, pale ochre on Paper; the label role themes */
                 }}>{label}</div>
               </div>
             ))}
@@ -295,7 +295,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               }}>Under Review</div>
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 16, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
+                fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 Your application is being reviewed by Swati. Expected response within five days.
               </div>
@@ -315,7 +315,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               }}>{approvedButHidden ? 'Hidden For Now' : 'Approved'}</div>
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 16, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
+                fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 {approvedButHidden
                   ? 'You\u2019re approved, but your profile is hidden from couples right now. We\u2019ll be in touch.'
@@ -416,7 +416,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
               fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 18,
               letterSpacing: '0.01em',
-            }}>As brides will see it, curated.</div>
+            }}>As couples will see it, curated.</div>
 
             <div style={{
               display: 'grid',

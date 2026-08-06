@@ -65,5 +65,19 @@ ok('§5.1 the insight line wears the themed soft ink; the extension is labelled 
 ok('§5.2 THE PER-SITE GUARD — the leads page carries ZERO pinned-cream inks while the Discover hero keeps its ONE (same literal, two grounds, opposite verdicts — the P-2 law walked)',
   !/rgba\(240,230,210/.test(strip(LEADS)) && (strip(DISC).match(/rgba\(240,230,210,0\.78\)/g) || []).length === 1);
 
+
+sec('\u00a76 \u00b7 THE SECOND SHOOT \u2014 the Discover page\u2019s own species members (LABELED GROWTH 15\u219220, founder-walked + copy-worded 2026-08-07)');
+ok('\u00a76.1 the portfolio-ledger labels wear the themed label role, the 0.72 gold-alpha ink dead',
+  /color: A\.brassWarm, marginTop: 12,/.test(DISC) && !/color: 'rgba\(201,168,76,0\.72\)'/.test(DISC));
+ok('\u00a76.2 BOTH state-card italics wear the themed soft ink \u2014 zero pinned-cream 0.8 inks survive on the themed page',
+  (DISC.match(/color: A\.inkSoft, lineHeight: 1\.5,/g) || []).length >= 2
+  && !/rgba\(240,230,210,0\.8\)'/.test(DISC));
+ok('\u00a76.3 the per-site law holds through the growth \u2014 the hero\u2019s scrim-grounded pinned cream (0.78) still stands, exactly one',
+  (strip(DISC).match(/rgba\(240,230,210,0\.78\)/g) || []).length === 1);
+ok('\u00a76.4 the founder\u2019s byte verbatim \u2014 \u300c As couples will see it, curated. \u300d, the brides line dead in code',
+  /As couples will see it, curated\./.test(DISC) && !/As brides will see it/.test(strip(DISC)));
+ok('\u00a76.5 the Swati string at the review card is SIGHTED-NOT-TOUCHED (F-09.9\u2019s queued family) \u2014 this cell reddens if a later hand deletes it outside that finding\u2019s own sitting',
+  /reviewed by Swati/.test(DISC));
+
 console.log(`\n──────── tdw09_walkrider: ${pass}/${pass + fail} ────────`);
 process.exit(fail === 0 ? 0 : 1);
