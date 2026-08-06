@@ -35,7 +35,7 @@ function writeVendorSession(session: Record<string, unknown>): void {
   } catch { /* ignore */ }
 }
 
-const GOLD = 'var(--role-metal)';
+const GOLD = '#C9A84C';
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
   'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
@@ -151,7 +151,7 @@ export default function VendorPinLoginPage() {
     width: 52, height: 62, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD,
     fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: 'var(--atelier-ink)', textAlign: 'center',
+    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: '#F0E6D2', textAlign: 'center',
     touchAction: 'manipulation', caretColor: GOLD,
   };
 
@@ -174,54 +174,62 @@ export default function VendorPinLoginPage() {
       )}
 
 
-      {/* ── TDW_09 MICRO-2 · F-09.72 · R-M2 + R-M3 — THE GROUND IS KNOWN NOW ────────
+      {/* ── TDW_09 MICRO-2 · F-09.72 · R-M6 — INVARIANT WHOLE. THE LANDING IS THE LAW ──
           THE DISEASE, in the founder's words: this screen could not be read. The
           arithmetic: its ground was PINNED (body #0C0A09 and the inset div below,
           both hardcoded) while its ink read TOKENS THAT FLIP WITH THEME. On
           Editorial Paper --atelier-ink-dim becomes rgba(26,15,8,0.62) — dark ink —
           over a ground that never lightens. Measured over a typical slide the
           sub-lines fell to 1.13:1. They were not dim. They were gone.
-          The two translucent layers here were never a scrim ROLE and could not
-          bound anything: a photograph is arbitrary luminance, and backdrop-filter
-          blurs it without moving its mean. So the panel now composites against the
-          estate's own sheet roles and every line lands on a KNOWN surface —
-          fully opaque on Editorial Paper, 0.97 on Espresso, which is a bound a
-          bench can compute. Ink to roles on top of it.
-          F-09.78 — THE PANEL IS FLAT, NOT A GRADIENT, AND THE GOLD IS WHY. The first
-          build used sheet-top -> sheet-bot, the shape Header's calling card uses.
-          Cell ⑪ then measured --role-metal at 4.26:1 on Editorial Paper — because
-          LIGHT.metal (#826A27) was derived against `pageBg` (#F5F2EE) and
-          `sheetBot` (#EDE8DF) is darker than the surface it was solved for. The
-          MAKER PORTAL label, the PIN underline and `Send reset code ->` all ride
-          that gold. One flat surface at sheet-top puts every one of them back on
-          the ground the role was derived against: 4.66:1. The finding is filed and
-          travels: this file dodged it, the estate still carries it.
-          MEASURED, over the WORST CASE (a blown-out white slide region), stated as
-          method rather than asserted — scripts/tdw09_roles.proof.mjs cell ⑪ derives
-          these from this file every run and fails if a line drops below the bar:
-            Espresso  ink 14.06:1 · ink-mute 5.48:1 · metal 7.66:1
-            Paper     ink 16.87:1 · ink-mute  6.72:1 · metal 4.66:1
-          MECHANISM (F-06.85's law): the bound above holds because --atelier-sheet-top
-          and --atelier-sheet-bot are near-opaque on Espresso and OPAQUE on Paper. If
-          either alpha falls, the photo bleeds back through and every number here is
-          re-derived. Cell ⑪ reads those alphas from lib/vendor/theme.ts, not from a
-          number copied into this comment.
-          RADIUS: R-M2 ruled the VENDOR TRIO — this file, pin-reset, pin. The couple
-          screens share the slide pattern and NOT the disease: their ground and their
-          ink are both pinned, theme-blind but coherent. Not one byte crosses to them. */}
+          THERE ARE TWO WAYS TO MAKE A COHERENT PAIR AND THE FIRST BUILD TOOK THE
+          WRONG ONE. R-M3(b) unpinned the GROUND — panel to var(--atelier-sheet-top),
+          which resolves #F5F2EE on Paper. Legible, benchable, and a cream block
+          sitting next to a landing page that is theme-invariant dark. The founder
+          vetoed it on his walk and R-M6 re-ruled: app/(landing)/page.tsx is the
+          product's reference surface for every photo-slide gate — photo forward,
+          dark scrim, ink pinned — and this screen matches it. So the INK pins
+          instead, and the panel returns to the bytes it always had.
+          EVERYTHING HERE IS NOW A LITERAL — ground, ink, gold and the panel's own
+          edge. That is the point: an invariant surface has no travelling half, so
+          the pair cannot come apart on a theme flip the way it did. It is also why
+          this file passes the pinned-ground cell honestly rather than by exemption,
+          and it is the shape the couple PIN screens already ship.
+          MEASURED, over the WORST CASE — a blown-out white slide region at 0.55
+          under the 0.45 page scrim under this 0.3 panel, compositing to rgb(63,62,61).
+          backdrop-filter blurs that region without moving its mean, so the blur buys
+          nothing and is not credited. Derived by command, not estimated:
+            heading / PIN digits  #F0E6D2                 8.61:1
+            sub-lines             rgba(240,230,210,0.65)  4.69:1
+            gold                  #C9A84C                 4.67:1
+          THE SUB-LINE RUNG IS 0.65, NOT 0.58. The chair's re-ruling proposed 0.58
+          (theme.ts's inkMute); measured on this ground it lands at 4.08:1 and fails
+          the bar. 0.52, which is what actually shipped before this sitting, lands at
+          3.60:1 — so the dark theme was under the bar over a bright slide all along
+          and nobody had measured it. 0.65 is theme.ts's inkSoft rung and clears.
+          THE GOLD IS PINNED TOO, and it has to be: var(--role-metal) resolves
+          #826A27 on Paper, which is dark gold on a dark panel. "Gold stays" means
+          it stays GOLD, which on an invariant surface means it stops being a token.
+          MECHANISM (F-06.85's law): every number above is a function of THREE
+          alphas — the slide's 0.55, the scrim's 0.45 and this panel's 0.3, all in
+          this file. Move any one of them and every number is re-derived.
+          scripts/tdw09_roles.proof.mjs cell ⑨ parses all three from this file and
+          recomputes rather than trusting the comment; the comment is the reader's
+          copy, the cell is the guard.
+          RADIUS: R-M2 ruled the VENDOR TRIO — this file, pin-reset, pin, moving
+          together. The couple screens were already this shape; not one byte crosses. */}
       <div style={{ position:'fixed',inset:0,background:'#0C0A09',overflow:'hidden' }}>
         {slides.map((src, i) => (
           <div key={i} style={{ position:'absolute',inset:0,backgroundImage:'url(' + src + ')',backgroundSize:'cover',backgroundPosition:'center',opacity: i === slide ? 0.55 : 0,transition:'opacity 1200ms ease' }} />
         ))}
         <div style={{ position:'absolute',inset:0,background:'rgba(12,10,9,0.45)' }} />
         <div style={{ position:'absolute',bottom:0,left:0,right:0,animation:'pinFadeIn 400ms cubic-bezier(0.22,1,0.36,1)' }}>
-          <div style={{ background:'var(--atelier-sheet-top)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid var(--atelier-input-border)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-mute)',margin:'0 0 2px' }}>The Dream Wedding</p>
+          <div style={{ background:'rgba(12,10,9,0.3)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid rgba(201,168,76,0.52)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'rgba(240,230,210,0.65)',margin:'0 0 2px' }}>The Dream Wedding</p>
             <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize: 25,color:'var(--atelier-ink)',margin:'0 0 4px',lineHeight:1.15 }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize: 25,color:'#F0E6D2',margin:'0 0 4px',lineHeight:1.15 }}>
               {firstName ? 'Welcome back, ' + firstName + '.' : 'Welcome back.'}
             </p>
-            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-mute)',margin:'0 0 28px' }}>Enter your PIN to continue.</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'rgba(240,230,210,0.65)',margin:'0 0 28px' }}>Enter your PIN to continue.</p>
             <div style={{ display:'flex',justifyContent:'center',gap:16,marginBottom:32,animation: shaking ? 'pinShake 320ms cubic-bezier(0.22,1,0.36,1)' : 'none' }}>
               {pin.map((d, i) => (
                 <input key={i} ref={el => { pinRefs.current[i] = el; }}
@@ -234,7 +242,7 @@ export default function VendorPinLoginPage() {
             </div>
             {loading && <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 9,letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:20 }}>Verifying…</p>}
             <p onClick={() => { router.push('/vendor/pin-reset'); }}
-              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-mute)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
+              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(240,230,210,0.65)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
             >Forgot PIN?</p>
           </div>
         </div>

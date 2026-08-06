@@ -130,10 +130,38 @@ const walk = (d, out=[]) => {
 };
 const dark = parse(tokens('DARK').pageBg).slice(0,3);
 const light = parse(tokens('LIGHT').pageBg).slice(0,3);
+// ── TDW_09 MICRO-2 · R-M6 — THE EXEMPTION IS EARNED AND GRANTED, NEVER LISTED ──
+// This cell asks whether a literal reads on one theme and vanishes on the other,
+// measured against the two pageBg values. That question is only meaningful where
+// the literal can LAND on a page that flips. On a surface ruled INVARIANT — ground
+// pinned, no colour token, and the theme consumed nowhere at all — the light
+// pageBg is not a ground the literal can ever meet, and the measurement is a
+// category error rather than a finding. So #F0E6D2 lives legitimately on the four
+// ruled screens while staying a real defect everywhere else.
+// TWO GATES, deliberately. The PROPERTY is checked per file (an exemption cannot
+// outlive its ruling) AND the file must be on the RULED list (the property cannot
+// let an unruled file in behind it). A first draft had only the property and swept
+// in four extra files — an exemption granting itself.
+const isInvariantSurface = (src) =>
+  /background:\s*'(#[0-9a-fA-F]{6}|rgba\([^']+\))'/.test(src) &&
+  !/color:\s*'var\(--/.test(src) && !/const GOLD = 'var\(--/.test(src) &&
+  !/color:\s*`?\$\{/.test(src) && !/useT\(/.test(src) &&
+  !/from '@\/lib\/vendor\/(theme|ThemeContext)'/.test(src);
+const RULED_INVARIANT = new Map([
+  ['components/vendor/Splash.tsx',  'R-M4 — a 2.2s brand gate, ruled to read identically on both themes'],
+  ['app/vendor/pin-login/page.tsx', 'R-M6 — the photo-slide gate grammar, matching app/(landing)'],
+  ['app/vendor/pin-reset/page.tsx', 'R-M6 — the trio moves together per R-M2'],
+  ['app/vendor/pin/page.tsx',       'R-M6 — the trio moves together per R-M2'],
+]);
+const unruledInvariant = [];
 const survivors = [];
 for (const f of [...walk('app/vendor'), ...walk('components/vendor'), ...walk('lib/vendor')]) {
   if (EXCLUDE.has(f)) continue;
-  for (const h of new Set(strip(read(f)).match(/#[0-9a-fA-F]{6}/g) || [])) {
+  const SRC = strip(read(f));
+  const prop = isInvariantSurface(SRC);
+  if (prop && RULED_INVARIANT.has(f)) continue;            // exempt: ruled AND proven
+  if (prop) unruledInvariant.push(f);                      // reported, never exempted
+  for (const h of new Set(SRC.match(/#[0-9a-fA-F]{6}/g) || [])) {
     const H = h.toUpperCase();
     if (OUT_OF_SCOPE.has(H)) continue;
     const c = parse(H);
@@ -143,6 +171,19 @@ for (const f of [...walk('app/vendor'), ...walk('components/vendor'), ...walk('l
 }
 ok('no literal is legible on one theme and invisible on the other',
    survivors.length === 0, survivors.slice(0,6).join(' | '));
+for (const [f, why] of RULED_INVARIANT)
+  ok(`${f} still satisfies the invariant property it is exempted for`,
+     isInvariantSurface(strip(read(f))), why);
+// F-09.79 — surfaces theme-invariant BY ACCIDENT rather than by ruling: they pin a
+// ground and consume no theme at all. That may be right for their job or it may be
+// F-09.32's unadopted-surface species; nobody has ruled it. They are NOT exempted
+// above. Pinned at the size measured, so the cell reddens BOTH ways — a third
+// arrival is drift, a departure is a cure nobody recorded. An always-green watch
+// line would be no check at all.
+const F0979 = ['components/vendor/AtelierForm.tsx', 'components/vendor/slices/SliceRow.tsx'];
+ok('the accidentally-invariant set is exactly F-09.79\u2019s two, unchanged',
+   unruledInvariant.length === F0979.length && F0979.every(f => unruledInvariant.includes(f)),
+   unruledInvariant.join(' | '));
 ok('the out-of-scope set is exactly the six declared, each with a reason',
    OUT_OF_SCOPE.size === 6 && [...OUT_OF_SCOPE.values()].every(v => v.length > 20));
 
@@ -285,17 +326,25 @@ for (const f of RADIUS.filter(x => x.includes('/pin'))) {
   const scrim = /position:'absolute',inset:0,background:'(rgba\([^']+\))'/.exec(src);
   ok(`${f} — slide/page/scrim literals all parse`, !!slide && !!page && !!scrim);
   if (!slide || !page || !scrim) continue;
-  ok(`${f} — the panel ground reads the sheet ROLE, not a literal`,
-     /background:'var\(--atelier-sheet-top\)'/.test(src));
-  for (const [label, key] of THEMES) {
-    const t = tokens(key);
-    const worst = over([255,255,255, +slide[1]], parse(page[1]));   // a white slide region
-    const veiled = over(parse(scrim[1]), worst);                     // the page scrim
-    const surface = over(parse(t.sheetTop), veiled);                  // the panel — ONE flat ground
-    for (const [name, val] of [['ink', t.ink], ['ink-mute', t.inkMute], ['metal', t.metal]]) {
-      const v = ratio(over(parse(val), surface), surface);
-      ok(`${f} · ${label} · ${name} \u2265 4.5:1 over a white slide`, v >= 4.5, `measured ${r2(v)}:1`);
-    }
+  // R-M6 RE-AIM. The (b)-shape asserted a sheet ROLE here. Under the walk veto the
+  // surface is invariant whole, so the cell asserts the INVARIANT BOUND instead:
+  // the panel is a literal, and every ink literal on it clears the bar over the
+  // worst-case slide. ONE measurement, not two per theme — nothing on this screen
+  // travels, which is the property that makes one measurement sufficient.
+  const panelLit = /borderRadius:'20px 20px 0 0'/.test(src) && /background:'(rgba\(12,10,9,0\.3\))'/.exec(src);
+  ok(`${f} — the panel ground is a pinned literal (invariant)`, !!panelLit);
+  ok(`${f} — no colour on this screen reads a theme token`,
+     !/color:\s*'var\(--/.test(src) && !/const GOLD = 'var\(--/.test(src));
+  if (!panelLit) continue;
+  const worst   = over([255,255,255, +slide[1]], parse(page[1]));  // a white slide region
+  const veiled  = over(parse(scrim[1]), worst);                    // the page scrim
+  const surface = over(parse(panelLit[1]), veiled);                // the panel itself
+  const INKS = [...src.matchAll(/color:\s*'(#[0-9A-Fa-f]{6}|rgba\(240,230,210,[\d.]+\))'/g)].map(m => m[1]);
+  const GOLDLIT = /const GOLD = '(#[0-9A-Fa-f]{6})'/.exec(src);
+  ok(`${f} — the cell found the screen's ink literals (not vacuous)`, INKS.length > 0, `${INKS.length} found`);
+  for (const val of [...new Set(INKS.concat(GOLDLIT ? [GOLDLIT[1]] : []))]) {
+    const v = ratio(over(parse(val), surface), surface);
+    ok(`${f} · ${val} \u2265 4.5:1 over a white slide`, v >= 4.5, `measured ${r2(v)}:1`);
   }
 }
 
@@ -309,7 +358,15 @@ const HDR = strip(read('components/vendor/Header.tsx'));
 ok('the panel is height-bounded by the DYNAMIC viewport', /maxHeight:\s*'calc\(100dvh - \d+px\)'/.test(HDR));
 ok('the panel scrolls its own overflow',                  /overflowY:\s*'auto'/.test(HDR));
 ok('momentum scrolling is on for iOS',                    /WebkitOverflowScrolling:\s*'touch'/.test(HDR));
-ok('the inner card keeps its own clip (the ornate radius)', /overflow:\s*'hidden'/.test(HDR));
+// RE-AIMED with the D-1 withdrawal: the bound moved from the positioner to the card,
+// so `overflow: 'hidden'` was retired into an overflowX/overflowY pair. The property
+// this cell protects is the horizontal clip, not the spelling of the declaration.
+ok('the card still clips horizontally (the ornate radius)', /overflowX:\s*'hidden'/.test(HDR));
+// AND the geometry the positioner had at origin is restored — this is the guard
+// against D-1 returning: an always-mounted absolute box must not reach past the
+// header's own padding edge on 23 surfaces.
+ok('the positioner keeps origin geometry (no negative offset)', /position:\s*'absolute',\s*top:\s*'calc\(100% \+ 12px\)',\s*right:\s*0/.test(HDR));
+ok('the positioner adds no horizontal padding',                !/padding:\s*'0 16px 16px'/.test(HDR));
 
 // ⑪ THE RETIREMENT, AND ITS GUARD AGAINST OVER-DELETION. FORK 5 = (a),
 // founder-ruled: the `Request Invite · For a client` row opened the same WhatsApp

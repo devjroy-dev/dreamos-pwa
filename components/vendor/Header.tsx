@@ -155,21 +155,26 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             overstates the viewport under collapsing browser chrome — which is the
             very geometry this cure exists to answer. 88px = the sticky header
             (10+34+12) + this panel's own 12px gap + a 20px foot margin.
-            THE PADDING IS NOT DECORATION. overflow-y:auto forces overflow-x to auto
-            too, so a scroll container clips its child's box-shadow on all four sides.
-            The inner card's ornate shadow is chrome R-M1 ruled byte-intact, so the
-            positioner carries 16px of horizontal and bottom padding to hold it, and
-            pays for that padding exactly: right shifts -16 and minWidth grows by the
-            32px the padding consumes (260 + 32 = 292), so the CARD still renders 260
-            wide with its right edge on the coin's right edge, as before. Disclosed as
-            deviation D-1 in the handover; the uncompensated form is the revert. */}
+            THE BOUND SITS ON THE CARD, NOT THE POSITIONER — D-1 WITHDRAWN. The first
+            build put it here and paid for overflow-y:auto's forced overflow-x with
+            16px of padding, right:-16 and minWidth 292, to keep the ornate shadow
+            from being clipped. That geometry was WRONG TO SHIP: this positioner is
+            in the DOM on every page that renders Header whether the drawer is open
+            or not (opacity/pointerEvents below, never a conditional mount), so a
+            negative right offset put an always-present absolutely-positioned box
+            past the header's padding edge on 23 surfaces — and a horizontal
+            clipping report arrived on the founder's very next walk. It was NOT
+            proven to be this byte and it is not exonerated either; it is simply
+            removed, so the next walk is a clean test of the other suspect.
+            Moving the bound to the card costs nothing and buys back what the
+            padding was for: overflow-y:auto clips to the border radius exactly as
+            overflow:hidden did, and a box-shadow is painted OUTSIDE the border box,
+            so the element's own overflow cannot clip it. Zero horizontal delta from
+            origin. R-M1's substance — viewport-bounded maxHeight, its own scroll,
+            momentum on, the card's chrome intact — is fully served. */}
         <div style={{
-          position: 'absolute', top: 'calc(100% + 12px)', right: -16,
-          minWidth: 292, zIndex: 200,
-          padding: '0 16px 16px',
-          maxHeight: 'calc(100dvh - 88px)',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch',
+          position: 'absolute', top: 'calc(100% + 12px)', right: 0,
+          minWidth: 260, zIndex: 200,
           opacity: profileOpen ? 1 : 0,
           transform: profileOpen ? 'translateY(0)' : 'translateY(-8px)',
           pointerEvents: profileOpen ? 'auto' : 'none',
@@ -177,13 +182,24 @@ export function Header({ vendorName }: { vendorName: string | null }) {
         }}>
           <div className="atelier-card atelier-card-ornate" style={{
             padding: 0,
+            // R-M1 lives here: bounded by the DYNAMIC viewport (vh overstates it
+            // under iOS Safari's collapsing chrome — this defect's own class), with
+            // its own scroll and momentum. overflowX stays hidden so the horizontal
+            // axis behaves exactly as the retired `overflow: hidden` did.
+            maxHeight: 'calc(100dvh - 88px)',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            WebkitOverflowScrolling: 'touch',
             background: `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)`, // theme-aware (was hardcoded espresso)
             backdropFilter: 'blur(32px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
             boxShadow: isLight
               ? `0 8px 24px -4px rgba(26,15,8,0.15), 0 0 0 0.5px ${T.sheetBorder}`
               : '0 16px 40px -8px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(201,168,76,0.32), inset 0 1px 0 var(--atelier-ink-dim)',
-            overflow: 'hidden',
+            // `overflow: 'hidden'` stood here. It is retired INTO the overflowX/overflowY
+            // pair above, which clips the horizontal axis identically and lets the
+            // vertical one scroll. The radius clip it was protecting is unchanged:
+            // overflow:auto establishes the same clipping box as overflow:hidden.
           }}>
             {/* Calling card header */}
             <div style={{
