@@ -268,7 +268,18 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
   const [open, setOpen] = useState(false);
   const [cols, setCols] = useState<Column[] | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [lifting, setLifting] = useState(false);
+  // ── TDW_09 P2-R1 · F-09.91 arm (b), FOUNDER-RULED — THE CREST IS RETIRED ──
+  // `lifting` + `lift()` (the crest's raise animation) died with the crest
+  // button below. The LEDGER STRIP is the door now: app/vendor/page.tsx's
+  // Ledger dispatches `tdw-open-books` on window (founder verbatim: 「 the
+  // natural inclination of any user will be to click the bar with numbers 」),
+  // and this listener answers. MECHANISM (F-06.85): if the event name moves,
+  // it moves in BOTH files — grep tdw-open-books.
+  useEffect(() => {
+    const h = () => setOpen(true);
+    window.addEventListener('tdw-open-books', h);
+    return () => window.removeEventListener('tdw-open-books', h);
+  }, []);
   const [skin, setSkin] = useState<Skin>('cards');
 
   // restore persisted skin once (per-browser; the vendor's chosen view sticks)
@@ -293,11 +304,6 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
     return () => { alive = false; };
   }, [open, vendorId]);
 
-  function lift() {
-    setLifting(true);
-    setTimeout(() => setOpen(true), 160);
-    setTimeout(() => setLifting(false), 640);
-  }
   function chooseSkin(s: Skin) {
     setSkin(s);
     try { localStorage.setItem(SKIN_KEY, s); } catch { /* silent */ }
@@ -323,23 +329,15 @@ export default function Cabinet({ vendorId }: { vendorId: string }) {
 
   return (
     <div className="dd-cab">
-      <button className={`cab-orn ${lifting ? 'lifting' : ''}`} aria-label="Open your books" onClick={lift}>
-        <span className="cab-trail" />
-        <svg viewBox="0 0 200 44" aria-hidden="true">
-          <defs>
-            <linearGradient id="cabFil" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="var(--cab-accent)" stopOpacity="0" />
-              <stop offset="0.5" stopColor="var(--cab-accent-warm)" stopOpacity="1" />
-              <stop offset="1" stopColor="var(--cab-accent)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path className="cab-crest-base" d="M34 26 Q100 22 166 26" />
-          <path className="cab-crest" d="M34 26 Q100 22 166 26" stroke="url(#cabFil)" />
-          <circle className="cab-core" cx="100" cy="23" r="2.6" />
-        </svg>
-        <span className="cab-cap">Your books</span>
-      </button>
-
+      {/* ── TDW_09 P2-R1 · F-09.91 — THE CREST BUTTON STOOD HERE. It was
+          `position: fixed; bottom: 76px; z-index: 48` (globals .cab-orn), an
+          offset calibrated to the bar-less O-2 home; the P2A five-door bar
+          changed the chrome beneath it and the crest landed on the input's tap
+          zone — the founder's tap on 「 Ask anything 」 lifted the cabinet
+          instead of the chat. A fixed offset is a claim about the chrome below
+          it, and the claim went stale. Retired by founder ruling, arm (b): the
+          ledger strip is the door; its numbers already say what lives inside.
+          The sheet below is unchanged — only the floating handle died. */}
       <div className={`cab-sheet ${open ? 'open' : ''}`}>
         <button className="cab-grip" aria-label="Close" onClick={() => setOpen(false)}><span /></button>
         <div className="cab-head">

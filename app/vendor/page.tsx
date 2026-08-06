@@ -30,6 +30,8 @@ import { createNote, reportGlitch, fetchDiscoverStatus } from '@/lib/vendor/api/
 
 import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
+// TDW_09 P2-R1 — F-09.21's pressed primitive, worn by the ledger door (F-09.91(b)).
+import { pressedStyle } from '@/lib/vendor/controls';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorContextResponse, TodayResponse, DiscoverStatus } from '@/lib/vendor/types/vendor';
 import { formatRs, fitMoneySize, moneyNeedsReflow } from '@/lib/vendor/format'; // TDW_09 R-U25/R-U24 · MICRO-2 R2: the reflow branch, F-09.80
@@ -273,11 +275,40 @@ function Ledger({ context, money, today }: { context: VendorContextResponse | nu
   // the neighbours follow the taller cell.
   const owedReflow = owed > 0 && cellInner > 0 && moneyNeedsReflow(owedText, cellInner, 18);
 
+  // ── TDW_09 P2-R1 · F-09.91 arm (b), FOUNDER-RULED — THE STRIP IS THE DOOR ──
+  // 「 the natural inclination of any user will be to click the bar with
+  // numbers written and see where it takes 」. The strip now opens Your Books:
+  // it dispatches `tdw-open-books`, and Cabinet.tsx's listener answers
+  // (mechanism pair — grep the event name). The crest handle it replaces is
+  // retired in Cabinet.tsx with its own tombstone. F-09.21: an interactive
+  // surface wears the pressed acknowledgment; reduced-motion read inline.
+  const [pressed, setPressed] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+
   return (
-    <div ref={stripRef} style={{
+    <div ref={stripRef}
+      role="button" tabIndex={0}
+      aria-label="Open your books"
+      onClick={() => window.dispatchEvent(new CustomEvent('tdw-open-books'))}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.dispatchEvent(new CustomEvent('tdw-open-books')); } }}
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerCancel={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      style={{
       display: 'flex', alignItems: 'stretch',
       padding: '14px 8px 12px',
       margin: '10px 22px 0',
+      cursor: 'pointer',
+      WebkitTapHighlightColor: 'transparent',
+      ...pressedStyle(pressed, reducedMotion),
       borderTop: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.22)' : A.brassSoft}`,
       borderBottom: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.22)' : A.brassSoft}`,
       position: 'relative',
@@ -846,6 +877,11 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   // chat's wire out of this sitting's reach; a wrapper catches the bar's own focus
   // without a byte entering it.
   const [risen, setRisen] = useState(false);
+  // TDW_09 P2-R1 (founder-asked): the risen masthead speaks Victor's ROOM.
+  // Read-only mirror of the chip's own hook state via its onMode publisher —
+  // one control, one truth. null while the first read is in flight, and the
+  // masthead falls back to the standing 「 Chat 」 byte rather than guessing.
+  const [victorRoom, setVictorRoom] = useState<'business' | 'advisor' | null>(null);
 
   // ── TDW_09 P2 · fork 8.3 (chair relay #3): REST-VISIBLE, RISEN-HIDDEN ──────
   // The five-door bar now renders on this screen (the old AI-null died with the
@@ -900,7 +936,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
       {/* ── Victor mode (Business·Advisor) — TDW_06 P6d (R-2); placement rides the founder's veto ── */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
-        <VictorModeChip onThreadReset={markFreshThread} />
+        <VictorModeChip onThreadReset={markFreshThread} onMode={setVictorRoom} />
       </div>
 
       {/* ── TDW_07 MICRO-2 — THE COMMAND BAR IS REMOVED-BY-FOUNDER-RULING. ──────────────
@@ -1001,11 +1037,40 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
               cursor: 'pointer',
             }}
           />
-          <div style={{
-            alignSelf: 'center', fontFamily: F.label, fontWeight: 300, fontSize: 8,
-            letterSpacing: '0.34em', textTransform: 'uppercase',
-            color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', margin: '2px 0 6px',
-          }}>Chat</div>
+          {/* ── TDW_09 P2-R1 (founder-asked): THE ROOM, NAMED ON THE CHAT ITSELF ──
+                 「 something in the chat surface (apart from the top pill) that
+                 reminds us advisory or business... classy elegant... properly
+                 visible or distinguishable 」. Two registers so the eye knows
+                 without reading: BUSINESS wears the house small-caps in brass;
+                 Advisor wears Cormorant italic in the theme accent. The words
+                 are the chip's own founder-vetoed pair, re-seated — no new
+                 vocabulary. While the room is unknown (first read in flight)
+                 the standing 「 Chat 」 byte holds — honest, never a guess. */}
+          {victorRoom === 'advisor' ? (
+            <div style={{
+              alignSelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center',
+              margin: '2px 0 6px', gap: 3,
+            }}>
+              <span style={{
+                fontFamily: F.script, fontStyle: 'italic', fontWeight: 500, fontSize: 16,
+                letterSpacing: '0.04em', lineHeight: 1,
+                color: T.isLight ? T.accent : A.brassWarm,
+              }}>Advisor</span>
+              <span aria-hidden style={{
+                width: 64, height: 1,
+                background: `linear-gradient(90deg, transparent, ${T.isLight ? T.accent : 'rgba(224,188,110,0.55)'}, transparent)`,
+              }} />
+            </div>
+          ) : (
+            <div style={{
+              alignSelf: 'center', fontFamily: F.label, fontWeight: victorRoom === 'business' ? 400 : 300, fontSize: 8,
+              letterSpacing: '0.34em', textTransform: 'uppercase',
+              color: victorRoom === 'business'
+                ? (T.isLight ? T.accent : A.brassWarm)
+                : (T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)'),
+              margin: '2px 0 6px',
+            }}>{victorRoom === 'business' ? 'Business' : 'Chat'}</div>
+          )}
 
           {/* Fresh thread (TDW_06 D-7) travels WITH the room it belongs to. */}
           <FreshThreadControl onConfirm={freshThread} disabled={loading} />

@@ -1093,31 +1093,13 @@ html.theme-light .dd-cab{
 /* TDW_09 R-U19 — the cabinet override deleted with the retired theme. */
 
 
-/* the ornament handle — sits just above the bottom nav */
-.dd-cab .cab-orn{
-  /* tap target = the visible crest only (was full-width, which swallowed taps on the
-     last row + everything along the bottom). Centered, sized to the handle. */
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 76px;
-  width: 208px; height: 40px; z-index: 48;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: transparent; border: 0; cursor: pointer; padding: 0; gap: 2px;
-}
-.dd-cab .cab-orn svg{ width: 200px; height: 44px; overflow: visible; display: block; }
-.dd-cab .cab-crest-base{ fill: none; stroke: var(--cab-accent-faint); stroke-width: 1; }
-.dd-cab .cab-crest{ fill: none; stroke-width: 1.4; stroke-linecap: round;
-  filter: drop-shadow(0 0 2px transparent); transition: filter .5s var(--cab-ease); }
-.dd-cab .cab-core{ fill: var(--cab-accent-warm); filter: drop-shadow(0 0 4px var(--cab-accent-soft));
-  animation: cabEmber 4.6s ease-in-out infinite; }
-@keyframes cabEmber{ 0%,100%{ opacity:.4; } 50%{ opacity:.7; } }
-.dd-cab .cab-cap{ font-family: var(--font-jost), system-ui, sans-serif; font-size: 9px;
-  letter-spacing: .22em; text-transform: uppercase; color: var(--cab-accent); opacity: .55; }
-
-.dd-cab .cab-trail{ position: absolute; left: 50%; transform: translateX(-50%); bottom: 24px;
-  width: 1.5px; height: 0; border-radius: 2px; opacity: 0; pointer-events: none;
-  background: linear-gradient(0deg, transparent, var(--cab-accent-warm)); }
-.dd-cab .cab-orn.lifting .cab-trail{ opacity: .9; height: 130px;
-  transition: height .42s var(--cab-ease), opacity .42s var(--cab-ease); }
-.dd-cab .cab-orn.lifting .cab-crest{ filter: drop-shadow(0 0 10px var(--cab-accent-soft)); }
+/* ── TDW_09 P2-R1 · F-09.91 — THE CREST'S CSS RETIRED WITH ITS BUTTON ────────
+   .cab-orn / .cab-trail / .cab-crest / .cab-core / .cab-cap and the cabEmber
+   keyframes stood here: a fixed-position handle at bottom:76px z-48, calibrated
+   to the bar-less home. The P2A bar changed the chrome beneath it and the crest
+   swallowed the input's taps (founder-walked). The ledger strip is the door now
+   (see Cabinet.tsx's tombstone + the tdw-open-books event pair). The SHEET
+   rules below survive whole. */
 
 /* the cabinet sheet */
 .dd-cab .cab-sheet{

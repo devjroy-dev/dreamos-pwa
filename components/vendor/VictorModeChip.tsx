@@ -9,6 +9,7 @@
 //
 // CHIP WORDS ('Business' / 'Advisor') and PLACEMENT ride the founder's veto.
 
+import { useEffect } from 'react';
 import { useVictorMode, type VictorMode } from '@/hooks/vendor/useVictorMode';
 import { useT } from '@/lib/vendor/ThemeContext';
 
@@ -25,9 +26,15 @@ const SEGMENTS: { key: VictorMode; label: string }[] = [
   { key: 'advisor',  label: 'Advisor'  },
 ];
 
-export function VictorModeChip({ onThreadReset }: { onThreadReset?: () => void } = {}) {
+// TDW_09 P2-R1 (founder-asked): `onMode` is an ADDITIVE, optional publisher —
+// the chip reports the room it is showing so the risen chat's masthead
+// (app/vendor/page.tsx) can speak the same word. The chip stays the ONE
+// control; the masthead is a read-only mirror of this very state, so the two
+// can never disagree — one hook call, one truth, published outward.
+export function VictorModeChip({ onThreadReset, onMode }: { onThreadReset?: () => void; onMode?: (m: VictorMode | null) => void } = {}) {
   const T = useT();
   const { mode, loading, saving, change } = useVictorMode();
+  useEffect(() => { onMode?.(mode); }, [mode, onMode]);
   const busy = loading || saving;
 
   return (
