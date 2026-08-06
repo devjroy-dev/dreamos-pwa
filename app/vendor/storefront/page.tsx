@@ -25,6 +25,19 @@ import { useEffect } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import Link from 'next/link';
 import { Header } from '@/components/vendor/Header';
+// ── TDW_09 PHASE B · F-3 = (a) — the bio story seats HERE, §1 of the door ──
+// The heading is the FOUNDER-VETOED byte 「 Complete your bio 」; the score is
+// THE one model (lib/vendor/profileMeter — moved from the profile page, never
+// re-authored) fed by the same reads that page trusts; the row's subtitle is
+// the drawer's own vetoed byte 「 How couples see you 」. Route byte-identical:
+// this block LINKS /vendor/discover/profile, it does not absorb it.
+import { useState } from 'react';
+import { useSettings } from '@/hooks/vendor/useSettings';
+import { fetchDiscoverStatus, fetchPortfolio, fetchToday } from '@/lib/vendor/api/vendor';
+import type { PortfolioImage } from '@/lib/vendor/types/vendor';
+import { photoFloor } from '@/lib/vendor/discoverFloor';
+import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
+import { Meter } from '@/components/vendor/ProfileMeter';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -69,11 +82,13 @@ interface Item { href: string; label: string; description: string; glyph: string
 // The four sections, Paper A's own membership. Descriptions: 'images and photo
 // library' and 'your profile on The Dream Wedding' are the More page's own
 // vetoed bytes, travelling WITH their rows (MOVED, control inventory).
+// V1/V2 FOUNDER-VETOED (「 pushed and ok 」, 2026-08-07): Leads and Collab
+// descriptions land; Portfolio/Discover descriptions carried from More at P2A.
 const SECTIONS: Item[] = [
   { href: '/vendor/portfolio',      label: 'Portfolio', description: 'images and photo library',           glyph: '▣' },
   { href: '/vendor/discover',       label: 'Discover',  description: 'your profile on The Dream Wedding',  glyph: '◈' },
-  { href: '/vendor/discover/leads', label: 'Leads',     description: '',                                   glyph: '✉' },
-  { href: '/vendor/collab',         label: 'Collab',    description: '',                                   glyph: '◇' },
+  { href: '/vendor/discover/leads', label: 'Leads',     description: 'couples who enquired',               glyph: '✉' },
+  { href: '/vendor/collab',         label: 'Collab',    description: 'shared weddings with other vendors', glyph: '◇' },
 ];
 
 function StoreRow({ item }: { item: Item }) {
@@ -118,8 +133,77 @@ export default function StorefrontPage() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <Header vendorName={session?.name ?? null} />
       <div style={{ flex: 1, paddingBottom: 40 }}>
-        <SectionLabel label="Storefront" first />
-        {SECTIONS.map(item => <StoreRow key={item.label} item={item} />)}
+        <BioBlock vendorId={session.id} />
+        <SectionLabel label="Storefront" />
+        {SECTIONS.map(item => <StoreRow key={item.label} item={{ ...item }} />)}
+      </div>
+    </div>
+  );
+}
+
+// ── §1 — the bio story (F-3(a)) + live counts (founder 「 ok 」) ──────────────
+function BioBlock({ vendorId }: { vendorId: string }) {
+  const { current, loading } = useSettings();
+  const [approved, setApproved] = useState(0);
+  const [pending, setPending] = useState(0);
+  const [hasHero, setHasHero] = useState(false);
+  const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
+  const [leadsWaiting, setLeadsWaiting] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    // BYTE-FOR-BYTE the profile page's own reads (:147-:157) — one authority
+    // on the meter's inputs, never a second recipe for the same number.
+    fetchDiscoverStatus().then((res) => {
+      if (!live || !res.ok) return;
+      setApproved(res.portfolio_summary?.approved ?? 0);
+      setPending(res.portfolio_summary?.pending ?? 0);
+      setServerFloor(res.min_portfolio_images);
+    }).catch(() => { /* the meter degrades to zeros; it never blocks the door */ });
+    fetchPortfolio(vendorId, 'approved').then((res) => {
+      if (!live || !res.ok) return;
+      setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
+    }).catch(() => { /* same */ });
+    // Leads count: the SAME engine figure the home ledger reads
+    // (TodayResponse.open_leads_count) — one authority, R-O12/R-O15's law.
+    fetchToday(vendorId).then((t) => { if (live) setLeadsWaiting(t?.open_leads_count ?? null); }).catch(() => {});
+    return () => { live = false; };
+  }, [vendorId]);
+  if (loading) return null;
+  const gaps = buildGaps({
+    approved, pending, floor: photoFloor(serverFloor), hasHero,
+    about: current.about,
+    tags: current.aesthetic_tags.split(',').map((t) => t.trim()).filter(Boolean),
+    travelNotes: current.travel_notes, rateMin: current.rate_min,
+    ig: current.instagram_handle,
+  });
+  const score = scoreOf(gaps);
+  return (
+    <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
+      {/* FOUNDER-VETOED heading (relay #2 slate). */}
+      <SectionLabel label="Complete your bio" first />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 24px' }}>
+        <Meter score={score} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Link href="/vendor/discover/profile" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink, lineHeight: 1.15 }}>Your bio</div>
+              {/* The drawer's own vetoed byte, carried. */}
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>How couples see you</div>
+            </div>
+            <Chevron />
+          </Link>
+        </div>
+      </div>
+      {/* Live counts under the same roof (readouts, not copy): */}
+      <div style={{ display: 'flex', gap: 18, padding: '10px 24px 4px' }}>
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
+          {approved} photos live{pending > 0 ? ` · ${pending} pending` : ''}
+        </span>
+        {leadsWaiting !== null && (
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: leadsWaiting > 0 ? A.brassWarm : A.inkMute }}>
+            {leadsWaiting} {leadsWaiting === 1 ? 'lead waiting' : 'leads waiting'}
+          </span>
+        )}
       </div>
     </div>
   );

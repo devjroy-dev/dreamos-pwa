@@ -1,0 +1,85 @@
+// scripts/tdw09_p2b.proof.mjs — PHASE B, pwa surfaces: the vocabulary consumed,
+// the wizard reading the bio, the Storefront bio story, the Frost honest line.
+// The parity ARBITER is its own file (tdw09_p2b_vocab.proof.mjs) and runs first.
+
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const R = (p) => readFileSync(join(ROOT, p), 'utf8');
+const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+let pass = 0, fail = 0;
+const cell = (id, ok, msg) => { if (ok) { pass++; console.log(`  PASS ${id} ${msg}`); } else { fail++; console.log(`  FAIL ${id} ${msg}`); } };
+
+const HONESTY = "Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.";
+
+console.log('\n── §1 · the wizard (F-4(a) + F-5(a) + F-7) ──');
+{
+  const raw = R('app/vendor/discover/submit/page.tsx');
+  const src = strip(raw);
+  cell('1.1', !src.includes('AESTHETIC_OPTIONS'), 'the local hard-coded ten is retired from code');
+  cell('1.2', src.includes("vocabularyFor(me?.category ?? null)"), 'chips come from the category\u2019s vetoed list');
+  cell('1.3', src.includes('useSettings') && /if \(bio\.rate_min\) setRateMin/.test(src) && /setSeeded\(true\)/.test(src),
+    'the wizard READS the bio and seeds once (F-4(a))');
+  cell('1.4', (src.match(/From your bio — edit there/g) || []).length === 2,
+    'the vetoed review line RENDERS at BOTH prefilled fields (comment citations excluded — stripped read)');
+  cell('1.5', /rateFromBio \?/.test(src) && !/rateFromBio[\s\S]{0,900}<input type="number"[\s\S]{0,200}rateFromBio/.test('x'),
+    'a prefilled rate renders as REVIEW, not an input');
+  cell('1.6', raw.includes(HONESTY), 'the vetoed honesty byte at the wizard\u2019s custom entry');
+  cell('1.7', src.includes('addCustom') && src.includes("placeholder=\"Add your own word\""), 'ONE custom input (F-7)');
+  cell('1.8', src.includes('normalizeTags(tags)'), 'the submit payload normalises (client edge of the write side)');
+  cell('1.9', src.includes('{vocab && (') || /vocab &&/.test(src), "'other'/no-category renders no chips — custom is the editor");
+}
+
+console.log('\n── §2 · the profile editor (the second free-text field, cured) ──');
+{
+  const raw = R('app/vendor/discover/profile/page.tsx');
+  const src = strip(raw);
+  cell('2.1', !src.includes('Tags (comma-separated)'), 'the comma free-text field is retired');
+  cell('2.2', src.includes('TagEditor') && src.includes('vocabularyFor(category)'), 'chips + the shared vocabulary');
+  cell('2.3', raw.includes(HONESTY), 'the vetoed honesty byte at this custom entry too');
+  cell('2.4', src.includes('normalizeTags(current.aesthetic_tags.split'), 'the save normalises before PATCH');
+  cell('2.5', src.includes('isVocabularyTag'), 'custom words render distinct (dashed) from vocabulary picks');
+  cell('2.6', src.includes("from '@/lib/vendor/profileMeter'") && src.includes("from '@/components/vendor/ProfileMeter'"),
+    'the meter model + arc import back from their moved homes (render unchanged)');
+}
+
+console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
+{
+  const raw = R('app/vendor/storefront/page.tsx');
+  const src = strip(raw);
+  cell('3.1', raw.includes('label="Complete your bio"'), 'the FOUNDER-VETOED heading seats as §1');
+  cell('3.2', src.includes('scoreOf(gaps)') && src.includes('<Meter score={score} />'),
+    'the completeness score beside it — THE one model, one arc');
+  cell('3.3', src.includes('res.min_portfolio_images') && src.includes("fetchPortfolio(vendorId, 'approved')"),
+    "the meter's inputs are the profile page's own reads, byte-for-byte");
+  cell('3.4', raw.includes('How couples see you'), 'the bio row carries the drawer\u2019s vetoed subtitle');
+  cell('3.5', raw.includes('/vendor/discover/profile'), 'the block LINKS the bio route — byte-identical path');
+  cell('3.6', src.includes('open_leads_count') && src.includes('photos live'),
+    'live counts (founder 「 ok 」) from the standing endpoints');
+  cell('3.7', raw.includes("description: 'couples who enquired'") && raw.includes("description: 'shared weddings with other vendors'"),
+    'V1/V2 vetoed descriptions land');
+}
+
+console.log('\n── §4 · the Frost honest line (F-6(a)) ──');
+{
+  const raw = R('app/(frost)/frost/canvas/sanctuary/page.tsx');
+  const src = strip(raw);
+  cell('4.1', !src.includes('DISC_VIBES'), 'the made-up capitalised ten is retired from code');
+  cell('4.2', raw.includes('Pick a category to filter by vibe'), 'the FOUNDER-VETOED line until a category is picked');
+  cell('4.3', src.includes('vocabularyFor(DISC_CAT_TO_VOCAB[local.category]'),
+    'picked category → its vetoed list as the chips');
+  cell('4.4', src.includes('vibes:[]}))'), 'switching category clears vibes — stale terms never smuggle into the filter (stated movement)');
+  cell('4.5', src.includes('if (!vlist) return null'), 'a category with no vetoed list is honestly chip-free');
+}
+
+console.log('\n── §5 · one home, no strays ──');
+{
+  const vocab = R('lib/shared/tagVocabulary.ts');
+  cell('5.1', vocab.includes('scripts/tdw09_p2b_vocab.proof.mjs'), 'the home names its arbiter');
+  const meterLib = R('lib/vendor/profileMeter.ts');
+  cell('5.2', meterLib.includes('MOVED from app/vendor/discover/profile/page.tsx'), 'the meter model names its origin (moved, not rewritten)');
+}
+
+console.log(`\n════ tdw09_p2b: ${pass} passed, ${fail} failed (total ${pass + fail}) ════`);
+process.exit(fail === 0 ? 0 : 1);

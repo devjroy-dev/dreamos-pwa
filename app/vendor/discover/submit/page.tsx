@@ -5,6 +5,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { useVendorMe } from '@/hooks/vendor/useVendorMe';
+import { useSettings } from '@/hooks/vendor/useSettings';
+import { vocabularyFor, normalizeTags } from '@/lib/shared/tagVocabulary';
 import { Header } from '@/components/vendor/Header';
 import { submitDiscoverRequest } from '@/lib/vendor/api/vendor';
 import { Toast } from '@/components/vendor/Toast';
@@ -21,7 +24,13 @@ const F = {
   label: 'var(--font-jost), system-ui, sans-serif',
 } as const;
 
-const AESTHETIC_OPTIONS = ['moody', 'editorial', 'film', 'candid', 'traditional', 'destination', 'luxury', 'intimate', 'documentary', 'fine-art'];
+// ── TDW_09 PHASE B · F-5(a) — THE LOCAL LIST IS RETIRED ONTO THE ONE HOME ──
+// `AESTHETIC_OPTIONS` stood here: ten lowercase photography terms hard-coded
+// into a wizard every category walked — a makeup artist chose from
+// 'fine-art'/'film', and the couple filter spoke a different capitalised ten
+// (F-10.52). The category's own FOUNDER-VETOED list now comes from
+// lib/shared/tagVocabulary.ts (parity-arbitered against the dream-os mirror);
+// `other` and no-category honestly get no chips — custom entry is the editor.
 
 const STEP_LABELS = ['Rates', 'Aesthetic', 'Pitch'];   // 'Samples' retired — F-10.53
 
@@ -39,6 +48,17 @@ export default function DiscoverSubmitPage() {
 function SubmitScreen({ vendorName }: { vendorName: string | null }) {
   const router = useRouter();
   const { toast, show } = useToast();
+  // ── TDW_09 PHASE B · F-4 = (a), chair relay #1 — THE WIZARD READS THE BIO ──
+  // The form used to RE-COLLECT rate_min and tags a vendor had already written
+  // on her Discover Profile — the two-authorities disease wearing a form. Now:
+  // useSettings is the same read the profile editor trusts; a field that has a
+  // value renders as a REVIEW line under the founder-vetoed byte
+  // 「 From your bio — edit there 」 and is NOT re-collected; only the gaps ask.
+  // A complete vendor walks a confirm-and-pitch, not a form. The PATCH door is
+  // untouched — this screen still submits the application payload; the bio
+  // stays edited where the review line says.
+  const { current: bio, loading: bioLoading } = useSettings();
+  const me = useVendorMe(); // category — which vetoed list this vendor gets
   // ── F-10.53 CURED · THE FOURTH STEP IS GONE, FOUNDER-RULED ────────────────
   // 「 3 to 5 photo is from the legacy era. it has no bearing whatso ever now 」
   //
@@ -61,11 +81,27 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
   // samples were still a contract.
   const [step, setStep] = useState(1);
   const [rateMin, setRateMin] = useState('');
+  const [seeded, setSeeded] = useState(false);
   // TDW_07 P4b · F4 — `rateMax` state RETIRED with its field. Nothing collects it, nothing
   // sends it, nothing gates on it.
   const [tags, setTags] = useState<string[]>([]);
   const [pitch, setPitch] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [custom, setCustom] = useState('');
+
+  // Seed ONCE from the bio (F-4(a)): values arrive as review, never as empty
+  // fields pretending the vendor is new.
+  useEffect(() => {
+    if (seeded || bioLoading) return;
+    if (bio.rate_min) setRateMin(String(bio.rate_min));
+    const existing = bio.aesthetic_tags.split(',').map((t) => t.trim()).filter(Boolean);
+    if (existing.length) setTags(existing);
+    setSeeded(true);
+  }, [seeded, bioLoading, bio]);
+
+  const vocab = vocabularyFor(me?.category ?? null);
+  const rateFromBio = seeded && !!bio.rate_min;
+  const tagsFromBio = seeded && bio.aesthetic_tags.trim() !== '';
 
   // THE PORTFOLIO FETCH DIES WITH THE STEP IT FED. `images` had exactly one
   // consumer — the sample grid — so keeping the call would have been a network
@@ -74,6 +110,12 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
 
   function toggleTag(tag: string) {
     setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag].slice(0, 10));
+  }
+  function addCustom() {
+    const n = custom.trim();
+    if (!n) return;
+    setTags(prev => prev.some(t => t.toLowerCase() === n.toLowerCase()) ? prev : [...prev, n].slice(0, 10));
+    setCustom('');
   }
   async function submit() {
     if (submitting) return;
@@ -84,7 +126,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
         // no longer stores the column; sending a value nothing reads is a lie about the
         // contract, and sending Number('') would have posted NaN.
         rate_min: Number(rateMin),
-        aesthetic_tags: tags, pitch: pitch.trim() || undefined,
+        aesthetic_tags: normalizeTags(tags), pitch: pitch.trim() || undefined,
       });
       if (!res.ok) { show((res as { error?: string }).error ?? 'Failed.', 'error'); return; }
       show('Application submitted!', 'success');
@@ -142,12 +184,22 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
                 surface for a real vendor. It was a required field gating a vendor's entry to
                 Discover on a number nobody would ever read.
                 The Min field is untouched, and its label already carried the register. */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</label>
-                <input type="number" value={rateMin} onChange={e => setRateMin(e.target.value)} style={inputStyle} placeholder="100000" />
+            {rateFromBio ? (
+              /* F-4(a): the value exists — REVIEW, don't re-collect. The line is
+                 the FOUNDER-VETOED byte; the bio stays edited where it says. */
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</div>
+                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>{rateMin}</div>
+                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>From your bio — edit there</div>
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</label>
+                  <input type="number" value={rateMin} onChange={e => setRateMin(e.target.value)} style={inputStyle} placeholder="100000" />
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -156,20 +208,41 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Choose up to ten that describe your work. Brides filter by these.
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-              {AESTHETIC_OPTIONS.map(tag => {
-                const on = tags.includes(tag);
-                return (
-                  <button key={tag} type="button" onClick={() => toggleTag(tag)} style={{
-                    padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
-                    background: on ? 'rgba(201,168,76,0.18)' : 'transparent',
-                    border: `0.5px solid ${on ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
-                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                    color: on ? A.brassWarm : A.inkMute,
-                    letterSpacing: '0.28em', textTransform: 'uppercase',
-                  }}>{tag}</button>
-                );
-              })}
+            {tagsFromBio && (
+              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4 }}>From your bio — edit there</div>
+            )}
+            {vocab && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                {vocab.map(tag => {
+                  const on = tags.some(t => t.toLowerCase() === tag.toLowerCase());
+                  return (
+                    <button key={tag} type="button" onClick={() => toggleTag(tag)} style={{
+                      padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
+                      background: on ? 'rgba(201,168,76,0.18)' : 'transparent',
+                      border: `0.5px solid ${on ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
+                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      color: on ? A.brassWarm : A.inkMute,
+                      letterSpacing: '0.28em', textTransform: 'uppercase',
+                    }}>{tag}</button>
+                  );
+                })}
+              </div>
+            )}
+            {/* F-7: ONE custom input, every category — for 'other' it is the
+                whole editor (the category has no list and does not pretend to). */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={custom} onChange={e => setCustom(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+                placeholder="Add your own word" style={{ ...inputStyle, flex: 1, width: 'auto' }} />
+              <button type="button" onClick={addCustom} style={{
+                padding: '10px 16px', borderRadius: 2, cursor: 'pointer',
+                background: 'transparent', border: '0.5px solid var(--atelier-label)',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, letterSpacing: '0.32em',
+                textTransform: 'uppercase', color: A.brassWarm }}>Add</button>
+            </div>
+            {/* FOUNDER-VETOED: the custom-tag honesty byte. */}
+            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+              Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
             </div>
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
           </>

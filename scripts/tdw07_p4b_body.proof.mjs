@@ -343,8 +343,14 @@ ok('§6.6 the Discover Profile\'s Max field is gone — it would have been a DEA
   !/Max \(Rs\)/.test(code(PROFILE)));
 ok('§6.7 the Discover Profile no longer saves or dirties on rate_max',
   !/rate_max/.test(code(PROFILE)));
-ok('§6.8 its score mirror follows the server\'s min-only predicate',
-  /rate:   \{ met: o\.rateMin !== '', gap: o\.rateMin !== '' \? 0 : 1, partial: false \}/.test(code(PROFILE)));
+// TDW_09 PHASE B — LABELLED AMENDMENT, COUNT PRESERVED (1 → 1). The rate
+// predicate moved WITH the meter model to lib/vendor/profileMeter.ts (moved,
+// not rewritten; the F11(c) precedent) so Storefront §1 renders the same
+// score. The property is UNCHANGED — min-only, partial:false — and the page
+// still consumes it (the import is asserted so a silent fork cannot green).
+ok('§6.8 (amended) the min-only predicate lives in the moved model and the page imports it back',
+  /rate:   \{ met: o\.rateMin !== '', gap: o\.rateMin !== '' \? 0 : 1, partial: false \}/.test(code('lib/vendor/profileMeter.ts'))
+  && /from '@\/lib\/vendor\/profileMeter'/.test(raw(PROFILE)));
 ok('§6.9 the "top of your rate range" hint retired with the bound',
   !/Add the top of your rate range/.test(raw(PROFILE)));
 

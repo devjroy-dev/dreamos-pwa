@@ -40,6 +40,12 @@ import { Header } from '@/components/vendor/Header';
 import { SCard, SField, SToggle, SaveBtn, A, F } from '@/components/vendor/AtelierForm';
 import { updateMe, fetchDiscoverStatus, fetchPortfolio } from '@/lib/vendor/api/vendor';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
+// TDW_09 PHASE B · F-5(a)/F-7 — the one vocabulary home (parity-arbitered
+// against the dream-os mirror; see the module header).
+import { vocabularyFor, normalizeTags, isVocabularyTag } from '@/lib/shared/tagVocabulary';
+import { W, SECTION_ORDER, MIN_TAGS, buildGaps, scoreOf, type Term, type Gaps } from '@/lib/vendor/profileMeter';
+import { Meter } from '@/components/vendor/ProfileMeter';
+import { useVendorMe } from '@/hooks/vendor/useVendorMe'; // category (locked field) read-only
 import { formatRs } from '@/lib/vendor/format';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 
@@ -51,10 +57,12 @@ import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 // written anywhere, and the feed never reads it. If the server's weights move, this
 // comment is the pointer to move with them.
 //   src/lib/vendor/profileScore.js — TERM_WEIGHTS + SECTION_ORDER, TDW_07 P2.
-const W = { hero: 0.135, about: 0.135, photos: 0.270, tags: 0.135, travel: 0.100, rate: 0.135, ig: 0.090 } as const;
-const SECTION_ORDER = ['hero', 'about', 'photos', 'tags', 'travel', 'rate', 'ig'] as const;
-type Term = typeof SECTION_ORDER[number];
-const MIN_TAGS = 3;
+// TDW_09 PHASE B — W / SECTION_ORDER / MIN_TAGS / buildGaps / scoreOf / Meter
+// MOVED (not rewritten — the F11(c) studioShared precedent) to
+// lib/vendor/profileMeter.ts + components/vendor/ProfileMeter.tsx, so the
+// Storefront door's §1 (F-3(a)) renders THE SAME score from THE SAME model.
+// This screen's rendered output is unchanged; it imports back what it authored.
+
 
 // TDW_07 P2 micro 2 — the gap record carries two extra FACTS, not two extra terms:
 //   `pending`  photos uploaded and awaiting an admin. The SCORE must keep ignoring them
@@ -64,39 +72,7 @@ const MIN_TAGS = 3;
 //              needs both bounds — but "Set your starting rate" to someone who set one
 //              reads as a failed save.
 // Neither changes a weight, a gap, or the score. They change only what the sentence knows.
-type Gaps = Record<Term, {
-  met: boolean; gap: number; have?: number; need?: number;
-  pending?: number; partial?: boolean;
-}>;
 
-function buildGaps(o: {
-  approved: number; pending: number; floor: number; hasHero: boolean; about: string;
-  tags: string[]; travelNotes: string; rateMin: string; ig: string;
-}): Gaps {
-  const photoHave = Math.min(o.approved, o.floor);
-  const tagHave = Math.min(o.tags.length, MIN_TAGS);
-  return {
-    hero:   { met: o.hasHero, gap: o.hasHero ? 0 : 1 },
-    about:  { met: o.about.trim() !== '', gap: o.about.trim() !== '' ? 0 : 1 },
-    photos: { met: o.approved >= o.floor, gap: o.floor > 0 ? (o.floor - photoHave) / o.floor : 0,
-              have: o.approved, need: o.floor, pending: o.pending },
-    tags:   { met: o.tags.length >= MIN_TAGS, gap: (MIN_TAGS - tagHave) / MIN_TAGS, have: o.tags.length, need: MIN_TAGS },
-    // The STATED policy, never the boolean — a vendor who has written "Delhi NCR only"
-    // has a complete travel policy and must not be penalised for answering honestly.
-    travel: { met: o.travelNotes.trim() !== '', gap: o.travelNotes.trim() !== '' ? 0 : 1 },
-    // TDW_07 P4b · F4 — MIN-ONLY, mirroring src/lib/vendor/rateMet.js exactly. This term
-    // MUST move in the same sitting as the server's, or the meter tells the vendor his rate
-    // is incomplete while the server scores it complete — two authorities on one number,
-    // which is the disease F-07.15 killed one surface over.
-    // `partial` retires with the upper bound: there is no half-set rate any more. A
-    // starting price is set or it is not, and `partial: false` is the honest constant
-    // rather than a field left computing over a retired input.
-    rate:   { met: o.rateMin !== '', gap: o.rateMin !== '' ? 0 : 1, partial: false },
-    ig:     { met: o.ig.trim() !== '', gap: o.ig.trim() !== '' ? 0 : 1 },
-  };
-}
-
-const scoreOf = (g: Gaps) => SECTION_ORDER.reduce((sum, k) => sum + W[k] * (1 - g[k].gap), 0);
 
 // FOUNDER-VETOED 2026-07-29 (copy slot 4, 「 go 」). The spec's third hint — "your last
 // enquiry sat {n}h" — is DROPPED and this is its reason: no carrier for enquiry-response
@@ -157,6 +133,7 @@ export default function DiscoverProfilePage() {
 function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName: string | null }) {
   const router = useRouter();
   const { current, loading, error, update, isDirty, markSaved } = useSettings();
+  const me = useVendorMe(); // category only — a locked field, never edited here
   const { toast, show } = useToast();
   const [saving, setSaving] = useState<string | null>(null);
   const [approved, setApproved] = useState(0);
@@ -296,12 +273,24 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                    })} />
         </SCard>
 
+        {/* ── TDW_09 PHASE B · F-7 (ruled) — CHIPS + ONE CUSTOM INPUT ────────────
+            The free-text comma field this card carried was the SECOND free-text
+            tag editor (the wizard held the first) and the F-10.52 mismatch's
+            other half: whatever a vendor typed here, in any case, was stored
+            verbatim and matched nothing. Now: the category's FOUNDER-VETOED
+            vocabulary renders as chips; ONE custom input adds her own words —
+            stored, displayed, normalised, NOT filterable in v1 — under the
+            vetoed honesty byte. `other` (and no-category) is honestly
+            chips-free: custom entry is the whole editor there. */}
         <SCard title="Aesthetic tags">
-          <SField label="Tags (comma-separated)" value={current.aesthetic_tags}
-                  onChange={(v) => update({ aesthetic_tags: v })} placeholder="moody, editorial, film" />
+          <TagEditor
+            category={me?.category ?? null}
+            value={current.aesthetic_tags}
+            onChange={(v) => update({ aesthetic_tags: v })}
+          />
           <SaveBtn dirty={isDirty(['aesthetic_tags'])} loading={saving === 'tags'}
                    onSave={() => save('tags', ['aesthetic_tags'], {
-                     aesthetic_tags: current.aesthetic_tags.split(',').map((t) => t.trim()).filter(Boolean),
+                     aesthetic_tags: normalizeTags(current.aesthetic_tags.split(',')),
                    })} />
         </SCard>
 
@@ -376,28 +365,78 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
   );
 }
 
-// ── The meter: a brass arc. The screen's single gold, per the house law. ──────────
-function Meter({ score }: { score: number }) {
-  const pct = Math.max(0, Math.min(1, score));
-  const R = 52, C = Math.PI * R;           // half-circumference — the arc is a semicircle
+// ── TDW_09 PHASE B · F-7 — the shared-shape tag editor (chips + one custom) ──
+// Value stays the settings-state comma-joined STRING (the wire's own shape);
+// this component derives the array view and writes the string back, so
+// isDirty/markSaved keep working on the field they always compared.
+function TagEditor({ category, value, onChange }: {
+  category: string | null; value: string; onChange: (v: string) => void;
+}) {
+  const [custom, setCustom] = useState('');
+  const vocab = vocabularyFor(category);
+  const selected = value.split(',').map((t) => t.trim()).filter(Boolean);
+  const has = (t: string) => selected.some((x) => x.toLowerCase() === t.toLowerCase());
+  const write = (arr: string[]) => onChange(arr.join(', '));
+  const toggle = (t: string) => write(has(t) ? selected.filter((x) => x.toLowerCase() !== t.toLowerCase()) : [...selected, t]);
+  const addCustom = () => {
+    const n = custom.trim();
+    if (!n || has(n)) { setCustom(''); return; }
+    write([...selected, n]); setCustom('');
+  };
+  const customs = selected.filter((t) => !isVocabularyTag(t, category));
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 6 }}>
-      <svg width="140" height="80" viewBox="0 0 140 80" role="img"
-           aria-label={`Profile completeness ${Math.round(pct * 100)} percent`}>
-        <path d="M 18 70 A 52 52 0 0 1 122 70" fill="none"
-              stroke="rgba(201,168,76,0.16)" strokeWidth="3" strokeLinecap="round" />
-        <path d="M 18 70 A 52 52 0 0 1 122 70" fill="none"
-              stroke="var(--role-metal)" strokeWidth="3" strokeLinecap="round"
-              strokeDasharray={`${C * pct} ${C}`}
-              style={{ transition: 'stroke-dasharray 420ms cubic-bezier(0.22,1,0.36,1)' }} />
-      </svg>
-      <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: A.ink, marginTop: -18 }}>
-        {Math.round(pct * 100)}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {vocab && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {vocab.map((tag) => {
+            const on = has(tag);
+            return (
+              <button key={tag} type="button" onClick={() => toggle(tag)} style={{
+                padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
+                background: on ? 'rgba(201,168,76,0.18)' : 'transparent',
+                border: `0.5px solid ${on ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
+                fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                color: on ? 'var(--atelier-label)' : A.inkMute,
+                letterSpacing: '0.28em', textTransform: 'uppercase',
+              }}>{tag}</button>
+            );
+          })}
+        </div>
+      )}
+      {customs.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {customs.map((tag) => (
+            <button key={tag} type="button" onClick={() => toggle(tag)} title="Remove"
+              style={{
+                padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
+                background: 'transparent',
+                border: '0.5px dashed rgba(201,168,76,0.4)',
+                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1,
+                color: A.ink,
+              }}>{tag} ×</button>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input value={custom} onChange={(e) => setCustom(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+          placeholder="Add your own word"
+          style={{ flex: 1, padding: '10px 12px', boxSizing: 'border-box',
+            background: 'var(--atelier-input-bg)', border: '0.5px solid rgba(201,168,76,0.28)',
+            borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+            color: A.ink, outline: 'none', caretColor: 'var(--atelier-accent-text)' }} />
+        <button type="button" onClick={addCustom} style={{
+          padding: '10px 16px', borderRadius: 2, cursor: 'pointer',
+          background: 'transparent', border: '0.5px solid var(--atelier-label)',
+          fontFamily: F.label, fontWeight: 400, fontSize: 9, letterSpacing: '0.32em',
+          textTransform: 'uppercase', color: 'var(--atelier-label)' }}>Add</button>
       </div>
-      <div style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.42em',
-        textTransform: 'uppercase', color: A.inkMute, marginTop: 4,
-      }}>Profile strength</div>
+      {/* FOUNDER-VETOED (relay #2 slate + RIDER4 §5): the custom-tag honesty byte. */}
+      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+        Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
+      </div>
     </div>
   );
 }
+
+

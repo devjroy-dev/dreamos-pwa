@@ -1,6 +1,7 @@
 'use client';
 import EnquirySheet from '@/components/frost/EnquirySheet';
 import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
+import { vocabularyFor } from '@/lib/shared/tagVocabulary';
 import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
 
 // sanctuary/page.tsx — V5 BLOOM ARCHITECTURE
@@ -1186,7 +1187,20 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
 
 const DISC_CATEGORIES = ['Venues','Photographers','Makeup Artists','Designers','Jewellery','Choreographers','Content Creators','DJ & Music','Event Managers','Bridal Wellness'];
 const DISC_CITIES     = ['Delhi NCR','Mumbai','Bangalore','Chennai','Hyderabad','Kolkata','Jaipur','Pune','Udaipur','Goa'];
-const DISC_VIBES      = ['Candid','Traditional','Luxury','Cinematic','Boho','Festive','Minimalist','Royal','Destination','Contemporary'];
+// ── TDW_09 PHASE B · F-6 = (a) + F-5(a) — DISC_VIBES IS RETIRED ─────────────
+// The capitalised ten that stood here were the COUPLE half of F-10.52: a
+// made-up list, exact-matched by .overlaps against lowercase vendor terms —
+// `Traditional` never met `traditional`, seven of ten met nothing at all. The
+// vibe chips now come from THE one vocabulary home (lib/shared/tagVocabulary,
+// parity-arbitered), scoped to the PICKED category; until one is picked the
+// section shows the FOUNDER-VETOED honest line instead of chips that would
+// filter across vocabularies that don't share words. Frost display names map
+// to vocabulary keys below; categories without a vetoed list honestly show no
+// chips (the 'other' law).
+const DISC_CAT_TO_VOCAB: Record<string, string> = {
+  'Venues': 'venue', 'Photographers': 'photography', 'Makeup Artists': 'makeup',
+  'Choreographers': 'choreography', 'DJ & Music': 'music', 'Event Managers': 'planning',
+};
 // F-07.34 — one home (see lib/frost/budgetBands.ts). Vetoed labels, values untouched.
 const DISC_BUDGETS    = BUDGET_BANDS;
 
@@ -1267,7 +1281,7 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
         </div>
         <Section id="cat" label="Category" hasVal={!!local.category}>
           <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
-            {DISC_CATEGORIES.map(c=><button key={c} style={p(local.category===c)} onClick={()=>setLocal(f=>({...f,category:f.category===c?null:c}))}>{c}</button>)}
+            {DISC_CATEGORIES.map(c=><button key={c} style={p(local.category===c)} onClick={()=>setLocal(f=>({...f,category:f.category===c?null:c,vibes:[]}))}>{c}</button>)}
           </div>
         </Section>
         <Section id="city" label="City" hasVal={!!local.city}>
@@ -1276,9 +1290,19 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
           </div>
         </Section>
         <Section id="vibe" label="Vibe" hasVal={local.vibes.length>0}>
-          <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
-            {DISC_VIBES.map(v=><button key={v} style={p(local.vibes.includes(v))} onClick={()=>setLocal(f=>({...f,vibes:f.vibes.includes(v)?f.vibes.filter(x=>x!==v):[...f.vibes,v]}))}>{v}</button>)}
-          </div>
+          {(() => {
+            const vlist = local.category ? vocabularyFor(DISC_CAT_TO_VOCAB[local.category] ?? local.category) : null;
+            if (!local.category) return (
+              /* FOUNDER-VETOED byte (relay #2 slate) — the honest single line. */
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontSize:16,lineHeight:1.5,color:'rgba(248,247,245,.5)'}}>Pick a category to filter by vibe</div>
+            );
+            if (!vlist) return null; /* category without a vetoed list — honestly chip-free */
+            return (
+              <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
+                {vlist.map(v=><button key={v} style={p(local.vibes.includes(v))} onClick={()=>setLocal(f=>({...f,vibes:f.vibes.includes(v)?f.vibes.filter(x=>x!==v):[...f.vibes,v]}))}>{v}</button>)}
+              </div>
+            );
+          })()}
         </Section>
         <Section id="budget" label="Budget" hasVal={!!local.budget}>
           <div style={{display:'flex',flexWrap:'wrap' as any,gap:8}}>
