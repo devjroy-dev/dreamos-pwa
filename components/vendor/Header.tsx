@@ -94,10 +94,8 @@ export function Header({ vendorName }: { vendorName: string | null }) {
     router.replace('/');
   }
 
-  function requestInvite() {
-    setProfileOpen(false);
-    window.open('https://wa.me/917982159047?text=Hi%2C%20I%27d%20like%20to%20request%20an%20invite%20for%20one%20of%20my%20clients.', '_blank');
-  }
+  // TDW_09 MICRO-2 · F-09.75 — `requestInvite()` stood here and died with the drawer
+  // row that was its only caller. See the tombstone at the Actions section below.
 
   // In light mode, ink colors flip — header text needs to read on cream
   const isLight = theme === 'light';
@@ -148,9 +146,30 @@ export function Header({ vendorName }: { vendorName: string | null }) {
         </button>
 
         {/* Calling-card dropdown */}
+        {/* ── TDW_09 MICRO-2 · F-09.71 · R-M1 — THE PANEL IS BOUNDED BY THE VIEWPORT ──
+            This positioner had no maxHeight and no overflow, so on a short frame the
+            panel simply hung off the bottom of the screen and its foot — Sign Out
+            included — could not be reached by any gesture. Founder-witnessed at
+            374×691, where the declared contents want ≈679px and 623px exist.
+            dvh, not vh, RULED AT R-M1: the founder walks iOS Safari, where vh
+            overstates the viewport under collapsing browser chrome — which is the
+            very geometry this cure exists to answer. 88px = the sticky header
+            (10+34+12) + this panel's own 12px gap + a 20px foot margin.
+            THE PADDING IS NOT DECORATION. overflow-y:auto forces overflow-x to auto
+            too, so a scroll container clips its child's box-shadow on all four sides.
+            The inner card's ornate shadow is chrome R-M1 ruled byte-intact, so the
+            positioner carries 16px of horizontal and bottom padding to hold it, and
+            pays for that padding exactly: right shifts -16 and minWidth grows by the
+            32px the padding consumes (260 + 32 = 292), so the CARD still renders 260
+            wide with its right edge on the coin's right edge, as before. Disclosed as
+            deviation D-1 in the handover; the uncompensated form is the revert. */}
         <div style={{
-          position: 'absolute', top: 'calc(100% + 12px)', right: 0,
-          minWidth: 260, zIndex: 200,
+          position: 'absolute', top: 'calc(100% + 12px)', right: -16,
+          minWidth: 292, zIndex: 200,
+          padding: '0 16px 16px',
+          maxHeight: 'calc(100dvh - 88px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
           opacity: profileOpen ? 1 : 0,
           transform: profileOpen ? 'translateY(0)' : 'translateY(-8px)',
           pointerEvents: profileOpen ? 'auto' : 'none',
@@ -210,7 +229,17 @@ export function Header({ vendorName }: { vendorName: string | null }) {
 
             {/* ACTIONS section */}
             <SectionLabel isLight={isLight}>Actions</SectionLabel>
-            <DItem glyph="✉" label="Request Invite" subtitle="For a client" isLight={isLight} onClick={requestInvite} accent />
+            {/* ── TDW_09 MICRO-2 · F-09.75 · FORK 5 = (a), FOUNDER-RULED — THE ROW IS DEAD ──
+                A `Request Invite · For a client` row stood here. It opened
+                wa.me/917982159047 with an invite prefill — THE SAME NUMBER the row
+                below opens with "Hi". A duplicate door, and its noun was the
+                vocabulary of the invite/waitlist ceremony that dream-os retired whole
+                (`src/api/waitlist.js` deleted; see docs/TDW_09_MICRO_HANDOVER.md, L1).
+                Removed by ruling, not by cleanup: accounted REMOVED-BY-RULING in this
+                sitting's control inventory. Its handler `requestInvite()` went
+                caller-zero in the same edit and was deleted with it — an orphaned
+                handler is an orphaned require, only quieter.
+                THE ROW BELOW IS THE SURVIVING DOOR and is byte-untouched. */}
             <DItem glyph="◎" label="DreamAi on WhatsApp" subtitle="Chat with us" isLight={isLight} onClick={() => window.open('https://wa.me/917982159047?text=Hi', '_blank')} accent />
             <DItem glyph="→" label="Sign Out" isLight={isLight} onClick={signOut} danger last />
           </div>

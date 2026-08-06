@@ -158,9 +158,170 @@ const CTX = read('lib/vendor/ThemeContext.tsx');
 for (const r of ['positive','caution','critical','metal','scrim','sheet'])
   ok(`--role-${r} is published`, new RegExp(`setProperty\\('--role-${r}'`).test(CTX));
 const CSS = read('app/globals.css');
-ok('globals.css no longer holds a second copy of the ink ladder',
+// ── TDW_09 MICRO-2 · R-M5 — THIS CELL IS RE-AIMED (labeled amendment, 1 → 1) ────
+// It asserted "no second copy of the ink ladder", testing two stale LIGHT literals.
+// That question was answered by DELETION and the deletion is what F-09.72/.73 cost
+// us: an absent pre-mount value does not fall back to the owner, it falls back to
+// the inherited initial. The real law — F-09.35's, the later one — is that the
+// pre-mount home must be COMPLETE and must AGREE. Cell ⑧ below asserts that
+// properly, per token, against theme.ts. What survives here is the narrow guard the
+// original cell was actually protecting: the two PRE-CURE values must never return.
+ok('the pre-cure light ink values never return',
    !/--atelier-ink-mute:\s*rgba\(26,15,8,0\.58\)/.test(CSS) &&
    !/--atelier-ink-dim:\s*rgba\(26,15,8,0\.38\)/.test(CSS));
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TDW_09 MICRO-2 — F-09.71…75. Five cells for one sitting, and the reason they
+// live HERE rather than in a bench of their own: every one of them is F-09.28's
+// question (does a rendered PAIR theme coherently?) asked along an axis cells ①–⑥
+// cannot reach. This file was 37/37 GREEN over three screens the founder could not
+// read. That is the specimen.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const RADIUS = [
+  'app/vendor/pin-login/page.tsx',
+  'app/vendor/pin-reset/page.tsx',
+  'app/vendor/pin/page.tsx',
+  'components/vendor/Splash.tsx',
+  'components/vendor/Header.tsx',
+];
+
+// ⑦ THE PINNED-GROUND CELL — the axis cell ④ is blind to, by construction.
+// Cell ④ hunts LITERALS USED AS INK. Here the ink was a TOKEN, correctly authored,
+// and the GROUND was the literal — and a ground literal's own contrast ratio is
+// ~1.0 against any page, so it is below every threshold ④ tests. The species:
+// a surface that pins its ground while its text reads colour tokens that travel
+// with the theme. On Editorial Paper the ink moves and the ground does not.
+// PROPERTY, not a roster: each surface must either not pin its ground, or read no
+// travelling colour token. Either is coherent. The MIX is the disease.
+console.log('\n\u2466 no surface pins its ground while its ink travels');
+// THE GROUND IS THE NEAREST ONE, NOT ANY ONE. A first draft of this cell flagged a
+// literal ANYWHERE in the file against a travelling token ANYWHERE in the file, and
+// convicted the cured pin screens: they still pin #0C0A09 as the page colour behind
+// the PHOTOGRAPH, which no text ever composites against. That cell was measuring
+// co-occurrence, not the pair that renders. Corrected to walk the file in SOURCE
+// ORDER — in this estate's JSX a text block's ground is the last `background:`
+// declared above it — and judge each travelling ink against the ground actually
+// beneath it. The pin screens' page literal is now correctly ignored; their PANEL
+// is what the ink lands on, and that reads the sheet role.
+const GROUND = /background:\s*'([^']+)'/;
+const INK    = /color:\s*'var\(\s*(--atelier-ink[a-z-]*|--role-(?:positive|caution|critical|metal))\s*[,)][^']*'/;
+const isPinned = (v) => /^#[0-9a-fA-F]{6}$/.test(v) || /^rgba?\(/.test(v);
+for (const f of RADIUS) {
+  let ground = null, offenders = [];
+  for (const line of strip(read(f)).split('\n')) {
+    const g = GROUND.exec(line);
+    if (g) ground = g[1];
+    const k = INK.exec(line);
+    if (k && ground && isPinned(ground)) offenders.push(`${k[1]} on ${ground}`);
+  }
+  ok(`${f} — travelling ink never lands on a pinned ground`, offenders.length === 0,
+     [...new Set(offenders)].slice(0, 4).join(' | '));
+}
+
+// ⑧ THE PRE-MOUNT HOME — complete AND in agreement, per token, both themes.
+// F-09.35's law generalized. Every custom property the radius READS must be
+// declared in BOTH globals.css homes, and where theme.ts owns a twin the declared
+// value must EQUAL the owner's. An absent value renders the inherited initial for
+// one frame; a divergent one renders a colour the owner does not hold. F-09.76 is
+// the second: --atelier-ink-mute/-dim sat at the PRE-R-U18 .45/.25 in :root while
+// theme.ts held .58/.52 — the cured ladder, and a first frame still rendering the
+// failure R-U18 was raised to fix.
+console.log('\n\u2467 every token the radius reads has a complete, agreeing pre-mount home');
+const rootBlock  = /\/\* Dark mode defaults \*\/[\s\S]*?^:root \{([\s\S]*?)^\}/m.exec(CSS);
+const lightBlock = /^html\.theme-light \{([\s\S]*?)^\}/m.exec(CSS);
+ok('both globals theme blocks are locatable', !!rootBlock && !!lightBlock);
+const declsOf = (s) => Object.fromEntries([...(s || '').matchAll(/--([a-z-]+):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
+const GROOT = declsOf(rootBlock?.[1]), GLIGHT = declsOf(lightBlock?.[1]);
+const OWNER = { 'atelier-ink':'ink','atelier-ink-soft':'inkSoft','atelier-ink-mute':'inkMute','atelier-ink-dim':'inkDim','atelier-ink-fade':'inkFade','atelier-label':'label','atelier-accent-text':'accentText','atelier-input-border':'inputBorder','atelier-sheet-top':'sheetTop','atelier-sheet-bot':'sheetBot','atelier-row-hover':'rowHover','atelier-bg':'pageBg','role-positive':'positive','role-caution':'caution','role-critical':'critical','role-metal':'metal','role-scrim':'scrim','role-sheet':'sheet' };
+// Font-family custom properties are Next.js's `next/font` handles, injected on the
+// <html> element by the font loader at build time. They have no theme twin, no
+// colour, and no business in a theme block — named here so the exclusion is a
+// declared class with a reason rather than a silent filter.
+const NOT_A_COLOUR = /^font-/;
+const readTokens = new Set();
+for (const f of RADIUS) for (const m of strip(read(f)).matchAll(/var\(\s*--([a-z-]+)\s*[,)]/g)) if (!NOT_A_COLOUR.test(m[1])) readTokens.add(m[1]);
+ok('the non-colour exclusion is exactly the next/font class', NOT_A_COLOUR.source === '^font-');
+ok('the radius reads at least one token (the cell is not vacuous)', readTokens.size > 0, `${readTokens.size} tokens`);
+for (const t of [...readTokens].sort()) {
+  ok(`--${t} declared in BOTH pre-mount homes`, GROOT[t] !== undefined && GLIGHT[t] !== undefined,
+     `dark=${GROOT[t] ?? '(ABSENT)'} light=${GLIGHT[t] ?? '(ABSENT)'}`);
+  const own = OWNER[t];
+  if (!own) continue;
+  const D = tokens('DARK')[own], L = tokens('LIGHT')[own];
+  ok(`--${t} agrees with lib/vendor/theme.ts on both themes`,
+     GROOT[t] === D && GLIGHT[t] === L,
+     `globals ${GROOT[t]} / ${GLIGHT[t]}  vs owner ${D} / ${L}`);
+}
+
+// ⑧b THE LADDER'S OTHER HALF. Completing the pre-mount home is only half a cure:
+// a token declared in globals and NOT published by ThemeContext is correct for one
+// frame and then abandoned — the mirror image of F-09.72's disease, and the exact
+// mutation that exposed this gap (reverting ThemeContext.tsx alone left ⑧ GREEN,
+// because ⑧ reads globals and the radius, never the publisher). Recorded rather
+// than papered over, then closed: every token with an owner in theme.ts and a home
+// in globals must ALSO be published post-mount, or the two homes do not move
+// together and F-09.35 returns from the other side.
+console.log('\n\u2467b every pre-mount token is also published post-mount');
+const CTX2 = read('lib/vendor/ThemeContext.tsx');
+for (const [css, own] of Object.entries(OWNER)) {
+  if (GROOT[css] === undefined) continue;
+  ok(`--${css} is published by ThemeContext (owner: ${own})`,
+     new RegExp(`setProperty\\('--${css}'`).test(CTX2));
+}
+
+// ⑨ THE PIN TRIO, MEASURED OVER THE WORST CASE. The background is a photograph, so
+// no single number describes it — but the WORST CASE is a bound and a bound is what
+// a bench needs: a blown-out white slide region at the declared slide opacity,
+// under the declared scrim, under the panel's own surface. backdrop-filter blurs
+// that region without moving its mean luminance, so the blur buys nothing here and
+// is not credited. Every literal below is parsed from the page and from theme.ts;
+// nothing is a number copied out of a comment.
+console.log('\n\u2468 the pin trio reads over a blown-out slide, both themes');
+for (const f of RADIUS.filter(x => x.includes('/pin'))) {
+  const src = strip(read(f));
+  const slide = /opacity:\s*i === slide \? ([\d.]+)/.exec(src);
+  const page  = /position:'fixed',inset:0,background:'(#[0-9a-fA-F]{6})'/.exec(src);
+  const scrim = /position:'absolute',inset:0,background:'(rgba\([^']+\))'/.exec(src);
+  ok(`${f} — slide/page/scrim literals all parse`, !!slide && !!page && !!scrim);
+  if (!slide || !page || !scrim) continue;
+  ok(`${f} — the panel ground reads the sheet ROLE, not a literal`,
+     /background:'var\(--atelier-sheet-top\)'/.test(src));
+  for (const [label, key] of THEMES) {
+    const t = tokens(key);
+    const worst = over([255,255,255, +slide[1]], parse(page[1]));   // a white slide region
+    const veiled = over(parse(scrim[1]), worst);                     // the page scrim
+    const surface = over(parse(t.sheetTop), veiled);                  // the panel — ONE flat ground
+    for (const [name, val] of [['ink', t.ink], ['ink-mute', t.inkMute], ['metal', t.metal]]) {
+      const v = ratio(over(parse(val), surface), surface);
+      ok(`${f} · ${label} · ${name} \u2265 4.5:1 over a white slide`, v >= 4.5, `measured ${r2(v)}:1`);
+    }
+  }
+}
+
+// ⑩ THE DRAWER IS BOUNDED. F-09.71 is geometry, not colour: the panel had no
+// maxHeight and no overflow, so its foot — Sign Out — hung off a short viewport
+// with no gesture that could reach it. The cell asserts the three properties that
+// make a panel reachable, and it asserts dvh specifically: vh overstates the
+// viewport under iOS Safari's collapsing chrome, which is this very defect's class.
+console.log('\n\u2469 the avatar drawer is bounded and scrolls');
+const HDR = strip(read('components/vendor/Header.tsx'));
+ok('the panel is height-bounded by the DYNAMIC viewport', /maxHeight:\s*'calc\(100dvh - \d+px\)'/.test(HDR));
+ok('the panel scrolls its own overflow',                  /overflowY:\s*'auto'/.test(HDR));
+ok('momentum scrolling is on for iOS',                    /WebkitOverflowScrolling:\s*'touch'/.test(HDR));
+ok('the inner card keeps its own clip (the ornate radius)', /overflow:\s*'hidden'/.test(HDR));
+
+// ⑪ THE RETIREMENT, AND ITS GUARD AGAINST OVER-DELETION. FORK 5 = (a),
+// founder-ruled: the `Request Invite · For a client` row opened the same WhatsApp
+// number as the row beneath it and spoke a ceremony dream-os had already retired.
+// The third assertion is the one that matters most — a deletion cell that only
+// checks for absence cannot tell a correct cut from a careless one.
+console.log('\n\u246A the Request Invite row is retired, the surviving door intact');
+ok('the Request Invite row is gone',      !/label="Request Invite"/.test(HDR));
+ok('its handler went with it',            !/function requestInvite/.test(HDR));
+ok('no caller survives it',               !/requestInvite\b/.test(HDR.replace(/`[^`]*`/g, '')));
+ok('the DreamAi on WhatsApp row STANDS',  /label="DreamAi on WhatsApp"/.test(HDR));
+ok('Sign Out — the census\u2019s reason to exist — STANDS', /label="Sign Out"/.test(HDR));
 
 console.log(`\n${fail===0?'GREEN':'RED'} — ${pass} passed, ${fail} failed\n`);
 

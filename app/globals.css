@@ -696,11 +696,47 @@ body {
 
 /* ── Theme CSS variables ─────────────────────────────────────── */
 /* Dark mode defaults */
+/* ── TDW_09 MICRO-2 · R-M5 — THE PRE-MOUNT HOME IS COMPLETED, NOT DELETED ─────
+   THIS BLOCK'S MODEL WAS AMBIGUOUS AND IS NOW RULED. F-09.28's note in the light
+   block below says a second home "is the disease this block belongs to" and
+   DELETED the light ink rungs; F-09.35's note at --atelier-input-border says the
+   opposite in the same file — "This block is the PRE-MOUNT home... Both homes move
+   together or the first frame renders an edge the owner does not hold." F-09.35 is
+   the LATER law and R-M5 ratifies it: a token this estate's surfaces read must be
+   declared HERE, in BOTH homes, at the value lib/vendor/theme.ts holds. An ABSENT
+   pre-mount value renders the inherited initial (black ink, or nothing at all);
+   a DIVERGENT one renders a value the owner does not hold. Both are F-09.35.
+   MECHANISM (F-06.85's law): every value below is copied from the DARK/LIGHT
+   objects in lib/vendor/theme.ts, which is the owner. When a token moves there it
+   moves here in the same commit, and scripts/tdw09_roles.proof.mjs cell ⑧ is what
+   fails if it does not — it re-derives BOTH homes against theme.ts every run.
+   F-09.76: --atelier-ink-mute and --atelier-ink-dim below carried .45 / .25 —
+   the PRE-R-U18 values, 3.87:1 and 2.05:1, both under the body bar that R-U18
+   raised them to clear. The ladder was cured in theme.ts and the first frame kept
+   rendering the failure. Corrected to the owner's .58 / .52. */
 :root {
   --atelier-ink:         #F0E6D2;
   --atelier-ink-soft:    rgba(240,230,210,0.65);
-  --atelier-ink-mute:    rgba(240,230,210,0.45);
-  --atelier-ink-dim:     rgba(240,230,210,0.25);
+  --atelier-ink-mute:    rgba(240,230,210,0.58);
+  --atelier-ink-dim:     rgba(240,230,210,0.52);
+  --atelier-ink-fade:    rgba(240,230,210,0.37);
+  /* R-M4(c) — the ground token that was READ by two live surfaces and DECLARED by
+     none: components/vendor/Splash.tsx and components/vendor/slices/SwipeRow.tsx
+     both wrote var(--atelier-bg, …) against a name nothing published, so both got
+     their literal fallback forever. Its owner is theme.ts's `pageBg`, the same
+     value ThemeContext publishes as --atelier-page-bg. Splash deliberately does
+     NOT read it — see that file's invariance note. */
+  --atelier-bg:          #1F1612;
+  /* The six F-09.28 roles get their pre-mount home. They had ZERO: published only
+     by ThemeContext post-mount, so any surface reading one rendered no colour at
+     all on the first frame. Shipping ink→roles onto roles with no pre-mount home
+     would have re-created F-09.35 inside its own cure — R-M5's whole reason. */
+  --role-positive:       #7FBE85;
+  --role-caution:        #E0A870;
+  --role-critical:       #E07B5C;
+  --role-metal:          #C9A84C;
+  --role-scrim:          rgba(0,0,0,0.7);
+  --role-sheet:          rgba(255,255,255,0.035);
   --atelier-card-bg:     linear-gradient(180deg, rgba(245,235,212,0.06) 0%, rgba(245,235,212,0.03) 100%);
   --atelier-card-border: rgba(201,168,76,0.3);
   --atelier-card-shadow: 0 12px 32px -16px rgba(0,0,0,0.5);
@@ -736,9 +772,23 @@ body {
    ladder was live — but this block still won for one frame before React mounted, and
    a second home for a value the token system owns is the disease this block belongs to.
    The remaining declarations here are surface values with no token twin. */
+/* TDW_09 MICRO-2 · R-M5 — the paragraph above states the SUPERSEDED model; see the
+   ruling note at the top of the :root block. The rungs F-09.28 deleted return here
+   AT THE OWNER'S VALUES, because deleting them did not remove the second home — it
+   removed the first FRAME, which then rendered cream ink on a cream ground. */
 html.theme-light {
   --atelier-ink:         #1A0F08;
-  --atelier-ink-soft:    rgba(26,15,8,0.82);
+  --atelier-ink-soft:    rgba(26,15,8,0.80);
+  --atelier-ink-mute:    rgba(26,15,8,0.70);
+  --atelier-ink-dim:     rgba(26,15,8,0.62);
+  --atelier-ink-fade:    rgba(26,15,8,0.46);
+  --atelier-bg:          #F5F2EE;
+  --role-positive:       #3E7A44;
+  --role-caution:        #9B5E22;
+  --role-critical:       #BA4723;
+  --role-metal:          #826A27;
+  --role-scrim:          rgba(26,15,8,0.35);
+  --role-sheet:          #FFFFFF;
   --atelier-card-bg:     linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(245,242,238,0.65) 100%);
   --atelier-card-border: rgba(122,56,40,0.20);
   --atelier-card-shadow: 0 2px 12px -4px rgba(42,26,16,0.08);

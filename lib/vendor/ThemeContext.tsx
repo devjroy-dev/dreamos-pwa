@@ -44,6 +44,14 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
   // TDW_08 P3 — the page colour, exposed as a var so a surface can CLAIM it instead of
   // inheriting `--bg-primary` by accident. Additive: nothing read this before.
   r.setProperty('--atelier-page-bg', t.pageBg);
+  // TDW_09 MICRO-2 · R-M4(c) — --atelier-bg was READ by two surfaces and PUBLISHED
+  // by none, so both took their literal fallback on every frame of every theme.
+  // Same owner as --atelier-page-bg; the two names are aliases and move together.
+  // DISCLOSED BEHAVIOUR CHANGE, outside this sitting's radius: SwipeRow.tsx wrote
+  // var(--atelier-bg, transparent) and has therefore always rendered TRANSPARENT.
+  // It now renders the page colour — which is what an opaque swipe row is for, and
+  // why R-M4 ruled the declaration rather than the deletion of the read.
+  r.setProperty('--atelier-bg', t.pageBg);
 
   // ── TDW_09 F-09.39 · R-T5 — COLOR-SCHEME IS A ROLE, NOT A CONSTANT ──────────
   // `color-scheme` governs every surface the browser paints and we do not: the

@@ -263,21 +263,21 @@ export default function VendorPinResetPage() {
     width: 40, height: 54, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD,
     fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: '#F8F7F5', textAlign: 'center',
+    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: 'var(--atelier-ink)', textAlign: 'center',
     touchAction: 'manipulation', caretColor: GOLD,
   };
   const pinInputStyle: React.CSSProperties = {
     width: 48, height: 58, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD,
     fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: '#F8F7F5', textAlign: 'center',
+    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: 'var(--atelier-ink)', textAlign: 'center',
     touchAction: 'manipulation', caretColor: GOLD,
   };
   const phoneInputStyle: React.CSSProperties = {
     width: '100%', height: 54, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD,
     fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 400, fontSize: 20, lineHeight: 1.5, color: '#F8F7F5', textAlign: 'center',
+    fontWeight: 400, fontSize: 20, lineHeight: 1.5, color: 'var(--atelier-ink)', textAlign: 'center',
     letterSpacing: '0.04em', touchAction: 'manipulation', caretColor: GOLD,
   };
 
@@ -314,17 +314,53 @@ export default function VendorPinResetPage() {
         <div style={{ position:'fixed',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.12)',backdropFilter:'blur(12px)',border:'0.5px solid rgba(201,168,76,0.3)',color:GOLD,fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,padding:'10px 20px',borderRadius:100,zIndex:9999,whiteSpace:'nowrap',animation:'slideDown 280ms cubic-bezier(0.22,1,0.36,1)' }}>{toast}</div>
       )}
 
+
+      {/* ── TDW_09 MICRO-2 · F-09.72 · R-M2 + R-M3 — THE GROUND IS KNOWN NOW ────────
+          THE DISEASE, in the founder's words: this screen could not be read. The
+          arithmetic: its ground was PINNED (body #0C0A09 and the inset div below,
+          both hardcoded) while its ink read TOKENS THAT FLIP WITH THEME. On
+          Editorial Paper --atelier-ink-dim becomes rgba(26,15,8,0.62) — dark ink —
+          over a ground that never lightens. Measured over a typical slide the
+          sub-lines fell to 1.13:1. They were not dim. They were gone.
+          The two translucent layers here were never a scrim ROLE and could not
+          bound anything: a photograph is arbitrary luminance, and backdrop-filter
+          blurs it without moving its mean. So the panel now composites against the
+          estate's own sheet roles and every line lands on a KNOWN surface —
+          fully opaque on Editorial Paper, 0.97 on Espresso, which is a bound a
+          bench can compute. Ink to roles on top of it.
+          F-09.78 — THE PANEL IS FLAT, NOT A GRADIENT, AND THE GOLD IS WHY. The first
+          build used sheet-top -> sheet-bot, the shape Header's calling card uses.
+          Cell ⑪ then measured --role-metal at 4.26:1 on Editorial Paper — because
+          LIGHT.metal (#826A27) was derived against `pageBg` (#F5F2EE) and
+          `sheetBot` (#EDE8DF) is darker than the surface it was solved for. The
+          MAKER PORTAL label, the PIN underline and `Send reset code ->` all ride
+          that gold. One flat surface at sheet-top puts every one of them back on
+          the ground the role was derived against: 4.66:1. The finding is filed and
+          travels: this file dodged it, the estate still carries it.
+          MEASURED, over the WORST CASE (a blown-out white slide region), stated as
+          method rather than asserted — scripts/tdw09_roles.proof.mjs cell ⑪ derives
+          these from this file every run and fails if a line drops below the bar:
+            Espresso  ink 14.06:1 · ink-mute 5.48:1 · metal 7.66:1
+            Paper     ink 16.87:1 · ink-mute  6.72:1 · metal 4.66:1
+          MECHANISM (F-06.85's law): the bound above holds because --atelier-sheet-top
+          and --atelier-sheet-bot are near-opaque on Espresso and OPAQUE on Paper. If
+          either alpha falls, the photo bleeds back through and every number here is
+          re-derived. Cell ⑪ reads those alphas from lib/vendor/theme.ts, not from a
+          number copied into this comment.
+          RADIUS: R-M2 ruled the VENDOR TRIO — this file, pin-reset, pin. The couple
+          screens share the slide pattern and NOT the disease: their ground and their
+          ink are both pinned, theme-blind but coherent. Not one byte crosses to them. */}
       <div style={{ position:'fixed',inset:0,background:'#0C0A09',overflow:'hidden' }}>
         {slides.map((src, i) => (
           <div key={i} style={{ position:'absolute',inset:0,backgroundImage:'url(' + src + ')',backgroundSize:'cover',backgroundPosition:'center',opacity: i === slide ? 0.55 : 0,transition:'opacity 1200ms ease' }} />
         ))}
         <div style={{ position:'absolute',inset:0,background:'rgba(12,10,9,0.45)' }} />
         <div style={{ position:'absolute',bottom:0,left:0,right:0,animation:'pinFadeIn 400ms cubic-bezier(0.22,1,0.36,1)' }}>
-          <div style={{ background:'rgba(12,10,9,0.3)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid var(--atelier-input-border)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-dim)',margin:'0 0 2px' }}>The Dream Wedding</p>
+          <div style={{ background:'var(--atelier-sheet-top)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid var(--atelier-input-border)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-mute)',margin:'0 0 2px' }}>The Dream Wedding</p>
             <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize: 25,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.15 }}>{heading}</p>
-            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-fade)',margin:'0 0 28px' }}>{subtext}</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize: 25,color:'var(--atelier-ink)',margin:'0 0 4px',lineHeight:1.15 }}>{heading}</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'var(--atelier-ink-mute)',margin:'0 0 28px' }}>{subtext}</p>
 
             {step === 'phone' && (
               <>
@@ -355,7 +391,7 @@ export default function VendorPinResetPage() {
                   ))}
                 </div>
                 <p onClick={() => { if (!loading) sendCode(); }}
-                  style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 9,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-fade)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginBottom:8 }}
+                  style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 9,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-mute)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginBottom:8 }}
                 >Resend code</p>
               </>
             )}
@@ -389,7 +425,7 @@ export default function VendorPinResetPage() {
             )}
 
             <p onClick={() => { if (!loading) router.replace('/vendor/pin-login'); }}
-              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-fade)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginTop:4 }}
+              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--atelier-ink-mute)',textAlign:'center',cursor:'pointer',touchAction:'manipulation',marginTop:4 }}
             >Back to PIN entry</p>
           </div>
         </div>
