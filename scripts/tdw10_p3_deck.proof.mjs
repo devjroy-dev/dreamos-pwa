@@ -258,6 +258,41 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
     ok(`${name} carries no rose`, !/C44058|196,\s*64,\s*88/.test(body));
     ok(`${name} names no rgba() ground of its own`, !/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+/.test(body));
   }
+  // ── THE GATE WALKS THE IMPORTS NOW (F-10.51) ────────────────────────────────
+  // The hex-zero cells above read only the file they were pointed at, and passed
+  // while the mint sheet's primary button rendered ROSE — because `GoldBtn` lives
+  // in AdminUI.tsx, whose `T.gold` is the #C44058 CE-199 retired from the rebuilt
+  // set. The founder saw it on his handset before any cell did. CE-115 clause 2,
+  // one layer up: a capability (here, a colour) living above a component is
+  // invisible to cells that only inspect the component.
+  // So: no P3 surface may import a component that paints the retired accent. The
+  // list is DERIVED from each file's own import statements, never hand-listed —
+  // F-10.46's lesson, applied on its first opportunity.
+  const ROSE = /#C44058|196,\s*64,\s*88/;
+  const ROSE_PAINTERS = ['GoldBtn'];
+  for (const [name, src] of P3_SURFACES) {
+    const imported = [...strip(src).matchAll(/import\s*\{([^}]+)\}\s*from/g)]
+      .flatMap(m => m[1].split(',').map(x => x.trim().split(' ')[0]));
+    const offenders = ROSE_PAINTERS.filter(c => imported.includes(c));
+    ok(`${name} imports no component that paints the retired rose accent`,
+       offenders.length === 0, offenders.join(', '));
+  }
+  // NON-VACUITY: the named painter must really still paint rose, or this cell is
+  // guarding a ghost and would go green the day AdminUI is swept.
+  ok('the ROSE_PAINTERS list is live — GoldBtn really does still carry #C44058',
+     ROSE.test(readOr('app/admin/_components/AdminUI.tsx').split('export function GoldBtn')[1] || '') ||
+     ROSE.test((readOr('app/admin/_components/AdminUI.tsx').match(/gold:\s*'[^']+'/) || [''])[0]));
+
+  // ── A-4 · THE PRIMARY ACTION CLEARS THE DOMAIN BAR ──────────────────────────
+  // The founder could not see the Create button on his own handset. BottomSheet
+  // reserves `safe-area + 28px`; the fixed domain bar is taller than that.
+  ok('the mint sheet reserves room for the fixed domain bar beneath it',
+     /paddingBottom: 'calc\(env\(safe-area-inset-bottom, 0px\) \+ 72px\)'/.test(MINT));
+  ok('…on BOTH panes — the form AND the success card, since the card has controls too',
+     (MINT.match(/safe-area-inset-bottom, 0px\) \+ 72px/g) || []).length === 2);
+  ok('the reserve exceeds BottomSheet\'s own 28px, which is why the button was hidden',
+     /\+ 28px/.test(readOr('app/admin/_components/AdminUI.tsx')));
+
   // Every role the new surfaces consume must be declared, or it renders as nothing.
   const consumed = new Set();
   for (const [, src] of P3_SURFACES)
@@ -338,6 +373,23 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
                              "{true\n                ? (result.kind === 'vendor'");
     ok('M7 hard-coding the card variant ⇒ the branches-on-outcome cell reddens',
        a && /\{true/.test(readOr(P_MINT)));
+    restore();
+  }
+  // M9 — put GoldBtn back on the mint sheet; the import-walking gate must redden.
+  {
+    const a = mutate(P_MINT, "import { BottomSheet, FieldInput, FieldSelect, GhostBtn } from './AdminUI';",
+                             "import { BottomSheet, FieldInput, FieldSelect, GoldBtn, GhostBtn } from './AdminUI';");
+    const imported = [...stripComments(readOr(P_MINT)).matchAll(/import\s*\{([^}]+)\}\s*from/g)]
+      .flatMap(m => m[1].split(',').map(x => x.trim().split(' ')[0]));
+    ok('M9 re-importing GoldBtn ⇒ the rose-through-an-import cell reddens',
+       a && imported.includes('GoldBtn'));
+    restore();
+  }
+  // M10 — drop the domain-bar reserve; the A-4 cell reddens.
+  {
+    const a = mutate(P_MINT, ", paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)'", '');
+    ok('M10 removing the bar reserve ⇒ the primary action sits under the nav again',
+       a && (readOr(P_MINT).match(/safe-area-inset-bottom, 0px\) \+ 72px/g) || []).length < 2);
     restore();
   }
   // M8 — a bare .replace on the state field; §2's throw cell reddens.

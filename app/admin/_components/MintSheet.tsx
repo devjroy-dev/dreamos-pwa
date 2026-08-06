@@ -17,7 +17,7 @@
 // colours are not.
 
 import { useState, useEffect } from 'react';
-import { BottomSheet, FieldInput, FieldSelect, GoldBtn, GhostBtn } from './AdminUI';
+import { BottomSheet, FieldInput, FieldSelect, GhostBtn } from './AdminUI';
 import {
   mintVendor, mintCouple, sendWelcome, getWelcomeStatus,
   type MintOutcome, type WelcomeStatus,
@@ -119,8 +119,26 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
 
   return (
     <BottomSheet visible={visible} title={title} onClose={() => { reset(); onClose(); }}>
+      {/* ── §0.2 · THE BUTTON THE FOUNDER COULD NOT SEE (A-4) ─────────────────
+          `BottomSheet` ends with `paddingBottom: calc(env(safe-area-inset-bottom)
+          + 28px)`. The mobile domain bar (app/admin/layout.tsx, `#m-domains`) is
+          `position:fixed; bottom:0` and stands ~60px tall plus its own safe-area
+          inset — more than twice the sheet's reserve. So the last control in the
+          sheet lands UNDERNEATH the bar on a real handset, which is exactly where
+          the primary action was.
+          DERIVED, AND ONE THING NOT DERIVED: the arithmetic above is certain. What
+          I could NOT witness from this container is whether z-index also plays a
+          part — the sheet is z-301 and the bar z-195, so the sheet should paint
+          over it, yet the founder's frame shows the bar on top, which implies an
+          ancestor stacking context capping the sheet. Reserving the bar's height
+          cures the founder's symptom under EITHER cause, and is the right shape
+          regardless: a primary action should never sit over a nav bar even when it
+          paints above one. The stacking question is filed, not guessed at.
+          FIXED HERE, NOT IN BottomSheet: that component is shared by other admin
+          screens whose content is short, and widening a shared component to cure
+          one caller's overflow is a change nobody ruled. */}
       {!result ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)' }}>
           <FieldInput
             label="Phone" value={phone} onChange={setPhone}
             placeholder="+91…" type="tel"
@@ -153,15 +171,34 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
             }}>{error}</p>
           )}
 
+          {/* ── §0.2 · THE CTA WAS ROSE, AND MY OWN GATE COULD NOT SEE IT ────────
+              This read `<GoldBtn …>`. `AdminUI`'s `T.gold` is `#C44058` — the ROSE
+              that CE-199 retired from the rebuilt set on the founder's word
+              (「 GOld ratified/. 」). So a NEW P3 surface rendered a rose primary
+              button on the espresso ground, and the hex-zero cell passed, because
+              the literal lives one import away in a file this bench does not read.
+              A gate that only inspects the file it was pointed at cannot see a
+              colour arriving through a component — the CE-115 clause-2 shape, one
+              layer up. The bench now walks the imports too.
+              Founder-witnessed on his own handset before any cell caught it. */}
           <div style={{ marginTop: 18 }}>
-            <GoldBtn
-              label={busy ? 'Working…' : (kind === 'vendor' ? 'Create vendor' : 'Create couple')}
-              onClick={submit} disabled={busy}
-            />
+            <button
+              onClick={submit}
+              disabled={busy}
+              style={{
+                width: '100%', minHeight: 48, padding: '14px 22px',
+                background: busy ? 'var(--admin-metal-wash)' : 'var(--admin-metal)',
+                border: 'none', borderRadius: 10,
+                fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: 10,
+                letterSpacing: '0.2em', textTransform: 'uppercase',
+                color: busy ? 'var(--admin-ink-mute)' : 'var(--admin-shell)',
+                cursor: busy ? 'not-allowed' : 'pointer',
+              }}
+            >{busy ? 'Working…' : (kind === 'vendor' ? 'Create vendor' : 'Create couple')}</button>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)' }}>
           {/* ── F-10.47 · TWO CARD VARIANTS, BECAUSE THERE ARE TWO OUTCOMES ─────
               The retired handler answered `{created:true}` for both, and on a
               collision it also renamed the person it had not created. The card
