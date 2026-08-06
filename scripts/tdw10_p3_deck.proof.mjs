@@ -203,8 +203,13 @@ section('§5  THE MINT SHEET');
      /Welcome template is not approved by Meta yet\./.test(MINT));
   ok('the sheet asks the SERVER whether the template is approved',
      /getWelcomeStatus/.test(MINTC) && /welcome\.approved/.test(MINTC));
+  // RE-AIMED with the hotfix: the success line became a template literal naming
+  // the recipient, so the old literal match could not survive. The PROPERTY is
+  // unchanged and is what the cell asserts — the outcome is a function of
+  // `r.sent`, never of the tap.
   ok('the sheet never claims "sent" unless the server said sent',
-     /r\.sent \? 'Welcome message sent\.'/.test(MINTC));
+     /setWelcomeOutcome\(r\.sent \? 'sent' : 'refused'\)/.test(MINTC) &&
+     /r\.sent\s*\n?\s*\? `Sent to/.test(MINTC));
   ok('the button is not hidden by the gate — the refusal is the proof it works',
      !/welcome\.approved &&[\s\S]{0,80}<GhostBtn/.test(MINTC));
 
@@ -292,6 +297,51 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
      (MINT.match(/safe-area-inset-bottom, 0px\) \+ 72px/g) || []).length === 2);
   ok('the reserve exceeds BottomSheet\'s own 28px, which is why the button was hidden',
      /\+ 28px/.test(readOr('app/admin/_components/AdminUI.tsx')));
+
+  // ── HOTFIX 3 · A REFUSAL AND A SEND MUST NOT LOOK THE SAME ─────────────────
+  ok('the welcome result is a TYPED outcome, not a bare message string',
+     /welcomeOutcome/.test(MINTC) && /'sent' \| 'refused' \| null/.test(MINTC));
+  ok('the pre-tap notice hides once a result exists',
+     /!welcome\.approved && !welcomeOutcome/.test(MINTC));
+  ok('a send names WHO it reached — a result the notice could never be mistaken for',
+     /Sent to \$\{result\.name/.test(MINTC));
+  ok('the two states carry different eyebrows',
+     /'Sent' : 'Not sent'/.test(MINTC));
+  ok('…and different colours, so the change is visible before it is read',
+     /admin-positive.*admin-caution|admin-caution/.test(MINTC.split('welcomeOutcome ===')[2] || ''));
+  ok('reset clears the outcome, so the next mint does not inherit the last verdict',
+     /setWelcomeOutcome\(null\)/.test(MINTC));
+
+  // ── HOTFIX 4 · THE ?vendor= READER ─────────────────────────────────────────
+  const PORT = readOr('app/admin/vendors/portfolio/page.tsx');
+  const PORTC = strip(PORT);
+  ok('the portfolio page reads the query string at last',
+     /useSearchParams/.test(PORTC) && /searchParams\.get\('vendor'\)/.test(PORTC));
+  ok('…inside a Suspense boundary, as the app router requires',
+     /<Suspense/.test(PORTC));
+  ok('the preselect is guarded so choosing another vendor is not undone',
+     /if \(!linkedVendor \|\| vendorId \|\| vendors\.length === 0\) return;/.test(PORTC));
+  ok('…and a stale or unknown id selects nothing rather than loading a ghost',
+     /if \(!vendors\.some\(v => v\.id === linkedVendor\)\) return;/.test(PORTC));
+  ok('the deck still links with the parameter this page now honours',
+     /portfolio\?vendor=\$\{card\.vendor_id\}/.test(DECKC));
+
+  // ── HOTFIX 5 · THE TOAST CLEARS THE DOMAIN BAR ─────────────────────────────
+  const ADMINUI = readOr('app/admin/_components/AdminUI.tsx');
+  // STRIPPED. The cure's own tombstone comment quotes the retired `+ 28px`, and
+  // the first draft of the cell below convicted that paragraph — the THIRD time
+  // in this sitting an instrument read documentation and reported it as code.
+  // The stripper is not optional on any source-shape cell in this bench.
+  const toastRaw  = ADMINUI.slice(ADMINUI.indexOf('export function Toast'));
+  const toast     = strip(toastRaw);
+  const toastBody = toast.slice(0, toast.indexOf('\n}'));
+  ok('the Toast reserves room for the fixed domain bar',
+     /safe-area-inset-bottom,0px\) \+ 76px/.test(toastBody), 
+     (toastBody.match(/bottom:'[^']+'/) || [])[0]);
+  ok('the retired 28px reserve is gone from the Toast',
+     !/safe-area-inset-bottom,0px\) \+ 28px/.test(toastBody));
+  ok('the mint sheet and the Toast now agree that the bar must be cleared',
+     /\+ 72px/.test(MINT) && /\+ 76px/.test(toastBody));
 
   // Every role the new surfaces consume must be declared, or it renders as nothing.
   const consumed = new Set();
@@ -390,6 +440,31 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
     const a = mutate(P_MINT, ", paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)'", '');
     ok('M10 removing the bar reserve ⇒ the primary action sits under the nav again',
        a && (readOr(P_MINT).match(/safe-area-inset-bottom, 0px\) \+ 72px/g) || []).length < 2);
+    restore();
+  }
+  // M11 — collapse the welcome result back onto one string; hotfix 3 reddens.
+  {
+    const a = mutate(P_MINT, "setWelcomeOutcome(r.sent ? 'sent' : 'refused');", '');
+    ok('M11 dropping the typed outcome ⇒ refused and sent become indistinguishable again',
+       a && !/setWelcomeOutcome\(r\.sent/.test(readOr(P_MINT)));
+    restore();
+  }
+  // M12 — restore the Toast's 28px; hotfix 5 reddens.
+  {
+    const a = mutate('app/admin/_components/AdminUI.tsx',
+      "bottom:'calc(env(safe-area-inset-bottom,0px) + 76px)'",
+      "bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)'");
+    ok('M12 restoring the 28px reserve ⇒ the toast hides behind the domain bar again',
+       a && /\+ 28px/.test(readOr('app/admin/_components/AdminUI.tsx')));
+    restore();
+  }
+  // M13 — blind the portfolio page again; hotfix 4 reddens.
+  {
+    const a = mutate('app/admin/vendors/portfolio/page.tsx',
+      "const linkedVendor = searchParams.get('vendor');",
+      "const linkedVendor = null as string | null;");
+    ok('M13 blinding the page to the query string ⇒ the deck link dies again',
+       a && !/searchParams\.get\('vendor'\)/.test(strip(readOr('app/admin/vendors/portfolio/page.tsx'))));
     restore();
   }
   // M8 — a bare .replace on the state field; §2's throw cell reddens.

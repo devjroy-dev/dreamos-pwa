@@ -56,6 +56,21 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
 
   const [welcome, setWelcome] = useState<WelcomeStatus | null>(null);
   const [welcomeMsg, setWelcomeMsg] = useState('');
+  // ── F-10.56 CURED · A REFUSAL AND A SEND LOOKED IDENTICAL ──────────────────
+  // The pre-tap line and the post-tap refusal were the SAME BYTES — 「 Welcome
+  // template is not approved by Meta yet. 」 — so the screen did not change when
+  // the button was pressed, and the founder reported it as "just clicking, not
+  // getting sent". It WAS working: three clean refusals landed in the audit log
+  // while the screen said nothing new.
+  //
+  // WHY THIS IS NOT COSMETIC. The same line is what will report a REAL send to a
+  // real vendor's phone the day Meta approves. If `refused` and `nothing
+  // happened` are indistinguishable today, then `sent` and `nothing happened`
+  // are indistinguishable tomorrow — and a surface that claims a send it cannot
+  // evidence is the founding-lie family, on the one surface that touches a
+  // vendor's number. The outcome is now a typed state with its own wording and
+  // its own colour, and the pre-tap notice hides the moment a result exists.
+  const [welcomeOutcome, setWelcomeOutcome] = useState<'sent' | 'refused' | null>(null);
   const [welcomeBusy, setWelcomeBusy] = useState(false);
 
   // The server carries the verdict on the welcome template, so this screen never
@@ -67,7 +82,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
 
   function reset() {
     setPhone(''); setName(''); setCat('photography'); setCity(''); setWedding('');
-    setError(''); setResult(null); setWelcomeMsg(''); setBusy(false);
+    setError(''); setResult(null); setWelcomeMsg(''); setWelcomeOutcome(null); setBusy(false);
   }
 
   async function submit() {
@@ -107,8 +122,12 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
       // server's own words — this screen does not compose a second one, because
       // two authors for one sentence is how a screen starts disagreeing with the
       // transport that produced it.
-      setWelcomeMsg(r.sent ? 'Welcome message sent.' : (r.message || 'Could not send the welcome message.'));
+      setWelcomeOutcome(r.sent ? 'sent' : 'refused');
+      setWelcomeMsg(r.sent
+        ? `Sent to ${result.name || 'this vendor'} on WhatsApp.`
+        : (r.message || 'Could not send the welcome message.'));
     } catch {
+      setWelcomeOutcome('refused');
       setWelcomeMsg('Could not send the welcome message.');
     } finally {
       setWelcomeBusy(false);
@@ -258,17 +277,33 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
                   NOT disabled: the refusal is the proof the gate works, and a founder
                   who taps it gets the transport's own sentence back. `sendWa`'s
                   isApproved check is the mechanism; this line only reports it. */}
-              {welcome && !welcome.approved && !welcomeMsg && (
+              {/* BEFORE the tap: the server's standing verdict, in muted ink and
+                  with no eyebrow. It is a NOTICE, not a result. */}
+              {welcome && !welcome.approved && !welcomeOutcome && (
                 <p style={{
                   fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.6,
                   color: 'var(--admin-ink-mute)', margin: '10px 0 0',
                 }}>Welcome template is not approved by Meta yet.</p>
               )}
-              {welcomeMsg && (
-                <p style={{
-                  fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.6,
-                  color: 'var(--admin-ink-soft)', margin: '10px 0 0',
-                }}>{welcomeMsg}</p>
+              {/* AFTER the tap: a RESULT — eyebrow, colour, and a sentence that
+                  names what happened. It cannot be mistaken for the notice above,
+                  which is the entire point of the cure. */}
+              {welcomeOutcome && (
+                <div style={{
+                  marginTop: 12, paddingLeft: 12,
+                  borderLeft: `2px solid ${welcomeOutcome === 'sent' ? 'var(--admin-positive)' : 'var(--admin-caution)'}`,
+                }}>
+                  <div style={{
+                    fontFamily: '"Jost", sans-serif', fontWeight: 500, fontSize: 9,
+                    letterSpacing: '0.28em', textTransform: 'uppercase',
+                    color: welcomeOutcome === 'sent' ? 'var(--admin-positive)' : 'var(--admin-caution)',
+                    marginBottom: 5,
+                  }}>{welcomeOutcome === 'sent' ? 'Sent' : 'Not sent'}</div>
+                  <p style={{
+                    fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.6,
+                    color: 'var(--admin-ink-soft)', margin: 0,
+                  }}>{welcomeMsg}</p>
+                </div>
               )}
             </div>
           )}

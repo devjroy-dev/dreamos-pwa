@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PageHeader, T, GoldBtn, GhostBtn, Toast, UploadZone, ImageGrid, LoadingGrid, SectionDivider, FieldInput, type ImageGridItem } from '../../_components/AdminUI';
 import { getVendors, type AdminVendor } from '../../../../lib/admin-api/index';
 import { adminUploadFile } from '../../../../lib/admin-api/_base';
@@ -13,7 +14,22 @@ type PortfolioPhoto = {
   approval_state: string; created_at: string;
 };
 
-export default function VendorPortfolioPage() {
+// ── F-10.54 CURED · A LINK I AUTHORED INTO A PAGE THAT COULD NOT READ IT ─────
+// TDW_10 P3's deck ships `See the portfolio → /admin/vendors/portfolio?vendor=<id>`
+// and this page contained ZERO occurrences of `useSearchParams`. It never read a
+// query string, so the tap landed on an empty vendor picker — the founder walked
+// straight into it.
+//
+// Protocol §6: "ALWAYS read the actual backend route handler before writing any
+// frontend API call — never assume field names." Same law, applied to a ROUTE
+// instead of a handler, and the P3 executor did not apply it. It is also P1's D-6
+// recurring: `?focus=` was declared as having no reader, and a second parameter
+// was then authored into the same admin without checking whether this one did.
+//
+// The reader is a PRESELECT, not a lock: the picker still works, and changing it
+// simply leaves the URL behind rather than fighting it. A deep link that could
+// not be departed from would be a worse bug than the one being cured.
+function VendorPortfolioInner() {
   const [vendors, setVendors]       = useState<AdminVendor[]>([]);
   const [vendorId, setVendorId]     = useState('');
   const [photos, setPhotos]         = useState<PortfolioPhoto[]>([]);
@@ -27,9 +43,14 @@ export default function VendorPortfolioPage() {
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
 
+  const searchParams = useSearchParams();
+  const linkedVendor = searchParams.get('vendor');
+
   useEffect(() => {
     getVendors().then(d => setVendors(d.vendors)).catch(() => {});
   }, []);
+
+
 
   const selectedVendor = vendors.find(v => v.id === vendorId);
 
@@ -45,6 +66,18 @@ export default function VendorPortfolioPage() {
     } catch { showToast('Failed to load photos.', true); }
     finally { setLoading(false); }
   }, []);
+
+  // PRESELECT FROM THE DEEP LINK, ONCE. Guarded on `!vendorId` so it fires on
+  // arrival and never again — without that guard, choosing a different vendor
+  // would be undone on the next render and the picker would appear broken.
+  // Guarded on the id being REAL: a stale or hand-typed link selects nothing and
+  // leaves the picker usable, rather than loading a vendor that does not exist.
+  useEffect(() => {
+    if (!linkedVendor || vendorId || vendors.length === 0) return;
+    if (!vendors.some(v => v.id === linkedVendor)) return;
+    setVendorId(linkedVendor);
+    loadPhotos(linkedVendor);
+  }, [linkedVendor, vendorId, vendors, loadPhotos]);
 
   const handleVendorChange = (vid: string) => {
     setVendorId(vid);
@@ -225,5 +258,16 @@ export default function VendorPortfolioPage() {
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>
+  );
+}
+
+// `useSearchParams` requires a Suspense boundary in the app router, or the whole
+// route opts into client-side rendering at build time. The fallback is the page's
+// own empty state, so an arriving deep link never flashes a spinner.
+export default function VendorPortfolioPage() {
+  return (
+    <Suspense fallback={null}>
+      <VendorPortfolioInner />
+    </Suspense>
   );
 }

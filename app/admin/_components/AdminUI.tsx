@@ -222,7 +222,27 @@ export function Toast({ msg, onDone, error }: { msg: string; onDone: () => void;
   if (!shown) return null;
   return (
     <div style={{
-      position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',
+      // ── F-10.55 CURED · EVERY ADMIN CONFIRMATION HID BEHIND THE DOMAIN BAR ──
+      // THIS READ: `bottom: calc(env(safe-area-inset-bottom,0px) + 28px)`.
+      // The mobile domain bar (app/admin/layout.tsx, `#m-domains`) is
+      // `position:fixed; bottom:0` and stands ~60px tall plus its own safe-area
+      // inset — more than twice this reserve. So on a phone the toast rendered
+      // UNDER the bar and the founder saw a faint line where his confirmation
+      // should have been. Witnessed twice on his own handset: once on a deck
+      // rejection, once on an approval.
+      //
+      // IDENTICAL ARITHMETIC TO THE MINT SHEET'S BUTTON, which the P3 rider had
+      // already cured in MintSheet.tsx — and the executor fixed the caller
+      // without asking where else the same 28px was standing. One site cured, a
+      // shared component left carrying the same defect for every other screen.
+      //
+      // WIDENING DISCLOSED, RATIFY-OR-REVERT: `Toast` is used across the admin,
+      // so this ONE property moves every admin confirmation on mobile. That is a
+      // strict gain everywhere — no screen wants its toast under the nav — and it
+      // is why it was cured here rather than localised again. Desktop is
+      // unaffected: `#m-domains` is display:none above 768px, and the extra
+      // offset simply lifts the toast a little.
+      position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 76px)',
       left:'50%', transform:'translateX(-50%)',
       background: error ? '#2A1010' : '#0F1F14',
       border:`0.5px solid ${error ? T.danger : T.success}`,
