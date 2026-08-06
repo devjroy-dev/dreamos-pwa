@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, Toast, FieldInput, ActionChip, GhostBtn } from '../_components/AdminUI';
 import MintSheet from '../_components/MintSheet';
 import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../../lib/admin-api/index';
+import { sendWelcome } from '../../../lib/admin-api/mint';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
@@ -23,6 +24,24 @@ export default function MakersPage() {
   const [toastErr, setToastErr] = useState(false);
   const [openId, setOpenId]     = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
+  // ── F-10.57 CURED · THE WELCOME WAS REACHABLE FOR THIRTY SECONDS ───────────
+  // `Send welcome` lived ONLY on the mint's success card. Close the sheet and it
+  // was gone: no door existed to welcome a vendor who already existed. The
+  // founder found it the expensive way — he DELETED a vendor and re-minted her
+  // to get the button back, which is a far larger act than the one he needed.
+  // (Re-minting alone would have done it: the button renders on the `existing`
+  // card too. That is a workaround, not a design.)
+  //
+  // The row already carries Add to Discover / Revoke Access / Delete, so this is
+  // where the verb belongs. Same endpoint the sheet calls — no second door.
+  //
+  // TAP-TO-CONFIRM, MATCHING `Delete` ON THIS SAME ROW. Until this evening the
+  // button was harmless because the gate refused everything; `vendor_welcome` is
+  // now APPROVED, so one tap sends a real WhatsApp message to a real number. On
+  // the mint card a bare tap is defensible — you just created the account. In a
+  // list of every vendor you have, one mis-tap messages a stranger. Founder-ruled.
+  const [confirmWelcome, setConfirmWelcome] = useState<string | null>(null);
+  const [welcomeBusy, setWelcomeBusy] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -31,7 +50,24 @@ export default function MakersPage() {
   useEffect(() => { load(); }, [load]);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
-  const toggleOpen = (id: string) => { setConfirmDel(null); setOpenId(o => o === id ? null : id); };
+  const toggleOpen = (id: string) => { setConfirmDel(null); setConfirmWelcome(null); setOpenId(o => o === id ? null : id); };
+
+  // The result is the SERVER'S, never the tap's. `sent:false` is a correct outcome
+  // of a working gate — it is reported with the transport's own sentence and as an
+  // error tone, never swallowed into a success toast.
+  const welcome = async (v: AdminVendor) => {
+    setWelcomeBusy(v.id);
+    try {
+      const r = await sendWelcome(v.id);
+      showToast(r.sent ? `Welcome sent to ${v.name} on WhatsApp.`
+                       : (r.message || 'Could not send the welcome message.'), !r.sent);
+    } catch {
+      showToast('Could not send the welcome message.', true);
+    } finally {
+      setWelcomeBusy(null);
+      setConfirmWelcome(null);
+    }
+  };
 
   const setTier = async (id: string, tier: string) => {
     try { await patchVendorTier(id, tier); setVendors(v => v.map(x => x.id === id ? { ...x, tier } : x)); showToast('Tier updated.'); }
@@ -123,6 +159,11 @@ export default function MakersPage() {
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                       <ActionChip label={v.discover_eligible ? 'Remove Discover' : 'Add to Discover'} tone="neutral" onClick={() => toggleDiscover(v)} />
                       <ActionChip label="Revoke Access" tone="no" onClick={() => revoke(v.id)} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      {confirmWelcome === v.id
+                        ? <ActionChip label={welcomeBusy === v.id ? 'Sending…' : 'Tap again to send on WhatsApp'} tone="ok" disabled={welcomeBusy === v.id} onClick={() => welcome(v)} />
+                        : <ActionChip label="Send welcome" tone="ok" onClick={() => setConfirmWelcome(v.id)} />}
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       {confirmDel === v.id

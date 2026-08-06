@@ -147,7 +147,14 @@ section('§4  THE REASON REACHES THE TRANSPORT');
   // teaches" had no carrier from the only screen that could have sent one.
   ok('denyDiscover accepts a reason', /denyDiscover\s*=\s*\(vendorId: string, reason\?: string\)/.test(APIC));
   ok('…and puts it in the body when present', /reason \? \{ reason \} : \{\}/.test(APIC));
-  ok('the deck passes the chosen chip through', /denyDiscover\(r\.vendor_id, reason\)/.test(DECKC));
+  // RE-AIMED with the undo: the chip is captured into the held intent and the
+  // transport is reached in the flush. The PROPERTY is unchanged — the reason the
+  // founder chose is the reason that lands — and both halves are asserted so a
+  // chip that never reaches the wire cannot pass.
+  ok('the chosen chip is captured into the held intent',
+     /const held: Pending = \{ req: r, reason \};/.test(DECKC));
+  ok('…and the flush sends exactly that reason',
+     /denyDiscover\(held\.req\.vendor_id, held\.reason\)/.test(DECKC));
 
   const chips = (DECK.match(/^\s*'([^']+)',$/gm) || []).join('');
   for (const c of ['Photos too similar', 'Watermarks', 'Category mismatch', 'Quality']) {
@@ -261,7 +268,14 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
     ok(`${name} carries ZERO hex literals`, !/#[0-9A-Fa-f]{3,8}\b/.test(body),
        (body.match(/#[0-9A-Fa-f]{3,8}\b/g) || []).join(', '));
     ok(`${name} carries no rose`, !/C44058|196,\s*64,\s*88/.test(body));
-    ok(`${name} names no rgba() ground of its own`, !/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+/.test(body));
+    // BACKGROUNDS ONLY. The first draft matched ANY rgba(, which caught the undo
+    // bar's `boxShadow: '0 8px 40px rgba(0,0,0,0.6)'` — a shadow, not a ground,
+    // and the same value AdminUI's own Toast has always used. A cell whose label
+    // says "ground" and whose regex says "any rgba" is P1's D-4 again: a label
+    // naming a different quantity than the check.
+    ok(`${name} names no rgba() GROUND of its own`,
+       !/(background|backgroundColor)\s*:\s*'?rgba\(/.test(body),
+       (body.match(/(background|backgroundColor)\s*:\s*'?rgba\([^)]*\)/g) || []).join(', '));
   }
   // ── THE GATE WALKS THE IMPORTS NOW (F-10.51) ────────────────────────────────
   // The hex-zero cells above read only the file they were pointed at, and passed
@@ -342,6 +356,61 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
      !/safe-area-inset-bottom,0px\) \+ 28px/.test(toastBody));
   ok('the mint sheet and the Toast now agree that the bar must be cleared',
      /\+ 72px/.test(MINT) && /\+ 76px/.test(toastBody));
+
+  // ── F-10.58 · THE REJECT-UNDO IS A HELD INTENT, NOT A COMPENSATING WRITE ───
+  // The distinction is the whole cure: an undo that grants-after-denying still
+  // flips the vendor's screen, still destroys her pitch (F-10.44), and still
+  // leaves a retracted decision in the audit. These cells assert NOTHING IS SENT
+  // during the window.
+  ok('the reject HOLDS an intent instead of calling denyDiscover',
+     /const reject = useCallback\(\(r: DiscoverRequest, reason: string\) => \{/.test(DECKC) &&
+     !/const reject[\s\S]{0,400}await denyDiscover/.test(DECKC));
+  ok('the send happens only in the flush', /const flushReject[\s\S]{0,400}await denyDiscover/.test(DECKC));
+  ok('undo cancels a timer — there is nothing to reverse',
+     /const undo = useCallback[\s\S]{0,200}clearTimeout/.test(DECKC) &&
+     !/const undo = useCallback[\s\S]{0,300}denyDiscover/.test(DECKC));
+  ok('the undo bar tells the founder nothing has been sent yet',
+     /Nothing sent yet/.test(DECK));
+  // THE WINDOW MUST NOT SWALLOW A DECISION — four exits, all flushed.
+  ok('the timer flushes', /setTimeout\(\(\) => \{ flushReject\(held\); \}, UNDO_MS\)/.test(DECKC));
+  ok('a second decision flushes the first rather than dropping it',
+     /if \(pendingRef\.current\) flushReject\(pendingRef\.current\);/.test(DECKC));
+  ok('leaving the page flushes', /return \(\) => \{ window\.removeEventListener\('beforeunload', onLeave\); onLeave\(\); \}/.test(DECKC));
+  ok('closing the tab flushes', /addEventListener\('beforeunload', onLeave\)/.test(DECKC));
+  ok('the flush clears the intent BEFORE awaiting, so a race cannot send twice',
+     /pendingRef\.current = null;\s*\n\s*setPending\(null\);\s*\n\s*try \{/.test(DECKC));
+  ok('a ref mirrors the state, because the exit handlers run outside React\'s render',
+     /pendingRef\.current = pending;/.test(DECKC));
+  ok('the held card leaves the deck at once', /const pendingList = open\.filter\(r => r\.vendor_id !== held\)/.test(DECKC));
+  ok('the undo bar clears the domain bar too', /safe-area-inset-bottom, 0px\) \+ 76px/.test(DECK));
+
+  // ── F-10.57 · THE WELCOME IS REACHABLE AFTER THE THIRTY SECONDS ────────────
+  const MAK = readOr('app/admin/makers/page.tsx');
+  const MAKC = strip(MAK);
+  ok('Makers rows carry Send welcome', /label="Send welcome"/.test(MAKC));
+  ok('…calling the SAME endpoint the mint sheet calls, never a second door',
+     /import \{ sendWelcome \} from '\.\.\/\.\.\/\.\.\/lib\/admin-api\/mint'/.test(MAKC));
+  ok('…behind a tap-to-confirm, matching Delete on the same row',
+     /Tap again to send on WhatsApp/.test(MAKC) && /confirmWelcome/.test(MAKC));
+  ok('…and the confirm resets when the row closes', /setConfirmWelcome\(null\)/.test(MAKC));
+  ok('the row reports the SERVER\'s outcome, never the tap',
+     /r\.sent \? `Welcome sent to/.test(MAKC) && /!r\.sent\)/.test(MAKC));
+
+  // ── F-10.53 · THE SAMPLES STEP IS GONE ─────────────────────────────────────
+  const SUB = readOr('app/vendor/discover/submit/page.tsx');
+  const SUBC = strip(SUB);
+  ok('the wizard is three steps', /\{step\} of 3/.test(SUB) && /\[1,2,3\]\.map/.test(SUBC));
+  ok('there is no step 4 block', !/step === 4/.test(SUBC));
+  ok('STEP_LABELS lost Samples', /const STEP_LABELS = \['Rates', 'Aesthetic', 'Pitch'\]/.test(SUB));
+  ok('no sample state survives', !/sampleIds|toggleSample|setSampleIds/.test(SUBC));
+  ok('the request no longer sends sample_image_ids', !/sample_image_ids/.test(SUBC));
+  ok('the portfolio fetch died with the grid it fed', !/fetchPortfolio/.test(SUBC));
+  // THE NEIGHBOURING GATE. Step 3's Continue used to require a pitch; with step 4
+  // gone, step 3's button is SUBMIT, and the guard had to move or it would vanish.
+  ok('the pitch requirement MOVED to submit rather than vanishing with step 4',
+     /disabled=\{submitting \|\| pitch\.trim\(\)\.length === 0\}/.test(SUBC));
+  ok('…and the retired Continue gate for step 3 is gone (it can no longer be reached)',
+     !/\(step === 3 && pitch\.trim\(\)\.length === 0\)/.test(SUBC));
 
   // Every role the new surfaces consume must be declared, or it renders as nothing.
   const consumed = new Set();
@@ -467,10 +536,35 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
        a && !/searchParams\.get\('vendor'\)/.test(strip(readOr('app/admin/vendors/portfolio/page.tsx'))));
     restore();
   }
+  // M14 — make reject send immediately; the held-intent cells redden.
+  {
+    const a = mutate(P_DECK, "    undoTimer.current = setTimeout(() => { flushReject(held); }, UNDO_MS);",
+                             "    flushReject(held);");
+    ok('M14 firing the reject immediately ⇒ the undo window stops existing',
+       a && !/setTimeout\(\(\) => \{ flushReject\(held\); \}, UNDO_MS\)/.test(strip(readOr(P_DECK))));
+    restore();
+  }
+  // M15 — drop the unmount flush; the swallowed-decision cell reddens.
+  {
+    const a = mutate(P_DECK,
+      "return () => { window.removeEventListener('beforeunload', onLeave); onLeave(); };",
+      "return () => { window.removeEventListener('beforeunload', onLeave); };");
+    ok('M15 dropping the unmount flush ⇒ leaving the page would swallow a rejection',
+       a && !/removeEventListener\('beforeunload', onLeave\); onLeave\(\)/.test(strip(readOr(P_DECK))));
+    restore();
+  }
+  // M16 — drop the pitch gate; the moved-not-dropped cell reddens.
+  {
+    const a = mutate('app/vendor/discover/submit/page.tsx',
+      "disabled={submitting || pitch.trim().length === 0}", "disabled={submitting}");
+    ok('M16 dropping the moved pitch gate ⇒ an empty application could reach the deck',
+       a && !/disabled=\{submitting \|\| pitch\.trim\(\)\.length === 0\}/.test(readOr('app/vendor/discover/submit/page.tsx')));
+    restore();
+  }
   // M8 — a bare .replace on the state field; §2's throw cell reddens.
   {
-    const a = mutate(P_DECK, '{idx + 1} of {pending.length} · {label(stateOf(card))}',
-                             '{idx + 1} of {pending.length} · {card.discover_request_state.replace(\'_\', \' \')}');
+    const a = mutate(P_DECK, '{idx + 1} of {pendingList.length} · {label(stateOf(card))}',
+                             '{idx + 1} of {pendingList.length} · {card.discover_request_state.replace(\'_\', \' \')}');
     ok('M8 a bare .replace on a request field ⇒ the no-bare-replace cell reddens',
        a && /discover_request_state\.replace\(/.test(strip(readOr(P_DECK))));
     restore();

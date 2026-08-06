@@ -1,15 +1,14 @@
 'use client';
 // /wedding/discover/submit — Multi-step Discover request · Atelier rebuild
-// Step 1 rates · Step 2 aesthetic tags · Step 3 pitch · Step 4 sample images
+// Step 1 rates · Step 2 aesthetic tags · Step 3 pitch
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
-import { submitDiscoverRequest, fetchPortfolio } from '@/lib/vendor/api/vendor';
+import { submitDiscoverRequest } from '@/lib/vendor/api/vendor';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
-import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 
 const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
@@ -24,43 +23,60 @@ const F = {
 
 const AESTHETIC_OPTIONS = ['moody', 'editorial', 'film', 'candid', 'traditional', 'destination', 'luxury', 'intimate', 'documentary', 'fine-art'];
 
-const STEP_LABELS = ['Rates', 'Aesthetic', 'Pitch', 'Samples'];
+const STEP_LABELS = ['Rates', 'Aesthetic', 'Pitch'];   // 'Samples' retired — F-10.53
 
 export default function DiscoverSubmitPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
   useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1 }} />;
-  return <SubmitScreen vendorId={session.id} vendorName={session.name ?? null} />;
+  return <SubmitScreen vendorName={session.name ?? null} />;
 }
 
-function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: string | null }) {
+// `vendorId` retired from this screen's props with the fetch it existed for:
+// the request is authorised by the SESSION at the server, never by an id the
+// client passes, so nothing else here ever needed it.
+function SubmitScreen({ vendorName }: { vendorName: string | null }) {
   const router = useRouter();
   const { toast, show } = useToast();
+  // ── F-10.53 CURED · THE FOURTH STEP IS GONE, FOUNDER-RULED ────────────────
+  // 「 3 to 5 photo is from the legacy era. it has no bearing whatso ever now 」
+  //
+  // WHAT IT WAS. Step 4 asked the vendor to pick three to five samples and
+  // BLOCKED submission until she did. The server validated that they belonged to
+  // her — and wrote them NOWHERE. Derived before the diagnosis was offered:
+  // `grep -rn sample_image_ids src/ db/ docs/db/` in dream-os returned six lines,
+  // all inside one validation block, and `sample` appears ZERO times in
+  // PUBLIC_SCHEMA.md. No column could hold them; nothing read them; the deck
+  // never saw them. A required gate on a field with no reader.
+  //
+  // WHY DELETED RATHER THAN WIRED. Both arms were brought — give the samples a
+  // home (the deck's hero strip, which is what the step READS like it is for), or
+  // delete the step. The founder ruled: legacy, no bearing. So the vendor gets a
+  // screen back rather than the estate getting a feature nobody asked for.
+  //
+  // THE SERVER'S VALIDATION BLOCK DIES WITH IT, in the paired dream-os ZIP —
+  // wire-or-delete-at-birth (Block 09). A validator for a field no caller sends
+  // is the dead-code class, and leaving it would have made the next reader think
+  // samples were still a contract.
   const [step, setStep] = useState(1);
   const [rateMin, setRateMin] = useState('');
   // TDW_07 P4b · F4 — `rateMax` state RETIRED with its field. Nothing collects it, nothing
   // sends it, nothing gates on it.
   const [tags, setTags] = useState<string[]>([]);
   const [pitch, setPitch] = useState('');
-  const [images, setImages] = useState<PortfolioImage[]>([]);
-  const [sampleIds, setSampleIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchPortfolio(vendorId, 'all').then(res => { if (res.ok) setImages(res.images); });
-  }, [vendorId]);
+  // THE PORTFOLIO FETCH DIES WITH THE STEP IT FED. `images` had exactly one
+  // consumer — the sample grid — so keeping the call would have been a network
+  // round trip on every submit-flow open, for a list nothing renders.
+  // Wire-or-delete-at-birth (Block 09), applied to a retirement.
 
   function toggleTag(tag: string) {
     setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag].slice(0, 10));
   }
-  function toggleSample(id: string) {
-    setSampleIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : prev.length < 5 ? [...prev, id] : prev);
-  }
-
   async function submit() {
     if (submitting) return;
-    if (sampleIds.length < 3) { show('Select at least 3 sample images.', 'error'); return; }
     setSubmitting(true);
     try {
       const res = await submitDiscoverRequest({
@@ -69,7 +85,6 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
         // contract, and sending Number('') would have posted NaN.
         rate_min: Number(rateMin),
         aesthetic_tags: tags, pitch: pitch.trim() || undefined,
-        sample_image_ids: sampleIds,
       });
       if (!res.ok) { show((res as { error?: string }).error ?? 'Failed.', 'error'); return; }
       show('Application submitted!', 'success');
@@ -93,12 +108,12 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid rgba(201,168,76,0.12)' }}>
         <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Request Discover</span>
-        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 4</span>
+        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 3</span>
       </div>
 
       {/* Step indicator */}
       <div style={{ display: 'flex', gap: 4, padding: '14px 22px 0' }}>
-        {[1,2,3,4].map(n => (
+        {[1,2,3].map(n => (
           <div key={n} style={{
             flex: 1, height: 2,
             background: n <= step ? A.brassWarm : 'rgba(201,168,76,0.2)',
@@ -176,72 +191,16 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
           </>
         )}
 
-        {step === 4 && (
-          <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
-              Pick three to five that represent your best work.
-            </div>
-            {images.length === 0 ? (
-              <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 16, color: A.inkMute, textAlign: 'center', padding: '40px 20px',
-                lineHeight: 1.5,
-              }}>
-                No portfolio images yet.<br />
-                <button type="button" onClick={() => router.push('/vendor/portfolio')} style={{
-                  marginTop: 12, padding: '10px 22px', background: 'transparent',
-                  border: '0.5px solid rgba(201,168,76,0.4)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
-                  letterSpacing: '0.36em', textTransform: 'uppercase',
-                }}>Upload first</button>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                {images.map(img => {
-                  const on = sampleIds.includes(img.id);
-                  return (
-                    <button key={img.id} type="button" onClick={() => toggleSample(img.id)} style={{
-                      aspectRatio: '1', overflow: 'hidden', position: 'relative',
-                      border: on ? `1px solid ${A.brassWarm}` : '0.5px solid rgba(201,168,76,0.22)',
-                      cursor: 'pointer', background: 'none', padding: 0, borderRadius: 0,
-                      boxShadow: on ? '0 0 0 1px rgba(224,188,110,0.4)' : 'none',
-                      transition: 'all 150ms ease',
-                    }}>
-                      <img src={img.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      {on && (
-                        <div style={{
-                          position: 'absolute', inset: 0,
-                          background: 'rgba(26,18,14,0.5)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          <span style={{
-                            width: 26, height: 26, borderRadius: '50%',
-                            background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
-                            border: '0.5px solid var(--atelier-label)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#1A120E', fontFamily: F.display, fontSize: 16, lineHeight: 1,
-                          }}>✓</span>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center' }}>{sampleIds.length} selected · need 3 to 5</div>
-          </>
-        )}
       </div>
 
       <div style={{ padding: '12px 22px calc(20px + env(safe-area-inset-bottom))', borderTop: '0.5px solid rgba(201,168,76,0.18)' }}>
-        {step < 4 ? (
+        {step < 3 ? (
           <button type="button" onClick={() => setStep(s => s + 1)}
             disabled={
               // F4 — min-only, mirroring the server's gate exactly. The min>max comparison
               // retires with the bound it compared against.
               (step === 1 && !rateMin) ||
-              (step === 2 && tags.length === 0) ||
-              (step === 3 && pitch.trim().length === 0)
+              (step === 2 && tags.length === 0)
             }
             className="atelier-fab"
             style={{
@@ -251,15 +210,25 @@ function SubmitScreen({ vendorId, vendorName }: { vendorId: string; vendorName: 
               letterSpacing: '0.5em', textTransform: 'uppercase',
             }}>Continue</button>
         ) : (
-          <button type="button" onClick={submit} disabled={submitting || sampleIds.length < 3}
+          /* ── THE PITCH GATE, MOVED NOT DROPPED ──────────────────────────────
+             Step 3 used to hand off to Continue, which required a non-empty pitch
+             before letting the vendor reach step 4. With step 4 retired, step 3's
+             button became SUBMIT — whose only guard was `submitting`. So deleting
+             the samples step would have silently deleted the PITCH requirement
+             with it, and an empty application would have reached the deck with no
+             sentence on the card.
+             A retirement that quietly removes a NEIGHBOURING gate is the regression
+             class this estate calls worse than a missing feature. The gate moves
+             here, where the last step now ends. */
+          <button type="button" onClick={submit} disabled={submitting || pitch.trim().length === 0}
             className="atelier-fab"
             style={{
               width: '100%', padding: '14px 0', borderRadius: 2,
               border: '0.5px solid var(--atelier-label)',
-              cursor: (submitting || sampleIds.length < 3) ? 'default' : 'pointer',
+              cursor: (submitting || pitch.trim().length === 0) ? 'default' : 'pointer',
               fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
               letterSpacing: '0.5em', textTransform: 'uppercase',
-              opacity: (submitting || sampleIds.length < 3) ? 0.5 : 1,
+              opacity: (submitting || pitch.trim().length === 0) ? 0.5 : 1,
             }}>{submitting ? 'Submitting…' : 'Submit Application'}</button>
         )}
       </div>

@@ -70,6 +70,33 @@ export default function DiscoverApprovalsPage() {
   const [drag, setDrag]         = useState(0);
   const dragStart = useRef<number | null>(null);
 
+  // ── F-10.58 · THE REJECT-UNDO (founder-ruled) ──────────────────────────────
+  // One tap on a chip wrote a decision the vendor saw immediately: no confirm, no
+  // undo, and the only recovery was finding her on the settled list and
+  // approving — which leaves a denied row and a decision she already read.
+  //
+  // THE UNDO IS REAL, NOT A COMPENSATING WRITE. The obvious build is to deny at
+  // once and offer an "undo" that grants afterwards. That is not an undo: the
+  // vendor's screen flips to Not Approved in between, her pitch is already
+  // destroyed by the deny (F-10.44), and the audit carries a decision that was
+  // retracted. So NOTHING IS SENT during the window. The card leaves the deck
+  // optimistically, a timer holds the intent, and only when the window closes
+  // does `denyDiscover` fire. Undo cancels a timer — there is nothing to reverse
+  // because nothing happened.
+  //
+  // THE WINDOW MUST NOT SWALLOW THE DECISION. A held intent that never fires is
+  // worse than no undo at all — the founder would believe he had rejected her.
+  // So it flushes on EVERY exit: the timer, another decision, leaving the page,
+  // and the tab closing. `pendingRef` mirrors the state because the unmount and
+  // `beforeunload` handlers run outside React's render and would otherwise read
+  // a stale closure.
+  const UNDO_MS = 5000;
+  type Pending = { req: DiscoverRequest; reason: string };
+  const [pending, setPending] = useState<Pending | null>(null);
+  const pendingRef  = useRef<Pending | null>(null);
+  const undoTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  pendingRef.current = pending;
+
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
 
   const load = useCallback(() => {
@@ -88,9 +115,14 @@ export default function DiscoverApprovalsPage() {
   // The server sends both names for one fact during the transition; either is
   // correct and neither is invented here.
   const stateOf = (r: DiscoverRequest) => r.state || r.discover_request_state;
-  const pending = requests.filter(r => ['requested', 'under_review'].includes(stateOf(r)));
+  // A held rejection is optimistically removed: the founder should never re-decide
+  // a card he has already swiped, and if he undoes it, it returns from this same
+  // filter with nothing having changed on the server.
+  const held    = pending?.req.vendor_id;
+  const open    = requests.filter(r => ['requested', 'under_review'].includes(stateOf(r)));
+  const pendingList = open.filter(r => r.vendor_id !== held);
   const settled = requests.filter(r => !['requested', 'under_review'].includes(stateOf(r)));
-  const card    = pending[idx];
+  const card    = pendingList[idx];
 
   const approve = useCallback(async (r: DiscoverRequest) => {
     if (!r || busy) return;
@@ -110,20 +142,57 @@ export default function DiscoverApprovalsPage() {
     setBusy(false);
   }, [busy, load]);
 
-  const reject = useCallback(async (r: DiscoverRequest, reason: string) => {
-    if (!r || busy) return;
-    setBusy(true);
+  /** Fires the held rejection. Idempotent: clears the intent before awaiting, so
+   *  a flush racing the timer cannot send twice. */
+  const flushReject = useCallback(async (p?: Pending | null) => {
+    const held = p ?? pendingRef.current;
+    if (!held) return;
+    if (undoTimer.current) { clearTimeout(undoTimer.current); undoTimer.current = null; }
+    pendingRef.current = null;
+    setPending(null);
     try {
-      await denyDiscover(r.vendor_id, reason);
+      await denyDiscover(held.req.vendor_id, held.reason);
       showToast('Rejected — the reason is on their screen.');
-      load();
     } catch {
       showToast('Could not reject.', true);
     }
+    load();
+  }, [load]);
+
+  // The intent is held, not sent. The card is removed from the deck at once so
+  // the founder keeps moving; `undo` puts it back untouched.
+  const reject = useCallback((r: DiscoverRequest, reason: string) => {
+    if (!r || busy) return;
+    // Another decision while one is held FLUSHES the first — never drops it.
+    if (pendingRef.current) flushReject(pendingRef.current);
+    const held: Pending = { req: r, reason };
+    pendingRef.current = held;
+    setPending(held);
     setRejecting(false);
     setCustom('');
-    setBusy(false);
-  }, [busy, load]);
+    setIdx(0);
+    undoTimer.current = setTimeout(() => { flushReject(held); }, UNDO_MS);
+  }, [busy, flushReject]);
+
+  const undo = useCallback(() => {
+    if (undoTimer.current) { clearTimeout(undoTimer.current); undoTimer.current = null; }
+    pendingRef.current = null;
+    setPending(null);
+    showToast('Rejection undone. Nothing was sent.');
+  }, []);
+
+  // FLUSH ON EVERY EXIT. Leaving the page or closing the tab must not silently
+  // discard a decision the founder believes he made.
+  useEffect(() => {
+    const onLeave = () => {
+      const held = pendingRef.current;
+      if (!held) return;
+      pendingRef.current = null;
+      denyDiscover(held.req.vendor_id, held.reason).catch(() => {});
+    };
+    window.addEventListener('beforeunload', onLeave);
+    return () => { window.removeEventListener('beforeunload', onLeave); onLeave(); };
+  }, []);
 
   // ── DESKTOP A / R (spec §P3.2) ────────────────────────────────────────────
   useEffect(() => {
@@ -140,7 +209,7 @@ export default function DiscoverApprovalsPage() {
   }, [mode, card, rejecting, approve]);
 
   async function bulkApprove() {
-    const targets = pending.filter(r => checked.has(r.vendor_id));
+    const targets = pendingList.filter(r => checked.has(r.vendor_id));
     if (!targets.length || busy) return;
     setBusy(true);
     let done = 0;
@@ -182,7 +251,7 @@ export default function DiscoverApprovalsPage() {
     <div>
       <PageHeader
         title="Approvals"
-        sub={`${pending.length} awaiting review`}
+        sub={`${pendingList.length} awaiting review`}
         action={
           <GhostBtn
             label={mode === 'deck' ? 'Bulk' : 'Deck'}
@@ -200,7 +269,7 @@ export default function DiscoverApprovalsPage() {
             }} />
           ))}
         </div>
-      ) : pending.length === 0 ? (
+      ) : pendingList.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '56px 0',
           fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
@@ -208,7 +277,7 @@ export default function DiscoverApprovalsPage() {
         }}>Nothing waiting.</div>
       ) : mode === 'bulk' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {pending.map(r => (
+          {pendingList.map(r => (
             <label key={r.vendor_id} style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
               background: 'var(--admin-card-bg)',
@@ -267,7 +336,7 @@ export default function DiscoverApprovalsPage() {
             <div style={{
               fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.28em',
               textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginBottom: 8,
-            }}>{idx + 1} of {pending.length} · {label(stateOf(card))}</div>
+            }}>{idx + 1} of {pendingList.length} · {label(stateOf(card))}</div>
 
             <div style={{
               fontFamily: '"Cormorant Garamond", serif', fontSize: 26, fontWeight: 300,
@@ -371,9 +440,9 @@ export default function DiscoverApprovalsPage() {
             </div>
           )}
 
-          {pending.length > 1 && (
+          {pendingList.length > 1 && (
             <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'center' }}>
-              <GhostBtn label="Skip" onClick={() => setIdx(i => (i + 1) % pending.length)} small />
+              <GhostBtn label="Skip" onClick={() => setIdx(i => (i + 1) % pendingList.length)} small />
             </div>
           )}
         </div>
@@ -419,6 +488,39 @@ export default function DiscoverApprovalsPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* THE UNDO WINDOW. Deliberately NOT a toast: `Toast` auto-dismisses after
+          3s on its own clock, which would leave the founder watching a countdown
+          he could not act on. This is a real control with a real target, and it
+          disappears the moment the decision lands. */}
+      {pending && (
+        <div style={{
+          position: 'fixed', left: 16, right: 16,
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)',
+          zIndex: 400, display: 'flex', alignItems: 'center', gap: 12,
+          padding: '13px 16px', borderRadius: 12,
+          background: 'var(--admin-sheet)',
+          border: '0.5px solid var(--admin-caution)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.5,
+              color: 'var(--admin-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>Rejecting {pending.req.vendor_name} — {pending.reason}</div>
+            <div style={{
+              fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginTop: 4,
+            }}>Nothing sent yet</div>
+          </div>
+          <button onClick={undo} style={{
+            flexShrink: 0, minHeight: 40, padding: '10px 18px', borderRadius: 8,
+            background: 'transparent', border: '0.5px solid var(--admin-metal)',
+            fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.22em',
+            textTransform: 'uppercase', color: 'var(--admin-metal)', cursor: 'pointer',
+          }}>Undo</button>
         </div>
       )}
 
