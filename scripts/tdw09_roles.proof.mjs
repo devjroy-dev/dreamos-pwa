@@ -380,6 +380,96 @@ ok('no caller survives it',               !/requestInvite\b/.test(HDR.replace(/`
 ok('the DreamAi on WhatsApp row STANDS',  /label="DreamAi on WhatsApp"/.test(HDR));
 ok('Sign Out — the census\u2019s reason to exist — STANDS', /label="Sign Out"/.test(HDR));
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ⑫ TDW_09 MICRO-2 RIDER 2 — F-09.58 · F-09.80. THE LEDGER STRIP FITS BY PROPERTY.
+// The founder's control pair is the evidence this cell exists to hold: the SAME
+// frame rendered the strip correctly on a quiet ledger and clipped it on a loaded
+// one. So the assertion cannot be "it fits at width W" — it must be that the cell
+// cannot be floored by its own content, whatever the content is.
+// ═══════════════════════════════════════════════════════════════════════════════
+console.log('\n\u24EB the ledger strip fits whatever the ledger says');
+const HOME = strip(read('app/vendor/page.tsx'));
+
+// ① the one byte, asserted as a property of the cell — all three cells by
+//    construction, because there is one LedgerCell and it is what they are.
+ok('LedgerCell carries minWidth: 0 beside its flex',
+   /flex:\s*1,\s*minWidth:\s*0,/.test(HOME));
+
+// ② no width constant survives in the money-fit call. The old call passed a literal
+//    100 derived once against a 390 viewport; the width argument must now be an
+//    identifier reaching measured state, never a number.
+const fitCall = /fitMoneySize\(\s*([A-Za-z_$][\w$]*)\s*,\s*([^,]+),/.exec(HOME);
+ok('the money-fit call survives and parses', !!fitCall);
+ok('its width argument is measured state, not a literal',
+   !!fitCall && !/^\s*\d/.test(fitCall[2]), fitCall ? `width arg = ${fitCall[2].trim()}` : '');
+ok('no bare 100 remains anywhere in the money-fit region',
+   !/fitMoneySize\([^)]*\b100\b/.test(HOME));
+
+// ③ R-U24's guard, asserted BY ABSENCE — the shape a bench most easily fakes, so
+//    it is paired with a positive: the reflow branch must exist to make the absence
+//    survivable. An absence with no branch behind it is a clipped rupee figure.
+ok('the money line still carries no textOverflow (R-U24)',
+   !/whiteSpace:\s*bigReflow[\s\S]{0,220}?textOverflow/.test(HOME));
+ok('the reflow branch exists and is wired to the cell',
+   /moneyNeedsReflow\(/.test(HOME) && /bigReflow=\{/.test(HOME) &&
+   /whiteSpace:\s*bigReflow\s*\?\s*'normal'\s*:\s*'nowrap'/.test(HOME));
+
+// the observer, and its teardown — an observer without a disconnect is a leak that
+// no rendering test would ever show.
+ok('exactly one ResizeObserver, on the strip container',
+   (HOME.match(/new ResizeObserver\(/g) || []).length === 1 && /ref=\{stripRef\}/.test(HOME));
+ok('the observer disconnects on unmount', /return\s*\(\)\s*=>\s*obs\.disconnect\(\)/.test(HOME));
+
+// ④ THE FOUNDER'S IMAGE-3 DATA SHAPE, AT THREE WIDTHS. The derivation is stated
+//    rather than trusted: the cell's inner width is computed from the file's OWN
+//    geometry literals — parsed here, not copied — and the figure is then put
+//    through the REAL fitMoneySize/moneyNeedsReflow contract rather than a local
+//    re-implementation of it, so the check's failure mode differs from the code's.
+const marginX = /margin:\s*'10px (\d+)px 0'/.exec(HOME);
+const padX    = /padding:\s*'14px (\d+)px 12px'/.exec(HOME);
+const cellPad = /const CELL_PAD_X = (\d+);/.exec(HOME);
+ok('the strip geometry parses out of the page itself',
+   !!marginX && !!padX && !!cellPad,
+   marginX && padX && cellPad ? `margin ${marginX[1]} · pad ${padX[1]} · cell ${cellPad[1]}` : '');
+if (marginX && padX && cellPad) {
+  // THE REAL CONTRACT, LIFTED FROM ITS OWN SOURCE — not retyped here. Node cannot
+  // import lib/vendor/format.ts (extensionless TS chain, no loader), and retyping
+  // the arithmetic would be the independent-method law's clause 1 exactly: a check
+  // reproducing the method it is checking. So the two functions are extracted from
+  // the shipped file, type annotations stripped, and evaluated. If the extraction
+  // ever stops matching, the cell below fails loudly rather than measuring nothing.
+  const FMT = read('lib/vendor/format.ts');
+  const lift = (name) => {
+    const m = new RegExp(`export function ${name}\\(([\\s\\S]*?)\\n\\}`).exec(FMT);
+    if (!m) return null;
+    const src = `function ${name}(${m[1]}\n}`
+      .replace(/:\s*(number|string|boolean)(\s*[,)=])/g, '$2')   // param types
+      .replace(/\)\s*:\s*(number|boolean)\s*\{/, ') {');        // return type
+    return new Function(`${src}; return ${name};`)();
+  };
+  const fitMoneySize = lift('fitMoneySize');
+  const moneyNeedsReflow = lift('moneyNeedsReflow');
+  ok('the real fitMoneySize / moneyNeedsReflow lifted from lib/vendor/format.ts',
+     typeof fitMoneySize === 'function' && typeof moneyNeedsReflow === 'function');
+  const innerAt = (V) => (V - 2 * +marginX[1] - 2 * +padX[1]) / 3 - 2 * +cellPad[1];
+  const FIGURE = 'Rs 5,00,000';   // the founder's own image-3 figure, verbatim
+  for (const V of [360, 390, 430]) {
+    const c = innerAt(V);
+    const size = fitMoneySize(FIGURE, c, 34, 18);
+    const wraps = moneyNeedsReflow(FIGURE, c, 18);
+    // WHOLE OR WRAPPED, NEVER CUT. Either the figure holds one line at some size
+    // at or above the floor, or the reflow branch takes it — there is no third
+    // outcome, and a third outcome is precisely R-U24's violation.
+    const held = wraps || FIGURE.length * 0.5 * size <= c;
+    ok(`${FIGURE} renders whole at ${V}px (cell ${r2(c)}px)`, held,
+       wraps ? `wraps at the ${size}px floor` : `holds one line at ${size}px`);
+  }
+  // and the strip cannot be floored by content at all — the property, not a width.
+  ok('the derivation matches the chair-ratified table (92 / 102 / 115)',
+     r2(innerAt(360)) === 92 && r2(innerAt(390)) === 102 && Math.round(innerAt(430)) === 115,
+     `${r2(innerAt(360))} / ${r2(innerAt(390))} / ${r2(innerAt(430))}`);
+}
+
 console.log(`\n${fail===0?'GREEN':'RED'} — ${pass} passed, ${fail} failed\n`);
 
 // ── BOTH-WAYS MUTATIONS, applied alone, cmp-restored ───────────────────────

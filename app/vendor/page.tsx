@@ -32,7 +32,7 @@ import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorContextResponse, TodayResponse, DiscoverStatus } from '@/lib/vendor/types/vendor';
-import { formatRs, fitMoneySize } from '@/lib/vendor/format'; // TDW_09 R-U25/R-U24
+import { formatRs, fitMoneySize, moneyNeedsReflow } from '@/lib/vendor/format'; // TDW_09 R-U25/R-U24 · MICRO-2 R2: the reflow branch, F-09.80
 
 // ── Static Atelier tokens (non-theme-sensitive) ──────────────────
 const A = {
@@ -223,8 +223,58 @@ function Ledger({ context, money, today }: { context: VendorContextResponse | nu
   const owedCount  = money.owedCount;
   const nextEvent  = context?.upcoming_events?.[0] ?? null;
 
+  // ── TDW_09 MICRO-2 RIDER 2 · F-09.58 — THE STRIP MEASURES ITSELF ─────────────
+  // WHAT THE FOUNDER CAUGHT, and it killed the theory this defect was filed under:
+  // the SAME frame renders this strip correctly on a quiet ledger and clips it on a
+  // loaded one. 「 renders fine before the home page loads. thereafter, alignment
+  // goes down the right side drain 」. The width never changed; the data did. So
+  // F-09.58 is not a 390px design floor — it is data-dependent, at any width.
+  // THE MECHANISM: LedgerCell is `flex: 1`, i.e. flex-basis 0%, but a flex item's
+  // min-width defaults to AUTO, and every line in the cell is nowrap. The cell
+  // therefore floors at its longest unbroken string, flex-basis never binds, and
+  // the strip's min-content width is the sum of three strings. `overflow: hidden`
+  // and `textOverflow: ellipsis` were already on those lines and could do nothing:
+  // overflow clips, it does not lower min-content width. `minWidth: 0` does, and it
+  // is the one byte that makes the ellipsis below finally mean something.
+  // WHY AN OBSERVER AND NOT A FORMULA. The money fit used a hardcoded 100 derived
+  // once against a 390 viewport. The true inner width is (V - 44 - 16)/3 - 8 —
+  // 92 at 360, 102 at 390, 115 at 430 — so that constant was 8px OPTIMISTIC on a
+  // 360 handset, where a rupee figure would clip silently: R-U24's named violation
+  // arriving through its own guard. A formula would fix the number and keep the
+  // coupling to four geometry constants that a future padding change would break
+  // in silence. This measures the box that actually renders. ONE observer on the
+  // container, never three on the cells; it disconnects on unmount below.
+  // PRE-MEASURE IS SAFE BY CONTRACT: cellInner starts 0, and fitMoneySize returns
+  // its floor for any non-positive width, which cannot clip. One frame at the
+  // smallest step is the whole cost.
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  const [cellInner, setCellInner] = useState(0);
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const obs = new ResizeObserver(([entry]) => {
+      // The container's own box, minus its horizontal padding, split three ways,
+      // minus each cell's horizontal padding. Read from the render, not assumed.
+      const w = entry.contentRect.width;               // padding already excluded
+      setCellInner(Math.max(0, w / 3 - CELL_PAD_X * 2));
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const owedText = fmtRs(owed);
+  // F-09.80 — `moneyNeedsReflow` was exported by lib/vendor/format.ts for exactly
+  // this branch ("Exported so a cell can BRANCH instead of silently clipping, which
+  // is the whole point of the clause") and had ZERO callers repo-wide until now.
+  // At 360 the founder's own figure trips it: 'Rs 5,00,000' at the 18px floor wants
+  // 99px and the cell holds 92. Without this branch, minWidth:0 would have made the
+  // strip fit by clipping the rupee figure — curing F-09.58 by committing R-U24.
+  // The figure stays WHOLE and wraps instead; the strip is alignItems:'stretch', so
+  // the neighbours follow the taller cell.
+  const owedReflow = owed > 0 && cellInner > 0 && moneyNeedsReflow(owedText, cellInner, 18);
+
   return (
-    <div style={{
+    <div ref={stripRef} style={{
       display: 'flex', alignItems: 'stretch',
       padding: '14px 8px 12px',
       margin: '10px 22px 0',
@@ -250,12 +300,12 @@ function Ledger({ context, money, today }: { context: VendorContextResponse | nu
         accent={leads > 0}
       />
       <LedgerCell
-        big={owed > 0 ? fmtRs(owed) : '—'}
-        // TDW_09 R-U24: the whole figure, at whatever size holds it. ~100px is the
-        // cell's inner width on a 390px viewport (ledger margin 22 each side,
-        // padding 8, three cells, cell padding 4) — deliberately conservative, and
-        // the estimate errs small so a figure never clips.
-        bigSize={owed > 0 ? fitMoneySize(fmtRs(owed), 100, 34, 18) : 48}
+        big={owed > 0 ? owedText : '—'}
+        // TDW_09 R-U24: the whole figure, at whatever size holds it — now computed
+        // against the MEASURED cell rather than a constant derived at one viewport.
+        // No width literal survives in this call; that is acceptance number ②.
+        bigSize={owed > 0 ? fitMoneySize(owedText, cellInner, 34, 18) : 48}
+        bigReflow={owedReflow}
         label="Owed"
         // Lane honesty: this figure is your binders' truth, not a stale invoice table.
         sub={owedCount === 0 ? 'from your binders · settled' : owedCount === 1 ? 'from your binders · 1 open' : `from your binders · ${owedCount} open`}
@@ -277,17 +327,26 @@ function Ledger({ context, money, today }: { context: VendorContextResponse | nu
   );
 }
 
+// One home for the cell's horizontal padding: the observer's arithmetic and the
+// cell's own style must not drift, and a second literal is how they would.
+const CELL_PAD_X = 4;
+
 function LedgerCell({
-  big, label, sub, accent, bigSize = 46, bigColor, bigFamily, bigItalic, divider,
+  big, label, sub, accent, bigSize = 46, bigColor, bigFamily, bigItalic, divider, bigReflow,
 }: {
   big: string; label: string; sub: string; accent?: boolean;
   bigSize?: number; bigColor?: string; bigFamily?: string; bigItalic?: boolean;
-  divider?: boolean;
+  divider?: boolean; bigReflow?: boolean;
 }) {
   const T = useT();
   return (
     <div style={{
-      flex: 1, textAlign: 'center', padding: '0 4px',
+      // TDW_09 MICRO-2 RIDER 2 · F-09.58 — THE ONE BYTE. `flex: 1` is `flex-basis:
+      // 0%`, but min-width defaults to AUTO on a flex item, so this cell could never
+      // shrink below its longest nowrap string and the basis never bound. With
+      // minWidth 0 the three cells split the strip evenly whatever they contain, and
+      // the ellipsis on the sub-line below stops being decorative.
+      flex: 1, minWidth: 0, textAlign: 'center', padding: `0 ${CELL_PAD_X}px`,
       position: 'relative',
     }}>
       {divider && (
@@ -311,7 +370,12 @@ function LedgerCell({
         // it renders — and keeping it would leave a silent clipper armed for the
         // first figure the estimate underserves. `overflow: hidden` stays as the
         // container's own hygiene; nothing should reach it.
-        whiteSpace: 'nowrap',
+        // R-U24 HOLDS AND IS LOAD-BEARING HERE: still no textOverflow, because an
+        // ellipsised money figure reads as a complete number. When the figure cannot
+        // hold one line at the floor size, the caller sets bigReflow and it WRAPS —
+        // whole, on two lines — rather than being cut.
+        whiteSpace: bigReflow ? 'normal' : 'nowrap',
+        overflowWrap: bigReflow ? 'anywhere' : undefined,
         overflow: 'hidden',
       }}>{big}</div>
       <div style={{
