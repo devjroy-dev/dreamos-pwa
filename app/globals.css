@@ -754,6 +754,14 @@ body {
   --atelier-overlay:     rgba(0,0,0,0.6);
   --atelier-overlay-bg:  rgba(0,0,0,0.6);
   --atelier-row-hover:   rgba(245,235,212,0.03);
+  /* TDW_09 P1 · B-1 — R-M5 COMPLETED: --atelier-page-bg and --atelier-section-bg
+     were PUBLISHED post-mount (ThemeContext) and read live (the demo layout reads
+     page-bg with no fallback) while declared in NEITHER pre-mount home — the
+     F-09.35 class: the first frame rendered inherited/transparent where the owner
+     holds a value. Declared here at the theme.ts DARK owner's bytes; the
+     comparator cell guards owner-equality permanently. */
+  --atelier-page-bg:     #1F1612;
+  --atelier-section-bg:  rgba(245,235,212,0.03);
   --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(245,240,232,0.012) 1px, transparent 0);
   --atelier-label:       #E0BC6E;
   --atelier-accent-text: #C9A84C;
@@ -790,9 +798,19 @@ html.theme-light {
   --role-scrim:          rgba(26,15,8,0.35);
   --role-sheet:          #FFFFFF;
   --atelier-card-bg:     linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(245,242,238,0.65) 100%);
-  --atelier-card-border: rgba(122,56,40,0.20);
+  /* TDW_09 P1 · B-1 — THE BOTH-HOMES SWEEP (F-09.35's law: both homes move
+     together or the first frame renders a boundary the owner does not hold).
+     F-09.77 CURED: card-border was 0.20 here vs theme.ts owner 0.18 — filed at
+     MICRO-2 as watch-only ("no radius reader"); the token has since grown live
+     readers (demo-lane rows), so the pre-mount light frame rendered a border
+     the owner never held. F-09.82 CURED: header-bg was 0.94 vs owner 0.96 —
+     the same class, found by the same comparator. Values below are the
+     theme.ts LIGHT owner's, byte-equal; the comparator cell in
+     scripts/tdw09_p1_canon.proof.mjs asserts owner-equality for EVERY
+     published token, both homes, so this class dies as a class. */
+  --atelier-card-border: rgba(122,56,40,0.18);
   --atelier-card-shadow: 0 2px 12px -4px rgba(42,26,16,0.08);
-  --atelier-header-bg:   rgba(245,242,238,0.94);
+  --atelier-header-bg:   rgba(245,242,238,0.96);
   --atelier-sheet-bg:    linear-gradient(180deg, #F5F2EE 0%, #EDE8DF 100%);
   --atelier-sheet-top:   #F5F2EE;
   --atelier-sheet-bot:   #EDE8DF;
@@ -804,6 +822,10 @@ html.theme-light {
   --atelier-overlay-bg:  rgba(26,15,8,0.55);
   --atelier-overlay:     rgba(26,15,8,0.55);
   --atelier-row-hover:   rgba(26,15,8,0.03);
+  /* TDW_09 P1 · B-1 — the light half of the same R-M5 completion; theme.ts LIGHT
+     owner's bytes. Both homes move together (F-09.35). */
+  --atelier-page-bg:     #F5F2EE;
+  --atelier-section-bg:  rgba(26,15,8,0.025);
   --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(26,15,8,0.018) 1px, transparent 0);
   --atelier-label:       #7A3828;
   --atelier-accent-text: #7A3828;

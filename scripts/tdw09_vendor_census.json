@@ -1,0 +1,20 @@
+{
+  "hexTotal": 167,
+  "hexDistinct": 31,
+  "brassTotal": 269,
+  "brassDistinct": 39,
+  "files": 77,
+  "greenSites": [
+    "components/vendor/OnboardingOverlay.tsx:408",
+    "components/vendor/OnboardingOverlay.tsx:420",
+    "components/vendor/OnboardingOverlay.tsx:424",
+    "components/vendor/TipsCarousel.tsx:357",
+    "components/vendor/slices/SliceShell.tsx:744"
+  ],
+  "invariantPaths": [
+    "app/vendor/pin/",
+    "app/vendor/pin-login/",
+    "app/vendor/pin-reset/",
+    "components/vendor/Splash.tsx"
+  ]
+}
