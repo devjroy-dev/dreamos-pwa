@@ -41,6 +41,18 @@ const code = (rel) => strip(read(rel));
 
 const PAGE   = 'app/admin/prospects/page.tsx';
 const LAYOUT = 'app/admin/layout.tsx';
+// ── LABELED AMENDMENT · COUNT PRESERVED (TDW_10 P1, bench-follows-the-law) ──
+// §7's two cells asked "is this screen reachable from the nav?" and answered it
+// by reading a nav literal out of app/admin/layout.tsx. TDW_10 P1's six-domain
+// IA moved the registry to app/admin/_components/adminNav.ts — the SCREEN did
+// not move, its PATH did not change, and it is more reachable than before (nav
+// entry + command palette). Only the instrument's address moved.
+// Re-aimed at the new home, both halves, strength preserved: §7.1 still asserts
+// the registration and §M.4 still deletes it and demands the cell go red. The
+// count is unchanged at 54. The old anchor is recorded here so this amendment
+// can be read against what it replaced:
+//   "    { label:'Prospects',     path:'/admin/prospects',               icon:'inbox' },\n"
+const NAV = 'app/admin/_components/adminNav.ts';
 
 let pass = 0, fail = 0;
 const H = (s) => console.log(`\n══ ${s} ══`);
@@ -178,14 +190,14 @@ ok('§6.4 message bodies render whitespace as sent — a WhatsApp message is sha
 // ═════════════════════════════════════════════════════════════════════════════
 H('§7 · THE SCREEN IS REACHABLE');
 
-ok('§7.1 it is registered in the admin nav, under Outreach',
-  /\{ label:'Prospects',\s*path:'\/admin\/prospects'/.test(code(LAYOUT)));
+ok('§7.1 it is registered in the admin nav, under Growth',
+  /label:\s*'Prospects',\s*path:\s*'\/admin\/prospects'/.test(code(NAV)));
 
 okMutate('§M.4 a screen nobody can navigate to is a screen nobody uses',
-  LAYOUT,
-  "    { label:'Prospects',     path:'/admin/prospects',               icon:'inbox' },\n",
+  NAV,
+  "      { label: 'Prospects',     path: '/admin/prospects',              icon: 'inbox', hints: ['lane', 'outreach', 'closer', 'marketing'] },\n",
   '',
-  () => assert.ok(/path:'\/admin\/prospects'/.test(code(LAYOUT))),
+  () => assert.ok(/path:\s*'\/admin\/prospects'/.test(code(NAV).slice(0, code(NAV).indexOf('ROUTE_MAP')))),
   '§7.1');
 
 // ═════════════════════════════════════════════════════════════════════════════
