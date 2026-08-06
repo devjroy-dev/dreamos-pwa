@@ -32,6 +32,39 @@ import { T } from './AdminUI';
 import { formatRs } from '@/lib/vendor/format';
 import { getBridge, DRILL, type BridgeResponse, type HonestState, type DrillTarget } from '@/lib/admin-api/bridge';
 
+// ═══════════════════════════════════════════════════════════════════════════
+// F-10.32 — CORMORANT'S OLD-STYLE NUMERALS, AND WHY BOTH PROPERTIES APPEAR
+// ═══════════════════════════════════════════════════════════════════════════
+// The founder's live walk caught this and nothing else would have: NEW VENDORS
+// rendered `1` as `I`, and the queue rendered `0` as `()` and `11` as `I I`.
+// Cormorant Garamond defaults to OLD-STYLE (text) figures — a `1` with no
+// shoulder and a short `0` — which read as letters at 26-40px on a dark ground.
+// A morning screen whose counts are not legible as digits is not an instrument.
+//
+// TWO DIFFERENT PROBLEMS, TWO DIFFERENT PROPERTIES, derived not assumed:
+//   `lining-nums`  fixes LEGIBILITY — cap-height figures that read as digits.
+//                  Applied at EVERY figure site.
+//   `tabular-nums` fixes ALIGNMENT — equal advance widths, so a count ticking
+//                  10 -> 11 cannot reflow the label beside it. Applied ONLY in
+//                  the queue, where figures sit in a fixed 42px gutter against
+//                  a text block. The masthead does NOT take it: each figure sits
+//                  alone in its own card with no column to align against, so
+//                  tabular buys nothing there and costs the proportional spacing
+//                  Cormorant was chosen for.
+//
+// ⚠ WHAT THIS FILE CAN AND CANNOT PROVE. The bench asserts the property RESOLVES
+// at each site — that the declaration reaches the element and is not lost to
+// specificity. It CANNOT assert the glyph changed: whether the served
+// Cormorant Garamond woff2 actually carries an `lnum` set is a property of the
+// FACE, and fonts.gstatic.com is outside the build container's egress allowlist,
+// so it could not be derived by command. If the face lacks the set,
+// font-variant-numeric silently does nothing and a declaration-only cell would
+// go green over an unchanged glyph — the vacuous shape this estate refuses.
+// THE VERDICT IS THEREFORE THE FOUNDER'S EYE, on his smoke card, and the
+// fallback is pre-named so no second sitting is spent deciding it: if `1` still
+// reads as `I`, the figures move to Italiana, which app/layout.tsx:8 already
+// designates the estate's numeral face in its own words.
+
 const AUTO_REFRESH_MS = 60_000;   // spec §P2
 const PULL_THRESHOLD  = 72;       // px of overscroll before a pull commits
 
@@ -79,7 +112,7 @@ function Figure({
       }}
     >
       <div style={EYEBROW}>{label}</div>
-      <div style={{ fontFamily: T.ff.display, fontWeight: 500, fontSize: 40, lineHeight: 1, color: colour, letterSpacing: '-0.02em', marginTop: 10 }}>
+      <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 40, lineHeight: 1, color: colour, letterSpacing: '-0.02em', marginTop: 10 }}>
         {dead ? '—' : value}
       </div>
       <div style={{ fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: dead ? 'var(--admin-critical)' : 'var(--admin-ink-mute)', marginTop: 7 }}>
@@ -178,7 +211,7 @@ function QueueRow({
       }}
     >
       <div style={{
-        fontFamily: T.ff.display, fontWeight: 500, fontSize: 26, lineHeight: 1, minWidth: 42,
+        fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums tabular-nums', fontWeight: 500, fontSize: 26, lineHeight: 1, minWidth: 42,
         color: count === null ? 'var(--admin-ink-dim)' : (urgent && count > 0 ? 'var(--admin-critical)' : 'var(--admin-ink)'),
       }}>
         {count === null ? '—' : count}
@@ -328,7 +361,7 @@ export default function Bridge() {
           extra={
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '0.5px solid var(--admin-hairline)' }}>
               <div style={{ ...EYEBROW, fontSize: 9 }}>Featured slot fees · today</div>
-              <div style={{ fontFamily: T.ff.display, fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
+              <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
                 {today.revenue.featured_fees.today_inr === null ? '—' : formatRs(today.revenue.featured_fees.today_inr)}
               </div>
               <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 6 }}>

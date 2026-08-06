@@ -343,7 +343,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* PWA meta — admin scope installs as separate app on Android */}
       <head>
         <link rel="manifest" href="/admin-manifest.json" />
-        <meta name="theme-color" content="#0F1622" />
+        {/* R-B1 — THE ONE HEX IN THIS FILE, AND IT MOVES WITH THE GROUND.
+            A browser reads this attribute BEFORE any stylesheet, so it cannot be
+            a var() — that is why the exception exists at all (P1). It was
+            #0F1622, the cockpit navy. The retint made it a defect the moment it
+            stopped matching: the phone's status bar and the Android splash would
+            have stayed NAVY while every pixel below them went espresso, which is
+            precisely the seam the founder's smoke test looks at. Caught by
+            scripts/tdw10_p2_retint.proof.mjs §6, not by eye.
+            #1F1612 is theme.ts DARK.pageBg, the same value --admin-shell carries. */}
+        <meta name="theme-color" content="#1F1612" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

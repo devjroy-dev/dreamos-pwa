@@ -56,8 +56,23 @@ export function PageHeader({ title, sub, action }: {
     <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:32, gap:16 }}>
       <div>
         <h1 style={{ fontFamily:T.ff.body, fontWeight:700, fontSize:27, color:T.ink, lineHeight:1.1, margin:0, letterSpacing:'-0.015em' }}>{title}</h1>
+        {/* R-B1 limb 2 — THE ROSE EYEBROW DIES HERE, at its one true site.
+            Rose #C44058 measured 3.31:1 on the retiring navy and 3.84:1 on the
+            espresso ground — better, and still under the 4.5 body bar both times.
+            tokens.css's own P1 header convicted it once; R-B1's arithmetic
+            convicts it again. `--admin-ink-mute` measures 5.73:1.
+            WIDENING DISCLOSED: PageHeader is shared by 16 admin screens, so this
+            ONE PROPERTY moves the eyebrow on all of them. That is a strict gain
+            everywhere and is why it was not localised to the Bridge — 15 screens
+            wearing a sub-bar rose eyebrow on an espresso ground would fail the
+            founder's own smoke test ("the same house as his vendor app"). It is
+            a widening of the ruled scope and is RATIFY-OR-REVERT.
+            NOT IN SCOPE, named so the silence is not misread: six other T.goldDim
+            sites in this file (a disabled button, two field-focus labels, a select
+            chevron, a section divider) are NOT eyebrows and are NOT touched. They
+            belong to whatever sitting re-values T itself. */}
         {sub && (
-          <p style={{ fontFamily:T.ff.label, fontWeight:600, fontSize:10, color:T.goldDim, letterSpacing:'0.14em', textTransform:'uppercase', marginTop:9, marginBottom:0 }}>{sub}</p>
+          <p style={{ fontFamily:T.ff.label, fontWeight:600, fontSize:10, color:'var(--admin-ink-mute)', letterSpacing:'0.14em', textTransform:'uppercase', marginTop:9, marginBottom:0 }}>{sub}</p>
         )}
       </div>
       {action && <div style={{ flexShrink:0, marginTop:4 }}>{action}</div>}

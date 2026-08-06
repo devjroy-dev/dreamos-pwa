@@ -71,14 +71,25 @@ for (const [name, src] of REBUILT) {
   // layout.tsx keeps ONE by design: the PWA <meta name="theme-color"> content,
   // which cannot be a var() — a browser reads that attribute before any
   // stylesheet. Named here so the exception is a ruling and not a leak.
-  const allowed = name === 'app/admin/layout.tsx' ? ['#0F1622'] : [];
+  // ── LABELLED AMENDMENT (TDW_10 R-B1) — RATIFY-OR-REVERT ─────────────────
+  // RETIRED ANCHOR, recorded verbatim so the amendment can be read against what
+  // it replaced:   const allowed = name === 'app/admin/layout.tsx' ? ['#0F1622'] : [];
+  // The exception itself is UNCHANGED in kind — layout.tsx still keeps exactly
+  // ONE hex, still for the same reason (a <meta> content cannot be a var()).
+  // Only its VALUE moved, because the ground moved: #0F1622 was the cockpit
+  // navy and the espresso retint made it a mismatch with the ground it names.
+  // The cell's strength is preserved — it still admits exactly one literal and
+  // still reddens on any other. Count unchanged, 53 -> 53.
+  const allowed = name === 'app/admin/layout.tsx' ? ['#1F1612'] : [];
   const leaks = hits.filter(h => !allowed.includes(h));
   ok(`${name} names roles, not colours (0 hex literals outside the declared exception)`,
      leaks.length === 0, leaks.join(', '));
 }
 
-ok('the meta theme-color exception is the ONLY hex in the shell, and it is the cockpit navy',
-   /content="#0F1622"/.test(LAYOUT));
+// RETIRED ANCHOR, verbatim: /content="#0F1622"/ — "the cockpit navy".
+// Re-aimed at the espresso ground per R-B1; the assertion's SHAPE is untouched.
+ok('the meta theme-color exception is the ONLY hex in the shell, and it is the page ground',
+   /content="#1F1612"/.test(LAYOUT));
 
 // The borrowed vocabulary (R-A1's mechanism comment is a claim; this is its check).
 const BORROWED = ['ink', 'inkSoft', 'inkMute', 'inkDim', 'inkFade', 'positive', 'caution', 'critical', 'metal', 'scrim', 'sheet', 'cardBg', 'cardBorder', 'headerBg', 'inputBg', 'inputBorder'];

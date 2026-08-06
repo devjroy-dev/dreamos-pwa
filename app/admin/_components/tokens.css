@@ -1,131 +1,158 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    app/admin/_components/tokens.css
-   THE ADMIN DARK TOKEN SET — TDW_10 P1, CE ruling R-A1 arm (c).
+   THE ADMIN DARK TOKEN SET — TDW_10 P1 (R-A1 arm c), RE-VALUED TO ESPRESSO at
+   TDW_10 · R-B1, on the founder's word 「 A. :D ill go with your choice. 」
 
-   ── WHY A THIRD SET AND NOT THE 09 CANON ────────────────────────────────────
-   TDW_10_ADMIN_FINAL §0 cites `lib/design/tokens.ts` as the donor. THAT FILE
-   DOES NOT EXIST and never has: it is Layer 2 of a PROPOSAL
-   (docs/specs/TDW_09_S1_TOKEN_CANON.md §3.2) whose §5 step 1 was never
-   executed. The canon that DID land is two-layer and belongs to the vendor
-   lane:
-       runtime  — app/globals.css, `--atelier-*` + `--role-*`
-       typed    — lib/vendor/theme.ts, the ThemeTokens interface
-   Those tokens THEME. They carry an Espresso value and an Editorial Paper
-   value and swap on `html.theme-light`. The admin cockpit is INVARIANT DARK by
-   constitution (masterplan LD-9: "generic dark mode forbidden … admin cockpit
-   dark is the sanctioned exception"), so a theme-switching canon is the wrong
-   donor — MICRO-2's law, that invariant surfaces PIN rather than follow.
+   ── WHAT MOVED, AND WHAT DELIBERATELY DID NOT ───────────────────────────────
+   This is a RE-VALUING, not a re-vocabulary. Every role NAME below is unchanged,
+   so every P1 and P2 surface inherits the espresso ground by construction and
+   not one component file moves for the palette itself. The navy family
+   (#213650 / #18293E / #122031 / #15273D / #0E1B2C / #0F1622 / #10171F) retires WHOLE.
+   Gold stays exactly where the founder ratified it at CE-199.
 
-   [F-06.85] THIS FILE IS CONDITIONED ON A MECHANISM AND NAMES IT. The ROLE
-   VOCABULARY below is borrowed one-for-one from `lib/vendor/theme.ts`'s
-   ThemeTokens interface — ink / inkSoft / inkMute / inkDim / inkFade /
-   positive / caution / critical / metal / scrim / sheet / cardBg / cardBorder
-   / headerBg / inputBg / inputBorder — so the estate speaks ONE language about
-   colour roles across two planes. If ThemeTokens is re-authored, renamed, or
-   loses a role, THIS FILE'S names must be re-read against it before the change
-   ships: the values here are ours, but the NAMES are theirs and the whole
-   point of borrowing them is that they stay in step.
+   ── [F-06.85] THE DONOR IS NOW VALUES, NOT ONLY NAMES ───────────────────────
+   P1 borrowed the ROLE VOCABULARY from lib/vendor/theme.ts's ThemeTokens and
+   said so here, so the estate would speak one language about colour roles across
+   two planes. R-B1 extends that borrowing to the VALUES: every ground, ink and
+   status value below is lifted from `lib/vendor/theme.ts`'s DARK export, read at
+   dreamos-pwa 191002e, and each one cites its donor in-comment beside it.
 
-   ── WHERE THE VALUES CAME FROM ──────────────────────────────────────────────
-   The navy family already on screen at f9b0600, lifted verbatim from
-   app/admin/layout.tsx before this rebuild:
-       body gradient   #213650 → #18293E → #122031
-       sidebar         #15273D → #0E1B2C
-       theme-color     #0F1622   (the spec's named cockpit navy)
-       <option> bg     #10171F
-   Nothing was invented. Cockpit navy is not a new palette; it is the palette
-   that shipped, finally given names.
+   THE MECHANISM, NAMED SO IT IS RE-READ: if `DARK` is re-authored, re-valued, or
+   loses a key, THIS FILE'S values must be re-derived against it before the change
+   ships. Names AND values now travel together, which is the whole point of
+   borrowing both. `scripts/tdw10_p2_retint.proof.mjs` asserts each citation
+   mechanically rather than trusting this paragraph.
 
-   ── THE ONE AESTHETIC BYTE WHERE SPEC AND SCREEN DISAGREED ──────────────────
-   The shipped accent was ROSE, `const G = '#C44058'` at layout.tsx:10.
-   TDW_10_ADMIN_FINAL P1.1 rules "gold reserved for the wordmark + genuine
-   alerts". R-A1 rider (ii) ruled the SPEC, not the screen — the-product-is-
-   the-spec — and put the byte on the founder's smoke card with an open veto.
-   The change is also a legibility gain, derived not asserted (WCAG 2.1, both
-   against `--admin-bg-bot` #122031, the darkest stop and therefore the
-   conservative direction):
-       rose #C44058  → 3.31:1   under the 4.5 body bar
-       gold #C9A84C  → 7.18:1   clears AA body, clears AAA large
-   Gold FAILS as text on the cream vendor lane (2.1:1, F-09.3's demotion) and
-   PASSES here. Same pigment, different ground; the role is granted per plane,
-   which is exactly why the admin needs its own set rather than an alias.
+   ── WHERE THE VALUES CAME FROM, BY COMMAND ──────────────────────────────────
+   The espresso family the vendor lane already runs on:
+       DARK.pageBg      #1F1612      the page ground
+       DARK.sheetBot    rgba(22,16,12,.99)  -> #160F0C
+       the COMPOSITED sheet surface #120F0E, which theme.ts names itself in the
+       mechanism comment at DARK.inputBorder
+   Nothing is invented. Three donor values, in descending lightness, become the
+   cockpit's three gradient stops.
 
-   ── THE RULE THIS FILE EXISTS TO ENFORCE ────────────────────────────────────
-   No rebuilt admin surface names a colour. It names a role. Hex literals in
-   the P1-rebuilt set fail review, asserted mechanically at
-   scripts/tdw10_p1_shell.proof.mjs §1 (which declares its own counting method
-   in-cell — instruments own their counts).
+   ── §0.2 · A DRIFT IN THE RULING'S OWN GLOSS, NAMED NOT ADAPTED TO ──────────
+   R-B1's parenthetical reads 「 warm near-black grounds (#14100D/#0C0A09 family) 」.
+   DERIVED AT TIP: `#14100D` appears NOWHERE in this repo, and `#0C0A09` appears
+   only as a light-theme FOREGROUND ink — the text colour on gold buttons in the
+   couple lane (TodayHero, MuseRow, MomentsNeedYou and five siblings). Neither is
+   a dark ground and neither is in the donor. The ruling's OPERATIVE instruction
+   is 「 derives from theme.ts's DARK tokens by command at your tip 」, and that is
+   what is obeyed here; the gloss is reported rather than quietly satisfied with
+   invented hexes that happen to match it.
+
+   ── THE RETINT IS ALSO A LEGIBILITY CURE, AND THE NUMBERS SAY SO ────────────
+   Derived against the darkest stop in each palette — the conservative direction.
+   The RETIRING admin ink ladder measured:
+       ink 13.75 · soft 6.05 · mute 4.19 · dim 1.89 · fade 1.38
+   Three of those five were under their own bar. `--admin-ink-mute` (4.19, under
+   the 4.5 body bar) carried every figure sub-label and eyebrow on the Bridge, and
+   `--admin-ink-dim` (1.89) carried the honest-unknown DASH — the one glyph whose
+   entire job is to be noticed instead of a zero. F-10.33.
+
+   The donor ladder, which R-U18 had already raised on the vendor lane for exactly
+   this reason, measures on #120F0E:
+       ink 15.41 · soft 6.92 · mute 5.73 · dim 4.80 · fade 3.01
+   Five distinct rungs, four clearing the body bar, the fifth held at the 3:1 UI
+   bar by design. The cure is inherited, not re-invented.
+
+   ── THE ROSE, CONVICTED A SECOND TIME ───────────────────────────────────────
+   This file's P1 header already convicted rose #C44058 at 3.31:1 on the navy.
+   Re-derived on the espresso ground it measures 3.84:1 — better, and still under
+   the 4.5 body bar. R-B1's eyebrow ruling therefore stands on its own arithmetic
+   and not only on its author's eye. The eyebrow moves to `--admin-ink-mute`
+   (5.73:1). Rose survives nowhere in the P1+P2 rebuilt set.
+
+   ── THE RULE THIS FILE EXISTS TO ENFORCE (unchanged) ────────────────────────
+   No rebuilt admin surface names a colour. It names a role.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
   /* ── Ground ──────────────────────────────────────────────────────────────
-     The cockpit gradient's three stops, named so a surface can reach for one
-     stop without re-declaring the whole gradient. */
-  --admin-bg-top:        #213650;
-  --admin-bg-mid:        #18293E;
-  --admin-bg-bot:        #122031;
-  --admin-bg:            linear-gradient(165deg, #213650 0%, #18293E 50%, #122031 100%);
+     The cockpit gradient's three stops, each a donor value, named so a surface
+     can reach for one stop without re-declaring the whole gradient. */
+  --admin-bg-top:        #1F1612;  /* theme.ts DARK.pageBg */
+  --admin-bg-mid:        #160F0C;  /* theme.ts DARK.sheetBot rgb(22,16,12) */
+  --admin-bg-bot:        #120F0E;  /* the composited sheet surface DARK.inputBorder's comment names */
+  --admin-bg:            linear-gradient(165deg, #1F1612 0%, #160F0C 50%, #120F0E 100%);
 
   /* The navigation ground — deliberately darker than the page so the sidebar
-     reads as chrome and not as content. */
-  --admin-nav-top:       #15273D;
-  --admin-nav-bot:       #0E1B2C;
-  --admin-nav-bg:        linear-gradient(180deg, #15273D 0%, #0E1B2C 100%);
+     reads as chrome and not as content. Both stops are donor values; the nav
+     starts where the page ENDS, which is what preserves that relationship
+     without minting a fourth espresso value nobody derived. */
+  --admin-nav-top:       #160F0C;  /* theme.ts DARK.sheetBot */
+  --admin-nav-bot:       #120F0E;  /* composited sheet surface */
+  --admin-nav-bg:        linear-gradient(180deg, #160F0C 0%, #120F0E 100%);
 
-  /* The bar ground: the page gradient at rest, translucent, blurred. */
-  --admin-bar-bg:        rgba(15, 29, 46, 0.82);
+  /* The bar ground: the page at rest, translucent, blurred. The donor's own
+     header idiom — DARK.headerBg is rgba(31,22,18,0.78), i.e. pageBg at .78. */
+  --admin-bar-bg:        rgba(31, 22, 18, 0.78);   /* theme.ts DARK.headerBg */
+  --admin-header-bg:     rgba(31, 22, 18, 0.78);   /* theme.ts DARK.headerBg */
 
-  /* `--admin-shell` is the flat navy the spec names (#0F1622 family). It is the
-     PWA theme-color and the browser chrome's answer — a single opaque value,
-     because a gradient cannot be a <meta> content. */
-  --admin-shell:         #0F1622;
+  /* `--admin-shell` is the PWA <meta name="theme-color"> answer and must be a
+     single OPAQUE value — a gradient cannot be a meta content attribute. It is
+     the donor page ground itself, so the browser chrome and the vendor app now
+     read as the same house. */
+  --admin-shell:         #1F1612;  /* theme.ts DARK.pageBg */
 
-  /* ── Ink (role names: theme.ts ThemeTokens) ──────────────────────────────
-     One hue, five weights. Every value carried verbatim from the shipped
-     shell's INK / SOFT / DIM consts; `mute` and `fade` are the two rungs the
-     shell reached for by writing a fresh rgba() inline each time. */
-  --admin-ink:           #F0EAE0;
-  --admin-ink-soft:      rgba(240, 234, 224, 0.62);
-  --admin-ink-mute:      rgba(240, 234, 224, 0.48);
-  --admin-ink-dim:       rgba(240, 234, 224, 0.22);
-  --admin-ink-fade:      rgba(240, 234, 224, 0.12);
+  /* ── Ink (role names AND values: theme.ts DARK) ──────────────────────────
+     One warm hue, five weights, every rung measured above. The rgb triple is
+     the donor's (240,230,210) and every alpha is the donor's own. */
+  --admin-ink:           #F0E6D2;                      /* DARK.ink       15.41:1 */
+  --admin-ink-soft:      rgba(240, 230, 210, 0.65);    /* DARK.inkSoft    6.92:1 */
+  --admin-ink-mute:      rgba(240, 230, 210, 0.58);    /* DARK.inkMute    5.73:1 */
+  --admin-ink-dim:       rgba(240, 230, 210, 0.52);    /* DARK.inkDim     4.80:1 */
+  --admin-ink-fade:      rgba(240, 230, 210, 0.37);    /* DARK.inkFade    3.01:1, the UI bar */
 
-  /* ── Hairlines ───────────────────────────────────────────────────────────*/
-  --admin-hairline:      rgba(255, 255, 255, 0.10);
-  --admin-hairline-firm: rgba(255, 255, 255, 0.18);
+  /* ── Hairlines ───────────────────────────────────────────────────────────
+     WARM, not the cool rgba(255,255,255,…) the navy set ran on. The hue is the
+     donor's ink triple; the ALPHAS are this plane's own and are declared as such
+     rather than dressed as donor values — theme.ts has no hairline role. */
+  --admin-hairline:      rgba(240, 230, 210, 0.10);
+  --admin-hairline-firm: rgba(240, 230, 210, 0.18);
 
   /* ── Surfaces above the ground ───────────────────────────────────────────*/
-  --admin-card-bg:       rgba(255, 255, 255, 0.035);
-  --admin-card-border:   rgba(255, 255, 255, 0.10);
-  --admin-header-bg:     rgba(15, 29, 46, 0.82);
-  --admin-row-hover:     rgba(255, 255, 255, 0.05);
+  --admin-card-bg:       rgba(255, 255, 255, 0.035);   /* theme.ts DARK.sheet, verbatim */
+  /* DELIBERATELY NOT DARK.cardBorder. The donor's card border is
+     rgba(201,168,76,0.3) — BRASS — and a brass edge on every card would put gold
+     on every surface, against P1.1's 「 gold reserved for the wordmark + genuine
+     alerts 」 and LD-9's ≤3 accents per screen. Hue taken from the donor's ink,
+     alpha this plane's own, and the departure stated rather than silent. */
+  --admin-card-border:   rgba(240, 230, 210, 0.10);
+  --admin-row-hover:     rgba(245, 235, 212, 0.03);    /* theme.ts DARK.rowHover, verbatim */
 
   /* ── The sheet stack ─────────────────────────────────────────────────────
      `scrim` dims the page; `sheet` is the ground the sheet's own content sits
      on, ABOVE the scrim. Two tokens, because on an already-dark plane a single
      "overlay" value cannot do both jobs. */
-  --admin-scrim:         rgba(0, 0, 0, 0.80);
-  --admin-sheet:         #101E30;
-  --admin-sheet-border:  rgba(255, 255, 255, 0.14);
+  --admin-scrim:         rgba(0, 0, 0, 0.7);           /* theme.ts DARK.scrim */
+  --admin-sheet:         #160F0C;                      /* DARK.sheetBot, opaque — a sheet needs a floor */
+  --admin-sheet-border:  rgba(240, 230, 210, 0.14);
 
   /* ── Inputs ──────────────────────────────────────────────────────────────*/
-  --admin-input-bg:      rgba(255, 255, 255, 0.05);
-  --admin-input-border:  rgba(255, 255, 255, 0.16);
-  --admin-option-bg:     #10171F;
+  --admin-input-bg:      rgba(245, 235, 212, 0.04);    /* theme.ts DARK.inputBg, verbatim */
+  /* DELIBERATELY NOT DARK.inputBorder (rgba(201,168,76,0.52)) — same brass
+     reasoning as the card border. R-S3's 3:1 UI bar is what that value exists to
+     clear, so this warm-white alpha is set to clear the same bar on THIS plane's
+     input ground rather than to match the donor's number. */
+  --admin-input-border:  rgba(240, 230, 210, 0.22);
+  --admin-option-bg:     #160F0C;                      /* DARK.sheetBot — <option> needs opacity */
 
   /* ── Status roles ────────────────────────────────────────────────────────
-     Borrowed names, admin values: each lifted to clear 4.5:1 on
-     --admin-bg-bot, which the vendor lane's Espresso values do not
-     (they are tuned for #1F1612, a warmer and lighter ground). */
-  --admin-positive:      #7FC48A;
-  --admin-caution:       #E8B778;
-  --admin-critical:      #F08A72;
+     Now the donor's own values, no longer navy-tuned twins of them. Measured on
+     --admin-bg-bot, the darkest stop: positive 8.73 · caution 9.09 · critical
+     6.50. Every one clears the body bar with room. */
+  --admin-positive:      #7FBE85;   /* theme.ts DARK.positive */
+  --admin-caution:       #E0A870;   /* theme.ts DARK.caution  */
+  --admin-critical:      #E07B5C;   /* theme.ts DARK.critical */
 
   /* ── The metal ───────────────────────────────────────────────────────────
-     Wordmark + GENUINE alerts only. Not a decoration, not a hover, not a
-     default active state. Spec P1.1's own words; the scarcity is the point
-     (LD-9's ≤3 accents per screen). */
-  --admin-metal:         #C9A84C;
+     UNCHANGED BY RULING. #C9A84C is the founder's ratified gold at CE-199 and is
+     also, independently, theme.ts's DARK.metal — the two planes already agreed
+     on this pigment. 8.35:1 on the new darkest stop, up from 7.18 on the navy.
+     Wordmark + GENUINE alerts only. The scarcity is the point. */
+  --admin-metal:         #C9A84C;                      /* theme.ts DARK.metal */
   --admin-metal-soft:    rgba(201, 168, 76, 0.55);
   --admin-metal-line:    rgba(201, 168, 76, 0.28);
   --admin-metal-wash:    rgba(201, 168, 76, 0.10);
