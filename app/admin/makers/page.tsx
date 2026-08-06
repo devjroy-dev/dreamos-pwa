@@ -81,8 +81,11 @@ export default function MakersPage() {
       // eligibility flipping while the standing chip stayed put would be F-10.59
       // reproduced in local state.
       setVendors(vs => vs.map(x => x.id === v.id
+        // F-10.61 — the STORED word is 'revoked' (0039's CHECK constraint knows no
+        // 'hidden'); every rendered word is HIDDEN. The optimistic row must mirror
+        // what the server actually writes, or the chip lies until the next load.
         ? { ...x, discover_eligible: !v.discover_eligible,
-                  discover_request_state: v.discover_eligible ? 'hidden' : 'approved' }
+                  discover_request_state: v.discover_eligible ? 'revoked' : 'approved' }
         : x));
       showToast(v.discover_eligible ? 'Hidden from Discover.' : 'Added to Discover.');
     }
@@ -170,7 +173,7 @@ export default function MakersPage() {
                       const chip =
                         st === 'approved' && v.discover_eligible ? ['● DISCOVER',    T.success]
                       : st === 'approved'                        ? ['● HIDDEN',      T.warning]
-                      : st === 'hidden' || st === 'revoked'      ? ['● HIDDEN',      T.warning]
+                      : st === 'revoked' || st === 'hidden'      ? ['● HIDDEN',      T.warning]
                       : st === 'requested' || st === 'under_review' ? ['● PENDING',  T.gold]
                       : st === 'denied'                          ? ['● NOT APPROVED', T.danger]
                       : null;   // not_requested — never applied is an honest blank

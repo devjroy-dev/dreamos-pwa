@@ -306,7 +306,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   : 'You\u2019re on Discover. Your work is live on The Dream Wedding.'}
               </div>
             </div>
-          ) : state === 'hidden' || state === 'revoked' ? (
+          ) : state === 'revoked' || state === 'hidden' ? (
             /* ── HIDDEN, WITH A DOOR BACK (founder-ruled) ────────────────────────
                THE FIRST DRAFT OF THIS BRANCH HAD NO BUTTON. `denied` has Re-apply;
                this had nothing — so a vendor read 「 We'll be in touch 」 and had no
@@ -315,9 +315,12 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                her stuck is arguably worse: now she believes the screen is complete.
                Founder-ruled: 「 remove from discover should automatically give the
                vendor re apply 」.
-               'revoked' shares this branch. Nothing writes it any more, but rows
-               carry it from the evening between rider 4 and this one, and those
-               vendors are owed the same true thing and the same door. */
+               'revoked' IS THE STORED WORD (F-10.61): `discover_request_state`
+               has carried a CHECK constraint since migration 0039 that knows no
+               'hidden', so writing that word 500'd on the founder's thumb. The
+               column says 'revoked'; every sentence on this screen says HIDDEN.
+               'hidden' is kept in the branch anyway — cheap, and it means the day
+               0113's sitting widens the constraint, this screen needs no edit. */
             <>
               <div style={{
                 padding: '14px 18px',

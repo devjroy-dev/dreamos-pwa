@@ -415,7 +415,10 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
   ok('a split legacy pair reads HIDDEN, because that is what a couple experiences',
      /st === 'approved'\s*\? \['● HIDDEN'/.test(MAK0C));
   ok('the optimistic row update moves the PAIR, never half of it',
-     /discover_request_state: v\.discover_eligible \? 'hidden' : 'approved'/.test(MAK0C));
+     /discover_request_state: v\.discover_eligible \? 'revoked' : 'approved'/.test(MAK0C));
+  // F-10.61 — the client may not invent a stored value the database forbids.
+  ok('no surface writes the word the CHECK constraint does not know',
+     !/'hidden'\s*:/.test(MAK0C) && !/state: 'hidden'/.test(MAK0C));
 
   // ── F-10.57 · THE WELCOME IS REACHABLE AFTER THE THIRTY SECONDS ────────────
   const MAK = readOr('app/admin/makers/page.tsx');
@@ -471,9 +474,12 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
      /Your profile is hidden from couples right now\. You can apply again/.test(VD));
   // ── THE DOOR BACK. The first draft of that branch had no button at all. ─────
   ok('the hidden state offers Re-apply — it is not a cul-de-sac',
-     /state === 'hidden' \|\| state === 'revoked' \?[\s\S]{0,2600}Re-apply/.test(VDC));
-  ok('legacy `revoked` rows share the branch, so they get the door too',
-     /state === 'hidden' \|\| state === 'revoked'/.test(VDC));
+     /state === 'revoked' \|\| state === 'hidden' \?[\s\S]{0,2600}Re-apply/.test(VDC));
+  // The branch accepts BOTH words: 'revoked' is what is stored today (0039's
+  // constraint), 'hidden' is what will be stored the day 0113 widens it. Reading
+  // both means that migration needs no screen edit.
+  ok('the branch reads the stored word AND the future one',
+     /state === 'revoked' \|\| state === 'hidden'/.test(VDC));
   // NON-VACUITY: the two lines must be DIFFERENT, or one branch is decoration.
   ok('live and hidden say different things',
      /Hidden For Now/.test(VD) && /You&apos;re on Discover|You\\u2019re on Discover/.test(VD));
