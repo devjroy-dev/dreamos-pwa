@@ -18,7 +18,7 @@ import { FreshThreadControl } from '@/components/vendor/FreshThreadControl'; // 
 import { InputBar } from '@/components/vendor/InputBar';
 import { TierMeter } from '@/components/vendor/TierMeter'; // TDW_02 P5
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth, already cached on this screen
+import { useCabinetData, useTodayData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth, already cached on this screen · TDW_09 O-2 R-O18: the waiting zone's loader
 import { deriveMoney, type MoneyDerivation } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { setVendorSession } from '@/lib/vendor/session';
 
@@ -26,12 +26,12 @@ import { getJson } from '@/lib/vendor/api/_base';
 import { useChat } from '@/hooks/vendor/useChat';
 import { useToast } from '@/hooks/vendor/useToast';
 import { Toast } from '@/components/vendor/Toast';
-import { createNote, reportGlitch } from '@/lib/vendor/api/vendor'; // TDW_06 M-3: the Report chip's route
+import { createNote, reportGlitch, fetchDiscoverStatus } from '@/lib/vendor/api/vendor'; // TDW_06 M-3: the Report chip's route
 
 import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
 import { useT } from '@/lib/vendor/ThemeContext';
-import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
+import type { VendorContextResponse, TodayResponse, DiscoverStatus } from '@/lib/vendor/types/vendor';
 import { formatRs, fitMoneySize } from '@/lib/vendor/format'; // TDW_09 R-U25/R-U24
 
 // ── Static Atelier tokens (non-theme-sensitive) ──────────────────
@@ -50,14 +50,15 @@ const F = {
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
 
-// ── Quick action primers ────────────────────────────────────────
-const QUICK_ACTIONS = [
-  { label: '+ Client',  primer: "What are the details of the new client? Give me their name and phone number to start." },
-  { label: '+ Invoice', primer: "Give me the details for the invoice — client name, total amount, and any advance?" },
-  { label: '+ Expense', primer: "What did you spend on? Give me the amount and what it was for." },
-  { label: '+ Event',   primer: "What's the event? Give me a title, date, and time if you have it." },
-  { label: '+ Lead',    primer: "Tell me about the new enquiry — paste it or describe it and I'll log it." },
-];
+// ── TDW_09 O-2 · R-O14-AMENDED — QUICK_ACTIONS IS REMOVED-DEAD ─────────────
+// The CommandBar's primer array. The bar itself was REMOVED-BY-FOUNDER-RULING at
+// TDW_07 MICRO-2, and that deletion's CE-115 inventory accounted all five of its
+// CONTROLS — but not this data structure, which survived unconsumed (F-09.54:
+// "a readout inventory that missed a data structure"). Derived by command before
+// removal, not assumed: `QUICK_ACTIONS` appeared exactly once in this file and
+// nowhere else in app/, components/, lib/ or hooks/ — a declaration with no
+// reader. Not a control, so R-X30's parity line is untouched. O-2 rewrites this
+// file; carrying a corpse through a rewrite is how F-08.89s breed.
 
 // ── THE COMPACT FORMATTER IS DEAD (TDW_09 R-U24) ─────────────────────
 // TDW_04 A3 (ST-4's acceptance, executor judgment — flagged for CE review):
@@ -104,18 +105,33 @@ function timeOfDayGreeting(): string {
 }
 
 // ── Greeting line — Cormorant italic. Reads as a butler announcing the moment ──
-function GreetingLine({ context, money }: { context: VendorContextResponse | null; money: MoneyDerivation }) {
+function GreetingLine({ context, money, today }: { context: VendorContextResponse | null; money: MoneyDerivation; today: TodayResponse | null }) {
   const T = useT();
   const greeting = timeOfDayGreeting();
   const timeOfDay = greeting.toLowerCase().includes('evening') ? 'evening'
                   : greeting.toLowerCase().includes('afternoon') ? 'afternoon'
                   : 'morning';
 
-  // TDW_04 A3 (ST-4/L-4): letters stay TYPED (enquiries are typed rows);
-  // the money count is BINDER-derived — the same figure the Invoices page
-  // shows, because it's the same function (lib/vendor/derive.ts). The old
-  // read totalled public.invoices and could greet you with phantoms.
-  const leads = context?.new_leads?.length ?? 0;
+  // TDW_04 A3 (ST-4/L-4), AMENDED TDW_09 O-2 · R-O12/R-O15 — LETTERS NO LONGER
+  // STAY TYPED. The sentence this comment used to carry ("letters stay TYPED;
+  // enquiries are typed rows") defended a plane this code no longer reads, and
+  // leaving it would have been a trap set for the next reader (F-06.85).
+  //
+  // THE MECHANISM, NAMED SO ITS NEXT SITTING RE-READS THIS: the figure is
+  // TodayResponse.open_leads_count, served by src/api/vendor-engine/today.js —
+  // the ENGINE plane, the same binder ledger deriveMoney reads. It is the
+  // route's only true count; its sibling `needs_attention.new_leads` is a
+  // display list capped at ten and must never be used for a figure.
+  //
+  // WHY IT MOVED (F-09.49): the old read was `context.new_leads.length`, off
+  // public.leads via vendor/context.js — a DIFFERENT TABLE, filtered
+  // state='new', capped at `.limit(5)`. Founder-witnessed on 2026-08-06: eleven
+  // live enquiries, five rendered. Not a drift between zones — a lid the vendor
+  // could not see past. The Ledger below reads the SAME figure from the SAME
+  // payload, because one derivation means one on the SCREEN, not one per
+  // component; re-plumbing half the screen would have reproduced F-09.49 with
+  // its own cure.
+  const leads = today?.open_leads_count ?? 0;
   const owedCount = money.owedCount;
 
   let line: string;
@@ -155,18 +171,48 @@ function GreetingLine({ context, money }: { context: VendorContextResponse | nul
 }
 
 // Spell small integers — keeps the greeting reading like prose, not data
+//
+// TDW_09 O-2 · R-O17 (founder-ruled, arm (b)) — THE CEILING MOVED 10 -> 20, AND
+// THE MECHANISM THAT FORCED IT IS NAMED HERE SO ITS NEXT SITTING RE-READS THIS
+// SENTENCE (F-06.85). The old ceiling of ten was never reachable: the greeting's
+// source was `context.new_leads`, and vendor/context.js caps that read at
+// `.limit(5)`. The prose could not have rendered a numeral if it tried. R-O12
+// re-plumbs both readers onto TodayResponse.open_leads_count — an UNCAPPED count
+// — so the first vendor past ten would have read "12 letters await you this
+// morning." on a line built for words. The founder's own test account sits at 12.
+//
+// WHY TWENTY AND NOT HIGHER: past twenty, English numerals become hyphenated
+// compounds ("twenty-three letters await you") that read as clutter in a
+// one-line greeting and stop sounding like a butler announcing the moment. The
+// ledger cell directly beneath carries the exact figure at any size, so nothing
+// is lost by falling through to digits above the ceiling — the prose gives up
+// the number precisely where the number stops being prose.
 function spell(n: number): string {
-  const words = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
-  return n >= 0 && n <= 10 ? words[n] : String(n);
+  const words = [
+    'Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+    'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen',
+    'Eighteen','Nineteen','Twenty',
+  ];
+  return n >= 0 && n <= 20 ? words[n] : String(n);
 }
 
 // ── The Ledger — three brass cells with a ◆ printer's mark above ──
-function Ledger({ context, money }: { context: VendorContextResponse | null; money: MoneyDerivation }) {
+function Ledger({ context, money, today }: { context: VendorContextResponse | null; money: MoneyDerivation; today: TodayResponse | null }) {
   const T = useT();
   // TDW_04 A3 (ST-4/L-4) — one derivation, two renderers: `owed` here and
   // `outstanding` on the Invoices masthead are the same call into
   // lib/vendor/derive.ts over the same binder rows. They cannot drift.
-  const leads      = context?.new_leads?.length ?? 0;
+  //
+  // TDW_09 O-2 · R-O12/R-O15 — AND NOW `leads` OBEYS THE SAME LAW. It reads
+  // TodayResponse.open_leads_count off the ENGINE plane
+  // (src/api/vendor-engine/today.js), which is the binder ledger `owed` already
+  // derives from — so this strip's own sub-copy, "from your binders", is a true
+  // sentence for the first time. It was false while Letters read public.leads
+  // through vendor/context.js (F-09.49). GreetingLine above reads THE SAME
+  // FIGURE FROM THE SAME PAYLOAD; if a future sitting moves one, it moves both.
+  // Never `needs_attention.new_leads.length` — that list is capped at ten
+  // (today.js:108) and is a display slice, not a count.
+  const leads      = today?.open_leads_count ?? 0;
   const owed       = money.outstanding;
   const owedCount  = money.owedCount;
   const nextEvent  = context?.upcoming_events?.[0] ?? null;
@@ -277,123 +323,280 @@ function LedgerCell({
   );
 }
 
-// ── Calling Card — new enquiry, with corner ornaments ──────────
-function EnquiryCard({ context, onInject }: {
-  context: VendorContextResponse | null;
-  onInject: (text: string) => void;
+// ── TDW_09 O-2 · R-O14-AMENDED — EnquiryCard IS REMOVED-DEAD (F-09.52) ─────
+// The Calling Card. RENDER COUNT ON THE REAL PLANE: ZERO — defined here, never
+// mounted in this file's JSX tree, derived by a full control census of all 611
+// lines rather than by grep. Its live twin runs on the demo plane at
+// app/demo/vendor/[handle]/studio/page.tsx, whose own :66-68 comment names the
+// reason the pair survived: incompatible signatures, unconvergeable without a
+// shape ruling. So the mirror was alive and the thing it mirrored was dead —
+// F-08.1's disease, inverted.
+//
+// WHAT REPLACES IT, NAMED SO NOTHING LOOKS AMPUTATED: zone 2, WHAT'S WAITING.
+// The card's job — surface an unanswered enquiry and offer to draft a reply —
+// becomes a waiting LINE in the spec's one-to-three-line shape, keeping the
+// card's own `Reply →` verb (R-O19) and seeding the input through
+// `draft` -> InputBar initialValue, the live rendered mechanism (R-O14-AMENDED).
+// Not a control (render count zero — the census is the witness), so R-X30's
+// parity line is untouched.
+
+// ── ZONE 2 — WHAT'S WAITING (R-X23 §1, R-O19 copy) ─────────────────────────
+// TYPE: every size here is a NAMED RUNG (scripts/tdw09_type_census.mjs RUNGS —
+// register [8,9,10] for engraved uppercase, body [16,20,25,31,39,49]). The first
+// cut of these zones used 17, 15 and 14; the type floor went 16/16 -> 13/16 and
+// named them ad-hoc. Weight between the line and its trailing note is carried by
+// COLOUR, never by an off-ladder size.
+// One to three lines, ONLY items needing his hand, each tappable to its act,
+// ABSENT ENTIRELY WHEN EMPTY. The zero-collapse law: an empty waiting zone
+// renders NOTHING — never a cheerful "all clear" card. The charter's test is the
+// bar: does it answer "what happened while I was away?" faster than the vendor
+// could ask Victor? A standing status line fails that test and is a dashboard
+// relapse; only things awaiting his hand belong here.
+//
+// SOURCE: TodayResponse.needs_attention, one payload, no per-line fetch.
+// F-09.51 stands corrected on the record: the endpoint is shipped, but the HOME
+// did not call it — this zone costs one fetch, and it is paid once for all lines.
+//
+// VERB ASSIGNMENT — ALL THREE FOUNDER-WORDED. R-O19 ruled `Reply →` and
+// `Confirm →` but not which line type takes which; that mapping was proposed
+// from this desk, disclosed rather than assumed, and the money line's own verb
+// came back as R-O21 (founder-worded, 「 Remind works 」). The ledger, closed:
+//   enquiry         -> `Reply →`    (R-O19)  — seeds a message to a client
+//   overdue invoice -> `Remind →`   (R-O21)  — its own act, not a reply
+//   hold            -> `Confirm →`  (R-O19)  — settles a calendar fact, no message
+// No verb on this surface is the executor's. A new line type needs a new founder
+// byte before it ships; this comment is where that lands.
+function daysSince(iso: string): number {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return 0;
+  return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+}
+function ageWord(days: number): string {
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  return `${days} days ago`;
+}
+
+type WaitingLine = { key: string; text: string; verb: string; draft: string; href?: string };
+
+function buildWaitingLines(today: TodayResponse | null, discoverPending: boolean): WaitingLine[] {
+  if (!today) return [];
+  const na = today.needs_attention;
+  const lines: WaitingLine[] = [];
+
+  for (const l of na?.new_leads ?? []) {
+    const who = l.name ?? 'A new enquiry';
+    lines.push({
+      key: `lead:${l.id}`,
+      text: `${who} — enquired ${ageWord(daysSince(l.created_at))}`,
+      verb: 'Reply →',
+      draft: `I'd like to reply to ${l.name ?? 'this enquiry'}. Draft something warm but not pushy.`,
+    });
+  }
+  for (const inv of na?.overdue_invoices ?? []) {
+    lines.push({
+      key: `inv:${inv.id}`,
+      text: `${inv.client_name ?? 'A client'} — ${fmtRs(inv.amount_owed)} overdue`,
+      verb: 'Remind →',
+      draft: `${inv.client_name ?? 'This client'} has ${fmtRs(inv.amount_owed)} overdue. Draft a polite payment reminder.`,
+    });
+  }
+  // THE DISCOVER MEMBER (R-X23 §1's fourth line, shown ONLY while pending).
+  // THE STATE WORD IS 'requested', DERIVED FROM THE SERVER, NOT FROM THE TYPE.
+  // `DiscoverStatus.discover_request_state` is typed as a bare `string`; the real
+  // vocabulary lives in the writers — 'not_requested' (discover.js:131 default),
+  // 'requested' (discover.js:80), 'approved' / 'denied' / 'revoked'
+  // (admin/discover.js:52/65/78). Shaping this member from its type name would
+  // have tested for 'pending' — a word the server never writes — and produced a
+  // line that could never render: a silent zero, which is not a check.
+  // Approved-and-live is NOT news and never renders here (dashboard relapse);
+  // only the waiting state does.
+  if (discoverPending) {
+    lines.push({
+      key: 'discover:pending',
+      text: 'Storefront — awaiting Discover approval',
+      verb: '',
+      draft: '',
+      href: '/vendor/discover',
+    });
+  }
+  for (const e of na?.events_today ?? []) {
+    lines.push({
+      key: `evt:${e.id}`,
+      text: `${e.title} — today, unconfirmed`,
+      verb: 'Confirm →',
+      draft: `Confirm the hold for "${e.title}" today.`,
+    });
+  }
+  return lines;
+}
+
+function WaitingZone({ today, discoverPending, onAct, onOpen, onOverflow }: {
+  today: TodayResponse | null;
+  discoverPending: boolean;
+  onAct: (draft: string) => void;
+  onOpen: (href: string) => void;
+  onOverflow: () => void;
 }) {
   const T = useT();
-  const [dismissed, setDismissed] = useState(false);
-  const [expanded, setExpanded]   = useState(false);
-  const newLeads = context?.new_leads ?? [];
+  const all = buildWaitingLines(today, discoverPending);
+  if (all.length === 0) return null;          // ← the zero-collapse law, at the byte
 
-  const prevCount = useRef(0);
-  useEffect(() => {
-    if (newLeads.length > prevCount.current) { setDismissed(false); setExpanded(false); }
-    prevCount.current = newLeads.length;
-  }, [newLeads.length]);
-
-  if (dismissed || newLeads.length === 0) return null;
-
-  const count   = newLeads.length;
-  const accentC = T.isLight ? T.accent : A.brass;
-  const borderC = T.isLight ? 'rgba(122,56,40,0.18)' : 'rgba(201,168,76,0.18)';
+  const shown = all.slice(0, 3);              // ceiling of three, per R-X23 §1
+  const extra = all.length - shown.length;
 
   return (
-    <div style={{ margin: '8px 22px 0', position: 'relative' }}>
+    <div style={{ margin: '14px 22px 0' }}>
+      <div style={{
+        fontFamily: F.label, fontWeight: 300, fontSize: 8,
+        letterSpacing: '0.34em', textTransform: 'uppercase',
+        color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', marginBottom: 8,
+      }}>What&rsquo;s waiting</div>
 
-      {/* ── Collapsed pill — always visible ── */}
-      <button type="button" onClick={() => setExpanded(e => !e)} style={{
-        width: '100%', display: 'flex', alignItems: 'center',
-        padding: '9px 14px',
-        background: T.isLight ? 'rgba(122,56,40,0.05)' : 'rgba(201,168,76,0.06)',
-        border: `0.5px solid ${borderC}`,
-        borderRadius: expanded ? '6px 6px 0 0' : 6,
-        cursor: 'pointer', textAlign: 'left' as const,
-        transition: 'border-radius 200ms',
-      }}>
-        {/* Dot indicator */}
-        <span style={{
-          width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-          background: accentC, marginRight: 10,
-          boxShadow: `0 0 6px ${accentC}88`,
-        }} />
-        <span style={{
-          fontFamily: F.label, fontWeight: 300, fontSize: 9,
-          letterSpacing: '0.28em', textTransform: 'uppercase' as const,
-          color: accentC, flex: 1,
-        }}>{count === 1 ? '1 New Enquiry' : `${count} New Enquiries`}</span>
-        <span style={{
-          fontFamily: F.label, fontSize: 16, lineHeight: 1.5, color: accentC,
-          transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-          transition: 'transform 220ms cubic-bezier(0.22,1,0.36,1)',
-          display: 'inline-block',
-        }}>▾</span>
-
-        {/* Dismiss × inside pill */}
-        <span
-          role="button"
-          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-          onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); setDismissed(true); }}
+      {shown.map((line) => (
+        <button
+          key={line.key}
+          type="button"
+          onClick={() => (line.href ? onOpen(line.href) : onAct(line.draft))}
           style={{
-            marginLeft: 10, width: 16, height: 16, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: T.inkDim, fontSize: 16, lineHeight: 1.5, cursor: 'pointer', flexShrink: 0,
-          }}>×</span>
-      </button>
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', gap: 12,
+            background: 'none', border: 'none',
+            borderBottom: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.12)' : A.brassLine}`,
+            padding: '11px 0', minHeight: 44,      // F-09.22's floor — a real touch box
+            textAlign: 'left', cursor: 'pointer',
+          }}
+        >
+          <span style={{
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontSize: 16, lineHeight: 1.4, color: T.ink,
+          }}>{line.text}</span>
+          <span style={{
+            fontFamily: F.label, fontWeight: 300, fontSize: 10,
+            letterSpacing: '0.16em', textTransform: 'uppercase',
+            color: T.isLight ? T.accent : A.brassWarm, flexShrink: 0,
+          }}>{line.verb}</span>
+        </button>
+      ))}
 
-      {/* ── Expanded list ── */}
-      {expanded && (
-        <div style={{
-          border: `0.5px solid ${borderC}`,
-          borderTop: 'none',
-          borderRadius: '0 0 6px 6px',
-          overflow: 'hidden',
-          animation: 'expandDown 200ms cubic-bezier(0.22,1,0.36,1) both',
-        }}>
-          <style>{`@keyframes expandDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
-          {newLeads.map((l, i) => {
-            const det: string[] = [];
-            if (l.wedding_date) {
-              try { det.push(new Date(l.wedding_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })); }
-              catch { det.push(l.wedding_date); }
-            }
-            return (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center',
-                padding: '8px 14px',
-                borderTop: i === 0 ? 'none' : `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.08)' : 'rgba(201,168,76,0.08)'}`,
-                background: T.isLight ? 'rgba(122,56,40,0.02)' : 'rgba(201,168,76,0.03)',
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontFamily: F.display, fontWeight: 400, fontSize: 16,
-                    color: 'var(--atelier-ink)', lineHeight: 1.1,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>{l.name ?? 'Unnamed'}</div>
-                  {det.length > 0 && (
-                    <div style={{
-                      fontFamily: F.script, fontStyle: 'italic',
-                      fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink-mute)', marginTop: 1,
-                    }}>{det.join(' · ')}</div>
-                  )}
-                </div>
-                <button type="button"
-                  onClick={() => { onInject(`I'd like to reply to ${l.name ?? 'this enquiry'}. Draft something warm but not pushy.`); setDismissed(true); }}
-                  style={{
-                    flexShrink: 0, marginLeft: 10, padding: '4px 10px',
-                    background: 'none',
-                    border: `0.5px solid ${borderC}`,
-                    borderRadius: 2, cursor: 'pointer',
-                    fontFamily: F.label, fontWeight: 400, fontSize: 8,
-                    letterSpacing: '0.22em', textTransform: 'uppercase' as const,
-                    color: T.isLight ? T.ink : A.brassWarm,
-                  }}>Reply →</button>
-              </div>
-            );
-          })}
-        </div>
+      {extra > 0 && (
+        <button
+          type="button"
+          onClick={onOverflow}
+          style={{
+            background: 'none', border: 'none', padding: '10px 0', minHeight: 44,
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+            color: T.inkDim, cursor: 'pointer', textAlign: 'left', width: '100%',
+          }}
+        >{`…and ${extra} more →`}</button>
       )}
+    </div>
+  );
+}
+
+// ── THE THIS-WEEK STRIP (R-X23 §2 IN-candidate, sourced per R-O13) ─────────
+// One quiet line under zone 2, ABSENT when the week is empty.
+//
+// SOURCE IS TodayResponse.this_week, NOT context.upcoming_events (R-O13): the
+// today payload is already paid for by zone 2, `this_week` is IST-bounded to
+// [today, today+7] by its own query (vendor-engine/today.js:58-59), and its rows
+// carry stable `id`s — the context shape carries none, so it could not furnish
+// honest keys.
+//
+// ⚠ DECLARED CONDITIONAL (F-09.53, R-O16-AMENDED): the today route's events
+// query does NOT filter `deleted_at`, while the day-sheet covenant
+// ("deleted_at + cancelled: the covenant, read side, every events read",
+// src/api/vendor/day.js:59) and vendor/context.js:88 both DO. Until the dream-os
+// micro's fourth limb lands, a soft-deleted engagement can appear in this strip
+// while the Next cell above it — which reads context — correctly hides it.
+// Founder-witnessed 2026-08-06: zero soft-deleted rows on the live account, so
+// the leak is unexercised, not absent. THIS STRIP'S CORRECTNESS IS CONDITIONAL
+// ON THAT CLAUSE. Do not grade it green on this file alone.
+function WeekStrip({ today }: { today: TodayResponse | null }) {
+  const T = useT();
+  const week = today?.this_week ?? [];
+  if (week.length === 0) return null;         // ← zero-collapse, second site
+
+  return (
+    <div style={{
+      margin: '12px 22px 0',
+      fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+      fontSize: 16, lineHeight: 1.5, color: T.inkDim,
+      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+    }}>
+      {'This week — '}
+      {week.map((e, i) => (
+        <span key={e.id}>
+          {i > 0 ? ' · ' : ''}
+          {fmtEventDate(e.event_date)}{' '}{e.title}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ── THE FIRST-RUN CHAPTER (R-X23 §3) ───────────────────────────────────────
+// On a home with nothing filed: zone 2 renders nothing, the ledger stands honest
+// at zero (F-07.90 — zero IS an answer, never a blank), and the space carries
+// LABELLED EXAMPLES. Each is marked `Example` — the founder's ruled word, NEVER
+// `Hint` — each seeds the input on tap, and they RETIRE the moment real data
+// exists. They are teaching lines, not content, and they say so on their face:
+// the honesty architecture rendered — nothing pretends to be a lead that isn't.
+//
+// THE RETIREMENT PREDICATE, STATED SO A BENCH CAN ASSERT IT: exemplars render
+// iff the home is empty on every axis the ledger reports — no open leads, no
+// money owed, no week. Any one of them arriving retires the exemplars, which is
+// what the files-one-lead-sees-them-gone cell drives. Strings are R-O19's.
+const EXEMPLARS = [
+  'Hold 14 Dec for the Kapoor mehndi',
+  "What's owed this month?",
+];
+
+function isFirstRun(today: TodayResponse | null, money: MoneyDerivation): boolean {
+  if (!today) return false;                   // unknown is not empty — never teach over a pending fetch
+  const na = today.needs_attention;
+  const waiting =
+    (na?.new_leads?.length ?? 0) +
+    (na?.overdue_invoices?.length ?? 0) +
+    (na?.events_today?.length ?? 0);
+  return waiting === 0
+    && (today.open_leads_count ?? 0) === 0
+    && (money.outstanding ?? 0) === 0
+    && (today.this_week?.length ?? 0) === 0;
+}
+
+function FirstRunExemplars({ onAct }: { onAct: (draft: string) => void }) {
+  const T = useT();
+  return (
+    <div style={{ margin: '16px 22px 0' }}>
+      {EXEMPLARS.map((text) => (
+        <button
+          key={text}
+          type="button"
+          onClick={() => onAct(text)}
+          style={{
+            display: 'flex', alignItems: 'baseline', gap: 10, width: '100%',
+            background: 'none', border: 'none',
+            borderBottom: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.12)' : A.brassLine}`,
+            padding: '11px 0', minHeight: 44, textAlign: 'left', cursor: 'pointer',
+            opacity: 0.78,
+          }}
+        >
+          <span style={{
+            fontFamily: F.label, fontWeight: 300, fontSize: 8,
+            letterSpacing: '0.34em', textTransform: 'uppercase',
+            color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', flexShrink: 0,
+          }}>Example</span>
+          <span style={{
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontSize: 16, lineHeight: 1.4, color: T.ink,
+          }}>{`“${text}”`}</span>
+          <span style={{
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontSize: 16, color: T.inkDim, marginLeft: 'auto', flexShrink: 0,
+          }}>tap to try</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -492,6 +695,29 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   // the Invoices page runs. That is the repoint: not new numbers, the SAME ones.
   const cab = useCabinetData(vendorId);
   const money = useMemo(() => deriveMoney(cab.data), [cab.data]);
+
+  // ── TDW_09 O-2 · R-O18 — the WHAT'S WAITING payload, and its two triggers ──
+  // TRIGGER 1 (the house pattern) lives inside the hook: subscribeToSlice('leads')
+  // catches every form-driven write (SliceShell / AddSheet).
+  // TRIGGER 2 IS HERE, AND IT IS THE ONE THE ACCEPTANCE CELL RIDES (F-09.55):
+  // useChat is OFF the slice bus. A lead filed by talking to Victor calls that
+  // hook's private refreshContext() at useChat.ts:176 and emits no slice event,
+  // so a slice subscriber alone would be deaf to exactly the act the
+  // files-one-lead-sees-them-gone cell is built on — green on fixtures, wrong on
+  // the founder's screen. refreshContext() calls setContext() with a fresh object
+  // from fetchContext, so `context` identity changes on every chat mutation and
+  // this effect fires. The honest cost, accepted at R-O18: an occasional /today
+  // refetch after an unrelated turn. The gain is structural — zone 2 refreshes on
+  // the SAME signal as zone 1, so the screen cannot disagree about staleness any
+  // more than R-O15 lets it disagree about the figure.
+  const todayState = useTodayData(vendorId);
+  const today = todayState.data;
+  const todayRefreshRef = useRef(todayState.refresh); todayRefreshRef.current = todayState.refresh;
+  const firstContextRef = useRef(true);
+  useEffect(() => {
+    if (firstContextRef.current) { firstContextRef.current = false; return; } // the hook's own mount fetch already ran
+    todayRefreshRef.current();
+  }, [context]);
   // TDW_07 MICRO-2 · F-07.31 — `justDoIt` RETIRED with the CommandBar. It was state that
   // fed exactly one thing: the bar's own toggle colours. Nothing persisted it, no endpoint
   // received it, and no behaviour consulted it — derived by grep across app/, components/
@@ -534,6 +760,51 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
 
   // Scroll ref for ChatThread (the scroll surface).
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  // ── THE RISE (R-X22's amended Model 1; mock frame 2 is the acceptance picture) ──
+  // The home sits at rest with its three zones. Touching the input RAISES the chat,
+  // which renders as the FULL CLEAN ROOM — full-bleed thread, no ledger fragments
+  // bleeding through — and one dismiss returns the home intact beneath.
+  //
+  // ONE ROOM, ONE TRUTH: ChatThread is mounted EXACTLY ONCE in this tree, and the
+  // InputBar is mounted exactly once too — the foot is the same bar risen or at
+  // rest, not a second surface. Derived before building: ChatThread has one other
+  // consumer in the real app and it is a COMMENT (BottomNav.tsx:136), never a
+  // render, so no second chat surface exists to collide with.
+  //
+  // THE RAISE IS onFocusCapture ON A WRAPPER, NOT A PROP ON InputBar. W-1 puts the
+  // chat's wire out of this sitting's reach; a wrapper catches the bar's own focus
+  // without a byte entering it.
+  const [risen, setRisen] = useState(false);
+
+  // R-O14-AMENDED — the seam: a waiting line or an Example seeds the input through
+  // `draft` -> InputBar initialValue, the live rendered mechanism. `key` forces the
+  // bar to take a NEW seed (initialValue is a mount-time prop); the cost is a
+  // cleared half-typed line at the exact moment the vendor asked for a template.
+  const [seed, setSeed] = useState<string>('');
+  function act(draftText: string) { setSeed(draftText); setRisen(true); }
+
+  // The first-run chapter's gate (R-X23 §3). Its predicate is stated at
+  // isFirstRun's own definition so a bench can assert the retirement pair.
+  const firstRun = isFirstRun(today, money);
+
+  // ── The Discover member's own read (F-09.51's second fetch, ruled) ──────────
+  // It does NOT ride the slice bus and that is deliberate, not an omission: no
+  // Slice owns discover, and the state only moves when an ADMIN approves, denies
+  // or revokes — never by a vendor write this app could invalidate on. Once on
+  // mount is the honest cadence for a flag that changes on someone else's desk.
+  const [discoverPending, setDiscoverPending] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    fetchDiscoverStatus()
+      .then((r) => {
+        if (!alive) return;
+        const st = (r as DiscoverStatus)?.discover_request_state;
+        setDiscoverPending(st === 'requested');
+      })
+      .catch(() => { /* non-fatal — the member simply stays collapsed */ });
+    return () => { alive = false; };
+  }, []);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
@@ -578,32 +849,94 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
           NAMED: it is a separate mock that shares no code with this component, and the demo
           subdomain is Block 08's territory. */}
 
-      {/* ── Hub top stack ── */}
-      <GreetingLine context={context} money={money} />
-      <Ledger context={context} money={money} />
+      {/* ── THE HOME AT REST — zones 1 and 2 (R-X23) ────────────────────────
+             Hidden, not unmounted, while the chat is risen: the mock's frame 2
+             shows the home STAYING PUT beneath a full-bleed room, and unmounting
+             would re-run the ledger's fetches on every dismiss. */}
+      <div style={{ display: risen ? 'none' : 'contents' }}>
+        {/* ZONE 1 — the state ledger */}
+        <GreetingLine context={context} money={money} today={today} />
+        <Ledger context={context} money={money} today={today} />
 
-      {/* ── Fresh thread (TDW_06 D-7) — one button; the divider in the thread
-             below is its confirmation, the scrollback visibly persisting. ── */}
-      <FreshThreadControl onConfirm={freshThread} disabled={loading} />
+        {/* ZONE 2 — what's waiting, plus the week strip. Both self-collapse to
+            NOTHING when empty; there is no "all clear" card anywhere below. */}
+        {firstRun
+          ? <FirstRunExemplars onAct={act} />
+          : (
+            <>
+              <WaitingZone
+                today={today}
+                discoverPending={discoverPending}
+                onAct={act}
+                onOpen={(href) => router.push(href)}
+                onOverflow={() => router.push('/vendor/list/leads')}
+              />
+              <WeekStrip today={today} />
+            </>
+          )}
+      </div>
 
-      {/* ── Conversation thread ── */}
-      <ChatThread
-        messages={messages}
-        loading={loading}
-        onConfirm={() => {}}
-        onCancel={() => {}}
-        onChipTap={send}
-        onReportGlitch={async () => { await reportGlitch(); }} // TDW_06 M-3: its OWN wire, never onChipTap
-        scrollRef={chatScrollRef}
-        onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user'); if (last?.text) send(last.text); }}
-      />
+      {/* ── THE RISEN ROOM — mock frame 2, the acceptance picture ────────────
+             Full-bleed thread, a grabber at its head, the home intact beneath.
+             The InputBar is NOT in here: it is the shared foot below, which is
+             what makes this one room rather than a second chat surface. */}
+      {risen && (
+        <div style={{
+          position: 'absolute', inset: 0, bottom: 0,
+          display: 'flex', flexDirection: 'column', minHeight: 0,
+          background: T.pageBg, zIndex: 40,
+        }}>
+          <button
+            type="button"
+            onClick={() => setRisen(false)}
+            aria-label="Close the chat and return home"
+            style={{
+              alignSelf: 'center', width: 34, height: 4, borderRadius: 2,
+              border: 'none', padding: 0, margin: '10px 0 2px',
+              background: T.isLight ? 'rgba(122,56,40,0.25)' : 'rgba(240,230,210,0.25)',
+              cursor: 'pointer',
+            }}
+          />
+          <div style={{
+            alignSelf: 'center', fontFamily: F.label, fontWeight: 300, fontSize: 8,
+            letterSpacing: '0.34em', textTransform: 'uppercase',
+            color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', margin: '2px 0 6px',
+          }}>Chat</div>
 
-      {/* ── Input bar ── */}
+          {/* Fresh thread (TDW_06 D-7) travels WITH the room it belongs to. */}
+          <FreshThreadControl onConfirm={freshThread} disabled={loading} />
+
+          <ChatThread
+            messages={messages}
+            loading={loading}
+            onConfirm={() => {}}
+            onCancel={() => {}}
+            onChipTap={send}
+            onReportGlitch={async () => { await reportGlitch(); }} // TDW_06 M-3: its OWN wire, never onChipTap
+            scrollRef={chatScrollRef}
+            onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user'); if (last?.text) send(last.text); }}
+          />
+        </div>
+      )}
+
+      {/* ── ZONE 3 — the foot. The books handle is the Cabinet's own (mounted at
+             the top of this tree, positioned at the foot by .dd-cab); the input
+             bar is here, and touching it raises the room. ── */}
       <Toast toast={noteToast} />
       <TierMeter meta={meta} />
-      <InputBar onSend={send} onSendNote={sendNote} disabled={loading || (meta && meta.state === 'capped')}
-        initialValue={draft || undefined}
-        onPrimerApplied={() => router.replace(pathname ?? '/vendor')} />
+      <div
+        onFocusCapture={() => setRisen(true)}
+        style={{ position: 'relative', zIndex: 41 }}
+      >
+        <InputBar
+          key={seed || 'idle'}
+          onSend={(t: string) => { setRisen(true); send(t); }}
+          onSendNote={sendNote}
+          disabled={loading || (meta && meta.state === 'capped')}
+          initialValue={seed || draft || undefined}
+          onPrimerApplied={() => router.replace(pathname ?? '/vendor')}
+        />
+      </div>
 
       <OnboardingOverlay onSend={send} />
     </div>

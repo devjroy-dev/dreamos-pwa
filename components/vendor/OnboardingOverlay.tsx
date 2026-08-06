@@ -86,7 +86,16 @@ const STEPS = [
     selector: null,
     tooltip: 'center' as const,
     label: 'Start Here',
-    headline: 'Ask DreamAi\nanything.',
+    // TDW_09 O-2 · R-O20 (founder-worded) — F-09.56, the first-run teaching
+    // collision. This headline echoed `Ask DreamAi…`, the input placeholder
+    // R-O19 retired to `Ask anything…` — so the empty home said one thing at
+    // its welcome and another at its foot, in the vendor's first minute, on
+    // the one screen O-2 owns. The \n is dropped WITH the name: "Ask
+    // anything." is thirteen characters and needs no wrap where the old two
+    // words did. The body below is UNTOUCHED and that is a ruling, not an
+    // oversight — it names the product performing the WhatsApp setup, a
+    // different claim R-O19 never reached.
+    headline: 'Ask anything.',
     body: 'Tap a prompt to start. The first one sets up DreamAi on WhatsApp — so you can manage your business from any chat.',
     cta: null,
   },

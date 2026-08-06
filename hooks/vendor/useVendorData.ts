@@ -9,11 +9,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   fetchClients, fetchLeads, fetchInvoices,
-  fetchExpenses, fetchEvents, fetchCabinet,
+  fetchExpenses, fetchEvents, fetchCabinet, fetchToday,
   type CabinetResponse,
 } from '@/lib/vendor/api/vendor';
 import type {
-  Client, Lead, Invoice, Expense, VendorEvent,
+  Client, Lead, Invoice, Expense, VendorEvent, TodayResponse,
 } from '@/lib/vendor/types/vendor';
 import { subscribeToSlice, consumeDirty } from '@/lib/vendor/cache/invalidate';
 
@@ -187,6 +187,38 @@ export function useCabinetData(vendorId: string | null): LoadState<CabinetRespon
   );
   const { refresh } = state;
   useEffect(() => subscribeToSlice('clients', () => refresh()), [refresh]);
+  return state;
+}
+
+// ── TDW_09 O-2 (R-O18) — the WHAT'S WAITING zone's loader ─────────────────
+// Seated HERE, beside useCabinetData, rather than in its own module: useLoader
+// and LoadState are module-private (:38 / :31), so a standalone file could only
+// exist by widening this module's export surface. The pattern lives here; so
+// does the hook.
+//
+// KIND IS 'leads' WITH A keySuffix, NOT A NEW Kind MEMBER. That is the B6-S1
+// clause above used exactly as written — "windowed entries get their own cache
+// rows; the kind stays the same so the invalidation bus reaches them". Sharing
+// the kind is the POINT: form-driven lead writes (SliceShell / AddSheet ->
+// invalidateSlice('leads')) reach this hook for free, and the suffix keeps it
+// off useLeadsData's row at `${vendorId}:leads`.
+//
+// THE SECOND TRIGGER IS THE CALLER'S, NOT THIS HOOK'S (F-09.55): useChat is off
+// the slice bus — a chat-filed lead calls its private refreshContext() at
+// useChat.ts:176 and emits no slice event — so app/vendor/page.tsx re-runs
+// refresh() on `context` object-identity change. That is what makes zone 2
+// exactly as fresh as zone 1: both hang off one refresh, so the screen cannot
+// disagree about staleness. F-09.55's true cure is invalidateSlice('leads') at
+// useChat.ts:176; that is a W-1 opening and rides the soul sitting's window.
+export function useTodayData(vendorId: string | null): LoadState<TodayResponse> {
+  const state = useLoader<TodayResponse>(
+    vendorId, 'leads',
+    (id) => fetchToday(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
+    (raw) => (raw as unknown as TodayResponse) ?? null,
+    'today',
+  );
+  const { refresh } = state;
+  useEffect(() => subscribeToSlice('leads', () => refresh()), [refresh]);
   return state;
 }
 

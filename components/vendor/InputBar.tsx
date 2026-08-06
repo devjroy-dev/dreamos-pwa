@@ -94,7 +94,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
       <textarea ref={ref} value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-        placeholder={inNote ? 'Note to self…' : (placeholder ?? 'Ask DreamAi…')}
+        placeholder={inNote ? 'Note to self…' : (placeholder ?? 'Ask anything…')}
         rows={1}
         style={{
           flex: 1, resize: 'none',

@@ -66,6 +66,17 @@ function fmtEventDate(iso: string): string {
 // `EnquiryCard`) SURVIVE, and that is a decision rather than a stopping point: each has
 // a real-app twin with an INCOMPATIBLE SIGNATURE, so they cannot converge by import
 // without a shape ruling nobody has made. Named so the next sitting finds the reason.
+//
+// ── RE-POINTED TDW_09 O-2 (F-09.52, R-O14-AMENDED) ─────────────────────────────
+// THREE, NOT FOUR. `EnquiryCard`'s real-app twin is GONE — deleted at
+// app/vendor/page.tsx by the O-2 home build, where a full 611-line control census
+// found its render count on the real plane was ZERO: defined, never mounted. So the
+// mirror below was ALIVE while the thing it mirrored was DEAD — F-08.1's disease
+// inverted, and the reason this comment's own premise no longer holds for it.
+// `EnquiryCard` here is now demo-ORIGINAL, not a re-implementation of anything: it
+// has no twin to converge with and no shape ruling to wait for. Its real-plane job
+// passed to zone 2, WHAT'S WAITING. The other three re-implementations are unchanged
+// and their reason above still stands.
 
 // ── GreetingLine — exact copy from real app ─────────────────────────────────
 function GreetingLine({ vendorName, newLeads, nextDate }: { vendorName: string | null; newLeads: number; nextDate: string | null }) {
