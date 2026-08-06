@@ -27,15 +27,53 @@ export interface HonestState {
   finding: string;
 }
 
+/** ═══ TDW_10 THE BILLING SITTING · F-10.73's cure ═══════════════════════════
+ *  RevenueLine USED TO extend HonestState, because until 0114 there were no
+ *  money rows anywhere in the estate and the only truthful thing the endpoint
+ *  could send was a label naming who owed the wiring.
+ *
+ *  0114 shipped, the signature-verified webhook became the sole writer, and the
+ *  endpoint correctly stopped emitting `state/label/why/owner/finding` for this
+ *  line. This interface did not follow, so `<Honest s={today.revenue}>` went on
+ *  reading fields that no longer arrive: the eyebrow rendered `undefined`, the
+ *  drawer button read "Why · undefined", and the Rs 2 the ledger truthfully held
+ *  had no renderer at all. The founder's screen showed neither the old honest
+ *  state nor the new true one — F-10.73, caught by his own re-read.
+ *
+ *  THE LAW THIS EARNS: an endpoint that retires an honest state must land in the
+ *  SAME delivery as the surface that reads it. A backend-only "zero pwa bytes"
+ *  radius is safe for ADDING a field and unsafe for REMOVING one, because the
+ *  consumer's break is silent at compile time when the field is optional-shaped
+ *  and invisible in a bench that never renders. */
+export interface SubscriptionRevenue {
+  today_inr: number | null;
+  lifetime_inr: number | null;
+  /** Every verified event today, counted or not — so a day of authorisations
+   *  with no charge reads as "3 events · Rs 0" rather than as silence. */
+  events_today: number | null;
+  source: string;
+  note: string;
+}
+
+export interface RevenueLine {
+  state: string;
+  label: string;
+  subscriptions: SubscriptionRevenue;
+  featured_fees: FeaturedFees;
+}
+
+/** Live at 0114. `halted` is written only from a verified subscription.halted
+ *  event, which Razorpay sends only after its three retries are spent. */
+export interface HaltedSubs {
+  count: number | null;
+  source: string;
+}
+
 export interface FeaturedFees {
   today_inr: number | null;
   lifetime_inr: number | null;
   source: string;
   note: string;
-}
-
-export interface RevenueLine extends HonestState {
-  featured_fees: FeaturedFees;
 }
 
 export interface SurfaceSpend { turns: number; inr: number }
@@ -78,7 +116,7 @@ export interface BridgeQueue {
   approvals_pending: { count: number | null; oldest_hours: number | null; oldest_at: string | null };
   failed_turns: { count: number | null };
   takedowns_24h: { count: number | null };
-  subscriptions_halted: HonestState;
+  subscriptions_halted: HaltedSubs;
   templates_awaiting_verdict: {
     count: number;
     templates: { key: string; name: string; line: string; status: string }[];

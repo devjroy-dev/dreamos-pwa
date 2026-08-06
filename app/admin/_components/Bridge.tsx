@@ -354,25 +354,61 @@ export default function Bridge() {
       </div>
 
       <Panel title="Revenue">
-        {/* THE RULED SHAPE — two lines. The honest headline, and beneath it the
-            one real ledger that exists at this tip. */}
-        <Honest
-          s={today.revenue}
-          extra={
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '0.5px solid var(--admin-hairline)' }}>
-              <div style={{ ...EYEBROW, fontSize: 9 }}>Featured slot fees · today</div>
-              <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
-                {today.revenue.featured_fees.today_inr === null ? '—' : formatRs(today.revenue.featured_fees.today_inr)}
-              </div>
-              <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 6 }}>
-                {today.revenue.featured_fees.lifetime_inr === null
-                  ? 'Lifetime could not be read'
-                  : `${formatRs(today.revenue.featured_fees.lifetime_inr)} lifetime`}
-                {' · '}{DRILL.featured_fees.absent}
-              </div>
+        {/* ═══ TDW_10 THE BILLING SITTING — THE LINE GOES LIVE (F-10.73's cure) ══
+            This block used to be <Honest s={today.revenue}> because until 0114
+            there were no money rows anywhere in this estate and a label naming
+            the owner was the only truthful thing to draw.
+
+            0114 shipped and the endpoint stopped sending that label — but this
+            surface kept reading it, so the eyebrow rendered `undefined`, the
+            drawer read "Why · undefined", and the Rs 2 the ledger truthfully
+            held had no renderer at all. Neither the old honest state nor the new
+            true one. Caught on the founder's own re-read, not by any instrument.
+
+            Two ledgers now stand side by side: subscriptions above, the featured
+            slot fee below. Both are real predicates over real tables, and CE-200's
+            own words apply to each — a zero that can move the day Razorpay clears
+            is a live instrument. Razorpay has cleared. */}
+        <div style={{
+          background: 'var(--admin-card-bg)',
+          border: '0.5px solid var(--admin-card-border)',
+          borderRadius: 14, padding: '16px 18px',
+        }}>
+          <div style={{ ...EYEBROW, fontSize: 9 }}>Subscriptions · today</div>
+          <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
+            {today.revenue.subscriptions.today_inr === null ? '—' : formatRs(today.revenue.subscriptions.today_inr)}
+          </div>
+          <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 6 }}>
+            {today.revenue.subscriptions.lifetime_inr === null
+              ? 'Lifetime could not be read'
+              : `${formatRs(today.revenue.subscriptions.lifetime_inr)} lifetime`}
+            {today.revenue.subscriptions.events_today !== null && (
+              <> {' · '}{today.revenue.subscriptions.events_today} verified {today.revenue.subscriptions.events_today === 1 ? 'event' : 'events'}</>
+            )}
+          </div>
+          {/* The event count can EXCEED the rupees and that is not a discrepancy:
+              Razorpay's authorisation payment is auto-refunded and its
+              subscription.activated carries the same amount as the charge that
+              follows it 0.2 seconds later. Both are ledgered, neither is counted
+              (R-BILL.4). Naming it here means the next reader of this screen does
+              not have to rediscover it from a number that looks wrong. */}
+          <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, lineHeight: 1.5, color: 'var(--admin-ink-mute)' }}>
+            Captured charges only — authorisation and activation events are ledgered, never counted.
+          </div>
+
+          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--admin-hairline)' }}>
+            <div style={{ ...EYEBROW, fontSize: 9 }}>Featured slot fees · today</div>
+            <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
+              {today.revenue.featured_fees.today_inr === null ? '—' : formatRs(today.revenue.featured_fees.today_inr)}
             </div>
-          }
-        />
+            <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 6 }}>
+              {today.revenue.featured_fees.lifetime_inr === null
+                ? 'Lifetime could not be read'
+                : `${formatRs(today.revenue.featured_fees.lifetime_inr)} lifetime`}
+              {' · '}{DRILL.featured_fees.absent}
+            </div>
+          </div>
+        </div>
         <div style={{ marginTop: 12 }}>
           <Honest s={today.trials.expiring_3d} />
         </div>
@@ -437,9 +473,14 @@ export default function Bridge() {
             note={queue.templates_awaiting_verdict.templates.map(t => t.name).join(', ') || undefined}
             drill={DRILL.templates} onDrill={drill}
           />
-          <div style={{ padding: '12px 16px' }}>
-            <Honest s={queue.subscriptions_halted} />
-          </div>
+          {/* Live at 0114 (F-10.73's cure, second site). Its honest state used
+              to read "no subscription table exists; the word subscription
+              appears zero times in src/" — both halves of that sentence are now
+              false, so the endpoint stopped sending it and this <Honest> was
+              rendering an undefined label. A vendor counted here has genuinely
+              stopped paying rather than merely bounced a card once: Razorpay
+              reaches `halted` only after its three retries are spent. */}
+          <QueueRow label="Halted subscriptions" count={queue.subscriptions_halted.count} drill={undefined} onDrill={drill} urgent />
         </div>
       </section>
 
