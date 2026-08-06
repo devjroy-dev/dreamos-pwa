@@ -27,3 +27,10 @@
 
 ## FOUNDER SMOKE (one phone session with any Phase-A remainder)
 ① Storefront: §1 shows 「 Complete your bio 」 + your arc + 「 x photos live · y leads waiting 」; Leads/Collab rows wear their new lines; bio row opens your profile in ≤2 taps (acceptance B④). ② Profile → Aesthetic tags: chips for your category; add a custom word → dashed chip + the honesty line; Save; reopen — case-folded. ③ Submit wizard: rate + tags arrive as 「 From your bio — edit there 」; only pitch asks. ④ Frost sanctuary filter: Vibe says 「 Pick a category to filter by vibe 」; pick Photographers → the ten vetoed terms; pick one, apply — vendors with that tag (any stored case) return.
+
+
+---
+## ADDENDUM — P2-R2 (the register) + F-09.92 (the pipe-swallowed STOP)
+**R2, founder-ruled (a):** the risen masthead wears ONE register — the house small-caps — with hue + word distinguishing the rooms (Business brass · Advisor primary ink · unknown 「 Chat 」 muted). R1's italic arm retired; bench cells 2.3/2.4 follow by labelled amendment (count 13 preserved); 2.5 re-aimed to the surviving comment byte.
+**F-09.92 (PROPOSED):** every prior D-10 proof line in this package ran `node bench | tail -1 && … || STOP` — a pipeline's exit status is tail's, so a red bench could never trip the STOP (founder-witnessed: the 13/3 arbiter refusal sailed past the gate and the push ran). Cure, standing from R2 on: proof lines run BARE (no pipe) so node's own exit gates the chain; long output is the price of a gate that works. Same family as the earlier cd-skipped verify — both are gates whose failure mode is silence, filed together.
+**Parity witnessed at the founder's desk:** arbiter 16/16 with the sibling clone at `bb72d46` (the TDW_10 billing sitting's tip — disjointness with this package proven by the green itself).

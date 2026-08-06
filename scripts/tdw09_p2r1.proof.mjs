@@ -45,11 +45,16 @@ console.log('\n── §2 · the room, named on the risen chat ──');
   const homeSrc = strip(home);
   cell('2.2', homeSrc.includes('onMode={setVictorRoom}'),
     'home mirrors the chip, never calls the hook twice');
-  cell('2.3', /victorRoom === 'advisor'/.test(homeSrc) && /fontStyle: 'italic'/.test(homeSrc.split("victorRoom === 'advisor'")[1].slice(0, 700)),
-    'Advisor wears the Cormorant italic register');
-  cell('2.4', /victorRoom === 'business' \? 'Business' : 'Chat'/.test(homeSrc),
-    "Business wears the small-caps register; unknown room falls back to the standing 'Chat' byte");
-  cell('2.5', home.includes('founder-vetoed pair, re-seated'),
+  // TDW_09 P2-R2 — LABELLED AMENDMENT, COUNT PRESERVED (2 → 2). R1's two-
+  // register masthead was founder-walked and re-ruled to arm (a): ONE house
+  // small-caps register, HUE + WORD distinguishing the rooms. The cells follow
+  // the ruling; an italic reappearing at this site is now the red.
+  cell('2.3', !/fontStyle: 'italic'/.test(homeSrc.split("victorRoom === 'business'")[1]?.slice(0, 900) ?? "fontStyle: 'italic'")
+           && /victorRoom === 'business'[\s\S]{0,200}T\.accent : A\.brassWarm/.test(homeSrc),
+    "one register — Business brass, no italic arm survives at the masthead (founder arm (a))");
+  cell('2.4', /victorRoom === 'business' \? 'Business' : victorRoom === 'advisor' \? 'Advisor' : 'Chat'/.test(homeSrc),
+    "Advisor in primary ink, unknown room falls back to the standing 'Chat' byte");
+  cell('2.5', home.includes("chip's vetoed pair"),
     'the words are the chip\u2019s own vetoed pair — no new vocabulary, stated in-comment');
 }
 

@@ -1037,40 +1037,26 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
               cursor: 'pointer',
             }}
           />
-          {/* ── TDW_09 P2-R1 (founder-asked): THE ROOM, NAMED ON THE CHAT ITSELF ──
-                 「 something in the chat surface (apart from the top pill) that
-                 reminds us advisory or business... classy elegant... properly
-                 visible or distinguishable 」. Two registers so the eye knows
-                 without reading: BUSINESS wears the house small-caps in brass;
-                 Advisor wears Cormorant italic in the theme accent. The words
-                 are the chip's own founder-vetoed pair, re-seated — no new
-                 vocabulary. While the room is unknown (first read in flight)
-                 the standing 「 Chat 」 byte holds — honest, never a guess. */}
-          {victorRoom === 'advisor' ? (
-            <div style={{
-              alignSelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center',
-              margin: '2px 0 6px', gap: 3,
-            }}>
-              <span style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 500, fontSize: 16,
-                letterSpacing: '0.04em', lineHeight: 1,
-                color: T.isLight ? T.accent : A.brassWarm,
-              }}>Advisor</span>
-              <span aria-hidden style={{
-                width: 64, height: 1,
-                background: `linear-gradient(90deg, transparent, ${T.isLight ? T.accent : 'rgba(224,188,110,0.55)'}, transparent)`,
-              }} />
-            </div>
-          ) : (
-            <div style={{
-              alignSelf: 'center', fontFamily: F.label, fontWeight: victorRoom === 'business' ? 400 : 300, fontSize: 8,
-              letterSpacing: '0.34em', textTransform: 'uppercase',
-              color: victorRoom === 'business'
-                ? (T.isLight ? T.accent : A.brassWarm)
+          {/* ── TDW_09 P2-R1→R2: THE ROOM, NAMED ON THE CHAT — ONE REGISTER ──
+                 R1 gave the two rooms two TYPEFACES (small-caps vs Cormorant
+                 italic); the founder read the split as inconsistency, and his
+                 eye outranks the intent (「 why is the business and advisor in
+                 different fonts? 」→ ruled (a)). ONE register now — the house
+                 small-caps the pill above already wears — and HUE + WORD carry
+                 the distinction: BUSINESS in brass, ADVISOR in the primary ink,
+                 both themes. The words stay the chip's vetoed pair; unknown
+                 room still says 「 Chat 」 in the standing muted byte. */}
+          <div style={{
+            alignSelf: 'center', fontFamily: F.label,
+            fontWeight: victorRoom ? 400 : 300, fontSize: 8,
+            letterSpacing: '0.34em', textTransform: 'uppercase',
+            color: victorRoom === 'business'
+              ? (T.isLight ? T.accent : A.brassWarm)
+              : victorRoom === 'advisor'
+                ? (T.isLight ? T.ink : 'var(--atelier-ink)')
                 : (T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)'),
-              margin: '2px 0 6px',
-            }}>{victorRoom === 'business' ? 'Business' : 'Chat'}</div>
-          )}
+            margin: '2px 0 6px',
+          }}>{victorRoom === 'business' ? 'Business' : victorRoom === 'advisor' ? 'Advisor' : 'Chat'}</div>
 
           {/* Fresh thread (TDW_06 D-7) travels WITH the room it belongs to. */}
           <FreshThreadControl onConfirm={freshThread} disabled={loading} />
