@@ -174,28 +174,50 @@ const COPY = {
   // └─────────────────────────────────────────────────────────────────────────┘
   H18: 'Connected as @{handle}',                                // VETOED 2026-07-30
 
-  // ── H19 — THE iOS FALLBACK. BUILT DARK. VETO OWED. (CE-ruled, P4b) ────────
-  // RULED A STANDING OPTION so that no outcome of the ?igprobe ladder requires a
-  // scramble: if all four shapes are claimed by the Instagram app, this line
-  // arms and vendors get a path that WORKS TONIGHT rather than an apology.
-  //
-  // IT IS NOT RENDERED. IOS_FALLBACK_ARMED is false below and the ladder has not
-  // returned. Arming it is a one-constant change plus the founder's veto on
-  // these bytes — deliberately two acts, because a line that blames the vendor's
-  // phone is the kind of copy that should cost a decision.
+  // ── H19 — THE iOS INSTRUCTION. LIVE SINCE R-1. (was: built dark at P4b) ───
+  // P4b RULED IT A STANDING OPTION so that no outcome of the ?igprobe ladder
+  // required a scramble: if all four shapes were claimed by the Instagram app,
+  // this line arms and vendors get a path that WORKS TONIGHT rather than an
+  // apology. The ladder's answer and the founder's word both arrived at the
+  // TDW_09 R-1 kickoff; the arming constant retired into isIosStandalone()
+  // below, and the line now renders in exactly the context that needs it.
   //
   // The bytes say what to do FIRST and why SECOND, per the H3 ordering doctrine
   // (position in a paragraph is instruction): the vendor gets a working action
   // before they get an explanation of somebody else's bug.
-  H19: 'On iPhone: press and hold the button above, then choose "Open in New Tab". A normal tap gets caught by the Instagram app.', // DRAFT — veto owed
+  //
+  // TDW_09 VENDOR REHAUL R-1 · F-1(a)/F-2(a)/F-4(B) — THE VETO LANDED.
+  // Founder kickoff verbatim: 「 in connect to instagram-for iphone we need to
+  // write to long press the connect to instagram and open in new tab. pwa and
+  // ios policy doesnt allow ig app to give permission 」 · wording B assented
+  // 「 ok 」 at chair relay #2, 2026-08-06. The 「 On iPhone: 」 prefix left with
+  // the draft because the line now renders ONLY in the iOS standalone context —
+  // everyone who can read it is already on an iPhone.
+  H19: 'Press and hold Connect Instagram, then choose "Open in New Tab". A normal tap gets caught by the Instagram app.', // VETOED 2026-08-06 (wording B, relay #2)
 } as const;
 
-// ── THE iOS FALLBACK'S ARMING CONSTANT (CE-ruled dark at P4b) ───────────────
-// ONE constant, ONE home. Flipping this to true is the entire arming act, and
-// it is gated on BOTH the ladder returning all-claimed AND the founder's veto of
-// H19. Named rather than inlined so the next sitting changes one byte and the
-// bench can see it.
-const IOS_FALLBACK_ARMED = false;
+// ── THE iOS INSTRUCTION'S RENDER GATE (R-1 ruling F-1(a) · F-2(a)) ─────────
+// SUCCESSION, recorded so the P4b archaeology stays legible: the constant
+// `IOS_FALLBACK_ARMED = false` stood here, CE-ruled dark at P4b, its arming
+// gated on BOTH the ladder returning all-claimed AND the founder's veto of H19.
+// Both conditions arrived in the R-1 kickoff (the founder's verbatim above IS
+// the word the switch was built to wait for), so the switch retires and the
+// gate becomes the thing it was always standing in for: runtime detection of
+// the one context that needs the instruction.
+//
+// THE MECHANISM (F-06.85 — named so no future session simplifies this away):
+// in the iOS standalone PWA, a plain tap on the connect anchor is claimed by
+// the Instagram app's Universal Link, and iOS policy gives the PWA no way to
+// receive the IG app's permission grant — the consent screen can only complete
+// in a browser tab. Long-press → "Open in New Tab" is the founder's
+// device-witnessed escape (2026-07-30 walk; his own account connected through
+// it). `navigator.standalone === true` is the iOS-Safari-only standalone
+// signal — one property, no UA sniffing, false or undefined everywhere else —
+// which is exactly the population that needs to be told the gesture.
+function isIosStandalone(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
 
 // The probe controls share ONE style object so that the four shapes differ in
 // NOTHING a finger can perceive. If they looked different, a difference in
@@ -1074,8 +1096,17 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                     }}>{COPY.H4}</button>
                 )}
 
-                {/* THE iOS FALLBACK — DARK. See H19 and IOS_FALLBACK_ARMED. */}
-                {IOS_FALLBACK_ARMED && (
+                {/* THE iOS INSTRUCTION (R-1). Renders ONLY when both are true:
+                    · isIosStandalone() — the standalone PWA is the one context
+                      where a plain tap is claimed and the long-press escapes
+                      (mechanism at the function's own comment above);
+                    · igAuthUrl — the ANCHOR-ONLY RIDER, chair-ratified as law
+                      for this cure: the control above is an <a href> only when
+                      the mint has landed; in its degraded <button> state there
+                      is no long-press → Open-in-New-Tab affordance, and an
+                      instruction for a gesture the control cannot perform would
+                      be its own small lie. */}
+                {isIosStandalone() && igAuthUrl && (
                   <p style={{
                     fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
                     margin: '12px 0 0', lineHeight: 1.6,

@@ -83,12 +83,25 @@ ok('§1.1 the probe flag is read from the query, and only from the query',
 ok('§1.2 the probe state initialises FALSE — absence is the safe state',
   /const \[igProbe, setIgProbe\] = useState\(false\)/.test(C));
 ok('§1.3 the entire probe panel is gated on it', /\{igProbe && \(/.test(C));
-ok('§1.4 the iOS fallback ships DARK at one named constant',
-  /const IOS_FALLBACK_ARMED = false;/.test(C));
-ok('§1.5 and its render site is gated on that constant',
-  /\{IOS_FALLBACK_ARMED && \(/.test(C));
-ok('§1.6 arming the fallback is ONE constant — no second switch to forget',
-  (C.match(/IOS_FALLBACK_ARMED/g) || []).length === 2);
+// ── LABELED RE-AIM, TDW_09 VENDOR REHAUL R-1 (count preserved 3→3) ─────────
+// §1.4–§1.6 asserted the P4b dark state: `IOS_FALLBACK_ARMED = false`, its
+// render gate, and its one-switch property. That state RETIRED at R-1 on the
+// founder's kickoff verbatim (「 in connect to instagram-for iphone we need to
+// write to long press the connect to instagram and open in new tab. pwa and
+// ios policy doesnt allow ig app to give permission 」) — exactly the word the
+// constant was built dark to wait for. Per the CE-199 amendment precedent the
+// cells FOLLOW THE SUBJECT: the gate is now runtime detection, and the
+// properties re-aim onto it. DETECTION METHOD, stated in-cell as ruled F-1(a):
+// `navigator.standalone === true` — the iOS-Safari-only standalone signal.
+ok('§1.4 [RE-AIMED R-1] the iOS instruction gates on isIosStandalone(), which reads navigator.standalone === true and nothing else',
+  /function isIosStandalone\(\): boolean \{/.test(C)
+  && /\.standalone === true;/.test(C)
+  && !/userAgent/.test(C.match(/function isIosStandalone[\s\S]*?\n\}/)?.[0] || 'userAgent'));
+ok('§1.5 [RE-AIMED R-1] the render site is gated on that detection AND the anchor (the anchor-only rider, chair-ratified law)',
+  /\{isIosStandalone\(\) && igAuthUrl && \(/.test(C));
+ok('§1.6 [RE-AIMED R-1] one gate, no second switch — the retired constant is GONE from code and the detection has exactly its definition + one call site',
+  (C.match(/IOS_FALLBACK_ARMED/g) || []).length === 0
+  && (C.match(/isIosStandalone/g) || []).length === 2);
 {
   // THE LOAD-BEARING EQUIVALENCE. With the probe off, the mint gate must reduce
   // to exactly the pre-probe predicate — otherwise the probe changed behaviour
@@ -153,15 +166,36 @@ ok('§4.4 the probe mints even for an already-connected vendor (the founder is)'
 ok('§4.5 a manual refresh control exists for a state that looks wrong',
   /void mintIgAuthUrl\(\); \}\}>Refresh the link<\/button>/.test(probePanel));
 
-sec('§5 · H19 — DRAFTED, DARK, VETO OWED');
-ok('§5.1 H19 exists as a marked draft', /H19: '[^']+',\s*\/\/ DRAFT — veto owed/.test(R));
-ok('§5.2 it names the working gesture BEFORE the explanation (H3 ordering doctrine)',
+sec('§5 · H19 — VETOED AND LIVE IN ITS ONE CONTEXT (re-aimed R-1; was: drafted, dark, veto owed)');
+// ── LABELED RE-AIM + GROWTH, TDW_09 VENDOR REHAUL R-1 (3→5, labelled) ──────
+// §5.1/§5.3 asserted the draft marker and the dark render. The founder's veto
+// executed at R-1 relay #2 (「 ok 」 on wording B, 2026-08-06), so the cells
+// re-aim onto the executed state, and the R-1 acceptance cells ① (present in
+// the iOS-standalone context, absent elsewhere) and ② (anchor-only) land here
+// beside the surface they govern. §5.2's doctrine cell is UNCHANGED — the
+// gesture-before-explanation property survived the rewording byte-for-property.
+ok('§5.1 [RE-AIMED R-1] H19 carries the executed veto, not the draft marker',
+  /H19: '[^']+', \/\/ VETOED 2026-08-06 \(wording B, relay #2\)/.test(R)
+  && !/H19: .*DRAFT — veto owed/.test(R));
+ok('§5.2 it names the working gesture BEFORE the explanation (H3 ordering doctrine) — and the gesture is PRESENT, not merely not-last (the -1 vacuity, self-caught at this sitting\'s both-ways run)',
   (() => {
     const m = R.match(/H19: '([^']+)'/);
     if (!m) return false;
-    return m[1].indexOf('press and hold') < m[1].indexOf('caught by the Instagram app');
+    const g = m[1].indexOf('Press and hold');
+    const e = m[1].indexOf('caught by the Instagram app');
+    return g >= 0 && e >= 0 && g < e;
   })());
-ok('§5.3 and it is NOT rendered at this tip', /const IOS_FALLBACK_ARMED = false;/.test(C));
+ok('§5.3 [RE-AIMED R-1 · acceptance ①] the render is context-gated, not dark and not universal — the ONLY H19 render site sits behind the isIosStandalone() conjunction',
+  (() => {
+    const sites = C.match(/COPY\.H19/g) || [];
+    if (sites.length !== 1) return false;
+    return /\{isIosStandalone\(\) && igAuthUrl && \([\s\S]{0,600}?COPY\.H19/.test(C);
+  })());
+ok('§5.4 [NEW R-1 · acceptance ①] absent elsewhere BY CONSTRUCTION — the detection returns false wherever navigator.standalone is not true (SSR guard included), so a desktop, Android, or in-Safari reader never sees the line',
+  /if \(typeof navigator === 'undefined'\) return false;/.test(C)
+  && /\.standalone === true;/.test(C));
+ok('§5.5 [NEW R-1 · acceptance ②] the anchor-only rider is real — the instruction can never render beside the degraded mint-retry <button>, because igAuthUrl null is exactly the button branch',
+  /\{igAuthUrl \? \(/.test(C) && /\{isIosStandalone\(\) && igAuthUrl && \(/.test(C));
 
 console.log(`\n──────── tdw07_p4b_probe: ${pass}/${pass + fail} ────────`);
 process.exit(fail === 0 ? 0 : 1);

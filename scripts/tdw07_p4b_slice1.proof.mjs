@@ -162,10 +162,13 @@ ok('§4.1 H15 byte-exact',  /H15: 'Reel',/.test(R));
 ok('§4.2 H16 byte-exact',  /H16: 'Album',/.test(R));
 ok('§4.3 H17 byte-exact',  /H17: 'Reels come in as their cover photo\.',/.test(R));
 ok('§4.4 H18 byte-exact',  /H18: 'Connected as @\{handle\}',/.test(R));
-// LABELED AMENDMENT, P4b probe (count preserved 1→1): H19 ships as a MARKED
+// LABELED AMENDMENT, P4b probe (count preserved 1→1): H19 shipped as a MARKED
 // DRAFT by CE ruling (the iOS fallback, built dark, veto owed). A blanket
-// no-drafts assertion would now redden an honestly-marked slot — the exact
-// inversion of what this cell exists for. Scoped to the four it was written for.
+// no-drafts assertion would then have reddened an honestly-marked slot — the
+// exact inversion of what this cell exists for. Scoped to the four it was
+// written for. [COMMENT AMENDED R-1, 2026-08-06: H19's veto has since executed
+// (wording B) and the line is live in the iOS-standalone context — the probe
+// bench's §5 owns its cells; this cell's scope and count are unchanged.]
 ok('§4.5 no `DRAFT — veto owed` marker survives on H15..H18',
   ['H15','H16','H17','H18'].every(k => !new RegExp(`${k}: .*DRAFT — veto owed`).test(R)));
 ok('§4.6 all four carry the executed veto\'s date',
