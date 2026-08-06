@@ -6,7 +6,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ModePill } from '@/components/vendor/BottomNav';
+// TDW_09 P2 · fork 8.4/8.5 (chair relay #3): ModePill retired from the live nav
+// with the mode; the demo twin is DECLARED-HELD (F-09.89) and keeps rendering
+// it, so the pill relocated to this lane — byte-preserved, see its own header.
+import { ModePill } from '@/components/demo/ModePill';
 import { DemoClaimSheet } from '@/components/demo/DemoClaimSheet';
 import { useTheme } from '@/hooks/vendor/useTheme';
 import { useT } from '@/lib/vendor/ThemeContext';

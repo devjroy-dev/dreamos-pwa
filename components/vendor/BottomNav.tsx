@@ -1,18 +1,45 @@
 'use client';
-// components/BottomNav.tsx — Atelier rebuild
+// components/BottomNav.tsx — Atelier rebuild · TDW_09 PACKAGE 2 — THE FIVE DOORS
 //
 // Bottom nav fixed; content scrolls behind it.
 // Italiana glyphs instead of SVG icons. Brass-bordered. Atelier material.
 //
-// STUDIO mode  → CALENDAR | BUSINESS | MORE
-// AI mode      → no bottom nav (chat input owns the bottom)
-// DISCOVER mode → HUB | LEADS | COLLAB
+// ═══ THE FIVE STABLE DOORS (R-X27, arm (a); Paper A `docs/specs/TDW_09_S5_NAV_REMAP.md`) ═══
+// ONE MEMBERSHIP, FOREVER: Home · Calendar · Business · Storefront · More.
+// The two-membership bar (STUDIO_ITEMS / DISCOVER_ITEMS switched by mode) is the
+// disease Paper A names — "a nav whose membership changes is a nav you cannot
+// learn" — and it retires here WITH the mode, by subtraction (chair relay #3,
+// fork 8.1 = (a)).
+//
+// ── THE ONE-AUTHORITY LESSON, CARRIED (F-07.30's leaf, retired caller-zero) ──
+// lib/vendor/vendorModeForPath.ts was the ONE path classifier — minted when three
+// files answered "which panel is this path?" and Header's enumerated list lied
+// (the vendor read a STUDIO pill on his own Discover Profile; two more routes
+// were minted into a stale list before the leaf ended the class). That leaf dies
+// with the mode it classified, but its law survives HERE, in its successor:
+// DOORS below is the ONE membership + active-state authority. No other file may
+// answer "which door is this path?" — the demo twin (DECLARED-HELD, F-09.89)
+// carries the OLD nav until its own rider and is not a second authority over
+// this one. Active matching is PREFIX (exact only where a parent path would
+// otherwise swallow its children's tabs), so a new sub-route classifies from its
+// root without anyone remembering to enumerate it — the exact failure F-07.30
+// paid for.
+//
+// ── ModePill TOMBSTONE (fork 8.4, named retirement, chair relay #3) ──────────
+// `ModePill` + its SEGMENTS (Studio / AI ✦ / Discover) lived in this file and
+// rendered in Header's centre slot. There is nothing left for it to switch: the
+// mode is dissolved, so the pill retires by subtraction — not redesigned, not
+// re-dressed. `VictorModeChip` (Business/Advisor) survives untouched as the ONE
+// mode control; it shares no state, types, or hooks with what died here
+// (VictorModeChip.tsx:5-8's own independence comment, chair-verified).
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useVendorMode, type VendorMode } from '@/hooks/vendor/useVendorMode';
-// TDW_07 MICRO-2 · F-07.30 — the ONE path authority.
-import { vendorModeForPath } from '@/lib/vendor/vendorModeForPath';
 import { useT } from '@/lib/vendor/ThemeContext';
+// TDW_09 P2 — F-09.21's cure, worn by construction on the new bar (S5 Paper A §3:
+// "the F-09.21 pressed primitive" is what both bars inherit). First adopter of
+// the P1-staged primitive; the carrier comment in controls.ts names this sitting.
+import { pressedStyle } from '@/lib/vendor/controls';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -28,85 +55,45 @@ const F = {
 } as const;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-// ── Mode from pathname ───────────────────────────────────────────
-// TDW_07 MICRO-2 · F-07.30 — modeFromPathname MOVED to lib/vendor/vendorModeForPath.ts.
-// This implementation was CORRECT (prefix-based, agreeing with the layout's pager); it is
-// retired anyway, because two correct copies of one rule are still two copies, and the
-// third copy — Header's enumerated list — is what shipped the defect. One home is the cure,
-// not one home plus two that happen to agree today.
-const modeFromPathname = vendorModeForPath;
+// ── THE FIVE DOORS — the one membership + active-state authority ─────────────
+// Labels are FOUNDER-VETOED BYTES (relay #2, 「 all ok 」): Home · Calendar ·
+// Business · Storefront · More — none may drift a character without returning
+// to him. Order is Paper A's own (serial-position: the two heaviest at the
+// ends). Glyphs are CARRIED, not invented: ✦ is the AI star from the retired
+// pill's own AI segment (Home is where the chat lives — the mark follows the
+// meaning); ◐ ≡ ⋯ carry from the old studio set; ▣ carries from the Portfolio
+// tab onto the door that absorbs it.
+//
+// ACTIVE MATCHING: Home and More are EXACT — '/vendor' prefixes everything and
+// '/vendor/more' has no children, but exact-on-More also preserves the TDW_03
+// P1 behaviour where list sub-slices light Business, not More. Storefront's
+// prefix set is the door's own sections (Paper A: Portfolio · Discover status ·
+// Discover leads · Collab live behind the word that says so), so standing on
+// any of them lights the door that owns them. Screens outside every set
+// (settings, tds, contracts, couture, featured, team-hub, studio leaves) light
+// no tab — exactly as they lit none under the old bar.
+type DoorItem = { href: string; label: string; glyph: string; exact?: boolean; activePrefixes?: string[] };
 
-// ── ModePill (Atelier-styled, brass-bordered) ───────────────────
-interface ModePillProps {
-  key?: React.Key; mode: VendorMode; onChange: (m: VendorMode) => void; }
-
-const SEGMENTS: { key: VendorMode; label: string; star?: boolean }[] = [
-  { key: 'studio',   label: 'Studio' },
-  { key: 'ai',       label: 'AI',  star: true },
-  { key: 'discover', label: 'Discover' },
+const DOORS: DoorItem[] = [
+  { href: '/vendor',            label: 'Home',       glyph: '✦', exact: true },
+  { href: '/vendor/calendar',   label: 'Calendar',   glyph: '◐' },
+  // TDW_03 P1 (CE ruling Q1, 2026-07-14): prefix match so the tab highlights on
+  // /vendor/list/* now that the landing redirects to a slice. Behaviour carried
+  // verbatim from the retired STUDIO_ITEMS entry.
+  { href: '/vendor/list',       label: 'Business',   glyph: '≡' },
+  { href: '/vendor/storefront', label: 'Storefront', glyph: '▣',
+    activePrefixes: ['/vendor/storefront', '/vendor/portfolio', '/vendor/discover', '/vendor/collab'] },
+  { href: '/vendor/more',       label: 'More',       glyph: '⋯', exact: true },
 ];
 
-export function ModePill({ mode, onChange }: ModePillProps) {
-  const T = useT();
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center',
-      background: 'var(--atelier-input-bg)',
-      border: '0.5px solid rgba(201,168,76,0.22)',
-      borderRadius: 999, padding: 3,
-    }}>
-      {SEGMENTS.map(seg => {
-        const active = mode === seg.key;
-        return (
-          <button key={seg.key} type="button" onClick={() => onChange(seg.key)} style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: active ? 'rgba(201,168,76,0.18)' : 'transparent',
-            boxShadow: active ? 'inset 0 0 0 0.5px rgba(201,168,76,0.5)' : 'none',
-            transition: `all 200ms ${EASE}`,
-            WebkitTapHighlightColor: 'transparent',
-          }}>
-            {seg.star && (
-              <span style={{
-                fontSize: 16,
-                color: active ? A.brassWarm : A.inkMute,
-                transition: `color 200ms ${EASE}`,
-                lineHeight: 1,
-              }}>✦</span>
-            )}
-            <span style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
-              color: active ? A.brassWarm : T.inkMute,
-              transition: `color 200ms ${EASE}`, lineHeight: 1,
-            }}>{seg.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+function doorActive(item: DoorItem, pathname: string): boolean {
+  if (item.exact) return pathname === item.href;
+  if (item.activePrefixes) return item.activePrefixes.some(p => pathname.startsWith(p));
+  return pathname.startsWith(item.href);
 }
 
-// ── Sub-nav definitions ──────────────────────────────────────────
-type SubItem = { href: string; label: string; glyph: string; exact?: boolean; locked?: boolean };
-
-const STUDIO_ITEMS: SubItem[] = [
-  { href: '/vendor/calendar', label: 'Calendar', glyph: '◐' },
-  // TDW_03 P1 (CE ruling Q1, 2026-07-14): exact-match dropped so the tab
-  // highlights on /vendor/list/* now that the landing redirects to a slice.
-  // Behavior preservation, not nav redesign — Block 09's rebuild inherits this.
-  { href: '/vendor/list',     label: 'Business', glyph: '≡' },
-  { href: '/vendor/more',     label: 'More',     glyph: '⋯', exact: true },
-];
-
-const DISCOVER_ITEMS: SubItem[] = [
-  { href: '/vendor/portfolio',      label: 'Portfolio', glyph: '▣' },
-  { href: '/vendor/discover/leads', label: 'Leads',  glyph: '✉' },
-  { href: '/vendor/collab',          label: 'Collab', glyph: '◇' },
-];
-
 // ── NavTab ───────────────────────────────────────────────────────
-function NavTab({ item, active }: { item: SubItem; active: boolean }) {
+function NavTab({ item, active, reducedMotion }: { item: DoorItem; active: boolean; reducedMotion: boolean }) {
   // ── LEGIBILITY (founder-reported on the demo TDS room, 2026-08-03) ─────────
   // The INACTIVE tab read `--atelier-ink-mute` — alpha 0.45 on the espresso
   // theme and 0.34 on the third — under 8px uppercase at 0.28em tracking. On a
@@ -119,13 +106,11 @@ function NavTab({ item, active }: { item: SubItem; active: boolean }) {
   // which that is. The ACTIVE tab keeps brass, so the two are still distinct —
   // by hue now rather than by whether you can see one of them.
   //
-  // THE DEMO SHELL CARRIES THE SAME RULE and it moves in the same delivery.
-  // app/demo/vendor/[handle]/layout.tsx is an exact port of this nav and holds
-  // its own copy of this line; curing one alone would leave a claimed vendor
-  // reading tabs he could not see on the very screen the demo promised him.
-  // Filed as the drift it is: two homes for one colour rule, corrected together
-  // this time and NOT folded, because folding a live vendor nav into a demo
-  // shell is an architecture act nobody ruled.
+  // THE DEMO SHELL CARRIES THE SAME RULE. Under TDW_09 P2 the demo twin is
+  // DECLARED-HELD on the OLD two-membership bar (F-09.89, fork 8.5 = (b), chair
+  // relay #3) — the structural divergence is FILED, founder-sequenced, and the
+  // twin adopts the five doors wholesale when its own rider opens. Until then
+  // its copy of this colour rule stands where the both-homes cure left it.
   // ── TDW_09 F-09.15b — THE HARDCODED CREAM, CURED ──────────────────────────
   // The locked branch read the espresso ink at 18% alpha as a bare CREAM
   // LITERAL, not a token — one theme's ink written into a component that three
@@ -136,16 +121,27 @@ function NavTab({ item, active }: { item: SubItem; active: boolean }) {
   // the vendor tree for it and reads comments too (ChatThread.tsx's own precedent:
   // naming a deleted string is not the same act as keeping it). This comment's
   // first draft reproduced it and was convicted by that cell before delivery.
-  //
-  // The comment directly above already argued this exact case for the INACTIVE
-  // branch ("a hardcoded white would go INVISIBLE on the light theme") and then
-  // left the literal standing one branch below it. Same disease, same file, one
-  // line apart, uncured for a block — which is why this is a token now and not a
-  // second literal chosen more carefully.
-  const color = item.locked ? 'var(--atelier-ink-fade)' : active ? A.brassWarm : A.ink;
+  const color = active ? A.brassWarm : A.ink;
 
-  const inner = (
-    <>
+  // TDW_09 P2 · F-09.21 — the pressed acknowledgment. The bar suppresses the
+  // native tap flash (`WebkitTapHighlightColor: 'transparent'` below) and this
+  // is its REPLACEMENT — suppression-without-replacement is the finding's whole
+  // disease. Pointer events cover touch and mouse in one register; the pressed
+  // state clears on up, cancel, and leave so a drag-off never wedges it.
+  const [pressed, setPressed] = useState(false);
+
+  return (
+    <a href={item.href} aria-current={active ? 'page' : undefined}
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      onPointerCancel={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      style={{
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+        padding: '4px 8px', textDecoration: 'none',
+        WebkitTapHighlightColor: 'transparent',
+        ...pressedStyle(pressed, reducedMotion),
+      }}>
       <span style={{
         fontFamily: F.display,
         fontSize: 20,
@@ -163,40 +159,41 @@ function NavTab({ item, active }: { item: SubItem; active: boolean }) {
         color,
         transition: `color 200ms ${EASE}`,
       }}>{item.label}</span>
-    </>
-  );
-
-  if (item.locked || !item.href) {
-    return (
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-        padding: '4px 8px', cursor: 'default', opacity: 0.45,
-      }}>{inner}</div>
-    );
-  }
-
-  return (
-    <a href={item.href} aria-current={active ? 'page' : undefined} style={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-      padding: '4px 8px', textDecoration: 'none',
-      WebkitTapHighlightColor: 'transparent',
-    }}>{inner}</a>
+    </a>
   );
 }
 
 // ── BottomNav ────────────────────────────────────────────────────
 export function BottomNav() {
-  const pathname    = usePathname() ?? '/vendor';
-  const activeMode  = modeFromPathname(pathname);
+  const pathname = usePathname() ?? '/vendor';
   const T = useT();
 
-  // AI mode — full-page chat, no bottom nav (peek-a-boo arrives later)
-  if (activeMode === 'ai') return null;
+  // prefers-reduced-motion, read once and tracked — pressedStyle's transform arm
+  // drops under it; the opacity arm stays (reduced motion is not a request for
+  // zero feedback — controls.ts's own law).
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
 
-  const items = activeMode === 'studio' ? STUDIO_ITEMS : DISCOVER_ITEMS;
-
+  // ── FORK 8.3 (chair relay #3): REST-VISIBLE, RISEN-HIDDEN ──────────────────
+  // The bar renders on EVERY vendor screen — the old `if (activeMode === 'ai')
+  // return null` died with the mode, so Home wears the bar for the first time
+  // (a deliberate, RULED visual change to the sealed O-2 screen, stated in the
+  // relay so the founder's walk meets it as intention). While the chat is RISEN
+  // the bar hides — the amended Model 1's full-bleed acceptance picture is the
+  // warrant. MECHANISM (F-06.85): the home page publishes `chat-risen` on
+  // <body> (app/vendor/page.tsx, the risen effect); the rule in globals.css
+  // (`body.chat-risen .tdw-bottom-nav`) reads it. The className below is that
+  // rule's hook — if it moves, the globals.css selector moves with it.
   return (
-    <nav aria-label="Section navigation" data-tour="bottom-nav" data-atelier-backdrop="warm" style={{
+    <nav aria-label="Section navigation" data-tour="bottom-nav" data-atelier-backdrop="warm"
+      className="tdw-bottom-nav"
+      style={{
       position: 'sticky', bottom: 0, zIndex: 9,
       background: T.headerBg,
       backdropFilter: 'blur(28px) saturate(1.6)',
@@ -206,12 +203,9 @@ export function BottomNav() {
       padding: '10px 8px calc(12px + env(safe-area-inset-bottom))',
       display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end',
     }}>
-      {items.map(item => {
-        const active = item.exact
-          ? pathname === item.href
-          : item.href ? pathname.startsWith(item.href) : false;
-        return <NavTab key={item.label} item={item} active={active} />;
-      })}
+      {DOORS.map(item => (
+        <NavTab key={item.label} item={item} active={doorActive(item, pathname)} reducedMotion={reducedMotion} />
+      ))}
     </nav>
   );
 }

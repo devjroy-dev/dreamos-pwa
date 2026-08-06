@@ -8,6 +8,11 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import Link from 'next/link';
 import { Header } from '@/components/vendor/Header';
 import { clearVendorSession } from '@/lib/vendor/session';
+// TDW_09 P2 (Paper A: "the Advisor chip pinned top per the spec's own P1") —
+// the Business/Advisor control, pinned at the top of More so the ONE surviving
+// mode control is reachable from the overflow door. Byte-untouched component;
+// only this mount is new.
+import { VictorModeChip } from '@/components/vendor/VictorModeChip';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -51,9 +56,12 @@ function SectionLabel({ label, first }: { label: string; first?: boolean }) {
 
 interface Item { href?: string; label: string; description: string; glyph: string; danger?: boolean; action?: () => void; }
 
+// TDW_09 P2 — 'Discover Status' and 'Portfolio' rows MOVED to the Storefront
+// door (/vendor/storefront), Paper A's fourth seat: those surfaces now live
+// behind the word that says so. Their description bytes travelled WITH them
+// (control inventory, MOVED). Couture and Featured stay — Paper A seats both
+// in More.
 const DISCOVER_ITEMS: Item[] = [
-  { href: '/vendor/discover',  label: 'Discover Status', description: 'your profile on The Dream Wedding', glyph: '◐' },
-  { href: '/vendor/portfolio', label: 'Portfolio',       description: 'images and photo library',          glyph: '▣' },
   { href: '/vendor/couture',   label: 'Couture',         description: 'appointments and availability',      glyph: '♡' },
   { href: '/vendor/featured',  label: 'Featured',        description: 'promoted slots and promos',          glyph: '✦' },
 ];
@@ -122,6 +130,10 @@ export default function MorePage() {
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
 
   const ACCOUNT_ITEMS: Item[] = [
+    // R-X8 — Notes re-homed here from the retired /vendor/studio hub (F-09.18
+    // arm (a)); label, description and glyph carried VERBATIM from that page's
+    // own row (existing bytes, no new copy). The leaf route stands untouched.
+    { href: '/vendor/studio/notes', label: 'Notes to Self', description: 'thoughts you’ve jotted', glyph: '✎' },
     { href: '/vendor/settings', label: 'Settings', description: 'profile, billing, preferences', glyph: '⚙' },
     {
       label: 'Sign Out',
@@ -136,6 +148,11 @@ export default function MorePage() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <Header vendorName={session?.name ?? null} />
       <div style={{ flex: 1, paddingBottom: 40 }}>
+        {/* Paper A: the Advisor chip pinned top — the one mode control, reachable
+            from the overflow door. */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '18px 24px 4px' }}>
+          <VictorModeChip />
+        </div>
         <SectionLabel label="Discover" first />
         {DISCOVER_ITEMS.map(item => <MoreRow key={item.label} item={item} />)}
 

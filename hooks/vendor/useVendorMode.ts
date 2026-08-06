@@ -1,41 +1,19 @@
-'use client';
-// hooks/useVendorMode.ts
-// Persists the vendor's active mode across sessions.
-// Key: vendor_app_mode
-// Values: 'ai' | 'studio' | 'discover'
-// Default: 'ai' (DreamAi is the landing mode per strategy)
-
-import { useCallback, useEffect, useState } from 'react';
+// hooks/useVendorMode.ts — TYPE-ONLY RESIDUE · TDW_09 PACKAGE 2 (fork 8.4)
+//
+// THE HOOK IS RETIRED BY NAME (chair relay #3). `useVendorMode` persisted the
+// nav mode ('ai' | 'studio' | 'discover') to localStorage under
+// `vendor_app_mode` — a no-localStorage-law residue that dies with its organ:
+// the mode is dissolved under R-X27 arm (a) and nothing reads or writes it in
+// the live lane. The function, the key, the VALID list and the DEFAULT are all
+// deleted here, not moved.
+//
+// WHAT SURVIVES AND WHY: the `VendorMode` TYPE. The demo twin is DECLARED-HELD
+// on the old two-membership nav (F-09.89, fork 8.5 = (b)) and its own
+// classifier (components/demo/DemoVendorHeader.tsx::modeFromPath) is typed on
+// it. When F-09.89's rider retires the demo's old nav, this file retires WITH
+// it — a named line in that sitting's delivery.
+//
+// `useVictorMode` (Business/Advisor, server-persisted) was ALWAYS disjoint
+// from this hook — its own header says so — and is untouched.
 
 export type VendorMode = 'ai' | 'studio' | 'discover';
-
-const KEY     = 'vendor_app_mode';
-const DEFAULT: VendorMode = 'ai';
-const VALID: VendorMode[] = ['ai', 'studio', 'discover'];
-
-function readMode(): VendorMode {
-  if (typeof window === 'undefined') return DEFAULT;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (raw && VALID.includes(raw as VendorMode)) return raw as VendorMode;
-  } catch { /* ignore */ }
-  return DEFAULT;
-}
-
-export function useVendorMode(): [VendorMode, (m: VendorMode) => void] {
-  const [mode, setModeState] = useState<VendorMode>(DEFAULT);
-
-  // Hydrate from localStorage after mount (avoids SSR mismatch)
-  useEffect(() => {
-    setModeState(readMode());
-  }, []);
-
-  const setMode = useCallback((next: VendorMode) => {
-    setModeState(next);
-    try {
-      if (typeof window !== 'undefined') window.localStorage.setItem(KEY, next);
-    } catch { /* ignore */ }
-  }, []);
-
-  return [mode, setMode];
-}

@@ -151,13 +151,13 @@ const TIPS: Tip[] = [
     title: 'TDW Leads are bride-sourced.',
     body: 'When a bride saves or enquires via The Dream Wedding, the lead appears in Discover → Leads. These are pre-qualified — they\'ve seen your work.',
   },
-  // ── Swipe ────────────────────────────────────────────────────────
-  {
-    section: 'Navigation',
-    glyph: '↔',
-    title: 'Swipe anywhere to change rooms.',
-    body: 'Swipe left or right on any screen to move between Studio, Hub, and Discover. You don\'t need to tap the mode pill every time.',
-  },
+  // ── TDW_09 P2 · fork 8.1 (chair relay #3) — THE SWIPE TIP IS RETIRED WITH
+  // THE PAGER. The tip taught 'Swipe left or right on any screen to move
+  // between Studio, Hub, and Discover' and named the mode pill — both organs
+  // dissolved under R-X27 arm (a). A tip teaching a dead gesture is a lie; the
+  // copy dies WITH the chrome, no separate veto owed for the deletion. (The
+  // peek-nav tip below it predates this sitting and is F-09.90's census, not
+  // this deletion's — sighted, not touched.)
   {
     section: 'Navigation',
     glyph: '↔',

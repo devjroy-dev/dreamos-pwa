@@ -45,15 +45,14 @@ const STEPS = [
     body: 'Reply, hold, or decline in one tap. DreamAi reads the brief and drafts your reply. You just approve.',
     cta: 'Next →',
   },
-  {
-    id: 'mode-pill',
-    selector: '[data-tour="mode-pill"]',
-    tooltip: 'below' as const,
-    label: 'Three Rooms',
-    headline: 'Studio. Hub. Discover.\nSwipe to move.',
-    body: 'Studio is your business. Hub is your AI. Discover is how brides find you. Swipe left or right anywhere to switch rooms.',
-    cta: 'Next →',
-  },
+  // ── TDW_09 P2 · fork 8.1/8.4 (chair relay #3) — THE 'Three Rooms' STEP IS
+  // RETIRED WITH ITS SUBJECT. The step here taught the ModePill and the panel
+  // swipe ('Studio. Hub. Discover. / Swipe to move.' + 'Swipe left or right
+  // anywhere to switch rooms.'). Both organs are dissolved under R-X27 arm (a);
+  // a tour teaching dead chrome is a lie on the vendor's first minute. The copy
+  // dies WITH the chrome it described — same warrant as the pill's own label
+  // bytes, no separate veto owed for a deletion that removes a falsehood. Its
+  // anchor `[data-tour="mode-pill"]` no longer exists in Header.
   {
     id: 'studio',
     selector: '[data-tour="bottom-nav"]',
@@ -65,8 +64,11 @@ const STEPS = [
   },
   {
     id: 'discover',
-    selector: '[data-tour="mode-pill"]',
-    tooltip: 'below' as const,
+    // TDW_09 P2 — re-anchored: the old anchor ([data-tour="mode-pill"]) died
+    // with the pill; the Discover story now lives behind the Storefront door on
+    // the bar. Selector + tooltip side only — the copy bytes are untouched.
+    selector: '[data-tour="bottom-nav"]',
+    tooltip: 'above' as const,
     label: 'Discover',
     headline: 'A curated stage.\nNot a marketplace.',
     body: 'Upload your portfolio. Qualified brides on The Dream Wedding discover and enquire directly.',

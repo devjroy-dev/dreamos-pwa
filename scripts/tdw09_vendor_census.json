@@ -1,13 +1,13 @@
 {
-  "hexTotal": 167,
+  "hexTotal": 168,
   "hexDistinct": 31,
-  "brassTotal": 269,
-  "brassDistinct": 39,
-  "files": 77,
+  "brassTotal": 261,
+  "brassDistinct": 38,
+  "files": 78,
   "greenSites": [
-    "components/vendor/OnboardingOverlay.tsx:408",
-    "components/vendor/OnboardingOverlay.tsx:420",
-    "components/vendor/OnboardingOverlay.tsx:424",
+    "components/vendor/OnboardingOverlay.tsx:410",
+    "components/vendor/OnboardingOverlay.tsx:422",
+    "components/vendor/OnboardingOverlay.tsx:426",
     "components/vendor/TipsCarousel.tsx:357",
     "components/vendor/slices/SliceShell.tsx:744"
   ],

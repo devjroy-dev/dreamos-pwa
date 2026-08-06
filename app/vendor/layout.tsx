@@ -1,40 +1,33 @@
 'use client';
-// app/wedding/layout.tsx
+// app/vendor/layout.tsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Vendor shell + horizontal pager between the three panel roots.
+// Vendor shell · TDW_09 PACKAGE 2 — THE FIVE DOORS (R-X27 arm (a)).
 //
-// Panels (left → right):  STUDIO(0) · AI(1) · DISCOVER(2)
-//   STUDIO   root  →  /wedding/calendar
-//   AI       root  →  /wedding
-//   DISCOVER root  →  /wedding/discover
+// ═══ THE PAGER TOMBSTONE (fork 8.1 = (a), chair relay #3) ═══════════════════
+// This file was a Studio↔AI↔Discover horizontal PANEL PAGER: PANEL_ROOTS
+// ['/vendor/calendar','/vendor','/vendor/discover'], touch handlers with an
+// 8px direction lock, 25% commit threshold, flick velocity, rubber-band edges,
+// gold edge hints, and the A2.3 suppression contract (`shouldSuppressPager` +
+// the `data-pager-inert` opt-out that SwipeRow claims). The pager was THE MODE
+// IN GESTURE FORM — panelIndexForPath was documented as "a projection of" the
+// classifier — and with the mode dissolved it had nothing coherent to page
+// between, so it retires BY SUBTRACTION with the pill: keeping it would
+// re-teach the membership the five doors exist to kill. The verb "swipe
+// between panels" is REMOVED-BY-RULING in this sitting's control inventory,
+// warrant chair relay #3.
 //
-// Gesture rules (locked):
-//   • Swipe enabled ONLY on the three panel roots — sub-pages (Business, More,
-//     Leads, Portfolio, etc.) keep their native scroll/gestures untouched.
-//   • Finger drags RIGHT → page moves right → previous panel slides in from the
-//     left.   (AI → STUDIO,  DISCOVER → AI)
-//   • Finger drags LEFT  → page moves left  → next panel slides in from the
-//     right.  (STUDIO → AI,  AI → DISCOVER)
-//   • Vertical-dominant gestures (|dy| > |dx| × 0.65) cancel the pager — the
-//     page scrolls normally.
-//   • Pill state auto-updates because Header.tsx consumes the SAME path classifier this
-//     file does (lib/vendor/vendorModeForPath.ts) — TDW_07 MICRO-2 · F-07.30. It used to
-//     derive its own from an enumerated list, and the list went stale.
+// SwipeRow's `data-pager-inert` attribute STANDS — the demo twin's pager
+// (DECLARED-HELD, F-09.89) still reads it. Only this layout stopped listening.
 //
-// Visual model:
-//   While dragging, the active panel's content follows the finger via CSS
-//   transform: translateX(). Phantom edge hints appear on the left/right
-//   showing where the next panel lives. On release: if past 25% threshold OR
-//   fast flick → router.push() to the new panel; else snap back to 0.
+// What SURVIVES, byte-purposed as before: Splash (RULED-INVARIANT, R-M4(c)),
+// the theme init + LIGHT_VARS pre-paint pin (the-landing-is-the-law lawful
+// exception), ThemeProvider, and the BottomNav mount — now the five-door bar.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Splash } from '@/components/vendor/Splash'; // TDW_04 A4 (P6): cold-open hero
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { BottomNav } from '@/components/vendor/BottomNav';
-// TDW_07 MICRO-2 · F-07.30 — the ONE path authority. See the leaf's header for the
-// three-way drift this closes and why it is sited with no runtime edges.
-import { panelIndexForPath } from '@/lib/vendor/vendorModeForPath';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 
 // Apply saved theme class immediately on mount to avoid flash
@@ -84,208 +77,59 @@ function useThemeInit() {
   }, []);
 }
 
-// ── Panel order ──────────────────────────────────────────────────────────────
-const PANEL_ROOTS = ['/vendor/calendar', '/vendor', '/vendor/discover'] as const;
+// ── THE ROOM ATMOSPHERES, RE-KEYED (fork 8.2, chair relay #3) ────────────────
+// The `.room-studio` / `.room-discover` classes on html+body were keyed off the
+// PANEL INDEX — a projection of the retired mode. The RULING is a pure
+// indirection removal: same classes, same routes, ZERO visual delta,
+// cell-asserted. The prefix buckets below are BYTE-EQUIVALENT to the retired
+// classifier's own (lib/vendor/vendorModeForPath.ts @ base 84848e8):
+//   '/vendor' exact + the '/vendor/auth' prefix             → no room class
+//   (the prefix is written WITHOUT a glob here on purpose: a slash-star inside
+//   a line comment opens a phantom block comment under every comment-stripping
+//   instrument this estate runs — this bench's own §5 was its first casualty)
+//   the old DISCOVER_ROOTS, verbatim, same order            → room-discover
+//   everything else                                         → room-studio
+// `/vendor/storefront` did not exist under the old world; it falls to the
+// `else` bucket (room-studio) — the mapping's own default, no new atmosphere
+// minted without a ruling. This function is the room-atmosphere authority ONLY
+// — door membership and active state live on BottomNav's DOORS list (the
+// F-07.30 one-authority law's successor); nothing here answers a nav question.
+const ROOM_DISCOVER_PREFIXES = [
+  '/vendor/discover',
+  '/vendor/portfolio',
+  '/vendor/couture',
+  '/vendor/featured',
+  '/vendor/collab',
+] as const;
 
-// TDW_07 MICRO-2 · F-07.30 — panelIndexForPath MOVED to lib/vendor/vendorModeForPath.ts
-// and imported above. It was one of THREE independent answers to "which panel is this
-// path?"; this one and BottomNav's agreed, Header's enumerated list did not, and the
-// vendor read a STUDIO pill on his Discover Profile. The classifier now has one home and
-// this file is a consumer. The prefix behaviour is unchanged — the leaf carries the same
-// roots in the same order — so no route the pager already handled moves.
-
-// Walks up from `el` to `stopAt`. Returns true if any ancestor along the
-// way is an element where the pager should stay inert — either an
-// interactive form control, or an element with horizontal scroll that
-// hasn't yet hit its edge in the direction of the drag.
-function shouldSuppressPager(el: HTMLElement | null, stopAt: HTMLElement | null, dx: number): boolean {
-  let node: HTMLElement | null = el;
-  while (node && node !== stopAt) {
-    const tag = node.tagName;
-    // TDW_04 A2.3 (founder phone smoke): explicit opt-out for row-level swipe
-    // surfaces (components/vendor/slices/SwipeRow.tsx). A horizontal drag that
-    // STARTS on a swipeable row belongs to the row — the more specific surface
-    // wins; the pager stays inert for that gesture. Page-swiping still works
-    // from every other pixel (mastheads, chrome, empty space). Without this the
-    // pager ate every row swipe and slid the whole panel instead.
-    if (node.dataset && node.dataset.pagerInert === 'true') return true;
-    // Form controls with text input — suppress pager so user can type/select
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-      return true;
-    }
-    // Element with horizontal scroll content?
-    const styles = window.getComputedStyle(node);
-    const overflowX = styles.overflowX;
-    if ((overflowX === 'auto' || overflowX === 'scroll') && node.scrollWidth > node.clientWidth) {
-      // Only suppress if there's room to scroll in the DRAG direction.
-      // dx < 0  → finger moves left → scrollLeft must reach scrollWidth - clientWidth
-      // dx > 0  → finger moves right → scrollLeft must reach 0
-      const atLeft  = node.scrollLeft <= 0;
-      const atRight = node.scrollLeft >= node.scrollWidth - node.clientWidth - 1;
-      if (dx < 0 && !atRight) return true;  // can still scroll right inside element
-      if (dx > 0 && !atLeft)  return true;  // can still scroll left inside element
-    }
-    node = node.parentElement;
-  }
-  return false;
+function roomClassForPath(pathname: string): 'room-studio' | 'room-discover' | null {
+  if (pathname === '/vendor' || pathname.startsWith('/vendor/auth')) return null;
+  if (ROOM_DISCOVER_PREFIXES.some((root) => pathname.startsWith(root))) return 'room-discover';
+  return 'room-studio';
 }
-
-// Gesture tuning
-const HORIZONTAL_LOCK_PX = 8;            // movement before we decide direction
-const VERTICAL_CANCEL_RATIO = 0.65;      // |dy|/|dx| > this → vertical scroll, cancel
-const COMMIT_DISTANCE_RATIO = 0.25;      // drag past 25% viewport width → commit
-const COMMIT_VELOCITY_PX_PER_MS = 0.5;   // OR flick faster than this → commit
-const MAX_DRAG_RUBBERBAND = 0.35;        // when no neighbour, drag follows at 35%
-const SNAP_DURATION_MS = 260;
 
 export default function WeddingLayout({ children }: { children: React.ReactNode }) {
   useThemeInit();
   const pathname = usePathname() ?? '/vendor';
-  const router   = useRouter();
   const onLogin  = pathname === '/' || pathname.startsWith('/vendor/auth') || pathname.startsWith('/vendor/pin');
-
-  const currentPanelIdx = panelIndexForPath(pathname);
-  const swipeEnabled    = !onLogin;
 
   // Set room class on BOTH html and body so the atmosphere paints both layers
   // (some browsers paint the html background, others the body — we cover both).
-  //   Studio (0) → .room-studio   — cooler daylight
-  //   AI     (1) → (default Hub atmosphere — warm dusk)
-  //   Discov (2) → .room-discover — near-black gallery
+  //   room-studio   — cooler daylight
+  //   (none)        — default Hub atmosphere, warm dusk
+  //   room-discover — near-black gallery
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
+    const room = roomClassForPath(pathname);
     [html, body].forEach(el => el.classList.remove('room-studio', 'room-discover'));
-    if (currentPanelIdx === 0) [html, body].forEach(el => el.classList.add('room-studio'));
-    if (currentPanelIdx === 2) [html, body].forEach(el => el.classList.add('room-discover'));
+    if (room) [html, body].forEach(el => el.classList.add(room));
     // Re-apply light vars immediately after class change to prevent dark flash
     if (html.classList.contains('theme-light')) applyLightVars();
     return () => {
       [html, body].forEach(el => el.classList.remove('room-studio', 'room-discover'));
     };
-  }, [currentPanelIdx]);
-
-  // ── Drag state (refs, not state, to avoid re-renders during finger movement)
-  const stageRef    = useRef<HTMLDivElement>(null);
-  const startX      = useRef(0);
-  const startY      = useRef(0);
-  const startTime   = useRef(0);
-  const isDragging  = useRef(false);          // committed to a horizontal drag
-  const directionLocked = useRef(false);
-  const [dragOffset, setDragOffset]   = useState(0);
-  const [transition, setTransition]   = useState('');
-
-  // Cancel any in-flight drag when route changes (panel committed).
-  // CRITICAL: set transition to 'none' BEFORE resetting offset so the new panel
-  // appears at 0 instantly — never with a visible reverse-slide animation.
-  useEffect(() => {
-    setTransition('none');
-    setDragOffset(0);
-    isDragging.current = false;
-    directionLocked.current = false;
   }, [pathname]);
-
-  // Capture the touch target on start so onTouchMove can walk up the DOM
-  // and decide whether to suppress (form controls, inner horizontal scrolls).
-  const touchTarget = useRef<HTMLElement | null>(null);
-
-  function onTouchStart(e: React.TouchEvent) {
-    if (!swipeEnabled) return;
-    startX.current = e.touches[0].clientX;
-    startY.current = e.touches[0].clientY;
-    startTime.current = performance.now();
-    isDragging.current = false;
-    directionLocked.current = false;
-    touchTarget.current = e.target as HTMLElement;
-    setTransition('none');
-  }
-
-  function onTouchMove(e: React.TouchEvent) {
-    if (!swipeEnabled) return;
-    const dx = e.touches[0].clientX - startX.current;
-    const dy = e.touches[0].clientY - startY.current;
-
-    // Lock direction on first meaningful movement
-    if (!directionLocked.current) {
-      if (Math.abs(dx) < HORIZONTAL_LOCK_PX && Math.abs(dy) < HORIZONTAL_LOCK_PX) return;
-      directionLocked.current = true;
-      // Vertical-dominant → bail out; let native scroll happen
-      if (Math.abs(dy) > Math.abs(dx) * VERTICAL_CANCEL_RATIO) {
-        isDragging.current = false;
-        return;
-      }
-      // Suppression guard: if the touch began inside an interactive control
-      // or a horizontally-scrollable element with room to scroll, leave the
-      // pager inert and let the native gesture run.
-      if (shouldSuppressPager(touchTarget.current, stageRef.current, dx)) {
-        isDragging.current = false;
-        return;
-      }
-      isDragging.current = true;
-    }
-    if (!isDragging.current) return;
-
-    // Rubber-band at boundaries (no neighbour to swipe to)
-    const idx = currentPanelIdx;
-    let offset = dx;
-    if (dx < 0 && idx === PANEL_ROOTS.length - 1) offset = dx * MAX_DRAG_RUBBERBAND; // Discover, can't go further right
-    if (dx > 0 && idx === 0)                       offset = dx * MAX_DRAG_RUBBERBAND; // Studio,   can't go further left
-    setDragOffset(offset);
-  }
-
-  function onTouchEnd(e: React.TouchEvent) {
-    if (!swipeEnabled || !isDragging.current) {
-      isDragging.current = false;
-      directionLocked.current = false;
-      return;
-    }
-
-    const dx       = e.changedTouches[0].clientX - startX.current;
-    const dt       = Math.max(1, performance.now() - startTime.current);
-    const velocity = Math.abs(dx) / dt;                       // px / ms
-    const width    = stageRef.current?.clientWidth ?? window.innerWidth;
-    const idx      = currentPanelIdx;
-
-    const pastDistance = Math.abs(dx) > width * COMMIT_DISTANCE_RATIO;
-    const fastFlick    = velocity > COMMIT_VELOCITY_PX_PER_MS && Math.abs(dx) > 40;
-    const shouldCommit = pastDistance || fastFlick;
-
-    let targetIdx = idx;
-    if (shouldCommit) {
-      if (dx < 0 && idx < PANEL_ROOTS.length - 1) targetIdx = idx + 1; // swipe ← → next panel
-      if (dx > 0 && idx > 0)                       targetIdx = idx - 1; // swipe → → prev panel
-    }
-
-    // Animate to commit/snap-back position. We can't translateX(-100%) because
-    // we don't actually have the next panel mounted in this layout. Instead:
-    //   • commit  → fly current content out, then router.push (new panel renders)
-    //   • cancel  → spring back to 0
-    setTransition(`transform ${SNAP_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`);
-
-    if (targetIdx !== idx) {
-      // Half-fly + early navigate: kick off router.push immediately so Next.js
-      // begins rendering the new route while the slide-out is still animating.
-      // By the time the slide completes, the new page is already painted under
-      // it — no blink, single continuous motion.
-      const exitOffset = dx < 0 ? -width : width;
-      setDragOffset(exitOffset);
-      router.push(PANEL_ROOTS[targetIdx]);
-      // Belt-and-braces: if route change is somehow slow, the pathname effect
-      // resets offset when it eventually lands.
-    } else {
-      setDragOffset(0);
-    }
-
-    isDragging.current = false;
-    directionLocked.current = false;
-  }
-
-  // ── Edge hints: subtle gold ticks at left/right when a neighbour exists ────
-  const hasLeftNeighbour  = currentPanelIdx > 0;
-  const hasRightNeighbour = currentPanelIdx >= 0 && currentPanelIdx < PANEL_ROOTS.length - 1;
-  const dragProgress      = stageRef.current ? Math.abs(dragOffset) / stageRef.current.clientWidth : 0;
-  const leftHintOpacity   = hasLeftNeighbour  && dragOffset > 0 ? Math.min(1, dragProgress * 3) : 0;
-  const rightHintOpacity  = hasRightNeighbour && dragOffset < 0 ? Math.min(1, dragProgress * 3) : 0;
 
   return (
     <ThemeProvider>
@@ -296,44 +140,11 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
       background: 'transparent',  // inherit body's Atelier warm gradient
       display: 'flex', flexDirection: 'column',
     }}>
-      <div
-        ref={stageRef}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onTouchCancel={onTouchEnd}
-        style={{
-          flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
-          position: 'relative',
-          // Apply transform ONLY when actively dragging. Any transform value
-          // (even translateX(0)) creates a containing block for position:fixed
-          // descendants, breaking bottom sheets/modals on every sub-page.
-          ...(dragOffset !== 0 ? { transform: `translateX(${dragOffset}px)` } : {}),
-          transition,
-          willChange: swipeEnabled && dragOffset !== 0 ? 'transform' : 'auto',
-          // CRITICAL: don't claim touch-action — let children manage their own
-          // pan-y. The browser will still send our handlers the events.
-        }}
-      >
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
+        position: 'relative',
+      }}>
         {children}
-
-        {/* Edge hint: peek shadow when dragging at a boundary-having edge */}
-        {swipeEnabled && (
-          <>
-            <div aria-hidden style={{
-              position: 'fixed', left: 0, top: 0, bottom: 0, width: 3,
-              background: 'linear-gradient(90deg, rgba(201,168,76,0.55) 0%, transparent 100%)',
-              opacity: leftHintOpacity, pointerEvents: 'none', zIndex: 50,
-              transition: dragOffset === 0 ? 'opacity 200ms' : 'none',
-            }} />
-            <div aria-hidden style={{
-              position: 'fixed', right: 0, top: 0, bottom: 0, width: 3,
-              background: 'linear-gradient(-90deg, rgba(201,168,76,0.55) 0%, transparent 100%)',
-              opacity: rightHintOpacity, pointerEvents: 'none', zIndex: 50,
-              transition: dragOffset === 0 ? 'opacity 200ms' : 'none',
-            }} />
-          </>
-        )}
       </div>
       {!onLogin && <BottomNav />}
     </div>

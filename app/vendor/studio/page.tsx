@@ -1,56 +1,29 @@
-'use client';
-// /wedding/studio — Studio Suite (Team Hub) · Atelier rebuild
-// Chapter-index pattern: brass monogram glyphs, Cormorant titles, italic
-// subtitles. Two sections — Studio (links to lists) and Team Hub (prestige-only).
+// /vendor/studio — REDIRECT STUB · TDW_09 PACKAGE 2 (F-09.18 arm (a) + R-X8)
+//
+// THE HUB PAGE THAT STOOD HERE IS RETIRED. F-09.18's derivation: this door was
+// LINK-ORPHANED (zero inbound edges at the IA census — the More sheet linked
+// /vendor/team-hub directly, and the nav's "Studio" was a MODE whose activation
+// navigated to the calendar), while its name collided with that mode.
+// Recognition-over-recall failed twice on one word. The ruled cure, arm (a):
+// retire the door; the More sheet already reaches every leaf.
+//
+// WHERE ITS ROWS WENT (control inventory, this sitting):
+//   · the five list rows (Clients/Leads/Invoices/Events/Expenses) — the
+//     Business door (/vendor/list) has always owned them; the rows here were a
+//     second front on one machinery.
+//   · Notes to Self — MOVED to /vendor/more per R-X8, its ruled seat, bytes
+//     carried verbatim.
+//   · the Team Hub section — /vendor/team-hub is its own route (TDW_04.5 P4
+//     F11(c)) and the More sheet's own row already points there.
+//
+// THE LEAVES STAND: /vendor/studio/notes, /vendor/studio/team,
+// /vendor/studio/tasks, /vendor/studio/team-payments are UNTOUCHED — this stub
+// replaces only the hub page.tsx. Anyone landing on the retired hub (an old
+// deep link, a bookmark) is carried to Team Hub — the destination whose rows
+// made this page redundant. Deep-link law: the path answers, never 404s.
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { Header } from '@/components/vendor/Header';
-import Link from 'next/link';
-// TDW_04.5 P4 · F11(c) — Row/SectionLabel/STUDIO_ITEMS and the prestige gate now
-// live in ONE home, shared with the new /vendor/team-hub route. Moved, not
-// rewritten: this screen's rendered output is unchanged.
-import { A, F, Item, STUDIO_ITEMS, SectionLabel, Row, isPrestige } from '@/lib/vendor/studioShared';
+import { redirect } from 'next/navigation';
 
-const LISTS: Item[] = [
-  { href: '/vendor/list/clients',  label: 'Clients',  desc: 'your people',            glyph: 'C' },
-  { href: '/vendor/list/leads',    label: 'Leads',    desc: 'who to follow up with',  glyph: 'L' },
-  { href: '/vendor/list/invoices', label: 'Invoices', desc: 'who owes me money',      glyph: 'I' },
-  { href: '/vendor/list/events',   label: 'Events',   desc: 'schedule and shoots',    glyph: '◐' },
-  { href: '/vendor/list/expenses', label: 'Expenses', desc: 'what went out',          glyph: '×' },
-  { href: '/vendor/studio/notes',  label: 'Notes to Self', desc: 'thoughts you’ve jotted', glyph: '✎' },
-];
-
-export default function StudioPage() {
-  const router = useRouter();
-  const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
-  if (sl || !session) return <div style={{ flex: 1 }} />;
-
-  const prestige = isPrestige(session.tier);
-
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-      <Header vendorName={session.name ?? null} />
-      <div style={{ flex: 1, paddingBottom: 32 }}>
-        <SectionLabel label="Your Studio" first />
-        {LISTS.map(item => <Row key={item.href} item={item} />)}
-
-        <SectionLabel label="Team Hub" />
-        {STUDIO_ITEMS.map(item => <Row key={item.href} item={{ ...item, locked: !prestige }} />)}
-
-        {!prestige && (
-          <div style={{ padding: '24px 28px 8px' }}>
-            <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
-              color: A.inkMute, lineHeight: 1.55, textAlign: 'center',
-            }}>
-              Team Hub is reserved for Prestige.<br />Contact Swati to upgrade.
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+export default function StudioRedirect() {
+  redirect('/vendor/team-hub');
 }

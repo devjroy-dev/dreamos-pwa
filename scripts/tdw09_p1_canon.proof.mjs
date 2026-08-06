@@ -120,16 +120,17 @@ ok('§3.5 rowBaseline is baseline + shared line-height, and the glyph slot is a 
 ok('§3.6 THE NAMED CARRIER is in-file: P2 named, the retirement duty stated, wire-or-delete distinguished',
   /CARRIER: PACKAGE 2/.test(CT) && /NAMED\s+LINE in that sitting/.test(CT.replace(/\n\s*\/\/\s*/g, ' '))
   && /wire-or-delete/i.test(CT));
-ok('§3.7 zero consumers at this delivery — the staging is real, not accidental',
-  (() => {
-    const files = [];
-    (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      const p = d + '/' + e.name;
-      if (e.isDirectory() && !/node_modules|\.next|\.git/.test(p)) walk(p);
-      else if (/\.tsx?$/.test(e.name) && !/controls\.ts$/.test(e.name) && !p.includes('/scripts/')) files.push(p);
-    } })('.');
-    return !files.some(f => /pressedStyle|touchBox44|rowBaseline|rowGlyphSlot/.test(strip(read(f))));
-  })());
+// TDW_09 P2 — LABELLED AMENDMENT, COUNT PRESERVED (1 cell, still 1; the
+// CE-199 precedent: a sealed bench may follow its subject when the subject's
+// chartered lifecycle moves it, the property's INTENT unchanged). This cell
+// asserted CONSUMER-ZERO because P1's bar was zero visual change and an
+// accidental consumer would have been a rendered delta. The staging's own
+// carrier comment charters PACKAGE 2 as the first adopter — so at P2 the
+// correct property INVERTS: the primitives are consumed, and the FIRST
+// consumer is the named one (pressedStyle on the five-door bar, the S5 §3
+// inheritance). A zero here is now the defect the old green used to be.
+ok('§3.7 the named carrier has arrived — pressedStyle consumed, first adopter the bar (P2 amendment)',
+  /pressedStyle\(pressed, reducedMotion\)/.test(strip(read('./components/vendor/BottomNav.tsx'))));
 
 sec('§4 · F-09.78 — THE GRADIENT WATCH (convicts on first metal pairing; zero live pairs at authoring)');
 {

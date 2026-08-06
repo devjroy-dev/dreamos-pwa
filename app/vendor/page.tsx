@@ -847,6 +847,21 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
   // without a byte entering it.
   const [risen, setRisen] = useState(false);
 
+  // ── TDW_09 P2 · fork 8.3 (chair relay #3): REST-VISIBLE, RISEN-HIDDEN ──────
+  // The five-door bar now renders on this screen (the old AI-null died with the
+  // mode). While the chat is RISEN the bar hides — the amended Model 1's
+  // full-bleed acceptance picture is the warrant. MECHANISM (F-06.85): this
+  // effect publishes `chat-risen` on <body>; the rule in app/globals.css
+  // (`body.chat-risen .tdw-bottom-nav`) hides the bar, whose className carries
+  // the same pointer back here. The risen room itself is IN FLOW (see its own
+  // comment below) — it cannot cover a sibling of its layout, so the hide is
+  // CSS-published, not overlay-implied. Cleanup removes the class so a
+  // navigation away mid-chat never strands a hidden bar on the next screen.
+  useEffect(() => {
+    document.body.classList.toggle('chat-risen', risen);
+    return () => { document.body.classList.remove('chat-risen'); };
+  }, [risen]);
+
   // R-O14-AMENDED — the seam: a waiting line or an Example seeds the input through
   // `draft` -> InputBar initialValue, the live rendered mechanism. `key` forces the
   // bar to take a NEW seed (initialValue is a mount-time prop); the cost is a

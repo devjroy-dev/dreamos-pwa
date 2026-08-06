@@ -111,8 +111,20 @@ console.log('\n③ the two hardcoded-cream sites');
 const NAV = read('components/vendor/BottomNav.tsx');
 const CAL = read('app/vendor/calendar/page.tsx');
 const CTX = read('lib/vendor/ThemeContext.tsx');
-ok('BottomNav · locked tab reads var(--atelier-ink-fade)',
-   /item\.locked \? 'var\(--atelier-ink-fade\)'/.test(NAV));
+// ④'s CREAM regex, hoisted here because the amended ③ cell below now shares it.
+const CREAM = /rgba\(\s*240\s*,\s*230\s*,\s*210\s*,\s*0?\.18\s*\)/;
+// TDW_09 P2 — LABELLED AMENDMENT, COUNT PRESERVED (1 cell, still 1). The
+// locked branch this cell guarded was DEAD in the live lane — neither retired
+// membership ever set `locked` (render count zero; the R-O14 census-witness
+// class) — and it retired by subtraction inside the five-door rewrite (R-X27
+// arm (a), chair relay #3). The F-09.15b property this cell existed for (no
+// cream literal where the fade token belongs) TIGHTENS: the site is gone, so
+// the file must now carry NEITHER a locked branch NOR the literal. The literal
+// check reuses ④'s own CREAM regex (hoisted below) — the one derived byte set,
+// never a re-authored guess — and the raw read deliberately includes comments,
+// the original cure's own law.
+ok('BottomNav · the locked branch retired by subtraction; the F-09.15b class stays dead (P2 amendment)',
+   !/item\.locked/.test(NAV) && !CREAM.test(NAV));
 // TDW_09 T-1 — LABELLED AMENDMENT, COUNT PRESERVED (1 cell, still 1).
 // This cell asserted the fade token by pinning the FONT SIZE next to it, so it
 // red the moment T-1 inserted a leading between the two properties. The colour
@@ -132,7 +144,6 @@ ok('ThemeContext · the var is actually published',
 //    which is a different failure mode: ③ can pass while a copy of the literal
 //    survives in a file nobody listed.
 console.log('\n④ no cream literal survives (independent method)');
-const CREAM = /rgba\(\s*240\s*,\s*230\s*,\s*210\s*,\s*0?\.18\s*\)/;
 const walk = (dir, hits = []) => {
   for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.next' || e.name.startsWith('.')) continue;

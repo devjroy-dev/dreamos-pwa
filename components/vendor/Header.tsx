@@ -2,13 +2,8 @@
 // components/Header.tsx — Atelier rebuild · Calling-card dropdown + theme toggle
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { ModePill } from '@/components/vendor/BottomNav';
+import { useRouter } from 'next/navigation';
 import { TipsCarousel } from '@/components/vendor/TipsCarousel';
-import { useVendorMode, type VendorMode } from '@/hooks/vendor/useVendorMode';
-// TDW_07 MICRO-2 · F-07.30 — the ONE path authority, shared with app/vendor/layout.tsx's
-// pager and components/vendor/BottomNav.tsx. See the leaf's header for the drift it closes.
-import { vendorModeForPath } from '@/lib/vendor/vendorModeForPath';
 import { useVendorMe } from '@/hooks/vendor/useVendorMe';
 import { useTheme } from '@/hooks/vendor/useTheme';
 import { useT } from '@/lib/vendor/ThemeContext';
@@ -43,8 +38,6 @@ function titleCase(s: string | null | undefined): string {
 
 export function Header({ vendorName }: { vendorName: string | null }) {
   const router = useRouter();
-  const pathname = usePathname() ?? '/vendor';
-  const [, setMode] = useVendorMode();
   const [profileOpen, setProfileOpen] = useState(false);
   const [tipsOpen, setTipsOpen]       = useState(false);
   const [theme, , setThemeMode] = useTheme();
@@ -55,28 +48,18 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   const headerName = displayName.split(' ')[0];
   const subtitle = [titleCase(me?.category), me?.city].filter(Boolean).join(' · ');
 
-  // ── TDW_07 MICRO-2 · F-07.30 — THE ENUMERATED LIST IS DEAD. ─────────────────────────
-  // What stood here was an allow-list of Discover routes: `/vendor/discover/leads`,
-  // `/vendor/discover` (exact), `/vendor/discover/submit`. It omitted
-  // `/vendor/discover/profile`, so the vendor stood on his own Discover Profile reading a
-  // STUDIO pill — while the swipe pager beneath him correctly believed he was on the
-  // Discover panel. Founder-found on device.
-  //
-  // THE PART THAT CONVICTS THE PATTERN RATHER THAN THE LINE: `:195` of THIS FILE renders a
-  // drawer item whose handler is `router.push('/vendor/discover/profile')`. This component
-  // navigated to a route its own classifier did not recognise. A hand-maintained list
-  // cannot be kept in step with the routes a product grows, and the cost is always paid by
-  // whoever ships next — P4b's `/vendor/discover/preview` was the second casualty.
-  //
-  // One authority now, shared with the pager and the bottom nav.
-  const mode: VendorMode = vendorModeForPath(pathname);
-
-  function handleModeChange(next: VendorMode) {
-    setMode(next);
-    if (next === 'ai')       router.push('/vendor');
-    if (next === 'studio')   router.push('/vendor/calendar');
-    if (next === 'discover') router.push('/vendor/discover');
-  }
+  // ── TDW_09 PACKAGE 2 · fork 8.4 (chair relay #3) — THE MODE'S HEADER ORGANS,
+  // RETIRED BY NAME. What stood here: the F-07.30 classifier read
+  // (`vendorModeForPath(pathname)`) feeding the centre-slot ModePill, and
+  // `handleModeChange` (setMode + a router.push per mode). The mode is dissolved
+  // under R-X27 arm (a) — five stable doors, one membership — so the pill has
+  // nothing to switch and its reader has nothing to read. Both die by
+  // subtraction. The F-07.30 one-authority LESSON survives on the new bar's
+  // DOORS list (components/vendor/BottomNav.tsx), which is now the one
+  // membership + active-state authority; the leaf itself went caller-zero and
+  // is retired (named line, this sitting's delivery). `data-tour="mode-pill"`
+  // died with the slot — the onboarding step it anchored is retired under the
+  // same warrant, and the Discover step re-anchors on the bar.
 
   const profileRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -125,9 +108,6 @@ export function Header({ vendorName }: { vendorName: string | null }) {
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{headerName}</span>
       </div>
-
-      {/* Centre: mode pill */}
-      <div data-tour="mode-pill"><ModePill mode={mode} onChange={handleModeChange} /></div>
 
       {/* Right: profile coin + calling-card dropdown */}
       <div ref={profileRef} style={{ position: 'relative', flexShrink: 0 }}>

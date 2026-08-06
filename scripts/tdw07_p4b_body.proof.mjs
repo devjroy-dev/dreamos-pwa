@@ -403,55 +403,56 @@ ok('§7.4 DemoCommandBar is GONE from the demo studio too — the mirror stopped
 sec('§8 · MICRO-2 — THE PATH AUTHORITY, THE PAGER, THE CAP, THE FOOTER');
 
 // ── F-07.30 · ONE PATH AUTHORITY ─────────────────────────────────────────────────────
+// ═══ TDW_09 P2 — LABELLED AMENDMENT, COUNT PRESERVED (§8.1–§8.9: 9 → 9) ═══
+// THE SUBJECT RETIRED. F-07.30's cure was ONE classifier for THREE consumers
+// (layout pager · Header pill · BottomNav membership). Under R-X27 arm (a)
+// (five stable doors, chair relay #3) the MODE ITSELF dissolved: the pill and
+// the pager retired by subtraction, the leaf went CALLER-ZERO and is deleted,
+// and the one-authority LAW moved to its successor — BottomNav's single DOORS
+// list, which now owns membership + active state and carries the F-07.30
+// lesson in its own header. These cells follow their subject (the CE-199
+// precedent; the F-09.30 precedent for a bench reading a retired file:
+// refuse-with-named-reason, never crash). What each cell now asserts is the
+// RETIRED world staying retired — a resurrection of any organ is the red.
 const MODEFN = 'lib/vendor/vendorModeForPath.ts';
 const LAYOUT = 'app/vendor/layout.tsx';
 const HEADER = 'components/vendor/Header.tsx';
 const BNAV   = 'components/vendor/BottomNav.tsx';
 
-ok('§8.1 the classifier exists as a LEAF — no runtime imports, so no cycle can form',
-  fs.existsSync(path.join(ROOT, MODEFN)) && !/^import \{/m.test(code(MODEFN)));
-ok('§8.2 all THREE consumers import it — layout, Header and BottomNav',
-  [LAYOUT, HEADER, BNAV].every(f => /vendorModeForPath/.test(raw(f))));
-ok('§8.3 Header\'s enumerated allow-list is GONE',
+ok('§8.1 (amended) the leaf STAYS retired — caller-zero, deleted, never resurrected',
+  !fs.existsSync(path.join(ROOT, MODEFN)));
+ok('§8.2 (amended) no live-lane file re-imports the dead classifier',
+  ![LAYOUT, HEADER, BNAV].some(f => /from '@\/lib\/vendor\/vendorModeForPath'/.test(raw(f))));
+ok('§8.3 Header\'s enumerated allow-list is GONE — the original conviction stands',
   !/pathname\.startsWith\('\/vendor\/discover\/submit'\)/.test(code(HEADER)) &&
   !/pathname === '\/vendor\/discover'/.test(code(HEADER)));
-// SELF-CAUGHT BY THE MUTATION LEDGER, DISCLOSED. This first read
-// `!/if (\s*pathname.startsWith('/vendor/discover')/` — which pins a VARIABLE NAME, not a
-// property. A mutation that re-authored the classifier using `p` instead of `pathname`
-// passed GREEN. The cell was true about the wrong thing for the third time this block, and
-// the lesson is the same each time: assert the SHAPE that must not exist, not one spelling
-// of it. BottomNav must hold no classifier BODY at all — only an alias to the leaf.
-ok('§8.4 BottomNav declares NO classifier of its own — it aliases the leaf, whatever the spelling',
+ok('§8.4 (amended) BottomNav declares NO mode classifier, whatever the spelling — the DOORS list is the one authority',
   !/function modeFromPathname/.test(code(BNAV)) &&
-  !/modeFromPathname\s*=\s*\(/.test(code(BNAV)) &&
-  /const modeFromPathname = vendorModeForPath;/.test(code(BNAV)));
-ok('§8.5 the pager index is DERIVED from the classifier, not a fourth opinion',
-  /vendorModeForPath\(pathname\)/.test(code(MODEFN)) &&
-  !/startsWith\('\/vendor\/discover'\)/.test(code(LAYOUT)));
-
-// THE BEHAVIOURAL CELL the chair named. Every /vendor/discover/* route classifies DISCOVER —
-// run against the real exported function, not read off the source.
+  !/modeFromPathname\s*=/.test(code(BNAV)) &&
+  /const DOORS/.test(code(BNAV)) && /F-07\.30/.test(raw(BNAV)));
+ok('§8.5 (amended) the layout holds NO panel index and NO fourth opinion — only the room-atmosphere map, cell-guarded at P2\'s own §5',
+  !/panelIndexForPath/.test(code(LAYOUT)) && !/PANEL_ROOTS/.test(code(LAYOUT)));
+// The behavioural pair, re-aimed at the successor: every route the old
+// classifier called DISCOVER must light the door that absorbed it or keep its
+// standing no-tab state — derived from the DOORS list itself, never re-authored.
 {
-  const src = raw(MODEFN);
-  const roots = [...src.matchAll(/'(\/vendor\/[a-z]+)'/g)].map(m => m[1]);
-  const classify = (p) => (p === '/vendor' || p.startsWith('/vendor/auth')) ? 'ai'
-    : roots.some(r => p.startsWith(r)) ? 'discover' : 'studio';
-  const discoverRoutes = ['/vendor/discover', '/vendor/discover/profile',
-    '/vendor/discover/preview', '/vendor/discover/submit', '/vendor/discover/leads',
-    '/vendor/portfolio', '/vendor/couture', '/vendor/featured', '/vendor/collab'];
-  const wrong = discoverRoutes.filter(r => classify(r) !== 'discover');
-  ok('§8.6 EVERY /vendor/discover/* route classifies DISCOVER — the two founder-found misses included',
-    wrong.length === 0, `misclassified: ${wrong.join(', ')}`);
-  ok('§8.7 the other two panels still classify correctly — the cure moved nothing else',
-    classify('/vendor') === 'ai' && classify('/vendor/calendar') === 'studio' &&
-    classify('/vendor/settings') === 'studio');
+  const bnav = raw(BNAV);
+  const m = bnav.match(/activePrefixes: \[([^\]]+)\]/);
+  const prefixes = m ? [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]) : [];
+  const mustLight = ['/vendor/discover', '/vendor/discover/profile', '/vendor/discover/preview',
+    '/vendor/discover/submit', '/vendor/discover/leads', '/vendor/portfolio', '/vendor/collab'];
+  const wrong = mustLight.filter(r => !prefixes.some(p2 => r.startsWith(p2)));
+  ok('§8.6 (amended) every old Discover surface lights the Storefront door — the founder-found misses stay covered',
+    wrong.length === 0, wrong.length ? `unlit: ${wrong.join(', ')}` : '');
+  ok('§8.7 (amended) Home is exact and Calendar prefixes — the other doors classify correctly',
+    /href: '\/vendor',\s+label: 'Home',[^}]*exact: true/.test(bnav) &&
+    /href: '\/vendor\/calendar'/.test(bnav));
 }
-
-// ── §2(b) · THE SHELL'S PAGER STAYS OUT OF THE PREVIEW ───────────────────────────────
-ok('§8.8 the preview root carries data-pager-inert — the estate\'s own A2.3 opt-out',
+ok('§8.8 the preview root carries data-pager-inert — the A2.3 opt-out STANDS (the held demo pager reads it)',
   /data-pager-inert="true"/.test(code(PREVIEW)));
-ok('§8.9 the opt-out it uses is the one the shell actually honours',
-  /dataset\.pagerInert === 'true'/.test(code(LAYOUT)));
+ok('§8.9 (amended) the LIVE shell no longer listens for the opt-out — the pager retired with the mode; SwipeRow\'s attribute survives for the demo twin',
+  !/dataset\.pagerInert/.test(code(LAYOUT)) &&
+  /data-pager-inert/.test(raw('components/vendor/slices/SwipeRow.tsx')));
 
 // ── THE CAP, OVERTURNED ──────────────────────────────────────────────────────────────
 ok('§8.10 no couple surface carries a five-photo cap literal any more',

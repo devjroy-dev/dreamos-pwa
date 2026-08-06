@@ -1225,3 +1225,12 @@ html.theme-light .dd-cab{
   color: var(--cab-ink-soft); cursor: pointer; transition: .16s var(--cab-ease); }
 .dd-cab .cab-skin.on{ background: var(--cab-accent); color: var(--cab-on-accent); }
 /* === /DREAM CABINET ======================================================== */
+
+/* ── TDW_09 P2 · fork 8.3 (chair relay #3): REST-VISIBLE, RISEN-HIDDEN ───────
+   The five-door bar (components/vendor/BottomNav.tsx, className tdw-bottom-nav)
+   hides while the vendor home's chat is risen. Publisher: the risen effect in
+   app/vendor/page.tsx toggles `chat-risen` on <body>. Warrant: the amended
+   Model 1's full-bleed acceptance picture (R-X22) — a bar poking through the
+   risen sheet breaches it. Mechanism comment law (F-06.85): if either the
+   className or the body class moves, this selector moves with it. */
+body.chat-risen .tdw-bottom-nav { display: none; }
