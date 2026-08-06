@@ -80,8 +80,18 @@ section('§2  EVERY VALUE CITES A DONOR, AND THE DONOR STILL HOLDS');
   const donor = (key) => { const m = THEME.match(new RegExp(`\\n\\s*${key}:\\s*'([^']+)'`)); return m ? m[1] : null; };
   const decl  = (name) => { const m = DECLS.match(new RegExp(`--admin-${name}:\\s*([^;]+);`)); return m ? m[1].trim() : null; };
 
+  // ── CITATION-NEEDS-A-CELL (standing law, minted at F-10.34) ─────────────
+  // This list IS the law's instrument. The retint shipped --admin-bg-mid one
+  // unit of green off its own cited donor and NOTHING CAUGHT IT, because the
+  // pair set covered fifteen roles and never paired a ground stop. A citation
+  // with no cell behind it is prose. Every citation in tokens.css that can be
+  // compared to a symbol is compared here; the one that cannot (bg-bot, whose
+  // donor is a composite) is COMPUTED in the cell below instead.
   const PAIRS = [
     ['bg-top',    'pageBg'],
+    ['bg-mid',    'sheetBot'],   // F-10.34's cure, and the cell that would have caught it
+    ['sheet',     'sheetBot'],
+    ['option-bg', 'sheetBot'],
     ['ink',       'ink'],
     ['ink-soft',  'inkSoft'],
     ['ink-mute',  'inkMute'],
@@ -97,11 +107,52 @@ section('§2  EVERY VALUE CITES A DONOR, AND THE DONOR STILL HOLDS');
     ['row-hover', 'rowHover'],
     ['shell',     'pageBg'],
   ];
-  const norm = (v) => v && v.replace(/\s+/g, '').toUpperCase();
+  // A donor may be rgba() where the admin role must be OPAQUE — a <meta>, an
+  // <option> and a gradient stop cannot carry alpha. So the comparison is on the
+  // RGB TRIPLE, resolved from either notation. Comparing the raw strings would
+  // have made these three cells impossible to write, which is very likely why
+  // the ground stops were never paired in the first place.
+  const rgb = (v) => {
+    if (!v) return null;
+    let m = v.match(/^#([0-9A-Fa-f]{6})$/);
+    if (m) return [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16));
+    m = v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    return m ? [1, 2, 3].map(i => parseInt(m[i], 10)) : null;
+  };
+  const same = (a, b) => a && b && a.length === 3 && a.every((v, i) => v === b[i]);
   for (const [role, key] of PAIRS) {
     const d = donor(key), a = decl(role);
-    ok(`--admin-${role} still equals theme.ts DARK.${key}`, d !== null && a !== null && norm(d) === norm(a),
-       `donor ${d} vs declared ${a}`);
+    ok(`--admin-${role} equals theme.ts DARK.${key} on the RGB triple`,
+       same(rgb(d), rgb(a)), `donor ${d} -> ${rgb(d)} vs declared ${a} -> ${rgb(a)}`);
+  }
+
+  // ── The one citation that COMPUTES rather than compares ──────────────────
+  // bg-bot's donor is not a symbol but a COMPOSITE of three: the sheet stack's
+  // floor. The chair's own address quoted a prose sentence for it; this cell
+  // reproduces the value from the exported symbols instead, so the citation
+  // cannot drift from its donors without reddening.
+  {
+    const over = (fg, a, bg) => fg.map((f, i) => f * a + bg[i] * (1 - a));
+    const pageBg = rgb(donor('pageBg'));
+    const scrimA = parseFloat((donor('scrim') || '').match(/([\d.]+)\s*\)$/)?.[1] ?? 'NaN');
+    const sheetA = parseFloat((donor('sheet') || '').match(/([\d.]+)\s*\)$/)?.[1] ?? 'NaN');
+    const floor  = over([255, 255, 255], sheetA, over([0, 0, 0], scrimA, pageBg)).map(Math.round);
+    const declared = rgb(decl('bg-bot'));
+    ok(`--admin-bg-bot COMPUTES from DARK.sheet over DARK.scrim over DARK.pageBg -> rgb(${floor})`,
+       same(floor, declared), `computed ${floor} vs declared ${declared}`);
+    ok('the citation says COMPUTED, NOT QUOTED — the law in the file it governs',
+       /COMPUTED, NOT QUOTED/.test(TOKENS));
+  }
+  ok('CITATION-NEEDS-A-CELL is recorded in tokens.css as a standing law',
+     /CITATION-NEEDS-A-CELL/.test(TOKENS) && /F-10\.34/.test(TOKENS));
+  // The gradient is what layout.tsx actually renders; its stops must equal the
+  // decomposition tokens or the named stops are decorative. F-10.34 shipped a
+  // gradient whose mid stop carried the same slip as the token beside it.
+  {
+    const g = (decl('bg') || '').match(/#[0-9A-Fa-f]{6}/g) || [];
+    const stops = ['bg-top', 'bg-mid', 'bg-bot'].map(r => (decl(r) || '').toUpperCase());
+    ok('the --admin-bg gradient stops equal their own named tokens, in order',
+       g.length === 3 && g.every((h, i) => h.toUpperCase() === stops[i]), `${g.join(' ')} vs ${stops.join(' ')}`);
   }
   ok('the DARK export is what was read (the donor exists at this tip by name)', /export const DARK: ThemeTokens/.test(THEME));
   ok('the F-06.85 mechanism paragraph names the donor by PATH, per path-over-range',
@@ -122,7 +173,7 @@ section('§3  THE INK LADDER CLEARS ITS BARS — COMPUTED, NOT ASSERTED');
 {
   const BOT = '#120F0E';   // the darkest stop: the conservative direction
   const INK = [240, 230, 210];
-  ok('--admin-bg-bot is the darkest of the three stops', lum('#120F0E') < lum('#160F0C') && lum('#160F0C') < lum('#1F1612'));
+  ok('--admin-bg-bot is the darkest of the three stops', lum('#120F0E') < lum('#16100C') && lum('#16100C') < lum('#1F1612'));
 
   const RUNGS = [['ink', 1.0, 4.5], ['ink-soft', 0.65, 4.5], ['ink-mute', 0.58, 4.5], ['ink-dim', 0.52, 4.5], ['ink-fade', 0.37, 3.0]];
   const seen = new Set();

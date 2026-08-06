@@ -42,6 +42,32 @@
    what is obeyed here; the gloss is reported rather than quietly satisfied with
    invented hexes that happen to match it.
 
+   ── F-10.34 · THE ONE-GREEN SLIP, AND THE LAW IT MINTED ─────────────────────
+   The retint shipped `#160F0C` — (22,15,12) — citing DARK.sheetBot, which is
+   rgba(22,16,12,.99) and therefore #16100C. ONE UNIT of green, transcribed wrong.
+
+   IT WAS NOT ONE SITE. It was THREE: `--admin-bg-mid`, `--admin-sheet` and
+   `--admin-option-bg`, all carrying the same wrong byte from the same wrong
+   transcription. All three corrected above.
+
+   AND THAT IS THE FINDING'S REAL SHAPE. The chair's diff request and my own hand
+   found ONE. The widened pair set found the other TWO on its first run — which is
+   the whole argument for the law below, made by the law itself before it was a
+   day old. A hand can check the value it is looking at; only an instrument checks
+   the ones it is not.
+
+   THE PIXEL IS STILL NOT THE POINT. One unit of green is imperceptible, and
+   bg-mid has no consumer outside the gradient — though `sheet` and `option-bg`
+   DO render. What was wrong was the CITATION, which asserted a donor value the
+   byte did not equal, with no cell standing behind it: §2's pair set covered
+   fifteen roles and never paired a ground stop.
+
+   STANDING LAW, minted from it — CITATION-NEEDS-A-CELL: a donor citation in a
+   token file ships with a bench pair asserting it, or it does not ship. A
+   citation with no cell behind it is prose, and prose is what these cells exist
+   to kill. §2's pair set now covers ALL THREE ground stops; the third is
+   computed rather than compared, because its donor is a composite.
+
    ── THE RETINT IS ALSO A LEGIBILITY CURE, AND THE NUMBERS SAY SO ────────────
    Derived against the darkest stop in each palette — the conservative direction.
    The RETIRING admin ink ladder measured:
@@ -73,9 +99,15 @@
      The cockpit gradient's three stops, each a donor value, named so a surface
      can reach for one stop without re-declaring the whole gradient. */
   --admin-bg-top:        #1F1612;  /* theme.ts DARK.pageBg */
-  --admin-bg-mid:        #160F0C;  /* theme.ts DARK.sheetBot rgb(22,16,12) */
-  --admin-bg-bot:        #120F0E;  /* the composited sheet surface DARK.inputBorder's comment names */
-  --admin-bg:            linear-gradient(165deg, #1F1612 0%, #160F0C 50%, #120F0E 100%);
+  --admin-bg-mid:        #16100C;  /* theme.ts DARK.sheetBot rgba(22,16,12,.99) -> opaque. F-10.34 */
+  /* COMPUTED, NOT QUOTED. The retint shipped this citing a PROSE sentence in
+     DARK.inputBorder's comment. It is derivable from three exported symbols and
+     is now cited as arithmetic: DARK.sheet over DARK.scrim over DARK.pageBg
+     composites to exactly (18,15,14). That is the sheet stack's true floor, which
+     is what the comment asserted all along — but a citation that COMPUTES
+     outranks a citation that QUOTES, and the bench now computes it. */
+  --admin-bg-bot:        #120F0E;
+  --admin-bg:            linear-gradient(165deg, #1F1612 0%, #16100C 50%, #120F0E 100%);
 
   /* The navigation ground — deliberately darker than the page so the sidebar
      reads as chrome and not as content. Both stops are donor values; the nav
@@ -127,7 +159,7 @@
      on, ABOVE the scrim. Two tokens, because on an already-dark plane a single
      "overlay" value cannot do both jobs. */
   --admin-scrim:         rgba(0, 0, 0, 0.7);           /* theme.ts DARK.scrim */
-  --admin-sheet:         #160F0C;                      /* DARK.sheetBot, opaque — a sheet needs a floor */
+  --admin-sheet:         #16100C;                      /* DARK.sheetBot, opaque — a sheet needs a floor */
   --admin-sheet-border:  rgba(240, 230, 210, 0.14);
 
   /* ── Inputs ──────────────────────────────────────────────────────────────*/
@@ -137,7 +169,7 @@
      clear, so this warm-white alpha is set to clear the same bar on THIS plane's
      input ground rather than to match the donor's number. */
   --admin-input-border:  rgba(240, 230, 210, 0.22);
-  --admin-option-bg:     #160F0C;                      /* DARK.sheetBot — <option> needs opacity */
+  --admin-option-bg:     #16100C;                      /* DARK.sheetBot — <option> needs opacity */
 
   /* ── Status roles ────────────────────────────────────────────────────────
      Now the donor's own values, no longer navy-tuned twins of them. Measured on
