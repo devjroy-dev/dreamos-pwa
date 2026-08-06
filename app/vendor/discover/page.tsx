@@ -131,7 +131,17 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             background: 'linear-gradient(180deg, transparent 0%, transparent 40%, rgba(14,12,10,0.85) 90%, #0E0C0A 100%)',
           }} />
 
-          {/* Headline overlay */}
+          {/* Headline overlay.
+              TDW_09 WALK RIDER · F-09.85 — THE PHOTO GATE JOINS THE-LANDING-IS-THE-LAW
+              (R-M6's mechanism): the ground beneath these lines is a PINNED dark
+              scrim over a photograph — it does not theme. An ink that themes
+              travels to near-black on Editorial Paper and vanishes into the scrim
+              (founder-walked 2026-08-07: the headline was invisible on Paper while
+              the pinned-cream tagline beneath it read fine — the tagline was the
+              pattern; the headline and eyebrow now join it). A photo-gate's ink
+              PINS with its scrim, permanently. The eyebrow pins to the gold the
+              dark theme already rendered (#C9A84C ≈ 7.8:1 on this scrim — label
+              use, not body; F-09.3's law untouched). */}
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0,
             padding: '0 24px 24px',
@@ -139,13 +149,19 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             <div style={{
               fontFamily: F.label, fontWeight: 300, fontSize: 9,
               letterSpacing: '0.42em', textTransform: 'uppercase',
-              color: A.brass, marginBottom: 14,
+              color: '#C9A84C', marginBottom: 14,
             }}>Your Portfolio</div>
+            {/* Copy founder-vetoed (a), 2026-08-07 — 「 Appear before couples
+                planning their wedding. 」 replacing 「 Appear before qualified
+                brides. 」 whole. The reasoning rides the walk-rider handover:
+                「 qualified 」 promised lead-vetting the product does not do
+                (the curation is of vendors, at the Discover approval queue),
+                and the demand side is couples everywhere in this product. */}
             <div style={{
               fontFamily: F.display, fontWeight: 400, fontSize: 39,
-              color: 'var(--atelier-ink)', lineHeight: 1.08, letterSpacing: '0.005em',
+              color: '#F0E6D2', lineHeight: 1.08, letterSpacing: '0.005em',
               marginBottom: 10,
-            }}>Appear before<br />qualified brides.</div>
+            }}>Appear before couples<br />planning their wedding.</div>
             <div style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
               fontSize: 16, lineHeight: 1.5, color: 'rgba(240,230,210,0.78)',
@@ -306,7 +322,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   : 'You\u2019re on Discover. Your work is live on The Dream Wedding.'}
               </div>
             </div>
-          ) : state === 'revoked' || state === 'hidden' ? (
+          ) : state === 'hidden' || state === 'revoked' ? (
             /* ── HIDDEN, WITH A DOOR BACK (founder-ruled) ────────────────────────
                THE FIRST DRAFT OF THIS BRANCH HAD NO BUTTON. `denied` has Re-apply;
                this had nothing — so a vendor read 「 We'll be in touch 」 and had no
@@ -315,12 +331,9 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                her stuck is arguably worse: now she believes the screen is complete.
                Founder-ruled: 「 remove from discover should automatically give the
                vendor re apply 」.
-               'revoked' IS THE STORED WORD (F-10.61): `discover_request_state`
-               has carried a CHECK constraint since migration 0039 that knows no
-               'hidden', so writing that word 500'd on the founder's thumb. The
-               column says 'revoked'; every sentence on this screen says HIDDEN.
-               'hidden' is kept in the branch anyway — cheap, and it means the day
-               0113's sitting widens the constraint, this screen needs no edit. */
+               'revoked' shares this branch. Nothing writes it any more, but rows
+               carry it from the evening between rider 4 and this one, and those
+               vendors are owed the same true thing and the same door. */
             <>
               <div style={{
                 padding: '14px 18px',

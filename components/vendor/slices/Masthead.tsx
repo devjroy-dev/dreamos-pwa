@@ -2,8 +2,13 @@
 // components/vendor/slices/Masthead.tsx — TDW_04 A3 (P5's card, ST-4/L-4).
 //
 // THE number, per the spec: slice-name eyebrow (Cormorant italic 13,
-// letterspaced) → the figure (Cormorant 44) → a Jost 10 sub-line NAMING the
-// figure and its lane. Counts up once per mount over 300ms.
+// letterspaced) → the figure (Cormorant 44) → a DM Sans body sub-line NAMING
+// the figure and its lane. Counts up once per mount over 300ms.
+// [F-09.86, TDW_09 walk rider: the sub-line was authored as Jost 10 — a
+// whisper; the T-1 floor raise moved it to 16 and Jost-at-body-size read wrong
+// (founder-walked 2026-08-07). A sentence takes the body font; the drifted
+// 「 Jost 10 」 citations here and at the prop doc amended in the same edit —
+// a comment describing a dead value is F-10.34's citation class.]
 //
 // Every figure here comes from lib/vendor/derive.ts — the same function the hub
 // Ledger reads. That is A3's whole thesis: the masthead and the chat screen
@@ -39,7 +44,7 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
   eyebrow: string;
   /** The figure. Money renders as Rs with Indian grouping; counts render bare. */
   value: number;
-  /** Jost 10 line naming the figure and its lane (L-1's honesty, at masthead scale). */
+  /** Body sub-line naming the figure and its lane (L-1's honesty, at masthead scale; F-09.86: DM Sans, was Jost). */
   sub: string;
   isMoney?: boolean;
 }) {
@@ -61,7 +66,7 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
         fontVariantNumeric: 'tabular-nums',
       }}>{text}</div>
       <div style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+        fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         letterSpacing: '0.08em', color: A.inkMute, marginTop: 2,
       }}>{sub}</div>
     </div>

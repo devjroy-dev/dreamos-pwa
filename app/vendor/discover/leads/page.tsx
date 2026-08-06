@@ -135,7 +135,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <div style={{
           fontFamily: F.label, fontWeight: 200, fontSize: 9,
           letterSpacing: '0.5em', textTransform: 'uppercase',
-          color: 'rgba(201,168,76,0.7)', marginBottom: 10,
+          color: A.brassWarm, marginBottom: 10, /* F-09.87: was rgba(201,168,76,0.7) — theme-blind gold ink, invisible-pale on Paper (founder-walked); the label role themes: #E0BC6E dark / #7A3828 light */
         }}>The Returns</div>
         <div style={{
           fontFamily: F.display, fontWeight: 400, fontSize: 31,
@@ -163,7 +163,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           }}>
             <div style={{
               position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)',
-              background: 'linear-gradient(180deg, #1F1612 0%, #1F1612 60%, transparent 100%)',
+              background: 'linear-gradient(180deg, var(--atelier-page-bg) 0%, var(--atelier-page-bg) 60%, transparent 100%)', /* F-09.87: the plug masks the border behind the ◆ — it must wear the PAGE's ground, not espresso's; pinned #1F1612 rendered a dark smudge on Paper (founder-walked) */
               padding: '0 14px', height: 14, display: 'flex', alignItems: 'center',
               color: A.brass, fontSize: 16, lineHeight: 1.5, letterSpacing: '0.3em',
             }}>◆</div>
@@ -188,7 +188,7 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 <div style={{
                   fontFamily: F.label, fontWeight: 300, fontSize: 8,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
-                  color: 'rgba(201,168,76,0.7)', marginTop: 12,
+                  color: A.brassWarm, marginTop: 12, /* F-09.87: same species, same cure */
                 }}>{label}</div>
               </div>
             ))}
@@ -270,11 +270,11 @@ function TdwLeadsScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             <div style={{
               fontFamily: F.label, fontWeight: 300, fontSize: 8,
               letterSpacing: '0.42em', textTransform: 'uppercase',
-              color: 'rgba(201,168,76,0.7)', marginBottom: 8,
+              color: A.brassWarm, marginBottom: 8, /* F-09.87: same species, same cure */
             }}>Last Thirty Days</div>
             <div style={{
               fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-              fontSize: 16, color: 'rgba(240,230,210,0.78)', lineHeight: 1.5,
+              fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* WALK-RIDER DISCLOSED EXTENSION (ratify-or-revert): was pinned-cream rgba(240,230,210,0.78) — cream-on-cream on Paper, invisible on the same founder-walked screen; not gold-alpha (the ruling's wording) but the same disease, cured so the smoke's 'returns legible' bar can pass whole. Revert = restore the literal. */
               letterSpacing: '0.005em',
             }}>{insightText()}</div>
           </div>

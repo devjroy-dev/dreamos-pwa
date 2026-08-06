@@ -153,6 +153,23 @@ const RULED_INVARIANT = new Map([
   ['app/vendor/pin-reset/page.tsx', 'R-M6 — the trio moves together per R-M2'],
   ['app/vendor/pin/page.tsx',       'R-M6 — the trio moves together per R-M2'],
 ]);
+// ── LABELED AMENDMENT · TDW_09 WALK RIDER (F-09.85, R-M6's class) ───────────
+// ④ measures every literal against the THEMED page grounds — correct for page
+// ink, blind to a PINNED SCRIM: the Discover hero's overlay sits on a
+// hardcoded dark gradient over a photograph, and its inks were ruled to PIN
+// with that scrim (the pin-trio's own law, arriving at a partial surface the
+// whole-file RULED_INVARIANT model cannot carry). Exemption is PER-SITE and
+// CONDITIONAL: each pair below is skipped ONLY while the file still carries
+// both the pinned scrim and the F-09.85 mechanism comment — the companion
+// cell after ④ asserts that property, so a deleted scrim with a surviving
+// exemption reddens instead of hiding. Warrant: F-09.85, founder-walked
+// 2026-08-07; the chair's rider charter, item 1.
+const SCRIM_EXEMPT = new Map([
+  ['app/vendor/discover/page.tsx::#C9A84C', 'F-09.85 — the eyebrow, pinned to the dark-rendered gold over the scrim'],
+  ['app/vendor/discover/page.tsx::#F0E6D2', 'F-09.85 — the headline, pinned cream over the scrim'],
+]);
+const scrimHolds = f =>
+  /rgba\(14,12,10,0\.85\)/.test(strip(read(f))) && /F-09\.85/.test(read(f));
 const unruledInvariant = [];
 const survivors = [];
 for (const f of [...walk('app/vendor'), ...walk('components/vendor'), ...walk('lib/vendor')]) {
@@ -164,6 +181,7 @@ for (const f of [...walk('app/vendor'), ...walk('components/vendor'), ...walk('l
   for (const h of new Set(SRC.match(/#[0-9a-fA-F]{6}/g) || [])) {
     const H = h.toUpperCase();
     if (OUT_OF_SCOPE.has(H)) continue;
+    if (SCRIM_EXEMPT.has(`${f}::${H}`) && scrimHolds(f)) continue; // exempt: ruled AND scrim proven
     const c = parse(H);
     const d = ratio(over(c, dark), dark), l = ratio(over(c, light), light);
     if (d >= 4.5 && l < 3.0) survivors.push(`${H} in ${f} (dark ${r2(d)} / light ${r2(l)})`);
@@ -171,6 +189,8 @@ for (const f of [...walk('app/vendor'), ...walk('components/vendor'), ...walk('l
 }
 ok('no literal is legible on one theme and invisible on the other',
    survivors.length === 0, survivors.slice(0,6).join(' | '));
+ok('the scrim exemptions hold their property — the pinned scrim AND the F-09.85 comment both stand at every exempted site (a dead scrim with a live exemption reddens here, never hides)',
+   [...SCRIM_EXEMPT.keys()].every(k => scrimHolds(k.split('::')[0])));
 for (const [f, why] of RULED_INVARIANT)
   ok(`${f} still satisfies the invariant property it is exempted for`,
      isInvariantSurface(strip(read(f))), why);
