@@ -141,7 +141,13 @@ function GreetingLine({ context, money, today }: { context: VendorContextRespons
     line = 'A quiet day. Everything in order.';
   } else if (leads > 0 && owedCount > 0) {
     const leadWord = leads === 1 ? 'One letter awaits' : `${spell(leads)} letters await you`;
-    const invWord  = owedCount === 1 ? 'one invoice remains' : `${owedCount} invoices remain`;
+    // TDW_09 O-2, founder's walk 2026-08-06: this half of the sentence rendered a
+    // NUMERAL while its other half spelled — "Nine letters await you this morning,
+    // and 5 invoices remain." Pre-existing, but R-O17's ceiling made it glaring by
+    // pushing the letters into words the invoices never used. One sentence, one
+    // register. spell() falls through to digits above twenty for both halves, so
+    // they stay matched at every size.
+    const invWord  = owedCount === 1 ? 'one invoice remains' : `${spell(owedCount).toLowerCase()} invoices remain`;
     line = `${leadWord} this ${timeOfDay}, and ${invWord}.`;
   } else if (leads > 0) {
     line = leads === 1
@@ -150,7 +156,7 @@ function GreetingLine({ context, money, today }: { context: VendorContextRespons
   } else {
     line = owedCount === 1
       ? `One invoice remains to be collected.`
-      : `${owedCount} invoices remain to be collected.`;
+      : `${spell(owedCount)} invoices remain to be collected.`;
   }
 
   return (
@@ -853,6 +859,9 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
              Hidden, not unmounted, while the chat is risen: the mock's frame 2
              shows the home STAYING PUT beneath a full-bleed room, and unmounting
              would re-run the ledger's fetches on every dismiss. */}
+      {/* ── THE HOME AT REST — zones 1 and 2 (R-X23) ──────────────────────
+             `display: contents` so these children are direct flex items of the
+             column; a spacer below them is what pushes zone 3 to the foot. */}
       <div style={{ display: risen ? 'none' : 'contents' }}>
         {/* ZONE 1 — the state ledger */}
         <GreetingLine context={context} money={money} today={today} />
@@ -876,15 +885,31 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
           )}
       </div>
 
+      {/* ── THE GROWER ────────────────────────────────────────────────────────
+             ChatThread carried `flex: 1` (ChatThread.tsx:74) and was the ONLY
+             growing child of this column. Moving it into the risen room removed
+             the grower and nothing replaced it, so the column collapsed to
+             content height: the input bar floated mid-screen at rest, and the
+             risen room — absolutely positioned to `inset: 0` of that collapsed
+             box — was never full screen. Founder's walk, 2026-08-06.
+             The cure is FLOW, not a bigger overlay: at rest this spacer eats the
+             slack; risen, the room itself grows and this yields. */}
+      {!risen && <div style={{ flex: 1, minHeight: 0 }} />}
+
       {/* ── THE RISEN ROOM — mock frame 2, the acceptance picture ────────────
-             Full-bleed thread, a grabber at its head, the home intact beneath.
+             A FLEX CHILD, NOT AN OVERLAY. The first cut used
+             `position:absolute; inset:0; zIndex:40`, which failed three ways at
+             once on the founder's walk: it sized to a collapsed parent (so the
+             chat was never full screen), it let the normal-flow InputBar at
+             zIndex 41 float over the thread and clip the last message, and it
+             covered Header and the mode pill — leaving no way to Studio, AI or
+             Discover from inside the chat. In flow, the room grows to fill,
+             the chrome above stays, and the shared foot stays a foot.
              The InputBar is NOT in here: it is the shared foot below, which is
              what makes this one room rather than a second chat surface. */}
       {risen && (
         <div style={{
-          position: 'absolute', inset: 0, bottom: 0,
-          display: 'flex', flexDirection: 'column', minHeight: 0,
-          background: T.pageBg, zIndex: 40,
+          flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
         }}>
           <button
             type="button"
@@ -924,10 +949,7 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
              bar is here, and touching it raises the room. ── */}
       <Toast toast={noteToast} />
       <TierMeter meta={meta} />
-      <div
-        onFocusCapture={() => setRisen(true)}
-        style={{ position: 'relative', zIndex: 41 }}
-      >
+      <div onFocusCapture={() => setRisen(true)}>
         <InputBar
           key={seed || 'idle'}
           onSend={(t: string) => { setRisen(true); send(t); }}

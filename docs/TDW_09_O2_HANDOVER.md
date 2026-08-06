@@ -29,14 +29,30 @@ Both zone-1 readers — `GreetingLine` and `Ledger` — now read `TodayResponse.
 
 | Instrument | Result |
 |---|---|
-| `scripts/tdw09_home.proof.mjs` @ cured | **59/59 green** (46 cure · 13 guard) |
-| same bench @ pristine `e935a2b` | **13/59** — every one of the 46 cure cells RED, the 13 greens are exactly the labelled guards |
+| `scripts/tdw09_home.proof.mjs` @ cured | **67/67 green** (52 cure · 15 guard) |
+| same bench @ pristine `e935a2b` | **15/67** — every one of the 52 cure cells RED, the 15 greens are exactly the labelled guards |
 | `npx tsc --noEmit` on the applied tree | **exit 0, zero `error TS`** |
 | Floor, all twelve | landing **98** · type **16** · surface **51** · roles **37** · money **18** · palette **18** · theme_retire **16** · p3_landing **89** · console **55** · factory **45** · invite_spent **14** · prospects_console **54** — every number matching the kickoff |
 
 **What the bench cannot see, stated rather than implied.** These are source-property cells. The home is a `'use client'` module whose zone logic is private, so no node process can call it without exporting internals this sitting has no ruling to export. **The bench proves the functions exist, are wired, collapse on empty, carry the founder's exact bytes, and read the engine plane. It does not prove pixels.** The founder's walk against mock frame 2 is the evidence for that and it outranks this file: a green here with a red walk means the walk is right.
 
 ---
+
+## 2b · THE WALK REJECTED THE FIRST BUILD — what broke and why the bench missed it
+
+The founder walked v1 and the home was wrong in every way he could see. **One mistake, three symptoms.**
+
+`ChatThread` carries `flex: 1` (`ChatThread.tsx:74`) and was the **only growing child** of the home's column. Moving it into a `position:absolute; inset:0; zIndex:40` risen room removed the grower and nothing replaced it, so the column collapsed to content height. From that single fact:
+
+1. **The chat was never full screen** — `inset: 0` sized to the collapsed parent, not the viewport.
+2. **The input bar floated over the thread** and clipped the last message — it sat in normal flow at `zIndex:41` above an overlay whose parent had no height; at rest it stranded mid-screen with dead space beneath, made obvious by the `position:fixed` books handle staying pinned.
+3. **The rise swallowed the chrome** — an `inset:0` overlay covers `Header` and the mode pill, so Studio / AI / Discover were unreachable from inside the chat.
+
+**The cure is flow, not a bigger overlay.** The risen room is now a plain flex child with `flex: 1`; at rest a spacer eats the slack; the InputBar is the last flex child in both states, so it is a foot in both. No absolute positioning and no z-index remain in this sitting's code.
+
+Also caught on the walk: the greeting spelled one half of its sentence and printed the other as a digit — *"Nine letters await you this morning, and 5 invoices remain."* Pre-existing at `:144`, surfaced by R-O17 pushing the letters into words the invoices never used. Both halves now run through `spell()`. **This moves a rendered byte** — "5 invoices" becomes "five invoices" — and it is flagged for the founder's word rather than assumed.
+
+**Why the bench passed a build the walk rejected.** §2's blind-spot paragraph predicted exactly this: source-property cells cannot see pixels. Predicting a failure is not the same as preventing one. §12 and §13 were added afterward — they assert the structural invariants whose absence produced every symptom (no overlay, a grower at rest, a growing room, chrome outside the risen branch, one register per sentence). They would have gone red on v1. **The founder's walk outranking the instrument is not a formality in this estate; it is the thing that happened.**
 
 ## 3 · WHAT IS CONDITIONAL — read before accepting
 

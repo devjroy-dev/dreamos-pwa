@@ -209,6 +209,39 @@ cell('10', 'useChat still refreshes its own context', has(CHAT, 'refreshContext(
 cell('11', 'the strip declares its conditional', has(HOME, 'DECLARED CONDITIONAL'));
 cell('11', 'it names the covenant site',        has(HOME, 'day.js:59'));
 
+// ── §12 · LAYOUT STRUCTURE — added AFTER the founder's walk rejected a build
+// this bench had passed 59/59. The blind spot was declared in the header, but a
+// declared blind spot that costs a walk still has to be narrowed. These cells do
+// not prove pixels either; they assert the STRUCTURAL INVARIANTS whose absence
+// produced every symptom he saw — a column with no grower, and a room sized to
+// a collapsed parent.
+cell('12', 'the risen room is not an overlay',
+  none(HOME_CODE, "position: 'absolute', inset: 0"), 'guard');
+cell('12', 'no z-index war at the foot', none(HOME_CODE, 'zIndex: 41'), 'guard');
+cell('12', 'the column has a grower at rest',
+  /\{!risen && <div style=\{\{ flex: 1, minHeight: 0 \}\} \/>\}/.test(HOME_CODE || ''));
+cell('12', 'the risen room grows to fill',
+  /\{risen && \([\s\S]{0,200}?flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,/.test(HOME_CODE || ''));
+// The rise must not swallow the chrome: Header and the mode pill are mounted
+// ABOVE the risen branch, so Studio / AI / Discover stay reachable from the chat.
+{
+  const code = HOME_CODE || '';
+  const risenAt = code.indexOf('{risen && (');
+  cell('12', 'nav survives the rise',
+    risenAt > 0 && code.indexOf('<Header') > 0 && code.indexOf('<Header') < risenAt);
+  cell('12', 'the mode pill survives the rise',
+    risenAt > 0 && code.indexOf('<VictorModeChip') > 0 && code.indexOf('<VictorModeChip') < risenAt);
+}
+
+// ── §13 · ONE SENTENCE, ONE REGISTER ─────────────────────────────────────────
+// The greeting spelled its letters and printed its invoices as a digit —
+// "Nine letters await you this morning, and 5 invoices remain." Pre-existing,
+// surfaced by R-O17's ceiling, caught on the walk.
+cell('13', 'both halves of the greeting spell',
+  none(HOME_CODE, '${owedCount} invoices remain'));
+cell('13', 'the invoice half runs through spell()',
+  has(HOME_CODE, 'spell(owedCount)'));
+
 // ── VERDICT ──────────────────────────────────────────────────────────────────
 const total = pass + fail;
 console.log(`\nTDW_09 O-2 · home bench @ ${ROOT}`);
