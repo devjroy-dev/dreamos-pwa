@@ -412,6 +412,35 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
   ok('…and the retired Continue gate for step 3 is gone (it can no longer be reached)',
      !/\(step === 3 && pitch\.trim\(\)\.length === 0\)/.test(SUBC));
 
+  // ── F-10.59(a) · THE SCREEN KNOWS WHICH STATE IT IS IN ─────────────────────
+  const VD = readOr('app/vendor/discover/page.tsx');
+  const VDC = strip(VD);
+  ok('the screen reads live_now, not the decision state alone',
+     /const liveNow = status\?\.live_now \?\? \(state === 'approved'\)/.test(VDC));
+  ok('…and degrades to today\'s behaviour against an older backend (the ?? fallback)',
+     /\?\? \(state === 'approved'\)/.test(VDC));
+  ok('the repair state is derived, not guessed',
+     /const approvedButHidden = state === 'approved' && !liveNow/.test(VDC));
+  // THE FIVE STATES, each with its own heading and its own line.
+  for (const [label, needle] of [
+    ['not requested', 'Request Access'],
+    ['under review',  'Under Review'],
+    ['live',          'Your work is live on The Dream Wedding'],
+    ['approved-but-hidden', 'Hidden For Now'],
+    ['revoked',       'Removed'],
+    ['denied',        'Not Approved'],
+  ]) {
+    ok(`the ${label} state has its own rendering`, VD.includes(needle), needle);
+  }
+  ok('the approved-but-hidden LINE is the vetoed byte',
+     /approved, but your profile is hidden from couples right now/.test(VD));
+  ok('the revoked LINE is the vetoed byte',
+     /Your profile has been taken off Discover/.test(VD));
+  // NON-VACUITY: the two lines must be DIFFERENT, or one branch is decoration.
+  ok('live and hidden say different things',
+     /Hidden For Now/.test(VD) && /You&apos;re on Discover|You\\u2019re on Discover/.test(VD));
+  ok('the type declares live_now as optional', /live_now\?: boolean;/.test(readOr('lib/vendor/types/vendor.ts')));
+
   // Every role the new surfaces consume must be declared, or it renders as nothing.
   const consumed = new Set();
   for (const [, src] of P3_SURFACES)
@@ -559,6 +588,15 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
       "disabled={submitting || pitch.trim().length === 0}", "disabled={submitting}");
     ok('M16 dropping the moved pitch gate ⇒ an empty application could reach the deck',
        a && !/disabled=\{submitting \|\| pitch\.trim\(\)\.length === 0\}/.test(readOr('app/vendor/discover/submit/page.tsx')));
+    restore();
+  }
+  // M17 — blind the screen to live_now; F-10.59's lie returns.
+  {
+    const a = mutate('app/vendor/discover/page.tsx',
+      "const liveNow = status?.live_now ?? (state === 'approved');",
+      "const liveNow = (state === 'approved');");
+    ok('M17 ignoring live_now ⇒ an approved-but-hidden vendor is told she is live again',
+       a && !/status\?\.live_now/.test(strip(readOr('app/vendor/discover/page.tsx'))));
     restore();
   }
   // M8 — a bare .replace on the state field; §2's throw cell reddens.

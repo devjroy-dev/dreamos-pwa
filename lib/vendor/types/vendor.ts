@@ -786,6 +786,19 @@ export interface DiscoverStatus {
   saves_count?: number;
   current_request: { id: string; state: string; decided_at: string | null } | null;
   last_decision_reason: string | null;
+  /** F-10.44 — the vendor's own pitch while a request is OPEN. Exactly one of
+   *  this and `last_decision_reason` is ever non-null; the server splits the
+   *  double-duty column on state so a pitch is never shown back as a verdict. */
+  pitch?: string | null;
+  /** ── F-10.59 · WHAT A COUPLE CAN ACTUALLY DO ────────────────────────────────
+   *  `discover_request_state` says what the founder DECIDED. `live_now` says
+   *  whether a couple can see her RIGHT NOW. They are two facts, and a screen
+   *  that branches on the first alone told a vendor 「 You're on Discover. Your
+   *  work is live 」 while every couple's feed had already dropped her.
+   *  Optional because a client may run against a backend deployed before it —
+   *  and the screen degrades to the state alone, which is exactly today's
+   *  behaviour, never something worse. */
+  live_now?: boolean;
 }
 
 export interface CoutureSlot {

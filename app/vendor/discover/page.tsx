@@ -69,6 +69,26 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   }, [vendorId]);
 
   const state = status?.discover_request_state || 'not_requested';
+  // ── F-10.59(a) · THE SCREEN NOW KNOWS WHICH STATE IT IS IN ──────────────────
+  // It branched on `discover_request_state` ALONE, which encodes what the founder
+  // DECIDED and says nothing about what a couple can DO. Two admin doors write
+  // eligibility without touching the state — the founder pressed both — so a
+  // vendor could sit on `approved` while every couple's feed had dropped her, and
+  // this screen told her, verbatim, that her work was live.
+  //
+  // `live_now` is the server's own `discover_eligible && !discover_paused`,
+  // surfaced by name rather than recomputed here from two fields the client would
+  // then have to keep in step itself — which is the client-side version of the
+  // very bug being cured. It is OPTIONAL: against a backend deployed before it,
+  // `liveNow` falls back to the state, and the screen behaves exactly as it does
+  // today rather than worse.
+  //
+  // THE FIFTH STATE IS A REPAIR STATE. `approved` + not live cannot be authored
+  // any more — `setDiscoverState` refuses that pair — but rows already carry it
+  // (Make Up by Swati Roy, 2026-08-06), so the screen must tell those vendors the
+  // truth until the door they came through is used again.
+  const liveNow = status?.live_now ?? (state === 'approved');
+  const approvedButHidden = state === 'approved' && !liveNow;
   const portfolioTotal = status?.portfolio_summary?.total ?? 0;
   // FOUNDER-VETOED 2026-07-29 (copy slot 2, 「 go 」): the sentence is unchanged in shape
   // and the numeral is now live. F-07.4 as ruled: this gate counts EVERY row, because
@@ -267,19 +287,41 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           ) : state === 'approved' ? (
             <div style={{
               padding: '14px 18px',
-              borderLeft: '0.5px solid rgba(224,188,110,0.5)',
-              background: 'linear-gradient(90deg, rgba(224,188,110,0.06) 0%, transparent 100%)',
+              borderLeft: `0.5px solid ${approvedButHidden ? 'rgba(224,123,92,0.5)' : 'rgba(224,188,110,0.5)'}`,
+              background: approvedButHidden
+                ? 'linear-gradient(90deg, rgba(224,123,92,0.06) 0%, transparent 100%)'
+                : 'linear-gradient(90deg, rgba(224,188,110,0.06) 0%, transparent 100%)',
             }}>
               <div style={{
                 fontFamily: F.label, fontWeight: 300, fontSize: 8,
                 letterSpacing: '0.42em', textTransform: 'uppercase',
-                color: A.brassWarm, marginBottom: 6,
-              }}>Approved</div>
+                color: approvedButHidden ? A.red : A.brassWarm, marginBottom: 6,
+              }}>{approvedButHidden ? 'Hidden For Now' : 'Approved'}</div>
               <div style={{
                 fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
                 fontSize: 16, color: 'rgba(240,230,210,0.8)', lineHeight: 1.5,
               }}>
-                You&apos;re on Discover. Your work is live on The Dream Wedding.
+                {approvedButHidden
+                  ? 'You\u2019re approved, but your profile is hidden from couples right now. We\u2019ll be in touch.'
+                  : 'You\u2019re on Discover. Your work is live on The Dream Wedding.'}
+              </div>
+            </div>
+          ) : state === 'revoked' ? (
+            <div style={{
+              padding: '14px 18px',
+              borderLeft: `0.5px solid ${A.red}`,
+              background: 'linear-gradient(90deg, rgba(224,123,92,0.06) 0%, transparent 100%)',
+            }}>
+              <div style={{
+                fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                letterSpacing: '0.42em', textTransform: 'uppercase',
+                color: A.red, marginBottom: 6,
+              }}>Removed</div>
+              <div style={{
+                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
+              }}>
+                Your profile has been taken off Discover. We&apos;ll be in touch.
               </div>
             </div>
           ) : state === 'denied' ? (
