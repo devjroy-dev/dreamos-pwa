@@ -36,7 +36,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { PageHeader, Toast, GhostBtn } from '../../_components/AdminUI';
 import {
-  getDiscoverQueue, grantDiscover, denyDiscover, revokeDiscover,
+  getDiscoverQueue, grantDiscover, denyDiscover, hideDiscover,
   type DiscoverRequest,
 } from '../../../../lib/admin-api/index';
 
@@ -479,9 +479,9 @@ export default function DiscoverApprovalsPage() {
                 borderRadius: 20, padding: '4px 11px', flexShrink: 0,
               }}>{label(stateOf(r))}</span>
               {stateOf(r) === 'approved' ? (
-                <GhostBtn label="Revoke" danger small onClick={async () => {
-                  try { await revokeDiscover(r.vendor_id); showToast('Revoked.'); load(); }
-                  catch { showToast('Could not revoke.', true); }
+                <GhostBtn label="Hide" danger small onClick={async () => {
+                  try { await hideDiscover(r.vendor_id); showToast('Hidden from Discover.'); load(); }
+                  catch { showToast('Could not hide.', true); }
                 }} />
               ) : (
                 <GhostBtn label="Approve" small onClick={() => approve(r)} />

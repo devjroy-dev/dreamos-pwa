@@ -306,24 +306,50 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   : 'You\u2019re on Discover. Your work is live on The Dream Wedding.'}
               </div>
             </div>
-          ) : state === 'revoked' ? (
-            <div style={{
-              padding: '14px 18px',
-              borderLeft: `0.5px solid ${A.red}`,
-              background: 'linear-gradient(90deg, rgba(224,123,92,0.06) 0%, transparent 100%)',
-            }}>
+          ) : state === 'hidden' || state === 'revoked' ? (
+            /* ── HIDDEN, WITH A DOOR BACK (founder-ruled) ────────────────────────
+               THE FIRST DRAFT OF THIS BRANCH HAD NO BUTTON. `denied` has Re-apply;
+               this had nothing — so a vendor read 「 We'll be in touch 」 and had no
+               way to act. Before rider 4 she saw an empty panel, so it was not a
+               regression, but replacing silence with a sentence and still leaving
+               her stuck is arguably worse: now she believes the screen is complete.
+               Founder-ruled: 「 remove from discover should automatically give the
+               vendor re apply 」.
+               'revoked' shares this branch. Nothing writes it any more, but rows
+               carry it from the evening between rider 4 and this one, and those
+               vendors are owed the same true thing and the same door. */
+            <>
               <div style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                letterSpacing: '0.42em', textTransform: 'uppercase',
-                color: A.red, marginBottom: 6,
-              }}>Removed</div>
-              <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-                fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
+                padding: '14px 18px',
+                borderLeft: `0.5px solid ${A.red}`,
+                background: 'linear-gradient(90deg, rgba(224,123,92,0.06) 0%, transparent 100%)',
+                marginBottom: 14,
               }}>
-                Your profile has been taken off Discover. We&apos;ll be in touch.
+                <div style={{
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                  letterSpacing: '0.42em', textTransform: 'uppercase',
+                  color: A.red, marginBottom: 6,
+                }}>Hidden</div>
+                <div style={{
+                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
+                }}>
+                  Your profile is hidden from couples right now. You can apply again
+                  whenever you&apos;re ready.
+                </div>
               </div>
-            </div>
+              <button type="button" onClick={() => router.push('/vendor/discover/submit')}
+                className="atelier-fab"
+                style={{
+                  width: '100%', padding: '14px 0',
+                  borderRadius: 2, cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-label)',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 10,
+                  color: '#1A120E', letterSpacing: '0.42em', textTransform: 'uppercase',
+                }}>
+                Re-apply
+              </button>
+            </>
           ) : state === 'denied' ? (
             <>
               <div style={{

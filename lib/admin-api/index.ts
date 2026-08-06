@@ -118,7 +118,11 @@ export const getVendors = () => adminGet<{ vendors: AdminVendor[] }>('/api/v2/ad
 export const patchVendorTier = (id: string, tier: string) => adminPatch(`/api/v2/admin/vendors/${id}/tier`, { tier });
 export const patchVendorDiscover = (id: string) => adminPatch(`/api/v2/admin/vendors/${id}/discover-eligible`, {});
 export const patchVendorApprove = (id: string) => adminPatch(`/api/v2/admin/vendors/${id}/approve`, {});
-export const patchVendorRevoke = (id: string) => adminPatch(`/api/v2/admin/vendors/${id}/revoke`, {});
+// RETIRED — `patchVendorRevoke` and its route are gone. 「 Revoke Access 」 revoked
+// no access: `vendors.status` is read only by the morning-briefing cron, so the
+// button removed a vendor from Discover and stopped her good-morning message while
+// she kept her account, her leads and her AI. Founder-ruled deleted rather than
+// made true. Tombstone at src/api/admin/vendors.js.
 
 // ── Couples ───────────────────────────────────────────────────────────────────
 
@@ -185,7 +189,14 @@ export const grantDiscover    = (vendorId: string)                => adminPost(`
 // the argument.
 export const denyDiscover     = (vendorId: string, reason?: string) => adminPost(`/api/v2/admin/discover/deny/${vendorId}`, reason ? { reason } : {});
 export const getDiscoverPreview = (vendorId: string) => adminGet<DiscoverPreview>(`/api/v2/admin/discover/preview/${vendorId}`);
-export const revokeDiscover   = (vendorId: string)                => adminPost(`/api/v2/admin/discover/revoke/${vendorId}`, {});
+// ── ONE VERB FOR ONE ACT (founder-ruled) ────────────────────────────────────
+// `revokeDiscover` → `hideDiscover`, and the path moves with it. The deck's
+// settled-list chip and the Makers row toggle did the SAME THING — take a vendor
+// off the feed — under two different words, one of them heavier than the act.
+// 'hidden' is the word because 'paused' is already the VENDOR's own switch
+// (`vendors.discover_paused`, migration 0101, hers via PATCH /vendor/me), and one
+// word may not carry two mechanisms.
+export const hideDiscover     = (vendorId: string)                => adminPost(`/api/v2/admin/discover/hide/${vendorId}`, {});
 
 // ── Conversations ─────────────────────────────────────────────────────────────
 

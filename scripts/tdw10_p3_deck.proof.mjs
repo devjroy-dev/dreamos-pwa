@@ -79,7 +79,12 @@ section('§1  THE CONTROL INVENTORY — CE-115 clause 1, asserted not promised')
   ok('Approve is reachable as a control', /label="Approve"/.test(DECKC));
   ok('Reject is reachable as a control', /label="Reject"/.test(DECKC));
   // KEPT — the two the old page carried on non-pending rows.
-  ok('Revoke survives on the settled list', /label="Revoke"/.test(DECKC) && /revokeDiscover/.test(DECKC));
+  // RE-AIMED with F-10.60. The CONTROL INVENTORY's promise was that the verb
+  // SURVIVES the rewrite — not that its label never changes. It survives under
+  // the estate's one word for the act; the cell asserts the capability, which is
+  // what clause 1 is about, rather than the spelling it happened to have in P3.
+  ok('the take-off-Discover verb survives on the settled list (now named Hide)',
+     /label="Hide"/.test(DECKC) && /hideDiscover/.test(DECKC));
   ok('re-approving a denied vendor survives', /settled\.map/.test(DECKC) && /approve\(r\)/.test(DECKC));
   ok('the Toast survives', /<Toast/.test(DECKC));
   // The gesture is an ENHANCEMENT — the provable-equivalent doctrine.
@@ -384,6 +389,34 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
   ok('the held card leaves the deck at once', /const pendingList = open\.filter\(r => r\.vendor_id !== held\)/.test(DECKC));
   ok('the undo bar clears the domain bar too', /safe-area-inset-bottom, 0px\) \+ 76px/.test(DECK));
 
+  // ── F-10.60 · ONE VERB, AND A LABEL THAT NO LONGER OUTRUNS ITS ACT ─────────
+  const MAK0 = readOr('app/admin/makers/page.tsx');
+  const MAK0C = strip(MAK0);
+  ok('「 Revoke Access 」 is gone from the Makers row', !/Revoke Access/.test(MAK0C));
+  ok('…and its client function with it', !/patchVendorRevoke/.test(MAK0C));
+  ok('…and from the admin client entirely',
+     !/patchVendorRevoke/.test(strip(readOr('lib/admin-api/index.ts'))));
+  ok('the toggle reads Hide from Discover, not Remove and not Pause',
+     /label=\{v\.discover_eligible \? 'Hide from Discover' : 'Add to Discover'\}/.test(MAK0C));
+  ok('「 Pause 」 is NOT used for the admin act — that word is the vendor\'s own switch',
+     !/Pause Discover|'Discover paused'/.test(MAK0C));
+  ok('the deck\'s settled chip shares the verb', /label="Hide"/.test(DECKC) && /hideDiscover/.test(DECKC));
+  ok('…through the renamed door, one path for one act',
+     /discover\/hide\/\$\{vendorId\}/.test(strip(readOr('lib/admin-api/index.ts'))));
+
+  // ── THE STANDING CHIP · three standings no longer collapse into one blank ───
+  ok('the row reads discover_request_state, not eligibility alone',
+     /const st = v\.discover_request_state;/.test(MAK0C));
+  for (const chip of ['● DISCOVER', '● HIDDEN', '● PENDING', '● NOT APPROVED']) {
+    ok(`the row can render ${chip}`, MAK0.includes(chip), chip);
+  }
+  ok('never-applied renders NOTHING — an honest blank, not a fifth chip',
+     /: null;   \/\/ not_requested/.test(MAK0));
+  ok('a split legacy pair reads HIDDEN, because that is what a couple experiences',
+     /st === 'approved'\s*\? \['● HIDDEN'/.test(MAK0C));
+  ok('the optimistic row update moves the PAIR, never half of it',
+     /discover_request_state: v\.discover_eligible \? 'hidden' : 'approved'/.test(MAK0C));
+
   // ── F-10.57 · THE WELCOME IS REACHABLE AFTER THE THIRTY SECONDS ────────────
   const MAK = readOr('app/admin/makers/page.tsx');
   const MAKC = strip(MAK);
@@ -427,15 +460,20 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
     ['under review',  'Under Review'],
     ['live',          'Your work is live on The Dream Wedding'],
     ['approved-but-hidden', 'Hidden For Now'],
-    ['revoked',       'Removed'],
+    ['hidden',        'Hidden'],
     ['denied',        'Not Approved'],
   ]) {
     ok(`the ${label} state has its own rendering`, VD.includes(needle), needle);
   }
   ok('the approved-but-hidden LINE is the vetoed byte',
      /approved, but your profile is hidden from couples right now/.test(VD));
-  ok('the revoked LINE is the vetoed byte',
-     /Your profile has been taken off Discover/.test(VD));
+  ok('the hidden LINE is the vetoed byte',
+     /Your profile is hidden from couples right now\. You can apply again/.test(VD));
+  // ── THE DOOR BACK. The first draft of that branch had no button at all. ─────
+  ok('the hidden state offers Re-apply — it is not a cul-de-sac',
+     /state === 'hidden' \|\| state === 'revoked' \?[\s\S]{0,2600}Re-apply/.test(VDC));
+  ok('legacy `revoked` rows share the branch, so they get the door too',
+     /state === 'hidden' \|\| state === 'revoked'/.test(VDC));
   // NON-VACUITY: the two lines must be DIFFERENT, or one branch is decoration.
   ok('live and hidden say different things',
      /Hidden For Now/.test(VD) && /You&apos;re on Discover|You\\u2019re on Discover/.test(VD));
@@ -588,6 +626,22 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
       "disabled={submitting || pitch.trim().length === 0}", "disabled={submitting}");
     ok('M16 dropping the moved pitch gate ⇒ an empty application could reach the deck',
        a && !/disabled=\{submitting \|\| pitch\.trim\(\)\.length === 0\}/.test(readOr('app/vendor/discover/submit/page.tsx')));
+    restore();
+  }
+  // M18 — take the door away again; the cul-de-sac cell reddens.
+  {
+    const a = mutate('app/vendor/discover/page.tsx',
+      "                Re-apply\n              </button>\n            </>\n          ) : state === 'denied' ? (",
+      "            </>\n          ) : state === 'denied' ? (");
+    ok('M18 removing Re-apply from hidden ⇒ the state is a cul-de-sac again',
+       a && !/state === 'hidden' \|\| state === 'revoked' \?[\s\S]{0,2600}Re-apply/.test(strip(readOr('app/vendor/discover/page.tsx'))));
+    restore();
+  }
+  // M19 — collapse the chip back to one boolean; the half-truth returns.
+  {
+    const a = mutate('app/admin/makers/page.tsx', 'const st = v.discover_request_state;', 'const st = null;');
+    ok('M19 blinding the row to the state ⇒ pending and never-applied look alike again',
+       a && !/const st = v\.discover_request_state;/.test(strip(readOr('app/admin/makers/page.tsx'))));
     restore();
   }
   // M17 — blind the screen to live_now; F-10.59's lie returns.

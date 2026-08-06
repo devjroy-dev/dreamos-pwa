@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, Toast, FieldInput, ActionChip, GhostBtn } from '../_components/AdminUI';
 import MintSheet from '../_components/MintSheet';
-import { getVendors, patchVendorTier, patchVendorDiscover, patchVendorRevoke, type AdminVendor } from '../../../lib/admin-api/index';
+import { getVendors, patchVendorTier, patchVendorDiscover, type AdminVendor } from '../../../lib/admin-api/index';
 import { sendWelcome } from '../../../lib/admin-api/mint';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
@@ -75,14 +75,27 @@ export default function MakersPage() {
   };
 
   const toggleDiscover = async (v: AdminVendor) => {
-    try { await patchVendorDiscover(v.id); setVendors(vs => vs.map(x => x.id === v.id ? { ...x, discover_eligible: !v.discover_eligible } : x)); showToast(v.discover_eligible ? 'Removed from Discover.' : 'Added to Discover.'); }
+    try {
+      await patchVendorDiscover(v.id);
+      // The row's OWN copy of the pair moves together too — a list that showed
+      // eligibility flipping while the standing chip stayed put would be F-10.59
+      // reproduced in local state.
+      setVendors(vs => vs.map(x => x.id === v.id
+        ? { ...x, discover_eligible: !v.discover_eligible,
+                  discover_request_state: v.discover_eligible ? 'hidden' : 'approved' }
+        : x));
+      showToast(v.discover_eligible ? 'Hidden from Discover.' : 'Added to Discover.');
+    }
     catch { showToast('Failed.', true); }
   };
 
-  const revoke = async (id: string) => {
-    try { await patchVendorRevoke(id); setVendors(v => v.map(x => x.id === id ? { ...x, status: 'paused' } : x)); showToast('Access revoked.'); }
-    catch { showToast('Failed.', true); }
-  };
+  // ── RETIRED · `revoke` (founder-ruled) ──────────────────────────────────────
+  // IT READ: `await patchVendorRevoke(id); … showToast('Access revoked.');`
+  // 「 Revoke Access 」 revoked no access — `vendors.status` is read only by the
+  // morning-briefing cron, so the button took a vendor off Discover and stopped
+  // her good-morning message while she kept her account, leads, portfolio and AI.
+  // 「 why suspend any vendor. i can delete the vendor 」 · 「 revoke doesnt serve
+  // any purpose 」. Deleted, not renamed: Delete is one row below and means it.
 
   const deleteVendor = async (id: string) => {
     try {
@@ -139,7 +152,32 @@ export default function MakersPage() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                     <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: T.goldSoft, border: `0.5px solid ${T.gold}`, borderRadius: 20, padding: '3px 10px' }}>{v.tier}</span>
-                    {v.discover_eligible && <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, color: T.success, letterSpacing: '0.1em' }}>● DISCOVER</span>}
+                    {/* ── THE STANDING CHIP (founder-ruled) ─────────────────────
+                        THIS READ: `{v.discover_eligible && <span>● DISCOVER</span>}`
+                        — one boolean, so a vendor WAITING on the founder looked
+                        identical to one who never applied, and an approved-then-
+                        hidden vendor looked identical to both. Three standings
+                        collapsed into one blank. 「 the screen tells the truth but
+                        is speaking the half truth 」.
+                        The data was already in hand: the list endpoint returns
+                        `discover_request_state`. No backend change; the row simply
+                        stopped reading a field it was already being sent. */}
+                    {(() => {
+                      const st = v.discover_request_state;
+                      // Legacy rows: 'approved' with eligibility off is the pair
+                      // split by the doors that used to write halves. It reads as
+                      // HIDDEN because that is what a couple experiences.
+                      const chip =
+                        st === 'approved' && v.discover_eligible ? ['● DISCOVER',    T.success]
+                      : st === 'approved'                        ? ['● HIDDEN',      T.warning]
+                      : st === 'hidden' || st === 'revoked'      ? ['● HIDDEN',      T.warning]
+                      : st === 'requested' || st === 'under_review' ? ['● PENDING',  T.gold]
+                      : st === 'denied'                          ? ['● NOT APPROVED', T.danger]
+                      : null;   // not_requested — never applied is an honest blank
+                      return chip && (
+                        <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, color: chip[1], letterSpacing: '0.1em' }}>{chip[0]}</span>
+                      );
+                    })()}
                   </div>
                   <span style={{ color: T.soft, fontSize: 13, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 180ms', flexShrink: 0 }}>›</span>
                 </div>
@@ -157,8 +195,11 @@ export default function MakersPage() {
                     </div>
 
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      <ActionChip label={v.discover_eligible ? 'Remove Discover' : 'Add to Discover'} tone="neutral" onClick={() => toggleDiscover(v)} />
-                      <ActionChip label="Revoke Access" tone="no" onClick={() => revoke(v.id)} />
+                      {/* ONE VERB. 'Hide', not 'Pause' — `vendors.discover_paused`
+                          is the VENDOR's own switch (migration 0101, hers via
+                          PATCH /vendor/me), and one word may not carry two
+                          mechanisms. Tapping again unhides. */}
+                      <ActionChip label={v.discover_eligible ? 'Hide from Discover' : 'Add to Discover'} tone="neutral" onClick={() => toggleDiscover(v)} />
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                       {confirmWelcome === v.id
