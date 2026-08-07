@@ -71,6 +71,23 @@ export const BRIDE_DOORS: BrideDoor[] = [
  *  register asks for. Safe-area is added on top of this, outside the number. */
 export const BRIDE_BAR_HEIGHT = 62;
 
+/** ── F-09.145's CURE · THE ONE CLEARANCE EXPRESSION ──────────────────────────
+ *  The bar's TOTAL floor claim: its own height plus the device's bottom inset,
+ *  as ONE string with ONE home. Every surface that has to stay above the bar
+ *  reads THIS — never `BRIDE_BAR_HEIGHT` with a re-typed `env()` beside it,
+ *  because two hand-written copies of the same calc is how a 62 and a 60 end up
+ *  in the same estate.
+ *
+ *  WHY A CLEARANCE AND NOT A SPACER (the mechanism this constant exists for —
+ *  F-06.85: if the mechanism moves, this comment forces the sentence to be
+ *  re-read). `app/(frost)/layout.tsx` already reserved the bar's seat with a
+ *  FLOW spacer, and the reservation was a no-op: every bride shell under it is
+ *  `position:fixed` (sanctuary's root, CanvasShell's root), so none of them is
+ *  in the flow the spacer reserves. A fixed shell must claim the clearance on
+ *  ITSELF. The spacer stays — it is correct for any future in-flow surface —
+ *  but it is no longer the thing that keeps content off the bar. */
+export const BRIDE_BAR_CLEARANCE = `calc(${BRIDE_BAR_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
+
 /** Which door owns a pathname. LONGEST PREFIX WINS, and that is load-bearing:
  *  Circle's shipped route (/frost/canvas/journey/circle) lives UNDER Journey's,
  *  so a first-match walk would light Journey on every Circle screen. Exported

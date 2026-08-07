@@ -12,12 +12,18 @@
 // or beneath one, so onboarding, dream and surprise stay bare — a bar on an
 // onboarding flow is chrome competing with the one thing she is there to do.
 // The spacer below is rendered under the same predicate as the bar itself, from
-// the bar's own exported height, so the reservation can never drift from the
+// the bar's own exported clearance, so the reservation can never drift from the
 // thing it reserves.
+//
+// F-09.145, DISCLOSED IN PLACE: this spacer is IN-FLOW, and every bride shell
+// beneath it is out of flow (`position:fixed`). It therefore reserves nothing
+// for them and never did. It is kept because it is correct for any in-flow
+// surface that joins the lane later; the fixed shells now carry
+// BRIDE_BAR_CLEARANCE on themselves, which is what actually holds the floor.
 
 import React, { Suspense, createContext, useContext, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import BrideBar, { barIsSeatedOn, BRIDE_BAR_HEIGHT } from '../../components/frost/BrideBar';
+import BrideBar, { barIsSeatedOn, BRIDE_BAR_CLEARANCE } from '../../components/frost/BrideBar';
 import {
   HomeModeKey, ContentMode, ModeDescriptor, MuseLook, MODES,
   museLookFromHomeMode, getFrostMode, getContentMode,
@@ -95,7 +101,7 @@ function FrostShell({ children }: { children: React.ReactNode }) {
       {barSeated && (
         <div
           aria-hidden
-          style={{ height: `calc(${BRIDE_BAR_HEIGHT}px + env(safe-area-inset-bottom, 0px))` }}
+          style={{ height: BRIDE_BAR_CLEARANCE }}
         />
       )}
       <BrideBar homeMode={homeMode} />
