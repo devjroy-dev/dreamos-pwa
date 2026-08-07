@@ -22,6 +22,7 @@ import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';
 import { waNumberFor } from '@/lib/waNumbers';
+import { pressedStyle } from '@/lib/vendor/controls';
 // ── TDW_07 P6 · THE FOLD UNDER F-D ────────────────────────────────────────────
 // sanctuary's Discover room IS the couple Discover surface (F-07.43, founder's 「 F-D 」).
 // /frost/canvas/discover is dead and its renderer, chip, eyebrow, dots, image variants and
@@ -103,6 +104,62 @@ function prose(d:number):string{if(d===0)return'Today.';const w=dW(d);return`${w
 function romanDate():string{const n=new Date(),R=['','i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];return`${String(n.getDate()).padStart(2,'0')} · ${R[n.getMonth()+1]} · ${String(n.getFullYear()).slice(-2)}`;}
 function getDailyPoetry():string{const pool=FROST_COPY.idlePool;const d=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0).getTime())/86400000);return pool[d%pool.length];}
 function uid(){return Math.random().toString(36).slice(2);}
+
+// ── TDW_09 P2C · L4 · F-09.21's pressed acknowledgment, KEYED ─────────────────
+//
+// WHY A HOOK AND NOT A COMPONENT. Nineteen controls on this screen suppress the
+// native tap flash and put nothing in its place — the founder's 「 insensitive 」.
+// They are 13 <div>, 5 <button> and 1 <a> across nine owning components; a
+// polymorphic wrapper would have to reproduce three element contracts to give
+// them one shared behaviour. State is the only thing they actually share, so the
+// hook carries the state and each site keeps its own element and its own style.
+//
+// WHY KEYED AND NOT BOOLEAN — this is the whole law. Seven of the nineteen render
+// inside a `.map()` callback. A single boolean per component would light every
+// sibling in the loop on one press: press one mood dot, all twelve dim. Each map
+// site therefore composes its key from the SAME discriminator its React `key`
+// already uses, so one press lights exactly one instance. A map site carrying a
+// bare static key is a defect by definition, and `tdw09_p2c.proof.mjs` §4 convicts
+// one structurally rather than trusting this comment.
+//
+// F-09.106 (chair-carried): the roster this hook was chartered against listed ten
+// map sites. Three of them — the CircleRoom add button, the PagesRoom CTA and the
+// Dream Ai anchor — sit AFTER their neighbouring map closes and their loop
+// variables are out of scope there; the compiler said so (TS2304) before a byte
+// shipped. The true split is 7 map / 12 standalone / 1 held. Do not re-promote
+// the ten without re-deriving it.
+//
+// `pressedStyle` is IMPORTED from the canon home, never re-implemented here.
+// Hand-rolling a copy of an existing primitive is the F-07.52 class that L3
+// retired one delivery ago; the frost lane already crosses to @/lib/vendor for
+// `formatRs`, so the boundary is precedent, not a new one.
+//
+// MECHANISM (F-06.85's law): the pressed VALUES — scale .98, opacity, 80ms, and
+// the reduced-motion arm — all live in `pressedStyle`. If those move, they move
+// there, not here. This hook owns WHICH control is pressed and nothing else.
+function usePress() {
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  // Release on up, cancel AND leave: a drag off the control must not strand it lit.
+  const press = useCallback((key: string) => ({
+    onPointerDown: () => setPressedKey(key),
+    onPointerUp: () => setPressedKey(null),
+    onPointerCancel: () => setPressedKey(null),
+    onPointerLeave: () => setPressedKey(null),
+  }), []);
+  const pressed = useCallback(
+    (key: string) => pressedStyle(pressedKey === key, reducedMotion),
+    [pressedKey, reducedMotion],
+  );
+  return { press, pressed };
+}
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
 const CSS=`
@@ -800,6 +857,7 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 interface SettingsRoomProps { dark:boolean; accent:string; signal:string; setHomeMode:(m:any)=>void; }
 
 function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) {
+  const { press, pressed } = usePress();
   const bg      = dark
     ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
     : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
@@ -859,7 +917,7 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
               const active = (mode==='E1A'&&dark)||(mode==='E3'&&!dark);
               const label  = mode==='E1A'?'Wine Night':'Sky & Ivory';
               return (
-                <div key={mode} onClick={()=>{
+                <div key={mode} {...press(`mode:${mode}`)} onClick={()=>{
                   setHomeMode(mode);
                   // Mark as manually set — disables auto time-based switching
                   try{localStorage.setItem('@frost.home_mode_manual','1');}catch{}
@@ -869,7 +927,8 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
                     fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',
                     textTransform:'uppercase' as any,
                     color:active?(dark?'#1A0810':'#FFFFFF'):inkMute,
-                    transition:'all 220ms ease',WebkitTapHighlightColor:'transparent'}}>
+                    transition:'all 220ms ease',WebkitTapHighlightColor:'transparent',
+                    ...pressed(`mode:${mode}`)}}>
                   {label}
                 </div>
               );
@@ -880,11 +939,12 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
         {/* DreamAI on WhatsApp */}
         <div style={{padding:'10px 0 4px',marginTop:8}}>
           <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:'0 20px 8px'}}>DreamAi</div>
-          <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer"
+          <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer" {...press('settings:wa')}
             style={{display:'flex',alignItems:'center',padding:'14px 20px',margin:'0 16px',borderRadius:8,
               background:dark?'rgba(196,133,106,.07)':'rgba(42,95,130,.07)',
               border:`0.5px solid ${dark?'rgba(196,133,106,.18)':'rgba(42,95,130,.18)'}`,
-              textDecoration:'none',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+              textDecoration:'none',cursor:'pointer',WebkitTapHighlightColor:'transparent',
+              ...pressed('settings:wa')}}>
             <div style={{flex:1}}>
               <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>Open on WhatsApp</div>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>Chat with Dream Ai anywhere</div>
@@ -906,9 +966,9 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
                .forEach(k=>localStorage.removeItem(k));
             }catch{}
             window.location.replace('/');
-          }} style={{padding:'14px',borderRadius:8,border:`0.5px solid rgba(184,69,62,.25)`,background:'rgba(184,69,62,.06)',textAlign:'center' as any,cursor:'pointer',
+          }} {...press('settings:signout')} style={{padding:'14px',borderRadius:8,border:`0.5px solid rgba(184,69,62,.25)`,background:'rgba(184,69,62,.06)',textAlign:'center' as any,cursor:'pointer',
             fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',
-            WebkitTapHighlightColor:'transparent'}}>
+            WebkitTapHighlightColor:'transparent',...pressed('settings:signout')}}>
             Sign out
           </div>
         </div>
@@ -927,6 +987,7 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
 interface PeopleRoomProps { dark:boolean; accent:string; signal:string; }
 
 function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
+  const { press, pressed } = usePress();
   const bg      = dark
     ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
     : 'radial-gradient(ellipse 80% 45% at 20% 0%,rgba(42,95,130,.16) 0%,transparent 52%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 40%,#D8DEEC 100%)';
@@ -1119,7 +1180,7 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
             {members.map(m=>{
               const phone=(m as any).invitee_phone||null;
               return(
-                <div key={m.id} onClick={()=>openMember(m)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',marginBottom:8,borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+                <div key={m.id} {...press(`member:${m.id}`)} onClick={()=>openMember(m)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',marginBottom:8,borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`member:${m.id}`)}}>
                   <div style={{width:44,height:44,borderRadius:22,background:`${ac}18`,border:`1.5px solid ${ac}55`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:20,color:ac}}>{(m.invitee_name[0]||'·').toUpperCase()}</span>
                   </div>
@@ -1403,6 +1464,7 @@ function DiscVendorPanel({vendor,visible,onClose,onEnquire,onCircleShare}:{
 interface DiscoverRoomProps { dark:boolean; accent:string; signal:string; }
 
 function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
+  const { press, pressed } = usePress();
   const [vendors,    setVendors]    = React.useState<DiscoverVendor[]>([]);
   const [vIdx,       setVIdx]       = React.useState(0);
   const [panelOpen,  setPanelOpen]  = React.useState(false);
@@ -1797,10 +1859,12 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
         <div
           onClick={e=>{e.stopPropagation();setPanelOpen(true);haptic(3);}}
           onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>{e.stopPropagation();setPanelOpen(true);haptic(3);}}
+          {...press('disc:namebar')}
           style={{
             position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 28px)',
             left:0,right:0,zIndex:10,padding:'0 24px',
             cursor:'pointer',WebkitTapHighlightColor:'transparent',
+            ...pressed('disc:namebar'),
           }}>
           {/* ── TDW_07 P6 · D-1's WHISPER, AND A P5 LAW THAT NEVER REACHED THIS SURFACE ──
               P5 ruled the closed frame render IDENTITY at t=0 — name, category·city, AND
@@ -1837,6 +1901,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           <button
             onClick={e=>{e.stopPropagation();setIsBlind(b=>!b);setBlindIdx(0);setDissolve(k=>k+1);}}
             onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+            {...press('disc:blind')}
             style={{
               position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 12px)',left:16,zIndex:30,
               height:30,padding:'0 14px',borderRadius:100,
@@ -1847,6 +1912,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
               textTransform:'uppercase' as any,
               color:isBlind?accent:'rgba(248,247,245,.7)',
               cursor:'pointer',touchAction:'manipulation' as any,WebkitTapHighlightColor:'transparent',
+              ...pressed('disc:blind'),
             }}>
             Blind
           </button>
@@ -1854,6 +1920,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           <button
             onClick={e=>{e.stopPropagation();setShowFilter(true);}}
             onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+            {...press('disc:filter')}
             style={{
               position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 12px)',right:16,zIndex:30,
               width:36,height:30,borderRadius:100,
@@ -1862,6 +1929,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
               backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
               display:'flex',alignItems:'center',justifyContent:'center',
               cursor:'pointer',touchAction:'manipulation' as any,WebkitTapHighlightColor:'transparent',
+              ...pressed('disc:filter'),
             }}>
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
               <path d="M2 4h12M4 8h8M6 12h4" stroke={hasActiveFilters?accent:'rgba(255,255,255,.8)'} strokeWidth="1.5" strokeLinecap="round"/>
@@ -1952,6 +2020,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           onClick={e=>{e.stopPropagation();spawnDiscHeart(accent);saveVendorToMuse(vendor.id,photos[imgIdx]||null).then(r=>spawnDiscToast(r.ok?'Saved to Muse ♥':'Already in Muse'));}}
           onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
           aria-label="Save to Muse"
+          {...press('disc:save')}
           style={{
             position:'absolute',
             bottom:'calc(env(safe-area-inset-bottom,0px) + 150px)', right:22, zIndex:12,
@@ -1960,6 +2029,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
             border:'0.5px solid rgba(248,247,245,.16)',
             display:'flex',alignItems:'center',justifyContent:'center',
             cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:0,
+            ...pressed('disc:save'),
           }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
             <path d="M12 20.5s-7.5-4.7-7.5-10a4.3 4.3 0 017.5-2.8 4.3 4.3 0 017.5 2.8c0 5.3-7.5 10-7.5 10z"
@@ -2152,6 +2222,7 @@ function MuseOverlay({save,activity,onClose,onRemove,accent,dark}:{
 interface MuseRoomProps { dark:boolean; accent:string; }
 
 function MuseRoom({ dark, accent }: MuseRoomProps) {
+  const { press, pressed } = usePress();
   // Pills use mode DNA — terracotta (WN) / slate blue (SI)
   const pillActive    = accent;
   const pillActiveTxt = dark ? '#1A0810' : '#FFFFFF';
@@ -2280,9 +2351,9 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
 
       {/* Pills — Source | Ceremony — all using mode DNA */}
       <div className="no-scroll" style={{display:'flex',gap:7,padding:'0 20px 10px',overflowX:'auto',flexShrink:0,WebkitOverflowScrolling:'touch' as any}}>
-        {MUSE_SOURCE_FILTERS.map(f=>{const active=sourceFilter===f.value;return <button key={f.value} onClick={()=>setSourceFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>{f.label}</button>;})}
+        {MUSE_SOURCE_FILTERS.map(f=>{const active=sourceFilter===f.value;return <button key={f.value} {...press(`muse:src:${f.value}`)} onClick={()=>setSourceFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`muse:src:${f.value}`)}}>{f.label}</button>;})}
         <div style={{width:.5,background:divider,alignSelf:'center',flexShrink:0,margin:'0 3px',height:16}}/>
-        {MUSE_CEREMONY_FILTERS.map(f=>{const active=ceremonyFilter===f.value;return <button key={f.value} onClick={()=>setCeremonyFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>{f.label}</button>;})}
+        {MUSE_CEREMONY_FILTERS.map(f=>{const active=ceremonyFilter===f.value;return <button key={f.value} {...press(`muse:cer:${f.value}`)} onClick={()=>setCeremonyFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`muse:cer:${f.value}`)}}>{f.label}</button>;})}
       </div>
 
       {/* Masonry grid — natural image heights, no cropping */}
@@ -2342,6 +2413,7 @@ interface EventsRoomProps {
 }
 
 function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsRoomProps) {
+  const { press, pressed } = usePress();
   const [events,  setEvents]  = React.useState<CoupleEvent[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selected, setSelected] = React.useState<CoupleEvent|null>(null);
@@ -2458,9 +2530,9 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
               const until=daysUntilEvent(ev.event_date);
 
               return(
-                <div key={ev.id}
+                <div key={ev.id} {...press(`event:${ev.id}`)}
                   onClick={()=>setSelected(selected?.id===ev.id?null:ev)}
-                  style={{display:'flex',alignItems:'flex-start',gap:16,marginBottom:28,cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+                  style={{display:'flex',alignItems:'flex-start',gap:16,marginBottom:28,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`event:${ev.id}`)}}>
 
                   {/* Date bubble — the ornament head */}
                   <div style={{
@@ -2550,6 +2622,7 @@ const ROLE_LABELS: Record<string,string> = {
 };
 
 function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: CircleRoomProps) {
+  const { press, pressed } = usePress();
   const [data,        setData]        = React.useState<CircleData|null>(null);
   const [loading,     setLoading]     = React.useState(true);
   const [view,        setView]        = React.useState<'feed'|'invite'>('feed');
@@ -2720,11 +2793,12 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
         <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
           {/* Invite from contacts — Android only (Contact Picker API) */}
           {contactsSupported&&(
-            <button onClick={pickContact}
+            <button onClick={pickContact} {...press('circle:contacts')}
               style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'12px',
                 borderRadius:4,border:`0.5px solid ${pgAccent}`,background:'transparent',cursor:'pointer',
                 fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
-                textTransform:'uppercase' as any,color:pgAccent,WebkitTapHighlightColor:'transparent'}}>
+                textTransform:'uppercase' as any,color:pgAccent,WebkitTapHighlightColor:'transparent',
+                ...pressed('circle:contacts')}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" stroke={pgAccent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
               Invite from contacts
             </button>
@@ -2834,10 +2908,11 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
           )}
           {/* Add button */}
           {members.length < 3 && (
-            <div onClick={()=>setView('invite')} style={{width:44,height:44,borderRadius:'50%',
+            <div onClick={()=>setView('invite')} {...press('circle:add')} style={{width:44,height:44,borderRadius:'50%',
               border:`1px dashed ${pgLine}`,
               display:'flex',alignItems:'center',justifyContent:'center',
-              cursor:'pointer',WebkitTapHighlightColor:'transparent',color:pgInkMute,fontSize:20,fontWeight:200}}>
+              cursor:'pointer',WebkitTapHighlightColor:'transparent',color:pgInkMute,fontSize:20,fontWeight:200,
+              ...pressed('circle:add')}}>
               +
             </div>
           )}
@@ -3025,6 +3100,7 @@ interface PagesRoomProps {
 type PagesView = 'list' | 'picker' | 'writing';
 
 function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: PagesRoomProps) {
+  const { press, pressed } = usePress();
   const [view,         setView]         = React.useState<PagesView>('list');
   const [entries,      setEntries]      = React.useState<PageEntry[]>([]);
   const [loading,      setLoading]      = React.useState(true);
@@ -3154,7 +3230,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
         )}
       </div>
       {/* CTA */}
-      <div onClick={()=>setView('picker')} style={{flexShrink:0,borderTop:`0.5px solid ${pgLine}`,padding:'16px 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div onClick={()=>setView('picker')} {...press('pages:cta')} style={{flexShrink:0,borderTop:`0.5px solid ${pgLine}`,padding:'16px 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',justifyContent:'center',...pressed('pages:cta')}}>
         <div style={{fontFamily:"'Italianno',cursive",fontSize:30,color:pgAccent,lineHeight:1}}>How are you feeling?</div>
       </div>
     </div>
@@ -3180,8 +3256,8 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
         {/* 12 dots — 4 col grid, centered, medium size matching reference */}
         <div style={{marginTop:36,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'28px 8px',justifyItems:'center'}}>
           {MOODS.map(mood=>(
-            <div key={mood.key} onClick={()=>{setSelectedMood(mood);setView('writing');}}
-              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer',WebkitTapHighlightColor:'transparent',width:'100%'}}>
+            <div key={mood.key} {...press(`mood:${mood.key}`)} onClick={()=>{setSelectedMood(mood);setView('writing');}}
+              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer',WebkitTapHighlightColor:'transparent',width:'100%',...pressed(`mood:${mood.key}`)}}>
               {/* Dot — 40px matching reference screenshot size */}
               <div style={{
                 width:40,height:40,borderRadius:'50%',
@@ -3558,6 +3634,7 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
 interface MeridianConciergeBtnProps { accent:string; dark:boolean; compact?:boolean; }
 
 function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConciergeBtnProps) {
+  const { press, pressed } = usePress();
   const [state, setState] = React.useState<'idle'|'sending'|'sent'|'error'>('idle');
   const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
@@ -3605,14 +3682,14 @@ function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConcierge
         </div>
       ) : compact ? (
         // Compact version — single line for chat view
-        <div onClick={request} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',gap:8}}>
+        <div onClick={request} {...press('concierge:compact')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',gap:8,...pressed('concierge:compact')}}>
           <div style={{width:32,height:2,borderRadius:1,background:`linear-gradient(90deg,transparent,${accent},transparent)`,animation:'concPulse 2.8s ease-in-out infinite',opacity:state==='sending'?.3:1}}/>
           <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
             {state==='sending'?'…':state==='error'?'retry':'Concierge'}
           </span>
         </div>
       ) : (
-        <div onClick={request} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:'14px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:10}}>
+        <div onClick={request} {...press('concierge:full')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:'14px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:10,...pressed('concierge:full')}}>
           {/* Heartbeat line */}
           <div style={{
             width:'72%',height:3,borderRadius:2,
@@ -3870,6 +3947,7 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
 
 
 export default function SanctuaryPage() {
+  const { press, pressed } = usePress();
   const { homeMode, setHomeMode } = useFrostMode();
   const dark = homeMode === 'E1A';
 
@@ -4460,8 +4538,8 @@ function timeAgoShort(iso:string):string {
         return(
         <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
           {BASE_SLICES.map((slice,idx)=>(
-            <div key={slice.key} onClick={()=>openRoom(slice.key)} className="si-a"
-              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',background:'transparent',animationDelay:`${idx*16}ms`}}>
+            <div key={slice.key} {...press(`slice:${slice.key}`)} onClick={()=>openRoom(slice.key)} className="si-a"
+              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',background:'transparent',animationDelay:`${idx*16}ms`,...pressed(`slice:${slice.key}`)}}>
               <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
               {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
               <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{hintMap[slice.key as string]||''}</span>
@@ -4473,11 +4551,12 @@ function timeAgoShort(iso:string):string {
       })()}
 
       {/* Dream Ai — bottom anchor slice. Smaller, centered, italicised. Opens in-app Dream bloom. */}
-      <div onClick={()=>openRoom('dream')}
+      <div onClick={()=>openRoom('dream')} {...press('slice:dream')}
         style={{position:'relative',zIndex:5,flexShrink:0,borderTop:`.5px solid ${lineStr}`,
           display:'flex',alignItems:'center',justifyContent:'center',
           padding:'12px 18px',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 12px)',
-          cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation'}}>
+          cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',
+          ...pressed('slice:dream')}}>
         <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1,color:accent,fontFeatureSettings:'"opsz" 9',letterSpacing:'.01em'}}>
           Dream Ai
         </span>
