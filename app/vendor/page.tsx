@@ -1157,6 +1157,48 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
              bar is here, and touching it raises the room. ── */}
       <Toast toast={noteToast} />
       <TierMeter meta={meta} />
+      {/* ── TDW_10 · F-10.100(c) — THE UPGRADE PATH, LIFTED OUT OF THE METER ──────────
+             THE DEFECT: the only Upgrade control in the estate lived INSIDE TierMeter,
+             behind that component's own guard — `if (!meta || !meta.turns_cap) return null`
+             (components/vendor/TierMeter.tsx). A cap of zero is falsy, so at exactly the
+             tier that most needs a way to buy AI, the meter returned null, the link inside
+             it never rendered, and the input below went dead. She was refused, and handed
+             no path from the place she was standing.
+
+             RULED (β), CE R-26.7 §C. Arm (α) — relaxing TierMeter's guard so a 0/0 bar
+             renders — was REFUSED on its own ground: a progress bar reading zero-of-zero
+             says "unused", which is the same lie as the sentence this sitting is retiring,
+             set in a different font. TierMeter is therefore BYTE-UNTOUCHED; it stays a
+             usage widget and keeps its right to hide when there is no usage to show.
+
+             CONTROL INVENTORY: the Upgrade control is MOVED, net zero. One anchor leaves
+             TierMeter's dependency (it still renders there at 'nearing' and at a spent
+             nonzero cap, which is correct — that is a meter reading, and a vendor watching
+             her allowance run down should be able to act on it); one anchor arrives here,
+             where the refusal actually lands. Nothing new appears; nothing disappears.
+
+             AND IT LIVES HERE RATHER THAN THERE FOR A DURABLE REASON: a sale living inside
+             a usage widget is hidden again by the next person who tidies the widget. This
+             seat is beside the disabled input — next to the thing that just stopped
+             working, which is where a person looks.
+
+             The href is the server's own (`meta.upgrade.href`), so this surface never mints
+             a destination. NOTE, because it will matter within the week: that href resolves
+             to /vendor/settings#tier, while the WhatsApp refusal in the same sitting points
+             a vendor at 「 Billing 」 (/vendor/billing, a parallel sitting). Two lanes, two
+             destinations, one purchase — filed for the chair, deliberately not reconciled
+             here, because re-pointing a live control is a ruling and not a tidy. ── */}
+      {meta && meta.state === 'capped' && meta.upgrade && (
+        <div className="px-4 pb-2 flex justify-end">
+          <a
+            href={meta.upgrade.href}
+            className="font-[Jost] text-[11px] tracking-wide underline underline-offset-2"
+            style={{ color: 'rgba(12,10,9,0.6)' }}
+          >
+            {meta.upgrade.label}
+          </a>
+        </div>
+      )}
       <div onFocusCapture={() => setRisen(true)}>
         <InputBar
           key={seed || 'idle'}

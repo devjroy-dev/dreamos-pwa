@@ -17,18 +17,47 @@ type Group = {
 };
 
 const GROUPS: Group[] = [
-  { label: 'Vendor WhatsApp',
-    keys: ['vendor_wa_daily_basic','vendor_wa_daily_essential','vendor_wa_daily_signature','vendor_wa_daily_prestige',
-           'vendor_wa_monthly_basic','vendor_wa_monthly_essential','vendor_wa_monthly_signature','vendor_wa_monthly_prestige'] },
-  { label: 'Vendor PWA',
-    // 0115 seeded the four `_basic` keys from the `_trial` values, so these rows
-    // exist and carry the founder's own numbers (witnessed on his paste:
-    // pwa 500/5000, wa 3/10). The `_trial` keys are LEFT IN PLACE in the database
-    // deliberately — deleting config is destructive — but they are no longer
-    // OFFERED here, because a dial that reaches no live tier is a dial that
-    // teaches the founder his knob does nothing.
-    keys: ['vendor_pwa_daily_basic','vendor_pwa_daily_essential','vendor_pwa_daily_signature','vendor_pwa_daily_prestige',
-           'vendor_pwa_monthly_basic','vendor_pwa_monthly_essential','vendor_pwa_monthly_signature','vendor_pwa_monthly_prestige'] },
+  // ── TDW_10 · F-10.100 + F-10.87 — TWO GROUPS RETIRE INTO ONE HONEST ONE ───────────
+  // WHAT STOOD HERE: a 「 Vendor WhatsApp 」 group of eight dials with ZERO readers, and a
+  // 「 Vendor PWA 」 group of eight that were read but were named for one lane while
+  // governing an allowance both lanes spent. The screen's own header promises 「 changes
+  // take effect immediately 」. For eight of those sixteen dials that promise was false,
+  // and its founder-witnessed victim was the founder.
+  //
+  // F-10.87 was first graded as a wiring gap — the WA keys needed a reader. It is
+  // resolved instead by RETIREMENT, on this estate's own precedent: the Appearance
+  // swatches were removed WHOLE rather than wired, because a switch on a pinned reader
+  // lies (CE-209). A dial nobody reads is that switch. The reader these keys were waiting
+  // for turned out not to exist, because there was never a second allowance to govern:
+  // src/engine/src/core/loop.ts writes one usage row per turn with no lane column, so one
+  // counter has always served both doors.
+  //
+  // ONE GROUP, ONE FAMILY, `vendor_ai_*`, seeded by db/migrations/0116 from the live
+  // `vendor_pwa_*` values so nothing the founder tuned moves on deploy. The old rows are
+  // LEFT IN THE DATABASE deliberately — deleting config is destructive and reversible only
+  // from a backup, 0115's call and its reason — but they are no longer OFFERED here,
+  // which is the honest state: the value is still readable if he wants it, and no longer
+  // pretends to be a control.
+  //
+  // (Mechanism named in-comment per F-06.85: these key strings and the interpolation at
+  // src/api/vendor-engine/chat.js::buildMeta are ONE fact with two homes. A sitting that
+  // renames either must re-read the other, or the dial silently stops reaching the reader
+  // — which is precisely the disease above, arriving a second time.)
+  { label: 'Vendor AI — app chat and WhatsApp share one allowance',
+    keys: ['vendor_ai_daily_basic','vendor_ai_daily_essential','vendor_ai_daily_signature','vendor_ai_daily_prestige',
+           'vendor_ai_monthly_basic','vendor_ai_monthly_essential','vendor_ai_monthly_signature','vendor_ai_monthly_prestige'] },
+  // ⚠ THESE TWO GROUPS HAVE ZERO READERS AND ARE LEFT STANDING ON PURPOSE.
+  // Both `couple_wa_*` and `couple_pwa_*` were grepped by the same two independent methods
+  // that convicted `vendor_wa_*` (literal, and an interpolation sweep across all of src/):
+  // no reader, either family. The couple lane has no meter at all — src/api/couple/chat.js
+  // reads no cap, counts no turns, and refuses nobody — so these dials govern nothing and
+  // the header above promises they take effect immediately. They are the same lying control
+  // this delivery just retired one lane over.
+  //
+  // THEY ARE NOT RETIRED HERE BECAUSE THE RULING DID NOT NAME THEM. The founder's word
+  // covered the vendor lane; widening it to the couple lane would be an executor deciding
+  // what a ruling meant to say. It is with him, and it retires by his word or gains a
+  // reader by a later sitting's — but it does not get quietly extended by this one.
   { label: 'Couple WhatsApp',
     keys: ['couple_wa_daily_basic','couple_wa_daily_gold','couple_wa_daily_platinum',
            'couple_wa_monthly_basic','couple_wa_monthly_gold','couple_wa_monthly_platinum'] },

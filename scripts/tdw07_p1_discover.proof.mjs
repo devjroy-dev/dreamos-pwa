@@ -144,9 +144,26 @@ ok('§3.2 all three seeded keys are listed',
 ok('§3.3 the keys carry EXPLICIT labels — keyLabel would parse them into a meaningless tier/period',
   /labels\?:/.test(ADMIN) && /group\.labels\?\.\[key\] \?\? keyLabel\(key\)/.test(ADMIN));
 ok('§3.4 the input accepts fractions — a weight is not a whole number', /step:\s*'0\.05'/.test(ADMIN));
-ok('§3.5 the four pre-existing token-cap groups are untouched (count asserted)',
-  ['Vendor WhatsApp', 'Vendor PWA', 'Couple WhatsApp', 'Couple PWA']
-    .filter(l => ADMIN.includes(`label: '${l}'`)).length === 4);
+// ── LABELLED AMENDMENT (TDW_10 F-10.100 / F-10.87) — TWO GROUPS BECAME ONE. ──────
+// THE PROPERTY IS UNCHANGED: this cell exists so the Discover ranking group's arrival
+// cannot silently disturb the token-cap groups beside it. It is a blast-radius cell,
+// not a census of the console.
+//
+// What moved is the console itself, by founder ruling. 'Vendor WhatsApp' had ZERO
+// readers (F-10.87, two independent methods) and 'Vendor PWA' was named for one lane
+// while governing an allowance both lanes spend; they retire into one honest 'Vendor
+// AI' group reading the vendor_ai_* family that db/migrations/0116 seeds. The count
+// falls 4 -> 3 for that reason and no other.
+//
+// THE TWO COUPLE GROUPS ARE ASSERTED SURVIVING, BY NAME AND DELIBERATELY. They also
+// have zero readers, and retiring them was NOT ruled — so this cell now carries the
+// evidence that this delivery did not quietly widen a ruling to cover them.
+ok('§3.5 the token-cap groups are undisturbed — the two vendor groups are now one (F-10.100)',
+  ADMIN.includes(`label: 'Vendor AI`)
+  && !ADMIN.includes(`label: 'Vendor WhatsApp'`)
+  && !ADMIN.includes(`label: 'Vendor PWA'`));
+ok('§3.5b the two COUPLE groups survive UNTOUCHED — no ruling named them, none was assumed',
+  ['Couple WhatsApp', 'Couple PWA'].filter(l => ADMIN.includes(`label: '${l}'`)).length === 2);
 ok('§3.6 the group carries the note that a weight takes effect on the next fetch',
   /next fetch/.test(ADMIN));
 

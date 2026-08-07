@@ -91,9 +91,20 @@ section('§1  M0 — THE RENAME ON THE SURFACES');
      mw.length === 4 && !mw.includes('trial') && !mw.includes('free'));
 
   const sc = strip(CONFIG);
-  for (const k of ['vendor_pwa_daily_basic', 'vendor_pwa_monthly_basic',
-                   'vendor_wa_daily_basic', 'vendor_wa_monthly_basic']) {
-    ok(`the cap editor names ${k} — the key 0115 actually seeded`, sc.includes(`'${k}'`));
+  // ── LABELLED AMENDMENT (TDW_10 F-10.100) — THE EDITOR OFFERS THE KEYS THE READER
+  // READS, WHICH IS THE PROPERTY. It was written at the rename sitting and pinned the
+  // four `_basic` keys 0115 seeded, because a dial naming a key nothing seeded is a
+  // dial that saves into nowhere (the PATCH route 404s on a key with no row).
+  //
+  // The property has not moved one inch; the keys have. The founder ruled ONE combined
+  // allowance across the vendor's two doors, so 0116 seeds the vendor_ai_* family and
+  // src/api/vendor-engine/chat.js interpolates it. Offering the old keys now would be
+  // the SAME defect this cell was built to catch, pointed the other way: a dial whose
+  // key no longer reaches the reader. Re-aimed to the eight ruled keys, with the
+  // negative that the two retired families are gone from the editor entirely.
+  for (const k of ['vendor_ai_daily_basic', 'vendor_ai_monthly_basic',
+                   'vendor_ai_daily_prestige', 'vendor_ai_monthly_prestige']) {
+    ok(`the cap editor names ${k} — the key 0116 actually seeds`, sc.includes(`'${k}'`));
   }
   ok('the cap editor no longer offers the retired tier\'s keys',
      CONFIG.length > 0 &&
