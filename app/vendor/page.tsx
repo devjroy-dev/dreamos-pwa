@@ -974,10 +974,22 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
       {/* ── Header ── */}
       <Header vendorName={displayName} />
 
-      {/* ── Victor mode (Business·Advisor) — TDW_06 P6d (R-2); placement rides the founder's veto ── */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
-        <VictorModeChip onThreadReset={markFreshThread} onMode={setVictorRoom} />
-      </div>
+      {/* ── TDW_09 · F-09.129 · FORK A(a) + B(b1) — THE MODE CONTROL LEFT THIS
+             MASTHEAD. What stood here: the Business·Advisor chip, centred under
+             the Header on every Hub load, placement riding the founder's veto
+             since TDW_06 P6d (R-2).
+             Founder's walk, 2026-08-07: 「 the mode pills looks forced and out of
+             place 」 — PLURAL, and naming no surface. F-09.120 read that as the
+             More mount alone and retired only that one; the founder walked the
+             result and asked again 「 ddnt we decide to retire this advisor
+             business pill? 」. His original plural governs (F-09.129 Fork A(a)).
+             RE-HOMED, NOT RETIRED (Fork B(b1)). The verdict was on PLACEMENT and
+             REGISTER, not on the capability: `victor_mode` is SERVER truth
+             (engine.agents.victor_mode, PATCH /api/v2/vendor-e/mode, a flip
+             resets Victor's thread), and retiring a live server-backed control on
+             a chrome complaint would strand a field with no vendor-reachable
+             door. It now sits inside the risen chat, beside the masthead that
+             already speaks its two words. See the mount in the risen branch. */}
 
       {/* ── TDW_07 MICRO-2 — THE COMMAND BAR IS REMOVED-BY-FOUNDER-RULING. ──────────────
           Founder's word, 2026-07-31: "delete completely. serves no purpose". Shape (i):
@@ -1086,6 +1098,32 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
                  the distinction: BUSINESS in brass, ADVISOR in the primary ink,
                  both themes. The words stay the chip's vetoed pair; unknown
                  room still says 「 Chat 」 in the standing muted byte. */}
+          {/* ── TDW_09 · F-09.129 Fork B(b1) — THE MODE CONTROL'S NEW SEAT ────
+                 Moved here from the Hub masthead, WIRED IDENTICALLY: the same
+                 `onThreadReset={markFreshThread}` and `onMode={setVictorRoom}`
+                 pair, the same PATCH door, the same server-side thread reset on
+                 a flip. F-09.122's wiring is the spec and nothing about it
+                 moved — only the seat. ZERO new copy: the chip carries its own
+                 vetoed pair of words and the mirror below still speaks them.
+                 SEATED HERE, and not anywhere else in the room, because this is
+                 where its vocabulary already lives: the label directly below is
+                 a READ-ONLY MIRROR of this very control, published by the
+                 `onMode` above. Control and mirror now share one block, so a
+                 reader can see the switch and the room it selected without
+                 leaving the chat.
+                 MECHANISM NOTE (F-06.85), and it is a real behaviour delta:
+                 the chip used to mount on every Hub load and so read
+                 `victor_mode` once at page open. Mounted inside `{risen && (`,
+                 it reads on each chat OPEN instead. That is safe only because
+                 `useVictorMode` holds NO localStorage and re-reads server truth
+                 on mount by design — if that ever gains a cache, this seat is
+                 the thing to re-read. Until the first read lands, the mirror
+                 below says the standing 'Chat' byte, exactly as it always did
+                 while a first read was in flight. */}
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 2px' }}>
+            <VictorModeChip onThreadReset={markFreshThread} onMode={setVictorRoom} />
+          </div>
+
           <div style={{
             alignSelf: 'center', fontFamily: F.label,
             fontWeight: victorRoom ? 400 : 300, fontSize: 8,

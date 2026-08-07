@@ -229,8 +229,17 @@ cell('12', 'the risen room grows to fill',
   const risenAt = code.indexOf('{risen && (');
   cell('12', 'nav survives the rise',
     risenAt > 0 && code.indexOf('<Header') > 0 && code.indexOf('<Header') < risenAt);
-  cell('12', 'the mode pill survives the rise',
-    risenAt > 0 && code.indexOf('<VictorModeChip') > 0 && code.indexOf('<VictorModeChip') < risenAt);
+  // ── AMENDED AT F-09.129 (Fork A(a)+B(b1)), COUNT PRESERVED 2 → 2 ──────────
+  // WHAT THIS CELL USED TO ASSERT: the chip mounts BEFORE `{risen && (` — i.e.
+  // above the rise, so it survived being swallowed by it. The INTENT was always
+  // "the mode control is reachable from inside the chat"; standing above the
+  // rise was merely how that was achieved when the chip lived on the Hub.
+  // The founder has now ruled the chip OFF the Hub masthead entirely, and the
+  // intent is served better, not worse: the control is no longer near the chat,
+  // it is IN it. So the cell INVERTS rather than dies — an unguarded absence
+  // here would let a future edit put the pill back on the Hub silently.
+  cell('12', 'the mode control is IN the risen room, not above it (F-09.129)',
+    risenAt > 0 && code.indexOf('<VictorModeChip') > risenAt);
 }
 
 // ── §13 · ONE SENTENCE, ONE REGISTER ─────────────────────────────────────────

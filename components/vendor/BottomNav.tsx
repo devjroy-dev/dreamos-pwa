@@ -32,6 +32,12 @@
 // re-dressed. `VictorModeChip` (Business/Advisor) survives untouched as the ONE
 // mode control; it shares no state, types, or hooks with what died here
 // (VictorModeChip.tsx:5-8's own independence comment, chair-verified).
+// ADDRESS UPDATED AT F-09.129 (mechanism-comment law): that one control is still
+// the one control and is still byte-untouched, but it no longer stands under the
+// Hub masthead. Its single mount is now INSIDE the risen chat
+// (app/vendor/page.tsx, the `{risen && (` branch), beside the room label it
+// publishes. The More mount died earlier at F-09.120. If you came here looking
+// for a mode control on the Hub, there isn't one, and that is ruled.
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';

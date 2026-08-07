@@ -216,9 +216,15 @@ ok('§7.3 non-vacuity — the stepper glyphs themselves are still rendered',
 sec('§8 · F-09.120 — the pill retired, one merged list, Paper A\'s order');
 ok('§8.1 the mode pill is GONE from More — founder-convicted 「 remove it 」',
    !more.includes('VictorModeChip'));
-ok('§8.2 F-09.122 cures BY that — Home\'s well-wired chip is the ONE surviving mount',
+// ── AMENDED AT F-09.129. I shipped this cell asserting Home's mount SURVIVES,
+// and named it as mine to amend in the packet before the ruling came back. The
+// chip is still the ONE mount and still the well-wired one — only its seat moved
+// off the Hub masthead and into the risen chat. §10 below carries the new seat.
+ok('§8.2 F-09.122 still holds — exactly ONE mount survives, and it is the wired one',
    (() => { const home = C('app/vendor/page.tsx');
-            return home.includes('VictorModeChip') && /onThreadReset/.test(home) && /onMode/.test(home); })());
+            return (home.match(/<VictorModeChip/g) || []).length === 1
+                && /onThreadReset=\{markFreshThread\}/.test(home)
+                && /onMode=\{setVictorRoom\}/.test(home); })());
 ok('§8.3 the four section labels are gone and the rows render as ONE list',
    !/<SectionLabel/.test(more) &&
    /\[\.\.\.DISCOVER_ITEMS, \.\.\.TEAM_ITEMS, \.\.\.FINANCE_ITEMS, \.\.\.ACCOUNT_ITEMS\]/.test(more));
@@ -251,6 +257,38 @@ ok('§9.3 the cancel arm is gated too — half a kill switch is not a kill switc
 ok('§9.4 NON-VACUITY — the flag has at least two live consumers on this surface',
    (set.match(/current\.selfserve_enabled/g) || []).length >= 2,
    `found ${(set.match(/current\.selfserve_enabled/g) || []).length}`);
+
+// ═══ §10 · F-09.129 — THE CONTROL RE-HOMED, NOT RETIRED ═══════════════════════
+sec('§10 · F-09.129 — off the Hub masthead, into the risen chat');
+const home = C('app/vendor/page.tsx');
+const risenAt = home.indexOf('{risen && (');
+const chipAt  = home.indexOf('<VictorModeChip');
+ok('§10.1 the HUB MASTHEAD renders no pill — the founder\'s glance, as a cell',
+   risenAt > 0 && chipAt > risenAt,
+   'a mode control mounts above the rise again — that is the byte he ruled out');
+ok('§10.2 the control SURVIVES — a chrome verdict did not take the capability away',
+   (home.match(/<VictorModeChip/g) || []).length === 1);
+ok('§10.3 wired byte-for-byte as before — F-09.122\'s pair, both props',
+   /<VictorModeChip onThreadReset=\{markFreshThread\} onMode=\{setVictorRoom\} \/>/.test(home));
+ok('§10.4 seated BESIDE the mirror it publishes, not loose in the room',
+   (() => { const mirror = home.indexOf("victorRoom === 'business' ? 'Business'");
+            return mirror > chipAt && (mirror - chipAt) < 900; })(),
+   'the chip and the label it feeds have drifted apart inside the room');
+ok('§10.5 the server door is untouched — victor_mode stays live end to end',
+   /PATCH|patchJson/.test(C('lib/vendor/api/vendor.ts')) &&
+   /vendor-e\/mode/.test(C('lib/vendor/api/vendor.ts')));
+// Scoped to the SEGMENTS array. An unscoped `label: '` sweep over this file
+// convicts the FONT TOKEN `F = { label: 'var(--font-label, inherit)' }` — a
+// style byte, not a word anyone reads. A copy cell that cannot tell copy from
+// CSS is not a copy cell.
+ok('§10.6 COPY INVENTORY ZERO — the chip carries its own vetoed pair and no third word',
+   (() => { const chip = C('components/vendor/VictorModeChip.tsx');
+            const m = /const SEGMENTS[\s\S]*?\];/.exec(chip);
+            if (!m) return false;
+            const words = (m[0].match(/label: '([^']+)'/g) || []).map(x => x.slice(8, -1));
+            return words.length === 2 && words[0] === 'Business' && words[1] === 'Advisor'; })());
+ok('§10.7 the mechanism comment followed the mechanism (F-06.85)',
+   /F-09\.129/.test(R('components/vendor/BottomNav.tsx')));
 
 // ═══ §M · MUTATIONS — every cure cell RED at a broken tree ════════════════════
 sec('§M · MUTATIONS OVER PRODUCTION SOURCE — bitten, not reported');
@@ -305,6 +343,14 @@ bite('§M.12 §9.4 reds when the flag is left with ONE reader — half a switch'
   "current.subscription_id && current.selfserve_enabled && (",
   "current.subscription_id && (",
   s => (s.match(/current\.selfserve_enabled/g) || []).length >= 2);
+
+bite('§M.13 §10.1 reds when the pill is put back on the Hub masthead', 'app/vendor/page.tsx',
+  '{risen && (', '<VictorModeChip />{risen && (',
+  s => { const r = s.indexOf('{risen && ('); return r > 0 && s.indexOf('<VictorModeChip') > r; });
+bite('§M.14 §10.3 reds when the re-homed chip loses a prop in the move', 'app/vendor/page.tsx',
+  '<VictorModeChip onThreadReset={markFreshThread} onMode={setVictorRoom} />',
+  '<VictorModeChip onMode={setVictorRoom} />',
+  s => /<VictorModeChip onThreadReset=\{markFreshThread\} onMode=\{setVictorRoom\} \/>/.test(s));
 
 console.log('\n════════════════════════════════════════════════════════════');
 console.log(`tdw09_uivendor: ${pass} passed, ${fail} failed  (total ${pass + fail})`);

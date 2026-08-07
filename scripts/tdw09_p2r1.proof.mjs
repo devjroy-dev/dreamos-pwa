@@ -43,8 +43,17 @@ console.log('\n── §2 · the room, named on the risen chat ──');
     'the chip publishes its room (optional, additive — one control, one truth)');
   const home = R('app/vendor/page.tsx');
   const homeSrc = strip(home);
-  cell('2.2', homeSrc.includes('onMode={setVictorRoom}'),
-    'home mirrors the chip, never calls the hook twice');
+  // ── AMENDED AT F-09.129 — THE PUBLISHER MOVED, THE CONTRACT DID NOT ───────
+  // The mirror is only ever as true as its publisher, and the publisher is now
+  // inside the risen room. Asserting `onMode={setVictorRoom}` alone would stay
+  // green if the chip were re-mounted anywhere at all — including back on the
+  // Hub — so the cell now pins the publisher to the seat the founder ruled.
+  // One hook call, one truth, still: `useVictorMode` is called by the chip and
+  // by nothing else on this surface.
+  cell('2.2', homeSrc.includes('onMode={setVictorRoom}')
+           && homeSrc.indexOf('onMode={setVictorRoom}') > homeSrc.indexOf('{risen && (')
+           && !/useVictorMode/.test(homeSrc),
+    'home mirrors the chip AT ITS NEW SEAT, never calls the hook twice');
   // TDW_09 P2-R2 — LABELLED AMENDMENT, COUNT PRESERVED (2 → 2). R1's two-
   // register masthead was founder-walked and re-ruled to arm (a): ONE house
   // small-caps register, HUE + WORD distinguishing the rooms. The cells follow
