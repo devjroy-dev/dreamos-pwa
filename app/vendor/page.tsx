@@ -1183,11 +1183,30 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
              working, which is where a person looks.
 
              The href is the server's own (`meta.upgrade.href`), so this surface never mints
-             a destination. NOTE, because it will matter within the week: that href resolves
-             to /vendor/settings#tier, while the WhatsApp refusal in the same sitting points
-             a vendor at 「 Billing 」 (/vendor/billing, a parallel sitting). Two lanes, two
-             destinations, one purchase — filed for the chair, deliberately not reconciled
-             here, because re-pointing a live control is a ruling and not a tidy. ── */}
+             a destination.
+
+             THE DIVERGENCE THIS COMMENT USED TO DESCRIBE IS CLOSED, and the old sentence is
+             RETRACTED rather than reworded. It read: that href resolves to
+             /vendor/settings#tier while the WhatsApp refusal points a vendor at Billing —
+             two lanes, two destinations, one purchase, filed and deliberately not
+             reconciled. RULED at R-26.14 §B and cured in dream-os
+             src/api/vendor-engine/chat.js::buildMeta: the wire now sends /vendor/billing on
+             BOTH lanes, with no fragment, because that page IS the picker.
+
+             Why it was worth a ruling rather than a tidy: F-10.101, FOUNDER-WITNESSED on a
+             cold-load walk, proved the fragment NEVER SCROLLED. `id="tier"` mounts only
+             after the /me fetch resolves inside an effect, and a browser resolves a
+             fragment at load and does not retry on a later mutation. So this control was
+             landing a refused vendor at the TOP of a settings page to hunt — not one extra
+             tap, a scroll-and-hunt, on the one screen she reaches at the moment she has
+             been refused.
+
+             LEFT STANDING DELIBERATELY: `id="tier"` in app/vendor/settings/page.tsx. Its
+             own comment records a TWO-EVENT retirement — (1) chat.js re-points, now done,
+             AND (2) Railway redeploys so the new href is actually SERVED. Live clients take
+             the address off the wire, so the anchor outlives the code change by one deploy
+             and deleting it early breaks Upgrade for every capped vendor. That deletion is
+             the pwa sitting's act, not this one's. ── */}
       {meta && meta.state === 'capped' && meta.upgrade && (
         <div className="px-4 pb-2 flex justify-end">
           <a
