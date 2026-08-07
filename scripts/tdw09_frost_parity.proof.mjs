@@ -352,7 +352,7 @@ ok('7.7', 'the budget row is EDITABLE and the false WhatsApp line is gone',
    all — so asserting the old shape would now pin a defect in place. Reversed, and
    the reversal is named rather than a quiet delete. */
 ok('7.8', 'the commit forwards the RAW string — the client has no opinion on budgets',
-   /saveProfile\(\{ budget_total: budgetRaw \}\)/.test(S) &&
+   /saveProfile\(\{ budget_total: budgetRaw,/.test(S) &&
    !/budget_total: Number\(budgetDigits\)/.test(S));
 ok('7.9', 'the field no longer filters — she can type 4.5L because the server reads it',
    !/setEditBudget\(e\.target\.value\.replace\(\/\[\^0-9\]\/g,''\)\)/.test(S) &&
@@ -367,6 +367,16 @@ ok('7.12', "the sheet shows the SERVER'S sentence when it has one",
    /\{saveMsg\|\|"That didn't save\. Check your connection and try again\."\}/.test(S));
 ok('7.13', 'a 409 is carried as a QUESTION, not as a failure',
    /setAsking\(!!r\.needsConfirmation\)/.test(S) && /setSaveMsg\(r\.message\|\|null\)/.test(S));
+/* ── THE ANSWER PATH (founder: 「 after the question, the next save is a yes 」) ── */
+ok('7.15', 'the save that FOLLOWS a question carries the yes',
+   /budget_total: budgetRaw, budget_confirmed: confirming/.test(S));
+ok('7.16', 'the yes is captured BEFORE the resets, not left to closure timing',
+   /const confirming = asking;[\s\S]{0,200}?setAsking\(false\)/.test(S));
+ok('7.17', 'any keystroke clears the yes — a changed figure asks again',
+   /onChange=\{e=>\{setEditBudget\(e\.target\.value\);setSaveErr\(false\);setSaveMsg\(null\);setAsking\(false\);\}\}/.test(S));
+ok('7.18', 'reopening the sheet clears the yes',
+   /setSaveMsg\(null\); setAsking\(false\);\n\s*setEditOpen\('budget'\)/.test(S));
+
 ok('7.14', 'the question is not painted in the error colour',
    /color:asking\?ink:'#C4534A'/.test(S));
 

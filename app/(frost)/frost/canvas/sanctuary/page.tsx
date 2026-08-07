@@ -936,9 +936,17 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
     ? formatRs(Number(budgetRaw)) : null;
 
   async function commitProfile(){
+    // Captured BEFORE the resets below. `asking` would still read true here by
+    // closure timing, but a reader tidying these three setters into a different
+    // order would silently turn every confirmation back into a fresh question —
+    // and the loop the founder hit would come straight back. Explicit instead.
+    const confirming = asking;
     setSavingP(true); setSaveErr(false); setSaveMsg(null); setAsking(false);
+    // THE SECOND SAVE IS THE YES (founder-ruled). `asking` is true only after the
+    // server has asked about THIS figure — any keystroke clears it below, so a
+    // changed figure is a fresh question rather than a pre-answered one.
     const r = editOpen==='budget'
-      ? await saveProfile({ budget_total: budgetRaw })
+      ? await saveProfile({ budget_total: budgetRaw, budget_confirmed: confirming })
       : await saveProfile({ wedding_date: editDate });
     setSavingP(false);
     if(!r.ok){

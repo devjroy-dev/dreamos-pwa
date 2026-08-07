@@ -544,6 +544,11 @@ export async function saveProfile(patch: {
   // it stored. A `number` here would mean the client had an opinion about what a
   // budget is, and that opinion is exactly what must not exist twice.
   budget_total?: number | string;
+  /** Founder-ruled 「 after the question, the next save is a yes 」. Set on the
+   *  save that FOLLOWS a 409, and only then — it skips the plausibility question
+   *  for that one write. It never skips a refusal: confirming a typo is not
+   *  consent, and the server enforces that ordering, not this comment. */
+  budget_confirmed?: boolean;
 }): Promise<SaveProfileResult> {
   if (shouldUseMocks()) return delay({ ok: true }, 600);
   try {
