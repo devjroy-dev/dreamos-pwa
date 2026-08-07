@@ -887,8 +887,9 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   // unset, so a bride with no budget could not learn the field existed) and says
   // where the one working door is. It becomes editable when dream-os opens its
   // half — see the handover's rider note.
-  const [editOpen, setEditOpen]   = React.useState(false);
+  const [editOpen, setEditOpen]   = React.useState<null|'date'|'budget'>(null);
   const [editDate, setEditDate]   = React.useState('');
+  const [editBudget, setEditBudget] = React.useState('');
   const [savingP,  setSavingP]    = React.useState(false);
   const [saveErr,  setSaveErr]    = React.useState(false);
 
@@ -899,18 +900,34 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   function openEditDate(){
     setSaveErr(false);
     setEditDate(profile?.wedding_date||'');
-    setEditOpen(true);
+    setEditOpen('date');
   }
+
+  function openEditBudget(){
+    setSaveErr(false);
+    setEditBudget(profile?.budget_total?String(profile.budget_total):'');
+    setEditOpen('budget');
+  }
+
+  // Digits only, client side. NOT a second validity rule — the route and the agent
+  // both run parseInt, which TRUNCATES at the first non-digit (F-09.165: "12,50,000"
+  // persists as Rs 12, live today on both surfaces). The app cannot cure that class
+  // without diverging from brideEngine, which the founder's ruling forbids and W-1
+  // protects. What it CAN do is never construct a value that would truncate.
+  const budgetDigits = editBudget.replace(/[^0-9]/g,'');
+  const budgetValid  = budgetDigits.length>0 && Number(budgetDigits)>0;
 
   async function commitProfile(){
     setSavingP(true); setSaveErr(false);
-    const ok = await saveProfile({ wedding_date: editDate });
+    const ok = editOpen==='budget'
+      ? await saveProfile({ budget_total: Number(budgetDigits) })
+      : await saveProfile({ wedding_date: editDate });
     setSavingP(false);
     if(!ok){ setSaveErr(true); return; }
     // Re-read rather than assume: the server owns the stored shape, and a date it
     // normalises differently would otherwise show stale until the next mount.
     try { const p = await fetchProfile(); setProfile(p); } catch {}
-    setEditOpen(false);
+    setEditOpen(null);
   }
 
   function fmtWeddingDate(iso:string|null):string {
@@ -944,12 +961,14 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
 
         {/* Info rows */}
         <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)} onTap={openEditDate} arrow/>
-        <Row label="Total budget" value={profile?.budget_total?formatRs(profile.budget_total):'Not set yet'}/>
-        <div style={{padding:`0 ${FS.gutter}px ${FS.s2}px`,marginTop:-2}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,lineHeight:1.7}}>
-            Ask Dream Ai on WhatsApp to change your budget
-          </div>
-        </div>
+        {/* RIDER 2. The line that stood here — "Ask Dream Ai on WhatsApp to change
+            your budget" — was FALSE and is deleted, not reworded. src/api/couple/
+            chat.js runs the same runBrideAgenticTurn as WhatsApp over one shared
+            couple_self conversation, so the in-app Dream room could always do it;
+            the line sent her out of the product for something the product does.
+            It also shipped without passing the founder's copy veto. Both owned.
+            The row is simply editable now. */}
+        <Row label="Total budget" value={profile?.budget_total?formatRs(profile.budget_total):'Not set yet'} onTap={openEditBudget} arrow/>
 
         {/* Mode toggle — REMOVED BY FOUNDER RULING (2026-08-07, the chair's own
             hand): SINGLE THEME, Wine Night always. The Appearance control and its
@@ -965,30 +984,43 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
             dismiss. Type on the rungs. It is the same sheet as Add-a-booking so the
             bride learns one pattern, not two. */}
         {editOpen&&<>
-          <div onClick={()=>!savingP&&setEditOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+          <div onClick={()=>!savingP&&setEditOpen(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
           <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:dark?'#180608':'#EEF0F6',
             borderRadius:`${FI.sheet}px ${FI.sheet}px 0 0`,padding:`${FS.s3}px ${FS.gutter}px calc(${FS.s3}px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:FS.s3}}>
-              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.room,color:ink,fontFeatureSettings:'"opsz" 9'}}>Wedding date</div>
-              <button onClick={()=>!savingP&&setEditOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.room,color:ink,fontFeatureSettings:'"opsz" 9'}}>{editOpen==='budget'?'Total budget':'Wedding date'}</div>
+              <button onClick={()=>!savingP&&setEditOpen(null)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
             </div>
-            <div style={{marginBottom:FS.s2}}>
+            {editOpen==='date'&&<div style={{marginBottom:FS.s2}}>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,marginBottom:FS.s1}}>The day</div>
               <input type="date" value={editDate} onChange={e=>{setEditDate(e.target.value);setSaveErr(false);}}
                 style={{width:'100%',padding:'12px 14px',background:dark?'rgba(245,229,220,.06)':'rgba(12,24,48,.05)',
                   border:`0.5px solid ${line}`,borderRadius:FI.chrome,fontFamily:"'Fraunces',serif",fontStyle:'italic',
                   fontSize:FT.body,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'}}/>
-            </div>
+            </div>}
+            {editOpen==='budget'&&<div style={{marginBottom:FS.s2}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,marginBottom:FS.s1}}>Rupees</div>
+              <input inputMode="numeric" value={editBudget} placeholder="450000"
+                onChange={e=>{setEditBudget(e.target.value.replace(/[^0-9]/g,''));setSaveErr(false);}}
+                style={{width:'100%',padding:'12px 14px',background:dark?'rgba(245,229,220,.06)':'rgba(12,24,48,.05)',
+                  border:`0.5px solid ${line}`,borderRadius:FI.chrome,fontFamily:"'Fraunces',serif",fontStyle:'italic',
+                  fontSize:FT.body,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'}}/>
+              {/* The register, shown back to her as she types — Rs X,XX,XXX, whole,
+                  no shorthand. formatRs is the estate's one money home. */}
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:budgetValid?ac:inkMute,marginTop:FS.s1}}>
+                {budgetValid?formatRs(Number(budgetDigits)):'Digits only'}
+              </div>
+            </div>}
             {/* Errors say what happened and how to fix it — never a mood. */}
             {saveErr&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:'#C4534A',lineHeight:1.6,marginBottom:FS.s2}}>
               That didn't save. Check your connection and try again.
             </div>}
-            <button onClick={commitProfile} disabled={savingP||!editDate}
+            <button onClick={commitProfile} disabled={savingP||(editOpen==='budget'?!budgetValid:!editDate)}
               style={{width:'100%',padding:'15px 0',background:ac,border:'none',borderRadius:FI.chrome,
                 fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engraved,letterSpacing:FS.track,
                 textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',
-                opacity:(savingP||!editDate)?.5:1}}>
-              {savingP?'Saving…':'Save date'}
+                opacity:(savingP||(editOpen==='budget'?!budgetValid:!editDate))?.5:1}}>
+              {savingP?'Saving…':(editOpen==='budget'?'Save budget':'Save date')}
             </button>
           </div>
         </>}

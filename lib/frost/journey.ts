@@ -515,6 +515,10 @@ export async function fetchProfile(): Promise<CoupleProfile> {
 
 export async function saveProfile(patch: {
   name?: string; partner_name?: string; wedding_date?: string; wedding_city?: string;
+  // ATELIER RIDER 2: the route accepts budget_total as of dream-os me.js's second
+  // writer. Rupees, positive integer — the same shape brideEngine enforces, so the
+  // two doors onto couples.budget_total cannot disagree (founder's 「 no clash 」).
+  budget_total?: number;
 }): Promise<boolean> {
   if (shouldUseMocks()) return delay(true, 600);
   try {

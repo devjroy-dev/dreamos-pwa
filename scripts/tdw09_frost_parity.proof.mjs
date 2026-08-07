@@ -160,15 +160,20 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
      +1   tap-div  : the sheet's dismiss scrim
      ────
      149  Rider 1's floor
+     +1   input    : Rider 2's rupee field (the budget row was already a Row and
+                     only gained an onTap — a tap handler on an existing element
+                     is not a new control, so the row itself adds nothing)
+     ────
+     150  Rider 2's floor
 
    The Total-budget row gained no control: it is deliberately read-only until
    dream-os opens its half, so it is a Row with no onTap and the census does not
    count it. If that arithmetic and the delta disagree at a future sitting, the
    arithmetic is the claim to re-derive — not this constant. */
-ok('3.1', 'sanctuary carries 149 controls (145 sealed + Rider 1\'s four)', total === 149,
+ok('3.1', 'sanctuary carries 150 controls (145 sealed + 4 + Rider 2\'s one)', total === 150,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 77 && counts.anchor === 8 && counts.input === 26 &&
+   counts.button === 77 && counts.anchor === 8 && counts.input === 27 &&
    counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 33,
    JSON.stringify(counts));
 
@@ -329,12 +334,25 @@ ok('7.3', 'the commit RE-READS the profile rather than assuming its own write',
 ok('7.4', 'a failed save says so and does not close the sheet',
    /setSaveErr\(true\);\s*return;/.test(S) && /That didn't save\./.test(S_RAW));
 ok('7.5', 'the scrim cannot dismiss mid-save (no orphaned write)',
-   (S.match(/onClick=\{\(\)=>!savingP&&setEditOpen\(false\)\}/g) || []).length >= 1);
+   (S.match(/onClick=\{\(\)=>!savingP&&setEditOpen\(null\)\}/g) || []).length >= 2);
 ok('7.6', 'THE BUDGET ROW ALWAYS RENDERS — it used to vanish when unset',
    /label="Total budget"/.test(S) && !/\{profile\?\.budget_total&&<Row label="Total budget"/.test(S));
-ok('7.7', 'the budget row is READ-ONLY and names the door that works',
-   !/label="Total budget"[^/]*onTap=/.test(S) &&
-   S_RAW.includes('Ask Dream Ai on WhatsApp to change your budget'));
+/* 7.7 REPLACED AT RIDER 2, LABELLED. It asserted the budget row was read-only and
+   carried a line pointing at WhatsApp. That line was FALSE — the in-app Dream room
+   runs the same engine — and it shipped without the founder's copy veto. The cell
+   now asserts the opposite state and, crucially, that the false sentence is GONE,
+   so it can never quietly return. */
+ok('7.7', 'the budget row is EDITABLE and the false WhatsApp line is gone',
+   /label="Total budget"[\s\S]{0,140}?onTap=\{openEditBudget\}/.test(S) &&
+   !S_RAW.includes('Ask Dream Ai on WhatsApp to change your budget'));
+ok('7.8', 'the budget commit sends a positive integer, never a raw string',
+   /saveProfile\(\{ budget_total: Number\(budgetDigits\) \}\)/.test(S));
+ok('7.9', 'the field cannot construct a truncating value (F-09.165 defence)',
+   /setEditBudget\(e\.target\.value\.replace\(\/\[\^0-9\]\/g,''\)\)/.test(S));
+ok('7.10', 'the register is shown back whole through the estate money home',
+   /formatRs\(Number\(budgetDigits\)\)/.test(S));
+ok('7.11', 'the action is gated on a valid budget, not merely a non-empty field',
+   /disabled=\{savingP\|\|\(editOpen==='budget'\?!budgetValid:!editDate\)\}/.test(S));
 
 /* ═══ §M · ABSENT SUBJECTS — convicted by name, never silently ═════════════ */
 section('§M · the bench read what it claims to have read');
