@@ -345,12 +345,31 @@ ok('7.6', 'THE BUDGET ROW ALWAYS RENDERS — it used to vanish when unset',
 ok('7.7', 'the budget row is EDITABLE and the false WhatsApp line is gone',
    /label="Total budget"[\s\S]{0,140}?onTap=\{openEditBudget\}/.test(S) &&
    !S_RAW.includes('Ask Dream Ai on WhatsApp to change your budget'));
-ok('7.8', 'the budget commit sends a positive integer, never a raw string',
-   /saveProfile\(\{ budget_total: Number\(budgetDigits\) \}\)/.test(S));
-ok('7.9', 'the field cannot construct a truncating value (F-09.165 defence)',
-   /setEditBudget\(e\.target\.value\.replace\(\/\[\^0-9\]\/g,''\)\)/.test(S));
-ok('7.10', 'the register is shown back whole through the estate money home',
-   /formatRs\(Number\(budgetDigits\)\)/.test(S));
+/* ── 7.8–7.10 REVERSED AT THE F-09.165 CURE, LABELLED ────────────────────────
+   These three asserted Rider 2's DEFENCE: send an integer, filter to digits, show
+   the register. That defence existed only because both writers truncated. The cure
+   removed the reason, and CE R-26.5 §C ruled the field must learn no vocabulary at
+   all — so asserting the old shape would now pin a defect in place. Reversed, and
+   the reversal is named rather than a quiet delete. */
+ok('7.8', 'the commit forwards the RAW string — the client has no opinion on budgets',
+   /saveProfile\(\{ budget_total: budgetRaw \}\)/.test(S) &&
+   !/budget_total: Number\(budgetDigits\)/.test(S));
+ok('7.9', 'the field no longer filters — she can type 4.5L because the server reads it',
+   !/setEditBudget\(e\.target\.value\.replace\(\/\[\^0-9\]\/g,''\)\)/.test(S) &&
+   /setEditBudget\(e\.target\.value\)/.test(S));
+ok('7.10', 'the register previews ONLY on a plain figure — silence when unsure',
+   /budgetPreview = \/\^\[0-9\]\+\$\/\.test\(budgetRaw\)/.test(S) &&
+   /formatRs\(Number\(budgetRaw\)\)/.test(S) &&
+   /\{budgetPreview&&<div/.test(S));
+
+/* ── the walk finding: the question must actually reach her ─────────────────── */
+ok('7.12', "the sheet shows the SERVER'S sentence when it has one",
+   /\{saveMsg\|\|"That didn't save\. Check your connection and try again\."\}/.test(S));
+ok('7.13', 'a 409 is carried as a QUESTION, not as a failure',
+   /setAsking\(!!r\.needsConfirmation\)/.test(S) && /setSaveMsg\(r\.message\|\|null\)/.test(S));
+ok('7.14', 'the question is not painted in the error colour',
+   /color:asking\?ink:'#C4534A'/.test(S));
+
 ok('7.11', 'the action is gated on a valid budget, not merely a non-empty field',
    /disabled=\{savingP\|\|\(editOpen==='budget'\?!budgetValid:!editDate\)\}/.test(S));
 

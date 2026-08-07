@@ -107,7 +107,14 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body?.error || `HTTP ${res.status}`);
+    // F-09.165 walk: the server's 409 carries Dream Ai's QUESTION as its message,
+    // and a bare Error discards everything a caller needs to tell a question from
+    // a failure. Status and body ride along; the message is unchanged, so every
+    // existing catch keeps behaving exactly as it did.
+    const err = new Error(body?.error || `HTTP ${res.status}`) as Error & { status?: number; body?: any };
+    err.status = res.status;
+    err.body = body;
+    throw err;
   }
   return res.json();
 }
@@ -513,19 +520,43 @@ export async function fetchProfile(): Promise<CoupleProfile> {
   return r?.couple ?? MOCK_PROFILE;
 }
 
+// F-09.165 WALK FINDING — this returned a bare `boolean`, so the Settings sheet
+// could only ever say "That didn't save. Check your connection and try again."
+// The founder walked it and got exactly that on a 409 whose body was Dream Ai's
+// question — a misleading sentence (her connection was fine) in place of the one
+// sentence the whole floor mechanism exists to deliver. My own in-file comment on
+// the route claimed "the question reaches her with no new UI"; I asserted a client
+// behaviour I never traced. It does now.
+export interface SaveProfileResult {
+  ok: boolean;
+  /** the server's own sentence — on a 409 this IS the question, verbatim */
+  message?: string;
+  /** true when the server is asking her to confirm, not reporting a failure */
+  needsConfirmation?: boolean;
+  /** the persisted figure, echoed by the route so the caller can compare */
+  budget_total?: number;
+}
+
 export async function saveProfile(patch: {
   name?: string; partner_name?: string; wedding_date?: string; wedding_city?: string;
-  // ATELIER RIDER 2: the route accepts budget_total as of dream-os me.js's second
-  // writer. Rupees, positive integer — the same shape brideEngine enforces, so the
-  // two doors onto couples.budget_total cannot disagree (founder's 「 no clash 」).
-  budget_total?: number;
-}): Promise<boolean> {
-  if (shouldUseMocks()) return delay(true, 600);
+  // CE R-26.5 §C: the field forwards the RAW STRING and learns no vocabulary at
+  // all. The server coerces — one seat, src/lib/coerceBudget.js — and echoes what
+  // it stored. A `number` here would mean the client had an opinion about what a
+  // budget is, and that opinion is exactly what must not exist twice.
+  budget_total?: number | string;
+}): Promise<SaveProfileResult> {
+  if (shouldUseMocks()) return delay({ ok: true }, 600);
   try {
     const id = getCoupleId();
-    await apiFetch(`/api/v2/couple/me/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
-    return true;
-  } catch { return false; }
+    const r: any = await apiFetch(`/api/v2/couple/me/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+    return { ok: true, budget_total: r?.budget_total };
+  } catch (e: any) {
+    return {
+      ok: false,
+      message: typeof e?.message === 'string' ? e.message : undefined,
+      needsConfirmation: e?.status === 409,
+    };
+  }
 }
 
 // ─── FORMATTING UTILS ──────────────────────────────────────────────────────

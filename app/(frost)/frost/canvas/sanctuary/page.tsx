@@ -898,6 +898,12 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   const [editBudget, setEditBudget] = React.useState('');
   const [savingP,  setSavingP]    = React.useState(false);
   const [saveErr,  setSaveErr]    = React.useState(false);
+  // F-09.165 walk: the founder hit the 409 floor and read "That didn't save. Check
+  // your connection and try again." — his connection was fine and the server had
+  // sent him Dream Ai's question. The sheet now shows the SERVER'S OWN SENTENCE
+  // when it has one, and only falls back to the generic line when it does not.
+  const [saveMsg,  setSaveMsg]    = React.useState<string|null>(null);
+  const [asking,   setAsking]     = React.useState(false);
 
   React.useEffect(()=>{
     fetchProfile().then(p=>setProfile(p)).catch(()=>{});
@@ -912,24 +918,38 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   function openEditBudget(){
     setSaveErr(false);
     setEditBudget(profile?.budget_total?String(profile.budget_total):'');
+    setSaveMsg(null); setAsking(false);
     setEditOpen('budget');
   }
 
-  // Digits only, client side. NOT a second validity rule — the route and the agent
-  // both run parseInt, which TRUNCATES at the first non-digit (F-09.165: "12,50,000"
-  // persists as Rs 12, live today on both surfaces). The app cannot cure that class
-  // without diverging from brideEngine, which the founder's ruling forbids and W-1
-  // protects. What it CAN do is never construct a value that would truncate.
-  const budgetDigits = editBudget.replace(/[^0-9]/g,'');
-  const budgetValid  = budgetDigits.length>0 && Number(budgetDigits)>0;
+  // CE R-26.5 §C — THE FIELD LEARNS NO VOCABULARY. Rider 2 filtered to digits as a
+  // defence while both writers still truncated; F-09.165's cure removed the reason.
+  // The raw string goes to the server, ONE seat coerces it (src/lib/coerceBudget.js),
+  // and the echo comes back. A client-side parser here would be a second opinion
+  // about what a budget is, and a second opinion is how the two doors drift apart.
+  // She can type 4.5L in the sheet now because the server understands it.
+  const budgetRaw   = editBudget.trim();
+  const budgetValid = budgetRaw.length>0;
+  // The live register is shown ONLY when the app can be certain — a plain figure.
+  // For anything else the app says nothing, because it genuinely does not know.
+  const budgetPreview = /^[0-9]+$/.test(budgetRaw) && Number(budgetRaw)>0
+    ? formatRs(Number(budgetRaw)) : null;
 
   async function commitProfile(){
-    setSavingP(true); setSaveErr(false);
-    const ok = editOpen==='budget'
-      ? await saveProfile({ budget_total: Number(budgetDigits) })
+    setSavingP(true); setSaveErr(false); setSaveMsg(null); setAsking(false);
+    const r = editOpen==='budget'
+      ? await saveProfile({ budget_total: budgetRaw })
       : await saveProfile({ wedding_date: editDate });
     setSavingP(false);
-    if(!ok){ setSaveErr(true); return; }
+    if(!r.ok){
+      // A QUESTION IS NOT A FAILURE. The sheet stays open either way, but a 409
+      // shows the server's sentence — which is Dream Ai's question, verbatim —
+      // and never the connection line.
+      setAsking(!!r.needsConfirmation);
+      setSaveMsg(r.message||null);
+      setSaveErr(true);
+      return;
+    }
     // Re-read rather than assume: the server owns the stored shape, and a date it
     // normalises differently would otherwise show stale until the next mount.
     try { const p = await fetchProfile(); setProfile(p); } catch {}
@@ -1006,20 +1026,20 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
             </div>}
             {editOpen==='budget'&&<div style={{marginBottom:FS.s2}}>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,marginBottom:FS.s1}}>Rupees</div>
-              <input inputMode="numeric" value={editBudget} placeholder="450000"
-                onChange={e=>{setEditBudget(e.target.value.replace(/[^0-9]/g,''));setSaveErr(false);}}
+              <input value={editBudget} placeholder="450000"
+                onChange={e=>{setEditBudget(e.target.value);setSaveErr(false);setSaveMsg(null);setAsking(false);}}
                 style={{width:'100%',padding:'12px 14px',background:dark?'rgba(245,229,220,.06)':'rgba(12,24,48,.05)',
                   border:`0.5px solid ${line}`,borderRadius:FI.chrome,fontFamily:"'Fraunces',serif",fontStyle:'italic',
                   fontSize:FT.body,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'}}/>
               {/* The register, shown back to her as she types — Rs X,XX,XXX, whole,
                   no shorthand. formatRs is the estate's one money home. */}
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:budgetValid?ac:inkMute,marginTop:FS.s1}}>
-                {budgetValid?formatRs(Number(budgetDigits)):'Digits only'}
-              </div>
+              {budgetPreview&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:ac,marginTop:FS.s1}}>
+                {budgetPreview}
+              </div>}
             </div>}
             {/* Errors say what happened and how to fix it — never a mood. */}
-            {saveErr&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:'#C4534A',lineHeight:1.6,marginBottom:FS.s2}}>
-              That didn't save. Check your connection and try again.
+            {saveErr&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:asking?ink:'#C4534A',lineHeight:1.6,marginBottom:FS.s2}}>
+              {saveMsg||"That didn't save. Check your connection and try again."}
             </div>}
             <button onClick={commitProfile} disabled={savingP||(editOpen==='budget'?!budgetValid:!editDate)}
               style={{width:'100%',padding:'15px 0',background:ac,border:'none',borderRadius:FI.chrome,
