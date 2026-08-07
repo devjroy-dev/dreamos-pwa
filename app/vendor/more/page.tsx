@@ -8,11 +8,22 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import Link from 'next/link';
 import { Header } from '@/components/vendor/Header';
 import { clearVendorSession } from '@/lib/vendor/session';
-// TDW_09 P2 (Paper A: "the Advisor chip pinned top per the spec's own P1") —
-// the Business/Advisor control, pinned at the top of More so the ONE surviving
-// mode control is reachable from the overflow door. Byte-untouched component;
-// only this mount is new.
-import { VictorModeChip } from '@/components/vendor/VictorModeChip';
+// ── TDW_09 · F-09.120 · ARM (a), FOUNDER-CONVICTED — THE MODE PILL IS RETIRED ─
+// 「 the mode pills looks forced and out of place. remove it 」
+// What stood here: `import { VictorModeChip }`, mounted centred at the top of
+// this page under Paper A's line "the Advisor chip pinned top". Paper A seated
+// it deliberately — it was the last reachable mode control after R-X27
+// dissolved the header slot — so this is a RETIREMENT BY RULING over a live
+// prior ruling, never a cleanup of a leftover.
+//
+// F-09.122 CURES BY THIS DELETION, WHICH IS WHY THE TWO TRAVEL TOGETHER.
+// The chip had two mounts and they had DIVERGED: this one was props-less, so
+// it flipped mode, reset no thread and published nothing; Home's carried
+// `onThreadReset` + `onMode` and did all three. Two controls with one name and
+// two behaviours is the defect, and deleting the crippled mount leaves Home's
+// well-wired chip as THE one control — one authority, the F-07.30 lesson
+// again. The COMPONENT itself is byte-untouched and still has its Home caller;
+// only this mount goes.
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -38,21 +49,16 @@ function Chevron() {
   );
 }
 
-function SectionLabel({ label, first }: { label: string; first?: boolean }) {
-  return (
-    <div style={{
-      padding: first ? '24px 24px 14px' : '32px 24px 14px',
-      display: 'flex', alignItems: 'center', gap: 12,
-    }}>
-      <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 9,
-        letterSpacing: '0.5em', textTransform: 'uppercase',
-        color: A.brass,
-      }}>{label}</span>
-      <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
-    </div>
-  );
-}
+// ── THIS FILE'S `SectionLabel` WENT CALLER-ZERO ABOVE AND IS DELETED WITH ITS
+// CALLERS. An orphaned component is an orphaned handler, only quieter.
+// READ THIS BEFORE YOU GO LOOKING FOR IT ELSEWHERE (F-09.127): `SectionLabel`
+// is defined SEVEN times independently across this estate in TWO incompatible
+// signatures — this one took `{ label, first }`, the Header's takes
+// `{ children, isLight }` — and a shared export already exists at
+// lib/vendor/studioShared. THE DELETION HERE IS FILE-SCOPED AND ONLY
+// FILE-SCOPED: nothing outside this file imported this definition, and no
+// other definition is touched by this delivery. F-09.127 is filed for the
+// duplication itself and is NOT cured here.
 
 interface Item { href?: string; label: string; description: string; glyph: string; danger?: boolean; action?: () => void; }
 
@@ -148,22 +154,17 @@ export default function MorePage() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <Header vendorName={session?.name ?? null} />
       <div style={{ flex: 1, paddingBottom: 40 }}>
-        {/* Paper A: the Advisor chip pinned top — the one mode control, reachable
-            from the overflow door. */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '18px 24px 4px' }}>
-          <VictorModeChip />
-        </div>
-        <SectionLabel label="Discover" first />
-        {DISCOVER_ITEMS.map(item => <MoreRow key={item.label} item={item} />)}
-
-        <SectionLabel label="Team" />
-        {TEAM_ITEMS.map(item => <MoreRow key={item.label} item={item} />)}
-
-        <SectionLabel label="Finance" />
-        {FINANCE_ITEMS.map(item => <MoreRow key={item.label} item={item} />)}
-
-        <SectionLabel label="Account" />
-        {ACCOUNT_ITEMS.map(item => <MoreRow key={item.label} item={item} />)}
+        {/* ── ONE MERGED LIST, PAPER A'S SEQUENCE — F-09.120 arm (a) ──────────
+            The four section labels are REMOVED-BY-RULING, not lost: with the
+            pill gone the page is a single overflow index, and four brass rules
+            over 8 rows was chrome pretending to be structure. PAPER A'S ORDER
+            IS PRESERVED EXACTLY — Discover, then Team, then Finance, then
+            Account — so nothing moves relative to anything else; only the
+            dividers between the groups go. EVERY ROW IS KEPT. The four source
+            arrays stay separate above so each keeps its own warrant comment
+            and its own witness. */}
+        {[...DISCOVER_ITEMS, ...TEAM_ITEMS, ...FINANCE_ITEMS, ...ACCOUNT_ITEMS]
+          .map(item => <MoreRow key={item.label} item={item} />)}
       </div>
     </div>
   );

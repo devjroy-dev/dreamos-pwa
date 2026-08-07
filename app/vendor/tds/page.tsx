@@ -224,9 +224,21 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
 
       <button type="button" onClick={() => setAddOpen(true)} aria-label="Add TDS entry" className="atelier-fab" style={{
         position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 10,
-        width: 54, height: 54, borderRadius: '50%',
+        // ── TDW_09 · F-09.119 CURED · founder-acknowledged 「 ok 」 ────────────
+        // 「 TDS page shows a l in place of + fab 」. The plus was set in the
+        // DISPLAY serif (Italiana) at 25px. Italiana has no drawn glyph for
+        // U+002B, so the founder's phone fell back and rendered a bare vertical
+        // bar — the control read as a lowercase L. The character was always
+        // correct; the FACE could not draw it.
+        // The cure is the HOUSE IDIOM, census-derived rather than invented:
+        // F.body at 20 in a 46x46 coin is what the three sibling FAB sites
+        // already carry, so this stops being the odd one out. THE SIZE CHANGE
+        // IS PART OF THE CURE, NOT A SIDE EFFECT — the donor idiom travels
+        // whole, because half an idiom is a new fourth variant. 54 -> 46 is
+        // visible on the walk and is meant to be.
+        width: 46, height: 46, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.display, fontSize: 25, fontWeight: 400, lineHeight: 1,
+        fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
         cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
       }}>+</button>
 

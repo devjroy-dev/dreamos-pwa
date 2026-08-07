@@ -246,8 +246,19 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
      !/updated_at/.test(ss) && !/toLocaleDateString/.test(ss));
 
   // The payment path, both arms.
-  ok('a NULL link states the truth rather than rendering a dead button',
-     /Dev will send you a payment link\./.test(ss));
+  // ── AMENDED AT TDW_09 UI VENDOR (chair relay #7) · F-09.125 · Fork A(a) ────
+  // WHAT THIS CELL USED TO ASSERT: /Dev will send you a payment link\./ — the
+  // sentence a NULL link rendered when the founder minted links by hand.
+  // Billing v2 RETIRED that mechanism and its sentence in the same commit
+  // (0be7370), so from that commit forward this cell was RED against a tree
+  // that was CORRECT. It is amended, never deleted: the QUESTION it asked is
+  // still the right one — does a vendor with no live link get the truth, or a
+  // dead button? — and only the true answer has moved.
+  // The C1 approval that would have re-worded the retired sentence is DROPPED
+  // AS MOOT by founder ruling, its render site having been retired while the
+  // approval was in flight. F-09.125 is the finding; this is its amendment.
+  ok('a NULL link opens the PICKER — the truth now, where the hand-mint sentence stood (F-09.125 amended)',
+     /!current\.subscription_link && \(/.test(ss) && /<TierPicker/.test(ss));
   ok('the link arm renders the stored Subscription Link, not a constructed URL',
      /href=\{current\.subscription_link\}/.test(ss));
   ok('the link opens out-of-app safely (noopener)', /rel="noopener noreferrer"/.test(ss));

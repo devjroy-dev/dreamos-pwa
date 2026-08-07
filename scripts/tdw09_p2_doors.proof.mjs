@@ -197,8 +197,19 @@ console.log('\n── §8 — the More door after the moves ──');
   cell('8.3', src.includes("label: 'Notes to Self'") && src.includes('/vendor/studio/notes')
            && src.includes('thoughts you’ve jotted') && src.includes("glyph: '✎'"),
     'Notes re-homed (R-X8), bytes carried verbatim from the retired hub');
-  cell('8.4', src.includes('VictorModeChip'),
-    'the Advisor chip pinned on More (Paper A)');
+  // ── AMENDED AT TDW_09 UI VENDOR (chair relay #7) · F-09.120 arm (a) ───────
+  // WHAT THIS CELL USED TO ASSERT: src.includes('VictorModeChip') — Paper A's
+  // ruling that the Advisor chip be PINNED at the top of More, so the one
+  // surviving mode control stayed reachable after R-X27 dissolved the header
+  // slot. That ruling is SUPERSEDED, not forgotten: the founder walked the
+  // result and convicted it — 「 the mode pills looks forced and out of place.
+  // remove it 」 — and F-09.122 then showed the mount was the CRIPPLED one of
+  // two (props-less: no thread reset, nothing published).
+  // The cell is INVERTED rather than dropped, because the absence now needs
+  // guarding just as the presence once did: a future edit that re-pins the chip
+  // here would silently un-rule the founder's word.
+  cell('8.4', !src.includes('VictorModeChip'),
+    'the Advisor chip is RETIRED from More (F-09.120 arm (a), superseding Paper A)');
 }
 
 // ═══ §9 — deep links: every pre-remap door answers (fork 1(a) + the stub) ═══

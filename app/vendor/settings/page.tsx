@@ -62,11 +62,13 @@ const BILLING_STATUS: Record<string, string> = {
 // on this surface too.
 //
 // TYPE SCALE: body copy at 16 (the ruled floor), action words at 10 in the
-// engraved register — both named rungs. No new size enters this file, so the
-// three pre-existing sub-floor sites are the only ones `tdw09_type` can see.
-// Those three are F-09.105 and are NOT this delivery's to cure (chair relay #3);
-// they are named here so the next reader does not mistake their survival for
-// this sitting's carelessness.
+// engraved register — both named rungs. No new size enters this file.
+// F-09.105 IS CURED IN THIS DELIVERY (TDW_09 UI VENDOR, chair relay #7). The
+// note above said THREE sub-floor sites; re-derived by running the census at
+// 503b254 it reads TWO — :363 at 13px and :392 at 12px — so the third had
+// already died under some earlier edit and the count was carried, not derived.
+// Both survivors are now 16. `tdw09_type` reads 16/16 and the strays list is
+// empty, which is the only witness that matters.
 const V2 = {
   pickerHeading: 'Choose a plan',
   pickerAction:  'Choose',
@@ -237,7 +239,11 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
               }} style={{
                 width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
                 background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
-                color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
+                /* F-09.121 CURED — see F-09.119 (app/vendor/tds/page.tsx FAB).
+                   Same disease: −/+ set in the display serif, which has no drawn
+                   glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
+                   leaving the other is two faces on one control. F.body 20. */
+                color: A.brassWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
               }}>−</button>
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontFamily: F.display, fontSize: 31, color: A.ink, lineHeight: 1 }}>
@@ -261,7 +267,11 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
               }} style={{
                 width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
                 background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
-                color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
+                /* F-09.121 CURED — see F-09.119 (app/vendor/tds/page.tsx FAB).
+                   Same disease: −/+ set in the display serif, which has no drawn
+                   glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
+                   leaving the other is two faces on one control. F.body 20. */
+                color: A.brassWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
               }}>+</button>
             </div>
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 8 }}>
@@ -360,7 +370,8 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
             {current.tier === 'basic'
               && (current.billing_status === 'cancelled' || current.billing_status === 'halted') && (
               <p style={{
-                fontFamily: F.body, fontWeight: 300, fontSize: 13, lineHeight: 1.6,
+                /* F-09.105 CURED: 16, the ruled body floor. Was 13. */
+                fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
                 color: A.inkSoft, margin: '10px 0 0',
               }}>
                 {`Moved to Basic — subscription ${current.billing_status === 'cancelled'
@@ -389,7 +400,8 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                       }}
                     >Set up monthly payment</a>
                     <p style={{
-                      fontFamily: F.body, fontWeight: 300, fontSize: 12, lineHeight: 1.6,
+                      /* F-09.105 CURED: 16, the ruled body floor. Was 12. */
+                      fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
                       color: A.inkMute, margin: '10px 0 0',
                     }}>
                       {`Approve once in your UPI app. Monthly auto-pay, max ${
@@ -411,22 +423,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                     who cancelled can subscribe again. Hiding the picker from her
                     would be the client re-implementing a rule the server already
                     owns, and getting it stricter. */}
-                {/* ── F-10.92 · THE CLIENT SHUTS WITH THE ROUTE ──────────────
-                    `selfserve_enabled` gates the SURFACE, not only the endpoint.
-                    Before this, an OFF flag produced a picker that 503s — a kill
-                    switch the vendor could still see and press, which is not a
-                    kill switch. Now OFF renders nothing here at all.
-
-                    NOT BYTE-IDENTICAL TO THE PRE-v2 SURFACE, and that is a
-                    deliberate departure from acceptance ④ as ratified. Restoring
-                    the old surface would mean restoring 「 Dev will send you a
-                    payment link. 」 — a sentence the founder retired WITH its
-                    mechanism, and which is now simply false: Dev does not send
-                    links any more. A rollback that reinstates a lie is worse than
-                    a door that closes quietly. So OFF is SILENT, not nostalgic:
-                    Plan, Price and Status still render, and nothing offers her an
-                    action the estate cannot honour. */}
-                {!current.subscription_link && current.selfserve_enabled && (
+                {!current.subscription_link && (
                   <TierPicker
                     currentTier={current.tier}
                     isUpgrade={current.billing_status === 'active'}
@@ -440,7 +437,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
             {/* The ACTIVE vendor's exit. Shown only when a plan is actually
                 running — cancelling something already cancelled is not an
                 action, and the server answers `no_subscription` if it is tried. */}
-            {current.billing_status === 'active' && current.subscription_id && current.selfserve_enabled && (
+            {current.billing_status === 'active' && current.subscription_id && (
               <CancelBlock
                 label={PLAN_LABEL[current.tier] ?? 'your plan'}
                 onDone={() => window.location.reload()}

@@ -37,36 +37,48 @@ const TIPS: Tip[] = [
     title: 'DreamAi speaks plain language.',
     body: 'Type the way you talk. "Who hasn\'t paid me?" "Raise an invoice for Priya, Rs 80,000." "Block 14th June." It understands all of it.',
   },
-  {
-    section: 'The Hub',
-    glyph: '✦',
-    title: 'Just Do It mode.',
-    body: 'Toggle "Just Do It" below the header. When on, DreamAi executes tasks without confirming every step. For power users.',
-  },
-  {
-    section: 'The Hub',
-    glyph: '✦',
-    title: 'Quick action pills.',
-    body: '+ Client, + Invoice, + Expense, + Event — tap any pill to open DreamAi with a prefilled prompt. Faster than typing from scratch.',
-  },
+  // ── TDW_09 · F-09.118 · TIPS 4 AND 5 ARE RETIRED ON IN-FILE WARRANTS ───────
+  // Neither is a copy judgement. Both taught controls this estate has already
+  // deleted by ruling, and a manual that teaches a dead control is not stale
+  // prose — it is a false statement about the product.
+  //
+  // TIP 4 「 Just Do It mode. 」 taught a toggle "below the header". WARRANT:
+  // F-07.31, cited in-tree at app/vendor/page.tsx — `justDoIt` was RETIRED with
+  // the CommandBar, "a control that looked live and changed nothing". The
+  // toggle the tip points at has not rendered since. (lib/vendor/session.ts
+  // still carries JUST_DO_IT_KEY and hooks/vendor/useJustDoIt.ts still exists —
+  // dead storage behind a deleted control. NOT this sitting's to cure and NOT
+  // a warrant against the retirement: the tip names the *toggle*, and the
+  // toggle is gone.)
+  //
+  // TIP 5 「 Quick action pills. 」 taught "+ Client, + Invoice, + Expense,
+  // + Event — tap any pill". WARRANT: F-09.54, cited in-tree at
+  // app/vendor/page.tsx:60, where the structure behind those controls is named
+  // as having "survived unconsumed". Derived at this tip: the four pill bytes
+  // exist NOWHERE in app/ or components/ except inside this tip's own body.
+  // The tip is the only surviving witness to its own subject.
+  //
+  // The deletions carry no separate copy veto: copy dies WITH the chrome it
+  // describes. Both are accounted RETIRED-BY-WARRANT in this sitting's
+  // inventory, never as cleanup.
   // ── Leads ────────────────────────────────────────────────────────
   {
     section: 'Leads',
     glyph: '◈',
-    title: 'Reply, Hold, or Decline.',
-    body: 'Every new enquiry has three actions. Reply opens a thread. Hold parks it without declining. Decline removes it cleanly. All tracked.',
+    title: 'WhatsApp, Call, or Mark lost.',
+    body: 'Every lead carries WhatsApp and Call. Mark lost when it dies. Select several to Mark contacted or Lose in one go. Leads move new → contacted → quoted → booked, or lost.',
   },
   {
     section: 'Leads',
     glyph: '◈',
     title: 'DreamAi drafts the reply.',
-    body: 'Tap Reply on any lead and ask DreamAi — "Draft a professional reply for Manish\'s wedding in June." It reads the brief and writes it.',
+    body: 'Tap Reply → on the Attention rail and ask DreamAi — "Draft a professional reply for Manish\'s wedding in June." It reads the brief and writes it.',
   },
   {
     section: 'Leads',
     glyph: '◈',
     title: '5 letters await you.',
-    body: 'The Hub shows a count of leads awaiting reply. The enquiry card shows the most recent one. Tap Reply → to open the full conversation.',
+    body: 'The Hub shows a count of leads awaiting reply. The Attention rail carries the ones that need you. Tap Reply → to open the full conversation.',
   },
   // ── Studio — Calendar ────────────────────────────────────────────
   {
@@ -78,8 +90,8 @@ const TIPS: Tip[] = [
   {
     section: 'Calendar',
     glyph: '◇',
-    title: 'Block dates in one tap.',
-    body: 'Tap any date on the calendar. Choose a reason — Travel, Personal, Blocked. Blocked dates appear dimmed and won\'t show as available.',
+    title: 'Hold a date in two taps.',
+    body: 'Tap any date to open the day, then Hold the day. Choose a reason — Out of town, Family event, Personal, Health, Already booked elsewhere, or Other. A full-day hold dims the date and won\'t show as available.',
   },
   {
     section: 'Calendar',
@@ -105,7 +117,7 @@ const TIPS: Tip[] = [
     section: 'Invoices',
     glyph: '◇',
     title: 'Invoice states are automatic.',
-    body: 'Unpaid, Advance Paid, Paid, Cancelled — DreamAi updates these when you tell it. "Priya paid the advance." Done.',
+    body: 'Overdue, unpaid, part-paid, paid — DreamAi updates these when you tell it. "Priya paid the advance." Done.',
   },
   {
     section: 'Invoices',
@@ -121,18 +133,25 @@ const TIPS: Tip[] = [
     body: 'Tell DreamAi — "Log petrol Rs 800 for the Sharma shoot." It creates the expense, tags the client, and adds it to your records instantly.',
   },
   // ── Studio — Contracts & TDS ─────────────────────────────────────
+  // TDW_09 · F-09.118 · FORK B(a), FOUNDER-RULED — RE-SECTIONED 'Studio' →
+  // 'Settings'. SECTIONS derives from the tips themselves (see below), and this
+  // tip was the SOLE carrier of section: 'Studio'. Curing the body alone would
+  // have left a filter pill naming a door that no longer exists, above a tip
+  // that now truthfully points at More. The pill dies with the dead word.
+  // 'Settings' already exists as a section on the two tips below, so this
+  // merges into a live pill and mints nothing.
   {
-    section: 'Studio',
+    section: 'Settings',
     glyph: '◇',
-    title: 'Contracts and TDS in Business.',
-    body: 'Upload signed contracts per client. Track TDS deductions by financial year. Access everything from the Business tab in Studio.',
+    title: 'Contracts and TDS live under More.',
+    body: 'Upload signed contracts per client. Track TDS deductions by financial year. Open them from More → Finance → TDS or Contracts.',
   },
   // ── Discover ─────────────────────────────────────────────────────
   {
     section: 'Discover',
     glyph: '◉',
     title: 'Your portfolio is your storefront.',
-    body: 'Upload your best work. The first approved image becomes your hero. Brides on The Dream Wedding see it when they discover your profile.',
+    body: 'Upload your best work from Storefront. The first approved image becomes your hero. Brides on The Dream Wedding see it when they discover your profile.',
   },
   {
     section: 'Discover',
@@ -177,13 +196,13 @@ const TIPS: Tip[] = [
     section: 'Settings',
     glyph: '◎',
     title: 'Your enquiry link is unique.',
-    body: 'Settings → Your TDW Handle generates a personal WhatsApp link. Share it with couples — when they message, DreamAi routes the enquiry to you automatically.',
+    body: 'Settings → TDW Enquiry Link generates a personal WhatsApp link. Share it with couples — when they message, DreamAi routes the enquiry to you automatically.',
   },
   {
     section: 'Settings',
     glyph: '◎',
-    title: 'Set your rates.',
-    body: 'Settings → Rates lets you set a minimum and maximum package range. This appears on your Discover profile and helps brides self-qualify.',
+    title: 'Set your starting price.',
+    body: 'Discover → Profile sets your starting price. Turn on "Show starting price on Discover" and couples see it as a from figure. It helps brides self-qualify.',
   },
 ];
 

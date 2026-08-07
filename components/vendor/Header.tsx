@@ -213,6 +213,23 @@ export function Header({ vendorName }: { vendorName: string | null }) {
                 screen exists now, in DISCOVER mode where it belongs. The label was always
                 this feature's name arriving early; only the destination changes. */}
             <DItem glyph="◈" label="Discover Profile"    subtitle="How couples see you" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/discover/profile'); }} />
+            {/* ── TDW_09 · F-09.118 · C2 · FORK 2(a), FOUNDER-APPROVED 「 yes 」 ──
+                THE SETTINGS DOOR, REACHABLE FROM THE COIN. Founder verbatim:
+                「 The settings is not accessible through the avatar in the top
+                right 」 — /vendor/settings existed and was reachable ONLY through
+                More → Account, so the surface a vendor reaches for by instinct
+                (her own initials) had no route to her own settings.
+                Seated in ATELIER beneath Discover Profile, which is the row it
+                belongs beside: both are "your own particulars", and the section
+                above already carries the identity register.
+                The glyph ⚙ and the subtitle's three nouns are BORROWED from the
+                More row (app/vendor/more/page.tsx, ACCOUNT_ITEMS) so one door
+                does not learn a second vocabulary — the subtitle's leading
+                capital is the founder's approved byte, not the donor's.
+                THE MORE → ACCOUNT → SETTINGS DOOR IS KEPT, by ruling. Two doors
+                to one destination is the intent here, not a duplicate: the
+                overflow list is the exhaustive index, the coin is the reflex. */}
+            <DItem glyph="⚙" label="Settings"             subtitle="Profile, billing, preferences" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/settings'); }} />
             <DItem glyph="★" label="The Dream Wedding"   isLight={isLight} onClick={() => { setProfileOpen(false); window.open('https://thedreamwedding.in', '_blank'); }} />
             <DItem glyph="◈" label="Tips &amp; Features" subtitle="Mini manual" isLight={isLight} onClick={() => { setProfileOpen(false); setTipsOpen(true); }} accent />
 
