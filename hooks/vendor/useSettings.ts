@@ -46,6 +46,10 @@ export interface SettingsState {
   // this field without assigning it below would leave every churned vendor
   // rendering as a fresh one, silently, exactly as briefing_enabled did.
   subscription_id:   string | null;
+  // F-10.92 — whether the self-serve door is open at all. Defaults FALSE, and
+  // that default is the point: a hook that could not read the flag renders a
+  // shut door. Fail-closed on the client mirrors fail-closed on the server.
+  selfserve_enabled: boolean;
   founding_cohort:   boolean;
   discover_preview:  boolean;
   // Read-only, computed backend-side from occupancy's one-home map (B6-S1):
@@ -62,6 +66,7 @@ const EMPTY: SettingsState = {
   invoice_prefix: '', routing_handle: '',
   slot_capacity: '',
   tier: '', billing_status: 'none', subscription_link: null, subscription_id: null,
+  selfserve_enabled: false,
   founding_cohort: false, discover_preview: false,
   capacity_default: null, capacity_applicable: false,
 };
@@ -120,6 +125,7 @@ export function useSettings() {
         billing_status:    v.billing_status ?? 'none',
         subscription_link: v.razorpay_subscription_link ?? null,
         subscription_id:   v.razorpay_subscription_id ?? null,
+        selfserve_enabled: v.selfserve_enabled ?? false,
         founding_cohort:  v.founding_cohort ?? false,
         discover_preview: v.discover_preview ?? false,
         capacity_default:    v.capacity_default ?? null,

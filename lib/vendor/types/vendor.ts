@@ -51,6 +51,10 @@ export interface MeResponse {
     // apart. Not a secret and not actionable — every self-serve door re-derives
     // the vendor from her own JWT and no endpoint accepts an id from the caller.
     razorpay_subscription_id: string | null;
+    // F-10.92 — the lane flag, carried so the SURFACE can shut with the route.
+    // Not a vendor attribute: an estate state, read from admin_config per request
+    // through laneFlags' own cache so the client and the server cannot disagree.
+    selfserve_enabled: boolean;
     aesthetic_tags: string[] | null;
     rate_min: number | null;
     rate_max: number | null;
