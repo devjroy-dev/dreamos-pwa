@@ -348,7 +348,7 @@ export default function Bridge() {
         <Figure label="New leads"   value={today.new_leads}   drill={DRILL.new_leads}   onDrill={drill} />
         <Figure label="Demo claims" value={today.demo_claims} drill={DRILL.demo_claims} onDrill={drill} />
         <Figure label="New vendors" value={today.new_vendors} drill={DRILL.new_vendors} onDrill={drill} tone="metal" />
-        <Figure label="Trials"      value={today.trials.active} sub="Active on the trial tier" drill={DRILL.trials} onDrill={drill} />
+        <Figure label="Basic"       value={today.trials.active} sub="On the basic tier" drill={DRILL.trials} onDrill={drill} />
         <Figure label="WA turns"    value={today.wa.turns} sub={formatRs(Math.round(totalInr * 100) / 100)} drill={DRILL.wa_turns} onDrill={drill} />
         <Figure label="Downgrades"  value={today.downgrades} sub="Provider fell back to Haiku" drill={DRILL.downgrades} onDrill={drill} tone={today.downgrades ? 'caution' : undefined} />
       </div>

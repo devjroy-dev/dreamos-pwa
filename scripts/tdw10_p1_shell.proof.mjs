@@ -169,27 +169,64 @@ const mapped = new Set(tablePaths);
 ok('every route on disk has a row in the table',
    routes.every(r => mapped.has(r)),
    routes.filter(r => !mapped.has(r)).join(', '));
-ok('every /admin row in the table is a route that exists on disk',
-   tablePaths.every(p => routes.includes(p)),
-   tablePaths.filter(p => !routes.includes(p)).join(', '));
+// ═══ LABELLED AMENDMENT · 0115, THE TIER & MONEY SITTING ═══════════════════
+// F-10.76 retired three routes WHOLE at the founder's 「 retire. 」 —
+// /admin/money, /admin/revenue, /admin/subscriptions — and left a TOMBSTONE row
+// for each in the registry. A tombstone is, by definition, a row whose route is
+// deliberately NOT on disk: the registry answers "where did it go", and it
+// cannot answer that about a page it has forgotten.
+//
+// So the old invariant is FALSIFIED BY DESIGN, and widening it to `true` would
+// be surrender. The amended invariant is STRICTER, not looser: every row is
+// either a live route on disk OR carries the RETIRED disposition. A row that is
+// neither is a genuine dangling reference and still reddens here — which is the
+// property this cell was always for. The `retiredPaths` set is derived from the
+// registry text rather than hard-coded, so the next retirement is covered
+// without touching this cell again.
+const retiredPaths = new Set(
+  [...MAP_SRC.matchAll(/path:\s*'(\/admin[^']*)'[^}]*disposition:\s*'RETIRED'/g)].map(m => m[1]));
+ok('every /admin row is EITHER a route on disk OR a labelled RETIRED tombstone',
+   tablePaths.every(p => routes.includes(p) || retiredPaths.has(p)),
+   tablePaths.filter(p => !routes.includes(p) && !retiredPaths.has(p)).join(', '));
+ok('the tombstones are exactly the three F-10.76 retired the founder ruled on',
+   retiredPaths.size === 3 &&
+   ['/admin/money', '/admin/revenue', '/admin/subscriptions'].every(p => retiredPaths.has(p)),
+   [...retiredPaths].join(', '));
+ok('NO tombstoned route survives on disk — retired means gone, not hidden',
+   [...retiredPaths].every(p => !routes.includes(p)),
+   [...retiredPaths].filter(p => routes.includes(p)).join(', '));
 // LABEL NAMES WHAT THE CELL MEASURES. This one measures the DISK — it is the
 // denominator the two cells above are checked against, and it says so. An
 // earlier draft called it "the table has 37 rows" while asserting the route
 // count; a label that describes a different quantity than the assertion is how
 // a green comes to mean nothing. Self-caught, corrected here.
-ok('the disk carries exactly 37 non-login admin routes (the denominator)',
-   routes.length === 37 && new Set(routes).size === 37, `disk=${routes.length}`);
-ok('the table carries a row for each of them and nothing else',
+// AMENDED with the cell above: the DISK denominator drops by exactly the three
+// retired routes, 37 → 34, while the TABLE stays 37 because the tombstones
+// remain. The two numbers are deliberately no longer equal, and the gap between
+// them IS the retirement — asserted as such rather than papered over.
+ok('the disk carries exactly 34 non-login admin routes (37 minus F-10.76\'s three)',
+   routes.length === 34 && new Set(routes).size === 34, `disk=${routes.length}`);
+ok('the table still carries 37 rows — the three retired persist as tombstones',
    tablePaths.length === 37 && new Set(tablePaths).size === 37,
    `table=${tablePaths.length}`);
+ok('table minus disk equals the retired count, exactly — no other row is dangling',
+   tablePaths.length - routes.length === retiredPaths.size,
+   `table=${tablePaths.length} disk=${routes.length} retired=${retiredPaths.size}`);
 
 const liveCount    = (NAV.match(/disposition:\s*'LIVE'/g)    || []).length;
 const phantomCount = (NAV.match(/disposition:\s*'PHANTOM'/g) || []).length;
 const retireCount  = (NAV.match(/disposition:\s*'RETIRES'/g) || []).length;
+const retiredCount = (NAV.match(/disposition:\s*'RETIRED'/g) || []).length;
 const corpseCount  = (NAV.match(/disposition:\s*'CORPSE'/g)  || []).length;
-ok('18 LIVE + 1 RETIRES + 18 PHANTOM = 37',
-   liveCount + retireCount + phantomCount === 37,
-   `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount}`);
+// AMENDED: three PHANTOM rows became RETIRED, so the phantom count drops 18 → 15
+// and a fourth disposition joins the sum. The TOTAL is unchanged at 37 — which is
+// the point of a tombstone, and the reason this cell is amended rather than
+// deleted: the ledger must still balance.
+ok('18 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 37',
+   liveCount + retireCount + phantomCount + retiredCount === 37,
+   `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
+ok('F-10.76 reduced the phantom ledger by exactly three (acceptance ②)',
+   phantomCount === 15 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
 ok('the dead [data-theme="dark"] block is tabled as a CORPSE, not revived and not deleted (R-A1 rider i)',
    corpseCount === 1 && /P6-SWEEP/.test(NAV) && /data-theme="dark"/.test(NAV));
 // The question is whether anything SETS the attribute — the corpse's own row

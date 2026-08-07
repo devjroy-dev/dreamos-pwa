@@ -29,9 +29,16 @@
 //            the founder's nav.
 //   RETIRES  chartered to die at a named sitting. Mounted (it works today) but
 //            carrying its death warrant, and given no palette entry.
+//   RETIRED  the page is GONE from the tree. The row survives as a TOMBSTONE so
+//            a future reader who finds the path in a bookmark, a log line, or
+//            F-07.95's ledger learns what happened to it and by whose word,
+//            instead of finding silence and re-creating it. Never mounted, never
+//            in the palette. A registry that lists only what exists cannot answer
+//            "where did it go" — which is the question a phantom ledger actually
+//            gets asked.
 //   CORPSE   dead code awaiting a sweep.
 
-export type Disposition = 'LIVE' | 'PHANTOM' | 'RETIRES' | 'CORPSE';
+export type Disposition = 'LIVE' | 'PHANTOM' | 'RETIRES' | 'RETIRED' | 'CORPSE';
 
 export type DomainKey = 'bridge' | 'growth' | 'marketplace' | 'people' | 'money' | 'engine' | 'content';
 
@@ -188,9 +195,32 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/couples',                  domain: 'people',      disposition: 'PHANTOM', note: 'Older sibling of /admin/dreamers.' },
   { path: '/admin/messages',                 domain: 'people',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend.' },
   { path: '/admin/collab',                   domain: 'people',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend. 04.5\'s Collab Hub has no admin twin.' },
-  { path: '/admin/money',                    domain: 'money',       disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend. P5 rebuilds; blocked on F-10.1 (billing_events does not exist).' },
-  { path: '/admin/revenue',                  domain: 'money',       disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend. Same blocker.' },
-  { path: '/admin/subscriptions',            domain: 'money',       disposition: 'PHANTOM', note: 'F-07.95 names an unreadable predicate AND client-minted amounts here. Do not mount before P5 reads it.' },
+  // ── TOMBSTONES · F-10.76, RETIRED at the tier & money sitting (2026-08-07) ──
+  // Founder ruling, verbatim: 「 retire. 」 · Fork F ruled RETIRE ALONGSIDE.
+  //
+  // All three fetched endpoints with ZERO server-side homes and rendered `|| 0`,
+  // so the screens named Money and Revenue displayed Rs 0 two taps from the
+  // Bridge's true revenue. They were not stale; they were CONTRADICTORY, which is
+  // worse — and they contradicted a number the founder had just watched arrive.
+  //
+  // The deeper reading, recorded here because it outlives these three rows:
+  // /api/v3 HAS NO SERVER AT ALL. src/index.js mounts /api/v2 and nothing else,
+  // while this repo carries 22 /api/v3 call sites across 10 pages — every one a
+  // guaranteed 404. That is F-10.84, FILED and HOMED TO F-07.95's sitting, not
+  // cured here: these three died because the founder ruled on them by name, and a
+  // sitting that widened its own ruling to the other seven would be legislating.
+  //
+  // CONTROL INVENTORY, taken BEFORE the delete (CE-115's law): Money carried one
+  // interactive control, an Export CSV button over `|| 0` fields —
+  // REMOVED-BY-RULING, it exported a table of zeroes. Revenue and Subscriptions
+  // carried NONE; that expected-zero is stated rather than assumed.
+  //
+  // The real Money domain is the Bridge's revenue block (P2 + the A4 rider) and
+  // the vendor's own subscription surface. TDW_10_ADMIN_FINAL §P5 rebuilds this
+  // domain properly on `billing_events`, which now exists and has rows.
+  { path: '/admin/money',                    domain: 'money',       disposition: 'RETIRED', note: 'RETIRED 2026-08-07 (F-10.76, founder 「 retire. 」). Fetched /api/v3/admin/money/overview — no server home; rendered Rs 0 beside the Bridge\'s true revenue. One Export-CSV control REMOVED-BY-RULING. P5 rebuilds on billing_events.' },
+  { path: '/admin/revenue',                  domain: 'money',       disposition: 'RETIRED', note: 'RETIRED 2026-08-07 (F-10.76, founder 「 retire. 」). Fetched /api/v2/admin/revenue — no server home. Zero interactive controls. P5 rebuilds on billing_events.' },
+  { path: '/admin/subscriptions',            domain: 'money',       disposition: 'RETIRED', note: 'RETIRED 2026-08-07 (F-10.76, Fork F ruled retire-alongside). Fetched /api/v3/admin/makers — the whole v3 namespace is unmounted (F-10.84). Zero interactive controls. Vendor subscription truth now lives on the vendor\'s own surface.' },
   { path: '/admin/health',                   domain: 'engine',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend. P4\'s health board rebuilds it.' },
   { path: '/admin/data',                     domain: 'engine',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend.' },
   { path: '/admin/control-room',             domain: 'engine',      disposition: 'PHANTOM', note: 'Name collides with the shell\'s own wordmark eyebrow; provenance unread.' },

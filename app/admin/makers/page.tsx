@@ -8,7 +8,12 @@ import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
 
-const TIERS = ['trial','essential','signature','prestige'];
+// 0115 — the ruled canon vocabulary (F-10.23). `trial` and `free` both retired;
+// `basic` is the permanent no-AI floor. Mirrors src/api/admin/vendors.js
+// VALID_TIERS and 0115's vendors_tier_check, both live at dream-os 2077214: a
+// word this dropdown offers that the backend refuses is a 400 the founder gets
+// to discover by hand, on a screen built to save him that.
+const TIERS = ['basic','essential','signature','prestige'];
 
 function fmt(d: string) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); }
 

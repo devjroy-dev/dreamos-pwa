@@ -18,11 +18,17 @@ type Group = {
 
 const GROUPS: Group[] = [
   { label: 'Vendor WhatsApp',
-    keys: ['vendor_wa_daily_trial','vendor_wa_daily_essential','vendor_wa_daily_signature','vendor_wa_daily_prestige',
-           'vendor_wa_monthly_trial','vendor_wa_monthly_essential','vendor_wa_monthly_signature','vendor_wa_monthly_prestige'] },
+    keys: ['vendor_wa_daily_basic','vendor_wa_daily_essential','vendor_wa_daily_signature','vendor_wa_daily_prestige',
+           'vendor_wa_monthly_basic','vendor_wa_monthly_essential','vendor_wa_monthly_signature','vendor_wa_monthly_prestige'] },
   { label: 'Vendor PWA',
-    keys: ['vendor_pwa_daily_trial','vendor_pwa_daily_essential','vendor_pwa_daily_signature','vendor_pwa_daily_prestige',
-           'vendor_pwa_monthly_trial','vendor_pwa_monthly_essential','vendor_pwa_monthly_signature','vendor_pwa_monthly_prestige'] },
+    // 0115 seeded the four `_basic` keys from the `_trial` values, so these rows
+    // exist and carry the founder's own numbers (witnessed on his paste:
+    // pwa 500/5000, wa 3/10). The `_trial` keys are LEFT IN PLACE in the database
+    // deliberately — deleting config is destructive — but they are no longer
+    // OFFERED here, because a dial that reaches no live tier is a dial that
+    // teaches the founder his knob does nothing.
+    keys: ['vendor_pwa_daily_basic','vendor_pwa_daily_essential','vendor_pwa_daily_signature','vendor_pwa_daily_prestige',
+           'vendor_pwa_monthly_basic','vendor_pwa_monthly_essential','vendor_pwa_monthly_signature','vendor_pwa_monthly_prestige'] },
   { label: 'Couple WhatsApp',
     keys: ['couple_wa_daily_basic','couple_wa_daily_gold','couple_wa_daily_platinum',
            'couple_wa_monthly_basic','couple_wa_monthly_gold','couple_wa_monthly_platinum'] },

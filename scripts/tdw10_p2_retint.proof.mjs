@@ -276,8 +276,27 @@ section('§5  F-10.32 — THE NUMERALS, AND THE GAP THIS CELL SET WILL NOT PAPER
   // names T.ff.display — that face is the ONLY one with old-style defaults, so
   // it is exactly the set at risk. Counted from the source, not from a literal.
   const sites = BRIDGE.match(/fontFamily: T\.ff\.display[^}]*/g) || [];
-  ok('every figure site was found by the instrument (3 expected: masthead, fee, queue)',
-     sites.length === 3, `${sites.length} found`);
+  // ═══ LABELLED AMENDMENT · 3 → 4 · ratified CE-204, carried here ═══════════
+  // The A4 rider (pwa 7e39385) added a FOURTH figure site to this masthead —
+  // the subscription revenue line — and the count literal was not moved with it,
+  // so this cell has stood red-and-attributed since. CE-204 ratified the
+  // amendment and named the walk-hotfix delivery its carrier; that delivery
+  // landed (8c1351a) WITHOUT performing it, and CE-205 re-carriered the
+  // amendment to this ZIP with the sentence 「 a carrier that does not know it is
+  // carrying is no carrier 」. This is the third attempt and the one that lands.
+  //
+  // The PROPERTY is unchanged and is the point: EVERY figure site on this
+  // masthead carries the numeral fix, and exactly one takes tabular. Those two
+  // cells below never reddened — they held at four sites as they held at three,
+  // which is why the guarded behaviour was never in doubt and only the literal
+  // had drifted. A count literal is the most brittle possible expression of
+  // "all of them", and it is kept here rather than replaced with `> 0` precisely
+  // so that the NEXT figure site added to this file also stops and asks.
+  //
+  // Re-derived at this seat rather than carried: 4 sites at pwa 2452eb5 —
+  // masthead 40px, queue 26px tabular, and the two 34px lines (fee + subscription).
+  ok('every figure site was found by the instrument (4 expected: masthead, queue, fee, subscription)',
+     sites.length === 4, `${sites.length} found`);
   ok('EVERY figure site carries lining-nums — the legibility fix',
      sites.every(s => /fontVariantNumeric: 'lining-nums/.test(s)),
      sites.filter(s => !/lining-nums/.test(s)).length + ' missing');

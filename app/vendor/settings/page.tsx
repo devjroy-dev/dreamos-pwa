@@ -17,6 +17,33 @@ import { clearVendorSession, getVendorSession, setVendorSession } from '@/lib/ve
 // screen's rendered output is unchanged; only where the code lives moved.
 import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F } from '@/components/vendor/AtelierForm';
 
+// ── M2 · THE FOUNDER-VETOED STRING SET (2026-08-07, verbatim) ───────────────
+// Hoisted deliberately: copy under founder veto lives in ONE readable block so
+// the next reader can diff it against the veto record without reading JSX. The
+// money register is law here — `Rs X,XXX`, zero rupee glyphs, zero k/L shorthand
+// (money register law). Canon prices mirror src/lib/billing/razorpay.js
+// TIER_PAISE, which pins them as integers so prose cannot drift them (F-10.63).
+const PLAN_LABEL: Record<string, string> = {
+  basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige',
+};
+const PLAN_PRICE: Record<string, string> = {
+  essential: 'Rs 999 / month',
+  signature: 'Rs 1,999 / month',
+  prestige:  'Rs 2,999 / month',
+};
+// Keyed on 0114's CHECK exactly — none, active, pending, halted, cancelled.
+// `pending` is the retry-window mercy (R-BILL.3) speaking in her own words: a
+// card that bounced once, while Razorpay is still trying, is not a demotion, and
+// telling her "nothing changes yet" is the difference between a warning and a
+// scare.
+const BILLING_STATUS: Record<string, string> = {
+  none:      'Not set up yet.',
+  active:    'Active. Renews monthly.',
+  pending:   "Payment didn't go through. Retrying — nothing changes yet.",
+  halted:    "Payment failed. You're on Basic.",
+  cancelled: "Cancelled. You're on Basic.",
+};
+
 export default function SettingsPage() {
   const router = useRouter();
   const { session, loading: sl } = useVendorSession();
@@ -255,8 +282,89 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           />
         </SCard>
 
+        {/* ── M2 · THE SUBSCRIPTION SURFACE (F-10.77's cure) ───────────────────
+            Until this section, the ONLY tier byte a vendor ever saw was a
+            read-only row. Her tier moved Prestige → Free at a cancel flip with
+            no notice, no reason, and no action — the flip wrote truth and told
+            nobody. That is F-10.77, and the flip-reason line below is its cell.
+
+            `id="tier"` is load-bearing, not decoration: src/api/vendor-engine/
+            chat.js sends `upgrade: { href: '/vendor/settings#tier' }` with every
+            capped-meter message, and until now that anchor resolved to nothing —
+            the button scrolled her to the top of a settings page and left her to
+            hunt. Named per the mechanism-comment law so whoever moves this
+            section moves the anchor with it.
+
+            EVERY string here is founder-vetoed verbatim (2026-08-07). The date
+            the first draft carried was DROPPED at his ruling: no flip timestamp
+            exists anywhere in the estate — `billing_status` has no companion
+            stamp, tierFlip.js writes none, and `vendors.updated_at` moves on any
+            profile save, so rendering it would have printed the day she edited
+            her bio as the day her plan changed. A plausible wrong date is worse
+            than no date. */}
+        <div id="tier">
+          <SCard title="Subscription">
+            <SReadRow label="Plan"  value={PLAN_LABEL[current.tier] ?? 'Basic'} />
+            <SReadRow label="Price" value={PLAN_PRICE[current.tier] ?? 'Free — no AI'} />
+            <SReadRow label="Status" value={BILLING_STATUS[current.billing_status] ?? 'Not set up yet.'} />
+
+            {/* F-10.77's cell: she is told WHAT changed and WHY, in her own
+                screen, rather than discovering it by asking Victor something and
+                getting nothing back. Rendered only when the flip actually
+                happened TO her — on the floor tier, off a lapsed rail. */}
+            {current.tier === 'basic'
+              && (current.billing_status === 'cancelled' || current.billing_status === 'halted') && (
+              <p style={{
+                fontFamily: F.body, fontWeight: 300, fontSize: 13, lineHeight: 1.6,
+                color: A.inkSoft, margin: '10px 0 0',
+              }}>
+                {`Moved to Basic — subscription ${current.billing_status === 'cancelled'
+                  ? 'cancelled' : 'stopped after failed payments'}. `}
+                Profile and leads unchanged. AI is off on Basic.
+              </p>
+            )}
+
+            {/* The payment path. R-BILL.1's Subscription Links are issued by the
+                founder per vendor from the Razorpay dashboard, so a NULL link is
+                a real and currently universal state — it says so plainly rather
+                than rendering a button that goes nowhere. */}
+            {current.billing_status !== 'active' && (
+              <div style={{ marginTop: 14 }}>
+                {current.subscription_link ? (
+                  <>
+                    <a
+                      href={current.subscription_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
+                        border: `0.5px solid ${A.brass}`, borderRadius: 2, textDecoration: 'none',
+                        fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+                        letterSpacing: '0.42em', textTransform: 'uppercase',
+                      }}
+                    >Set up monthly payment</a>
+                    <p style={{
+                      fontFamily: F.body, fontWeight: 300, fontSize: 12, lineHeight: 1.6,
+                      color: A.inkMute, margin: '10px 0 0',
+                    }}>
+                      {`Approve once in your UPI app. Monthly auto-pay, max ${
+                        PLAN_PRICE[current.tier] ? PLAN_PRICE[current.tier].split(' / ')[0]
+                                                 : 'the amount shown on the approval screen'}. `}
+                      Cancel any time from the app.
+                    </p>
+                  </>
+                ) : (
+                  <p style={{
+                    fontFamily: F.body, fontWeight: 300, fontSize: 13, lineHeight: 1.6,
+                    color: A.inkMute, margin: 0,
+                  }}>Dev will send you a payment link.</p>
+                )}
+              </div>
+            )}
+          </SCard>
+        </div>
+
         <SCard title="Account">
-          <SReadRow label="Tier" value={current.tier.charAt(0).toUpperCase() + current.tier.slice(1)} />
           {current.founding_cohort && <SReadRow label="Status" value="Founding cohort" />}
         </SCard>
 

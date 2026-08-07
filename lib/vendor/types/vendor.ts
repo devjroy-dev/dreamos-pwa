@@ -23,8 +23,28 @@ export interface MeResponse {
     upi_id: string | null;
     gstin: string | null;
     open_to_travel: boolean;
-    tier: 'trial' | 'essential' | 'signature' | 'prestige';
+    // F-10.81 — this union was ALREADY FALSE before the rename: 0114's tier flip
+    // wrote 'free' on every halt and cancel, a value this type called impossible,
+    // and tsc read zero because the value arrives at runtime from an API. 0115
+    // retires both 'trial' and 'free' into the four ruled canon words, so the
+    // union is true for the first time. Mirrors src/api/admin/vendors.js
+    // VALID_TIERS and 0115's vendors_tier_check (live, proven refusing).
+    tier: 'basic' | 'essential' | 'signature' | 'prestige';
     founding_cohort: boolean;
+    // ── 0115 · THE VENDOR'S OWN MONEY STATE (Fork H, arm (a)) ───────────────
+    // GET /api/v2/vendor/me gained these two rather than a second endpoint —
+    // ADDING fields is RETIRE-WITH-THE-READER's safe direction, so no existing
+    // surface can go dark on them. Typed here in the same arc the backend ships
+    // them, because F-10.73 and F-10.81 are the same disease: a contract that
+    // moved on one side while the other side's types said otherwise, and tsc,
+    // reading no runtime values, said nothing.
+    //
+    // `billing_status` mirrors 0114's CHECK exactly. `null` on the link is a REAL
+    // and currently COMMON answer — no Subscription Link has been issued for any
+    // vendor yet — and the surface is required to say so plainly rather than
+    // render a button that goes nowhere.
+    billing_status: 'none' | 'active' | 'pending' | 'halted' | 'cancelled';
+    razorpay_subscription_link: string | null;
     aesthetic_tags: string[] | null;
     rate_min: number | null;
     rate_max: number | null;

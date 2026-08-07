@@ -231,12 +231,12 @@ function TabVendorTiers() {
     <div>
       <SectionHeader eyebrow="Vendor (Maker) Tiers" title="The Maker operating layer." subtitle="Three tiers. Each is a full SaaS product, not just a listing." />
 
-      <NoteBanner text="Trial mechanic: Before Aug 1 2026, all new vendors get free Signature until Aug 1. After Aug 1: 30-day Signature trial → auto-downgrade to Essential. This is your founding vendor window." />
+      <NoteBanner text="Tier mechanic (2026-08-07): there is no trial. The entry rung is Basic — permanent, no clock, no AI. A paid tier that lapses drops back to Basic. The pre-Aug-1 founding window and the 30-day trial both expired and neither side was ever built." />
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <TierCard
-          tier="Essential" color="#888580" badge="Always free"
-          price={formatRs(499) + '/mo'} priceNote="Or free after trial"
+          tier="Essential" color="#888580" badge="Entry paid tier"
+          price={formatRs(999) + '/mo'} priceNote="Basic is the free rung below this"
           features={[
             'Visible in discovery feed (post-approval)',
             'Basic profile — Page 1 only',
@@ -282,11 +282,29 @@ function TabVendorTiers() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Trial Settings</p>
-        <Toggle value={true} label="Founding vendor trial active" note="All new vendors before Aug 1 2026 get free Signature. After Aug 1, switch this OFF and 30-day trial applies." />
-        <PriceField label="Trial duration (days)" value="30" note="Standard trial after Aug 1 2026." prefix="" />
-        <SelectField label="Trial tier" value="Signature" options={['Essential', 'Signature']} note="What tier vendors experience during trial. Signature recommended — they need to feel the full product." />
-        <Toggle value={true} label="Auto-downgrade after trial" note="When ON: vendors auto-drop to Essential when trial ends. They must pay to maintain Signature." />
+        {/* ── F-10.83 · THE TRIAL SETTINGS CARD IS DEAD AND NOW SAYS SO ─────────
+            Four controls stood here — "Founding vendor trial active", "Trial
+            duration (days) 30", "Trial tier Signature", "Auto-downgrade after
+            trial" — every one of them HARD-CODED, wired to nothing, describing a
+            mechanic that does not exist anywhere in either tree. There has never
+            been a trial clock: public.vendors carries no start or end column and
+            no TRIAL_DAYS constant exists in src/ (F-10.27, F-10.64). The dated
+            branch these controls narrated expired 2026-08-01, six days before
+            this sitting, and neither side of it was ever built.
+
+            CONTROL INVENTORY (CE-115), all four accounted REMOVED-BY-RULING:
+            none was wired to a reader or a writer, so none had state to preserve
+            and nothing moves by deleting them. What replaces them is the truth —
+            the founder's ruling 「 basic is free without ai and without any time
+            bound problem 」 made this card unnecessary rather than merely wrong:
+            Basic is permanent and un-clocked, so there is no duration to set and
+            no downgrade to schedule.
+
+            The interim AI lever is real and lives elsewhere: the tier-keyed cap
+            keys in Config, where 0 now genuinely means denied (F-10.85). Per-tier
+            enforcement proper is F-10.41's own W-1-gated sitting. */}
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Tier Mechanic</p>
+        <NoteBanner text="No trial exists. Basic is permanent, un-clocked, and the rung a lapsed subscription returns to. Nothing here needs setting — AI usage on Basic is regulated from the vendor cap keys in Config until per-tier enforcement ships." />
       </Card>
 
       <Card>

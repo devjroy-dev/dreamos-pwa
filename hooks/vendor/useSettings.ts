@@ -31,6 +31,12 @@ export interface SettingsState {
   slot_capacity:     string;
   // Read-only
   tier:              string;
+  // 0115 (Fork H) — the vendor's own money state, read-only. Carried here
+  // because /me is where it arrives and this hook is /me's one reader. The
+  // SURFACE that renders it is HELD for the founder's copy veto; the DATA path
+  // ships now so the surface is one edit rather than a build.
+  billing_status:    string;
+  subscription_link: string | null;
   founding_cohort:   boolean;
   discover_preview:  boolean;
   // Read-only, computed backend-side from occupancy's one-home map (B6-S1):
@@ -46,7 +52,7 @@ const EMPTY: SettingsState = {
   about: '', rate_display: true, discover_paused: false,
   invoice_prefix: '', routing_handle: '',
   slot_capacity: '',
-  tier: '', founding_cohort: false, discover_preview: false,
+  tier: '', billing_status: 'none', subscription_link: null, founding_cohort: false, discover_preview: false,
   capacity_default: null, capacity_applicable: false,
 };
 
@@ -95,6 +101,14 @@ export function useSettings() {
         invoice_prefix:   v.invoice_prefix ?? '',
         routing_handle:   v.handle ?? '',
         tier:             v.tier ?? '',
+        // 0115 (Fork H) — MAPPED, not merely declared. F-07.9's comment forty
+        // lines above is the whole argument: five fields were declared on this
+        // state and never assigned HERE, the fetch worked, the render worked, and
+        // the values were dropped at exactly this seam — one of them silently
+        // mis-rendering every opted-out vendor for a block. Typing a field is not
+        // carrying it, and this file has already paid that tuition once.
+        billing_status:    v.billing_status ?? 'none',
+        subscription_link: v.razorpay_subscription_link ?? null,
         founding_cohort:  v.founding_cohort ?? false,
         discover_preview: v.discover_preview ?? false,
         capacity_default:    v.capacity_default ?? null,
