@@ -223,10 +223,30 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   ok('the Tier read-row is REPLACED, not duplicated — one home for the plan word',
      !/SReadRow label="Tier"/.test(ss) && /SReadRow label="Plan"/.test(ss));
 
-  // The #tier anchor is load-bearing: chat.js's capped-meter message sends the
-  // vendor to /vendor/settings#tier, and before this section that anchor resolved
-  // to nothing. A cell, because an anchor is exactly the kind of thing a later
-  // refactor silently drops.
+  // ── LABELLED AMENDMENT · R-26.8 §B — TWO FALSE SENTENCES DIE, THE ASSERTION STANDS ──
+  //
+  // WHAT THIS CELL PROVES, and all it ever proved: `id="tier"` exists in
+  // app/vendor/settings/page.tsx, so the wire address /vendor/settings#tier
+  // still resolves to a page rather than 404ing. The predicate is TRUE and is
+  // untouched. Only the words around it lied, and they lied from the day they
+  // were written.
+  //
+  // FALSE SENTENCE 1, deleted: 「 before this section that anchor resolved to
+  // nothing 」 — implying it resolves to something now.
+  // FALSE SENTENCE 2, deleted from the label: 「 chat.js's Upgrade button
+  // finally lands 」.
+  //
+  // F-10.101, FOUNDER-WITNESSED at the cold-load walk (374×900, Fast 4G,
+  // 2026-08-07): the anchor DOES NOT SCROLL AND NEVER HAS. Navigating to
+  // /vendor/settings#tier puts the viewport at the top of the page — the
+  // founder's own screenshot shows BUSINESS / Your Name at rest under that URL.
+  // The mechanism: the anchored element mounts only after the /me fetch
+  // resolves inside an effect, and a browser resolves a fragment at load and
+  // does not retry on a later mutation. The executor's derivation had softened
+  // this to 「 a race 」; the walk was harder than the derivation and the walk
+  // wins. AMENDED ON A WALK, NOT ON A DERIVATION — this cell was left
+  // byte-untouched through one delivery for exactly that reason.
+  //
   // NOT RE-AIMED — this one cell's subject did not move, and that is the whole
   // point of R-26.4 Fork B. The card went to /vendor/billing; `id="tier"` STAYED
   // in app/vendor/settings/page.tsx, on the permanent signpost, because
@@ -234,12 +254,12 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // /vendor/settings#tier and the PWA cannot change that address — it arrives on
   // the wire. So this cell keeps reading SETT while its neighbours read CARD.
   //
-  // ITS SENTENCE IS UNDER SUSPICION, not amended here. 「 finally lands 」 is the
-  // claim F-10.101 disputes: the anchored element mounts only after the /me
-  // fetch resolves, so whether the browser scrolls to it is a race against the
-  // load event. Left byte-untouched pending the founder's cold-load walk —
-  // an executor does not quietly rewrite an elder's claim on a derivation.
-  ok('the #tier anchor exists — chat.js\'s Upgrade button finally lands',
+  // ⚠ RE-DERIVED AT dream-os a034537, THE CAP ZIP'S OWN TIP: chat.js still reads
+  // `href: '/vendor/settings#tier'`. The re-point has NOT happened. This cell is
+  // therefore still load-bearing, and the signpost it proves reachable is the
+  // only thing standing between a capped vendor and a dead end. A cell, because
+  // an anchor is exactly the kind of thing a later refactor silently drops.
+  ok('the #tier anchor exists — the wire address still resolves to a page carrying the signpost',
      /id="tier"/.test(strip(SETT)));
 
   // Money register law: Rs X,XXX, zero glyphs, zero shorthand.
