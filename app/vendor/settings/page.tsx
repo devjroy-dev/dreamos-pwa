@@ -471,7 +471,30 @@ function TierPicker({ currentTier, isUpgrade, onDone, show }: {
   const [picked, setPicked] = useState<string | null>(null);
   const [busy, setBusy]     = useState(false);
 
-  const tiers = ['essential', 'signature', 'prestige'].filter(t => t !== currentTier);
+  // ── F-10.91 CURED ─────────────────────────────────────────────────────────
+  // WITNESSED LIVE, on two real rows: `+918757788550` and `+918595356978`, both
+  // `tier='prestige'` with `billing_status='none'` and a NULL subscription id.
+  // Both were offered ONLY Essential and Signature. Prestige was filtered out as
+  // "her current plan" when it was nothing of the kind — an entitlement someone
+  // set by hand, with `billing_status='none'` proving no money ever landed. Every
+  // comped, hand-minted or migrated vendor sat in that state, and every one of
+  // them was locked out of paying for the tier she was already using.
+  //
+  // THE DEFECT WAS THE KEY, NOT THE FILTER. `vendors.tier` is an ENTITLEMENT —
+  // what she may use. It is NOT a record of what she is subscribed to, and this
+  // estate has no such column: the subscription's tier lives at Razorpay, and
+  // what the database keeps is the id and the status. Reading an entitlement as
+  // if it were a purchase is the whole bug, and the fix is to stop asking it that
+  // question.
+  //
+  // `isUpgrade` ALREADY CARRIES THE TRUTH and was sitting one line away:
+  // `billing_status === 'active'` means a live mandate exists. If it does, her
+  // paid tier drops out of the picker — re-buying the plan you are currently
+  // paying for is not an offer. If it does not, she has nothing live, so nothing
+  // is filtered and all three are offered, including the one her entitlement
+  // happens to name. No new column, no new wire field, no schema.
+  const tiers = ['essential', 'signature', 'prestige']
+    .filter(t => !(isUpgrade && t === currentTier));
 
   async function go(tier: string) {
     setBusy(true);
