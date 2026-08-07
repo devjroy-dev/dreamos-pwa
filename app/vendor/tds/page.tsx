@@ -3,6 +3,7 @@
 // FY selector, summary card, entries list, CSV export, log entry FAB.
 
 import { useEffect, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -286,7 +287,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
             <button type="button" onClick={doCreate} disabled={!canCreate || saving} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canCreate && !saving) ? 'pointer' : 'default',
               border: '0.5px solid var(--atelier-label)',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (canCreate && !saving) ? 1 : 0.5, marginTop: 6,
             }}>{saving ? 'Saving…' : 'Log Entry'}</button>

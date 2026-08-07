@@ -20,6 +20,7 @@
 //   bypass the bus; these callers refetch through their owners).
 
 import { useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { A, F, cap } from './SliceRow';
 
@@ -144,7 +145,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
                   flex: 1, padding: '11px 14px', borderRadius: 2, cursor: saving ? 'default' : 'pointer',
                   border: '0.5px solid var(--atelier-label)', opacity: saving ? 0.6 : 1,
                   background: saving ? 'rgba(201,168,76,0.18)' : undefined,
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>{saving ? 'Filing…' : 'File it'}</button>
               )}

@@ -7,6 +7,7 @@
 // P3 injects the wishbone. Not yet.
 
 import type { ReactNode } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import { A, F, LABELS, cap, type Row } from './SliceRow';
 
@@ -81,7 +82,7 @@ export function DetailSheet({
               <button type="button" onClick={() => sel && onEditHere(sel)} className="atelier-fab" style={{
                 flex: 1, padding: '12px 16px', borderRadius: 2, cursor: 'pointer',
                 border: '0.5px solid var(--atelier-label)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Edit Here</button>
 
@@ -136,7 +137,7 @@ export function DetailSheet({
                   background: deleting ? 'rgba(224,123,92,0.4)' : A.red,
                   border: 'none', borderRadius: 2,
                   cursor: deleting ? 'default' : 'pointer',
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>{deleting ? 'Working…' : 'Confirm'}</button>
               </div>

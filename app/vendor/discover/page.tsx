@@ -10,6 +10,7 @@
 // Otherwise a warm-sunset gradient stands in.
 
 import { useEffect, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 // TDW_07 P2 · CE ruling §F — the floor comes from the server when it speaks, from the
 // one comment-bound constant when it does not. This screen used to hold the number twice.
@@ -277,7 +278,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
                   fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                  color: '#1A120E', letterSpacing: '0.5em', textTransform: 'uppercase',
+                  color: INK_DEEP, letterSpacing: '0.5em', textTransform: 'uppercase',
                 }}>
                 Request Access
               </button>
@@ -361,7 +362,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
                   fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                  color: '#1A120E', letterSpacing: '0.42em', textTransform: 'uppercase',
+                  color: INK_DEEP, letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}>
                 Re-apply
               </button>
@@ -391,7 +392,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
                   fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                  color: '#1A120E', letterSpacing: '0.42em', textTransform: 'uppercase',
+                  color: INK_DEEP, letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}>
                 Re-apply
               </button>

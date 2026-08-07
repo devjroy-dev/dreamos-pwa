@@ -279,9 +279,26 @@ ok('§8.3 the TWO remaining shared bytes live on, on the screens that kept them'
 // ═════════════════════════════════════════════════════════════════════════════
 H('§9 · R-O5 · THE R-X24 ROW RULE AT BOTH ACCEPTANCE SHOTS');
 
-const rows = L.match(/alignItems: 'baseline', borderBottom/g) || [];
-ok('§9.1 BOTH phone rows align on baseline, not centre',
+// ── TDW_09 P2C · L3 · LABELLED AMENDMENT (the p4b §6.8 shape, as P2B used it) ──
+// The property is UNCHANGED; its ADDRESS moved. O-1 hand-rolled R-X24's shape
+// inline while rowBaseline()/rowGlyphSlot() sat caller-zero in lib/vendor/controls.ts
+// (F-07.52's class). P2C retires the duplicate onto its own primitive, so these
+// cells re-aim at the primitive and assert the SAME properties there.
+// STRENGTHENED, per F-09.93(ii)'s precedent: the retired local literal's ABSENCE is
+// now asserted too, so a resurrection of the hand-rolled copy REDDENS instead of
+// silently restoring the duplication this limb ended.
+const rows = L.match(/\.\.\.rowBaseline\(\), borderBottom/g) || [];
+ok('§9.1 BOTH phone rows align on baseline, not centre — via the canon primitive',
   rows.length === 2, `found ${rows.length} baseline phone rows, expected 2`);
+
+ok('§9.1b the hand-rolled baseline duplicate is RETIRED and does not return',
+  !/alignItems: 'baseline', borderBottom/.test(L),
+  'the local literal row shape is back — the duplicate F-07.52 convicted has resurrected');
+
+ok('§9.1c the primitive is imported from the canon module, not redefined locally',
+  /import \{[^}]*\browBaseline\b[^}]*\} from '@\/lib\/vendor\/controls'/.test(L) &&
+  !/function rowBaseline/.test(L),
+  'rowBaseline is defined locally again instead of being consumed from controls.ts');
 
 ok('§9.2 no phone row is left on centre alignment',
   !/alignItems: 'center', borderBottom/.test(L),
@@ -293,10 +310,35 @@ ok('§9.3 the shared line-height reaches BOTH the dial code and the digits',
 
 ok('§9.4 the flag sits in a FIXED SQUARE SLOT, out of text alignment entirely',
   /function FlagSlot/.test(L) && (L.match(/<FlagSlot flag=\{country\.flag\} \/>/g) || []).length === 2 &&
-  /width: 20, height: 20, flexShrink: 0/.test(L),
+  /\.\.\.rowGlyphSlot\(20\)/.test(L),
   'the flag still participates in text alignment, where no rule can reach its box');
 
-ok('§9.5 the rule is applied INLINE — no canon primitive was minted under this charter (R-O5)',
+ok('§9.4b the hand-rolled glyph-slot duplicate is RETIRED and does not return',
+  !/width: 20, height: 20, flexShrink: 0/.test(L),
+  'the local slot literal is back — and it lacks alignSelf, the primitive\'s own law');
+
+// TDW_09 P2C · THE DECLARED DELTA, ASSERTED RATHER THAN NARRATED. The primitive
+// carries alignSelf:'center'; O-1's local copy did not. That clause is the reason
+// a glyph slot exists at all, so it prevails and it MOVES THE FLAG. This cell pins
+// the clause at its owner so a future 'tidy' cannot drop it back to the old shape.
+ok('§9.4c the glyph slot takes itself OUT of the row baseline (alignSelf), at the owner',
+  /alignSelf: 'center'/.test(read('lib/vendor/controls.ts')),
+  'rowGlyphSlot lost alignSelf — the slot is back inside text alignment');
+
+// CITATION-NEEDS-A-CELL: the landing file keeps its own ROW_LINE_HEIGHT for the
+// TEXT NODES (the primitive styles the row, not its children). Two constants that
+// must agree and are declared in different files is a drift waiting to happen, so
+// the agreement is asserted rather than assumed.
+ok('§9.4d the local text line-height AGREES with the primitive\'s row line-height',
+  /const ROW_LINE_HEIGHT = 1\.5/.test(L) &&
+  /lineHeight: 1\.5/.test(read('lib/vendor/controls.ts')),
+  'ROW_LINE_HEIGHT and rowBaseline() have drifted apart — the line-boxes no longer agree');
+
+// LABELLED: R-O5 forbade minting a canon primitive UNDER THAT CHARTER. P2C adopts
+// the primitive P1 already minted at lib/vendor/controls.ts — a different charter and
+// a different act. R-O5's actual bar (no components/canon/Row.tsx) is unchanged and
+// still asserted; only the cell's title was made false by the adoption.
+ok('§9.5 no canon Row component was minted under R-O5\'s charter (the rule now rides P1\'s primitive)',
   !fs.existsSync(path.join(ROOT, 'components/canon/Row.tsx')),
   'the canon Row primitive was minted here; its home is the canon sitting');
 
@@ -509,13 +551,20 @@ okMutate('§M.9 §8.1 reds if a roster string reappears on the surface',
   LANDING, '>Resend code</button>', '>Resend code</button>{/*x*/}<span>Request an Invite →</span>',
   () => assert.ok(ROSTER.filter(s => code(LANDING).includes(s)).length === 0), '§8.1');
 
-okMutate('§M.10 §9.2 reds if a phone row returns to centre alignment',
-  LANDING, "<div style={{ display: 'flex', alignItems: 'baseline', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>\n                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'baseline', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>\n                    <FlagSlot flag={country.flag} />\n                    <span style={{ fontFamily: \"'DM Sans', sans-serif\", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>\n                  </button>\n                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\\D/g, '').slice(0, country.maxDigits))} type=\"tel\" maxLength={country.maxDigits} placeholder=\"00000 00000\" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />\n                </div>\n                {role === 'Maker' && (",
+// LABELLED AMENDMENT — the anchor was the RETIRED literal block, so the mutation
+// became unapplicable the moment L3 landed (found 0). Re-aimed at the primitive's
+// shape; the mutation still drives the row back to hand-rolled CENTRE alignment,
+// which is the regression §9 exists to catch, and now §9.1b convicts the
+// resurrection of the duplicate as well.
+okMutate('§M.10 §9.1/§9.1b red if a phone row returns to a hand-rolled centre row',
+  LANDING, "<div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>\n                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>\n                    <FlagSlot flag={country.flag} />\n                    <span style={{ fontFamily: \"'DM Sans', sans-serif\", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>\n                  </button>\n                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\\D/g, '').slice(0, country.maxDigits))} type=\"tel\" maxLength={country.maxDigits} placeholder=\"00000 00000\" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />\n                </div>\n                {role === 'Maker' && (",
   "<div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>\n                </div>\n                {role === 'Maker' && (",
   () => {
     const c = code(LANDING);
-    assert.ok(!/alignItems: 'center', borderBottom/.test(c) && (c.match(/alignItems: 'baseline', borderBottom/g) || []).length === 2);
-  }, '§9.2');
+    assert.ok(!/alignItems: 'center', borderBottom/.test(c) &&
+              (c.match(/\.\.\.rowBaseline\(\), borderBottom/g) || []).length === 2 &&
+              !/alignItems: 'baseline', borderBottom/.test(c));
+  }, '§9.1');
 
 okMutate('§M.11 §10.4 reds if a ThemeProvider reaches the landing and the hold comment goes stale',
   'app/(landing)/layout.tsx', 'export default function LandingLayout',

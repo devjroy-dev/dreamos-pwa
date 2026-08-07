@@ -11,6 +11,7 @@
 // numbers are ink — the received hairline is this screen's brass, within law.
 
 import { useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import type { CabinetBinder, BinderEditFields } from '@/lib/vendor/api/vendor';
 import { editBinder } from '@/lib/vendor/api/vendor';
@@ -109,7 +110,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
             padding: '14px 0', borderRadius: 2, marginTop: 4,
             border: '0.5px solid var(--atelier-label)',
             cursor: dirty && !saving ? 'pointer' : 'default',
-            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
             letterSpacing: '0.42em', textTransform: 'uppercase',
             background: !dirty || saving ? 'rgba(201,168,76,0.18)' : undefined,
             opacity: !dirty || saving ? 0.6 : 1,
@@ -296,7 +297,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             <button type="button" onClick={askVictor} className="atelier-fab" style={{
               flex: 1, padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
               border: '0.5px solid var(--atelier-label)',
-              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
               letterSpacing: '0.32em', textTransform: 'uppercase',
             }}>Ask in chat</button>
             <button type="button" onClick={() => setEditOpen(true)} style={{

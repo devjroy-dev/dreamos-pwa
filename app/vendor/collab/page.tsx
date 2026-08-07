@@ -5,6 +5,7 @@
 // detail lines, atelier-fab buttons, atelier sheet for the post form.
 
 import { useEffect, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -187,7 +188,7 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
           <button type="button" onClick={() => setShowForm(true)} className="atelier-fab" style={{
             padding: '8px 14px', borderRadius: 2, cursor: 'pointer',
             border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             flexShrink: 0, marginTop: 8,
           }}>+ Post</button>
@@ -335,7 +336,7 @@ function OpportunityCard({ post, onRespond }: {
           className="atelier-fab" style={{
             flex: 2, padding: '11px 0', borderRadius: 2,
             border: '0.5px solid var(--atelier-label)', cursor: working ? 'default' : 'pointer',
-            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: working ? 0.6 : 1,
           }}>Interested</button>
@@ -639,7 +640,7 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
           <button type="button" onClick={submit} disabled={saving} className="atelier-fab" style={{
             width: '100%', padding: '14px 0', borderRadius: 2, border: '0.5px solid var(--atelier-label)',
             cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
-            color: '#1A120E', letterSpacing: '0.5em', textTransform: 'uppercase', opacity: saving ? 0.6 : 1,
+            color: INK_DEEP, letterSpacing: '0.5em', textTransform: 'uppercase', opacity: saving ? 0.6 : 1,
           }}>{saving ? 'Saving…' : 'Add to roster'}</button>
         </div>
       </div>
@@ -862,7 +863,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
               <button type="button" onClick={handleSubmit} disabled={submitting} className="atelier-fab" style={{
                 width: '100%', padding: '14px 0', borderRadius: 2,
                 border: '0.5px solid var(--atelier-label)', cursor: submitting ? 'default' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 opacity: submitting ? 0.6 : 1,
               }}>{submitting ? 'Posting…' : 'Post'}</button>

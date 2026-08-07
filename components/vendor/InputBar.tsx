@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const LINE_HEIGHT = 20;
@@ -84,7 +85,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           }}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-            stroke={inNote ? '#1A120E' : T.inkDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            stroke={inNote ? (T.isLight ? '#F5F2EE' : INK_DEEP) : T.inkDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9" />
             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
           </svg>
@@ -121,7 +122,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           : T.isLight ? 'rgba(139,75,55,0.12)' : 'rgba(201,168,76,0.15)',
         cursor: canSend ? 'pointer' : 'default',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        color: canSend ? '#1A120E' : T.inkDim,
+        color: canSend ? (T.isLight ? '#F5F2EE' : INK_DEEP) : T.inkDim,  // F-09.102: brassGrad ground themes
         fontFamily: 'var(--font-italiana), Georgia, serif',
         fontSize: 16, lineHeight: 1, fontWeight: 400,
         boxShadow: canSend

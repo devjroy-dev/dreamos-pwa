@@ -12,6 +12,7 @@
 // design system is locked (protocol §4) and neither screen may mint its own palette.
 
 import React from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 
 export const A = {
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
@@ -95,7 +96,7 @@ export function SaveBtn({ dirty, loading, onSave }: { dirty: boolean; loading: b
       alignSelf: 'flex-end', padding: '8px 16px', borderRadius: 2,
       border: '0.5px solid var(--atelier-label)',
       cursor: loading || !dirty ? 'default' : 'pointer',
-      fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+      fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
       letterSpacing: '0.36em', textTransform: 'uppercase',
       background: !dirty || loading ? 'rgba(201,168,76,0.18)' : undefined,
       opacity: loading || !dirty ? 0.6 : 1,

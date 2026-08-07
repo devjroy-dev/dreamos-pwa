@@ -1,6 +1,7 @@
 'use client';
 import { FilingChip } from '@/components/vendor/FilingChip';
 import { useEffect, useRef, useState } from 'react';
+import { pressedStyle, touchBox44 } from '@/lib/vendor/controls';
 import { MessageBubble } from './MessageBubble';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
@@ -29,6 +30,27 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
   // InputBar's own disabled pattern. A second tap would file a second finding against the
   // same turn and inflate the very measurement this week exists to take.
   const [reported, setReported] = useState<Record<string, boolean>>({});
+  // ── TDW_09 P2C · L2 — F-09.22's touch floor + F-09.21's pressed acknowledgment
+  //    on the two chat chips. KEYED, not boolean: the clarify chips render from a
+  //    .map and the report chip is per-message, so one shared boolean would light
+  //    every chip at once. One keyed press state per file, no new shared API —
+  //    the same law the sanctuary hook implements, at a surface that needs only
+  //    the state. Reduced-motion read inline, mirroring app/vendor/page.tsx.
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  const pressHandlers = (key: string) => ({
+    onPointerDown: () => setPressedKey(key),
+    onPointerUp: () => setPressedKey(null),
+    onPointerCancel: () => setPressedKey(null),
+    onPointerLeave: () => setPressedKey(null),
+  });
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -136,8 +158,16 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                   key={i}
                   type="button"
                   onClick={() => onChipTap(value, label)}
+                  {...pressHandlers(`clarify:${m.id}:${i}`)}
                   style={{
+                    // height 32 is UNMOVED — touchBox44 grows the hit box with
+                    // transparent padding and cancels it with negative margin, so
+                    // the visible chip is byte-identical. The spread sits BESIDE
+                    // the height, never replacing it.
                     height: 32, paddingInline: 14,
+                    ...touchBox44(32),
+                    ...pressedStyle(pressedKey === `clarify:${m.id}:${i}`, reducedMotion),
+                    WebkitTapHighlightColor: 'transparent',
                     background: 'var(--atelier-input-bg)',
                     border: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.40)' : 'rgba(201,168,76,0.45)'}`,
                     borderRadius: 2,
@@ -168,8 +198,13 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                   setReported((prev) => ({ ...prev, [m.id]: true }));
                   try { await onReportGlitch?.(); } catch { /* the chip never throws at the vendor */ }
                 }}
+                {...pressHandlers(`report:${m.id}`)}
                 style={{
+                  // height 30 UNMOVED — see the clarify chip's note.
                   height: 30, paddingInline: 12,
+                  ...touchBox44(30),
+                  ...pressedStyle(pressedKey === `report:${m.id}` && !reported[m.id], reducedMotion),
+                  WebkitTapHighlightColor: 'transparent',
                   background: 'transparent',
                   border: `0.5px dashed ${T.isLight ? 'rgba(122,56,40,0.35)' : 'rgba(201,168,76,0.38)'}`,
                   borderRadius: 2,
@@ -202,8 +237,17 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                     key={i}
                     type="button"
                     onClick={() => onChipTap(opt.value, opt.label)}
+                    {...pressHandlers(`suggest:${m.id}:${i}`)}
                     style={{
+                      // F-09.103 — the THIRD sub-44 chip in this file. The charter's
+                      // L2 named two; this one routes through the same onChipTap and
+                      // was on no roster. Adopting two and declaring the floor held
+                      // would leave the bench asserting a floor the file does not have.
+                      // Height 30 UNMOVED, as above.
                       height: 30, paddingInline: 12,
+                      ...touchBox44(30),
+                      ...pressedStyle(pressedKey === `suggest:${m.id}:${i}`, reducedMotion),
+                      WebkitTapHighlightColor: 'transparent',
                       background: 'transparent',
                       border: `0.5px dashed ${T.isLight ? 'rgba(122,56,40,0.35)' : 'rgba(201,168,76,0.38)'}`,
                       borderRadius: 2,

@@ -3,6 +3,7 @@
 // Promo slot submissions. Gated on featured_eligible.
 
 import { useEffect, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -89,7 +90,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           </div>
           <button type="button" onClick={() => router.push('/vendor/discover')} className="atelier-fab" style={{
             padding: '12px 24px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
             letterSpacing: '0.42em', textTransform: 'uppercase',
           }}>Apply for Discover</button>
         </div>
@@ -115,7 +116,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         {eligible && (
           <button type="button" onClick={() => setFormOpen(true)} className="atelier-fab" style={{
             padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Apply</button>
         )}
@@ -191,7 +192,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               <button type="button" onClick={doSubmit} disabled={submitting} className="atelier-fab" style={{
                 width: '100%', padding: '14px 0', borderRadius: 2,
                 border: '0.5px solid var(--atelier-label)', cursor: submitting ? 'default' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 opacity: submitting ? 0.5 : 1,
               }}>{submitting ? 'Submitting…' : 'Submit'}</button>

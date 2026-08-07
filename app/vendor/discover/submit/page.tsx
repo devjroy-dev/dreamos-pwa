@@ -3,6 +3,7 @@
 // Step 1 rates · Step 2 aesthetic tags · Step 3 pitch
 
 import { useEffect, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useVendorMe } from '@/hooks/vendor/useVendorMe';
@@ -279,7 +280,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
             style={{
               width: '100%', padding: '14px 0', borderRadius: 2,
               border: '0.5px solid var(--atelier-label)', cursor: 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
               letterSpacing: '0.5em', textTransform: 'uppercase',
             }}>Continue</button>
         ) : (
@@ -299,7 +300,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               width: '100%', padding: '14px 0', borderRadius: 2,
               border: '0.5px solid var(--atelier-label)',
               cursor: (submitting || pitch.trim().length === 0) ? 'default' : 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
               letterSpacing: '0.5em', textTransform: 'uppercase',
               opacity: (submitting || pitch.trim().length === 0) ? 0.5 : 1,
             }}>{submitting ? 'Submitting…' : 'Submit Application'}</button>

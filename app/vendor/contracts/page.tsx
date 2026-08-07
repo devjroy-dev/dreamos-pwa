@@ -3,6 +3,7 @@
 // PDF storage. List + upload + detail sheet with state transitions.
 
 import { useEffect, useState, useRef } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -207,7 +208,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
             <button type="button" onClick={doUpload} disabled={!canUpload || uploading} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canUpload && !uploading) ? 'pointer' : 'default',
               border: '0.5px solid var(--atelier-label)',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (canUpload && !uploading) ? 1 : 0.5, marginTop: 6,
             }}>{uploading ? uploadProgress || 'Uploading…' : 'Upload'}</button>
@@ -245,7 +246,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
               <button type="button" onClick={() => doDownload(selected)} className="atelier-fab" style={{
                 flex: '1 1 100%', padding: '13px 0', borderRadius: 2, cursor: 'pointer',
                 border: '0.5px solid var(--atelier-label)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
                 letterSpacing: '0.42em', textTransform: 'uppercase',
               }}>Download</button>
               {selected.state === 'draft' && (

@@ -4,6 +4,7 @@
 // Dismissible per session but always accessible via profile.
 
 import { useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const F = {
@@ -228,7 +229,7 @@ export function TipsCarousel({ onClose }: Props) {
   const ctaBg      = isLight
     ? 'linear-gradient(180deg, #9B4E38 0%, #7A3828 100%)'
     : 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
-  const ctaColor   = isLight ? '#F5F2EE' : '#1A120E';
+  const ctaColor   = isLight ? '#F5F2EE' : INK_DEEP;
   const pillActive = isLight
     ? { bg: 'rgba(122,56,40,0.12)', border: 'rgba(122,56,40,0.40)', color: T.accent }
     : { bg: 'rgba(201,168,76,0.14)', border: 'rgba(201,168,76,0.45)', color: 'var(--role-metal)' };

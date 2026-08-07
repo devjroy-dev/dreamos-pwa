@@ -27,6 +27,7 @@
 // P2's own precedent for the photo floor.
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -837,7 +838,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             cursor: (uploading || full) ? 'default' : 'pointer',
             border: '0.5px solid var(--atelier-label)',
             fontFamily: F.label, fontWeight: 400, fontSize: 9,
-            color: '#1A120E', letterSpacing: '0.32em', textTransform: 'uppercase',
+            color: INK_DEEP, letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: (uploading || full) ? 0.5 : 1,
           }}>
           {uploading ? progress : '+ Upload'}
@@ -978,7 +979,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                     background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
                     border: '0.5px solid var(--atelier-label)',
                     fontFamily: F.label, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
-                    color: '#1A120E', letterSpacing: '0.28em',
+                    color: 'var(--role-ink-on-metal)', letterSpacing: '0.28em',  // F-09.102: ground is var(--role-metal), which themes
                   }}>{COPY.E1}</div>
                 )}
                 {stateLabel(img.approval_state) && (

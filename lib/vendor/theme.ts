@@ -67,6 +67,42 @@ export interface ThemeTokens {
   accentText: string;
 }
 
+// ── TDW_09 P2C · L4 — INK_DEEP, THE INK THAT SITS ON BRASS ──────────────────
+// Thirty-four sites across the vendor lane wrote the literal `#1A120E` as the
+// text colour of a brass control (the `.atelier-fab` class and its kin). It was
+// never one of F-09.28's nineteen theme-blind literals, and the reason is the
+// whole reason this is a CONSTANT and not a ThemeTokens field:
+//
+//   THE GROUND DOES NOT THEME. `brass` is '#C9A84C' in DARK and '#C9A84C' in
+//   LIGHT — identical, deliberately, because brass is a material and not a
+//   lightness. An ink whose ground does not theme must not theme either. A
+//   per-theme INK_DEEP would be two names for one value, and the next sitting
+//   would "fix" the divergence by inventing one.
+//
+// DERIVED, not assumed: #1A120E on #C9A84C measures 8.08:1 — clear of the 4.5
+// body bar and the 3:1 UI bar with room to spare. On brassWarm (#E0BC6E) it is
+// 10.19:1. Both computed at this seat, never carried.
+//
+// MECHANISM (F-06.85's law — the sentence names the mechanism it depends on so
+// the mechanism's next sitting is forced to re-read this one): the 8.08:1 above
+// is computed AGAINST `brass`/`metal` = #C9A84C, declared below in BOTH token
+// objects and mirrored at --role-metal in globals.css. IF BRASS MOVES, THIS
+// VALUE IS RE-DERIVED. It is not a free constant; it is a constant that owes a
+// number to another constant.
+//
+// CITATION-NEEDS-A-CELL: the sentence above cites a donor by value, so the donor
+// is asserted by its own bench cell — scripts/tdw09_p2c.proof.mjs §1.3 pins
+// brass at #C9A84C in DARK and LIGHT and reddens if either moves. A derivation
+// that cites a value nothing guards is a comment, not a derivation.
+//
+// NOT ADOPTED, and the distinction matters: two sites already read
+// `isLight ? '#F5F2EE' : '#1A120E'` (OnboardingOverlay, TipsCarousel). Their
+// DARK arm adopts this constant; their light arm stays cream, because those two
+// controls sit on an OXBLOOD ground on Editorial Paper, not a brass one. They
+// are the in-product precedent F-09.100's cure follows — see globals.css's
+// --role-today-coin-ink.
+export const INK_DEEP = '#1A120E';
+
 export const DARK: ThemeTokens = {
   ink:        '#F0E6D2',            // 14.35:1 on pageBg
   inkSoft:    'rgba(240,230,210,0.65)', //  6.65:1

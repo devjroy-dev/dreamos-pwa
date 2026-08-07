@@ -5,6 +5,7 @@
 // Storage: 'dreamai_tour_v2'
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const STORAGE_KEY = 'dreamai_tour_v2';
@@ -213,7 +214,7 @@ export function OnboardingOverlay({ onSend }: Props) {
   const ctaBg         = isLight
     ? 'linear-gradient(180deg, #9B4E38 0%, #7A3828 100%)'
     : 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
-  const ctaColor      = isLight ? '#F5F2EE' : '#1A120E';
+  const ctaColor      = isLight ? '#F5F2EE' : INK_DEEP;
   const topAccent     = isLight
     ? `linear-gradient(90deg, transparent, ${T.accent}55, transparent)`
     : 'linear-gradient(90deg, transparent, rgba(201,168,76,0.45), transparent)';

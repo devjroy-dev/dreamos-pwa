@@ -3,6 +3,7 @@
 // Availability + appointments. Gated on couture_eligible.
 
 import { useEffect, useState } from 'react';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
@@ -109,7 +110,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         {tab === 'availability' && eligible && (
           <button type="button" onClick={() => setAddOpen(true)} className="atelier-fab" style={{
             padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>+ Slot</button>
         )}
@@ -200,7 +201,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               width: '100%', padding: '14px 0', borderRadius: 2,
               border: '0.5px solid var(--atelier-label)',
               cursor: (saving || !slotAt || !feeInr) ? 'default' : 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (saving || !slotAt || !feeInr) ? 0.5 : 1,
             }}>{saving ? 'Saving…' : 'Add Slot'}</button>

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE } from '../../lib/api';
+import { rowBaseline, rowGlyphSlot } from '@/lib/vendor/controls';
 // F-05.9: signup + returning-no-PIN moved off the dead Supabase Phone-OTP (Twilio) onto
 // the backend Meta OTP endpoints (send-otp / verify-otp / provision). No browser Supabase
 // client is needed on this screen anymore.
@@ -182,9 +183,20 @@ const ROW_LINE_HEIGHT = 1.5;
 
 function FlagSlot({ flag }: { flag: string }) {
   return (
+    // TDW_09 P2C · L3 — RETIREMENT, NOT ADOPTION. O-1 hand-rolled R-X24's entire
+    // cure shape here while rowGlyphSlot() sat in controls.ts with ZERO callers —
+    // F-07.52's class live again (a definition with no call-site fooled this estate
+    // for a whole block). This is the duplicate being retired onto its own primitive.
+    // ONE DECLARED DELTA, not buried: the primitive carries `alignSelf: 'center'`,
+    // which the local copy lacked. That clause IS the primitive's law — a glyph slot
+    // must not participate in the row's baseline alignment — so it prevails, and it
+    // moves the flag. Founder's specimen ② baseline shot is the acceptance.
+    // `flex: 'none'` supersedes the local `flexShrink: 0` (strictly stronger: it also
+    // zeroes flex-grow and sets basis auto). The fontSize/lineHeight/translateY below
+    // are the GLYPH's optics, not the slot's geometry, and stay local by design.
     <span style={{
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: 20, height: 20, flexShrink: 0, fontSize: 16, lineHeight: 1,
+      ...rowGlyphSlot(20),
+      fontSize: 16, lineHeight: 1,
       transform: 'translateY(2px)',
     }}>{flag}</span>
   );
@@ -795,8 +807,8 @@ export default function Home() {
                 <Label text="Phone number" />
                 {/* R-O5 · R-X24 ACCEPTANCE SHOT ① — baseline row, shared line-height,
                     the flag in a fixed square slot. Measured ~1px above before. */}
-                <div style={{ display: 'flex', alignItems: 'baseline', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'baseline', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
                     <FlagSlot flag={country.flag} />
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
                   </button>
@@ -877,8 +889,8 @@ export default function Home() {
                 </div>
                 <Label text="Phone number" />
                 {/* R-O5 · R-X24 ACCEPTANCE SHOT ② — the same rule, second surface. */}
-                <div style={{ display: 'flex', alignItems: 'baseline', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, display: 'flex', alignItems: 'baseline', gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
                     <FlagSlot flag={country.flag} />
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
                   </button>

@@ -146,7 +146,30 @@ const isInvariantSurface = (src) =>
   /background:\s*'(#[0-9a-fA-F]{6}|rgba\([^']+\))'/.test(src) &&
   !/color:\s*'var\(--/.test(src) && !/const GOLD = 'var\(--/.test(src) &&
   !/color:\s*`?\$\{/.test(src) && !/useT\(/.test(src) &&
-  !/from '@\/lib\/vendor\/(theme|ThemeContext)'/.test(src);
+  !themeConsumingImport(src);
+
+// ── LABELLED AMENDMENT · TDW_09 P2C · F-09.104 ──────────────────────────────
+// The predicate used "imports from theme.ts" as its PROXY for "consumes a theme".
+// That proxy was sound for its whole life and stopped being sound at P2C: INK_DEEP
+// is the first export of that module which is theme-INVARIANT BY CONSTRUCTION (its
+// ground, brass, is #C9A84C in both themes — see lib/vendor/theme.ts). A file whose
+// only theme import is INK_DEEP consumes no theme, so counting it as a consumer
+// made AtelierForm.tsx appear to LEAVE F-09.79's accidentally-invariant set on a
+// delivery that changed nothing about its invariance.
+// The amendment narrows the proxy to what it always meant, and does NOT widen the
+// exemption: any OTHER symbol from either theme module still disqualifies, and a
+// file importing INK_DEEP *alongside* anything else is still a consumer.
+function themeConsumingImport(src) {
+  const re = /import\s*\{([^}]*)\}\s*from\s*'@\/lib\/vendor\/(?:theme|ThemeContext)'/g;
+  let m, any = false;
+  while ((m = re.exec(src)) !== null) {
+    any = true;
+    const syms = m[1].split(',').map(s => s.trim()).filter(Boolean);
+    if (syms.some(s => s !== 'INK_DEEP')) return true;   // a real theme consumer
+  }
+  // a bare/namespace import from the theme module is a consumer; INK_DEEP-only is not
+  return any ? false : /from '@\/lib\/vendor\/(theme|ThemeContext)'/.test(src);
+}
 const RULED_INVARIANT = new Map([
   ['components/vendor/Splash.tsx',  'R-M4 — a 2.2s brand gate, ruled to read identically on both themes'],
   ['app/vendor/pin-login/page.tsx', 'R-M6 — the photo-slide gate grammar, matching app/(landing)'],

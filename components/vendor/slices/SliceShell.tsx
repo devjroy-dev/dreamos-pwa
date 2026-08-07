@@ -12,6 +12,7 @@
 // Zero behavior change is the P1 contract.
 
 import { useRouter } from 'next/navigation';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
@@ -709,7 +710,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               background: pdfBusy ? 'rgba(201,168,76,0.18)' : undefined,
               border: '0.5px solid var(--atelier-label)', borderRadius: 3,
               cursor: pdfBusy ? 'default' : 'pointer', opacity: pdfBusy ? 0.6 : 1,
-              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#1A120E',
+              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
               letterSpacing: '0.28em', textTransform: 'uppercase',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}>
@@ -788,7 +789,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 }} disabled={scheduleSaving} className="atelier-fab" style={{
                   padding: '5px 10px', borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
-                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: '#1A120E',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: INK_DEEP,
                   letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
                 }}>Paid</button>
               )}
@@ -1033,7 +1034,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       padding: '14px 0', borderRadius: 2,
                       border: '0.5px solid var(--atelier-label)',
                       cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
-                      fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#1A120E',
+                      fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
                       letterSpacing: '0.42em', textTransform: 'uppercase',
                       background: !canSave || scheduleSaving ? 'rgba(201,168,76,0.18)' : undefined,
                       opacity: !canSave || scheduleSaving ? 0.6 : 1,

@@ -6,6 +6,7 @@
 // Same data, same hooks, same logic. Only the surface changes.
 
 import { useRouter } from 'next/navigation';
+import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useState } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useEventsData, useEventsWindow } from '@/hooks/vendor/useVendorData';
@@ -511,7 +512,10 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 aspectRatio: '1',
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontFamily: F.display, fontWeight: 400, fontSize: 20, lineHeight: 1.5,
-                color: isToday ? '#1A120E' : (isSel ? '#1A120E' : A.ink),
+                // isToday: F-09.100 — the coin's ground THEMES (brass -> oxblood), so the numeral
+                //   follows the coin's own declared cream via its role. isSel: the selection
+                //   pill is a NON-theming cream literal, 13.30:1 / 15.70:1 — a true INK_DEEP site.
+                color: isToday ? 'var(--role-today-coin-ink)' : (isSel ? INK_DEEP : A.ink),
                 opacity: isFullDayBlocked ? 0.45 : 1,   // a partial hold still sells — no dim (interim until pips)
               }}>
               {/* Today brass coin (behind numeral) */}
