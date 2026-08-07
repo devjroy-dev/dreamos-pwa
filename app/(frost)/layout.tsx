@@ -15,8 +15,8 @@
 // the bar's own exported height, so the reservation can never drift from the
 // thing it reserves.
 
-import React, { Suspense, createContext, useContext, useEffect, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import BrideBar, { barIsSeatedOn, BRIDE_BAR_HEIGHT } from '../../components/frost/BrideBar';
 import {
   HomeModeKey, ContentMode, ModeDescriptor, MuseLook, MODES,
@@ -52,21 +52,8 @@ export const useFrostMode = () => useContext(FrostCtx);
 
 
 export default function FrostLayout({ children }: { children: React.ReactNode }) {
-  // `useSearchParams` requires a Suspense ancestor or Next bails the whole route
-  // to client rendering at build. FrostShell holds the hooks; this wrapper holds
-  // the boundary, seated ONCE so the bar, this layout and sanctuary's deep-link
-  // reader all sit inside it rather than each growing its own.
-  return (
-    <Suspense fallback={null}>
-      <FrostShell>{children}</FrostShell>
-    </Suspense>
-  );
-}
-
-function FrostShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const room      = useSearchParams().get('room');
-  const barSeated = barIsSeatedOn(pathname, room);
+  const barSeated = barIsSeatedOn(pathname);
   const [homeMode,    setHome]    = useState<HomeModeKey>('E3');
   const [contentMode, setContent] = useState<ContentMode>('dream');
 

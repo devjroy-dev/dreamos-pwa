@@ -11,7 +11,6 @@ import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
 // Same URL. Same component. Sanctuary is always underneath.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useFrostMode } from '../../../layout';
 import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
@@ -3975,11 +3974,6 @@ export default function SanctuaryPage() {
 
   // Bloom state
   const [activeRoom, setActiveRoom]   = useState<RoomKey>(null);
-  // The deep link's source. `useSearchParams` and not `window.location` because
-  // it is REACTIVE: a bar tap from Home to Discover changes the query without
-  // remounting this page, and a window read would never see it. The layout
-  // already carries the Suspense boundary this hook asks for.
-  const roomParam = useSearchParams().get('room');
   const [blooming,   setBlooming]     = useState(false);
   const [closing,    setClosing]      = useState(false);
   const touchStartY = useRef(0);
@@ -4305,41 +4299,6 @@ function timeAgoShort(iso:string):string {
     setBlooming(true);
     setClosing(false);
   },[]);
-
-  // ── TDW_09 P4 · F-09.146's CURE · F-09.142's CURE — THE DEEP LINK ──────────
-  // ONE guarded effect, chair-ruled. It uses the conductor's OWN FRONT DOOR
-  // (`openRoom`) and edits NOTHING inside the open/close choreography — the
-  // choreography stays frozen and sacred (TDW_13 F-1); this is a caller, not a
-  // change.
-  //
-  // WHY IT EXISTS: `activeRoom` was local state with no URL reader (F-09.142),
-  // so no surface outside this file could open a named bloom. The bride bar's
-  // Discover door needs exactly that, and the alternative — a second Discover
-  // surface at another route — is what F-09.146 convicted.
-  //
-  // ABSENT PARAM = TODAY'S BEHAVIOUR, BYTE-IDENTICAL. With no `?room=`, the
-  // effect reads null, matches no key, and returns having done nothing.
-  //
-  // VALIDATED, NEVER TRUSTED: the param must match one of BASE_SLICES' own
-  // keys. An unknown or hostile value opens nothing.
-  //
-  // FIRES ONCE PER ARRIVAL, NOT ONCE PER MOUNT — DEVIATION FROM THE RULING'S
-  // WORDING, DISCLOSED: a mount-only effect would work from four of the five
-  // doors and silently fail from the fifth. Tapping Discover while already on
-  // Home is a client-side push to the SAME pathname; React does not remount the
-  // page, so a `[]` effect never re-fires and the room never opens. The guard
-  // ref makes it once-per-distinct-param instead, which is the same protection
-  // (she can close the room and it will not spring back) without the hole. The
-  // chair may strike this line for the strict form; the hole comes back with it.
-  const deepLinkRef = useRef<string|null>(null);
-  useEffect(()=>{
-    const param = roomParam;
-    if(!param) return;
-    if(deepLinkRef.current === param) return;
-    if(!BASE_SLICES.some(sl=>sl.key===param)) return;
-    deepLinkRef.current = param;
-    openRoom(param as RoomKey);
-  },[roomParam,openRoom]);
 
   const closeRoom = useCallback(()=>{
     setClosing(true);
