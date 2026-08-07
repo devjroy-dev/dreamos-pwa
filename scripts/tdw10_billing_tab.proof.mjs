@@ -218,5 +218,55 @@ sec('§7 · THE COPY, AND THE PURE MOVE');
     '[GUARD] FORK D — the vetoed money block moved WHOLE and register-clean, nothing is left behind, and the card has exactly ONE caller');
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§8 · F-10.108 — THE OFFER REACHES HER BEFORE SHE PICKS (R-26.16)');
+{
+  // SITE 1, one cell for one ruled property: the line exists verbatim, is
+  // RENDERED (a constant nobody renders is a byte that ships and never speaks),
+  // and is seated ABOVE the tier rows — because it is true of all three tiers
+  // uniformly, so a seat inside the map would be three claims where the ruling
+  // made one.
+  const iHeading = crd.indexOf('V2.pickerHeading');
+  const iOffer   = crd.indexOf('V2.offer');
+  const iRows    = crd.indexOf('tiers.map');
+  cell('8.1', /offer: 'First month free\. Full price from the second month\.'/.test(CARD)
+           && /\{V2\.offer\}/.test(crd)
+           && iHeading > -1 && iOffer > iHeading && iRows > -1 && iOffer < iRows,
+    'the founder-ruled offer line exists verbatim, is rendered, and is seated under the heading ABOVE all three tier rows');
+
+  // SITE 2 WAS REJECTED. This cell exists so the rejected change stays rejected:
+  // a later sitting that "helpfully" adds the offer to the confirm sentence
+  // would be shipping unvetoed copy on the money surface.
+  cell('8.2', /`This opens a Razorpay page to approve \$\{label\} — \$\{price\}\. You approve once; it renews every month until you cancel\.`/.test(CARD)
+           && !/free/i.test(crd.split('confirm:')[1]?.split('cancelWarn:')[0] ?? 'free'),
+    'V2.confirm is BYTE-UNCHANGED — the rejected Site 2 stayed rejected');
+
+  // MONEY REGISTER on the new string specifically, not the file at large.
+  // NON-VACUITY, PAID FOR BY RUNNING. This cell's first draft asserted only
+  // NEGATIVES against `lineWith(...)`, and at the uncured tree that helper
+  // returns '' — an absent string satisfies every "does not contain" test, so
+  // the cell was GREEN where the byte did not exist. The line must be PRESENT
+  // before its register can mean anything. Second vacuity self-caught in this
+  // bench; both were caught by the red run, neither by reading.
+  const offerLine = lineWith(crd, 'offer:');
+  cell('8.3', /First month free/.test(offerLine)
+           && !/₹/.test(offerLine) && !/\d\s*[kKlL]\b|\bCr\b/.test(offerLine)
+           && !/Rs/.test(offerLine),
+    'money register holds on the new byte — present, and zero ₹, zero k/L/Cr, naming no figure at all');
+
+  // ── DISCLOSED ADDITION · §D ratified THREE cells here; this is a FOURTH ─────
+  // §C ruled the warrant 「 part of the deliverable 」 and named it the thing
+  // that turns this from an oversight into a decision. An unasserted comment is
+  // one tidy-up away from gone, and the moment it goes, the next reader finds
+  // Rs 2 in the ledger, reads 「 free 」, and files a defect against a founder
+  // ruling — the exact trap §C describes. F-06.85's own logic, and the same
+  // shape as cell 6.2, which asserts the #tier retirement condition.
+  cell('8.4', /i know indian mindset|market-register judgment/.test(CARD)
+           && /countsAsRevenue/.test(CARD)
+           && /Rs 2/.test(CARD)
+           && /F-10\.109/.test(CARD),
+    '[GUARD] F-06.85 — the warrant survives at the byte: the Rs 2, that it is BOOKED not refunded, the founder\u2019s ground, and .109\u2019s scope limit');
+}
+
 console.log(`\n════ tdw10_billing_tab: ${pass} passed, ${fail} failed (total ${pass + fail}) ════`);
 process.exit(fail === 0 ? 0 : 1);

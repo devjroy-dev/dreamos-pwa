@@ -74,7 +74,51 @@ const BILLING_STATUS: Record<string, string> = {
 // engraved register — both named rungs. No new size enters this file.
 const V2 = {
   pickerHeading: 'Choose a plan',
+  // ── F-10.108 · SITE 1 · FOUNDER-RULED 「 the free trial stays. no Rs. 2. i
+  //    know indian mindset 」 (R-26.16 §A) ─────────────────────────────────────
+  //
+  // ⚠ READ THIS BEFORE YOU FILE 「 free 」 AS A DEFECT. IT IS A DECISION.
+  //
+  // THE FIRST CYCLE IS NOT ZERO. It is Rs 2, configured at the plan level in the
+  // Razorpay dashboard — which is why dream-os `createSubscription` passes no
+  // `start_at`, no trial and no `offer_id`, and why grepping the tree for a free
+  // period finds nothing. The tree's silence is not evidence here; the authority
+  // lives outside it.
+  //
+  // AND THAT Rs 2 IS KEPT, not refunded. dream-os `src/lib/billing/razorpay.js`,
+  // `countsAsRevenue`, fires on `subscription.charged` + `captured` + amount > 0,
+  // so the first cycle is BOOKED AS REVENUE — it is the estate's own first
+  // rupees (CE-204's Bridge reading Rs 2). The payment Razorpay refunds is the
+  // authentication token on `subscription.authenticated`, a DIFFERENT event
+  // excluded from revenue by name. So a future reader who finds Rs 2 in the
+  // ledger and this word on the screen has found exactly what the executor found
+  // and reported: 「 free 」 is false by two rupees.
+  //
+  // THE FOUNDER RULED IT ANYWAY, KNOWING ALL OF THE ABOVE — it was carried to
+  // him twice — on a market-register judgment about how the offer reads to an
+  // Indian vendor. That judgment is his and not the estate's to relitigate. This
+  // comment exists so the next session inherits the DECISION rather than
+  // rediscovering the derivation and filing a defect against a ruling.
+  //
+  // WHAT IS SAFE HERE AND WHAT IS NOT: the first cycle genuinely GRANTS HER TIER
+  // — `tierFromPlan` resolves off `plan_id` FIRST and never consults
+  // `TIER_PAISE`, so a 200-paise charge maps to her real plan rather than
+  // writing `tier: null` with `billing_status: 'active'`. That was checked, not
+  // assumed. If anyone ever makes the amount table the primary resolver, this
+  // sentence and that cure die together.
+  //
+  // SCOPE: this line speaks for the SUBSCRIBE path only. Whether the free cycle
+  // applies on an UPGRADE between tiers is F-10.109, flagged and NOT chartered
+  // (founder: 「 this is for a much later build 」), which is why
+  // `upgradeExplain` below is byte-untouched and says nothing about it.
+  offer: 'First month free. Full price from the second month.',
   pickerAction:  'Choose',
+  // BYTE-UNCHANGED, AND THAT IS A RULING (R-26.16 §B). A first draft proposed
+  // naming the offer here too; the founder has not seen that byte, so adding it
+  // would ship unvetoed copy on the estate's money surface. The conservative arm
+  // and the ruled arm coincide. Her last read before the mandate screen is the
+  // ongoing price with no mention of the free month — flagged to the founder,
+  // his to reopen.
   confirm: (label: string, price: string) =>
     `This opens a Razorpay page to approve ${label} — ${price}. You approve once; it renews every month until you cancel.`,
   cancelWarn: (label: string) =>
@@ -324,6 +368,17 @@ function TierPicker({ currentTier, isUpgrade, onDone, show }: {
         fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
         letterSpacing: '0.42em', textTransform: 'uppercase', marginBottom: 12,
       }}>{V2.pickerHeading}</div>
+
+      {/* F-10.108 · SITE 1 — the offer, where she can read it BEFORE she picks.
+          It sits above the three rows rather than inside any one of them because
+          it is true of all three uniformly; one string, one home. The warrant for
+          the word 「 free 」 is at the string itself, in the V2 block above.
+          Body 16 and inkSoft — both already on this surface (the confirm
+          paragraph's own rungs). No new size enters this file. */}
+      <p style={{
+        fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
+        color: A.inkSoft, margin: '0 0 12px',
+      }}>{V2.offer}</p>
 
       {tiers.map(t => (
         <div key={t} style={{ marginBottom: 10 }}>
