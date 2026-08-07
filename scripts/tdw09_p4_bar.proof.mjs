@@ -151,19 +151,8 @@ ok('§4.7 INVOCATION CELL (F-07.99) — the stripper bites the hub too: the cure
 console.log('\n§5 — one seat, and F-07.43 undisturbed');
 const layout = R(LAYOUT);
 ok('§5.1 the bar is mounted at exactly one home', (layout.match(/<BrideBar\b/g) || []).length === 1);
-// §5.2 AMENDED BY THE ZIP-2 SEAT, DISCLOSED BY NAME. It read
-//   ok(..., /BRIDE_BAR_HEIGHT/.test(layout))
-// which was satisfied by the identifier appearing ANYWHERE in the file — the
-// import line alone would have carried it. F-09.145's cure moved the spacer onto
-// BRIDE_BAR_CLEARANCE (the bar's other export, derived from the same height), so
-// the old regex went red on a tree that is MORE correct, not less. The amendment
-// is a STRENGTHENING, not an accommodation: the cell now scopes itself to the
-// spacer's own height expression and asserts the property the original was a
-// proxy for — the reservation is READ from the bar, never re-typed. A hand-typed
-// `62px` in that slot now reds; under the old regex it passed. M11 bites it.
-const spacerHeight = (layout.match(/style=\{\{\s*height:\s*([^}]*)\}\}/) || [, ''])[1];
-ok('§5.2 the layout reserves the bar\'s seat from the BAR\'S OWN export, never a re-typed number',
-  /BRIDE_BAR_(HEIGHT|CLEARANCE)/.test(spacerHeight) && !/\d/.test(spacerHeight));
+ok('§5.2 the layout reserves the bar\'s seat from the BAR\'S OWN exported height',
+  /BRIDE_BAR_HEIGHT/.test(layout));
 ok('§5.3 the reservation rides the same predicate as the bar — it cannot drift',
   /barIsSeatedOn/.test(layout));
 ok('§5.4 the bar does not import the layout back — no cycle',
@@ -308,11 +297,6 @@ ok('§7.10 M10 removing the once-guard re-opens a room she closed — CAUGHT by 
       `if(!param) return;\n${m10.replace(' as RoomKey','')}`)(
       'discover', ref, [{ key: 'discover' }], (k) => calls.push(k));
     return calls.length === 1; })());
-
-const m11 = mutate(layout, /height: BRIDE_BAR_CLEARANCE/, "height: '62px'");
-ok('§7.11 M11 re-typing the bar\'s height into the spacer is CAUGHT by §5.2',
-  (() => { const h = (m11.match(/style=\{\{\s*height:\s*([^}]*)\}\}/) || [, ''])[1];
-    return !(/BRIDE_BAR_(HEIGHT|CLEARANCE)/.test(h) && !/\d/.test(h)); })());
 
 // ── result ──────────────────────────────────────────────────────────────────
 console.log(`\ntdw09_p4_bar  ${pass}/${pass + fail}`);

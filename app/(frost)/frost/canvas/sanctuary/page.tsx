@@ -30,7 +30,6 @@ import { pressedStyle } from '@/lib/vendor/controls';
 // gesture mechanics arrive here through their SHARED homes — never as a second copy.
 import VendorProfileView, { IgChip, FeaturedEyebrow } from '@/components/shared/VendorProfileView';
 import ImageDots from '@/components/shared/ImageDots';
-import { BRIDE_BAR_CLEARANCE } from '@/components/frost/BrideBar';
 import { imgUrl, lqipUrl } from '@/lib/frost-api/img';
 import {
   SWIPE_THRESHOLD, SWIPE_VELOCITY, TAP_MAX_MOVE, TAP_MAX_TIME, DOUBLE_TAP_MS,
@@ -4335,55 +4334,21 @@ function timeAgoShort(iso:string):string {
   const deepLinkRef = useRef<string|null>(null);
   useEffect(()=>{
     const param = roomParam;
-    // ── C-2 · THE GUARD MUST RESET, OR THE CURE KILLS ITS OWN FINDING ────────
-    // `deepLinkRef` was set once and never cleared. That was harmless only
-    // because nothing ever cleared the param either. The moment closeRoom
-    // starts stripping `?room=` (F-09.147, below), this sequence appears:
-    //   tap Discover -> opens, ref='discover'
-    //   close        -> param gone, ref STILL 'discover'
-    //   tap Discover -> param='discover' === ref -> early return -> NOTHING
-    // The Discover door would open exactly once per page load — F-09.146
-    // regressed by the very cure that descends from it. The param going absent
-    // is the honest signal that the room is closed, so it is what resets.
-    if(!param){ deepLinkRef.current = null; return; }
+    if(!param) return;
     if(deepLinkRef.current === param) return;
     if(!BASE_SLICES.some(sl=>sl.key===param)) return;
     deepLinkRef.current = param;
     openRoom(param as RoomKey);
   },[roomParam,openRoom]);
 
-  // ── F-09.147 · THE LINK READS BOTH WAYS ───────────────────────────────────
-  // `?room=` was WRITE-ONLY: the bar wrote it, the effect above read it, and
-  // nothing ever took it back. Close the room and the URL still claimed it, the
-  // bar still lit DISCOVER, and a refresh re-opened a room she had closed.
-  //
-  // replaceState, not push and not router.replace: the room is not a history
-  // stop (that is the trap's whole architecture below), so it must not leave a
-  // step behind. `window.history.state` is carried through UNCHANGED so the
-  // trap's own sentinel marker survives the rewrite. Next 16 syncs
-  // `useSearchParams` off this call, which is why the bar's lamp follows.
-  const clearRoomParam = useCallback(()=>{
-    if(typeof window === 'undefined') return;
-    const u = new URL(window.location.href);
-    if(!u.searchParams.has('room')) return;
-    u.searchParams.delete('room');
-    window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
-  },[]);
-
   const closeRoom = useCallback(()=>{
-    clearRoomParam();
-    // Belt AND braces, deliberately: the effect above resets the guard when the
-    // param goes absent, and this line resets it at the source. If a future
-    // Next release stops syncing useSearchParams off replaceState, the reset
-    // still happens here and the door still opens twice.
-    deepLinkRef.current = null;
     setClosing(true);
     setTimeout(()=>{
       setActiveRoom(null);
       setBlooming(false);
       setClosing(false);
     },300);
-  },[clearRoomParam]);
+  },[]);
 
   // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
   // Opens the Dream bloom and prefills the input with the suggested prompt.
@@ -4418,23 +4383,18 @@ function timeAgoShort(iso:string):string {
     window.history.pushState({tdw:'s',n:2}, '', url);
 
     const onPop = (e: PopStateEvent) => {
-      // ── C-1 · THE SENTINEL MUST NOT RE-WRITE A STALE URL ──────────────────
-      // `url` above is captured at MOUNT and closed over. Every back press used
-      // to re-push that frozen string, so any later replaceState — F-09.147's
-      // clear, most of all — was silently undone and `?room=discover` came back
-      // from the dead. The room closes here AND the param is cleared here, and
-      // only then is the sentinel pushed, against a LIVE read.
+      // Always push a fresh sentinel to trap the back press
+      window.history.pushState({tdw:'s',n:Date.now()}, '', url);
+      // Close room if open
       if(activeRoomRef.current !== null){
-        clearRoomParam();
         setClosing(true);
         setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); },300);
       }
-      window.history.pushState({tdw:'s',n:Date.now()}, '', window.location.pathname + window.location.search);
     };
 
     window.addEventListener('popstate', onPop);
     return ()=>{ window.removeEventListener('popstate', onPop); };
-  },[clearRoomParam]);
+  },[]);
 
   // Swipe down to close
   const touchStartX = useRef(0);
@@ -4537,11 +4497,7 @@ function timeAgoShort(iso:string):string {
 
   // ── SANCTUARY ─────────────────────────────────────────────────────────────
   return (
-    <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any,
-      // ── F-09.145's CURE · CLEARANCE #1, THE SHELL ───────────────────────────
-      // PADDING, not a shorter box: the painted box stays full-bleed so the bar's
-      // glass has this surface to blur, and only the CONTENT box steps back.
-      paddingBottom:BRIDE_BAR_CLEARANCE}}>
+    <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any}}>
 
       {/* Grain */}
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>
@@ -4658,42 +4614,11 @@ function timeAgoShort(iso:string):string {
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           ref={bloomRef}
-          style={{
-            // ── F-09.145's CURE · CLEARANCE #2, THE ROOM CONTAINER ────────────
-            // `inset:0` was the bug's second half and it is not redundant with
-            // the shell's padding: an absolutely-positioned child resolves its
-            // offsets against its containing block's PADDING BOX, so `bottom:0`
-            // here meant the viewport floor no matter what padding the shell
-            // carried. The bloom — and therefore the deck, and therefore the
-            // vendor panel whose Lock Date / Circle row the founder watched get
-            // sliced — has to be told the floor separately. One constant, one home.
-            position:'absolute',top:0,left:0,right:0,bottom:BRIDE_BAR_CLEARANCE,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden'}}
+          style={{position:'absolute',inset:0,zIndex:100,display:'flex',flexDirection:'column',background:roomBg,overflow:'hidden'}}
         >
           {/* Room top bar */}
           <div style={{position:'relative',zIndex:10,background:roomTopBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderBottom:`0.5px solid ${roomLine}`,paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',paddingBottom:12,paddingLeft:18,paddingRight:18,display:'flex',alignItems:'center',flexShrink:0}}>
-            {/* ── F-09.148 · THE CHROME THAT COULD NOT BE HIT ─────────────────
-                Founder, verbatim: 「 nothing happpens. no clock. 」 This control
-                was `padding:0` around a 14px glyph and an 8px line, so its box
-                was about 14px tall. A thumb that misses a 14px target lands on
-                the bar `div` behind it, which has no handler — zero close, zero
-                acknowledgment, exactly the report. The bar this room sits under
-                has taught `minHeight:48` since F-09.136; this control never got
-                the lesson.
-
-                LAYOUT-NEUTRAL BY CONSTRUCTION: 44px of box with -15px top and
-                bottom margins is a 14px MARGIN box — the same 14px the bar has
-                always laid out — so the target grows into the top bar's own
-                padding and the room chrome does not move by a pixel. The
-                negative left margin keeps the glyph optically at the bar's 18px
-                gutter while the target reaches past it.
-
-                THE PRESSED STATE IS ALSO THE INSTRUMENT (F-09.21's law, owed to
-                this control like every other): 「 no clock 」 was a report of
-                zero feedback, and until this ships a received tap and a missed
-                tap look identical. If the press shows and the room stays, the
-                patient is the state, not the target — and the next report can
-                say so. */}
-            <button onClick={closeRoom} {...press('room:back')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,minHeight:44,padding:'0 14px',marginTop:-15,marginBottom:-15,marginLeft:-14,touchAction:'manipulation',WebkitTapHighlightColor:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute,...pressed('room:back')}}>
+            <button onClick={closeRoom} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
               Sanctuary
             </button>
