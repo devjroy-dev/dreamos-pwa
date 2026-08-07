@@ -102,7 +102,17 @@ sec('§2 · F-07.84 — the devtools bypass is dead at BOTH gates');
   ok('§2.1 the layout gate no longer reads the boolean',
      !/getItem\(\s*['"]admin_session['"]\s*\)/.test(layout));
   ok('§2.2 the layout gate demands a real session', /hasAdminSession\(\)/.test(layout));
-  ok('§2.3 sign-out clears the real session', /clearAdminSession\(\)/.test(layout));
+  // ── §2.3 RE-AIMED BY LABELLED AMENDMENT (WALK HOTFIX MICRO, relay #2 §1) ───
+  // The property under test is UNCHANGED — sign-out clears the real session —
+  // and the cell count is preserved (34). What moved is the CONTROL: F-10.74
+  // retired the sidebar-foot text button and hung the same handler on a power
+  // glyph at two seats (sidebar header + #m-bar). The old assertion was a bare
+  // `/clearAdminSession\(\)/` over the whole file, which the layout's own auth
+  // gate satisfies on its own — it would have stayed green with every sign-out
+  // control deleted. That is the vacuity this amendment closes: the cell now
+  // demands the handler hang on a control that carries the accessible name.
+  ok('§2.3 sign-out clears the real session — asserted at the CONTROL, both seats',
+     (layout.match(/clearAdminSession\(\); router\.replace\('\/admin\/login'\)[\s\S]{0,400}?aria-label="Sign out"/g) || []).length === 2);
 
   const dh = stripComments(read('app/admin/discover-heroes/page.tsx'));
   ok('§2.4 THE SECOND READER: discover-heroes no longer reads the boolean',

@@ -38,6 +38,8 @@ import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
 import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
 import { Meter } from '@/components/vendor/ProfileMeter';
+// ── WALK HOTFIX MICRO · F-09.111 — the late-load flash, this screen's limb ──
+import { Reserve } from '@/components/vendor/Reserve';
 
 const A = {
   ink:       'var(--atelier-ink)',
@@ -149,26 +151,82 @@ function BioBlock({ vendorId }: { vendorId: string }) {
   const [hasHero, setHasHero] = useState(false);
   const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
   const [leadsWaiting, setLeadsWaiting] = useState<number | null>(null);
+  // F-09.111: the two fetches that feed the SCORE, settled-or-failed. fetchToday
+  // is deliberately NOT counted — it feeds only the leads readout, which is
+  // already a conditional span inside an existing flex row and mounts without
+  // changing that row's height.
+  const [statusDone, setStatusDone] = useState(false);
+  const [heroDone,   setHeroDone]   = useState(false);
+  const metricsReady = statusDone && heroDone;
   useEffect(() => {
     let live = true;
     // BYTE-FOR-BYTE the profile page's own reads (:147-:157) — one authority
     // on the meter's inputs, never a second recipe for the same number.
     fetchDiscoverStatus().then((res) => {
-      if (!live || !res.ok) return;
-      setApproved(res.portfolio_summary?.approved ?? 0);
-      setPending(res.portfolio_summary?.pending ?? 0);
-      setServerFloor(res.min_portfolio_images);
-    }).catch(() => { /* the meter degrades to zeros; it never blocks the door */ });
+      if (!live) return;
+      if (res.ok) {
+        setApproved(res.portfolio_summary?.approved ?? 0);
+        setPending(res.portfolio_summary?.pending ?? 0);
+        setServerFloor(res.min_portfolio_images);
+      }
+    }).catch(() => { /* the meter degrades to zeros; it never blocks the door */ })
+      .finally(() => { if (live) setStatusDone(true); });
     fetchPortfolio(vendorId, 'approved').then((res) => {
-      if (!live || !res.ok) return;
-      setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
-    }).catch(() => { /* same */ });
+      if (!live) return;
+      if (res.ok) setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
+    }).catch(() => { /* same */ })
+      .finally(() => { if (live) setHeroDone(true); });
     // Leads count: the SAME engine figure the home ledger reads
     // (TodayResponse.open_leads_count) — one authority, R-O12/R-O15's law.
     fetchToday(vendorId).then((t) => { if (live) setLeadsWaiting(t?.open_leads_count ?? null); }).catch(() => {});
     return () => { live = false; };
   }, [vendorId]);
-  if (loading) return null;
+
+  // ── F-09.111 CURED — THE CARD NO LONGER ARRIVES AFTER THE PAGE ─────────────
+  // THIS FILE READ, until this delivery:  `if (loading) return null;`
+  //
+  // THE MECHANISM, NAMED SO ITS NEXT SITTING RE-READS THIS (F-06.85): BioBlock
+  // unmounted ENTIRELY while useSettings() loaded, so the page painted with the
+  // "Storefront" label at the top and then, on settle, this whole card appeared
+  // and shoved the label and all four rows down the screen. Founder-witnessed
+  // 2026-08-07. It is a violation of a law the estate had already ratified —
+  // S5 Paper C rule 5, "loading is skeleton, never blank".
+  //
+  // AND A SECOND JUMP UNDERNEATH THE FIRST: the meter's score is fed by
+  // fetchDiscoverStatus + fetchPortfolio, which settle INDEPENDENTLY of
+  // useSettings. Gating on `loading` alone would have shown the card at
+  // settings-settle with a score computed from zeros, and ProfileMeter's arc
+  // carries a 420ms stroke transition — so the founder would have watched a
+  // wrong number sweep to a right one. `metricsReady` holds the skeleton until
+  // the inputs the SCORE reads have landed. A failed fetch still resolves it
+  // (the .catch legs below set it too) — a dead network must not hang the card
+  // in skeleton forever; the meter degrades to its documented zeros instead.
+  //
+  // The skeleton branch below mirrors the loaded branch's DOM: same wrapper,
+  // same SectionLabel, same paddings, and the meter's box reserved by GHOST
+  // (Reserve renders the real Meter invisibly) so the reserved height is the
+  // browser's own measurement and no executor arithmetic sits under it.
+  if (loading || !metricsReady) {
+    return (
+      <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
+        <SectionLabel label="Complete your bio" first />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 24px' }}>
+          <Reserve ghost><Meter score={0} /></Reserve>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {/* 23px = the loaded title's 20px Cormorant at lineHeight 1.15 */}
+            <Reserve h={23} w="52%" />
+            {/* 24px = the loaded subtitle's 16px Cormorant at lineHeight 1.5 */}
+            <Reserve h={24} w="72%" />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 18, padding: '10px 24px 4px' }}>
+          {/* 13px = the loaded readout's 9px Jost line box */}
+          <Reserve h={13} w={124} />
+        </div>
+      </div>
+    );
+  }
+
   const gaps = buildGaps({
     approved, pending, floor: photoFloor(serverFloor), hasHero,
     about: current.about,

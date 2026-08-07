@@ -18,6 +18,8 @@ import { CalendarCrewSheet } from '@/components/vendor/CalendarCrewSheet';
 import { CalendarBands } from '@/components/vendor/CalendarBands';   // TDW_04.5 P2 — the band view
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
+// ── WALK HOTFIX MICRO · F-09.113 — the late-load flash, this screen's limb ──
+import { Reserve } from '@/components/vendor/Reserve';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAvailability, fetchHotDates } from '@/lib/vendor/api/vendor';
 import type { AvailabilityBlock, HotDate, DayEvent, BandFunction, BandsResponse } from '@/lib/vendor/types/vendor';
@@ -112,7 +114,12 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const [addSeed, setAddSeed] = useState<Record<string, string> | null>(null);
   const { toast, show: showToast } = useToast();
 
-  const { data: events, refresh: refreshEvents } = useEventsData(vendorId);
+  // ── F-09.113 — THE LOADING FLAG WAS BEING THROWN ON THE FLOOR ─────────────
+  // useLoader (hooks/vendor/useVendorData.ts) has always returned `loading`
+  // beside `data`; this call site destructured only `data` and `refresh`, so
+  // "the fetch has not returned" and "there is nothing to return" became the
+  // same state to every reader below. `eventsLoading` is that flag, picked up.
+  const { data: events, loading: eventsLoading, refresh: refreshEvents } = useEventsData(vendorId);
 
   // ── TDW_04 B6-S1 — surfaces item 3, THE HORIZON CONTRACT (F-04.47's cure) ──
   // The GRID reads a deliberate window: the visible month ± one month, RE-FETCHED
@@ -205,10 +212,38 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   const prevDays    = new Date(year, month, 0).getDate();
 
   function onAdd() {
-    // The FAB's + keeps the chat primer (R-B6-18's ruling, unchanged). The
-    // per-date variant retired with the popup: a date-anchored add now lives on
-    // the day sheet's + Booking (mechanical, per the founder's priced gap).
-    router.push(`/vendor?aiPrimer=${encodeURIComponent('What would you like me to add to the calendar? Give me a title, date, and time.')}`);
+    // ── F-09.114 — R-B6-18 IS REVERSED. READ THIS BEFORE RE-ARGUING IT. ─────
+    // THIS FUNCTION READ, until this delivery:
+    //   router.push(`/vendor?aiPrimer=${encodeURIComponent('What would you
+    //   like me to add to the calendar? Give me a title, date, and time.')}`)
+    // carrying the comment "The FAB's + keeps the chat primer (R-B6-18's
+    // ruling, unchanged)."
+    //
+    // THAT WAS TRUE AND IT IS NOW SUPERSEDED. R-B6-18 (docs/FINDINGS_LOG.md,
+    // dream-os, TDW_04 B6-S1: "the FAB's + keeps the chat primer — the ruling
+    // names the popup's + only") was ruled when the DAY POPUP still existed and
+    // the FAB was the chat door's only keeper. The popup has since retired into
+    // the day sheet, whose own + Booking is the mechanical date-anchored add —
+    // so the FAB was the last surface still sending a vendor to a chat window
+    // to do a form's job, and nobody re-read the ruling when its premise left.
+    //
+    // THE REVERSAL'S WARRANT, VERBATIM (founder, 2026-08-07, hotfix relay #2):
+    //   「 + will open the add-event sheet (date left blank for you to pick) 」
+    // His thumb convicted the surviving wiring on his own screen; that is the
+    // estate's highest-grade evidence and it outranks the reasoning above.
+    //
+    // NO SEEDED DATE, ON PURPOSE. A + pressed while the grid shows November
+    // must not quietly prefill August. The founder's own words leave the date
+    // blank and S5 Paper C rule 8 forbids progress that didn't happen; the
+    // seeded-date arm was proposed and REJECTED at read-first, not overlooked.
+    //
+    // CalendarBlockSheet is NOT the target and never was: it is the full-day
+    // block / reason-picker / unblock flow. The add-event sheet is AddSheet
+    // slice="events". (The kickoff named the wrong sheet; corrected on
+    // evidence at read-first, ruled at relay #1 §6.)
+    setEditRow(null);
+    setAddSeed(null);
+    setAddOpen(true);
   }
 
   function refreshAll() { refreshEvents(); refreshWindow(); refreshBlocks(); setBandsRefresh(n => n + 1); }
@@ -552,7 +587,41 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           )}
         </div>
 
-        {nextThree.length === 0 ? (
+        {/* ── F-09.113 CURED — THE SCREEN NO LONGER ANSWERS BEFORE IT ASKS ────
+            THIS BLOCK READ, until this delivery: `nextThree.length === 0 ?
+            <Nothing on the horizon.> : <rows>`, with no loading term anywhere
+            in it.
+
+            THE MECHANISM, NAMED SO ITS NEXT SITTING RE-READS THIS (F-06.85):
+            nextThree derives from useEventsData's `data`, which is null until
+            the fetch lands — so `[]` meant BOTH "she has nothing coming up" and
+            "we have not asked yet", and the screen printed the first sentence
+            while the second was true. That is the claimed-truth class (the
+            F-07.37 family) wearing a flash's clothes: not merely a late paint
+            but an ASSERTION the product could not support, followed by a 0→3
+            row jump when the truth arrived. Founder-witnessed 2026-08-07.
+
+            THE SHAPE IS THE HOUSE'S OWN, BY NAME: SliceShell gates its empty
+            state `!loading && !error && rows.length === 0` (see that file's
+            list branch). This is that gate, applied to the one reader that
+            never got it. The byte 「 Nothing on the horizon. 」 is UNCHANGED —
+            it is gated, never rewritten (the chair's word, hotfix relay #1 §5).
+
+            RESIDUAL, DECLARED (§8): the loaded rail is 0–3 rows, so the
+            skeleton reserves ONE row — the minimum honest reservation. A busy
+            month still grows by up to two rows on settle; padding the loaded
+            state to three rows always was refused, because the ruling requires
+            zero visual change once loaded. */}
+        {eventsLoading ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '14px 0' }}>
+            {/* 56px column + 39px numeral box: the loaded row's own geometry */}
+            <Reserve h={51} w={56} />
+            <div style={{ flex: 1, minWidth: 0, paddingLeft: 18, borderLeft: '0.5px solid var(--atelier-card-border)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <Reserve h={11} w="34%" />
+              <Reserve h={24} w="66%" />
+            </div>
+          </div>
+        ) : nextThree.length === 0 ? (
           <div style={{
             fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
             fontSize: 16, lineHeight: 1.5, color: A.inkMute,

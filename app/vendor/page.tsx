@@ -32,6 +32,8 @@ import { OnboardingOverlay } from '@/components/vendor/OnboardingOverlay';
 import Cabinet from '@/components/vendor/Cabinet';
 // TDW_09 P2-R1 — F-09.21's pressed primitive, worn by the ledger door (F-09.91(b)).
 import { pressedStyle } from '@/lib/vendor/controls';
+// ── WALK HOTFIX MICRO · F-09.112 — the late-load flash, this screen's limb ──
+import { Reserve } from '@/components/vendor/Reserve';
 import { useT } from '@/lib/vendor/ThemeContext';
 import type { VendorContextResponse, TodayResponse, DiscoverStatus } from '@/lib/vendor/types/vendor';
 import { formatRs, fitMoneySize, moneyNeedsReflow } from '@/lib/vendor/format'; // TDW_09 R-U25/R-U24 · MICRO-2 R2: the reflow branch, F-09.80
@@ -136,9 +138,35 @@ function GreetingLine({ context, money, today }: { context: VendorContextRespons
   const leads = today?.open_leads_count ?? 0;
   const owedCount = money.owedCount;
 
+  // ── F-09.112 CURED — THE GREETING NO LONGER REWRITES ITSELF ───────────────
+  // THIS FILE READ, until this delivery:  `if (!context) { line = 'Welcome
+  // back.'; }` — and that is not a blank, it is a PROVISIONAL SENTENCE. The
+  // founder opened his home screen, read "Welcome back.", and watched it become
+  // "Nine letters await you this morning, and five invoices remain." Words
+  // swapping under the eye is the thing he convicted, 2026-08-07. S5 Paper C
+  // rule 5 governs: loading is skeleton, never blank — and never a placeholder
+  // sentence either, which is worse than blank because it reads as the answer.
+  //
+  // THE MECHANISM, NAMED SO ITS NEXT SITTING RE-READS THIS (F-06.85): `context`
+  // is VendorContextResponse, and this component is rendered by the home before
+  // that fetch settles. The cure returns null-for-line and lets the caller
+  // render a reserved skeleton instead. It does NOT touch the sentence
+  // construction below — R-O12/R-O15's one-derivation law and R-O17's spell()
+  // ceiling are byte-untouched; only the pre-arrival state changed.
+  //
+  // RESIDUAL, DECLARED RATHER THAN HIDDEN (§8 declared-gaps): the loaded line
+  // is one or two line-boxes depending on her actual figures, so a skeleton
+  // cannot reserve it exactly without knowing the answer it is waiting for. The
+  // skeleton reserves TWO boxes — the taller outcome, and the founder's own
+  // account (12 leads + open invoices) renders the two-clause sentence. A
+  // one-line outcome therefore collapses upward by one 28px box, once. The
+  // alternative — padding the LOADED state to two lines always — was refused:
+  // the ruling requires zero visual change once loaded.
+  const pending = !context;
+
   let line: string;
   if (!context) {
-    line = `Welcome back.`;
+    line = '';
   } else if (leads === 0 && owedCount === 0) {
     line = 'A quiet day. Everything in order.';
   } else if (leads > 0 && owedCount > 0) {
@@ -168,12 +196,24 @@ function GreetingLine({ context, money, today }: { context: VendorContextRespons
         letterSpacing: '0.42em', textTransform: 'uppercase',
         color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.7)', marginBottom: 10,
       }}>{greeting}</div>
-      <div style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
-        fontSize: 20, color: T.inkSoft,
-        lineHeight: 1.4, letterSpacing: '0.01em',
-        maxWidth: 320, margin: '0 auto',
-      }}>{line}</div>
+      {/* The GREETING WORD ITSELF is never pending — timeOfDayGreeting() reads
+          the clock, not the network, so it paints correct on the first frame
+          and is deliberately left outside the skeleton. Only the sentence
+          waits. */}
+      {pending ? (
+        <div style={{ maxWidth: 320, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+          {/* 28px = the loaded sentence's own 20px Cormorant at lineHeight 1.4 */}
+          <Reserve h={28} w="100%" />
+          <Reserve h={28} w="64%" />
+        </div>
+      ) : (
+        <div style={{
+          fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+          fontSize: 20, color: T.inkSoft,
+          lineHeight: 1.4, letterSpacing: '0.01em',
+          maxWidth: 320, margin: '0 auto',
+        }}>{line}</div>
+      )}
     </div>
   );
 }

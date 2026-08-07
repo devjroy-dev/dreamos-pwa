@@ -152,6 +152,14 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
     muse:      <><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></>,
     surprise:  <><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13"/><path d="M12 8S9 3 6.5 4.5 9 8 12 8zM12 8s3-5 5.5-3.5S15 8 12 8z"/></>,
     search:    <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></>,
+    // ── F-10.74 · the sign-out glyph, MINTED HERE ────────────────────────────
+    // The founder's word, verbatim: 「 just an icon---its for admin panel only.
+    // the power button shall do fine. 」 Derived before minting: no glyph in
+    // this map carried a power/exit sense, so this is a new entry, not a reuse.
+    // The standard symbol — a broken ring with a vertical stem. Used at BOTH
+    // seats (sidebar header, mobile bar) so the panel has one sign-out
+    // vocabulary and not two.
+    power:     <><path d="M12 3v9"/><path d="M6.8 6.8a7.5 7.5 0 1010.4 0"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -239,11 +247,44 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--admin-nav-bg)', borderRight: '0.5px solid var(--admin-hairline)' }}>
       {/* Wordmark — the metal's first sanctioned home (spec P1.1) */}
       <div style={{ padding: '26px 20px 14px', flexShrink: 0 }}>
-        <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--admin-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
-          The Dream Wedding
-        </div>
-        <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--admin-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
-          Control Room
+        {/* ── F-10.74 LIMB 2 — THE SIGN-OUT MOVED UP HERE, AND WHY ────────────
+            IT USED TO SIT AT THE SIDEBAR'S FOOT: a 10px uppercase word in
+            --admin-ink-dim, below the wordmark, the Search box, the Bridge row
+            and six domains' worth of nav. Bench-green the whole time
+            (tdw07_f0784_panel §2.3 asserted the handler clears the real
+            session, 34/34) — and the founder still said, verbatim:
+              「 cant see the signout in desktop or phone. the button i have no
+                idea where it is. 」
+            That is CE-115's twin law by name, BENCHED-THE-MECHANISM-NOT-THE-
+            AFFORDANCE: a cell proved the wiring existed; nothing ever asserted
+            a human could find it, and he couldn't. A bench cannot catch what
+            nobody told it to look for.
+            THE HANDLER IS BYTE-IDENTICAL to the retired footer button's. Only
+            the seat and the dress changed: header row, top-right, beside the
+            wordmark — always visible, zero scroll, first glance. Icon-only per
+            his ruling; aria-label carries the word. */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--admin-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
+              The Dream Wedding
+            </div>
+            <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--admin-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
+              Control Room
+            </div>
+          </div>
+          <button
+            onClick={() => { clearAdminSession(); router.replace('/admin/login'); }}
+            aria-label="Sign out"
+            title="Sign out"
+            style={{
+              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, marginTop: -10, marginRight: -10,
+              background: 'none', border: 'none', padding: 0,
+              color: 'var(--admin-ink-mute)', cursor: 'pointer',
+            }}
+          >
+            <Icon name="power" size={18} />
+          </button>
         </div>
         <div style={{ height: '0.5px', background: 'linear-gradient(to right, var(--admin-metal-soft), transparent)', marginTop: 14 }} />
       </div>
@@ -288,14 +329,10 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
         ))}
       </nav>
 
-      <div style={{ padding: '14px 18px', borderTop: '0.5px solid var(--admin-hairline)', flexShrink: 0 }}>
-        <button
-          onClick={() => { clearAdminSession(); router.replace('/admin/login'); }}
-          style={{ background: 'none', border: 'none', fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--admin-ink-dim)', padding: 0, minHeight: 44, cursor: 'pointer' }}
-        >
-          Sign Out
-        </button>
-      </div>
+      {/* F-10.74 · CONTROL INVENTORY — the foot's "Sign Out" text button is
+          MOVED, not removed: its handler now hangs on the header's power glyph
+          above (1 → 1, desktop). Nothing else lived in this footer, so the
+          footer goes with it rather than standing as an empty hairline. */}
     </div>
   );
 }
@@ -408,6 +445,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         }}>
           <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontSize: 18, fontWeight: 400, color: 'var(--admin-metal)' }}>TDW</div>
+          {/* F-10.74: the bar's justifyContent is space-between and it carried
+              exactly two children. A third would have floated the Jump box into
+              the middle of the bar, so the two right-hand controls group. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
             onClick={() => { setOpenDomain(null); setPaletteOpen(true); }}
             aria-label="Search"
@@ -421,6 +462,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Icon name="search" size={15} />
             <span>Jump</span>
           </button>
+          {/* ── F-10.74 LIMB 1 — THE MOBILE SIGN-OUT, WHICH DID NOT EXIST ─────
+              Below 768px the responsive block at the foot of this file sets
+              `#d-nav { display: none !important }`, and the sidebar is where
+              the ONLY sign-out lived. So on the founder's phone the control was
+              not hidden behind a tap — it was absent from the DOM entirely, on
+              a panel A-4 declared mobile-first. Fork 1 ruled (b): this seat,
+              #m-bar top-right beside Jump, present on every admin route.
+              Same glyph as the sidebar's, one vocabulary; 44px box (A-4's own
+              number); aria-label carries the word the icon doesn't say. */}
+          <button
+            onClick={() => { clearAdminSession(); router.replace('/admin/login'); }}
+            aria-label="Sign out"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, marginRight: -10,
+              background: 'none', border: 'none', padding: 0,
+              color: 'var(--admin-ink-mute)', cursor: 'pointer',
+            }}
+          >
+            <Icon name="power" size={18} />
+          </button>
+          </div>
         </div>
 
         {/* Page content */}
