@@ -854,9 +854,9 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
 // ── SETTINGS ROOM ──────────────────────────────────────────────────────────────
 // Profile info + mode toggle + WA DreamAI shortcut. Sanctuary bg.
 
-interface SettingsRoomProps { dark:boolean; accent:string; signal:string; setHomeMode:(m:any)=>void; }
+interface SettingsRoomProps { dark:boolean; accent:string; signal:string; }
 
-function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) {
+function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   const { press, pressed } = usePress();
   const bg      = dark
     ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
@@ -909,32 +909,13 @@ function SettingsRoom({ dark, accent, signal, setHomeMode }: SettingsRoomProps) 
         <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)}/>
         {profile?.budget_total&&<Row label="Total budget" value={formatRs(profile.budget_total)}/>}
 
-        {/* Mode toggle */}
-        <div style={{padding:'10px 0 4px',marginTop:8}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:'0 20px 8px'}}>Appearance</div>
-          <div style={{display:'flex',margin:'0 16px',borderRadius:8,overflow:'hidden',border:`0.5px solid ${line}`}}>
-            {(['E1A','E3'] as const).map(mode=>{
-              const active = (mode==='E1A'&&dark)||(mode==='E3'&&!dark);
-              const label  = mode==='E1A'?'Wine Night':'Sky & Ivory';
-              return (
-                <div key={mode} {...press(`mode:${mode}`)} onClick={()=>{
-                  setHomeMode(mode);
-                  // Mark as manually set — disables auto time-based switching
-                  try{localStorage.setItem('@frost.home_mode_manual','1');}catch{}
-                }}
-                  style={{flex:1,padding:'12px 8px',textAlign:'center' as any,cursor:'pointer',
-                    background:active?ac:'transparent',
-                    fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',
-                    textTransform:'uppercase' as any,
-                    color:active?(dark?'#1A0810':'#FFFFFF'):inkMute,
-                    transition:'all 220ms ease',WebkitTapHighlightColor:'transparent',
-                    ...pressed(`mode:${mode}`)}}>
-                  {label}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Mode toggle — REMOVED BY FOUNDER RULING (2026-08-07, the chair's own
+            hand): SINGLE THEME, Wine Night always. The Appearance control and its
+            two swatches (press keys mode:E1A / mode:E3) retired whole — a switch
+            wired to a pinned reader is a lying control (honest-controls law).
+            Mechanism: lib/frost/tokens.ts getFrostMode() is the pin; the swatches
+            return only if a second theme returns by ruling. tdw09_p2c's map
+            roster amended LABELLED in the same delivery. */}
 
         {/* DreamAI on WhatsApp */}
         <div style={{padding:'10px 0 4px',marginTop:8}}>
@@ -4193,19 +4174,12 @@ export default function SanctuaryPage() {
     const DOM=['','First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth','Ninth','Tenth','Eleventh','Twelfth','Thirteenth','Fourteenth','Fifteenth','Sixteenth','Seventeenth','Eighteenth','Nineteenth','Twentieth','Twenty-First','Twenty-Second','Twenty-Third','Twenty-Fourth','Twenty-Fifth','Twenty-Sixth','Twenty-Seventh','Twenty-Eighth','Twenty-Ninth','Thirtieth','Thirty-First'];
     setDateStamp(`${DOM[now.getDate()]||now.getDate()} of ${now.toLocaleDateString('en-IN',{month:'long'})} · ${now.getFullYear()}`);
 
-    // ── Auto dark/light by time of day ────────────────────────────────────
-    // Only applies if bride has never manually set a preference.
-    // '@frost.home_mode_manual' flag = she chose herself → respect forever.
-    try {
-      const manuallySet = localStorage.getItem('@frost.home_mode_manual');
-      if(!manuallySet) {
-        const h = now.getHours();
-        const autoMode = (h < 7 || h >= 19) ? 'E1A' : 'E3';
-        // Write to localStorage AND update React state so it persists on reload
-        setFrostMode(autoMode);
-        setHomeMode(autoMode);
-      }
-    } catch {}
+    // ── Auto dark/light by time of day — RETIRED BY FOUNDER RULING ─────────
+    // SINGLE THEME (2026-08-07, the chair's own hand): Wine Night always; the
+    // clock died with the choice. Left alive it would setHomeMode('E3') by day
+    // and flip `dark` false against tokens now pinned WINE at getV2Tokens — a
+    // mixed-theme render. Mechanism named per F-06.85: getFrostMode() is the
+    // pin; this block returns only if a second theme returns by ruling.
 
     // ── Live hints fetch ──────────────────────────────────────────────────
     const hintsToken = getAccessToken();
@@ -4717,7 +4691,7 @@ function timeAgoShort(iso:string):string {
 
             {/* ── SETTINGS — already built ── */}
             {activeRoom==='settings'&&(
-              <SettingsRoom dark={dark} accent={accent} signal={signal} setHomeMode={(m)=>{setHomeMode(m);try{localStorage.setItem('@frost.home_mode_manual','1');}catch{}}}/>
+              <SettingsRoom dark={dark} accent={accent} signal={signal}/>
             )}
 
             {/* ── OTHER ROOMS — coming soon ── */}

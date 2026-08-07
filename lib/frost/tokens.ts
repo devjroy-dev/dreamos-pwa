@@ -144,8 +144,10 @@ export const V2_SKY_IVORY: V2Tokens = {
 };
 
 // Helper — get V2 tokens from homeMode
-export function getV2Tokens(homeMode: HomeModeKey): V2Tokens {
-  return homeMode === 'E1A' ? V2_WINE_NIGHT : V2_SKY_IVORY;
+export function getV2Tokens(_homeMode: HomeModeKey): V2Tokens {
+  // SINGLE-THEME RULING (see getFrostMode): Wine Night unconditionally — the
+  // belt beneath the braces, so even a stray direct 'E3' call renders dark.
+  return V2_WINE_NIGHT;
 }
 
 // ─── Font families — single source of truth ───────────────────────────────────
@@ -290,8 +292,9 @@ export const MUSE_LOOKS: Record<MuseLook, MuseLookTokens> = {
   },
 };
 
-export function museLookFromHomeMode(homeMode: HomeModeKey): MuseLook {
-  return homeMode === 'E1A' ? 'E1' : 'E3';
+export function museLookFromHomeMode(_homeMode: HomeModeKey): MuseLook {
+  // SINGLE-THEME RULING (see getFrostMode): the muse look follows the one theme.
+  return 'E1';
 }
 
 // ─── Legacy AUBADE (kept for discover, dream) ─────────────────────────────────
@@ -343,11 +346,13 @@ export const FROST_SURFACE = {
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
 export function getFrostMode(): HomeModeKey {
-  if (typeof window === 'undefined') return 'E1A';
-  try {
-    const stored = localStorage.getItem(MODE_STORAGE_KEY);
-    return stored === 'E3' ? 'E3' : 'E1A';
-  } catch { return 'E1A'; }
+  // ── SINGLE THEME — FOUNDER RULING (2026-08-07, the chair's own hand) ──────
+  // The bride app carries ONE theme for now: Wine Night ('E1A'). Sky & Ivory is
+  // RETIRED-NOT-DELETED (its token set stays below for the day a second theme
+  // returns by ruling). This is the mode's ONE reader; pinning here covers every
+  // consumer (layout.tsx:45 seeds context from this function). The stored key is
+  // deliberately ignored, not migrated — no write happens on read.
+  return 'E1A';
 }
 
 export function getContentMode(): ContentMode {
@@ -358,8 +363,10 @@ export function getContentMode(): ContentMode {
   } catch { return 'dream'; }
 }
 
-export function setFrostMode(m: HomeModeKey) {
-  try { localStorage.setItem(MODE_STORAGE_KEY, m); } catch {}
+export function setFrostMode(_m: HomeModeKey) {
+  // SINGLE-THEME RULING (see getFrostMode above): the writer is a no-op — a
+  // value nothing reads must not be written, or the day the reader un-pins it
+  // would resurrect a preference the vendor of this preference never re-chose.
 }
 
 export function setContentMode(c: ContentMode) {

@@ -273,7 +273,10 @@ section('§4 · CLASS: PRESSED-KEYED — one press lights one instance');
   // ten were standalone controls sitting AFTER their map closed, and the compiler
   // said so (TS2304 on `p`, `entry`, `slice`) before a byte shipped.
   const MAPS = [
-    ['mode',       'mode:${mode}'],
+    // LABELLED AMENDMENT (2026-08-07, chair's own delivery): the ['mode',
+    // 'mode:${mode}'] row is RETIRED WITH ITS SUBJECT — the Appearance swatches
+    // died under the founder's single-theme ruling (Wine Night always; see
+    // lib/frost/tokens.ts getFrostMode). Roster 7→6 maps; bench-follows-the-law.
     ['m.id',       'member:${m.id}'],
     ['f.value/src','muse:src:${f.value}'],
     ['f.value/cer','muse:cer:${f.value}'],
@@ -297,7 +300,9 @@ section('§4 · CLASS: PRESSED-KEYED — one press lights one instance');
     bareKeyed.length === 0,
     `sibling-lighting sites: ${bareKeyed.map((l) => l.trim().slice(0, 70)).join(' | ')}`);
   ok('§4.6 and the negative is NOT vacuous — it really found the keyed elements',
-    mapLines.length >= 7, `keyed press elements seen: ${mapLines.length}`);
+    // 7→6 under the SAME labelled amendment as the MAPS roster above (2026-08-07,
+    // single-theme ruling): the mode swatches died with their map.
+    mapLines.length >= 6, `keyed press elements seen: ${mapLines.length}`);
 
   // The two Muse filter maps both discriminate on `f.value`. One shared key would
   // light a source pill and a ceremony pill together — a collision that no
