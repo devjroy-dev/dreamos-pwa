@@ -38,7 +38,12 @@ export const useFrostMode = () => useContext(FrostCtx);
 
 
 export default function FrostLayout({ children }: { children: React.ReactNode }) {
-  const [homeMode,    setHome]    = useState<HomeModeKey>('E3');
+  // SINGLE-THEME RULING (2026-08-07, the chair's own hand, second seat): the
+  // initial state seeds from the PINNED reader — getFrostMode() is now
+  // window-free and returns 'E1A' unconditionally, so this is SSR-safe and the
+  // server HTML itself renders Wine. The old literal 'E3' painted one light
+  // frame before the mount effect corrected it — the flash the founder saw.
+  const [homeMode,    setHome]    = useState<HomeModeKey>(getFrostMode());
   const [contentMode, setContent] = useState<ContentMode>('dream');
 
   useEffect(() => {
