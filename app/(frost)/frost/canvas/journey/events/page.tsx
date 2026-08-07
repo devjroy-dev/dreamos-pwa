@@ -32,7 +32,7 @@ function fmtTime(t: string | null | undefined): string {
 const inp = (t: any): React.CSSProperties => ({
   width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.06)',
   border: `0.5px solid ${t.hairline}`, borderRadius: FR.md, fontFamily: FF.body,
-  fontSize: 15, color: t.ink, outline: 'none', boxSizing: 'border-box' as const,
+  fontSize:16, color: t.ink, outline: 'none', boxSizing: 'border-box' as const,
   userSelect: 'text' as const,
 });
 
@@ -134,19 +134,19 @@ export default function JourneyEvents() {
   return (
     <CanvasShell eyebrow="Events" backTo="/frost/canvas/sanctuary">
       {toast && (
-        <div style={{ position:'fixed', top:'calc(env(safe-area-inset-top) + 70px)', left:'50%', transform:'translateX(-50%)', background:t.ink, color:t.pagePaper, fontFamily:FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{toast}</div>
+        <div style={{ position:'fixed', top:'calc(env(safe-area-inset-top) + 70px)', left:'50%', transform:'translateX(-50%)', background:t.ink, color:t.pagePaper, fontFamily:FF.label, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{toast}</div>
       )}
       <div style={{ padding:`${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect:'none' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:SP.xl }}>
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:t.ink }}>The days.</div>
+          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:t.ink }}>The days.</div>
           <button onClick={() => setShowAdd(true)} style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 12px', borderRadius:FR.pill, border:`0.5px solid rgba(191,160,77,0.3)`, background:'transparent', fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:t.brassMuted, cursor:'pointer' }}>
             <Plus size={12} color={t.brassMuted} strokeWidth={1.5} />Add
           </button>
         </div>
 
-        {loading && <div style={{ fontFamily:FF.display, fontSize:32, color:t.brassMuted, letterSpacing:6 }}>…</div>}
+        {loading && <div style={{ fontFamily:FF.display, fontSize:22, color:t.brassMuted, letterSpacing:6 }}>…</div>}
         {!loading && events.length === 0 && (
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:18, color:t.soft, textAlign:'center', paddingTop:80 }}>Your days will appear here.</div>
+          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:19, color:t.soft, textAlign:'center', paddingTop:80 }}>Your days will appear here.</div>
         )}
 
         <div style={{ position:'relative' }}>
@@ -159,16 +159,16 @@ export default function JourneyEvents() {
               <div key={ev.id} onClick={() => setActionEvent(ev)}
                 style={{ display:'flex', alignItems:'flex-start', gap:SP.l, marginBottom:SP.xl, cursor:'pointer' }}>
                 <div style={{ width:44, height:44, borderRadius:22, flexShrink:0, background:t.cardFill, border:`${highlight ? 1 : 0.5}px solid ${highlight ? t.brass : t.hairline}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                  <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.12em', color:t.soft, lineHeight:1.1 }}>{month}</div>
-                  <div style={{ fontFamily:FF.display, fontSize:18, color:t.ink, lineHeight:1.2 }}>{day}</div>
+                  <div style={{ fontFamily:FF.label, fontSize:16, letterSpacing:'0.12em', color:t.soft, lineHeight:1.1 }}>{month}</div>
+                  <div style={{ fontFamily:FF.display, fontSize:19, color:t.ink, lineHeight:1.2 }}>{day}</div>
                 </div>
                 <div style={{ flex:1, paddingTop:6 }}>
-                  <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:20, color:t.ink, lineHeight:1.2 }}>{ev.title}</div>
+                  <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:19, color:t.ink, lineHeight:1.2 }}>{ev.title}</div>
                   <div style={{ display:'flex', gap:SP.m, marginTop:2 }}>
-                    {timeStr && <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.12em', color:t.soft }}>{timeStr}</div>}
+                    {timeStr && <div style={{ fontFamily:FF.label, fontSize:16, letterSpacing:'0.12em', color:t.soft }}>{timeStr}</div>}
                     <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.12em', color:t.brassMuted, textTransform:'uppercase' }}>{ev.kind}</div>
                   </div>
-                  {ev.notes && <div style={{ fontFamily:FF.body, fontSize:12, color:t.soft, marginTop:2 }}>{ev.notes}</div>}
+                  {ev.notes && <div style={{ fontFamily:FF.body, fontSize:16, color:t.soft, marginTop:2 }}>{ev.notes}</div>}
                 </div>
               </div>
             );
@@ -202,7 +202,7 @@ export default function JourneyEvents() {
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Notes (optional)</div>
               <input value={newNotes} onChange={e => setNewNotes(e.target.value)} placeholder='Venue, contact…' style={inp(t)} /></div>
             <button onClick={handleAdd} disabled={saving || !newTitle.trim() || !newDate}
-              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !newTitle.trim() || !newDate) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
+              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !newTitle.trim() || !newDate) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
               {saving ? 'Adding…' : 'Add event'}
             </button>
           </div>
@@ -213,16 +213,16 @@ export default function JourneyEvents() {
       {actionEvent && !showEdit && <>
         <div onClick={() => setActionEvent(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:201, background:t.pagePaper, borderRadius:'20px 20px 0 0', padding:`24px 24px calc(24px + env(safe-area-inset-bottom))` }}>
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:20, color:t.ink, marginBottom:4 }}>{actionEvent.title}</div>
-          <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', color:t.soft, marginBottom:SP.xl }}>
+          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:19, color:t.ink, marginBottom:4 }}>{actionEvent.title}</div>
+          <div style={{ fontFamily:FF.label, fontSize:16, letterSpacing:'0.15em', color:t.soft, marginBottom:SP.xl }}>
             {fmtDate(actionEvent.event_date).day} {fmtDate(actionEvent.event_date).month}
             {fmtTime(actionEvent.event_time) && ` · ${fmtTime(actionEvent.event_time)}`}
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            <button onClick={() => handleMarkDone(actionEvent)} style={{ padding:14, background:`rgba(191,160,77,0.12)`, border:`0.5px solid rgba(191,160,77,0.3)`, borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:t.brass, cursor:'pointer' }}>Mark done</button>
-            <button onClick={() => openEdit(actionEvent)} style={{ padding:14, background:'rgba(255,255,255,0.04)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:t.ink, cursor:'pointer' }}>Edit</button>
-            <button onClick={() => handleDelete(actionEvent)} style={{ padding:14, background:'rgba(184,69,62,0.12)', border:'0.5px solid rgba(184,69,62,0.3)', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#B8453E', cursor:'pointer' }}>Remove</button>
-            <button onClick={() => setActionEvent(null)} style={{ padding:14, background:'rgba(255,255,255,0.02)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, cursor:'pointer' }}>Cancel</button>
+            <button onClick={() => handleMarkDone(actionEvent)} style={{ padding:14, background:`rgba(191,160,77,0.12)`, border:`0.5px solid rgba(191,160,77,0.3)`, borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:t.brass, cursor:'pointer' }}>Mark done</button>
+            <button onClick={() => openEdit(actionEvent)} style={{ padding:14, background:'rgba(255,255,255,0.04)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:t.ink, cursor:'pointer' }}>Edit</button>
+            <button onClick={() => handleDelete(actionEvent)} style={{ padding:14, background:'rgba(184,69,62,0.12)', border:'0.5px solid rgba(184,69,62,0.3)', borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#B8453E', cursor:'pointer' }}>Remove</button>
+            <button onClick={() => setActionEvent(null)} style={{ padding:14, background:'rgba(255,255,255,0.02)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, cursor:'pointer' }}>Cancel</button>
           </div>
         </div>
       </>}
@@ -249,7 +249,7 @@ export default function JourneyEvents() {
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Notes (optional)</div>
               <input value={editNotes} onChange={e => setEditNotes(e.target.value)} style={inp(t)} /></div>
             <button onClick={handleEdit} disabled={saving || !editTitle.trim() || !editDate}
-              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !editTitle.trim() || !editDate) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
+              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !editTitle.trim() || !editDate) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
               {saving ? 'Saving…' : 'Save changes'}
             </button>
           </div>

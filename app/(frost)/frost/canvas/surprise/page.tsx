@@ -85,17 +85,17 @@ export default function SurpriseMe() {
 
   if (phase === 'loading') return (
     <div style={{ position:'fixed', inset:0, background:bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:24, color:'rgba(245,240,232,0.5)', letterSpacing:4 }}>…</div>
+      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:'rgba(245,240,232,0.5)', letterSpacing:4 }}>…</div>
     </div>
   );
 
   if (phase === 'no-profile') return (
     <div style={{ position:'fixed', inset:0, background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 32px', userSelect:'none' }}>
       <BackBtn />
-      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:'rgba(245,240,232,0.9)', textAlign:'center', lineHeight:1.3, marginBottom:SP.l }}>Tell us what moves you.</div>
-      <div style={{ fontFamily:FF.body, fontSize:14, color:'rgba(245,240,232,0.5)', textAlign:'center', lineHeight:1.7, marginBottom:SP.xl }}>Open Muse to set your aesthetic — then we'll curate your surprises.</div>
+      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:'rgba(245,240,232,0.9)', textAlign:'center', lineHeight:1.3, marginBottom:SP.l }}>Tell us what moves you.</div>
+      <div style={{ fontFamily:FF.body, fontSize:16, color:'rgba(245,240,232,0.5)', textAlign:'center', lineHeight:1.7, marginBottom:SP.xl }}>Open Muse to set your aesthetic — then we'll curate your surprises.</div>
       <button onClick={() => router.push('/frost/canvas/muse')}
-        style={{ padding:'12px 28px', background:t.brass, border:'none', borderRadius:FR.pill, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer' }}>
+        style={{ padding:'12px 28px', background:t.brass, border:'none', borderRadius:FR.pill, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer' }}>
         Go to Muse
       </button>
     </div>
@@ -104,8 +104,8 @@ export default function SurpriseMe() {
   if (phase === 'empty') return (
     <div style={{ position:'fixed', inset:0, background:bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 32px', userSelect:'none' }}>
       <BackBtn />
-      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:'rgba(245,240,232,0.9)', textAlign:'center', lineHeight:1.3, marginBottom:SP.l }}>Your surprises are coming.</div>
-      <div style={{ fontFamily:FF.body, fontSize:14, color:'rgba(245,240,232,0.5)', textAlign:'center', lineHeight:1.7 }}>We're curating images that match your aesthetic. Check back soon.</div>
+      <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:'rgba(245,240,232,0.9)', textAlign:'center', lineHeight:1.3, marginBottom:SP.l }}>Your surprises are coming.</div>
+      <div style={{ fontFamily:FF.body, fontSize:16, color:'rgba(245,240,232,0.5)', textAlign:'center', lineHeight:1.7 }}>We're curating images that match your aesthetic. Check back soon.</div>
     </div>
   );
 
@@ -142,7 +142,7 @@ export default function SurpriseMe() {
           {img.aesthetic_tags?.length > 0 && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:12 }}>
               {img.aesthetic_tags.map((tag: string) => (
-                <span key={tag} style={{ fontFamily:FF.label, fontSize:8, letterSpacing:'0.15em', textTransform:'uppercase', color:t.brass, padding:'3px 8px', border:`0.5px solid rgba(191,160,77,0.4)`, borderRadius:FR.pill }}>{tag}</span>
+                <span key={tag} style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:t.brass, padding:'3px 8px', border:`0.5px solid rgba(191,160,77,0.4)`, borderRadius:FR.pill }}>{tag}</span>
               ))}
             </div>
           )}
@@ -173,7 +173,7 @@ export default function SurpriseMe() {
       {/* Hint */}
       {!showInfo && (
         <div style={{ position:'absolute', bottom:'calc(env(safe-area-inset-bottom,0px) + 24px)', left:0, right:0, textAlign:'center', zIndex:20, pointerEvents:'none' }}>
-          <div style={{ fontFamily:FF.label, fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', color:'rgba(245,240,232,0.25)' }}>Tap to reveal · Swipe to browse</div>
+          <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:'rgba(245,240,232,0.25)' }}>Tap to reveal · Swipe to browse</div>
         </div>
       )}
     </div>

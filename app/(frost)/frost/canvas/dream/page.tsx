@@ -174,7 +174,7 @@ export default function CanvasDream() {
         <button
           onClick={() => router.push('/frost/canvas/sanctuary')}
           style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,padding:0,
-            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -185,7 +185,7 @@ export default function CanvasDream() {
         {/* Title */}
         <div style={{flex:1,textAlign:'center',
           fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-          fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
+          fontSize:19,color:accent,fontFeatureSettings:'"opsz" 9'}}>
           Dream Ai
         </div>
 
@@ -193,7 +193,7 @@ export default function CanvasDream() {
         <button
           onClick={() => { cancelRef.current?.(); setMessages([]); setLoading(false); }}
           style={{background:'none',border:'none',cursor:'pointer',padding:0,
-            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
             textTransform:'uppercase' as any,color:inkMute}}
         >
           Clear
@@ -212,13 +212,13 @@ export default function CanvasDream() {
             <div>
               <div style={{
                 fontFamily:"'Italianno',cursive",
-                fontSize:48,lineHeight:.95,color:ink,marginBottom:8,
+                fontSize:52,lineHeight:.95,color:ink,marginBottom:8,
               }}>
                 Tell me what's<br/>on your mind.
               </div>
               <div style={{
                 fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-                fontSize:14,color:inkSoft,lineHeight:1.65,
+                fontSize:16,color:inkSoft,lineHeight:1.65,
                 fontFeatureSettings:'"opsz" 9',
               }}>
                 I know your timeline, vendors,<br/>Muse board, and Circle.
@@ -228,8 +228,8 @@ export default function CanvasDream() {
             {/* Prompt chips */}
             <div>
               <div style={{
-                fontFamily:"'JetBrains Mono',monospace",fontSize:8,
-                letterSpacing:'.28em',textTransform:'uppercase' as any,
+                fontFamily:"'JetBrains Mono',monospace",fontSize:9,
+                letterSpacing:'.22em',textTransform:'uppercase' as any,
                 color:inkMute,marginBottom:12,
               }}>
                 Try asking
@@ -243,7 +243,7 @@ export default function CanvasDream() {
                     borderRadius:8,
                     padding:'12px 14px',
                     fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-                    fontSize:14,color:ink,cursor:'pointer',
+                    fontSize:16,color:ink,cursor:'pointer',
                     fontFeatureSettings:'"opsz" 9',
                     backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',
                   }}>
@@ -267,7 +267,7 @@ export default function CanvasDream() {
                     padding:'10px 14px',
                     borderRadius:'20px 20px 4px 20px',
                     fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-                    fontSize:15,lineHeight:1.55,
+                    fontSize:16,lineHeight:1.55,
                     fontFeatureSettings:'"opsz" 9',
                     userSelect:'text',
                   }}>
@@ -300,7 +300,7 @@ export default function CanvasDream() {
                     borderRadius:'20px 20px 20px 4px',
                     backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',
                     fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-                    fontSize:15,lineHeight:1.65,
+                    fontSize:16,lineHeight:1.65,
                     color:m.error ? '#C4534A' : ink,
                     whiteSpace:'pre-wrap',
                     fontFeatureSettings:'"opsz" 9',
@@ -345,7 +345,7 @@ export default function CanvasDream() {
               flex:1, background:'transparent', border:'none', outline:'none',
               color:ink,
               fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-              fontSize:15,lineHeight:1.5,
+              fontSize:16,lineHeight:1.5,
               resize:'none',maxHeight:120,
               fontFeatureSettings:'"opsz" 9',
               userSelect:'text',

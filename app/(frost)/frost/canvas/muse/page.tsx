@@ -78,7 +78,7 @@ function FullBleedOverlay({
           <img src={save.image_url} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
         ) : (
           <div style={{ position: 'absolute', inset: 0, background: '#1a1714', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 14, color: 'rgba(248,247,245,0.2)' }}>No image</span>
+            <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:16, color: 'rgba(248,247,245,0.2)' }}>No image</span>
           </div>
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' }} />
@@ -121,24 +121,24 @@ function FullBleedOverlay({
             <p style={{ fontFamily: FF.label, fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
               {save.vendor_category}&nbsp;·&nbsp;{save.vendor_city}
             </p>
-            <h2 style={{ fontFamily: FF.display, fontSize: 26, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', lineHeight: 1.1 }}>
+            <h2 style={{ fontFamily: FF.display, fontSize:22, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', lineHeight: 1.1 }}>
               {save.vendor_name}
             </h2>
             {/* TDW_07 P4b · F-07.16 — the register. Was "Rs 1.5L onwards"; the vendor is
                 promised "Rs 1,50,000" on his own Discover Profile and the couple now reads
                 the same number in the same words. Copy ④, founder-vetoed. */}
             {save.vendor_starting_price != null && (
-              <p style={{ fontFamily: FF.body, fontSize: 13, fontWeight: 300, color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
+              <p style={{ fontFamily: FF.body, fontSize:16, fontWeight: 300, color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
                 Starting at {formatRs(save.vendor_starting_price)}
               </p>
             )}
             {save.vendor_vibe_tags.length > 0 && (
-              <p style={{ fontFamily: FF.label, fontSize: 9, color: 'rgba(248,247,245,0.45)', letterSpacing: '0.12em', margin: '0 0 20px' }}>
+              <p style={{ fontFamily: FF.label, fontSize:16, color: 'rgba(248,247,245,0.45)', letterSpacing: '0.12em', margin: '0 0 20px' }}>
                 {save.vendor_vibe_tags.join(' · ')}
               </p>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button onClick={handleEnquire} style={{ width: '100%', padding: '14px 0', background: 'rgba(248,247,245,0.9)', border: 'none', borderRadius: 10, fontFamily: FF.label, fontSize: 10, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#111111', cursor: 'pointer', touchAction: 'manipulation' }}>
+              <button onClick={handleEnquire} style={{ width: '100%', padding: '14px 0', background: 'rgba(248,247,245,0.9)', border: 'none', borderRadius: 10, fontFamily: FF.label, fontSize:11, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#111111', cursor: 'pointer', touchAction: 'manipulation' }}>
                 Enquire ↗
               </button>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -180,8 +180,8 @@ function FullBleedOverlay({
               <span style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.4)', marginBottom: 4 }}>Circle Activity</span>
               {activity.map(a => (
                 <div key={a.id}>
-                  <span style={{ fontFamily: FF.body, fontSize: 12, fontWeight: 400, color: 'rgba(248,247,245,0.8)' }}>{a.member_name}</span>
-                  <span style={{ fontFamily: FF.body, fontSize: 12, fontWeight: 300, color: 'rgba(248,247,245,0.5)' }}>
+                  <span style={{ fontFamily: FF.body, fontSize:16, fontWeight: 400, color: 'rgba(248,247,245,0.8)' }}>{a.member_name}</span>
+                  <span style={{ fontFamily: FF.body, fontSize:16, fontWeight: 300, color: 'rgba(248,247,245,0.5)' }}>
                     {a.activity_type === 'comment' && a.content ? `: "${a.content}"` : ` ${a.activity_type.replace(/_/g, ' ')}`}
                   </span>
                 </div>
@@ -358,21 +358,21 @@ export default function CanvasMuse() {
           <div style={{ position:'fixed', inset:0, zIndex:101, display:'flex', flexDirection:'column', padding:`calc(env(safe-area-inset-top,0px) + 48px) 24px calc(env(safe-area-inset-bottom,0px) + 24px)`, overflowY:'auto' }}>
             {tagsSaved ? (
               <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center' }}>
-                <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:28, color:'rgba(245,240,232,0.95)', marginBottom:16, lineHeight:1.3 }}>Give us 5 minutes.</div>
-                <div style={{ fontFamily:FF.body, fontSize:15, color:'rgba(245,240,232,0.55)', lineHeight:1.7, maxWidth:280 }}>We're curating your Surprise Me with images that match your aesthetic. Come back soon.</div>
+                <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:'rgba(245,240,232,0.95)', marginBottom:16, lineHeight:1.3 }}>Give us 5 minutes.</div>
+                <div style={{ fontFamily:FF.body, fontSize:16, color:'rgba(245,240,232,0.55)', lineHeight:1.7, maxWidth:280 }}>We're curating your Surprise Me with images that match your aesthetic. Come back soon.</div>
               </div>
             ) : (
               <>
                 <div style={{ marginBottom:24 }}>
-                  <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:'rgba(245,240,232,0.95)', lineHeight:1.3, marginBottom:10 }}>What moves you?</div>
-                  <div style={{ fontFamily:FF.body, fontSize:14, color:'rgba(245,240,232,0.5)', lineHeight:1.6 }}>Pick everything that feels like you. We'll curate your Surprise Me.</div>
+                  <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:'rgba(245,240,232,0.95)', lineHeight:1.3, marginBottom:10 }}>What moves you?</div>
+                  <div style={{ fontFamily:FF.body, fontSize:16, color:'rgba(245,240,232,0.5)', lineHeight:1.6 }}>Pick everything that feels like you. We'll curate your Surprise Me.</div>
                 </div>
                 <div style={{ display:'flex', flexWrap:'wrap' as const, gap:10, marginBottom:24 }}>
                   {TAGS_LIST.map(([value, label]) => {
                     const sel = selectedTags.includes(value);
                     return (
                       <button key={value} onClick={() => toggleTag(value)}
-                        style={{ padding:'10px 18px', borderRadius:FR.pill, border:`1px solid ${sel ? tokens.brass : 'rgba(255,255,255,0.2)'}`, background:sel ? 'rgba(191,160,77,0.2)' : 'rgba(255,255,255,0.05)', fontFamily:FF.body, fontSize:14, color:sel ? tokens.brass : 'rgba(245,240,232,0.7)', cursor:'pointer' }}>
+                        style={{ padding:'10px 18px', borderRadius:FR.pill, border:`1px solid ${sel ? tokens.brass : 'rgba(255,255,255,0.2)'}`, background:sel ? 'rgba(191,160,77,0.2)' : 'rgba(255,255,255,0.05)', fontFamily:FF.body, fontSize:16, color:sel ? tokens.brass : 'rgba(245,240,232,0.7)', cursor:'pointer' }}>
                         {label}
                       </button>
                     );
@@ -414,13 +414,13 @@ export default function CanvasMuse() {
           onClick={() => router.push('/frost/canvas/surprise')}
           style={{ display: 'flex', alignItems: 'center', gap: 5, height: 28, padding: '0 12px 0 10px', borderRadius: 100, background: 'rgba(201,168,76,0.12)', border: '0.5px solid rgba(201,168,76,0.35)', cursor: 'pointer', touchAction: 'manipulation' }}
         >
-          <span style={{ fontSize: 9, color: tokens.brass, lineHeight: 1 }}>✦</span>
-          <span style={{ fontFamily: FF.label, fontSize: 8, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: tokens.brass, whiteSpace: 'nowrap' }}>Surprise Me</span>
+          <span style={{ fontSize:16, color: tokens.brass, lineHeight: 1 }}>✦</span>
+          <span style={{ fontFamily: FF.label, fontSize:9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: tokens.brass, whiteSpace: 'nowrap' }}>Surprise Me</span>
         </button>
       }>
         <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.m}px` }}>
-          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: tokens.ink, marginBottom: 4 }}>Muse</div>
-          <div style={{ fontFamily: FF.body, fontSize: 13, color: tokens.soft }}>{loading ? 'Loading\u2026' : `${total} saved`}</div>
+          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:22, color: tokens.ink, marginBottom: 4 }}>Muse</div>
+          <div style={{ fontFamily: FF.body, fontSize:16, color: tokens.soft }}>{loading ? 'Loading\u2026' : `${total} saved`}</div>
         </div>
 
         <div className="frost-scroll" style={{ display: 'flex', gap: 6, padding: `0 ${SP.xxl}px ${SP.s}px`, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -439,7 +439,7 @@ export default function CanvasMuse() {
 
         <div style={{ padding: `0 ${SP.xxl}px`, columns: '2 auto', columnGap: 8 }}>
           {!loading && filtered.length === 0 && (
-            <div style={{ columnSpan: 'all', textAlign: 'center', padding: '48px 0', fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: tokens.soft }}>No saves here yet.</div>
+            <div style={{ columnSpan: 'all', textAlign: 'center', padding: '48px 0', fontFamily: FF.display, fontStyle: 'italic', fontSize:19, color: tokens.soft }}>No saves here yet.</div>
           )}
           {filtered.map(save => (
             <div
@@ -451,29 +451,29 @@ export default function CanvasMuse() {
                 <img src={save.image_url} alt={save.vendor_name || 'muse'} style={{ width: '100%', display: 'block', objectFit: 'cover' }} loading="lazy" />
               ) : (
                 <div style={{ width: '100%', aspectRatio: '3/4', background: tokens.cardFill, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 11, color: tokens.soft }}>{save.vendor_name || '\u2014'}</span>
+                  <span style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:16, color: tokens.soft }}>{save.vendor_name || '\u2014'}</span>
                 </div>
               )}
 
               {save.vendor_name && (
-                <div style={{ position: 'absolute', bottom: 6, left: 6, fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', background: 'rgba(12,10,9,0.55)', color: 'rgba(245,240,232,0.9)', padding: '3px 7px', borderRadius: FR.pill, backdropFilter: 'blur(4px)' }}>{save.vendor_name}</div>
+                <div style={{ position: 'absolute', bottom: 6, left: 6, fontFamily: FF.label, fontSize:9, letterSpacing: '0.15em', textTransform: 'uppercase', background: 'rgba(12,10,9,0.55)', color: 'rgba(245,240,232,0.9)', padding: '3px 7px', borderRadius: FR.pill, backdropFilter: 'blur(4px)' }}>{save.vendor_name}</div>
               )}
 
               {save.circle_comment_count > 0 && (
-                <div style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(201,168,76,0.85)', borderRadius: FR.pill, padding: '2px 6px', fontFamily: FF.label, fontSize: 7, color: '#1B1612', letterSpacing: '0.1em' }}>{save.circle_comment_count}</div>
+                <div style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(201,168,76,0.85)', borderRadius: FR.pill, padding: '2px 6px', fontFamily: FF.label, fontSize:16, color: '#1B1612', letterSpacing: '0.1em' }}>{save.circle_comment_count}</div>
               )}
 
               {save.saved_by_role === 'circle_member' && (
-                <div style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(12,10,9,0.55)', backdropFilter: 'blur(4px)', borderRadius: FR.pill, padding: '3px 7px', fontFamily: FF.label, fontSize: 7, color: 'rgba(248,247,245,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Circle</div>
+                <div style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(12,10,9,0.55)', backdropFilter: 'blur(4px)', borderRadius: FR.pill, padding: '3px 7px', fontFamily: FF.label, fontSize:9, color: 'rgba(248,247,245,0.7)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Circle</div>
               )}
 
               {confirmId === save.id && (
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(12,10,9,0.72)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12 }} onClick={e => e.stopPropagation()}>
                   <Trash2 size={18} strokeWidth={1.5} color="rgba(245,240,232,0.8)" />
-                  <div style={{ fontFamily: FF.body, fontSize: 12, color: 'rgba(245,240,232,0.8)', textAlign: 'center' }}>Remove?</div>
+                  <div style={{ fontFamily: FF.body, fontSize:16, color: 'rgba(245,240,232,0.8)', textAlign: 'center' }}>Remove?</div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => handleDelete(save.id)} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', background: 'rgba(184,69,62,0.8)', color: '#FFF', border: 'none', padding: '5px 10px', borderRadius: FR.pill, cursor: 'pointer' }}>Remove</button>
-                    <button onClick={() => setConfirmId(null)} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.12)', color: 'rgba(245,240,232,0.8)', border: 'none', padding: '5px 10px', borderRadius: FR.pill, cursor: 'pointer' }}>Keep</button>
+                    <button onClick={() => handleDelete(save.id)} style={{ fontFamily: FF.label, fontSize:9, letterSpacing: '0.15em', textTransform: 'uppercase', background: 'rgba(184,69,62,0.8)', color: '#FFF', border: 'none', padding: '5px 10px', borderRadius: FR.pill, cursor: 'pointer' }}>Remove</button>
+                    <button onClick={() => setConfirmId(null)} style={{ fontFamily: FF.label, fontSize:9, letterSpacing: '0.15em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.12)', color: 'rgba(245,240,232,0.8)', border: 'none', padding: '5px 10px', borderRadius: FR.pill, cursor: 'pointer' }}>Keep</button>
                   </div>
                 </div>
               )}
@@ -485,14 +485,14 @@ export default function CanvasMuse() {
       {addSheet && <>
         <div onClick={() => setAddSheet(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:300 }} />
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:301, background:tokens.pagePaper, borderRadius:'20px 20px 0 0', padding:`28px 24px calc(28px + env(safe-area-inset-bottom))` }}>
-          <div style={{ fontFamily: FF.display, fontStyle:'italic', fontSize:24, color:tokens.ink, marginBottom:4 }}>Add to Muse</div>
-          <div style={{ fontFamily: FF.body, fontSize:13, color:tokens.soft, marginBottom:24 }}>Upload from your phone or paste a link.</div>
+          <div style={{ fontFamily: FF.display, fontStyle:'italic', fontSize:22, color:tokens.ink, marginBottom:4 }}>Add to Muse</div>
+          <div style={{ fontFamily: FF.body, fontSize:16, color:tokens.soft, marginBottom:24 }}>Upload from your phone or paste a link.</div>
 
           {/* Upload from phone — primary action */}
           <button
             onClick={handlePickFiles}
             disabled={saving}
-            style={{ width:'100%', padding:14, background:tokens.brass, border:'none', borderRadius:8, fontFamily: FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:saving?0.5:1, marginBottom:14 }}>
+            style={{ width:'100%', padding:14, background:tokens.brass, border:'none', borderRadius:8, fontFamily: FF.label, fontSize:11, letterSpacing:'0.22em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:saving?0.5:1, marginBottom:14 }}>
             Upload from phone
           </button>
 
@@ -509,12 +509,12 @@ export default function CanvasMuse() {
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             placeholder="https://i.pinimg.com/…"
-            style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.body, fontSize:14, color:tokens.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:12 }}
+            style={{ width:'100%', padding:'12px 14px', background:'rgba(255,255,255,0.06)', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.body, fontSize:16, color:tokens.ink, outline:'none', boxSizing:'border-box' as const, marginBottom:12 }}
           />
           <button
             onClick={handleAddFromUrl}
             disabled={!urlInput.trim() || saving}
-            style={{ width:'100%', padding:12, background:'transparent', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.label, fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase', color:tokens.ink, cursor:'pointer', opacity:(!urlInput.trim()||saving)?0.5:1 }}>
+            style={{ width:'100%', padding:12, background:'transparent', border:`0.5px solid ${tokens.hairline}`, borderRadius:8, fontFamily: FF.label, fontSize:11, letterSpacing:'0.22em', textTransform:'uppercase', color:tokens.ink, cursor:'pointer', opacity:(!urlInput.trim()||saving)?0.5:1 }}>
             {saving ? 'Saving…' : 'Save link'}
           </button>
         </div>
@@ -532,13 +532,13 @@ export default function CanvasMuse() {
 
       {/* Upload progress indicator */}
       {uploadProgress && (
-        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'10px 20px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>
+        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', padding:'10px 20px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>
           Uploading {uploadProgress.current} of {uploadProgress.total}…
         </div>
       )}
 
       {addToast && (
-        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{addToast}</div>
+        <div style={{ position:'fixed', top:24, left:'50%', transform:'translateX(-50%)', background:tokens.ink, color:tokens.pagePaper, fontFamily: FF.label, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{addToast}</div>
       )}
     </>
 

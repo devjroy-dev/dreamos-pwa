@@ -38,17 +38,17 @@ function ActivityCard({ a, t, look, onNavigate }: { a: any; t: any; look: string
         </div>
         {/* Caption + meta below the image */}
         {a.caption && (
-          <div style={{ fontFamily: FF.body, fontSize: 13, color: t.ink, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
+          <div style={{ fontFamily: FF.body, fontSize:16, color: t.ink, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
             "{a.caption}"
           </div>
         )}
-        <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft, marginBottom: a.aesthetic_tags?.length ? 4 : 0 }}>
+        <div style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.15em', color: t.soft, marginBottom: a.aesthetic_tags?.length ? 4 : 0 }}>
           {actor} · {timeAgo(a.created_at)}
         </div>
         {a.aesthetic_tags && a.aesthetic_tags.length > 0 && (
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
             {a.aesthetic_tags.slice(0, 3).map((tag: string) => (
-              <span key={tag} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>
+              <span key={tag} style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>
                 {tag}
               </span>
             ))}
@@ -61,10 +61,10 @@ function ActivityCard({ a, t, look, onNavigate }: { a: any; t: any; look: string
   if (a.activity_type === 'comment' && a.content) {
     return (
       <div style={{ marginBottom: SP.l, paddingLeft: SP.l, borderLeft: `2px solid ${t.brass}` }}>
-        <div style={{ fontFamily: FF.body, fontSize: 14, color: t.ink, lineHeight: 1.6, fontStyle: 'italic', marginBottom: 4 }}>
+        <div style={{ fontFamily: FF.body, fontSize:16, color: t.ink, lineHeight: 1.6, fontStyle: 'italic', marginBottom: 4 }}>
           "{a.content}"
         </div>
-        <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft }}>
+        <div style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.15em', color: t.soft }}>
           {actor} · {timeAgo(a.created_at)}
         </div>
       </div>
@@ -77,8 +77,8 @@ function ActivityCard({ a, t, look, onNavigate }: { a: any; t: any; look: string
         <div style={{ width: 28, height: 28, borderRadius: 14, background: `rgba(191,160,77,0.12)`, border: `0.5px solid rgba(191,160,77,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Users size={12} color={t.brassMuted} strokeWidth={1.5} />
         </div>
-        <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft }}>
-          {a.member_name} joined your circle · <span style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.1em' }}>{timeAgo(a.created_at)}</span>
+        <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft }}>
+          {a.member_name} joined your circle · <span style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.1em' }}>{timeAgo(a.created_at)}</span>
         </div>
       </div>
     );
@@ -89,8 +89,8 @@ function ActivityCard({ a, t, look, onNavigate }: { a: any; t: any; look: string
     <div style={{ marginBottom: SP.m, display: 'flex', alignItems: 'flex-start', gap: SP.m }}>
       <div style={{ width: 5, height: 5, borderRadius: 3, background: t.hairline, marginTop: 6, flexShrink: 0 }} />
       <div>
-        <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft }}>{actor} · {a.activity_type.replace(/_/g, ' ')}</div>
-        <div style={{ fontFamily: FF.label, fontSize: 9, color: t.brassMuted, marginTop: 2 }}>{timeAgo(a.created_at)}</div>
+        <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft }}>{actor} · {a.activity_type.replace(/_/g, ' ')}</div>
+        <div style={{ fontFamily: FF.label, fontSize:16, color: t.brassMuted, marginTop: 2 }}>{timeAgo(a.created_at)}</div>
       </div>
     </div>
   );
@@ -150,7 +150,7 @@ export default function JourneyCircle() {
   return (
     <CanvasShell eyebrow="Circle" backTo="/frost/canvas/sanctuary">
       {toast && (
-        <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 70px)', left: '50%', transform: 'translateX(-50%)', background: t.ink, color: t.pagePaper, fontFamily: FF.label, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '8px 18px', borderRadius: 20, zIndex: 400, pointerEvents: 'none', whiteSpace: 'nowrap' }}>{toast}</div>
+        <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 70px)', left: '50%', transform: 'translateX(-50%)', background: t.ink, color: t.pagePaper, fontFamily: FF.label, fontSize:11, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '8px 18px', borderRadius: 20, zIndex: 400, pointerEvents: 'none', whiteSpace: 'nowrap' }}>{toast}</div>
       )}
 
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
@@ -162,16 +162,16 @@ export default function JourneyCircle() {
             <div style={{ display: 'flex', gap: SP.m, flexWrap: 'wrap' as const }}>
               {members.map(m => (
                 <button key={m.id} onClick={() => router.push(`/frost/canvas/journey/circle/${m.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: FR.pill, border: `0.5px solid ${t.hairline}`, background: 'transparent', fontFamily: FF.body, fontSize: 13, color: t.ink, cursor: 'pointer' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: FR.pill, border: `0.5px solid ${t.hairline}`, background: 'transparent', fontFamily: FF.body, fontSize:16, color: t.ink, cursor: 'pointer' }}>
                   <div style={{ width: 20, height: 20, borderRadius: 10, background: `rgba(191,160,77,0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontFamily: FF.label, fontSize: 8, color: t.brassMuted }}>{(m.invitee_name[0] || '·').toUpperCase()}</span>
+                    <span style={{ fontFamily: FF.label, fontSize:16, color: t.brassMuted }}>{(m.invitee_name[0] || '·').toUpperCase()}</span>
                   </div>
                   {m.invitee_name}
                 </button>
               ))}
               {pending.map(p => (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: FR.pill, border: `0.5px dashed ${t.hairline}`, fontFamily: FF.body, fontSize: 13, color: t.soft, opacity: 0.6 }}>
-                  {p.invitee_name} <span style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.1em', color: t.soft }}>invited</span>
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: FR.pill, border: `0.5px dashed ${t.hairline}`, fontFamily: FF.body, fontSize:16, color: t.soft, opacity: 0.6 }}>
+                  {p.invitee_name} <span style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.1em', color: t.soft }}>invited</span>
                 </div>
               ))}
               <button onClick={() => setShowInvite(true)}
@@ -188,7 +188,7 @@ export default function JourneyCircle() {
         <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: t.soft, marginBottom: SP.xl }}>The journey</div>
 
         {loading && (
-          <div style={{ fontFamily: FF.display, fontSize: 32, color: t.brassMuted, letterSpacing: 6 }}>…</div>
+          <div style={{ fontFamily: FF.display, fontSize:22, color: t.brassMuted, letterSpacing: 6 }}>…</div>
         )}
 
         {!loading && activity.length === 0 && (
@@ -196,7 +196,7 @@ export default function JourneyCircle() {
             <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 22, color: t.ink, marginBottom: SP.m }}>
               Your circle is just beginning.
             </div>
-            <div style={{ fontFamily: FF.body, fontSize: 14, color: t.soft, lineHeight: 1.6 }}>
+            <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft, lineHeight: 1.6 }}>
               When your people save to Muse, leave notes, or you add bookings and events — it all appears here. The story of your wedding, told in the moments that made it.
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function JourneyCircle() {
         {!loading && members.length === 0 && activity.length === 0 && (
           <div style={{ marginTop: SP.xl, textAlign: 'center' }}>
             <button onClick={() => setShowInvite(true)}
-              style={{ padding: '12px 24px', background: t.brass, border: 'none', borderRadius: FR.pill, fontFamily: FF.label, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1B1612', cursor: 'pointer' }}>
+              style={{ padding: '12px 24px', background: t.brass, border: 'none', borderRadius: FR.pill, fontFamily: FF.label, fontSize:11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1B1612', cursor: 'pointer' }}>
               Invite your first person
             </button>
           </div>
@@ -227,28 +227,28 @@ export default function JourneyCircle() {
             <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 22, color: t.ink }}>Add to your circle</div>
             <button onClick={() => setShowInvite(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} color={t.soft} strokeWidth={1.5} /></button>
           </div>
-          <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft, marginBottom: SP.xl }}>
+          <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft, marginBottom: SP.xl }}>
             They join via WhatsApp and become part of your journey — their saves, notes, and moments all flow into your circle.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: SP.m }}>
             <div>
               <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: t.soft, marginBottom: 6 }}>Their name</div>
               <input value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder='Mom, Priya, Anjali…'
-                style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.06)', border: `0.5px solid ${t.hairline}`, borderRadius: FR.md, fontFamily: FF.body, fontSize: 15, color: t.ink, outline: 'none', boxSizing: 'border-box' as const }} />
+                style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.06)', border: `0.5px solid ${t.hairline}`, borderRadius: FR.md, fontFamily: FF.body, fontSize:16, color: t.ink, outline: 'none', boxSizing: 'border-box' as const }} />
             </div>
             <div>
               <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: t.soft, marginBottom: 6 }}>Relationship</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {ROLES.map(r => (
                   <button key={r.value} onClick={() => setInviteRole(r.value)}
-                    style={{ padding: '10px 14px', textAlign: 'left', borderRadius: FR.md, border: `0.5px solid ${inviteRole === r.value ? t.brass : t.hairline}`, background: inviteRole === r.value ? `rgba(191,160,77,0.12)` : 'transparent', fontFamily: FF.body, fontSize: 14, color: inviteRole === r.value ? t.brass : t.ink, cursor: 'pointer' }}>
+                    style={{ padding: '10px 14px', textAlign: 'left', borderRadius: FR.md, border: `0.5px solid ${inviteRole === r.value ? t.brass : t.hairline}`, background: inviteRole === r.value ? `rgba(191,160,77,0.12)` : 'transparent', fontFamily: FF.body, fontSize:16, color: inviteRole === r.value ? t.brass : t.ink, cursor: 'pointer' }}>
                     {r.label}
                   </button>
                 ))}
               </div>
             </div>
             <button onClick={handleInvite} disabled={inviting || !inviteName.trim()}
-              style={{ marginTop: SP.s, padding: '14px 0', background: t.brass, border: 'none', borderRadius: FR.md, fontFamily: FF.label, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1B1612', cursor: 'pointer', opacity: (inviting || !inviteName.trim()) ? 0.5 : 1, transition: `opacity 200ms ${EASE}` }}>
+              style={{ marginTop: SP.s, padding: '14px 0', background: t.brass, border: 'none', borderRadius: FR.md, fontFamily: FF.label, fontSize:11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#1B1612', cursor: 'pointer', opacity: (inviting || !inviteName.trim()) ? 0.5 : 1, transition: `opacity 200ms ${EASE}` }}>
               {inviting ? 'Generating link…' : 'Generate invite link'}
             </button>
           </div>

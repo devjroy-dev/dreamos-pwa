@@ -19,11 +19,20 @@ export interface FrostModeCtx {
   setContentMode: (c: ContentMode) => void;
 }
 
+// ── F-09.160 · THE FIFTH SEAT OF THE SINGLE-THEME RULING (TDW_09 atelier) ──────
+// The Wine-only ruling pinned four seats, all in lib/frost/tokens.ts: getV2Tokens,
+// museLookFromHomeMode, getFrostMode, setFrostMode. THIS default was the fifth and
+// it was left reading 'E3' — the LIGHT theme. It is inert while the provider wraps
+// every consumer, which it does today. It is also byte-for-byte the shape of the
+// defect the ruling's second seat cured: a light literal sitting upstream of a
+// pinned reader, waiting for the one render that does not reach the provider.
+// Pinned to Wine, deliberately NOT deleted — the context still needs a default, and
+// a default that disagrees with the ruling is a trap with a fuse in it.
 const FrostCtx = createContext<FrostModeCtx>({
-  homeMode:       'E3',
+  homeMode:       'E1A',
   contentMode:    'dream',
-  mode:           MODES['E3'],
-  look:           'E3',
+  mode:           MODES['E1A'],
+  look:           'E1',
   setHomeMode:    () => {},
   setContentMode: () => {},
 });

@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TDW_09 · The Atelier Language — GATE 1 package · five surface classes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italianno&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TDW_09 · THE ATELIER LANGUAGE · GATE 1 PACKAGE
+   Five surface classes + the type rungs. Wine Night only (founder ruling 2026-08-07).
+
+   THE PALETTE IS NOT PROPOSED. Every colour below is copied verbatim from
+   lib/frost/tokens.ts V2_WINE_NIGHT and is not this mock's subject.
+
+   WHAT IS PROPOSED, and what your approval rules:
+     · the type scale (7 steps, from 33)      · the spacing rhythm (base 8, 5 steps)
+     · the imagery rule (4:5, full bleed, 0r) · the composition of each surface class
+     · three named forks, drawn one arm each  — see THE FORKS, below.
+
+   WHAT IS NOT PROPOSED AND DOES NOT MOVE: routes, rooms, controls, behaviours, words.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* ── PALETTE · V2_WINE_NIGHT verbatim ─────────────────────────────────────── */
+  --bg:#1E0A0E; --bg2:#180608; --bgDeep:#100404;
+  --ink:#F5E5DC; --inkSoft:rgba(245,229,220,.75); --inkMute:rgba(245,229,220,.45);
+  --accent:#C4856A; --accentSoft:rgba(196,133,106,.18);
+  --signal:#6B9E8F; --ghost:#3A0C18;
+  --line:rgba(196,133,106,.14); --lineStrong:rgba(196,133,106,.22);
+  --wa:#25D366;
+
+  /* ── PROPOSED · TYPE SCALE — seven rungs. The tree declares 33 today. ─────── */
+  --type-numeral:150px;    /* Fraunces 700 opsz144 · the countdown. One per screen. */
+  --type-greeting:46px;    /* Italianno · the greeting. One per screen.             */
+  --type-room:22px;        /* Fraunces italic 300 · room titles, rail labels, heads */
+  --type-lead:19px;        /* Fraunces italic 300 · the one line that leads         */
+  --type-body:16px;        /* Fraunces italic 300 · ALL body prose. THE FLOOR.      */
+  --type-engraved:11px;    /* JetBrains Mono · labels, dates, actions, hints        */
+  --type-engraved-sm:9px;  /* JetBrains Mono · the ONE permitted sub-floor rung     */
+
+  /* ── PROPOSED · SPACING — base 8, five steps, nothing between ─────────────── */
+  --sp-1:8px; --sp-2:16px; --sp-3:24px; --sp-4:40px; --sp-5:64px;
+  --gutter:24px;
+
+  /* ── PROPOSED · RULES + TRACKING ──────────────────────────────────────────── */
+  --hair:.5px; --track-engraved:.22em; --track-display:-.03em;
+  --radius-chrome:8px;     /* fields, chips, avatars. Chrome may curve.            */
+  --radius-sheet:20px;     /* the sheet's top corners, unchanged from :765         */
+
+  /* ── PROPOSED · IMAGERY ───────────────────────────────────────────────────── */
+  --plate-ratio:4/5; --plate-radius:0px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:#0B0406;color:var(--ink);font-family:'Fraunces',serif;-webkit-font-smoothing:antialiased}
+
+/* ── mock furniture — NOT part of the proposal ─────────────────────────────── */
+.sheetpage{max-width:1240px;margin:0 auto;padding:56px 28px 110px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute)}
+.mockhead{border-bottom:var(--hair) solid var(--line);padding-bottom:var(--sp-3);margin-bottom:var(--sp-4)}
+.mockhead h1{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:36px;
+  letter-spacing:var(--track-display);margin:10px 0 0;color:var(--ink)}
+.mockhead p{font-size:var(--type-body);font-style:italic;font-weight:300;color:var(--inkSoft);
+  line-height:1.7;max-width:66ch;margin:16px 0 0}
+.mockhead p b{color:var(--ink);font-style:normal;font-weight:400}
+.sec{border-top:var(--hair) solid var(--line);padding-top:var(--sp-4);margin-top:var(--sp-5)}
+.sec > .eyebrow{color:var(--accent)}
+.sec h2{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:28px;
+  margin:10px 0 var(--sp-3);color:var(--ink)}
+.stage{display:flex;gap:52px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:0 0 auto}
+.notes{flex:1 1 320px;min-width:290px;padding-top:4px}
+.note{border-left:var(--hair) solid var(--line);padding-left:18px;margin-bottom:var(--sp-2)}
+.note b{display:block;font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--inkMute);font-weight:400;margin-bottom:5px}
+.note span{font-size:15px;font-style:italic;font-weight:300;color:var(--inkSoft);line-height:1.65}
+.note em{color:var(--accent);font-style:italic}
+
+/* ── handset ──────────────────────────────────────────────────────────────── */
+.phone{width:390px;max-width:100%;height:844px;position:relative;overflow:hidden;
+  background:var(--bg);border:var(--hair) solid var(--lineStrong);box-shadow:0 40px 100px rgba(0,0,0,.62)}
+.phone.short{height:660px}
+.grain{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.45;background-size:160px;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
+.radial{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 110% 55% at 50% -8%,rgba(196,133,106,.22) 0%,transparent 58%),
+             radial-gradient(ellipse 70% 50% at 85% 110%,rgba(55,10,20,.55) 0%,transparent 55%)}
+.screen{position:relative;z-index:2;height:100%;display:flex;flex-direction:column}
+
+/* ── shared room chrome ───────────────────────────────────────────────────── */
+.roombar{flex-shrink:0;display:flex;align-items:center;gap:var(--sp-2);
+  padding:22px var(--gutter) 18px;border-bottom:var(--hair) solid var(--line)}
+.roombar .back{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--inkMute);line-height:1;cursor:pointer}
+.roombar .title{font-family:'Fraunces',serif;font-style:italic;font-weight:300;
+  font-size:var(--type-room);color:var(--ink);font-variation-settings:"opsz" 9}
+.roombar .aux{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute)}
+.roombar .aux.act{color:var(--accent);cursor:pointer}
+.feed{flex:1;overflow-y:auto;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.grouphead{padding:var(--sp-3) var(--gutter) var(--sp-1);font-family:'JetBrains Mono',monospace;
+  font-size:var(--type-engraved-sm);letter-spacing:var(--track-engraved);
+  text-transform:uppercase;color:var(--inkMute)}
+
+/* ═══ 1 · MASTHEAD + RAIL ═══════════════════════════════════════════════════ */
+.datestamp{position:absolute;top:18px;right:var(--gutter);z-index:6;font-family:'JetBrains Mono',monospace;
+  font-size:var(--type-engraved-sm);letter-spacing:var(--track-engraved);color:var(--inkMute)}
+.masthead{position:relative;flex-shrink:0;padding:74px var(--gutter) var(--sp-3);overflow:hidden}
+.numeral{font-family:'Fraunces',serif;font-weight:700;font-size:var(--type-numeral);line-height:.78;
+  letter-spacing:-.055em;color:var(--accent);font-variation-settings:"opsz" 144;display:block;margin:0 0 0 -6px}
+.numeral small{font-family:'JetBrains Mono',monospace;font-weight:400;font-size:var(--type-engraved);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute);display:block;
+  margin:var(--sp-1) 0 0 6px}
+.greeting{font-family:'Italianno',cursive;font-size:var(--type-greeting);line-height:.9;
+  color:var(--ink);margin:var(--sp-3) 0 0}
+.greeting i{font-style:normal;color:var(--accent)}
+.lead{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-lead);
+  line-height:1.5;color:var(--inkSoft);margin:var(--sp-2) 0 0;max-width:30ch;font-variation-settings:"opsz" 9}
+.lead b{font-weight:400;color:var(--accent)}
+.sincebar{display:flex;align-items:center;gap:var(--sp-1);margin-top:var(--sp-2);
+  font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--signal)}
+.sincebar s{text-decoration:none;color:var(--inkMute)}
+.rail{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;
+  border-top:var(--hair) solid var(--lineStrong);min-height:0}
+.slice{flex:1;min-height:0;display:flex;align-items:center;gap:var(--sp-1);padding:0 var(--gutter);
+  border-bottom:var(--hair) solid var(--line);cursor:pointer;
+  transition:background 220ms cubic-bezier(.22,1,.36,1)}
+.slice:hover,.slice:focus-visible{background:rgba(196,133,106,.05);outline:none}
+.slice .label{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-room);
+  line-height:1;color:var(--ink);flex-shrink:0;font-variation-settings:"opsz" 9;letter-spacing:-.01em}
+.slice .candle{width:5px;height:5px;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 8px var(--signal);flex-shrink:0}
+.slice .hint{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--inkMute);margin-left:auto;text-align:right;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slice .arrow{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  color:var(--accent);flex-shrink:0;margin-left:6px}
+.dreamdoor{position:relative;z-index:2;flex-shrink:0;border-top:var(--hair) solid var(--lineStrong);
+  display:flex;align-items:center;justify-content:center;gap:10px;padding:20px 0;cursor:pointer}
+.dreamdoor span{font-family:'Fraunces',serif;font-style:italic;font-weight:300;
+  font-size:var(--type-room);color:var(--accent)}
+.dreamdoor small{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute)}
+
+/* ═══ 2 · DENSE ROOM — Moments ══════════════════════════════════════════════ */
+.plate{position:relative;margin-bottom:var(--sp-4)}
+.plate .img{width:100%;aspect-ratio:var(--plate-ratio);border-radius:var(--plate-radius);display:block;
+  background:linear-gradient(150deg,#2E151A 0%,#1A0A0E 60%,#120508 100%)}
+.plate .img.b{background:linear-gradient(200deg,#3A1C18 0%,#1E0C0C 55%,#140606 100%)}
+.plate .img.c{background:linear-gradient(120deg,#241016 0%,#33191B 45%,#160709 100%)}
+.plate .stamp{position:absolute;top:var(--sp-2);left:var(--gutter);z-index:2;
+  font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--ink);
+  text-shadow:0 1px 14px rgba(0,0,0,.9)}
+.plate .stamp b{color:var(--accent);font-weight:400}
+.chip{display:inline-block;margin-left:8px;padding:2px 7px;border:var(--hair) solid rgba(196,133,106,.5);
+  color:var(--accent);letter-spacing:.14em;border-radius:3px}
+.plate .caption{padding:var(--sp-2) var(--gutter) 0;font-family:'Fraunces',serif;font-style:italic;
+  font-weight:300;font-size:var(--type-body);line-height:1.6;color:var(--inkSoft);
+  font-variation-settings:"opsz" 9}
+.plate .capedit{padding:var(--sp-2) var(--gutter) 0;font-family:'JetBrains Mono',monospace;
+  font-size:var(--type-engraved-sm);letter-spacing:var(--track-engraved);text-transform:uppercase;
+  color:rgba(245,229,220,.28);cursor:text}
+.dayrule{display:flex;align-items:center;gap:var(--sp-2);padding:0 var(--gutter);margin-bottom:var(--sp-2)}
+.dayrule hr{flex:1;border:none;border-top:var(--hair) solid var(--line);margin:0}
+.dayrule span{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute)}
+.actionbar{flex-shrink:0;border-top:var(--hair) solid var(--lineStrong);padding:18px var(--gutter);
+  display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}
+.actionbar span{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--accent)}
+
+/* ═══ 3 · LIST ROOM — Vendors ═══════════════════════════════════════════════ */
+.row{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--gutter);
+  border-bottom:var(--hair) solid var(--line);cursor:pointer;
+  transition:background 220ms cubic-bezier(.22,1,.36,1)}
+.row:hover,.row:focus-visible{background:rgba(196,133,106,.04);outline:none}
+.row .mono-av{width:36px;height:36px;border-radius:50%;border:var(--hair) solid var(--line);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;
+  font-size:var(--type-engraved);color:var(--inkMute)}
+.row .body{flex:1;min-width:0}
+.row .name{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-body);
+  color:var(--ink);font-variation-settings:"opsz" 9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--inkMute);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .state{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--inkMute);opacity:.72;margin-top:4px}
+.row .money{text-align:right;flex-shrink:0;min-width:0}
+.row .money .lab{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute)}
+.row .money .fig{font-family:'Fraunces',serif;font-weight:400;font-size:var(--type-body);
+  color:var(--ink);margin-top:3px;white-space:nowrap}
+.row .wa{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;background:rgba(37,211,102,.10);border:var(--hair) solid rgba(37,211,102,.25)}
+
+/* ═══ 4 · SHEET — Add a booking ═════════════════════════════════════════════ */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:10}
+.sheetup{position:absolute;left:0;right:0;bottom:0;z-index:11;background:var(--bg2);
+  border-radius:var(--radius-sheet) var(--radius-sheet) 0 0;padding:var(--sp-3) var(--gutter) var(--sp-3);
+  max-height:90%;overflow-y:auto;box-shadow:0 -30px 60px rgba(0,0,0,.5)}
+.sheetup .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3)}
+.sheetup .head h4{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-room);
+  color:var(--ink);margin:0;font-variation-settings:"opsz" 9}
+.sheetup .head .x{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--inkMute);cursor:pointer}
+.field{margin-bottom:var(--sp-2)}
+.field label{display:block;font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute);margin-bottom:var(--sp-1)}
+.field .inp{width:100%;padding:12px 14px;background:rgba(245,229,220,.06);
+  border:var(--hair) solid var(--line);border-radius:var(--radius-chrome);
+  font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-body);color:var(--ink)}
+.field .inp.ph{color:rgba(245,229,220,.30)}
+.field .inp.sel{display:flex;align-items:center;justify-content:space-between}
+.field .inp.sel i{font-style:normal;color:var(--inkMute);font-family:'JetBrains Mono',monospace;font-size:11px}
+.primary{width:100%;padding:15px 0;margin-top:var(--sp-2);background:var(--accent);border:none;
+  border-radius:var(--radius-chrome);font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:#1A0810;cursor:pointer;text-align:center}
+
+/* ═══ 5 · EMPTY STATE ═══════════════════════════════════════════════════════ */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:var(--sp-5) var(--gutter);gap:var(--sp-2)}
+.empty .head{font-family:'Italianno',cursive;font-size:52px;line-height:1;color:var(--accent)}
+.empty .said{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-body);
+  color:var(--inkSoft);line-height:1.7;max-width:32ch;font-variation-settings:"opsz" 9}
+.empty .soon{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute);margin-top:var(--sp-1)}
+.empty .cta{margin-top:var(--sp-2);padding:14px 30px;border-radius:100px;background:var(--accent);
+  font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved);letter-spacing:var(--track-engraved);
+  text-transform:uppercase;color:#1A0810;cursor:pointer}
+
+/* ═══ 6 · TYPE RUNGS ════════════════════════════════════════════════════════ */
+.rungs{border:var(--hair) solid var(--line);padding:var(--sp-4) var(--sp-4) var(--sp-3);background:var(--bg)}
+.rung{display:flex;align-items:baseline;gap:var(--sp-3);padding:var(--sp-2) 0;
+  border-bottom:var(--hair) solid rgba(196,133,106,.07);flex-wrap:wrap}
+.rung .tag{flex:0 0 168px;font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.rung .spec{flex:0 0 116px;font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:.1em;color:var(--inkMute)}
+.rung .demo{flex:1 1 300px;min-width:0;color:var(--ink)}
+.d-numeral{font-family:'Fraunces',serif;font-weight:700;font-size:72px;line-height:.8;
+  letter-spacing:-.055em;color:var(--accent);font-variation-settings:"opsz" 144}
+.d-greeting{font-family:'Italianno',cursive;font-size:var(--type-greeting);line-height:1}
+.d-room{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-room)}
+.d-lead{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-lead);line-height:1.5}
+.d-body{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:var(--type-body);line-height:1.6;color:var(--inkSoft)}
+.d-eng{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkSoft)}
+.d-engsm{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--inkMute)}
+.retires{margin-top:var(--sp-3);font-size:15px;font-style:italic;font-weight:300;
+  color:var(--inkMute);line-height:1.7}
+
+/* ── forks + veto + tokens ─────────────────────────────────────────────────── */
+.fork{border:var(--hair) solid var(--lineStrong);padding:var(--sp-3);margin-bottom:var(--sp-2)}
+.fork h4{font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--accent);
+  font-weight:400;margin:0 0 12px}
+.fork .arm{font-size:15px;font-style:italic;font-weight:300;color:var(--inkSoft);line-height:1.65;margin-bottom:8px}
+.fork .arm u{text-decoration:none;font-family:'JetBrains Mono',monospace;font-style:normal;
+  font-size:var(--type-engraved-sm);letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+.fork .drawn u{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:var(--type-engraved-sm);
+  letter-spacing:var(--track-engraved);text-transform:uppercase;color:var(--accent);font-weight:400;
+  padding:0 14px 10px 0;border-bottom:var(--hair) solid var(--line);white-space:nowrap}
+td{padding:11px 14px 11px 0;border-bottom:var(--hair) solid rgba(196,133,106,.07);vertical-align:top;
+  color:var(--inkSoft);font-style:italic;font-weight:300;line-height:1.55}
+td.k{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:12px;color:var(--ink);white-space:nowrap}
+td.v{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:12px;color:var(--accent);white-space:nowrap}
+td.cur{font-family:'Fraunces',serif;font-style:italic;color:var(--inkMute)}
+td.new{font-family:'Fraunces',serif;font-style:italic;color:var(--ink)}
+.foot{margin-top:var(--sp-4);padding-top:var(--sp-3);border-top:var(--hair) solid var(--line);
+  font-size:15px;font-style:italic;font-weight:300;color:var(--inkMute);line-height:1.8}
+.foot b{color:var(--accent);font-style:normal;font-weight:400}
+@media (max-width:900px){.phone{height:740px}.rung .tag,.rung .spec{flex-basis:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="sheetpage">
+
+  <div class="mockhead">
+    <div class="eyebrow">TDW_09 · the frost redesign arc · GATE 1 · the veto carrier · pwa @ 2e09207</div>
+    <h1>The Atelier Language</h1>
+    <p>Five surface classes of the bride app in the proposed register, plus the type rungs.
+       Wine Night, real-shaped data. <b>The palette is not proposed</b> — it is V2_WINE_NIGHT verbatim.
+       What is proposed: the type scale, the spacing rhythm, the imagery rule, and the composition of
+       each class. <b>Nothing here moves a route, a room, a control, a behaviour, or a word.</b>
+       Approving this page rules the three forks below and releases BUILD-ALL; every shipped surface
+       then matches its class here or reports the delta.</p>
+  </div>
+
+  <!-- ══ 1 ═══════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">Surface class 1 — masthead + rail · sanctuary:4433–4540</div>
+    <h2>The daily screen</h2>
+    <div class="stage">
+      <div class="col"><div class="phone">
+        <div class="radial"></div><div class="grain"></div>
+        <div class="screen">
+          <div class="datestamp">VII · VIII · MMXXVI</div>
+          <div class="masthead">
+            <div class="numeral">116<small>mornings to I do</small></div>
+            <div class="greeting">Hello, <i>Dev</i>.</div>
+            <div class="lead">The dress is being cut this week. Everything else can wait
+              until <b>I will</b> becomes <b>I do</b>.</div>
+            <div class="sincebar">↑ 231 days since you said yes <s>· Friday</s></div>
+          </div>
+          <div class="rail">
+            <div class="slice" tabindex="0"><span class="label">Discover</span><span class="hint">Your curated world</span><span class="arrow">→</span></div>
+            <div class="slice" tabindex="0"><span class="label">Circle</span><span class="candle"></span><span class="hint">Priya left a note</span></div>
+            <div class="slice" tabindex="0"><span class="label">Muse</span><span class="hint">34 saves</span></div>
+            <div class="slice" tabindex="0"><span class="label">My People</span><span class="hint">6 in your circle</span></div>
+            <div class="slice" tabindex="0"><span class="label">Pages</span><span class="hint">Last written Tuesday</span></div>
+            <div class="slice" tabindex="0"><span class="label">Moments</span><span class="hint">Your story, in photos</span></div>
+            <div class="slice" tabindex="0"><span class="label">The Journey</span><span class="hint">Mehendi in 9 days</span></div>
+            <div class="slice" tabindex="0"><span class="label">Expenses</span><span class="hint">Rs 4,20,000 logged</span></div>
+            <div class="slice" tabindex="0"><span class="label">Vendors</span><span class="hint">4 booked</span></div>
+            <div class="slice" tabindex="0"><span class="label">Meridian</span><span class="hint">Skin · mind · body</span><span class="arrow">→</span></div>
+            <div class="slice" tabindex="0"><span class="label">Settings</span><span class="hint">Your wedding, your way</span></div>
+          </div>
+          <div class="dreamdoor"><span>Dream Ai</span><small>tell me anything</small></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <div class="note"><b>The signature — one numeral</b><span>
+          The canvas renders <em>{days}</em> twice today: a 320px blurred ghost at <em>:4438</em> and a
+          48px sharp figure at <em>:4485</em>. Same digits, two voices, competing. Rendered once here,
+          at full voice. The ghost layer, its 8px blur and its gradient mask retire — one element
+          instead of two, and the loudest thing on the screen is the only thing that should be.</span></div>
+        <div class="note"><b>Nine runs → four</b><span>
+          weekday · greeting · rule · numeral · unit · prose · date · since-yes · poetry, in four
+          families across six sizes, none dominant. Four remain. <em>No copy is deleted</em>: the
+          weekday folds into the since-line, the date keeps its corner, the poetry line is a
+          <em>named veto slot</em> — see COPY.</span></div>
+        <div class="note"><b>The rail keeps its bones</b><span>
+          Eleven rows, same order, same <em>flex:1</em> distribution, same doorways, same candle on
+          Circle, same arrows on Discover and Meridian, Dream still the hand-seated door at
+          <em>:4528</em>. Only the label rises 17 → 22px, the hint settles to one tracking, the
+          hairline to one weight. Content-driven row heights were considered and <em>refused</em>:
+          at eleven rows the rail would scroll, and that is a behaviour change (L4).</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 2 ═══════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">Surface class 2 — the dense room · Moments · sanctuary:3350–3616</div>
+    <h2>Where the photographs live</h2>
+    <div class="stage">
+      <div class="col"><div class="phone">
+        <div class="radial"></div><div class="grain"></div>
+        <div class="screen">
+          <div class="roombar"><span class="back">‹</span><span class="title">Moments</span>
+            <span class="aux">14 photographs</span></div>
+          <div class="feed">
+            <div class="dayrule"><span>Day One</span><hr></div>
+            <div class="plate">
+              <div class="img"></div>
+              <div class="stamp">12 JUL · <b>DAY ONE</b><span class="chip">Circle</span></div>
+              <div class="caption">Ma cried before I did. She says she didn't.</div>
+            </div>
+            <div class="dayrule"><span>Nine days later</span><hr></div>
+            <div class="plate">
+              <div class="img b"></div>
+              <div class="stamp">21 JUL · <b>DAY NINE</b></div>
+              <div class="caption">The third trial. This is the one.</div>
+            </div>
+            <div class="plate">
+              <div class="img c"></div>
+              <div class="stamp">21 JUL · <b>DAY NINE</b></div>
+              <div class="capedit">Tap to add caption</div>
+            </div>
+          </div>
+          <div class="actionbar"><span>+ Add from camera roll</span></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <div class="note"><b>The imagery rule — 4:5, full bleed, zero radius</b><span>
+          Moments renders photographs at <em>54 × 54 with an 8px radius</em> today (<em>:3523</em>).
+          A photo diary whose photographs are 54px is a thumbnail list wearing a diary's name, and it
+          is the furthest thing in the app from <em>「 Vogue catalogue, full bleed 」</em>. One ratio,
+          one treatment, edge to edge: a photograph is not a card.</span></div>
+        <div class="note"><b>The ornament string retires as a device, not as information</b><span>
+          The vertical thread at <em>:3492</em> exists to relate a 54px thumbnail to its date. At full
+          bleed there is no thumbnail column for a thread to run beside — so the same information moves
+          onto the plate: the day rule between groups, the stamp on the image. The connector, the 82px
+          gutter and the first-item glow retire with it. <em>Nothing the bride knew is lost.</em></span></div>
+        <div class="note"><b>Every capability survives</b><span>
+          Tap-to-edit caption, inline save/cancel, the Circle chip, the day-label arithmetic, the
+          full-screen viewer, multi-file upload from the hidden input at <em>:3604</em> — all kept,
+          all benched by capability cell.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 3 ═══════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">Surface class 3 — the list room · Vendors · sanctuary:532–858</div>
+    <h2>Rows, money, and a green door</h2>
+    <div class="stage">
+      <div class="col"><div class="phone">
+        <div class="radial"></div><div class="grain"></div>
+        <div class="screen">
+          <div class="roombar"><span class="back">‹</span><span class="title">Vendors</span>
+            <span class="aux act">+ Add</span></div>
+          <div class="feed">
+            <div class="grouphead">Booked</div>
+            <div class="row" tabindex="0">
+              <div class="mono-av">P</div>
+              <div class="body">
+                <div class="name">Aanya Studio</div>
+                <div class="meta">Photography · Rs 4,50,000 · Due 12 Sep</div>
+              </div>
+              <div class="money"><div class="lab">Bal</div><div class="fig">Rs 4,00,000</div></div>
+            </div>
+            <div class="row" tabindex="0">
+              <div class="mono-av">M</div>
+              <div class="body">
+                <div class="name">Meher Kaur Makeup</div>
+                <div class="meta">Makeup · Rs 1,25,000</div>
+              </div>
+              <div class="money"><div class="lab">Bal</div><div class="fig">Rs 45,000</div></div>
+            </div>
+            <div class="row" tabindex="0">
+              <div class="mono-av">D</div>
+              <div class="body">
+                <div class="name">The Dhaba Table</div>
+                <div class="meta">Catering · Rs 8,20,000 · Due 28 Sep</div>
+              </div>
+              <div class="money"><div class="lab">Bal</div><div class="fig">Rs 6,20,000</div></div>
+            </div>
+            <div class="grouphead">Enquired</div>
+            <div class="row" tabindex="0">
+              <div class="mono-av">R</div>
+              <div class="body">
+                <div class="name">Rasa Florals</div>
+                <div class="meta">Decor · Delhi</div>
+                <div class="state">Sent</div>
+              </div>
+              <div class="wa"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" fill="#25D366"/></svg></div>
+            </div>
+            <div class="row" tabindex="0">
+              <div class="mono-av">S</div>
+              <div class="body">
+                <div class="name">Sur & Saaz</div>
+                <div class="meta">Music · Gurugram</div>
+                <div class="state">Sent</div>
+              </div>
+              <div class="wa"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.554 4.118 1.528 5.845L0 24l6.335-1.652A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" fill="#25D366"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <div class="note"><b>The money register is law, not style</b><span>
+          <em>Rs X,XX,XXX</em>, en-IN grouping, zero glyphs, zero shorthand — as
+          <em>formatRs()</em> already emits. The figure rises 15px → the body floor, and R-U24's
+          no-truncation clause holds: a money figure renders whole or not at all.
+          <em>DECLARED GAP:</em> whether <em>Rs 8,20,000</em> at 16px still clears the right column
+          at 390px is <em>not measured at this seat</em> — there is no browser here. It is a
+          founder-device witness, and F-09.58's ledger strip is the precedent for exactly this
+          failure mode. If it clips, the cure is <em>minWidth:0</em> on the body and a measured fit,
+          never a smaller figure and never compaction.</span></div>
+        <div class="note"><b>Two row species, one rhythm</b><span>
+          Bookings carry a balance; enquiries carry a state and a WhatsApp door. Today they run at
+          15/16px names with 6.5px and 7px metas at three different trackings. One name size, one meta
+          size, one tracking — the <em>difference between the species stays legible because the
+          right-hand element differs</em>, not because the type does.</span></div>
+        <div class="note"><b>The green stays green</b><span>
+          The WhatsApp affordance keeps <em>#25D366</em> and its exact geometry (34px, 0.5px border,
+          the 10%/25% wash). It is the one colour in the app that is not ours to restyle, and it is
+          the bride's shortest path to a vendor.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 4 ═══════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">Surface class 4 — the sheet · Add a booking · sanctuary:764–786</div>
+    <h2>Where she types</h2>
+    <div class="stage">
+      <div class="col"><div class="phone short">
+        <div class="radial"></div><div class="grain"></div>
+        <div class="screen">
+          <div class="roombar"><span class="back">‹</span><span class="title">Vendors</span>
+            <span class="aux act">+ Add</span></div>
+          <div class="feed" style="opacity:.35">
+            <div class="grouphead">Booked</div>
+            <div class="row"><div class="mono-av">P</div><div class="body">
+              <div class="name">Aanya Studio</div><div class="meta">Photography · Rs 4,50,000</div></div></div>
+            <div class="row"><div class="mono-av">M</div><div class="body">
+              <div class="name">Meher Kaur Makeup</div><div class="meta">Makeup · Rs 1,25,000</div></div></div>
+          </div>
+          <div class="scrim"></div>
+          <div class="sheetup">
+            <div class="head"><h4>Add a booking</h4><span class="x">✕</span></div>
+            <div class="field"><label>Vendor name</label><div class="inp ph">Aanya Studio</div></div>
+            <div class="field"><label>Category</label><div class="inp sel">Photography <i>▾</i></div></div>
+            <div class="field"><label>Total amount (Rs, optional)</label><div class="inp ph">450000</div></div>
+            <div class="field"><label>Advance agreed (Rs, optional)</label><div class="inp ph">50000</div></div>
+            <div class="field"><label>Balance due date (optional)</label><div class="inp ph">dd / mm / yyyy</div></div>
+            <div class="primary">Add booking</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <div class="note"><b>Field labels leave the sub-floor</b><span>
+          Every label in every sheet in the app runs at <em>7px</em> today. They move to the engraved
+          rung at 9px with one tracking. The field text itself is already at 15px
+          (<em>inpStyle</em>) and rises to the 16px floor — which also stops iOS zooming the viewport
+          on focus, a defect nobody filed because it looks like the keyboard's fault.</span></div>
+        <div class="note"><b>The sheet's geometry is untouched</b><span>
+          Bottom-anchored, <em>20px</em> top corners, 90% max height, scrim at
+          <em>rgba(0,0,0,.55)</em>, safe-area padding, tap-scrim-to-dismiss — byte-equivalent to
+          <em>:764-765</em>. Only the type and the vertical rhythm move.</span></div>
+        <div class="note"><b>One primary, and it says what happens</b><span>
+          The action keeps its exact byte — <em>Add booking</em> — and its disabled state, its
+          <em>Adding…</em> label, and its 0.5 opacity rule. It rises to the engraved rung and
+          full width. <em>Copy is expected-zero here and stays zero.</em></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 5 ═══════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">Surface class 5 — the empty state · Moments · sanctuary:3497–3511</div>
+    <h2>An empty screen is an invitation</h2>
+    <div class="stage">
+      <div class="col"><div class="phone short">
+        <div class="radial"></div><div class="grain"></div>
+        <div class="screen">
+          <div class="roombar"><span class="back">‹</span><span class="title">Moments</span></div>
+          <div class="empty">
+            <div class="head">Nothing yet.</div>
+            <div class="said">Your first photo becomes Day One. The brunch with the girls, the trial
+              day, the shopping chaos — they all live here.</div>
+            <div class="soon">WhatsApp moments — coming soon</div>
+            <div class="cta">Add from camera roll</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <div class="note"><b>Every byte is the byte that ships today</b><span>
+          <em>Nothing yet.</em> · the invitation sentence · <em>WhatsApp moments — coming soon</em> ·
+          <em>Add from camera roll</em>. Four strings, unchanged, in the same order.
+          <em>A redesign moves no words.</em></span></div>
+        <div class="note"><b>What moved: the body off the sub-floor</b><span>
+          The invitation ran at <em>14px</em>, the coming-soon at <em>7px</em>, the CTA label at
+          <em>8px</em>. They move to 16 / 9 / 11. The Italianno head holds at 52px — the one place
+          in the app where a display face at full size is doing real work.</span></div>
+        <div class="note"><b>Fourteen of these exist</b><span>
+          The census lists them all. Each gets this composition: head, invitation, optional signal
+          line, one action. <em>Three of the fourteen carry a copy defect</em> — see the veto slots
+          below; they are the only words in this arc up for change, and only on your word.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 6 ═══════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">The type rungs — seven steps, rendered at size</div>
+    <h2>The scale</h2>
+    <div class="rungs">
+      <div class="rung"><div class="tag">type/numeral</div><div class="spec">Fraunces 700 · 150</div>
+        <div class="demo"><span class="d-numeral">116</span></div></div>
+      <div class="rung"><div class="tag">type/greeting</div><div class="spec">Italianno · 46</div>
+        <div class="demo"><span class="d-greeting">Hello, Dev.</span></div></div>
+      <div class="rung"><div class="tag">type/room</div><div class="spec">Fraunces it. 300 · 22</div>
+        <div class="demo"><span class="d-room">The Journey</span></div></div>
+      <div class="rung"><div class="tag">type/lead</div><div class="spec">Fraunces it. 300 · 19</div>
+        <div class="demo"><span class="d-lead">The dress is being cut this week.</span></div></div>
+      <div class="rung"><div class="tag">type/body · THE FLOOR</div><div class="spec">Fraunces it. 300 · 16</div>
+        <div class="demo"><span class="d-body">Your first photo becomes Day One. The brunch with the girls, the trial day, the shopping chaos — they all live here.</span></div></div>
+      <div class="rung"><div class="tag">type/engraved</div><div class="spec">JetBrains Mono · 11</div>
+        <div class="demo"><span class="d-eng">Add booking · Rs 4,50,000 · Due 12 Sep</span></div></div>
+      <div class="rung"><div class="tag">type/engraved-sm</div><div class="spec">JetBrains Mono · 9</div>
+        <div class="demo"><span class="d-engsm">Photography · Delhi · Sent</span></div></div>
+      <div class="retires">
+        <b style="color:var(--accent);font-style:normal">Seven rungs replace thirty-three.</b>
+        5.5 / 6 / 6.5 / 7 / 7.5 / 8 / 9 collapse to one engraved rung at 9. 10 / 11 / 12 collapse to
+        11. 13 / 14 / 15 rise to the 16px floor — <b style="color:var(--ink);font-style:normal">161
+        body sites</b>, the engraved register exempt exactly as the vendor lane's 「 keep engraved 」
+        exempted it. 17 / 18 / 19 / 20 / 22 collapse to 22 and 19. The display sizes 24–52 collapse to
+        greeting and room. <b style="color:var(--ink);font-style:normal">Jost retires from the canvas
+        entirely</b> — one surviving use at <em>:4485</em>, folded into the engraved rung, and a
+        family leaves the app.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FORKS ═══════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">The three forks this page rules</div>
+    <h2>What your approval decides</h2>
+    <div class="stage">
+      <div style="flex:1 1 480px;min-width:320px">
+        <div class="fork">
+          <h4>Fork 1 · imagery treatment</h4>
+          <div class="arm drawn"><u>A — full bleed, 4:5, zero radius · DRAWN in class 2</u><br>
+            The photograph owns the measure. Chosen because the north star says it in three words and
+            because a 54px thumbnail is not a photograph.</div>
+          <div class="arm"><u>B — framed, gutter margins, 8px radius</u><br>
+            The photograph sits inside the page rhythm like a card. Quieter, safer, and closer to the
+            vendor lane's card discipline — but the vendor lane is an instrument and this is a diary.</div>
+        </div>
+        <div class="fork">
+          <h4>Fork 2 · the slice rail's composition</h4>
+          <div class="arm drawn"><u>A — retype in place · DRAWN in class 1</u><br>
+            Eleven equal rows, same order, same flex distribution. Label 17 → 22px, one hint tracking,
+            one hairline weight. No behaviour moves.</div>
+          <div class="arm"><u>B — content-driven row heights · REFUSED, not offered</u><br>
+            At eleven rows the rail would scroll. That is a behaviour change and L4 forbids it. Named
+            here so the refusal is on the record rather than invisible.</div>
+        </div>
+        <div class="fork">
+          <h4>Fork 3 · the masthead's typographic hierarchy</h4>
+          <div class="arm drawn"><u>A — the numeral dominant · DRAWN in class 1</u><br>
+            The greeting is warm but constant; the number is the only thing on the screen that is
+            different today than it was yesterday. One loud voice, everything else a whisper.</div>
+          <div class="arm"><u>B — the greeting dominant</u><br>
+            Italianno at 64px+, the numeral demoted to an engraved line. Warmer on first open, and it
+            makes every morning look identical.</div>
+        </div>
+      </div>
+      <div class="notes" style="flex:1 1 300px">
+        <div class="note"><b>A fourth fork is already ruled</b><span>
+          <em>F-09.159</em> — CanvasShell paints from the legacy <em>MODES</em> family, whose
+          secondary ink is 0.65α against V2's 0.75α, so the seven standalone journey screens run a
+          darker soft-ink than the canvas. The relay places its cure inside BUILD-ALL. Folded at the
+          CanvasShell seam only: token-level, one file, survives TDW_13's extraction.</span></div>
+        <div class="note"><b>If you veto an arm</b><span>
+          Say the fork number and the letter. Nothing else in the page depends on a fork except its
+          own class — Fork 1 changes class 2 alone, Fork 3 changes class 1 alone. They are separable
+          on purpose, so a single dislike does not cost the whole page.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COPY ════════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">COPY — expected-zero, with four named veto slots</div>
+    <h2>The only words in this arc</h2>
+    <p style="font-size:16px;font-style:italic;font-weight:300;color:var(--inkSoft);line-height:1.7;max-width:70ch;margin:0 0 26px">
+      A redesign moves no words. These four are the exceptions, and none of them ships without your
+      byte. Three are the 「 tab 」 lines the relay placed inside BUILD-ALL; the fourth is still
+      unanswered from the read-first.</p>
+    <table>
+      <thead><tr><th>Site</th><th>Current — verbatim</th><th>Proposed — verbatim</th></tr></thead>
+      <tbody>
+        <tr><td class="k">sanctuary:412<br>Expenses</td>
+            <td class="cur">No bookings yet. Add vendors in the Vendors tab.</td>
+            <td class="new">No bookings yet. Add vendors in the Vendors room.</td></tr>
+        <tr><td class="k">sanctuary:1155<br>My People</td>
+            <td class="cur">No one yet. Invite someone from Circle.</td>
+            <td class="new">No one yet. Invite someone from Circle.<br>
+            <span style="font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px;color:var(--accent)">— UNCHANGED. This line was mis-filed at F-09.158: it says "from Circle", not "the Circle tab". Correction owned; the finding narrows from three lines to two.</span></td></tr>
+        <tr><td class="k">journey/people:42<br>standalone My People</td>
+            <td class="cur">No one in your circle yet. Invite someone from the Circle tab.</td>
+            <td class="new">No one in your circle yet. Invite someone from Circle.</td></tr>
+        <tr><td class="k">sanctuary:4489<br>the masthead poetry line</td>
+            <td class="cur">FROST_COPY.idlePool — 23 lines, one shown per session</td>
+            <td class="new">STILL UNANSWERED from the read-first. Three arms:<br>
+            (a) keep it, and the masthead carries five runs not four<br>
+            (b) move it to the Dream door's subtitle, replacing "tell me anything"<br>
+            (c) retire it from the masthead only, pool untouched<br>
+            <span style="font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px;color:var(--accent)">No recommendation. This is register, and register is yours.</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ TOKENS ══════════════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="eyebrow">The tokens-to-be</div>
+    <h2>Named, so the language is systematic</h2>
+    <p style="font-size:16px;font-style:italic;font-weight:300;color:var(--inkSoft);line-height:1.7;max-width:70ch;margin:0 0 26px">
+      On approval these land in <b style="font-style:normal;color:var(--ink)">lib/frost/tokens.ts</b>
+      beside V2_WINE_NIGHT — token-level change, not structural JSX rearrangement, so TDW_13's future
+      extraction inherits them intact.</p>
+    <table>
+      <thead><tr><th>Token</th><th>Value</th><th>Role — and what it replaces</th></tr></thead>
+      <tbody>
+        <tr><td class="k">type/numeral</td><td class="v">150px</td><td>Fraunces 700 opsz144. The countdown, once per screen. Replaces the 320px ghost + 48px figure pair.</td></tr>
+        <tr><td class="k">type/greeting</td><td class="v">46px</td><td>Italianno, the greeting only. Italianno's other nine sizes (28·30·36·38·40·42·44·48·52) move to type/room.</td></tr>
+        <tr><td class="k">type/room</td><td class="v">22px</td><td>Fraunces italic 300. Rail labels, room titles, sheet titles, empty-state heads.</td></tr>
+        <tr><td class="k">type/lead</td><td class="v">19px</td><td>Fraunces italic 300. The one line per surface that leads.</td></tr>
+        <tr><td class="k">type/body</td><td class="v">16px</td><td><b style="font-style:normal;color:var(--ink)">THE FLOOR.</b> All body prose, all field text, all money figures. 161 sites presently beneath it.</td></tr>
+        <tr><td class="k">type/engraved</td><td class="v">11px</td><td>JetBrains Mono. Actions, primary labels, dates on chrome.</td></tr>
+        <tr><td class="k">type/engraved-sm</td><td class="v">9px</td><td>The single permitted sub-floor rung, engraved register only. Replaces seven steps from 5.5 to 9.</td></tr>
+        <tr><td class="k">space/1…5</td><td class="v">8 · 16 · 24 · 40 · 64</td><td>Base 8, nothing between. Replaces ad-hoc 3/4/6/7/10/12/14/18/20/22/28/48px.</td></tr>
+        <tr><td class="k">gutter</td><td class="v">24px</td><td>Every surface's left/right margin. Today: 0, 18, 20, 24, 28px by surface.</td></tr>
+        <tr><td class="k">hair</td><td class="v">0.5px</td><td>Every hairline, one weight. Rule colours stay --line / --lineStrong, unchanged.</td></tr>
+        <tr><td class="k">track/engraved</td><td class="v">0.22em</td><td>Every mono run, one tracking. Today eleven values: .01 .1 .12 .14 .15 .16 .18 .2 .22 .28 .3em.</td></tr>
+        <tr><td class="k">radius/chrome</td><td class="v">8px</td><td>Fields, chips, avatars. Chrome may curve.</td></tr>
+        <tr><td class="k">radius/sheet</td><td class="v">20px</td><td>The sheet's top corners. Unchanged from :765.</td></tr>
+        <tr><td class="k">plate/ratio</td><td class="v">4 / 5</td><td>Every photograph, portrait. One ratio across Moments, Muse, Discover.</td></tr>
+        <tr><td class="k">plate/radius</td><td class="v">0px</td><td>Zero. A photograph is not a card.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="foot">
+      <b>33 declared type sizes → 7.</b> <b>Eleven mono trackings → 1.</b>
+      <b>161 body sites → the 16px floor.</b> <b>One type family retires.</b><br>
+      Zero routes moved · zero rooms moved · zero controls removed · zero behaviours changed ·
+      four words up for your veto and no others.<br>
+      Every claim on this page is a file:line in the feature census and is re-derivable at
+      <b style="color:var(--ink)">2e09207</b>.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

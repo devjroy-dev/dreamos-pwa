@@ -143,6 +143,52 @@ export const V2_SKY_IVORY: V2Tokens = {
   statusBar:    'dark-content',
 };
 
+// ─── THE ATELIER LANGUAGE (TDW_09 · founder-approved at Gate 1, 2026-08-07) ───
+//
+// The bride canvas declared THIRTY-THREE type sizes. It declares EIGHT rungs now.
+// Approved against docs/mocks/tdw09_atelier_language.html — that file is the veto
+// carrier; a surface that stops matching it must report the delta, not drift.
+//
+// DECLARED DELTA against the mock's own token table: the table's prose said seven
+// rungs and folded every Italianno size into type/room, but the mock DRAWS the
+// empty-state head at 52px Italianno (class 5) and says so in its note. The drawing
+// is the veto carrier, so `head` ships as an eighth rung and the "33 -> 7" sentence
+// is corrected to "33 -> 8" wherever it is repeated. Reported, not silently resolved.
+//
+// The ENGRAVED rungs sit below the body floor BY RULING — the founder's standing
+// 「 keep engraved 」 exempts the mono register from the floor exactly as it did on
+// the vendor instrument at T-1. They are still normalised: seven mono steps
+// (5.5/6/6.5/7/7.5/8/9) collapse to `engravedSm`, three (10/11/12) to `engraved`.
+export const FT = {
+  numeral:    150,  // Fraunces 700 opsz144 · the countdown. ONE per screen.
+  head:        52,  // Italianno · empty-state heads, room heroes.
+  greeting:    46,  // Italianno · the masthead greeting. ONE per screen.
+  room:        22,  // Fraunces italic 300 · rail labels, room + sheet titles.
+  lead:        19,  // Fraunces italic 300 · the one line per surface that leads.
+  body:        16,  // Fraunces italic 300 · ALL body prose. THE FLOOR.
+  engraved:    11,  // JetBrains Mono · actions, primary labels.
+  engravedSm:   9,  // JetBrains Mono · the one permitted sub-floor rung.
+} as const;
+
+// Base 8, five steps, nothing between them. `gutter` is every surface's side margin
+// (it was 0 / 18 / 20 / 24 / 28 by surface). `track` is the ONE engraved tracking
+// (it was eleven values from .01em to .3em).
+export const FS = {
+  s1: 8, s2: 16, s3: 24, s4: 40, s5: 64,
+  gutter: 24,
+  hair: '0.5px',
+  track: '.22em',
+} as const;
+
+// Imagery. A photograph is not a card: it takes the full measure, one portrait
+// ratio, no radius. Chrome (fields, chips, avatars) may still curve — FI.chrome.
+export const FI = {
+  plateRatio:  '4 / 5',
+  plateRadius: 0,
+  chrome:      8,
+  sheet:       20,
+} as const;
+
 // Helper — get V2 tokens from homeMode
 export function getV2Tokens(_homeMode: HomeModeKey): V2Tokens {
   // SINGLE-THEME RULING (see getFrostMode): Wine Night unconditionally — the
@@ -200,7 +246,12 @@ export const MODES: Record<HomeModeKey, ModeDescriptor> = {
     hairline:        'rgba(196,133,106,0.14)',
     hairlineStrong:  'rgba(196,133,106,0.22)',
     ink:             '#F5E5DC',
-    soft:            'rgba(245,229,220,0.65)',
+    // F-09.159 (TDW_09 atelier, chair-ruled): was 0.65a. CanvasShell paints its page
+    // from THIS family, not from V2 — so every standalone journey route ran a
+    // secondary ink ten points darker than the canvas it returns to. One secondary
+    // ink lane-wide: this is now byte-equal to V2_WINE_NIGHT.inkSoft, and a bench
+    // cell pins the equality so the two cannot drift apart again silently.
+    soft:            'rgba(245,229,220,0.75)',
     brass:           '#C4856A',
     brassMuted:      '#A8724E',
     heroGradient:    ['#1E0A0E', '#180608'],

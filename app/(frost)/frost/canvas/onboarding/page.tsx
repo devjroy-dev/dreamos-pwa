@@ -156,15 +156,15 @@ export default function BrideOnboardingPage() {
   if (done) {
     return (
       <div style={{ position: 'fixed', inset: 0, background: T.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px' }}>
-        <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 300, fontSize: 34, color: T.ink, margin: '0 0 12px', textAlign: 'center', lineHeight: 1.15 }}>
+        <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 300, fontSize:22, color: T.ink, margin: '0 0 12px', textAlign: 'center', lineHeight: 1.15 }}>
           {firstName ? `You're all set, ${firstName}.` : "You're all set."}
         </p>
-        <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize: 14, color: T.mute, textAlign: 'center', lineHeight: 1.7, margin: '0 0 40px', maxWidth: 300 }}>
+        <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize:16, color: T.mute, textAlign: 'center', lineHeight: 1.7, margin: '0 0 40px', maxWidth: 300 }}>
           Your wedding space is ready. Let&apos;s begin.
         </p>
         <button
           onClick={() => router.replace('/frost')}
-          style={{ width: '100%', maxWidth: 340, height: 54, background: T.gold, border: 'none', borderRadius: 100, fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 400, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0405', cursor: 'pointer' }}
+          style={{ width: '100%', maxWidth: 340, height: 54, background: T.gold, border: 'none', borderRadius: 100, fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 400, fontSize:11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0405', cursor: 'pointer' }}
         >
           Open my space →
         </button>
@@ -178,7 +178,7 @@ export default function BrideOnboardingPage() {
 
       {/* Toast */}
       {toast && (
-        <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${T.gold}`, borderRadius: 100, padding: '10px 20px', fontFamily: '"Jost", system-ui, sans-serif', fontSize: 12, color: T.gold, whiteSpace: 'nowrap', zIndex: 99 }}>
+        <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${T.gold}`, borderRadius: 100, padding: '10px 20px', fontFamily: '"Jost", system-ui, sans-serif', fontSize:16, color: T.gold, whiteSpace: 'nowrap', zIndex: 99 }}>
           {toast}
         </div>
       )}
@@ -186,13 +186,13 @@ export default function BrideOnboardingPage() {
       <div style={{ maxWidth: 440, margin: '0 auto', padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 28px calc(env(safe-area-inset-bottom, 0px) + 40px)' }}>
 
         {/* Header */}
-        <p style={{ fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.gold, margin: '0 0 16px' }}>
+        <p style={{ fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 200, fontSize:9, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.gold, margin: '0 0 16px' }}>
           The Dream Wedding
         </p>
-        <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 300, fontSize: 30, color: T.ink, lineHeight: 1.15, margin: '0 0 8px' }}>
+        <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 300, fontSize:22, color: T.ink, lineHeight: 1.15, margin: '0 0 8px' }}>
           {firstName ? `Hi ${firstName}.` : 'Welcome.'}
         </p>
-        <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize: 13, color: T.mute, lineHeight: 1.7, margin: '0 0 40px' }}>
+        <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize:16, color: T.mute, lineHeight: 1.7, margin: '0 0 40px' }}>
           Tell us a little about your wedding. Everything is optional — skip anything you&apos;re not ready for.
         </p>
 
@@ -236,7 +236,7 @@ export default function BrideOnboardingPage() {
         <button
           onClick={submit}
           disabled={submitting}
-          style={{ width: '100%', height: 54, background: submitting ? `rgba(201,168,76,0.4)` : T.gold, border: 'none', borderRadius: 100, fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 400, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0405', cursor: submitting ? 'default' : 'pointer', transition: 'all 200ms ease', marginBottom: 12 }}
+          style={{ width: '100%', height: 54, background: submitting ? `rgba(201,168,76,0.4)` : T.gold, border: 'none', borderRadius: 100, fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 400, fontSize:11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0405', cursor: submitting ? 'default' : 'pointer', transition: 'all 200ms ease', marginBottom: 12 }}
         >
           {submitting ? 'Saving…' : 'Continue →'}
         </button>
@@ -248,7 +248,7 @@ export default function BrideOnboardingPage() {
           Skip for now
         </button>
 
-        <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontSize: 11, fontWeight: 300, color: T.mute, textAlign: 'center', marginTop: 20, fontStyle: 'italic', lineHeight: 1.6, opacity: 0.7 }}>
+        <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontSize:16, fontWeight: 300, color: T.mute, textAlign: 'center', marginTop: 20, fontStyle: 'italic', lineHeight: 1.6, opacity: 0.7 }}>
           You can always update these details later in Settings.
         </p>
 

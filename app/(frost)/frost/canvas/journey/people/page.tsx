@@ -30,16 +30,16 @@ export default function MyPeople() {
   return (
     <CanvasShell eyebrow="My People" backTo="/frost/canvas/sanctuary">
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
-        <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 26, color: t.ink, marginBottom: SP.s }}>Your circle.</div>
-        <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft, marginBottom: SP.xl, lineHeight: 1.6 }}>
+        <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:22, color: t.ink, marginBottom: SP.s }}>Your circle.</div>
+        <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft, marginBottom: SP.xl, lineHeight: 1.6 }}>
           The people sharing this journey with you. Tap to see what they've contributed.
         </div>
 
-        {loading && <div style={{ fontFamily: FF.display, fontSize: 32, color: t.brassMuted, letterSpacing: 6 }}>…</div>}
+        {loading && <div style={{ fontFamily: FF.display, fontSize:22, color: t.brassMuted, letterSpacing: 6 }}>…</div>}
 
         {!loading && members.length === 0 && pending.length === 0 && (
-          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: t.soft, textAlign: 'center', paddingTop: 80 }}>
-            No one in your circle yet. Invite someone from the Circle tab.
+          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:19, color: t.soft, textAlign: 'center', paddingTop: 80 }}>
+            No one in your circle yet. Invite someone from Circle.
           </div>
         )}
 
@@ -54,12 +54,12 @@ export default function MyPeople() {
                   <div style={{ display: 'flex', alignItems: 'center', padding: `${SP.l}px`, gap: SP.m }}>
                     {/* Avatar */}
                     <div style={{ width: 42, height: 42, borderRadius: 21, background: `rgba(191,160,77,0.12)`, border: `0.5px solid rgba(191,160,77,0.25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: FF.display, fontSize: 18, color: t.brass }}>{(m.invitee_name[0] || '·').toUpperCase()}</span>
+                      <span style={{ fontFamily: FF.display, fontSize:19, color: t.brass }}>{(m.invitee_name[0] || '·').toUpperCase()}</span>
                     </div>
 
                     {/* Name + role — tappable */}
                     <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => router.push(`/frost/canvas/journey/circle/${m.id}`)}>
-                      <div style={{ fontFamily: FF.body, fontSize: 15, color: t.ink }}>{m.invitee_name}</div>
+                      <div style={{ fontFamily: FF.body, fontSize:16, color: t.ink }}>{m.invitee_name}</div>
                       <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', color: t.soft, marginTop: 2 }}>
                         {roleLabel(m.role)}
                         {m.last_active && <span style={{ color: t.brassMuted }}> · {timeAgo(m.last_active)}</span>}
@@ -82,7 +82,7 @@ export default function MyPeople() {
                           </a>
                         </>
                       ) : (
-                        <div style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.1em', color: t.soft, alignSelf: 'center' }}>no phone yet</div>
+                        <div style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.1em', color: t.soft, alignSelf: 'center' }}>no phone yet</div>
                       )}
                       <div style={{ display: 'flex', alignItems: 'center' }} onClick={() => router.push(`/frost/canvas/journey/circle/${m.id}`)}>
                         <ChevronRight size={16} color={t.hairline} strokeWidth={1.5} style={{ cursor: 'pointer' }} />
@@ -102,10 +102,10 @@ export default function MyPeople() {
             {pending.map(p => (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: SP.m, padding: `${SP.l}px 0`, borderBottom: `0.5px solid ${t.hairline}`, opacity: 0.6 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 21, border: `0.5px dashed ${t.hairline}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: FF.label, fontSize: 10, color: t.soft }}>?</span>
+                  <span style={{ fontFamily: FF.label, fontSize:16, color: t.soft }}>?</span>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: FF.body, fontSize: 15, color: t.soft }}>{p.invitee_name}</div>
+                  <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft }}>{p.invitee_name}</div>
                   <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', color: t.soft, marginTop: 2 }}>{roleLabel(p.role)} · invite pending</div>
                 </div>
               </div>

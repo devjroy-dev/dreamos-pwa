@@ -106,7 +106,7 @@ const labelStyle: React.CSSProperties = {
   textTransform: 'uppercase', color: 'rgba(248,247,245,0.42)', flexShrink: 0,
 };
 const valueStyle: React.CSSProperties = {
-  fontFamily: FF.body, fontWeight: 300, fontSize: 14,
+  fontFamily: FF.body, fontWeight: 300, fontSize:16,
   color: 'rgba(248,247,245,0.92)', textAlign: 'right', minWidth: 0,
 };
 
@@ -305,10 +305,10 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
           <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.18)' }} />
         </div>
 
-        <div style={{ fontFamily: FF.script, fontStyle: 'italic', fontWeight: 300, fontSize: 24, color: 'rgba(248,247,245,0.95)', marginBottom: 2 }}>
+        <div style={{ fontFamily: FF.script, fontStyle: 'italic', fontWeight: 300, fontSize:22, color: 'rgba(248,247,245,0.95)', marginBottom: 2 }}>
           {vendor.name || 'This vendor'}
         </div>
-        <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 13, color: 'rgba(248,247,245,0.42)', marginBottom: 16 }}>
+        <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize:16, color: 'rgba(248,247,245,0.42)', marginBottom: 16 }}>
           {EXPECTATION}
         </div>
 
@@ -321,7 +321,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
              The sheet's single gold moves from the submit button to this control,
              which keeps the one-gold-per-screen house law exactly satisfied. */
           <div style={{ paddingTop: 4 }}>
-            <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize: 15, color: 'rgba(248,247,245,0.92)', marginBottom: 4 }}>
+            <div style={{ fontFamily: FF.body, fontWeight: 300, fontSize:16, color: 'rgba(248,247,245,0.92)', marginBottom: 4 }}>
               {done.enquiry_saved ? CONFIRM_SAVED : CONFIRM_PLAIN}
             </div>
             {/* THE EXPECTATION LINE IS THE HEADER'S, AND IT RENDERS UNCONDITIONALLY
@@ -336,7 +336,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
                 style={{
                   width: '100%', padding: '14px 0',
                   background: GOLD, border: 'none', borderRadius: 10,
-                  fontFamily: FF.label, fontSize: 10, fontWeight: 300,
+                  fontFamily: FF.label, fontSize:11, fontWeight: 300,
                   letterSpacing: '0.22em', textTransform: 'uppercase',
                   color: '#0C0A09', cursor: 'pointer', touchAction: 'manipulation',
                 }}
@@ -405,7 +405,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
                     onClick={() => { setBand(b.value); setBandOpen(false); }}
                     style={{
                       padding: '7px 12px', borderRadius: 8, cursor: 'pointer',
-                      fontFamily: FF.body, fontWeight: 300, fontSize: 12,
+                      fontFamily: FF.body, fontWeight: 300, fontSize:16,
                       background: band === b.value ? 'rgba(248,247,245,0.14)' : 'transparent',
                       border: '0.5px solid rgba(255,255,255,0.16)',
                       color: 'rgba(248,247,245,0.86)',
@@ -423,7 +423,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
               style={{
                 width: '100%', marginTop: 18, padding: '14px 0',
                 background: GOLD, border: 'none', borderRadius: 10,
-                fontFamily: FF.label, fontSize: 10, fontWeight: 300,
+                fontFamily: FF.label, fontSize:11, fontWeight: 300,
                 letterSpacing: '0.22em', textTransform: 'uppercase',
                 color: '#0C0A09', cursor: sending ? 'default' : 'pointer',
                 opacity: sending ? 0.6 : 1, touchAction: 'manipulation',

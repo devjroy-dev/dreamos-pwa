@@ -22,7 +22,7 @@ function formatDue(due: string | null | undefined): string | null {
 const inp = (t: any): React.CSSProperties => ({
   width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.06)',
   border: `0.5px solid ${t.hairline}`, borderRadius: FR.md, fontFamily: FF.body,
-  fontSize: 15, color: t.ink, outline: 'none', boxSizing: 'border-box' as const,
+  fontSize:16, color: t.ink, outline: 'none', boxSizing: 'border-box' as const,
   userSelect: 'text' as const,
 });
 
@@ -127,18 +127,18 @@ export default function JourneyReminders() {
   return (
     <CanvasShell eyebrow="Reminders" backTo="/frost/canvas/journey">
       {toast && (
-        <div style={{ position:'fixed', top:'calc(env(safe-area-inset-top) + 70px)', left:'50%', transform:'translateX(-50%)', background:t.ink, color:t.pagePaper, fontFamily:FF.label, fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{toast}</div>
+        <div style={{ position:'fixed', top:'calc(env(safe-area-inset-top) + 70px)', left:'50%', transform:'translateX(-50%)', background:t.ink, color:t.pagePaper, fontFamily:FF.label, fontSize:11, letterSpacing:'0.18em', textTransform:'uppercase', padding:'8px 18px', borderRadius:20, zIndex:400, pointerEvents:'none', whiteSpace:'nowrap' }}>{toast}</div>
       )}
       <div style={{ padding:`${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect:'none' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:SP.xl }}>
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:26, color:t.ink }}>What I remember.</div>
+          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:22, color:t.ink }}>What I remember.</div>
           <button onClick={() => setShowAdd(true)} style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 12px', borderRadius:FR.pill, border:`0.5px solid rgba(191,160,77,0.3)`, background:'transparent', fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', color:t.brassMuted, cursor:'pointer' }}>
             <Plus size={12} color={t.brassMuted} strokeWidth={1.5} />Add
           </button>
         </div>
 
-        {loading && <div style={{ fontFamily:FF.display, fontSize:32, color:t.brassMuted, letterSpacing:6 }}>…</div>}
-        {!loading && items.length === 0 && <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:18, color:t.soft, textAlign:'center', paddingTop:80 }}>Your list is clear.</div>}
+        {loading && <div style={{ fontFamily:FF.display, fontSize:22, color:t.brassMuted, letterSpacing:6 }}>…</div>}
+        {!loading && items.length === 0 && <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:19, color:t.soft, textAlign:'center', paddingTop:80 }}>Your list is clear.</div>}
 
         {pending.map(r => (
           <div key={r.id}><Row r={r} t={t}
@@ -155,7 +155,7 @@ export default function JourneyReminders() {
           ))}
         </>}
 
-        <div style={{ marginTop:SP.xl, fontFamily:FF.display, fontStyle:'italic', fontSize:13, color:t.soft, textAlign:'center' }}>
+        <div style={{ marginTop:SP.xl, fontFamily:FF.display, fontStyle:'italic', fontSize:16, color:t.soft, textAlign:'center' }}>
           ✦  Tell Dream Ai anything you need to remember.
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function JourneyReminders() {
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Notes (optional)</div>
               <input value={newNotes} onChange={e => setNewNotes(e.target.value)} placeholder='Any extra context…' style={inp(t)} /></div>
             <button onClick={handleAdd} disabled={saving || !newTitle.trim()}
-              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !newTitle.trim()) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
+              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !newTitle.trim()) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
               {saving ? 'Adding…' : 'Add reminder'}
             </button>
           </div>
@@ -187,19 +187,19 @@ export default function JourneyReminders() {
       {action && !showEdit && <>
         <div onClick={() => setAction(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:200 }} />
         <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:201, background:t.pagePaper, borderRadius:'20px 20px 0 0', padding:`24px 24px calc(24px + env(safe-area-inset-bottom))` }}>
-          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:20, color:t.ink, marginBottom:4 }}>{action.title}</div>
-          {action.event_date && <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.15em', color:t.soft, marginBottom:SP.xl }}>{formatDue(action.event_date) || action.event_date}</div>}
+          <div style={{ fontFamily:FF.display, fontStyle:'italic', fontSize:19, color:t.ink, marginBottom:4 }}>{action.title}</div>
+          {action.event_date && <div style={{ fontFamily:FF.label, fontSize:16, letterSpacing:'0.15em', color:t.soft, marginBottom:SP.xl }}>{formatDue(action.event_date) || action.event_date}</div>}
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             <button onClick={() => { handleToggle(action); setAction(null); }}
-              style={{ padding:14, background:`rgba(191,160,77,0.12)`, border:`0.5px solid rgba(191,160,77,0.3)`, borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:t.brass, cursor:'pointer' }}>
+              style={{ padding:14, background:`rgba(191,160,77,0.12)`, border:`0.5px solid rgba(191,160,77,0.3)`, borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:t.brass, cursor:'pointer' }}>
               {action.state === 'done' ? 'Mark pending' : 'Mark done'}
             </button>
             <button onClick={() => openEdit(action)}
-              style={{ padding:14, background:'rgba(255,255,255,0.04)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:t.ink, cursor:'pointer' }}>Edit</button>
+              style={{ padding:14, background:'rgba(255,255,255,0.04)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:t.ink, cursor:'pointer' }}>Edit</button>
             <button onClick={() => handleDelete(action)}
-              style={{ padding:14, background:'rgba(184,69,62,0.12)', border:'0.5px solid rgba(184,69,62,0.3)', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#B8453E', cursor:'pointer' }}>Remove</button>
+              style={{ padding:14, background:'rgba(184,69,62,0.12)', border:'0.5px solid rgba(184,69,62,0.3)', borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#B8453E', cursor:'pointer' }}>Remove</button>
             <button onClick={() => setAction(null)}
-              style={{ padding:14, background:'rgba(255,255,255,0.02)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, cursor:'pointer' }}>Cancel</button>
+              style={{ padding:14, background:'rgba(255,255,255,0.02)', border:`0.5px solid ${t.hairline}`, borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, cursor:'pointer' }}>Cancel</button>
           </div>
         </div>
       </>}
@@ -220,7 +220,7 @@ export default function JourneyReminders() {
             <div><div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.2em', textTransform:'uppercase', color:t.soft, marginBottom:6 }}>Notes</div>
               <input value={editNotes} onChange={e => setEditNotes(e.target.value)} style={inp(t)} /></div>
             <button onClick={handleEdit} disabled={saving || !editTitle.trim()}
-              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !editTitle.trim()) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
+              style={{ marginTop:SP.s, padding:'14px 0', background:t.brass, border:'none', borderRadius:FR.md, fontFamily:FF.label, fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'#1B1612', cursor:'pointer', opacity:(saving || !editTitle.trim()) ? 0.5 : 1, transition:`opacity 200ms ${EASE}` }}>
               {saving ? 'Saving…' : 'Save changes'}
             </button>
           </div>
@@ -240,9 +240,9 @@ function Row({ r, t, onTap, onHold, muted=false }: { r: CoupleEvent; t: any; onT
         {isDone && <Check size={10} color={t.brass} strokeWidth={2.5} />}
       </div>
       <div style={{ flex:1 }}>
-        <div style={{ fontFamily:FF.body, fontSize:15, lineHeight:1.5, color:isDone?t.soft:t.ink, textDecoration:isDone?'line-through':'none' }}>{r.title}</div>
-        {due && <div style={{ fontFamily:FF.label, fontSize:9, letterSpacing:'0.14em', color:due.startsWith('OVERDUE')?'#B8453E':t.brassMuted, marginTop:4 }}>{due}</div>}
-        {r.notes && <div style={{ fontFamily:FF.body, fontSize:12, color:t.soft, marginTop:2 }}>{r.notes}</div>}
+        <div style={{ fontFamily:FF.body, fontSize:16, lineHeight:1.5, color:isDone?t.soft:t.ink, textDecoration:isDone?'line-through':'none' }}>{r.title}</div>
+        {due && <div style={{ fontFamily:FF.label, fontSize:16, letterSpacing:'0.14em', color:due.startsWith('OVERDUE')?'#B8453E':t.brassMuted, marginTop:4 }}>{due}</div>}
+        {r.notes && <div style={{ fontFamily:FF.body, fontSize:16, color:t.soft, marginTop:2 }}>{r.notes}</div>}
       </div>
     </div>
   );

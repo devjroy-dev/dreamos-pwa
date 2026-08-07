@@ -13,7 +13,7 @@ import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useFrostMode } from '../../../layout';
 import { setFrostMode } from '../../../../../lib/frost/tokens';
-import { EASE, FROST_COPY, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
+import { EASE, FROST_COPY, FT, FS, FI, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
 import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
@@ -342,16 +342,16 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
     setSaving(false);
   };
 
-  const inpStyle:React.CSSProperties = {width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'};
+  const inpStyle:React.CSSProperties = {width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'};
   const SliceBtn = ({id,label}:{id:ExpenseSlice;label:string}) => (
-    <button onClick={()=>setSlice(id)} style={{flex:1,padding:'9px 0',borderRadius:8,border:`0.5px solid ${slice===id?ac:line}`,background:slice===id?`${ac}14`:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',textTransform:'uppercase' as any,color:slice===id?ac:inkMute,cursor:'pointer'}}>
+    <button onClick={()=>setSlice(id)} style={{flex:1,padding:'9px 0',borderRadius:8,border:`0.5px solid ${slice===id?ac:line}`,background:slice===id?`${ac}14`:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:slice===id?ac:inkMute,cursor:'pointer'}}>
       {label}
     </button>
   );
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
-      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
 
       {/* Full-screen receipt image viewer */}
       {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.92)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -362,17 +362,17 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
       {/* Snapshot */}
       <div style={{padding:'16px 20px 10px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
         {slice==='my'&&<div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:34,color:ac,lineHeight:1,fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(totalMySpend)}</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute}}>total spent</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:22,color:ac,lineHeight:1,fontFeatureSettings:'"opsz" 144'}}>{loading?'…':fmtRs(totalMySpend)}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>total spent</div>
         </div>}
         {slice==='vendor'&&<div style={{display:'flex',gap:24}}>
-          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Committed</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:ac}}>{fmtRs(totalCommitted)}</div></div>
-          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Paid</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</div></div>
-          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Balance</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:ink}}>{fmtRs(totalBalance)}</div></div>
+          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Committed</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:ac}}>{fmtRs(totalCommitted)}</div></div>
+          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Paid</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</div></div>
+          <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>Balance</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:22,color:ink}}>{fmtRs(totalBalance)}</div></div>
         </div>}
         {slice==='receipts'&&<div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:34,color:ac,lineHeight:1,fontFeatureSettings:'"opsz" 144'}}>{imageReceipts.length}</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute}}>receipt image{imageReceipts.length!==1?'s':''}</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:22,color:ac,lineHeight:1,fontFeatureSettings:'"opsz" 144'}}>{imageReceipts.length}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>receipt image{imageReceipts.length!==1?'s':''}</div>
         </div>}
       </div>
 
@@ -385,21 +385,21 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
       {/* Content */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
-        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
 
         {/* MY EXPENSES */}
         {!loading&&slice==='my'&&<>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 20px 8px'}}>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:18,color:ink,fontFeatureSettings:'"opsz" 9'}}>What I've spent.</div>
-            <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:`14px ${FS.gutter}px 8px`}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9'}}>What I've spent.</div>
+            <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
           </div>
-          {myExpenses.length===0&&<div style={{padding:'48px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No expenses yet. Tap Add to log one.</div>}
+          {myExpenses.length===0&&<div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No expenses yet. Tap Add to log one.</div>}
           {myExpenses.map(r=>(
-            <div key={r.id} onClick={()=>setConfirmId(r.id)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
-              <div style={{width:40,height:40,borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute}}>EXP</div>
+            <div key={r.id} onClick={()=>setConfirmId(r.id)} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
+              <div style={{width:40,height:40,borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute}}>EXP</div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.vendor_name||r.description||'Expense'}</div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{fmtDate(r.receipt_date||r.created_at)}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.vendor_name||r.description||'Expense'}</div>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{fmtDate(r.receipt_date||r.created_at)}</div>
               </div>
               {r.amount&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ac,flexShrink:0}}>{fmtRs(r.amount)}</div>}
             </div>
@@ -408,23 +408,23 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
         {/* VENDOR EXPENSES */}
         {!loading&&slice==='vendor'&&<>
-          <div style={{padding:'14px 20px 8px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:18,color:ink,fontFeatureSettings:'"opsz" 9'}}>My team.</div>
-          {bookings.length===0&&<div style={{padding:'48px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No bookings yet. Add vendors in the Vendors tab.</div>}
+          <div style={{padding:`14px ${FS.gutter}px 8px`,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9'}}>My team.</div>
+          {bookings.length===0&&<div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No bookings yet. Add vendors in the Vendors room.</div>}
           {bookings.map(b=>{
             const balance=(b.amount_total||0)-(b.amount_paid||0);
             return(
-              <div key={b.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
+              <div key={b.id} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`}}>
                 <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(b.category?.[0]||b.vendor_name?.[0]||'·').toUpperCase()}</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.vendor_name}</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',color:inkMute,marginTop:2}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.vendor_name}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:inkMute,marginTop:2}}>
                     {b.category}{b.amount_paid>0?` · paid ${fmtRs(b.amount_paid)}`:''}
                     {balance>0?` · bal ${fmtRs(balance)}`:''}
                   </div>
                 </div>
                 <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4,flexShrink:0}}>
-                  {b.amount_total&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:15,color:ink}}>{fmtRs(b.amount_total)}</div>}
-                  <button onClick={()=>{setPayBooking(b);setPayAmount('');setPayDate('');}} style={{padding:'4px 10px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>Pay</button>
+                  {b.amount_total&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ink}}>{fmtRs(b.amount_total)}</div>}
+                  <button onClick={()=>{setPayBooking(b);setPayAmount('');setPayDate('');}} style={{padding:'4px 10px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>Pay</button>
                 </div>
               </div>
             );
@@ -433,22 +433,22 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
 
         {/* RECEIPTS */}
         {!loading&&slice==='receipts'&&<>
-          <div style={{padding:'14px 20px 4px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:18,color:ink,fontFeatureSettings:'"opsz" 9'}}>Receipt vault.</div>
-          <div style={{padding:'0 20px 12px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Forward receipt images to Dream Ai on WhatsApp — they land here automatically.</div>
-          {imageReceipts.length===0&&<div style={{padding:'48px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No receipts yet.</div>}
+          <div style={{padding:`14px ${FS.gutter}px 4px`,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9'}}>Receipt vault.</div>
+          <div style={{padding:`0 ${FS.gutter}px 12px`,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Forward receipt images to Dream Ai on WhatsApp — they land here automatically.</div>
+          {imageReceipts.length===0&&<div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No receipts yet.</div>}
           {imageReceipts.map(r=>(
-            <div key={r.id} style={{display:'flex',alignItems:'flex-start',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
+            <div key={r.id} style={{display:'flex',alignItems:'flex-start',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`}}>
               <div onClick={()=>r.image_url&&setFullImg(r.image_url)} style={{width:56,height:72,borderRadius:8,overflow:'hidden',flexShrink:0,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:r.image_url?'zoom-in':'default'}}>
-                {r.image_url?<img src={r.image_url} alt="Receipt" style={{width:'100%',height:'100%',objectFit:'cover'}} loading="lazy"/>:<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute}}>REC</span>}
+                {r.image_url?<img src={r.image_url} alt="Receipt" style={{width:'100%',height:'100%',objectFit:'cover'}} loading="lazy"/>:<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute}}>REC</span>}
               </div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,fontFeatureSettings:'"opsz" 9'}}>{r.vendor_name||r.description||'Receipt'}</div>
-                {r.description&&r.vendor_name&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:inkSoft,marginTop:2,lineHeight:1.4,fontFeatureSettings:'"opsz" 9'}}>{r.description}</div>}
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>{fmtDate(r.receipt_date||r.created_at)}</div>
-                {(r.tags||[]).length>0&&<div style={{display:'flex',gap:4,flexWrap:'wrap' as any,marginTop:6}}>{(r.tags||[]).slice(0,3).map((tag:string)=><span key={tag} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.1em',color:ac,padding:'2px 6px',border:`0.5px solid ${ac}33`,borderRadius:100}}>{tag}</span>)}</div>}
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9'}}>{r.vendor_name||r.description||'Receipt'}</div>
+                {r.description&&r.vendor_name&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,marginTop:2,lineHeight:1.4,fontFeatureSettings:'"opsz" 9'}}>{r.description}</div>}
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>{fmtDate(r.receipt_date||r.created_at)}</div>
+                {(r.tags||[]).length>0&&<div style={{display:'flex',gap:4,flexWrap:'wrap' as any,marginTop:6}}>{(r.tags||[]).slice(0,3).map((tag:string)=><span key={tag} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:ac,padding:'2px 6px',border:`0.5px solid ${ac}33`,borderRadius:100}}>{tag}</span>)}</div>}
               </div>
               <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,flexShrink:0}}>
-                {r.amount&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:15,color:ac}}>{fmtRs(r.amount)}</div>}
+                {r.amount&&<div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ac}}>{fmtRs(r.amount)}</div>}
                 <button onClick={()=>setConfirmId(r.id)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:16,padding:4}}>✕</button>
               </div>
             </div>
@@ -466,16 +466,16 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
             <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Where / who</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Where / who</div>
               <input value={newVendor} onChange={e=>setNewVendor(e.target.value)} placeholder="Sabya showroom, Carma…" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount (Rs)</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount (Rs)</div>
               <input value={newAmount} onChange={e=>setNewAmount(e.target.value)} placeholder="15000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Date (optional)</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Date (optional)</div>
               <input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes (optional)</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes (optional)</div>
               <input value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Trial deposit, transport…" style={inpStyle}/></div>
             <button onClick={handleAddExpense} disabled={saving||!newVendor.trim()||!newAmount}
-              style={{marginTop:4,padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!newVendor.trim()||!newAmount)?.5:1}}>
+              style={{marginTop:4,padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!newVendor.trim()||!newAmount)?.5:1}}>
               {saving?'Adding…':'Add expense'}
             </button>
           </div>
@@ -486,11 +486,11 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
       {confirmId&&<>
         <div onClick={()=>setConfirmId(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>Remove this?</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>It will be removed from your list.</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>Remove this?</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>It will be removed from your list.</div>
           <div style={{display:'flex',gap:10}}>
-            <button onClick={()=>handleDeleteReceipt(confirmId)} style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer'}}>Remove</button>
-            <button onClick={()=>setConfirmId(null)} style={{flex:1,padding:14,background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>Keep</button>
+            <button onClick={()=>handleDeleteReceipt(confirmId)} style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer'}}>Remove</button>
+            <button onClick={()=>setConfirmId(null)} style={{flex:1,padding:14,background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>Keep</button>
           </div>
         </div>
       </>}
@@ -500,17 +500,17 @@ function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
         <div onClick={()=>setPayBooking(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
             <button onClick={()=>setPayBooking(null)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
           </div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:20,fontFeatureSettings:'"opsz" 9'}}>{payBooking.vendor_name} · paid so far: {fmtRs(payBooking.amount_paid)}</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,marginBottom:20,fontFeatureSettings:'"opsz" 9'}}>{payBooking.vendor_name} · paid so far: {fmtRs(payBooking.amount_paid)}</div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount (Rs)</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount (Rs)</div>
               <input value={payAmount} onChange={e=>setPayAmount(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Date (optional)</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Date (optional)</div>
               <input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)} style={inpStyle}/></div>
             <button onClick={handlePayment} disabled={saving||!payAmount}
-              style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!payAmount)?.5:1}}>
+              style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!payAmount)?.5:1}}>
               {saving?'Recording…':'Record payment'}
             </button>
           </div>
@@ -654,32 +654,32 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
   const totalPaid      = bookings.reduce((s,b)=>s+(b.amount_paid||0),0);
   const groups = PIPELINE_STATES.map(p=>({label:p.label,items:bookings.filter(b=>b.state===p.key)})).filter(g=>g.items.length>0);
 
-  const inpStyle:React.CSSProperties = {width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'};
+  const inpStyle:React.CSSProperties = {width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.06)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'};
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden'}}>
-      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',transform:'translateX(-50%)',background:ink,color:paper,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
 
       {/* Header */}
       <div style={{padding:'16px 20px 12px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
         <div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,marginBottom:4}}>My team</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:4}}>My team</div>
           {bookings.length>0&&<div style={{display:'flex',gap:20}}>
-            <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:20,color:ac}}>{fmtRs(totalCommitted)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:inkMute,letterSpacing:'.1em',marginLeft:4}}>committed</span></div>
-            <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:20,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:inkMute,letterSpacing:'.1em',marginLeft:4}}>paid</span></div>
+            <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:ac}}>{fmtRs(totalCommitted)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em',marginLeft:4}}>committed</span></div>
+            <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em',marginLeft:4}}>paid</span></div>
           </div>}
         </div>
-        <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
+        <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
       </div>
 
       {/* List */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
-        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
 
         {/* ── Enquired — vendors she reached out to from Discover ── */}
         {enquiries.length>0&&(
           <div>
-            <div style={{padding:'14px 20px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>Enquired</div>
+            <div style={{padding:`14px ${FS.gutter}px 6px`,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>Enquired</div>
             {enquiries.map(e=>{
               // ── F-07.58 CURED · TDW_07 P6, fork (i) ratified ──────────────────────
               // TWO DEFECTS IN ONE TEMPLATE LITERAL, both F-07.54's family on the REAL
@@ -699,11 +699,11 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
                 : null;
               const meta=[e.category,e.city].filter(Boolean).join(' · ');
               return(
-                <div key={e.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`}}>
+                <div key={e.id} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`}}>
                   <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(e.vendor_name?.[0]||e.category?.[0]||'·').toUpperCase()}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.vendor_name||'Vendor'}</div>
-                    {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{meta}</div>}
+                    {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{meta}</div>}
                     {/* ── TDW_07 P5 · THE JOURNEY'S STATE (CE-ruled 2026-07-31, §D) ──────
                         SENT ships alone, and it is not a placeholder for a pair.
                         `couple_enquiries` has NO state column (9 columns, witnessed
@@ -720,7 +720,7 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
                         Rendered as its own element rather than folded into `meta`,
                         because `PHOTOGRAPHY · DELHI · SENT` reads as a third attribute
                         of the vendor rather than the status of her enquiry. */}
-                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:3,opacity:.72}}>Sent</div>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:3,opacity:.72}}>Sent</div>
                   </div>
                   <a href={waLink} target="_blank" rel="noopener noreferrer"
                     onClick={e2=>e2.stopPropagation()}
@@ -733,23 +733,23 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
           </div>
         )}
 
-        {!loading&&bookings.length===0&&<div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Add your first booking.</div>}
+        {!loading&&bookings.length===0&&<div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Add your first booking.</div>}
         {groups.map(g=>(
           <div key={g.label}>
-            <div style={{padding:'14px 20px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute}}>{g.label}</div>
+            <div style={{padding:`14px ${FS.gutter}px 6px`,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>{g.label}</div>
             {g.items.map(b=>{
               const balance=(b.amount_total||0)-(b.amount_paid||0);
               const meta=[b.category,b.amount_total?fmtRs(b.amount_total):null,b.balance_due_date?`Due ${new Date(b.balance_due_date).toLocaleDateString('en-IN',{month:'short',day:'numeric'})}`:null].filter(Boolean).join(' · ');
               return(
-                <div key={b.id} onClick={()=>setAction(b)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 20px',borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
+                <div key={b.id} onClick={()=>setAction(b)} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
                   <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(b.category?.[0]||b.vendor_name?.[0]||'·').toUpperCase()}</div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.vendor_name}</div>
-                    {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.1em',color:inkMute,marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{meta}</div>}
+                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.vendor_name}</div>
+                    {meta&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:inkMute,marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{meta}</div>}
                   </div>
                   {b.amount_total&&b.amount_paid<b.amount_total&&<div style={{textAlign:'right' as any,flexShrink:0}}>
-                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:inkMute}}>Bal</div>
-                    <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:15,color:ink}}>{fmtRs(balance)}</div>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute}}>Bal</div>
+                    <div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:16,color:ink}}>{fmtRs(balance)}</div>
                   </div>}
                 </div>
               );
@@ -768,16 +768,16 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
             <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Aanya Studio" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Aanya Studio" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
               <select value={newCat} onChange={e=>setNewCat(e.target.value as VendorCategory)} style={{...inpStyle,appearance:'none' as any,WebkitAppearance:'none' as any}}>
                 {VENDOR_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
               </select></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total amount (Rs, optional)</div><input value={newTotal} onChange={e=>setNewTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance agreed (Rs, optional)</div><input value={newAdv} onChange={e=>setNewAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Balance due date (optional)</div><input type="date" value={newDue} onChange={e=>setNewDue(e.target.value)} style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes (optional)</div><input value={newNotes} onChange={e=>setNewNotes(e.target.value)} placeholder="What's included, terms…" style={inpStyle}/></div>
-            <button onClick={handleAdd} disabled={saving||!newName.trim()} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!newName.trim())?.5:1}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total amount (Rs, optional)</div><input value={newTotal} onChange={e=>setNewTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance agreed (Rs, optional)</div><input value={newAdv} onChange={e=>setNewAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Balance due date (optional)</div><input type="date" value={newDue} onChange={e=>setNewDue(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes (optional)</div><input value={newNotes} onChange={e=>setNewNotes(e.target.value)} placeholder="What's included, terms…" style={inpStyle}/></div>
+            <button onClick={handleAdd} disabled={saving||!newName.trim()} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!newName.trim())?.5:1}}>
               {saving?'Adding…':'Add booking'}
             </button>
           </div>
@@ -788,18 +788,18 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
       {action&&!showEdit&&!showPay&&<>
         <div onClick={()=>setAction(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:2,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name}</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.14em',color:inkMute,textTransform:'uppercase' as any,marginBottom:16}}>{action.category} · {action.state.replace(/_/g,' ')}</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,marginBottom:2,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:inkMute,textTransform:'uppercase' as any,marginBottom:16}}>{action.category} · {action.state.replace(/_/g,' ')}</div>
           {action.amount_total&&<div style={{display:'flex',gap:24,marginBottom:20}}>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute,letterSpacing:'.14em'}}>TOTAL</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:18,color:ink}}>{fmtRs(action.amount_total)}</div></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute,letterSpacing:'.14em'}}>PAID</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:18,color:'#6B9E8F'}}>{fmtRs(action.amount_paid)}</div></div>
-            {action.amount_paid<(action.amount_total||0)&&<div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:inkMute,letterSpacing:'.14em'}}>BALANCE</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:18,color:ink}}>{fmtRs((action.amount_total||0)-action.amount_paid)}</div></div>}
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em'}}>TOTAL</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:ink}}>{fmtRs(action.amount_total)}</div></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em'}}>PAID</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:'#6B9E8F'}}>{fmtRs(action.amount_paid)}</div></div>
+            {action.amount_paid<(action.amount_total||0)&&<div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em'}}>BALANCE</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:ink}}>{fmtRs((action.amount_total||0)-action.amount_paid)}</div></div>}
           </div>}
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={()=>{setShowPay(true);setPayAmount('');setPayDate('');}} style={{padding:14,background:`${ac}18`,border:`0.5px solid ${ac}44`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>Record a payment</button>
-            <button onClick={()=>openEdit(action)} style={{padding:14,background:'rgba(255,255,255,.04)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:ink,cursor:'pointer'}}>Edit</button>
-            <button onClick={()=>handleDelete(action)} style={{padding:14,background:'rgba(184,69,62,.12)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer'}}>Remove</button>
-            <button onClick={()=>setAction(null)} style={{padding:14,background:'rgba(255,255,255,.02)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>Cancel</button>
+            <button onClick={()=>{setShowPay(true);setPayAmount('');setPayDate('');}} style={{padding:14,background:`${ac}18`,border:`0.5px solid ${ac}44`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>Record a payment</button>
+            <button onClick={()=>openEdit(action)} style={{padding:14,background:'rgba(255,255,255,.04)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ink,cursor:'pointer'}}>Edit</button>
+            <button onClick={()=>handleDelete(action)} style={{padding:14,background:'rgba(184,69,62,.12)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer'}}>Remove</button>
+            <button onClick={()=>setAction(null)} style={{padding:14,background:'rgba(255,255,255,.02)',border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>Cancel</button>
           </div>
         </div>
       </>}
@@ -813,16 +813,16 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
             <button onClick={()=>{setShowEdit(false);setAction(null);}} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={editName} onChange={e=>setEditName(e.target.value)} style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={editName} onChange={e=>setEditName(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
               <select value={editCat} onChange={e=>setEditCat(e.target.value as VendorCategory)} style={{...inpStyle,appearance:'none' as any,WebkitAppearance:'none' as any}}>
                 {VENDOR_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
               </select></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total (Rs)</div><input value={editTotal} onChange={e=>setEditTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance (Rs)</div><input value={editAdv} onChange={e=>setEditAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Balance due date</div><input type="date" value={editDue} onChange={e=>setEditDue(e.target.value)} style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes</div><input value={editNotes} onChange={e=>setEditNotes(e.target.value)} style={inpStyle}/></div>
-            <button onClick={handleEdit} disabled={saving||!editName.trim()} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!editName.trim())?.5:1}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total (Rs)</div><input value={editTotal} onChange={e=>setEditTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance (Rs)</div><input value={editAdv} onChange={e=>setEditAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Balance due date</div><input type="date" value={editDue} onChange={e=>setEditDue(e.target.value)} style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Notes</div><input value={editNotes} onChange={e=>setEditNotes(e.target.value)} style={inpStyle}/></div>
+            <button onClick={handleEdit} disabled={saving||!editName.trim()} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!editName.trim())?.5:1}}>
               {saving?'Saving…':'Save changes'}
             </button>
           </div>
@@ -834,14 +834,14 @@ function VendorsRoom({ dark, accent }: VendorsRoomProps) {
         <div onClick={()=>setShowPay(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:202}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:203,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9'}}>Record payment</div>
             <button onClick={()=>setShowPay(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
           </div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:20,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name} · paid so far: {fmtRs(action.amount_paid)}</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,marginBottom:20,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name} · paid so far: {fmtRs(action.amount_paid)}</div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount paid (Rs)</div><input value={payAmount} onChange={e=>setPayAmount(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
-            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Payment date (optional)</div><input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)} style={inpStyle}/></div>
-            <button onClick={handlePayment} disabled={saving||!payAmount} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!payAmount)?.5:1}}>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Amount paid (Rs)</div><input value={payAmount} onChange={e=>setPayAmount(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
+            <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Payment date (optional)</div><input type="date" value={payDate} onChange={e=>setPayDate(e.target.value)} style={inpStyle}/></div>
+            <button onClick={handlePayment} disabled={saving||!payAmount} style={{padding:'14px 0',background:ac,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',opacity:(saving||!payAmount)?.5:1}}>
               {saving?'Recording…':'Record payment'}
             </button>
           </div>
@@ -884,10 +884,10 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   const Row = ({label,value,onTap,isLink,arrow}:{label:string;value?:string;onTap?:()=>void;isLink?:boolean;arrow?:boolean}) => (
     <div onClick={onTap} style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',cursor:onTap?'pointer':'default',WebkitTapHighlightColor:'transparent',background:onTap?undefined:rowBg}}>
       <div style={{flex:1}}>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{label}</div>
-        {value&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:isLink?ac:ink,fontFeatureSettings:'"opsz" 9'}}>{value}</div>}
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{label}</div>
+        {value&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:isLink?ac:ink,fontFeatureSettings:'"opsz" 9'}}>{value}</div>}
       </div>
-      {arrow&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:inkMute}}>›</span>}
+      {arrow&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>›</span>}
     </div>
   );
 
@@ -897,10 +897,10 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
 
         {/* Profile section */}
         <div style={{padding:'20px 20px 10px'}}>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ac,lineHeight:1,marginBottom:4}}>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:ac,lineHeight:1,marginBottom:4}}>
             {profile?.bride_name||'Your'} & {profile?.partner_name||'Partner'}
           </div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>{profile?.wedding_city||'Your city'}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>{profile?.wedding_city||'Your city'}</div>
         </div>
 
         <div style={{height:.5,background:line,margin:'0 20px'}}/>
@@ -919,7 +919,7 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
 
         {/* DreamAI on WhatsApp */}
         <div style={{padding:'10px 0 4px',marginTop:8}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:'0 20px 8px'}}>DreamAi</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:'0 20px 8px'}}>DreamAi</div>
           <a href={DREAMAI_WA_LINK} target="_blank" rel="noopener noreferrer" {...press('settings:wa')}
             style={{display:'flex',alignItems:'center',padding:'14px 20px',margin:'0 16px',borderRadius:8,
               background:dark?'rgba(196,133,106,.07)':'rgba(42,95,130,.07)',
@@ -928,7 +928,7 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
               ...pressed('settings:wa')}}>
             <div style={{flex:1}}>
               <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>Open on WhatsApp</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:inkMute}}>Chat with Dream Ai anywhere</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>Chat with Dream Ai anywhere</div>
             </div>
             <div style={{width:36,height:36,borderRadius:'50%',background:ac,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -948,7 +948,7 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
             }catch{}
             window.location.replace('/');
           }} {...press('settings:signout')} style={{padding:'14px',borderRadius:8,border:`0.5px solid rgba(184,69,62,.25)`,background:'rgba(184,69,62,.06)',textAlign:'center' as any,cursor:'pointer',
-            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',
             WebkitTapHighlightColor:'transparent',...pressed('settings:signout')}}>
             Sign out
           </div>
@@ -1032,26 +1032,26 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
     const phone = (selected as any).invitee_phone || null;
     return (
       <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden',position:'relative'}}>
-        {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px)+12px)',left:'50%',transform:'translateX(-50%)',background:ink,color:bg,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 16px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+        {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px)+12px)',left:'50%',transform:'translateX(-50%)',background:ink,color:bg,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'7px 16px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
         {/* Detail top bar */}
         <div style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',gap:14,flexShrink:0}}>
-          <button onClick={()=>setSelected(null)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,color:inkMute,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:0}}>
+          <button onClick={()=>setSelected(null)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,color:inkMute,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:0}}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Back
           </button>
           <div style={{flex:1,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ac,fontFeatureSettings:'"opsz" 9'}}>{selected.invitee_name}</div>
-          <button onClick={()=>setRemoveTarget(selected)} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',padding:0}}>Remove</button>
+          <button onClick={()=>setRemoveTarget(selected)} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',padding:0}}>Remove</button>
         </div>
 
         <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
           {/* Member header */}
           <div style={{padding:'20px 20px 16px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',gap:16}}>
             <div style={{width:56,height:56,borderRadius:28,background:`${ac}18`,border:`2px solid ${ac}55`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:26,color:ac}}>{(selected.invitee_name[0]||'·').toUpperCase()}</span>
+              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:22,color:ac}}>{(selected.invitee_name[0]||'·').toUpperCase()}</span>
             </div>
             <div style={{flex:1}}>
-              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{selected.invitee_name}</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:3}}>{selected.invitee_name}</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>
                 {roleLabel(selected.role)}
                 {selected.last_active&&<span style={{color:signal}}> · {timeAgo(selected.last_active)}</span>}
               </div>
@@ -1071,29 +1071,29 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
 
           {/* Activity feed */}
           <div style={{padding:'16px 20px'}}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:16}}>What they've shared</div>
-            {feedLoading&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
-            {!feedLoading&&memberFeed.length===0&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Nothing shared yet.</div>}
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:16}}>What they've shared</div>
+            {feedLoading&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+            {!feedLoading&&memberFeed.length===0&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Nothing shared yet.</div>}
             {memberFeed.map(a=>{
               if(a.activity_type==='save_added'&&a.image_url) return(
                 <div key={a.id} style={{marginBottom:20}}>
                   <div style={{borderRadius:8,overflow:'hidden',marginBottom:8,background:cardBg}}>
                     <img src={a.image_url} alt={a.caption||'Save'} style={{width:'100%',display:'block',objectFit:'cover',maxHeight:280}} loading="lazy"/>
                   </div>
-                  {a.caption&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,lineHeight:1.5,marginBottom:4,fontFeatureSettings:'"opsz" 9'}}>"{a.caption}"</div>}
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{timeAgo(a.created_at)}</div>
+                  {a.caption&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,lineHeight:1.5,marginBottom:4,fontFeatureSettings:'"opsz" 9'}}>"{a.caption}"</div>}
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>{timeAgo(a.created_at)}</div>
                 </div>
               );
               if(a.activity_type==='comment'&&a.content) return(
                 <div key={a.id} style={{marginBottom:14,paddingLeft:12,borderLeft:`2px solid ${ac}`}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:ink,lineHeight:1.6,marginBottom:3,fontFeatureSettings:'"opsz" 9'}}>"{a.content}"</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>{timeAgo(a.created_at)}</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,lineHeight:1.6,marginBottom:3,fontFeatureSettings:'"opsz" 9'}}>"{a.content}"</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>{timeAgo(a.created_at)}</div>
                 </div>
               );
               return(
                 <div key={a.id} style={{display:'flex',gap:10,marginBottom:10,alignItems:'flex-start'}}>
                   <div style={{width:5,height:5,borderRadius:3,background:inkMute,marginTop:5,flexShrink:0}}/>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{a.activity_type.replace(/_/g,' ')} · <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.12em'}}>{timeAgo(a.created_at)}</span></div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{a.activity_type.replace(/_/g,' ')} · <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em'}}>{timeAgo(a.created_at)}</span></div>
                 </div>
               );
             })}
@@ -1104,15 +1104,15 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
       {removeTarget&&<>
         <div onClick={()=>setRemoveTarget(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:301,background:dark?'#1A0A0E':'#EEF0F6',borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>Remove {removeTarget.invitee_name}?</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>They'll lose access to your Circle, Muse board, and DreamAi.</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>Remove {removeTarget.invitee_name}?</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>They'll lose access to your Circle, Muse board, and DreamAi.</div>
           <div style={{display:'flex',gap:10}}>
             <button onClick={()=>handleRemove(removeTarget)} disabled={removing}
-              style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:removing?.5:1}}>
+              style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:removing?.5:1}}>
               {removing?'Removing…':'Remove'}
             </button>
             <button onClick={()=>setRemoveTarget(null)}
-              style={{flex:1,padding:14,background:`rgba(255,255,255,.04)`,border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
+              style={{flex:1,padding:14,background:`rgba(255,255,255,.04)`,border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
               Keep
             </button>
           </div>
@@ -1125,20 +1125,20 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
   // ── LIST VIEW ──────────────────────────────────────────────────────────────
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:bg,overflow:'hidden',position:'relative'}}>
-      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px)+12px)',left:'50%',transform:'translateX(-50%)',background:ink,color:dark?'#1A0A0E':'#F0EEE8',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 16px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {toast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px)+12px)',left:'50%',transform:'translateX(-50%)',background:ink,color:dark?'#1A0A0E':'#F0EEE8',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'7px 16px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
       {/* Confirm remove sheet (from list) */}
       {removeTarget&&<>
         <div onClick={()=>setRemoveTarget(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:301,background:dark?'#1A0A0E':'#EEF0F6',borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:20,color:ink,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>Remove {removeTarget.invitee_name}?</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>They'll lose access to your Circle, Muse board, and DreamAi.</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>Remove {removeTarget.invitee_name}?</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>They'll lose access to your Circle, Muse board, and DreamAi.</div>
           <div style={{display:'flex',gap:10}}>
             <button onClick={()=>handleRemove(removeTarget)} disabled={removing}
-              style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:removing?.5:1}}>
+              style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:removing?.5:1}}>
               {removing?'Removing…':'Remove'}
             </button>
             <button onClick={()=>setRemoveTarget(null)}
-              style={{flex:1,padding:14,background:`rgba(255,255,255,.04)`,border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
+              style={{flex:1,padding:14,background:`rgba(255,255,255,.04)`,border:`0.5px solid ${line}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
               Keep
             </button>
           </div>
@@ -1146,28 +1146,28 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
       </>}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         <div style={{padding:'20px 20px 8px'}}>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ac,lineHeight:1,marginBottom:4}}>Your circle.</div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>The people sharing this journey with you.</div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:ac,lineHeight:1,marginBottom:4}}>Your circle.</div>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>The people sharing this journey with you.</div>
         </div>
 
-        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+        {loading&&<div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
         {!loading&&members.length===0&&pending.length===0&&(
-          <div style={{padding:'64px 24px',textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone from Circle.</div>
+          <div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone from Circle.</div>
         )}
 
         {members.length>0&&(
           <div style={{padding:'16px 20px 8px'}}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Active</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Active</div>
             {members.map(m=>{
               const phone=(m as any).invitee_phone||null;
               return(
                 <div key={m.id} {...press(`member:${m.id}`)} onClick={()=>openMember(m)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',marginBottom:8,borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`member:${m.id}`)}}>
                   <div style={{width:44,height:44,borderRadius:22,background:`${ac}18`,border:`1.5px solid ${ac}55`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:20,color:ac}}>{(m.invitee_name[0]||'·').toUpperCase()}</span>
+                    <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:ac}}>{(m.invitee_name[0]||'·').toUpperCase()}</span>
                   </div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',marginBottom:2}}>{m.invitee_name}</div>
-                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute}}>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>
                       {roleLabel(m.role)}{m.last_active&&<span style={{color:signal}}> · {timeAgo(m.last_active)}</span>}
                     </div>
                   </div>
@@ -1196,13 +1196,13 @@ function PeopleRoom({ dark, accent, signal }: PeopleRoomProps) {
 
         {pending.length>0&&(
           <div style={{padding:'8px 20px 16px'}}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.3em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Invited · waiting to join</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:12}}>Invited · waiting to join</div>
             {pending.map(p=>(
               <div key={p.id} style={{display:'flex',alignItems:'center',gap:14,padding:'10px 0',borderBottom:`0.5px solid ${line}`}}>
-                <div style={{width:44,height:44,borderRadius:22,border:`0.5px dashed ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:inkMute}}>?</div>
+                <div style={{width:44,height:44,borderRadius:22,border:`0.5px dashed ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>?</div>
                 <div style={{flex:1}}>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{p.invitee_name}</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{roleLabel(p.role)} · pending</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{p.invitee_name}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{roleLabel(p.role)} · pending</div>
                 </div>
                 <button onClick={()=>setRemoveTarget(p as any)}
                   style={{width:30,height:30,borderRadius:15,background:'rgba(184,69,62,.08)',border:'0.5px solid rgba(184,69,62,.25)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
@@ -1288,7 +1288,7 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
     padding:'7px 14px', borderRadius:100,
     border:active?`0.5px solid ${accent}`:'0.5px solid rgba(255,255,255,.18)',
     background:active?`${accent}28`:'rgba(255,255,255,.07)',
-    fontFamily:"'JetBrains Mono',monospace", fontSize:8, letterSpacing:'.14em',
+    fontFamily:"'JetBrains Mono',monospace", fontSize:9, letterSpacing:'.22em',
     color:active?accent:'rgba(248,247,245,.65)',
     cursor:'pointer', whiteSpace:'nowrap' as any, touchAction:'manipulation' as any,
   });
@@ -1299,8 +1299,8 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
   const Section = ({id,label,hasVal,children}:{id:string;label:string;hasVal:boolean;children:React.ReactNode}) => (
     <div style={{borderBottom:'0.5px solid rgba(255,255,255,.08)'}}>
       <button onClick={()=>toggle(id)} style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',background:'none',border:'none',cursor:'pointer',touchAction:'manipulation' as any}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:hasVal?accent:'rgba(248,247,245,.45)'}}>{label}{hasVal?' ·':''}</span>
-        <span style={{color:'rgba(248,247,245,.35)',fontSize:14,transform:openSection===id?'rotate(90deg)':'rotate(0deg)',transition:'transform 200ms ease',display:'inline-block'}}>›</span>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:hasVal?accent:'rgba(248,247,245,.45)'}}>{label}{hasVal?' ·':''}</span>
+        <span style={{color:'rgba(248,247,245,.35)',fontSize:16,transform:openSection===id?'rotate(90deg)':'rotate(0deg)',transition:'transform 200ms ease',display:'inline-block'}}>›</span>
       </button>
       {openSection===id&&<div style={{padding:'0 24px 20px'}}>{children}</div>}
     </div>
@@ -1318,7 +1318,7 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
         onTouchEnd={e=>e.stopPropagation()}>
         <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 24px 4px'}}>
-          <span style={{fontFamily:"'Italianno',cursive",fontSize:28,color:'#F8F7F5',lineHeight:1}}>Discover</span>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:46,color:'#F8F7F5',lineHeight:1}}>Discover</span>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(248,247,245,.4)',padding:4,fontSize:18}}>✕</button>
         </div>
         <Section id="cat" label="Category" hasVal={!!local.category}>
@@ -1352,8 +1352,8 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
           </div>
         </Section>
         <div style={{display:'flex',gap:12,padding:'24px 24px 0'}}>
-          <button onClick={()=>{const e:DiscFilterState={category:null,city:null,vibes:[],budget:null};setLocal(e);onApply(e);onClose();}} style={{flex:1,padding:'13px 0',background:'transparent',border:'0.5px solid rgba(255,255,255,.2)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.45)',cursor:'pointer'}}>Clear</button>
-          <button onClick={()=>{onApply(local);onClose();}} style={{flex:2,padding:'13px 0',background:accent,border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer'}}>Apply</button>
+          <button onClick={()=>{const e:DiscFilterState={category:null,city:null,vibes:[],budget:null};setLocal(e);onApply(e);onClose();}} style={{flex:1,padding:'13px 0',background:'transparent',border:'0.5px solid rgba(255,255,255,.2)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.45)',cursor:'pointer'}}>Clear</button>
+          <button onClick={()=>{onApply(local);onClose();}} style={{flex:2,padding:'13px 0',background:accent,border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer'}}>Apply</button>
         </div>
       </div>
     </div>
@@ -1752,7 +1752,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
 
   if(loading) return (
     <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',background:'#080608'}}>
-      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(245,240,232,.3)'}}>Loading…</span>
+      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(245,240,232,.3)'}}>Loading…</span>
     </div>
   );
 
@@ -1780,17 +1780,17 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
            clothes. The arm now also requires the result to be actually empty. */}
       {hasActiveFilters && vendors.length === 0 ? (
         <>
-          <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1,textAlign:'center'}}>Nothing matches those filters yet.</span>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1,textAlign:'center'}}>Nothing matches those filters yet.</span>
           <button
             onClick={()=>{setFilters({category:null,city:null,vibes:[],budget:null});haptic(6);}}
-            style={{background:'none',border:'none',cursor:'pointer',padding:'8px 4px',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:accent}}>
+            style={{background:'none',border:'none',cursor:'pointer',padding:'8px 4px',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent}}>
             Clear filters
           </button>
         </>
       ) : (
         <>
-          <span style={{fontFamily:"'Italianno',cursive",fontSize:42,color:accent,lineHeight:1,textAlign:'center'}}>That&rsquo;s everyone, for now.</span>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1,textAlign:'center'}}>That&rsquo;s everyone, for now.</span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.3)'}}>Check back soon</span>
         </>
       )}
     </div>
@@ -1818,7 +1818,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
               <img src={lqipUrl(photo)} alt="" aria-hidden draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none',filter:'blur(12px)',transform:'scale(1.08)'}}/>
               <img src={imgUrl(photo,'card')} alt="" draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
             </>
-          : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:'rgba(248,247,245,.2)'}}>No photo yet</span></div>
+          : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:'rgba(248,247,245,.2)'}}>No photo yet</span></div>
         }
         {/* Vignette */}
         <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.2) 0%,transparent 20%,transparent 55%,rgba(0,0,0,.65) 100%)',pointerEvents:'none'}}/>
@@ -1828,7 +1828,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
       {isBlind&&vendor&&(
         <div style={{position:'absolute',inset:0,zIndex:5,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div style={{background:'rgba(8,6,8,.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)',borderRadius:8,padding:'8px 18px'}}>
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.28em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)'}}>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)'}}>
               {blindItems[blindIdx]?(vendors.find(v=>v.id===blindItems[blindIdx].vId)?.category||'vendor'):'–'}
             </span>
           </div>
@@ -1859,16 +1859,16 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
               (`formatRs`, F-07.16) — Rs 1,50,000, never a k/L/Cr form, never the ₹ glyph.
               It renders only on a real number: a whispered price that guesses is worse
               than a card that stays quiet. */}
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.55)',marginBottom:4}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.55)',marginBottom:4}}>
             {vendor.category} · {vendor.city}
             {vendor.starting_price?<> · Starting at {formatRs(vendor.starting_price)}</>:null}
           </div>
           <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:12}}>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:26,color:'rgba(248,247,245,.97)',lineHeight:1.05,fontFeatureSettings:'"opsz" 9',textShadow:'0 1px 12px rgba(0,0,0,.4)'}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:22,color:'rgba(248,247,245,.97)',lineHeight:1.05,fontFeatureSettings:'"opsz" 9',textShadow:'0 1px 12px rgba(0,0,0,.4)'}}>
               {vendor.name}
             </div>
             <div style={{flexShrink:0,display:'flex',alignItems:'center',gap:5,paddingBottom:3,opacity:.6}}>
-              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)'}}>Tap</span>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)'}}>Tap</span>
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="rgba(248,247,245,.7)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
           </div>
@@ -1889,7 +1889,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
               border:`0.5px solid ${isBlind?accent:'rgba(255,255,255,.24)'}`,
               background:isBlind?`${accent}22`:'rgba(8,6,8,.5)',
               backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
-              fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
               textTransform:'uppercase' as any,
               color:isBlind?accent:'rgba(248,247,245,.7)',
               cursor:'pointer',touchAction:'manipulation' as any,WebkitTapHighlightColor:'transparent',
@@ -1927,10 +1927,10 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           to you" over cards that were never substituted is a lie in a serif. */}
       {!isBlind&&!panelOpen&&coldStart?.substituted&&coldStart.city&&(
         <div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 74px)',left:0,right:0,zIndex:10,display:'flex',flexDirection:'column',alignItems:'center',gap:5,padding:'0 32px',pointerEvents:'none'}}>
-          <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:'rgba(248,247,245,.92)',textAlign:'center',lineHeight:1.25,textShadow:'0 1px 12px rgba(0,0,0,.5)'}}>
+          <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:'rgba(248,247,245,.92)',textAlign:'center',lineHeight:1.25,textShadow:'0 1px 12px rgba(0,0,0,.5)'}}>
             The {coldStart.city} list is still being curated.
           </span>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)'}}>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)'}}>
             Meanwhile — the closest to you
           </span>
         </div>
@@ -1947,7 +1947,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           Chair-pre-ratified with this reason. */}
       {!isBlind&&!panelOpen&&hasActiveFilters&&(
         <div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 52px)',left:0,right:0,zIndex:10,display:'flex',justifyContent:'center',padding:'0 56px',pointerEvents:'none'}}>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:'rgba(248,247,245,.45)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:'rgba(248,247,245,.45)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
             {[
               filters.city     ? filters.city.toUpperCase() : null,
               filters.category ? filters.category.toUpperCase() : null,
@@ -2088,7 +2088,7 @@ function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
 
       {enquiryToast&&(
         <div style={{position:'fixed',bottom:'calc(env(safe-area-inset-bottom,0px) + 96px)',left:0,right:0,display:'flex',justifyContent:'center',zIndex:130,pointerEvents:'none'}}>
-          <span style={{background:'rgba(8,6,8,.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'0.5px solid rgba(255,255,255,.12)',borderRadius:20,padding:'8px 18px',fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:300,color:'rgba(248,247,245,.88)',whiteSpace:'nowrap'}}>
+          <span style={{background:'rgba(8,6,8,.88)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',border:'0.5px solid rgba(255,255,255,.12)',borderRadius:20,padding:'8px 18px',fontFamily:"'DM Sans',sans-serif",fontSize:16,fontWeight:300,color:'rgba(248,247,245,.88)',whiteSpace:'nowrap'}}>
             {enquiryToast}
           </span>
         </div>
@@ -2150,28 +2150,28 @@ function MuseOverlay({save,activity,onClose,onRemove,accent,dark}:{
       <div style={{flex:1,position:'relative'}} onClick={()=>isVendor&&setVendorOpen(v=>!v)}>
         {save.image_url
           ? <img src={save.image_url} alt="" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
-          : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:'rgba(248,247,245,.2)'}}>No image</span></div>
+          : <div style={{position:'absolute',inset:0,background:'#1a1714',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:'rgba(248,247,245,.2)'}}>No image</span></div>
         }
         <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.3) 0%,transparent 30%,transparent 60%,rgba(0,0,0,.6) 100%)',pointerEvents:'none'}}/>
         <button onClick={e=>{e.stopPropagation();onClose();}} style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 14px)',left:16,zIndex:155,width:36,height:36,borderRadius:'50%',background:'rgba(0,0,0,.35)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'0.5px solid rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(255,255,255,.9)'}}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        {isVendor&&!vendorOpen&&<div style={{position:'absolute',bottom:80,left:0,right:0,display:'flex',justifyContent:'center',pointerEvents:'none'}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(255,255,255,.45)'}}>Tap to see vendor</span></div>}
-        {copyToast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 60px)',left:'50%',transform:'translateX(-50%)',background:'rgba(12,10,9,.8)',backdropFilter:'blur(12px)',borderRadius:20,padding:'6px 16px',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.15em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.9)',whiteSpace:'nowrap'}}>Link copied</div>}
+        {isVendor&&!vendorOpen&&<div style={{position:'absolute',bottom:80,left:0,right:0,display:'flex',justifyContent:'center',pointerEvents:'none'}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(255,255,255,.45)'}}>Tap to see vendor</span></div>}
+        {copyToast&&<div style={{position:'absolute',top:'calc(env(safe-area-inset-top,0px) + 60px)',left:'50%',transform:'translateX(-50%)',background:'rgba(12,10,9,.8)',backdropFilter:'blur(12px)',borderRadius:20,padding:'6px 16px',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.9)',whiteSpace:'nowrap'}}>Link copied</div>}
       </div>
       {isVendor&&(
         <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:160,transform:vendorOpen?'translateY(0)':'translateY(100%)',transition:'transform 340ms cubic-bezier(0.22,1,0.36,1)',background:'rgba(8,6,8,.92)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderTop:'0.5px solid rgba(255,255,255,.08)',borderRadius:'20px 20px 0 0',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)'}}>
           <div style={{display:'flex',justifyContent:'center',padding:'12px 0 16px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
           <div style={{padding:'0 24px'}}>
-            <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>{save.vendor_category}&nbsp;·&nbsp;{save.vendor_city}</p>
-            <h2 style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:300,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.1}}>{save.vendor_name}</h2>
-            {save.vendor_starting_price&&<p style={{fontFamily:"'Fraunces',serif",fontSize:13,fontWeight:300,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>Starting at {formatRs(save.vendor_starting_price)}</p>}
-            {save.vendor_vibe_tags.length>0&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,color:'rgba(248,247,245,.45)',letterSpacing:'.12em',margin:'0 0 20px'}}>{save.vendor_vibe_tags.join(' · ')}</p>}
+            <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>{save.vendor_category}&nbsp;·&nbsp;{save.vendor_city}</p>
+            <h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:300,color:'#F8F7F5',margin:'0 0 4px',lineHeight:1.1}}>{save.vendor_name}</h2>
+            {save.vendor_starting_price&&<p style={{fontFamily:"'Fraunces',serif",fontSize:16,fontWeight:300,color:'rgba(248,247,245,.5)',margin:'0 0 8px'}}>Starting at {formatRs(save.vendor_starting_price)}</p>}
+            {save.vendor_vibe_tags.length>0&&<p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.45)',letterSpacing:'.22em',margin:'0 0 20px'}}>{save.vendor_vibe_tags.join(' · ')}</p>}
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <button onClick={handleEnquire} style={{width:'100%',padding:'14px 0',background:'rgba(248,247,245,.9)',border:'none',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'#111',cursor:'pointer'}}>Enquire ↗</button>
               <div style={{display:'flex',gap:8}}>
-                <button onClick={handleShare} style={{flex:1,padding:'12px 0',background:'rgba(255,255,255,.12)',border:'0.5px solid rgba(255,255,255,.18)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)',cursor:'pointer'}}>Share ↗</button>
-                <button onClick={()=>onRemove(save.id)} style={{flex:1,padding:'12px 0',background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(220,100,90,.9)',cursor:'pointer'}}>Remove</button>
+                <button onClick={handleShare} style={{flex:1,padding:'12px 0',background:'rgba(255,255,255,.12)',border:'0.5px solid rgba(255,255,255,.18)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)',cursor:'pointer'}}>Share ↗</button>
+                <button onClick={()=>onRemove(save.id)} style={{flex:1,padding:'12px 0',background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(220,100,90,.9)',cursor:'pointer'}}>Remove</button>
               </div>
             </div>
           </div>
@@ -2180,18 +2180,18 @@ function MuseOverlay({save,activity,onClose,onRemove,accent,dark}:{
       {!isVendor&&(
         <div style={{background:'rgba(8,6,8,.85)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderTop:'0.5px solid rgba(255,255,255,.08)',padding:'16px 20px calc(env(safe-area-inset-bottom,0px) + 16px)'}}>
           <div style={{display:'flex',gap:8}}>
-            <button onClick={handleShare} style={{flex:1,padding:'12px 0',background:'rgba(255,255,255,.12)',border:'0.5px solid rgba(255,255,255,.18)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)',cursor:'pointer'}}>Share ↗</button>
-            <button onClick={()=>onRemove(save.id)} style={{flex:1,padding:'12px 0',background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(220,100,90,.9)',cursor:'pointer'}}>Remove</button>
+            <button onClick={handleShare} style={{flex:1,padding:'12px 0',background:'rgba(255,255,255,.12)',border:'0.5px solid rgba(255,255,255,.18)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.7)',cursor:'pointer'}}>Share ↗</button>
+            <button onClick={()=>onRemove(save.id)} style={{flex:1,padding:'12px 0',background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.3)',borderRadius:10,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(220,100,90,.9)',cursor:'pointer'}}>Remove</button>
           </div>
         </div>
       )}
       {activity.length>0&&(
         <div onClick={()=>setExpanded(e=>!e)} style={{background:'rgba(8,6,8,.85)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',borderTop:'0.5px solid rgba(255,255,255,.08)',padding:expanded?'20px 20px calc(env(safe-area-inset-bottom,0px) + 20px)':'14px 20px calc(env(safe-area-inset-bottom,0px) + 14px)',cursor:'pointer',transition:'padding 240ms ease'}}>
           {!expanded
-            ? <div style={{display:'flex',alignItems:'center',gap:8}}><div style={{width:4,height:4,borderRadius:'50%',background:accent}}/><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.6)'}}>{activity.length} circle interaction{activity.length!==1?'s':''} · tap to see</span></div>
+            ? <div style={{display:'flex',alignItems:'center',gap:8}}><div style={{width:4,height:4,borderRadius:'50%',background:accent}}/><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.6)'}}>{activity.length} circle interaction{activity.length!==1?'s':''} · tap to see</span></div>
             : <div style={{display:'flex',flexDirection:'column',gap:12}}>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.4)',marginBottom:4}}>Circle Activity</span>
-                {activity.map(a=>(<div key={a.id}><span style={{fontFamily:"'Fraunces',serif",fontSize:12,fontWeight:400,color:'rgba(248,247,245,.8)'}}>{a.member_name}</span><span style={{fontFamily:"'Fraunces',serif",fontSize:12,fontWeight:300,color:'rgba(248,247,245,.5)'}}>{a.activity_type==='comment'&&a.content?`: "${a.content}"`:` ${a.activity_type.replace(/_/g,' ')}`}</span></div>))}
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(248,247,245,.4)',marginBottom:4}}>Circle Activity</span>
+                {activity.map(a=>(<div key={a.id}><span style={{fontFamily:"'Fraunces',serif",fontSize:16,fontWeight:400,color:'rgba(248,247,245,.8)'}}>{a.member_name}</span><span style={{fontFamily:"'Fraunces',serif",fontSize:16,fontWeight:300,color:'rgba(248,247,245,.5)'}}>{a.activity_type==='comment'&&a.content?`: "${a.content}"`:` ${a.activity_type.replace(/_/g,' ')}`}</span></div>))}
               </div>
           }
         </div>
@@ -2295,15 +2295,15 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
           <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.85)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',zIndex:200}}/>
           <div style={{position:'absolute',inset:0,zIndex:201,display:'flex',flexDirection:'column',padding:'48px 24px calc(env(safe-area-inset-bottom,0px) + 24px)',overflowY:'auto'}}>
             {tagsSaved
-              ? <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center'}}><div style={{fontFamily:"'Italianno',cursive",fontSize:44,color:'rgba(245,240,232,.95)',marginBottom:12,lineHeight:1}}>Give us 5 minutes.</div><div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:'rgba(245,240,232,.55)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>We're curating your Surprise Me with images that match your aesthetic. Come back soon.</div></div>
+              ? <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center'}}><div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:'rgba(245,240,232,.95)',marginBottom:12,lineHeight:1}}>Give us 5 minutes.</div><div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:'rgba(245,240,232,.55)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>We're curating your Surprise Me with images that match your aesthetic. Come back soon.</div></div>
               : <>
-                  <div style={{marginBottom:24}}><div style={{fontFamily:"'Italianno',cursive",fontSize:40,color:'rgba(245,240,232,.95)',lineHeight:1,marginBottom:10}}>What moves you?</div><div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:'rgba(245,240,232,.5)',lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Pick everything that feels like you. We'll curate your Surprise Me.</div></div>
+                  <div style={{marginBottom:24}}><div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:'rgba(245,240,232,.95)',lineHeight:1,marginBottom:10}}>What moves you?</div><div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:'rgba(245,240,232,.5)',lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>Pick everything that feels like you. We'll curate your Surprise Me.</div></div>
                   <div style={{display:'flex',flexWrap:'wrap' as any,gap:10,marginBottom:24}}>
-                    {MUSE_TAGS_LIST.map(([value,label])=>{const sel=selectedTags.includes(value);return <button key={value} onClick={()=>toggleTag(value)} style={{padding:'10px 18px',borderRadius:100,border:`1px solid ${sel?accent:'rgba(255,255,255,.2)'}`,background:sel?`${accent}22`:'rgba(255,255,255,.05)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:sel?accent:'rgba(245,240,232,.7)',cursor:'pointer',fontFeatureSettings:'"opsz" 9'}}>{label}</button>;})}
+                    {MUSE_TAGS_LIST.map(([value,label])=>{const sel=selectedTags.includes(value);return <button key={value} onClick={()=>toggleTag(value)} style={{padding:'10px 18px',borderRadius:100,border:`1px solid ${sel?accent:'rgba(255,255,255,.2)'}`,background:sel?`${accent}22`:'rgba(255,255,255,.05)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:sel?accent:'rgba(245,240,232,.7)',cursor:'pointer',fontFeatureSettings:'"opsz" 9'}}>{label}</button>;})}
                   </div>
                   <div style={{display:'flex',gap:12}}>
-                    <button onClick={()=>setShowTagOverlay(false)} style={{flex:1,padding:'13px 0',background:'rgba(255,255,255,.06)',border:'0.5px solid rgba(255,255,255,.15)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:'rgba(245,240,232,.4)',cursor:'pointer'}}>Skip</button>
-                    <button onClick={saveTags} disabled={savingTags||!selectedTags.length} style={{flex:2,padding:'13px 0',background:selectedTags.length?accent:'rgba(255,255,255,.08)',border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:selectedTags.length?pillActiveTxt:'rgba(245,240,232,.25)',cursor:selectedTags.length?'pointer':'default',opacity:savingTags?.6:1}}>{savingTags?'Saving…':`Save${selectedTags.length>0?` (${selectedTags.length})`:''}`}</button>
+                    <button onClick={()=>setShowTagOverlay(false)} style={{flex:1,padding:'13px 0',background:'rgba(255,255,255,.06)',border:'0.5px solid rgba(255,255,255,.15)',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(245,240,232,.4)',cursor:'pointer'}}>Skip</button>
+                    <button onClick={saveTags} disabled={savingTags||!selectedTags.length} style={{flex:2,padding:'13px 0',background:selectedTags.length?accent:'rgba(255,255,255,.08)',border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:selectedTags.length?pillActiveTxt:'rgba(245,240,232,.25)',cursor:selectedTags.length?'pointer':'default',opacity:savingTags?.6:1}}>{savingTags?'Saving…':`Save${selectedTags.length>0?` (${selectedTags.length})`:''}`}</button>
                   </div>
                 </>
             }
@@ -2317,40 +2317,40 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
       {/* Header */}
       <div style={{padding:'18px 20px 10px',flexShrink:0,display:'flex',alignItems:'flex-start',justifyContent:'space-between'}}>
         <div>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:'#F0EDE8',lineHeight:1,marginBottom:3}}>Muse</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(42,95,130,.65)'}}>{loading?'loading…':`${total} saved`}</div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:'#F0EDE8',lineHeight:1,marginBottom:3}}>Muse</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(42,95,130,.65)'}}>{loading?'loading…':`${total} saved`}</div>
         </div>
         {/* Surprise Me pill */}
         <a href="/frost/canvas/surprise"
           style={{display:'flex',alignItems:'center',gap:5,height:28,padding:'0 12px 0 10px',borderRadius:100,
             background:`${accent}1A`,border:`0.5px solid ${accent}55`,
             cursor:'pointer',touchAction:'manipulation',textDecoration:'none',flexShrink:0,marginTop:4}}>
-          <span style={{fontSize:9,color:accent,lineHeight:1}}>✦</span>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,whiteSpace:'nowrap'}}>Surprise Me</span>
+          <span style={{fontSize:16,color:accent,lineHeight:1}}>✦</span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,whiteSpace:'nowrap'}}>Surprise Me</span>
         </a>
       </div>
 
       {/* Pills — Source | Ceremony — all using mode DNA */}
       <div className="no-scroll" style={{display:'flex',gap:7,padding:'0 20px 10px',overflowX:'auto',flexShrink:0,WebkitOverflowScrolling:'touch' as any}}>
-        {MUSE_SOURCE_FILTERS.map(f=>{const active=sourceFilter===f.value;return <button key={f.value} {...press(`muse:src:${f.value}`)} onClick={()=>setSourceFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`muse:src:${f.value}`)}}>{f.label}</button>;})}
+        {MUSE_SOURCE_FILTERS.map(f=>{const active=sourceFilter===f.value;return <button key={f.value} {...press(`muse:src:${f.value}`)} onClick={()=>setSourceFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`muse:src:${f.value}`)}}>{f.label}</button>;})}
         <div style={{width:.5,background:divider,alignSelf:'center',flexShrink:0,margin:'0 3px',height:16}}/>
-        {MUSE_CEREMONY_FILTERS.map(f=>{const active=ceremonyFilter===f.value;return <button key={f.value} {...press(`muse:cer:${f.value}`)} onClick={()=>setCeremonyFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`muse:cer:${f.value}`)}}>{f.label}</button>;})}
+        {MUSE_CEREMONY_FILTERS.map(f=>{const active=ceremonyFilter===f.value;return <button key={f.value} {...press(`muse:cer:${f.value}`)} onClick={()=>setCeremonyFilter(f.value)} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'7px 14px',borderRadius:100,flexShrink:0,background:active?pillActive:pillIdle,color:active?pillActiveTxt:pillIdleTxt,border:`0.5px solid ${active?'transparent':pillIdleBdr}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',...pressed(`muse:cer:${f.value}`)}}>{f.label}</button>;})}
       </div>
 
       {/* Masonry grid — natural image heights, no cropping */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,paddingBottom:88}}>
-        {!loading&&filtered.length===0&&<div style={{textAlign:'center' as any,padding:'64px 0',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:'rgba(240,237,232,.3)',fontFeatureSettings:'"opsz" 9'}}>No saves here yet.</div>}
+        {!loading&&filtered.length===0&&<div style={{textAlign:'center' as any,padding:'64px 0',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:'rgba(240,237,232,.3)',fontFeatureSettings:'"opsz" 9'}}>No saves here yet.</div>}
         <div style={{columns:'2 auto',columnGap:6,padding:'0 12px'}}>
           {filtered.map((save)=>(
             <div key={save.id} onClick={()=>openSave(save)}
               style={{position:'relative',marginBottom:6,borderRadius:8,overflow:'hidden',breakInside:'avoid',cursor:'pointer',background:'#1a1714'}}>
               {save.image_url
                 ? <img src={save.image_url} alt={save.vendor_name||'muse'} style={{width:'100%',display:'block',objectFit:'cover'}} loading="lazy"/>
-                : <div style={{width:'100%',aspectRatio:'3/4',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:11,color:'rgba(248,247,245,.2)'}}>{save.vendor_name||'—'}</span></div>
+                : <div style={{width:'100%',aspectRatio:'3/4',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:'rgba(248,247,245,.2)'}}>{save.vendor_name||'—'}</span></div>
               }
-              {save.vendor_name&&<div style={{position:'absolute',bottom:6,left:6,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.14em',textTransform:'uppercase' as any,background:'rgba(8,6,8,.6)',color:'rgba(245,240,232,.9)',padding:'3px 7px',borderRadius:100,backdropFilter:'blur(4px)'}}>{save.vendor_name}</div>}
-              {save.circle_comment_count>0&&<div style={{position:'absolute',top:6,right:6,background:`${accent}DD`,borderRadius:100,padding:'2px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pillActiveTxt,letterSpacing:'.1em'}}>{save.circle_comment_count}</div>}
-              {save.saved_by_role==='circle_member'&&<div style={{position:'absolute',top:6,left:6,background:'rgba(8,6,8,.55)',backdropFilter:'blur(4px)',borderRadius:100,padding:'3px 7px',fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:'rgba(248,247,245,.7)',letterSpacing:'.12em',textTransform:'uppercase' as any}}>Circle</div>}
+              {save.vendor_name&&<div style={{position:'absolute',bottom:6,left:6,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,background:'rgba(8,6,8,.6)',color:'rgba(245,240,232,.9)',padding:'3px 7px',borderRadius:100,backdropFilter:'blur(4px)'}}>{save.vendor_name}</div>}
+              {save.circle_comment_count>0&&<div style={{position:'absolute',top:6,right:6,background:`${accent}DD`,borderRadius:100,padding:'2px 6px',fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pillActiveTxt,letterSpacing:'.22em'}}>{save.circle_comment_count}</div>}
+              {save.saved_by_role==='circle_member'&&<div style={{position:'absolute',top:6,left:6,background:'rgba(8,6,8,.55)',backdropFilter:'blur(4px)',borderRadius:100,padding:'3px 7px',fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:'rgba(248,247,245,.7)',letterSpacing:'.22em',textTransform:'uppercase' as any}}>Circle</div>}
             </div>
           ))}
         </div>
@@ -2366,20 +2366,20 @@ function MuseRoom({ dark, accent }: MuseRoomProps) {
         <>
           <div onClick={()=>setAddSheet(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.6)',zIndex:300}}/>
           <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:301,background:'#141010',borderRadius:'20px 20px 0 0',border:`0.5px solid ${divider}`,padding:'28px 24px calc(28px + env(safe-area-inset-bottom))'}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:36,color:'#F0EDE8',marginBottom:4}}>Add to Muse</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:'rgba(240,237,232,.5)',marginBottom:24,fontFeatureSettings:'"opsz" 9'}}>Upload from your phone or paste a link.</div>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:'#F0EDE8',marginBottom:4}}>Add to Muse</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:'rgba(240,237,232,.5)',marginBottom:24,fontFeatureSettings:'"opsz" 9'}}>Upload from your phone or paste a link.</div>
             <button onClick={()=>fileInputRef.current?.click()} disabled={saving} style={{width:'100%',padding:14,background:accent,border:'none',borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pillActiveTxt,cursor:'pointer',opacity:saving?.5:1,marginBottom:14}}>Upload from phone</button>
-            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14,color:'rgba(240,237,232,.3)',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any}}><div style={{flex:1,height:.5,background:divider}}/><span>or</span><div style={{flex:1,height:.5,background:divider}}/></div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(42,95,130,.55)',marginBottom:8}}>Paste a link</div>
-            <input value={urlInput} onChange={e=>setUrlInput(e.target.value)} placeholder="https://i.pinimg.com/…" style={{width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.05)',border:`0.5px solid ${divider}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:'#F0EDE8',outline:'none',boxSizing:'border-box' as any,marginBottom:12,fontFeatureSettings:'"opsz" 9',userSelect:'text'}}/>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14,color:'rgba(240,237,232,.3)',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any}}><div style={{flex:1,height:.5,background:divider}}/><span>or</span><div style={{flex:1,height:.5,background:divider}}/></div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:dark?'rgba(196,133,106,.55)':'rgba(42,95,130,.55)',marginBottom:8}}>Paste a link</div>
+            <input value={urlInput} onChange={e=>setUrlInput(e.target.value)} placeholder="https://i.pinimg.com/…" style={{width:'100%',padding:'12px 14px',background:'rgba(255,255,255,.05)',border:`0.5px solid ${divider}`,borderRadius:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:'#F0EDE8',outline:'none',boxSizing:'border-box' as any,marginBottom:12,fontFeatureSettings:'"opsz" 9',userSelect:'text'}}/>
             <button onClick={handleAddFromUrl} disabled={!urlInput.trim()||saving} style={{width:'100%',padding:12,background:'transparent',border:`0.5px solid ${divider}`,borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(240,237,232,.7)',cursor:'pointer',opacity:(!urlInput.trim()||saving)?.5:1}}>{saving?'Saving…':'Save link'}</button>
           </div>
         </>
       )}
 
       <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFilesSelected} style={{display:'none'}}/>
-      {uploadProgress&&<div style={{position:'absolute',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'10px 20px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>Uploading {uploadProgress.current} of {uploadProgress.total}…</div>}
-      {addToast&&<div style={{position:'absolute',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{addToast}</div>}
+      {uploadProgress&&<div style={{position:'absolute',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'10px 20px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>Uploading {uploadProgress.current} of {uploadProgress.total}…</div>}
+      {addToast&&<div style={{position:'absolute',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{addToast}</div>}
     </div>
   );
 }
@@ -2457,10 +2457,10 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
       {/* Header */}
       <div style={{padding:'20px 24px 12px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between'}}>
         <div>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1}}>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1}}>
             The days.
           </div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,marginTop:4,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,marginTop:4,fontFeatureSettings:'"opsz" 9'}}>
             {events.length>0 ? `${events.length} beautiful moment${events.length!==1?'s':''} ahead.` : 'Your days will appear here.'}
           </div>
         </div>
@@ -2469,7 +2469,7 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
           window.dispatchEvent(new CustomEvent('frost:open-dream',{detail:{prompt:'Add an event to my calendar'}}));
         }} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
           border:`0.5px solid ${pgAccent}44`,background:`${pgAccent}12`,
-          fontFamily:"'JetBrains Mono',monospace",fontSize:7.5,letterSpacing:'.18em',
+          fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
           textTransform:'uppercase' as any,color:pgAccent,cursor:'pointer',flexShrink:0}}>
           + Ask DreamAi
         </button>
@@ -2479,13 +2479,13 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'24px 24px 48px',position:'relative'}}>
 
         {loading&&(
-          <div style={{textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,paddingTop:32}}>loading…</div>
+          <div style={{textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,paddingTop:32}}>loading…</div>
         )}
 
         {!loading&&events.length===0&&(
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12,paddingTop:64}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>yet.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
               Tell Dream Ai about an event<br/>and it will appear here.
             </div>
           </div>
@@ -2527,13 +2527,13 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
                   }}>
                     <div style={{
                       fontFamily:"'JetBrains Mono',monospace",
-                      fontSize:7,letterSpacing:'.1em',
+                      fontSize:9,letterSpacing:'.22em',
                       color: highlight ? (dark?'#1A0810':'#FFFFFF') : pgInkMute,
                       lineHeight:1.1,
                     }}>{month}</div>
                     <div style={{
                       fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',
-                      fontSize:17,
+                      fontSize:19,
                       color: highlight ? (dark?'#1A0810':'#FFFFFF') : pgInk,
                       lineHeight:1.1,
                       fontFeatureSettings:'"opsz" 144',
@@ -2545,7 +2545,7 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
                     {/* Title */}
                     <div style={{
                       fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-                      fontSize:18,lineHeight:1.2,
+                      fontSize:19,lineHeight:1.2,
                       color: highlight ? pgAccent : pgInk,
                       fontFeatureSettings:'"opsz" 9',
                       marginBottom:4,
@@ -2554,11 +2554,11 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
                     {/* Meta row */}
                     <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap' as any}}>
                       {timeStr&&(
-                        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',color:pgInkMute}}>{timeStr}</span>
+                        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:pgInkMute}}>{timeStr}</span>
                       )}
-                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.12em',textTransform:'uppercase' as any,color:pgInkMute}}>{ev.kind}</span>
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>{ev.kind}</span>
                       {/* Countdown — accent color for soonest */}
-                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.1em',color:highlight?pgAccent:pgInkMute,marginLeft:'auto'}}>
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:highlight?pgAccent:pgInkMute,marginLeft:'auto'}}>
                         {until}
                       </span>
                     </div>
@@ -2567,7 +2567,7 @@ function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: EventsR
                     {selected?.id===ev.id&&ev.notes&&(
                       <div style={{
                         fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,
-                        fontSize:13,color:pgInkSoft,lineHeight:1.6,
+                        fontSize:16,color:pgInkSoft,lineHeight:1.6,
                         fontFeatureSettings:'"opsz" 9',
                         marginTop:8,
                         padding:'10px 12px',
@@ -2732,26 +2732,26 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
   if(view==='invite') return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:circleBg}}>
       <div style={{padding:'24px 24px 16px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1,marginBottom:6}}>Invite to Circle</div>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>Up to 3 people. They can add to your Muse board.</div>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1,marginBottom:6}}>Invite to Circle</div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>Up to 3 people. They can add to your Muse board.</div>
       </div>
 
       {waLink ? (
         waLink.startsWith('ERROR:') ? (
           <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:16}}>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:'#C4534A',textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:'#C4534A',textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
               {waLink.replace('ERROR:', '')}
             </div>
             <button onClick={()=>{setWaLink(null);setInviting(false);}}
               style={{background:'none',border:`0.5px solid ${pgAccent}`,borderRadius:4,padding:'10px 20px',cursor:'pointer',
-                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
                 textTransform:'uppercase' as any,color:pgAccent}}>
               Try again
             </button>
           </div>
         ) : (
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
             Invite link ready.<br/>Send it on WhatsApp.
           </div>
           <a href={waLink} target="_blank" rel="noopener noreferrer"
@@ -2764,7 +2764,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
           </a>
           <button onClick={()=>{setWaLink(null);setInviteName('');setInvitePhone('');setView('feed');}}
             style={{background:'none',border:'none',cursor:'pointer',
-              fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
               textTransform:'uppercase' as any,color:pgInkMute,padding:0}}>
             Back to Circle
           </button>
@@ -2777,7 +2777,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
             <button onClick={pickContact} {...press('circle:contacts')}
               style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'12px',
                 borderRadius:4,border:`0.5px solid ${pgAccent}`,background:'transparent',cursor:'pointer',
-                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
                 textTransform:'uppercase' as any,color:pgAccent,WebkitTapHighlightColor:'transparent',
                 ...pressed('circle:contacts')}}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" stroke={pgAccent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -2786,7 +2786,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
           )}
           {/* Name input */}
           <div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
             <input value={inviteName} onChange={e=>setInviteName(e.target.value)}
               placeholder="e.g. Mom, Priya, Anjali"
               style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
@@ -2797,7 +2797,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
           </div>
           {/* Phone input (optional) — enables direct WhatsApp deep-link */}
           <div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their WhatsApp number <span style={{opacity:.6}}>· optional</span></div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their WhatsApp number <span style={{opacity:.6}}>· optional</span></div>
             <input value={invitePhone} onChange={e=>setInvitePhone(e.target.value.replace(/[^\d+ ]/g,''))}
               type="tel" inputMode="tel"
               placeholder="e.g. 98765 43210"
@@ -2806,17 +2806,17 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                 fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
                 fontFeatureSettings:'"opsz" 9',outline:'none',
                 boxSizing:'border-box' as any}}/>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:11,color:pgInkMute,marginTop:6,fontFeatureSettings:'"opsz" 9'}}>Add a number to send the invite straight to their chat.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkMute,marginTop:6,fontFeatureSettings:'"opsz" 9'}}>Add a number to send the invite straight to their chat.</div>
           </div>
           {/* Role selector */}
           <div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Relationship</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Relationship</div>
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               {['partner','family','inner_circle'].map(r=>(
                 <div key={r} onClick={()=>setInviteRole(r)}
                   style={{padding:'10px 14px',borderRadius:4,border:`0.5px solid ${inviteRole===r?pgAccent:pgLine}`,cursor:'pointer',
                     background:inviteRole===r?(dark?'rgba(196,133,106,.08)':'rgba(42,95,130,.06)'):'transparent',
-                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:15,
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
                     color:inviteRole===r?pgAccent:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
                   {ROLE_LABELS[r]}
                 </div>
@@ -2843,12 +2843,12 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
 
       {/* Members row */}
       <div style={{padding:'16px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:12}}>Your Circle</div>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:12}}>Your Circle</div>
         <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap' as any}}>
           {loading?(
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,color:pgInkMute,letterSpacing:'.18em'}}>loading…</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute,letterSpacing:'.22em'}}>loading…</div>
           ):members.length===0&&pending.length===0?(
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:14,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone.</div>
           ):(
             <>
               {members.map(m=>(
@@ -2858,10 +2858,10 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                     background:dark?'rgba(196,133,106,.15)':'rgba(42,95,130,.12)',
                     border:`1.5px solid ${pgAccent}`,
                     display:'flex',alignItems:'center',justifyContent:'center',
-                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:18,color:pgAccent}}>
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:pgAccent}}>
                     {(m.invitee_name||'?')[0]}
                   </div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
                     {m.invitee_name?.split(' ')[0]}
                   </div>
                   {/* Active candle dot */}
@@ -2879,10 +2879,10 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                     fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute}}>
                     ?
                   </div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6,letterSpacing:'.12em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
                     {p.invitee_name?.split(' ')[0]}
                   </div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,color:pgInkMute,letterSpacing:'.1em',textTransform:'uppercase' as any}}>pending</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute,letterSpacing:'.22em',textTransform:'uppercase' as any}}>pending</div>
                 </div>
               ))}
             </>
@@ -2903,11 +2903,11 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
       {/* Activity feed */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         {loading?(
-          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
+          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
         ):activity.length===0?(
-          <div style={{padding:'48px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Quiet here<br/>for now.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>When your Circle saves something<br/>or sends a message, it appears here.</div>
+          <div style={{padding:`${FS.s5}px ${FS.gutter}px`,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Quiet here<br/>for now.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>When your Circle saves something<br/>or sends a message, it appears here.</div>
           </div>
         ):(
           <div>
@@ -2925,14 +2925,14 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                       </div>
                       {/* Caption + meta beside */}
                       <div style={{flex:1,paddingTop:2}}>
-                        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInk,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginBottom:6}}>
+                        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInk,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginBottom:6}}>
                           {a.content || formatActivityLine(a)}
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
                           {Date.now()-new Date(a.created_at).getTime()<600000&&(
                             <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
                           )}
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>
                             {a.member_name||'You'} · {timeAgo(a.created_at)}
                           </span>
                         </div>
@@ -2940,14 +2940,14 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
                     </div>
                   ):(
                     <>
-                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
                     {a.content || formatActivityLine(a)}
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     {Date.now()-new Date(a.created_at).getTime()<600000&&(
                       <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
                     )}
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>
                       {a.member_name||'You'} · {timeAgo(a.created_at)}
                     </span>
                   </div>
@@ -2970,7 +2970,7 @@ function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, r
              rather than sitting above it: a box she can type into that cannot
              send is the vanishing-message failure with extra steps. */
           <div style={{padding:'6px 2px',textAlign:'center' as any,
-            fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,
+            fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,
             color:pgInkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
             Sign in again to see and send Circle messages.
           </div>
@@ -3043,7 +3043,7 @@ function CircleCompose({dark,accent,line,ink,onSent,onRefused}:CircleComposeProp
         placeholder="Say something to your circle…"
         disabled={sending}
         style={{flex:1,background:'transparent',border:'none',outline:'none',
-          fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,
+          fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,
           color:ink,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text'}}/>
       <button onClick={send} disabled={!text.trim()||sending}
         style={{width:30,height:30,borderRadius:'50%',background:text.trim()&&!sending?accent:'rgba(128,128,128,.12)',
@@ -3169,17 +3169,17 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
     <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:pageBg}}>
       {/* Poetry line */}
       <div style={{padding:'20px 24px 14px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:pgAccent,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgAccent,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
           "Everything you love about flowers is also true of weddings."
         </div>
       </div>
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
         {loading?(
-          <div style={{padding:32,textAlign:'center',fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
+          <div style={{padding:32,textAlign:'center',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
         ):entries.length===0?(
-          <div style={{padding:'64px 24px',display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:42,color:pgAccent,lineHeight:1}}>Today</div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>Tap below to begin today's page</div>
+          <div style={{padding:`${FS.s5}px ${FS.gutter}px`,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1}}>Today</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>Tap below to begin today's page</div>
           </div>
         ):(
           <div>
@@ -3194,10 +3194,10 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
                   <div style={{flex:1,display:'flex',flexDirection:'column',gap:6}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <span style={{width:6,height:6,borderRadius:'50%',background:mood?.color||entry.mood_color,flexShrink:0}}/>
-                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:pgInkMute}}>{mood?.label||entry.mood}</span>
-                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,color:pgInkMute,marginLeft:'auto'}}>{dateStr}</span>
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>{mood?.label||entry.mood}</span>
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute,marginLeft:'auto'}}>{dateStr}</span>
                     </div>
-                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,color:pgInk,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
+                    <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInk,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
                       {entry.body}
                     </div>
                   </div>
@@ -3205,14 +3205,14 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
               );
             })}
             <div style={{padding:'24px',textAlign:'center' as any}}>
-              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:pgInkMute,fontFeatureSettings:'"opsz" 9'}}>another page?</div>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkMute,fontFeatureSettings:'"opsz" 9'}}>another page?</div>
             </div>
           </div>
         )}
       </div>
       {/* CTA */}
       <div onClick={()=>setView('picker')} {...press('pages:cta')} style={{flexShrink:0,borderTop:`0.5px solid ${pgLine}`,padding:'16px 24px',cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',justifyContent:'center',...pressed('pages:cta')}}>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:30,color:pgAccent,lineHeight:1}}>How are you feeling?</div>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:pgAccent,lineHeight:1}}>How are you feeling?</div>
       </div>
     </div>
   );
@@ -3226,10 +3226,10 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
         display:'flex',flexDirection:'column',justifyContent:'center',padding:'32px 24px'}}>
         {/* "How are you feeling?" — Italianno, large, exactly as reference */}
         <div style={{marginBottom:6}}>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:44,color:pgInk,lineHeight:1,marginBottom:6}}>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgInk,lineHeight:1,marginBottom:6}}>
             How are you feeling?
           </div>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
             {new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}
           </div>
         </div>
@@ -3247,7 +3247,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
               }}/>
               <div style={{
                 fontFamily:"'JetBrains Mono',monospace",
-                fontSize:6.5,letterSpacing:'.14em',
+                fontSize:9,letterSpacing:'.22em',
                 textTransform:'uppercase' as any,
                 color:pgInkMute,
                 textAlign:'center' as any,
@@ -3270,18 +3270,18 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
       <div style={{padding:'14px 20px',borderBottom:`0.5px solid ${pgLine}`,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
         <button onClick={()=>{setSelectedMood(null);setView('picker');}}
           style={{background:'none',border:'none',cursor:'pointer',padding:0,
-            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
             textTransform:'uppercase' as any,color:pgInkMute,display:'flex',alignItems:'center',gap:5}}>
           ← Discard
         </button>
         {/* Center mood indicator */}
         <div style={{display:'flex',alignItems:'center',gap:6}}>
           <span style={{width:7,height:7,borderRadius:'50%',background:selectedMood?.color,flexShrink:0}}/>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',textTransform:'uppercase' as any,color:selectedMood?.color}}>{selectedMood?.label}</span>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:selectedMood?.color}}>{selectedMood?.label}</span>
         </div>
         <button onClick={saveEntry} disabled={!body.trim()||saving}
           style={{background:'none',border:'none',cursor:body.trim()&&!saving?'pointer':'default',padding:0,
-            fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.2em',
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
             textTransform:'uppercase' as any,
             color:body.trim()&&!saving?pgAccent:pgInkMute}}>
           Save →
@@ -3290,7 +3290,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
 
       {/* Date line */}
       <div style={{padding:'16px 24px 8px',flexShrink:0}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
           {new Date().toLocaleDateString('en-IN',{weekday:'long',day:undefined as any,month:'long',year:'numeric'})}
         </div>
       </div>
@@ -3324,7 +3324,7 @@ function PagesRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, ro
               color:pgInk,
               fontFamily:"'Fraunces',serif",
               fontStyle:'italic',fontWeight:300,
-              fontSize:18,lineHeight:1.8,
+              fontSize:19,lineHeight:1.8,
               resize:'none',
               fontFeatureSettings:'"opsz" 9',
               userSelect:'text',WebkitUserSelect:'text' as any,
@@ -3463,7 +3463,7 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
 
   return (
     <div style={{flex:1,display:'flex',flexDirection:'column',background:'#080608',position:'relative',overflow:'hidden'}}>
-      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px)+16px)',left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
+      {toast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px)+16px)',left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,pointerEvents:'none',whiteSpace:'nowrap'}}>{toast}</div>}
 
       {/* Full-screen viewer */}
       {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.96)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -3474,13 +3474,13 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
       {/* Header */}
       <div style={{padding:'20px 18px 12px',flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',borderBottom:`0.5px solid ${line}`}}>
         <div>
-          <div style={{fontFamily:"'Italianno',cursive",fontSize:36,color:ink,lineHeight:1,marginBottom:2}}>Moments</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>{loading?'loading…':`${moments.length} saved`}</div>
+          <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:ink,lineHeight:1,marginBottom:2}}>Moments</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>{loading?'loading…':`${moments.length} saved`}</div>
         </div>
         <button onClick={()=>fileRef.current?.click()} disabled={uploading}
           style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
             border:`0.5px solid ${accent2}44`,background:`${accent2}12`,
-            fontFamily:"'JetBrains Mono',monospace",fontSize:7.5,letterSpacing:'.18em',
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
             textTransform:'uppercase' as any,color:accent2,cursor:'pointer',opacity:uploading?.5:1}}>
           {uploading?'Adding…':'+ Add'}
         </button>
@@ -3489,23 +3489,24 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
       {/* Ornament string */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'20px 0 16px',position:'relative'}}>
 
-        {/* The string */}
-        {moments.length>0&&<div style={{position:'absolute',left:82,top:20,bottom:40,width:.5,
-          background:`linear-gradient(180deg,transparent 0%,${accent2}55 4%,${accent2}55 96%,transparent 100%)`,
-          pointerEvents:'none',zIndex:1}}/>}
+        {/* THE STRING IS RETIRED (TDW_09 atelier · Fork 1 arm A). It ran at left:82,
+            the exact x of the thumbnail gutter it related to. The gutter is gone with
+            the thumbnails; a thread beside nothing is decoration, and the information
+            it carried — which photograph belongs to which day — now rides the stamp on
+            each plate. Removed rather than re-aimed: there is no column to aim it at. */}
 
-        {loading&&<div style={{padding:48,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
+        {loading&&<div style={{padding:48,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>loading…</div>}
 
         {!loading&&moments.length===0&&(
-          <div style={{padding:'48px 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:16,textAlign:'center' as any}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:40,color:accent2,lineHeight:1}}>Nothing yet.</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:'rgba(240,237,232,.5)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>
+          <div style={{padding:`${FS.s5}px ${FS.gutter}px`,display:'flex',flexDirection:'column',alignItems:'center',gap:FS.s2,textAlign:'center' as any}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:accent2,lineHeight:1}}>Nothing yet.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:'rgba(240,237,232,.5)',lineHeight:1.7,maxWidth:280,fontFeatureSettings:'"opsz" 9'}}>
               Your first photo becomes Day One. The brunch with the girls, the trial day, the shopping chaos — they all live here.
             </div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>WhatsApp moments — coming soon</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>WhatsApp moments — coming soon</div>
             <button onClick={()=>fileRef.current?.click()}
               style={{marginTop:8,padding:'12px 28px',borderRadius:100,background:accent2,border:'none',
-                fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
                 textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer'}}>
               Add from camera roll
             </button>
@@ -3516,37 +3517,35 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
           const isFirst = i===0;
           const dayLabel = daysAtCapture(m.created_at, weddingIso);
           return (
-            <div key={m.id} style={{display:'flex',alignItems:'flex-start',marginBottom:22,position:'relative',zIndex:2}}>
-              {/* Thumbnail — left of string */}
-              <div style={{width:82,flexShrink:0,display:'flex',justifyContent:'flex-end',paddingRight:16}}>
-                <div onClick={()=>setFullImg(m.image_url)}
-                  style={{width:54,height:54,borderRadius:8,overflow:'hidden',cursor:'zoom-in',
-                    border:`.5px solid ${isFirst?accent2:'rgba(240,237,232,.08)'}`,
-                    boxShadow:isFirst?`0 0 12px ${accent2}44`:'none',
-                    background:'#1a1714',flexShrink:0}}>
-                  <img src={m.image_url} alt={m.caption||''} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
-                </div>
-                {/* Connector to string */}
-                <div style={{position:'absolute',left:82,top:27,width:14,height:.5,background:`${accent2}55`}}/>
-              </div>
-
-              {/* Dot on string */}
-              <div style={{position:'absolute',left:82,top:27,width:7,height:7,borderRadius:'50%',
-                background:isFirst?accent2:'#080608',
-                border:`0.5px solid ${isFirst?accent2:accent2+'55'}`,
-                boxShadow:isFirst?`0 0 8px ${accent2}66`:'none',
-                transform:'translateX(-3.5px)',zIndex:3}}/>
-
-              {/* Meta — right of string */}
-              <div style={{flex:1,paddingLeft:18,paddingTop:2}}>
-                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.16em',textTransform:'uppercase' as any,color:isFirst?accent2:inkMute}}>
+            <div key={m.id} style={{marginBottom:FS.s4,position:'relative',zIndex:2}}>
+              {/* ── THE PLATE (TDW_09 atelier · Fork 1 arm A, founder-approved) ────────
+                  This was a 54x54 thumbnail at radius 8, hung off an 82px gutter on a
+                  vertical thread, with a connector and a dot. A photo diary whose
+                  photographs are 54px is a thumbnail list wearing a diary's name.
+                  The plate takes the full measure at FI.plateRatio, zero radius.
+                  WHAT THE THREAD CARRIED, AND WHERE IT WENT: it related a thumbnail to
+                  its date. With no thumbnail column there is nothing for a thread to
+                  run beside, so the date rides ON the plate and the day grouping rides
+                  the rule above it. The connector, the dot, the 82px gutter and the
+                  first-item glow retire together — the `isFirst` accent survives as the
+                  stamp's colour, so Day One still announces itself.
+                  EVERY CAPABILITY IS KEPT: tap-to-zoom, tap-to-edit caption, inline
+                  save/cancel, the Circle chip, the day-label arithmetic. */}
+              <div onClick={()=>setFullImg(m.image_url)}
+                style={{width:'100%',aspectRatio:FI.plateRatio,borderRadius:FI.plateRadius,overflow:'hidden',
+                  cursor:'zoom-in',background:'#1a1714',position:'relative'}}>
+                <img src={m.image_url} alt={m.caption||''} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
+                <div style={{position:'absolute',top:FS.s2,left:FS.gutter,right:FS.gutter,display:'flex',alignItems:'center',gap:FS.s1,pointerEvents:'none'}}>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:isFirst?accent2:ink,textShadow:'0 1px 14px rgba(0,0,0,.9)'}}>
                     {fmtDate(m.created_at)}{dayLabel?` · ${dayLabel}`:''}
                   </span>
                   {m.saved_by_role==='circle_member'&&(
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:5.5,letterSpacing:'.12em',textTransform:'uppercase' as any,color:accent2,border:`0.5px solid ${accent2}44`,borderRadius:3,padding:'1px 5px'}}>Circle</span>
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:accent2,border:`0.5px solid ${accent2}44`,borderRadius:3,padding:'1px 5px',textShadow:'0 1px 14px rgba(0,0,0,.9)'}}>Circle</span>
                   )}
                 </div>
+              </div>
+
+              <div style={{padding:`${FS.s2}px ${FS.gutter}px 0`}}>
                 {/* Caption: show inline editor if editing, else show text + tap-to-edit */}
                 {editingId===m.id ? (
                   <div style={{display:'flex',flexDirection:'column',gap:6}}>
@@ -3558,19 +3557,19 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
                       placeholder="Add a caption…"
                       style={{background:'rgba(240,237,232,.08)',border:`0.5px solid ${accent2}55`,borderRadius:4,
                         padding:'6px 10px',color:'rgba(240,237,232,.9)',
-                        fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:12,
+                        fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
                         outline:'none',userSelect:'text',WebkitUserSelect:'text' as any}}
                     />
                     <div style={{display:'flex',gap:6}}>
                       <button onClick={()=>saveCaption(m.id)} disabled={savingCap}
                         style={{padding:'4px 10px',borderRadius:4,background:accent2,border:'none',
-                          fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',
+                          fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
                           textTransform:'uppercase' as any,color:'#0C0A09',cursor:'pointer',opacity:savingCap?.5:1}}>
                         {savingCap?'Saving…':'Save'}
                       </button>
                       <button onClick={()=>setEditingId(null)}
                         style={{padding:'4px 10px',borderRadius:4,background:'transparent',border:`0.5px solid rgba(240,237,232,.15)`,
-                          fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',
+                          fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
                           textTransform:'uppercase' as any,color:inkMute,cursor:'pointer'}}>
                         Cancel
                       </button>
@@ -3580,8 +3579,8 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
                   <div onClick={()=>{setEditingId(m.id);setEditCaption(m.caption||'');}}
                     style={{cursor:'text',minHeight:18}}>
                     {m.caption
-                      ? <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:12,color:'rgba(240,237,232,.6)',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{m.caption}</div>
-                      : <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.14em',color:'rgba(240,237,232,.22)',textTransform:'uppercase' as any}}>Tap to add caption</div>
+                      ? <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:'rgba(240,237,232,.6)',lineHeight:1.55,fontFeatureSettings:'"opsz" 9'}}>{m.caption}</div>
+                      : <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:'rgba(240,237,232,.22)',textTransform:'uppercase' as any}}>Tap to add caption</div>
                     }
                   </div>
                 )}
@@ -3592,7 +3591,7 @@ function MomentsRoom({ dark, accent }: MomentsRoomProps) {
 
         {!loading&&moments.length>0&&(
           <div style={{padding:'8px 18px 8px 100px',textAlign:'left' as any}}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute}}>WhatsApp moments — coming soon</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>WhatsApp moments — coming soon</div>
           </div>
         )}
 
@@ -3665,7 +3664,7 @@ function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConcierge
         // Compact version — single line for chat view
         <div onClick={request} {...press('concierge:compact')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',gap:8,...pressed('concierge:compact')}}>
           <div style={{width:32,height:2,borderRadius:1,background:`linear-gradient(90deg,transparent,${accent},transparent)`,animation:'concPulse 2.8s ease-in-out infinite',opacity:state==='sending'?.3:1}}/>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
+          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
             {state==='sending'?'…':state==='error'?'retry':'Concierge'}
           </span>
         </div>
@@ -3679,7 +3678,7 @@ function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConcierge
             opacity:state==='sending'?.4:1,
             transition:'opacity 200ms ease',
           }}/>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7.5,letterSpacing:'.22em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
             {state==='sending'?'Reaching out…':state==='error'?'Try again':'Ask a Personal Concierge'}
           </div>
         </div>
@@ -3836,11 +3835,11 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
         <>
           {/* Header */}
           <div style={{padding:'20px 20px 14px',borderBottom:`0.5px solid ${line}`,flexShrink:0}}>
-            <div style={{fontFamily:"'Italianno',cursive",fontSize:38,color:ink,lineHeight:1,marginBottom:4}}>Meridian</div>
-            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:ink,lineHeight:1,marginBottom:4}}>Meridian</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
               Your personal concierge. Skin, mind, body, decisions.
             </div>
-            {days!==null&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',textTransform:'uppercase' as any,color:accent,marginTop:6}}>
+            {days!==null&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,marginTop:6}}>
               {days} days to go
             </div>}
           </div>
@@ -3850,18 +3849,18 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
             {cards.map((card,i)=>(
               <div key={i} style={{margin:'0 16px 12px',padding:'16px 18px',borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.18em',textTransform:'uppercase' as any,color:tagColors[card.tag]||accent,border:`0.5px solid ${(tagColors[card.tag]||accent)}44`,borderRadius:4,padding:'2px 7px'}}>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:tagColors[card.tag]||accent,border:`0.5px solid ${(tagColors[card.tag]||accent)}44`,borderRadius:4,padding:'2px 7px'}}>
                     {card.tag}
                   </span>
                 </div>
-                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:ink,lineHeight:1.2,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>{card.title}</div>
-                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,color:inkSoft,lineHeight:1.7,fontFeatureSettings:'"opsz" 9'}}>{card.body}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,lineHeight:1.2,marginBottom:8,fontFeatureSettings:'"opsz" 9'}}>{card.title}</div>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,lineHeight:1.7,fontFeatureSettings:'"opsz" 9'}}>{card.body}</div>
               </div>
             ))}
 
             {/* Prompt to start */}
             <div style={{padding:'20px 20px 8px',textAlign:'center' as any}}>
-              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:inkMute,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkMute,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
                 Tell me what’s on your mind.
               </div>
             </div>
@@ -3880,7 +3879,7 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
           {msgs.map(m=>(
             <div key={m.id} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start',marginBottom:10}}>
               {m.role==='user'?(
-                <div style={{maxWidth:'82%',background:accent,color:'#0C0A09',padding:'10px 14px',borderRadius:'20px 20px 4px 20px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
+                <div style={{maxWidth:'82%',background:accent,color:'#0C0A09',padding:'10px 14px',borderRadius:'20px 20px 4px 20px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
                   {m.content}
                 </div>
               ):m.pending&&m.content===''?(
@@ -3888,7 +3887,7 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
                   <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,animation:'dpulse 1.4s infinite ease-in-out'}}>✦</span>
                 </div>
               ):(
-                <div style={{maxWidth:'90%',background:aiBubble,border:`0.5px solid ${aiBubBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.65,color:m.error?'#C4534A':ink,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
+                <div style={{maxWidth:'90%',background:aiBubble,border:`0.5px solid ${aiBubBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.65,color:m.error?'#C4534A':ink,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
                   {m.content}
                   {m.pending&&<span style={{opacity:.5,color:accent}}>▌</span>}
                 </div>
@@ -3906,14 +3905,14 @@ function MeridianRoom({ accent, dark }: MeridianRoomProps) {
             onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(input);}}}
             placeholder="Tell me what's troubling you, or what you need…"
             disabled={loading} rows={1}
-            style={{flex:1,background:'transparent',border:'none',outline:'none',color:ink,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,resize:'none',maxHeight:100,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
+            style={{flex:1,background:'transparent',border:'none',outline:'none',color:ink,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,resize:'none',maxHeight:100,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
           <button onClick={()=>send(input)} disabled={loading||!input.trim()}
             style={{background:input.trim()&&!loading?accent:'rgba(240,237,232,.08)',color:input.trim()&&!loading?'#0C0A09':'rgba(240,237,232,.3)',border:'none',borderRadius:'50%',width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',cursor:input.trim()&&!loading?'pointer':'default',transition:'background 200ms ease',flexShrink:0}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </div>
         {msgs.length>0&&<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:6,padding:'0 2px'}}>
-          <button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.18em',textTransform:'uppercase' as any,color:inkMute,padding:0}}>
+          <button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:0}}>
             Clear
           </button>
           <MeridianConciergeBtn accent={accent} dark={dark} compact/>
@@ -4435,10 +4434,12 @@ function timeAgoShort(iso:string):string {
       {/* Grain */}
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>
 
-      {/* Ghost numeral */}
-      <div className="gn-a" style={{position:'absolute',top:'115px',left:'50%',fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:'320px',lineHeight:1,letterSpacing:'-.06em',whiteSpace:'nowrap',color:ghostColor,opacity:ghostOp,filter:'blur(8px)',fontFeatureSettings:'"opsz" 144',pointerEvents:'none',zIndex:3,transition:`top 480ms ${EASE}, font-size 480ms ${EASE}`,WebkitMaskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)',maskImage:'linear-gradient(180deg,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 70%,rgba(0,0,0,0.3) 88%,rgba(0,0,0,0) 100%)'}}>
-        {days}
-      </div>
+      {/* ── THE GHOST NUMERAL IS RETIRED (TDW_09 atelier, founder-approved Gate 1) ──
+          This rendered {days} at 320px, blurred 8px, behind a hero that rendered the
+          SAME {days} at 48px sharp. The same digits in two competing voices, and the
+          reason the masthead had no dominant element. The countdown now speaks once,
+          at type/numeral, in the hero below. `ghostColor` and `ghostOp` retire with
+          it; the `gn-a` keyframe retires from CSS at its own site. */}
 
       {/* Upper frost band */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:120,background:topBandBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',WebkitMaskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',maskImage:'linear-gradient(180deg,#000 55%,transparent 100%)',pointerEvents:'none',zIndex:2}}/>
@@ -4469,28 +4470,39 @@ function timeAgoShort(iso:string):string {
 
       {/* Date stamp — floats top-right above the arc */}
       <div style={{position:'absolute',top:`calc(env(safe-area-inset-top,0px) + 8px)`,right:18,zIndex:9,pointerEvents:'none'}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.2em',color:inkMute}}>{romanDate()}</span>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:inkMute}}>{romanDate()}</span>
       </div>
 
       {/* Hero — top padding clears the arc (108px) + safe area */}
-      <div style={{position:'relative',zIndex:5,padding:`calc(env(safe-area-inset-top,0px) + 112px) 18px 6px`,flexShrink:0}}>
-        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:7,letterSpacing:'.28em',textTransform:'uppercase' as any,color:inkMute,marginBottom:10,display:'flex',alignItems:'center',gap:8}}>{weekday}<span style={{flex:1,maxWidth:44,height:.5,background:line}}/></div>
-        <div style={{fontFamily:"'Italianno',cursive",fontSize:42,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginBottom:8}}>
+      {/* ── THE MASTHEAD, RECOMPOSED (TDW_09 atelier · Fork 3 arm A, founder-approved) ──
+          NINE RUNS BECOME FOUR. What was here: weekday · greeting · rule · numeral ·
+          unit · prose · dateStamp · since-yes · poetry — four families, six sizes, no
+          dominant element. What is here now, in the mock's order:
+            1. the numeral at FT.numeral, with its unit beneath   (the one loud voice)
+            2. the greeting at FT.greeting
+            3. the lead prose at FT.lead
+            4. the signal line at FT.engravedSm
+          NOTHING IS DELETED, and the two folds are named:
+            · `weekday` folds into the signal line's tail — same value, one fewer run.
+            · `dateStamp` folds out: it renders TODAY'S DATE, which `romanDate()` already
+              carries top-right at :4471. Two elements, one fact; the roman one is drawn
+              in the approved mock and this one is not.
+          THE POETRY LINE: the approved masthead does not draw it — arm (c) of the
+          read-first's veto slot, ruled by 「 the poetry pool AS DRAWN 」. FROST_COPY.idlePool
+          is UNTOUCHED per that arm, which leaves it reader-less; filed F-09.164 rather
+          than deleted, because deleting a founder-written pool is not a redesign's call.
+          `getDailyPoetry()` and the `poetry` state stay wired to nothing by the same
+          reasoning and travel in that finding. */}
+      <div style={{position:'relative',zIndex:5,padding:`calc(env(safe-area-inset-top,0px) + 112px) ${FS.gutter}px ${FS.s2}px`,flexShrink:0}}>
+        <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:FT.numeral,lineHeight:.78,letterSpacing:'-.055em',color:accent,fontFeatureSettings:'"opsz" 144',marginLeft:-6}}>{days}</div>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engraved,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,marginTop:FS.s1}}>mornings to I do</div>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:FT.greeting,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginTop:FS.s3}}>
           Hello, <span style={{color:accent}}>{name}</span>.
         </div>
-        <div style={{width:40,height:1,background:`linear-gradient(90deg,${accent},transparent)`,marginBottom:10}}/>
-        <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-          <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:48,lineHeight:.88,letterSpacing:'-.04em',color:accent,fontFeatureSettings:'"opsz" 144'}}>{days}</div>
-          <div style={{fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:accent,opacity:.6}}>mornings to I do</div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.lead,lineHeight:1.5,color:inkSoft,marginTop:FS.s2,maxWidth:'30ch',fontFeatureSettings:'"opsz" 9'}}>
+          {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
         </div>
-        <>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:13,lineHeight:1.55,color:inkSoft,marginTop:10,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>
-            {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
-          </div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.2em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>{dateStamp}</div>
-          {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:6.5,letterSpacing:'.16em',textTransform:'uppercase' as any,color:signal}}>↑ {sinceYes} days since you said yes</div>}
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:11,lineHeight:1.5,marginTop:6,color:inkMute,fontFeatureSettings:'"opsz" 9'}}>"{poetry}"</div>
-        </>
+        {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:signal,marginTop:FS.s2}}>↑ {sinceYes} days since you said yes <span style={{color:inkMute}}>· {weekday}</span></div>}
       </div>
 
       {/* Slices — dynamic hints */}
@@ -4513,10 +4525,15 @@ function timeAgoShort(iso:string):string {
         <div style={{position:'relative',zIndex:5,flex:1,display:'flex',flexDirection:'column',borderTop:`.5px solid ${lineStr}`,overflow:'hidden',minHeight:0}}>
           {BASE_SLICES.map((slice,idx)=>(
             <div key={slice.key} {...press(`slice:${slice.key}`)} onClick={()=>openRoom(slice.key)} className="si-a"
-              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:'0 18px',gap:7,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',background:'transparent',animationDelay:`${idx*16}ms`,...pressed(`slice:${slice.key}`)}}>
-              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
+              style={{flex:1,minHeight:0,display:'flex',alignItems:'center',padding:`0 ${FS.gutter}px`,gap:FS.s1,borderBottom:`.5px solid ${line}`,cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',background:'transparent',animationDelay:`${idx*16}ms`,...pressed(`slice:${slice.key}`)}}>
+              {/* TDW_09 atelier · Fork 2 arm A: the rail RETYPES IN PLACE. Eleven rows,
+                  same order, same flex:1 distribution, same doorways — only the label
+                  rung, the hint tracking and the gutter move. Content-driven heights
+                  were the other arm and were REFUSED: at eleven rows the rail would
+                  scroll, and that is a behaviour change (L4). */}
+              <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.room,lineHeight:1,flexShrink:0,color:sliceTxt,fontFeatureSettings:'"opsz" 9'}}>{slice.label}</span>
               {slice.candle&&<span className="cf-a" style={{width:5,height:5,borderRadius:'50%',background:signal,boxShadow:`0 0 7px ${signal}`,flexShrink:0}}/>}
-              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.1em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{hintMap[slice.key as string]||''}</span>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:hintTxt,marginLeft:'auto',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{hintMap[slice.key as string]||''}</span>
               {(slice.key==='discover'||slice.key==='meridian')&&<span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:hintTxt,flexShrink:0}}>→</span>}
             </div>
           ))}
@@ -4531,7 +4548,7 @@ function timeAgoShort(iso:string):string {
           padding:'12px 18px',paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 12px)',
           cursor:'pointer',WebkitTapHighlightColor:'transparent',touchAction:'manipulation',
           ...pressed('slice:dream')}}>
-        <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1,color:accent,fontFeatureSettings:'"opsz" 9',letterSpacing:'.01em'}}>
+        <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1,color:accent,fontFeatureSettings:'"opsz" 9',letterSpacing:'.01em'}}>
           Dream Ai
         </span>
       </div>
@@ -4551,18 +4568,18 @@ function timeAgoShort(iso:string):string {
         >
           {/* Room top bar */}
           <div style={{position:'relative',zIndex:10,background:roomTopBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderBottom:`0.5px solid ${roomLine}`,paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)',paddingBottom:12,paddingLeft:18,paddingRight:18,display:'flex',alignItems:'center',flexShrink:0}}>
-            <button onClick={closeRoom} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>
+            <button onClick={closeRoom} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6,padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
               Sanctuary
             </button>
-            <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:17,color:accent,fontFeatureSettings:'"opsz" 9'}}>
+            <div style={{flex:1,textAlign:'center',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.room,color:accent,fontFeatureSettings:'"opsz" 9'}}>
               {(()=>{
                 const labels:{[k:string]:string}={expenses:'Expenses',vendors:'Vendors',settings:'Settings'};
                 if(activeRoom&&labels[activeRoom]) return labels[activeRoom];
                 return BASE_SLICES.find(s=>s.key===activeRoom)?.label||'';
               })()}
             </div>
-            {activeRoom==='dream'&&<button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.18em',textTransform:'uppercase' as any,color:roomInkMute}}>Clear</button>}
+            {activeRoom==='dream'&&<button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute}}>Clear</button>}
             {activeRoom!=='dream'&&<div style={{width:40}}/>}
           </div>
 
@@ -4579,18 +4596,18 @@ function timeAgoShort(iso:string):string {
 
             {/* ── DREAM AI ── */}
             {activeRoom==='dream'&&<>
-              <div ref={scrollRef} className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:'20px 18px'}}>
+              <div ref={scrollRef} className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any,padding:`20px ${FS.gutter}px`}}>
                 {msgs.length===0?(
                   <div style={{display:'flex',flexDirection:'column',gap:24,paddingTop:8}}>
                     <div>
-                      <div style={{fontFamily:"'Italianno',cursive",fontSize:48,lineHeight:.95,color:roomInk,marginBottom:8}}>Tell me what's<br/>on your mind.</div>
-                      <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>I know your timeline, vendors,<br/>Muse board, and Circle.</div>
+                      <div style={{fontFamily:"'Italianno',cursive",fontSize:52,lineHeight:.95,color:roomInk,marginBottom:8}}>Tell me what's<br/>on your mind.</div>
+                      <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:roomInkSoft,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>I know your timeline, vendors,<br/>Muse board, and Circle.</div>
                     </div>
                     <div>
-                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:8,letterSpacing:'.28em',textTransform:'uppercase' as any,color:roomInkMute,marginBottom:12}}>Try asking</div>
+                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:roomInkMute,marginBottom:12}}>Try asking</div>
                       <div style={{display:'flex',flexDirection:'column',gap:8}}>
                         {DREAM_PROMPTS.map(p=>(
-                          <button key={p} onClick={()=>sendDream(p)} style={{textAlign:'left',background:chipBg,border:`0.5px solid ${chipBdr}`,borderRadius:8,padding:'12px 14px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInk,cursor:'pointer',fontFeatureSettings:'"opsz" 9'}}>"{p}"</button>
+                          <button key={p} onClick={()=>sendDream(p)} style={{textAlign:'left',background:chipBg,border:`0.5px solid ${chipBdr}`,borderRadius:8,padding:'12px 14px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:roomInk,cursor:'pointer',fontFeatureSettings:'"opsz" 9'}}>"{p}"</button>
                         ))}
                       </div>
                     </div>
@@ -4600,14 +4617,14 @@ function timeAgoShort(iso:string):string {
                     {msgs.map(m=>(
                       <div key={m.id} style={{display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}>
                         {m.role==='user'?(
-                          <div style={{maxWidth:'82%',background:accent,color:dark?'#1A0810':'#FFFFFF',padding:'10px 14px',borderRadius:'20px 20px 4px 20px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>{m.content}</div>
+                          <div style={{maxWidth:'82%',background:accent,color:dark?'#1A0810':'#FFFFFF',padding:'10px 14px',borderRadius:'20px 20px 4px 20px',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>{m.content}</div>
                         ):m.pending&&m.content===''?(
                           <div style={{background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'10px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)'}}>
                             <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,animation:'dpulse 1.4s infinite ease-in-out'}}>✦ thinking</span>
                             <style>{`@keyframes dpulse{0%,80%,100%{opacity:.35}40%{opacity:1}}`}</style>
                           </div>
                         ):(
-                          <div style={{maxWidth:'90%',background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,lineHeight:1.65,color:m.error?'#C4534A':roomInk,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
+                          <div style={{maxWidth:'90%',background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.65,color:m.error?'#C4534A':roomInk,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
                             {m.content}
                             {m.pending&&<span className="d-cursor" style={{opacity:.5,color:accent}}>▌</span>}
                           </div>
@@ -4621,7 +4638,7 @@ function timeAgoShort(iso:string):string {
               <div style={{background:composeBg,backdropFilter:'blur(22px) saturate(1.1)',WebkitBackdropFilter:'blur(22px) saturate(1.1)',borderTop:`0.5px solid ${roomLine}`,padding:`12px 18px calc(12px + env(safe-area-inset-bottom,0px))`,flexShrink:0}}>
                 <div style={{display:'flex',gap:10,alignItems:'flex-end',background:inputBg,border:`0.5px solid ${inputBdr}`,borderRadius:20,padding:'8px 10px 8px 16px'}}>
                   <textarea ref={textRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendDream(input);}}} placeholder="Tell DreamAi anything…" disabled={loading} rows={1}
-                    style={{flex:1,background:'transparent',border:'none',outline:'none',color:roomInk,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:15,resize:'none',maxHeight:120,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
+                    style={{flex:1,background:'transparent',border:'none',outline:'none',color:roomInk,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,resize:'none',maxHeight:120,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
                   <button onClick={()=>sendDream(input)} disabled={loading||!input.trim()}
                     style={{background:input.trim()&&!loading?accent:'rgba(128,128,128,.12)',color:input.trim()&&!loading?(dark?'#1A0810':'#FFFFFF'):roomInkMute,border:'none',borderRadius:'50%',width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',cursor:input.trim()&&!loading?'pointer':'default',transition:`background 200ms ${EASE}`,flexShrink:0}}>
                     <Send size={14} strokeWidth={1.5}/>
@@ -4700,7 +4717,7 @@ function timeAgoShort(iso:string):string {
                 <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:accent,lineHeight:1}}>
                   {BASE_SLICES.find(s=>s.key===activeRoom)?.label||activeRoom}
                 </div>
-                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:14,color:roomInkSoft,textAlign:'center',lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:roomInkSoft,textAlign:'center',lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
                   Coming soon.<br/>Swipe down to return.
                 </div>
               </div>
@@ -4712,7 +4729,7 @@ function timeAgoShort(iso:string):string {
       {/* F-07.70 · fork B2's frozen byte. Render shape copied from the MomentsRoom
           toast in this same file rather than invented, so the shell speaks in the
           room's own voice on the way out. */}
-      {bounceToast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px)+16px)',left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.18em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:900,pointerEvents:'none',whiteSpace:'nowrap'}}>{bounceToast}</div>}
+      {bounceToast&&<div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px)+16px)',left:'50%',transform:'translateX(-50%)',background:'rgba(240,237,232,.95)',color:'#080608',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:900,pointerEvents:'none',whiteSpace:'nowrap'}}>{bounceToast}</div>}
     </div>
   );
 }

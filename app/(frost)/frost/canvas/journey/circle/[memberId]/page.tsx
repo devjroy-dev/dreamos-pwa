@@ -18,12 +18,12 @@ function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
           <img src={a.image_url} alt={a.caption || 'Save'} style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 300 }} loading="lazy" />
         </div>
         {a.caption && (
-          <div style={{ fontFamily: FF.body, fontSize: 14, color: t.ink, fontStyle: 'italic', lineHeight: 1.5, marginBottom: 4 }}>"{a.caption}"</div>
+          <div style={{ fontFamily: FF.body, fontSize:16, color: t.ink, fontStyle: 'italic', lineHeight: 1.5, marginBottom: 4 }}>"{a.caption}"</div>
         )}
         <div style={{ display: 'flex', gap: SP.m, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-          <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft }}>{timeAgo(a.created_at)}</div>
+          <div style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.15em', color: t.soft }}>{timeAgo(a.created_at)}</div>
           {(a.aesthetic_tags || []).slice(0, 3).map((tag: string) => (
-            <span key={tag} style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>{tag}</span>
+            <span key={tag} style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.12em', color: t.brassMuted, padding: '2px 6px', border: `0.5px solid rgba(191,160,77,0.25)`, borderRadius: FR.pill }}>{tag}</span>
           ))}
         </div>
       </div>
@@ -33,16 +33,16 @@ function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
   if (a.activity_type === 'comment' && a.content) {
     return (
       <div style={{ marginBottom: SP.l, paddingLeft: SP.l, borderLeft: `2px solid ${t.brass}` }}>
-        <div style={{ fontFamily: FF.body, fontSize: 14, color: t.ink, fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>"{a.content}"</div>
-        <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.15em', color: t.soft }}>{timeAgo(a.created_at)}</div>
+        <div style={{ fontFamily: FF.body, fontSize:16, color: t.ink, fontStyle: 'italic', lineHeight: 1.6, marginBottom: 4 }}>"{a.content}"</div>
+        <div style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.15em', color: t.soft }}>{timeAgo(a.created_at)}</div>
       </div>
     );
   }
 
   if (a.activity_type === 'joined') {
     return (
-      <div style={{ marginBottom: SP.l, fontFamily: FF.body, fontSize: 13, color: t.soft, fontStyle: 'italic' }}>
-        Joined your circle · <span style={{ fontFamily: FF.label, fontSize: 9 }}>{timeAgo(a.created_at)}</span>
+      <div style={{ marginBottom: SP.l, fontFamily: FF.body, fontSize:16, color: t.soft, fontStyle: 'italic' }}>
+        Joined your circle · <span style={{ fontFamily: FF.label, fontSize:16 }}>{timeAgo(a.created_at)}</span>
       </div>
     );
   }
@@ -50,7 +50,7 @@ function ActivityCard({ a, t, look }: { a: any; t: any; look: string }) {
   return (
     <div style={{ marginBottom: SP.m, display: 'flex', gap: SP.m }}>
       <div style={{ width: 5, height: 5, borderRadius: 3, background: t.hairline, marginTop: 6, flexShrink: 0 }} />
-      <div style={{ fontFamily: FF.body, fontSize: 13, color: t.soft }}>{actor} · {a.activity_type.replace(/_/g, ' ')} · {timeAgo(a.created_at)}</div>
+      <div style={{ fontFamily: FF.body, fontSize:16, color: t.soft }}>{actor} · {a.activity_type.replace(/_/g, ' ')} · {timeAgo(a.created_at)}</div>
     </div>
   );
 }
@@ -73,14 +73,14 @@ export default function MemberPage() {
     <CanvasShell eyebrow={member?.invitee_name || '…'} backTo="/frost/canvas/journey/circle">
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px`, userSelect: 'none' as const }}>
 
-        {loading && <div style={{ fontFamily: FF.display, fontSize: 32, color: t.brassMuted, letterSpacing: 6 }}>…</div>}
+        {loading && <div style={{ fontFamily: FF.display, fontSize:22, color: t.brassMuted, letterSpacing: 6 }}>…</div>}
 
         {!loading && member && (
           <>
             {/* Member header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SP.xl }}>
               <div>
-                <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: t.ink, lineHeight: 1.2 }}>{member.invitee_name}</div>
+                <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:22, color: t.ink, lineHeight: 1.2 }}>{member.invitee_name}</div>
                 <div style={{ fontFamily: FF.label, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: t.soft, marginTop: 4 }}>
                   {member.role.replace(/_/g, ' ')} · {member.status}
                 </div>
@@ -109,7 +109,7 @@ export default function MemberPage() {
             </div>
 
             {activity.length === 0 && (
-              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: t.soft, textAlign: 'center', paddingTop: 60 }}>
+              <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:19, color: t.soft, textAlign: 'center', paddingTop: 60 }}>
                 Nothing yet. They'll leave their mark soon.
               </div>
             )}
@@ -119,7 +119,7 @@ export default function MemberPage() {
         )}
 
         {!loading && !member && (
-          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 18, color: t.soft, textAlign: 'center', paddingTop: 80 }}>
+          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:19, color: t.soft, textAlign: 'center', paddingTop: 80 }}>
             Member not found.
           </div>
         )}

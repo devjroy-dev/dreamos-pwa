@@ -45,10 +45,10 @@ export default function CanvasJourney() {
       <div style={{ padding: `${SP.xl}px ${SP.xxl}px ${SP.huge}px` }}>
 
         <div style={{ paddingBottom: SP.l }}>
-          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize: 28, color: tokens.ink, lineHeight: 1.2, marginBottom: 6 }}>
+          <div style={{ fontFamily: FF.display, fontStyle: 'italic', fontSize:22, color: tokens.ink, lineHeight: 1.2, marginBottom: 6 }}>
             {FROST_COPY.journeyCanvas.title}
           </div>
-          <div style={{ fontFamily: FF.body, fontSize: 14, color: tokens.soft }}>
+          <div style={{ fontFamily: FF.body, fontSize:16, color: tokens.soft }}>
             {FROST_COPY.journeyCanvas.sub}
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function CanvasJourney() {
               <div style={{ fontFamily: FF.display, fontSize: 19, lineHeight: 1.25, color: tokens.ink, marginBottom: 4 }}>
                 {tool.title}
               </div>
-              <div style={{ fontFamily: FF.body, fontSize: 11, lineHeight: 1.4, color: tokens.soft, whiteSpace: 'pre-line' }}>
+              <div style={{ fontFamily: FF.body, fontSize:16, lineHeight: 1.4, color: tokens.soft, whiteSpace: 'pre-line' }}>
                 {tool.subtitle}
               </div>
             </FrostedSurface>
@@ -96,10 +96,10 @@ export default function CanvasJourney() {
                 <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <tool.Icon size={16} color={tokens.brassMuted} strokeWidth={1.5} />
                 </div>
-                <div style={{ flex: 1, fontFamily: FF.body, fontSize: 14, color: tool.route ? tokens.ink : tokens.soft }}>
+                <div style={{ flex: 1, fontFamily: FF.body, fontSize:16, color: tool.route ? tokens.ink : tokens.soft }}>
                   {tool.title}
                   {!tool.route && (
-                    <span style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', color: tokens.brassMuted, marginLeft: 8 }}>soon</span>
+                    <span style={{ fontFamily: FF.label, fontSize:16, letterSpacing: '0.15em', color: tokens.brassMuted, marginLeft: 8 }}>soon</span>
                   )}
                 </div>
                 {tool.route && <ChevronRight size={15} color={tokens.hairline} strokeWidth={1.5} />}
@@ -108,7 +108,7 @@ export default function CanvasJourney() {
           ))}
         </div>
 
-        <div style={{ paddingTop: SP.xl, textAlign: 'center', fontFamily: FF.display, fontStyle: 'italic', fontSize: 13, color: tokens.soft }}>
+        <div style={{ paddingTop: SP.xl, textAlign: 'center', fontFamily: FF.display, fontStyle: 'italic', fontSize:16, color: tokens.soft }}>
           ✦  Or tell DreamAi what you'd like to do.
         </div>
       </div>
