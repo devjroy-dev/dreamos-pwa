@@ -9,10 +9,10 @@ import { useSettings } from '@/hooks/vendor/useSettings';
 import { useToast } from '@/hooks/vendor/useToast';
 import { Toast } from '@/components/vendor/Toast';
 import { Header } from '@/components/vendor/Header';
-import {
-  updateMe, updateRoutingHandle, updateInvoicePrefix,
-  subscribeToTier, upgradeToTier, cancelSubscription,
-} from '@/lib/vendor/api/vendor';
+// TDW_10 THE BILLING TAB — `subscribeToTier`, `upgradeToTier` and
+// `cancelSubscription` left this import with the surface that called them. Their
+// one home is now `components/vendor/SubscriptionCard.tsx`.
+import { updateMe, updateRoutingHandle, updateInvoicePrefix } from '@/lib/vendor/api/vendor';
 import { clearVendorSession, getVendorSession, setVendorSession } from '@/lib/vendor/session';
 
 // TDW_07 P2 — PURE MOVE. A, F and the five form primitives now live in one home so
@@ -20,76 +20,16 @@ import { clearVendorSession, getVendorSession, setVendorSession } from '@/lib/ve
 // screen's rendered output is unchanged; only where the code lives moved.
 import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F } from '@/components/vendor/AtelierForm';
 
-// ── M2 · THE FOUNDER-VETOED STRING SET (2026-08-07, verbatim) ───────────────
-// Hoisted deliberately: copy under founder veto lives in ONE readable block so
-// the next reader can diff it against the veto record without reading JSX. The
-// money register is law here — `Rs X,XXX`, zero rupee glyphs, zero k/L shorthand
-// (money register law). Canon prices mirror src/lib/billing/razorpay.js
-// TIER_PAISE, which pins them as integers so prose cannot drift them (F-10.63).
-const PLAN_LABEL: Record<string, string> = {
-  basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige',
-};
-const PLAN_PRICE: Record<string, string> = {
-  essential: 'Rs 999 / month',
-  signature: 'Rs 1,999 / month',
-  prestige:  'Rs 2,999 / month',
-};
-// Keyed on 0114's CHECK exactly — none, active, pending, halted, cancelled.
-// `pending` is the retry-window mercy (R-BILL.3) speaking in her own words: a
-// card that bounced once, while Razorpay is still trying, is not a demotion, and
-// telling her "nothing changes yet" is the difference between a warning and a
-// scare.
-const BILLING_STATUS: Record<string, string> = {
-  none:      'Not set up yet.',
-  active:    'Active. Renews monthly.',
-  pending:   "Payment didn't go through. Retrying — nothing changes yet.",
-  halted:    "Payment failed. You're on Basic.",
-  cancelled: "Cancelled. You're on Basic.",
-};
-
-// ── TDW_10 BILLING v2 · THE NEW STRING SET — HELD FOR FOUNDER VETO ──────────
-// Hoisted into the SAME block as the v1 set above, for the reason that block
-// gives: copy under veto lives in one readable place so it can be diffed
-// against the veto record without reading JSX. Every string above is UNTOUCHED
-// and stays verbatim; these are the additions, and they are sent as one batch.
+// ── TDW_10 THE BILLING TAB — THE VETOED STRING BLOCK LEFT WITH ITS SURFACE ──
+// `PLAN_LABEL`, `PLAN_PRICE`, `BILLING_STATUS` and the `V2` set stood here.
+// Every one of them existed to be rendered by the Subscription card, and that
+// card now lives at `components/vendor/SubscriptionCard.tsx`. The block moved
+// WHOLE and byte-unchanged: its entire warrant is that copy under founder veto
+// sits in ONE readable place, so splitting it across two files to save an
+// import would have destroyed the property it exists for.
 //
-// RETIRED WITH THE ERA: 「 Dev will send you a payment link. 」 That sentence
-// described the founder minting links by hand, which is the mechanism this
-// delivery removes. A sentence must not outlive the mechanism it describes.
-//
-// MONEY REGISTER: `Rs X,XXX`, zero rupee glyphs, zero k/L/Cr shorthand. Prices
-// are read from PLAN_PRICE above rather than retyped, so the canon has one home
-// on this surface too.
-//
-// TYPE SCALE: body copy at 16 (the ruled floor), action words at 10 in the
-// engraved register — both named rungs. No new size enters this file.
-// F-09.105 IS CURED IN THIS DELIVERY (TDW_09 UI VENDOR, chair relay #7). The
-// note above said THREE sub-floor sites; re-derived by running the census at
-// 503b254 it reads TWO — :363 at 13px and :392 at 12px — so the third had
-// already died under some earlier edit and the count was carried, not derived.
-// Both survivors are now 16. `tdw09_type` reads 16/16 and the strays list is
-// empty, which is the only witness that matters.
-const V2 = {
-  pickerHeading: 'Choose a plan',
-  pickerAction:  'Choose',
-  confirm: (label: string, price: string) =>
-    `This opens a Razorpay page to approve ${label} — ${price}. You approve once; it renews every month until you cancel.`,
-  cancelWarn: (label: string) =>
-    `Cancel ${label}? Your plan stops and you move to Basic. This can't be undone — starting again means setting up a new monthly payment.`,
-  cancelYes: 'Cancel my plan',
-  cancelNo:  'Keep my plan',
-  upgradeExplain: (label: string, price: string) =>
-    `Moving to ${label} stops your current plan first, then opens a new page to approve ${price}. Until you approve it, you're on Basic.`,
-  // The failure set. Never a false done — and never a false "nothing happened",
-  // which is the harder half. `mintFailedAfterCancel` is Fork U(a)'s priced seam
-  // speaking in her own words: without it she would read a generic error, assume
-  // her old plan survived, and be wrong about whether she is currently paying.
-  mintFailed:   "Couldn't reach Razorpay just now. Nothing has changed — try again in a moment.",
-  cancelFailed: "Couldn't cancel just now. Your plan is unchanged — try again in a moment.",
-  mintFailedAfterCancel: (label: string) =>
-    `Your old plan is already stopped and the new one didn't open. You're on Basic for now — tap ${label} again to finish.`,
-  notOpenYet: 'Plan changes are not open yet.',
-};
+// Nothing on this page renders money any more. The money register still binds
+// the estate; it simply has no site here.
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -337,135 +277,50 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           />
         </SCard>
 
-        {/* ── M2 · THE SUBSCRIPTION SURFACE (F-10.77's cure) ───────────────────
-            Until this section, the ONLY tier byte a vendor ever saw was a
-            read-only row. Her tier moved Prestige → Free at a cancel flip with
-            no notice, no reason, and no action — the flip wrote truth and told
-            nobody. That is F-10.77, and the flip-reason line below is its cell.
+        {/* ── TDW_10 THE BILLING TAB · THE SIGNPOST (R-26.4, Fork B) ─────────
+            The Subscription card stood here and has moved to /vendor/billing,
+            reachable from the profile coin. What stays is a line telling a
+            vendor who looks for billing in Settings where it went — in the
+            interface's own voice, with the route one tap away. That shape is
+            NOT invented here: it is the `<SCard title="Discover Profile">`
+            precedent earlier in this same file, which did exactly this when its
+            fields left.
 
-            `id="tier"` is load-bearing, not decoration: src/api/vendor-engine/
-            chat.js sends `upgrade: { href: '/vendor/settings#tier' }` with every
-            capped-meter message, and until now that anchor resolved to nothing —
-            the button scrolled her to the top of a settings page and left her to
-            hunt. Named per the mechanism-comment law so whoever moves this
-            section moves the anchor with it.
+            THE SIGNPOST IS PERMANENT. Ruled. A vendor who reaches for billing
+            in the place it used to live should always find the way out, not
+            only during a migration window.
 
-            EVERY string here is founder-vetoed verbatim (2026-08-07). The date
-            the first draft carried was DROPPED at his ruling: no flip timestamp
-            exists anywhere in the estate — `billing_status` has no companion
-            stamp, tierFlip.js writes none, and `vendors.updated_at` moves on any
-            profile save, so rendering it would have printed the day she edited
-            her bio as the day her plan changed. A plausible wrong date is worse
-            than no date. */}
+            ── `id="tier"` IS TEMPORARY, AND THIS IS ITS RETIREMENT CONDITION ──
+            (mechanism-comment law, F-06.85 — named here so the sitting that
+            moves the address is forced to read this sentence.)
+
+            dream-os `src/api/vendor-engine/chat.js` sends
+            `upgrade: { label: 'Upgrade', href: '/vendor/settings#tier' }` with
+            every capped-meter message, and it is the SOLE `#tier` reference and
+            the SOLE `/vendor/settings` link in the entire backend (grep-derived
+            across `src/`, one hit). The PWA hardcodes nothing:
+            `components/vendor/TierMeter.tsx`'s `TierMeter` renders that href as
+            a bare <a>, so the address arrives ON THE WIRE from Railway.
+
+            THEREFORE THIS ANCHOR RETIRES ON TWO EVENTS, NOT ONE:
+              (1) the combined-cap sitting re-points chat.js to '/vendor/billing'
+                  (no fragment — the page IS the picker), AND
+              (2) Railway redeploys dream-os so the new href is actually served.
+            Until BOTH have happened, deleting this `id` breaks the Upgrade link
+            for every capped vendor. After both, it is dead weight and goes.
+
+            F-10.101 RIDES THIS BLOCK: on a cold load the anchor may never have
+            scrolled at all — `id="tier"` mounts only after the /me fetch
+            resolves (see the `Loading…` return above), and the browser resolves
+            a fragment at load. Whether it scrolls is a RACE against the load
+            event. The signpost is honest under either outcome: it is visible
+            wherever the page lands. */}
         <div id="tier">
           <SCard title="Subscription">
-            <SReadRow label="Plan"  value={PLAN_LABEL[current.tier] ?? 'Basic'} />
-            <SReadRow label="Price" value={PLAN_PRICE[current.tier] ?? 'Free — no AI'} />
-            <SReadRow label="Status" value={BILLING_STATUS[current.billing_status] ?? 'Not set up yet.'} />
-
-            {/* F-10.77's cell: she is told WHAT changed and WHY, in her own
-                screen, rather than discovering it by asking Victor something and
-                getting nothing back. Rendered only when the flip actually
-                happened TO her — on the floor tier, off a lapsed rail. */}
-            {current.tier === 'basic'
-              && (current.billing_status === 'cancelled' || current.billing_status === 'halted') && (
-              <p style={{
-                /* F-09.105 CURED: 16, the ruled body floor. Was 13. */
-                fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
-                color: A.inkSoft, margin: '10px 0 0',
-              }}>
-                {`Moved to Basic — subscription ${current.billing_status === 'cancelled'
-                  ? 'cancelled' : 'stopped after failed payments'}. `}
-                Profile and leads unchanged. AI is off on Basic.
-              </p>
-            )}
-
-            {/* The payment path. R-BILL.1's Subscription Links are issued by the
-                founder per vendor from the Razorpay dashboard, so a NULL link is
-                a real and currently universal state — it says so plainly rather
-                than rendering a button that goes nowhere. */}
-            {current.billing_status !== 'active' && (
-              <div style={{ marginTop: 14 }}>
-                {current.subscription_link ? (
-                  <>
-                    <a
-                      href={current.subscription_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
-                        border: `0.5px solid ${A.brass}`, borderRadius: 2, textDecoration: 'none',
-                        fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
-                        letterSpacing: '0.42em', textTransform: 'uppercase',
-                      }}
-                    >Set up monthly payment</a>
-                    <p style={{
-                      /* F-09.105 CURED: 16, the ruled body floor. Was 12. */
-                      fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
-                      color: A.inkMute, margin: '10px 0 0',
-                    }}>
-                      {`Approve once in your UPI app. Monthly auto-pay, max ${
-                        PLAN_PRICE[current.tier] ? PLAN_PRICE[current.tier].split(' / ')[0]
-                                                 : 'the amount shown on the approval screen'}. `}
-                      Cancel any time from the app.
-                    </p>
-                  </>
-                ) : null}
-
-                {/* ── TDW_10 BILLING v2 · THE PICKER ────────────────────────
-                    This replaces 「 Dev will send you a payment link. 」, which
-                    described a mechanism this delivery removes.
-
-                    RENDERED WHENEVER SHE HAS NO LIVE LINK — which includes the
-                    churned vendor, deliberately. Her dead subscription id does
-                    not disqualify her: the server's refusal keys on Razorpay's
-                    LIVE statuses, not on whether a row holds an id, so a vendor
-                    who cancelled can subscribe again. Hiding the picker from her
-                    would be the client re-implementing a rule the server already
-                    owns, and getting it stricter. */}
-                {/* ── F-10.92 · THE CLIENT SHUTS WITH THE ROUTE ──────────────
-                    `selfserve_enabled` gates the SURFACE, not only the endpoint.
-                    Before this, an OFF flag produced a picker that 503s — a kill
-                    switch the vendor could still see and press, which is not a
-                    kill switch. Now OFF renders nothing here at all.
-
-                    NOT BYTE-IDENTICAL TO THE PRE-v2 SURFACE, and that is a
-                    deliberate departure from acceptance ④ as ratified. Restoring
-                    the old surface would mean restoring 「 Dev will send you a
-                    payment link. 」 — a sentence the founder retired WITH its
-                    mechanism, and which is now simply false: Dev does not send
-                    links any more. A rollback that reinstates a lie is worse than
-                    a door that closes quietly. So OFF is SILENT, not nostalgic:
-                    Plan, Price and Status still render, and nothing offers her an
-                    action the estate cannot honour.
-
-                    RE-LANDED AT TDW_09 UI VENDOR HOTFIX (chair relay #7). This
-                    gate was WIPED by that delivery's settings file, which was cut
-                    at 503b254 and applied onto 9f73a8b — F-10.92 landed in the
-                    eleven minutes between. Restored VERBATIM from 9f73a8b; see
-                    F-09.128. */}
-                {!current.subscription_link && current.selfserve_enabled && (
-                  <TierPicker
-                    currentTier={current.tier}
-                    isUpgrade={current.billing_status === 'active'}
-                    onDone={() => window.location.reload()}
-                    show={show}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* The ACTIVE vendor's exit. Shown only when a plan is actually
-                running — cancelling something already cancelled is not an
-                action, and the server answers `no_subscription` if it is tried. */}
-            {/* F-10.92, re-landed — see the gate above and F-09.128. */}
-            {current.billing_status === 'active' && current.subscription_id && current.selfserve_enabled && (
-              <CancelBlock
-                label={PLAN_LABEL[current.tier] ?? 'your plan'}
-                onDone={() => window.location.reload()}
-                show={show}
-              />
-            )}
+            <button type="button" onClick={() => router.push('/vendor/billing')} style={{
+              background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.brassWarm,
+            }}>Moved to Billing. ›</button>
           </SCard>
         </div>
 
@@ -485,200 +340,9 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TDW_10 BILLING v2 · THE TIER PICKER
-// ═══════════════════════════════════════════════════════════════════════════
-// Two-step by construction: pick a tier, then read what will happen and
-// confirm. The confirm step is not ceremony — it is where the two paths tell
-// her different true things. Subscribing opens an approval page. UPGRADING
-// STOPS HER CURRENT PLAN FIRST, irreversibly, and she is told so before she
-// commits rather than after (Fork U(a)'s seam, priced in copy).
-//
-// The button is a plain <button> and never a <form> — this surface has no forms.
-// Sizes are the ruled rungs: 16 body, 10 engraved register.
-function TierPicker({ currentTier, isUpgrade, onDone, show }: {
-  currentTier: string;
-  isUpgrade: boolean;
-  onDone: () => void;
-  show: (m: string) => void;
-}) {
-  const [picked, setPicked] = useState<string | null>(null);
-  const [busy, setBusy]     = useState(false);
-
-  // ── F-10.91 CURED ─────────────────────────────────────────────────────────
-  // WITNESSED LIVE, on two real rows: `+918757788550` and `+918595356978`, both
-  // `tier='prestige'` with `billing_status='none'` and a NULL subscription id.
-  // Both were offered ONLY Essential and Signature. Prestige was filtered out as
-  // "her current plan" when it was nothing of the kind — an entitlement someone
-  // set by hand, with `billing_status='none'` proving no money ever landed. Every
-  // comped, hand-minted or migrated vendor sat in that state, and every one of
-  // them was locked out of paying for the tier she was already using.
-  //
-  // THE DEFECT WAS THE KEY, NOT THE FILTER. `vendors.tier` is an ENTITLEMENT —
-  // what she may use. It is NOT a record of what she is subscribed to, and this
-  // estate has no such column: the subscription's tier lives at Razorpay, and
-  // what the database keeps is the id and the status. Reading an entitlement as
-  // if it were a purchase is the whole bug, and the fix is to stop asking it that
-  // question.
-  //
-  // `isUpgrade` ALREADY CARRIES THE TRUTH and was sitting one line away:
-  // `billing_status === 'active'` means a live mandate exists. If it does, her
-  // paid tier drops out of the picker — re-buying the plan you are currently
-  // paying for is not an offer. If it does not, she has nothing live, so nothing
-  // is filtered and all three are offered, including the one her entitlement
-  // happens to name. No new column, no new wire field, no schema.
-  const tiers = ['essential', 'signature', 'prestige']
-    .filter(t => !(isUpgrade && t === currentTier));
-
-  async function go(tier: string) {
-    setBusy(true);
-    try {
-      const res = isUpgrade ? await upgradeToTier(tier) : await subscribeToTier(tier);
-      if ('ok' in res && res.ok) {
-        // The link IS the close. She is sent straight to Razorpay rather than
-        // shown a second button, because every extra tap between intent and
-        // approval is a place the intent dies.
-        if (res.subscription_link) { window.location.href = res.subscription_link; return; }
-        onDone();
-        return;
-      }
-      // Typed codes, distinct sentences. The third one is the seam.
-      const code = (res as { code?: string }).code;
-      if (code === 'mint_failed_after_cancel') {
-        show(V2.mintFailedAfterCancel(PLAN_LABEL[tier] ?? 'the plan'));
-      } else if (code === 'lane_disabled' || code === 'not_configured') {
-        show(V2.notOpenYet);
-      } else {
-        show(V2.mintFailed);
-      }
-    } catch {
-      show(V2.mintFailed);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div style={{ marginTop: 4 }}>
-      <div style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
-        letterSpacing: '0.42em', textTransform: 'uppercase', marginBottom: 12,
-      }}>{V2.pickerHeading}</div>
-
-      {tiers.map(t => (
-        <div key={t} style={{ marginBottom: 10 }}>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => setPicked(picked === t ? null : t)}
-            style={{
-              display: 'flex', width: '100%', alignItems: 'baseline', justifyContent: 'space-between',
-              padding: '13px 14px', background: 'transparent', cursor: busy ? 'default' : 'pointer',
-              border: `0.5px solid ${picked === t ? A.brass : 'rgba(0,0,0,0.12)'}`, borderRadius: 2,
-            }}
-          >
-            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.ink }}>
-              {PLAN_LABEL[t]}
-            </span>
-            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute }}>
-              {PLAN_PRICE[t]}
-            </span>
-          </button>
-
-          {picked === t && (
-            <div style={{ padding: '10px 2px 0' }}>
-              <p style={{
-                fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
-                color: A.inkSoft, margin: '0 0 12px',
-              }}>
-                {isUpgrade
-                  ? V2.upgradeExplain(PLAN_LABEL[t], PLAN_PRICE[t])
-                  : V2.confirm(PLAN_LABEL[t], PLAN_PRICE[t])}
-              </p>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => go(t)}
-                style={{
-                  display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
-                  background: 'transparent', cursor: busy ? 'default' : 'pointer',
-                  border: `0.5px solid ${A.brass}`, borderRadius: 2,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
-                  letterSpacing: '0.42em', textTransform: 'uppercase',
-                }}
-              >{busy ? '…' : V2.pickerAction}</button>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TDW_10 BILLING v2 · THE CANCEL BLOCK
-// ═══════════════════════════════════════════════════════════════════════════
-// Confirm-before-act, and the warning carries the irreversibility because
-// Razorpay's cancel genuinely cannot be undone: restarting means a new mandate,
-// a new approval, a new short_url. A cancel dialog that said only "are you
-// sure?" would be hiding the one fact that makes the decision different from
-// every other toggle on this screen.
-function CancelBlock({ label, onDone, show }: {
-  label: string;
-  onDone: () => void;
-  show: (m: string) => void;
-}) {
-  const [asking, setAsking] = useState(false);
-  const [busy, setBusy]     = useState(false);
-
-  async function doCancel() {
-    setBusy(true);
-    try {
-      const res = await cancelSubscription();
-      if ('ok' in res && res.ok) { onDone(); return; }
-      const code = (res as { code?: string }).code;
-      show(code === 'lane_disabled' || code === 'not_configured' ? V2.notOpenYet : V2.cancelFailed);
-    } catch {
-      show(V2.cancelFailed);
-    } finally {
-      setBusy(false);
-      setAsking(false);
-    }
-  }
-
-  if (!asking) {
-    return (
-      <button type="button" onClick={() => setAsking(true)} style={{
-        width: '100%', padding: '13px 0', marginTop: 14, background: 'transparent',
-        border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',
-        fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
-        letterSpacing: '0.42em', textTransform: 'uppercase',
-      }}>{V2.cancelYes}</button>
-    );
-  }
-
-  return (
-    <div style={{ marginTop: 14 }}>
-      <p style={{
-        fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
-        color: A.inkSoft, margin: '0 0 12px',
-      }}>{V2.cancelWarn(label)}</p>
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button type="button" disabled={busy} onClick={doCancel} style={{
-          flex: 1, padding: '13px 0', background: 'transparent',
-          border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2,
-          cursor: busy ? 'default' : 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
-          letterSpacing: '0.42em', textTransform: 'uppercase',
-        }}>{busy ? '…' : V2.cancelYes}</button>
-        <button type="button" disabled={busy} onClick={() => setAsking(false)} style={{
-          flex: 1, padding: '13px 0', background: 'transparent',
-          border: `0.5px solid ${A.brass}`, borderRadius: 2,
-          cursor: busy ? 'default' : 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
-          letterSpacing: '0.42em', textTransform: 'uppercase',
-        }}>{V2.cancelNo}</button>
-      </div>
-    </div>
-  );
-}
+// TDW_10 THE BILLING TAB — `TierPicker` and `CancelBlock` were defined below
+// this line and moved WHOLE to `components/vendor/SubscriptionCard.tsx` under
+// R-26.4 Fork D. Rendered output unchanged; only the code's home moved. The
+// warrant is F-09.128, the live specimen: this page file is shared with the
+// PAUSED razorpay v2 session, and two sessions editing one page file eleven
+// minutes apart already wiped F-10.92's kill switch once.

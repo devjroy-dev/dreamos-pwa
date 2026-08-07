@@ -28,7 +28,15 @@ import { fileURLToPath } from 'url';
 import { stripComments } from './lib/stripComments.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const R  = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
+// ── REFUSE-NEVER-CRASH · TDW_10 THE BILLING TAB (R-26.4), CE-206's shim ──────
+// This reader threw on an absent subject, so at any tree where one of its files
+// does not exist the bench DIED instead of reporting reds — F-09.93's exact
+// disease, which killed tdw07_p3_portfolio and cost a whole sitting. Found the
+// moment §9 was re-aimed at components/vendor/SubscriptionCard.tsx and the bench
+// was run at the pre-move tree: it crashed rather than reddening, which is a
+// bench that cannot be proven both ways. An absent file now reads as empty, so
+// every cell that depends on it reddens honestly and the tally survives.
+const R  = (p) => { try { return fs.readFileSync(path.join(ROOT, p), 'utf8'); } catch { return ''; } };
 const C  = (p) => stripComments(R(p));
 
 let pass = 0, fail = 0;
@@ -43,6 +51,14 @@ const HDR_FILE  = 'components/vendor/Header.tsx';
 const TDS_FILE  = 'app/vendor/tds/page.tsx';
 const MORE_FILE = 'app/vendor/more/page.tsx';
 const SET_FILE  = 'app/vendor/settings/page.tsx';
+// ── LABELLED RE-AIM · TDW_10 THE BILLING TAB (R-26.4) ────────────────────────
+// §9 asserts F-10.92's kill switch — the flag that gates the self-serve SURFACE.
+// That surface left the settings page for components/vendor/SubscriptionCard.tsx
+// this sitting. Both of the flag's seats travelled together, deliberately: this
+// bench's own §9.3/§9.4 exist because F-09.128 once wiped one of them. The
+// property is unchanged; only its address moved. §6/§7 keep reading SET_FILE —
+// the capacity stepper did not move.
+const CARD_FILE = 'components/vendor/SubscriptionCard.tsx';
 
 // ── THE ARRAY-BODY PARSER (M10) ───────────────────────────────────────────────
 // Anchors on the ASSIGNMENT bracket, never the first `[` after the name.
@@ -71,6 +87,7 @@ const hdr      = C(HDR_FILE);
 const tds      = C(TDS_FILE);
 const more     = C(MORE_FILE);
 const set      = C(SET_FILE);
+const card     = C(CARD_FILE);
 
 console.log('\n════════════════════════════════════════════════════════════');
 console.log('  tdw09_uivendor — the vendor UI walk, F-09.118 … F-09.125');
@@ -167,8 +184,14 @@ sec('§5 · C2 — Settings reachable from the avatar');
 const dItem = (hdr.split('\n').find(l => l.includes('<DItem') && l.includes('label="Settings"')) || '');
 ok('§5.1 the popover carries a Settings row at all — the founder\'s whole complaint',
    dItem.length > 0);
+// ── LABELLED AMENDMENT · TDW_10 THE BILLING TAB (R-26.4) ─────────────────────
+// This is NOT a re-aim: the approved byte itself changed, by founder word
+// 「 ill go with your recomendations 」 against 1959023. The middle noun stopped
+// being true when billing left this door, and a subtitle promising a thing the
+// screen no longer holds is a lying control in a smaller font. C2's capital is
+// preserved, which was the original cell's point and still is.
 ok('§5.2 its subtitle is the approved byte, capital and all',
-   /subtitle="Profile, billing, preferences"/.test(hdr));
+   /subtitle="Profile and preferences"/.test(hdr));
 ok('§5.3 the glyph is ⚙, borrowed from the More row rather than invented',
    dItem.includes('glyph="\u2699"'));
 ok('§5.4 it actually opens /vendor/settings and closes the popover behind it',
@@ -251,12 +274,12 @@ ok('§9.1 the flag still arrives — typed and mapped off the wire',
    /selfserve_enabled: boolean;/.test(C('hooks/vendor/useSettings.ts')) &&
    /selfserve_enabled: v\.selfserve_enabled \?\? false,/.test(C('hooks/vendor/useSettings.ts')));
 ok('§9.2 and something READS it — the picker arm is gated on it, not merely near it',
-   /!current\.subscription_link && current\.selfserve_enabled && \(/.test(set));
+   /!current\.subscription_link && current\.selfserve_enabled && \(/.test(card));
 ok('§9.3 the cancel arm is gated too — half a kill switch is not a kill switch',
-   /current\.subscription_id && current\.selfserve_enabled && \(/.test(set));
+   /current\.subscription_id && current\.selfserve_enabled && \(/.test(card));
 ok('§9.4 NON-VACUITY — the flag has at least two live consumers on this surface',
-   (set.match(/current\.selfserve_enabled/g) || []).length >= 2,
-   `found ${(set.match(/current\.selfserve_enabled/g) || []).length}`);
+   (card.match(/current\.selfserve_enabled/g) || []).length >= 2,
+   `found ${(card.match(/current\.selfserve_enabled/g) || []).length}`);
 
 // ═══ §10 · F-09.129 — THE CONTROL RE-HOMED, NOT RETIRED ═══════════════════════
 sec('§10 · F-09.129 — off the Hub masthead, into the risen chat');
@@ -314,8 +337,8 @@ bite('§M.4 §3 reds when a superseded byte is restored beside its replacement',
   "Discover \u2192 Profile sets your starting price.", "Settings \u2192 Rates lets you set a minimum and maximum package range.",
   s => !s.includes('Settings \u2192 Rates lets you set a minimum'));
 bite('§M.5 §5.2 reds when C2\'s approved subtitle drifts by one character', HDR_FILE,
-  'subtitle="Profile, billing, preferences"', 'subtitle="profile, billing, preferences"',
-  s => /subtitle="Profile, billing, preferences"/.test(s));
+  'subtitle="Profile and preferences"', 'subtitle="profile and preferences"',
+  s => /subtitle="Profile and preferences"/.test(s));
 bite('§M.6 §6.1 reds when the FAB goes back to 54', TDS_FILE,
   "width: 46, height: 46, borderRadius: '50%'", "width: 54, height: 54, borderRadius: '50%'",
   s => /width: 46, height: 46, borderRadius: '50%'/.test(s));
@@ -335,11 +358,11 @@ bite('§M.10 §1.1 reds when a retired tip returns ON ONE LINE — the parser, n
   "const TIPS: Tip[] = [\n  { section: 'The Hub', glyph: '\u2726', title: 'Just Do It mode.', body: 'Toggle \"Just Do It\" below the header.' },",
   s => tipCount(tipsBody(s)) === 23);
 
-bite('§M.11 §9.2 reds when the picker gate is stripped — the exact wipe that happened', SET_FILE,
+bite('§M.11 §9.2 reds when the picker gate is stripped — the exact wipe that happened', CARD_FILE,
   '!current.subscription_link && current.selfserve_enabled && (',
   '!current.subscription_link && (',
   s => /!current\.subscription_link && current\.selfserve_enabled && \(/.test(s));
-bite('§M.12 §9.4 reds when the flag is left with ONE reader — half a switch', SET_FILE,
+bite('§M.12 §9.4 reds when the flag is left with ONE reader — half a switch', CARD_FILE,
   "current.subscription_id && current.selfserve_enabled && (",
   "current.subscription_id && (",
   s => (s.match(/current\.selfserve_enabled/g) || []).length >= 2);

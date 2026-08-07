@@ -43,6 +43,14 @@ const CTRL   = read('app/admin/control-room/page.tsx');
 const VTYPES = read('lib/vendor/types/vendor.ts');
 const USET   = read('hooks/vendor/useSettings.ts');
 const SETT   = read('app/vendor/settings/page.tsx');
+// ── LABELLED RE-AIM · TDW_10 THE BILLING TAB (R-26.4) ────────────────────────
+// The Subscription surface this bench asserts LEFT app/vendor/settings/page.tsx
+// and now lives at components/vendor/SubscriptionCard.tsx, rendered by
+// app/vendor/billing/page.tsx. Not one asserted PROPERTY changed — every vetoed
+// sentence, every gate expression and every register rule is byte-identical.
+// Only the subject's address moved, so only the address moves here. This is the
+// CE-205 / CE-206 shape: the property follows the control to its new home.
+const CARD   = read('components/vendor/SubscriptionCard.tsx');
 const RETINT = read('scripts/tdw10_p2_retint.proof.mjs');
 
 const CANON = ['basic', 'essential', 'signature', 'prestige'];
@@ -52,7 +60,7 @@ section('§0  THE INSTRUMENT PROVES ITSELF FIRST');
 // ═══════════════════════════════════════════════════════════════════════════
 {
   ok('read() reaches the tree (not a silent empty-string farm)',
-     [NAV, BRIDGE, MAKERS, CONFIG, CTRL, VTYPES, USET, SETT].every(x => x.length > 200));
+     [NAV, BRIDGE, MAKERS, CONFIG, CTRL, VTYPES, USET, SETT, CARD].every(x => x.length > 200));
   const fx = "const a=1; // trial\n/* free */ const b='basic';\n{/* jsx trial settings */}";
   const st = strip(fx);
   ok('strip() removes a line comment', !/\/\/ trial/.test(st), st);
@@ -198,7 +206,8 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // batch, then 「 drop the date 」). These cells now assert the vetoed bytes
   // VERBATIM, so a later edit that rewords founder-approved copy reddens rather
   // than passing review on someone's taste.
-  const ss = strip(SETT);
+  // RE-AIMED to the card — see the labelled note at the CARD read above.
+  const ss = strip(CARD);
   ok('the subscription surface exists', /SCard title="Subscription"/.test(ss));
   ok('the Tier read-row is REPLACED, not duplicated — one home for the plan word',
      !/SReadRow label="Tier"/.test(ss) && /SReadRow label="Plan"/.test(ss));
@@ -207,8 +216,20 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // vendor to /vendor/settings#tier, and before this section that anchor resolved
   // to nothing. A cell, because an anchor is exactly the kind of thing a later
   // refactor silently drops.
+  // NOT RE-AIMED — this one cell's subject did not move, and that is the whole
+  // point of R-26.4 Fork B. The card went to /vendor/billing; `id="tier"` STAYED
+  // in app/vendor/settings/page.tsx, on the permanent signpost, because
+  // src/api/vendor-engine/chat.js still sends every capped vendor to
+  // /vendor/settings#tier and the PWA cannot change that address — it arrives on
+  // the wire. So this cell keeps reading SETT while its neighbours read CARD.
+  //
+  // ITS SENTENCE IS UNDER SUSPICION, not amended here. 「 finally lands 」 is the
+  // claim F-10.101 disputes: the anchored element mounts only after the /me
+  // fetch resolves, so whether the browser scrolls to it is a race against the
+  // load event. Left byte-untouched pending the founder's cold-load walk —
+  // an executor does not quietly rewrite an elder's claim on a derivation.
   ok('the #tier anchor exists — chat.js\'s Upgrade button finally lands',
-     /id="tier"/.test(ss));
+     /id="tier"/.test(strip(SETT)));
 
   // Money register law: Rs X,XXX, zero glyphs, zero shorthand.
   ok('canon prices render in the money register, verbatim',

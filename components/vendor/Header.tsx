@@ -229,7 +229,35 @@ export function Header({ vendorName }: { vendorName: string | null }) {
                 THE MORE → ACCOUNT → SETTINGS DOOR IS KEPT, by ruling. Two doors
                 to one destination is the intent here, not a duplicate: the
                 overflow list is the exhaustive index, the coin is the reflex. */}
-            <DItem glyph="⚙" label="Settings"             subtitle="Profile, billing, preferences" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/settings'); }} />
+            {/* SUBTITLE AMENDED, TDW_10 THE BILLING TAB: it read 「 Profile,
+                billing, preferences 」 until this sitting and that middle noun
+                stopped being true the moment billing left this door. A subtitle
+                that promises a thing the screen no longer holds is a lying
+                control with a smaller font. The donor row in
+                `app/vendor/more/page.tsx` (ACCOUNT_ITEMS) carries the same three
+                nouns and is amended in the SAME delivery — the comment above
+                says outright they were borrowed so one door does not learn a
+                second vocabulary, and curing one without the other would break
+                the stated reason they were shared. */}
+            <DItem glyph="⚙" label="Settings"             subtitle="Profile and preferences" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/settings'); }} />
+            {/* ── TDW_10 THE BILLING TAB · R-26.4 FORK C ─────────────────────
+                FOUNDER-RULED 「 Lets put it in avatar under Billing 」. Billing
+                is the estate's only revenue surface and it sat ninth on the
+                settings page, behind seven cards about something else.
+
+                SEATED IN ATELIER, DIRECTLY AFTER SETTINGS, and the adjacency is
+                the point, not tidiness: the vendor who goes hunting for billing
+                in Settings — because its subtitle promised it until this same
+                delivery — meets the new door in her eyeline at the exact moment
+                that promise is withdrawn. Atelier is also the right section on
+                its own merits: it runs particulars-first (Discover Profile,
+                Settings) then outward (the site, the manual), and her plan is
+                the third particular.
+
+                GLYPH ◇, founder-vetoed: the same geometric family as Discover
+                Profile's ◈, which is itself already doubled on Tips, so family
+                reuse is the set's own precedent rather than a new vocabulary. */}
+            <DItem glyph="◇" label="Billing"              subtitle="Plan and payment" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/billing'); }} />
             <DItem glyph="★" label="The Dream Wedding"   isLight={isLight} onClick={() => { setProfileOpen(false); window.open('https://thedreamwedding.in', '_blank'); }} />
             <DItem glyph="◈" label="Tips &amp; Features" subtitle="Mini manual" isLight={isLight} onClick={() => { setProfileOpen(false); setTipsOpen(true); }} accent />
 

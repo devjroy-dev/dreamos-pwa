@@ -140,7 +140,20 @@ export default function MorePage() {
     // arm (a)); label, description and glyph carried VERBATIM from that page's
     // own row (existing bytes, no new copy). The leaf route stands untouched.
     { href: '/vendor/studio/notes', label: 'Notes to Self', description: 'thoughts you’ve jotted', glyph: '✎' },
-    { href: '/vendor/settings', label: 'Settings', description: 'profile, billing, preferences', glyph: '⚙' },
+    // TDW_10 THE BILLING TAB — DESCRIPTION AMENDED. This row is the DONOR:
+    // `components/vendor/Header.tsx` says outright that the coin's Settings row
+    // borrowed this glyph and these three nouns so one door would not learn a
+    // second vocabulary. Billing has left Settings, so the middle noun is false
+    // on both doors, and both are cured in this one delivery — fixing the
+    // borrower and not the donor would break the stated reason they were shared.
+    { href: '/vendor/settings', label: 'Settings', description: 'profile and preferences', glyph: '⚙' },
+    // `components/vendor/Header.tsx` calls this page 「 the exhaustive index 」
+    // — the coin is the reflex, the overflow list is the complete one. A new
+    // top-level destination that is reachable ONLY from the coin would falsify
+    // that sentence, so Billing is seated here too. Label, description and glyph
+    // are the coin row's own bytes, carried verbatim into this page's lowercase
+    // description register.
+    { href: '/vendor/billing', label: 'Billing', description: 'plan and payment', glyph: '◇' },
     {
       label: 'Sign Out',
       description: '',
