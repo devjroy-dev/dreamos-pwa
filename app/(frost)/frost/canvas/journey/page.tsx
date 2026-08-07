@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import {
   Users, DollarSign, CheckSquare, Store,
   Calendar, UserCheck, Settings,
-  Scissors, Plane, Archive, ChevronRight,
+  Archive, ChevronRight,
 } from 'lucide-react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';
 import FrostedSurface from '../../../../../components/frost/FrostedSurface';
@@ -25,13 +25,22 @@ const PRIMARY = [
   { key: 'vendors',  Icon: Store,       title: 'Vendors',   subtitle: 'My team',                             route: '/frost/canvas/journey/vendors'    },
 ];
 
+// ── TDW_09 · PACKAGE 4 · F-F ARM (b), chair-ruled: HIDDEN-UNTIL-REAL ─────────
+// Three tiles stood here with `route: null` — Couture, Memory Box, Honeymoon —
+// rendered disabled behind a `soon` badge. F-09.140's cure removes them whole.
+// THE LAW THAT CUTS BOTH WAYS: the same honest-controls law that marks the chat
+// idiom 「 opens WhatsApp ↗ 」 removes these — a hand-off goes somewhere, a
+// promise-tile goes nowhere. They return the day they are wired, which is the
+// wire-or-delete-at-birth law read forward.
+// The `soon` badge and the `disabled` arm die with them; both are unreachable
+// now (every remaining entry carries a route) and are deleted, not left as
+// dormant machinery for a reader to mistake for live behaviour.
+// MOMENTS IS NOT IN THIS CURE: it is a real route with honest copy already
+// shipped, and it stays.
 const SECONDARY = [
   { key: 'events',    Icon: Calendar,      title: 'Events',      route: '/frost/canvas/journey/events'   },
   { key: 'broadcast', Icon: UserCheck,     title: 'My people',   route: '/frost/canvas/journey/people'   },
   { key: 'moments',   Icon: Archive,       title: 'Moments',     route: '/frost/canvas/journey/moments'  },
-  { key: 'couture',   Icon: Scissors,      title: 'Couture',     route: null },
-  { key: 'memory',    Icon: Archive,       title: 'Memory Box',  route: null },
-  { key: 'honeymoon', Icon: Plane,         title: 'Honeymoon',   route: null },
   { key: 'settings',  Icon: Settings,      title: 'Settings',    route: '/frost/canvas/journey/settings' },
 ];
 
@@ -88,21 +97,17 @@ export default function CanvasJourney() {
           {SECONDARY.map(tool => (
             <FrostedSurface
               key={tool.key}
-              onPress={tool.route ? () => router.push(tool.route!) : undefined}
+              onPress={() => router.push(tool.route)}
               radius={FR.md}
-              disabled={!tool.route}
             >
               <div style={{ display: 'flex', alignItems: 'center', padding: `${SP.m}px ${SP.l}px`, gap: SP.m }}>
                 <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <tool.Icon size={16} color={tokens.brassMuted} strokeWidth={1.5} />
                 </div>
-                <div style={{ flex: 1, fontFamily: FF.body, fontSize: 14, color: tool.route ? tokens.ink : tokens.soft }}>
+                <div style={{ flex: 1, fontFamily: FF.body, fontSize: 14, color: tokens.ink }}>
                   {tool.title}
-                  {!tool.route && (
-                    <span style={{ fontFamily: FF.label, fontSize: 8, letterSpacing: '0.15em', color: tokens.brassMuted, marginLeft: 8 }}>soon</span>
-                  )}
                 </div>
-                {tool.route && <ChevronRight size={15} color={tokens.hairline} strokeWidth={1.5} />}
+                <ChevronRight size={15} color={tokens.hairline} strokeWidth={1.5} />
               </div>
             </FrostedSurface>
           ))}
