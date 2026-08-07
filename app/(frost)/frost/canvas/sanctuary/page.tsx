@@ -16,7 +16,7 @@ import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, FT, FS, FI, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, saveProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -872,9 +872,46 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
 
   const [profile, setProfile] = React.useState<CoupleProfile|null>(null);
 
+  // ── ATELIER RIDER 1 · THE PROFILE EDIT SHEET (founder-chartered 2026-08-07) ──
+  // The bride could change her wedding date by telling Dream Ai on WhatsApp
+  // (src/agent/brideTools.js save_wedding_detail) and by no other means. The door
+  // in the app was already built and never opened: PATCH /api/v2/couple/me/:id
+  // accepts wedding_date at dream-os src/api/couple/me.js, and lib/frost/journey.ts
+  // saveProfile() has wrapped it since the client was written — with ZERO callers.
+  // This is the caller.
+  //
+  // BUDGET IS DELIBERATELY READ-ONLY HERE, and this comment is why: that same PATCH
+  // destructures name / partner_name / wedding_date / wedding_city and NOT
+  // budget_total. Shipping a budget field that silently discards its input would be
+  // a lying control. The row now always renders (it used to vanish entirely when
+  // unset, so a bride with no budget could not learn the field existed) and says
+  // where the one working door is. It becomes editable when dream-os opens its
+  // half — see the handover's rider note.
+  const [editOpen, setEditOpen]   = React.useState(false);
+  const [editDate, setEditDate]   = React.useState('');
+  const [savingP,  setSavingP]    = React.useState(false);
+  const [saveErr,  setSaveErr]    = React.useState(false);
+
   React.useEffect(()=>{
     fetchProfile().then(p=>setProfile(p)).catch(()=>{});
   },[]);
+
+  function openEditDate(){
+    setSaveErr(false);
+    setEditDate(profile?.wedding_date||'');
+    setEditOpen(true);
+  }
+
+  async function commitProfile(){
+    setSavingP(true); setSaveErr(false);
+    const ok = await saveProfile({ wedding_date: editDate });
+    setSavingP(false);
+    if(!ok){ setSaveErr(true); return; }
+    // Re-read rather than assume: the server owns the stored shape, and a date it
+    // normalises differently would otherwise show stale until the next mount.
+    try { const p = await fetchProfile(); setProfile(p); } catch {}
+    setEditOpen(false);
+  }
 
   function fmtWeddingDate(iso:string|null):string {
     if(!iso) return '—';
@@ -906,8 +943,13 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
         <div style={{height:.5,background:line,margin:'0 20px'}}/>
 
         {/* Info rows */}
-        <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)}/>
-        {profile?.budget_total&&<Row label="Total budget" value={formatRs(profile.budget_total)}/>}
+        <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)} onTap={openEditDate} arrow/>
+        <Row label="Total budget" value={profile?.budget_total?formatRs(profile.budget_total):'Not set yet'}/>
+        <div style={{padding:`0 ${FS.gutter}px ${FS.s2}px`,marginTop:-2}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,lineHeight:1.7}}>
+            Ask Dream Ai on WhatsApp to change your budget
+          </div>
+        </div>
 
         {/* Mode toggle — REMOVED BY FOUNDER RULING (2026-08-07, the chair's own
             hand): SINGLE THEME, Wine Night always. The Appearance control and its
@@ -916,6 +958,40 @@ function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
             Mechanism: lib/frost/tokens.ts getFrostMode() is the pin; the swatches
             return only if a second theme returns by ruling. tdw09_p2c's map
             roster amended LABELLED in the same delivery. */}
+
+        {/* ── THE EDIT SHEET · surface class 4, as approved at Gate 1 ──────────
+            Geometry is the mock's and the estate's: bottom-anchored, FI.sheet top
+            corners, scrim at rgba(0,0,0,.55), safe-area padding, tap-the-scrim to
+            dismiss. Type on the rungs. It is the same sheet as Add-a-booking so the
+            bride learns one pattern, not two. */}
+        {editOpen&&<>
+          <div onClick={()=>!savingP&&setEditOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
+          <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:dark?'#180608':'#EEF0F6',
+            borderRadius:`${FI.sheet}px ${FI.sheet}px 0 0`,padding:`${FS.s3}px ${FS.gutter}px calc(${FS.s3}px + env(safe-area-inset-bottom,0px))`,maxHeight:'90vh',overflowY:'auto'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:FS.s3}}>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.room,color:ink,fontFeatureSettings:'"opsz" 9'}}>Wedding date</div>
+              <button onClick={()=>!savingP&&setEditOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20}}>✕</button>
+            </div>
+            <div style={{marginBottom:FS.s2}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,marginBottom:FS.s1}}>The day</div>
+              <input type="date" value={editDate} onChange={e=>{setEditDate(e.target.value);setSaveErr(false);}}
+                style={{width:'100%',padding:'12px 14px',background:dark?'rgba(245,229,220,.06)':'rgba(12,24,48,.05)',
+                  border:`0.5px solid ${line}`,borderRadius:FI.chrome,fontFamily:"'Fraunces',serif",fontStyle:'italic',
+                  fontSize:FT.body,color:ink,outline:'none',boxSizing:'border-box',userSelect:'text'}}/>
+            </div>
+            {/* Errors say what happened and how to fix it — never a mood. */}
+            {saveErr&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:'#C4534A',lineHeight:1.6,marginBottom:FS.s2}}>
+              That didn't save. Check your connection and try again.
+            </div>}
+            <button onClick={commitProfile} disabled={savingP||!editDate}
+              style={{width:'100%',padding:'15px 0',background:ac,border:'none',borderRadius:FI.chrome,
+                fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engraved,letterSpacing:FS.track,
+                textTransform:'uppercase' as any,color:dark?'#1A0810':'#FFFFFF',cursor:'pointer',
+                opacity:(savingP||!editDate)?.5:1}}>
+              {savingP?'Saving…':'Save date'}
+            </button>
+          </div>
+        </>}
 
         {/* DreamAI on WhatsApp */}
         <div style={{padding:'10px 0 4px',marginTop:8}}>

@@ -149,10 +149,27 @@ const CLS = {
 const counts = Object.fromEntries(Object.keys(CLS).map((k) => [k, 0]));
 for (const line of S.split('\n')) for (const [k, re] of Object.entries(CLS)) if (re.test(line)) counts[k]++;
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
-ok('3.1', 'sanctuary still carries 145 controls', total === 145, `got ${total} — ${JSON.stringify(counts)}`);
-ok('3.2', 'the per-class split is unchanged',
-   counts.button === 75 && counts.anchor === 8 && counts.input === 25 &&
-   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 32,
+/* ── CENSUS AMENDED, LABELLED (Atelier Rider 1, founder-chartered 2026-08-07) ──
+   BUILD-ALL sealed on a floor of 145. Rider 1 ADDS capability — the profile edit
+   sheet — so the census MOVES, and it moves by a stated arithmetic rather than by
+   a number quietly swapped:
+
+     145  the BUILD-ALL floor, sealed on the founder's green walk
+     +2   buttons  : the sheet's ✕ closer, the Save-date action
+     +1   input    : the date field
+     +1   tap-div  : the sheet's dismiss scrim
+     ────
+     149  Rider 1's floor
+
+   The Total-budget row gained no control: it is deliberately read-only until
+   dream-os opens its half, so it is a Row with no onTap and the census does not
+   count it. If that arithmetic and the delta disagree at a future sitting, the
+   arithmetic is the claim to re-derive — not this constant. */
+ok('3.1', 'sanctuary carries 149 controls (145 sealed + Rider 1\'s four)', total === 149,
+   `got ${total} — ${JSON.stringify(counts)}`);
+ok('3.2', 'the per-class split matches the amended census',
+   counts.button === 77 && counts.anchor === 8 && counts.input === 26 &&
+   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 33,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */
@@ -271,7 +288,10 @@ function walk(d, acc = []) {
   return acc;
 }
 const TREE = [...walk('app/(frost)'), ...walk('components/frost')];
-const GLYPH_EXEMPT = 9; // named in the handover: icon sizes, not a type rung
+/* GLYPH EXEMPTION amended, LABELLED: nine at BUILD-ALL, ten at Rider 1 — the edit
+   sheet's ✕ closer is the tenth, sized to match the eight closers already exempt.
+   Icon sizing is not a type rung; a 20px ✕ forced to 11px is a smaller hit target. */
+const GLYPH_EXEMPT = 10;
 const sizes = new Map();
 let subRung = 0;
 for (const f of TREE) {
@@ -286,11 +306,35 @@ ok('6.11', 'NOTHING in the bride tree renders below the engraved rung', subRung 
 const declared = [...sizes.keys()].sort((a, b) => a - b);
 const RUNGS = [9, 11, 16, 19, 22, 46, 52, 150];
 const strays = declared.filter((v) => !RUNGS.includes(v));
-ok('6.12', 'every declared size is a rung, but for the nine named glyph sites',
+ok('6.12', 'every declared size is a rung, but for the ten named glyph sites',
    strays.reduce((n, v) => n + sizes.get(v), 0) <= GLYPH_EXEMPT,
    `strays: ${strays.map((v) => `${v}px x${sizes.get(v)}`).join(', ')}`);
 ok('6.13', 'the declared-size count fell from thirty-three', declared.length <= 8 + 2,
    `${declared.length} distinct: ${declared.join(', ')}`);
+
+/* ═══ §7 · RIDER 1 — the profile edit sheet ═══════════════════════════════ */
+section('§7 · RIDER 1 — she can change her wedding date without leaving the app');
+
+ok('7.1', 'the date row is now tappable and opens the sheet',
+   /label="Wedding date"[^/]*onTap=\{openEditDate\}/.test(S));
+/* This cell's first draft also asserted that `saveProfile` appeared on the import
+   line. That is an IMPORT-STRING assertion — the exact thing this bench's own
+   header forbids, and the exact species that let a reverted P4 sitting certify a
+   Discover door it had never executed. The call site IS the evidence: if the symbol
+   were not imported, tsc would not be at zero. Clause removed, disclosed. */
+ok('7.2', 'the sheet commits through saveProfile — the writer that had no caller',
+   /await saveProfile\(\s*\{\s*wedding_date:\s*editDate\s*\}\s*\)/.test(S));
+ok('7.3', 'the commit RE-READS the profile rather than assuming its own write',
+   /await saveProfile[\s\S]{0,320}?await fetchProfile\(\)/.test(S));
+ok('7.4', 'a failed save says so and does not close the sheet',
+   /setSaveErr\(true\);\s*return;/.test(S) && /That didn't save\./.test(S_RAW));
+ok('7.5', 'the scrim cannot dismiss mid-save (no orphaned write)',
+   (S.match(/onClick=\{\(\)=>!savingP&&setEditOpen\(false\)\}/g) || []).length >= 1);
+ok('7.6', 'THE BUDGET ROW ALWAYS RENDERS — it used to vanish when unset',
+   /label="Total budget"/.test(S) && !/\{profile\?\.budget_total&&<Row label="Total budget"/.test(S));
+ok('7.7', 'the budget row is READ-ONLY and names the door that works',
+   !/label="Total budget"[^/]*onTap=/.test(S) &&
+   S_RAW.includes('Ask Dream Ai on WhatsApp to change your budget'));
 
 /* ═══ §M · ABSENT SUBJECTS — convicted by name, never silently ═════════════ */
 section('§M · the bench read what it claims to have read');
