@@ -55,7 +55,13 @@ const DEMO_ENGAGEMENT = new Date('2026-04-11T00:00:00+05:30');
 
 function getWeddingDate():Date{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);if(s?.wedding_date)return new Date(s.wedding_date);}}catch{}return DEMO_WEDDING; }
 function getEngagementDate():Date{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);if(s?.engagement_date)return new Date(s.engagement_date);}}catch{}return DEMO_ENGAGEMENT; }
-function getBrideName():string{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);const n=(s?.user_name||s?.bride_name||s?.name||'').trim().split(' ')[0];if(n)return n;}}catch{}return 'Priya'; }
+// F-09.166's last reachable Priya. This used to `return 'Priya'` when the session
+// blob held no name — the fallback F-05.38 was written to make unreachable by
+// HEALING the blob, but a heal that runs in an async effect cannot beat a render.
+// Returning null instead means the greeting renders BLANK for the tick before the
+// heal lands, rather than greeting her by a stranger's name. No word changed: the
+// greeting's own null-guard decides whether the sentence exists at all.
+function getBrideName():string|null{ try{const r=localStorage.getItem('couple_session')||localStorage.getItem('couple_web_session');if(r){const s=JSON.parse(r);const n=(s?.user_name||s?.bride_name||s?.name||'').trim().split(' ')[0];if(n)return n;}}catch{}return null; }
 // ── F-07.70 · THE ONE TOKEN DOOR FOR THIS FILE (fork A′-iii, CE-ruled) ────────
 // EVERY token read on this surface now goes through here, and here goes through
 // lib/frost-api/_base.ts's `getAccessToken()` — the authority that carries
@@ -4039,22 +4045,44 @@ export default function SanctuaryPage() {
   const { homeMode, setHomeMode } = useFrostMode();
   const dark = homeMode === 'E1A';
 
-  // Sanctuary data
-  const [days,       setDays]       = useState(176);
-  const [progress,   setProgress]   = useState(.38);
-  const [name,       setName]       = useState('Priya');
+  // ── F-09.166 · THE FICTIONAL-BRIDE FLASH (founder walk, 2026-08-07) ──────────
+  // These four seeds were FIXTURE DATA FOR A BRIDE WHO DOES NOT EXIST: 176 days,
+  // .38 along the arc, "Priya", 47 days since yes. Every load — SSR frame and
+  // hydration — painted that stranger's masthead, and the mount effect below
+  // (setDays/setProgress/setName/setSinceYes) corrected it a frame later. The
+  // founder caught it on his own walk: 「 every time the screen refreshes it shows
+  // hello priya 」.
+  //
+  // THIS IS THE SAME CLASS THE WINE-FLASH-FIX KILLED ONE COMMIT BEFORE THIS ARC
+  // (0a102e1+1: "the E3 literal that painted one light frame dies") — a literal
+  // upstream of the real reader, painting one wrong frame. Same disease, different
+  // literal, and the atelier arc AMPLIFIED it rather than caused it: Fork 3 arm A
+  // put the numeral at FT.numeral, so a wrong figure that used to be 48px of glance
+  // is now 150px of the whole screen.
+  //
+  // THE CURE IS ABSENCE, NOT A BETTER GUESS. A seed cannot be correct on the server
+  // — there is no session there to read — so any non-null seed is a fiction. null
+  // renders NOTHING and the masthead reserves its own height (see the hero block),
+  // so the first frame is empty for one tick rather than wrong for one tick. An
+  // empty countdown tells her nothing; a countdown of 176 tells her something false.
+  const [days,       setDays]       = useState<number|null>(null);
+  const [progress,   setProgress]   = useState<number|null>(null);
+  const [name,       setName]       = useState<string|null>(null);
   const [proseLine,  setProseLine]  = useState('');
   const [poetry,     setPoetry]     = useState('');
-  const [sinceYes,   setSinceYes]   = useState(47);
+  const [sinceYes,   setSinceYes]   = useState<number|null>(null);
   // Live hints from backend — fetched on mount
-  const [circleHint,  setCircleHint]  = useState('quiet');
+  // F-09.166, second face: these three asserted a state before it was known
+  // ("quiet" on a Circle that may be busy). Emptied for the same reason — the rail
+  // hint is allowed to say nothing, and the hint map already tolerates ''.
+  const [circleHint,  setCircleHint]  = useState('');
   const [museHint,    setMuseHint]    = useState('');
   const [peopleHint,  setPeopleHint]  = useState('');
-  const [pagesHint,   setPagesHint]   = useState('a page is waiting');
-  const [eventsHint,  setEventsHint]  = useState('Your timeline');
+  const [pagesHint,   setPagesHint]   = useState('');
+  const [eventsHint,  setEventsHint]  = useState('');
   const [expensesHint,setExpensesHint]= useState('');
   const [vendorsHint, setVendorsHint] = useState('');
-  const [weekday,    setWeekday]    = useState('Wednesday morning');
+  const [weekday,    setWeekday]    = useState('');
   const [dateStamp,  setDateStamp]  = useState('');
   // F-07.70 · fork B2's byte needs somewhere to land. This page carried no toast of
   // its own — the four other toasts in this file belong to rooms, not to the shell.
@@ -4533,7 +4561,11 @@ function timeAgoShort(iso:string):string {
   const chipBg      = dark ? 'rgba(196,133,106,.06)'  : 'rgba(42,95,130,.05)';
   const chipBdr     = dark ? 'rgba(196,133,106,.20)'  : 'rgba(42,95,130,.18)';
 
-  const dot = arcPoint(progress);
+  // F-09.166: guarded BY HAND, because tsc cannot guard it — tsconfig.json:13 sets
+  // "strict": false, so `number|null` flows into `arcPoint(t:number)` with zero
+  // complaint and `1-null` quietly evaluates to 1. A green tsc is NOT a null-safety
+  // witness in this repo, and the parity bench asserts the guard instead.
+  const dot = progress===null ? null : arcPoint(progress);
 
   // ── SANCTUARY ─────────────────────────────────────────────────────────────
   return (
@@ -4559,10 +4591,16 @@ function timeAgoShort(iso:string):string {
       <div style={{position:'absolute',top:0,left:0,right:0,height:108,zIndex:6,pointerEvents:'none'}}>
         <svg viewBox="0 0 320 108" preserveAspectRatio="none" style={{width:'100%',height:'100%',overflow:'visible'}}>
           <path d="M 18 92 Q 160 4 302 92" stroke={dark?'rgba(196,133,106,.14)':'rgba(42,95,130,.20)'} strokeWidth="1" fill="none"/>
-          <path d={arcPathTo(progress)} stroke={accent} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-          <circle cx={dot.x} cy={dot.y} r="18" fill="none" stroke={accent} strokeWidth=".5" className="do-a"/>
-          <circle cx={dot.x} cy={dot.y} r="10" fill="none" stroke={accent} strokeWidth=".8" className="dh-a"/>
-          <circle cx={dot.x} cy={dot.y} r="4.5" fill={accent} className="dc-a"/>
+          {/* The rail arc above is UNCONDITIONAL — it is the track, and the track is
+              always true. The travelled arc and its dot are the bride's POSITION,
+              which is unknown until the effect lands, so they render only when it
+              is known. Absence, not a guess at .38. */}
+          {progress!==null&&dot&&<>
+            <path d={arcPathTo(progress)} stroke={accent} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            <circle cx={dot.x} cy={dot.y} r="18" fill="none" stroke={accent} strokeWidth=".5" className="do-a"/>
+            <circle cx={dot.x} cy={dot.y} r="10" fill="none" stroke={accent} strokeWidth=".8" className="dh-a"/>
+            <circle cx={dot.x} cy={dot.y} r="4.5" fill={accent} className="dc-a"/>
+          </>}
           {/* I WILL — left endpoint label, sits below arc line */}
           <text x="18" y="107" textAnchor="start"
             fontFamily="'JetBrains Mono',monospace" fontSize="7.5" letterSpacing="2.5"
@@ -4602,10 +4640,13 @@ function timeAgoShort(iso:string):string {
           `getDailyPoetry()` and the `poetry` state stay wired to nothing by the same
           reasoning and travel in that finding. */}
       <div style={{position:'relative',zIndex:5,padding:`calc(env(safe-area-inset-top,0px) + 112px) ${FS.gutter}px ${FS.s2}px`,flexShrink:0}}>
-        <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:FT.numeral,lineHeight:.78,letterSpacing:'-.055em',color:accent,fontFeatureSettings:'"opsz" 144',marginLeft:-6}}>{days}</div>
+        {/* minHeight reserves the numeral's line box so the empty first frame does
+            not shift the rail beneath it — F-09.111–.113's reserved-height primitive
+            is the estate precedent for this exact shape. */}
+        <div className="num-a" style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontStyle:'normal',fontSize:FT.numeral,lineHeight:.78,letterSpacing:'-.055em',color:accent,fontFeatureSettings:'"opsz" 144',marginLeft:-6,minHeight:Math.round(FT.numeral*0.78)}}>{days}</div>
         <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engraved,letterSpacing:FS.track,textTransform:'uppercase' as any,color:inkMute,marginTop:FS.s1}}>mornings to I do</div>
         <div style={{fontFamily:"'Italianno',cursive",fontSize:FT.greeting,lineHeight:.9,letterSpacing:'-.01em',color:ink,marginTop:FS.s3}}>
-          Hello, <span style={{color:accent}}>{name}</span>.
+          {name===null?'\u00A0':<>Hello, <span style={{color:accent}}>{name}</span>.</>}
         </div>
         <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.lead,lineHeight:1.5,color:inkSoft,marginTop:FS.s2,maxWidth:'30ch',fontFeatureSettings:'"opsz" 9'}}>
           {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}

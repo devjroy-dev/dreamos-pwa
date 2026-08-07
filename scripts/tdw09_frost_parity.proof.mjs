@@ -354,6 +354,34 @@ ok('7.10', 'the register is shown back whole through the estate money home',
 ok('7.11', 'the action is gated on a valid budget, not merely a non-empty field',
    /disabled=\{savingP\|\|\(editOpen==='budget'\?!budgetValid:!editDate\)\}/.test(S));
 
+/* ═══ §8 · F-09.166 — THE FICTIONAL-BRIDE FLASH ══════════════════════════ */
+section('§8 · F-09.166 — the first frame is empty, never someone else\'s');
+
+/* Founder walk: 「 every time the screen refreshes it shows hello priya 」. The
+   masthead seeded days=176, progress=.38, name='Priya', sinceYes=47 — fixture data
+   for a bride who does not exist — and corrected itself a frame later. Same class
+   as the WINE-FLASH-FIX's E3 literal. These cells assert ABSENCE, because a seed
+   cannot be correct on a server that has no session to read. */
+ok('8.1', 'no fictional seed survives in the masthead state',
+   !/useState\(176\)/.test(S) && !/useState\(\.38\)/.test(S) &&
+   !/useState\('Priya'\)/.test(S) && !/useState\(47\)/.test(S));
+ok('8.2', 'the four masthead seeds are null — absence, not a better guess',
+   /const \[days,\s*setDays\]\s*= useState<number\|null>\(null\)/.test(S) &&
+   /const \[progress,\s*setProgress\]\s*= useState<number\|null>\(null\)/.test(S) &&
+   /const \[name,\s*setName\]\s*= useState<string\|null>\(null\)/.test(S) &&
+   /const \[sinceYes,\s*setSinceYes\]\s*= useState<number\|null>\(null\)/.test(S));
+ok('8.3', 'NO reachable code path can greet her as Priya',
+   !/return 'Priya'/.test(S) && !/useState\('Priya'\)/.test(S));
+ok('8.4', 'the travelled arc and its dot render ONLY when position is known',
+   /progress!==null&&dot&&<>/.test(S) && /const dot = progress===null \? null : arcPoint\(progress\)/.test(S));
+ok('8.5', 'the numeral reserves its line box so the empty frame does not shift the rail',
+   /minHeight:Math\.round\(FT\.numeral\*0\.78\)/.test(S));
+ok('8.6', 'the greeting renders no sentence at all until the name is known',
+   /\{name===null\?'\\u00A0':<>Hello, /.test(S));
+ok('8.7', 'the rail hints assert nothing before the server answers',
+   !/useState\('quiet'\)/.test(S) && !/useState\('a page is waiting'\)/.test(S) &&
+   !/useState\('Your timeline'\)/.test(S) && !/useState\('Wednesday morning'\)/.test(S));
+
 /* ═══ §M · ABSENT SUBJECTS — convicted by name, never silently ═════════════ */
 section('§M · the bench read what it claims to have read');
 ok('M.1', 'every subject this bench asserts on was actually present', seen.size >= 8, `read ${seen.size}`);
