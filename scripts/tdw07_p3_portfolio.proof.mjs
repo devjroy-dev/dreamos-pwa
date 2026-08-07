@@ -16,7 +16,30 @@ const sec = (t) => console.log('\n' + t);
 // CODE. Softening a comment to buy a green is refused; the stripper is the cure.
 // PROPOSED FOR PROMOTION to a shared harness helper so a fifth sitting imports
 // it instead of re-deriving it (CE §C).
-const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+// ── F-09.93 CURE (i) · THE ABSENT-SUBJECT SHIM (TDW_09 P2C) ──────────────────
+// This reader used to call readFileSync bare. On 2026-08-07 TDW_09 P2A deleted
+// `lib/vendor/vendorModeForPath.ts` under a handover row claiming CALLER-ZERO;
+// the claim was false — §3.1b below reads that file, and this bench stopped
+// being an instrument and became a stack trace. A bench that CRASHES reports
+// nothing at all: every cell after the throw is unrun and unrunnable, which is
+// strictly worse than a red (F-09.30's refuse-never-crash class).
+//
+// The rule now: a missing subject is a NAMED-REFUSAL RED, never an exception.
+// The miss is recorded here and convicted at the foot by name, and the verdict
+// can never be GREEN while MISSING is non-empty.
+//
+// DECLARED RESIDUAL, stated rather than hidden: the sentinel below fails every
+// POSITIVE cell honestly, but a NEGATIVE cell (`!/x/.test(...)`) over a sentinel
+// would pass vacuously. That window is why the refusal is convicted separately
+// and fail-closed at the foot — a reader is never left with a green bench over an
+// absent file. The two cells that read the deleted leaf are re-aimed in this same
+// delivery, so the window has no live occupant; it is guarded, not merely empty.
+const MISSING = new Set();
+const raw  = (rel) => {
+  const abs = path.join(ROOT, rel);
+  if (!fs.existsSync(abs)) { MISSING.add(rel); return `\u0000ABSENT-SUBJECT:${rel}\u0000`; }
+  return fs.readFileSync(abs, 'utf8');
+};
 // ORDER IS LOAD-BEARING AND WAS WRONG ONCE: line comments are stripped FIRST,
 // block comments SECOND. Stripping blocks first lets a line comment containing
 // `/wedding/auth/*` open a phantom block that swallows to the next real `*/` —
@@ -120,18 +143,54 @@ sec('§3 · THE MANAGER LIVES AT /vendor/portfolio (Fork 3(b)) — ZERO EDGES MO
   // The two are now counted separately, which STRENGTHENS the cell: a navigation edge going
   // missing still reddens exactly as before, and the classifier count is pinned at one so a
   // fourth copy cannot reappear unnoticed.
+  // ── LABELED AMENDMENT (TDW_09 · P2C · F-09.93 part (iii)) — THE ROW MOVED, BY RULING. ──
+  // TDW_09 P2A (8715a69) moved the Portfolio row out of More and into the new
+  // /vendor/storefront hub under R-X27(a) and chair relay #1/#2. Fork 3(b)'s doctrine is
+  // UNTOUCHED — the manager still lives at /vendor/portfolio and no edge was LOST; one
+  // edge changed which screen carries it. The expectation follows the ruling to the new
+  // screen; `more` is pinned at ZERO so the row cannot quietly come back, and storefront
+  // is pinned at its actual 1 — DERIVED THROUGH THE STRIPPER, which is what this cell
+  // counts with. My first draft pinned 2 off a RAW grep that had counted the row's own
+  // explanatory comment as an edge; the cell convicted me, which is the independent-method
+  // law working in the direction it was written for. Pinned so a silent drop reddens. The cell counts SEVEN navigation edges now, and says so.
+  //
+  // F-09.97 (filed this sitting) — THE ELDER MISMATCH, NOT PACKAGE 2's. `discover/submit`
+  // has held ZERO since 8a1fee1 (TDW_10 P3 rider 3, F-10.53 retired the samples step that
+  // carried the link). This cell has therefore been RED since that sitting and nobody was
+  // told: it was on no floor list. Pinned at its derived 0 with the finding named, so the
+  // cure — if the estate ever wants that edge back — is a ruling, not a rediscovery.
   const navEdges = [
-    ['app/vendor/discover/profile/page.tsx', 1], ['app/vendor/discover/submit/page.tsx', 1],
-    ['app/vendor/discover/page.tsx', 4], ['app/vendor/more/page.tsx', 1],
+    ['app/vendor/discover/profile/page.tsx', 1], ['app/vendor/discover/submit/page.tsx', 0],
+    ['app/vendor/discover/page.tsx', 4], ['app/vendor/more/page.tsx', 0],
+    ['app/vendor/storefront/page.tsx', 1],
     ['components/vendor/BottomNav.tsx', 1],   // the SUB_ITEMS href; its classifier ref moved
   ];
   const counts = navEdges.map(([f, n]) => [f, (code(f).match(/\/vendor\/portfolio/g) || []).length, n]);
-  ok('§3.1 all EIGHT navigation edges still point here, unmoved — Fork 3(b) holds',
+  ok('§3.1 every navigation edge to the manager is accounted — Fork 3(b) holds; the More row '
+   + 'MOVED to Storefront by ruling (F-09.93) and submit\'s edge died at F-10.53 (F-09.97)',
     counts.every(([, got, want]) => got === want), JSON.stringify(counts));
-  ok('§3.1b the three duplicated classifiers are now ONE — the route prefix lives in the leaf',
-    (code('lib/vendor/vendorModeForPath.ts').match(/\/vendor\/portfolio/g) || []).length === 1 &&
+  // ── LABELED AMENDMENT (TDW_09 · P2C · F-09.93 part (ii)) — THE LEAF DISSOLVED; THE
+  // PROPERTY DID NOT. This cell read `lib/vendor/vendorModeForPath.ts`, which TDW_09 P2A
+  // DELETED when it dissolved the vendor mode (fork 8.4, chair relay #3): with two
+  // memberships gone there is no mode to classify. That file's route buckets were carried
+  // BYTE-EQUIVALENT into `roomClassForPath` inside app/vendor/layout.tsx (P2A row 4), so
+  // the ONE-CLASSIFIER property — F-07.30's whole point, that the prefix is not duplicated
+  // across three hands — SURVIVES AT A NEW HOME and is re-aimed here rather than retired.
+  //
+  // The assertion is STRENGTHENED, not weakened, in three ways: the prefix is still pinned
+  // at exactly one, Header is still pinned at zero, and the retired leaf's ABSENCE is now
+  // asserted too — so a fourth copy cannot reappear AND a resurrected `vendorModeForPath`
+  // reddens this cell instead of silently restoring the duplication F-07.30 ended.
+  ok('§3.1b the duplicated classifiers are still ONE — the route prefix lives in layout\'s '
+   + 'roomClassForPath, Header holds none, and the retired mode leaf stays retired',
+    (code('app/vendor/layout.tsx').match(/\/vendor\/portfolio/g) || []).length === 1 &&
+    // ANCHORED, not substring-matched: my own W-C mutation renamed this symbol to
+    // `roomClassForPath X` and the first draft stayed GREEN, because a bare substring
+    // cannot tell a symbol from its prefix. Same defect W-9 exposed on the sibling bench
+    // the same hour. The boundary makes the mutation bite, which is what proves the cell.
+    /function roomClassForPath\b/.test(code('app/vendor/layout.tsx')) &&
     (code('components/vendor/Header.tsx').match(/\/vendor\/portfolio/g) || []).length === 0 &&
-    (code('app/vendor/layout.tsx').match(/\/vendor\/portfolio/g) || []).length === 0);
+    !fs.existsSync(path.join(ROOT, 'lib/vendor/vendorModeForPath.ts')));
   ok('§3.2 the manager file is the one that grew', code(MANAGER).length > 6000);
 }
 
@@ -385,5 +444,23 @@ console.log('    W-6  manager          the igEnabled gate removed          ⇒ �
 console.log('    W-7  manager          H3 moved below H2                   ⇒ §6.H3-position RED');
 console.log('    W-8  canvas           second img layer loses pointerEvents⇒ §7.1 RED');
 console.log('─'.repeat(72));
+
+// ── F-09.93 CURE (i), the conviction half — ABSENT SUBJECTS ARE NAMED, NOT THROWN ──
+sec('§10 · ABSENT SUBJECTS (F-09.93 — the shim reports where it used to crash)');
+{
+  // SELF-PROOF (the independent-method law): the shim is DRIVEN here, not merely held.
+  // A bench that owns a refusal path and never walks it has not proven the path exists —
+  // this is F-07.99's call-site clause applied to a reader instead of a stripper.
+  const sentinel = raw('lib/vendor/__tdw09_p2c_absent_probe__.ts');
+  const probed   = MISSING.delete('lib/vendor/__tdw09_p2c_absent_probe__.ts');
+  ok('§10.1 the shim RETURNS a named sentinel for an absent subject instead of throwing',
+    sentinel.includes('ABSENT-SUBJECT:') && probed);
+  if (MISSING.size === 0) {
+    ok('§10.2 every subject this bench reads is present at the tree', true);
+  } else {
+    for (const rel of MISSING) ok(`§10.2 ABSENT SUBJECT — ${rel} (named refusal, not a crash)`, false);
+  }
+}
+
 console.log('\n' + (fail === 0 ? 'GREEN' : 'RED') + ` — tdw07_p3_portfolio ${pass}/${pass + fail}`);
 process.exit(fail === 0 ? 0 : 1);

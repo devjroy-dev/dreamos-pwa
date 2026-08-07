@@ -48,6 +48,20 @@ const SETTINGS = read('app/vendor/settings/page.tsx');
 const PROFILE  = read('app/vendor/discover/profile/page.tsx');
 const HEADER   = read('components/vendor/Header.tsx');
 const FORM     = read('components/vendor/AtelierForm.tsx');
+// ── TDW_09 · P2C · F-09.94 — THE METER MOVED, SO THIS BENCH FOLLOWS IT. ─────────
+// TDW_09 P2B (f732110) moved the profile meter's MODEL to lib/vendor/profileMeter.ts
+// and its ARC to components/vendor/ProfileMeter.tsx — "moved, never rewritten", and
+// the move is honest: every property below still holds, at a new address. What P2B
+// did NOT do was run this bench, because this bench was on no floor list of its
+// sitting. Four cells went red on a delivery that changed nothing they assert.
+// THE CLASS, promoted with F-09.93 into Package 2's closing ledger: a sitting's floor
+// list is the benches its DIFF can redden, never the benches its charter names.
+// Each cell below is re-aimed by LABELLED amendment, asserting the SAME property at
+// the new home — and where a predicate was a NEGATIVE, it is now asserted over BOTH
+// files, because a negative re-aimed to one file is a cell that stopped watching the
+// other one. That is a strengthening, and it is the whole reason to re-aim by hand.
+const METER    = read('lib/vendor/profileMeter.ts');
+const ARC      = read('components/vendor/ProfileMeter.tsx');
 
 // ─────────────────────────────────────────────────────────────────────────────────
 
@@ -69,7 +83,14 @@ const FORM     = read('components/vendor/AtelierForm.tsx');
 section('§0 · THE CANARY — the stripper must not swallow live code');
 {
   const _c = stripComments(read('app/vendor/discover/profile/page.tsx'));
-  ok('§0.1 canary survives stripping — page.tsx: tags: string[]; travelNotes: string; rateMin', _c.includes('tags: string[]; travelNotes: string; rateMin: string; ig: string;'));
+  const _m = stripComments(METER);
+  // ── LABELED AMENDMENT (F-09.94) — THE HEAD ANCHOR FOLLOWED THE MODEL. This canary
+  // pinned the shape declaration at the head of page.tsx; P2B moved that exact line,
+  // byte-identical, to lib/vendor/profileMeter.ts:23. The canary's JOB is to sit on live
+  // code that a runaway stripper would eat — so it is re-aimed to where the line now
+  // lives, and page.tsx keeps its own two anchors (§0.2, §0.3) at waist and tail.
+  ok('§0.1 canary survives stripping — profileMeter.ts: tags: string[]; travelNotes: string; rateMin',
+    _m.includes('tags: string[]; travelNotes: string; rateMin: string; ig: string;'));
   ok('§0.2 canary survives stripping — page.tsx: const res = await updateMe(patch);', _c.includes('const res = await updateMe(patch);'));
   ok('§0.3 canary survives stripping — page.tsx: onChange={(v) => update({ discover_paused: v', _c.includes('onChange={(v) => update({ discover_paused: v })} />'));
   const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
@@ -209,9 +230,26 @@ section('§4 · DISCOVER PROFILE\'s OWN LAWS');
   ok('§4.2 NO localStorage anywhere on the new screen — asserted over CODE, so the cell '
     + 'cannot be satisfied by rewording a comment (protocol §4, native clause)',
     !/localStorage|sessionStorage/.test(stripComments(PROFILE)));
-  ok('§4.3 ★ ONE GOLD — the meter arc is the only #C9A84C stroke/fill the screen mints; '
-    + 'every other brass is a shared token',
-    (PROFILE.match(/#C9A84C/g) || []).length === 1, `${(PROFILE.match(/#C9A84C/g) || []).length} sightings`);
+  // ── LABELED AMENDMENT (TDW_09 · P2C · F-09.96) — THE ELDER RED, FILED AT LAST. ───────
+  // This cell has been RED since 8066072 (TDW_09 S1, F-09.28) — long BEFORE Package 2 —
+  // and nobody was told, for the same reason F-09.93/.94 went unseen: no floor list named
+  // this bench. F-09.28 swept nineteen theme-blind literals onto six semantic roles on the
+  // ground that no single hex clears AA on both Espresso and Editorial Paper, so a literal
+  // CANNOT be theme-correct — only a role can. `#C9A84C` was one of them. The cell was
+  // therefore asserting the presence of a byte the canon had lawfully retired, which is
+  // P1's colour-values-are-columns law read backwards.
+  //
+  // The PROPERTY is untouched and is what gets re-aimed: the meter arc is the screen's ONE
+  // gold. It now says so in the canon's own vocabulary — the arc paints `var(--role-metal)`
+  // at components/vendor/ProfileMeter.tsx (P2B's move), exactly once, and NO literal gold
+  // is minted anywhere on the screen, the model, or the arc. The assertion is broader than
+  // the one it replaces: it pins the role's single sighting AND the literal's absence
+  // across all three files, so re-introducing `#C9A84C` on any of them reddens this cell.
+  ok('§4.3 ★ ONE GOLD — the meter arc is the screen\'s only gold and it is the ROLE, not a '
+    + 'literal (F-09.28\'s sweep); no #C9A84C survives on the screen, the model or the arc',
+    (ARC.match(/var\(--role-metal\)/g) || []).length === 1
+    && !/#C9A84C/i.test(PROFILE) && !/#C9A84C/i.test(METER) && !/#C9A84C/i.test(ARC),
+    `${(ARC.match(/var\(--role-metal\)/g) || []).length} role sightings on the arc`);
   ok('§4.4 ★ the money register holds — formatRs is the donor; the ₹ glyph and the off-'
     + 'register cabinet short form are absent from the CODE (the comment naming cabinet.ts '
     + 'as the WRONG donor is evidence, and must not have to be deleted to pass)',
@@ -278,8 +316,12 @@ section('§7 · THE HINTS AT REAL NUMBERS (micro 2 — the founder\'s walk found
   ok('§7.2 ★ PENDING REACHES THE COPY — the gate line was cured to carry both counts and '
     + 'this hint was not, so one screen could read "7 uploaded" above "add 1 more photo". '
     + 'The SCORE still ignores pending rows; only the sentence learns they exist',
+    // ── LABELED AMENDMENT (F-09.94) — THE SENTENCE STAYED; THE MODEL TERM MOVED. The copy
+    // and the fetch that feeds it are still the screen's own (both asserted on PROFILE,
+    // unchanged); only `pending: o.pending` — a MODEL fact — travelled to profileMeter.ts.
+    // Same three predicates, same conjunction, two homes.
     /awaiting review/.test(PROFILE)
-    && /pending: o\.pending/.test(PROFILE)
+    && /pending: o\.pending/.test(METER)
     && /setPending\(res\.portfolio_summary\?\.pending/.test(PROFILE));
   ok('§7.3 the pending branch is ORDERED — fully covered says "awaiting review" alone, '
     + 'partially covered says both halves, none says the plain add',
@@ -296,14 +338,31 @@ section('§7 · THE HINTS AT REAL NUMBERS (micro 2 — the founder\'s walk found
     // question has no referent. The title is re-authored rather than left describing a
     // world that ended, and the assertion is INVERTED, not weakened: it still pins the
     // exact hint string, the exact predicate, and now also that the retired branch is gone.
+    // ── LABELED AMENDMENT (F-09.94) — F4's INVERSION, RE-HOMED. The hint copy is still the
+    // screen's; the predicate and the partial flag are the MODEL's and moved with it. The
+    // NEGATIVE is now asserted over BOTH files: re-aiming it to one would have stopped it
+    // watching the other, and the retired copy could return to the screen unseen.
     /rate:   \(\) => 'Set your starting rate'/.test(PROFILE)
-    && /partial: false/.test(PROFILE)
+    && /partial: false/.test(METER)
     && !/Add the top of your rate range/.test(PROFILE)
-    && /met: o\.rateMin !== ''/.test(PROFILE));
+    && !/Add the top of your rate range/.test(METER)
+    && /met: o\.rateMin !== ''/.test(METER)
+    // STRENGTHENED under the same amendment, and the reason is owned: my first draft of
+    // this re-aim used a bare substring, so a mutation ADDING `&& o.rateMax !== ''` beside
+    // it stayed GREEN — the cell could not tell a min-only predicate from a min-AND-max
+    // one, which is the exact law it exists to defend. My own both-ways run (W-9) caught
+    // it; a non-biting mutation is a cell that was never proven. The rate term is now
+    // pinned to hold NO upper bound at all, so F4's retirement cannot be quietly undone.
+    && !/rateMax/.test(METER));
   ok('§7.5 the score is UNTOUCHED by all three — no weight, term or gap moved; `pending` '
     + 'and `partial` are facts the copy reads, never terms the meter counts',
+    // ── LABELED AMENDMENT (F-09.94) — THE WEIGHTS ARE THE MODEL'S NOW. `photos: 0.270` and
+    // `rate: 0.135` moved to profileMeter.ts with W; the negative — that `pending` and
+    // `partial` never became SCORED terms — is asserted over BOTH files, because that is
+    // the property, and a term could be smuggled into either one.
     !/W\.pending|W\.partial/.test(PROFILE)
-    && /photos: 0\.270/.test(PROFILE) && /rate: 0\.135/.test(PROFILE));
+    && !/W\.pending|W\.partial/.test(METER)
+    && /photos: 0\.270/.test(METER) && /rate: 0\.135/.test(METER));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────
@@ -312,11 +371,13 @@ console.log('      W-1  discoverFloor.ts  DISCOVER_PHOTO_FLOOR 6 → 5          
 console.log('      W-2  discover/page     `{floor}` reverted to the word "five"    ⇒ §1.3/§1.5 RED');
 console.log('      W-3  useSettings.ts    instagram_handle back to \'\'              ⇒ §2.1/§2.2 RED');
 console.log('      W-4  Header.tsx        the entry re-pointed at /vendor/settings ⇒ §3.6 RED');
-console.log('      W-5  profile/page      a second #C9A84C added                   ⇒ §4.3 RED');
+console.log('      W-5  ProfileMeter.tsx   a second var(--role-metal) added        ⇒ §4.3 RED  [F-09.96 labeled amendment]');
 console.log('      W-6  profile/page      formatRs swapped for a ₹ template        ⇒ §4.4 RED');
 console.log('      W-7  profile/page      the plural() helper reverted to `${n} photos` ⇒ §7.1 RED');
-console.log('      W-8  profile/page      pending dropped from the photos hint       ⇒ §7.2 RED');
-console.log('      W-9  profile/page      the rate mirror re-demands a max bound       ⇒ §7.4 RED');
+console.log('      W-8  profileMeter.ts    `pending: o.pending` dropped from the model ⇒ §7.2 RED  [F-09.94 labeled amendment]');
+console.log('      W-9  profileMeter.ts    the rate term re-demands a max bound        ⇒ §7.4 RED  [F-09.94 labeled amendment]');
+console.log('      W-10 profileMeter.ts    the canary line reverted to page.tsx        ⇒ §0.1 RED  [F-09.94 labeled amendment]');
+console.log('      W-11 profileMeter.ts    `photos: 0.270` weight nudged               ⇒ §7.5 RED  [F-09.94 labeled amendment]');
 
 console.log('');
 const total = pass + fail;
