@@ -18,6 +18,38 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+// ── R-26.18 · F-10.110 ──────────────────────────────────────────────────────
+// Four amended cells below EXECUTE the resolver rather than matching its source.
+// Node strips types, so this bench runs the real function; the module is kept
+// dependency-free for exactly this reason and `tdw10_billing_tab` cell 9.1
+// guards that. DECLARED AT THE TOP because `const` does not hoist — declared
+// beside the cells that use them they would sit in the temporal dead zone and
+// this bench would THROW instead of failing, printing no FAIL line at all. That
+// happened once on this sitting and is the CE-210 failure mode by name.
+// GUARDED (R-26.19 §A): absent module → the bench still RUNS, prints its full
+// cell count, and every executing cell reds as a DECLARED-ABSENT-SUBJECT by
+// name. A static import would produce ERR_MODULE_NOT_FOUND and ZERO cells on any
+// tree without the resolver — strictly worse than a red, because a red is a
+// report and an ENOENT is a silence (F-09.93's refuse-never-crash class; shape
+// from `tdw09_p2c.proof.mjs:40`). Never a stand-in that could acquit.
+let statusLine = null, RESOLVER_ABSENT = false;
+try {
+  ({ statusLine } = await import('../lib/vendor/billing/statusLine.ts'));
+  if (typeof statusLine !== 'function') { RESOLVER_ABSENT = true; statusLine = null; }
+} catch { RESOLVER_ABSENT = true; }
+const ABSENT_SUBJECT = 'lib/vendor/billing/statusLine.ts';
+const TIER_STATUS = ['none', 'active', 'pending', 'halted', 'cancelled'];
+const TIER_LABEL  = { basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige' };
+// Throw-safe: a resolver that throws must FAIL these cells, never kill the run.
+const tierCall = (t, s) => {
+  try { return statusLine(t, s, TIER_LABEL[t] ?? 'Basic'); }
+  catch { return { status: '\u0000THREW', note: '\u0000THREW' }; }
+};
+// Executing cell: refuses outright when the subject is absent, so nothing is
+// compared against a stand-in.
+const okExec = (name, fn) => RESOLVER_ABSENT
+  ? ok(`${name}  [DECLARED-ABSENT-SUBJECT: ${ABSENT_SUBJECT}]`, false)
+  : ok(name, fn());
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -218,7 +250,24 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // VERBATIM, so a later edit that rewords founder-approved copy reddens rather
   // than passing review on someone's taste.
   // RE-AIMED to the card — see the labelled note at the CARD read above.
-  const ss = strip(CARD);
+  // ── LABELLED AMENDMENT · R-26.18 · F-10.110 ──────────────────────────────
+  // THE SUBSCRIPTION SURFACE IS NOW TWO FILES, so the source this section reads
+  // is both of them. Nine cells below assert the five vetoed status sentences,
+  // 0114's five-key coverage, and F-10.77's flip-reason line. All nine still
+  // assert exactly what they always asserted; what moved is WHICH file holds the
+  // bytes. `components/vendor/SubscriptionCard.tsx` keeps the plan words, the
+  // prices and the whole rendered card; `lib/vendor/billing/statusLine.ts` now
+  // holds the status sentences and the flip-reason line, because keying them on
+  // `billing_status` ALONE was F-10.110 — a vendor at `signature`/`cancelled`
+  // was told she was on Basic while dream-os `chat.js:buildLlmForTurn` served
+  // her Signature AI.
+  //
+  // THIS IS THE SITTING THAT MOVED THE SUBJECT, SO IT OWNS THIS BENCH (CE-210,
+  // standing, no grant needed). The union is the honest read: a cell that
+  // searched only the old file would go RED on correct code, and a cell narrowed
+  // to green itself would stop guarding the bytes. Three of the nine are
+  // FURTHER amended below where the ruling genuinely changed what is true.
+  const ss = strip(CARD) + '\n' + strip(read('lib/vendor/billing/statusLine.ts'));
   ok('the subscription surface exists', /SCard title="Subscription"/.test(ss));
   ok('the Tier read-row is REPLACED, not duplicated — one home for the plan word',
      !/SReadRow label="Tier"/.test(ss) && /SReadRow label="Plan"/.test(ss));
@@ -282,18 +331,42 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   ]) {
     ok(`status "${k}" renders its vetoed sentence verbatim`, ss.includes(v), v);
   }
-  ok('the status map covers 0114\'s CHECK and invents no sixth state',
-     ['none','active','pending','halted','cancelled'].every(k => new RegExp(`\\b${k}:`).test(ss)));
+  // ── LABELLED AMENDMENT · R-26.18 · the next four cells ───────────────────
+  // These four asserted the SHAPE the sentences used to have — object-literal
+  // keys and a ternary inside a template — and the ruling replaced that shape.
+  // They are amended to assert the SAME PROPERTIES against the shape that now
+  // holds, and three of them are amended UPWARD: they now EXECUTE the resolver
+  // instead of pattern-matching it. A source-text cell greens on a map that
+  // merely looks right; running the function is the independent method.
+  okExec('the status map covers 0114\'s CHECK and invents no sixth state',
+     () => /const KNOWN_STATUS = \['none', 'active', 'pending', 'halted', 'cancelled'\];/.test(ss)
+     && TIER_STATUS.every(s => tierCall('basic', s).status !== null)
+     && tierCall('basic', 'trialling').status === null);
 
-  // F-10.77's cell — the whole point of the movement.
-  ok('F-10.77: the flip-reason line ships, verbatim',
-     /Moved to Basic — subscription \$\{/.test(ss) &&
-     /Profile and leads unchanged\. AI is off on Basic\./.test(ss));
-  ok('F-10.77: it renders only on the floor tier off a LAPSED rail, not to everyone',
-     /current\.tier === 'basic'/.test(ss) &&
-     /current\.billing_status === 'cancelled' \|\| current\.billing_status === 'halted'/.test(ss));
-  ok('F-10.77: it names WHICH lapse — cancelled vs stopped after failed payments',
-     /'cancelled' : 'stopped after failed payments'/.test(ss));
+  // F-10.77's cell — the whole point of the movement, and it now reaches MORE
+  // vendors than it did, which is F-10.110's other half.
+  okExec('F-10.77: the flip-reason line ships, verbatim',
+     () => tierCall('basic', 'cancelled').note === 'Moved to Basic — subscription cancelled. Profile and leads unchanged. AI is off on Basic.' &&
+     tierCall('basic', 'halted').note === 'Moved to Basic — subscription stopped after failed payments. Profile and leads unchanged. AI is off on Basic.');
+
+  // ── AMENDED IN SUBSTANCE, and this is the ruling, not a repair ────────────
+  // The old cell asserted `tier === 'basic' && (cancelled || halted)`. R-26.18
+  // Fork 2 DELETED that gate: it excluded the vendor who most needed the line —
+  // the one whose plan is still on while her rail is dead. What the cell was
+  // built to protect is the second half, 「 not to everyone 」, and that is
+  // asserted here unchanged and now by execution: no unlapsed rail gets a note,
+  // on ANY tier. The floor sentence stays floor-only; the paid tiers get their
+  // own, which is tdw10_billing_tab 9.3 and 9.5's business.
+  okExec('F-10.77: it renders off a LAPSED rail only, on no tier to everyone',
+     () => ['none', 'active', 'pending'].every(s =>
+        ['basic', 'essential', 'signature', 'prestige', ''].every(t => tierCall(t, s).note === null))
+     && ['basic', ''].every(t => /AI is off on Basic\./.test(tierCall(t, 'cancelled').note || ''))
+     && ['essential', 'signature', 'prestige'].every(t => !/on Basic/.test(tierCall(t, 'cancelled').note || '')));
+
+  okExec('F-10.77: it names WHICH lapse — cancelled vs stopped after failed payments',
+     () => /subscription cancelled\./.test(tierCall('basic', 'cancelled').note || '')
+     && /stopped after failed payments\./.test(tierCall('basic', 'halted').note || '')
+     && tierCall('basic', 'cancelled').note !== tierCall('basic', 'halted').note);
   ok('THE DATE IS ABSENT by founder ruling — no invented timestamp reached the vendor',
      !/updated_at/.test(ss) && !/toLocaleDateString/.test(ss));
 

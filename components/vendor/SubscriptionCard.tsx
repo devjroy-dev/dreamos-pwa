@@ -24,6 +24,7 @@
 import { useState } from 'react';
 import { SCard, SReadRow, A, F } from '@/components/vendor/AtelierForm';
 import { subscribeToTier, upgradeToTier, cancelSubscription } from '@/lib/vendor/api/vendor';
+import { statusLine } from '@/lib/vendor/billing/statusLine';
 import type { SettingsState } from '@/hooks/vendor/useSettings';
 
 // ── M2 · THE FOUNDER-VETOED STRING SET (2026-08-07, verbatim) ───────────────
@@ -44,18 +45,22 @@ const PLAN_PRICE: Record<string, string> = {
   signature: 'Rs 1,999 / month',
   prestige:  'Rs 2,999 / month',
 };
-// Keyed on 0114's CHECK exactly — none, active, pending, halted, cancelled.
-// `pending` is the retry-window mercy (R-BILL.3) speaking in her own words: a
-// card that bounced once, while Razorpay is still trying, is not a demotion, and
-// telling her "nothing changes yet" is the difference between a warning and a
-// scare.
-const BILLING_STATUS: Record<string, string> = {
-  none:      'Not set up yet.',
-  active:    'Active. Renews monthly.',
-  pending:   "Payment didn't go through. Retrying — nothing changes yet.",
-  halted:    "Payment failed. You're on Basic.",
-  cancelled: "Cancelled. You're on Basic.",
-};
+// ── `BILLING_STATUS` RETIRED HERE · F-10.110 (R-26.18, Fork 1 arm B) ────────
+// The map stood here, `Record<string, string>` keyed on `billing_status` ALONE.
+// That key was the defect: it told a vendor at `tier: 'signature'`,
+// `billing_status: 'cancelled'` that she was 「 on Basic 」 while dream-os
+// `chat.js:buildLlmForTurn` was serving her Signature AI on both lanes.
+//
+// ITS FIVE SENTENCES ARE NOT LOST AND FOUR OF THEM ARE NOT CHANGED. They moved
+// WHOLE into `lib/vendor/billing/statusLine.ts`, which keys on the PAIR and
+// returns the explanation with it. Read the warrant there before touching either.
+//
+// THE COPY BLOCK BELOW IS NARROWER BY ONE SET, DELIBERATELY. Its property is
+// that vetoed bytes sit in one readable place — the status sentences now sit in
+// the resolver's own such block, beside the pair logic they depend on, because a
+// sentence whose truth is conditioned on a mechanism belongs next to the
+// mechanism (F-06.85). `PLAN_LABEL` and `PLAN_PRICE` stay: this file still
+// renders them.
 
 // ── TDW_10 BILLING v2 · THE NEW STRING SET — FOUNDER-VETOED ─────────────────
 // Hoisted into the SAME block as the v1 set above, for the reason that block
@@ -177,27 +182,43 @@ export function SubscriptionCard({ current, show }: {
   current: SubscriptionFields;
   show: (m: string) => void;
 }) {
+  // ── F-10.110's CURE · ONE CALL, BOTH OUTPUTS (R-26.18, Forks 1 and 2) ─────
+  // The Plan label is passed IN, and it is the SAME expression the Plan row
+  // renders one line below — one home for the tier vocabulary, no second map.
+  // See `lib/vendor/billing/statusLine.ts` for why this reads the pair; the
+  // short version is that `vendors.tier` is the entitlement dream-os
+  // `chat.js:buildLlmForTurn` actually serves, and `billing_status` is only the
+  // payment rail, and two admin write-doors can leave them disagreeing.
+  const planLabel = PLAN_LABEL[current.tier] ?? 'Basic';
+  const line = statusLine(current.tier, current.billing_status, planLabel);
+
   return (
     <SCard title="Subscription">
-      <SReadRow label="Plan"  value={PLAN_LABEL[current.tier] ?? 'Basic'} />
+      <SReadRow label="Plan"  value={planLabel} />
       <SReadRow label="Price" value={PLAN_PRICE[current.tier] ?? 'Free — no AI'} />
-      <SReadRow label="Status" value={BILLING_STATUS[current.billing_status] ?? 'Not set up yet.'} />
 
-      {/* F-10.77's cell: she is told WHAT changed and WHY, in her own
-          screen, rather than discovering it by asking Victor something and
-          getting nothing back. Rendered only when the flip actually
-          happened TO her — on the floor tier, off a lapsed rail. */}
-      {current.tier === 'basic'
-        && (current.billing_status === 'cancelled' || current.billing_status === 'halted') && (
+      {/* NO ROW ON AN UNRECOGNISED STATUS. The retired `?? 'Not set up yet.'`
+          fallback asserted a specific false state to a vendor whose status word
+          it could not read. Silence is honest under ignorance. */}
+      {line.status !== null && <SReadRow label="Status" value={line.status} />}
+
+      {/* F-10.77's cell, now reaching every vendor it is true of. She is told
+          WHAT changed and WHY in her own screen rather than discovering it by
+          asking Victor something and getting nothing back.
+
+          THE `tier === 'basic'` GATE THAT STOOD HERE IS DELETED, and its
+          deletion is the second half of F-10.110's cure. It excluded exactly
+          the vendor who most needed the explanation — the one whose plan is
+          still on while her rail is dead. Widening it alone would NOT have been
+          enough: the old paragraph ends 「 AI is off on Basic 」, which is false
+          for her. The sentence had to move with the gate, so both live in the
+          resolver and there is no second gate here to drift out of step. */}
+      {line.note !== null && (
         <p style={{
           /* F-09.105 CURED: 16, the ruled body floor. Was 13. */
           fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
           color: A.inkSoft, margin: '10px 0 0',
-        }}>
-          {`Moved to Basic — subscription ${current.billing_status === 'cancelled'
-            ? 'cancelled' : 'stopped after failed payments'}. `}
-          Profile and leads unchanged. AI is off on Basic.
-        </p>
+        }}>{line.note}</p>
       )}
 
       {/* The payment path. R-BILL.1's Subscription Links are issued by the

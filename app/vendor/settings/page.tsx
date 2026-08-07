@@ -324,9 +324,31 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           </SCard>
         </div>
 
-        <SCard title="Account">
-          {current.founding_cohort && <SReadRow label="Status" value="Founding cohort" />}
-        </SCard>
+        {/* ── F-10.106 CURED (R-26.18, Fork 4) · THE FRAME TAKES THE GATE ────
+            The condition stood on the ROW while the CARD stood unconditional,
+            so every vendor outside the founding cohort read a brass ACCOUNT
+            label over emptiness — `app/vendor/more/page.tsx`'s own warrant
+            names the class: chrome pretending to be structure. Pre-existing,
+            and made conspicuous the moment the Subscription card left from
+            above it.
+
+            WRAPPED, NOT RETIRED, and that is ruled. Wire-or-delete-at-birth
+            governs controls born UNWIRED; this row is wired and true — it
+            renders a real value from `vendors.founding_cohort` for the cohort
+            it was built for. Retiring the card would delete a live surface from
+            those vendors in order to cure a frame. The defect was never the
+            card; it was a frame that was unconditional while its only content
+            was conditional. The condition moves up one level. Zero copy bytes.
+
+            IF A SECOND ROW EVER JOINS THIS CARD, this gate is wrong and must
+            move back down to the row — the card would then hold content that is
+            true of every vendor. Named here so that sitting is forced to read
+            this sentence (F-06.85). */}
+        {current.founding_cohort && (
+          <SCard title="Account">
+            <SReadRow label="Status" value="Founding cohort" />
+          </SCard>
+        )}
 
         <button type="button" onClick={signOut} style={{
           width: '100%', padding: '14px 0', marginTop: 24,

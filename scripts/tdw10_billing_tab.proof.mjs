@@ -28,6 +28,33 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+// ── §9's INSTRUMENT · F-10.110 (R-26.18) · GUARDED (R-26.19 §A) ─────────────
+// THE RESOLVER IS IMPORTED AND RUN, not pattern-matched. Every other cell in
+// this file reads source text, which is the right method for a relocation — but
+// asserting 「 every pair renders a true sentence 」 by matching JSX would
+// reproduce the method under test and green on a map that is merely SHAPED
+// right. Node strips types, so this bench executes the real function over the
+// real matrix.
+//
+// A STATIC IMPORT WOULD KILL THIS BENCH ON ANY TREE WITHOUT THE MODULE — a
+// bisect across this commit would meet an ERR_MODULE_NOT_FOUND and ZERO printed
+// cells, which is strictly worse than a red: a red is a report, an ENOENT is a
+// silence (F-09.93's refuse-never-crash class; the shape is
+// `scripts/tdw09_p2c.proof.mjs:40` and `tdw07_p3_portfolio.proof.mjs:25`, both
+// fitted by this bench's own lineage). Guarded, so the module's absence is a
+// DECLARED RED with the subject named, and the full cell count still prints.
+//
+// NEVER A SENTINEL THAT COULD PASS. `execCell` reds outright when the subject is
+// absent and never routes into a comparison. This sitting's own defect #4 is the
+// reason: a `'\0THREW'` sentinel contains no 「 on Basic 」, so the cell F-10.110
+// exists for greened over a resolver that threw on every call.
+let statusLine = null;
+let RESOLVER_ABSENT = false;
+try {
+  ({ statusLine } = await import('../lib/vendor/billing/statusLine.ts'));
+  if (typeof statusLine !== 'function') { RESOLVER_ABSENT = true; statusLine = null; }
+} catch { RESOLVER_ABSENT = true; }
+const ABSENT_SUBJECT = 'lib/vendor/billing/statusLine.ts';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 // A file that does not exist reads as empty rather than throwing: at the UNCURED
 // tree both components/vendor/SubscriptionCard.tsx and app/vendor/billing/page.tsx
@@ -39,6 +66,14 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm,
 const lineWith = (src, needle) => (src.split('\n').find(l => l.includes(needle)) ?? '');
 let pass = 0, fail = 0;
 const cell = (id, ok, msg) => { if (ok) { pass++; console.log(`  PASS ${id} ${msg}`); } else { fail++; console.log(`  FAIL ${id} ${msg}`); } };
+// R-26.19 §A — a cell that EXECUTES the resolver. With the subject absent it
+// reds by name and its predicate is never evaluated, so nothing can acquit over
+// a stand-in. The cell count is unchanged either way, which is the whole point:
+// the bisect reads a report instead of a silence.
+const execCell = (id, fn, msg) => {
+  if (RESOLVER_ABSENT) { cell(id, false, `${msg}  [DECLARED-ABSENT-SUBJECT: ${ABSENT_SUBJECT}]`); return; }
+  cell(id, fn(), msg);
+};
 const sec = (t) => console.log(`\n── ${t} ──`);
 
 const HEADER = R('components/vendor/Header.tsx');
@@ -46,7 +81,43 @@ const SETT   = R('app/vendor/settings/page.tsx');
 const MORE   = R('app/vendor/more/page.tsx');
 const BILL   = R('app/vendor/billing/page.tsx');
 const CARD   = R('components/vendor/SubscriptionCard.tsx');
+const RES    = R('lib/vendor/billing/statusLine.ts');
 const hdr = strip(HEADER), set = strip(SETT), mre = strip(MORE), bil = strip(BILL), crd = strip(CARD);
+const res = strip(RES);
+
+// ── §9's FIXTURES, HOISTED HERE AND NOT LEFT AT §9 ──────────────────────────
+// AMENDED CELLS 4.3 AND 7.2 READ THEM, and `const` has no hoisting — declared at
+// §9 they sit in the temporal dead zone when §4 runs, and the bench THROWS at
+// cell 4.3 instead of failing it. That is the CE-210 failure mode exactly: a
+// dead bench prints no FAIL line and reads as non-biting when it has destroyed
+// the instrument. It happened on this sitting's first run and was caught by
+// checking the EXIT CODE and the LINE COUNT, not the summary. Disclosed, and the
+// declarations moved rather than the cells reordered.
+//
+// The matrix is derived, not invented. 0115's CHECK gives four canon tiers; `''`
+// is `useSettings.ts`'s EMPTY seed and its `v.tier ?? ''` map, both of which
+// reach the render on the pre-fetch frame; `'trial'` is 0115's retired default
+// word, alive on any straggler row. 0114's CHECK gives five statuses; `'zzz'`
+// stands for the unrecognised word the retired `??` fallback used to absorb.
+const TIERS_ALL  = ['basic', 'essential', 'signature', 'prestige', '', 'trial'];
+const TIERS_PAID = ['essential', 'signature', 'prestige'];
+const STATUSES   = ['none', 'active', 'pending', 'halted', 'cancelled'];
+const LAPSED     = ['halted', 'cancelled'];
+const LABEL = { basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige' };
+// THROW-SAFE BY CONSTRUCTION, and this is a CE-210 cell in its own right. A
+// resolver that throws must FAIL cells, never KILL the bench: cell 4.3 calls
+// this before 9.2 ever runs, so an unguarded helper would take the instrument
+// down at §4 and print fifteen greens and no FAIL line — indistinguishable, from
+// the summary, from a mutation that did not bite. Caught on this sitting's own
+// mutation M7. The sentinel can satisfy no assertion below, so a throw reddens
+// every cell that touches the pair rather than hiding them.
+// 9.2 deliberately does NOT use this helper — it calls `statusLine` raw inside
+// its own try/catch, because proving "zero throw" through a catch-all wrapper
+// would be vacuous.
+const call = (t, s) => {
+  try { return statusLine(t, s, LABEL[t] ?? 'Basic'); }
+  catch { return { status: '\u0000THREW', note: '\u0000THREW' }; }
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§1 · THE DOOR — the Billing row exists, routes, and is seated by ruling');
@@ -127,9 +198,21 @@ sec('§4 · THE GATES SURVIVE THE MOVE — F-10.92 both seats, F-10.77');
   cell('4.2', /current\.billing_status === 'active' && current\.subscription_id && current\.selfserve_enabled/.test(crd),
     'F-10.92 seat 2 — selfserve_enabled gates CANCEL, and the id is still required with it');
 
-  cell('4.3', /current\.tier === 'basic'[\s\S]{0,160}?billing_status === 'cancelled' \|\| current\.billing_status === 'halted'/.test(crd)
-           && /Moved to Basic — subscription/.test(crd),
-    'F-10.77 — the flip-reason line renders on the floor tier off a lapsed rail, verbatim');
+  // ── AMENDED · R-26.18 Fork 2 · F-10.110 ──────────────────────────────────
+  // NOT RETIRED. This cell asserted the gate `current.tier === 'basic' && (...)`
+  // in the component. That gate is DELETED by ruling — it was the second half of
+  // F-10.110's defect, excluding the one vendor who most needed the explanation.
+  //
+  // THE PROPERTY THIS CELL EXISTS FOR IS UNCHANGED and is re-asserted here at
+  // its new home: a floor-tier vendor off a lapsed rail still reads the SAME
+  // verbatim sentence she read before. Only where the condition lives moved.
+  // The paid-tier half — the half that was missing — is 9.3 and 9.5's business.
+  // Amendment labelled rather than the cell quietly rewritten (acceptance ④).
+  execCell('4.3', () => /Moved to Basic — subscription cancelled\./.test(RES)
+           && /Moved to Basic — subscription stopped after failed payments\./.test(RES)
+           && call('basic', 'cancelled').note !== null && call('basic', 'halted').note !== null
+           && /\{line\.note !== null && \(/.test(crd),
+    '[AMENDED R-26.18] F-10.77 — the flip-reason line still renders on the floor tier off a lapsed rail, verbatim, now via the pair resolver');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -204,14 +287,25 @@ sec('§7 · THE COPY, AND THE PURE MOVE');
   // [GUARD] FORK D, the pure move, proven four ways. Breaks if a future sitting
   // "tidies" the prices back into the page that renders them, leaves a second
   // definition behind, or adds a second caller without a ruling.
+  // ── AMENDED · R-26.18 Fork 1 · F-10.110 ──────────────────────────────────
+  // NOT RETIRED, and the property is untouched: a vetoed byte has exactly ONE
+  // home and `settings/page.tsx` holds none of them. What moved is WHICH file is
+  // that home for one string. `"Cancelled. You're on Basic."` left this list for
+  // `VETOED_IN_RESOLVER` below, because the status sentences now live beside the
+  // pair logic their truth depends on. The guard is strictly stronger for it:
+  // each string is asserted present in its own home AND absent from both others.
   const vetoed = ['Rs 999 / month', 'Rs 1,999 / month', 'Rs 2,999 / month',
-                  "Cancelled. You're on Basic.", 'Choose a plan', 'Keep my plan'];
+                  'Choose a plan', 'Keep my plan'];
+  const VETOED_IN_RESOLVER = ["Cancelled. You're on Basic.", "Payment failed. You're on Basic."];
   const callers = ['app/vendor/billing/page.tsx', 'app/vendor/settings/page.tsx',
                    'app/vendor/more/page.tsx', 'components/vendor/Header.tsx']
     .filter(p => /<SubscriptionCard/.test(R(p)));
   cell('7.2', vetoed.every(s => CARD.includes(s))
            && vetoed.every(s => !SETT.includes(s))
+           && VETOED_IN_RESOLVER.every(s => RES.includes(s))
+           && VETOED_IN_RESOLVER.every(s => !SETT.includes(s) && !CARD.includes(s))
            && !/₹/.test(CARD) && !/Rs ?\d+(\.\d+)?\s*[kKlLcC]r?\b/.test(CARD)
+           && !/₹/.test(RES) && !/Rs ?\d+(\.\d+)?\s*[kKlLcC]r?\b/.test(RES)
            && !/function TierPicker|function CancelBlock/.test(SETT)
            && !/subscribeToTier|upgradeToTier|cancelSubscription/.test(set)
            && callers.length === 1 && callers[0] === 'app/vendor/billing/page.tsx',
@@ -266,6 +360,185 @@ sec('§8 · F-10.108 — THE OFFER REACHES HER BEFORE SHE PICKS (R-26.16)');
            && /Rs 2/.test(CARD)
            && /F-10\.109/.test(CARD),
     '[GUARD] F-06.85 — the warrant survives at the byte: the Rs 2, that it is BOOKED not refunded, the founder\u2019s ground, and .109\u2019s scope limit');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §9 · THE STATUS LINE LEARNS THE PAIR — F-10.110 + F-10.106
+// ═══════════════════════════════════════════════════════════════════════════
+// TWELVE CELLS, the count ratified at R-26.18 §D (26 → 38, chair floor 34).
+//
+// THE DISEASE, so a later reader does not have to reconstruct it: the Status row
+// keyed on `billing_status` ALONE. `vendors.tier` is the entitlement dream-os
+// `chat.js:buildLlmForTurn` actually serves — `billing_status` appears ZERO
+// times in `chat.js` and ZERO times in `src/lib/vendorInbound.js` — so a vendor
+// at `signature`/`cancelled` read PLAN: Signature (true) and STATUS: 「 You're on
+// Basic 」 (false) at the same instant, while F-10.77's explanation went silent
+// because its gate excluded exactly her. Two admin write-doors produce that pair
+// with nobody editing a row: `src/api/admin/vendors.js` and
+// `src/admin/router.js` both `.update({ tier })` and never touch the rail.
+//
+// ⚡ = the cell EXECUTES the resolver. 9.2–9.5 run the real function over the
+// real matrix; the rest read source. Both methods are named per cell so a future
+// mutation run can tell a dead instrument from a non-biting one.
+sec('§9 · THE PAIR — the status line reads tier AND billing_status (F-10.110)');
+{
+  // 9.1 — the instrument's own precondition. A dependency-free module is what
+  // makes 9.2–9.7 and 9.10 possible at all; an `@/` alias or a JSX tag here
+  // makes the guarded import above refuse, and every executing cell reds as a
+  // DECLARED-ABSENT-SUBJECT rather than taking the bench down with it.
+  execCell('9.1', () => typeof statusLine === 'function'
+           && !/^\s*import\s/m.test(res) && !/require\(/.test(res) && !/<[A-Za-z]/.test(res),
+    '⚡ the resolver imports NOTHING and holds no JSX — an alias or a tag here blinds 9.2–9.10');
+
+  // 9.2 — TOTALITY. Thirty-six pairs, none throwing, every one answering in shape.
+  //
+  // ⚠ RAW `statusLine`, NEVER `call`. The first draft went through the
+  // throw-safe helper, which converts every throw into a well-shaped sentinel —
+  // so under mutation M7 (`KNOWN_STATUS = null`, every pair throwing) this cell
+  // counted 36 shaped answers and stayed GREEN. A TOTALITY CHECK ROUTED THROUGH
+  // A CATCH-ALL IS A CHECK ON THE CATCH-ALL. Caught by the mutation run, not by
+  // reading; and the in-comment claim that it called the resolver raw was itself
+  // false at the time it was written. Disclosed as this sitting's defect #3.
+  execCell('9.2', () => {
+    let shaped = 0, threw = 0;
+    for (const t of TIERS_ALL) for (const s of [...STATUSES, 'zzz']) {
+      try {
+        const r = statusLine(t, s, LABEL[t] ?? 'Basic');
+        if (r && 'status' in r && 'note' in r) shaped++;
+      } catch { threw++; }
+    }
+    return threw === 0 && shaped === TIERS_ALL.length * (STATUSES.length + 1);
+  }, `⚡ all ${6 * 6} pairs answer in shape, zero throw`);
+
+  // 9.3 — THE DEFECT ITSELF, and this is the cell F-10.110 exists for.
+  execCell('9.3', () => {
+    const liars = [];
+    for (const t of TIERS_PAID) for (const s of STATUSES) {
+      const r = call(t, s);
+      // A THROWN PAIR IS NOT AN HONEST PAIR. Without this line the sentinel
+      // satisfies "contains no 'on Basic'" and a resolver that throws on every
+      // call greens the cell F-10.110 exists for. Defect #4, same mutation run.
+      if (r.status === '\u0000THREW' || r.note === '\u0000THREW') liars.push(`${t}/${s} (threw)`);
+      if (r.status && /on Basic/.test(r.status)) liars.push(`${t}/${s}`);
+      if (r.note && /AI is off on Basic/.test(r.note)) liars.push(`${t}/${s} (note)`);
+    }
+    return liars.length === 0;
+  }, '⚡ NO paid tier is ever told she is on Basic, in the status line or the note');
+
+  // 9.4 — [GUARD] BYTE-IDENTITY ON APPROVED COPY. Ratified as four; SEVEN are
+  // asserted, because seven vetoed strings survive this sitting unchanged and
+  // the argument for guarding four is the argument for guarding all of them.
+  // Widening DISCLOSED rather than done quietly. This is the cell that stops a
+  // sitting rewording bytes the founder already approved.
+  execCell('9.4', () => [
+    call('basic', 'none').status      === 'Not set up yet.',
+    call('basic', 'active').status    === 'Active. Renews monthly.',
+    call('basic', 'pending').status   === "Payment didn't go through. Retrying — nothing changes yet.",
+    call('basic', 'halted').status    === "Payment failed. You're on Basic.",
+    call('basic', 'cancelled').status === "Cancelled. You're on Basic.",
+    call('basic', 'cancelled').note   === 'Moved to Basic — subscription cancelled. Profile and leads unchanged. AI is off on Basic.',
+    call('basic', 'halted').note      === 'Moved to Basic — subscription stopped after failed payments. Profile and leads unchanged. AI is off on Basic.',
+  ].every(Boolean),
+    '⚡ [GUARD] all SEVEN surviving founder-vetoed strings are byte-identical');
+
+  // 9.5 — F-10.77's explanation REACHES HER. The half the old gate withheld.
+  execCell('9.5', () => {
+    const silent = [];
+    for (const t of TIERS_PAID) for (const s of LAPSED) {
+      const r = call(t, s);
+      if (!r.note || r.note === '\u0000THREW' || !r.note.includes(LABEL[t])) silent.push(`${t}/${s}`);
+    }
+    return silent.length === 0;
+  }, '⚡ every paid tier on a lapsed rail gets a note naming HER plan');
+
+  // 9.6 — THE FLOOR ARM IS AN ALLOWLIST, NOT A NEGATION. `''` and `'trial'` must
+  // land on the floor sentences; a `tier !== 'basic'` test would classify both
+  // as paid and tell a vendor mid-load that her plan is still on.
+  execCell('9.6', () => ['', 'trial', 'basic'].every(t =>
+       call(t, 'cancelled').status === "Cancelled. You're on Basic."
+    && call(t, 'halted').status === "Payment failed. You're on Basic."),
+    "⚡ '' and 'trial' land on the FLOOR arm with 'basic' — the pre-fetch frame does not regress");
+
+  // 9.7 — THE `??` FALLBACK IS GONE, both halves. It did not absorb neutrally;
+  // it asserted a specific false state to a vendor whose status word it could
+  // not read. And the call site passes the SAME label expression the Plan row
+  // renders — one home for the tier vocabulary, no second map to drift.
+  execCell('9.7', () => call('signature', 'zzz').status === null
+           && call('basic', 'zzz').note === null
+           && !/\?\?\s*'Not set up yet\.'/.test(crd)
+           && /const planLabel = PLAN_LABEL\[current\.tier\] \?\? 'Basic'/.test(crd)
+           && /statusLine\(current\.tier, current\.billing_status, planLabel\)/.test(crd),
+    "⚡ unrecognised status → null, the `?? 'Not set up yet.'` fallback is gone, and the call site passes the Plan row's own label");
+
+  // 9.8 — FORK 2's DELETION. Not widened — DELETED. The old gate is the reason
+  // the two cures could have left a hole between them; there is now exactly one
+  // source for the note, and no second condition downstream to drift.
+  // SOURCE-TEXT, so it stands even with the resolver absent — deliberately.
+  cell('9.8', !/current\.tier === 'basic'/.test(crd)
+           && /\{line\.status !== null && <SReadRow label="Status"/.test(crd)
+           && /\{line\.note !== null && \(/.test(crd)
+           // TWO references, not one, and the count is the point: the gate
+           // `line.note !== null` and the render `{line.note}`. A third would
+           // mean a second condition had crept back in — the shape Fork 2
+           // deleted. Corrected from `=== 1` on the first red run; the miscount
+           // was mine (defect #5) and is disclosed rather than tuned away.
+           && (crd.match(/line\.note/g) || []).length === 2,
+    "the `tier === 'basic'` gate is DELETED from the component and the note has exactly one source");
+
+  // 9.9 — [GUARD] F-06.85. The mechanism the sentences are conditioned on is
+  // named in-comment, so the next tidy is forced to read why the pair is read
+  // before collapsing it back to one key — which would restore the defect whole.
+  //
+  // ⚠ WORD-ANCHORED, AND THE ANCHORS ARE PAID FOR. The first draft used bare
+  // substring tests and mutation M8 — renaming `buildLlmForTurn` to
+  // `buildLlmForTurnX` throughout — left this cell GREEN, because the mutant
+  // string still CONTAINS the needle. A GUARD THAT SURVIVES THE DEFACEMENT OF
+  // THE THING IT GUARDS IS NOT A GUARD. Defect #2, disclosed.
+  cell('9.9', /\bbuildLlmForTurn\b/.test(RES)
+           && /\bZERO times\b/.test(RES)
+           && /\bsrc\/api\/admin\/vendors\.js\b/.test(RES) && /\bsrc\/admin\/router\.js\b/.test(RES)
+           && /Do not key on `billingStatus` alone\./.test(RES),
+    '[GUARD] F-06.85 — the warrant survives at the byte: the entitlement reader, the zero-counts, both admin write-doors, and the collapse warning');
+
+  // 9.10 — MONEY REGISTER on every byte this sitting mints. The surface names no
+  // figure at all, so the strongest form of the law applies: zero rupee glyphs,
+  // zero k/L/Cr shorthand, and no numeral.
+  execCell('9.10', () => [
+      call('signature', 'cancelled').status,
+      call('signature', 'halted').status,
+      call('signature', 'cancelled').note,
+    ].every(s => typeof s === 'string' && s.length > 0 && s !== '\u0000THREW'
+              && !/₹/.test(s) && !/\d\s*[kKlL]\b|\bCr\b/.test(s) && !/\d/.test(s)),
+    '⚡ money register holds on all three new bytes — zero ₹, zero k/L/Cr, no numeral at all');
+
+  // 9.11 — THE ABSENT SUBJECT IS CONVICTED BY NAME (R-26.19 §A; the shape is
+  // `tdw09_p2c.proof.mjs:397`). This cell is the shim's own driver: without it
+  // a guarded bench could be run against a tree with no resolver and reported as
+  // 「 mostly green 」. It reds whenever the subject is missing, and it says which.
+  cell('9.11', !RESOLVER_ABSENT,
+    RESOLVER_ABSENT
+      ? `⚠ ABSENT SUBJECT: ${ABSENT_SUBJECT} — every ⚡ cell above reds as DECLARED-ABSENT and acquitted nothing`
+      : `[GUARD] the executed subject ${ABSENT_SUBJECT} was actually present and run`);
+}
+
+
+sec('§10 · THE ACCOUNT CARD — chrome does not stand over nothing (F-10.106)');
+{
+  // 10.1 — the frame takes the gate. Matched line-based: an arrow handler's `=>`
+  // breaks any `[^>]*` class, the tuition this file already paid at its header.
+  const acct = set.indexOf('<SCard title="Account">');
+  const gate = set.lastIndexOf('{current.founding_cohort && (', acct);
+  cell('10.1', acct > -1 && gate > -1 && acct - gate < 120
+            && !/\{current\.founding_cohort && <SReadRow/.test(set),
+    'the founding-cohort condition sits on the SCard FRAME, not on its row — no brass label over emptiness');
+
+  // 10.2 — [GUARD] WRAPPED, NOT RETIRED. The cure must not have deleted a live
+  // surface: the cohort it was built for still gets the card AND the row. A
+  // retirement would green 10.1 and is exactly what this cell refuses.
+  cell('10.2', /<SCard title="Account">/.test(set)
+            && /<SReadRow label="Status" value="Founding cohort" \/>/.test(set)
+            && /IF A SECOND ROW EVER JOINS THIS CARD/.test(SETT),
+    '[GUARD] the founding-cohort vendor still gets the card and its row, and the re-gate condition is named in-comment');
 }
 
 console.log(`\n════ tdw10_billing_tab: ${pass} passed, ${fail} failed (total ${pass + fail}) ════`);
