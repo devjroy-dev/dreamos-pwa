@@ -352,6 +352,98 @@ section('§5  THE RETINT AMENDMENT — CE-205\'S CARRIER, THIRD ATTEMPT');
      sites.filter(s => /tabular-nums/.test(s)).length === 1);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
+// ═══════════════════════════════════════════════════════════════════════════
+// WHY THIS SECTION EXISTS, and it is a defect's tuition rather than a design:
+// the (β) ruling seated a page-level Upgrade affordance OUTSIDE TierMeter's own
+// guard, and the control inventory that shipped with it claimed MOVED, NET ZERO.
+// That claim was true at a ZERO cap — where TierMeter returns null — which was
+// the only state the acceptance walk reached and the only state the bench
+// asserted. At a spent NONZERO cap BOTH seats rendered, and the founder saw two
+// stacked Upgrade links on a live screen inside ninety seconds.
+//
+// THE CLASS SENTENCE, entering the record: an inventory that counts controls in
+// a single state is a claim about that state, not about the control. So these
+// cells count the seats ACROSS the states, by evaluating the two shipped
+// predicates rather than by reading either one.
+{
+  const PAGE  = read('app/vendor/page.tsx');
+  const METER = read('components/vendor/TierMeter.tsx');
+
+  // The two guards are LIFTED FROM SOURCE, never retyped — a bench holding its
+  // own copy of a predicate proves the copy (F-04.36's family).
+  const meterGuard = strip(METER).match(/if \(!meta \|\| !meta\.turns_cap\) return null;/);
+  ok('§9.1 TierMeter still hides itself on a falsy cap — the guard the seat complements',
+     !!meterGuard);
+  const pageGuard = strip(PAGE).match(/\{meta && meta\.state === 'capped' && !meta\.turns_cap && meta\.upgrade && \(/);
+  ok('§9.2 the page-level seat is gated on the EXACT COMPLEMENT of that guard',
+     !!pageGuard);
+
+  // Evaluate both, per state, and COUNT. This is the inventory the first one
+  // should have been — and the predicates are EXTRACTED FROM THE SHIPPED SOURCE
+  // and executed, never retyped here.
+  //
+  // THE FIRST DRAFT OF THESE CELLS HELD ITS OWN COPY of both guards and stayed
+  // GREEN against the duplicated tree — a bench proving its author's model of the
+  // code rather than the code. Caught on the both-ways run, disclosed, and cured
+  // by lifting: a check whose failure mode is "my copy still agrees with itself"
+  // is not a check.
+  // REFUSE, NEVER CRASH — CE-206's shim, and it is here because a mutation TAUGHT
+  // it: rewriting TierMeter's anchor condition made the lift regex miss, and the
+  // first draft THREW. A bench that dies produces no FAIL line, so the mutation
+  // read as NON-BITING when it had in fact destroyed the instrument. A cell that
+  // crashes instead of reddening is F-09.93's disease, and it found me too.
+  // Every lift below now returns a predicate that is FALSE-and-recorded on a miss,
+  // so an unliftable source reddens loudly rather than exiting the process.
+  const lifted = [];
+  const lift = (src, re, what) => {
+    const m = src.match(re);
+    lifted.push([what, !!m]);
+    if (!m) return () => false;
+    return new Function('meta', `return !!(${m[1]});`);
+  };
+  // TierMeter: the null guard inverted, AND the anchor's own condition.
+  const meterNullGuard = strip(METER).match(/if \((!meta \|\| !meta\.turns_cap)\) return null;/);
+  const meterAnchorSrc = strip(METER).match(/\{\((nearing \|\| capped)\) && meta\.upgrade && \(/);
+  lifted.push(['the TierMeter anchor condition', !!meterAnchorSrc]);
+  // `nearing`/`capped` are locals inside the component, so they are bound here from
+  // the SAME two lines the component derives them from, also lifted.
+  const meterLocals = strip(METER).match(/const capped = (meta\.state === 'capped');[\s\S]*?const nearing = (meta\.state === 'nearing');/);
+  lifted.push(["TierMeter's state locals", !!meterLocals]);
+  const meterAnchor = meterAnchorSrc
+    ? new Function('meta', 'nearing', 'capped', `return !!(${meterAnchorSrc[1]} && meta.upgrade);`)
+    : () => false;
+  const cappedOf  = meterLocals ? new Function('meta', `return !!(${meterLocals[1]});`) : () => false;
+  const nearingOf = meterLocals ? new Function('meta', `return !!(${meterLocals[2]});`) : () => false;
+  const meterShows = (m) => {
+    if (!meterNullGuard || !m || !m.turns_cap) return false;   // the lifted guard, inverted
+    return meterAnchor(m, nearingOf(m), cappedOf(m));
+  };
+  // The page-level seat: its whole JSX condition, lifted and executed.
+  const pageShows = lift(strip(PAGE), /\{(meta && meta\.state === 'capped'[^\n]*?meta\.upgrade) && \(/, 'the page-level seat condition');
+  const up = { label: 'Upgrade', href: '/vendor/billing' };
+  const states = [
+    ['zero cap, refused at turn zero', { state: 'capped',  turns_used: 0,  turns_cap: 0,   upgrade: up }, 1],
+    ['nonzero cap, SPENT',             { state: 'capped',  turns_used: 1,  turns_cap: 1,   upgrade: up }, 1],
+    ['nonzero cap, nearing',           { state: 'nearing', turns_used: 24, turns_cap: 30,  upgrade: up }, 1],
+    ['nonzero cap, ok',                { state: 'ok',      turns_used: 2,  turns_cap: 30,  upgrade: up }, 0],
+  ];
+  // THE INSTRUMENT FIRST. If a predicate could not be lifted, every count below is a
+  // claim about an empty function — so the lift itself is a cell.
+  ok('§9.2b EVERY predicate was lifted from live source — no count below is over a stub',
+     lifted.every(([, okd]) => okd), lifted.filter(([, o]) => !o).map(([w]) => w).join(' · ') || undefined);
+  for (const [label, meta, expected] of states) {
+    const n = (meterShows(meta) ? 1 : 0) + (pageShows(meta) ? 1 : 0);
+    ok(`§9.3 exactly ${expected} Upgrade anchor at: ${label}`, n === expected, `${n} rendered`);
+  }
+  ok('§9.4 THE PATH OUT SURVIVES EVERY CAPPED STATE — neither seat leaves a refused vendor stranded',
+     states.filter(([, m]) => m.state === 'capped')
+           .every(([, m]) => meterShows(m) || pageShows(m)));
+  ok('§9.5 the seats never BOTH fire — the duplicate cannot return without reddening this',
+     states.every(([, m]) => !(meterShows(m) && pageShows(m))));
+}
+
 console.log('\n' + '─'.repeat(60));
 console.log(`tdw10_tier: ${pass} passed, ${fail} failed  (total ${pass + fail})`);
 process.exit(fail === 0 ? 0 : 1);

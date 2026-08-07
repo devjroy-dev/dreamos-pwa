@@ -1207,7 +1207,31 @@ function ChatScreen({ vendorId, vendorName }: { vendorId: string; vendorName: st
              the address off the wire, so the anchor outlives the code change by one deploy
              and deleting it early breaks Upgrade for every capped vendor. That deletion is
              the pwa sitting's act, not this one's. ── */}
-      {meta && meta.state === 'capped' && meta.upgrade && (
+      {/* ── HOTFIX · THE DUPLICATE, FOUNDER-CAUGHT ON A LIVE WALK ──────────────────
+             `!meta.turns_cap` is the whole fix, and it belongs HERE rather than in
+             TierMeter because the ruling seated this control OUTSIDE that widget's guard
+             on purpose — so a future tidy of the widget can never hide the sale again.
+
+             THE DEFECT I SHIPPED: TierMeter returns null only when `turns_cap` is FALSY.
+             At a spent NONZERO cap — a Signature vendor who has used her day — the widget
+             renders AND shows its own Upgrade anchor at `nearing || capped`, while this
+             block also rendered on `state === 'capped'`. Two identical Upgrade links,
+             stacked, live. The founder saw `1/1Upgrade` above a second `Upgrade` within
+             ninety seconds of setting a cap to 1.
+
+             WHY NO CELL CAUGHT IT: my control inventory claimed MOVED, net zero. That is
+             true at a ZERO cap, where TierMeter returns null — and a zero cap was the only
+             state the acceptance walk reached and the only state the bench asserted. The
+             one state where both render is the one nobody looked at. AN INVENTORY THAT
+             COUNTS CONTROLS IN A SINGLE STATE IS A CLAIM ABOUT THAT STATE, NOT ABOUT THE
+             CONTROL.
+
+             This predicate is now the EXACT COMPLEMENT of TierMeter's guard, so the two
+             seats PARTITION the capped states instead of overlapping: the widget owns
+             every cap it can draw a bar for, this seat owns the one cap it cannot.
+             (Named per F-06.85 — if TierMeter's `!meta.turns_cap` guard ever moves, this
+             line moves with it or the duplicate returns.) ── */}
+      {meta && meta.state === 'capped' && !meta.turns_cap && meta.upgrade && (
         <div className="px-4 pb-2 flex justify-end">
           <a
             href={meta.upgrade.href}
