@@ -257,8 +257,14 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // The C1 approval that would have re-worded the retired sentence is DROPPED
   // AS MOOT by founder ruling, its render site having been retired while the
   // approval was in flight. F-09.125 is the finding; this is its amendment.
+  // RE-AIMED A SECOND TIME AT THE UI VENDOR HOTFIX. The first amendment pinned
+  // the exact conjunction `!current.subscription_link && (` — which F-10.92 then
+  // widened with its `selfserve_enabled` gate, so a correct tree went red. A cell
+  // that pins the SHAPE of a condition breaks every time the condition earns a
+  // new conjunct. It now asserts the SUBJECT (the null link governs the picker)
+  // and leaves the gate list to F-09.128's own cells in tdw09_uivendor §9.
   ok('a NULL link opens the PICKER — the truth now, where the hand-mint sentence stood (F-09.125 amended)',
-     /!current\.subscription_link && \(/.test(ss) && /<TierPicker/.test(ss));
+     /!current\.subscription_link &&[^\n]*\(/.test(ss) && /<TierPicker/.test(ss));
   ok('the link arm renders the stored Subscription Link, not a constructed URL',
      /href=\{current\.subscription_link\}/.test(ss));
   ok('the link opens out-of-app safely (noopener)', /rel="noopener noreferrer"/.test(ss));

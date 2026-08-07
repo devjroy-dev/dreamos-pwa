@@ -423,7 +423,28 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                     who cancelled can subscribe again. Hiding the picker from her
                     would be the client re-implementing a rule the server already
                     owns, and getting it stricter. */}
-                {!current.subscription_link && (
+                {/* ── F-10.92 · THE CLIENT SHUTS WITH THE ROUTE ──────────────
+                    `selfserve_enabled` gates the SURFACE, not only the endpoint.
+                    Before this, an OFF flag produced a picker that 503s — a kill
+                    switch the vendor could still see and press, which is not a
+                    kill switch. Now OFF renders nothing here at all.
+
+                    NOT BYTE-IDENTICAL TO THE PRE-v2 SURFACE, and that is a
+                    deliberate departure from acceptance ④ as ratified. Restoring
+                    the old surface would mean restoring 「 Dev will send you a
+                    payment link. 」 — a sentence the founder retired WITH its
+                    mechanism, and which is now simply false: Dev does not send
+                    links any more. A rollback that reinstates a lie is worse than
+                    a door that closes quietly. So OFF is SILENT, not nostalgic:
+                    Plan, Price and Status still render, and nothing offers her an
+                    action the estate cannot honour.
+
+                    RE-LANDED AT TDW_09 UI VENDOR HOTFIX (chair relay #7). This
+                    gate was WIPED by that delivery's settings file, which was cut
+                    at 503b254 and applied onto 9f73a8b — F-10.92 landed in the
+                    eleven minutes between. Restored VERBATIM from 9f73a8b; see
+                    F-09.128. */}
+                {!current.subscription_link && current.selfserve_enabled && (
                   <TierPicker
                     currentTier={current.tier}
                     isUpgrade={current.billing_status === 'active'}
@@ -437,7 +458,8 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
             {/* The ACTIVE vendor's exit. Shown only when a plan is actually
                 running — cancelling something already cancelled is not an
                 action, and the server answers `no_subscription` if it is tried. */}
-            {current.billing_status === 'active' && current.subscription_id && (
+            {/* F-10.92, re-landed — see the gate above and F-09.128. */}
+            {current.billing_status === 'active' && current.subscription_id && current.selfserve_enabled && (
               <CancelBlock
                 label={PLAN_LABEL[current.tier] ?? 'your plan'}
                 onDone={() => window.location.reload()}

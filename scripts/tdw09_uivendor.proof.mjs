@@ -232,6 +232,26 @@ ok('§8.6 Paper A\'s sequence is preserved exactly — Discover, Team, Finance, 
    (() => { const i = ['Couture', 'Team Hub', 'TDS', 'Notes to Self'].map(l => more.indexOf(`label: '${l}'`));
             return i.every(x => x > -1) && i.every((x, n) => n === 0 || x > i[n - 1]); })());
 
+// ═══ §9 · F-09.128 — THE KILL SWITCH IS READ, NOT MERELY FETCHED ══════════════
+sec('§9 · F-09.128 — `selfserve_enabled` gates the surface it was minted to gate');
+// WHY THIS EXISTS. This delivery's own settings file was cut at 503b254 and
+// applied onto 9f73a8b, and it WIPED F-10.92 — the client-side gate — because a
+// whole-file overwrite cannot see a commit it never read. tsc stayed green: an
+// unread field is legal TypeScript. Nothing in the floor named `selfserve`, so
+// nothing could redden. The flag was typed, defaulted to FALSE, mapped off the
+// wire, and consumed by nobody — a kill switch that fetches and discards.
+// A FLAG WITH ZERO READERS IS THE SILENT-ZERO CLASS WEARING A BOOLEAN.
+ok('§9.1 the flag still arrives — typed and mapped off the wire',
+   /selfserve_enabled: boolean;/.test(C('hooks/vendor/useSettings.ts')) &&
+   /selfserve_enabled: v\.selfserve_enabled \?\? false,/.test(C('hooks/vendor/useSettings.ts')));
+ok('§9.2 and something READS it — the picker arm is gated on it, not merely near it',
+   /!current\.subscription_link && current\.selfserve_enabled && \(/.test(set));
+ok('§9.3 the cancel arm is gated too — half a kill switch is not a kill switch',
+   /current\.subscription_id && current\.selfserve_enabled && \(/.test(set));
+ok('§9.4 NON-VACUITY — the flag has at least two live consumers on this surface',
+   (set.match(/current\.selfserve_enabled/g) || []).length >= 2,
+   `found ${(set.match(/current\.selfserve_enabled/g) || []).length}`);
+
 // ═══ §M · MUTATIONS — every cure cell RED at a broken tree ════════════════════
 sec('§M · MUTATIONS OVER PRODUCTION SOURCE — bitten, not reported');
 function bite(name, file, from, to, probe) {
@@ -276,6 +296,15 @@ bite('§M.10 §1.1 reds when a retired tip returns ON ONE LINE — the parser, n
   'const TIPS: Tip[] = [',
   "const TIPS: Tip[] = [\n  { section: 'The Hub', glyph: '\u2726', title: 'Just Do It mode.', body: 'Toggle \"Just Do It\" below the header.' },",
   s => tipCount(tipsBody(s)) === 23);
+
+bite('§M.11 §9.2 reds when the picker gate is stripped — the exact wipe that happened', SET_FILE,
+  '!current.subscription_link && current.selfserve_enabled && (',
+  '!current.subscription_link && (',
+  s => /!current\.subscription_link && current\.selfserve_enabled && \(/.test(s));
+bite('§M.12 §9.4 reds when the flag is left with ONE reader — half a switch', SET_FILE,
+  "current.subscription_id && current.selfserve_enabled && (",
+  "current.subscription_id && (",
+  s => (s.match(/current\.selfserve_enabled/g) || []).length >= 2);
 
 console.log('\n════════════════════════════════════════════════════════════');
 console.log(`tdw09_uivendor: ${pass} passed, ${fail} failed  (total ${pass + fail})`);
