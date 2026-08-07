@@ -28,7 +28,7 @@
 // construction — F-09.27's disease is not re-introduced by its own cure's bar.
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Home, Compass, Sparkles, Map, Users } from 'lucide-react';
 import { getV2Tokens, FF, HomeModeKey } from '../../lib/frost/tokens';
 import { pressedStyle } from '../../lib/vendor/controls';
@@ -36,7 +36,13 @@ import { pressedStyle } from '../../lib/vendor/controls';
 export interface BrideDoor {
   key:   string;
   label: string;
+  /** The pathname this door owns. */
   route: string;
+  /** The `?room=` value this door carries, when it shares a pathname with
+   *  another door. Discover and Home BOTH live on sanctuary — Discover is the
+   *  deck bloom opened through the conductor's own front door — so pathname
+   *  alone cannot tell them apart and the resolver reads this too. */
+  room?: string;
   Icon:  React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
 }
 
@@ -44,7 +50,17 @@ export interface BrideDoor {
  *  opens where she rests), Circle last (the one door that is people). */
 export const BRIDE_DOORS: BrideDoor[] = [
   { key: 'home',     label: 'Home',     route: '/frost/canvas/sanctuary',      Icon: Home     },
-  { key: 'discover', label: 'Discover', route: '/frost/canvas/explore',        Icon: Compass  },
+  // ── F-09.146's TOMBSTONE ────────────────────────────────────────────────────
+  // Discover pointed at `/frost/canvas/explore` for exactly one delivery. That
+  // route held a NEW, LESSER Discover surface — a grid and a click-to-advance
+  // image — authored by this desk and reported to the chair as a MOUNT of the
+  // real room. It was not one: the room's swipe pager, filter sheet, vendor
+  // panel and blind mode all live in the deck inside sanctuary, and none of
+  // them travelled. The founder found it in one tap. The file is deleted whole;
+  // the door now opens the REAL room through the conductor's front door, and
+  // the deck stays exactly where it is until row 13 extracts it.
+  { key: 'discover', label: 'Discover', route: '/frost/canvas/sanctuary',
+    room: 'discover', Icon: Compass  },
   { key: 'muse',     label: 'Muse',     route: '/frost/canvas/muse',           Icon: Sparkles },
   { key: 'journey',  label: 'Journey',  route: '/frost/canvas/journey',        Icon: Map      },
   { key: 'circle',   label: 'Circle',   route: '/frost/canvas/journey/circle', Icon: Users    },
@@ -61,13 +77,16 @@ export const BRIDE_BAR_HEIGHT = 62;
  *  because the bench asserts this function directly rather than a regex over
  *  the file (independent-method law: the check's failure mode differs from the
  *  code's). */
-export function activeDoorKey(pathname: string | null): string | null {
+export function activeDoorKey(pathname: string | null, room?: string | null): string | null {
   if (!pathname) return null;
   let best: BrideDoor | null = null;
   for (const d of BRIDE_DOORS) {
-    if (pathname === d.route || pathname.startsWith(d.route + '/')) {
-      if (!best || d.route.length > best.route.length) best = d;
-    }
+    if (pathname !== d.route && !pathname.startsWith(d.route + '/')) continue;
+    // A room-carrying door only wins when its room is the one that is open; a
+    // roomless door only wins when no room is open. Without this, Home and
+    // Discover — one pathname, two doors — would light together.
+    if (d.room ? room !== d.room : !!room && BRIDE_DOORS.some(x => x.room === room)) continue;
+    if (!best || d.route.length > best.route.length || (d.room && !best.room)) best = d;
   }
   return best ? best.key : null;
 }
@@ -75,8 +94,8 @@ export function activeDoorKey(pathname: string | null): string | null {
 /** The routes the bar is seated on: the five doors and everything beneath them.
  *  Onboarding, dream and surprise are DELIBERATELY absent — a bar on an
  *  onboarding flow is chrome competing with the one thing she is meant to do. */
-export function barIsSeatedOn(pathname: string | null): boolean {
-  return activeDoorKey(pathname) !== null;
+export function barIsSeatedOn(pathname: string | null, room?: string | null): boolean {
+  return activeDoorKey(pathname, room) !== null;
 }
 
 /** `homeMode` arrives as a PROP, never through the frost context, and the reason
@@ -86,6 +105,7 @@ export function barIsSeatedOn(pathname: string | null): boolean {
  *  know the layout. */
 export default function BrideBar({ homeMode }: { homeMode: HomeModeKey }) {
   const pathname = usePathname();
+  const room     = useSearchParams().get('room');
   const router   = useRouter();
   const t = getV2Tokens(homeMode);
 
@@ -108,7 +128,7 @@ export default function BrideBar({ homeMode }: { homeMode: HomeModeKey }) {
     onPointerLeave:  () => setPressedKey(null),
   }), []);
 
-  const active = activeDoorKey(pathname);
+  const active = activeDoorKey(pathname, room);
   if (active === null) return null;
 
   return (
@@ -131,7 +151,7 @@ export default function BrideBar({ homeMode }: { homeMode: HomeModeKey }) {
             key={d.key}
             type="button"
             aria-current={on ? 'page' : undefined}
-            onClick={() => router.push(d.route)}
+            onClick={() => router.push(d.room ? `${d.route}?room=${d.room}` : d.route)}
             {...press(d.key)}
             style={{
               flex: 1,

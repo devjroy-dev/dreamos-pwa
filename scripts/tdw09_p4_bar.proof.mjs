@@ -52,9 +52,10 @@ const C    = (p) => stripComments(R(p));
 const EXISTS = (p) => fs.existsSync(path.join(ROOT, p));
 
 const BAR     = 'components/frost/BrideBar.tsx';
+const SANCT   = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const LAYOUT  = 'app/(frost)/layout.tsx';
 const HUB     = 'app/(frost)/frost/canvas/journey/page.tsx';
-const EXPLORE = 'app/(frost)/frost/canvas/explore/page.tsx';
+const EXPLORE = 'app/(frost)/frost/canvas/explore/page.tsx'; // F-09.146: must NOT exist
 const GRAVE   = 'app/(frost)/frost/canvas/discover/page.tsx';
 
 let pass = 0, fail = 0;
@@ -88,12 +89,16 @@ ok('§1.3 the doors are the ruled set in the ruled order',
   JSON.stringify(labels) === JSON.stringify(['Home', 'Discover', 'Muse', 'Journey', 'Circle']));
 
 const routes = [...doorBlock.matchAll(/route:\s*'([^']+)'/g)].map(m => m[1]);
+const BRIDE_DOORS_KEYS = [...doorBlock.matchAll(/key:\s*'([^']+)'/g)].map(m => m[1]);
 ok('§1.4 Circle mounts the STANDALONE route, not a sanctuary room key (F-09.137)',
   routes.includes('/frost/canvas/journey/circle'));
 ok('§1.5 Discover does NOT mount the folded grave (F-B arm (a) refused)',
   !routes.includes('/frost/canvas/discover'));
-ok('§1.6 every door route is distinct — nothing dual-mounted on the bar',
-  new Set(routes).size === routes.length && routes.length === 5);
+ok('§1.7 F-09.146 — Discover opens the REAL room: sanctuary carrying room=discover',
+  /room:\s*'discover'/.test(doorBlock)
+  && routes.filter(r => r === '/frost/canvas/sanctuary').length === 2);
+ok('§1.6 five doors, and the two that share sanctuary are told apart by their room',
+  routes.length === 5 && new Set(BRIDE_DOORS_KEYS).size === 5);
 
 // ── §2 · THE FLOOR (S5 §3), each clause its own cell ─────────────────────────
 console.log('\n§2 — the inherited floor');
@@ -152,17 +157,20 @@ ok('§5.3 the reservation rides the same predicate as the bar — it cannot drif
   /barIsSeatedOn/.test(layout));
 ok('§5.4 the bar does not import the layout back — no cycle',
   !/from\s*'[^']*\(frost\)\/layout'/.test(bar));
-ok('§5.5 the Discover door has its own file', EXISTS(EXPLORE));
+ok('§5.5 F-09.146 — THE SKETCH IS GONE: no second Discover surface exists', !EXISTS(EXPLORE));
 ok('§5.6 THE GRAVE IS UNDISTURBED — canvas/discover is still a redirect and nothing else',
   /redirect\('\/frost\/canvas\/sanctuary'\)/.test(C(GRAVE)) && C(GRAVE).length < 900);
 // EXISTS-guarded so the UNCURED run REPORTS a red instead of throwing: a bench
 // that crashes has not answered its question, it has refused it.
-const exploreCode = EXISTS(EXPLORE) ? stripComments(R(EXPLORE)) : '';
-ok('§5.7 the Discover door mounts the SHARED organs, never a second deck',
-  /components\/shared\/VendorProfileView/.test(exploreCode)
-  && /components\/shared\/ImageDots/.test(exploreCode));
-ok('§5.8 the Discover door fetches through lib/frost-api, never inline (BRIDE_AUDIT §5)',
-  /lib\/frost-api\/discover/.test(exploreCode) && !/fetch\(['\`]/.test(exploreCode));
+// §5.7 AND §5.8 ARE RETIRED, THEIR CORPSES NAMED (F-09.146). They read
+//   "the Discover door mounts the SHARED organs, never a second deck"
+//   "the Discover door fetches through lib/frost-api, never inline"
+// and both proved only that IMPORT STRINGS appeared in a file. Every string was
+// present and the room was not — no swipe pager, no filter sheet, no vendor
+// panel, no blind mode. A cell that asserts an import asserts nothing about
+// capability. §8 replaces them by EXECUTING the shipped code.
+ok('§5.7 RETIRED — no second Discover surface survives to assert organs about',
+  !EXISTS(EXPLORE));
 
 // ── §6 · activeDoorKey — CALLED, not regexed (independent-method law) ────────
 console.log('\n§6 — the active-door resolver, exercised');
@@ -197,6 +205,47 @@ if (!mod) {
     longestPrefix('/frost/canvas/discover') === null);
 }
 
+// ── §8 · THE DEEP LINK, EXECUTED (F-09.146's answer to shape-not-thing) ─────
+// This section does not read the effect. It RUNS it. The effect's body is cut
+// out of the shipped sanctuary source and executed against stubs, so the cells
+// below assert what the code DOES with a param, not what it looks like.
+console.log('\n§8 — the deep link, executed against the shipped source');
+const sanct     = R(SANCT);
+const sanctCode = stripComments(sanct);
+
+const effectBody = (sanctCode.match(
+  /if\(deepLinkRef\.current === param\)[\s\S]*?openRoom\(param as RoomKey\);/) || [''])[0];
+ok('§8.1 the deep-link effect body is present and cuttable', effectBody.length > 0);
+
+// Strip the TS assertion so plain JS can run the shipped logic verbatim.
+const runnable = effectBody.replace(' as RoomKey', '');
+const drive = (param, seen) => {
+  const calls = [];
+  const ref = { current: seen ?? null };
+  const SLICES = [{ key: 'discover' }, { key: 'muse' }, { key: 'settings' }];
+  const fn = new Function('param', 'deepLinkRef', 'BASE_SLICES', 'openRoom', `
+    if(!param) return;
+    ${runnable}
+  `);
+  fn(param, ref, SLICES, (k) => calls.push(k));
+  return { calls, ref };
+};
+
+ok('§8.2 NO PARAM → the conductor is never called (today\'s behaviour, byte-identical)',
+  drive(null, null).calls.length === 0);
+ok('§8.3 room=discover → openRoom IS called with discover',
+  JSON.stringify(drive('discover', null).calls) === JSON.stringify(['discover']));
+ok('§8.4 an UNKNOWN room opens nothing — the param is validated, never trusted',
+  drive('../../etc/passwd', null).calls.length === 0
+  && drive('dream-injection', null).calls.length === 0);
+ok('§8.5 the same param twice fires ONCE — she can close the room and it stays closed',
+  drive('discover', 'discover').calls.length === 0);
+ok('§8.6 the effect calls the conductor\'s FRONT DOOR, never the state setter behind it '
+ + '(the choreography is entered, not bypassed)',
+  /openRoom\(/.test(effectBody) && !/setActiveRoom\(/.test(effectBody));
+ok('§8.7 the choreography itself is DIFF-ZERO — the delivery only ADDS to sanctuary',
+  /const openRoom = useCallback/.test(sanctCode) && /const closeRoom = useCallback/.test(sanctCode));
+
 // ── §7 · MUTATIONS — production code bitten, not test setup ─────────────────
 console.log('\n§7 — mutations (production code bitten)');
 const mutate = (src, from, to) => src.replace(from, to);
@@ -212,7 +261,7 @@ ok('§7.3 M3 renaming an approved door label is CAUGHT by §1.3',
   JSON.stringify([...m3.matchAll(/label:\s*'([^']+)'/g)].map(x => x[1]))
     !== JSON.stringify(['Home', 'Discover', 'Muse', 'Journey', 'Circle']));
 
-const m4 = doorBlock.replace("'/frost/canvas/explore'", "'/frost/canvas/discover'");
+const m4 = doorBlock.replace("route: '/frost/canvas/sanctuary',\n    room: 'discover'", "route: '/frost/canvas/discover'");
 ok('§7.4 M4 pointing Discover at the grave is CAUGHT by §1.5',
   /\/frost\/canvas\/discover'/.test(m4));
 
@@ -225,9 +274,29 @@ ok('§7.6 M6 dropping the leave-release is CAUGHT by §2.6', !/onPointerLeave/.t
 const m7 = mutate(layout, /<BrideBar\b/, '<BrideBarX');
 ok('§7.7 M7 unmounting the bar is CAUGHT by §5.1', (m7.match(/<BrideBar\b/g) || []).length === 0);
 
-const m8 = mutate(barCode, "if (!best || d.route.length > best.route.length) best = d;", "if (!best) best = d;");
+const m8 = mutate(barCode, "if (!best || d.route.length > best.route.length || (d.room && !best.room)) best = d;", "if (!best) best = d;");
 ok('§7.8 M8 collapsing longest-prefix to first-match is CAUGHT by §6.1',
   !/route\.length\s*>\s*best\.route\.length/.test(m8));
+
+// M9/M10 bite the DEEP LINK's real logic and are caught by EXECUTION, not by shape.
+const driveMutated = (body, param) => {
+  const calls = [];
+  const fn = new Function('param', 'deepLinkRef', 'BASE_SLICES', 'openRoom',
+    `if(!param) return;\n${body.replace(' as RoomKey', '')}`);
+  fn(param, { current: null }, [{ key: 'discover' }], (k) => calls.push(k));
+  return calls;
+};
+const m9 = effectBody.replace('if(!BASE_SLICES.some(sl=>sl.key===param)) return;', '');
+ok('§7.9 M9 removing the param validation lets a hostile value through — CAUGHT by §8.4',
+  driveMutated(m9, '../../etc/passwd').length === 1);
+
+const m10 = effectBody.replace('if(deepLinkRef.current === param) return;', '');
+ok('§7.10 M10 removing the once-guard re-opens a room she closed — CAUGHT by §8.5',
+  (() => { const calls = []; const ref = { current: 'discover' };
+    new Function('param','deepLinkRef','BASE_SLICES','openRoom',
+      `if(!param) return;\n${m10.replace(' as RoomKey','')}`)(
+      'discover', ref, [{ key: 'discover' }], (k) => calls.push(k));
+    return calls.length === 1; })());
 
 // ── result ──────────────────────────────────────────────────────────────────
 console.log(`\ntdw09_p4_bar  ${pass}/${pass + fail}`);
