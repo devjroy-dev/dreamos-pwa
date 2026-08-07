@@ -815,6 +815,38 @@ export function updateInvoicePrefix(body: UpdateInvoicePrefixRequest): Promise<U
   return patchJson<UpdateInvoicePrefixResponse | ApiErr>('/api/v2/vendor/me/invoice-prefix', body);
 }
 
+// ── TDW_10 BILLING v2 · SELF-SERVE ──────────────────────────────────────────
+// The vendor's own money door. Behind `billing.selfserve_enabled` server-side,
+// default OFF — these three will answer 503 `lane_disabled` until the founder
+// flips it after his walk, and the surface renders that as a shut door rather
+// than as a failure.
+//
+// `code` is carried on the error shape DELIBERATELY. The surface needs to tell
+// three failures apart in her own words: the provider was unreachable (nothing
+// changed), payments are not configured (nothing changed), and — the one that
+// matters — the upgrade cancelled her old plan and could not open the new one.
+// A single generic error would make the third indistinguishable from the first,
+// and she would tap again believing nothing had happened.
+export interface BillingSubscribeResponse {
+  ok: true;
+  already?: boolean;
+  tier?: string;
+  subscription_id: string;
+  subscription_link: string | null;
+}
+
+export function subscribeToTier(tier: string): Promise<BillingSubscribeResponse | ApiErr> {
+  return postJson<BillingSubscribeResponse | ApiErr>('/api/v2/vendor/billing/subscribe', { tier });
+}
+
+export function upgradeToTier(tier: string): Promise<BillingSubscribeResponse | ApiErr> {
+  return postJson<BillingSubscribeResponse | ApiErr>('/api/v2/vendor/billing/upgrade', { tier });
+}
+
+export function cancelSubscription(): Promise<{ ok: true; cancelled: boolean } | ApiErr> {
+  return postJson<{ ok: true; cancelled: boolean } | ApiErr>('/api/v2/vendor/billing/cancel', {});
+}
+
 // ── Availability ──────────────────────────────────────────────────────────
 
 export function fetchAvailability(vendorId: string, from?: string, to?: string): Promise<AvailabilityResponse | ApiErr> {

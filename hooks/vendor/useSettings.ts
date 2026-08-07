@@ -37,6 +37,15 @@ export interface SettingsState {
   // ships now so the surface is one edit rather than a build.
   billing_status:    string;
   subscription_link: string | null;
+  // TDW_10 BILLING v2 — MAPPED, and this field's whole reason for existing is
+  // that the surface must tell two states apart that used to look identical:
+  // a vendor who never subscribed, and a vendor whose plan is dead. Under v1
+  // both showed a null link and both were told to wait for Dev. Under v2 the
+  // first sees a picker and the second sees a picker AND the reason she is on
+  // Basic. F-07.9's tuition applies here as it does eight lines above: declaring
+  // this field without assigning it below would leave every churned vendor
+  // rendering as a fresh one, silently, exactly as briefing_enabled did.
+  subscription_id:   string | null;
   founding_cohort:   boolean;
   discover_preview:  boolean;
   // Read-only, computed backend-side from occupancy's one-home map (B6-S1):
@@ -52,7 +61,8 @@ const EMPTY: SettingsState = {
   about: '', rate_display: true, discover_paused: false,
   invoice_prefix: '', routing_handle: '',
   slot_capacity: '',
-  tier: '', billing_status: 'none', subscription_link: null, founding_cohort: false, discover_preview: false,
+  tier: '', billing_status: 'none', subscription_link: null, subscription_id: null,
+  founding_cohort: false, discover_preview: false,
   capacity_default: null, capacity_applicable: false,
 };
 
@@ -109,6 +119,7 @@ export function useSettings() {
         // carrying it, and this file has already paid that tuition once.
         billing_status:    v.billing_status ?? 'none',
         subscription_link: v.razorpay_subscription_link ?? null,
+        subscription_id:   v.razorpay_subscription_id ?? null,
         founding_cohort:  v.founding_cohort ?? false,
         discover_preview: v.discover_preview ?? false,
         capacity_default:    v.capacity_default ?? null,

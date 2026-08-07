@@ -9,7 +9,10 @@ import { useSettings } from '@/hooks/vendor/useSettings';
 import { useToast } from '@/hooks/vendor/useToast';
 import { Toast } from '@/components/vendor/Toast';
 import { Header } from '@/components/vendor/Header';
-import { updateMe, updateRoutingHandle, updateInvoicePrefix } from '@/lib/vendor/api/vendor';
+import {
+  updateMe, updateRoutingHandle, updateInvoicePrefix,
+  subscribeToTier, upgradeToTier, cancelSubscription,
+} from '@/lib/vendor/api/vendor';
 import { clearVendorSession, getVendorSession, setVendorSession } from '@/lib/vendor/session';
 
 // TDW_07 P2 — PURE MOVE. A, F and the five form primitives now live in one home so
@@ -42,6 +45,48 @@ const BILLING_STATUS: Record<string, string> = {
   pending:   "Payment didn't go through. Retrying — nothing changes yet.",
   halted:    "Payment failed. You're on Basic.",
   cancelled: "Cancelled. You're on Basic.",
+};
+
+// ── TDW_10 BILLING v2 · THE NEW STRING SET — HELD FOR FOUNDER VETO ──────────
+// Hoisted into the SAME block as the v1 set above, for the reason that block
+// gives: copy under veto lives in one readable place so it can be diffed
+// against the veto record without reading JSX. Every string above is UNTOUCHED
+// and stays verbatim; these are the additions, and they are sent as one batch.
+//
+// RETIRED WITH THE ERA: 「 Dev will send you a payment link. 」 That sentence
+// described the founder minting links by hand, which is the mechanism this
+// delivery removes. A sentence must not outlive the mechanism it describes.
+//
+// MONEY REGISTER: `Rs X,XXX`, zero rupee glyphs, zero k/L/Cr shorthand. Prices
+// are read from PLAN_PRICE above rather than retyped, so the canon has one home
+// on this surface too.
+//
+// TYPE SCALE: body copy at 16 (the ruled floor), action words at 10 in the
+// engraved register — both named rungs. No new size enters this file, so the
+// three pre-existing sub-floor sites are the only ones `tdw09_type` can see.
+// Those three are F-09.105 and are NOT this delivery's to cure (chair relay #3);
+// they are named here so the next reader does not mistake their survival for
+// this sitting's carelessness.
+const V2 = {
+  pickerHeading: 'Choose a plan',
+  pickerAction:  'Choose',
+  confirm: (label: string, price: string) =>
+    `This opens a Razorpay page to approve ${label} — ${price}. You approve once; it renews every month until you cancel.`,
+  cancelWarn: (label: string) =>
+    `Cancel ${label}? Your plan stops and you move to Basic. This can't be undone — starting again means setting up a new monthly payment.`,
+  cancelYes: 'Cancel my plan',
+  cancelNo:  'Keep my plan',
+  upgradeExplain: (label: string, price: string) =>
+    `Moving to ${label} stops your current plan first, then opens a new page to approve ${price}. Until you approve it, you're on Basic.`,
+  // The failure set. Never a false done — and never a false "nothing happened",
+  // which is the harder half. `mintFailedAfterCancel` is Fork U(a)'s priced seam
+  // speaking in her own words: without it she would read a generic error, assume
+  // her old plan survived, and be wrong about whether she is currently paying.
+  mintFailed:   "Couldn't reach Razorpay just now. Nothing has changed — try again in a moment.",
+  cancelFailed: "Couldn't cancel just now. Your plan is unchanged — try again in a moment.",
+  mintFailedAfterCancel: (label: string) =>
+    `Your old plan is already stopped and the new one didn't open. You're on Basic for now — tap ${label} again to finish.`,
+  notOpenYet: 'Plan changes are not open yet.',
 };
 
 export default function SettingsPage() {
@@ -353,13 +398,39 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                       Cancel any time from the app.
                     </p>
                   </>
-                ) : (
-                  <p style={{
-                    fontFamily: F.body, fontWeight: 300, fontSize: 13, lineHeight: 1.6,
-                    color: A.inkMute, margin: 0,
-                  }}>Dev will send you a payment link.</p>
+                ) : null}
+
+                {/* ── TDW_10 BILLING v2 · THE PICKER ────────────────────────
+                    This replaces 「 Dev will send you a payment link. 」, which
+                    described a mechanism this delivery removes.
+
+                    RENDERED WHENEVER SHE HAS NO LIVE LINK — which includes the
+                    churned vendor, deliberately. Her dead subscription id does
+                    not disqualify her: the server's refusal keys on Razorpay's
+                    LIVE statuses, not on whether a row holds an id, so a vendor
+                    who cancelled can subscribe again. Hiding the picker from her
+                    would be the client re-implementing a rule the server already
+                    owns, and getting it stricter. */}
+                {!current.subscription_link && (
+                  <TierPicker
+                    currentTier={current.tier}
+                    isUpgrade={current.billing_status === 'active'}
+                    onDone={() => window.location.reload()}
+                    show={show}
+                  />
                 )}
               </div>
+            )}
+
+            {/* The ACTIVE vendor's exit. Shown only when a plan is actually
+                running — cancelling something already cancelled is not an
+                action, and the server answers `no_subscription` if it is tried. */}
+            {current.billing_status === 'active' && current.subscription_id && (
+              <CancelBlock
+                label={PLAN_LABEL[current.tier] ?? 'your plan'}
+                onDone={() => window.location.reload()}
+                show={show}
+              />
             )}
           </SCard>
         </div>
@@ -375,6 +446,181 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
           letterSpacing: '0.42em', textTransform: 'uppercase',
         }}>Sign Out</button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TDW_10 BILLING v2 · THE TIER PICKER
+// ═══════════════════════════════════════════════════════════════════════════
+// Two-step by construction: pick a tier, then read what will happen and
+// confirm. The confirm step is not ceremony — it is where the two paths tell
+// her different true things. Subscribing opens an approval page. UPGRADING
+// STOPS HER CURRENT PLAN FIRST, irreversibly, and she is told so before she
+// commits rather than after (Fork U(a)'s seam, priced in copy).
+//
+// The button is a plain <button> and never a <form> — this surface has no forms.
+// Sizes are the ruled rungs: 16 body, 10 engraved register.
+function TierPicker({ currentTier, isUpgrade, onDone, show }: {
+  currentTier: string;
+  isUpgrade: boolean;
+  onDone: () => void;
+  show: (m: string) => void;
+}) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const [busy, setBusy]     = useState(false);
+
+  const tiers = ['essential', 'signature', 'prestige'].filter(t => t !== currentTier);
+
+  async function go(tier: string) {
+    setBusy(true);
+    try {
+      const res = isUpgrade ? await upgradeToTier(tier) : await subscribeToTier(tier);
+      if ('ok' in res && res.ok) {
+        // The link IS the close. She is sent straight to Razorpay rather than
+        // shown a second button, because every extra tap between intent and
+        // approval is a place the intent dies.
+        if (res.subscription_link) { window.location.href = res.subscription_link; return; }
+        onDone();
+        return;
+      }
+      // Typed codes, distinct sentences. The third one is the seam.
+      const code = (res as { code?: string }).code;
+      if (code === 'mint_failed_after_cancel') {
+        show(V2.mintFailedAfterCancel(PLAN_LABEL[tier] ?? 'the plan'));
+      } else if (code === 'lane_disabled' || code === 'not_configured') {
+        show(V2.notOpenYet);
+      } else {
+        show(V2.mintFailed);
+      }
+    } catch {
+      show(V2.mintFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{
+        fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+        letterSpacing: '0.42em', textTransform: 'uppercase', marginBottom: 12,
+      }}>{V2.pickerHeading}</div>
+
+      {tiers.map(t => (
+        <div key={t} style={{ marginBottom: 10 }}>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setPicked(picked === t ? null : t)}
+            style={{
+              display: 'flex', width: '100%', alignItems: 'baseline', justifyContent: 'space-between',
+              padding: '13px 14px', background: 'transparent', cursor: busy ? 'default' : 'pointer',
+              border: `0.5px solid ${picked === t ? A.brass : 'rgba(0,0,0,0.12)'}`, borderRadius: 2,
+            }}
+          >
+            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.ink }}>
+              {PLAN_LABEL[t]}
+            </span>
+            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute }}>
+              {PLAN_PRICE[t]}
+            </span>
+          </button>
+
+          {picked === t && (
+            <div style={{ padding: '10px 2px 0' }}>
+              <p style={{
+                fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
+                color: A.inkSoft, margin: '0 0 12px',
+              }}>
+                {isUpgrade
+                  ? V2.upgradeExplain(PLAN_LABEL[t], PLAN_PRICE[t])
+                  : V2.confirm(PLAN_LABEL[t], PLAN_PRICE[t])}
+              </p>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => go(t)}
+                style={{
+                  display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
+                  background: 'transparent', cursor: busy ? 'default' : 'pointer',
+                  border: `0.5px solid ${A.brass}`, borderRadius: 2,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+                  letterSpacing: '0.42em', textTransform: 'uppercase',
+                }}
+              >{busy ? '…' : V2.pickerAction}</button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TDW_10 BILLING v2 · THE CANCEL BLOCK
+// ═══════════════════════════════════════════════════════════════════════════
+// Confirm-before-act, and the warning carries the irreversibility because
+// Razorpay's cancel genuinely cannot be undone: restarting means a new mandate,
+// a new approval, a new short_url. A cancel dialog that said only "are you
+// sure?" would be hiding the one fact that makes the decision different from
+// every other toggle on this screen.
+function CancelBlock({ label, onDone, show }: {
+  label: string;
+  onDone: () => void;
+  show: (m: string) => void;
+}) {
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy]     = useState(false);
+
+  async function doCancel() {
+    setBusy(true);
+    try {
+      const res = await cancelSubscription();
+      if ('ok' in res && res.ok) { onDone(); return; }
+      const code = (res as { code?: string }).code;
+      show(code === 'lane_disabled' || code === 'not_configured' ? V2.notOpenYet : V2.cancelFailed);
+    } catch {
+      show(V2.cancelFailed);
+    } finally {
+      setBusy(false);
+      setAsking(false);
+    }
+  }
+
+  if (!asking) {
+    return (
+      <button type="button" onClick={() => setAsking(true)} style={{
+        width: '100%', padding: '13px 0', marginTop: 14, background: 'transparent',
+        border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',
+        fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
+        letterSpacing: '0.42em', textTransform: 'uppercase',
+      }}>{V2.cancelYes}</button>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      <p style={{
+        fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.6,
+        color: A.inkSoft, margin: '0 0 12px',
+      }}>{V2.cancelWarn(label)}</p>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button type="button" disabled={busy} onClick={doCancel} style={{
+          flex: 1, padding: '13px 0', background: 'transparent',
+          border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2,
+          cursor: busy ? 'default' : 'pointer',
+          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
+          letterSpacing: '0.42em', textTransform: 'uppercase',
+        }}>{busy ? '…' : V2.cancelYes}</button>
+        <button type="button" disabled={busy} onClick={() => setAsking(false)} style={{
+          flex: 1, padding: '13px 0', background: 'transparent',
+          border: `0.5px solid ${A.brass}`, borderRadius: 2,
+          cursor: busy ? 'default' : 'pointer',
+          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+          letterSpacing: '0.42em', textTransform: 'uppercase',
+        }}>{V2.cancelNo}</button>
       </div>
     </div>
   );

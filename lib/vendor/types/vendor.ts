@@ -45,6 +45,12 @@ export interface MeResponse {
     // render a button that goes nowhere.
     billing_status: 'none' | 'active' | 'pending' | 'halted' | 'cancelled';
     razorpay_subscription_link: string | null;
+    // TDW_10 BILLING v2. Declared because the SURFACE now needs it: a null link
+    // no longer means one thing. A vendor who never subscribed and a vendor
+    // whose plan is dead both read `link === null`, and only the id tells them
+    // apart. Not a secret and not actionable — every self-serve door re-derives
+    // the vendor from her own JWT and no endpoint accepts an id from the caller.
+    razorpay_subscription_id: string | null;
     aesthetic_tags: string[] | null;
     rate_min: number | null;
     rate_max: number | null;
