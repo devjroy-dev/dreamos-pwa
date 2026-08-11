@@ -40,6 +40,17 @@ interface Prospect {
   category: string | null; city: string | null; source: string | null;
   state: string; demo_vendor_ref: string | null;
   last_template_at: string | null; session_opened_at: string | null; created_at: string;
+  // ── THE EXIT, RULED SERVER-SIDE (TDW_05 P3-D · R-30.13) ───────────────────
+  // `exit_kind` is 'delete' | 'discard' | 'restore' | 'none' and it is STAMPED
+  // BY THE ROUTER, never derived here. Two of the discriminator's four members
+  // are columns on this row, but the third is a table this screen cannot see and
+  // the fourth is a compliance rule about the opt-out register — so a screen-side
+  // copy would be a second opinion about a state machine living in the other
+  // repository, which is precisely what this page's header forbids. The button
+  // offered and the answer the API would give cannot drift apart, because they
+  // are the same computation.
+  has_conversation?: boolean;
+  exit_kind?: 'delete' | 'discard' | 'restore' | 'none';
 }
 interface Msg {
   id: string; direction: string; channel: string | null;
@@ -56,6 +67,43 @@ const REFUSAL: Record<string, string> = {
   duplicate_phone:         'Already on the board.',
   registered_check_failed: 'Could not check that number against existing vendors. Nothing was added.',
   opted_out:               'They opted out. Nothing sent.',
+  // ── THE EXIT DOOR'S REFUSALS — founder-vetoed 「 approve all 」 2026-08-11 ──
+  // One line per member, because a refusal that does not say WHICH member fired
+  // is a shrug, and a shrug does not tell the founder what to press next. Each
+  // of these three names the member and then names the way through.
+  already_contacted:       'Already messaged — discard instead of deleting.',
+  has_conversation:        'This prospect has a conversation on file — discard instead of deleting.',
+  has_demo:                'A demo was built for this prospect — discard instead of deleting.',
+  // R-30.19/.20 · F-05.68. The opt-out register belongs to the human, not the
+  // house: neither exit verb may erase or relabel it.
+  opted_out_locked:        'They opted out — this row stays as the record of that.',
+  already_discarded:       'This number was discarded. Restore it from the Discarded list to re-add.',
+  discarded:               'This prospect is discarded — restore first if you want to message them.',
+  conversation_check_failed: 'Could not check whether this prospect has a conversation. Nothing was deleted.',
+  not_discarded:           'Only a discarded prospect can be restored.',
+};
+
+// ── THE EXIT CONTROL'S THREE FACES — founder-vetoed 「 approve all 」 2026-08-11 ─
+// One control per row, and WHICH one is the server's answer (`exit_kind`), so the
+// founder is never offered a button that will refuse him. An opted-out row gets
+// 'none' and renders NO control at all — a greyed button still says "this is a
+// thing you might do to this row", and the ruling's whole point is that it is not.
+const EXIT_LABEL: Record<string, string> = {
+  delete:  'Delete',
+  discard: 'Discard',
+  restore: 'Restore',
+};
+const EXIT_CONFIRM: Record<string, string> = {
+  delete:  'Delete this prospect? This number has never been messaged — the row will be removed permanently.',
+  discard: "Discard this prospect? They've already been messaged. The record stays, but the lane will never touch them again.",
+  // NAMES ITS CONSEQUENCE ON PURPOSE: this is the one act in this delivery that
+  // re-arms a send, and a byte never hides the state it creates.
+  restore: "Restore this prospect? They'll return to the lane as cold — the next morning sweep can message them again.",
+};
+const EXIT_TOAST: Record<string, string> = {
+  delete:  'Prospect deleted.',
+  discard: 'Prospect discarded.',
+  restore: 'Prospect restored.',
 };
 const refusalLine = (code?: string, fallback?: string) =>
   (code && REFUSAL[code]) || fallback || 'That did not work.';
@@ -93,6 +141,7 @@ export default function ProspectsPage() {
 
   const [thread, setThread]     = useState<{ p: Prospect; msgs: Msg[] } | null>(null);
   const [confirmSend, setConfirmSend] = useState<string | null>(null);
+  const [confirmExit, setConfirmExit] = useState<string | null>(null);
 
   const call = useCallback(async (path: string, opts?: RequestInit) => {
     const res = await fetch(`${BASE}${path}`, { ...opts, headers: adminHeaders() });
@@ -196,6 +245,22 @@ export default function ProspectsPage() {
     if (r?.ok) { setToast({ msg: 'Marked converted' }); load(); }
     else setToast({ msg: refusalLine(r?.code, r?.error), error: true });
   }
+  // ── THE EXIT, ONE HANDLER FOR THREE VERBS ─────────────────────────────────
+  // The verb is the server's `exit_kind`; this function never decides it. A row
+  // whose kind is 'none' or missing has no control rendered and cannot reach here
+  // — the early return is belt-and-braces against a payload from an older backend
+  // (the pwa deploys separately, so a screen ahead of its API is a real state).
+  async function runExit(p: Prospect) {
+    const kind = p.exit_kind;
+    if (!kind || kind === 'none') return;
+    setConfirmExit(null);
+    const r = kind === 'delete'
+      ? await call(`/${p.id}`, { method: 'DELETE' })
+      : await call(`/${p.id}/${kind}`, { method: 'POST' });
+    if (r?.ok) { setToast({ msg: EXIT_TOAST[kind] }); load(); }
+    else setToast({ msg: refusalLine(r?.code, r?.error), error: true });
+  }
+
   async function openThread(p: Prospect) {
     const r = await call(`/${p.id}/conversation`);
     if (r?.ok) setThread({ p, msgs: r.messages || [] });
@@ -314,15 +379,33 @@ export default function ProspectsPage() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {confirmSend === p.id
                 ? <GoldBtn label="Send it" onClick={() => sendOpener(p)} small />
-                : <GhostBtn label="Send opener" onClick={() => setConfirmSend(p.id)} small disabled={p.state === 'opted_out'} />}
+                : <GhostBtn label="Send opener" onClick={() => { setConfirmExit(null); setConfirmSend(p.id); }} small disabled={p.state === 'opted_out' || p.state === 'discarded'} />}
               {confirmSend === p.id && <GhostBtn label="Cancel" onClick={() => setConfirmSend(null)} small />}
               <GhostBtn label="Conversation" onClick={() => openThread(p)} small />
-              <GhostBtn label="Converted" onClick={() => markConverted(p)} small disabled={p.state === 'converted' || p.state === 'opted_out'} />
+              <GhostBtn label="Converted" onClick={() => markConverted(p)} small disabled={p.state === 'converted' || p.state === 'opted_out' || p.state === 'discarded'} />
+              {/* THE EXIT — the two-press pattern this page already uses for
+                  Send opener, because a destructive act should cost the same
+                  deliberate second press as a real WhatsApp template does. The
+                  confirm SENTENCE below the row is the second press's signal;
+                  the label does not change, so no unvetoed byte appears. */}
+              {p.exit_kind && p.exit_kind !== 'none' && (
+                confirmExit === p.id
+                  ? <>
+                      <GhostBtn label={EXIT_LABEL[p.exit_kind]} onClick={() => runExit(p)} small danger={p.exit_kind !== 'restore'} />
+                      <GhostBtn label="Cancel" onClick={() => setConfirmExit(null)} small />
+                    </>
+                  : <GhostBtn label={EXIT_LABEL[p.exit_kind]} onClick={() => { setConfirmSend(null); setConfirmExit(p.id); }} small danger={p.exit_kind === 'delete'} />
+              )}
             </div>
           </div>
           {confirmSend === p.id && (
             <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.warning, marginTop: 10 }}>
               This sends a real WhatsApp template to {p.phone}.
+            </div>
+          )}
+          {confirmExit === p.id && p.exit_kind && p.exit_kind !== 'none' && (
+            <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.warning, marginTop: 10 }}>
+              {EXIT_CONFIRM[p.exit_kind]}
             </div>
           )}
         </Row>
