@@ -105,6 +105,47 @@ const EXIT_TOAST: Record<string, string> = {
   discard: 'Prospect discarded.',
   restore: 'Prospect restored.',
 };
+// ── THE BOARD'S COPY BOOK — founder-vetoed 「 approve all 」 2026-08-12 ────────
+// F-05.70's cure, arm (c). THE TILES WERE FIVE HARDCODED CARDS over eight states,
+// and three states (replied · expired · discarded) had no tile at all — so a lane
+// holding six prospects and four sent openers rendered FIVE ZEROS, witnessed by
+// the founder against his own SQL in the same minute.
+//
+// THE MAP IS COPY; THE FALLBACK IS THE CLASS-CURE. Humanising the state key the
+// way the pills do would render `templated` — jargon, a copy regression. So the
+// curated labels are vetoed bytes and the fallback exists for the state nobody
+// has named yet: a ninth state now RENDERS (with the server counting it, per
+// R-30.23) instead of vanishing. The hardcoded list is retired, not extended.
+const TILE_LABEL: Record<string, string> = {
+  cold:       'Cold',
+  // NOT 'Opener sent'. That byte read `counts.templated`, which is a WAYPOINT —
+  // the state a row occupies between the send and their first word. Both tiles
+  // now stand: this one is where-they-are-now, `Openers sent` below is ever.
+  templated:  'Opener sent, no reply yet',
+  replied:    'Replied',
+  in_session: 'In session',
+  converted:  'Converted',
+  opted_out:  'Opted out',
+  expired:    'Window closed',
+  discarded:  'Discarded',
+};
+const TILE_SUB: Record<string, string> = {
+  // ── R-30.24 · THE SEAT'S OWN CATCH, RATIFIED ────────────────────────────────
+  // THIS READ 「 no opener sent yet 」 and it became FALSE one sitting ago, by the
+  // hand of the delivery that shipped the restore verb: POST /:id/restore writes
+  // `state: 'cold'` and correctly does NOT clear `last_template_at`, because the
+  // send happened. So a restored row is COLD AND MESSAGED, and the old sub-line
+  // said the opposite about exactly the rows that verb creates.
+  cold:       'awaiting the morning sweep',
+  in_session: 'Mira is talking to them',
+  expired:    'the 24h reply window ran out',
+  discarded:  'off the lane, record kept',
+};
+// The unknown ninth: the pills' own humanising, so an unnamed state reads as
+// something rather than as nothing.
+const humanise = (s: string) => s.replace(/_/g, ' ');
+const tileLabel = (state: string) => TILE_LABEL[state] ?? humanise(state);
+
 const refusalLine = (code?: string, fallback?: string) =>
   (code && REFUSAL[code]) || fallback || 'That did not work.';
 
@@ -118,6 +159,7 @@ const when = (iso: string | null) => {
 export default function ProspectsPage() {
   const [rows, setRows]         = useState<Prospect[]>([]);
   const [counts, setCounts]     = useState<Record<string, number>>({});
+  const [openersSent, setOpenersSent] = useState<number | null>(null);
   const [state, setState]       = useState('all');
   const [loading, setLoading]   = useState(true);
   const [toast, setToast]       = useState<{ msg: string; error?: boolean } | null>(null);
@@ -154,7 +196,13 @@ export default function ProspectsPage() {
       call(`/?state=${state}&limit=200`),
       call('/cap'),
     ]);
-    if (board?.ok) { setRows(board.prospects || []); setCounts(board.counts || {}); }
+    if (board?.ok) {
+      setRows(board.prospects || []); setCounts(board.counts || {});
+      // `?? null` NEVER `?? 0`: a backend that has not shipped this field yet is
+      // UNKNOWN, and rendering 0 over it would re-commit the exact false-zero this
+      // cure exists to kill. The tile renders an em-dash for null.
+      setOpenersSent(typeof board.openers_sent_total === 'number' ? board.openers_sent_total : null);
+    }
     if (capRes?.ok) { setCap(capRes.cap); setCapDraft(String(capRes.cap)); }
     setLoading(false);
   }, [call, state]);
@@ -279,11 +327,14 @@ export default function ProspectsPage() {
 
       {/* ── THE BOARD AT A GLANCE ─────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 8 }}>
-        <StatCard label="Cold"        value={counts.cold ?? 0}       sub="no opener sent yet" />
-        <StatCard label="Opener sent" value={counts.templated ?? 0} />
-        <StatCard label="In session"  value={counts.in_session ?? 0} sub="Mira is talking to them" accent />
-        <StatCard label="Converted"   value={counts.converted ?? 0} />
-        <StatCard label="Opted out"   value={counts.opted_out ?? 0} />
+        {/* THE CUMULATIVE TILE FIRST — it is the question the founder actually
+            asked of this row ("how many openers went out"), and the one the old
+            board answered wrongly. Every tile after it is a where-they-are-now
+            state count, off the same counts object the FilterPills read. */}
+        <StatCard label="Openers sent" value={openersSent ?? '—'} sub="every opener ever sent" accent />
+        {Object.keys(counts).map(s => (
+          <StatCard key={s} label={tileLabel(s)} value={counts[s] ?? 0} sub={TILE_SUB[s]} />
+        ))}
       </div>
 
       {/* ── THE DIAL ──────────────────────────────────────────────────────── */}
