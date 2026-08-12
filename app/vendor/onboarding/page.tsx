@@ -1,86 +1,219 @@
 'use client';
 // app/vendor/onboarding/page.tsx
-// First-launch web onboarding for vendors who joined via invite code.
-// Shown when onboarding_state = 'new' (vendor/page.tsx redirects here).
+// ARC OB · charter OB-P · THE VENDOR FORM — six boxes, keyed on the server's contract.
 //
-// Captures identical fields to the WhatsApp conversational onboarding:
-//   name (personal first name) → users.name
-//   instagram_handle           → vendors.instagram_handle (becomes routing_handle priority)
-//   business_name              → vendors.business_name (optional)
-//   category                   → vendors.category
-//   city                       → vendors.city
-//   open_to_travel             → vendors.open_to_travel
-//   stated_rate                → vendor_state.pricing_policy
+// ═══ SERVER-TRUTH DOCTRINE (OB-P §5) ════════════════════════════════════════
+// This form holds NO copy of the predicate's rules, NO copy of the category
+// taxonomy, and NO refusal sentences of its own. It renders the server's:
+//   · which fields are outstanding  → `onboarding.missing[]` (GET /vendor/me)
+//                                     and `missing[]` (400 INCOMPLETE)
+//   · which categories are legal    → `allowed[]` (400 INCOMPLETE)
+//   · why a submission was refused  → `error` (400), rendered verbatim
+// That is the one arrangement in which taxonomy churn stays harmless: a token
+// added in dream-os appears in this picker with NO edit here.
 //
-// IG handle is framed explicitly: "Your clients tap this to reach your PA."
-// On submit → POST /api/v2/vendor/onboarding → routing_handle assigned
-//           → session name updated → redirect to /vendor
+// WHAT STOOD HERE BEFORE, and why none of it survived:
+//   · a FOURTH shadow taxonomy — CATEGORIES (15 tokens) + CAT_LABEL, carrying
+//     'videography', 'hair', 'venue', 'catering', 'music', 'couture',
+//     'invitations'; declared, never read, never sent. F-OB.8. It dies here
+//     rather than being re-pointed: RETIRE-WITH-THE-READER, and there is no
+//     reader to move because there never was one.
+//   · `category` state with no control and no place in the POST body
+//   · NO name input at all — `name` was seeded from session and never collected,
+//     which is how vendors reached the estate nameless
+//   · a live `open_to_travel` toggle writing a column migration 0122 stamped
+//     STOP-WRITING, and which the cured endpoint no longer writes at all
+//     (F-OB.12) — service_area supersedes it, because a boolean cannot express
+//     worldwide (two values, three states)
+//   · `if (!city.trim())` — a CLIENT deciding completeness, the exact thing the
+//     server-truth doctrine forbids
+//   · `stated_rate` prose in place of `rate_min`, so starting price never landed
+//
+// ═══ WHY THIS PAGE PROBES ON MOUNT ══════════════════════════════════════════
+// The picker must build from `allowed[]`, which rides the 400 INCOMPLETE. A form
+// cannot render options it can only obtain by submitting. So: the GET answers
+// "am I complete, and what is outstanding"; if and ONLY IF it says incomplete,
+// one empty POST asks the door "what may I choose from" — and that probe is safe
+// BY THE ENDPOINT'S OWN RULING, not by hope: the refusal is ATOMIC, so an
+// incomplete submission writes nothing at all. The probe is never fired for a
+// complete vendor, because for her the same POST would be a 200 and a write.
+//
+// APPROVED-COPY-CARRIES-ITS-HASH. Every string below marked 「 」 in the veto
+// sheet is founder-signed (2026-08-13, 「 approve as proposed 」) and frozen at
+// the byte. An edited comma is a fresh veto and may not ride a refactor.
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getVendorSession, setVendorSession } from '@/lib/vendor/session';
-import { postJson } from '@/lib/vendor/api/_base';
+import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { useT } from '@/lib/vendor/ThemeContext';
 
-const CATEGORIES = [
-  'photography', 'videography', 'makeup', 'hair', 'mehendi',
-  'decor', 'planning', 'venue', 'catering', 'music',
-  'choreography', 'jewellery', 'couture', 'invitations', 'other',
+// ── DISPLAY LABELS · founder-signed 2026-08-13 ─────────────────────────────
+// A LABEL MAP IS NOT A TAXONOMY. This object answers "what does a human read
+// for this token", never "which tokens exist" — that question is answered
+// exclusively by the server's `allowed[]`. The distinction is load-bearing: the
+// picker iterates allowed[], not Object.keys(CAT_LABEL), so a token the server
+// adds RENDERS (through the fallback below) instead of silently disappearing.
+// That is the difference between this and the shadow taxonomy it replaces.
+const CAT_LABEL: Record<string, string> = {
+  planning:        'Event Planner',
+  designer:        'Designer',
+  photography:     'Photography & Videography',
+  makeup:          'Make up Artist',
+  hairstylist:     'Hairstylist',
+  jewellery:       'Jewellery',
+  decor:           'Decor',
+  venue_catering:  'Venue & Catering',
+  performer:       'Performer (Anchor, DJ, Choreography)',
+  content_creator: 'Content Creator',
+  other:           'Something else',
+};
+
+// An unlabelled token still renders, readably, rather than vanishing from the
+// picker — the drift-proof half. Unvetoed by construction: it mints no words of
+// its own, it only makes the server's token legible until copy catches up.
+const labelFor = (token: string) =>
+  CAT_LABEL[token] || token.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+// ── SERVICE AREA · SET A, frozen at migration 0122 ─────────────────────────
+// Not vetoable here — these three were frozen server-side and this is their
+// display half, in the ruled order.
+const SERVICE_AREAS: { token: string; label: string }[] = [
+  { token: 'pan_india',     label: 'Across India' },
+  { token: 'worldwide',     label: 'Worldwide' },
+  { token: 'select_cities', label: 'Select cities' },
 ];
 
-const CAT_LABEL: Record<string, string> = {
-  photography: 'Photography', videography: 'Videography', makeup: 'Makeup',
-  hair: 'Hair', mehendi: 'Mehendi', decor: 'Decor', planning: 'Planning',
-  venue: 'Venue', catering: 'Catering', music: 'Music',
-  choreography: 'Choreography', jewellery: 'Jewellery', couture: 'Couture',
-  invitations: 'Invitations', other: 'Other',
-};
+interface VendorMe {
+  ok: boolean;
+  vendor?: {
+    name?: string | null;
+    business_name?: string | null;
+    category?: string | null;
+    city?: string | null;
+    rate_min?: number | null;
+    service_area?: string | null;
+    service_cities?: string[] | null;
+    instagram_handle?: string | null;
+    onboarding?: { complete: boolean; missing: string[] };
+  };
+}
 
 interface OnboardResp {
   ok: boolean;
+  error?: string;
+  code?: string;
+  missing?: string[];
+  allowed?: string[];
   routing_handle?: string;
   tdw_link?: string;
-  error?: string;
 }
 
 export default function VendorOnboardingPage() {
   const router = useRouter();
   const T      = useT();
 
-  const [name,         setName]        = useState(() => getVendorSession()?.name || '');
-  const [igHandle,     setIgHandle]    = useState('');
-  const [businessName, setBusiness]    = useState('');
-  const [category,     setCategory]    = useState('');
-  const [city,         setCity]        = useState('');
-  const [travel,       setTravel]      = useState(false);
-  const [rate,         setRate]        = useState('');
-  const [submitting,   setSubmitting]  = useState(false);
-  const [toast,        setToast]       = useState('');
-  const [done,         setDone]        = useState(false);
-  const [tdwLink,      setTdwLink]     = useState('');
+  const [loading,  setLoading]  = useState(true);
+  const [allowed,  setAllowed]  = useState<string[]>([]);
+  const [missing,  setMissing]  = useState<string[]>([]);
+  const [refusal,  setRefusal]  = useState('');
+
+  const [name,         setName]     = useState('');
+  const [igHandle,     setIgHandle] = useState('');
+  const [businessName, setBusiness] = useState('');
+  const [category,     setCategory] = useState('');
+  const [city,         setCity]     = useState('');
+  const [rate,         setRate]     = useState('');
+  const [area,         setArea]     = useState('');
+  const [cities,       setCities]   = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+  const [toast,      setToast]      = useState('');
+  const [done,       setDone]       = useState(false);
+  const [tdwLink,    setTdwLink]    = useState('');
 
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
 
+  // ── MOUNT: the verdict, the prefill, and the picker's options ────────────
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const me = await getJson<VendorMe>('/api/v2/vendor/me', true);
+        if (!live) return;
+        const v = me.vendor;
+        if (!me.ok || !v) { setLoading(false); return; }
+
+        // An ALREADY-COMPLETE vendor never sees this form and never triggers the
+        // probe. She is here by a stale link or a back button, not by the guard.
+        if (v.onboarding?.complete) { router.replace('/vendor'); return; }
+
+        setName(v.name || getVendorSession()?.name || '');
+        setBusiness(v.business_name || '');
+        setCategory(v.category || '');
+        setCity(v.city || '');
+        setRate(v.rate_min ? String(v.rate_min) : '');
+        setArea(v.service_area || '');
+        setCities((v.service_cities || []).join(', '));
+        setIgHandle(v.instagram_handle || '');
+        setMissing(v.onboarding?.missing || []);
+
+        // The probe. Guaranteed a 400 by the verdict above, and therefore
+        // guaranteed to write nothing (the endpoint's atomic-refusal ruling).
+        const probe = await postJson<OnboardResp>('/api/v2/vendor/onboarding', {});
+        if (!live) return;
+        if (probe.allowed) setAllowed(probe.allowed);
+      } catch {
+        if (live) showToast('Could not connect. Try again.');
+      }
+      if (live) setLoading(false);
+    })();
+    return () => { live = false; };
+  }, [router]);
+
   const submit = useCallback(async () => {
-    if (!city.trim())    { showToast('City is required.'); return; }
-    if (submitting)      return;
+    if (submitting) return;
     setSubmitting(true);
+    setRefusal('');
     try {
-      const res = await postJson<OnboardResp>('/api/v2/vendor/onboarding', {
-        instagram_handle: igHandle.trim().replace(/^@/, '') || undefined,
+      // service_area and service_cities travel as a PAIR or not at all — the
+      // endpoint's validator refuses one without the other, and 0122's pairing
+      // CHECK is the floor under that. `null`, never [], when the area is not
+      // select_cities: the CHECK reads `is null` and an empty array satisfies
+      // neither arm.
+      const cityList = cities.split(',').map((c) => c.trim()).filter(Boolean);
+      const body: Record<string, unknown> = {
+        name:             name.trim()         || undefined,
         business_name:    businessName.trim() || undefined,
-        city:             city.trim(),
-        open_to_travel:   travel,
-        stated_rate:      rate.trim() || undefined,
-      });
-      if (!res.ok) { showToast(res.error || 'Something went wrong.'); setSubmitting(false); return; }
+        category:         category            || undefined,
+        city:             city.trim()         || undefined,
+        rate_min:         rate.trim()         || undefined,
+        instagram_handle: igHandle.trim().replace(/^@/, '') || undefined,
+      };
+      if (area) {
+        body.service_area   = area;
+        body.service_cities = area === 'select_cities' ? cityList : null;
+      }
+
+      const res = await postJson<OnboardResp>('/api/v2/vendor/onboarding', body);
+
+      if (!res.ok) {
+        // THE SERVER'S SENTENCE, RENDERED — never re-worded, never replaced by a
+        // friendlier local one. It is already founder-vetoed at the endpoint.
+        setRefusal(res.error || '');
+        setMissing(res.missing || []);
+        if (res.allowed) setAllowed(res.allowed);
+        setSubmitting(false);
+        return;
+      }
+
       const session = getVendorSession();
       if (session) setVendorSession({ ...session, name: name.trim() });
       if (res.tdw_link) setTdwLink(res.tdw_link);
       setDone(true);
     } catch { showToast('Could not connect. Try again.'); }
     setSubmitting(false);
-  }, [name, igHandle, businessName, category, city, travel, rate, submitting]);
+  }, [name, igHandle, businessName, category, city, rate, area, cities, submitting]);
 
   // ── Tokens ──────────────────────────────────────────────────────────────
   const INK    = T.ink;
@@ -104,11 +237,27 @@ export default function VendorOnboardingPage() {
     display: 'block', marginBottom: 6,
   };
 
+  // THE MISSING MARKER — rendered from the server's missing[], never from a
+  // local rule about which boxes are empty. A field the server has not asked
+  // for does not wear this, even if it looks blank here.
+  const Label = ({ text, field }: { text: string; field: string }) => (
+    <label style={lbl}>
+      {text}
+      {missing.includes(field) && (
+        <span style={{ color: BRASS, marginLeft: 8, letterSpacing: '0.14em' }}>Still needed</span>
+      )}
+    </label>
+  );
+
   const Toast = toast ? (
     <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, color: BRASS, whiteSpace: 'nowrap', zIndex: 99 }}>
       {toast}
     </div>
   ) : null;
+
+  if (loading) {
+    return <div style={{ position: 'fixed', inset: 0, background: T.headerBg }} aria-busy="true" />;
+  }
 
   // ── Done screen ──────────────────────────────────────────────────────────
   if (done) {
@@ -145,7 +294,7 @@ export default function VendorOnboardingPage() {
     );
   }
 
-  // ── Onboarding form ──────────────────────────────────────────────────────
+  // ── The six-box form ─────────────────────────────────────────────────────
   return (
     <div style={{ position: 'fixed', inset: 0, background: T.headerBg, overflowY: 'auto' }}>
       {Toast}
@@ -161,11 +310,79 @@ export default function VendorOnboardingPage() {
           Two minutes. Your clients will use this to reach you.
         </p>
 
-        {/* Instagram */}
+        {/* THE SERVER'S REFUSAL — verbatim, above the boxes it is about */}
+        {refusal && (
+          <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: BRASS, background: 'rgba(201,168,76,0.08)', border: `0.5px solid ${BRASS}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 28px' }}>
+            {refusal}
+          </p>
+        )}
+
+        <Label text="Your name" field="name" />
+        <input value={name} onChange={(e) => setName(e.target.value)} style={inp} />
+
+        <Label text="Studio or business name" field="business_name" />
+        <input value={businessName} onChange={(e) => setBusiness(e.target.value)} style={inp} />
+
+        {/* THE PICKER — built from allowed[], never from a list held here */}
+        <Label text="What you do" field="category" />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+          {allowed.map((token) => (
+            <button
+              key={token}
+              onClick={() => setCategory(token)}
+              style={{
+                background: category === token ? BRASS : 'transparent',
+                border: `0.5px solid ${category === token ? BRASS : BORDER}`,
+                borderRadius: 100, padding: '8px 14px', cursor: 'pointer',
+                fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
+                fontWeight: 300, fontSize: 16, lineHeight: 1.2,
+                color: category === token ? '#0C0A09' : INK,
+                transition: 'all 150ms ease',
+              }}
+            >
+              {labelFor(token)}
+            </button>
+          ))}
+        </div>
+
+        <Label text="Based in" field="city" />
+        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Mumbai" style={inp} />
+
+        <Label text="Your starting price" field="starting_price" />
+        <input value={rate} onChange={(e) => setRate(e.target.value)} placeholder="e.g. 80,000" style={inp} />
+
+        <Label text="Where you work" field="service_area" />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+          {SERVICE_AREAS.map(({ token, label }) => (
+            <button
+              key={token}
+              onClick={() => setArea(token)}
+              style={{
+                background: area === token ? BRASS : 'transparent',
+                border: `0.5px solid ${area === token ? BRASS : BORDER}`,
+                borderRadius: 100, padding: '8px 14px', cursor: 'pointer',
+                fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
+                fontWeight: 300, fontSize: 16, lineHeight: 1.2,
+                color: area === token ? '#0C0A09' : INK,
+                transition: 'all 150ms ease',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {area === 'select_cities' && (
+          <>
+            <label style={lbl}>Which cities</label>
+            <input value={cities} onChange={(e) => setCities(e.target.value)} placeholder="Add a city" style={inp} />
+          </>
+        )}
+
         <label style={lbl}>Instagram handle</label>
         <input
           value={igHandle}
-          onChange={e => setIgHandle(e.target.value.replace(/\s/g, ''))}
+          onChange={(e) => setIgHandle(e.target.value.replace(/\s/g, ''))}
           placeholder="@yourhandle"
           style={inp}
         />
@@ -173,35 +390,6 @@ export default function VendorOnboardingPage() {
           Your clients tap this to reach your PA. Becomes your TDW link.
         </p>
 
-        {/* Business name */}
-        <label style={lbl}>Studio or business name</label>
-        <input value={businessName} onChange={e => setBusiness(e.target.value)} placeholder="optional" style={inp} />
-
-        {/* City */}
-        <label style={lbl}>Based in *</label>
-        <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Mumbai" style={inp} />
-
-        {/* Travel toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div>
-            <p style={{ ...lbl, margin: 0 }}>Open to travel?</p>
-            <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, fontWeight: 300, color: MUTE, margin: '4px 0 0' }}>
-              Destination or outstation weddings
-            </p>
-          </div>
-          <button
-            onClick={() => setTravel(v => !v)}
-            style={{ width: 48, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer', background: travel ? BRASS : BORDER, position: 'relative', transition: 'background 200ms ease', flexShrink: 0 }}
-          >
-            <span style={{ position: 'absolute', top: 3, left: travel ? 25 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 200ms ease' }} />
-          </button>
-        </div>
-
-        {/* Rate */}
-        <label style={lbl}>Typical rate for a wedding day</label>
-        <input value={rate} onChange={e => setRate(e.target.value)} placeholder="e.g. Rs 80,000 — ballpark, or leave blank" style={inp} />
-
-        {/* Submit */}
         <button
           onClick={submit}
           disabled={submitting}

@@ -24,11 +24,13 @@
 // exception), ThemeProvider, and the BottomNav mount — now the five-door bar.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Splash } from '@/components/vendor/Splash'; // TDW_04 A4 (P6): cold-open hero
 import { useEffect } from 'react';
 import { BottomNav } from '@/components/vendor/BottomNav';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
+import { getVendorSession } from '@/lib/vendor/session';
+import { getJson } from '@/lib/vendor/api/_base';
 
 // Apply saved theme class immediately on mount to avoid flash
 // This runs in layout so it fires once for the whole shell
@@ -108,10 +110,66 @@ function roomClassForPath(pathname: string): 'room-studio' | 'room-discover' | n
   return 'room-studio';
 }
 
+// ── ARC OB · charter OB-P · THE MANDATORY REDIRECT (F-1 ratified) ────────────
+// R-OB.1/R-OB.2: one onboarding door, and it is the form; no grace turns. An
+// un-onboarded vendor who signs in is sent to it, and no studio surface renders
+// behind her back.
+//
+// IT LIVES IN THE LAYOUT, MOVED NOT DUPLICATED. The guard was a page guard in
+// app/vendor/page.tsx (:799-802) and it is deleted there in this same diff. Two
+// reasons it had to move:
+//   · IT ONLY COVERED /vendor. A vendor landing on /vendor/discover,
+//     /vendor/list or /vendor/settings — every one of them a real link she can
+//     hold — bypassed it entirely. The layout mounts on all of them.
+//   · IT READ THE MARKER. `onboarding_state !== 'complete'` is a FLOW POSITION,
+//     not a fact (R-OB.8). Four live vendor rows carry 'complete' over rows the
+//     predicate refuses, and the old guard waved exactly those four through
+//     forever — the precise rows backfill-on-login is owed to. It now reads
+//     `onboarding.complete`, computed server-side from the one predicate home
+//     (dream-os src/lib/onboardingPredicate.js, on the wire since CE-32's micro).
+//
+// THIS CLIENT NEVER DECIDES COMPLETENESS. It asks and it obeys. A second
+// definition of "onboarded" living in the PWA is the thing this arc spent four
+// sittings collapsing into one.
+//
+// CIRCLE MEMBERS ARE EXEMPT BY STRUCTURE, NOT BY A BRANCH. They hold
+// circle_session/circle_token and live entirely under /coplanner; this layout
+// never mounts for them. A role check here would imply a shared path that does
+// not exist, and would be a second thing to keep true.
+//
+// FAILS OPEN, deliberately. A network error, a 401 mid-refresh, or a response
+// without the verdict leaves the vendor where she is. A guard that strands a
+// paying vendor in her own studio because a fetch flaked is worse than one that
+// misses a turn — and R-OB.9's gate is the backstop on the WhatsApp side.
+function useOnboardingGuard(pathname: string, onLogin: boolean) {
+  const router = useRouter();
+  useEffect(() => {
+    if (onLogin) return;
+    // The form itself is exempt, or the redirect is a loop.
+    if (pathname.startsWith('/vendor/onboarding')) return;
+    if (typeof window === 'undefined') return;
+    if (!getVendorSession()?.access_token) return;
+
+    let live = true;
+    getJson<{ ok: boolean; vendor?: { onboarding?: { complete: boolean } } }>('/api/v2/vendor/me', true)
+      .then((d) => {
+        if (!live || !d.ok) return;
+        // `=== false` not `!complete`: an ABSENT verdict is a server that did
+        // not answer the question, not a vendor who is incomplete. Only an
+        // explicit false redirects.
+        if (d.vendor?.onboarding?.complete === false) router.replace('/vendor/onboarding');
+      })
+      .catch(() => { /* non-fatal — fail open, see above */ });
+    return () => { live = false; };
+  }, [pathname, onLogin, router]);
+}
+
 export default function WeddingLayout({ children }: { children: React.ReactNode }) {
   useThemeInit();
   const pathname = usePathname() ?? '/vendor';
   const onLogin  = pathname === '/' || pathname.startsWith('/vendor/auth') || pathname.startsWith('/vendor/pin');
+
+  useOnboardingGuard(pathname, onLogin);
 
   // Set room class on BOTH html and body so the atmosphere paints both layers
   // (some browsers paint the html background, others the body — we cover both).

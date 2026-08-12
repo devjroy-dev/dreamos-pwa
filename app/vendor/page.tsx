@@ -796,11 +796,15 @@ export default function WeddingChatPage() {
               });
               return;
             }
-            // Check onboarding state
-            const state = data.vendor.onboarding_state as string | null;
-            if (state && state !== 'complete') {
-              router.replace('/vendor/onboarding');
-            }
+            // ── ARC OB · charter OB-P · THE ONBOARDING GUARD MOVED OUT ───────
+            // What stood here read `onboarding_state !== 'complete'` and pushed
+            // to /vendor/onboarding. It is now in app/vendor/layout.tsx, MOVED
+            // not duplicated (F-1), for two reasons it could not fix in place:
+            // it covered only /vendor, so every other studio door bypassed it;
+            // and it trusted the MARKER, which four live rows carry falsely
+            // (R-OB.8 — a flow position is not a fact). The layout reads the
+            // server-computed predicate verdict instead. Nothing about session
+            // verification above changed; only the onboarding branch left.
           }
         })
         .catch(() => { /* non-fatal — network error, stay on chat */ });
