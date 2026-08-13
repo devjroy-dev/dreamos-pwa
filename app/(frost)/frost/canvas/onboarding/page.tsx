@@ -64,7 +64,6 @@ const T = {
 interface CoupleMe {
   ok: boolean;
   couple?: {
-    partner_name?: string | null;
     wedding_date?: string | null;
     wedding_city?: string | null;
     budget_total?: number | null;
@@ -82,7 +81,6 @@ export default function BrideOnboardingPage() {
 
   const [name,        setName]        = useState('');
   const [weddingDate, setWeddingDate] = useState('');
-  const [partnerName, setPartnerName] = useState('');
   const [weddingCity, setWeddingCity] = useState('');
   const [budgetRaw,   setBudgetRaw]   = useState('');
 
@@ -116,7 +114,6 @@ export default function BrideOnboardingPage() {
         const c = me.couple;
         if (c?.onboarding?.complete) { router.replace('/frost'); return; }
         if (c) {
-          setPartnerName(c.partner_name || '');
           setWeddingDate(c.wedding_date || '');
           setWeddingCity(c.wedding_city || '');
           setBudgetRaw(c.budget_total ? String(c.budget_total) : '');
@@ -145,7 +142,6 @@ export default function BrideOnboardingPage() {
     const body: Record<string, unknown> = {};
     if (name.trim())        body.name          = name.trim();
     if (weddingDate.trim()) body.wedding_date  = weddingDate.trim();
-    if (partnerName.trim()) body.partner_name  = partnerName.trim();
     if (weddingCity.trim()) body.wedding_city  = weddingCity.trim();
     const budget = parseBudget(budgetRaw);
     if (budget)             body.budget_total  = budget;
@@ -178,7 +174,7 @@ export default function BrideOnboardingPage() {
       showToast('Could not connect. Try again.');
     }
     setSubmitting(false);
-  }, [name, weddingDate, partnerName, weddingCity, budgetRaw, submitting]);
+  }, [name, weddingDate, weddingCity, budgetRaw, submitting]);
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const inp: React.CSSProperties = {
@@ -273,13 +269,18 @@ export default function BrideOnboardingPage() {
           style={{ ...inp, colorScheme: 'dark' }}
         />
 
-        <label style={lbl}>And who&apos;s the lucky person?</label>
-        <input
-          value={partnerName}
-          onChange={e => setPartnerName(e.target.value)}
-          placeholder="Their name"
-          style={inp}
-        />
+        {/* PARTNER NAME — FOUNDER VETO-DELETE, 2026-08-13. The label 「 And
+            who's the lucky person? 」 and its 「 Their name 」 placeholder are
+            RETIRED, not hidden: a control commented out is a control the next
+            reader restores by accident.
+
+            THE COLUMN AND ITS OTHER WRITERS ARE UNTOUCHED. couples.partner_name
+            still exists, PATCH /couple/me still writes it, and the bride agent's
+            save_wedding_detail still writes it from a turn. What retires is THIS
+            FORM'S claim on the field — RETIRE-WITH-THE-READER cuts the reader,
+            never the column underneath it, and a DDL drop would be its own micro
+            with its own census. The endpoint continues to ACCEPT partner_name
+            from any caller that sends it; this one simply stops asking. */}
 
         <label style={lbl}>Where are the functions taking place?</label>
         <input

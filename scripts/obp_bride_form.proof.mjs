@@ -32,8 +32,14 @@ ok(FORM.includes('e.g. 30L, 1Cr, Rs 25,00,000'), '2.3 the resident budget placeh
 // BENCH DEFECT B-1, self-caught: this list held a REAL apostrophe where the
 // source holds the JSX entity `&apos;`. The cell reddened on correct code — a
 // cell that reddens on the right answer is broken, not strict.
-for (const s of ['When is the big day?', 'And who&apos;s the lucky person?', 'Where are the functions taking place?',
-                 'Their name', 'City or venue', 'Continue →', 'Saving…', 'Open my space →']) {
+// AMENDED — FOUNDER VETO-DELETE 2026-08-13. 「 And who's the lucky person? 」
+// and 「 Their name 」 left this list because the control they belonged to is
+// retired. RETIRE-WITH-THE-READER applied to a bench: the ruling that removes a
+// byte owns the cell that pinned it. Their absence is now asserted at §8 — moved,
+// not merely deleted, because a cell that stops checking is a cell that stops
+// noticing.
+for (const s of ['When is the big day?', 'Where are the functions taking place?',
+                 'City or venue', 'Continue →', 'Saving…', 'Open my space →']) {
   ok(FORM.includes(s) || `resident byte 「 ${s} 」 was lost`, `2.4 resident 「 ${s} 」 carried`);
 }
 
@@ -79,6 +85,29 @@ ok(/getAccessToken\(\)/.test(LAY), '6.7 a signed-out visitor is not probed');
 console.log('\n── 7 · the complete bride never sees the form ──');
 ok(/onboarding\?\.complete\) \{ router\.replace\('\/frost'\)/.test(FORM),
    '7.1 an already-complete bride is bounced to /frost');
+
+console.log('\n── 8 · partner_name is RETIRED from this form (founder veto-delete) ──');
+ok(!/And who/.test(FORM) || 'the partner-name label survives',
+   '8.1 the label 「 And who\'s the lucky person? 」 is gone');
+ok(!/Their name/.test(FORM) || 'the placeholder survives',
+   '8.2 the placeholder 「 Their name 」 is gone');
+ok(!/setPartnerName|partnerName/.test(FORM) || 'partner-name state survives',
+   '8.3 no partner-name state remains — the control is REMOVED, not hidden');
+ok(!/body\.partner_name/.test(FORM) || 'the form still sends partner_name',
+   '8.4 the form no longer SENDS partner_name');
+// THE COLUMN IS NOT THE CONTROL — DECLARED, NOT ASSERTED HERE.
+// A first draft of this cell read ../dream-os/src/api/couple/onboarding.js to
+// prove the endpoint still accepts partner_name. That is F-06.196's defect:
+// this bench runs in the PWA plane, the sibling repo is NOT laid out beside it
+// on the founder's machine, and the cell would have thrown there or — worse, in
+// a tolerant variant — passed vacuously while proving nothing. A bench that
+// silently changes what it measures depending on who runs it is not a bench.
+//
+// The claim stands and belongs to the OTHER plane's benches, where it already
+// lives: b05_f0518_onboarding_bench §3.2 drives the real handler and asserts
+// partner_name lands on couples. Recorded here so the next reader knows the
+// retirement was scoped to this FORM and did not touch the column, its endpoint,
+// or its other writers (PATCH /couple/me, the bride agent's save_wedding_detail).
 
 console.log('\n══════════════════════════════════════════════');
 console.log(`obp_bride_form: ${pass} passed, ${fail} failed`);
