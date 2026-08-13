@@ -383,13 +383,35 @@ ok('§10.6 ⑪ still holds — no surface announces that anything is withheld',
      .some(re => re.test(bloomSrc) || re.test(stripSrc)));
 
 // ⑨ — the byte is frozen; its DRESS was the defect.
-// THE CLAIM IS ABOUT WEIGHT, SO THE CELL MUST READ THE SIZE. Its first cut
-// matched the font FAMILY only, and §8.M14 — which shrinks 46px to 9px and
-// recolours to inkMute while leaving `Italianno` in place — sailed straight
-// through it. A cell that checks the typeface has not checked the presence.
-ok('§10.7 ⑨ speaks at the estate\'s empty-state weight, not a timestamp\'s',
-   /Italianno[^}]*fontSize:46[^}]*pgAccent[\s\S]{0,80}\{POLL_EMPTY\}/.test(bloomSrc),
-   '⑨ is dressed as a footnote again — 9px mono is the treatment for `loading…`');
+// THE CLAIM IS ABOUT WEIGHT, SO THE CELL MUST READ THE SIZE. An earlier cut
+// matched the font FAMILY only, and §8.M14 — which shrinks the size and
+// recolours while leaving the typeface in place — sailed straight through it.
+// A cell that checks the typeface has not checked the presence.
+//
+// ── THE TARGET MOVED AT D-3d, AND THE TOKEN FILE IS WHY ───────────────────
+// D-3c dressed ⑨ at Italianno 46 = `FT.greeting`, which the language declares
+// "ONE per screen" and the masthead already spends. That made the empty state a
+// SECOND hero on a page whose subject is the circle, not polls. It now sits at
+// `FT.body` — "ALL body prose, THE FLOOR" — the same treatment the activity
+// feed's own empty SENTENCE uses. (Its Italianno line above is that surface's
+// HEAD, because the feed is that surface's subject. ⑨ is not.)
+//
+// The cell asserts a FLOOR and a CEILING, because this byte has now been wrong
+// in both directions in one sitting: too small to be seen, then too large to
+// belong. `FT.body` is named rather than the number, so the rung moving moves
+// this cell with it.
+ok('§10.7 ⑨ speaks at body weight — neither a timestamp nor a second hero',
+   /Fraunces[^}]*fontSize:FT\.body[^}]*pgInkSoft[\s\S]{0,120}\{POLL_EMPTY\}/.test(bloomSrc),
+   '⑨ is dressed as a footnote or as a hero; it is a sentence');
+ok('§10.7b ⑨ does NOT borrow a one-per-screen rung',
+   !/fontSize:(46|52|FT\.greeting|FT\.head)[\s\S]{0,120}\{POLL_EMPTY\}/.test(bloomSrc),
+   'the empty state took the masthead\'s rung — the language allows it once and it is spent');
+
+// ① is an ACTION and the token file names the rung for actions. It shipped on
+// the sub-floor rung with no chrome, which is the treatment for captions.
+ok('§10.9 ① reads as a CTA — the action rung, and pressable chrome',
+   /border:`\$\{FS\.hair\} solid \$\{pgAccent\}`[\s\S]{0,200}fontSize:FT\.engraved[\s\S]{0,200}\{POLL_ASK\}<\/button>/.test(bloomSrc),
+   '① is bare text again — nothing about it says it can be pressed');
 // The first cut counted every mention and read 2 — the import and the render.
 // The claim is about how many LINES she is shown, so count render sites only.
 ok('§10.8 ⑨ is still ONE line — a second would be a new byte',
@@ -453,9 +475,15 @@ mutate(STRIP, "import { POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE,",
        '§8.M12 a create byte reaches the MEMBER surface ⇒ §9.1 RED (bride-only was a ruling)');
 mutate(BLOOM, 'disabled={!askReady||asking}', 'disabled={asking}',
        '§8.M13 submit stops being gated ⇒ §9.7 RED (the form would have to refuse with words)');
-mutate(BLOOM, "fontSize:46,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>{POLL_EMPTY}",
-              "fontSize:9,color:pgInkMute,lineHeight:1,textAlign:'center' as any}}>{POLL_EMPTY}",
+mutate(BLOOM, "fontSize:FT.body,color:pgInkSoft,lineHeight:1.6,textAlign:'center' as any,fontFeatureSettings:'\"opsz\" 9'}}>{POLL_EMPTY}",
+              "fontSize:9,color:pgInkMute,lineHeight:1.6,textAlign:'center' as any}}>{POLL_EMPTY}",
        '§8.M14 [⑨] the empty state is dressed as a footnote again ⇒ §10.7 RED');
+mutate(BLOOM, "fontSize:FT.body,color:pgInkSoft,lineHeight:1.6,textAlign:'center' as any,fontFeatureSettings:'\"opsz\" 9'}}>{POLL_EMPTY}",
+              "fontSize:46,color:pgAccent,lineHeight:1.6,textAlign:'center' as any}}>{POLL_EMPTY}",
+       '§8.M15 [⑨] …or as a second hero on the masthead\'s rung ⇒ §10.7b RED');
+mutate(BLOOM, "border:`${FS.hair} solid ${pgAccent}`,\n                    borderRadius:FI.chrome,padding:'8px 14px',cursor:'pointer',",
+              "border:'none',padding:0,cursor:'pointer',",
+       '§8.M16 [①] the CTA loses its chrome ⇒ §10.9 RED (bare text again)');
 
 sec('§9 — THE RESTORE LEDGER');
 ok('§9.1 every mutated file was restored BYTE-IDENTICAL, checked by sha256',

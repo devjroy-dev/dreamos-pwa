@@ -413,10 +413,22 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
               eyebrow because no affordance existed yet. The byte does not move;
               it becomes tappable. That is why D-3c's sheet cost no line for the
               opening control. */}
+          {/* ── ① READS AS A CTA, AND THE RUNG SAYS WHICH ONE ────────────────
+              It shipped at `engravedSm` (9) with no border — the estate's
+              "one permitted sub-floor rung", which the language reserves for
+              timestamps and captions, and nothing about it said "press me".
+              `FT.engraved` (11) is declared in `lib/frost/tokens.ts` as
+              "JetBrains Mono · ACTIONS, PRIMARY LABELS" — ① is an action, so it
+              belongs on the rung named for actions rather than the one below it.
+              The pressable chrome is this file's own: a hairline in the accent
+              at `FI.chrome`, the same shape every option button and every sheet
+              field already wears, so a CTA appears without a new vocabulary.
+              STYLING ONLY — the byte is frozen and does not move. */}
           <button onClick={()=>setAskOpen(true)}
-            style={{background:'transparent',border:'none',padding:0,cursor:'pointer',
-                    fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
-                    textTransform:'uppercase' as any,color:pgAccent,marginBottom:12}}>{POLL_ASK}</button>
+            style={{background:'transparent',border:`${FS.hair} solid ${pgAccent}`,
+                    borderRadius:FI.chrome,padding:'8px 14px',cursor:'pointer',
+                    fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engraved,letterSpacing:FS.track,
+                    textTransform:'uppercase' as any,color:pgAccent,marginBottom:14}}>{POLL_ASK}</button>
           {polls.map(p=>{
             // WHO WON, OR WHETHER ANYBODY DID. A tie is not an edge case: four
             // options can all hold an equal count, which is why ⑧'s byte takes a
@@ -507,8 +519,21 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
               a NEW byte and does not ride a styling fix. It now sits BENEATH the
               affordance, so the sentence and the remedy are on screen together. */}
           {polls.length===0 && (
-            <div style={{padding:`${FS.s3}px 0 0`,display:'flex',flexDirection:'column',alignItems:'center'}}>
-              <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>{POLL_EMPTY}</div>
+            <div style={{padding:`${FS.s2}px 0 0`,display:'flex',flexDirection:'column',alignItems:'center'}}>
+              {/* ⑨'s FIRST CORRECTION OVERSHOT, and the token file says exactly
+                how far. It went from 9px mono — a footnote — to Italianno 46,
+                which is `FT.greeting`: the masthead's rung, declared "ONE per
+                screen", and the masthead already spends it. So the fix made the
+                empty state a SECOND hero on a page whose hero is the circle
+                itself, and borrowed a rung that was already taken.
+                POLLS ARE A SECTION, NOT THE SUBJECT OF THIS PAGE. `FT.body`
+                (16) is the rung the language calls "ALL body prose, THE FLOOR",
+                and it is what the activity feed's own empty state uses for its
+                sentence — the Italianno line above it is that surface's head
+                because the FEED is that surface's subject. ⑨ takes the sentence
+                treatment, not the head's.
+                STYLING ONLY — the byte is frozen, still one line. */}
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:pgInkSoft,lineHeight:1.6,textAlign:'center' as any,fontFeatureSettings:'"opsz" 9'}}>{POLL_EMPTY}</div>
             </div>
           )}
         </div>
