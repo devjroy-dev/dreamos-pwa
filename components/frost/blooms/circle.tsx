@@ -95,6 +95,11 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
   const [chatLocked, setChatLocked] = React.useState(false);
   const [polls,  setPolls]  = React.useState<CirclePoll[]>([]);
   const [voting, setVoting] = React.useState<string|null>(null);
+  // D-3f — THE POLL SECTION OWNS ITS OWN "have I loaded yet". It used to render
+  // behind `loading`, which is cleared by `fetchCircle()` — the members-and-
+  // activity read, which polls do not use. So a poll could be in hand and still
+  // not paint, because an unrelated fetch had not returned.
+  const [pollsLoaded, setPollsLoaded] = React.useState(false);
   // ── THE CREATE SHEET (D-3c) · BRIDE-ONLY BY FOUNDER RULING ────────────────
   // A member votes in the circle; she does not convene it. The co-planner strip
   // imports none of this and its proof asserts that absence.
@@ -159,6 +164,10 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
   const loadPolls = React.useCallback(async ()=>{
     try { setPolls(await fetchCirclePolls()); }
     catch { /* keep last known — a dropped packet is not a reason to blank her polls */ }
+    // Marked loaded on FAILURE too, and deliberately: a dropped packet must not
+    // hide the affordance forever. She keeps her last known polls and can still
+    // ask a new one.
+    finally { setPollsLoaded(true); }
   },[]);
 
   // A cast vote RE-READS. The server owns the tally and resolves `my_vote` per
@@ -195,7 +204,23 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
     // for "how often does this screen refresh". A second setInterval would drift
     // from this one, double the request rate, and give the next reader two
     // answers to the same question.
-    const tick = async () => { await loadMessages(); await loadPolls(); };
+    // ── D-3f · THE TWO READS RUN TOGETHER, NOT ONE AFTER THE OTHER ────────
+    // This read `await loadMessages(); await loadPolls();` — so the poll read
+    // did not BEGIN until the messages read had fully returned and parsed. A
+    // poll was waiting on a full round trip it has no dependency on, and on a
+    // slow connection that wait is exactly the lag the founder saw.
+    //
+    // R-D3.5 IS NOT WHAT COST THIS. The ruling was ONE TIMER — one setInterval,
+    // one home for "how often does this screen refresh". A sequential await
+    // chain inside that tick is not what one-timer means, and `Promise.all`
+    // keeps the interval, the tick and the home exactly as ruled while dropping
+    // a round trip. §5.2/§5.3 still assert the single interval.
+    //
+    // NEITHER READ CAN REJECT — both swallow their own failures and keep the
+    // last known state — so `Promise.all`'s fail-fast cannot cost the other one
+    // its result here. If either is ever rewritten to throw, this must become
+    // `allSettled` or a thrown messages read will silently take the polls with it.
+    const tick = async () => { await Promise.all([loadMessages(), loadPolls()]); };
     tick();
     const iv = setInterval(tick, 10000);
     return ()=>{ alive=false; clearInterval(iv); };
@@ -422,7 +447,7 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
           questions — the empty state would say "No polls yet." beside no means of
           fixing it. So ① renders whenever the bloom has loaded, and the list or
           ⑨ renders beneath it. */}
-      {!loading && (
+      {pollsLoaded && (
         <div style={{padding:`0 ${FS.gutter}px ${FS.s3}px`}}>
           {/* ① FINALLY BECOMES WHAT IT WAS VETOED AS. It was approved as "the
               affordance that opens a poll" and D-3b rendered it as a dead

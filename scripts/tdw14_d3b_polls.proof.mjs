@@ -228,9 +228,31 @@ ok('§5.1 EXACTLY TWO surfaces render polls — a third would be a scope breach'
    SURFACES.length === 2 && SURFACES.includes(STRIP) && SURFACES.includes(BLOOM),
    `found: ${SURFACES.join(' · ')}`);
 
-ok('§5.2 NO SECOND TIMER — the poll read rides the existing 10s interval',
-   /const tick = async \(\) => \{ await loadMessages\(\); await loadPolls\(\); \};/.test(bloomSrc),
+// ── THE CELL PINNED THE FORM WHEN THE RULING IS ABOUT THE TIMER ──────────
+// It asserted the tick's exact sequential text, so D-3f's parallelisation —
+// which honours R-D3.5 completely — reddened it. R-D3.5 says ONE TIMER: one
+// setInterval, one home for "how often does this screen refresh". It says
+// nothing about whether the two reads inside that tick run in sequence or
+// together, and the sequential form was costing a whole round trip.
+//
+// The cell now asserts what the ruling actually says: the poll read is CALLED
+// FROM the tick, and the tick is what the interval drives. §5.3 counts the
+// intervals and is the real guard against a second one.
+ok('§5.2 NO SECOND TIMER — the poll read is driven BY the one tick',
+   /const tick = async \(\) => \{[^}]*loadPolls\(\)/.test(bloomSrc)
+   && /setInterval\(tick, 10000\)/.test(bloomSrc),
    'the bloom polls on its own schedule — two intervals drift and double the request rate');
+
+// D-3f: the two reads must not be serialised again. A poll waiting on a fetch it
+// has no dependency on is the lag this micro exists to remove.
+ok('§5.2b the two reads run TOGETHER — neither waits on the other\'s round trip',
+   /await Promise\.all\(\[loadMessages\(\), loadPolls\(\)\]\)/.test(bloomSrc),
+   'the reads are serialised again — the poll waits on a round trip it does not use');
+
+// D-3f: and the section must not be gated on an unrelated fetch's state.
+ok('§5.2c the poll section owns its own loaded state, not fetchCircle\'s',
+   /pollsLoaded && \(/.test(bloomSrc) && /setPollsLoaded\(true\)/.test(bloomSrc),
+   'the section renders behind `loading`, which fetchCircle clears — polls wait on a read they do not use');
 ok('§5.3 the bloom holds exactly ONE setInterval',
    (bloomSrc.match(/setInterval\(/g) || []).length === 1,
    'a second interval appeared on a screen that already had one');
@@ -514,9 +536,14 @@ mutate(HOME, 'export function pollTie(options: string[])', 'export function poll
        '§8.M3 narrow ⑧ to two options ⇒ §2.7 RED (a type needs a reader that sees types)');
 mutate(STRIP, 'POLL_TAP_TO_CHOOSE', "'Tap to choose'",
        '§8.M4 the strip grows its own literal ⇒ §3.3 RED (the freeze forks)');
-mutate(BLOOM, 'const tick = async () => { await loadMessages(); await loadPolls(); };',
+mutate(BLOOM, 'const tick = async () => { await Promise.all([loadMessages(), loadPolls()]); };',
               'const tick = async () => { await loadMessages(); };\n    setInterval(loadPolls, 10000);',
        '§8.M5 a second timer appears ⇒ §5.2/§5.3 RED (R-D3.5)');
+mutate(BLOOM, 'await Promise.all([loadMessages(), loadPolls()])',
+              'await loadMessages(); await loadPolls()',
+       '§8.M5b the reads are serialised again ⇒ §5.2b RED (the lag returns)');
+mutate(BLOOM, '{pollsLoaded && (', '{!loading && (',
+       '§8.M5c the section is gated on fetchCircle again ⇒ §5.2c RED');
 mutate(STRIP, 'p.eligible_count', 'p.total_votes',
        '§8.M6 the denominator becomes the numerator ⇒ §6.5 anchor RED');
 
