@@ -167,6 +167,25 @@ function usePress() {
   return { press, pressed };
 }
 
+// ── CHOREOGRAPHY CONSTANTS ────────────────────────────────────────────────────
+// F-13.5's cure, taken BEFORE P2's FROZEN header rather than after, because a
+// header over a diseased shape makes the disease permanent by law.
+//
+// The close is a two-part motion: CSS animates the bloom out, and JS tears the
+// room down when the animation has finished. Those two durations MUST be the
+// same number or the room either snaps away mid-slide or sits frozen at the
+// bottom of the screen for the difference. They were the same number in three
+// places, hand-synchronized, with nothing connecting them: the .bloom-exit rule
+// here, closeRoom's teardown timer, and the popstate back-trap's own copy of
+// that timer. Any one of them could be tuned alone and the other two would not
+// know. That is the shape the extraction was about to freeze.
+//
+// The open side needs no constant: .bloom-enter's 380ms is the only occurrence
+// of that number in the tree and the open path carries no JS timer, so there is
+// nothing for it to fall out of step with. A constant for a single site would be
+// churn dressed as hygiene.
+const BLOOM_CLOSE_MS = 300;
+
 // ── CSS ───────────────────────────────────────────────────────────────────────
 const CSS=`
 @keyframes gnB{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.006);}}
@@ -188,7 +207,7 @@ const CSS=`
 .cf-a{animation:cF 5s ease-in-out infinite;}
 .si-a{animation:sIn 220ms cubic-bezier(0.22,1,0.36,1) forwards;}
 .bloom-enter{animation:bloomIn 380ms cubic-bezier(0.22,1,0.36,1) forwards;}
-.bloom-exit{animation:bloomOut 300ms cubic-bezier(0.4,0,1,1) forwards;}
+.bloom-exit{animation:bloomOut ${BLOOM_CLOSE_MS}ms cubic-bezier(0.4,0,1,1) forwards;}
 .d-cursor{animation:dcursor 1s ease-in-out infinite;}
 .no-scroll::-webkit-scrollbar{display:none;}
 .no-scroll{-ms-overflow-style:none;scrollbar-width:none;}
@@ -4494,7 +4513,7 @@ function timeAgoShort(iso:string):string {
       setActiveRoom(null);
       setBlooming(false);
       setClosing(false);
-    },300);
+    },BLOOM_CLOSE_MS);
   },[]);
 
   // TDW_13 · D-2 · THE GATE'S RE-ARM (R-30.36 — "fires every open").
@@ -4514,20 +4533,30 @@ function timeAgoShort(iso:string):string {
 
   // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
   // Opens the Dream bloom and prefills the input with the suggested prompt.
+  // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
+  // Opens the Dream bloom and prefills the input with the suggested prompt.
+  //
+  // F-13.6's cure. This listener used to set activeRoom, blooming and closing
+  // itself — openRoom's exact three lines, copied. It was a SECOND open path,
+  // and the extraction is about to move openRoom into the conductor: the rail's
+  // call site would have travelled and this one would have stayed behind, still
+  // driving state the conductor now owns, from a room that no longer knows it
+  // exists. It calls openRoom now, so there is one way into a bloom.
+  //
+  // openRoom is in the dep array because it is the dependency, and it is stable
+  // (useCallback with an empty list), so the listener still binds once.
   useEffect(()=>{
     const onOpenDream = (e: Event) => {
       const detail = (e as CustomEvent)?.detail;
       const prompt = detail?.prompt;
-      setActiveRoom('dream');
-      setBlooming(true);
-      setClosing(false);
+      openRoom('dream');
       if(prompt && typeof prompt === 'string') {
         setInput(prompt);
       }
     };
     window.addEventListener('frost:open-dream', onOpenDream);
     return ()=>{ window.removeEventListener('frost:open-dream', onOpenDream); };
-  },[]);
+  },[openRoom]);
 
   // ── Back button trap (Android + iOS PWA) ─────────────────────────────────
   // Strategy: push a sentinel history entry on mount.
@@ -4550,7 +4579,7 @@ function timeAgoShort(iso:string):string {
       // Close room if open
       if(activeRoomRef.current !== null){
         setClosing(true);
-        setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); },300);
+        setTimeout(()=>{ setActiveRoom(null); setBlooming(false); setClosing(false); },BLOOM_CLOSE_MS);
       }
     };
 
@@ -4864,7 +4893,18 @@ function timeAgoShort(iso:string):string {
                         ):m.pending&&m.content===''?(
                           <div style={{background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'10px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)'}}>
                             <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent,animation:'dpulse 1.4s infinite ease-in-out'}}>✦ thinking</span>
-                            <style>{`@keyframes dpulse{0%,80%,100%{opacity:.35}40%{opacity:1}}`}</style>
+                            {/* F-13.4's cure. A second, byte-identical dpulse keyframe stood
+                                here inline. The CSS const already carries it and is appended to
+                                document.head as #sv5 on mount, unconditionally, so this copy was
+                                never doing work — it was only waiting for the extraction to carry
+                                it into a bloom file and leave the OTHER consumer (the deck's rail
+                                mark) reading the copy that stayed behind. Two homes, one
+                                animation, and the first hand to tune either one forks them.
+                                NOTE: this comment deliberately does not spell the keyframe's
+                                at-rule, because the bench counts that token and the estate's
+                                shared stripper leaks comments on this file (see the D-3
+                                handover). A cell that can be fooled by prose about itself is
+                                not a cell. */}
                           </div>
                         ):(
                           <div style={{maxWidth:'90%',background:aiBubbleBg,border:`0.5px solid ${aiBubbleBdr}`,padding:'12px 16px',borderRadius:'20px 20px 20px 4px',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.65,color:m.error?'#C4534A':roomInk,whiteSpace:'pre-wrap',fontFeatureSettings:'"opsz" 9',userSelect:'text' as any}}>
