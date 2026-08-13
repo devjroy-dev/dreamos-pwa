@@ -118,7 +118,38 @@ export default function CoplannerMuse() {
           aria-label="Add to board"
           style={{
             position: 'fixed',
-            right: 'calc(50vw - 240px + 20px)',
+            // ── F-14.10 · THE FAB HUNG OFF THE RIGHT EDGE ON EVERY REAL PHONE ──
+            // This read `calc(50vw - 240px + 20px)`: centre the button against
+            // the 480px content column (layout.tsx:126 — `maxWidth: 480, margin:
+            // '0 auto'`) and inset it 20px from that column's right edge. Correct
+            // ONLY while the viewport is WIDER than the column.
+            //
+            // Below 440px the expression goes NEGATIVE and `position: fixed`
+            // resolves it against the VIEWPORT, not the column, so the button
+            // walks off the screen:
+            //     1200px →  +380px   fine
+            //      480px →   +20px   the boundary
+            //      374px →   −33px   33px of a 56px button, clipped
+            //      360px →   −40px   worse
+            // Every handset the co-planner is used on sits under 440px, so the
+            // add control has been partially off-screen on every real device
+            // while looking correct in a desktop browser — which is why it
+            // survived. Founder-caught on his own phone, 2026-08-14.
+            //
+            // `max()` clamps the floor: under 440px it pins to a plain 20px
+            // gutter; at and above 480px it is BYTE-FOR-BYTE the old behaviour,
+            // so no wide-viewport rendering moves. The column-centring is kept
+            // rather than replaced because it is right for the case it was
+            // written for — it was simply missing its lower bound.
+            //
+            // THIS IS THE TREE'S ONLY SITE USING THIS TRICK (grep: one hit), so
+            // there is no sibling to copy and none to fix alongside it. A second
+            // one appearing is a second bug, not a pattern.
+            right: 'max(20px, calc(50vw - 240px + 20px))',
+            // `bottom` is UNTOUCHED and was already right: the TabBar is fixed
+            // to bottom:0 with `paddingBottom: env(safe-area-inset-bottom)`, and
+            // 80px clears it. Named so the next reader knows it was checked, not
+            // skipped.
             bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
             width: 56, height: 56, borderRadius: '50%',
             background: GOLD, color: INK,
