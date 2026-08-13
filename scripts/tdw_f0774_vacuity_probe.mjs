@@ -36,7 +36,27 @@ import { execSync, execFileSync } from 'child_process';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const NAIVE = process.argv.includes('--naive');
+/* ── AMENDMENT, TDW_13 D-7 (2026-08-13): THE SUBJECT IS THE SURFACE ──────────
+   This probe plants forbidden specimens at two `accept="image/*"` sites and
+   proves the cured benches can still see them. Both sites were in
+   sanctuary/page.tsx; D-5 moved them out with their rooms — the Moments upload
+   and the Muse upload — and the probe STOPPED, loudly and correctly, saying it
+   expected two sites and found zero.
+
+   That STOP is the probe working. It refused to run rather than plant into a
+   file where its anchor no longer existed, which is exactly the behaviour a
+   probe should have when the tree moves underneath it. It is re-anchored here,
+   not softened: the two sites are named at their new homes, derived by census
+   (`grep -c 'accept="image/\*"'` → moments.tsx 1, muse.tsx 1, sanctuary 0), and
+   the count assertion stays hard at two.
+
+   See components/frost/_shared/SURFACE.md. */
 const SANCT = path.join(ROOT, 'app/(frost)/frost/canvas/sanctuary/page.tsx');
+/* The two bite openers, one per file. The probe writes and restores BOTH. */
+const BITE_FILES = [
+  'components/frost/blooms/moments.tsx',
+  'components/frost/blooms/muse.tsx',
+].map((r) => path.join(ROOT, r));
 const BENCHES = ['tdw07_p6_fold', 'tdw07_p4b_body'];
 
 // ── the guard. A dirty tree means the probe cannot prove it restored anything.
@@ -53,7 +73,7 @@ try {
   process.exit(1);
 }
 
-const ORIGINAL = fs.readFileSync(SANCT, 'utf8');
+const ORIGINALS = new Map(BITE_FILES.map((f) => [f, fs.readFileSync(f, 'utf8')]));
 
 // ── the plant. Every token below is something a cell in one of the two benches
 // asserts is ABSENT from sanctuary. Derived from those cells, not invented.
@@ -82,33 +102,45 @@ const [imageIdx, setImageIdx] = useState(0);
 
 // The two bite openers, located by their own text rather than by a stored
 // character offset — offsets rot the moment anyone edits the file above them.
-const OPENERS = [...ORIGINAL.matchAll(/accept="image\/\*"/g)].map(m => m.index);
-if (OPENERS.length !== 2) {
-  console.log(`STOP — expected 2 accept="image/*" sites in sanctuary, found ${OPENERS.length}.`);
+const SITES = BITE_FILES.map((f) => ({
+  file: f,
+  at: [...ORIGINALS.get(f).matchAll(/accept="image\/\*"/g)].map((m) => m.index),
+}));
+const totalSites = SITES.reduce((n, s) => n + s.at.length, 0);
+if (totalSites !== 2) {
+  console.log(`STOP — expected 2 accept="image/*" bite sites, found ${totalSites}.`);
+  for (const s of SITES) console.log(`  ${path.relative(ROOT, s.file)}: ${s.at.length}`);
   console.log('The probe is anchored to those two sites; re-derive before trusting it.');
   process.exit(1);
 }
 
-let planted = ORIGINAL;
-for (const at of [...OPENERS].reverse()) {
-  const cut = at + 120;
-  planted = planted.slice(0, cut) + PAYLOAD + planted.slice(cut);
-}
+const PLANTED = new Map(SITES.map(({ file, at }) => {
+  let src = ORIGINALS.get(file);
+  for (const i of [...at].reverse()) {
+    const cut = i + 120;
+    src = src.slice(0, cut) + PAYLOAD + src.slice(cut);
+  }
+  return [file, src];
+}));
 
 let restored = false;
 const restore = () => {
   if (restored) return;
-  fs.writeFileSync(SANCT, ORIGINAL);
-  restored = fs.readFileSync(SANCT, 'utf8') === ORIGINAL;
-  console.log(`\nsanctuary restored byte-identical: ${restored}`);
-  if (!restored) console.log('*** RESTORE FAILED — `git checkout -- app/` NOW ***');
+  let all = true;
+  for (const [f, orig] of ORIGINALS) {
+    fs.writeFileSync(f, orig);
+    if (fs.readFileSync(f, 'utf8') !== orig) all = false;
+  }
+  restored = all;
+  console.log(`\nbite files restored byte-identical: ${restored}`);
+  if (!restored) console.log('*** RESTORE FAILED — `git checkout -- components/` NOW ***');
 };
 process.on('exit', restore);
 process.on('SIGINT', () => { restore(); process.exit(130); });
 
 let totalReds = 0;
 try {
-  fs.writeFileSync(SANCT, planted);
+  for (const [f, src] of PLANTED) fs.writeFileSync(f, src);
 
   if (NAIVE) {
     console.log('--naive: reproducing the DISEASE. The benches are read as shipped; to');
@@ -117,7 +149,7 @@ try {
   }
 
   for (const b of BENCHES) {
-    console.log(`\n──────── ${b} · specimens planted inside both former bites ────────`);
+    console.log(`\n──────── ${b} · specimens planted at both bite sites ────────`);
     let out = '';
     try { out = execFileSync('node', [path.join(ROOT, 'scripts', `${b}.proof.mjs`)], { cwd: ROOT, encoding: 'utf8' }); }
     catch (e) { out = (e.stdout || '') + (e.stderr || ''); }

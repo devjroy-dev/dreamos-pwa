@@ -304,6 +304,58 @@ export default function SanctuaryPage() {
     };
   }, [activeRoom]);
 
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║  DREAM — THE CANVAS'S OWN VOICE. DESIGN, NOT UNFINISHED EXTRACTION.      ║
+  // ║  FROZEN (F-1) — the fence widened to cover these verb-sites              ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
+  // FOUNDER-RULED ε3, 2026-08-13. Every other room left this file for
+  // components/frost/blooms/ across D-4 and D-5 — eleven of them, 3,900 lines,
+  // verbatim. Dream did not, and that is the ruling rather than the remainder.
+  //
+  // WHY IT IS NOT A ROOM. A bloom is a surface the bride opens, reads, and
+  // closes; its state begins when it mounts and dies when it unmounts. Dream's
+  // state is the PAGE's state — the transcript below outlives every open and
+  // close, the stream keeps running while she walks to another room, and the
+  // cancel handle has to survive her leaving. Extract that and you have not
+  // moved a room, you have given the conductor a child it must feed: the same
+  // state lifted one layer up and passed back down through props, plus a new
+  // seam to keep in step. The file would be shorter and the estate would be
+  // worse.
+  //
+  // THE OMNIPRESENCE RULING (founder, 2026-08-13) is the same fact stated as
+  // product: Dream is summonable from ANY room, not entered from the rail alone.
+  // `frost:open-dream` is its doorbell — a window event any surface can ring
+  // (the Events "Ask DreamAi" button does, from inside a bloom that no longer
+  // shares a file with the listener). A voice you can call from anywhere is not
+  // a place you go to. That is why it lives with the canvas.
+  //
+  // NO FUTURE SITTING 「 FINISHES 」 THIS. The eleven blooms are the pattern and
+  // Dream is deliberately not in it. A seat that reads a 1,100-line conductor,
+  // counts eleven bloom files, and takes Dream as the twelfth is reading a
+  // ruling as a to-do list. This comment is the artifact, because a ruling with
+  // no artifact is a ruling that will be forgotten.
+  //
+  // THE ESCAPE HATCH, recorded in the same breath so it is not rediscovered as
+  // a grievance: IF Dream grows heavy — history panes, attachments, sub-screens,
+  // anything that gives it surfaces of its own — the question re-opens, and it
+  // re-opens cheaply, because the extraction pattern is proven eleven times over
+  // in components/frost/blooms/. The condition is Dream acquiring its own
+  // screens, not the conductor's line count. Re-opening takes a chair's word.
+  //
+  // THE FENCE, widened by this ruling. Dream's verb-sites are FROZEN under F-1
+  // exactly as the choreography is, and they are enumerated by CLASS and COUNT
+  // rather than by line, because line ranges rot: eleven classes, forty-one
+  // sites in live code, asserted by tdw13_d7_dream_design.proof.mjs. Counted
+  // COMMENT-STRIPPED — this very paragraph names most of these symbols, and a
+  // raw count let the artifact inflate the census it describes (52 where the
+  // code has 41). D-4's read-first said "~10" for this area; that was one regex
+  // over send-and-cancel, and the class census below is the honest figure.
+  //
+  //    10  msgs / setMsgs          4  sendDream            3  scrollRef
+  //     3  input / setInput        6  cancelRef            3  textRef
+  //     4  loading / setLoading    2  streamBrideChat      2  DREAM_PROMPTS
+  //     2  frost:open-dream        2  dream room render
+  //
   // Dream Ai state
   const [msgs,    setMsgs]    = useState<UIMsg[]>([]);
   const [input,   setInput]   = useState('');

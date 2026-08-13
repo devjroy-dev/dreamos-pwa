@@ -88,6 +88,21 @@ ok('0e. vacuity twin: the naive rule WOULD have eaten the specimen 0d survives',
    !NAIVE_RETIRED('<input accept="image/*" />/* x */').includes('image/*'));
 ok('0f. the subject really is comment-heavy, so stripping is not a no-op',
    code.length < raw.length * 0.95, `${raw.length} → ${code.length}`);
+/* ── THE CANARY (F-07.99's call-site clause, added at D-7) ───────────────────
+   0a–0e prove the stripper behaves on SPECIMENS I wrote. That is not the same
+   as proving it behaves on THIS subject: a stripper can pass every synthetic
+   case and still swallow live code in a 1,100-line file with template literals,
+   JSX text and apostrophes in prose — which is exactly what the shared stripper
+   does elsewhere in this estate (F-13.7). So real lines from the real subject
+   must survive the real call. Every other stripper-dependent bench in this
+   estate carries these; mine did not, and shipped four deliveries without one. */
+for (const [what, line] of [
+  ['the close constant',   'const BLOOM_CLOSE_MS = 300;'],
+  ['closeRoom\'s timer',   '    },BLOOM_CLOSE_MS);'],
+  ['the CSS rule',         '.bloom-exit{animation:bloomOut ${BLOOM_CLOSE_MS}ms'],
+  ['the dpulse keyframe',  '@keyframes dpulse{0%,80%,100%{opacity:.35}40%{opacity:1}}'],
+  ['openRoom',             'const openRoom = useCallback((key:RoomKey)=>{'],
+]) ok(`0g. canary survives stripping — ${what}`, code.includes(line), line.slice(0, 50));
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1 — F-13.5 · ONE HOME for the close duration
