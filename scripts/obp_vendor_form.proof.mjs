@@ -103,6 +103,11 @@ ok(FORM.includes('Your starting price') && !FORM.includes('or leave blank'),
    '5.3 「 Your starting price 」 in, 「 or leave blank 」 dead');
 ok(FORM.includes('Studio or business name') && !/placeholder="optional"/.test(FORM),
    '5.4 the 「 optional 」 placeholder is dead on a now-mandatory field');
+ok(!/Your clients tap this to reach your PA/.test(FORM)
+   || 'the false helper line still renders',
+   '5.6 the Instagram helper line is REMOVED — it named the wrong object and promised a link that only moves on a first run');
+ok(FORM.includes('Instagram handle'),
+   '5.7 the label survives — the field stays, only its false explanation went');
 ok(FORM.includes('Based in') && !FORM.includes('Based in *'),
    '5.5 the asterisk is dropped — a marker on one of six teaches that five are optional');
 

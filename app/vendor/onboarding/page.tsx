@@ -406,6 +406,22 @@ export default function VendorOnboardingPage() {
           </>
         )}
 
+        {/* ── THE HELPER LINE IS CUT — founder ruling, 2026-08-13 ───────────
+            It said 「 Your clients tap this to reach your PA. Becomes your TDW
+            link. 」 and both halves were false. Nobody taps an Instagram handle:
+            generateHandle strips the @, drops non-alphanumerics, caps at 30 and
+            uses the result as the routing_handle SLUG — the client taps the TDW
+            link, a different string. And 「 Becomes your TDW link 」 holds only on
+            a FIRST run, because generateHandle returns any existing handle
+            unchanged (src/api/vendor/onboarding.js:129), so a returning vendor
+            can type anything here and her link will not move. Witnessed live on
+            the walk: the founder left this blank and still holds DEV440.
+
+            CUT, NOT REWRITTEN. Removing a false sentence is a subtraction from a
+            vetoed byte; minting a replacement is the founder's pen. The label
+            alone is unambiguous, and the TDW link already gets its own explained
+            block on the done screen — which is where the explanation belongs,
+            next to the thing it describes. */}
         <label style={lbl}>Instagram handle</label>
         <input
           value={igHandle}
@@ -413,9 +429,7 @@ export default function VendorOnboardingPage() {
           placeholder="@yourhandle"
           style={inp}
         />
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, fontWeight: 300, color: MUTE, margin: '-14px 0 20px', fontStyle: 'italic' }}>
-          Your clients tap this to reach your PA. Becomes your TDW link.
-        </p>
+
 
         <button
           onClick={submit}
