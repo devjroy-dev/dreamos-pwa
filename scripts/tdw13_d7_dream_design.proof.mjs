@@ -120,9 +120,21 @@ ok('4c. the floor runner in this delivery covers all three extensions',
    /\*\.proof\.mjs/.test(fs.readFileSync(path.join(SCRIPTS, 'run-floor.sh'), 'utf8')) &&
    /\*\.mjs/.test(fs.readFileSync(path.join(SCRIPTS, 'run-floor.sh'), 'utf8')) &&
    /\*\.js\b/.test(fs.readFileSync(path.join(SCRIPTS, 'run-floor.sh'), 'utf8')));
-ok('4d. and it de-duplicates, or every .proof.mjs runs twice',
-   /sort -u/.test(fs.existsSync(path.join(SCRIPTS, 'run-floor.sh'))
-     ? fs.readFileSync(path.join(SCRIPTS, 'run-floor.sh'), 'utf8') : ''));
+const runner = fs.existsSync(path.join(SCRIPTS, 'run-floor.sh'))
+  ? fs.readFileSync(path.join(SCRIPTS, 'run-floor.sh'), 'utf8') : '';
+ok('4d. and it de-duplicates, or every .proof.mjs runs twice', /sort -u/.test(runner));
+/* 4e/4f — the bounce's own cure, pinned. A bench that needs a clean tree must run
+   before one that dirties it, and the ordering must be DERIVED (grep for the
+   guard) rather than hand-listed, because a hand-kept list is how the next such
+   bench gets missed. 4f pins the footprint report: the floor must SAY when a
+   bench wrote into the repo rather than quietly cleaning up after it. */
+ok('4e. clean-tree benches are ordered first, found by derivation not by a list',
+   /grep -l 'git status --porcelain'/.test(runner) && /NEEDS_CLEAN/.test(runner));
+ok('4f. the runner reports it when the floor dirties the tree',
+   /the floor itself dirtied the tree/.test(runner));
+ok('4g. at least one bench really does require a clean tree — 4e is not vacuous',
+   fs.readdirSync(SCRIPTS).some((f) => /\.(mjs|js)$/.test(f) &&
+     fs.readFileSync(path.join(SCRIPTS, f), 'utf8').includes('git status --porcelain')));
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 5 — MUTATION. Each pinned sentence must be genuinely guarded.

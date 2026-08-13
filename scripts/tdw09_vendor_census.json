@@ -1,15 +1,15 @@
 {
-  "hexTotal": 168,
+  "hexTotal": 137,
   "hexDistinct": 31,
-  "brassTotal": 261,
+  "brassTotal": 265,
   "brassDistinct": 38,
-  "files": 78,
+  "files": 76,
   "greenSites": [
-    "components/vendor/OnboardingOverlay.tsx:410",
-    "components/vendor/OnboardingOverlay.tsx:422",
-    "components/vendor/OnboardingOverlay.tsx:426",
-    "components/vendor/TipsCarousel.tsx:357",
-    "components/vendor/slices/SliceShell.tsx:744"
+    "components/vendor/OnboardingOverlay.tsx:411",
+    "components/vendor/OnboardingOverlay.tsx:423",
+    "components/vendor/OnboardingOverlay.tsx:427",
+    "components/vendor/TipsCarousel.tsx:377",
+    "components/vendor/slices/SliceShell.tsx:745"
   ],
   "invariantPaths": [
     "app/vendor/pin/",

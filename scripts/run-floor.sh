@@ -29,13 +29,48 @@ cd "$(dirname "$0")/.." || exit 1
 
 # All three extensions, de-duplicated — *.mjs already contains *.proof.mjs, and
 # without `sort -u` every proof bench would run twice and double its runtime.
-BENCHES=$(ls scripts/*.proof.mjs scripts/*.mjs scripts/*.js 2>/dev/null | sort -u)
+ALL=$(ls scripts/*.proof.mjs scripts/*.mjs scripts/*.js 2>/dev/null | sort -u)
+
+# ── ORDER IS LOAD-BEARING, and it cost a bounce to learn ─────────────────────
+# Some benches REQUIRE a clean tree: they write to production source, run other
+# benches against it, and restore — on a dirty tree they cannot prove the restore
+# was clean, so they STOP rather than lie. tdw_f0774_vacuity_probe is one.
+#
+# Some other benches WRITE OUTPUT INTO THE TREE. tdw09_vendor_census.mjs and
+# tdw09_p1_canon.proof.mjs both rewrite scripts/tdw09_vendor_census.json, and
+# "tdw09" sorts before "tdw_", so in plain alphabetical order the census dirties
+# the tree and the probe then refuses to run. That is not a probe failure — it is
+# the probe being right about a tree it was handed.
+#
+# I chased this as a phantom: it reported RED once in my container, then went
+# green on every retry, and I wrote it into the named base on that single
+# observation before removing it again as unreproducible. Both were wrong. The
+# retries only "passed" because I had committed the regenerated JSON, so the
+# census rewrote identical bytes and dirtied nothing. On a clean checkout from
+# origin — the founder's terminal — it reproduces every time.
+#
+# So: clean-tree-required benches run FIRST, and they are found by DERIVATION
+# (grep for the guard) rather than by a hand-kept list, because a hand-kept list
+# is how the next such bench gets missed.
+NEEDS_CLEAN=$(grep -l 'git status --porcelain' $ALL 2>/dev/null | sort -u)
+REST=$(comm -23 <(echo "$ALL" | tr ' ' '\n' | sort -u) <(echo "$NEEDS_CLEAN" | sort -u))
 
 RED=""
-for b in $BENCHES; do
+for b in $NEEDS_CLEAN $REST; do
+  [ -f "$b" ] || continue
   n=$(basename "$b" | sed 's/\.proof\.mjs$//; s/\.mjs$//; s/\.js$//')
   node "$b" >/dev/null 2>&1 || RED="${RED}RED: ${n}\n"
 done
+
+# ── THE FLOOR MUST NOT LEAVE FOOTPRINTS ──────────────────────────────────────
+# Reported, never silently cleaned: a bench writing into the tree is a real
+# defect and hiding it here would bury the thing that caused the bounce above.
+DIRT=$(git status --porcelain 2>/dev/null)
+if [ -n "$DIRT" ]; then
+  echo "NOTE — the floor itself dirtied the tree. A bench is writing output into"
+  echo "the repo; this is filed, not cured here (out of D-7's radius):"
+  echo "$DIRT" | sed 's/^/  /'
+fi
 printf "%b" "$RED" | sort > /tmp/floor.txt
 cat /tmp/floor.txt
 
