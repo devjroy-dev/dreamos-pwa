@@ -1584,6 +1584,49 @@ function DiscVendorPanel({vendor,visible,onClose,onEnquire,onCircleShare}:{
 //   in the file, the declaration itself. Dead on a live gesture surface, F-07.1's class.
 //   Deleted rather than left for the next reader to wonder about.
 
+// ── TDW_13 · D-2 · THE DISCOVER BETA GATE (R-30.36) ───────────────────────────
+// FOUNDER-AUTHORED BYTES. Veto pre-satisfied by authorship (Amendment One
+// §2.13.vi); transcribed from the committed source at dream-os `792bd37`, never
+// from memory, and pinned by the D-2 bench against this constant. The 「 」 in the
+// charter are the governance document's own quotation marks and are NOT copy —
+// the string below is the byte span between them.
+//
+// APPROVED-COPY-CARRIES-ITS-HASH — sha256 of this exact string:
+//   6bd0e6fcc484078512652d9ce4b46cffddaf4b139d1b0a50205597587e0e4b6b
+//   (161 bytes; proven equal to the committed span at dream-os `792bd37`)
+// (the bench recomputes; a value that disagrees is the finding, not the fix)
+const BETA_GATE_BODY = 'We are presently in Beta testing Phase. Someone from our team will reach out for your requirements. In the meantime, enjoy the other features the TDW app offers.';
+
+// WHY IT CARRIES NO DISMISS COPY: the founder vetoed the body, not a button
+// label. Inventing one would be a bride-facing byte no one approved, so the
+// affordance is the ✕ glyph this file already uses in ten places, plus a scrim
+// tap. A text button is a one-line change the moment a byte is ruled.
+//
+// WHY IT GATES THE MOUNT RATHER THAN OVERLAYING A LIVE FEED: the ruling's
+// purpose is that no beta bride sees Discover content ungated. An overlay leaves
+// the feed rendered and fetching underneath a translucent scrim, which is
+// content seen. DiscoverRoom does not mount until she acknowledges.
+function BetaGate({ onAck }: { onAck: () => void }) {
+  // Discover is a photo room — always dark, whatever the mode (see isPhotoRoom).
+  // These are that palette's own values, not new ones.
+  const ink     = '#F0EDE8';
+  const inkMute = 'rgba(200,180,160,.40)';
+  const line    = 'rgba(196,133,106,.16)';
+  return (
+    <div style={{position:'absolute',inset:0,zIndex:20}}>
+      <div onClick={onAck} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)'}}/>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,background:'linear-gradient(180deg,#0C0A0C 0%,#080608 100%)',borderTop:`0.5px solid ${line}`,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+        <div style={{display:'flex',justifyContent:'flex-end',marginBottom:4}}>
+          <button onClick={onAck} aria-label="Close" style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20,padding:0,lineHeight:1}}>✕</button>
+        </div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
+          {BETA_GATE_BODY}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface DiscoverRoomProps { dark:boolean; accent:string; signal:string; }
 
 function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
@@ -4120,6 +4163,11 @@ export default function SanctuaryPage() {
   const [activeRoom, setActiveRoom]   = useState<RoomKey>(null);
   const [blooming,   setBlooming]     = useState(false);
   const [closing,    setClosing]      = useState(false);
+  // TDW_13 · D-2 · the Discover beta gate's ONE piece of state (R-30.36).
+  // Session-only and deliberately so: the ruling says the gate fires on EVERY
+  // open, and no dismissal memory exists without a founder word. Nothing here
+  // touches a storage API, so there is nothing to forget to clear.
+  const [betaGateAcked, setBetaGateAcked] = useState(false);
   const touchStartY = useRef(0);
   const bloomRef    = useRef<HTMLDivElement>(null);
 
@@ -4448,6 +4496,21 @@ function timeAgoShort(iso:string):string {
       setClosing(false);
     },300);
   },[]);
+
+  // TDW_13 · D-2 · THE GATE'S RE-ARM (R-30.36 — "fires every open").
+  //
+  // It clears on LEAVE, not on enter, and the difference is the whole cure.
+  // Clearing on enter means the first render after activeRoom becomes 'discover'
+  // still carries last visit's `true`, so the feed paints one ungated frame
+  // before the effect corrects it — the same one-frame class as the E3 flash the
+  // founder caught in layout.tsx. Clearing on exit leaves the flag already false
+  // long before she can open the room again, so there is no frame to catch.
+  //
+  // It also hangs off `activeRoom` and nothing else. This room has TWO close
+  // paths (closeRoom and the popstate back-trap) and a swipe handler above them;
+  // re-arming inside any of those would be a third hand-synchronized site in a
+  // file that already owes F-13.5 for the first two.
+  useEffect(()=>{ if(activeRoom!=='discover') setBetaGateAcked(false); },[activeRoom]);
 
   // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
   // Opens the Dream bloom and prefills the input with the suggested prompt.
@@ -4835,9 +4898,10 @@ function timeAgoShort(iso:string):string {
               />
             )}
 
-            {/* ── DISCOVER — cinematic full-bleed feed ── */}
-            {activeRoom==='discover'&&(
-              <DiscoverRoom dark={dark} accent={accent} signal={signal}/>
+            {/* ── DISCOVER — cinematic full-bleed feed, behind the beta gate ── */}
+            {activeRoom==='discover'&&(betaGateAcked
+              ? <DiscoverRoom dark={dark} accent={accent} signal={signal}/>
+              : <BetaGate onAck={()=>setBetaGateAcked(true)}/>
             )}
 
             {/* ── MUSE — masonry board, always dark ── */}
