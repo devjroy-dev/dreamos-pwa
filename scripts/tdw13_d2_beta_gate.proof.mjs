@@ -200,9 +200,16 @@ const MUTATIONS = [
   // glyph has ten homes in this file and String.replace takes the first. The
   // mutation "worked", the cell stayed green, and the leg reported DEAD until
   // the target was pinned to the gate's own aria-labelled button.
+  //
+  // IT WENT STALE ONCE ALREADY: the cure sitting moved the glyph from fontSize
+  // 20 to 19 (20 is not a rung — see tdw09_frost_parity §6.12) and this literal
+  // still said 20, so the mutation stopped landing and the leg reported DEAD a
+  // second time. A mutation string that embeds the subject's own styling is a
+  // hostage to it. Kept pinned rather than loosened, because a loose matcher is
+  // how M6 hit the wrong button in the first place.
   ['M6 · an un-vetoed dismiss byte is invented',
-   s => s.replace('aria-label="Close" style={{background:\'none\',border:\'none\',cursor:\'pointer\',color:inkMute,fontSize:20,padding:0,lineHeight:1}}>✕</button>',
-                  'aria-label="Close" style={{background:\'none\',border:\'none\',cursor:\'pointer\',color:inkMute,fontSize:20,padding:0,lineHeight:1}}>Got it</button>'),
+   s => s.replace('aria-label="Close" style={{background:\'none\',border:\'none\',cursor:\'pointer\',color:inkMute,fontSize:19,padding:0,lineHeight:1}}>✕</button>',
+                  'aria-label="Close" style={{background:\'none\',border:\'none\',cursor:\'pointer\',color:inkMute,fontSize:19,padding:0,lineHeight:1}}>Got it</button>'),
    c => { const r = c.slice(Math.max(0, c.indexOf('const BETA_GATE_BODY')), c.indexOf('interface DiscoverRoomProps')); const t = [...r.matchAll(/>([^<>{}]{1,})</g)].map(m => m[1].trim()).filter(Boolean); return t.length > 0 && t.every(x => x === '✕'); },
    'cell 7a-ii (copy law)'],
 ];

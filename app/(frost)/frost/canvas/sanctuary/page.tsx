@@ -1617,7 +1617,7 @@ function BetaGate({ onAck }: { onAck: () => void }) {
       <div onClick={onAck} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.55)'}}/>
       <div style={{position:'absolute',bottom:0,left:0,right:0,background:'linear-gradient(180deg,#0C0A0C 0%,#080608 100%)',borderTop:`0.5px solid ${line}`,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
         <div style={{display:'flex',justifyContent:'flex-end',marginBottom:4}}>
-          <button onClick={onAck} aria-label="Close" style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:20,padding:0,lineHeight:1}}>✕</button>
+          <button onClick={onAck} aria-label="Close" style={{background:'none',border:'none',cursor:'pointer',color:inkMute,fontSize:19,padding:0,lineHeight:1}}>✕</button>
         </div>
         <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,lineHeight:1.65,fontFeatureSettings:'"opsz" 9'}}>
           {BETA_GATE_BODY}

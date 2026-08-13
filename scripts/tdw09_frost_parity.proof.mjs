@@ -165,16 +165,42 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
                      is not a new control, so the row itself adds nothing)
      ────
      150  Rider 2's floor
+     +1   button   : the Discover beta gate's ✕ closer
+     +1   tap-div  : the beta gate's dismiss scrim
+     ────
+     152  TDW_13 D-2's floor
 
    The Total-budget row gained no control: it is deliberately read-only until
    dream-os opens its half, so it is a Row with no onTap and the census does not
    count it. If that arithmetic and the delta disagree at a future sitting, the
-   arithmetic is the claim to re-derive — not this constant. */
-ok('3.1', 'sanctuary carries 150 controls (145 sealed + 4 + Rider 2\'s one)', total === 150,
+   arithmetic is the claim to re-derive — not this constant.
+
+   ── AMENDMENT, TDW_13 D-2 (2026-08-13), and why it is an amendment and not a
+      re-baseline ────────────────────────────────────────────────────────────
+   D-2 mounted the Discover beta gate (R-30.36, the founder's own bytes) and took
+   this bench from 82/82 to 79/82. Three cells: 3.1, 3.2, and 6.12.
+
+   6.12 was NOT amended. The gate's glyph was declared at fontSize 20, which is
+   not a rung, and it was the eleventh site against an exemption of ten. The
+   GLYPH IS WHAT MOVED — to 19, a rung — and the ladder and its exemption stand
+   untouched. A delivery does not get to widen a design law to fit its own byte.
+
+   3.1 and 3.2 ARE amended, 150→152 and button 77→78 / tapdiv 33→34, because the
+   subject legitimately grew: a gate without a dismiss affordance is not a gate,
+   so no honest version of this feature leaves sanctuary at 150. The two controls
+   are named above so a future reader inherits a HISTORY and not a fresh number.
+   Ratified by the chair on that ground, not by the hand that needed it — the
+   executor brought it rather than editing it, because amending a sealed tripwire
+   to accommodate one's own change is mechanically identical to silencing it, and
+   the only thing separating the two is whose word says the movement was real.
+
+   Both-ways is automatic here and was shown: these amended cells go RED at the
+   pre-D-2 tree (2916661), where the counts are 150/77/33. */
+ok('3.1', 'sanctuary carries 152 controls (145 sealed + 4 + Rider 2\'s one + D-2\'s two)', total === 152,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 77 && counts.anchor === 8 && counts.input === 27 &&
-   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 33,
+   counts.button === 78 && counts.anchor === 8 && counts.input === 27 &&
+   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 34,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */
