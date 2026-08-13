@@ -4,6 +4,8 @@
 // Mode context provides E1A/E3 and dream/sanctuary to all canvases.
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { apiGet, getAccessToken, isBrideDemoMode } from '../../lib/frost-api/_base';
 import {
   HomeModeKey, ContentMode, ModeDescriptor, MuseLook, MODES,
   museLookFromHomeMode, getFrostMode, getContentMode,
@@ -46,7 +48,51 @@ export const useFrostMode = () => useContext(FrostCtx);
 
 
 
+// ── ARC OB · charter OB-P · THE MANDATORY REDIRECT, BRIDE TWIN (F-1) ────────
+// The vendor lane's guard, same shape, same reasons. It lives in the LAYOUT and
+// the guard inside sanctuary/page.tsx (:4242-4245) is deleted in this same diff
+// — MOVED, not duplicated.
+//
+// WHAT THE OLD ONE GOT WRONG, identically to its vendor twin: it read
+// `onboarding_state !== 'complete'`, a FLOW POSITION and not a fact (R-OB.8).
+// The bride endpoint stamped that marker unconditionally until CE-32's micro —
+// `const updates = { onboarding_state: 'complete' }` was the first key of the
+// object — so every bride onboarded before the cure carries a marker that says
+// complete over a row with no name and no budget. Those are exactly the rows
+// backfill-on-login is owed to, and the old guard waved every one of them
+// through. It now reads the server-computed predicate verdict.
+//
+// It also sat inside a 4,300-line page, so it only ran on Sanctuary. The layout
+// mounts on every frost canvas.
+//
+// DEMO IS EXEMPT: isBrideDemoMode is the estate's one authority on that
+// question (F-05.39) and a demo bride has no couple row to be judged against.
+//
+// FAILS OPEN. An absent verdict is a server that did not answer, not a bride who
+// is incomplete — only an explicit false redirects.
+function useBrideOnboardingGuard() {
+  const pathname = usePathname() ?? '/frost';
+  const router   = useRouter();
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // The form is exempt from its own guard, or the redirect is a loop.
+    if (pathname.startsWith('/frost/canvas/onboarding')) return;
+    if (isBrideDemoMode()) return;
+    if (!getAccessToken()) return;
+
+    let live = true;
+    apiGet<{ ok: boolean; couple?: { onboarding?: { complete: boolean } } }>('/api/v2/couple/me')
+      .then((d) => {
+        if (!live) return;
+        if (d.couple?.onboarding?.complete === false) router.replace('/frost/canvas/onboarding');
+      })
+      .catch(() => { /* non-fatal — fail open, see above */ });
+    return () => { live = false; };
+  }, [pathname, router]);
+}
+
 export default function FrostLayout({ children }: { children: React.ReactNode }) {
+  useBrideOnboardingGuard();
   // SINGLE-THEME RULING (2026-08-07, the chair's own hand, second seat): the
   // initial state seeds from the PINNED reader — getFrostMode() is now
   // window-free and returns 'E1A' unconditionally, so this is SSR-safe and the

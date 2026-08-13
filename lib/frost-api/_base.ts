@@ -262,6 +262,9 @@ async function handleResponse<T>(res: Response): Promise<T> {
       typeof (err as { reason?: string })?.reason === 'string'
         ? (err as { reason?: string }).reason
         : undefined,
+      // ARC OB: the parsed refusal body rides along, so a caller that needs the
+      // contract's machine fields (missing[]) is not forced past this module.
+      data,
     );
   }
 

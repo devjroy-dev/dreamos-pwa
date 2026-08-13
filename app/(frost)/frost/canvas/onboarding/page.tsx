@@ -1,32 +1,43 @@
 'use client';
 // app/(frost)/frost/canvas/onboarding/page.tsx
-// Bride web onboarding — shown when onboarding_state = 'new'.
-// Redirected here from sanctuary/page.tsx auth guard.
+// ARC OB · charter OB-P · THE BRIDE FORM — two mandatory fields, four optional.
 //
-// Captures the same fields as WhatsApp bride onboarding:
-//   wedding_date, partner_name, wedding_city, budget_total
+// ═══ SERVER-TRUTH DOCTRINE (OB-P §5) ════════════════════════════════════════
+// This form holds NO copy of the predicate's rules and NO refusal sentence of
+// its own. BRIDE_FIELDS = ['name','budget'] lives in dream-os
+// (src/lib/onboardingPredicate.js) and reaches here only as data: the GET's
+// `onboarding.missing[]` and the 400's `missing[]`. The client asks and obeys.
 //
-// All fields optional — mirrors WA dodge behaviour.
-// On submit → POST /api/v2/couple/onboarding → onboarding_state = 'complete'
-// On done   → router.replace('/frost')
+// WHAT STOOD HERE, and why it could not stay:
+//   · IT COLLECTED NO NAME AT ALL. wedding_date, partner_name, wedding_city and
+//     budget, and not one box for the bride's own name — which is the precise
+//     mechanism by which 11 of 28 brides are on file nameless.
+//   · Its header declared 「 All fields optional — mirrors WA dodge behaviour 」
+//     and its own subhead said so to the bride. Under R-OB.6 that is true of the
+//     four; under BRIDE_FIELDS it was never true of the two.
+//   · F-OB.11 — it reached the estate by a RAW fetch against a hardcoded
+//     `const API = 'https://...'`, bypassing lib/frost-api/_base.ts, whose own
+//     header says every call goes through it. CURED HERE, which is the wholesale
+//     replacement the chair's shelf-filing named as the one condition for this
+//     page entering my radius. Declared, not slipped in.
+//
+// ═══ TWO RESIDENT BYTES RETIRED BY RULING, NOT BY TASTE ═════════════════════
+// R-OB.2 is NO GRACE TURNS and the redirect is MANDATORY. A door that renders a
+// 「 Skip for now 」 button is not a mandatory door, and 「 Everything is
+// optional — skip anything you're not ready for 」 is a promise the predicate
+// now refuses to keep. Both are REMOVED. The subhead keeps its true half
+// verbatim — a subtraction from a vetoed byte, never a fresh sentence, because
+// minting a replacement is the founder's pen and not mine. If he wants the
+// removed clause replaced rather than merely cut, that is a fresh veto.
+//
+// APPROVED-COPY-CARRIES-ITS-HASH. 「 Name 」 and 「 Wedding Budget (Approx). 」
+// are founder-signed 2026-08-13 and frozen at the byte, the trailing period
+// included. Every other string on this page is resident and carried unchanged.
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-const API = 'https://dream-os-production.up.railway.app';
-
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
-}
-
-function getCoupleId(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem('couple_session') || localStorage.getItem('couple_web_session');
-    return raw ? JSON.parse(raw)?.id : null;
-  } catch { return null; }
-}
+import { apiGet, apiPost, getCoupleSession } from '@/lib/frost-api/_base';
+import { ApiClientError } from '@/lib/types/common';
 
 function getBrideName(): string {
   if (typeof window === 'undefined') return '';
@@ -42,7 +53,7 @@ function getBrideName(): string {
 
 // ── Frost design tokens (hardcoded to avoid token import complexity) ─────────
 const T = {
-  bg:     '#0C0405',          // dream mode dark bg
+  bg:     '#0C0405',
   card:   'rgba(255,255,255,0.04)',
   gold:   '#C9A84C',
   ink:    '#F8F7F5',
@@ -50,20 +61,41 @@ const T = {
   border: 'rgba(248,247,245,0.1)',
 };
 
+interface CoupleMe {
+  ok: boolean;
+  couple?: {
+    partner_name?: string | null;
+    wedding_date?: string | null;
+    wedding_city?: string | null;
+    budget_total?: number | null;
+    onboarding?: { complete: boolean; missing: string[] };
+  };
+}
+
 export default function BrideOnboardingPage() {
   const router = useRouter();
-  const firstName = typeof window !== 'undefined' ? getBrideName() : '';
 
-  const [weddingDate,  setWeddingDate]  = useState('');
-  const [partnerName,  setPartnerName]  = useState('');
-  const [weddingCity,  setWeddingCity]  = useState('');
-  const [budgetRaw,    setBudgetRaw]    = useState('');
-  const [submitting,   setSubmitting]   = useState(false);
-  const [toast,        setToast]        = useState('');
-  const [done,         setDone]         = useState(false);
+  const [loading,     setLoading]     = useState(true);
+  const [firstName,   setFirstName]   = useState('');
+  const [missing,     setMissing]     = useState<string[]>([]);
+  const [refusal,     setRefusal]     = useState('');
+
+  const [name,        setName]        = useState('');
+  const [weddingDate, setWeddingDate] = useState('');
+  const [partnerName, setPartnerName] = useState('');
+  const [weddingCity, setWeddingCity] = useState('');
+  const [budgetRaw,   setBudgetRaw]   = useState('');
+
+  const [submitting,  setSubmitting]  = useState(false);
+  const [toast,       setToast]       = useState('');
+  const [done,        setDone]        = useState(false);
 
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
 
+  // THE PARSER, CARRIED VERBATIM (F-4 ratified: reuse, single numeric field, no
+  // ranges). A range cannot satisfy `moneyPresent`, which demands one number
+  // strictly greater than zero, and inventing a midpoint rule client-side would
+  // be a second definition of a budget.
   const parseBudget = (raw: string): number | null => {
     const cleaned = raw.trim().toUpperCase().replace(/,/g, '').replace(/RS\.?\s*/i, '');
     const lakh = cleaned.match(/^(\d+(?:\.\d+)?)\s*L$/);
@@ -74,66 +106,79 @@ export default function BrideOnboardingPage() {
     return Number.isFinite(num) && num > 0 ? num : null;
   };
 
+  useEffect(() => {
+    let live = true;
+    setFirstName(getBrideName());
+    (async () => {
+      try {
+        const me = await apiGet<CoupleMe>('/api/v2/couple/me');
+        if (!live) return;
+        const c = me.couple;
+        if (c?.onboarding?.complete) { router.replace('/frost'); return; }
+        if (c) {
+          setPartnerName(c.partner_name || '');
+          setWeddingDate(c.wedding_date || '');
+          setWeddingCity(c.wedding_city || '');
+          setBudgetRaw(c.budget_total ? String(c.budget_total) : '');
+          setMissing(c.onboarding?.missing || []);
+        }
+        setName(getBrideName());
+      } catch (e) {
+        if (!live) return;
+        if (e instanceof ApiClientError && (e.status === 401 || e.status === 403)) {
+          showToast('Session expired. Please sign in again.');
+          window.location.replace('/');
+          return;
+        }
+        showToast('Could not connect. Try again.');
+      }
+      if (live) setLoading(false);
+    })();
+    return () => { live = false; };
+  }, [router]);
+
   const submit = useCallback(async () => {
     if (submitting) return;
     setSubmitting(true);
-
-    const token    = getToken();
-    const coupleId = getCoupleId();
-
-    if (!token || !coupleId) {
-      showToast('Session expired. Please sign in again.');
-      setSubmitting(false);
-      window.location.replace('/');
-      return;
-    }
+    setRefusal('');
 
     const body: Record<string, unknown> = {};
-    if (weddingDate.trim())  body.wedding_date  = weddingDate.trim();
-    if (partnerName.trim())  body.partner_name  = partnerName.trim();
-    if (weddingCity.trim())  body.wedding_city  = weddingCity.trim();
+    if (name.trim())        body.name          = name.trim();
+    if (weddingDate.trim()) body.wedding_date  = weddingDate.trim();
+    if (partnerName.trim()) body.partner_name  = partnerName.trim();
+    if (weddingCity.trim()) body.wedding_city  = weddingCity.trim();
     const budget = parseBudget(budgetRaw);
-    if (budget)              body.budget_total  = budget;
+    if (budget)             body.budget_total  = budget;
 
     try {
-      const res = await fetch(`${API}/api/v2/couple/onboarding`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body:    JSON.stringify(body),
-      });
-      const d = await res.json();
-      // ── F-07.71 PARTIALLY CURED · THE AUTH BRANCH, BY LANE PARITY ───────────
-      // FOUNDER VETO 2026-08-01, verbatim 「 b 」: this site adopts its sibling's
-      // SHIPPED status branch — app/(auth)/couple/onboarding/page.tsx:153-157 —
-      // and the string below is that sibling's byte, moved not authored. Zero new
-      // copy; the V3 lane-parity precedent (the founder's own reasoning when he
-      // ruled "Forgot PIN?" identical on both lanes).
-      //
-      // WHAT THIS LINE DID. It read `d.error` with no status check and toasted
-      // the SERVER's raw string. `/api/v2/couple/onboarding` sits behind
-      // requireCoupleAuth (onboarding.js:58), so on the auth sitting's own
-      // specimen a bride was shown "No couple profile found." — a sentence
-      // written for a log, on her phone. F-05.28's V1 ruling says the raw
-      // "Unauthorised." must never reach a bride; the raw 403 twin was reaching
-      // her already, which is how this was found.
-      //
-      // THE REMAINDER IS FILED, NOT PAPERED. The fallthrough below still renders
-      // `d.error` for NON-auth failures (a 500 "Could not fetch profile.", a
-      // 400). That half stays OPEN under F-07.71 for its own small cure — named
-      // here so the next reader inherits the gap instead of assuming this line
-      // closed it.
-      if (res.status === 401 || res.status === 403) {
-        showToast('Session expired. Please sign in again.');
+      await apiPost<{ ok: boolean }>('/api/v2/couple/onboarding', body);
+      setDone(true);
+    } catch (e) {
+      if (e instanceof ApiClientError) {
+        if (e.status === 401 || e.status === 403) {
+          showToast('Session expired. Please sign in again.');
+          setSubmitting(false);
+          return;
+        }
+        // THE SERVER'S SENTENCE AND ITS MACHINE FIELDS. `body` rides the error
+        // precisely so this branch exists: the sentence is already
+        // founder-vetoed at the endpoint and is RENDERED, never re-worded, and
+        // `missing[]` is what marks the boxes. Narrowed at the point of use —
+        // the error carries `unknown` on purpose, so a server that answers in a
+        // shape this client did not expect degrades to the sentence alone
+        // rather than throwing inside a catch.
+        const refusalBody = e.body as { missing?: string[] } | undefined;
+        if (e.status === 400 && Array.isArray(refusalBody?.missing)) {
+          setMissing(refusalBody.missing);
+        }
+        setRefusal(e.message);
         setSubmitting(false);
         return;
       }
-      if (!d.ok) { showToast(d.error || 'Something went wrong. Try again.'); setSubmitting(false); return; }
-      setDone(true);
-    } catch {
       showToast('Could not connect. Try again.');
     }
     setSubmitting(false);
-  }, [weddingDate, partnerName, weddingCity, budgetRaw, submitting]);
+  }, [name, weddingDate, partnerName, weddingCity, budgetRaw, submitting]);
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const inp: React.CSSProperties = {
@@ -151,6 +196,22 @@ export default function BrideOnboardingPage() {
     textTransform: 'uppercase', color: T.mute,
     display: 'block', marginBottom: 8,
   };
+
+  // The marker renders from the SERVER's missing[], never from a local rule
+  // about which boxes look empty. 「 Still needed 」 is the vendor sheet's
+  // signed byte, REUSED rather than minted a second time.
+  const Label = ({ text, field }: { text: string; field: string }) => (
+    <label style={lbl}>
+      {text}
+      {missing.includes(field) && (
+        <span style={{ color: T.gold, marginLeft: 8 }}>Still needed</span>
+      )}
+    </label>
+  );
+
+  if (loading) {
+    return <div style={{ position: 'fixed', inset: 0, background: T.bg }} aria-busy="true" />;
+  }
 
   // ── Done screen ──────────────────────────────────────────────────────────────
   if (done) {
@@ -176,7 +237,6 @@ export default function BrideOnboardingPage() {
   return (
     <div style={{ position: 'fixed', inset: 0, background: T.bg, overflowY: 'auto' }}>
 
-      {/* Toast */}
       {toast && (
         <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${T.gold}`, borderRadius: 100, padding: '10px 20px', fontFamily: '"Jost", system-ui, sans-serif', fontSize:16, color: T.gold, whiteSpace: 'nowrap', zIndex: 99 }}>
           {toast}
@@ -185,7 +245,6 @@ export default function BrideOnboardingPage() {
 
       <div style={{ maxWidth: 440, margin: '0 auto', padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 28px calc(env(safe-area-inset-bottom, 0px) + 40px)' }}>
 
-        {/* Header */}
         <p style={{ fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 200, fontSize:9, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.gold, margin: '0 0 16px' }}>
           The Dream Wedding
         </p>
@@ -193,10 +252,19 @@ export default function BrideOnboardingPage() {
           {firstName ? `Hi ${firstName}.` : 'Welcome.'}
         </p>
         <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize:16, color: T.mute, lineHeight: 1.7, margin: '0 0 40px' }}>
-          Tell us a little about your wedding. Everything is optional — skip anything you&apos;re not ready for.
+          Tell us a little about your wedding.
         </p>
 
-        {/* Wedding date */}
+        {/* THE SERVER'S REFUSAL — verbatim, above the boxes it is about */}
+        {refusal && (
+          <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize: 16, lineHeight: 1.6, color: T.gold, background: 'rgba(201,168,76,0.08)', border: `0.5px solid ${T.gold}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 32px' }}>
+            {refusal}
+          </p>
+        )}
+
+        <Label text="Name" field="name" />
+        <input value={name} onChange={e => setName(e.target.value)} style={inp} />
+
         <label style={lbl}>When is the big day?</label>
         <input
           type="date"
@@ -205,7 +273,6 @@ export default function BrideOnboardingPage() {
           style={{ ...inp, colorScheme: 'dark' }}
         />
 
-        {/* Partner name */}
         <label style={lbl}>And who&apos;s the lucky person?</label>
         <input
           value={partnerName}
@@ -214,7 +281,6 @@ export default function BrideOnboardingPage() {
           style={inp}
         />
 
-        {/* City */}
         <label style={lbl}>Where are the functions taking place?</label>
         <input
           value={weddingCity}
@@ -223,8 +289,7 @@ export default function BrideOnboardingPage() {
           style={inp}
         />
 
-        {/* Budget */}
-        <label style={lbl}>Budget — ballpark is fine</label>
+        <Label text="Wedding Budget (Approx)." field="budget" />
         <input
           value={budgetRaw}
           onChange={e => setBudgetRaw(e.target.value)}
@@ -232,20 +297,12 @@ export default function BrideOnboardingPage() {
           style={inp}
         />
 
-        {/* Buttons */}
         <button
           onClick={submit}
           disabled={submitting}
           style={{ width: '100%', height: 54, background: submitting ? `rgba(201,168,76,0.4)` : T.gold, border: 'none', borderRadius: 100, fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 400, fontSize:11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0405', cursor: submitting ? 'default' : 'pointer', transition: 'all 200ms ease', marginBottom: 12 }}
         >
           {submitting ? 'Saving…' : 'Continue →'}
-        </button>
-
-        <button
-          onClick={() => { router.replace('/frost'); }}
-          style={{ width: '100%', height: 44, background: 'transparent', border: `0.5px solid ${T.border}`, borderRadius: 100, fontFamily: '"Jost", system-ui, sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.mute, cursor: 'pointer' }}
-        >
-          Skip for now
         </button>
 
         <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontSize:16, fontWeight: 300, color: T.mute, textAlign: 'center', marginTop: 20, fontStyle: 'italic', lineHeight: 1.6, opacity: 0.7 }}>

@@ -4239,11 +4239,14 @@ export default function SanctuaryPage() {
       .then(r=>r.json())
       .then(async d=>{
         const c = d?.couple as Record<string, unknown> | undefined;
-        const state = c?.onboarding_state as string | undefined;
-        if(state && state!=='complete'){
-          window.location.replace('/frost/canvas/onboarding');
-          return;
-        }
+        // ── ARC OB · OB-P · THE ONBOARDING GUARD MOVED OUT ──────────────────
+        // What stood here read `onboarding_state !== 'complete'` and replaced
+        // the location. It is now in app/(frost)/layout.tsx, MOVED not
+        // duplicated (F-1): this copy ran only on Sanctuary, and it trusted the
+        // MARKER, which every bride onboarded before CE-32's micro carries
+        // falsely over a row with no name and no budget (R-OB.8 — a flow
+        // position is not a fact). The layout reads the server-computed
+        // predicate verdict and covers every frost canvas.
         if(!c) return;
 
         // ── F-05.38 — HEAL THE SESSION BLOB FROM SERVER TRUTH ───────────────
