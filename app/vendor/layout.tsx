@@ -169,6 +169,22 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname() ?? '/vendor';
   const onLogin  = pathname === '/' || pathname.startsWith('/vendor/auth') || pathname.startsWith('/vendor/pin');
 
+  // ── ARC OB · OB-P · THE MANDATORY DOOR WEARS NO NAV ───────────────────────
+  // The five-door bar rendered OVER the onboarding form and buried the submit
+  // button. Founder caught it on the device walk.
+  //
+  // THE OCCLUSION IS THE VISIBLE HALF. The real defect is doctrinal: R-OB.2 is a
+  // MANDATORY redirect with no grace and no skip, so a door that renders Home /
+  // Calendar / Business / Storefront / More is advertising five exits the guard
+  // would bounce her straight back from. Chrome contradicting the ruling
+  // underneath it. Hiding the bar cures both halves in one act.
+  //
+  // ITS OWN PREDICATE, not an onLogin widening: onLogin means PRE-authentication
+  // and also gates <Splash />. The form is the opposite — she is authenticated,
+  // which is exactly why she is here. Folding it in would teach a later reader
+  // that the form is a login screen, and would drag Splash along with it.
+  const chromeless = pathname.startsWith('/vendor/onboarding');
+
   useOnboardingGuard(pathname, onLogin);
 
   // Set room class on BOTH html and body so the atmosphere paints both layers
@@ -204,7 +220,7 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
       }}>
         {children}
       </div>
-      {!onLogin && <BottomNav />}
+      {!onLogin && !chromeless && <BottomNav />}
     </div>
     </ThemeProvider>
   );

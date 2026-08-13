@@ -123,6 +123,23 @@ ok(/getVendorSession\(\)\?\.access_token/.test(LAYOUT) || 'the guard fires witho
 ok(!/circle|coplanner/.test(LAYOUT) || 'a circle branch was built where no shared path exists',
    '6.7 circle exemption stays STRUCTURAL — no role branch in this layout');
 
+console.log('\n── 6b · the mandatory door wears no nav (founder V-1 catch) ──');
+console.log('\n── 6b · the mandatory door wears no nav ──');
+ok(/const chromeless = pathname\.startsWith\('\/vendor\/onboarding'\)/.test(LAYOUT)
+   || 'no chromeless predicate',
+   '6b.1 the onboarding path is marked chromeless');
+ok(/\{!onLogin && !chromeless && <BottomNav \/>\}/.test(LAYOUT)
+   || 'BottomNav still renders on the form',
+   '6b.2 BottomNav does NOT render on the form — the submit button is reachable, and a mandatory door stops advertising five exits');
+ok(!/onLogin\s*=\s*pathname[^;]*onboarding/.test(LAYOUT)
+   || 'onboarding was folded into onLogin — the form is not a login screen',
+   '6b.3 chromeless is its own predicate, never an onLogin widening');
+// The predicates stay DISTINCT: onLogin still gates Splash, and folding
+// onboarding into it would silently drag Splash along with the nav.
+ok(/\{!onLogin && <Splash \/>\}/.test(LAYOUT)
+   || 'Splash was accidentally re-gated',
+   '6b.4 onLogin keeps its own meaning — Splash is untouched');
+
 console.log('\n── 7 · the mount probe is safe by the endpoint\'s own ruling ──');
 ok(/onboarding\?\.complete\) \{ router\.replace\('\/vendor'\)/.test(FORM)
    || 'a complete vendor is not bounced before the probe',
