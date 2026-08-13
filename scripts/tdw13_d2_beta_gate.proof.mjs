@@ -23,6 +23,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT    = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SUBJECT = path.join(ROOT, 'app/(frost)/frost/canvas/sanctuary/page.tsx');
+// D-5 moved the gate itself into the discover bloom; the mutation leg defaces
+// the file that now HOLDS the gate, or it defaces nothing and grades nothing.
+const GATE_FILE = path.join(ROOT, 'components/frost/blooms/discover.tsx');
 
 // The founder's bytes (Amendment One §2.13.vi, dream-os `792bd37`). Transcribed
 // here ONCE so the bench has an independent witness — if production and this
@@ -65,12 +68,31 @@ function ok(name, cond, detail) {
 }
 
 const sha = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
-const read = () => fs.readFileSync(SUBJECT, 'utf8');
+const read = () => fs.readFileSync(GATE_FILE, 'utf8');
 
 // ═════════════════════════════════════════════════════════════════════════════
 // PART A — the cells, against the tree as it stands
 // ═════════════════════════════════════════════════════════════════════════════
-const raw  = read();
+
+/* ── AMENDMENT, TDW_13 D-5: THE SUBJECT IS THE SURFACE ──────────────────────
+   Written before the extraction, this bench pinned its subject to
+   sanctuary/page.tsx. D-4 and D-5 moved the eleven blooms into
+   components/frost/blooms/. The bytes this bench guards did not change — they
+   changed address. Reading only the conductor would report a founder-vetoed
+   byte as missing while it sat on the bride's screen untouched, which is the
+   precise failure mode extraction exists to be careful about.
+   Directories are READ, never hand-listed. See components/frost/_shared/SURFACE.md. */
+function surfaceSrc() {
+  const parts = [fs.readFileSync(SUBJECT, 'utf8')];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(fs.readFileSync(path.join(abs, f), 'utf8'));
+  }
+  return parts.join('\n');
+}
+
+const raw  = surfaceSrc();
 const code = stripComments(raw);
 
 // -- rig self-test: prove the stripper actually strips, and actually spares
@@ -165,7 +187,9 @@ ok('7b. no persona name in the gate (Victor · Donna · Harvey · Mira · Eliza)
 // Every mutation defaces the delivered production code. Each must turn a
 // named cell red; a mutation that changes nothing means that cell proves nothing.
 // ═════════════════════════════════════════════════════════════════════════════
-const PRE_SHA = sha(raw);
+const gateRaw = fs.readFileSync(GATE_FILE, 'utf8');
+const PRE_SHA = sha(gateRaw);
+const CONDUCTOR_PRE = sha(fs.readFileSync(SUBJECT, 'utf8'));
 const MUTATIONS = [
   ['M1 · the founder byte is edited',
    s => s.replace("'We are presently in Beta testing Phase.", "'We are in beta."),
@@ -175,14 +199,14 @@ const MUTATIONS = [
   ['M2 · the re-arm flips to the enter side (the one-frame flash)',
    s => s.replace("if(activeRoom!=='discover') setBetaGateAcked(false)", "if(activeRoom==='discover') setBetaGateAcked(false)"),
    c => { const m = c.match(/useEffect\(\(\)=>\{[^}]*setBetaGateAcked\(false\)[^}]*\},\s*\[[^\]]*\]\)/); return !!m && /activeRoom!==['"]discover['"]/.test(m[0]); },
-   'cell 5b (no-flash)'],
+   'cell 5b (no-flash)', SUBJECT],
 
   ['M3 · the mount stops asking for the ack',
    s => s.replace(
      "{activeRoom==='discover'&&(betaGateAcked\n              ? <DiscoverRoom dark={dark} accent={accent} signal={signal}/>\n              : <BetaGate onAck={()=>setBetaGateAcked(true)}/>\n            )}",
      "{activeRoom==='discover'&&(\n              <DiscoverRoom dark={dark} accent={accent} signal={signal}/>\n            )}"),
    c => { const m = c.match(/activeRoom===['"]discover['"]&&\([\s\S]{0,400}?\n\s*\)\}/); return !!m && /betaGateAcked/.test(m[0]); },
-   'cell 4b (the mount is gated)'],
+   'cell 4b (the mount is gated)', SUBJECT],
 
   ['M4 · a dismissal memory is smuggled in',
    s => s.replace('function BetaGate({ onAck }: { onAck: () => void }) {',
@@ -216,24 +240,33 @@ const MUTATIONS = [
 
 let mutBit = 0, mutDead = 0;
 const mutLines = [];
-for (const [name, mutate, predicate, cellName] of MUTATIONS) {
-  const mutated = mutate(raw);
-  if (mutated === raw) {
+// D-5 split the gate's two halves across two files: the BYTES and the component
+// live in the discover bloom, the MOUNT DECISION and the re-arm stayed with the
+// conductor (it is the conductor that decides whether the feed mounts at all).
+// So a mutation names the file it defaces. Written with one target, M2 and M3
+// silently changed nothing and the leg correctly reported them DEAD — the leg
+// catching my own carelessness twice in this block now.
+for (const [name, mutate, predicate, cellName, target] of MUTATIONS) {
+  const FILE = target || GATE_FILE;
+  const base = fs.readFileSync(FILE, 'utf8');
+  const mutated = mutate(base);
+  if (mutated === base) {
     mutDead++;
     mutLines.push(['DEAD', `${name} — the mutation changed NOTHING; ${cellName} is unproven`]);
     continue;
   }
-  fs.writeFileSync(SUBJECT, mutated, 'utf8');
+  fs.writeFileSync(FILE, mutated, 'utf8');
   let held;
   try { held = predicate(stripComments(read())); }
-  finally { fs.writeFileSync(SUBJECT, raw, 'utf8'); }
+  finally { fs.writeFileSync(FILE, base, 'utf8'); }
   if (held) { mutDead++; mutLines.push(['DEAD', `${name} — ${cellName} STILL PASSED on the defaced tree`]); }
   else { mutBit++; mutLines.push(['bite', `${name} → ${cellName} went red`]); }
 }
 
 // le3 restore proof — checksum, not a shrug
 const POST_SHA = sha(read());
-const restored = POST_SHA === PRE_SHA;
+const CONDUCTOR_SHA_OK = sha(fs.readFileSync(SUBJECT, 'utf8')) === CONDUCTOR_PRE;
+const restored = POST_SHA === PRE_SHA && CONDUCTOR_SHA_OK;
 
 // ── report ───────────────────────────────────────────────────────────────────
 console.log('');
@@ -242,7 +275,7 @@ console.log('');
 console.log('  ── mutation leg (production code, never test setup) ──');
 for (const [tag, line] of mutLines) console.log(`  ${tag} ${line}`);
 console.log('');
-console.log(`  le3 restore: pre ${PRE_SHA.slice(0, 12)} · post ${POST_SHA.slice(0, 12)} · ${restored ? 'IDENTICAL' : 'DIVERGED'}`);
+console.log(`  le3 restore: gate ${PRE_SHA.slice(0, 12)}→${POST_SHA.slice(0, 12)} · conductor ${CONDUCTOR_SHA_OK ? 'held' : 'DIVERGED'} · ${restored ? 'IDENTICAL' : 'DIVERGED'}`);
 console.log('');
 
 const total = results.length;

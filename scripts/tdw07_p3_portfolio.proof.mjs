@@ -35,10 +35,30 @@ const sec = (t) => console.log('\n' + t);
 // absent file. The two cells that read the deleted leaf are re-aimed in this same
 // delivery, so the window has no live occupant; it is guarded, not merely empty.
 const MISSING = new Set();
-const raw  = (rel) => {
+const __raw0 = (rel) => {
   const abs = path.join(ROOT, rel);
   if (!fs.existsSync(abs)) { MISSING.add(rel); return `\u0000ABSENT-SUBJECT:${rel}\u0000`; }
   return fs.readFileSync(abs, 'utf8');
+};
+
+/* ── AMENDMENT, TDW_13 D-5: THE SUBJECT IS THE SURFACE ──────────────────────
+   D-4 and D-5 split the eleven blooms out of sanctuary/page.tsx into
+   components/frost/blooms/, with two shared helpers in components/frost/_shared/.
+   The bride's Sanctuary is the same screen across fourteen files. Every cell
+   here asking about SANCTUARY was asking about the screen, not the path, so a
+   read of the sanctuary path returns the whole surface. Directories are READ,
+   never hand-listed — a written list is exactly how a byte escapes a bench.
+   See components/frost/_shared/SURFACE.md. */
+const __SANCT_PATH = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+const raw = (rel) => {
+  if (rel !== __SANCT_PATH) return __raw0(rel);
+  const parts = [__raw0(__SANCT_PATH)];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(__raw0(`${d}/${f}`));
+  }
+  return parts.join('\n');
 };
 // ORDER IS LOAD-BEARING AND WAS WRONG ONCE: line comments are stripped FIRST,
 // block comments SECOND. Stripping blocks first lets a line comment containing

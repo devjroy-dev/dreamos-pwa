@@ -21,12 +21,33 @@
 //
 // Run: node scripts/tdw06_m3_report_chip.proof.mjs
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const R = (p) => readFileSync(join(__dirname, '..', p), 'utf8');
+const __R0 = (p) => readFileSync(join(__dirname, '..', p), 'utf8');
+
+/* ── AMENDMENT, TDW_13 D-5: THE SUBJECT IS THE SURFACE ──────────────────────
+   D-4 and D-5 split the eleven blooms out of sanctuary/page.tsx into
+   components/frost/blooms/, with two shared helpers in components/frost/_shared/.
+   The bride's Sanctuary is the same screen across fourteen files. Every cell
+   here asking about SANCTUARY was asking about the screen, not the path, so a
+   read of the sanctuary path returns the whole surface. Directories are READ,
+   never hand-listed — a written list is exactly how a byte escapes a bench.
+   See components/frost/_shared/SURFACE.md. */
+const __SANCT_PATH = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+const R = (p) => {
+  if (p !== __SANCT_PATH) return __R0(p);
+  const parts = [__R0(__SANCT_PATH)];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = join(__dirname, '..', d);
+    if (existsSync(abs)) for (const f of readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(__R0(`${d}/${f}`));
+  }
+  return parts.join('\n');
+};
+
 const SRC = {
   api:      R('lib/vendor/api/vendor.ts'),
   useChat:  R('hooks/vendor/useChat.ts'),

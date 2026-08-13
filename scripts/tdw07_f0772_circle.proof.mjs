@@ -34,7 +34,25 @@ let pass = 0, fail = 0;
 const ok  = (n, c, d) => { if (c) { pass++; console.log('  ok   ' + n); } else { fail++; console.log('  FAIL ' + n + (d ? '  → ' + d : '')); } };
 const sec = (t) => console.log('\n' + t);
 
-const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const __raw0  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+
+/* ── AMENDMENT, TDW_13 D-5: THE SUBJECT IS THE SURFACE ──────────────────────
+   D-5 moved the remaining blooms out of sanctuary/page.tsx. This bench's cells
+   ask about SANCTUARY — the screen — not about a path, so a read of the
+   sanctuary path returns the whole surface. Directories are READ, never
+   hand-listed. See components/frost/_shared/SURFACE.md. */
+const __SANCT_PATH = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+function __surface(join) {
+  const parts = [join(__SANCT_PATH)];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(join(`${d}/${f}`));
+  }
+  return parts.join('\n');
+}
+const raw = (rel) => rel === __SANCT_PATH ? __surface(__raw0) : __raw0(rel);
+
 const code = (rel) => stripComments(raw(rel));
 
 const CTX_P      = 'app/coplanner/CircleSessionContext.tsx';
@@ -43,6 +61,18 @@ const JOIN_P     = 'app/circle/join/[token]/page.tsx';
 const SETTINGS_P = 'app/coplanner/settings/page.tsx';
 const JOURNEY_P  = 'lib/frost/journey.ts';
 const SANCT_P    = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+/* ── AMENDMENT, TDW_13 D-5: the circle surface moved file ────────────────────
+   D-5 extracted CircleRoom and CircleCompose from sanctuary/page.tsx into
+   components/frost/blooms/circle.tsx, verbatim. Every mutation anchor below
+   that named SANCT_P still exists — byte-identical — at the new address, and
+   each was verified present there before this constant changed. The mutations
+   defacing the circle surface therefore target CIRCLE_P.
+
+   This is not a relaxation. A mutation whose anchor is absent applies nothing,
+   the cell it grades stays green on a defaced tree, and the leg reports it as
+   an anchor miss — which is exactly what happened here and exactly how the move
+   was caught. The anchor list is the same list; only its address moved. */
+const CIRCLE_P   = 'components/frost/blooms/circle.tsx';
 
 // EVERY co-planner call site, enumerated rather than sampled. The read-first's
 // census is the census of record; a tenth site appearing here without a header
@@ -699,16 +729,27 @@ ok('§15.6 THE CENSUS IS CLOSED — exactly TWO role maps in this repo, and they
         const rel = path.join(d, e.name);
         if (e.isDirectory()) { if (e.name === 'node_modules' || e.name === '.next') continue; walk(rel); continue; }
         if (!/\.tsx?$/.test(e.name)) continue;
-        const c = code(rel);
+        /* SINGLE-FILE READ, deliberately. `code()` routes the sanctuary path to
+           the whole SURFACE (see the D-5 amendment above), which is right for a
+           cell asking "does the screen still do X" and WRONG for a census that
+           walks the tree file by file: the conductor would carry every bloom's
+           text and this walk would count it as a third role map. A census asks
+           where a thing LIVES; only a capability cell asks whether it exists. */
+        const c = stripComments(__raw0(rel));
         if (/inner_circle\s*:\s*'Inner Circle'/.test(c)) hits.push(rel);
       }
     };
     for (const d of ['app', 'components', 'lib', 'hooks']) {
       if (fs.existsSync(path.join(ROOT, d))) walk(d);
     }
+    /* AMENDMENT, TDW_13 D-5: the bride's map moved from sanctuary/page.tsx to
+       components/frost/blooms/circle.tsx with CircleRoom. The COUNT is what this
+       cell guards — two maps, not three — and it is still two. A moved twin is
+       not a new instance, and the cell would have been wrong to pass silently on
+       a path change, which is why it names both addresses rather than counting. */
     return hits.length === 2 &&
            hits.includes('app/coplanner/settings/page.tsx') &&
-           hits.includes('app/(frost)/frost/canvas/sanctuary/page.tsx');
+           hits.includes('components/frost/blooms/circle.tsx');
   })(),
   'a third role map appeared, or one of the two known maps moved — a class with three instances is a shared home, not a twin');
 
@@ -757,7 +798,7 @@ if (!CELLS_ONLY) {
     ['app/coplanner/threads/[threadId]/page.tsx',
       '{(mine || m.sender_name) && (', '{(mine || m.sender_role) && (',
       'M-13 the role creeps back into the label condition       ⇒ §8.5 RED'],
-    [SANCT_P, "body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'})",
+    [CIRCLE_P, "body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'})",
       "body:JSON.stringify({userId:coupleId,body:msg,sender_name:'Bride',sender_role:'bride'})",
       'M-14 sanctuary posts the client-minted name again        ⇒ §8.9 RED'],
 
@@ -771,12 +812,12 @@ if (!CELLS_ONLY) {
       'M-16 the refusal leaves the cached session behind         ⇒ §9.2 RED'],
     [LAYOUT_P, '    window.addEventListener(CIRCLE_REFUSAL_EVENT, onRefused);', '',
       'M-17 the listener is gone — screens refuse, nothing reacts ⇒ §9.6 RED'],
-    [SANCT_P, '            Sign in again to see and send Circle messages.',
+    [CIRCLE_P, '            Sign in again to see and send Circle messages.',
       '            Something went wrong.',
       'M-18 the founder\'s vetoed landing byte paraphrased        ⇒ §9.8 RED'],
-    [SANCT_P, 'if(res.status===401){ setText(msg); onRefused(); setSending(false); return; }', '',
+    [CIRCLE_P, 'if(res.status===401){ setText(msg); onRefused(); setSending(false); return; }', '',
       'M-19 her send is discarded again — the message vanishes    ⇒ §9.12 RED'],
-    [SANCT_P, 'if(res.status===401){ if(alive) setChatLocked(true); return; }', '',
+    [CIRCLE_P, 'if(res.status===401){ if(alive) setChatLocked(true); return; }', '',
       'M-20 the poll stops locking — stale messages look live     ⇒ §9.10 RED'],
 
     // ── F-07.115 / F-07.121, this delivery's own. Every one breaks PRODUCTION

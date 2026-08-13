@@ -1,0 +1,479 @@
+'use client';
+// CircleRoom — the circle feed and its composer.
+//
+// TDW_13 · D-5 · VERBATIM RELOCATION, the same law D-4 ran under. This body is
+// byte-identical to the lines it occupied in sanctuary/page.tsx at 66ea400.
+// Only the import mechanism changed. No token conversion, no hygiene, no
+// feature — those are P3 and P5 and they do not ride a relocation commit (F-1).
+
+import React, { useState, useEffect } from 'react';
+import { FT, FS, FI, getCoupleIdForFrost } from '@/lib/frost/tokens';
+import { fetchCircle, inviteCircleMember, removeCircleMember, formatActivityLine, timeAgo,
+         type CircleData, type CircleActivity, type CircleMember } from '@/lib/frost/journey';
+import { usePress } from '@/components/frost/_shared/usePress';
+import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
+
+// ── CIRCLE ROOM ───────────────────────────────────────────────────────────────
+interface CircleRoomProps {
+  dark:boolean; accent:string; signal:string;
+  roomInk:string; roomInkSoft:string; roomInkMute:string; roomLine:string;
+}
+
+const ROLE_LABELS: Record<string,string> = {
+  partner:'Partner · Fiancé',
+  family:'Family',
+  inner_circle:'Inner Circle',
+};
+
+export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInkMute, roomLine }: CircleRoomProps) {
+  const { press, pressed } = usePress();
+  const [data,        setData]        = React.useState<CircleData|null>(null);
+  const [loading,     setLoading]     = React.useState(true);
+  const [view,        setView]        = React.useState<'feed'|'invite'>('feed');
+  const [inviteName,  setInviteName]  = React.useState('');
+  const [invitePhone, setInvitePhone] = React.useState('');
+  const [inviteRole,  setInviteRole]  = React.useState('family');
+  const [inviting,    setInviting]    = React.useState(false);
+  const [waLink,      setWaLink]      = React.useState<string|null>(null);
+  const [contactsSupported] = React.useState<boolean>(()=>{
+    if(typeof navigator==='undefined') return false;
+    return !!((navigator as any).contacts && (navigator as any).contacts.select);
+  });
+
+  const pickContact = async () => {
+    try {
+      const nav:any = navigator;
+      if(!nav.contacts?.select) return;
+      const props = ['name','tel'];
+      const result = await nav.contacts.select(props, {multiple:false});
+      if(result && result.length){
+        const c = result[0];
+        const nm = Array.isArray(c.name) ? c.name[0] : c.name;
+        const tel = Array.isArray(c.tel) ? c.tel[0] : c.tel;
+        if(nm)  setInviteName(String(nm));
+        if(tel) setInvitePhone(String(tel).replace(/[^\d+]/g,''));
+      }
+    } catch { /* user cancelled or unsupported — silently ignore */ }
+  };
+
+  const circleBg = dark
+    ? 'radial-gradient(ellipse 110% 55% at 50% -5%,rgba(196,133,106,.18) 0%,transparent 52%),radial-gradient(ellipse 70% 60% at 90% 110%,rgba(40,5,12,.80) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 5% 100%,rgba(60,8,20,.70) 0%,transparent 50%),linear-gradient(180deg,#1A0A0E 0%,#0E0506 40%,#080204 70%,#0C0408 100%)'
+    : 'radial-gradient(ellipse 110% 50% at 60% -5%,rgba(74,122,155,.24) 0%,transparent 55%),radial-gradient(ellipse 70% 50% at 10% 110%,rgba(42,95,130,.16) 0%,transparent 55%),linear-gradient(160deg,#EEF0F6 0%,#E4E8F2 30%,#D8DEEC 60%,#CDD4E8 100%)';
+
+  const pgInk     = dark ? '#F5E5DC' : '#0C1830';
+  const pgInkSoft = dark ? 'rgba(245,229,220,.72)' : 'rgba(12,24,48,.68)';
+  const pgInkMute = dark ? 'rgba(196,133,106,.48)' : 'rgba(42,80,130,.52)';
+  const pgLine    = dark ? 'rgba(196,133,106,.12)' : 'rgba(42,80,130,.16)';
+  const pgAccent  = dark ? '#C4856A' : '#2A5F82';
+  const candleBg  = dark ? 'rgba(196,133,106,.08)' : 'rgba(42,95,130,.06)';
+  const candleBdr = dark ? 'rgba(196,133,106,.18)' : 'rgba(42,95,130,.16)';
+
+  const [chatMsgs, setChatMsgs] = React.useState<any[]>([]);
+  // ── F-07.72 ZIP 2 · FORK A(c) · THE BRIDE'S LANDING ────────────────────────
+  // This state exists because ZIP 2 can refuse HER. She is not a
+  // `circle_members` row; the circle doors are dual-lane and take a resolver,
+  // and that resolver admits her only while her couple credential resolves. A
+  // stale JWT, an ITP wipe, a signed-out browser — all three worked before this
+  // delivery, because the server ignored her header and served the couple id in
+  // the path. All three are 401 now.
+  //
+  // AND HER REFUSAL IS THE INVISIBLE KIND, which is why a banner and not a
+  // silence: this poll's `d?.ok` guard means a refusal simply never calls
+  // `setChatMsgs`, so the last messages she loaded stay on screen, refreshing
+  // every ten seconds, looking live. Enforcement without a landing is a security
+  // fix that breaks a real person's screen and does not tell her.
+  const [chatLocked, setChatLocked] = React.useState(false);
+  const API_CIRCLE = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+
+  React.useEffect(()=>{
+    fetchCircle().then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  // Fetch circle thread messages + poll every 10s so members' messages appear live.
+  React.useEffect(()=>{
+    let alive = true;
+    const loadMessages = async () => {
+      try {
+        const coupleId = getCoupleIdForFrost();
+        const token = coupleAccessToken();
+        if(!coupleId) return;
+        const res = await fetch(`${API_CIRCLE}/api/v2/frost/circle/messages/${coupleId}`,{
+          headers: token?{Authorization:`Bearer ${token}`}:undefined,
+        });
+        // ONLY 401 LOCKS. A 500, a timeout, an offline phone keep the last known
+        // messages exactly as this poll has always behaved — telling her to sign
+        // in again over a dropped packet would be its own defect.
+        if(res.status===401){ if(alive) setChatLocked(true); return; }
+        if(alive) setChatLocked(false);
+        const d = await res.json();
+        if(alive && d?.ok && Array.isArray(d.messages)) setChatMsgs(d.messages);
+      } catch { /* keep last known */ }
+    };
+    loadMessages();
+    const iv = setInterval(loadMessages, 10000);
+    return ()=>{ alive=false; clearInterval(iv); };
+  },[]);
+
+  const doInvite = async () => {
+    if(!inviteName.trim()||inviting) return;
+    setInviting(true);
+    try {
+      const r = await inviteCircleMember({invitee_name:inviteName.trim(),role:inviteRole,invitee_phone:invitePhone.trim()||undefined});
+      if(r.wa_me_link) {
+        setWaLink(r.wa_me_link);
+      } else if(r.join_url) {
+        setWaLink(`https://wa.me/?text=${encodeURIComponent('Join my wedding circle: '+r.join_url)}`);
+      } else {
+        setWaLink('ERROR:Could not generate link. Try again.');
+      }
+    } catch(e:any) {
+      console.error('[doInvite]', e);
+      setWaLink('ERROR:' + (e?.message || 'Could not generate link. Try again.'));
+    }
+    finally{ setInviting(false); }
+  };
+
+  const members  = data?.members         || [];
+  const baseActivity = data?.activity     || [];
+  const pending  = data?.pending_invites || [];
+
+  // Merge real chat messages into the activity stream so the group chat is visible
+  // alongside saves/joins. Messages render as activity_type='message'.
+  const msgItems = (chatMsgs||[]).map((m:any)=>({
+    id:            'msg-'+m.id,
+    activity_type: 'message',
+    member_name:   m.sender_role==='bride' ? 'You' : (m.sender_name||'Circle'),
+    actor_role:    m.sender_role||'circle_member',
+    content:       m.content||m.body||'',
+    created_at:    m.created_at,
+    image_url:     null, caption:null, aesthetic_tags:null, save_number:null, source_type:null,
+  }));
+  const activity = [...baseActivity, ...msgItems]
+    .sort((a:any,b:any)=> new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  // ── INVITE VIEW ──
+  if(view==='invite') return (
+    <div style={{flex:1,display:'flex',flexDirection:'column',background:circleBg}}>
+      <div style={{padding:'24px 24px 16px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1,marginBottom:6}}>Invite to Circle</div>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>Up to 3 people. They can add to your Muse board.</div>
+      </div>
+
+      {waLink ? (
+        waLink.startsWith('ERROR:') ? (
+          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:16}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:'#C4534A',textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+              {waLink.replace('ERROR:', '')}
+            </div>
+            <button onClick={()=>{setWaLink(null);setInviting(false);}}
+              style={{background:'none',border:`0.5px solid ${pgAccent}`,borderRadius:4,padding:'10px 20px',cursor:'pointer',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                textTransform:'uppercase' as any,color:pgAccent}}>
+              Try again
+            </button>
+          </div>
+        ) : (
+        <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:pgInk,textAlign:'center' as any,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+            Invite link ready.<br/>Send it on WhatsApp.
+          </div>
+          <a href={waLink} target="_blank" rel="noopener noreferrer"
+            style={{display:'flex',alignItems:'center',justifyContent:'center',
+              padding:'12px 28px',borderRadius:4,
+              background:pgAccent,color:dark?'#1A0810':'#FFFFFF',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,textDecoration:'none',cursor:'pointer'}}>
+            Open WhatsApp →
+          </a>
+          <button onClick={()=>{setWaLink(null);setInviteName('');setInvitePhone('');setView('feed');}}
+            style={{background:'none',border:'none',cursor:'pointer',
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,color:pgInkMute,padding:0}}>
+            Back to Circle
+          </button>
+        </div>
+        )
+      ) : (
+        <div style={{flex:1,padding:'24px',display:'flex',flexDirection:'column',gap:20}}>
+          {/* Invite from contacts — Android only (Contact Picker API) */}
+          {contactsSupported&&(
+            <button onClick={pickContact} {...press('circle:contacts')}
+              style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'12px',
+                borderRadius:4,border:`0.5px solid ${pgAccent}`,background:'transparent',cursor:'pointer',
+                fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                textTransform:'uppercase' as any,color:pgAccent,WebkitTapHighlightColor:'transparent',
+                ...pressed('circle:contacts')}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5z" stroke={pgAccent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Invite from contacts
+            </button>
+          )}
+          {/* Name input */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their name</div>
+            <input value={inviteName} onChange={e=>setInviteName(e.target.value)}
+              placeholder="e.g. Mom, Priya, Anjali"
+              style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
+                padding:'12px 14px',color:pgInk,
+                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
+                fontFeatureSettings:'"opsz" 9',outline:'none',
+                boxSizing:'border-box' as any}}/>
+          </div>
+          {/* Phone input (optional) — enables direct WhatsApp deep-link */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Their WhatsApp number <span style={{opacity:.6}}>· optional</span></div>
+            <input value={invitePhone} onChange={e=>setInvitePhone(e.target.value.replace(/[^\d+ ]/g,''))}
+              type="tel" inputMode="tel"
+              placeholder="e.g. 98765 43210"
+              style={{width:'100%',background:'transparent',border:`0.5px solid ${pgLine}`,borderRadius:4,
+                padding:'12px 14px',color:pgInk,
+                fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
+                fontFeatureSettings:'"opsz" 9',outline:'none',
+                boxSizing:'border-box' as any}}/>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkMute,marginTop:6,fontFeatureSettings:'"opsz" 9'}}>Add a number to send the invite straight to their chat.</div>
+          </div>
+          {/* Role selector */}
+          <div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:8}}>Relationship</div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {['partner','family','inner_circle'].map(r=>(
+                <div key={r} onClick={()=>setInviteRole(r)}
+                  style={{padding:'10px 14px',borderRadius:4,border:`0.5px solid ${inviteRole===r?pgAccent:pgLine}`,cursor:'pointer',
+                    background:inviteRole===r?(dark?'rgba(196,133,106,.08)':'rgba(42,95,130,.06)'):'transparent',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,
+                    color:inviteRole===r?pgAccent:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+                  {ROLE_LABELS[r]}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Send button */}
+          <button onClick={doInvite} disabled={!inviteName.trim()||inviting}
+            style={{padding:'13px',borderRadius:4,border:'none',cursor:inviteName.trim()&&!inviting?'pointer':'default',
+              background:inviteName.trim()&&!inviting?pgAccent:'rgba(128,128,128,.15)',
+              color:inviteName.trim()&&!inviting?(dark?'#1A0810':'#FFFFFF'):pgInkMute,
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,transition:'all 200ms ease'}}>
+            {inviting?'Generating link…':'Generate invite link'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── FEED VIEW ──
+  return (
+    <div style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column',background:circleBg}}>
+
+      {/* Members row */}
+      <div style={{padding:'16px 20px',borderBottom:`0.5px solid ${pgLine}`,flexShrink:0}}>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,marginBottom:12}}>Your Circle</div>
+        <div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap' as any}}>
+          {loading?(
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute,letterSpacing:'.22em'}}>loading…</div>
+          ):members.length===0&&pending.length===0?(
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>No one yet. Invite someone.</div>
+          ):(
+            <>
+              {members.map(m=>(
+                <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                  {/* Avatar circle */}
+                  <div style={{width:44,height:44,borderRadius:'50%',
+                    background:dark?'rgba(196,133,106,.15)':'rgba(42,95,130,.12)',
+                    border:`1.5px solid ${pgAccent}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:19,color:pgAccent}}>
+                    {(m.invitee_name||'?')[0]}
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                    {m.invitee_name?.split(' ')[0]}
+                  </div>
+                  {/* Active candle dot */}
+                  {m.status==='active'&&(
+                    <div className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 5px ${signal}`}}/>
+                  )}
+                </div>
+              ))}
+              {/* Pending invites */}
+              {pending.map(p=>(
+                <div key={p.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                  <div style={{width:44,height:44,borderRadius:'50%',
+                    border:`1.5px dashed ${pgLine}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute}}>
+                    ?
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute,textAlign:'center' as any}}>
+                    {p.invitee_name?.split(' ')[0]}
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:pgInkMute,letterSpacing:'.22em',textTransform:'uppercase' as any}}>pending</div>
+                </div>
+              ))}
+            </>
+          )}
+          {/* Add button */}
+          {members.length < 3 && (
+            <div onClick={()=>setView('invite')} {...press('circle:add')} style={{width:44,height:44,borderRadius:'50%',
+              border:`1px dashed ${pgLine}`,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              cursor:'pointer',WebkitTapHighlightColor:'transparent',color:pgInkMute,fontSize:20,fontWeight:200,
+              ...pressed('circle:add')}}>
+              +
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Activity feed */}
+      <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
+        {loading?(
+          <div style={{padding:32,textAlign:'center' as any,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>loading…</div>
+        ):activity.length===0?(
+          <div style={{padding:`${FS.s5}px ${FS.gutter}px`,display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Quiet here<br/>for now.</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>When your Circle saves something<br/>or sends a message, it appears here.</div>
+          </div>
+        ):(
+          <div>
+            {activity.map(a=>(
+              <div key={a.id} style={{padding:'14px 20px',borderBottom:`0.5px solid ${pgLine}`,display:'flex',gap:12,alignItems:'flex-start'}}>
+                {/* Activity dot */}
+                <div style={{width:7,height:7,borderRadius:'50%',background:pgAccent,flexShrink:0,marginTop:5,opacity:.7}}/>
+                <div style={{flex:1}}>
+                  {/* Save with image — portrait thumbnail + caption beside, full image visible */}
+                  {a.activity_type==='save_added'&&a.image_url?(
+                    <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+                      {/* Portrait thumbnail — fixed width, natural height, no cropping */}
+                      <div style={{flexShrink:0,width:64,borderRadius:6,overflow:'hidden',background:dark?'rgba(196,133,106,.06)':'rgba(42,95,130,.06)'}}>
+                        <img src={a.image_url} alt="" style={{width:'100%',display:'block',objectFit:'contain'}} loading="lazy"/>
+                      </div>
+                      {/* Caption + meta beside */}
+                      <div style={{flex:1,paddingTop:2}}>
+                        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInk,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',marginBottom:6}}>
+                          {a.content || formatActivityLine(a)}
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                            <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
+                          )}
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                            {a.member_name||'You'} · {timeAgo(a.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ):(
+                    <>
+                  <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInk,lineHeight:1.55,fontFeatureSettings:'"opsz" 9',marginBottom:4}}>
+                    {a.content || formatActivityLine(a)}
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                      <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
+                    )}
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>
+                      {a.member_name||'You'} · {timeAgo(a.created_at)}
+                    </span>
+                  </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Circle compose — minimal, sends to group thread */}
+      <div style={{flexShrink:0,background:dark?'rgba(12,4,5,.88)':'rgba(230,232,240,.88)',
+        backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
+        borderTop:`0.5px solid ${pgLine}`,
+        padding:`10px 16px calc(10px + env(safe-area-inset-bottom,0px))`}}>
+        {chatLocked ? (
+          /* F-07.72 ZIP 2 · FORK A(c) — THE LANDING. It replaces the composer
+             rather than sitting above it: a box she can type into that cannot
+             send is the vanishing-message failure with extra steps. */
+          <div style={{padding:'6px 2px',textAlign:'center' as any,
+            fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,
+            color:pgInkSoft,lineHeight:1.5,fontFeatureSettings:'"opsz" 9'}}>
+            Sign in again to see and send Circle messages.
+          </div>
+        ) : (
+        <CircleCompose dark={dark} accent={pgAccent} line={pgLine} ink={pgInk} signal={signal}
+          onRefused={()=>setChatLocked(true)}
+          onSent={(msg)=>{
+            // Optimistic — append to chatMsgs; next 10s poll reconciles with server truth.
+            setChatMsgs(prev=>[...prev,{id:'local-'+Date.now(),content:msg,body:msg,sender_role:'bride',sender_name:'You',created_at:new Date().toISOString()}]);
+          }}/>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── CIRCLE COMPOSE ─────────────────────────────────────────────────────────────
+interface CircleComposeProps {dark:boolean;accent:string;line:string;ink:string;signal:string;onSent:(msg:string)=>void;onRefused:()=>void;}
+function CircleCompose({dark,accent,line,ink,onSent,onRefused}:CircleComposeProps){
+  const [text,   setText]   = React.useState('');
+  const [sending,setSending]= React.useState(false);
+  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
+
+  const send = async () => {
+    if(!text.trim()||sending) return;
+    const msg = text.trim();
+    setText('');
+    setSending(true);
+    try {
+      const coupleId = getCoupleIdForFrost();
+      if(coupleId) {
+        // No thread_id → backend resolves the canonical per-couple circle thread.
+        // F-07.72 — the bride's Bearer joins the POST. Her GET sibling at the
+        // thread poll has always sent one (ignored until this delivery); this
+        // send never did. The circle doors are dual-lane and take a resolver,
+        // never a circle-member guard: without this header the enforcement
+        // delivery would refuse the bride her own circle chat.
+        const circleToken = coupleAccessToken();
+        const res = await fetch(`${API}/api/v2/frost/circle/messages`,{
+          method:'POST',
+          headers: circleToken
+            ? {'Content-Type':'application/json', Authorization:`Bearer ${circleToken}`}
+            : {'Content-Type':'application/json'},
+          // F-07.107 — `sender_name:'Bride'` was here. The server no longer accepts
+          // the parameter: her ACTUAL name is hydrated from couples.user_id ->
+          // users.name and persisted to 0105's column, so the literal that used to
+          // travel from this line and die at the insert is gone at both ends.
+          // `sender_role` STAYS — it is a role, it is stored as one in sent_by, and
+          // :2625 below reads it to say 「 You 」 on her own bubbles.
+          body:JSON.stringify({userId:coupleId,body:msg,sender_role:'bride'}),
+        });
+        // F-07.72 ZIP 2 — this response was DISCARDED, which was harmless while
+        // nothing refused. Under enforcement a discarded 401 is her message
+        // disappearing with no error anywhere. Her text goes back in the box and
+        // the landing takes the composer's place.
+        if(res.status===401){ setText(msg); onRefused(); setSending(false); return; }
+      }
+      onSent(msg);
+    } catch {}
+    setSending(false);
+  };
+
+  const inputBg  = dark?'rgba(196,133,106,.05)':'rgba(42,95,130,.05)';
+  const inputBdr = dark?'rgba(196,133,106,.18)':'rgba(42,95,130,.18)';
+
+  return(
+    <div style={{display:'flex',gap:8,alignItems:'center',background:inputBg,border:`0.5px solid ${inputBdr}`,borderRadius:20,padding:'7px 8px 7px 14px'}}>
+      <input value={text} onChange={e=>setText(e.target.value)}
+        onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();send();}}}
+        placeholder="Say something to your circle…"
+        disabled={sending}
+        style={{flex:1,background:'transparent',border:'none',outline:'none',
+          fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,
+          color:ink,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text'}}/>
+      <button onClick={send} disabled={!text.trim()||sending}
+        style={{width:30,height:30,borderRadius:'50%',background:text.trim()&&!sending?accent:'rgba(128,128,128,.12)',
+          color:text.trim()&&!sending?(dark?'#1A0810':'#FFFFFF'):'rgba(128,128,128,.4)',
+          border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:text.trim()&&!sending?'pointer':'default',flexShrink:0}}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+    </div>
+  );
+}

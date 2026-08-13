@@ -260,8 +260,15 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
 /* 3.0 — the union guard. Every cell in this section counts across SURFACE_FILES;
    if that list collapsed to the conductor alone, the counts below would be a
    claim about one ninth of the surface wearing the whole surface's number. */
-ok('3.0', 'the surface union is real — conductor + six blooms + two shared homes',
-   SURFACE_FILES.length === 9 && SURFACE_FILES[0] === SANCTUARY,
+/* AMENDMENT, TDW_13 D-5: the count was 9 (D-4's six blooms + two shared homes +
+   the conductor) and is now 14 — D-5 moved Discover, Muse, Circle, Pages and
+   Meridian out too. The literal is deliberately kept rather than replaced with
+   `> 1`: this cell exists to catch a union that COLLAPSED, and a floor of "more
+   than one" would pass on a conductor plus one stray file. It moves by a stated
+   arithmetic each time the surface genuinely grows, which is the same discipline
+   the control census below has followed since Rider 1. */
+ok('3.0', 'the surface union is real — conductor + eleven blooms + two shared homes',
+   SURFACE_FILES.length === 14 && SURFACE_FILES[0] === SANCTUARY,
    `${SURFACE_FILES.length} files: ${SURFACE_FILES.join(', ')}`);
 
 /* ── F-13.7 · THE LEAK-GUARD. The census is comment-stripped, and it was sound

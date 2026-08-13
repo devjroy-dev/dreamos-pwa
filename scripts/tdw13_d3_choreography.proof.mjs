@@ -132,12 +132,22 @@ ok('3b. its one home is the CSS const, which mounts page-wide as #sv5',
    /document\.createElement\('style'\);s\.id='sv5';s\.textContent=CSS/.test(code));
 // both consumers must survive — a "one home" that was reached by deleting a
 // consumer is a capability loss wearing a cure's uniform
+/* AMENDMENT, TDW_13 D-5: the two dpulse consumers now live in different files —
+   the Dream thinking line stayed with the conductor, the rail mark went to the
+   discover bloom. The claim was never "both are in page.tsx"; it was that ONE
+   HOME serves BOTH consumers, and a de-duplication that reached its number by
+   deleting a consumer is a capability loss wearing a cure's uniform. Counted
+   across the surface, which is where the two of them are. */
 ok('3c. BOTH dpulse consumers still animate (the rail mark and the Dream thinking line)',
-   count(code, /animation:'dpulse 1\.4s infinite ease-in-out'/g) === 2,
-   `${count(code, /animation:'dpulse 1\.4s infinite ease-in-out'/g)} consumers`);
+   count(surfaceCode, /animation:'dpulse 1\.4s infinite ease-in-out'/g) === 2,
+   `${count(surfaceCode, /animation:'dpulse 1\.4s infinite ease-in-out'/g)} consumers`);
 // the disease's actual shape, asserted independently of any token count: the
 // duplicate lived in an inline <style>. No inline style block may carry it.
-const inlineStyles = [...raw.matchAll(/<style>\{`([\s\S]*?)`\}<\/style>/g)].map(m => m[1]);
+/* AMENDMENT, TDW_13 D-5: scanned across the surface. The inline <style> blocks
+   that made this cell non-vacuous moved to the discover and muse blooms with
+   their rooms; the conductor alone now has none, and a scan of it would have
+   passed over an empty set — the exact vacuity 3e exists to refuse. */
+const inlineStyles = [...surfaceSrc().matchAll(/<style>\{`([\s\S]*?)`\}<\/style>/g)].map(m => m[1]);
 ok('3d. no inline <style> block carries the dpulse keyframe',
    inlineStyles.every(s => !s.includes('dpulse')),
    `${inlineStyles.filter(s => s.includes('dpulse')).length} inline blocks carry it`);

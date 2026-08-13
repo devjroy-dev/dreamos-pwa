@@ -156,7 +156,14 @@ ok('§1.3 it holds no state — a redirect that still fetched would be a second 
       else if (/\.(tsx|ts)$/.test(e.name)) files.push(rel);
     }
   })('components');
-  const linkers = files.filter(f => f !== DEAD && /canvas\/discover/.test(code(f)));
+  /* SINGLE-FILE READ. The D-5 amendment routes the sanctuary path to the whole
+     SURFACE, which is right for a cell asking whether the screen still does X and
+     wrong for a walk asking WHERE a thing lives: the conductor would carry every
+     bloom's text and convict itself. A census asks where; only a capability cell
+     asks whether. (Direction matters here — this side effect produces a false RED
+     rather than a false green — but a bench that is safe by luck is the thing this
+     block keeps finding, so it is closed rather than relied on.) */
+  const linkers = files.filter(f => f !== DEAD && /canvas\/discover/.test(stripComments(__raw0(f))));
   ok('§1.4 NOTHING in the estate navigates to the dead route — the absence that let it die',
     linkers.length === 0, `linkers: ${linkers.join(', ')}`);
 }
