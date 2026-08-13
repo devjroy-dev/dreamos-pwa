@@ -219,6 +219,33 @@ export default function VendorOnboardingPage() {
   const INK    = T.ink;
   const MUTE   = T.inkMute;
   const BRASS  = T.brass;
+  // ── ARC OB · OB-P · THE ATTENTION TOKEN, WITNESSED NOT REMEMBERED ─────────
+  // Founder caught 「 Still needed 」 and the refusal reading too faint on the
+  // light theme. Derived from lib/vendor/theme.ts rather than adjusted by eye:
+  //
+  //   brass  '#C9A84C' on BOTH themes — measures 2.05:1 on Editorial Paper
+  //   metal  '#826A27' on light (4.66:1), corrected FOR THAT EXACT REASON
+  //   caution '#9B5E22' on light (4.68:1) / '#E0A870' on dark (8.47:1)
+  //
+  // I had reached for `brass`, which is the BRASS CONTROL colour and is held
+  // identical across themes on purpose — the gold button below is its correct
+  // use. As TEXT on a cream page it renders at 2:1, which is not dim, it is
+  // nearly invisible, and F-09.3 already ruled the brass mark is NEVER body
+  // text. The estate had the right token the whole time.
+  //
+  // CAUTION, not CRITICAL: theme.ts defines caution as 「 pending, attention, a
+  // soft warning 」 and critical as 「 overdue, lost, destructive 」. A field the
+  // vendor has not filled in yet is pending, not destroyed, and dressing an
+  // unfinished form in the destructive colour would teach the palette to lie
+  // the first time something genuinely IS destructive.
+  const ATTN   = T.caution;
+  // THE BRASS MARK, THEME-CORRECTED. `metal` is what theme.ts calls 「 the brass
+  // mark — rules, badges, marks 」 and it is the SAME hue as brass, moved only in
+  // lightness so it survives a cream page (#826A27, 4.66:1) instead of dissolving
+  // into it (#C9A84C, 2.05:1). The eyebrow and the TDW link are MARKS, so they
+  // keep the brass identity and gain the legibility. Found by the bench, not by
+  // eye: cell 5b.2 caught three brass-as-text sites this patch had missed.
+  const METAL  = T.metal;
   const BORDER = T.cardBorder;
   const BG     = T.cardBg;
 
@@ -244,13 +271,13 @@ export default function VendorOnboardingPage() {
     <label style={lbl}>
       {text}
       {missing.includes(field) && (
-        <span style={{ color: BRASS, marginLeft: 8, letterSpacing: '0.14em' }}>Still needed</span>
+        <span style={{ color: ATTN, marginLeft: 8, letterSpacing: '0.14em' }}>Still needed</span>
       )}
     </label>
   );
 
   const Toast = toast ? (
-    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, color: BRASS, whiteSpace: 'nowrap', zIndex: 99 }}>
+    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, color: ATTN, whiteSpace: 'nowrap', zIndex: 99 }}>
       {toast}
     </div>
   ) : null;
@@ -273,7 +300,7 @@ export default function VendorOnboardingPage() {
         {tdwLink && (
           <div style={{ background: BG, border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '16px 20px', width: '100%', maxWidth: 360, marginBottom: 24 }}>
             <p style={{ ...lbl, marginBottom: 8 }}>Your TDW link</p>
-            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: BRASS, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: METAL, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
               {tdwLink}
             </p>
             <button
@@ -300,7 +327,7 @@ export default function VendorOnboardingPage() {
       {Toast}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: 'calc(env(safe-area-inset-top, 0px) + 40px) 28px calc(env(safe-area-inset-bottom, 0px) + 40px)' }}>
 
-        <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 200, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: BRASS, margin: '0 0 12px' }}>
+        <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 200, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: METAL, margin: '0 0 12px' }}>
           The Dream Wedding
         </p>
         <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 25, color: INK, lineHeight: 1.15, margin: '0 0 6px' }}>
@@ -312,7 +339,7 @@ export default function VendorOnboardingPage() {
 
         {/* THE SERVER'S REFUSAL — verbatim, above the boxes it is about */}
         {refusal && (
-          <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: BRASS, background: 'rgba(201,168,76,0.08)', border: `0.5px solid ${BRASS}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 28px' }}>
+          <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: ATTN, background: T.cardBg, border: `0.5px solid ${ATTN}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 28px' }}>
             {refusal}
           </p>
         )}

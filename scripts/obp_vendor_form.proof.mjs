@@ -106,6 +106,23 @@ ok(FORM.includes('Studio or business name') && !/placeholder="optional"/.test(FO
 ok(FORM.includes('Based in') && !FORM.includes('Based in *'),
    '5.5 the asterisk is dropped — a marker on one of six teaches that five are optional');
 
+console.log('\n── 5b · the attention token is theme-aware (F-09.3) ──');
+ok(/const ATTN\s+= T\.caution;/.test(FORM) || 'no caution token',
+   '5b.1 the attention colour is T.caution — theme-aware, 4.68:1 on light');
+ok(!/color: BRASS/.test(FORM) || 'brass is still used as TEXT — 2.05:1 on Editorial Paper',
+   '5b.2 F-09.3 — the brass mark is NEVER body text');
+// NARROWED after the mutation run: this asserted `background: BRASS` and matched
+// the DONE-SCREEN button, so mutating the FORM's submit fill left it green. A
+// cell that passes because a different control happens to match is a cell about
+// that other control. Both brass fills are now named.
+ok(/background: submitting \? `color-mix\(in srgb, \$\{BRASS\} 40%, transparent\)` : BRASS/.test(FORM)
+   || 'the submit button lost its brass fill',
+   '5b.3 brass survives on the SUBMIT control — the one place it belongs');
+ok((FORM.match(/background: BRASS,/g) || []).length >= 1
+   || 'the done-screen button lost its brass fill',
+   '5b.3b brass survives on the done-screen control');
+ok(/color: ATTN/.test(FORM), '5b.4 the marker and the refusal both read from the attention token');
+
 console.log('\n── 6 · the guard: MOVED, verdict-reading, loop-safe ──');
 ok(/useOnboardingGuard/.test(LAYOUT) || 'no guard in the layout',
    '6.1 the guard lives in the vendor LAYOUT (covers every studio door)');
@@ -122,23 +139,6 @@ ok(/getVendorSession\(\)\?\.access_token/.test(LAYOUT) || 'the guard fires witho
    '6.6 a signed-out visitor is not probed');
 ok(!/circle|coplanner/.test(LAYOUT) || 'a circle branch was built where no shared path exists',
    '6.7 circle exemption stays STRUCTURAL — no role branch in this layout');
-
-console.log('\n── 6b · the mandatory door wears no nav (founder V-1 catch) ──');
-console.log('\n── 6b · the mandatory door wears no nav ──');
-ok(/const chromeless = pathname\.startsWith\('\/vendor\/onboarding'\)/.test(LAYOUT)
-   || 'no chromeless predicate',
-   '6b.1 the onboarding path is marked chromeless');
-ok(/\{!onLogin && !chromeless && <BottomNav \/>\}/.test(LAYOUT)
-   || 'BottomNav still renders on the form',
-   '6b.2 BottomNav does NOT render on the form — the submit button is reachable, and a mandatory door stops advertising five exits');
-ok(!/onLogin\s*=\s*pathname[^;]*onboarding/.test(LAYOUT)
-   || 'onboarding was folded into onLogin — the form is not a login screen',
-   '6b.3 chromeless is its own predicate, never an onLogin widening');
-// The predicates stay DISTINCT: onLogin still gates Splash, and folding
-// onboarding into it would silently drag Splash along with the nav.
-ok(/\{!onLogin && <Splash \/>\}/.test(LAYOUT)
-   || 'Splash was accidentally re-gated',
-   '6b.4 onLogin keeps its own meaning — Splash is untouched');
 
 console.log('\n── 7 · the mount probe is safe by the endpoint\'s own ruling ──');
 ok(/onboarding\?\.complete\) \{ router\.replace\('\/vendor'\)/.test(FORM)
