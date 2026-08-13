@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { FT, FS, FI, getCoupleIdForFrost } from '@/lib/frost/tokens';
 import { fetchCircle, inviteCircleMember, removeCircleMember, formatActivityLine, timeAgo,
-         fetchCirclePolls, castCirclePollVote, createCirclePoll,
+         fetchCirclePolls, castCirclePollVote, createCirclePoll, deleteCirclePoll,
          type CircleData, type CircleActivity, type CircleMember, type CirclePoll } from '@/lib/frost/journey';
 // TDW_14 D-3b — THE FROZEN BYTES COME FROM THE ONE HOME, the same module the
 // member's coplanner strip imports. Two renderers, one vocabulary: the surfaces
@@ -18,6 +18,7 @@ import { fetchCircle, inviteCircleMember, removeCircleMember, formatActivityLine
 import { POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE, POLL_EMPTY,
          POLL_SHEET_HEAD, POLL_QUESTION_LABEL, POLL_CHOICES_LABEL, POLL_ADD_CHOICE,
          POLL_SUBMIT, POLL_SUBMITTING, POLL_CANCEL, POLL_ADD_CLOSING,
+         POLL_DELETE, POLL_DELETE_CONFIRM, POLL_DELETE_BODY, POLL_DELETING, POLL_KEEP,
          pollTally, pollCloses, pollWinner, pollTie } from '@/lib/circle/pollCopy';
 import { usePress } from '@/components/frost/_shared/usePress';
 import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
@@ -105,6 +106,21 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
   const [askClose,  setAskClose]  = React.useState('');
   const [asking,    setAsking]    = React.useState(false);
   const MAX_CHOICES = 4;
+  // D-3e — unmaking. `delTarget` holds the poll awaiting confirmation, mirroring
+  // `people.tsx`'s `removeTarget`: the destructive act is never one tap.
+  const [delTarget, setDelTarget] = React.useState<CirclePoll|null>(null);
+  const [deleting,  setDeleting]  = React.useState(false);
+
+  const confirmDelete = async () => {
+    if(!delTarget || deleting) return;
+    setDeleting(true);
+    try {
+      // RE-READ rather than filtering the card out locally — the list is the
+      // server's, and a screen that removes its own row is guessing at an
+      // outcome it was not told.
+      if(await deleteCirclePoll(delTarget.id)){ setDelTarget(null); await loadPolls(); }
+    } finally { setDeleting(false); }
+  };
 
   // E's expected-zero, mechanised: submit is GATED, never refused with a byte.
   // ② stays the server's contract for a caller that bypasses this form.
@@ -499,10 +515,18 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
                     {p.linked_event.title} · {new Date(p.linked_event.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'Asia/Kolkata'})}
                   </div>
                 )}
-                <div style={{display:'flex',gap:12,flexWrap:'wrap' as any,marginTop:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any}}>
+                <div style={{display:'flex',gap:12,flexWrap:'wrap' as any,alignItems:'center',marginTop:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any}}>
                   <span style={{color:pgInkMute}}>{pollTally(p.total_votes,p.eligible_count)}</span>
                   {closes && <span style={{color:pgInkMute}}>{closes}</span>}
                   {result && <span style={{color:pgAccent}}>{result}</span>}
+                  {/* J · the WORD, not a bin glyph — `people.tsx` uses words for
+                      destructive acts, and an icon-only control on a card that is
+                      otherwise all text would be a new vocabulary. It sits last
+                      and quiet: unmaking is available, never invited. */}
+                  <button onClick={()=>setDelTarget(p)}
+                    style={{marginLeft:'auto',background:'transparent',border:'none',padding:0,
+                            cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:9,
+                            letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgInkMute}}>{POLL_DELETE}</button>
                 </div>
               </div>
             );
@@ -541,6 +565,39 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
 
       {/* ⑨ — the empty state lives HERE and not on the member's strip, because
           this is the surface whose subject is polls. */}
+
+      {/* ── D-3e · THE CONFIRM, MIRRORING A SHIPPED VETOED PATTERN ───────────
+          `people.tsx` asks "Remove {name}?", names the consequence, and offers
+          Remove / Keep with the destructive button in a muted red. This is that
+          shape, not a second one: matching copy the founder has already approved
+          beats inventing a new voice for the same act.
+          THE CONSEQUENCE LINE IS NOT DECORATION. 0124 cascades every vote with
+          the poll, so the loss is real and invisible — she should know before,
+          not discover after. */}
+      {delTarget && (
+        <>
+          <div onClick={()=>{ if(!deleting) setDelTarget(null); }}
+               style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300}}/>
+          <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:301,background:dark?'#1A0A0E':'#EEF0F6',
+                       borderRadius:'20px 20px 0 0',
+                       padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.lead,color:pgInk,marginBottom:6,fontFeatureSettings:'"opsz" 9'}}>{POLL_DELETE_CONFIRM}</div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:pgInkSoft,marginBottom:24,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>{POLL_DELETE_BODY}</div>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={confirmDelete} disabled={deleting}
+                style={{flex:1,padding:14,background:'rgba(184,69,62,.15)',border:'0.5px solid rgba(184,69,62,.4)',
+                        borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
+                        textTransform:'uppercase' as any,color:'#B8453E',cursor:'pointer',opacity:deleting?.5:1}}>
+                {deleting?POLL_DELETING:POLL_DELETE}
+              </button>
+              <button onClick={()=>setDelTarget(null)} disabled={deleting}
+                style={{flex:1,padding:14,background:'rgba(255,255,255,.04)',border:`${FS.hair} solid ${pgLine}`,
+                        borderRadius:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
+                        textTransform:'uppercase' as any,color:pgInkMute,cursor:'pointer'}}>{POLL_KEEP}</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── THE CREATE SHEET (D-3c) · BRIDE-ONLY ─────────────────────────────
           Every byte below comes from `lib/circle/pollCopy.ts`; this file carries

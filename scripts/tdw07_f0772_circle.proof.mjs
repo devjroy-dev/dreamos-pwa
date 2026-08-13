@@ -283,7 +283,10 @@ sec('§3 · THE BRIDE — the dual-lane doors, and the four sites that sent noth
       // and SANCT_P is the sanctuary page PLUS its extracted blooms, per the
       // D-5 amendment at the head of this file, which is why that 2 lives there
       // and not in a file whose own path reads zero.
-      return hits.join('|') === `${JOURNEY_P}:6|${SANCT_P}:2`;
+      // D-3e: 6 → 7. `deleteCirclePoll` joins, carrying `circleBrideHeaders()`
+      // like the six before it (§3.2 counts doors against headers and requires
+      // equality, so it moved with this on its own).
+      return hits.join('|') === `${JOURNEY_P}:7|${SANCT_P}:2`;
     })(),
     'the bride-side census moved — re-derive it before this delivery ships');
 }

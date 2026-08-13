@@ -161,3 +161,49 @@ export const POLL_ADD_CLOSING = 'Add a closing time';
 // The sheet has NO delete and NO edit. A poll, once asked, stands until it
 // closes. D-3a built no such door and the founder was offered one; taking a
 // question back is a separate charter, not a byte.
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TDW_14 D-3e — UNMAKING A POLL. Five bytes, ratified whole 2026-08-14
+// (founder: 「 all stand 」 · 「 only delete. no edit needed 」).
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── THESE MIRROR A SHIPPED, ALREADY-VETOED PATTERN ────────────────────────
+// `components/frost/blooms/people.tsx` removes a circle member with:
+//     "Remove {name}?" · "They'll lose access to your Circle, Muse board, and
+//     DreamAi." · Remove / Removing… / Keep
+// Matching a shape the founder has already approved beats inventing a second
+// one, so the head, the consequence line, the destructive verb and its
+// in-flight form all take that sibling's grammar rather than a new voice.
+//
+// ── WHY `Keep` AND NOT `Cancel` ───────────────────────────────────────────
+// `POLL_CANCEL` ('Cancel') is the CREATE sheet's dismiss, where nothing exists
+// yet and she is abandoning a draft. Here something exists and she is choosing
+// to KEEP it. Two different acts, two different words — and `Keep` is the
+// sibling's byte, character for character.
+//
+// BRIDE-ONLY, like create: a member votes in the circle, she does not convene
+// it and cannot unmake it. The co-planner strip imports none of these.
+
+/** J · the affordance on a poll card. The WORD, not a bin glyph — the sibling uses words. */
+export const POLL_DELETE = 'Delete';
+
+/** K · the confirm head. Mirrors "Remove {name}?" — not the question's own text,
+ *  which in a head would read as if it were being asked again. */
+export const POLL_DELETE_CONFIRM = 'Delete this poll?';
+
+/** L · the consequence, and it is REAL and INVISIBLE: 0124 cascades every vote
+ *  with the poll. She should know before, not discover after. */
+export const POLL_DELETE_BODY = 'The votes go with it.';
+
+/** M · the destructive action, in flight. Same word as J. */
+export const POLL_DELETING = 'Deleting…';
+
+/** N · the dismiss. BYTE-IDENTICAL to the sibling's. */
+export const POLL_KEEP = 'Keep';
+
+// ── TWO RATIFIED EXPECTED-ZEROS ───────────────────────────────────────────
+//   · NO TOAST on success. The poll vanishing IS the confirmation. `people.tsx`
+//     toasts because the member leaves a list she may not be watching; a poll
+//     card she has just tapped is under her thumb.
+//   · NO SEPARATE WORD FOR A CLOSED POLL. Founder-confirmed: deleting a decided
+//     poll takes the same byte as deleting a live one.

@@ -559,6 +559,21 @@ export async function createCirclePoll(
   return (res.ok && r?.success) ? (r.data as CirclePoll) : null;
 }
 
+// Unmakes a poll. The VOTES ARE NOT SWEPT HERE and must never be: 0124 declares
+// `circle_poll_votes.poll_id … ON DELETE CASCADE`, so the plane takes them, and a
+// client that also deleted votes would be a third implementation of one rule.
+// Returns TRUE only on a recorded delete; the caller re-reads rather than
+// removing the card optimistically.
+export async function deleteCirclePoll(pollId: string): Promise<boolean> {
+  if (shouldUseMocks()) return delay(false);
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/polls/${encodeURIComponent(pollId)}`, {
+    method: 'DELETE',
+    headers: circleBrideHeaders(),
+  });
+  const r: any = await res.json().catch(() => null);
+  return !!(res.ok && r?.success);
+}
+
 // Messages for a specific thread
 export async function fetchThreadMessages(threadId: string): Promise<CircleMessage[]> {
   if (shouldUseMocks()) return delay([]);

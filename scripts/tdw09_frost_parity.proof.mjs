@@ -347,11 +347,22 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
    adjusted until the cell passed: a census edited to agree with the tree has
    stopped being a census, and this cell reddening the moment eight controls
    appeared is the only reason the accounting above exists at all. */
-ok('3.1', 'the Sanctuary surface carries 161 controls (153 + D-3c\'s create sheet: 4 buttons, 3 inputs, 1 scrim)', total === 161,
+/* ── D-3e: 161 → 165, and the accounting, counted from the diff ───────────
+     BUTTONS 83 → 86  (+3)
+       +1  "Delete" on each poll card — one <button> in source, rendered once
+           per poll. The WORD, not a glyph: people.tsx uses words for
+           destructive acts and an icon would be a new vocabulary.
+       +1  the confirm's destructive action (Delete / Deleting…)
+       +1  the confirm's dismiss (Keep)
+     TAPDIV  35 → 36  (+1)
+       +1  the confirm's scrim — tap-outside dismisses, disabled mid-delete so a
+           mis-tap cannot orphan the act.
+     INPUT, ANCHOR, TEXTAREA, SELECT unmoved: unmaking asks for nothing typed. */
+ok('3.1', 'the Sanctuary surface carries 165 controls (161 + D-3e\'s delete: 3 buttons, 1 scrim)', total === 165,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 83 && counts.anchor === 8 && counts.input === 30 &&
-   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 35,
+   counts.button === 86 && counts.anchor === 8 && counts.input === 30 &&
+   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 36,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */

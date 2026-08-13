@@ -95,6 +95,12 @@ const FROZEN = [
   ['G', "export const POLL_SUBMITTING = 'Asking…';"],
   ['H', "export const POLL_CANCEL = 'Cancel';"],
   ['I', "export const POLL_ADD_CLOSING = 'Add a closing time';"],
+  // ── D-3e · UNMAKING, ratified 2026-08-14 「 all stand 」「 only delete 」 ──
+  ['J', "export const POLL_DELETE = 'Delete';"],
+  ['K', "export const POLL_DELETE_CONFIRM = 'Delete this poll?';"],
+  ['L', "export const POLL_DELETE_BODY = 'The votes go with it.';"],
+  ['M', "export const POLL_DELETING = 'Deleting…';"],
+  ['N', "export const POLL_KEEP = 'Keep';"],
 ];
 for (const [n, byte] of FROZEN) {
   ok(`§1 ${n} is frozen at the byte`, home.includes(byte),
@@ -418,6 +424,63 @@ ok('§10.8 ⑨ is still ONE line — a second would be a new byte',
    (bloomSrc.match(/\{POLL_EMPTY\}/g) || []).length === 1,
    'a second empty-state line appeared; the sibling\'s explanatory line is a NEW byte');
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§11 — D-3e: UNMAKING IS BRIDE-ONLY, CONFIRMED, AND MIRRORS ITS SIBLING');
+// ═══════════════════════════════════════════════════════════════════════════
+
+ok('§11.1 the bride bloom carries the delete door and its confirm',
+   /deleteCirclePoll/.test(bloomSrc) && /POLL_DELETE_CONFIRM/.test(bloomSrc));
+
+// Bride-only, like create. A member votes; she does not convene and cannot unmake.
+ok('§11.2 the co-planner strip carries NO delete byte and NO delete door',
+   !/POLL_DELETE|POLL_KEEP|POLL_DELETING|deleteCirclePoll/.test(stripSrc),
+   'a member can unmake a poll — bride-only was the founder\'s ruling');
+
+// The destructive act is never one tap.
+ok('§11.3 delete goes through a CONFIRM — no single-tap destruction',
+   /setDelTarget\(p\)/.test(bloomSrc) && /delTarget && \(/.test(bloomSrc)
+   && /onClick=\{confirmDelete\}/.test(bloomSrc),
+   'the affordance deletes directly — the sibling asks first and so must this');
+
+// L is not decoration: 0124 cascades the votes, so the loss is real and invisible.
+ok('§11.4 the CONSEQUENCE is named before the act, not after',
+   /\{POLL_DELETE_CONFIRM\}[\s\S]{0,600}\{POLL_DELETE_BODY\}[\s\S]{0,900}onClick=\{confirmDelete\}/.test(bloomSrc),
+   'the consequence line does not precede the destructive button');
+
+// N vs ⑧: two different acts, two different words.
+ok('§11.5 the dismiss is KEEP, not the create sheet\'s CANCEL',
+   /\{POLL_KEEP\}/.test(bloomSrc),
+   'nothing exists to cancel here — something exists and she is choosing to keep it');
+
+// The client must not sweep votes: 0124 owns them, and a third implementation
+// of one rule is how the rule rots.
+ok('§11.6 [F-SW.2] the client NEVER touches votes on delete — the cascade owns them',
+   !/circle_poll_votes/.test(clientSrc) && !/circle_poll_votes/.test(bloomSrc),
+   'a client sweeps votes by hand — 0124 already cascades them');
+
+// A deleted poll RE-READS rather than being filtered out locally.
+ok('§11.7 the list RE-READS after a delete rather than removing the card itself',
+   /if\(await deleteCirclePoll\(delTarget\.id\)\)\{ setDelTarget\(null\); await loadPolls\(\); \}/.test(bloomSrc),
+   'the screen removes its own row — guessing at an outcome it was not told');
+
+// [F-SW.2] the two ratified expected-zeros.
+ok('§11.8 NO TOAST on success — the poll vanishing IS the confirmation',
+   !/showToast|deleted\./i.test(bloomSrc.slice(bloomSrc.indexOf('confirmDelete'))),
+   'a toast announces what the empty space already said');
+// COUNT RENDER SITES, NOT MENTIONS. The import line is a mention. §10.8 made
+// exactly this mistake earlier in this same arc and carries the lesson in its own
+// comment; I then repeated it here. Writing a lesson down is not the same as
+// having learnt it — the JSX form is what a person is shown.
+ok('§11.9 NO separate word for a closed poll — founder-confirmed, one byte for both',
+   (bloomSrc.match(/\{POLL_DELETE_CONFIRM\}/g) || []).length === 1,
+   'a second confirm head appeared for the closed case');
+
+// NO EDIT — the founder ruled delete-only.
+ok('§11.10 [F-SW.2] there is NO edit affordance anywhere on either surface',
+   !/POLL_EDIT|editPoll|updateCirclePoll/.test(bloomSrc + stripSrc + clientSrc),
+   'an edit path appeared — a question rewritten under votes cast for its old wording');
+
 if (CELLS_ONLY) {
   console.log(`\n  cells: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
@@ -484,6 +547,13 @@ mutate(BLOOM, "fontSize:FT.body,color:pgInkSoft,lineHeight:1.6,textAlign:'center
 mutate(BLOOM, "border:`${FS.hair} solid ${pgAccent}`,\n                    borderRadius:FI.chrome,padding:'8px 14px',cursor:'pointer',",
               "border:'none',padding:0,cursor:'pointer',",
        '§8.M16 [①] the CTA loses its chrome ⇒ §10.9 RED (bare text again)');
+mutate(BLOOM, 'onClick={()=>setDelTarget(p)}', 'onClick={()=>{ deleteCirclePoll(p.id); }}',
+       '§8.M17 [D-3e] delete becomes ONE TAP ⇒ §11.3 RED (the confirm is skipped)');
+mutate(HOME, "export const POLL_KEEP = 'Keep';", "export const POLL_KEEP = 'Cancel';",
+       '§8.M18 [FROZEN N] the dismiss becomes the create sheet\'s word ⇒ §1 RED');
+mutate(STRIP, "import { POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE,",
+              "import { POLL_DELETE, POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE,",
+       '§8.M19 a delete byte reaches the MEMBER surface ⇒ §11.2 RED (bride-only)');
 
 sec('§9 — THE RESTORE LEDGER');
 ok('§9.1 every mutated file was restored BYTE-IDENTICAL, checked by sha256',
