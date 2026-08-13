@@ -43,10 +43,39 @@ const MISSING = new Set();
  *  and convicted BY NAME in §M, and the verdict is fail-closed while any miss
  *  stands. NOTE the call-shape: read() prepends ROOT itself — the predecessor
  *  double-prepended it and put the crash class straight back (its disclosure 6). */
-function read(rel) {
+function __read0(rel) {
   const p = path.join(ROOT, rel);
   try { return fs.readFileSync(p, 'utf8'); }
   catch { MISSING.add(rel); return `__TDW09_P2C_ABSENT__${rel}__`; }
+}
+
+/* ── AMENDMENT, TDW_13 D-4 (2026-08-13): THE SUBJECT IS THE SURFACE ──────────
+   D-4 split six blooms out of sanctuary/page.tsx into components/frost/blooms/
+   and two helpers into components/frost/_shared/. usePress moved with them: it
+   was declared at that file's module scope and nine components called it there,
+   six of which no longer live in that file and cannot.
+
+   §4's question was never "is this hook declared in page.tsx". It was: is there
+   ONE hook, is pressedStyle imported rather than re-implemented, does every
+   owning component seat it, and does each map site key on its own discriminator.
+   All four are questions about the SANCTUARY SURFACE, and all four are still
+   answerable — the surface is simply nine files now. §4.1's "LOCAL and mints no
+   new shared API" is the one that genuinely moved: the hook now HAS a shared
+   home by ruling, so that cell is re-pointed at what it was really guarding —
+   one declaration, no second copy. See components/frost/_shared/SURFACE.md.
+
+   The directories are READ, never hand-listed: a written list is exactly how a
+   seat escapes this bench — add a bloom, name it nowhere, still green. */
+const __SANCT_PATH = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+function read(rel) {
+  if (rel !== __SANCT_PATH) return __read0(rel);
+  const parts = [__read0(__SANCT_PATH)];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(__read0(`${d}/${f}`));
+  }
+  return parts.join('\n');
 }
 const code = (rel) => stripComments(read(rel));
 
@@ -75,6 +104,23 @@ console.log('══════════════════════�
 console.log('TDW_09 P2C · THE CLASS BENCH — one representative per adoption class');
 console.log('════════════════════════════════════════════════════════════');
 
+/* ── AMENDMENT, TDW_13 D-4 (2026-08-13): THE SUBJECT IS THE SURFACE ──────────
+   D-4 split six blooms out of sanctuary/page.tsx into components/frost/blooms/
+   and two helpers into components/frost/_shared/. The bride's Sanctuary is
+   unchanged — it is the same screen across nine files. Every cell below was
+   asking a question about SANCTUARY, not about a path, so the subject follows
+   the surface. See components/frost/_shared/SURFACE.md.
+   The directories are READ, never hand-listed: a written list is how a control
+   escapes a census. */
+function surfaceFiles() {
+  const out = ['app/(frost)/frost/canvas/sanctuary/page.tsx'];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = P(d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) out.push(`${d}/${f}`);
+  }
+  return out;
+}
 const SANCT   = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const THEME   = 'lib/vendor/theme.ts';
 const GLOBALS = 'app/globals.css';
@@ -259,8 +305,18 @@ section('§4 · CLASS: PRESSED-KEYED — one press lights one instance');
 {
   const s = code(SANCT);
 
-  ok('§4.1 the hook is LOCAL and mints no new shared API',
-    /function usePress\(\)/.test(s) && !/export function usePress/.test(s));
+  /* AMENDMENT, TDW_13 D-4. This cell read `function usePress()` AND `!export
+     function usePress` — the second half meaning "this hook has not escaped into
+     a shared API". D-4 gave it exactly that: a shared home at
+     components/frost/_shared/usePress.ts, chair-ruled, because six of its nine
+     callers left this file and could no longer reach a module-scope declaration.
+
+     The `!export` half is therefore struck — it now asserts the opposite of the
+     ruled architecture. What it was REALLY guarding survives and is asserted
+     instead: ONE declaration across the whole surface. That was always the point
+     — the danger was never the export keyword, it was a second copy. */
+  ok('§4.1 usePress is declared exactly ONCE across the surface — no second copy',
+    (s.match(/function usePress\(\)/g) || []).length === 1);
   ok('§4.2 pressedStyle is IMPORTED from the canon home, never re-implemented here',
     /import \{ pressedStyle \} from '@\/lib\/vendor\/controls'/.test(s) &&
     !/function pressedStyle/.test(s),

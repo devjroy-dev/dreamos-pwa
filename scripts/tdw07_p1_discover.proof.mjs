@@ -18,7 +18,28 @@ import { fileURLToPath } from 'node:url';
 import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
+const __read0 = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
+
+/* ── AMENDMENT, TDW_13 D-4: THE SUBJECT IS THE SURFACE ──────────────────────
+   D-4 split six blooms out of sanctuary/page.tsx into components/frost/blooms/
+   and two helpers into components/frost/_shared/. The bride's Sanctuary is the
+   same screen; it now lives in nine files. Every cell in this bench asking
+   about SANCTUARY was asking about the screen, not the path — so a read of the
+   sanctuary path returns the whole surface. See components/frost/_shared/SURFACE.md.
+   The directories are READ, never hand-listed: a written list is exactly how a
+   control or a byte escapes a bench — add a file, name it nowhere, still green. */
+const __SANCT_PATH = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+function __surface(join) {
+  const parts = [join(__SANCT_PATH)];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(join(`${d}/${f}`));
+  }
+  return parts.join('\n');
+}
+const read = (rel) => rel === __SANCT_PATH ? __surface(__read0) : __read0(rel);
+
 // ── LABELED AMENDMENT (F-07.52, CE-ruled) · THE STRIPPER, PORTED ──────────────
 // Lifted VERBATIM from scripts/tdw07_p4b_body.proof.mjs:35-38 — the estate's one
 // comment-stripper, lines first then blocks then JSX blocks. Ported rather than

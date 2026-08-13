@@ -46,8 +46,32 @@ const sha  = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
 const read = () => fs.readFileSync(SUBJECT, 'utf8');
 const count = (s, re) => (s.match(re) || []).length;
 
+/* ── AMENDMENT, TDW_13 D-4: THE SUBJECT IS THE SURFACE ──────────────────────
+   Written one delivery before the extraction, this bench pinned everything to
+   sanctuary/page.tsx. D-4 moved six blooms out, and the frost:open-dream
+   DISPATCHER went with them — it lived inside EventsRoom and now lives in
+   components/frost/blooms/events.tsx. Cell 4f went red while the dispatcher was
+   completely untouched.
+
+   That is my own hand making the mistake this block exists to catch: the cell
+   pinned a PATH when it meant a SURFACE. F-13.6's cure is that there is one way
+   into a bloom, and that claim spans the screen, not one file. So the subject is
+   the surface. The conductor is still read on its own where a cell is genuinely
+   about the conductor — the choreography lives there and nowhere else.
+   See components/frost/_shared/SURFACE.md. */
+function surfaceSrc() {
+  const parts = [fs.readFileSync(SUBJECT, 'utf8')];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(fs.readFileSync(path.join(abs, f), 'utf8'));
+  }
+  return parts.join('\n');
+}
+
 const raw  = read();
 const code = stripComments(raw);
+const surfaceCode = stripComments(surfaceSrc());
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 0 — CALL-SITE PROOF for the stripper (F-07.99). Every cell below stands on it.
@@ -135,8 +159,14 @@ ok('4d. that listener still binds and unbinds the event',
    /removeEventListener\('frost:open-dream', onOpenDream\)/.test(code));
 ok('4e. it still prefills the prompt — the cure moved the open, not the feature',
    /if\(prompt && typeof prompt === 'string'\) \{\s*setInput\(prompt\);/.test(code));
-ok('4f. the dispatcher that fires it is untouched',
-   /dispatchEvent\(new CustomEvent\('frost:open-dream'/.test(code));
+// 4f reads the SURFACE: the dispatcher moved to the events bloom in D-4 and the
+// claim was never about which file holds it — only that the seam still has both
+// ends. The listener half is asserted against the conductor at 4c/4d above.
+ok('4f. the dispatcher that fires it is untouched, wherever it now lives',
+   /dispatchEvent\(new CustomEvent\('frost:open-dream'/.test(surfaceCode));
+ok('4g. the seam has exactly one dispatcher — the move did not leave a copy behind',
+   (surfaceCode.match(/dispatchEvent\(new CustomEvent\('frost:open-dream'/g) || []).length === 1,
+   `${(surfaceCode.match(/dispatchEvent\(new CustomEvent\('frost:open-dream'/g) || []).length} dispatchers`);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 5 — THE MOTION DID NOT MOVE. Hygiene, not tuning.

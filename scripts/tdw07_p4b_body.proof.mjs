@@ -32,7 +32,28 @@ const sec = (t) => console.log('\n' + t);
 // QUOTE the register they retired — the ₹ glyph and the strings "Rs 1.5L onwards" and
 // "rate_max" all survive in prose at the very sites that no longer perform them. A cell
 // reading raw text would convict on the explanation. Cells judge CODE.
-const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const __raw0  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+
+/* ── AMENDMENT, TDW_13 D-4: THE SUBJECT IS THE SURFACE ──────────────────────
+   D-4 split six blooms out of sanctuary/page.tsx into components/frost/blooms/
+   and two helpers into components/frost/_shared/. The bride's Sanctuary is the
+   same screen; it now lives in nine files. Every cell in this bench asking
+   about SANCTUARY was asking about the screen, not the path — so a read of the
+   sanctuary path returns the whole surface. See components/frost/_shared/SURFACE.md.
+   The directories are READ, never hand-listed: a written list is exactly how a
+   control or a byte escapes a bench — add a file, name it nowhere, still green. */
+const __SANCT_PATH = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
+function __surface(join) {
+  const parts = [join(__SANCT_PATH)];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = path.join(ROOT, d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) parts.push(join(`${d}/${f}`));
+  }
+  return parts.join('\n');
+}
+const raw = (rel) => rel === __SANCT_PATH ? __surface(__raw0) : __raw0(rel);
+
 // ── F-07.74 CURED · THE ONE STRIPPER (CE-ruled F1→(b1), F2→(a)) ──────────────
 // This file used to carry its own copy of the naive rule. Eleven such copies
 // existed across ten proofs and every one of them swallowed live code from an
@@ -57,6 +78,23 @@ const PORT    = 'app/vendor/portfolio/page.tsx';
 const SUBMIT  = 'app/vendor/discover/submit/page.tsx';
 const BAR     = 'components/vendor/CommandBar.tsx';
 const MUSE    = 'app/(frost)/frost/canvas/muse/page.tsx';
+/* ── AMENDMENT, TDW_13 D-4 (2026-08-13): THE SUBJECT IS THE SURFACE ──────────
+   D-4 split six blooms out of sanctuary/page.tsx into components/frost/blooms/
+   and two helpers into components/frost/_shared/. The bride's Sanctuary is
+   unchanged — it is the same screen across nine files. Every cell below was
+   asking a question about SANCTUARY, not about a path, so the subject follows
+   the surface. See components/frost/_shared/SURFACE.md.
+   The directories are READ, never hand-listed: a written list is how a control
+   escapes a census. */
+function surfaceFiles() {
+  const out = ['app/(frost)/frost/canvas/sanctuary/page.tsx'];
+  for (const d of ['components/frost/blooms', 'components/frost/_shared']) {
+    const abs = P(d);
+    if (fs.existsSync(abs)) for (const f of fs.readdirSync(abs).sort())
+      if (/\.tsx?$/.test(f)) out.push(`${d}/${f}`);
+  }
+  return out;
+}
 const SANCT   = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const DEMO    = 'app/demodiscover/page.tsx';
 const CARD    = 'app/(landing)/discover/VendorCard.tsx';

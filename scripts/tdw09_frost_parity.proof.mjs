@@ -60,8 +60,40 @@ function decomment(src) {
   }).join('\n');
 }
 
-const S_RAW = read(SANCTUARY);
+/* ── AMENDMENT, TDW_13 D-4 (2026-08-13): THE SUBJECT IS THE SURFACE ──────────
+   Until this delivery, S was one file. D-4 split six blooms out of
+   sanctuary/page.tsx into components/frost/blooms/ and moved two shared helpers
+   to components/frost/_shared/. The bride's Sanctuary is unchanged; it is simply
+   spread across nine files instead of one.
+
+   So the subject follows the surface. Every cell below that counted controls,
+   pinned a copy byte, or asserted a capability was asking a question about
+   SANCTUARY, not about a path — and a bench that answers a path question when it
+   was asked a surface question is the reason extraction is dangerous. Reading
+   the conductor alone after D-4 would have dropped 82 controls and eleven
+   founder-vetoed bytes to zero, and every one of those cells would have gone red
+   while the bride's screen was untouched.
+
+   THE UNION IS DERIVED, NOT LISTED. The bloom and _shared directories are read
+   whole, so a seventh bloom extracted tomorrow joins the census automatically.
+   A hand-written list is exactly how a control escapes a census: add a file, name
+   it nowhere, and the count still passes. Cell 3.0 proves the union is non-empty
+   and that the directories were actually found.                              */
+const BLOOM_DIR  = 'components/frost/blooms';
+const SHARED_DIR = 'components/frost/_shared';
+function dirFiles(rel) {
+  const d = P(rel);
+  if (!fs.existsSync(d)) return [];
+  return fs.readdirSync(d).filter((f) => /\.tsx?$/.test(f)).sort().map((f) => `${rel}/${f}`);
+}
+const SURFACE_FILES = [SANCTUARY, ...dirFiles(BLOOM_DIR), ...dirFiles(SHARED_DIR)];
+const S_RAW = SURFACE_FILES.map((f) => read(f) || '').join('\n');
 const S = S_RAW ? decomment(S_RAW) : '';
+/* the conductor alone, for the cells that are genuinely about the conductor */
+QUIET = true;
+const CONDUCTOR_RAW = read(SANCTUARY) || '';
+QUIET = false;
+const CONDUCTOR = decomment(CONDUCTOR_RAW);
 
 /* ═══ §1 · THE ROUTE SET — six, one of them a redirect ══════════════════════ */
 section('§1 · ROUTES — the bride can still reach every door she could reach');
@@ -225,7 +257,39 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
    Both-ways is automatic here and was shown: these amended cells go RED at the
    pre-D-2 tree (2916661), where the counts are 150/77/33. */
-ok('3.1', 'sanctuary carries 152 controls (145 sealed + 4 + Rider 2\'s one + D-2\'s two)', total === 152,
+/* 3.0 — the union guard. Every cell in this section counts across SURFACE_FILES;
+   if that list collapsed to the conductor alone, the counts below would be a
+   claim about one ninth of the surface wearing the whole surface's number. */
+ok('3.0', 'the surface union is real — conductor + six blooms + two shared homes',
+   SURFACE_FILES.length === 9 && SURFACE_FILES[0] === SANCTUARY,
+   `${SURFACE_FILES.length} files: ${SURFACE_FILES.join(', ')}`);
+
+/* ── F-13.7 · THE LEAK-GUARD. The census is comment-stripped, and it was sound
+   BY LUCK: nothing checked whether a comment line that SURVIVED the strip matched
+   a control class. One prose `<button` left standing would have inflated a sealed
+   census with no cell to catch it. This makes the luck a law.
+
+   The hazard is not hypothetical — this surface carries prose describing controls
+   ("They are 13 <div>, 5 <button> and 1 <a> across nine owning components") which
+   the raw text counts as controls. 3.0c proves those lines exist, so 3.0b is a
+   real guard and not an assertion over an empty set. Note that this bench's own
+   decomment is a line filter and does not leak here; the estate's shared
+   scripts/lib/stripComments.mjs DOES leak on this file, so any future cell that
+   reaches for that stripper instead inherits the hazard 3.0b now guards. */
+const LEAK_CONTROLS = S.split('\n')
+  .filter((l) => /^\s*(\/\/|\{?\/\*|\*\s)/.test(l))
+  .filter((l) => Object.values(CLS).some((re) => re.test(l)));
+ok('3.0b', 'F-13.7 — no comment line surviving the strip matches a control class',
+   LEAK_CONTROLS.length === 0,
+   LEAK_CONTROLS.map((l) => l.trim().slice(0, 70)).join(' | '));
+const RAW_COMMENT_CONTROLS = S_RAW.split('\n')
+  .filter((l) => /^\s*(\/\/|\{?\/\*|\*\s)/.test(l))
+  .filter((l) => Object.values(CLS).some((re) => re.test(l)));
+ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist here',
+   RAW_COMMENT_CONTROLS.length > 0,
+   'no comment mentions a control, so 3.0b guards nothing on this tree');
+
+ok('3.1', 'the Sanctuary surface carries 152 controls (145 sealed + 4 + Rider 2\'s one + D-2\'s two)', total === 152,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
    counts.button === 78 && counts.anchor === 8 && counts.input === 27 &&
