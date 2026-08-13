@@ -86,6 +86,15 @@ const FROZEN = [
   ['⑥', 'return `Closes ${time}`;'],
   ['⑦', 'return `${option} won`;'],
   ['⑧', "return `It's a tie — ${list}`;"],
+  // ── D-3c · THE CREATE SHEET, ratified whole 2026-08-14 「 all stand 」 ──
+  ['A', 'export const POLL_SHEET_HEAD = POLL_ASK;'],
+  ['B', "export const POLL_QUESTION_LABEL = 'Your question';"],
+  ['C', "export const POLL_CHOICES_LABEL = 'Choices';"],
+  ['D', "export const POLL_ADD_CHOICE = 'Add a choice';"],
+  ['F', "export const POLL_SUBMIT = 'Ask';"],
+  ['G', "export const POLL_SUBMITTING = 'Asking…';"],
+  ['H', "export const POLL_CANCEL = 'Cancel';"],
+  ['I', "export const POLL_ADD_CLOSING = 'Add a closing time';"],
 ];
 for (const [n, byte] of FROZEN) {
   ok(`§1 ${n} is frozen at the byte`, home.includes(byte),
@@ -269,6 +278,124 @@ if (!fs.existsSync(SIB)) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§9 — D-3c: THE CREATE SHEET IS BRIDE-ONLY, AND ITS ABSENCES ARE RULED');
+// ═══════════════════════════════════════════════════════════════════════════
+
+// The founder's word: a member votes in the circle, she does not convene it.
+// This is the cell that keeps the affordance off her surface.
+ok('§9.1 the co-planner strip imports NO create byte — a member cannot convene',
+   !/POLL_SHEET_HEAD|POLL_QUESTION_LABEL|POLL_CHOICES_LABEL|POLL_ADD_CHOICE|POLL_SUBMIT|POLL_CANCEL|POLL_ADD_CLOSING/.test(stripSrc),
+   'the create sheet reached the member surface — bride-only was a founder ruling');
+ok('§9.2 …and it calls no create door either',
+   !/createCirclePoll/.test(stripSrc));
+
+ok('§9.3 the bride bloom DOES carry the sheet and its door',
+   /POLL_SHEET_HEAD/.test(bloomSrc) && /createCirclePoll/.test(bloomSrc));
+
+// ① was vetoed as "the affordance that opens a poll". D-3b rendered it as a
+// dead eyebrow; D-3c makes it the button, which is why the sheet cost no line
+// for an opening control.
+ok('§9.4 ① IS THE AFFORDANCE — a button, not an eyebrow',
+   /<button onClick=\{\(\)=>setAskOpen\(true\)\}[\s\S]{0,400}\{POLL_ASK\}<\/button>/.test(bloomSrc),
+   '① is not tappable — the byte was approved as an affordance');
+
+// The gate that would have hidden the only remedy at the moment it is needed.
+ok('§9.5 the affordance is NOT gated on polls existing',
+   !/\{!loading && polls\.length>0 && \(/.test(bloomSrc),
+   'with zero polls she would see the empty state and no way to fix it');
+
+// [F-SW.2] THE RATIFIED EXPECTED-ZEROS. Each absence is the ruling; a later hand
+// adding the reassuring sentence the founder declined reds here.
+ok('§9.6 E · no byte explains the four-choice ceiling — the control simply greys',
+   !/(4|four) (choices|options)/i.test(bloomSrc.replace(/MAX_CHOICES/g,'')) ,
+   'a sentence appeared explaining a wall she has just hit');
+ok('§9.7 SUBMIT IS GATED, never refused with a client byte',
+   /const askReady = /.test(bloomSrc) && /disabled=\{!askReady\|\|asking\}/.test(bloomSrc),
+   'the form refuses with words where it should simply not be pressable');
+// ── THE SHEET'S OWN TEXT, BOUNDED AT BOTH ENDS ───────────────────────────
+// §9.8/§9.9's first cut scanned the WHOLE bloom and convicted the invite
+// panel's helper line and the composer's placeholder — both pre-existing, both
+// separately vetoed, neither anything to do with polls. An absence cell whose
+// radius exceeds its claim does not prove more; it convicts things its ruling
+// never covered. This is the THIRD time this sitting, and the lesson is the
+// same each time: bound the slice, or assert where the claim lives.
+// THE BOUND MUST SURVIVE COMMENT-STRIPPING. The first cut closed the slice on
+// `Activity feed` — which lives inside a JSX comment and is therefore GONE from
+// the stripped source, so `indexOf` returned -1 and the slice came back empty.
+// §9.8a caught it on the first run: a bounded absence cell that silently reads
+// nothing passes vacuously, and an empty string contains no placeholder either.
+// The bound is now a real element that survives the strip.
+const SHEET = (() => {
+  const a = bloomSrc.indexOf('askOpen && (');
+  const b = bloomSrc.indexOf('no-scroll', a);
+  return a >= 0 && b > a ? bloomSrc.slice(a, b) : '';
+})();
+ok('§9.8a the sheet slice was actually found — this bench read what it judges',
+   SHEET.length > 400, `slice length ${SHEET.length}`);
+ok('§9.8 NO HELPER TEXT — the sheet explains nothing that has no hidden consequence',
+   !/Add a number to send|will be sent|everyone will/i.test(SHEET));
+
+// ⑫ again, at the sheet: labels above, never placeholders inside.
+ok('§9.9 ⑫ · the sheet uses LABELS, and no poll field carries a placeholder',
+   !/placeholder=/.test(SHEET),
+   'a placeholder puts example words in her question until she overwrites them');
+
+ok('§9.10 CREATE sends LABELS ONLY — ids stay server-minted',
+   /createCirclePoll\(\s*askQ\.trim\(\),/.test(bloomSrc) && /\.filter\(Boolean\)/.test(bloomSrc));
+ok('§9.11 a created poll RE-READS rather than being pushed onto local state',
+   /if\(created\)\{ resetAsk\(\); await loadPolls\(\); \}/.test(bloomSrc),
+   'the screen appends its own row — a second source of truth the moment two people ask');
+
+// ═══════════════════════════════════════════════════════════════════════════
+sec('§10 — F-14.8 DEFUSED · F-14.9 RENDERED · ⑨ DRESSED');
+// ═══════════════════════════════════════════════════════════════════════════
+
+// F-14.8 — the locale format could differ between the server that renders the
+// HTML and the browser that hydrates it. Landmine-class, never live, cleared.
+ok('§10.1 [F-14.8] no poll date is formatted in the RUNTIME\'s locale',
+   !/toLocaleString\(undefined/.test(bloomSrc) && !/toLocaleString\(undefined/.test(stripSrc),
+   'the runtime locale is back — React\'s hydration cause #3, verbatim');
+ok('§10.2 [F-14.8] every poll date is formatted DETERMINISTICALLY, zone named',
+   (bloomSrc.match(/toLocale(String|DateString)\('en-GB'[^)]*timeZone:'Asia\/Kolkata'/g) || []).length >= 2
+   && /toLocaleDateString\('en-GB'[\s\S]{0,120}timeZone: 'Asia\/Kolkata'/.test(stripSrc),
+   'a date is computed differently on the server than in the browser');
+
+// F-14.9 — served by D-3a, rendered by nobody until now. The founder's ratified
+// sheet line (b) described a screen; this is that screen.
+ok('§10.3 [F-14.9] BOTH surfaces render the linked event',
+   /p\.linked_event/.test(bloomSrc) && /p\.linked_event/.test(stripSrc),
+   'the payload field still reaches no screen — line (b) describes a screen that does not exist');
+ok('§10.4 [F-14.9] the event renders its OWN name and date, label-free (⑫-class)',
+   /\{p\.linked_event\.title\} · /.test(bloomSrc) && /\{p\.linked_event\.title\} · /.test(stripSrc),
+   'a connective word of ours appeared — that is new copy and owes the sheet');
+// The gate is the SERVER's: a flagless member's payload omits vendor_id, so the
+// withholding is payload-level truth and not a CSS opinion (the 08 blur standard).
+ok('§10.5 [F-14.9] NEITHER surface renders a vendor — the gate stays server-side',
+   !/linked_event\.vendor_id/.test(bloomSrc) && !/linked_event\.vendor_id/.test(stripSrc),
+   'a surface reads the vendor field — the withholding must be payload-level, never CSS');
+// ⑪'s first cut matched `overflow:'hidden'` — CSS, not a sentence. The ruling
+// is that no WORDS tell her something is missing, so the cell reads the phrases
+// a person would actually be shown.
+ok('§10.6 ⑪ still holds — no surface announces that anything is withheld',
+   ![/some details/i, /is hidden from/i, /not visible to you/i, /you can'?t see/i, /restricted/i]
+     .some(re => re.test(bloomSrc) || re.test(stripSrc)));
+
+// ⑨ — the byte is frozen; its DRESS was the defect.
+// THE CLAIM IS ABOUT WEIGHT, SO THE CELL MUST READ THE SIZE. Its first cut
+// matched the font FAMILY only, and §8.M14 — which shrinks 46px to 9px and
+// recolours to inkMute while leaving `Italianno` in place — sailed straight
+// through it. A cell that checks the typeface has not checked the presence.
+ok('§10.7 ⑨ speaks at the estate\'s empty-state weight, not a timestamp\'s',
+   /Italianno[^}]*fontSize:46[^}]*pgAccent[\s\S]{0,80}\{POLL_EMPTY\}/.test(bloomSrc),
+   '⑨ is dressed as a footnote again — 9px mono is the treatment for `loading…`');
+// The first cut counted every mention and read 2 — the import and the render.
+// The claim is about how many LINES she is shown, so count render sites only.
+ok('§10.8 ⑨ is still ONE line — a second would be a new byte',
+   (bloomSrc.match(/\{POLL_EMPTY\}/g) || []).length === 1,
+   'a second empty-state line appeared; the sibling\'s explanatory line is a NEW byte');
+
 if (CELLS_ONLY) {
   console.log(`\n  cells: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
@@ -307,6 +434,28 @@ mutate(BLOOM, 'const tick = async () => { await loadMessages(); await loadPolls(
        '§8.M5 a second timer appears ⇒ §5.2/§5.3 RED (R-D3.5)');
 mutate(STRIP, 'p.eligible_count', 'p.total_votes',
        '§8.M6 the denominator becomes the numerator ⇒ §6.5 anchor RED');
+
+// ── D-3c's mutations ──────────────────────────────────────────────────────
+mutate(HOME, "export const POLL_SUBMIT = 'Ask';", "export const POLL_SUBMIT = 'Create poll';",
+       '§8.M7 [FROZEN F] move the vetoed submit byte ⇒ §1 RED');
+mutate(HOME, "export const POLL_SHEET_HEAD = POLL_ASK;", "export const POLL_SHEET_HEAD = 'New poll';",
+       '§8.M8 [FROZEN A] the head stops reusing ① ⇒ §1 RED (a second name for one act)');
+mutate(BLOOM, "toLocaleString('en-GB',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit',timeZone:'Asia/Kolkata'})",
+              "toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})",
+       '§8.M9 [F-14.8] the runtime locale returns to the bloom ⇒ §10.1/§10.2 RED');
+mutate(STRIP, "d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })",
+              "d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })",
+       '§8.M10 [F-14.8] …and to the strip — the half-cure this bench already caught once ⇒ §10.1 RED');
+mutate(BLOOM, '{p.linked_event.title} · ', '{p.linked_event.title} for ',
+       '§8.M11 [F-14.9] a connective word of ours enters the event line ⇒ §10.4 RED (that is new copy)');
+mutate(STRIP, "import { POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE,",
+              "import { POLL_SUBMIT, POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE,",
+       '§8.M12 a create byte reaches the MEMBER surface ⇒ §9.1 RED (bride-only was a ruling)');
+mutate(BLOOM, 'disabled={!askReady||asking}', 'disabled={asking}',
+       '§8.M13 submit stops being gated ⇒ §9.7 RED (the form would have to refuse with words)');
+mutate(BLOOM, "fontSize:46,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>{POLL_EMPTY}",
+              "fontSize:9,color:pgInkMute,lineHeight:1,textAlign:'center' as any}}>{POLL_EMPTY}",
+       '§8.M14 [⑨] the empty state is dressed as a footnote again ⇒ §10.7 RED');
 
 sec('§9 — THE RESTORE LEDGER');
 ok('§9.1 every mutated file was restored BYTE-IDENTICAL, checked by sha256',

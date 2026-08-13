@@ -9,13 +9,15 @@
 import React, { useState, useEffect } from 'react';
 import { FT, FS, FI, getCoupleIdForFrost } from '@/lib/frost/tokens';
 import { fetchCircle, inviteCircleMember, removeCircleMember, formatActivityLine, timeAgo,
-         fetchCirclePolls, castCirclePollVote,
+         fetchCirclePolls, castCirclePollVote, createCirclePoll,
          type CircleData, type CircleActivity, type CircleMember, type CirclePoll } from '@/lib/frost/journey';
 // TDW_14 D-3b — THE FROZEN BYTES COME FROM THE ONE HOME, the same module the
 // member's coplanner strip imports. Two renderers, one vocabulary: the surfaces
 // share no token system, but the founder's vetoed copy must not fork, and a
 // bench cell reds if either surface grows a literal of its own.
 import { POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE, POLL_EMPTY,
+         POLL_SHEET_HEAD, POLL_QUESTION_LABEL, POLL_CHOICES_LABEL, POLL_ADD_CHOICE,
+         POLL_SUBMIT, POLL_SUBMITTING, POLL_CANCEL, POLL_ADD_CLOSING,
          pollTally, pollCloses, pollWinner, pollTie } from '@/lib/circle/pollCopy';
 import { usePress } from '@/components/frost/_shared/usePress';
 import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
@@ -92,6 +94,41 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
   const [chatLocked, setChatLocked] = React.useState(false);
   const [polls,  setPolls]  = React.useState<CirclePoll[]>([]);
   const [voting, setVoting] = React.useState<string|null>(null);
+  // ── THE CREATE SHEET (D-3c) · BRIDE-ONLY BY FOUNDER RULING ────────────────
+  // A member votes in the circle; she does not convene it. The co-planner strip
+  // imports none of this and its proof asserts that absence.
+  const [askOpen,   setAskOpen]   = React.useState(false);
+  const [askQ,      setAskQ]      = React.useState('');
+  // Two empty slots at rest: the minimum a poll can carry, so the shape of the
+  // thing she is making is visible before she types.
+  const [askOpts,   setAskOpts]   = React.useState<string[]>(['','']);
+  const [askClose,  setAskClose]  = React.useState('');
+  const [asking,    setAsking]    = React.useState(false);
+  const MAX_CHOICES = 4;
+
+  // E's expected-zero, mechanised: submit is GATED, never refused with a byte.
+  // ② stays the server's contract for a caller that bypasses this form.
+  const askReady = askQ.trim().length > 0 && askOpts.filter(o=>o.trim()).length >= 2;
+
+  const resetAsk = () => { setAskQ(''); setAskOpts(['','']); setAskClose(''); setAskOpen(false); };
+
+  const submitAsk = async () => {
+    if(!askReady || asking) return;
+    setAsking(true);
+    try {
+      // LABELS ONLY — option ids are minted server-side so two can never collide
+      // and silently merge a tally. Blank slots are dropped rather than sent.
+      const created = await createCirclePoll(
+        askQ.trim(),
+        askOpts.map(o=>o.trim()).filter(Boolean),
+        askClose ? { closes_at: new Date(askClose).toISOString() } : undefined,
+      );
+      // RE-READ rather than pushing the returned poll onto local state: the list
+      // is the server's, and a screen that appends its own row is a second
+      // source of truth the moment two people ask at once.
+      if(created){ resetAsk(); await loadPolls(); }
+    } finally { setAsking(false); }
+  };
   const API_CIRCLE = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
   React.useEffect(()=>{
@@ -362,9 +399,24 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
           feed is a record of things that already happened. The bride votes here
           like anyone else — R-D3.2's whole point — so there is no read-only
           variant of this block. */}
-      {!loading && polls.length>0 && (
+      {/* ── THE AFFORDANCE IS NOT GATED ON POLLS EXISTING ────────────────────
+          D-3b gated this whole block on `polls.length>0`, which was right when
+          the block was read-only. With ① now tappable, that gate would have hidden
+          the ONLY way to ask a question at exactly the moment there are no
+          questions — the empty state would say "No polls yet." beside no means of
+          fixing it. So ① renders whenever the bloom has loaded, and the list or
+          ⑨ renders beneath it. */}
+      {!loading && (
         <div style={{padding:`0 ${FS.gutter}px ${FS.s3}px`}}>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgAccent,marginBottom:12}}>{POLL_ASK}</div>
+          {/* ① FINALLY BECOMES WHAT IT WAS VETOED AS. It was approved as "the
+              affordance that opens a poll" and D-3b rendered it as a dead
+              eyebrow because no affordance existed yet. The byte does not move;
+              it becomes tappable. That is why D-3c's sheet cost no line for the
+              opening control. */}
+          <button onClick={()=>setAskOpen(true)}
+            style={{background:'transparent',border:'none',padding:0,cursor:'pointer',
+                    fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
+                    textTransform:'uppercase' as any,color:pgAccent,marginBottom:12}}>{POLL_ASK}</button>
           {polls.map(p=>{
             // WHO WON, OR WHETHER ANYBODY DID. A tie is not an edge case: four
             // options can all hold an equal count, which is why ⑧'s byte takes a
@@ -375,8 +427,26 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
                            : leaders.length===1 ? pollWinner(leaders[0].label)
                            : pollTie(leaders.map(o=>o.label));
             const closesAt = p.closes_at ? new Date(p.closes_at) : null;
+            // ── F-14.8 DEFUSED · A DETERMINISTIC FORMAT, NOT A LOCALE ONE ──
+            // This read `toLocaleString(undefined, …)`. `undefined` means "the
+            // runtime's own locale AND time zone", which differ between the
+            // server that renders the HTML and the browser that hydrates it —
+            // React's cause #3, verbatim, in its own error text.
+            //
+            // It was LANDMINE-CLASS, never live: the whole poll subtree is gated
+            // on `!loading && polls.length>0`, and `loading` starts true, so this
+            // never ran during the hydration comparison. The founder's walk armed
+            // it for the first time in production by setting a closes_at, and the
+            // console stayed unchanged — the gate held exactly as derived.
+            //
+            // Cleared anyway, because a landmine cleared cheap is a landmine
+            // cleared, and the gate is one refactor away from moving. `en-GB` and
+            // an explicit `Asia/Kolkata` are the same string on every machine, so
+            // the value can no longer depend on where it is computed. The estate
+            // is one wedding business in one time zone; a date rendered in the
+            // server's zone and a date rendered in hers must be the same date.
             const closes   = closesAt && !Number.isNaN(closesAt.getTime()) && !p.closed
-                           ? pollCloses(closesAt.toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}))
+                           ? pollCloses(closesAt.toLocaleString('en-GB',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit',timeZone:'Asia/Kolkata'}))
                            : null;
             return (
               <div key={p.id} style={{borderBottom:`${FS.hair} solid ${pgLine}`,paddingBottom:FS.s2,marginBottom:FS.s2}}>
@@ -398,6 +468,25 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
                     </button>
                   );
                 })}
+                {/* ── F-14.9 · THE LINKED EVENT REACHES A SCREEN ──────────
+                    D-3a served `linked_event` and D-3b rendered it nowhere, so
+                    the vendor gate was payload-true and screen-false and the
+                    founder's ratified sheet line (b) — "a member without the
+                    flag sees the event's name and date but not its vendor" —
+                    described a screen that did not exist. The walk caught it.
+                    Rendered LABEL-FREE: the event's own name and date, no
+                    connective word of ours, so this is ⑫-class — her data — and
+                    needed no byte on the sheet.
+                    THE VENDOR IS NOT RENDERED HERE AT ALL, on either surface.
+                    The gate is the SERVER's: `vendor_id` simply is not in a
+                    flagless member's payload, so the absence is payload-level
+                    truth rather than a CSS opinion — the 08 blur standard. ⑪
+                    holds: nothing announces that anything is missing. */}
+                {p.linked_event && (
+                  <div style={{marginTop:8,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:pgInkSoft,fontFeatureSettings:'"opsz" 9'}}>
+                    {p.linked_event.title} · {new Date(p.linked_event.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'Asia/Kolkata'})}
+                  </div>
+                )}
                 <div style={{display:'flex',gap:12,flexWrap:'wrap' as any,marginTop:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any}}>
                   <span style={{color:pgInkMute}}>{pollTally(p.total_votes,p.eligible_count)}</span>
                   {closes && <span style={{color:pgInkMute}}>{closes}</span>}
@@ -406,13 +495,110 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
               </div>
             );
           })}
+
+          {/* ⑨ · THE BYTE IS FROZEN; ITS DRESS WAS THE DEFECT (founder,
+              2026-08-14). It rendered at JetBrains Mono 9px uppercase inkMute —
+              the treatment this estate reserves for timestamps and `loading…` —
+              while the activity feed's own empty state, further down this same
+              file, speaks at Italianno 46 in the accent. A statement was dressed
+              as a footnote. Same words, same character as its sibling: styling
+              is not copy, so the byte does not move and only its presence does.
+              It stays ONE line — the sibling's second, explanatory line would be
+              a NEW byte and does not ride a styling fix. It now sits BENEATH the
+              affordance, so the sentence and the remedy are on screen together. */}
+          {polls.length===0 && (
+            <div style={{padding:`${FS.s3}px 0 0`,display:'flex',flexDirection:'column',alignItems:'center'}}>
+              <div style={{fontFamily:"'Italianno',cursive",fontSize:46,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>{POLL_EMPTY}</div>
+            </div>
+          )}
         </div>
       )}
 
       {/* ⑨ — the empty state lives HERE and not on the member's strip, because
           this is the surface whose subject is polls. */}
-      {!loading && polls.length===0 && (
-        <div style={{padding:`0 ${FS.gutter}px ${FS.s2}px`,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgInkMute}}>{POLL_EMPTY}</div>
+
+      {/* ── THE CREATE SHEET (D-3c) · BRIDE-ONLY ─────────────────────────────
+          Every byte below comes from `lib/circle/pollCopy.ts`; this file carries
+          no poll literal of its own, so the founder's veto is enforced by one
+          module rather than by two files agreeing.
+
+          ⑫ BINDS THE WHOLE SHEET: every field has a LABEL ABOVE IT and NO
+          placeholder inside it. A placeholder is example words sitting in her
+          question until she overwrites them, which is exactly what ⑫ refused.
+          The invite panel's `e.g. Mom, Priya, Anjali` is a different,
+          separately-vetoed surface and is not precedent here. */}
+      {askOpen && (
+        <div style={{position:'fixed',inset:0,zIndex:60,background:'rgba(0,0,0,.72)',
+                     display:'flex',alignItems:'flex-end'}}
+             onClick={()=>{ if(!asking) resetAsk(); }}>
+          <div onClick={e=>e.stopPropagation()}
+               style={{width:'100%',maxHeight:'88vh',overflowY:'auto',background:circleBg,
+                       borderTopLeftRadius:FI.sheet,borderTopRightRadius:FI.sheet,
+                       padding:`${FS.s3}px ${FS.gutter}px calc(env(safe-area-inset-bottom,0px) + ${FS.s3}px)`}}>
+
+            {/* A · reuses ① — the sheet IS what the label promised */}
+            <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1,marginBottom:FS.s2}}>{POLL_SHEET_HEAD}</div>
+
+            {/* B */}
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgInkMute,marginBottom:6}}>{POLL_QUESTION_LABEL}</div>
+            <input value={askQ} onChange={e=>setAskQ(e.target.value)} disabled={asking}
+              style={{width:'100%',background:'transparent',border:`${FS.hair} solid ${pgLine}`,
+                      borderRadius:FI.chrome,padding:'10px 12px',color:pgInk,
+                      fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,
+                      marginBottom:FS.s2,fontFeatureSettings:'"opsz" 9'}}/>
+
+            {/* C */}
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgInkMute,marginBottom:6}}>{POLL_CHOICES_LABEL}</div>
+            {askOpts.map((o,i)=>(
+              <input key={i} value={o} disabled={asking}
+                onChange={e=>setAskOpts(prev=>prev.map((v,j)=>j===i?e.target.value:v))}
+                style={{width:'100%',background:'transparent',border:`${FS.hair} solid ${pgLine}`,
+                        borderRadius:FI.chrome,padding:'10px 12px',color:pgInk,
+                        fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,
+                        marginBottom:6,fontFeatureSettings:'"opsz" 9'}}/>
+            ))}
+
+            {/* D, and E's expected-zero: at four the control simply GREYS. ②
+                already speaks the bound at the server; repeating it on a disabled
+                button explains a wall she has just hit instead of one she is
+                approaching. */}
+            <button onClick={()=>setAskOpts(prev=>prev.length<MAX_CHOICES?[...prev,'']:prev)}
+              disabled={asking||askOpts.length>=MAX_CHOICES}
+              style={{background:'transparent',border:'none',padding:'6px 0',
+                      cursor:askOpts.length>=MAX_CHOICES?'default':'pointer',
+                      opacity:askOpts.length>=MAX_CHOICES?.35:1,
+                      fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
+                      textTransform:'uppercase' as any,color:pgAccent}}>{POLL_ADD_CHOICE}</button>
+
+            {/* I · optional, off at rest. ⑥ owns the DISPLAY byte on the card. */}
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgInkMute,margin:`${FS.s2}px 0 6px`}}>{POLL_ADD_CLOSING}</div>
+            <input type="datetime-local" value={askClose} disabled={asking}
+              onChange={e=>setAskClose(e.target.value)}
+              style={{width:'100%',background:'transparent',border:`${FS.hair} solid ${pgLine}`,
+                      borderRadius:FI.chrome,padding:'10px 12px',color:pgInk,
+                      fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,
+                      marginBottom:FS.s3,fontFeatureSettings:'"opsz" 9'}}/>
+
+            <div style={{display:'flex',gap:10,alignItems:'center'}}>
+              {/* F/G · gated, never refused with a byte. A form that greys its
+                  own button never has to say no. */}
+              <button onClick={submitAsk} disabled={!askReady||asking}
+                style={{flex:1,background:askReady&&!asking?pgAccent:'transparent',
+                        color:askReady&&!asking?'#0C0A09':pgInkMute,
+                        border:`${FS.hair} solid ${askReady&&!asking?pgAccent:pgLine}`,
+                        borderRadius:FI.chrome,padding:'12px 0',
+                        cursor:askReady&&!asking?'pointer':'default',
+                        fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
+                        textTransform:'uppercase' as any}}>{asking?POLL_SUBMITTING:POLL_SUBMIT}</button>
+              {/* H · plain: she may be abandoning a typo, not a thought. */}
+              <button onClick={resetAsk} disabled={asking}
+                style={{background:'transparent',border:'none',padding:'12px',
+                        cursor:asking?'default':'pointer',
+                        fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,
+                        textTransform:'uppercase' as any,color:pgInkMute}}>{POLL_CANCEL}</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Activity feed */}

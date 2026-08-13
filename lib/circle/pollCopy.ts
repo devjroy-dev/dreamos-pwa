@@ -95,3 +95,69 @@ export function pollTie(options: string[]): string {
     : options.join(' and ');
   return `It's a tie — ${list}`;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TDW_14 D-3c — THE CREATE SHEET. Nine bytes, ratified whole 2026-08-14
+// (CE-33, founder: 「 all stand 」). BRIDE-ONLY by founder ruling: a member
+// votes in the circle, she does not convene it, so the co-planner strip never
+// imports anything below.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── ⑫ BINDS THIS WHOLE SHEET: LABELS ABOVE, NEVER PLACEHOLDERS INSIDE ──────
+// A placeholder is example words sitting in her question until she overwrites
+// them, which is exactly what ⑫ refused. The invite panel one file over uses
+// `placeholder="e.g. Mom, Priya, Anjali"` and is NOT precedent here — it is a
+// different, separately-vetoed surface, and the distinction is the ruling.
+//
+// ── THE OPENING CONTROL NEEDS NO BYTE, AND THAT IS THE POINT ───────────────
+// ① `POLL_ASK` was vetoed as "the affordance that opens a poll". D-3b rendered
+// it as an eyebrow because there was no affordance yet. It now becomes tappable
+// and the sheet's head reuses it. The byte never moved; it finally does the job
+// it was approved for, which is why line 1 of D-3c's sheet cost nothing.
+
+/** A · the sheet's head. Reuses ① — the sheet IS what the label promised. */
+export const POLL_SHEET_HEAD = POLL_ASK;
+
+/** B · the label ABOVE the question field. Hers, not ours. */
+export const POLL_QUESTION_LABEL = 'Your question';
+
+/** C · the label above the choices. Not "Options" — that is the API's word. */
+export const POLL_CHOICES_LABEL = 'Choices';
+
+/** D · adds a choice. Mirrors C so the control names its own result. */
+export const POLL_ADD_CHOICE = 'Add a choice';
+
+/** F · submit. One word; the whole feature is one verb and A set it up. */
+export const POLL_SUBMIT = 'Ask';
+
+/** G · submit, in flight. Same word, present tense — the estate's `Sending…`. */
+export const POLL_SUBMITTING = 'Asking…';
+
+/** H · cancel. Plain: she may be abandoning a typo, not a thought. */
+export const POLL_CANCEL = 'Cancel';
+
+/** I · the optional close-time switch. ⑥ owns the DISPLAY byte; this names the switch. */
+export const POLL_ADD_CLOSING = 'Add a closing time';
+
+// ── E AND TWO MORE ARE RATIFIED EXPECTED-ZEROS ────────────────────────────
+// There is deliberately NO constant for any of these, and their absence is the
+// ruling rather than an oversight:
+//
+//   E · AT FOUR CHOICES the add control simply greys. ② already says "A poll
+//       needs between 2 and 4 options." at the server. Repeating it on a
+//       disabled button explains a wall she has just hit instead of one she is
+//       approaching.
+//   · SUBMIT STAYS DISABLED until a question and two choices exist. No
+//       client-side refusal byte: a form that greys its own button never has to
+//       say no, and ② remains the contract for a caller that bypasses the form.
+//   · NO HELPER TEXT anywhere. The invite panel earns its one line because a
+//       phone number's consequence is non-obvious; nothing here has a hidden
+//       consequence.
+//
+// `scripts/tdw14_d3b_polls.proof.mjs` §9 asserts each of these absences, so a
+// later hand cannot add the reassuring sentence the founder declined.
+//
+// ── NOT BUILT, AND NAMED SO IT IS NOT MISTAKEN FOR AN OVERSIGHT ────────────
+// The sheet has NO delete and NO edit. A poll, once asked, stands until it
+// closes. D-3a built no such door and the founder was offered one; taking a
+// question back is a separate charter, not a byte.

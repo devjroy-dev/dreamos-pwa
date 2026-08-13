@@ -37,10 +37,17 @@ interface Thread {
 // Shape matches GET /api/v2/frost/circle/polls/:brideId. The server computes the
 // tallies and resolves `my_vote` for THIS viewer, so nothing below counts.
 interface PollOption { id: string; label: string; image_url: string | null; votes: number; }
+interface LinkedEvent { id: string; title: string; event_date: string; vendor_id?: string | null; }
+
 interface Poll {
   id: string;
   question: string;
   options: PollOption[];
+  // F-14.9 — served by D-3a, rendered by nobody until D-3c. `vendor_id` is
+  // OPTIONAL in this type on purpose: for a member without `can_see_vendors` the
+  // server omits the key entirely, so its absence is a payload fact rather than
+  // something this screen decides. Nothing below reads it.
+  linked_event: LinkedEvent | null;
   total_votes: number;
   // ⑤ READS "{n} of {total} voted", so the denominator is THE CIRCLE, not the
   // votes — how many people could answer, against how many did. The D-3a payload
@@ -68,7 +75,16 @@ function closesLabel(iso: string | null): string | null {
   if (!iso) return null;                 // ⑥ renders ONLY on a non-null closes_at
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return pollCloses(d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }));
+  // ── F-14.8 DEFUSED HERE TOO ────────────────────────────────────────────
+  // The finding was raised against the bride's bloom and it lived on BOTH
+  // surfaces; the first cut of the cure fixed one and the bench caught the half.
+  // `undefined` means "the runtime's own locale AND time zone", which differ
+  // between the server that renders the HTML and the browser that hydrates it —
+  // React's hydration cause #3, verbatim. `en-GB` + an explicit `Asia/Kolkata`
+  // is the same string on every machine, and this estate is one wedding business
+  // in one time zone: a close time shown to the bride and to a member must be
+  // the same close time.
+  return pollCloses(d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }));
 }
 
 function threadId(t: Thread): string {
@@ -238,6 +254,20 @@ export default function CoplannerThreads() {
                     </button>
                   );
                 })}
+
+                {/* F-14.9 — the event's own name and date, label-free (⑫-class,
+                    her data, no word of ours). The vendor is never rendered on
+                    either surface: for a flagless member the server does not send
+                    it, so the withholding is payload-level truth and ⑪ holds —
+                    nothing here announces that anything is missing. */}
+                {p.linked_event && (
+                  <p style={{
+                    fontFamily: FONT_BODY, fontWeight: 300, fontSize: 12,
+                    color: MUTED, margin: '8px 0 0',
+                  }}>
+                    {p.linked_event.title} · {new Date(p.linked_event.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}
+                  </p>
+                )}
 
                 <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: FONT_BODY, fontWeight: 300, fontSize: 11, color: MUTED }}>

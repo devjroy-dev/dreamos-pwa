@@ -314,11 +314,44 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
    census edited to agree with the tree has stopped being a census. This cell
    reddened on its own the moment the control appeared, which is the whole
    reason it counts rather than merely checking that the named controls exist. */
-ok('3.1', 'the Sanctuary surface carries 153 controls (145 sealed + 4 + Rider 2\'s one + D-2\'s two + D-3b\'s poll option)', total === 153,
+/* ── THE CENSUS MOVED BY CHARTER AT TDW_14 D-3c: 153 → 161 ─────────────────
+   CE-115's CONTROL-INVENTORY LAW: every interactive control accounted KEPT,
+   MOVED, REMOVED — or, here, ADDED. D-3c adds eight, and this is the accounting,
+   counted from the source diff against 8fbcddc rather than estimated:
+
+     BUTTONS  78 → 83   (+5, of which +1 was D-3b's poll option, already banked;
+                         D-3c adds four)
+       +1  ① — the poll section's eyebrow BECOMES the affordance it was vetoed
+               as. Not a new control in the design's eyes; it is the same byte
+               finally doing its job. It is a new control in the CENSUS's eyes,
+               and the census is right to count it: a <div> that becomes a
+               <button> is a new thing a thumb can press.
+       +1  "Add a choice" — appends a choice slot, greys at four.
+       +1  "Ask" — submit, gated on a question and two choices.
+       +1  "Cancel" — dismiss without writing.
+
+     INPUTS   27 → 30   (+3)
+       +1  the question field
+       +1  the FIRST choice slot
+       +1  the SECOND choice slot
+           (slots three and four are the SAME <input> in source, rendered from
+            `askOpts.map`, so they add nothing to a source census — the count is
+            of controls DECLARED, not of controls painted. Named because a
+            reader who counts what she sees on screen will find four and wonder.)
+
+     TAPDIV   34 → 35   (+1)
+       +1  the sheet's scrim — tapping outside dismisses, and it is disabled
+           while a write is in flight so a mis-tap cannot orphan a poll.
+
+   ANCHOR, TEXTAREA and SELECT are unmoved. The numbers are RE-DERIVED, never
+   adjusted until the cell passed: a census edited to agree with the tree has
+   stopped being a census, and this cell reddening the moment eight controls
+   appeared is the only reason the accounting above exists at all. */
+ok('3.1', 'the Sanctuary surface carries 161 controls (153 + D-3c\'s create sheet: 4 buttons, 3 inputs, 1 scrim)', total === 161,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 79 && counts.anchor === 8 && counts.input === 27 &&
-   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 34,
+   counts.button === 83 && counts.anchor === 8 && counts.input === 30 &&
+   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 35,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */
