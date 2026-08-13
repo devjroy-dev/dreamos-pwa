@@ -63,17 +63,49 @@ function decomment(src) {
 const S_RAW = read(SANCTUARY);
 const S = S_RAW ? decomment(S_RAW) : '';
 
-/* ═══ §1 · THE ROUTE SET — seventeen, five of them redirects ════════════════ */
+/* ═══ §1 · THE ROUTE SET — six, one of them a redirect ══════════════════════ */
 section('§1 · ROUTES — the bride can still reach every door she could reach');
 
+/* ── AMENDMENT, TDW_13 D-1 (2026-08-13): seventeen routes became six ────────
+   This section was born of Package 4's death — doors were lost, so it stood
+   guard over every door. D-1 deletes eleven of the seventeen, and an amendment
+   that narrows an anti-door-loss guard deserves its ground stated, not just its
+   number changed.
+
+   THE GROUND: the eleven were the dead journey subtree and the dead dream
+   sibling (F-13.1, F-13.2). Estate-wide census at 60b4317, again at 2916661 and
+   again at c4debda: ZERO inbound. No router.push, no <Link>, no rewrite, in any
+   scanned extension. They were routes that RESOLVED; they were never doors she
+   could reach, which is the thing this section's own title guards. The founder
+   ruled the deletion with the ground on the record — 「 there was no live bride 」
+   while those routes were reachable, so no bookmark to a lost door exists either.
+
+   WHAT DID NOT MOVE: the six survivors, and every cell below §1. The Circle,
+   People, Events, Reminders, Moments, Expenses, Vendors and Settings CAPABILITIES
+   are not deleted — they are blooms inside sanctuary, and §3's control census and
+   §4's deck cells guard them there. This amendment removes duplicate dead
+   implementations from the guard's subject list, not capabilities from the guard.
+
+   tdw13_d1_dead_tree.proof.mjs now stands over the absence, with the live client
+   lib/frost/journey.ts pinned against the name collision. Both-ways: cell 1.1
+   goes RED at the pre-D-1 tree (ebf9097), where eleven extra routes exist. */
 const ROUTES = [
   'app/(frost)/frost/page.tsx',
   'app/(frost)/frost/canvas/sanctuary/page.tsx',
   'app/(frost)/frost/canvas/discover/page.tsx',
-  'app/(frost)/frost/canvas/dream/page.tsx',
   'app/(frost)/frost/canvas/muse/page.tsx',
   'app/(frost)/frost/canvas/surprise/page.tsx',
   'app/(frost)/frost/canvas/onboarding/page.tsx',
+];
+const present = ROUTES.filter((r) => fs.existsSync(P(r)));
+ok('1.1', 'all six surviving routes still exist', present.length === 6,
+   `present ${present.length}/6 — missing: ${ROUTES.filter((r) => !present.includes(r)).join(', ')}`);
+/* THE OTHER HALF OF THE GUARD, and the reason this cell is not a weakening:
+   the eleven must stay gone. A door that returns is as much a regression as a
+   door that vanishes — two implementations answering to one room name is
+   precisely F-13.1's disease. */
+const DELETED_ROUTES = [
+  'app/(frost)/frost/canvas/dream/page.tsx',
   'app/(frost)/frost/canvas/journey/page.tsx',
   'app/(frost)/frost/canvas/journey/events/page.tsx',
   'app/(frost)/frost/canvas/journey/reminders/page.tsx',
@@ -85,17 +117,14 @@ const ROUTES = [
   'app/(frost)/frost/canvas/journey/vendors/page.tsx',
   'app/(frost)/frost/canvas/journey/settings/page.tsx',
 ];
-const present = ROUTES.filter((r) => fs.existsSync(P(r)));
-ok('1.1', 'all seventeen routes still exist', present.length === 17,
-   `present ${present.length}/17 — missing: ${ROUTES.filter((r) => !present.includes(r)).join(', ')}`);
+const revived = DELETED_ROUTES.filter((r) => fs.existsSync(P(r)));
+ok('1.1b', 'the eleven routes D-1 deleted have not come back', revived.length === 0,
+   revived.join(', '));
 
 const REDIRECTS = [
   'app/(frost)/frost/canvas/discover/page.tsx',
-  'app/(frost)/frost/canvas/journey/expenses/page.tsx',
-  'app/(frost)/frost/canvas/journey/vendors/page.tsx',
-  'app/(frost)/frost/canvas/journey/settings/page.tsx',
 ];
-ok('1.2', 'the four redirect stubs still land on sanctuary',
+ok('1.2', 'the surviving redirect stub still lands on sanctuary',
    REDIRECTS.every((r) => (read(r) || '').includes('/frost/canvas/sanctuary')));
 ok('1.3', '/frost still replaces to sanctuary (the front door)',
    (read('app/(frost)/frost/page.tsx') || '').includes('/frost/canvas/sanctuary'));
@@ -268,11 +297,16 @@ KEEP.forEach((c, i) => ok(`5.${i + 1}`, `byte-identical: "${c.slice(0, 44)}"`, S
 ok('5.13', 'F-09.158 cure 1 — the Vendors "tab" is now a room',
    S_RAW.includes('No bookings yet. Add vendors in the Vendors room.') &&
    !S_RAW.includes('Add vendors in the Vendors tab.'));
-const people = read('app/(frost)/frost/canvas/journey/people/page.tsx') || '';
-ok('5.14', 'F-09.158 cure 2 — the standalone My People "Circle tab" is now Circle',
-   people.includes('Invite someone from Circle.') && !people.includes('the Circle tab'));
+/* AMENDMENT, TDW_13 D-1: cure 2's witness was the standalone My People page,
+   which D-1 deleted. The CURE did not die with it — the byte lives on in the
+   surviving surface, sanctuary's Circle bloom empty state. So the cell is
+   RE-POINTED, not retired: a cure whose witness moved keeps its guard at the
+   new home, and retiring the cell would have quietly stopped watching a
+   founder-vetoed byte that is still on screen today. */
+ok('5.14', 'F-09.158 cure 2 — the "Circle tab" byte is Circle, at its surviving home',
+   S_RAW.includes('Invite someone from Circle.') && !S_RAW.includes('the Circle tab'));
 ok('5.15', 'NO OTHER "tab" reference survives anywhere in the bride tree',
-   !/the (Vendors|Circle|Muse|Moments|Pages) tab/i.test(S_RAW + people));
+   !/the (Vendors|Circle|Muse|Moments|Pages) tab/i.test(S_RAW));
 ok('5.16', 'FROST_COPY.idlePool is UNTOUCHED (arm (c): pool untouched)',
    (read('lib/frost/tokens.ts') || '').includes('The light in October will be the colour of old letters.'));
 
@@ -439,7 +473,16 @@ ok('8.7', 'the rail hints assert nothing before the server answers',
 
 /* ═══ §M · ABSENT SUBJECTS — convicted by name, never silently ═════════════ */
 section('§M · the bench read what it claims to have read');
-ok('M.1', 'every subject this bench asserts on was actually present', seen.size >= 8, `read ${seen.size}`);
+/* AMENDMENT, TDW_13 D-1: the floor was 8 and is now 5, because D-1 removed
+   eleven subjects this bench used to read. This cell is a LYING-BENCH guard —
+   it catches a run where the reader shim silently returned nothing — so lowering
+   its floor is exactly the move that would hide the failure it exists to catch.
+   It is lowered anyway, to the number the bench now genuinely reads, because a
+   floor above that is a cell that reds on a healthy tree and teaches the next
+   reader to ignore it. The count is derived, not guessed: five subjects, and
+   M.2 below still proves the shim refuses an absent path by name — which is the
+   half of this guard that actually catches the lie. */
+ok('M.1', 'every subject this bench asserts on was actually present', seen.size >= 5, `read ${seen.size}`);
 ok('M.2', 'the shim refuses a known-absent path by name',
    (() => { QUIET = true; const r = read('app/(frost)/frost/canvas/__nope__/page.tsx'); QUIET = false;
             return r === null; })());
