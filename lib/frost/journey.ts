@@ -482,6 +482,83 @@ export async function fetchCircleThreads(): Promise<CircleThread[]> {
   return r?.data ?? [];
 }
 
+// ── TDW_14 D-3b · POLLS, THE BRIDE'S CLIENT ─────────────────────────────────
+// The member's coplanner fetches the same three doors directly with
+// `circleAuthHeaders()`; this is the BRIDE's half, and it mirrors
+// `fetchCircleThreads` above exactly — same header helper, same couple resolution,
+// same `shouldUseMocks` short-circuit — because the doors are Class B dual-lane
+// and the two lanes differ only in which credential they carry.
+//
+// The server computes every tally and resolves `my_vote` per viewer, so nothing
+// here counts, sorts by score, or decides a winner. A client that recomputed a
+// tally would be a second source of truth for a number the rows already carry.
+export interface CirclePollOption {
+  id: string;
+  label: string;
+  image_url: string | null;
+  votes: number;
+}
+
+export interface CirclePoll {
+  id: string;
+  question: string;
+  thread_id: string | null;
+  options: CirclePollOption[];
+  total_votes: number;
+  // The denominator frozen byte 5 needs — active members plus the bride. Served
+  // by polls.js because no client can count the circle honestly.
+  eligible_count: number;
+  my_vote: string | null;
+  closes_at: string | null;
+  closed: boolean;
+  linked_event: { id: string; title: string; event_date: string; vendor_id?: string | null } | null;
+  created_at: string | null;
+}
+
+export async function fetchCirclePolls(): Promise<CirclePoll[]> {
+  if (shouldUseMocks()) return delay([]);
+  const id = getCoupleId();
+  if (!id) return [];
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/polls/${id}`, {
+    headers: circleBrideHeaders(),
+  });
+  const r: any = await res.json();
+  return r?.data ?? [];
+}
+
+// Returns TRUE only on a recorded vote. Every refusal — closed poll, unknown
+// option, another circle's poll — answers false and the caller re-reads rather
+// than patching its own state optimistically: the server is the tally's home and
+// a screen that moved a count it was not told about would be lying confidently.
+export async function castCirclePollVote(pollId: string, optionId: string): Promise<boolean> {
+  if (shouldUseMocks()) return delay(false);
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/polls/${encodeURIComponent(pollId)}/vote`, {
+    method: 'POST',
+    headers: circleBrideHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ option_id: optionId }),
+  });
+  const r: any = await res.json().catch(() => null);
+  return !!(res.ok && r?.success);
+}
+
+// `options` are LABELS ONLY. Option ids are minted server-side (polls.js) so two
+// options can never share one and silently merge a tally; a client that sent ids
+// would be inventing identity the server refuses to trust.
+export async function createCirclePoll(
+  question: string,
+  options: string[],
+  extra?: { thread_id?: string | null; closes_at?: string | null; linked_event_id?: string | null },
+): Promise<CirclePoll | null> {
+  if (shouldUseMocks()) return delay(null);
+  const res = await fetch(`${API_BASE}/api/v2/frost/circle/polls`, {
+    method: 'POST',
+    headers: circleBrideHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ question, options, ...(extra || {}) }),
+  });
+  const r: any = await res.json().catch(() => null);
+  return (res.ok && r?.success) ? (r.data as CirclePoll) : null;
+}
+
 // Messages for a specific thread
 export async function fetchThreadMessages(threadId: string): Promise<CircleMessage[]> {
   if (shouldUseMocks()) return delay([]);

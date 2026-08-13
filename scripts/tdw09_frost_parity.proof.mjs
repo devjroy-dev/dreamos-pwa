@@ -296,10 +296,28 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
    RAW_COMMENT_CONTROLS.length > 0,
    'no comment mentions a control, so 3.0b guards nothing on this tree');
 
-ok('3.1', 'the Sanctuary surface carries 152 controls (145 sealed + 4 + Rider 2\'s one + D-2\'s two)', total === 152,
+/* ── THE CENSUS MOVED BY CHARTER AT TDW_14 D-3b: 152 → 153, buttons 78 → 79 ──
+   CE-115's CONTROL-INVENTORY LAW is that any change to a live surface accounts
+   for every interactive control as KEPT, MOVED or REMOVED. D-3b ADDS one, and
+   this is its accounting:
+
+     +1 button — the poll OPTION control in the circle bloom's poll block. One
+                 `<button` in source, rendered once per option (2-4) per poll.
+                 It votes; it is disabled on a closed poll and while a vote is
+                 in flight.
+
+   Nothing else moved. The poll block's question, tally, closes-at and outcome
+   lines are text, not controls. The polls STRIP on the coplanner threads index
+   is a different surface and is not counted here.
+
+   The numbers below are RE-DERIVED, never adjusted until the cell passes — a
+   census edited to agree with the tree has stopped being a census. This cell
+   reddened on its own the moment the control appeared, which is the whole
+   reason it counts rather than merely checking that the named controls exist. */
+ok('3.1', 'the Sanctuary surface carries 153 controls (145 sealed + 4 + Rider 2\'s one + D-2\'s two + D-3b\'s poll option)', total === 153,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 78 && counts.anchor === 8 && counts.input === 27 &&
+   counts.button === 79 && counts.anchor === 8 && counts.input === 27 &&
    counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 34,
    JSON.stringify(counts));
 

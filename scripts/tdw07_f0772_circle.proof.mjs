@@ -227,8 +227,30 @@ sec('§3 · THE BRIDE — the dual-lane doors, and the four sites that sent noth
     /function circleBrideHeaders/.test(JOUR) && /const t = getToken\(\);/.test(JOUR),
     'a new token read appeared where an authority already existed');
 
-  ok('§3.2 all THREE journey.ts circle calls carry it',
-    (JOUR.match(/circleBrideHeaders\(/g) || []).length >= 4,
+  // ── §3.2 WAS A THRESHOLD AND D-3b PROVED THRESHOLDS ROT ──────────────────
+  // It read `>= 4` — correct when there were four call sites, and slack the
+  // moment there were six. M-9 strips the header off one door; with `>= 4` and
+  // six doors, five remained and the cell stayed green over a bride call site
+  // that reaches a shared door credential-less. It reported itself VACUOUS,
+  // which is the mutation leg earning its place on the delivery that grew the
+  // population it was counting.
+  //
+  // The cure is EQUALITY, not a bigger number. Every circle door in this file
+  // must carry the header: count the doors, count the headers, require them to
+  // match. That bites at four sites, at six, and at whatever D-4 adds — a
+  // threshold only ever bites at the population it was written for.
+  ok('§3.2 EVERY journey.ts circle door carries it — doors counted, headers counted, equal',
+    (() => {
+      const doors   = (JOUR.match(/api\/v2\/frost\/circle\//g) || []).length;
+      // THE DEFINITION IS NOT A CALL SITE. `circleBrideHeaders(` matches the
+      // `function circleBrideHeaders(` declaration too, so a naive count reads
+      // one higher than the number of doors that actually carry it and the
+      // equality is off by exactly the helper itself. Caught by the cell
+      // reddening on a correct tree — the first cut of this equality was wrong
+      // in the safe direction, which is the only reason it cost nothing.
+      const headers = (JOUR.match(/(?<!function )circleBrideHeaders\(/g) || []).length;
+      return doors > 0 && doors === headers;
+    })(),
     'a bride call site still reaches a shared door credential-less');
 
   ok('§3.3 sanctuary\'s POST carries the bride\'s token (its GET sibling always did)',
@@ -248,7 +270,20 @@ sec('§3 · THE BRIDE — the dual-lane doors, and the four sites that sent noth
         if (n) hits.push(`${rel}:${n}`);
       };
       scan(JOURNEY_P); scan(SANCT_P);
-      return hits.join('|') === `${JOURNEY_P}:3|${SANCT_P}:2`;
+      // ── THE CENSUS MOVED BY CHARTER AT TDW_14 D-3b: journey.ts 3 → 6 ──────
+      // The cell said "a sixth appearing unlisted must redden here" and it did
+      // exactly that. Three doors joined, all of them polls, all of them the
+      // bride's half of Class B — fetchCirclePolls, castCirclePollVote,
+      // createCirclePoll — each carrying `circleBrideHeaders()` like the three
+      // before them (§3.2 counts those and reads six).
+      //
+      // The number is RE-DERIVED, not adjusted to fit: a cell edited until it
+      // passes is a cell that has stopped counting. SANCT_P stays 2 because the
+      // bloom reaches polls through journey.ts and mints no fetch of its own —
+      // and SANCT_P is the sanctuary page PLUS its extracted blooms, per the
+      // D-5 amendment at the head of this file, which is why that 2 lives there
+      // and not in a file whose own path reads zero.
+      return hits.join('|') === `${JOURNEY_P}:6|${SANCT_P}:2`;
     })(),
     'the bride-side census moved — re-derive it before this delivery ships');
 }
@@ -783,8 +818,15 @@ if (!CELLS_ONLY) {
       'M-7 the AUTO-SUBMIT VERB lost in the rewrite (CLAUSE 2)  ⇒ §4.7 RED'],
     [LAYOUT_P, '        if (circleRefused(r)) {', '        if (false) {',
       'M-8 the refusal branch unwired                           ⇒ §6.1 RED'],
-    [JOURNEY_P, '    headers: circleBrideHeaders(),\n  });\n  const r: any = await res.json();\n  return r?.data ?? [];\n}\n\n// Messages for a specific thread',
-      '  });\n  const r: any = await res.json();\n  return r?.data ?? [];\n}\n\n// Messages for a specific thread',
+    // RE-AIMED AT TDW_14 D-3b. The anchor ended at `// Messages for a specific
+    // thread`, and D-3b inserted the three poll doors between fetchCircleThreads
+    // and that comment, so the tail no longer sat where the mutation reached for
+    // it. The MUTATION IS UNCHANGED IN SUBSTANCE — strip the header off a bride
+    // call site and watch §3.2 red; only its target text moved. It announced
+    // itself as MUTATION TARGET ABSENT rather than passing over a broken tree,
+    // which is the guard doing its job on the delivery that moved the file.
+    [JOURNEY_P, '    headers: circleBrideHeaders(),\n  });\n  const r: any = await res.json();\n  return r?.data ?? [];\n}\n\n// ── TDW_14 D-3b',
+      '  });\n  const r: any = await res.json();\n  return r?.data ?? [];\n}\n\n// ── TDW_14 D-3b',
       'M-9 a bride call site sends nothing again                ⇒ §3.2 RED'],
     [JOIN_P, '      if (d.data.token) setCircleToken(d.data.token);', '',
       'M-10 the join mint point drops the token                 ⇒ §6.4 RED'],

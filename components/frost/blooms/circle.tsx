@@ -9,7 +9,14 @@
 import React, { useState, useEffect } from 'react';
 import { FT, FS, FI, getCoupleIdForFrost } from '@/lib/frost/tokens';
 import { fetchCircle, inviteCircleMember, removeCircleMember, formatActivityLine, timeAgo,
-         type CircleData, type CircleActivity, type CircleMember } from '@/lib/frost/journey';
+         fetchCirclePolls, castCirclePollVote,
+         type CircleData, type CircleActivity, type CircleMember, type CirclePoll } from '@/lib/frost/journey';
+// TDW_14 D-3b — THE FROZEN BYTES COME FROM THE ONE HOME, the same module the
+// member's coplanner strip imports. Two renderers, one vocabulary: the surfaces
+// share no token system, but the founder's vetoed copy must not fork, and a
+// bench cell reds if either surface grows a literal of its own.
+import { POLL_ASK, POLL_TAP_TO_CHOOSE, POLL_YOUR_CHOICE, POLL_EMPTY,
+         pollTally, pollCloses, pollWinner, pollTie } from '@/lib/circle/pollCopy';
 import { usePress } from '@/components/frost/_shared/usePress';
 import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
 
@@ -83,11 +90,33 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
   // every ten seconds, looking live. Enforcement without a landing is a security
   // fix that breaks a real person's screen and does not tell her.
   const [chatLocked, setChatLocked] = React.useState(false);
+  const [polls,  setPolls]  = React.useState<CirclePoll[]>([]);
+  const [voting, setVoting] = React.useState<string|null>(null);
   const API_CIRCLE = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
 
   React.useEffect(()=>{
     fetchCircle().then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
   },[]);
+
+  // R-D3.5: NO SECOND TIMER. The poll read rides the message poll's existing 10s
+  // interval below — `loadPolls` is called from inside it, not from an interval
+  // of its own. One home applies to timers as much as to constants: two intervals
+  // on one screen drift apart, double the request rate, and give a reader two
+  // places to look for "how often does this refresh".
+  const loadPolls = React.useCallback(async ()=>{
+    try { setPolls(await fetchCirclePolls()); }
+    catch { /* keep last known — a dropped packet is not a reason to blank her polls */ }
+  },[]);
+
+  // A cast vote RE-READS. The server owns the tally and resolves `my_vote` per
+  // viewer; a screen that moved a count it was not told about would be
+  // confidently wrong the moment two people voted at once.
+  const votePoll = async (pollId:string, optionId:string) => {
+    if(voting) return;
+    setVoting(pollId);
+    try { if(await castCirclePollVote(pollId, optionId)) await loadPolls(); }
+    finally { setVoting(null); }
+  };
 
   // Fetch circle thread messages + poll every 10s so members' messages appear live.
   React.useEffect(()=>{
@@ -109,10 +138,15 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
         if(alive && d?.ok && Array.isArray(d.messages)) setChatMsgs(d.messages);
       } catch { /* keep last known */ }
     };
-    loadMessages();
-    const iv = setInterval(loadMessages, 10000);
+    // R-D3.5 — THE POLL READ RIDES THIS INTERVAL. One tick, two reads, one home
+    // for "how often does this screen refresh". A second setInterval would drift
+    // from this one, double the request rate, and give the next reader two
+    // answers to the same question.
+    const tick = async () => { await loadMessages(); await loadPolls(); };
+    tick();
+    const iv = setInterval(tick, 10000);
     return ()=>{ alive=false; clearInterval(iv); };
-  },[]);
+  },[loadPolls]);
 
   const doInvite = async () => {
     if(!inviteName.trim()||inviting) return;
@@ -322,6 +356,64 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
           )}
         </div>
       </div>
+
+      {/* ── POLLS ────────────────────────────────────────────────────────────
+          Above the feed, because a poll is a thing WAITING ON SOMEONE and the
+          feed is a record of things that already happened. The bride votes here
+          like anyone else — R-D3.2's whole point — so there is no read-only
+          variant of this block. */}
+      {!loading && polls.length>0 && (
+        <div style={{padding:`0 ${FS.gutter}px ${FS.s3}px`}}>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgAccent,marginBottom:12}}>{POLL_ASK}</div>
+          {polls.map(p=>{
+            // WHO WON, OR WHETHER ANYBODY DID. A tie is not an edge case: four
+            // options can all hold an equal count, which is why ⑧'s byte takes a
+            // list. A closed poll with zero votes has neither line.
+            const top      = p.total_votes>0 ? Math.max(...p.options.map(o=>o.votes)) : -1;
+            const leaders  = p.options.filter(o=>o.votes===top);
+            const result   = (!p.closed || p.total_votes===0) ? null
+                           : leaders.length===1 ? pollWinner(leaders[0].label)
+                           : pollTie(leaders.map(o=>o.label));
+            const closesAt = p.closes_at ? new Date(p.closes_at) : null;
+            const closes   = closesAt && !Number.isNaN(closesAt.getTime()) && !p.closed
+                           ? pollCloses(closesAt.toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}))
+                           : null;
+            return (
+              <div key={p.id} style={{borderBottom:`${FS.hair} solid ${pgLine}`,paddingBottom:FS.s2,marginBottom:FS.s2}}>
+                <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.lead,color:pgInk,lineHeight:1.35,marginBottom:10}}>{p.question}</div>
+                {p.options.map(o=>{
+                  const mine = p.my_vote===o.id;
+                  return (
+                    <button key={o.id} disabled={p.closed||voting===p.id} onClick={()=>votePoll(p.id,o.id)}
+                      style={{width:'100%',textAlign:'left' as any,background:mine?'rgba(255,255,255,.06)':'transparent',
+                              border:`${FS.hair} solid ${mine?pgAccent:pgLine}`,borderRadius:FI.chrome,
+                              padding:'10px 12px',marginBottom:6,cursor:p.closed?'default':'pointer',
+                              display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+                      <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:pgInk,flex:1,fontFeatureSettings:'"opsz" 9'}}>{o.label}</span>
+                      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:mine?pgAccent:pgInkMute,flexShrink:0}}>
+                        {/* Live tallies are the spec's own word, and a poll is
+                            shared by creation — the count is never withheld. */}
+                        {mine?POLL_YOUR_CHOICE:(p.closed?'':POLL_TAP_TO_CHOOSE)}{o.votes>0?` · ${o.votes}`:''}
+                      </span>
+                    </button>
+                  );
+                })}
+                <div style={{display:'flex',gap:12,flexWrap:'wrap' as any,marginTop:8,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any}}>
+                  <span style={{color:pgInkMute}}>{pollTally(p.total_votes,p.eligible_count)}</span>
+                  {closes && <span style={{color:pgInkMute}}>{closes}</span>}
+                  {result && <span style={{color:pgAccent}}>{result}</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ⑨ — the empty state lives HERE and not on the member's strip, because
+          this is the surface whose subject is polls. */}
+      {!loading && polls.length===0 && (
+        <div style={{padding:`0 ${FS.gutter}px ${FS.s2}px`,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:FS.track,textTransform:'uppercase' as any,color:pgInkMute}}>{POLL_EMPTY}</div>
+      )}
 
       {/* Activity feed */}
       <div className="no-scroll" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch' as any}}>
