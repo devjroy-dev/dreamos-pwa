@@ -86,6 +86,18 @@ console.log('\n── 7 · the complete bride never sees the form ──');
 ok(/onboarding\?\.complete\) \{ router\.replace\('\/frost'\)/.test(FORM),
    '7.1 an already-complete bride is bounced to /frost');
 
+console.log('\n── 7b · the greeting reads the TYPED name, not a cached one ──');
+ok(/const firstName = \(name\.trim\(\) \|\| getBrideName\(\)\)/.test(FORM)
+   || 'the greeting is not derived from the typed name',
+   '7b.1 the greeting prefers what she typed, cache only as fallback');
+ok(!/setFirstName/.test(FORM) || 'firstName is still stored in state',
+   '7b.2 it is DERIVED per render, never stored — stored is what let the two disagree');
+// The founder-ruled bytes must not move while the SOURCE of the name changes.
+ok(FORM.includes("`You're all set, ${firstName}.`") && FORM.includes('"You\'re all set."'),
+   '7b.3 the done-screen bytes are unchanged, both arms');
+ok(FORM.includes('`Hi ${firstName}.`') && FORM.includes("'Welcome.'"),
+   '7b.4 the greeting bytes are unchanged, both arms');
+
 console.log('\n── 8 · partner_name is RETIRED from this form (founder veto-delete) ──');
 ok(!/And who/.test(FORM) || 'the partner-name label survives',
    '8.1 the label 「 And who\'s the lucky person? 」 is gone');

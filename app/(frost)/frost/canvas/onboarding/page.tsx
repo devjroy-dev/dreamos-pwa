@@ -75,7 +75,6 @@ export default function BrideOnboardingPage() {
   const router = useRouter();
 
   const [loading,     setLoading]     = useState(true);
-  const [firstName,   setFirstName]   = useState('');
   const [missing,     setMissing]     = useState<string[]>([]);
   const [refusal,     setRefusal]     = useState('');
 
@@ -89,6 +88,27 @@ export default function BrideOnboardingPage() {
   const [done,        setDone]        = useState(false);
 
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(''), 3000); };
+
+  // ── ARC OB · OB-P · THE GREETING READS WHAT SHE TYPED ─────────────────────
+  // `firstName` was state, seeded ONCE on mount from getBrideName()'s
+  // localStorage read and never updated again. On the walk that was invisible —
+  // the cache was empty, so both greetings fell to their no-name bytes, which
+  // the founder has ruled correct and which are unchanged below.
+  //
+  // THE BRANCH THAT IS NOT INVISIBLE: when localStorage DOES hold a name — an
+  // older session, a shared device, or the value that was there before she
+  // changed it — the done screen greets her with the CACHED name seconds after
+  // she typed a different one. She writes 「 Sarah 」 and is told 「 You're all
+  // set, Priya. 」 That is a stale cached value speaking over a fresh true one,
+  // which is the same shape as the lying marker this whole arc exists to kill,
+  // just one layer up and in the copy instead of the data.
+  //
+  // DERIVED PER RENDER, NOT STORED: what she has typed is the truth the instant
+  // she types it, and the cache is only a fallback for the moment before the
+  // form has anything. Holding it in state is what let the two disagree at all.
+  // The vetoed bytes are untouched — only the source of the name moved, so with
+  // an empty cache every screen renders exactly as it did on the walk.
+  const firstName = (name.trim() || getBrideName()).split(' ')[0];
 
   // THE PARSER, CARRIED VERBATIM (F-4 ratified: reuse, single numeric field, no
   // ranges). A range cannot satisfy `moneyPresent`, which demands one number
@@ -106,7 +126,6 @@ export default function BrideOnboardingPage() {
 
   useEffect(() => {
     let live = true;
-    setFirstName(getBrideName());
     (async () => {
       try {
         const me = await apiGet<CoupleMe>('/api/v2/couple/me');
