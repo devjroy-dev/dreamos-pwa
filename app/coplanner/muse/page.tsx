@@ -74,7 +74,21 @@ export default function CoplannerMuse() {
             fontFamily: FONT_BODY, fontWeight: 300, fontSize: 13,
             color: MUTED, margin: 0, lineHeight: 1.6,
           }}>
-            {brideName(session)} hasn&rsquo;t saved anything yet.
+            {/* JSX DELETES THE WHITESPACE between an expression container and
+                text on the next line, so `{name}` + newline + `hasn't` rendered
+                as `Sarahhasn't` on the member's board. The space was never in
+                the source to lose — it is not a typo, it is the shape.
+
+                `{' '}` is the estate's own idiom for it: app/privacy/page.tsx
+                :334 and :345 already use it. And the very next line here knew —
+                its leading space lives INSIDE the string literal for exactly
+                this reason. The hazard was handled one line down and missed one
+                line up.
+
+                NO COPY MOVED. A space was restored; no word changed, so the
+                vetoed bytes stand and this needs no fresh veto. */}
+            {brideName(session)}{' '}
+            hasn&rsquo;t saved anything yet.
             {canAdd ? ' Add the first idea?' : ''}
           </p>
         </div>
