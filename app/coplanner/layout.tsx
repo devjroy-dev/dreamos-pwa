@@ -261,7 +261,7 @@ function CoplannerSignIn({ expired, onSuccess }: {
         // frozen 2026-08-02. The fallback covers a transport-shaped failure that
         // carried no `error` field at all; it is never a paraphrase of a message
         // the server did send.
-        setError('Something went wrong.');
+        setError(vd.error || 'Could not sign you in. Try again.');
         setStep('pin');
         setPin(['', '', '', '']);
         return;
