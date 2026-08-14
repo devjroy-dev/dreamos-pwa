@@ -45,10 +45,49 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
   const [inviteRole,  setInviteRole]  = React.useState('family');
   const [inviting,    setInviting]    = React.useState(false);
   const [waLink,      setWaLink]      = React.useState<string|null>(null);
-  const [contactsSupported] = React.useState<boolean>(()=>{
-    if(typeof navigator==='undefined') return false;
-    return !!((navigator as any).contacts && (navigator as any).contacts.select);
-  });
+  // ── F-13.11 · HYDRATION, CURED. Its own commit at TDW_14 D-4b ─────────────
+  //
+  // THE DISEASE: this read the browser DURING THE FIRST RENDER. A lazy useState
+  // initializer runs on the server too, where `navigator` is undefined and the
+  // answer is false — then runs again in the browser, where on a phone with the
+  // Contacts Picker it is true. Two different first renders for one component,
+  // which is a hydration mismatch: React discards the server tree, and anything
+  // it had that the client render does not is gone silently.
+  //
+  // `typeof navigator==='undefined'` was a GUARD AGAINST A CRASH, not against
+  // the mismatch. It made the server render succeed with the wrong answer, which
+  // is the harder version of the bug to see.
+  //
+  // THE CURE: false on both first renders, by construction — no branch at all in
+  // the initial state — and the real answer written after mount, where only the
+  // browser runs. The affordance appears a frame late on a capable phone and
+  // never appears at all on a desktop, which is what it did before; what changes
+  // is that the server and the client now agree about frame one.
+  const [contactsSupported, setContactsSupported] = React.useState(false);
+  React.useEffect(()=>{
+    setContactsSupported(!!((navigator as any).contacts && (navigator as any).contacts.select));
+  },[]);
+
+  // THE SAME DISEASE, SECOND SHAPE. The activity feed's "recent" dot compared
+  // `Date.now()` against a row's timestamp DURING RENDER, at two sites. The
+  // server's clock and the browser's are never the same instant, so a row within
+  // a few seconds of the ten-minute boundary rendered the dot on one and not the
+  // other — the same mismatch, arriving intermittently, which is worse to chase.
+  //
+  // `null` until mount means NO DOT on the server render and no dot on the
+  // client's first, then the true answer. The value refreshes on the screen's
+  // existing 10s tick rather than on a timer of its own — R-D3.5's one-timer
+  // ruling still holds, and a dot that decides once at mount and never again
+  // would keep glowing on a message from an hour ago.
+  //
+  // THE THIRD `Date.now()` IN THIS FILE IS NOT TOUCHED and that is derived, not
+  // overlooked: it is inside CircleCompose's `onSent` callback, which runs on a
+  // thumb press, in the browser, long after hydration. It has no server render
+  // to disagree with. Curing a non-defect to match a sentence would be scope
+  // invented; the claim this cure makes is about the RENDER PATH and its radius
+  // is exactly that (R-33.3, chair-corrected at c-33.7).
+  const [nowTs, setNowTs] = React.useState<number|null>(null);
+  React.useEffect(()=>{ setNowTs(Date.now()); },[]);
 
   const pickContact = async () => {
     try {
@@ -220,7 +259,7 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
     // last known state — so `Promise.all`'s fail-fast cannot cost the other one
     // its result here. If either is ever rewritten to throw, this must become
     // `allSettled` or a thrown messages read will silently take the polls with it.
-    const tick = async () => { await Promise.all([loadMessages(), loadPolls()]); };
+    const tick = async () => { setNowTs(Date.now()); await Promise.all([loadMessages(), loadPolls()]); };
     tick();
     const iv = setInterval(tick, 10000);
     return ()=>{ alive=false; clearInterval(iv); };
@@ -737,7 +776,7 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
                           {a.content || formatActivityLine(a)}
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
-                          {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                          {nowTs!==null&&nowTs-new Date(a.created_at).getTime()<600000&&(
                             <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
                           )}
                           <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>
@@ -752,7 +791,7 @@ export function CircleRoom({ dark, accent, signal, roomInk, roomInkSoft, roomInk
                     {a.content || formatActivityLine(a)}
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    {Date.now()-new Date(a.created_at).getTime()<600000&&(
+                    {nowTs!==null&&nowTs-new Date(a.created_at).getTime()<600000&&(
                       <span className="cf-a" style={{width:4,height:4,borderRadius:'50%',background:signal,boxShadow:`0 0 4px ${signal}`,flexShrink:0}}/>
                     )}
                     <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:pgInkMute}}>
