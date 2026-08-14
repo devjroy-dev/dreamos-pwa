@@ -39,29 +39,37 @@ export const FONT_EYEBROW = "'Jost', sans-serif";
 // over in `settings/page.tsx` until this delivery.
 export type CircleRole = 'partner' | 'family' | 'inner_circle';
 
-// ── F-07.115 · `dreamai_access_granted` IS DELETED FROM THIS BLOCK ──────────
-// It was a hardcoded `false` on the server with no column behind it, and its two
-// client readers — the tab gate and the Dream AI page — are both retired in this
-// delivery. A permission field that can never be true, describing a surface that
-// no longer exists, is not a permission; it is a claim about a column that never
-// existed. The one home (`dream-os src/lib/circlePermissions.js`) drops it in the
-// same arc, and the bench cell there now asserts its ABSENCE so a re-introduction
-// reddens rather than passing quietly.
+// ── THE PERMISSION TYPE IS RETIRED WHOLE (M-TRUST, 2026-08-14) ──────────────
+// `CirclePermissions` declared four keys — `can_see_budget`, `can_see_guests`,
+// `can_see_vendors`, `can_contribute_muse` — and the server stopped sending any
+// of them on the founder's trust ruling: 「 the bride is consciously adding
+// people. 1- mehek always sees the vendor info. 2- mehek always gets to add to
+// muse. 3- budget never visible 」. MEMBERSHIP IS THE PERMISSION.
 //
-// CACHED SESSIONS ARE SAFE: blobs minted before this change still carry the key,
-// and `CircleSession`'s `[extra: string]: unknown` index signature accepts it
-// without a type error. Nothing new reads it.
-export interface CirclePermissions {
-  can_see_budget: boolean;
-  can_see_guests: boolean;
-  can_see_vendors: boolean;
-  can_contribute_muse: boolean;
-}
+// F-07.115's own history is why this type is DELETED rather than emptied. It
+// once carried a fifth key, `dreamai_access_granted`, a hardcoded `false` with
+// no column behind it — a permission field that could never be true, describing
+// a surface that no longer existed. It was closed BY DELETION, not by keying,
+// and the same reasoning retires the remaining four: a type that declares fields
+// the wire does not send is a claim about a payload, and a false one.
+//
+// CACHED SESSIONS ARE SAFE. Blobs minted before this change still carry a
+// `permissions` object, and `CircleSession`'s `[extra: string]: unknown` index
+// signature accepts it without a type error. Nothing reads it. A member signed
+// in on an old blob keeps working and simply gains the affordances the ruling
+// gave her, which is the correct behaviour for a ruling that only ever opens.
+//
+// THE BUDGET WALL DID NOT MOVE HERE, BECAUSE IT WAS NEVER HERE. It is a server
+// fact — no member-facing serializer carries a budget-bearing field at all —
+// held by `dream-os scripts/b14_d1_visibility_bench.js` §6 per serializer,
+// unconditionally. This client never had a budget field to hide, and that is
+// exactly the 08 blur standard: payload-level truth, never CSS.
 
 // Backend response shape — GET /api/v2/circle/session/:userId
 // (src/api/circle/session.js, MINIMISED at F-07.72 to the fields this client
 // actually reads, derived by command over this whole tree):
-//   { user_id, name, couple_id, role, permissions, bride: { name } }
+//   { user_id, name, couple_id, role, bride: { name } }
+//   (`permissions` left this payload at M-TRUST, 2026-08-14 — see above.)
 //
 // The door previously also sent `phone`, `pin_set`, `co_planner_id`,
 // `bride.wedding_date` and `bride.partner_name` — every one of them read by
@@ -88,7 +96,6 @@ export interface CircleSession {
   couple_id: string;
   role: CircleRole;
   dreamer_type?: string;
-  permissions: CirclePermissions;
   bride?: {
     name?: string | null;
     wedding_date?: string | null;

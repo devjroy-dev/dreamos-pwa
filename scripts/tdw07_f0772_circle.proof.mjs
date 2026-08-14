@@ -56,6 +56,10 @@ const raw = (rel) => rel === __SANCT_PATH ? __surface(__raw0) : __raw0(rel);
 const code = (rel) => stripComments(raw(rel));
 
 const CTX_P      = 'app/coplanner/CircleSessionContext.tsx';
+// M-TRUST (2026-08-14) — the muse page joins this proof's subject set. Its
+// client-side permission read was one of the three sites the ruling retired,
+// and §14.5b/M-22c below read it, so it needs a name here like any other.
+const MUSE_P     = 'app/coplanner/muse/page.tsx';
 const LAYOUT_P   = 'app/coplanner/layout.tsx';
 const JOIN_P     = 'app/circle/join/[token]/page.tsx';
 const SETTINGS_P = 'app/coplanner/settings/page.tsx';
@@ -640,6 +644,19 @@ ok('§14.5 THE FLAG IS DEAD IN THIS REPO — all three sites, by absence',
   !/dreamai_access_granted/.test(HOME),
   'a reader of the keyless flag survived F-07.115\'s cure');
 
+// ── §14.5b · THE WHOLE TYPE FOLLOWED THE FLAG AT M-TRUST (2026-08-14) ───────
+// §14.5 watched ONE key leave a type that survived it. The founder's trust
+// ruling retired the other four and the type with them, so the payload shape
+// this proof pins MOVED — RETIRE-WITH-THE-READER, declared before the byte.
+// The watch widens rather than narrows: it is now the whole permission
+// vocabulary, in code, at every site that ever read it.
+ok('§14.5b THE PERMISSION VOCABULARY IS GONE FROM THIS REPO — type and field both',
+  !/interface CirclePermissions/.test(code(CTX_P)) &&
+  !/permissions:\s*CirclePermissions/.test(code(CTX_P)) &&
+  !/can_see_budget|can_see_guests|can_see_vendors|can_contribute_muse/.test(code(CTX_P)) &&
+  !/session\.permissions/.test(code(MUSE_P)),
+  'a permission type, field or key survived the M-TRUST retirement');
+
 ok('§14.6 NO CLIENT CALLS THE RETIRED DOORS — anywhere in the tree',
   (() => {
     const hits = [];
@@ -870,9 +887,20 @@ if (!CELLS_ONLY) {
     [TAB_P, "  { href: '/coplanner/settings', label: 'SETTINGS', matches: p => p.startsWith('/coplanner/settings') },",
       "  { href: '/coplanner/settings', label: 'SETTINGS', matches: p => p.startsWith('/coplanner/settings') },\n  { href: '/coplanner/dreamai',  label: 'DREAM AI', matches: p => p.startsWith('/coplanner/dreamai') },",
       'M-21 the retired tab is put back on the bar               ⇒ §14.2/§14.3 RED'],
-    [CTX_P, '  can_see_budget: boolean;',
-      '  dreamai_access_granted: boolean;\n  can_see_budget: boolean;',
-      'M-22 the keyless flag returns to the permissions type      ⇒ §14.5 RED'],
+    // M-22 RE-AIMED AT M-TRUST. Its old anchor was a line inside
+    // `interface CirclePermissions`, and that interface is gone — a mutation
+    // aimed at absent code is not a weaker proof, it is no proof. The flag's
+    // return is still what is watched; it now returns to the session type
+    // itself, which is the only place left for it to come back to.
+    [CTX_P, '  dreamer_type?: string;',
+      '  dreamer_type?: string;\n  dreamai_access_granted: boolean;',
+      'M-22 the keyless flag returns to the session type          ⇒ §14.5 RED'],
+    [CTX_P, '  dreamer_type?: string;',
+      '  dreamer_type?: string;\n  permissions: { can_see_budget: boolean };',
+      'M-22b the permission vocabulary grows back on the client   ⇒ §14.5b RED'],
+    [MUSE_P, '  const canAdd   = true;',
+      '  const canAdd   = session.permissions?.can_contribute_muse === true;',
+      'M-22c the muse gate returns — the ruling reversed silently ⇒ §14.5b RED'],
     [HOME_P, "          href={`https://wa.me/${waNumberFor('bride')}`}",
       '          href={`https://wa.me/917011788380`}',
       'M-23 the link hardcodes the number instead of deriving it  ⇒ §14.8/§14.10 RED'],

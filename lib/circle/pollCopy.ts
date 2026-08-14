@@ -38,10 +38,14 @@
 // that keeps the twelve readable as one set from either end.
 //
 // ── TWO EXPECTED-ZEROS, RATIFIED, RECORDED SO THEY ARE NOT "FORGOTTEN" ─────
-//   ⑪  A member whose `can_see_vendors` is off sees a linked event's name and
-//       date and simply not its vendor. THERE IS NO BYTE. A line saying "some
-//       details are hidden" advertises a wall to someone who was not looking for
-//       one. The absence is the ruling; `§4` asserts no such string exists.
+//   ⑪  THERE IS NO BYTE, AND AT M-TRUST (2026-08-14) THERE IS NO WALL EITHER.
+//       This entry read: 「 a member whose `can_see_vendors` is off sees a linked
+//       event's name and date and simply not its vendor 」. The founder retired
+//       that flag — 「 1- mehek always sees the vendor info 」 — so the expected-
+//       zero survives with a stronger reason than it had. It was ratified because
+//       a line saying "some details are hidden" advertises a wall to someone who
+//       was not looking for one; it now holds because there is no wall on vendors
+//       to advertise. `§4` asserts no such string exists, unchanged.
 //   ⑫  A poll's question and option labels are the bride's or the member's own
 //       words. We never put words in her poll. No default, no placeholder text,
 //       no "e.g." — asserted by the same cell.

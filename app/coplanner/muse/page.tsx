@@ -19,7 +19,17 @@ interface MuseTile {
 export default function CoplannerMuse() {
   const session  = useCircleSession();
   const bride_id = brideId(session);
-  const canAdd   = session.permissions?.can_contribute_muse === true;
+  // M-TRUST, founder's trust ruling 2026-08-14: 「 2- mehek always gets to add
+  // to muse 」. This read was `session.permissions?.can_contribute_muse === true`
+  // — a client-side flag check against a block the server no longer sends.
+  //
+  // IT IS A CONSTANT NOW, NOT A DELETION, AND THAT IS DELIBERATE. `canAdd` has
+  // three readers below (the empty-state line, the invitation byte, and the FAB).
+  // Inlining `true` at all three would scatter the ruling across a file and make
+  // the next hand reconstruct it from three places. One binding, one comment,
+  // one home for the reason — and if membership ever stops being the permission,
+  // there is exactly one line to change back.
+  const canAdd   = true;
 
   const [tiles, setTiles]     = useState<MuseTile[]>([]);
   const [loading, setLoading] = useState(true);

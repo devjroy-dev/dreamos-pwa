@@ -43,10 +43,15 @@ interface Poll {
   id: string;
   question: string;
   options: PollOption[];
-  // F-14.9 — served by D-3a, rendered by nobody until D-3c. `vendor_id` is
-  // OPTIONAL in this type on purpose: for a member without `can_see_vendors` the
-  // server omits the key entirely, so its absence is a payload fact rather than
-  // something this screen decides. Nothing below reads it.
+  // F-14.9 — served by D-3a, rendered by nobody until D-3c.
+  //
+  // THIS COMMENT WAS FALSIFIED BY M-TRUST (2026-08-14) AND IS CORRECTED, NOT
+  // DELETED. It said `vendor_id` was optional because 「 for a member without
+  // `can_see_vendors` the server omits the key entirely 」. There is no such
+  // member and no such flag: the server now serves `vendor_id` to every active
+  // member unconditionally, exactly as it always served the bride. The field
+  // stays OPTIONAL in this type for the honest reason — a linked event may
+  // simply have no vendor booked yet — and nothing below reads it either way.
   linked_event: LinkedEvent | null;
   total_votes: number;
   // ⑤ READS "{n} of {total} voted", so the denominator is THE CIRCLE, not the

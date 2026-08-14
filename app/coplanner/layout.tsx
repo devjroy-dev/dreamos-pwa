@@ -44,7 +44,10 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
         setState('ready');
       }
 
-      // Refresh permissions in the background. Don't block the UI.
+      // Refresh the session in the background. Don't block the UI.
+      // (This said 「 refresh permissions 」 until M-TRUST, 2026-08-14 retired
+      // them; the refresh still matters — it is how a revoked member's session
+      // dies — but permissions are not what it carries any more.)
       try {
         const r = await fetch(`${API}/api/v2/circle/session/${cached.user_id}`, {
           headers: circleAuthHeaders(),
@@ -54,7 +57,7 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
         // is to ask for the PIN again. Anything else — a 500, a timeout, an
         // offline phone — keeps the cached session on screen exactly as this file
         // has always behaved, because signing someone out over a dropped packet
-        // is a worse failure than showing her slightly stale permissions.
+        // is a worse failure than showing her a slightly stale session.
         //
         // THIS BRANCH CANNOT FIRE IN THIS DELIVERY, BY CONSTRUCTION AND ON PURPOSE.
         // The lane enforces nothing yet: no circle door returns 401 at this tip.

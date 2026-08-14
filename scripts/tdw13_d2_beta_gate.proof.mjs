@@ -35,28 +35,29 @@ const FOUNDER_BODY =
 const FOUNDER_SHA =
   '6bd0e6fcc484078512652d9ce4b46cffddaf4b139d1b0a50205597587e0e4b6b';
 
-// ── comment stripping ────────────────────────────────────────────────────────
-// Line comments and block comments only. String contents are preserved, which
-// matters because the founder's bytes live in a string literal.
-function stripComments(src) {
-  let out = '';
-  let i = 0;
-  const n = src.length;
-  let quote = null;      // ' " ` when inside a string
-  while (i < n) {
-    const c = src[i], c2 = src[i + 1];
-    if (quote) {
-      if (c === '\\') { out += c + (c2 ?? ''); i += 2; continue; }
-      if (c === quote) quote = null;
-      out += c; i++; continue;
-    }
-    if (c === '/' && c2 === '/') { while (i < n && src[i] !== '\n') i++; continue; }
-    if (c === '/' && c2 === '*') { i += 2; while (i < n && !(src[i] === '*' && src[i + 1] === '/')) i++; i += 2; continue; }
-    if (c === '\'' || c === '"' || c === '`') { quote = c; out += c; i++; continue; }
-    out += c; i++;
-  }
-  return out;
-}
+// ── comment stripping — RE-HOMED AT F-13.14 ─────────────────────────────────
+// A SECOND IMPLEMENTATION STOOD HERE. This file declared its own 22-line
+// character-scanning stripper while the estate has had ONE HOME since F-07.74's
+// cure: `scripts/lib/stripComments.mjs`. That is the exact disease F-07.52 and
+// F-07.99 were minted for — and it was worse here than a duplicate, because the
+// local copy DIVERGED from the home in two ways:
+//
+//   1. NO MID-TOKEN GUARD. The home opens a block comment only where one can
+//      legally begin (`prev` is empty or one of `(){};,=:+&|?!\n[<`). The local
+//      copy opened on any `/*` outside a string. `accept="image/*"` was safe
+//      only because the quote tracking caught it first; `${x}/*y*/` inside a
+//      template literal was not the same accident twice.
+//   2. NO LINE STABILITY. The home PRESERVES newlines inside block comments so
+//      a cell reporting a line number reports the SOURCE's line number. The
+//      local copy deleted them, so every line number this proof could report
+//      after a block comment was wrong by the height of that comment.
+//
+// Neither had armed at this tip. That is luck, not design, and F-07.74 lasted a
+// whole block on exactly that kind of luck. The import below is the cure; the
+// rig self-tests survive unchanged and now test the home, and §0.Z proves this
+// file really CALLS what it imports — F-07.99's tuition, where a ported-but-
+// never-called definition fooled the estate for a block.
+import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
 
 // ── harness ──────────────────────────────────────────────────────────────────
 let pass = 0, fail = 0;
@@ -104,6 +105,20 @@ ok('rig: stripper removes a block comment',
    !stripComments('/* BETA_GATE_SENTINEL_XYZ */ const a=1;').includes('BETA_GATE_SENTINEL_XYZ'));
 ok('rig: stripper SPARES string contents',
    stripComments('const a = "keep // this";').includes('keep // this'));
+// ── F-13.14's OWN CELLS: the home's two behaviours the local copy lacked ────
+ok('rig: [F-13.14] a mid-token /* does NOT open a block — the home\'s guard',
+   (() => { const spec = 'const a = 1;\nconst i = { accept: "image/*" };\nconst KEEP = 2;\n/* real */\nconst ALSO = 3;\n';
+            return stripComments(spec).includes('KEEP') && stripComments(spec).includes('ALSO'); })());
+ok('rig: [F-13.14] VACUITY TWIN — the retired naive rule WOULD swallow it',
+   (() => { const spec = 'const a = 1;\nconst i = { accept: "image/*" };\nconst KEEP = 2;\n/* real */\nconst ALSO = 3;\n';
+            return !NAIVE_RETIRED(spec).includes('KEEP'); })());
+ok('rig: [F-13.14] LINE STABILITY — a block comment keeps its newlines',
+   stripComments('a;\n/* one\ntwo\nthree */\nb;\n').split('\n').length ===
+   'a;\n/* one\ntwo\nthree */\nb;\n'.split('\n').length);
+ok('rig: [F-13.14 / F-07.99] INVOCATION — this proof really CALLS the one home',
+   (() => { const self = stripComments(fs.readFileSync(new URL(import.meta.url).pathname, 'utf8'));
+            return /from '\.\/lib\/stripComments\.mjs'/.test(self) &&
+                   (self.match(/stripComments\s*\(/g) || []).length >= 3; })());
 ok('rig: the subject really does carry the bytes inside a comment too',
    (raw.match(new RegExp(FOUNDER_BODY.slice(0, 40).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length >= 1);
 
