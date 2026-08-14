@@ -28,6 +28,29 @@ const SCRIM  = 'rgba(12,10,9,0.38)';
 const EDGE   = 'rgba(255,255,255,0.1)';
 const S: React.CSSProperties = { position: 'absolute', inset: 0 };
 
+// ── F-14.22 · THE ERROR STEP'S GROUND ───────────────────────────────────────
+// The error step had none. SCRIM above is the BOTTOM STRIP's ground, and the
+// error step is the branch that REPLACES the strip (`step !== 'error'`), so it
+// inherited nothing: two lines of type at zIndex 20 over a full-bleed cover
+// photograph, a vignette that is transparent at 20% centre — exactly where this
+// text sits — and one 0.18 wash. On a bright cover the sentence telling a member
+// her invite is spent was unreadable.
+//
+// WHY A PANEL AND NOT A STRONGER SCRIM (adopted into R-33.9 at CE-33 §6):
+// contrast against an unknown photograph is not benchable — a cell could only
+// assert an alpha and call it legibility. Against a FIXED, OPAQUE ground it is
+// arithmetic, and `tdw14_d5c_step9.proof.mjs` §2 computes it rather than
+// trusting it. INK is the circle's own ground and is already imported, so this
+// costs no token and no new raw hex inside f0772's radius.
+const ERROR_PANEL: React.CSSProperties = {
+  background: INK,
+  border: `0.5px solid ${EDGE}`,
+  borderRadius: 16,
+  padding: '28px 24px',
+  maxWidth: 340,
+  width: '100%',
+};
+
 // D-5 — `success` is NEW. Before this delivery `/set-pin` pushed straight to
 // /coplanner, so C-8's "join-success ends on Add to your home screen taught
 // inline" had no surface to live on at all. It does now.
@@ -344,12 +367,14 @@ export default function CircleJoinPage() {
           flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: 32,
         }}>
-          <p style={{ fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontSize: 26, color: CREAM, textAlign: 'center', marginBottom: 12 }}>
-            Hmm.
-          </p>
-          <p style={{ fontFamily: FONT_BODY, fontWeight: 300, fontSize: 14, color: 'rgba(248,247,245,0.6)', textAlign: 'center', lineHeight: 1.6 }}>
-            {errorMsg}
-          </p>
+          <div style={ERROR_PANEL}>
+            <p style={{ fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontSize: 26, color: CREAM, textAlign: 'center', marginBottom: 12 }}>
+              Hmm.
+            </p>
+            <p style={{ fontFamily: FONT_BODY, fontWeight: 300, fontSize: 14, color: 'rgba(248,247,245,0.6)', textAlign: 'center', lineHeight: 1.6 }}>
+              {errorMsg}
+            </p>
+          </div>
         </div>
       )}
 

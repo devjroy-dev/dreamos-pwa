@@ -118,6 +118,92 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
     ? `/coplanner/manifest?b=${encodeURIComponent(brideName(session))}`
     : '/coplanner/manifest';
 
+  // ── F-14.20 / F-14.21 · THE DISPLACEMENT ──────────────────────────────────
+  // WHY AN EFFECT AND NOT A SECOND TAG. `app/layout.tsx` renders its manifest
+  // link and its `apple-mobile-web-app-title` as STATIC children of the root
+  // <head>. React hoists the declarative <link> below into that same head, but
+  // AFTER them — and both of these are first-in-tree-wins: the manifest spec
+  // takes the first `rel="manifest"` element in tree order, and WebKit takes the
+  // first meta of a given name. So a second tag beside the first is not an
+  // override; it is a tag the browser never reads. Before this effect existed,
+  // the whole of D-5's member key — the handler, `brideName()`, the sentinel,
+  // the `?b=` plumbing — was correct, served, and never fetched. Both platforms
+  // read the house name. That is F-14.20 (iOS) and F-14.21 (Android): ONE cause,
+  // two faces.
+  //
+  // WHY THE ROOT'S TAGS AND NOT OUR OWN. The root layout is a server component
+  // with no pathname, so it cannot scope itself; and the name is derived from
+  // the client session, so no framework-native metadata export can carry it —
+  // `generateMetadata` runs on the server and has never met this bride. The cure
+  // has to be client and imperative or it cannot exist. Root-yields, with every
+  // lane minting its own pair, was priced and REFUSED at CE-33 §5: a five-lane
+  // delivery wearing a step-9 cure's clothes.
+  //
+  // THE NAME IS NOT COMPUTED HERE. The title is read back off the manifest the
+  // handler just served, so `manifest/route.ts` remains the ONE site that owns
+  // rule 25 and the possessive. This file never slices a first name. If it did,
+  // the absent-identity sentinel would reach a home screen as "the's Circle" —
+  // which is the exact failure that rule exists to prevent, and the reason the
+  // handler takes the whole string.
+  //
+  // SELECTORS ARE BY ATTRIBUTE, NEVER BY POSITION. That `querySelector` returns
+  // first-in-tree is the point rather than an accident: first-in-tree is the
+  // element the browser itself reads. If either tag is absent on some future
+  // tree this effect no-ops and the declarative <link> below still serves the
+  // manifest — a missing head tag must never cost a member her install.
+  //
+  // THE PRE-HYDRATION WINDOW, STATED HONESTLY. Until React hydrates, both tags
+  // carry the house wording. A browser that fetches in that window gets the
+  // estate's name, and that is CORRECT — nobody has signed in yet. Step 9 does
+  // not care: Add to Home Screen and the Android install prompt are both user
+  // gestures inside an already-hydrated app. The hoisting derivation above is
+  // read from source and spec; the handset walk is what settles it, and the
+  // handover says so rather than letting a green stand in for a phone.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null;
+    const meta = document.querySelector('meta[name="apple-mobile-web-app-title"]') as HTMLMetaElement | null;
+    if (!link && !meta) return;
+
+    const linkWas = link ? link.getAttribute('href') : null;
+    const metaWas = meta ? meta.getAttribute('content') : null;
+
+    let live = true;
+    if (link) link.setAttribute('href', manifestHref);
+
+    if (meta) {
+      fetch(manifestHref, { headers: { Accept: 'application/manifest+json' } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((m) => {
+          // `short_name` is the handler's already-resolved byte — "{First}'s
+          // Circle", or the house fallback when identity is absent. Anything
+          // else and the house wording is left standing.
+          if (live && m && typeof m.short_name === 'string' && m.short_name) {
+            meta.setAttribute('content', m.short_name);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // ── THE RESTORE · NO OTHER LANE MAY INHERIT HER NAME ─────────────────────
+    // These two tags belong to every lane in the estate. A member who leaves the
+    // coplanner for the vendor gate, the landing, or Frost must find them as she
+    // found them — and `live` closes the fetch's arm so a slow manifest cannot
+    // write her name onto a head this layout has already let go of.
+    return () => {
+      live = false;
+      if (link) {
+        if (linkWas === null) link.removeAttribute('href');
+        else link.setAttribute('href', linkWas);
+      }
+      if (meta) {
+        if (metaWas === null) meta.removeAttribute('content');
+        else meta.setAttribute('content', metaWas);
+      }
+    };
+  }, [manifestHref]);
+
   return (
     <div style={{
       minHeight: '100vh',
