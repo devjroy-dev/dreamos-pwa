@@ -85,10 +85,30 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
   },[]);
 
   // Ⓓ THE NAME ALONE. Null means nobody holds it. A seat id we cannot resolve to
-  // an active member also reads as nobody — which is the REMOVAL CASE arriving
-  // on screen: the column is ON DELETE SET NULL server-side, so a removed
-  // member's task returns to the pool, and until the next read this fallback
-  // shows the same truth rather than a stale name.
+  // an active member also reads as nobody.
+  //
+  // ── F-14.13 · WHAT THIS COMMENT USED TO CLAIM, AND WHY IT WAS WRONG ───────
+  // It said the column is `ON DELETE SET NULL` server-side, "so a removed
+  // member's task returns to the pool". THE CONSTRAINT IS REAL AND IT HAS NEVER
+  // FIRED. Nothing in the estate hard-deletes a `circle_members` row — removal
+  // is a status flip — so at the time this was written the column still held the
+  // removed seat's uuid and THIS FALLBACK WAS THE ONLY THING CLEARING THE NAME
+  // OFF THE GLASS. The screen was right for a reason the comment did not name,
+  // which is the worst shape a comment can take: it reads as an explanation and
+  // is actually a second, wrong claim about the wire. Found on a walk, by one
+  // SELECT behind the screen. F-14.12 is the defect; this is its comment.
+  //
+  // ── WHAT ACTUALLY RUNS, AS OF D-4c ────────────────────────────────────────
+  //   · THE REMOVAL HANDLER CLEARS THE PLANE ITSELF — `DELETE
+  //     /couple/circle/member/:memberId` nulls `assigned_circle_member_id` on
+  //     this couple's events BEFORE it flips the status, and refuses the whole
+  //     removal if that clear fails. That is the mechanism.
+  //   · THE FK IS BELT-AND-BRACES. `ON DELETE SET NULL` stays on the column for
+  //     a genuine hard delete, which no code path performs today.
+  //   · SO THIS FALLBACK RENDERS THE POOL TRUTHFULLY BECAUSE THE COLUMN IS
+  //     ACTUALLY NULL — it is no longer covering for the server. It still earns
+  //     its place for the window between a removal and this screen's next read,
+  //     where the roster has moved and the events list has not.
   const holderName = (ev:CoupleEvent):string|null => {
     if(!ev.assigned_circle_member_id) return null;
     const m = members.find(x=>x.id===ev.assigned_circle_member_id);
