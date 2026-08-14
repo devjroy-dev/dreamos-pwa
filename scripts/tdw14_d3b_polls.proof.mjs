@@ -536,7 +536,14 @@ mutate(HOME, 'export function pollTie(options: string[])', 'export function poll
        '§8.M3 narrow ⑧ to two options ⇒ §2.7 RED (a type needs a reader that sees types)');
 mutate(STRIP, 'POLL_TAP_TO_CHOOSE', "'Tap to choose'",
        '§8.M4 the strip grows its own literal ⇒ §3.3 RED (the freeze forks)');
-mutate(BLOOM, 'const tick = async () => { await Promise.all([loadMessages(), loadPolls()]); };',
+// ── TARGET RE-POINTED AT TDW_14 D-4b ──────────────────────────────────────
+// F-13.11's cure added `setNowTs(Date.now());` to the head of this tick, so the
+// old target string stopped existing and this mutation reported TARGET ABSENT —
+// a bench going red because the code it reads MOVED, not because the ruling it
+// asserts broke. RETIRE-WITH-THE-READER: a bench that reads a subject moves with
+// the subject. The CLAIM is unchanged and is still R-D3.5's — ONE TIMER — and
+// the mutation still breaks it the same way, by splitting the tick in two.
+mutate(BLOOM, 'const tick = async () => { setNowTs(Date.now()); await Promise.all([loadMessages(), loadPolls()]); };',
               'const tick = async () => { await loadMessages(); };\n    setInterval(loadPolls, 10000);',
        '§8.M5 a second timer appears ⇒ §5.2/§5.3 RED (R-D3.5)');
 mutate(BLOOM, 'await Promise.all([loadMessages(), loadPolls()])',

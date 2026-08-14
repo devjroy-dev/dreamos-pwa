@@ -21,6 +21,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// §4's cells now include PRESENCE assertions, and a presence cell reading raw
+// text convicts on the explanation: D-4b's own header in events.tsx names
+// `updateEvent`, `createEvent` and `deleteEvent` in prose while explaining which
+// of them the bloom calls. Before this delivery §4 was absence-only and read raw
+// — sound by luck. F-07.74's cure, the estate's one stripper, imported.
+import { stripComments } from './lib/stripComments.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SIBLING = path.resolve(ROOT, '..', 'dream-os');
@@ -74,12 +80,50 @@ const untabled = names.filter((n) => !tabled.includes(n) && !deprecated.includes
 ok('3c. every live tool is tabled — no silently skipped row (the spec\'s own fear)',
    untabled.length === 0, untabled.join(', '));
 
-// ── 4 · G-1, the load-bearing gap: Events is read-only ───────────────────────
+// ── 4 · G-1, the load-bearing gap: Events is PARTIALLY closed ────────────────
+//
+// ── AMENDED BY CHARTER, CE-33 · TDW_14 D-4b · 2026-08-14 · R-D4b.1 ──────────
+// This cell used to assert a three-verb ABSENCE loop: the Events bloom calls
+// none of createEvent, updateEvent, deleteEvent. D-4b's delegation affordance
+// writes `assigned_circle_member_id` through `updateEvent`, so one third of that
+// loop is now false and G-1's read-only sentence with it.
+//
+// THE ROUTE NOT TAKEN. A client function named `assignEvent` calling the same
+// door would have kept this grep green while the ruling it guards went false —
+// the cell passing, the document lying, and TDW_15 planning against a surface
+// that no longer exists. That was refused on sight at the sitting's §0.2 and the
+// amendment ruled instead. A cell asserts the RULING, not the implementation
+// (R-33.2); the inverse is that code is not renamed to satisfy a cell.
+//
+// SO THE CELL ASSERTS THE NEW RULING IN BOTH HALVES, and the halves are not
+// symmetrical: the surviving absences stay absences, and the new presence is
+// BOUNDED — present at the assign site and NOWHERE ELSE. An unbounded
+// `updateEvent` presence cell would pass just as happily on a bloom that had
+// grown a full edit sheet, which is precisely the thing rows 4 and 6 still
+// claim is open. R-33.3: the radius equals the claim.
 const events = fs.readFileSync(path.join(BLOOM_DIR, 'events.tsx'), 'utf8');
-for (const w of ['createEvent', 'updateEvent', 'deleteEvent'])
-  ok(`4a. the Events bloom does NOT call ${w} — G-1 holds`, !new RegExp(`\\b${w}\\s*\\(`).test(events));
-ok('4b. it DOES read — the gap is write-only, not a dead room',
-   /\bfetchEvents\s*\(/.test(events));
+const eventsCode = stripComments(events);
+
+// half one — the surviving absences. Create and delete are still open, tabled.
+for (const w of ['createEvent', 'deleteEvent'])
+  ok(`4a. the Events bloom still does NOT call ${w} — that half of G-1 holds`,
+     !new RegExp(`\\b${w}\\s*\\(`).test(eventsCode));
+
+// half two — the new presence, counted rather than merely detected. ONE call.
+const updateCalls = (eventsCode.match(/\bupdateEvent\s*\(/g) || []).length;
+ok('4a2. the bloom calls updateEvent EXACTLY ONCE — the assign, and nothing more',
+   updateCalls === 1, `${updateCalls} call sites`);
+ok('4a3. …and that one call site is the assign — it writes the delegation column',
+   /updateEvent\([^)]*\{\s*assigned_circle_member_id/.test(eventsCode.replace(/\s+/g, ' ')),
+   'updateEvent is called with something other than the delegation column');
+// the counterpart absence, so "assign only" is a claim about the PATCH BODY and
+// not merely about how many times the function name appears.
+for (const f of ['title:', 'event_date:', 'notes:'])
+  ok(`4a4. the assign body carries no ${f.slice(0, -1)} — it is not an edit sheet`,
+     !new RegExp(`updateEvent\\([^)]*${f}`).test(eventsCode.replace(/\s+/g, ' ')));
+
+ok('4b. it still READS — the write is one column, not a takeover of the room',
+   /\bfetchEvents\s*\(/.test(eventsCode));
 // the doors G-1 claims exist must actually exist
 const client = fs.readFileSync(path.join(ROOT, 'lib/frost/journey.ts'), 'utf8');
 for (const w of ['createEvent', 'updateEvent', 'deleteEvent'])
@@ -89,6 +133,30 @@ const eventsApi = path.join(SIBLING, 'src/api/couple/events.js');
 ok('4d. the backend carries the event writers', fs.existsSync(eventsApi) &&
    /router\.(post|patch|delete)/.test(fs.readFileSync(eventsApi, 'utf8')));
 ok('4e. the document calls G-1 UI-only', /UI-only sitting|UI-only, no backend/.test(doc));
+
+// ── THE COMPANION CELL (R-D4b.1 §2) ─────────────────────────────────────────
+// The tree and the document are two homes for one ruling, and the whole reason
+// this bench exists is that a document asserts while nothing checks. So the
+// WORDS are pinned too: if the code is reverted the cells above red, and if the
+// amendment is quietly deleted or softened these red. Neither can drift alone.
+//
+// Anchored on the STABLE parts — the state word, the signature, and the
+// fifth-writer claim — never on the whole paragraph, which would fail on a
+// reflow and teach the next reader to edit the document to please the bench.
+const docFlatG1 = doc.replace(/\s+/g, ' ');
+ok('4f. the matrix states G-1 is PARTIALLY CLOSED, not Open',
+   /G-1 · The Events bloom is PARTIALLY CLOSED/.test(docFlatG1),
+   'the G-1 heading no longer carries the amended state word');
+ok('4g. the amendment is signed and dated in place',
+   /AMENDMENT — `CE-33 · TDW_14 D-4b · 2026-08-14` · R-D4b\.1/.test(docFlatG1),
+   'an unsigned amendment is a rewrite');
+ok('4h. the delta is stated: a FIFTH writer, not one of the four tabled',
+   /FIFTH WRITER, NOT ONE OF THE FOUR TABLED/.test(docFlatG1) &&
+   /Create, delete and edit remain OPEN exactly as tabled/.test(docFlatG1),
+   'the amendment does not say precisely what moved and what did not');
+ok('4i. the summary row moved with the gap section — no half-amended document',
+   /\*\*Partially closed, UI-only, no backend:\*\*/.test(docFlatG1),
+   'G-1 is amended in one place and still reads Open in the other');
 
 // ── 5 · G-2, note_to_self has no surface ─────────────────────────────────────
 const allBlooms = fs.readdirSync(BLOOM_DIR).filter((f) => f.endsWith('.tsx'))

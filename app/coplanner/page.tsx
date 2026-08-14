@@ -5,6 +5,44 @@ import {
   FONT_DISPLAY, FONT_BODY, FONT_EYEBROW,
   useCircleSession, brideId, brideName, memberName, circleAuthHeaders, circleRefused } from './CircleSessionContext';
 import { waNumberFor } from '../../lib/waNumbers';
+import { ASSIGN_TRAY_HEAD } from '../../lib/circle/assignCopy';
+
+// ── TDW_14 · D-4b ③ · THE MEMBER'S TRAY ──────────────────────────────────────
+//
+// IT LANDS ON THIS PAGE AND NOT ON A TAB OF ITS OWN, and the placement is
+// DERIVED rather than chosen. `scripts/tdw07_f0772_circle.proof.mjs` §14.3 pins
+// the tab bar at EXACTLY FOUR TABS as the rendered-control ruling of F-07.115's
+// retirement; a fifth tab reddens it, and widening a sealed inventory to fit
+// one's own feature is mechanically identical to silencing it.
+//
+// The same bench's §2.1 decided the file. `COPLANNER_CALLERS` there is a
+// HAND-WRITTEN list of the six co-planner files whose lane calls must carry
+// `circleAuthHeaders()` — so a NEW file under app/coplanner/ would carry the
+// credential check nowhere and escape the census in silence. Landing the tray in
+// a file already on that list keeps it inside the guard. (The fragility itself
+// is F-13.12, minted at this sitting and shelved: a census by hand where a walk
+// belongs. Used here as a constraint, not cured here.)
+//
+// Ⓕ NO EMPTY RENDER. When she holds nothing the section does not render at all —
+// no heading over an empty box, no "Nothing yet." A tray that announces its own
+// emptiness tells her she has been passed over. This is deliberately the
+// OPPOSITE of POLL_EMPTY one surface over: a poll's empty state sits beside the
+// affordance that fills it, and a member cannot assign herself anything.
+//
+// SHE READS HER OWN ITEMS AND WRITES ONLY STATE. The door is D-4a's Class B
+// pair; her payload carries no vendor, no money, no lead BY CONSTRUCTION at the
+// server's projection, never by a CSS opinion here. And she may mark done or
+// un-done and may NOT cancel — cancelling is a decision about the wedding, not
+// about the doing — which is why this screen sends only 'done' and 'upcoming'.
+interface AssignedItem {
+  id: string;
+  title: string;
+  event_date: string;
+  event_time: string | null;
+  kind: string;
+  state: string;
+  notes: string | null;
+}
 
 interface FeedEvent {
   id: string;
@@ -128,6 +166,17 @@ function timeAgo(d: string): string {
 // and it is now the ONLY guard between a config change and a member texting the
 // wrong number. That is a stricter obligation than before, not a looser one.
 
+// The tray's date. A DATE-ONLY string ('YYYY-MM-DD') gets the midnight suffix
+// before it is parsed: bare, some engines read it as UTC and a member east of
+// Greenwich sees yesterday. `timeAgo` above takes full timestamps and is
+// unaffected, which is why this is a second small formatter rather than a
+// widening of that one.
+function trayDate(d: string): string {
+  const t = new Date(`${d}T00:00:00`);
+  if (Number.isNaN(t.getTime())) return '';
+  return t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
 function eventLine(e: FeedEvent): string {
   const who   = e.payload?.member_name || 'Someone';
   const verb  = e.event_type.replace(/_/g, ' ');
@@ -142,13 +191,37 @@ export default function CoplannerHome() {
 
   const [profile, setProfile] = useState<CoupleProfile | null>(null);
   const [feed, setFeed]       = useState<FeedEvent[]>([]);
+  const [mine, setMine]       = useState<AssignedItem[]>([]);
+  const [marking, setMarking] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Ⓖ THE EXISTING STATE CONTROL. No new verb and no new byte: the item's own
+  // state is the control, tapped to move between done and upcoming. A member who
+  // finishes a thing can un-finish it; she cannot cancel it.
+  const markState = async (id: string, state: 'done' | 'upcoming') => {
+    if (marking) return;
+    setMarking(id);
+    try {
+      const r = await fetch(`${API}/api/v2/frost/circle/assigned/${id}/state`, {
+        method: 'PATCH',
+        headers: circleAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ state }),
+      });
+      if (circleRefused(r)) return;
+      const d = await r.json();
+      // THE SERVER'S ROW WINS. It owns the three predicates that make this safe
+      // — her couple, her seat, not deleted — so a 404 here means the item is
+      // not hers and the screen must not pretend the tap landed.
+      if (d?.success && d.data) setMine(prev => prev.map(m => (m.id === id ? d.data : m)));
+    } catch { /* keep last known — a dropped packet is not a state change */ }
+    finally { setMarking(null); }
+  };
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const [pr, fr] = await Promise.all([
+        const [pr, fr, ar] = await Promise.all([
           fetch(`${API}/api/v2/couple/profile/${bride_id}`).then(r => r.json()).catch(() => null),
           // FORK B — one home. `circleRefused` returns true on a 401 (and has
           // already cleared the credential and fired the event); this screen
@@ -156,10 +229,16 @@ export default function CoplannerHome() {
           // refusal as "no activity yet".
           fetch(`${API}/api/v2/frost/circle/feed/${bride_id}?limit=10`, { headers: circleAuthHeaders() })
             .then(r => (circleRefused(r) ? null : r.json())).catch(() => null),
+          // FORK B, same shape. The bride reaches this door too and simply holds
+          // nothing — she is not a circle_members row, so an empty list here is
+          // correct and is not a refusal (D-4a's door says so in its own header).
+          fetch(`${API}/api/v2/frost/circle/assigned/${bride_id}`, { headers: circleAuthHeaders() })
+            .then(r => (circleRefused(r) ? null : r.json())).catch(() => null),
         ]);
         if (cancelled) return;
         if (pr?.success && pr.data) setProfile(pr.data as CoupleProfile);
         if (fr?.success) setFeed((fr.data || []) as FeedEvent[]);
+        if (ar?.success) setMine((ar.data || []) as AssignedItem[]);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -212,9 +291,12 @@ export default function CoplannerHome() {
           PERSISTENT, not dismissible: a member who dismissed it would have no
           path back to the only address Mira answers on.
 
-          CONTROL INVENTORY: this anchor is the FIRST interactive control this
-          screen has ever carried. Everything above and below it is still
-          read-only. */}
+          CONTROL INVENTORY: this anchor was the FIRST interactive control this
+          screen ever carried. AMENDED AT TDW_14 D-4b (CE-115's law: every
+          control accounted KEPT, MOVED, REMOVED or ADDED) — the tray below adds
+          the SECOND, one source site rendered once per item she holds. It writes
+          state only, on a door scoped to her own seat. Everything else on this
+          screen is still read-only. */}
       <section style={{ ...FROST_PANEL, padding: 20, marginBottom: 20 }}>
         <p style={{
           fontFamily: FONT_EYEBROW, fontWeight: 300, fontSize: 9,
@@ -251,6 +333,59 @@ export default function CoplannerHome() {
             color: CREAM,
           }}>Open WhatsApp</a>
       </section>
+
+      {/* ── Ⓔ THE TRAY · Ⓕ NO EMPTY RENDER ────────────────────────────────
+          The whole section is behind `mine.length > 0` — not a heading with an
+          empty body, not a placeholder line. She sees this word only when the
+          word is true.
+
+          PLACEMENT: below the Mira tip, above Activity. The tip's own comment
+          rules it ABOVE the activity panel and that stays true; her own items
+          belong over the stream because they are the only thing on this screen
+          she is being asked to do. */}
+      {!loading && mine.length > 0 && (
+        <section style={{ ...FROST_PANEL, padding: 20, marginBottom: 20 }}>
+          <p style={{
+            fontFamily: FONT_EYEBROW, fontWeight: 300, fontSize: 9,
+            letterSpacing: '0.22em', textTransform: 'uppercase',
+            color: GOLD, margin: '0 0 14px',
+          }}>{ASSIGN_TRAY_HEAD.toUpperCase()}</p>
+
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {mine.map(m => (
+              <li key={m.id} style={{
+                display: 'flex', gap: 12, alignItems: 'flex-start',
+                padding: '10px 0',
+                borderBottom: `0.5px solid ${HAIRLINE}`,
+              }}>
+                <button
+                  disabled={marking === m.id}
+                  onClick={() => markState(m.id, m.state === 'done' ? 'upcoming' : 'done')}
+                  style={{
+                    width: 18, height: 18, marginTop: 2, flexShrink: 0,
+                    borderRadius: '50%', padding: 0,
+                    border: `1px solid ${m.state === 'done' ? GOLD : HAIRLINE}`,
+                    background: m.state === 'done' ? GOLD : 'transparent',
+                    cursor: marking === m.id ? 'default' : 'pointer',
+                    opacity: marking === m.id ? 0.5 : 1,
+                  }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{
+                    fontFamily: FONT_BODY, fontWeight: 300, fontSize: 13,
+                    color: CREAM, margin: 0, lineHeight: 1.5,
+                    textDecoration: m.state === 'done' ? 'line-through' : 'none',
+                    opacity: m.state === 'done' ? 0.55 : 1,
+                  }}>{m.title}</p>
+                  <p style={{
+                    fontFamily: FONT_BODY, fontWeight: 300, fontSize: 11,
+                    color: MUTED, margin: '2px 0 0',
+                  }}>{trayDate(m.event_date)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section style={{ ...FROST_PANEL, padding: 20, marginBottom: 20 }}>
         <p style={{

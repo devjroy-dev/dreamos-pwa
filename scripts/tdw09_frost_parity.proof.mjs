@@ -358,11 +358,47 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
        +1  the confirm's scrim — tap-outside dismisses, disabled mid-delete so a
            mis-tap cannot orphan the act.
      INPUT, ANCHOR, TEXTAREA, SELECT unmoved: unmaking asks for nothing typed. */
-ok('3.1', 'the Sanctuary surface carries 165 controls (161 + D-3e\'s delete: 3 buttons, 1 scrim)', total === 165,
+/* ── THE CENSUS MOVED BY CHARTER AT TDW_14 D-4b: 165 → 169 ─────────────────
+   DECLARED IN THE KICKOFF, before a byte — R-33.1's own direction. CE-115's
+   CONTROL-INVENTORY LAW: every interactive control accounted KEPT, MOVED,
+   REMOVED or ADDED. D-4b adds four to the events bloom, counted from the source
+   rather than estimated:
+
+     BUTTONS  86 → 89   (+3)
+       +1  Ⓐ 'Ask someone' — the delegation affordance on an event's meta
+           block. One source site; rendered once per UNASSIGNED event, and only
+           when the roster holds an active seat. An assigned event renders Ⓓ
+           instead, which is a name in a <div> and is NOT a control: she taps
+           the name for nothing, by ruling.
+       +1  the picker's member row — one source site, rendered once per active
+           member. It assigns and closes.
+       +1  Ⓒ 'No one' — the un-assign row, in the same list as the names.
+
+     TAPDIV   36 → 37   (+1)
+       +1  the picker's dismiss scrim.
+
+     ANCHOR 8 · INPUT 30 · TEXTAREA 3 · SELECT 2 — ALL UNMOVED.
+
+   THE PANEL ITSELF ADDS NOTHING, and that was a design decision taken to keep
+   this number honest: the scrim is a SIBLING of the panel rather than its
+   parent, so the panel needs no stopPropagation tap handler. Nested, it would
+   have cost a second tapdiv for an element no thumb is meant to press.
+
+   THE MEMBER'S TRAY IS NOT COUNTED HERE and that is not an omission. Its state
+   control lives at app/coplanner/page.tsx, which is the CO-PLANNER surface —
+   outside SURFACE_FILES entirely (conductor + blooms + _shared). It is
+   accounted where it lives, in that file's own control-inventory comment,
+   amended in the same delivery.
+
+   RE-DERIVED, NEVER ADJUSTED UNTIL THE CELL PASSES. These two cells reddened on
+   their own at 169/89/37 before this comment was written, and the arithmetic
+   above was checked against that measurement rather than fitted to it. Both-ways
+   is automatic: they go RED at eb75327, where the counts are 165/86/36. */
+ok('3.1', 'the Sanctuary surface carries 169 controls (165 + D-4b\'s delegation: 3 buttons, 1 scrim)', total === 169,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 86 && counts.anchor === 8 && counts.input === 30 &&
-   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 36,
+   counts.button === 89 && counts.anchor === 8 && counts.input === 30 &&
+   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 37,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */

@@ -72,7 +72,7 @@ removal · vendor enquiries.
 
 ## THE GAPS, each with its owning bloom and the door that exists or is missing
 
-### G-1 · The Events bloom is READ-ONLY, and four tools write to it
+### G-1 · The Events bloom is PARTIALLY CLOSED — it writes once, and four tools write to it
 **Rows 3, 4, 6, 7.** `EventsRoom` calls `fetchEvents` and nothing else — derived:
 two call sites, zero writers. Meanwhile `lib/frost/journey.ts` already **exports
 `createEvent`, `updateEvent` and `deleteEvent`**, and the backend carries
@@ -83,7 +83,34 @@ by Mira on WhatsApp and can read it in the app, but cannot add, edit or complete
 one there. **This is the single largest parity gap on the surface**, and it is a
 UI-only sitting — no backend work, no client work, no migration.
 
-*Owning bloom: Events. Doors: all present, all unwired.*
+*Owning bloom: Events. Doors: all present; three of four still unwired.*
+
+> **AMENDMENT — `CE-33 · TDW_14 D-4b · 2026-08-14` · R-D4b.1**
+>
+> **G-1 moves from Open to PARTIALLY CLOSED.** `EventsRoom` now calls
+> `updateEvent`, at one site: the delegation affordance, which writes
+> `assigned_circle_member_id` and nothing else. The paragraph above stands as the
+> record of what was true until this date; this is the delta, stated precisely so
+> the row stays legible as a contract rather than being rewritten under TDW_15.
+>
+> **THE ASSIGN IS A FIFTH WRITER, NOT ONE OF THE FOUR TABLED.** Rows 3, 4, 6 and
+> 7 are `add_event`, `update_event`, `complete_event` and `delete_event` — the
+> capability axis's own four. Delegation is none of them: no brideTool assigns a
+> journey item to a circle seat, so the assign closes no tabled row and instead
+> opens a bloom capability with no tool behind it (the reverse gap, §7 of the
+> bench). **Create, delete and edit remain OPEN exactly as tabled**, and the
+> sentence "everything needed exists except the UI" still holds for all three.
+>
+> What this costs TDW_15: the Events bloom is no longer a read-only surface, so a
+> sitting that wires the four writers is adding to a surface that already writes
+> rather than opening one that never has. Nothing else in this matrix moves —
+> no row is renumbered, no count changes, and the axis figures are untouched.
+>
+> Cell 4a of `scripts/tdw13_d6_parity_matrix.proof.mjs` is re-authored in the
+> same delivery to assert this ruling in both halves: `updateEvent` present at
+> exactly the assign site, `createEvent` and `deleteEvent` still absent. A
+> companion cell pins the words **Partially closed** here, so the document and
+> the bench go red together if either drifts.
 
 ### G-2 · `note_to_self` has no surface at all
 **Row 1.** Zero blooms reference a notes door — derived by census, not assumed.
@@ -119,8 +146,11 @@ several P1 rows are closed by shipped sanctuary doors — payment, bookings CRUD
 receipts, enquiries, circle invite. This matrix says which:
 
 - **Closed, needs no 15 work:** rows 2, 8–12, 14, 15, 17–20 — eleven capabilities.
-- **Open, UI-only, no backend:** G-1's four event writers. Cheapest real parity
-  work on the track.
+- **Partially closed, UI-only, no backend:** G-1's four event writers — three
+  still open (create, delete, edit). Amended `CE-33 · TDW_14 D-4b ·
+  2026-08-14`: the bloom writes once, at the delegation assign, which is a
+  fifth writer and closes none of the four. Cheapest real parity work on the
+  track.
 - **Open, needs a ruling first:** G-2 (`note_to_self` — where does it surface?),
   G-5 (`create_task`'s vocabulary).
 - **Open, needs a door:** G-3's image half.

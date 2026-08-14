@@ -125,7 +125,8 @@ function delay<T>(v: T, ms = 240): Promise<T> {
 
 // ─── TYPES (matched to actual backend response shapes) ─────────────────────
 
-// events table: id, title, event_date, event_time, kind, state, notes, created_at
+// events table: id, title, event_date, event_time, kind, state, notes, created_at,
+//               assigned_circle_member_id
 export interface CoupleEvent {
   id: string;
   title: string;
@@ -135,6 +136,25 @@ export interface CoupleEvent {
   state: string;       // upcoming|done|cancelled
   notes: string | null;
   created_at?: string;
+  // ── TDW_14 D-4b ① · THE PROJECTION'S CLIENT HOME ────────────────────────
+  // D-4a widened both couple-plane projections server-side to carry this column
+  // (src/api/couple/events.js:28 on the GET, :176 on the PATCH). THE PROJECTION
+  // LAW: a column not in BOTH homes is invisible. Widened at the server and not
+  // here, the byte arrives on the wire, is dropped by nothing, and simply cannot
+  // be read — the surface would render "unassigned" over a delegated task and
+  // nothing in the estate would go red. This declaration is the second home.
+  //
+  // It is `circle_members.id`, NOT `team_members.id`, and the two must never be
+  // confused: `events.assigned_member_ids` is a different column on the same
+  // table, vendor-plane whole, twelve vendor consumers, zero couple-side
+  // readers. It is deliberately absent from this interface. A circle member's id
+  // in that array surfaces a wedding guest inside a vendor's crew roster
+  // (0125's own header, R-D4.2).
+  //
+  // NULLABLE AND IT MEANS SOMETHING: null is "nobody holds this", which is the
+  // state the column returns to when the bride removes a member — ON DELETE SET
+  // NULL, a delegation belongs to a seat and not to a person.
+  assigned_circle_member_id?: string | null;
 }
 
 // couple_receipts table: id, booking_id, amount, vendor_name, description, receipt_date, image_url, tags, created_at
@@ -323,8 +343,23 @@ export async function createEvent(body: {
   return r.event;
 }
 
+// ── TDW_14 D-4b ② · THE ASSIGN RIDES THIS DOOR, AND IT IS NOT A NEW ONE ────
+// D-4a put `assigned_circle_member_id` on THIS PATCH's allowlist beside `kind`
+// and `state`, and named its reason in-file: "a dedicated /assign route would
+// have been a second writer to one column". So the client does not get a
+// dedicated `assignEvent` either. A second client function calling the same door
+// would have kept `tdw13_d6_parity_matrix` cell 4a's grep for `updateEvent`
+// green while G-1's read-only ruling went false underneath it — the hollow green
+// named and refused at this sitting's §0.2, and ruled at R-D4b.1. The bloom
+// writes through the door the estate already has, the bench asserts the new
+// ruling instead of the old grep, and the matrix carries the amendment.
+//
+// PASSING `null` UN-ASSIGNS (Ⓒ). The server reads `undefined` as "not
+// mentioned" and `null`/'' as "clear it" (events.js:153-155), so the optional
+// marker here is load-bearing: omitting the key must not clear a delegation.
 export async function updateEvent(eventId: string, patch: {
   title?: string; event_date?: string; event_time?: string | null; kind?: string; notes?: string | null; state?: string;
+  assigned_circle_member_id?: string | null;
 }): Promise<CoupleEvent> {
   if (shouldUseMocks()) {
     const ev = MOCK_EVENTS.find(e => e.id === eventId);
@@ -688,43 +723,32 @@ export function formatActivityLine(a: CircleActivity): string {
 }
 
 
-// ─── REMINDERS (couple_tasks) — stubs until REST endpoint ships ────────────
-// The brideEngine manages tasks via WhatsApp agent tools directly.
-// A REST endpoint for couple_tasks is not yet mounted in core.js.
-// These stubs keep the reminders canvas functional with mocks.
-export interface Reminder {
-  id: string;
-  couple_id: string;
-  text: string;
-  event?: string | null;
-  priority?: string | null;
-  due_date?: string | null;
-  is_complete: boolean;
-  created_at?: string;
-}
-
-const MOCK_REMINDERS: Reminder[] = [
-  { id: 'rem1', couple_id: '', text: 'Confirm lehenga fitting with Anita Dongre', due_date: '2026-11-16', is_complete: false, event: 'Wedding' },
-  { id: 'rem2', couple_id: '', text: 'Send final guest list to caterer', due_date: '2026-11-16', is_complete: false, event: 'Wedding' },
-  { id: 'rem3', couple_id: '', text: 'Collect kalire from Chandni Chowk', due_date: '2026-11-17', is_complete: false },
-  { id: 'rem4', couple_id: '', text: 'Makeup trial done', due_date: '2026-11-13', is_complete: true },
-];
-
-export async function fetchReminders(): Promise<Reminder[]> {
-  if (shouldUseMocks()) return delay(MOCK_REMINDERS);
-  // Real endpoint not mounted yet — return empty until /api/v2/couple/tasks ships
-  return [];
-}
-
-export async function toggleReminder(id: string, is_complete: boolean): Promise<boolean> {
-  if (shouldUseMocks()) return delay(true);
-  return false;
-}
-
-export async function deleteReminder(id: string): Promise<boolean> {
-  if (shouldUseMocks()) return delay(true);
-  return false;
-}
+// ─── REMINDERS (couple_tasks) — RETIRED AT TDW_14 D-4b, R-D4.6 ─────────────
+// `Reminder`, `MOCK_REMINDERS`, `fetchReminders`, `toggleReminder` and
+// `deleteReminder` stood here as stubs "until the REST endpoint ships". They are
+// deleted rather than re-pointed, and the derivation is the ruling:
+//
+//   ZERO CALLERS. Walked whole across every .ts/.tsx in this repo before a byte
+//   moved. The two hits a name-grep returns are a DIFFERENT TYPE —
+//   `CabinetReminder` at lib/vendor/api/vendor.ts:80, consumed by
+//   components/vendor/Cabinet.tsx — and a kind-label string in
+//   components/vendor/AddSheet.tsx:50. Neither imports anything that was here.
+//   No reminders canvas exists; the surface these stubs "kept functional" was
+//   deleted with the dead journey subtree at Row 13.
+//
+// D-4b's charter offered two arms: re-point them at the mounted couple/events
+// door, or retire them WITH their callers. With no callers the first arm is
+// wiring a room nobody enters — and worse, it would create a SECOND client
+// vocabulary for events, one shaped like `couple_tasks` and one shaped like
+// `events`, for the same rows. G-5's split tasks-vocabulary is already the
+// estate's standing example of what that costs.
+//
+// THE PRICE, before the cut: three exports and one interface leave the module's
+// public surface. Nothing imports them (derived above), nothing in scripts/ pins
+// them (the reader census walked the floor), and `shouldUseMocks`/`delay` keep
+// other callers so neither goes dead. If a reminders surface is ever chartered
+// it arrives against the events door that exists today, not against a stub
+// written for a door that never shipped.
 
 // Stub kept for compatibility — muse canvas uses lib/frost-api/couple.ts
 export async function createMuseSaveFromUrl(_url: string): Promise<void> { return; }
