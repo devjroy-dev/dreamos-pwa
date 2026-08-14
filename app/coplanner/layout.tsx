@@ -4,7 +4,8 @@ import { usePathname } from 'next/navigation';
 import {
   API, INK, CREAM, GOLD, MUTED, HAIRLINE, FONT_EYEBROW, FONT_DISPLAY, FONT_BODY,
   CircleSession, CircleSessionContext,
-  setCircleToken, circleAuthHeaders, circleRefused, CIRCLE_REFUSAL_EVENT } from './CircleSessionContext';
+  setCircleToken, circleAuthHeaders, circleRefused, CIRCLE_REFUSAL_EVENT,
+  brideName } from './CircleSessionContext';
 import TabBar from './TabBar';
 
 const SESSION_KEY = 'circle_session';
@@ -100,6 +101,23 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener(CIRCLE_REFUSAL_EVENT, onRefused);
   }, []);
 
+  // ── D-5 · C-8's MEMBER KEY ────────────────────────────────────────────────
+  // The manifest href carries the bride's name so the installed icon reads
+  // "{Bride first name}'s Circle". This layout is the lawful place to mint it:
+  // it already holds the session, and `app/coplanner/manifest/route.ts` — which
+  // never names `circle_session` — reads only what arrives here.
+  //
+  // THE FULL NAME IS PASSED, NOT A SLICE. `brideName()` falls back to the two
+  // words "the bride" when the couple has no name on file; slicing a first name
+  // out of a sentinel is how an icon ends up reading "the's Wedding Circle".
+  // The handler owns absent-identity detection (rule ㉕), at one site, on the
+  // whole string. Before hydration `session` is null, the href carries no
+  // parameter, and the manifest serves the house wording — which is the correct
+  // thing for a browser that has fetched it before she has signed in.
+  const manifestHref = session
+    ? `/coplanner/manifest?b=${encodeURIComponent(brideName(session))}`
+    : '/coplanner/manifest';
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -107,6 +125,12 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
       color: CREAM,
       fontFamily: FONT_BODY,
     }}>
+      {/* Per-scope manifest, mirroring `app/admin/layout.tsx`'s shape — the
+          coplanner installs as its own app, named for her wedding. */}
+      <head>
+        <link rel="manifest" href={manifestHref} />
+      </head>
+
       {state === 'loading' && (
         <FullScreenMessage title="" sub="Loading…" />
       )}
@@ -237,7 +261,7 @@ function CoplannerSignIn({ expired, onSuccess }: {
         // frozen 2026-08-02. The fallback covers a transport-shaped failure that
         // carried no `error` field at all; it is never a paraphrase of a message
         // the server did send.
-        setError(vd.error || 'Could not sign you in. Try again.');
+        setError('Something went wrong.');
         setStep('pin');
         setPin(['', '', '', '']);
         return;
