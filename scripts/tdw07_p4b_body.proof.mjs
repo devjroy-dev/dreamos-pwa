@@ -499,8 +499,34 @@ ok('§8.9 (amended) the LIVE shell no longer listens for the opt-out — the pag
   /data-pager-inert/.test(raw('components/vendor/slices/SwipeRow.tsx')));
 
 // ── THE CAP, OVERTURNED ──────────────────────────────────────────────────────────────
+/* ── RADIUS BOUNDED, CE-34 · TDW_15 P1 · 2026-08-15 (R-33.3) ────────────────
+   THIS CELL MEANS "no couple surface caps PHOTOS at five" and it was written as
+   "no couple surface contains the characters slice(0, 5)". Those were the same
+   sentence right up until something else on the surface needed to keep five
+   characters of a string.
+
+   TDW_15 P1's edit sheet reads a stored `HH:MM:SS` back into a time field with
+   `ev.event_time.slice(0,5)`. That is not a photo cap and has nothing to do
+   with the ruling this cell guards — but `CANVAS` resolves through
+   `surfaceFiles()` to the WHOLE Sanctuary union including the blooms (the D-4
+   amendment forty lines up), so the bloom's time formatting reddened a cell
+   about a photo gallery. A five that means minutes convicted by a cell about
+   pictures.
+
+   THE FIX IS NOT TO REWRITE THE PRODUCT CODE. Renaming `slice` to `substring`
+   to please a regex is the anti-pattern this estate has refused twice by name;
+   the cell's radius was simply wider than its claim. `event_time` is excluded
+   BY NAME, and §8.10b asserts the exclusion is not stale — an exclusion that
+   stops matching anything has quietly widened the cell back out and nobody
+   would know. Any other `slice(0, 5)` on any of these four surfaces still
+   reddens §8.10, which is the property worth keeping. */
+const TIME_SLICE = /event_time[A-Za-z_.?\s]*\.slice\(0,\s*5\)/g;
 ok('§8.10 no couple surface carries a five-photo cap literal any more',
-  ![CANVAS, DEMO, PREVIEW, VIEW].some(f => /slice\(0,\s*5\)/.test(code(f))));
+  ![CANVAS, DEMO, PREVIEW, VIEW].some(f => /slice\(0,\s*5\)/.test(code(f).replace(TIME_SLICE, ''))));
+ok('§8.10b control: the time-formatting exclusion is live, not a stale carve-out',
+  [CANVAS, DEMO, PREVIEW, VIEW].some(f => TIME_SLICE.test(code(f))),
+  'nothing on these surfaces slices a time any more — delete the exclusion ' +
+  'rather than leave §8.10 quietly wider than it reads');
 
 // ── THE FOOTER — the costume-class line is GONE and nothing replaced it unvetoed ──────
 ok('§8.11 the costume-class photo-count line is removed from the preview',

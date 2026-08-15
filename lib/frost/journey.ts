@@ -26,6 +26,7 @@
 // (_base.ts, F-05.30). That is filed to the coordinated auth sitting and is
 // NOT this micro's to resolve — it arrives here with its eyes open.
 import { isBrideDemoMode, getAccessToken } from '../frost-api/_base';
+import { fileToBase64 } from '../frost-api/muse';   // TDW_15 P1 β1: one reader, not two
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
@@ -375,6 +376,31 @@ export async function deleteEvent(eventId: string): Promise<boolean> {
   catch { return false; }
 }
 
+// ── TDW_15 · P1 · γ (R-34.8) · THE STATE DOOR IS ITS OWN DOOR ──────────────
+// `PATCH /couple/events/:eventId/state` (events.js:188), NOT the full PATCH
+// eighteen lines above it. Both accept the same three values; the narrow one is
+// the ruling, and the reason is structural rather than tidy:
+//
+//   `tdw13_d6_parity_matrix` asserts that the Events bloom calls `updateEvent`
+//   at the ASSIGN and at the edit sheet, and at no third site. Routing a done
+//   toggle through `updateEvent` would put a third call site in that file and
+//   make the assign's boundedness a thing maintained by care rather than by
+//   construction. A separate door keeps the count honest without anyone
+//   remembering to keep it honest.
+//
+// CANCELLED IS NOT OFFERED. The server accepts it (events.js:191) and the
+// bride's plane is the one place it legitimately belongs, but R-34.8 ruled the
+// affordance `done ⇄ upcoming` only — the same narrowing the member's side
+// already carries. The type here is the wire's, not the affordance's: widening
+// the UI is a ruling, never a consequence of a permissive signature.
+export async function setEventState(eventId: string, state: 'upcoming' | 'done'): Promise<{ id: string; state: string }> {
+  if (shouldUseMocks()) return delay({ id: eventId, state }, 250);
+  const r: any = await apiFetch(`/api/v2/couple/events/${eventId}/state`, {
+    method: 'PATCH', body: JSON.stringify({ state }),
+  });
+  return r.event;
+}
+
 // ─── API FUNCTIONS — RECEIPTS (expense vault) ──────────────────────────────
 
 export async function fetchReceipts(): Promise<CoupleReceipt[]> {
@@ -389,6 +415,43 @@ export async function deleteReceipt(receiptId: string): Promise<boolean> {
   if (shouldUseMocks()) return delay(true, 300);
   try { await apiFetch(`/api/v2/couple/receipts/${receiptId}`, { method: 'DELETE' }); return true; }
   catch { return false; }
+}
+
+// ── TDW_15 · P1 · β1 (R-34.7) · SHE FILES A RECEIPT PHOTO FROM THE APP ─────
+// Calls `POST /couple/receipts/:coupleId/image`, which ZIP 1 built. Until that
+// door existed NO http path could write `couple_receipts.image_url` — the typed
+// POST omits the column, `expenses.js` nulls it, and the only writer in the
+// estate was `brideEngine`'s `save_receipt`, reachable only by forwarding a
+// photo to Mira on WhatsApp. That is the parity matrix's G-3, image half.
+//
+// NO OCR, BY RULING. R-34.7 refused it: the estate has nothing that turns a
+// receipt photo into an amount on any plane, and the inbound-media router only
+// decides which vault a forwarded image belongs in. She files the photo and
+// types the amount — the same deal `save_receipt` gives her on WhatsApp.
+//
+// The optional typed fields ride the SAME call rather than a second one, so a
+// photo and its amount are ONE row. Two calls would leave a half-filed receipt
+// on any failure between them, and she has no edit door to repair it with.
+export async function uploadReceiptImage(
+  file: File,
+  fields?: { vendor_name?: string; amount?: number; receipt_date?: string },
+): Promise<CoupleReceipt> {
+  const id = getCoupleId();
+  if (shouldUseMocks()) {
+    return delay({
+      id: `mock-${Date.now()}`, booking_id: null, amount: fields?.amount ?? null,
+      vendor_name: fields?.vendor_name ?? null, description: null,
+      receipt_date: fields?.receipt_date ?? null,
+      image_url: URL.createObjectURL(file), tags: null,
+      created_at: new Date().toISOString(),
+    } as CoupleReceipt, 500);
+  }
+  const { data, mime } = await fileToBase64(file);
+  const r: any = await apiFetch(`/api/v2/couple/receipts/${id}/image`, {
+    method: 'POST',
+    body: JSON.stringify({ image_base64: data, mime, ...(fields || {}) }),
+  });
+  return r.receipt;
 }
 
 // ─── API FUNCTIONS — BOOKINGS (vendor commitments) ────────────────────────

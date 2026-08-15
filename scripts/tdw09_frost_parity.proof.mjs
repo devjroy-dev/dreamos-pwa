@@ -394,11 +394,51 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
    their own at 169/89/37 before this comment was written, and the arithmetic
    above was checked against that measurement rather than fitted to it. Both-ways
    is automatic: they go RED at eb75327, where the counts are 165/86/36. */
-ok('3.1', 'the Sanctuary surface carries 169 controls (165 + D-4b\'s delegation: 3 buttons, 1 scrim)', total === 169,
+/* ── CENSUS AMENDED, LABELLED — TDW_15 · P1 (CE-34, 2026-08-15) ─────────────
+   169 -> 186. SEVENTEEN controls, and the arithmetic is itemised because a
+   sealed count that moves by a number nobody can decompose has been silenced
+   rather than amended.
+
+     events.tsx    5 -> 21  (+16)   G-1's remaining three close here
+       +9 button   Add a day · the done ring in the meta row · the done ring in
+                   the Done section · Edit · Remove · the sheet's Cancel and
+                   Save · the confirm's Cancel and Remove
+       +3 input    title · date · time
+       +1 textarea notes
+       +1 select   the kind list (the server's own twelve, closed — F-15.5)
+       +2 tapdiv   the sheet's scrim · the confirm's scrim
+     expenses.tsx 23 -> 24  (+1)
+       +1 input    the receipt photo's file input (beta-1, R-34.7)
+
+   NOTHING WAS REMOVED OR MOVED. All 169 prior controls are KEPT; the
+   inventory law's three columns for this delivery read 169 KEPT, 17 ADDED,
+   0 MOVED, 0 REMOVED-BY-RULING.
+
+   ── AND THE DOCUMENT THIS BENCH SHARES A SUBJECT WITH WAS STALE BY SEVENTEEN
+   BEFORE THIS DELIVERY ADDED ONE. `docs/FROST_BLOOMS.md` still says 152 and
+   still lists Events at "1 control · write doors — none", both true at its
+   2026-08-13 derivation and false since D-4b. The executor counted against
+   THIS instrument rather than that document, which is F-13.12's lesson
+   applied; the document's own regeneration is not a UI sitting's to forge by
+   hand and is carried forward by name.
+
+   ── ONE COUNTED LINE WAS ALMOST LOST TO A WILDCARD, AND THE STORY IS THE
+   REASON §6 OF `tdw15_p1_events.proof.mjs` EXISTS. The photo control was first
+   written with an accept value of image-slash-wildcard. Those two characters
+   open a block comment as far as the stripper eight lines above is concerned,
+   and it swallowed the receipt list's thumbnail tap and delete control —
+   expenses.tsx measured 23 -> 22, a DECREASE, on a delivery that only added.
+   The number was wrong in the wrong direction and nothing in this file would
+   have said so. Cured at the source by an explicit MIME list, and the class is
+   now guarded by a cell rather than by having been noticed once.
+
+   Both-ways is automatic here and was shown: these amended cells go RED at
+   6107ff3, where the counts are 169/89/30/3/2/37. */
+ok('3.1', 'the Sanctuary surface carries 186 controls (169 + TDW_15 P1: 17, itemised above)', total === 186,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 89 && counts.anchor === 8 && counts.input === 30 &&
-   counts.textarea === 3 && counts.select === 2 && counts.tapdiv === 37,
+   counts.button === 98 && counts.anchor === 8 && counts.input === 34 &&
+   counts.textarea === 4 && counts.select === 3 && counts.tapdiv === 39,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */

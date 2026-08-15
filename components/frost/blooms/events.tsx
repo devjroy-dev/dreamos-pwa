@@ -8,8 +8,15 @@
 // those are P3 and P5 and they do not ride a relocation commit (F-1).
 
 import React, { useState, useEffect } from 'react';
-import { fetchEvents, updateEvent, fetchCircle, type CoupleEvent, type CircleMember } from '@/lib/frost/journey';
+import { fetchEvents, createEvent, updateEvent, deleteEvent, setEventState,
+         fetchCircle, type CoupleEvent, type CircleMember } from '@/lib/frost/journey';
 import { ASSIGN_ASK, ASSIGN_PICKER_HEAD, ASSIGN_NO_ONE } from '@/lib/circle/assignCopy';
+import {
+  EVENT_ADD, EVENT_ASK_TITLE, EVENT_ASK_WHEN, EVENT_ASK_NOTES,
+  EVENT_SAVE, EVENT_CANCEL, EVENT_ADDED, EVENT_UPDATED,
+  EVENT_NEEDS_TITLE, EVENT_SAVE_FAILED, EVENT_REMOVE_ASK, EVENT_REMOVED,
+  EVENT_DONE_HEAD, EVENT_EMPTY, EVENT_EDIT, EVENT_REMOVE, EVENT_KINDS,
+} from '@/lib/frost/eventCopy';
 import { usePress } from '@/components/frost/_shared/usePress';
 
 // ── TDW_14 · D-4b ② · THE BRIDE DELEGATES A DAY ───────────────────────────────
@@ -34,6 +41,40 @@ import { usePress } from '@/components/frost/_shared/usePress';
 // not the implementation (R-33.2) — and the inverse of that law is that you do
 // not rename code to satisfy a cell.
 
+// ── TDW_15 · P1 · P1.3 — G-1's REMAINING THREE CLOSE HERE ─────────────────────
+//
+// D-4b made this bloom write ONE column. This delivery makes it a room she can
+// actually keep: create, edit, mark done, remove. `docs/BRIDE_PARITY_MATRIX.md`
+// rows 3, 6 and 7 tick in the same delivery — the document is the contract and a
+// row closed in code but not in ink is a silently skipped row, which the spec
+// itself calls a failed session.
+//
+// ── THE ASSIGN'S BOUNDEDNESS SURVIVES, AND IT IS NOW A CLAIM ABOUT BODIES ────
+// `tdw13_d6_parity_matrix` cell 4a2 asserted `updateEvent` appears here EXACTLY
+// ONCE, because at D-4b one call site and one PATCH body were the same fact.
+// They are not the same fact any more: the edit sheet writes through the same
+// door, correctly, because a second client function calling one endpoint is the
+// `assignEvent` anti-pattern D-4b refused on sight. So the cell is re-authored
+// to the thing that is still true and still load-bearing — the assign writes
+// `assigned_circle_member_id` AND NOTHING ELSE, and the edit sheet writes
+// content fields and NEVER touches the delegation column. Two call sites, two
+// disjoint bodies, asserted per body rather than per name. R-33.2: the cell
+// follows the ruling, and the ruling moved because this delivery moved it.
+//
+// ── WHY THE STATE TOGGLE DOES NOT RIDE `updateEvent` ────────────────────────
+// It rides `setEventState` → `PATCH /:eventId/state`, the estate's own narrow
+// door (R-34.8). A third `updateEvent` site would make the boundedness above a
+// thing maintained by care. The narrow door makes it structural.
+//
+// ── AND WHY THE ROOM NOW READS 'all' ───────────────────────────────────────
+// It read `'upcoming'` and the server filters on exactly that (events.js:33), so
+// marking a day done would have REMOVED IT FROM THE ONLY LIST THIS ROOM
+// RENDERS — a done button that behaves like a delete. The read and the toggle
+// are one ruling and shipped together; neither is severable from the other.
+//
+// `'cancelled'` rows stay invisible here, exactly as they are today: R-34.8
+// refused the affordance, and this delivery makes no new claim about the read.
+
 // ── EVENTS ROOM — ornament on a string ────────────────────────────────────────
 // Vertical line. Date bubble. Beautiful moments hanging off it.
 // Same layout as the original events page the bride loved.
@@ -52,6 +93,21 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
   const [picking, setPicking]   = React.useState<CoupleEvent|null>(null);
   const [saving,  setSaving]    = React.useState(false);
 
+  // ── THE WRITE STATE ───────────────────────────────────────────────────────
+  // `sheet` is null, 'create', or the event being edited. One variable rather
+  // than an open flag beside a subject, because two variables can disagree and
+  // the disagreement renders as an edit sheet with nothing in it.
+  const [sheet,   setSheet]   = React.useState<'create'|CoupleEvent|null>(null);
+  const [fTitle,  setFTitle]  = React.useState('');
+  const [fDate,   setFDate]   = React.useState('');
+  const [fTime,   setFTime]   = React.useState('');
+  const [fKind,   setFKind]   = React.useState('ceremony');
+  const [fNotes,  setFNotes]  = React.useState('');
+  const [confirm, setConfirm] = React.useState<CoupleEvent|null>(null);
+  const [toast,   setToast]   = React.useState<string|null>(null);
+
+  const showToast = (m:string) => { setToast(m); setTimeout(()=>setToast(null), 2200); };
+
   // Gradient — same family as the rest of the mode
   // Events inherits exact same gradient as Sanctuary — same DNA, same house
   const evBg = dark
@@ -66,8 +122,21 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
   const pgBubbleBg= dark ? 'rgba(196,133,106,.10)' : 'rgba(42,95,130,.10)';
   const pgBubbleBdr=dark ? 'rgba(196,133,106,.35)' : 'rgba(42,95,130,.35)';
 
+  // ONE INPUT STYLE FOR THE SHEET, lifted in shape from `vendors.tsx`'s and
+  // `expenses.tsx`'s `inpStyle` so the three money-and-days sheets feel like one
+  // hand. Every colour here is this file's own — no literal is invented, which
+  // `tdw13_d4_extraction` cell 6a reads raw source to enforce.
+  const sheetInput:React.CSSProperties = {
+    width:'100%',padding:'12px 14px',
+    background: dark ? 'rgba(196,133,106,.06)' : 'rgba(42,95,130,.06)',
+    border:`0.5px solid ${pgLine}`,borderRadius:8,
+    fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:pgInk,
+    outline:'none',boxSizing:'border-box',userSelect:'text',
+  };
+
+  // 'all', NOT 'upcoming' — see the header. A done day must settle, not vanish.
   React.useEffect(()=>{
-    fetchEvents('upcoming')
+    fetchEvents('all')
       .then(e=>{ setEvents(e); setLoading(false); })
       .catch(()=>setLoading(false));
   },[]);
@@ -115,6 +184,89 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
     return m ? m.invitee_name : null;
   };
 
+  // ── THE WRITE HANDLERS ────────────────────────────────────────────────────
+  // Every one of them patches from the SERVER'S returned row, never from the
+  // form's own values. The server trims, zero-pads `event_time` and can refuse
+  // a field; echoing the form would show her what she typed while the database
+  // holds something else, and the next reload would silently correct her screen.
+
+  const openCreate = () => {
+    setFTitle(''); setFDate(''); setFTime(''); setFKind('ceremony'); setFNotes('');
+    setSheet('create');
+  };
+
+  const openEdit = (ev:CoupleEvent) => {
+    setFTitle(ev.title || ''); setFDate(ev.event_date || '');
+    setFTime(ev.event_time ? ev.event_time.slice(0,5) : '');
+    setFKind(ev.kind || 'other'); setFNotes(ev.notes || '');
+    setSheet(ev);
+  };
+
+  const save = async () => {
+    if(saving) return;
+    if(!fTitle.trim()){ showToast(EVENT_NEEDS_TITLE); return; }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(fDate)){ showToast(EVENT_ASK_WHEN); return; }
+    setSaving(true);
+    try {
+      if(sheet === 'create'){
+        // `kind` comes from EVENT_KINDS and therefore can only be one the server
+        // knows. F-15.5: this door SILENTLY rewrites an unrecognised kind to
+        // 'other' while the PATCH door refuses it — so a sheet that could send a
+        // thirteenth value would lose her choice with no error anywhere.
+        const made = await createEvent({
+          title: fTitle.trim(), event_date: fDate, kind: fKind,
+          ...(fTime  ? { event_time: fTime } : {}),
+          ...(fNotes.trim() ? { notes: fNotes.trim() } : {}),
+        });
+        setEvents(prev=>[...prev, made]);
+        showToast(EVENT_ADDED);
+      } else if(sheet){
+        // THE DELEGATION COLUMN IS ABSENT FROM THIS BODY, DELIBERATELY. The
+        // server reads `undefined` as "not mentioned" (events.js:153) so an
+        // absent key preserves whoever holds the day. Sending it here — even as
+        // the value already on the row — would make the edit sheet a second
+        // writer of the assign's column and collapse the boundedness the matrix
+        // bench asserts.
+        const patched = await updateEvent(sheet.id, {
+          title: fTitle.trim(), event_date: fDate, kind: fKind,
+          event_time: fTime || null,
+          notes: fNotes.trim() || null,
+        });
+        setEvents(prev=>prev.map(e=>e.id===patched.id?{...e, ...patched}:e));
+        setSelected(s=>s&&s.id===patched.id?{...s, ...patched}:s);
+        showToast(EVENT_UPDATED);
+      }
+      setSheet(null);
+    } catch { showToast(EVENT_SAVE_FAILED); }
+    setSaving(false);
+  };
+
+  // ⓵ NO LABEL — the control is a ring that fills (CE-34, veto line 11). The
+  // member's side has spoken this verb without a word since D-4b.
+  const toggleDone = async (ev:CoupleEvent) => {
+    if(saving) return;
+    const next = ev.state === 'done' ? 'upcoming' : 'done';
+    setSaving(true);
+    try {
+      const r = await setEventState(ev.id, next);
+      setEvents(prev=>prev.map(e=>e.id===ev.id?{...e, state:r.state}:e));
+    } catch { /* keep last known — a dropped packet must not re-open her day */ }
+    setSaving(false);
+  };
+
+  // THE REMOVAL IS A HARD DELETE AND THERE IS NO UNDO (R-34.9). That is why the
+  // confirm is mandatory rather than a swipe, and why the optimistic drop keeps
+  // the previous list to restore from: the estate's own shape at
+  // `vendors.tsx` handleDelete and `expenses.tsx` handleDeleteReceipt.
+  const remove = async (ev:CoupleEvent) => {
+    const prevEvents = events;
+    setConfirm(null); setSelected(null);
+    setEvents(prev=>prev.filter(e=>e.id!==ev.id));
+    const ok = await deleteEvent(ev.id);
+    if(ok) showToast(EVENT_REMOVED);
+    else { setEvents(prevEvents); showToast(EVENT_SAVE_FAILED); }
+  };
+
   // AN ASSIGNMENT DOES NOT NOTIFY (R-D4.3). No send, no nudge, no toast — the
   // name appearing under the day is the whole of the feedback, by ruling.
   const assign = async (ev:CoupleEvent, memberId:string|null) => {
@@ -152,9 +304,16 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
     return `in ${diff} days`;
   }
 
+  // ── THE TWO GROUPS ────────────────────────────────────────────────────────
+  // `upcoming` is the room. `done` settles beneath it. `cancelled` renders in
+  // neither, which is exactly what she sees today — the old `?state=upcoming`
+  // read excluded it and this delivery makes no new claim about it.
+  const upcoming = events.filter(e=>e.state==='upcoming');
+  const done     = events.filter(e=>e.state==='done');
+
   // Soonest upcoming event gets accent highlight
   const now=new Date();now.setHours(0,0,0,0);
-  const soonestIdx=events.findIndex(ev=>{
+  const soonestIdx=upcoming.findIndex(ev=>{
     const d=new Date(ev.event_date+'T00:00:00');d.setHours(0,0,0,0);
     return d.getTime()>=now.getTime();
   });
@@ -169,18 +328,33 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
             The days.
           </div>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,marginTop:4,fontFeatureSettings:'"opsz" 9'}}>
-            {events.length>0 ? `${events.length} beautiful moment${events.length!==1?'s':''} ahead.` : 'Your days will appear here.'}
+            {upcoming.length>0 ? `${upcoming.length} beautiful moment${upcoming.length!==1?'s':''} ahead.` : 'Your days will appear here.'}
           </div>
         </div>
-        <button onClick={()=>{
-          // Signal parent to open Dream Ai with prefill — bubble up via custom event
-          window.dispatchEvent(new CustomEvent('frost:open-dream',{detail:{prompt:'Add an event to my calendar'}}));
-        }} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
-          border:`0.5px solid ${pgAccent}44`,background:`${pgAccent}12`,
-          fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
-          textTransform:'uppercase' as any,color:pgAccent,cursor:'pointer',flexShrink:0}}>
-          + Ask DreamAi
-        </button>
+        {/* TWO AFFORDANCES, AND THEY ARE DIFFERENT VERBS. `Add a day` is hers;
+            `Ask Mira` hands the same intention to the agent. The chair ruled the
+            ask KEPT (R-34.13) and the founder overrode only its NAME —
+            「 all approved except ask dreamai. change it to ask Mira 」, radius A:
+            this button alone. The other eight sites where the bride meets
+            `Dream Ai` are named in the handover and stand untouched. */}
+        <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+          <button onClick={openCreate}
+            style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
+              border:`0.5px solid ${pgAccent}`,background:`${pgAccent}22`,
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,color:pgAccent,cursor:'pointer'}}>
+            {EVENT_ADD}
+          </button>
+          <button onClick={()=>{
+            // Signal parent to open Dream Ai with prefill — bubble up via custom event
+            window.dispatchEvent(new CustomEvent('frost:open-dream',{detail:{prompt:'Add an event to my calendar'}}));
+          }} style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
+            border:`0.5px solid ${pgAccent}44`,background:`${pgAccent}12`,
+            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+            textTransform:'uppercase' as any,color:pgAccent,cursor:'pointer',flexShrink:0}}>
+            + Ask Mira
+          </button>
+        </div>
       </div>
 
       {/* Timeline scroll */}
@@ -193,13 +367,17 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
         {!loading&&events.length===0&&(
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12,paddingTop:64}}>
             <div style={{fontFamily:"'Italianno',cursive",fontSize:52,color:pgAccent,lineHeight:1,textAlign:'center' as any}}>Nothing<br/>yet.</div>
+            {/* VETO LINE 1. The byte that stood here — "Tell Dream Ai about an
+                event and it will appear here." — became FALSE the moment this
+                room grew its own Add. It told her to leave the room to do a
+                thing the room now does. Approved 2026-08-15. */}
             <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,textAlign:'center' as any,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
-              Tell Dream Ai about an event<br/>and it will appear here.
+              {EVENT_EMPTY}
             </div>
           </div>
         )}
 
-        {!loading&&events.length>0&&(
+        {!loading&&upcoming.length>0&&(
           <div style={{position:'relative'}}>
             {/* THE VERTICAL LINE — the string that holds the ornaments */}
             <div style={{
@@ -212,7 +390,7 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
             }}/>
 
             {/* Events — ornaments on the string */}
-            {events.map((ev,i)=>{
+            {upcoming.map((ev,i)=>{
               const {month,day}=fmtDate(ev.event_date);
               const timeStr=fmtTime(ev.event_time);
               const highlight=i===soonestIdx;
@@ -269,6 +447,18 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
                       <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:highlight?pgAccent:pgInkMute,marginLeft:'auto'}}>
                         {until}
                       </span>
+                      {/* ⓵ THE DONE RING — NO LABEL (CE-34, veto line 11 STRUCK).
+                          An 18px ring that fills, which is the byte-for-byte
+                          shape the member's tray has spoken since D-4b
+                          (`app/coplanner/page.tsx:363`). Ⓖ's expected-zero
+                          extended to the bride: one verb, one vocabulary.
+                          `stopPropagation` because the row itself expands on
+                          tap and marking a day done is not asking to read it. */}
+                      <button aria-label={undefined} disabled={saving}
+                        onClick={(e)=>{e.stopPropagation();toggleDone(ev);}}
+                        style={{width:18,height:18,flexShrink:0,borderRadius:'50%',padding:0,
+                          border:`1px solid ${pgBubbleBdr}`,background:'transparent',
+                          cursor:saving?'default':'pointer',opacity:saving?.5:1}}/>
                     </div>
 
                     {/* ── DELEGATION ROW ────────────────────────────────────
@@ -309,7 +499,82 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
                         {ev.notes}
                       </div>
                     )}
+
+                    {/* ── EDIT AND REMOVE, INSIDE THE EXPANSION ──────────────
+                        They appear only on the row she has opened. Two reasons,
+                        and the second is the load-bearing one:
+
+                        · a destructive control on every row of a timeline is a
+                          mis-tap waiting for a crowded thumb, and
+
+                        · THE DELETE IS A HARD ROW DELETE WITH NO UNDO (R-34.9,
+                          which refused adopting `events.deleted_at` — that
+                          column is vendor-plane machinery and half-adopting a
+                          convention is worse than not adopting it). So the
+                          affordance sits one deliberate tap in, and the confirm
+                          below it is mandatory rather than a swipe.
+
+                        Both labels are DISCLOSED AS UNVETOED — the copy sheet
+                        carried the confirm question and the toast but not the
+                        words on the controls that raise them. That omission is
+                        this seat's, owned in the handover; one constant each. */}
+                    {selected?.id===ev.id&&(
+                      <div style={{display:'flex',gap:14,marginTop:10}}>
+                        <button onClick={(e)=>{e.stopPropagation();openEdit(ev);}}
+                          style={{padding:0,background:'transparent',border:'none',
+                            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                            textTransform:'uppercase' as any,color:pgInkMute,cursor:'pointer'}}>
+                          {EVENT_EDIT}
+                        </button>
+                        <button onClick={(e)=>{e.stopPropagation();setConfirm(ev);}}
+                          style={{padding:0,background:'transparent',border:'none',
+                            fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                            textTransform:'uppercase' as any,color:pgInkMute,cursor:'pointer'}}>
+                          {EVENT_REMOVE}
+                        </button>
+                      </div>
+                    )}
                   </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── ⓶ THE DONE SECTION ────────────────────────────────────────────
+            The head renders ONLY over a non-empty group (CE-34, veto line 12
+            STRUCK conditionally). Fixture 1 is why that was ruled rather than
+            assumed: the canonical bride stands at `done = 0`, so an
+            unconditional head would have shipped a heading over nothing on day
+            one. Ⓕ's shape, one file over, for the same reason.
+
+            A SETTLED DAY IS RENDERED QUIETLY, not as a struck-through ornament.
+            It keeps its date and its name and loses the countdown, the
+            delegation row and the string it hung from — the timeline is about
+            what is coming, and a finished day has stopped competing for that
+            attention. Tapping the filled ring returns it. */}
+        {!loading&&done.length>0&&(
+          <div style={{marginTop:upcoming.length>0?36:0}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,color:pgInkMute,marginBottom:14,
+              paddingBottom:8,borderBottom:`0.5px solid ${pgLine}`}}>
+              {EVENT_DONE_HEAD}
+            </div>
+            {done.map(ev=>{
+              const {month,day}=fmtDate(ev.event_date);
+              return(
+                <div key={ev.id} style={{display:'flex',alignItems:'center',gap:14,marginBottom:14,opacity:.55}}>
+                  <button disabled={saving} onClick={()=>toggleDone(ev)}
+                    style={{width:18,height:18,flexShrink:0,borderRadius:'50%',padding:0,
+                      border:`1px solid ${pgAccent}`,background:pgAccent,
+                      cursor:saving?'default':'pointer',opacity:saving?.5:1}}/>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:pgInkMute,flexShrink:0}}>
+                    {month} {day}
+                  </span>
+                  <span style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,
+                    color:pgInkSoft,fontFeatureSettings:'"opsz" 9',minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as any}}>
+                    {ev.title}
+                  </span>
                 </div>
               );
             })}
@@ -391,6 +656,120 @@ export function EventsRoom({ dark, accent, roomInk, roomInkSoft, roomInkMute }: 
             </button>
           </div>
         </>
+      )}
+      {/* ── THE CREATE / EDIT SHEET ───────────────────────────────────────────
+          The picker's geometry EXACTLY — fixed, sibling scrim, same inset, same
+          radius, same panel colours. Three sheets on one surface that each
+          invented their own shape would read as three features bolted on; one
+          shape reads as a room. The panel reuses this file's own dark/light
+          pair rather than inventing a hex, because `tdw13_d4_extraction` cell
+          6a reads raw source and reddens on any literal that was not already
+          here — the trap D-4b fell into and documented one screen down. */}
+      {sheet&&(
+        <>
+          <div onClick={()=>setSheet(null)} style={{position:'fixed',inset:0,background:dark?'rgba(8,2,4,.72)':'rgba(12,24,48,.42)',zIndex:20}}/>
+          <div style={{position:'fixed',left:16,right:16,bottom:16,zIndex:21,
+            borderRadius:14,padding:'18px 18px 14px',
+            border:`0.5px solid ${pgBubbleBdr}`,
+            background:dark?'#1A0A0E':'#EEF0F6',
+            boxShadow:'0 12px 40px rgba(0,0,0,.35)',
+            maxHeight:'82%',overflowY:'auto'}}>
+
+            <input value={fTitle} onChange={e=>setFTitle(e.target.value)}
+              placeholder={EVENT_ASK_TITLE} style={sheetInput}/>
+
+            <div style={{display:'flex',gap:10,marginTop:10}}>
+              <input type="date" value={fDate} onChange={e=>setFDate(e.target.value)}
+                placeholder={EVENT_ASK_WHEN} style={{...sheetInput,flex:1}}/>
+              <input type="time" value={fTime} onChange={e=>setFTime(e.target.value)}
+                style={{...sheetInput,width:118,flexShrink:0}}/>
+            </div>
+
+            {/* THE KIND LIST IS THE SERVER'S OWN TWELVE (see eventCopy.ts). A
+                thirteenth value would be SILENTLY rewritten to 'other' by the
+                create door while the edit door refuses it 400 — F-15.5, filed
+                at CE-34 and not this delivery's to cure. A closed list is the
+                only defence a client has against a door that eats in silence. */}
+            <select value={fKind} onChange={e=>setFKind(e.target.value)}
+              style={{...sheetInput,marginTop:10,appearance:'none' as any}}>
+              {EVENT_KINDS.map(k=>(<option key={k.value} value={k.value}>{k.label}</option>))}
+            </select>
+
+            <textarea value={fNotes} onChange={e=>setFNotes(e.target.value)}
+              placeholder={EVENT_ASK_NOTES} rows={3}
+              style={{...sheetInput,marginTop:10,resize:'none' as any}}/>
+
+            <div style={{display:'flex',gap:10,marginTop:16}}>
+              <button disabled={saving} onClick={()=>setSheet(null)}
+                style={{flex:1,padding:'11px 0',borderRadius:8,background:'transparent',
+                  border:`0.5px solid ${pgLine}`,
+                  fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                  textTransform:'uppercase' as any,color:pgInkMute,
+                  cursor:saving?'default':'pointer',opacity:saving?.5:1}}>
+                {EVENT_CANCEL}
+              </button>
+              <button disabled={saving} onClick={save}
+                style={{flex:1,padding:'11px 0',borderRadius:8,
+                  border:`0.5px solid ${pgAccent}`,background:`${pgAccent}22`,
+                  fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                  textTransform:'uppercase' as any,color:pgAccent,
+                  cursor:saving?'default':'pointer',opacity:saving?.5:1}}>
+                {EVENT_SAVE}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── THE REMOVE CONFIRM — MANDATORY, NEVER A SWIPE ─────────────────────
+          `deleteCoupleEvent` is a hard `.delete()` (R-34.9 refused adopting the
+          soft-delete column), so there is no undo to offer and the question is
+          the only thing standing between a mis-tap and a lost day. It ships as
+          a full sheet for that reason, not as a toast with an action. */}
+      {confirm&&(
+        <>
+          <div onClick={()=>setConfirm(null)} style={{position:'fixed',inset:0,background:dark?'rgba(8,2,4,.72)':'rgba(12,24,48,.42)',zIndex:22}}/>
+          <div style={{position:'fixed',left:16,right:16,bottom:16,zIndex:23,
+            borderRadius:14,padding:'18px 18px 14px',
+            border:`0.5px solid ${pgBubbleBdr}`,
+            background:dark?'#1A0A0E':'#EEF0F6',
+            boxShadow:'0 12px 40px rgba(0,0,0,.35)'}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:pgInk,fontFeatureSettings:'"opsz" 9'}}>
+              {EVENT_REMOVE_ASK}
+            </div>
+            <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:pgInkSoft,fontFeatureSettings:'"opsz" 9',marginTop:6}}>
+              {confirm.title}
+            </div>
+            <div style={{display:'flex',gap:10,marginTop:18}}>
+              <button onClick={()=>setConfirm(null)}
+                style={{flex:1,padding:'11px 0',borderRadius:8,background:'transparent',
+                  border:`0.5px solid ${pgLine}`,
+                  fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                  textTransform:'uppercase' as any,color:pgInkMute,cursor:'pointer'}}>
+                {EVENT_CANCEL}
+              </button>
+              <button onClick={()=>remove(confirm)}
+                style={{flex:1,padding:'11px 0',borderRadius:8,background:'transparent',
+                  border:`0.5px solid ${pgAccent}`,
+                  fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+                  textTransform:'uppercase' as any,color:pgAccent,cursor:'pointer'}}>
+                {EVENT_REMOVE}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* The toast sits above every sheet: a failure that renders BEHIND the
+          sheet that caused it is a failure she never sees. */}
+      {toast&&(
+        <div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 16px)',left:'50%',
+          transform:'translateX(-50%)',background:pgInk,color:dark?'#1A0810':'#FFFFFF',
+          fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+          textTransform:'uppercase' as any,padding:'8px 18px',borderRadius:20,zIndex:400,
+          pointerEvents:'none',whiteSpace:'nowrap' as any}}>
+          {toast}
+        </div>
       )}
     </div>
   );

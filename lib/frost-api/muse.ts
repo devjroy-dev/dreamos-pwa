@@ -153,7 +153,14 @@ export interface MuseUploadResponse {
   error?:         string;
 }
 
-function fileToBase64(file: File): Promise<{ data: string; mime: string }> {
+// EXPORTED at TDW_15 · P1 · β1. This is a generic File→base64 reader that
+// happens to live in a muse-named file, and the receipt-photo client needs the
+// identical contract. Exporting it is the one-home answer; copying it into
+// `lib/frost/journey.ts` would have been two readers of one browser API drifting
+// apart over their data-URI prefix handling. That it lives HERE rather than in a
+// neutral home is a real siting question — named for the chair, not taken,
+// because moving it is a retire-with-the-reader job and this is a UI sitting.
+export function fileToBase64(file: File): Promise<{ data: string; mime: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {

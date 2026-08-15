@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FS, getCoupleIdForFrost } from '@/lib/frost/tokens';
-import { fetchReceipts, deleteReceipt, fetchBookings, recordPayment,
+import { fetchReceipts, deleteReceipt, fetchBookings, recordPayment, uploadReceiptImage,
          type CoupleReceipt, type CoupleBooking } from '@/lib/frost/journey';
 import { formatRs } from '@/lib/vendor/format';
 import { getAccessToken } from '@/lib/frost-api/_base';
@@ -36,6 +36,7 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   const brass   = '#C9A84C';
   const ac      = dark ? '#C4856A'                : '#2A5F82';
 
+  const [uploading, setUploading] = React.useState(false);   // TDW_15 P1 β1
   const [slice,     setSlice]     = React.useState<ExpenseSlice>('my');
   const [receipts,  setReceipts]  = React.useState<CoupleReceipt[]>([]);
   const [bookings,  setBookings]  = React.useState<CoupleBooking[]>([]);
@@ -223,6 +224,63 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
         {!loading&&slice==='receipts'&&<>
           <div style={{padding:`14px ${FS.gutter}px 4px`,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,fontFeatureSettings:'"opsz" 9'}}>Receipt vault.</div>
           <div style={{padding:`0 ${FS.gutter}px 12px`,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>Forward receipt images to Dream Ai on WhatsApp — they land here automatically.</div>
+          {/* ── TDW_15 · P1 · β1 — SHE CAN FILE A RECEIPT PHOTO HERE ─────────
+              Until ZIP 1 built `POST /couple/receipts/:coupleId/image`, NOTHING
+              on the http plane could write `couple_receipts.image_url`: the
+              typed POST omits the column, `expenses.js` nulls it, and the only
+              writer in the estate was `brideEngine`'s `save_receipt` — reachable
+              only by forwarding a photo to Mira on WhatsApp. That is the parity
+              matrix's G-3, image half, and this control is its door.
+
+              NO OCR (R-34.7). She files the photo; the amount stays hers to
+              type. Nothing in the estate extracts a figure from a receipt on any
+              plane, and a button that implied otherwise would be promising a
+              capability that does not exist.
+
+              THE INPUT IS HIDDEN AND THE LABEL DRIVES IT. `<input type="file">`
+              cannot be styled into this house, so the estate's own pattern
+              applies: a label element owning the input, which is one tap on a
+              handset and opens the camera or the roll by the OS's choice. */}
+          <div style={{padding:`0 ${FS.gutter}px 14px`}}>
+            <label style={{display:'inline-flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:100,
+              border:`0.5px solid ${ac}`,background:`${ac}22`,
+              fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
+              textTransform:'uppercase' as any,color:ac,
+              cursor:uploading?'default':'pointer',opacity:uploading?.5:1}}>
+              {uploading?'Adding…':'Add a photo'}
+              {/* ACCEPT IS AN EXPLICIT LIST, AND THAT IS A FINDING'S CURE, NOT
+                  A PREFERENCE. An accept value of image-slash-wildcard carries
+                  slash then star, and every source-scanning instrument in this
+                  estate strips block comments with a naive non-greedy regex
+                  before it counts anything. That wildcard OPENS a comment the
+                  scanner
+                  never closes until the next comment-close — and it silently ate two
+                  live controls out of the receipt list below (the thumbnail tap
+                  and the delete ✕) the first time this control was written.
+                  The sealed census would have moved by the wrong number, in the
+                  wrong direction, with nothing to say so.
+
+                  The real cure is the stripper, which FROST_BLOOMS already
+                  files as wanting its own micro; it is not a UI sitting's. The
+                  list below is equivalent for every image a handset produces —
+                  HEIC and HEIF are there because an iPhone's own camera writes
+                  them — and `tdw15_p1_events.proof.mjs` §6 now asserts no JSX
+                  attribute on this surface carries the sequence again. */}
+              <input type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp" disabled={uploading}
+                style={{display:'none'}}
+                onChange={async (e)=>{
+                  const file=e.target.files&&e.target.files[0];
+                  e.target.value='';                       // so the same file can be picked twice
+                  if(!file||uploading) return;
+                  setUploading(true);
+                  try {
+                    const made=await uploadReceiptImage(file);
+                    setReceipts(prev=>[made,...prev]);     // the SERVER's row, never a local guess
+                  } catch { showToast('Could not add that photo. Try again.'); }
+                  setUploading(false);
+                }}/>
+            </label>
+          </div>
           {imageReceipts.length===0&&<div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>No receipts yet.</div>}
           {imageReceipts.map(r=>(
             <div key={r.id} style={{display:'flex',alignItems:'flex-start',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`}}>

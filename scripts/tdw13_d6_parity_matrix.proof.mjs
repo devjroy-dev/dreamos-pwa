@@ -104,23 +104,57 @@ ok('3c. every live tool is tabled — no silently skipped row (the spec\'s own f
 const events = fs.readFileSync(path.join(BLOOM_DIR, 'events.tsx'), 'utf8');
 const eventsCode = stripComments(events);
 
-// half one — the surviving absences. Create and delete are still open, tabled.
-for (const w of ['createEvent', 'deleteEvent'])
-  ok(`4a. the Events bloom still does NOT call ${w} — that half of G-1 holds`,
-     !new RegExp(`\\b${w}\\s*\\(`).test(eventsCode));
+// ── AMENDED BY CHARTER, CE-34 · TDW_15 P1 · 2026-08-15 · R-34.8 ────────────
+// G-1's REMAINING THREE ARE CLOSED. Create, edit and delete are wired, so the
+// absence loop above this line is now false in every one of its arms and the
+// count cell with it: `updateEvent` appears TWICE, because the edit sheet
+// writes through the same door the assign does.
+//
+// THAT SECOND CALL SITE IS CORRECT AND WAS THE ONLY LAWFUL SHAPE. A client
+// function named `editEvent` calling the identical endpoint would have kept the
+// old count cell green while the surface underneath it changed completely —
+// which is the `assignEvent` anti-pattern D-4b refused ON THIS EXACT CELL one
+// delivery ago. Code is not renamed to satisfy a cell (R-33.2's inverse).
+//
+// SO THE CLAIM MOVES FROM COUNTING NAMES TO READING BODIES, which is where the
+// load-bearing property always lived: the assign writes the delegation column
+// AND NOTHING ELSE, and the edit sheet writes content fields and NEVER the
+// delegation column. Two disjoint bodies. A future hand that folds the
+// delegation into the edit sheet's patch reddens 4a5, and one that widens the
+// assign into an edit reddens 4a4 — neither can happen quietly, which is more
+// than the count cell ever guaranteed.
+//
+// The state toggle is deliberately NOT in this arithmetic: it rides
+// `setEventState` → the dedicated `/state` door, so the two call sites here
+// stay two by construction rather than by anyone remembering (R-34.8).
 
-// half two — the new presence, counted rather than merely detected. ONE call.
+// half one — the three writers are now PRESENT. The doors were always there.
+for (const w of ['createEvent', 'updateEvent', 'deleteEvent'])
+  ok(`4a. the Events bloom calls ${w} — G-1's row is closed in the tree`,
+     new RegExp(`\\b${w}\\s*\\(`).test(eventsCode));
+
+// half two — the count, still counted rather than merely detected. TWO now, and
+// the number is asserted so a third site cannot arrive unnoticed.
 const updateCalls = (eventsCode.match(/\bupdateEvent\s*\(/g) || []).length;
-ok('4a2. the bloom calls updateEvent EXACTLY ONCE — the assign, and nothing more',
-   updateCalls === 1, `${updateCalls} call sites`);
-ok('4a3. …and that one call site is the assign — it writes the delegation column',
+ok('4a2. the bloom calls updateEvent EXACTLY TWICE — the assign and the edit',
+   updateCalls === 2, `${updateCalls} call sites`);
+ok('4a3. the assign site survives and still writes the delegation column',
    /updateEvent\([^)]*\{\s*assigned_circle_member_id/.test(eventsCode.replace(/\s+/g, ' ')),
-   'updateEvent is called with something other than the delegation column');
-// the counterpart absence, so "assign only" is a claim about the PATCH BODY and
-// not merely about how many times the function name appears.
+   'the D-4b assign is gone or no longer writes assigned_circle_member_id');
+// THE TWO BODIES ARE DISJOINT, asserted in both directions.
+const flatEvents = eventsCode.replace(/\s+/g, ' ');
+const assignBody = (flatEvents.match(/updateEvent\([^)]*\{\s*assigned_circle_member_id[^)]*\)/) || [''])[0];
 for (const f of ['title:', 'event_date:', 'notes:'])
-  ok(`4a4. the assign body carries no ${f.slice(0, -1)} — it is not an edit sheet`,
-     !new RegExp(`updateEvent\\([^)]*${f}`).test(eventsCode.replace(/\s+/g, ' ')));
+  ok(`4a4. the assign body carries no ${f.slice(0, -1)} — it is still not an edit sheet`,
+     !assignBody.includes(f));
+const editCall = flatEvents.slice(flatEvents.indexOf('updateEvent(', flatEvents.indexOf(assignBody) + assignBody.length));
+ok('4a5. the edit sheet NEVER writes the delegation column',
+   editCall.length > 0 && !/updateEvent\([^)]*assigned_circle_member_id/.test(editCall),
+   'the edit sheet patches assigned_circle_member_id — it has become a second ' +
+   'writer of the assign\'s column and the boundedness above is decorative');
+ok('4a6. the state toggle rides the DEDICATED door, not updateEvent',
+   /setEventState\s*\(/.test(eventsCode),
+   'marking a day done goes through the full PATCH — a third updateEvent site');
 
 ok('4b. it still READS — the write is one column, not a takeover of the room',
    /\bfetchEvents\s*\(/.test(eventsCode));
@@ -143,20 +177,39 @@ ok('4e. the document calls G-1 UI-only', /UI-only sitting|UI-only, no backend/.t
 // Anchored on the STABLE parts — the state word, the signature, and the
 // fifth-writer claim — never on the whole paragraph, which would fail on a
 // reflow and teach the next reader to edit the document to please the bench.
-const docFlatG1 = doc.replace(/\s+/g, ' ');
-ok('4f. the matrix states G-1 is PARTIALLY CLOSED, not Open',
-   /G-1 · The Events bloom is PARTIALLY CLOSED/.test(docFlatG1),
+/* THE BLOCKQUOTE MARKERS COME OUT BEFORE THE FLATTEN — amended CE-34, and it
+   is a landmine removal rather than a convenience. Collapsing whitespace alone
+   turns a wrapped quoted sentence into "content > fields", so any pinned phrase
+   that happens to span two lines fails on a REFLOW. This file's own comment six
+   lines up warns against exactly that ("never on the whole paragraph, which
+   would fail on a reflow and teach the next reader to edit the document to
+   please the bench") — and the cell that fell into it was the one written at
+   this amendment. Stripping `>` is strictly more permissive, so every
+   pre-existing pin keeps matching what it always matched. */
+const docFlatG1 = doc.replace(/^\s*>\s?/gm, '').replace(/\s+/g, ' ');
+/* AMENDED, CE-34 · TDW_15 P1 · 2026-08-15. The state word moves from PARTIALLY
+   CLOSED to CLOSED, and the D-4b amendment is asserted STILL PRESENT rather
+   than replaced: an amendment that erases the one before it destroys the record
+   of what was true when, which is the whole reason this document amends in
+   place instead of being rewritten. Both signatures must stand. */
+ok('4f. the matrix states G-1 is CLOSED',
+   /G-1 · The Events bloom is CLOSED/.test(docFlatG1),
    'the G-1 heading no longer carries the amended state word');
-ok('4g. the amendment is signed and dated in place',
-   /AMENDMENT — `CE-33 · TDW_14 D-4b · 2026-08-14` · R-D4b\.1/.test(docFlatG1),
-   'an unsigned amendment is a rewrite');
-ok('4h. the delta is stated: a FIFTH writer, not one of the four tabled',
-   /FIFTH WRITER, NOT ONE OF THE FOUR TABLED/.test(docFlatG1) &&
-   /Create, delete and edit remain OPEN exactly as tabled/.test(docFlatG1),
+ok('4g. both amendments are signed and dated in place',
+   /AMENDMENT — `CE-33 · TDW_14 D-4b · 2026-08-14` · R-D4b\.1/.test(docFlatG1) &&
+   /AMENDMENT — `CE-34 · TDW_15 P1 · 2026-08-15` · R-34\.8/.test(docFlatG1),
+   'an unsigned amendment is a rewrite, and an erased predecessor is worse');
+ok('4h. the delta is stated: the assign survives, the proof changed shape',
+   /THE ASSIGN SURVIVED, AND THE PROOF OF IT CHANGED SHAPE/.test(docFlatG1) &&
+   /the edit sheet writes content fields and never the delegation column/.test(docFlatG1),
    'the amendment does not say precisely what moved and what did not');
 ok('4i. the summary row moved with the gap section — no half-amended document',
-   /\*\*Partially closed, UI-only, no backend:\*\*/.test(docFlatG1),
-   'G-1 is amended in one place and still reads Open in the other');
+   /\*\*Closed by TDW_15 P1 \(`CE-34 · 2026-08-15`\):\*\* G-1's event writers/.test(docFlatG1),
+   'G-1 is amended in one place and still reads Partially closed in the other');
+ok('4j. G-3\'s image half is ticked and its amendment signed',
+   /AMENDMENT — `CE-34 · TDW_15 P1 · 2026-08-15` · R-34\.7 \(G-3, image half\)/.test(docFlatG1) &&
+   /Closed by TDW_15 P1 \(`CE-34 · 2026-08-15`\):\*\* G-3's image half/.test(docFlatG1),
+   'the receipt door shipped and the contract still calls it open');
 
 // ── 5 · G-2, note_to_self has no surface ─────────────────────────────────────
 const allBlooms = fs.readdirSync(BLOOM_DIR).filter((f) => f.endsWith('.tsx'))

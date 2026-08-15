@@ -165,14 +165,44 @@ ok('§4.3 the affordance hides when the roster is empty — no invitation to a d
 // ── THE WRITE. R-D4b.1: one call site, the assign, and nothing else. The
 //    parity matrix bench asserts the same ruling from the document's side; this
 //    asserts it from the delivery's. Two homes for one ruling, both guarded.
+/* ── AMENDED, CE-34 · TDW_15 P1 · 2026-08-15 · R-34.8 ───────────────────────
+   THIS BENCH IS THE SECOND HOME OF A RULING THAT MOVED, and finding it was
+   R-33.1's own lesson paid again. The read-first censused the parity-matrix
+   bench's copy of these three claims and stopped there; this file asserts the
+   SAME THREE from the delivery's side, and the floor found it. A readers census
+   that covers documents but not the cells that pin them is half a census.
+
+   WHAT MOVED: G-1's remaining three are closed, so `createEvent` and
+   `deleteEvent` are PRESENT, and `updateEvent` is called TWICE — the assign and
+   the edit sheet. The second site is correct and was the only lawful shape: a
+   client function named `editEvent` calling the identical door is the
+   anti-pattern D-4b refused on this very ruling.
+
+   WHAT DID NOT MOVE, AND IS THEREFORE WHAT THIS BENCH NOW GUARDS: the assign's
+   body. §4.5 below is UNCHANGED and byte-exact — it pins the delegation call
+   character for character, so the thing D-4b actually shipped is asserted
+   exactly as strictly as it was before this delivery touched the file. The
+   count cell becomes a claim about the two bodies being DISJOINT, which is the
+   property the count was ever a proxy for. */
 const updateCalls = (cBLOOM.match(/\bupdateEvent\s*\(/g) || []).length;
-ok('§4.4 R-D4b.1 — updateEvent is called EXACTLY ONCE on this surface',
-   updateCalls === 1, `${updateCalls} call sites`);
-ok('§4.5 …and its body is the delegation column ALONE — not an edit sheet',
+ok('§4.4 R-34.8 — updateEvent is called EXACTLY TWICE: the assign and the edit',
+   updateCalls === 2, `${updateCalls} call sites`);
+ok('§4.5 …and the assign\'s body is the delegation column ALONE — not an edit sheet',
    /updateEvent\(ev\.id, \{ assigned_circle_member_id: memberId \}\)/.test(cBLOOM));
+ok('§4.5b the OTHER call site never touches the delegation column',
+   (() => {
+     const flat = cBLOOM.replace(/\s+/g, ' ');
+     const withoutAssign = flat.replace(/updateEvent\(ev\.id, \{ assigned_circle_member_id: memberId \}\)/, '');
+     const other = withoutAssign.match(/updateEvent\([^;]*/);
+     return !!other && !/assigned_circle_member_id/.test(other[0]);
+   })(),
+   'the edit sheet patches the delegation column — it is a second writer of it');
 for (const w of ['createEvent', 'deleteEvent'])
-  ok(`§4.6 ${w} is still absent — that half of G-1 is still open, as tabled`,
-     !new RegExp(`\\b${w}\\s*\\(`).test(cBLOOM));
+  ok(`§4.6 ${w} is PRESENT — G-1's remaining three closed at TDW_15 P1`,
+     new RegExp(`\\b${w}\\s*\\(`).test(cBLOOM));
+ok('§4.7 the state toggle rides the dedicated door, keeping the count at two',
+   /setEventState\s*\(/.test(cBLOOM),
+   'marking done goes through the full PATCH — a third updateEvent site');
 
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§5 · ③ THE MEMBER\'S TRAY — Ⓔ, Ⓕ no empty render, Ⓖ the existing control');

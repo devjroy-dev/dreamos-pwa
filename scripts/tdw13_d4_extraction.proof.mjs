@@ -92,10 +92,61 @@ function relocatedLines() {
   return out.filter((l) => l.trim().length > 3);   // blank/brace lines are not evidence
 }
 const moved = relocatedLines();
-const eaten = moved.filter((l) => !haystack.includes(l));
-ok('2a. every relocated line still exists somewhere in the split tree',
+
+/* ── AMENDED, LABELLED — TDW_15 · P1 (CE-34, 2026-08-15) ────────────────────
+   THIS CELL IS A RELOCATION CANARY AND IT HAS NOW MET ITS FIRST LAWFUL EDIT.
+
+   D-4's claim was that an extraction moved bytes WITHOUT CHANGING THEM, and
+   this cell has guarded that by demanding every relocated line still exist
+   somewhere. That was exactly right for a relocation commit, and D-4b honoured
+   it literally: a `position:'relative'` was REVERTED rather than argued with,
+   because the line's byte-identity was another delivery's proof.
+
+   TDW_15 P1 is not a relocation. It is the feature the relocation was clearing
+   the ground for, and it edits seven relocated lines BY RULING. An unamended
+   canary would simply go red and stay red, which retires it — a permanently
+   red cell grades nothing, and the mutation that proves it live (M1, a
+   relocated line quietly dropped) reports DEAD while it is.
+
+   SO THE CANARY KEEPS ITS TEETH BY NAMING ITS EXCEPTIONS RATHER THAN BY
+   LOWERING ITS BAR. Each line below is listed VERBATIM with the ruling that
+   moved it. An eighth eaten line — one nobody ruled — still reddens this cell,
+   which is the whole property worth preserving. A cell that asserts "nothing
+   changed except these seven things" is a real assertion; one that asserts
+   "roughly nothing changed" is not.
+
+   Every entry is verified PRESENT in the pre-extraction corpus before it is
+   honoured, so a stale allowlist entry cannot silently widen the exemption
+   after the line it names has gone. */
+const RULED_EDITS = [
+  // R-34.8 — the room reads 'all', because a done day must settle rather than
+  // vanish from the only list this bloom renders.
+  "    fetchEvents('upcoming')",
+  // R-34.8 — the highlight and the list follow the `upcoming` group now that
+  // `events` also carries settled days.
+  "  const soonestIdx=events.findIndex(ev=>{",
+  "        {!loading&&events.length>0&&(",
+  "            {events.map((ev,i)=>{",
+  "            {events.length>0 ? `${events.length} beautiful moment${events.length!==1?'s':''} ahead.` : 'Your days will appear here.'}",
+  // Founder veto, 2026-08-15, radius A — 「 change it to ask Mira 」.
+  '          + Ask DreamAi',
+  // Founder veto line 1 — the byte became FALSE the moment this room grew its
+  // own Add: it told her to leave the room to do a thing the room now does.
+  '              Tell Dream Ai about an event<br/>and it will appear here.',
+];
+const STALE_EXEMPTIONS = RULED_EDITS.filter((l) => !moved.includes(l));
+ok('2a0. every ruled exemption names a line that was actually relocated',
+   STALE_EXEMPTIONS.length === 0,
+   `${STALE_EXEMPTIONS.length} stale: ${STALE_EXEMPTIONS.map((l) => l.trim().slice(0, 40)).join(' | ')}`);
+
+const eaten = moved.filter((l) => !haystack.includes(l) && !RULED_EDITS.includes(l));
+ok('2a. every relocated line still exists, except the seven edited by ruling',
    eaten.length === 0,
    `${eaten.length} eaten, first: ${(eaten[0] || '').trim().slice(0, 70)}`);
+ok('2a2. control: the exemption is NARROW — all seven ruled lines really are gone',
+   RULED_EDITS.every((l) => !haystack.includes(l)),
+   'a ruled exemption is covering a line that never moved, which widens the ' +
+   'cell for nothing and would hide the next real eat');
 ok('2b. control: the canary is checking a real corpus',
    moved.length > 1200, `${moved.length} substantive lines checked`);
 ok('2c. control: the canary CAN fail (a line that never existed is not found)',
@@ -208,7 +259,13 @@ const MUTATIONS = [
      lines.splice(i, 1); fs.writeFileSync(R(p), lines.join('\n'));
      return p;
    },
-   () => relocatedLines().filter((l) => !([readNow(CONDUCTOR), ...BLOOMS.map((k) => readNow(BLOOM_FILE(k))), ...SHARED.map(readNow)].filter(Boolean).join('\n')).includes(l)).length === 0,
+   // THE PROBE MIRRORS THE CELL, and it had to be amended with it: this line
+   // re-derived 2a's ORIGINAL predicate, so after TDW_15 P1's seven ruled edits
+   // it read false at the cured tree and the harness reported M1 DEAD —
+   // "already red, the mutation grades nothing". A probe that does not track
+   // its cell retires the mutation silently, which is the one failure a
+   // mutation leg exists to prevent.
+   () => relocatedLines().filter((l) => !([readNow(CONDUCTOR), ...BLOOMS.map((k) => readNow(BLOOM_FILE(k))), ...SHARED.map(readNow)].filter(Boolean).join('\n')).includes(l) && !RULED_EDITS.includes(l)).length === 0,
    'cell 2a (the canary)'],
 
   ['M2 · the conductor keeps a copy instead of moving',

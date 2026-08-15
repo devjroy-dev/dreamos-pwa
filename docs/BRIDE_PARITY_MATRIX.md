@@ -42,17 +42,17 @@ bloom. **—** = she cannot; only Mira can, on WhatsApp.
 |---|---|---|---|---|---|
 | 1 | `note_to_self` | **—** | **—** | *none* | exists (agent-side) |
 | 2 | `save_wedding_detail` | ✅ | ✅ | Settings | `PATCH /couple/me` |
-| 3 | `add_event` | ✅ | **—** | Events | `POST /events` exists |
+| 3 | `add_event` | ✅ | ✅ | Events | `POST /events` |
 | 4 | `create_task` | ✅ *(as event)* | **—** | Events | `POST /events` |
 | 5 | `list_events` | ✅ | n/a | Events | `GET /events` |
-| 6 | `update_event` | ✅ | **—** | Events | `PATCH /:event` exists |
-| 7 | `delete_event` | ✅ | **—** | Events | `DELETE /:event` exists |
+| 6 | `update_event` | ✅ | ✅ | Events | `PATCH /:event` · `PATCH /:event/state` |
+| 7 | `delete_event` | ✅ | ✅ | Events | `DELETE /:event` |
 | 8 | `add_booking` | ✅ | ✅ | Vendors | `POST /:booking` |
 | 9 | `list_bookings` | ✅ | n/a | Vendors · Expenses | `GET /bookings` |
 | 10 | `update_booking` | ✅ | ✅ | Vendors | `PATCH /:booking` |
 | 11 | `delete_booking` | ✅ | ✅ | Vendors | `DELETE /:booking` |
 | 12 | `record_payment` | ✅ | ✅ | Vendors · Expenses | `POST /:booking` |
-| 13 | `save_receipt` | ✅ | ⚠️ **partial** | Expenses | `POST /expenses/:couple` |
+| 13 | `save_receipt` | ✅ | ✅ | Expenses | `POST /expenses/:couple` · `POST /receipts/:couple/image` |
 | 14 | `list_receipts` | ✅ | n/a | Expenses | `GET /receipts` |
 | 15 | `delete_receipt` | ✅ | ✅ | Expenses | `DELETE /:receipt` |
 | 16 | `list_muse` | ✅ | n/a | Muse | `GET /saves` |
@@ -72,7 +72,7 @@ removal · vendor enquiries.
 
 ## THE GAPS, each with its owning bloom and the door that exists or is missing
 
-### G-1 · The Events bloom is PARTIALLY CLOSED — it writes once, and four tools write to it
+### G-1 · The Events bloom is CLOSED — she can add, edit, settle and remove a day
 **Rows 3, 4, 6, 7.** `EventsRoom` calls `fetchEvents` and nothing else — derived:
 two call sites, zero writers. Meanwhile `lib/frost/journey.ts` already **exports
 `createEvent`, `updateEvent` and `deleteEvent`**, and the backend carries
@@ -112,6 +112,45 @@ UI-only sitting — no backend work, no client work, no migration.
 > companion cell pins the words **Partially closed** here, so the document and
 > the bench go red together if either drifts.
 
+> **AMENDMENT — `CE-34 · TDW_15 P1 · 2026-08-15` · R-34.8**
+>
+> **G-1 CLOSES.** Rows 3, 6 and 7 tick in the write column: the Events bloom now
+> calls `createEvent`, `updateEvent` and `deleteEvent`, and marks a day done
+> through the dedicated `PATCH /:event/state` door. The two paragraphs above
+> stand as the record of what was true until this date.
+>
+> **THE ASSIGN SURVIVED, AND THE PROOF OF IT CHANGED SHAPE.** D-4b's cell
+> asserted `updateEvent` appears in the bloom EXACTLY ONCE, because at that
+> delivery one call site and one PATCH body were the same fact. They are not:
+> the edit sheet writes through the same door, correctly, since a client
+> function named `editEvent` calling the identical endpoint is the very
+> anti-pattern D-4b refused. So the cells now read BODIES — the assign writes
+> `assigned_circle_member_id` and nothing else, the edit sheet writes content
+> fields and never the delegation column, and the state toggle rides a
+> different door entirely so the count of two stays two by construction.
+>
+> **WHAT REMAINS OPEN IN THIS SECTION: NOTHING.** Row 4 (`create_task`) is
+> untouched and stays G-5's — a ruling about vocabulary, not a build.
+>
+> Cells 4a–4a6 of `scripts/tdw13_d6_parity_matrix.proof.mjs` are re-authored in
+> the same delivery, and the companion cells pinning this document's words move
+> with them. Neither can drift alone.
+
+> **AMENDMENT — `CE-34 · TDW_15 P1 · 2026-08-15` · R-34.7 (G-3, image half)**
+>
+> **G-3 CLOSES.** `POST /couple/receipts/:coupleId/image` was built in this
+> block's first delivery, and the Expenses bloom now carries the control that
+> reaches it. Before it, NO http path could write `couple_receipts.image_url` —
+> the typed POST omits the column, `couple/expenses.js` nulls it explicitly, and
+> the only writer in the estate was `brideEngine`'s `save_receipt`, reachable
+> only by forwarding a photo to Mira on WhatsApp.
+>
+> **NO OCR, BY RULING.** She files the photo and types the amount, exactly as
+> `save_receipt` does — that executor writes `couple_id` and `image_url` and no
+> more. Nothing in this estate turns a receipt photo into typed fields on any
+> plane, and wiring the inbound-media router here would have invented a
+> capability rather than closed a gap.
+
 ### G-2 · `note_to_self` has no surface at all
 **Row 1.** Zero blooms reference a notes door — derived by census, not assumed.
 Mira records durable facts about the bride and her wedding; the bride cannot read
@@ -146,14 +185,15 @@ several P1 rows are closed by shipped sanctuary doors — payment, bookings CRUD
 receipts, enquiries, circle invite. This matrix says which:
 
 - **Closed, needs no 15 work:** rows 2, 8–12, 14, 15, 17–20 — eleven capabilities.
-- **Partially closed, UI-only, no backend:** G-1's four event writers — three
-  still open (create, delete, edit). Amended `CE-33 · TDW_14 D-4b ·
-  2026-08-14`: the bloom writes once, at the delegation assign, which is a
-  fifth writer and closes none of the four. Cheapest real parity work on the
-  track.
+- **Closed by TDW_15 P1 (`CE-34 · 2026-08-15`):** G-1's event writers — create,
+  edit and delete are wired, and a day settles through the dedicated state
+  door rather than vanishing. The `CE-33 · TDW_14 D-4b · 2026-08-14` amendment
+  above records the intermediate state in which the bloom wrote once, at the
+  delegation assign; that assign survives untouched and its boundedness is now
+  asserted per PATCH BODY rather than per call count.
 - **Open, needs a ruling first:** G-2 (`note_to_self` — where does it surface?),
   G-5 (`create_task`'s vocabulary).
-- **Open, needs a door:** G-3's image half.
+- **Closed by TDW_15 P1 (`CE-34 · 2026-08-15`):** G-3's image half — the door is `POST /receipts/:coupleId/image`, the control is in the Expenses bloom, and no OCR rides it by ruling.
 - **Not a gap:** G-4.
 
 **And the reverse axis matters as much.** Seven bloom capabilities have no tool.
