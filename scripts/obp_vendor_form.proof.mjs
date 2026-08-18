@@ -35,6 +35,25 @@ function strip(raw) {
 const read = (p) => strip(fs.readFileSync(p, 'utf8'));
 
 const FORM   = read('app/vendor/onboarding/page.tsx');
+/* ── ADDED, LABELLED — TDW_15 · P2 (R-34.52, CE-35, 2026-08-18) ─────────────
+   `CAT_LABEL` and `labelFor` MOVED to `lib/frost/categoryLabels.ts` (R-34.33) so
+   the bride's envelope picker could read the same founder-signed eleven without
+   a second copy. Cells 1.5 and 5.1 asserted those bytes INSIDE `FORM`, so the
+   move alone would have reddened them — and a cell that reds because a cure
+   landed is F-15.12's disease, not a defect caught.
+
+   THEY ARE AMENDED TO THE INVARIANT, NOT LOWERED. The property that mattered
+   was never "the labels are in this file"; it was "an unlabelled server token
+   still renders" and "the eleven signed bytes exist, unedited". Both are now
+   asserted ACROSS THE SEAM: declared at the new home, imported by the page,
+   rendered through `labelFor`. That is STRICTLY STRONGER than the originals,
+   which could not tell a present map from a wired one.
+
+   1.2 IS UNTOUCHED, PER RULING. Recorded honestly: after the move it asserts an
+   absence that is trivially true, since `CAT_LABEL` is no longer in `FORM` at
+   all. That weakening is real and is a later sitting's ruled edit, not this
+   delivery's to take. */
+const LABELS = read('lib/frost/categoryLabels.ts');
 const LAYOUT = read('app/vendor/layout.tsx');
 const PAGE   = read('app/vendor/page.tsx');
 
@@ -50,9 +69,12 @@ for (const dead of ['videography', 'mehendi', 'couture', 'invitations', "'venue'
 }
 ok(!/const CATEGORIES\s*=/.test(FORM) || 'the 15-token shadow array is still declared',
    '1.4 F-OB.8 — the shadow CATEGORIES array is deleted, not re-pointed');
-ok(/labelFor/.test(FORM) && /CAT_LABEL\[token\]\s*\|\|/.test(FORM)
-   || 'no fallback — an unlabelled server token would render blank',
-   '1.5 an UNLABELLED server token still renders (labels lag, options do not)');
+ok((/CAT_LABEL\[token\]\s*\|\|/.test(LABELS)
+    && /export const labelFor/.test(LABELS)
+    && /import \{[^}]*\blabelFor\b[^}]*\} from '@\/lib\/frost\/categoryLabels'/.test(FORM)
+    && /\{labelFor\(token\)\}/.test(FORM))
+   || 'the fallback is not declared at the new home, not imported here, or not rendered through',
+   '1.5 an UNLABELLED server token still renders — declared at categoryLabels.ts, imported by the page, rendered through labelFor (R-34.52)');
 
 console.log('\n── 2 · the six boxes, keyed on VENDOR_FIELDS ──');
 for (const f of ['name', 'business_name', 'category', 'city', 'starting_price', 'service_area']) {
@@ -95,9 +117,21 @@ const SIGNED = ['Event Planner', 'Designer', 'Photography & Videography', 'Make 
   'Hairstylist', 'Jewellery', 'Decor', 'Venue & Catering',
   'Performer (Anchor, DJ, Choreography)', 'Content Creator', 'Something else'];
 for (const s of SIGNED) {
-  ok(FORM.includes(s) || `signed label 「 ${s} 」 is not at the byte`,
-     `5.1 「 ${s} 」`);
+  ok(LABELS.includes(s) || `signed label 「 ${s} 」 is not at the byte in lib/frost/categoryLabels.ts`,
+     `5.1 「 ${s} 」 byte-frozen at the new home (R-34.52)`);
 }
+/* 5.1a — the counterpart the move makes necessary. Eleven present bytes prove
+   nothing if this page no longer reaches them: a label map declared and never
+   imported renders an empty picker while every 5.1 cell stays green. */
+ok(/import \{[^}]*\blabelFor\b[^}]*\} from '@\/lib\/frost\/categoryLabels'/.test(FORM)
+   || 'the form does not import from the eleven\'s home — the bytes exist and nothing reads them',
+   '5.1a the form is WIRED to that home, not merely coexisting with it');
+/* 5.1b — control: the exemption is narrow. The labels really did LEAVE this
+   file, so 5.1 is asserting across a seam rather than over a copy nobody
+   deleted. A duplicate left behind is the exact failure a MOVE can hide. */
+ok(!/const CAT_LABEL: Record<string, string> = \{/.test(FORM)
+   || 'a second copy of the label map is still declared in the form',
+   '5.1b the map is GONE from the form — a move, not a fork');
 ok(FORM.includes('Still needed'), '5.2 「 Still needed 」 at the byte');
 ok(FORM.includes('Your starting price') && !FORM.includes('or leave blank'),
    '5.3 「 Your starting price 」 in, 「 or leave blank 」 dead');

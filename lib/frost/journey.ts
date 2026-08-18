@@ -158,7 +158,7 @@ export interface CoupleEvent {
   assigned_circle_member_id?: string | null;
 }
 
-// couple_receipts table: id, booking_id, amount, vendor_name, description, receipt_date, image_url, tags, created_at
+// couple_receipts interface: id, booking_id, amount, vendor_name, description, receipt_date, image_url, tags, created_at, envelope_id
 export interface CoupleReceipt {
   id: string;
   booking_id: string | null;
@@ -169,6 +169,11 @@ export interface CoupleReceipt {
   image_url: string | null;
   tags: string[] | null;
   created_at: string;
+  // TDW_15 P2 (R-4). NULL is UNFILED — she has not given this receipt a home
+  // yet, and that is a state the tray renders rather than a gap. Distinct from
+  // `amount === null`, which is UNTYPED (R-34.22): a filed receipt can still
+  // contribute zero, so the two emptinesses never collapse into one test.
+  envelope_id: string | null;
 }
 
 // couple_bookings table: id, vendor_name, vendor_id, category, amount_total, amount_advance, amount_paid, balance_due_date, state, notes
@@ -291,8 +296,8 @@ function getMockEvents(): CoupleEvent[] {
 const MOCK_EVENTS: CoupleEvent[] = getMockEvents();
 
 const MOCK_RECEIPTS: CoupleReceipt[] = [
-  { id: 'r1', booking_id: null, amount: 50000,  vendor_name: 'Aanya Studio',   description: 'Advance payment', receipt_date: '2026-11-01', image_url: null, tags: ['photography'], created_at: '2026-11-01T10:00:00Z' },
-  { id: 'r2', booking_id: null, amount: 25000,  vendor_name: 'Swati Roy MUA',  description: 'Trial session',   receipt_date: '2026-11-05', image_url: null, tags: ['makeup'],      created_at: '2026-11-05T14:00:00Z' },
+  { id: 'r1', booking_id: null, amount: 50000,  vendor_name: 'Aanya Studio',   description: 'Advance payment', receipt_date: '2026-11-01', image_url: null, tags: ['photography'], created_at: '2026-11-01T10:00:00Z', envelope_id: null },
+  { id: 'r2', booking_id: null, amount: 25000,  vendor_name: 'Swati Roy MUA',  description: 'Trial session',   receipt_date: '2026-11-05', image_url: null, tags: ['makeup'],      created_at: '2026-11-05T14:00:00Z', envelope_id: null },
 ];
 
 const MOCK_BOOKINGS: CoupleBooking[] = [
@@ -417,6 +422,33 @@ export async function deleteReceipt(receiptId: string): Promise<boolean> {
   catch { return false; }
 }
 
+// ── TDW_15 · P2 (R-35.7) · SHE FILES A RECEIPT INTO AN ENVELOPE ─────────────
+// THIS LIVES IN THE RECEIPTS SECTION, NOT THE ENVELOPES ONE, and the reason is
+// the server's own: `PATCH /api/v2/couple/receipts/:receiptId` mutates a
+// RECEIPT. ZIP 1 sited the door here on exactly that ground — a receipt
+// mutation on an envelope route would be a second home for this row's write
+// path — and a client that splits the row's write path from its server home
+// re-opens the two-homes shape F-15.11 has just been cured of.
+//
+// The ONLY field the door writes is `envelope_id`. It returns the whole updated
+// row, so the caller replaces rather than patching a local guess.
+//
+// `envelope_id: null` IS A LEGAL BODY on the server — that is unfiling by her
+// hand. NO CONTROL IN THIS DELIVERY SENDS IT (R-35.5: re-filing to another
+// envelope is the misfile cure this ZIP ships). The parameter accepts null so
+// the client does not have to change when that control is chartered, and the
+// gap is declared in the handover rather than hidden behind a narrower type.
+export async function fileReceipt(
+  receiptId: string,
+  envelopeId: string | null,
+): Promise<CoupleReceipt> {
+  const r: any = await apiFetch(`/api/v2/couple/receipts/${receiptId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ envelope_id: envelopeId }),
+  });
+  return r.receipt;
+}
+
 // ── TDW_15 · P1 · β1 (R-34.7) · SHE FILES A RECEIPT PHOTO FROM THE APP ─────
 // Calls `POST /couple/receipts/:coupleId/image`, which ZIP 1 built. Until that
 // door existed NO http path could write `couple_receipts.image_url` — the typed
@@ -443,7 +475,7 @@ export async function uploadReceiptImage(
       vendor_name: fields?.vendor_name ?? null, description: null,
       receipt_date: fields?.receipt_date ?? null,
       image_url: URL.createObjectURL(file), tags: null,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString(), envelope_id: null,
     } as CoupleReceipt, 500);
   }
   const { data, mime } = await fileToBase64(file);
@@ -452,6 +484,114 @@ export async function uploadReceiptImage(
     body: JSON.stringify({ image_base64: data, mime, ...(fields || {}) }),
   });
   return r.receipt;
+}
+
+// ─── API FUNCTIONS — ENVELOPES (TDW_15 P2, R-4 · R-35.6) ──────────────────
+//
+// Five calls against the doors ZIP 1 landed in dream-os. Every one of them was
+// written against the ROUTE HANDLER read at `src/api/couple/envelopes.js`, not
+// against a spec sentence and not from memory — §6's law, which this estate
+// paid for nine times in one session.
+//
+// THE SIXTH CALL IS NOT HERE. The envelope TAG rides `fileReceipt`, in the
+// RECEIPTS section of this file — see `lib/frost/journey.ts` · `fileReceipt`.
+// Path and symbol, never a line range (THE PATH-OVER-RANGE LAW): a range drifts
+// silently while the comment keeps reading correctly.
+//
+// EVERY DOOR SCOPES BY THE JWT'S OWN `couple_id` server-side. The `coupleId`
+// this client sends in the path is checked against the token and 403s on
+// mismatch — it is a route parameter, never the authority.
+//
+// NO MOCK ARM. `shouldUseMocks()` guards the older functions in this file
+// because they predate a live backend; these doors are live at
+// dream-os 7afdbcc, and a mock envelope would be a second source of truth for
+// a room whose whole subject is where money actually sits.
+
+/** One envelope, as `GET /envelopes/:coupleId` returns it.
+ *  `spent` is a FLOOR, not a total (R-34.22) — it sums TYPED amounts over
+ *  FILED receipts, and a filed receipt with a null amount contributes zero. */
+export interface BudgetEnvelope {
+  id: string;
+  name: string;
+  /** The ceiling, whole rupees. The column is `integer` with CHECK >= 0 — F-a
+   *  struck the spec's `numeric` so one money type rules this plane. */
+  amount_inr: number;
+  sort: number;
+  created_at: string;
+  spent: number;
+}
+
+/** The canonical eleven, from the server (R-34.34). THE PICKER ITERATES THIS
+ *  RESPONSE, never `Object.keys(CAT_LABEL)` — a token dream-os adds must render
+ *  through `labelFor`'s fallback instead of vanishing from her picker.
+ *
+ *  THIS DOOR DOES NOT CURE F-15.10. Her BOOKINGS are still constrained by
+ *  `couple_bookings_category_check`, which carries the pre-0123 eleven; only
+ *  `designer`, `decor` and `other` agree with the canonical set. An envelope
+ *  named Jewellery cannot match a booking today. Her envelope names are hers
+ *  alone until that micro moves the CHECK and backfills live rows. */
+export async function fetchEnvelopeCategories(): Promise<string[]> {
+  const r: any = await apiFetch('/api/v2/couple/envelopes/categories');
+  return r?.allowed ?? [];
+}
+
+export async function fetchEnvelopes(): Promise<BudgetEnvelope[]> {
+  const id = getCoupleId();
+  if (!id) return [];
+  const r: any = await apiFetch(`/api/v2/couple/envelopes/${id}`);
+  return r?.envelopes ?? [];
+}
+
+/** THE TRAY — receipts with `envelope_id IS NULL`.
+ *  A DOOR, not a client-side filter: `fetchReceipts()` is paginated upstream and
+ *  a tray that silently truncates is worse than no tray. This is the reader
+ *  `couple_receipts_unfiled_idx` exists for. */
+export async function fetchUnfiledReceipts(): Promise<CoupleReceipt[]> {
+  const id = getCoupleId();
+  if (!id) return [];
+  const r: any = await apiFetch(`/api/v2/couple/envelopes/${id}/unfiled`);
+  return r?.receipts ?? [];
+}
+
+/** `amount_inr` is optional to the door (it defaults to 0) and is sent as a
+ *  whole-rupee integer. The server refuses a non-integer or negative value
+ *  rather than letting the CHECK reject it with a message she cannot read. */
+export async function createEnvelope(
+  name: string,
+  amountInr: number,
+): Promise<BudgetEnvelope> {
+  const id = getCoupleId();
+  const r: any = await apiFetch(`/api/v2/couple/envelopes/${id}`, {
+    method: 'POST',
+    body: JSON.stringify({ name, amount_inr: amountInr }),
+  });
+  return r.envelope;
+}
+
+/** Rename or re-ceiling. The door takes `name`, `amount_inr` and `sort`
+ *  independently and refuses an empty patch; this client sends the two fields
+ *  the sheet edits. NOTE the door's response for a PATCH carries NO `spent` —
+ *  it returns the envelope columns only — so a caller merges rather than
+ *  replacing, or it will render a ceiling with the spend zeroed. */
+export async function updateEnvelope(
+  envelopeId: string,
+  patch: { name?: string; amount_inr?: number },
+): Promise<Omit<BudgetEnvelope, 'spent'>> {
+  const r: any = await apiFetch(`/api/v2/couple/envelopes/${envelopeId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+  return r.envelope;
+}
+
+/** THE RECEIPTS UNFILE, THEY DO NOT DIE.
+ *  `couple_receipts_envelope_id_fkey` is ON DELETE SET NULL (F-b), so deleting
+ *  an envelope returns its receipts to the tray. On a plane with real brides
+ *  that is the whole ruling — deleting a bucket must never delete her records —
+ *  and `ENVELOPE_COPY.deleteConsequence` tells her so BEFORE she confirms. */
+export async function deleteEnvelope(envelopeId: string): Promise<boolean> {
+  try { await apiFetch(`/api/v2/couple/envelopes/${envelopeId}`, { method: 'DELETE' }); return true; }
+  catch { return false; }
 }
 
 // ─── API FUNCTIONS — BOOKINGS (vendor commitments) ────────────────────────

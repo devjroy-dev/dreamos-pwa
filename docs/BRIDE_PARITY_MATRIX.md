@@ -151,6 +151,34 @@ UI-only sitting — no backend work, no client work, no migration.
 > plane, and wiring the inbound-media router here would have invented a
 > capability rather than closed a gap.
 
+> **AMENDMENT — `CE-35 · TDW_15 P2 · 2026-08-18` · R-4, R-35.4–.9**
+>
+> **ENVELOPES LAND, AND THIS AMENDMENT MOVES NO ROW.** The Expenses bloom gains
+> a fourth slice — her budget envelopes, the unfiled tray, the per-envelope fill
+> hairline, and press-to-file. Rows 13, 14 and 15 already ticked at P1; nothing
+> in the table above changes, and the count is untouched.
+>
+> **THE ROW IT DOES NOT CLOSE IS THE ONE WORTH STATING.** No `brideTools`
+> capability files a receipt into an envelope, so this is the REVERSE GAP again:
+> a bloom capability with no tool behind it, exactly like D-4b's delegation
+> assign. A bride who files everything in the app has a Mira who cannot see her
+> envelopes and cannot be told about them on WhatsApp. That arm is
+> `set_envelope` plus the envelope param on the filing tools; it takes ZERO lines
+> this delivery (R-34.15, R-31.2, W-1 shut) and it waits on Row 9's seat. The
+> schema was left additive-only precisely so it lands without a migration.
+>
+> **AND IT DOES NOT CURE F-15.10.** `couple_bookings_category_check` still
+> carries the pre-0123 eleven; only `designer`, `decor` and `other` agree with
+> the canonical set, so an envelope named Jewellery cannot match a booking today.
+> Her envelope names are hers alone until that micro moves the CHECK and
+> backfills live rows. No reader should mistake the `/envelopes/categories` door
+> for that cure.
+>
+> Asserted by `scripts/tdw15_p2_envelopes.proof.mjs` (41 cells, 10 mutations) and
+> by the three sealed benches amended in the same delivery — `obp_vendor_form`
+> (R-34.52), `tdw09_frost_parity` (R-34.53, R-35.11), `tdw13_d4_extraction`
+> (R-34.54). The document and the benches go red together if either drifts.
+
 ### G-2 · `note_to_self` has no surface at all
 **Row 1.** Zero blooms reference a notes door — derived by census, not assumed.
 Mira records durable facts about the bride and her wedding; the bride cannot read
@@ -194,9 +222,11 @@ receipts, enquiries, circle invite. This matrix says which:
 - **Open, needs a ruling first:** G-2 (`note_to_self` — where does it surface?),
   G-5 (`create_task`'s vocabulary).
 - **Closed by TDW_15 P1 (`CE-34 · 2026-08-15`):** G-3's image half — the door is `POST /receipts/:coupleId/image`, the control is in the Expenses bloom, and no OCR rides it by ruling.
+- **Extended by TDW_15 P2 (`CE-35 · 2026-08-18`):** the money rooms gain envelopes, the unfiled tray and press-to-file (R-4). **No matrix row moves** — the capability axis has no envelope tool, so this is bloom-side only and it WIDENS the reverse gap rather than closing a tabled row. Recorded here so a later seat cannot read the delivery as a row closure.
 - **Not a gap:** G-4.
 
-**And the reverse axis matters as much.** Seven bloom capabilities have no tool.
+**And the reverse axis matters as much.** Seven bloom capabilities have no tool —
+**eight after TDW_15 P2, which adds envelope filing to that list (`CE-35 · 2026-08-18`)**.
 A bride who does everything in the app has a Mira who cannot see her Moments, her
 Meridian requests, or her Circle threads. TDW_15 inherits that asymmetry whether
 or not it charters it, and it is stated here so the next seat cannot say it was

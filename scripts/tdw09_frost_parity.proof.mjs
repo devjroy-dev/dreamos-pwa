@@ -434,11 +434,55 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
 
    Both-ways is automatic here and was shown: these amended cells go RED at
    6107ff3, where the counts are 169/89/30/3/2/37. */
-ok('3.1', 'the Sanctuary surface carries 186 controls (169 + TDW_15 P1: 17, itemised above)', total === 186,
+/* ── CENSUS AMENDED, LABELLED — TDW_15 · P2 (R-34.53, CE-35, 2026-08-18) ────
+   186 -> 201. FIFTEEN controls, all of them in `expenses.tsx` (23 -> 24 at P1,
+   24 -> 39 here), and the arithmetic is itemised control-by-control because a
+   sealed count that moves by a number nobody can decompose has been SILENCED
+   rather than amended. THE FIGURE BELOW WAS RATIFIED BY THE CHAIR AGAINST THIS
+   ITEMISATION, never pre-approved.
+
+     expenses.tsx 24 -> 39  (+15)   the envelope room, R-35.4's fourth slice
+
+       +10 button
+          1 the file affordance (`FileBtn`) — ONE `<button` in source, rendered
+            on every receipt row in three places: the `my` slice, the `receipts`
+            slice, and the tray. Counted once, per this census's per-line method.
+          2 `+ Add` in the envelope slice
+          3 the ✕ on each envelope row (one in source, one per envelope)
+          4 the new-envelope sheet's ✕
+          5 a picker option (one in source, rendered once per token in the
+            SERVER's allowed[] — eleven today, and the count does not move if
+            dream-os adds a twelfth, which is the point of R-34.34)
+          6 the create action
+          7 the file sheet's ✕
+          8 an envelope row in the file sheet (one in source, one per envelope)
+          9 `Remove` on the delete confirm
+         10 `Keep` on the delete confirm
+
+       +2 input    the envelope name field · the amount-set-aside field
+
+       +3 tapdiv   the new-envelope sheet's dismiss scrim · the file sheet's
+                   scrim · the delete confirm's scrim
+
+   NOTHING WAS REMOVED OR MOVED. All 186 prior controls are KEPT; the inventory
+   law's columns for this delivery read 186 KEPT, 15 ADDED, 0 MOVED,
+   0 REMOVED-BY-RULING.
+
+   ── TWO NON-MOVEMENTS, STATED SO THEY ARE NOT MISREAD AS OVERSIGHTS.
+   (a) `SliceBtn` now renders FOUR tabs instead of three and adds NOTHING: it is
+   one `<button` in source and this census counts source lines, not renders.
+   (b) `expenses.tsx:349` — the `my` row's tap that opens the delete confirm —
+   ships BYTE-UNTOUCHED with its meaning unchanged (R-35.5). The file control
+   sits INSIDE that row and stops the event rather than sharing it, so the row
+   gained a control without either control changing what the other means.
+
+   Both-ways is automatic and was shown: these amended cells go RED at c6e631d,
+   where the counts are 186 and 98/8/34/4/3/39. */
+ok('3.1', 'the Sanctuary surface carries 201 controls (186 + TDW_15 P2: 15, itemised above)', total === 201,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 98 && counts.anchor === 8 && counts.input === 34 &&
-   counts.textarea === 4 && counts.select === 3 && counts.tapdiv === 39,
+   counts.button === 108 && counts.anchor === 8 && counts.input === 36 &&
+   counts.textarea === 4 && counts.select === 3 && counts.tapdiv === 42,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */
@@ -565,7 +609,32 @@ const TREE = [...walk('app/(frost)'), ...walk('components/frost')];
 /* GLYPH EXEMPTION amended, LABELLED: nine at BUILD-ALL, ten at Rider 1 — the edit
    sheet's ✕ closer is the tenth, sized to match the eight closers already exempt.
    Icon sizing is not a type rung; a 20px ✕ forced to 11px is a smaller hit target. */
-const GLYPH_EXEMPT = 10;
+/* ── AMENDED, LABELLED — TDW_15 · P2 (R-35.11, CE-35, 2026-08-18): TEN -> TWELVE.
+   THE TWO NEW SITES, NAMED: `expenses.tsx`'s new-envelope sheet ✕ closer and its
+   file sheet ✕ closer, both `fontSize:20`, both sized to match the ten closers
+   already exempt.
+
+   THE RATIONALE IS THIS FILE'S OWN STANDING SENTENCE, unchanged since Rider 1:
+   icon sizing is not a type rung, and a 20px ✕ shrunk to a rung is a smaller hit
+   target. Shrinking these two to 11px would have traded a real thumb for a
+   green cell.
+
+   AND THE DOCTRINE, because this amendment is the third time the family has
+   shown itself: THE CELL PINNED A COUNT OF EXEMPT SITES, NOT THE INVARIANT. It
+   caught no defect — it convicted a THIRD SHEET BUILT IN THE ESTATE'S OWN
+   IDIOM, on a delivery whose closers are byte-for-byte the pattern the previous
+   ten set. The exemption was sitting exactly at its ceiling (18px x3 + 20px x7 =
+   10), so the next sheet anyone added was always going to red this cell. That is
+   F-15.12's class whole: a cell that pins WHERE or HOW MANY is a tripwire
+   against ever doing the same thing again correctly.
+
+   RE-POINTING 6.12 AT THE INVARIANT IS STRICTLY STRONGER AND IS NOT TAKEN HERE.
+   It is banked to M-CELLSWEEP as that family's THIRD NAMED INSTANCE, where the
+   class gets ruled once rather than cell-by-cell mid-delivery.
+
+   A THIRTEENTH STILL REDS. The exemption grows by RULING, one delivery at a
+   time, and never by widening the predicate. */
+const GLYPH_EXEMPT = 12;
 const sizes = new Map();
 let subRung = 0;
 for (const f of TREE) {
@@ -580,7 +649,7 @@ ok('6.11', 'NOTHING in the bride tree renders below the engraved rung', subRung 
 const declared = [...sizes.keys()].sort((a, b) => a - b);
 const RUNGS = [9, 11, 16, 19, 22, 46, 52, 150];
 const strays = declared.filter((v) => !RUNGS.includes(v));
-ok('6.12', 'every declared size is a rung, but for the ten named glyph sites',
+ok('6.12', 'every declared size is a rung, but for the twelve named glyph sites',
    strays.reduce((n, v) => n + sizes.get(v), 0) <= GLYPH_EXEMPT,
    `strays: ${strays.map((v) => `${v}px x${sizes.get(v)}`).join(', ')}`);
 ok('6.13', 'the declared-size count fell from thirty-three', declared.length <= 8 + 2,

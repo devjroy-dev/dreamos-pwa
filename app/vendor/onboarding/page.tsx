@@ -47,33 +47,19 @@ import { useRouter } from 'next/navigation';
 import { getVendorSession, setVendorSession } from '@/lib/vendor/session';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { useT } from '@/lib/vendor/ThemeContext';
+import { labelFor } from '@/lib/frost/categoryLabels';
 
-// ── DISPLAY LABELS · founder-signed 2026-08-13 ─────────────────────────────
-// A LABEL MAP IS NOT A TAXONOMY. This object answers "what does a human read
-// for this token", never "which tokens exist" — that question is answered
-// exclusively by the server's `allowed[]`. The distinction is load-bearing: the
-// picker iterates allowed[], not Object.keys(CAT_LABEL), so a token the server
-// adds RENDERS (through the fallback below) instead of silently disappearing.
-// That is the difference between this and the shadow taxonomy it replaces.
-const CAT_LABEL: Record<string, string> = {
-  planning:        'Event Planner',
-  designer:        'Designer',
-  photography:     'Photography & Videography',
-  makeup:          'Make up Artist',
-  hairstylist:     'Hairstylist',
-  jewellery:       'Jewellery',
-  decor:           'Decor',
-  venue_catering:  'Venue & Catering',
-  performer:       'Performer (Anchor, DJ, Choreography)',
-  content_creator: 'Content Creator',
-  other:           'Something else',
-};
-
-// An unlabelled token still renders, readably, rather than vanishing from the
-// picker — the drift-proof half. Unvetoed by construction: it mints no words of
-// its own, it only makes the server's token legible until copy catches up.
-const labelFor = (token: string) =>
-  CAT_LABEL[token] || token.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+// ── DISPLAY LABELS · founder-signed 2026-08-13 · MOVED, NOT EDITED ─────────
+// `CAT_LABEL` and `labelFor` left this file at TDW_15 P2 (R-34.33) for
+// `lib/frost/categoryLabels.ts`, byte-for-byte, because the bride's envelope
+// picker needs the same eleven and a second copy is how a signed label set
+// drifts. THE INVARIANT THIS PAGE STILL HOLDS is unchanged and is what the
+// bench asserts: the labels are DECLARED at that home, IMPORTED here, and every
+// option renders THROUGH `labelFor` — so a token the server adds still appears,
+// through the fallback, instead of silently disappearing.
+//
+// A LABEL MAP IS NOT A TAXONOMY. The picker below iterates the server's
+// `allowed[]`, never `Object.keys(CAT_LABEL)`. That distinction did not move.
 
 // ── SERVICE AREA · SET A, frozen at migration 0122 ─────────────────────────
 // Not vetoable here — these three were frozen server-side and this is their

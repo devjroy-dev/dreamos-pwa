@@ -133,6 +133,17 @@ const RULED_EDITS = [
   // Founder veto line 1 — the byte became FALSE the moment this room grew its
   // own Add: it told her to leave the room to do a thing the room now does.
   '              Tell Dream Ai about an event<br/>and it will appear here.',
+  // ── EIGHTH ENTRY, ADDED BY RULING — TDW_15 · P2 (R-34.54, CE-35, 2026-08-18)
+  // R-35.4 made the envelope room the FOURTH `ExpenseSlice`, so this union type
+  // gains `'env'`. The line is verified PRESENT in the pre-extraction corpus
+  // before it is honoured (2a0 above does that mechanically, every run): it sits
+  // at `b1448c4` inside the expenses span [254,546], relative line 5.
+  //
+  // SEVEN -> EIGHT, AND A NINTH STILL REDS. That is the whole property: this
+  // canary asserts "nothing changed except these eight things", which is a real
+  // claim, where "roughly nothing changed" would not be. The allowlist grows by
+  // RULING and one entry at a time, never by widening a pattern.
+  "type ExpenseSlice = 'my'|'vendor'|'receipts';",
 ];
 const STALE_EXEMPTIONS = RULED_EDITS.filter((l) => !moved.includes(l));
 ok('2a0. every ruled exemption names a line that was actually relocated',
@@ -140,10 +151,10 @@ ok('2a0. every ruled exemption names a line that was actually relocated',
    `${STALE_EXEMPTIONS.length} stale: ${STALE_EXEMPTIONS.map((l) => l.trim().slice(0, 40)).join(' | ')}`);
 
 const eaten = moved.filter((l) => !haystack.includes(l) && !RULED_EDITS.includes(l));
-ok('2a. every relocated line still exists, except the seven edited by ruling',
+ok('2a. every relocated line still exists, except the eight edited by ruling',
    eaten.length === 0,
    `${eaten.length} eaten, first: ${(eaten[0] || '').trim().slice(0, 70)}`);
-ok('2a2. control: the exemption is NARROW — all seven ruled lines really are gone',
+ok('2a2. control: the exemption is NARROW — all eight ruled lines really are gone',
    RULED_EDITS.every((l) => !haystack.includes(l)),
    'a ruled exemption is covering a line that never moved, which widens the ' +
    'cell for nothing and would hide the next real eat');
