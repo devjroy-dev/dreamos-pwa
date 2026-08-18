@@ -301,6 +301,98 @@ ok('8.3', 'no string literal in a counted file forms the opener',
    formers.length === 0, formers.join(', '));
 
 // ═══════════════════════════════════════════════════════════════════════════
+sec('§8a · M-ROWFIX — the row made honest (R-35.14 F-15.8 · R-35.15 F-15.15)');
+
+/* ── F-15.8 · THE DATE, EXECUTED RATHER THAN GREPPED ─────────────────────────
+   A regex cell over `fmtDate`'s source would go green on a body that still
+   returns raw ISO — it would assert the SHAPE OF THE FIX rather than the fix.
+   So this section EXTRACTS the live function from the tree and RUNS it. If the
+   body changes and still works, these stay green; if it changes and breaks,
+   they red. That is the difference between pinning a cure and pinning a patch.
+
+   The extraction is verified non-vacuous by 8a.0: a failed extraction would
+   make every cell below vacuous, so it is asserted before it is used. */
+const bloomSrc = raw(BLOOM);
+const fnMatch = bloomSrc.match(/function fmtDate\(d:string\|null\|undefined\):string \{[\s\S]*?\n  \}/);
+ok('8a.0', 'the live fmtDate body was extracted from the tree — the cells below are not vacuous',
+   !!fnMatch, 'fmtDate could not be located; §8a asserts nothing');
+
+let liveFmt = null;
+if (fnMatch) {
+  const js = fnMatch[0].replace(/:string\|null\|undefined/g, '').replace(/\):string /, ') ');
+  try { liveFmt = new Function(`${js}; return fmtDate;`)(); } catch { liveFmt = null; }
+}
+ok('8a.0b', 'control: the extracted body is executable', typeof liveFmt === 'function');
+
+/* THE TWO COLUMN SHAPES. `receipt_date` is a `date`; `created_at` is a
+   `timestamptz`, and a photo receipt has no receipt_date — so the timestamptz
+   is the TRAY'S NORMAL CASE, not an edge. All four timestamptz spellings are
+   asserted because all four failed before the cure, not just the one walked. */
+const ISO_SHAPES = [
+  '2026-08-15T09:33:49.781224+00:00',
+  '2026-08-15T09:33:49Z',
+  '2026-08-15T09:33:49+05:30',
+  '2026-08-15T09:33:49.781Z',
+];
+const rawish = (out) => /\d{4}-\d{2}-\d{2}T/.test(out);
+ok('8a.1', 'NO timestamptz spelling renders as a raw database string',
+   !!liveFmt && ISO_SHAPES.every((iso) => !rawish(liveFmt(iso))),
+   !liveFmt ? 'no live function' :
+     `raw: ${ISO_SHAPES.filter((iso) => rawish(liveFmt(iso))).join(', ')}`);
+ok('8a.2', 'every timestamptz spelling lands on the same rendered day',
+   !!liveFmt && new Set(ISO_SHAPES.slice(0, 3).map((iso) => liveFmt(iso))).size === 1,
+   !liveFmt ? 'no live function' : ISO_SHAPES.slice(0, 3).map((iso) => liveFmt(iso)).join(' | '));
+/* 8a.3 — THE DATE-ONLY SHAPE MUST KEEP ITS LOCAL-MIDNIGHT PARSE. A seat
+   "simplifying" the concat away would shift every receipt_date back one day for
+   any bride west of Greenwich — invisible from India, wrong in New York. This
+   cell runs the live body under a western zone and is the reason that comment
+   exists in production. */
+ok('8a.3', 'a date-only value keeps its own day in a WESTERN timezone (the concat survives)',
+   !!liveFmt && (() => {
+     const tz = process.env.TZ; process.env.TZ = 'America/New_York';
+     const out = liveFmt('2026-08-18'); process.env.TZ = tz;
+     return /18/.test(out);
+   })(),
+   'a bare parse crept back in — western dates shift a day');
+ok('8a.4', 'the guards still hold: empty in, empty out; unparseable passes through',
+   !!liveFmt && liveFmt('') === '' && liveFmt(null) === '' && liveFmt('not-a-date') === 'not-a-date');
+/* 8a.5 — the cure is INSIDE the body. All three readers already passed the
+   fallback before this micro, so a reader byte moving would mean the cure
+   spread beyond its ruled radius. */
+const readers = [...bloomSrc.matchAll(/fmtDate\(r\.receipt_date\|\|r\.created_at\)/g)].length;
+ok('8a.5', 'all three readers still pass the same fallback — the cure moved no reader byte',
+   readers === 3, `${readers} readers`);
+
+/* ── F-15.15 · THE PILL, PINNED BY INVARIANT AND NEVER BY PIXEL ─────────────
+   F-15.12's doctrine, applied deliberately: these cells assert that the pill
+   CAN shrink, HAS a nonzero floor, and IS capped — never that the numbers are
+   96, 64, 320 or 374. A cell naming those would be a tripwire against ever
+   tuning this row again, which is the exact family M-CELLSWEEP is chartered to
+   sweep. The PIXELS are the founder walk's to witness, not a bench's. */
+const pill = (bloomSrc.match(/const FileBtn[\s\S]*?\n  \};/) || [''])[0];
+const pillStyle = (pill.match(/style=\{\{[\s\S]*?\}\}/) || [''])[0].replace(/\s+/g, '');
+const num = (k) => { const m = pillStyle.match(new RegExp(k + ':(\\d+)')); return m ? parseInt(m[1], 10) : null; };
+ok('8a.6', 'the pill YIELDS — it is shrinkable, so the row\'s identity is not the only thing that gives',
+   /flexShrink:1/.test(pillStyle) && !/flexShrink:0/.test(pillStyle),
+   `style: ${pillStyle.slice(0, 120)}`);
+ok('8a.7', 'the pill CANNOT VANISH — a nonzero minimum survives every width',
+   num('minWidth') !== null && num('minWidth') > 0,
+   'overflow:hidden makes min-width:auto resolve to 0; without a floor the pill shrinks to nothing');
+ok('8a.8', 'the pill IS CAPPED, and the cap sits above the floor',
+   num('maxWidth') !== null && num('minWidth') !== null && num('maxWidth') > num('minWidth'),
+   `min ${num('minWidth')} / max ${num('maxWidth')}`);
+/* 8a.9 — the row's identity keeps a shrinkable share of its own. Without
+   minWidth:0 on the text block the ellipsis never engages and the row overflows
+   instead of truncating. */
+ok('8a.9', 'the text block still declares the shrinkable share the ellipsis needs',
+   /flex:1,minWidth:0/.test(bloomSrc.replace(/\s+/g, '')),
+   'the row identity lost its minWidth:0 and can no longer ellipsise');
+/* 8a.10 — RADIUS. The Receipts row stacks amount/pill/✕ in a COLUMN, so the
+   pill never competed with text there and R-35.15 ships it byte-untouched. */
+ok('8a.10', 'the Receipts row\'s column stack is untouched — the cure did not spread to a row that was never sick',
+   /flexDirection:'column',alignItems:'flex-end',gap:6,flexShrink:0/.test(bloomSrc.replace(/\s+/g, '')),
+   'the third render site was edited; only two rows carried this defect');
+
 sec('§9 · MUTATIONS — production code broken, sha256-restored');
 
 const PROBES = {
@@ -315,6 +407,30 @@ const PROBES = {
   '6.1':  () => !/onDragStart|onDragOver|onDrop\b|draggable/.test(code(BLOOM)),
   '6.2':  () => /onClick=\{\(e\)=>\{e\.stopPropagation\(\);setFiling\(r\);\}\}/.test(code(BLOOM).replace(/\s+/g, '')),
   '6.4':  () => !/fileReceipt\([^)]*,\s*null\s*\)/.test(code(BLOOM)),
+  '8a.1': () => {
+    const m = raw(BLOOM).match(/function fmtDate\(d:string\|null\|undefined\):string \{[\s\S]*?\n  \}/);
+    if (!m) return false;
+    let f; try { f = new Function(`${m[0].replace(/:string\|null\|undefined/g, '').replace(/\):string /, ') ')}; return fmtDate;`)(); } catch { return false; }
+    return ISO_SHAPES.every((iso) => !/\d{4}-\d{2}-\d{2}T/.test(f(iso)));
+  },
+  '8a.5': () => [...raw(BLOOM).matchAll(/fmtDate\(r\.receipt_date\|\|r\.created_at\)/g)].length === 3,
+  '8a.3': () => {
+    const m = raw(BLOOM).match(/function fmtDate\(d:string\|null\|undefined\):string \{[\s\S]*?\n  \}/);
+    if (!m) return false;
+    let f; try { f = new Function(`${m[0].replace(/:string\|null\|undefined/g, '').replace(/\):string /, ') ')}; return fmtDate;`)(); } catch { return false; }
+    const tz = process.env.TZ; process.env.TZ = 'America/New_York';
+    const out = f('2026-08-18'); process.env.TZ = tz;
+    return /18/.test(out);
+  },
+  '8a.6': () => {
+    const p = (raw(BLOOM).match(/const FileBtn[\s\S]*?\n  \};/) || [''])[0].replace(/\s+/g, '');
+    return /flexShrink:1/.test(p) && !/flexShrink:0/.test(p);
+  },
+  '8a.7': () => {
+    const p = (raw(BLOOM).match(/const FileBtn[\s\S]*?\n  \};/) || [''])[0].replace(/\s+/g, '');
+    const m = p.match(/minWidth:(\d+)/);
+    return !!m && parseInt(m[1], 10) > 0;
+  },
   '7.3':  () => {
     const c = (raw(CLIENT).match(/^\/\/ couple_receipts .*$/m) || [''])[0];
     return /couple_receipts interface:/.test(c) && c.includes('envelope_id')
@@ -367,6 +483,31 @@ const MUTATIONS = [
     from: `import { labelFor } from '@/lib/frost/categoryLabels';`,
     to:   `import { labelFor } from '@/lib/frost/categoryLabels';\nconst CAT_LABEL: Record<string, string> = { other: 'Something else' };`,
     why:  'a second home for the label map — the MOVE becomes a fork' },
+
+  { id: 'M11', file: BLOOM, reds: ['8a.1'],
+    from: `    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)){`,
+    to:   `    if(false){`,
+    why:  'F-15.8 reverts — the tray prints database timestamps again' },
+
+  { id: 'M11b', file: BLOOM, reds: ['8a.3'],
+    from: `    const dt=new Date(d+'T00:00:00');`,
+    to:   `    const dt=new Date(d);`,
+    why:  'the concat is "simplified" away — every western bride\'s receipt_date shifts back a day' },
+
+  { id: 'M12', file: BLOOM, reds: ['8a.6'],
+    from: `          flexShrink:1,minWidth:64,maxWidth:96,`,
+    to:   `          flexShrink:0,minWidth:64,maxWidth:96,`,
+    why:  'the pill stops yielding — the vendor name absorbs the whole overflow again' },
+
+  { id: 'M13', file: BLOOM, reds: ['8a.7'],
+    from: `          flexShrink:1,minWidth:64,maxWidth:96,`,
+    to:   `          flexShrink:1,maxWidth:96,`,
+    why:  'the floor goes — overflow:hidden lets the pill shrink to nothing' },
+
+  { id: 'M14', file: BLOOM, reds: ['8a.5'],
+    from: `                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>{fmtDate(r.receipt_date||r.created_at)}</div>`,
+    to:   `                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:4}}>{fmtDate(r.created_at)}</div>`,
+    why:  'a reader drops the receipt_date preference — the cure spreads past its radius' },
 
   { id: 'M10', file: BLOOM, reds: ['6.4'],
     from: `            <button key={env.id} onClick={()=>handleFile(filing.id,env.id)} disabled={saving}`,

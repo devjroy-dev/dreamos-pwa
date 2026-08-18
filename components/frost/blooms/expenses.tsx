@@ -112,8 +112,49 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   // its call sites: one edit moves every figure this screen renders, and a call site the
   // executor missed cannot keep rendering the old register.
   const fmtRs = (n:number) => formatRs(n); // TDW_09 R-U25: the file's SECOND identical declaration — both are pass-throughs to the one home // TDW_09 R-U25: a pass-through; the home is lib/vendor/format
+  // ── F-15.8's CURE (R-35.14, CE-35, 2026-08-18) ───────────────────────────
+  // TWO COLUMN SHAPES REACH THIS FUNCTION, and the old body could only read one.
+  // Every caller passes `r.receipt_date || r.created_at`:
+  //   · `receipt_date` is a `date`      -> '2026-08-18'
+  //   · `created_at`   is a `timestamptz` -> '2026-08-15T09:33:49.781224+00:00'
+  // A photo receipt has NO `receipt_date` (nothing sets it — there is no OCR on
+  // any plane), so the fallback fires and the timestamptz shape is the NORMAL
+  // case for the tray, not an edge one. The old body appended 'T00:00:00'
+  // unconditionally, producing '…+00:00T00:00:00' — an invalid Date — and the
+  // isNaN guard then handed the RAW DATABASE STRING to the surface. Live and
+  // visible: the founder walked it. ALL FOUR timestamptz spellings failed, not
+  // just the microsecond one ('…Z' and '…+05:30' too).
+  //
+  // ── THE SUFFIX SURVIVES FOR THE DATE-ONLY SHAPE, AND HERE IS WHY ─────────
+  // DO NOT "SIMPLIFY" THIS BY DROPPING THE CONCAT. A bare date string parses as
+  // UTC MIDNIGHT; the suffix forces LOCAL midnight. Derived by command:
+  //     TZ=America/New_York  new Date('2026-08-18')          -> 17 Aug 2026  WRONG
+  //                          new Date('2026-08-18T00:00:00')  -> 18 Aug 2026  right
+  // In IST the two agree, so the bug would be invisible to every seat testing
+  // from India and would shift a day for every bride west of Greenwich.
+  //
+  // ── AND THE TIMESTAMPTZ BRANCH RENDERS IN HER TIMEZONE, DELIBERATELY ─────
+  // '2026-08-15T21:00:00Z' reads 16 Aug in IST. That is the honest answer — the
+  // row shows the date SHE filed it, in her time — and it means a server-side
+  // report may legitimately differ from this row by one day. Not a defect.
+  //
+  // NO READER BYTE MOVED. The fallback was already wired at all three call
+  // sites before this cure, so the whole fix lives in this body.
+  //
+  // ── THE TIMESTAMPTZ BRANCH IS AN EARLY RETURN, AND THAT SHAPE IS DELIBERATE.
+  // A first draft folded both shapes into one ternary on the existing line —
+  // and `tdw13_d4_extraction`'s canary convicted it, because that line is
+  // RELOCATED CORPUS from the D-4 extraction and editing it would have wanted a
+  // NINTH ruled allowlist entry, unchartered by this micro. Branching above it
+  // leaves the date-only path BYTE-IDENTICAL to the tree it was extracted from,
+  // which is both true and useful: the old behaviour is provably unchanged for
+  // the shape that always worked.
   function fmtDate(d:string|null|undefined):string {
     if(!d) return '';
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){
+      const ts=new Date(d);
+      return isNaN(ts.getTime()) ? d : ts.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    }
     const dt=new Date(d+'T00:00:00');
     if(isNaN(dt.getTime())) return d;
     return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
@@ -282,11 +323,44 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   const FileBtn = ({r}:{r:CoupleReceipt}) => {
     const home = envelopes.find(e=>e.id===r.envelope_id);
     return (
+      // ── F-15.15's CURE (R-35.15, ARM P3) ─────────────────────────────────
+      // THE INVARIANT THIS STYLE HOLDS, and the reason each byte is what it is:
+      //   1 · THE VENDOR NAME IS NEVER FULLY CONSUMED BY THE PILL.
+      //   2 · THE PILL NEVER VANISHES ENTIRELY — it may ellipsise, because
+      //       `PHOTOG…` still names her envelope while `Ana…` named nothing.
+      //       That second failure WAS the disease, walked on device at 374px.
+      //
+      // WHAT WENT WRONG: this pill shipped `flexShrink:0` beside a text block
+      // that is `flex:1,minWidth:0`. A flex item with `flex-basis:0` has a
+      // SCALED shrink factor of zero, so the text block absorbed none of the
+      // overflow and ALL of it — the row's whole identity — while the pill kept
+      // every pixel of its 140. `Ananya Studio` became `Ana…` and the date
+      // wrapped to three lines the moment a long envelope name arrived.
+      //
+      // WHY BOTH BYTES, AND NOT EITHER ALONE:
+      //   · `maxWidth:96` alone (cap only) pins a pixel and holds at 374px by
+      //     arithmetic rather than by construction — it says nothing about 320.
+      //   · `flexShrink:1` alone is UNBOUNDED here: `overflow:hidden` makes this
+      //     item's `min-width:auto` resolve to 0, so the pill can shrink to
+      //     literally nothing and invariant 2 dies silently.
+      //   · Together with a floor, both invariants hold at every width.
+      //
+      // THE FLOOR IS DERIVED, NOT CHOSEN. Worst case is the `my` row at 320px:
+      // 320 − 2×24 gutter − 40 icon − 3×14 gaps − ~62 amount = 128px for
+      // [text | pill]. At the 96 cap the text keeps only 32px; at this 64 floor
+      // it keeps 64px — enough for an ellipsised name rather than none. The
+      // tray row carries no icon and is 40px better off everywhere.
+      //
+      // THE BENCH PINS THE INVARIANTS, NEVER THESE NUMBERS (F-15.12's doctrine):
+      // it asserts the pill can shrink AND has a nonzero floor AND is capped —
+      // structurally. It must never assert 96, 64, 320 or 374, or it becomes a
+      // tripwire against ever tuning this row again.
       <button onClick={(e)=>{e.stopPropagation();setFiling(r);}}
         style={{background:home?`${ac}14`:'transparent',border:`0.5px solid ${home?ac:line}`,
-          borderRadius:100,padding:'3px 10px',cursor:'pointer',flexShrink:0,
+          borderRadius:100,padding:'3px 10px',cursor:'pointer',
+          flexShrink:1,minWidth:64,maxWidth:96,
           fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',
-          textTransform:'uppercase' as any,color:home?ac:inkMute,maxWidth:140,
+          textTransform:'uppercase' as any,color:home?ac:inkMute,
           overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
         {home?home.name:ENVELOPE_COPY.file}
       </button>
