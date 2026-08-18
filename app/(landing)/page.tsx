@@ -524,7 +524,31 @@ export default function Home() {
       safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
       mirrorSessionToCookie(isVendor, sessionData);
 
-      const coupleNeedsOnboarding = !isVendor && !pinSet && !d.name;
+      // ── F-OB.14 · ARM 3b [R-35.12] ──────────────────────────────────────────
+      // `d.name` is the POST-WRITE witness that dream-os `/provision` began
+      // returning on 2026-08-18 (src/api/couple/auth.js). Until it existed the
+      // read was ALWAYS `undefined`, so `!d.name` was permanently true and this
+      // whole line collapsed to `!isVendor && !pinSet` — the name half was dead
+      // on arrival and had never once decided anything.
+      //
+      // WHY `||` AND NOT `&&`, which is the entire ruling. Two brides must reach
+      // the form and the old shape caught only one of them:
+      //   · PINLESS, any name — the term `!pinSet` alone. Preserved BYTE-EXACT,
+      //     deliberately: today every pinless couple routes here, and swapping to
+      //     `&& !d.name` would send a NAMED pinless bride to `/couple/pin`
+      //     instead. That is a regression, and §8 SCOPE LAW ranks a regression
+      //     worse than a missing feature.
+      //   · PINNED AND NAMELESS — the term `!d.name`. This is the case F-OB.14
+      //     was minted for: a returning bride from the nameless stock logs in,
+      //     `!pinSet` is false, and under the old shape the expression
+      //     short-circuited before her missing name was ever consulted. She went
+      //     to pin-login and never met the form. Now she does.
+      //
+      // The budget half of `brideComplete` is deliberately NOT consulted here
+      // [R-35.12]: a signup-door decision does not drag a second field into
+      // itself when the frost guard (app/(frost)/layout.tsx) already owns the
+      // whole verdict in-app.
+      const coupleNeedsOnboarding = !isVendor && (!pinSet || !d.name);
       if (coupleNeedsOnboarding) {
         router.push('/couple/onboarding');
       } else if (isVendor) {
@@ -830,7 +854,29 @@ export default function Home() {
                     </div>
                   </>
                 )}
-                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits || (role === 'Maker' && !joinCategory)} />
+                {/* THE NAME GATE — the founder's word, 2026-08-18: BOTH ROLES.
+                    The three terms are, in order: phone-invalid · trimmed-name-
+                    empty · (Maker AND category-empty).
+
+                    THE NAME TERM CARRIES NO ROLE GUARD, and that is the ruling
+                    rather than an oversight. This screen has been asymmetric its
+                    whole life — it gated the vendor's CRAFT and let anyone
+                    through without a NAME — and 20 of 38 couples on file with no
+                    name is what the asymmetry cost. A guard reading
+                    `role === 'Dreamer' && !joinName.trim()` would re-open the
+                    same hole one door over.
+
+                    `.trim()` and not truthiness: a name of one space is not a
+                    name, which is the same rule `brideComplete` refuses by at
+                    the onboarding form (dream-os
+                    src/lib/onboardingPredicate.js). The door and the form must
+                    not disagree about what a name is.
+
+                    The vendor category gate stands UNTOUCHED beside it. ZERO new
+                    copy: the button label, the field label at :800 and the
+                    placeholder at :804 all pre-date this, and a disabled button
+                    mints no string. */}
+                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits || !joinName.trim() || (role === 'Maker' && !joinCategory)} />
               </>
             )}
 
