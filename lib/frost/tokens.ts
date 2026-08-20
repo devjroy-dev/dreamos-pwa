@@ -445,10 +445,123 @@ export function getCoupleIdForFrost(): string | null {
 }
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// THE DAY BOUNDARY: ONE SEMANTIC, ONE HOME (pwa side) — R-35.23, F-15.17 CURED
+// ═════════════════════════════════════════════════════════════════════════════
+// THE RULED SEMANTIC: the estate serves THE WEDDING'S TIMEZONE, WHICH IS IST.
+// `couples.wedding_date` is a bare `date` — witnessed at its column LINE in
+// dream-os `docs/db/PUBLIC_SCHEMA.md`, block `## public.couples · 23 columns`,
+// line `4. wedding_date date` (F-SW.9 standing: headers are untrusted, column
+// LINES are the witness). A bare `date` carries no timezone, so there is no
+// "her local" to serve and none to guess at: the number she wakes to counts
+// mornings until an IST calendar day, wherever she happens to be standing.
+//
+// THE REFERENCE IMPLEMENTATION IS dream-os `src/agent/brideNudge.js` · symbol
+// `buildNudge`. It has been IST-correct since it was written and it is W-1's:
+// READ-ONLY by ruling, mirrored here and never folded. Its dream-os sibling of
+// this cure is `src/lib/istDay.js`, banked at `2a4c320`; that file's header
+// carries the same mechanism in full and is the long-form of the paragraph
+// below. If the three ever disagree, `buildNudge` is right.
+//
+// ONE DELIBERATE DIVERGENCE FROM THE REFERENCE, so no reader files it as a
+// mirroring error: `buildNudge` returns null for a wedding already past; both
+// cured doors CLAMP TO 0, because that is what they have always returned and
+// R-35.23 preserved it ("past-wedding clamps 0 in both, as today").
+//
+// ── WHAT STOOD HERE, AND WHY IT WAS WRONG (F-15.17) ─────────────────────────
+// `daysUntil` flattened BOTH operands with `.setHours(0,0,0,0)` — DEVICE-LOCAL
+// midnight — while the caller had built the target from a date-only string,
+// which ECMAScript parses as UTC midnight:
+//
+//     new Date('2027-02-14')           →  2027-02-14T00:00:00Z   (UTC midnight)
+//     new Date('2027-02-14T00:00:00')  →  local midnight          (host TZ)
+//
+// On an IST device the two happened to agree and the number was accidentally
+// right. WEST OF GREENWICH IT IS NOT: UTC midnight on the 14th is the evening
+// of the 13th in New York, so `.setHours(0,0,0,0)` flattened the target onto
+// the PREVIOUS local day and the count silently lost a day. Three copies of
+// this shape were live (this one, `app/coplanner/page.tsx`, and the zero-inbound
+// `app/components/couple/TodayHero.tsx`) and a fourth, `daysUntilEvent` in the
+// events bloom, is a DIFFERENT SUBJECT and correctly left alone.
+//
+// ── THE CURE, NAMED SO NOBODY SIMPLIFIES IT BACK ────────────────────────────
+// The cure is NOT to avoid the UTC parse. It is to reduce BOTH operands to an
+// IST CALENDAR-DAY KEY and then parse BOTH KEYS THE SAME WAY, so the shared UTC
+// basis CANCELS in the subtraction and what survives is a pure count of days
+// between two IST dates:
+//
+//     targetKey = istDayKey(<the wedding instant>)     'YYYY-MM-DD' in IST
+//     originKey = istDayKey(new Date())                'YYYY-MM-DD' in IST
+//     diff      = new Date(targetKey) − new Date(originKey)   both UTC midnight
+//
+// THE ANSWER THEREFORE DEPENDS ONLY ON THE WALL INSTANT, NEVER ON THE DEVICE'S
+// TIMEZONE. That is the ruled semantic stated as a property, and it is the
+// property the bench proves by running the same instant under several TZs.
+//
+// THREE "SIMPLIFICATIONS" PUT THE BUG STRAIGHT BACK, and all three have been
+// written in this estate before:
+//   1. Replacing an `istDayKey(...)` operand with a raw Date, or reintroducing
+//      `.setHours(0,0,0,0)` on either side — that is a local midnight measured
+//      against a UTC one, and the bases stop cancelling.
+//   2. Appending a time to a date-only string (`value + 'T00:00:00'`) — that
+//      flips one operand to local parsing and breaks the cancellation from the
+//      far end.
+//   3. "Optimising" `new Date(originKey)` to the `now` it was derived from.
+//      The key is the point: it is what strips the clock off the instant.
+//
+// [F-06.85 class: the paragraph above is conditioned on a MECHANICAL fact — that
+//  `couples.wedding_date` is a `date` and not a `timestamptz`. `istDayKey` takes
+//  the IST calendar day of whatever instant it is handed, so a widened column
+//  would keep working but would start meaning something subtly different. If
+//  that column moves, re-derive this header rather than trusting it.]
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+/** The IST calendar day of an instant, as a 'YYYY-MM-DD' key. Null if unparseable. */
+export function istDayKey(instant: Date): string | null {
+  const t = instant.getTime();
+  if (Number.isNaN(t)) return null;
+  return new Date(t + IST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * MORNINGS TO GO, counted in IST calendar days — THE ONE HOME.
+ *
+ * Returns null when there is no usable date. An ABSENT date and a wedding that
+ * has PASSED are different answers and are never conflated: absent is null (she
+ * has not told us), past is 0 (it is here or behind her). R-34.22's
+ * two-emptinesses discipline, one plane over.
+ *
+ * `Math.round` is carried from `buildNudge`. Both operands are exact UTC
+ * midnights so the quotient is already integral and the rounding mode cannot
+ * change the answer; it is mirrored for fidelity, not to correct anything.
+ */
+export function daysUntilIst(target: Date | string | null | undefined): number | null {
+  if (target === null || target === undefined || target === '') return null;
+  const asDate = target instanceof Date ? target : new Date(target);
+  const targetKey = istDayKey(asDate);
+  if (!targetKey) return null;
+  const originKey = istDayKey(new Date());
+  if (!originKey) return null;
+  const diff = Math.round(
+    (new Date(targetKey).getTime() - new Date(originKey).getTime()) / (1000 * 60 * 60 * 24)
+  );
+  return diff > 0 ? diff : 0;
+}
+
+/**
+ * The masthead's reader. Signature preserved byte-for-byte for its callers in
+ * `app/(frost)/frost/canvas/sanctuary/page.tsx`, which pass a Date from
+ * `getWeddingDate()` — either a session `wedding_date` or the `DEMO_WEDDING`
+ * constant, both of which `istDayKey` reduces correctly.
+ *
+ * ONE BEHAVIOUR CHANGE, STATED RATHER THAN SLIPPED IN: an unparseable target
+ * used to yield NaN (`Math.max(0, NaN)` is NaN) and now yields 0. It is not
+ * reachable from `getWeddingDate`, which always returns a valid Date — but a
+ * masthead rendering "NaN" is worse than one rendering "0", and a silent
+ * improvement is still a change.
+ */
 export function daysUntil(target: Date): number {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const t = new Date(target); t.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.round((t.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  return daysUntilIst(target) ?? 0;
 }
 
 export function dayNumberToWords(n: number): string {

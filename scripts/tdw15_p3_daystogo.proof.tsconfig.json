@@ -1,0 +1,19 @@
+{
+  "//": "TDW_15 P3 ZIP2 — standalone compile config for scripts/tdw15_p3_daystogo.proof.ts.",
+  "//2": "The proof imports the REAL lib/frost/tokens, which the repo resolves through the",
+  "//3": "`@/*` alias elsewhere; this config supplies exactly that alias and nothing else.",
+  "//4": "No error is suppressed — noEmitOnError is ON, so a type error stops the run.",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": { "@/*": ["./*"] },
+    "module": "commonjs",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmitOnError": true,
+    "types": ["node"]
+  },
+  "files": ["tdw15_p3_daystogo.proof.ts"]
+}

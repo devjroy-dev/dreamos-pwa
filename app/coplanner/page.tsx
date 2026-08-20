@@ -6,6 +6,7 @@ import {
   useCircleSession, brideId, brideName, memberName, circleAuthHeaders, circleRefused } from './CircleSessionContext';
 import { waNumberFor } from '../../lib/waNumbers';
 import { ASSIGN_TRAY_HEAD } from '../../lib/circle/assignCopy';
+import { daysUntilIst } from '@/lib/frost/tokens';   // R-35.23 · the one day-boundary home
 
 // ── TDW_14 · D-4b ③ · THE MEMBER'S TRAY ──────────────────────────────────────
 //
@@ -57,16 +58,22 @@ interface CoupleProfile {
   groom_name?: string | null;
 }
 
-function daysUntil(dateStr: string | null | undefined): number | null {
-  if (!dateStr) return null;
-  const target = new Date(dateStr);
-  if (Number.isNaN(target.getTime())) return null;
-  target.setHours(0, 0, 0, 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.round((target.getTime() - today.getTime()) / 86_400_000));
-}
-
+// ── R-35.23 · THE FOLD — one number across both planes (F-15.17) ─────────────
+// A LOCAL `daysUntil` STOOD HERE and it carried the device-local basis the whole
+// estate has now abandoned: it flattened both operands with `.setHours(0,0,0,0)`
+// while the caller's `profile.wedding_date` arrived as a date-only string that
+// ECMAScript had already parsed as UTC midnight. On an IST device it agreed with
+// the bride's masthead by luck; west of Greenwich the target fell onto the
+// previous local day and the two planes disagreed about the same wedding.
+//
+// THAT IS WHY THIS FOLDS RATHER THAN GETTING ITS OWN CURE. This is the CIRCLE
+// MEMBER's surface. A mother and a bride reading different numbers off one
+// wedding is the failure the ruling exists to prevent, and the fix is one home,
+// not two correct copies. The semantic, the UTC-parse trap and the three
+// simplifications that reinstate it are written out ONCE, at the import below.
+//
+// The null arm is PRESERVED, not widened: `daysUntilIst` returns null for an
+// absent date exactly as the local copy did, and `days` is still `number | null`.
 function timeAgo(d: string): string {
   const t = new Date(d).getTime();
   if (Number.isNaN(t)) return '';
@@ -247,7 +254,7 @@ export default function CoplannerHome() {
     return () => { cancelled = true; };
   }, [bride_id]);
 
-  const days = daysUntil(profile?.wedding_date);
+  const days = daysUntilIst(profile?.wedding_date);
 
   return (
     <>
