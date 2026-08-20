@@ -292,6 +292,33 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
   //
   // A ZERO CEILING RENDERS THE RAIL AND NOTHING ELSE. There is no ratio to
   // draw, and a full bar over a ceiling she has not set yet would invent alarm.
+  // ── F-15.15 · PASS 2's ONE BYTE (R-35.16, arm Q1) ────────────────────────
+  // THIS IS THE OVERFLOW TRIGGER. DO NOT DELETE IT AS NOISE — without it every
+  // shrink byte on the file pill below is DECORATIVE, and that is not a theory:
+  // pass 1 shipped `flexShrink:1, minWidth:64` on the pill and the founder
+  // photographed a row reading `A…` at 320px, because the shrink pass NEVER RAN.
+  //
+  // WHY IT NEVER RAN. The text block is `flex:1`, which is `flex-basis:0`. A
+  // zero basis gives it a SCALED SHRINK FACTOR OF ZERO, so it absorbs no
+  // shrinkage — and, crucially, it never CREATES overflow either. It simply
+  // takes whatever free space is left after the fixed children. No overflow
+  // means no shrink pass, so the pill sat at its full cap at every width and its
+  // floor was never reached. Give the text a real minimum and the row can
+  // finally overflow, which is the only thing that makes the pill yield.
+  //
+  // THE FIGURE IS DERIVED, and every input below was read from this file and
+  // `lib/frost/tokens.ts`, not assumed. Worst case is the `my` row at 320px:
+  //   320 − 2×24 gutter − 40 icon − 3×14 gaps − ~58 amount = 132px for [text|pill]
+  //   132 − 64 (the pill's floor) = 68
+  // At 68 the two land exactly full: text 68, pill driven down to exactly 64.
+  // At 374 nothing changes — free space is 90px, above this minimum, so the
+  // clamp never engages and the width the founder witnessed green is untouched.
+  //
+  // BELOW 320 THE ROW GENUINELY OVERFLOWS, and that cost is accepted by ruling
+  // rather than hidden: 320 is the floor this estate stands on, and an honest
+  // overflow below it beats a starved name at it.
+  const TEXT_MIN = 68;
+
   const HAIR_THRESHOLD = 0.9;
   const Hairline = ({spent,ceiling}:{spent:number;ceiling:number}) => {
     const ratio = ceiling>0 ? spent/ceiling : 0;
@@ -337,19 +364,27 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
       // every pixel of its 140. `Ananya Studio` became `Ana…` and the date
       // wrapped to three lines the moment a long envelope name arrived.
       //
-      // WHY BOTH BYTES, AND NOT EITHER ALONE:
-      //   · `maxWidth:96` alone (cap only) pins a pixel and holds at 374px by
-      //     arithmetic rather than by construction — it says nothing about 320.
-      //   · `flexShrink:1` alone is UNBOUNDED here: `overflow:hidden` makes this
-      //     item's `min-width:auto` resolve to 0, so the pill can shrink to
-      //     literally nothing and invariant 2 dies silently.
-      //   · Together with a floor, both invariants hold at every width.
+      // ── CORRECTED AT PASS 2 (R-35.16). THE PROSE THAT STOOD HERE WAS FALSE,
+      // and it is rewritten rather than patched because a future seat would
+      // otherwise inherit a comment the founder's device had already disproved.
+      // It claimed the 64 floor rescued the 32px case. IT DID NOT: it derived
+      // that the text keeps 32px at the cap and then assumed the floor would
+      // rescue it, WITHOUT CHECKING THAT ANYTHING EVER INVOKES THE FLOOR. The
+      // founder photographed `A…` at 320px. The number in that comment was
+      // exactly the number on the screen.
       //
-      // THE FLOOR IS DERIVED, NOT CHOSEN. Worst case is the `my` row at 320px:
-      // 320 − 2×24 gutter − 40 icon − 3×14 gaps − ~62 amount = 128px for
-      // [text | pill]. At the 96 cap the text keeps only 32px; at this 64 floor
-      // it keeps 64px — enough for an ellipsised name rather than none. The
-      // tray row carries no icon and is 40px better off everywhere.
+      // WHAT EACH BYTE ACTUALLY DOES, now that the trigger exists:
+      //   · `TEXT_MIN` on the row's text block — THE TRIGGER. It is the only
+      //     reason this row can overflow, and overflow is the only thing that
+      //     starts the shrink pass. See its declaration above for the derivation.
+      //   · `flexShrink:1` here — makes this pill the item that YIELDS once that
+      //     pass runs. Inert without the trigger; load-bearing with it.
+      //   · `minWidth:64` here — invariant 2's guard. `overflow:hidden` makes
+      //     this item's `min-width:auto` resolve to 0, so without this floor the
+      //     shrink pass would now happily take the pill to nothing.
+      //   · `maxWidth:96` here — the resting width when space is plentiful, so
+      //     a long envelope name never claims the row on a wide screen.
+      // The four are one mechanism. Removing any one of them re-opens F-15.15.
       //
       // THE BENCH PINS THE INVARIANTS, NEVER THESE NUMBERS (F-15.12's doctrine):
       // it asserts the pill can shrink AND has a nonzero floor AND is capped —
@@ -437,7 +472,7 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
           {myExpenses.map(r=>(
             <div key={r.id} onClick={()=>setConfirmId(r.id)} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
               <div style={{width:40,height:40,borderRadius:8,background:cardBg,border:`0.5px solid ${cardBdr}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute}}>EXP</div>
-              <div style={{flex:1,minWidth:0}}>
+              <div style={{flex:1,minWidth:TEXT_MIN}}>
                 <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.vendor_name||r.description||'Expense'}</div>
                 <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{fmtDate(r.receipt_date||r.created_at)}</div>
               </div>
@@ -593,7 +628,7 @@ export function ExpensesRoom({ dark, accent }: ExpensesRoomProps) {
           {unfiled.length===0&&<div style={{padding:`${FS.s5}px ${FS.gutter}px`,textAlign:'center' as any,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontSize:16,color:inkSoft,fontFeatureSettings:'"opsz" 9'}}>{ENVELOPE_COPY.emptyTray}</div>}
           {unfiled.map(r=>(
             <div key={r.id} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`}}>
-              <div style={{flex:1,minWidth:0}}>
+              <div style={{flex:1,minWidth:TEXT_MIN}}>
                 <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,color:ink,fontFeatureSettings:'"opsz" 9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.vendor_name||r.description||'Receipt'}</div>
                 <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginTop:2}}>{fmtDate(r.receipt_date||r.created_at)}</div>
               </div>

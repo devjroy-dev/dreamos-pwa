@@ -384,9 +384,62 @@ ok('8a.8', 'the pill IS CAPPED, and the cap sits above the floor',
 /* 8a.9 — the row's identity keeps a shrinkable share of its own. Without
    minWidth:0 on the text block the ellipsis never engages and the row overflows
    instead of truncating. */
-ok('8a.9', 'the text block still declares the shrinkable share the ellipsis needs',
-   /flex:1,minWidth:0/.test(bloomSrc.replace(/\s+/g, '')),
-   'the row identity lost its minWidth:0 and can no longer ellipsise');
+/* ── AMENDED, LABELLED — F-15.15 PASS 2 (R-35.16, CE-35, 2026-08-20) ───────
+   8a.9 asserted that the text block declares `minWidth:0`. That was TRUE and
+   INSUFFICIENT, and pass 1 shipped green over a founder-witnessed failure
+   because of it: a zero minimum is exactly what let the row starve the vendor
+   name to `A…` at 320px, since a `flex-basis:0` block can never create the
+   overflow that starts the shrink pass. The cell watched the wrong end.
+
+   IT NOW ASSERTS THE MECHANISM'S PRECONDITION: both bitten rows declare a
+   POSITIVE minimum. That is a surface assertion of the invariant's TRIGGER, not
+   a pixel pin — no number appears in the cell, so the figure can be retuned
+   without touching a bench (F-15.12's doctrine).
+
+   AND THE HONEST LIMIT, STATED: this bench cannot witness layout. It can only
+   witness that the thing WHICH MAKES the layout possible is present. The pixels
+   remain the founder walk's, at 374 AND 320, and pass 1 is the standing proof
+   that a green bench is not a walked row. */
+const textMins = [...bloomSrc.matchAll(/<div style=\{\{flex:1,minWidth:([A-Za-z_0-9]+)\}\}>/g)]
+  .map((m) => m[1]);
+const declared = (bloomSrc.match(/const TEXT_MIN = (\d+);/) || [])[1];
+ok('8a.9', 'BOTH bitten rows declare a POSITIVE text minimum — the overflow trigger exists',
+   textMins.filter((v) => v === 'TEXT_MIN').length === 2 &&
+   !!declared && parseInt(declared, 10) > 0,
+   `text minimums found: ${textMins.join(', ')} · TEXT_MIN=${declared}`);
+/* 8a.9a — control: the trigger is NARROW. The Receipts row stacks its pill in a
+   COLUMN and so never competed with its text; it keeps `minWidth:0` and must not
+   be dragged into a cure it never needed (R-33.2, R-35.15's byte-untouched
+   clause).
+
+   IT NAMES THAT ROW BY WHAT IT CONTAINS, NOT BY A COUNT. A first draft asserted
+   "at least one zero remains" and stayed GREEN under the very mutation that
+   spread the cure into this row, because an unrelated bookings row also carries
+   a zero — a control that counts instead of identifying is no control at all.
+   S3 renders in the Receipts row and nowhere else, so it is the landmark. */
+const receiptsTextMin = (() => {
+  const i = bloomSrc.indexOf('ENVELOPE_COPY.photoUntyped');
+  if (i < 0) return null;
+  const before = bloomSrc.slice(0, i);
+  const j = before.lastIndexOf('<div style={{flex:1,minWidth:');
+  if (j < 0) return null;
+  return (before.slice(j).match(/minWidth:([A-Za-z_0-9]+)\}\}>/) || [])[1] ?? null;
+})();
+ok('8a.9a', 'control: the Receipts row — identified by S3, which renders there alone — keeps its zero minimum',
+   receiptsTextMin === '0',
+   `the Receipts row's text block declares minWidth:${receiptsTextMin}`);
+ok('8a.9b', 'the pill still yields and still cannot vanish — pass 1\'s bytes, now with a trigger',
+   /flexShrink:1/.test(pillStyle) && (num('minWidth') || 0) > 0 &&
+   (num('maxWidth') || 0) > (num('minWidth') || 0),
+   `pill: ${pillStyle.slice(0, 100)}`);
+ok('8a.9c', 'the corrected prose stands where the false prose stood — no witnessed-false comment ships',
+   /THE PROSE THAT STOOD HERE WAS FALSE/.test(bloomSrc) &&
+   !/it keeps 64px — enough for an ellipsised name rather than none/.test(bloomSrc),
+   'the disproved comment is still in the tree');
+
+ok('8a.9old', 'ellipsis is still possible — a bounded minimum with hidden overflow, never an unbounded row',
+   /overflow:'hidden',textOverflow:'ellipsis'/.test(bloomSrc),
+   'the row identity can no longer ellipsise');
 /* 8a.10 — RADIUS. The Receipts row stacks amount/pill/✕ in a COLUMN, so the
    pill never competed with text there and R-35.15 ships it byte-untouched. */
 ok('8a.10', 'the Receipts row\'s column stack is untouched — the cure did not spread to a row that was never sick',
@@ -421,6 +474,21 @@ const PROBES = {
     const tz = process.env.TZ; process.env.TZ = 'America/New_York';
     const out = f('2026-08-18'); process.env.TZ = tz;
     return /18/.test(out);
+  },
+  '8a.9': () => {
+    const b = raw(BLOOM);
+    const mins = [...b.matchAll(/<div style=\{\{flex:1,minWidth:([A-Za-z_0-9]+)\}\}>/g)].map((m) => m[1]);
+    const d = (b.match(/const TEXT_MIN = (\d+);/) || [])[1];
+    return mins.filter((v) => v === 'TEXT_MIN').length === 2 && !!d && parseInt(d, 10) > 0;
+  },
+  '8a.9a': () => {
+    const b = raw(BLOOM);
+    const i = b.indexOf('ENVELOPE_COPY.photoUntyped');
+    if (i < 0) return false;
+    const before = b.slice(0, i);
+    const j = before.lastIndexOf('<div style={{flex:1,minWidth:');
+    if (j < 0) return false;
+    return ((before.slice(j).match(/minWidth:([A-Za-z_0-9]+)\}\}>/) || [])[1] ?? null) === '0';
   },
   '8a.6': () => {
     const p = (raw(BLOOM).match(/const FileBtn[\s\S]*?\n  \};/) || [''])[0].replace(/\s+/g, '');
@@ -493,6 +561,16 @@ const MUTATIONS = [
     from: `    const dt=new Date(d+'T00:00:00');`,
     to:   `    const dt=new Date(d);`,
     why:  'the concat is "simplified" away — every western bride\'s receipt_date shifts back a day' },
+
+  { id: 'M15', file: BLOOM, reds: ['8a.9'],
+    from: `  const TEXT_MIN = 68;`,
+    to:   `  const TEXT_MIN = 0;`,
+    why:  'the trigger goes to zero — the row can no longer overflow and every shrink byte on it goes inert again (pass 1\'s exact disease)' },
+
+  { id: 'M16', file: BLOOM, reds: ['8a.9a'],
+    from: `\n              <div style={{flex:1,minWidth:0}}>\n`,
+    to:   `\n              <div style={{flex:1,minWidth:TEXT_MIN}}>\n`,
+    why:  'the cure spreads to the Receipts row, which stacks its pill in a column and was never bitten' },
 
   { id: 'M12', file: BLOOM, reds: ['8a.6'],
     from: `          flexShrink:1,minWidth:64,maxWidth:96,`,
