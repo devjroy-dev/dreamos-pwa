@@ -10,6 +10,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FT, FS, FI, getCoupleIdForFrost } from '@/lib/frost/tokens';
 import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
+// ── TDW_15 P3.3 · THE 07 IMAGE DISCIPLINE, ADOPTED NOT RE-IMPLEMENTED ────────
+// `lib/img.ts` is the ONE home for Cloudinary delivery (card w_800 · thumb w_200
+// · full w_1600 · LQIP w_24,e_blur:1000, each with q_auto/f_auto), addressed at
+// the two paths the 07 spec names. Four surfaces already ride it —
+// blooms/discover.tsx, blooms/muse.tsx, the sanctuary conductor and
+// vendor/portfolio — and this bloom was the last frost image surface that did
+// not. No variant is added here and no second table is written; that is the
+// whole of the spec's "nothing clever".
+//
+// READ THE PASS-THROUGH RULE BEFORE TRUSTING EITHER CALL: both helpers transform
+// ONLY when the segment after `/image/upload/` is `v<digits>`, and return any
+// other URL BYTE-UNCHANGED. So a moment whose `image_url` is not a canonical
+// Cloudinary upload renders exactly as it does today — this delivery cannot
+// break a row it does not recognise, which is why the adoption is safe to make
+// unconditionally rather than behind a shape test of its own.
+//
+// ── THE TWO LINES BELOW ARE RULED EDITS TO A VERBATIM RELOCATION (R-35.25) ───
+// This file is a D-4 relocation under F-1 and `scripts/tdw13_d4_extraction`
+// holds every relocated line. The two `<img src>` sites this limb rewrites are
+// the NINTH and TENTH entries of that canary's allowlist, granted by R-35.25 and
+// labelled there one at a time. An ELEVENTH eaten line still reddens it. If you
+// are about to edit a third line in this file, you need a ruling first — that is
+// the property, not an obstacle.
+import { imgUrl, lqipUrl } from '@/lib/frost-api/img';
 
 
 // ── MOMENTS ROOM ──────────────────────────────────────────────────────────────
@@ -143,7 +167,10 @@ export function MomentsRoom({ dark, accent }: MomentsRoomProps) {
 
       {/* Full-screen viewer */}
       {fullImg&&<div onClick={()=>setFullImg(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.96)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center'}}>
-        <img src={fullImg} alt="" style={{maxWidth:'96vw',maxHeight:'92vh',objectFit:'contain',borderRadius:4}}/>
+        {/* R-35.25 · NINTH ENTRY. `full` (w_1600) rather than the raw original:
+            the viewer is a phone screen and the original can be several megabytes
+            of camera JPEG. */}
+        <img src={imgUrl(fullImg,'full')} alt="" style={{maxWidth:'96vw',maxHeight:'92vh',objectFit:'contain',borderRadius:4}}/>
         <button onClick={()=>setFullImg(null)} style={{position:'absolute',top:24,right:20,background:'rgba(240,237,232,.12)',border:'none',borderRadius:20,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'rgba(240,237,232,.8)',fontSize:18}}>✕</button>
       </div>}
 
@@ -210,7 +237,14 @@ export function MomentsRoom({ dark, accent }: MomentsRoomProps) {
               <div onClick={()=>setFullImg(m.image_url)}
                 style={{width:'100%',aspectRatio:FI.plateRatio,borderRadius:FI.plateRadius,overflow:'hidden',
                   cursor:'zoom-in',background:'#1a1714',position:'relative'}}>
-                <img src={m.image_url} alt={m.caption||''} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
+                {/* R-35.25 · TENTH ENTRY. The two-layer plate: a few-hundred-byte
+                    blurred wash that lands immediately, and the card variant over
+                    it — byte-for-byte the pattern blooms/discover.tsx uses at its
+                    own plate. What this replaces was a FULL-SIZE ORIGINAL served
+                    into a small tile with nothing but `loading="lazy"`: right on
+                    wifi, expensive on a phone, and the reason this limb exists. */}
+                <img src={lqipUrl(m.image_url)} alt="" aria-hidden draggable={false} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}/>
+                <img src={imgUrl(m.image_url,'card')} alt={m.caption||''} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',display:'block'}} loading="lazy"/>
                 <div style={{position:'absolute',top:FS.s2,left:FS.gutter,right:FS.gutter,display:'flex',alignItems:'center',gap:FS.s1,pointerEvents:'none'}}>
                   <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:isFirst?accent2:ink,textShadow:'0 1px 14px rgba(0,0,0,.9)'}}>
                     {fmtDate(m.created_at)}{dayLabel?` · ${dayLabel}`:''}

@@ -144,6 +144,33 @@ const RULED_EDITS = [
   // claim, where "roughly nothing changed" would not be. The allowlist grows by
   // RULING and one entry at a time, never by widening a pattern.
   "type ExpenseSlice = 'my'|'vendor'|'receipts';",
+  // ── NINTH ENTRY, ADDED BY RULING — TDW_15 · P3.3 (R-35.25, CE-35, 2026-08-20)
+  // P3.3 puts the moments viewer on the 07 image discipline's `full` variant
+  // (w_1600) instead of the raw original, because the viewer is a phone screen
+  // and a camera JPEG can be several megabytes. The `src` IS the cure, so the
+  // line cannot survive it.
+  //
+  // VERIFIED PRESENT IN THE PRE-EXTRACTION CORPUS BEFORE BEING HONOURED, and the
+  // derivation is shown in the delivery rather than asserted: at `b1448c4` the
+  // conductor carries this line at absolute 3674, inside the moments span
+  // [3542, 3810] this file's own map declares — relative line 133. Cell 2a0
+  // re-checks that mechanically on every run, so a stale exemption cannot widen
+  // the bar after the line it names has gone.
+  '        <img src={fullImg} alt="" style={{maxWidth:\'96vw\',maxHeight:\'92vh\',objectFit:\'contain\',borderRadius:4}}/>',
+  // ── TENTH ENTRY, ADDED BY RULING — TDW_15 · P3.3 (R-35.25, CE-35, 2026-08-20)
+  // The grid tile gains an LQIP wash beneath a `card` variant (w_800), replacing
+  // a full-size original served into a small tile behind nothing but
+  // `loading="lazy"`. Same reason the ninth entry cannot survive: the `src` is
+  // the subject.
+  //
+  // VERIFIED PRESENT AT `b1448c4`: absolute 3741, inside the same moments span
+  // [3542, 3810] — relative line 200.
+  //
+  // TEN, AND AN ELEVENTH STILL REDS. R-35.25 granted these ONE AT A TIME, each
+  // labelled with its ruling, exactly as R-34.54 granted the eighth. The
+  // allowlist has never grown by a pattern and must not start: "nothing changed
+  // except these ten things" is a real claim; "roughly nothing changed" is not.
+  '                <img src={m.image_url} alt={m.caption||\'\'} style={{width:\'100%\',height:\'100%\',objectFit:\'cover\',display:\'block\'}} loading="lazy"/>',
 ];
 const STALE_EXEMPTIONS = RULED_EDITS.filter((l) => !moved.includes(l));
 ok('2a0. every ruled exemption names a line that was actually relocated',
@@ -151,10 +178,10 @@ ok('2a0. every ruled exemption names a line that was actually relocated',
    `${STALE_EXEMPTIONS.length} stale: ${STALE_EXEMPTIONS.map((l) => l.trim().slice(0, 40)).join(' | ')}`);
 
 const eaten = moved.filter((l) => !haystack.includes(l) && !RULED_EDITS.includes(l));
-ok('2a. every relocated line still exists, except the eight edited by ruling',
+ok('2a. every relocated line still exists, except the ten edited by ruling',
    eaten.length === 0,
    `${eaten.length} eaten, first: ${(eaten[0] || '').trim().slice(0, 70)}`);
-ok('2a2. control: the exemption is NARROW — all eight ruled lines really are gone',
+ok('2a2. control: the exemption is NARROW — all ten ruled lines really are gone',
    RULED_EDITS.every((l) => !haystack.includes(l)),
    'a ruled exemption is covering a line that never moved, which widens the ' +
    'cell for nothing and would hide the next real eat');
