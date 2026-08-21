@@ -16,7 +16,7 @@ import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, FT, FS, FI, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';
 import { streamBrideChat } from '../../../../../lib/frost-api/couple';
-import { fetchEnvelopes, type BudgetEnvelope, fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, saveProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
+import { fetchCircle, inviteCircleMember, removeCircleMember, fetchMemberFeed, timeAgo, formatActivityLine, fetchEvents, fetchReceipts, deleteReceipt, fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment, fetchProfile, saveProfile, fetchEnquiries, type CircleData, type CircleActivity, type CircleMember, type CoupleEvent, type CoupleReceipt, type CoupleBooking, type CoupleProfile, type CoupleEnquiry } from '../../../../../lib/frost/journey';
 import { fetchMuseSaves, deleteMuseSave, uploadMuseImage, createMuseSaveFromUrl, fetchSaveActivity, saveVendorToMuse } from '../../../../../lib/frost-api/muse';
 import { fetchDiscoverFeed, makeEnquireLink } from '../../../../../lib/frost-api/discover';
 import type { DiscoverVendor } from '../../../../../lib/types/discover';
@@ -82,13 +82,6 @@ interface UIMsg {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-// TDW_15 P3 · the pulse's fill threshold. SIBLING, NOT SOURCE: the shipped
-// per-envelope hairline declares its own `HAIR_THRESHOLD` at the same 0.9 in
-// components/frost/blooms/expenses.tsx. Two homes for one number is a real
-// defect and it is DECLARED here rather than cured — collapsing it edits a
-// sealed P2 surface, which R-1's narrowing puts outside this sitting.
-const PULSE_THRESHOLD = 0.9;
-
 const DEMO_WEDDING    = new Date('2026-11-19T00:00:00+05:30');
 const DEMO_ENGAGEMENT = new Date('2026-04-11T00:00:00+05:30');
 
@@ -244,17 +237,6 @@ export default function SanctuaryPage() {
   const [proseLine,  setProseLine]  = useState('');
   const [poetry,     setPoetry]     = useState('');
   const [sinceYes,   setSinceYes]   = useState<number|null>(null);
-  // ── THE BUDGET PULSE — TDW_15 P3 · R-1 ARM (a), NARROWED BY THE FOUNDER TO
-  //    THE PULSE ALONE (founder word "1", 2026-08-20). HER EYES ONLY.
-  //
-  // ONE element joins the approved masthead and NOTHING ELSE MOVES. The block
-  // below this state is founder-drawn ink — its own comment calls it "the
-  // approved masthead" and "the approved mock" — so this is an addition under a
-  // fresh veto, not a finish, and the eps-3 Dream fence stands honoured.
-  //
-  // `null` until the first read answers, which is also the honest empty state:
-  // the element renders NOTHING until there is something true to draw (C-4).
-  const [pulse, setPulse] = useState<{spent:number;ceiling:number}|null>(null);
   // Live hints from backend — fetched on mount
   // F-09.166, second face: these three asserted a state before it was known
   // ("quiet" on a Circle that may be busy). Emptied for the same reason — the rail
@@ -696,32 +678,6 @@ function timeAgoShort(iso:string):string {
   // file that already owes F-13.5 for the first two.
   useEffect(()=>{ if(activeRoom!=='discover') setBetaGateAcked(false); },[activeRoom]);
 
-  // ── THE PULSE'S ONE READ ─────────────────────────────────────────────────
-  // `fetchEnvelopes` already exists in lib/frost/journey.ts and rides that
-  // module's `apiFetch` -> API_BASE. THERE IS NO NEW FETCH HERE and no new
-  // literal: F-15.16 is satisfied by construction, not by care.
-  //
-  // It aggregates client-side over a response the estate already serves. The
-  // door computes `spent` per envelope itself, so no aggregate door was needed
-  // and none was built (the read-first costed both arms and this is the cheap
-  // one).
-  //
-  // FAILURE IS SILENCE, DELIBERATELY. A refused or empty read leaves `pulse`
-  // null and the element simply does not render. An error state on a masthead
-  // would be a worse thing to wake up to than an absent hairline.
-  useEffect(()=>{
-    let dead = false;
-    fetchEnvelopes()
-      .then((envs: BudgetEnvelope[])=>{
-        if (dead) return;
-        const ceiling = (envs||[]).reduce((a,e)=>a+(Number.isFinite(e.amount_inr)?e.amount_inr:0), 0);
-        const spent   = (envs||[]).reduce((a,e)=>a+(Number.isFinite(e.spent)?e.spent:0), 0);
-        setPulse({ spent, ceiling });
-      })
-      .catch(()=>{ /* silence — see above */ });
-    return ()=>{ dead = true; };
-  }, []);
-
   // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
   // Opens the Dream bloom and prefills the input with the suggested prompt.
   // ── Listen for frost:open-dream — fired by Events "Ask DreamAi" button ────
@@ -969,46 +925,6 @@ function timeAgoShort(iso:string):string {
           {proseLine.split(/(I will|I do)/g).map((p,i)=>p==='I will'||p==='I do'?<span key={i} style={{color:accent,fontWeight:400}}>{p}</span>:<span key={i}>{p}</span>)}
         </div>
         {sinceYes>0&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:FT.engravedSm,letterSpacing:FS.track,textTransform:'uppercase' as any,color:signal,marginTop:FS.s2}}>↑ {sinceYes} days since you said yes <span style={{color:inkMute}}>· {weekday}</span></div>}
-        {/* ── THE BUDGET PULSE ──────────────────────────────────────────────
-            FOUNDER DESIGN VETO, GRANTED VERBATIM 2026-08-20: "placement beneath
-            the signal line, wordless 2px hairline, line/inkSoft/accent at 90%,
-            absent entirely at zero envelopes." That sentence is the hash;
-            editing this element is a FRESH VETO, not a tweak.
-
-            WHY IT IS WORDLESS, and this is a correctness argument rather than a
-            style one. `spent` sums TYPED amounts over FILED receipts only — a
-            filed photo receipt with a null amount contributes zero (R-34.22,
-            stated in dream-os `src/api/couple/envelopes.js`'s own header and in
-            `BudgetEnvelope`'s doc comment). It is an HONEST FLOOR, not a total.
-            A figure or a percentage would assert precision the number does not
-            have. The per-envelope hairlines in the expenses bloom say the same
-            thing the same way, for the same reason.
-
-            THE IDIOM IS ADOPTED, NOT INVENTED: `Hairline` in
-            components/frost/blooms/expenses.tsx — 2px track in `line`, fill at
-            min(ratio,1), `inkSoft` below the threshold and the accent at or past
-            it, borderRadius 2.
-
-            TWO HOMES, DECLARED NOT SILENTLY CREATED (§0.2). The 0.9 threshold
-            now exists here AND as `HAIR_THRESHOLD` in that bloom. Giving it one
-            home means editing a sealed P2 surface, and R-1 narrows this sitting
-            to the pulse alone — so the duplication is REPORTED for a one-home
-            ruling rather than cured by a seat that was not asked to. No cell
-            pins where it lives (F-15.12).
-
-            ABSENCE (C-4): no envelopes, or every ceiling at zero, and this
-            renders NOTHING — no empty track, no placeholder, no text. She sees
-            the masthead she already approved until there is something true to
-            draw. The `ceiling>0` guard is the whole absence rule; it also keeps
-            the ratio's divisor honest. */}
-        {pulse&&pulse.ceiling>0&&(()=>{
-          const ratio = pulse.spent/pulse.ceiling;
-          return (
-            <div style={{height:2,borderRadius:2,background:line,overflow:'hidden',marginTop:FS.s2}}>
-              <div style={{height:'100%',width:`${Math.min(ratio,1)*100}%`,background:ratio>=PULSE_THRESHOLD?accent:inkSoft,borderRadius:2}}/>
-            </div>
-          );
-        })()}
       </div>
 
       {/* Slices — dynamic hints */}
