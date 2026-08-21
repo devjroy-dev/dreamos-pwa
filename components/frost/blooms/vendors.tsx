@@ -10,7 +10,9 @@
 import React, { useState, useEffect } from 'react';
 import { FS } from '@/lib/frost/tokens';
 import { fetchBookings, createBooking, updateBooking, deleteBooking, recordPayment,
-         fetchEnquiries, type CoupleBooking, type CoupleEnquiry } from '@/lib/frost/journey';
+         fetchEnquiries, fetchEnvelopeCategories,
+         type CoupleBooking, type CoupleEnquiry } from '@/lib/frost/journey';
+import { labelFor } from '@/lib/frost/categoryLabels';
 import { waNumberFor } from '@/lib/waNumbers';
 import { formatRs } from '@/lib/vendor/format';
 
@@ -18,8 +20,28 @@ import { formatRs } from '@/lib/vendor/format';
 // ── VENDORS ROOM ──────────────────────────────────────────────────────────────
 // Full CRUD: Add · Edit · Pay · Delete — mirrors journey/vendors/page.tsx exactly.
 
-const VENDOR_CATEGORIES = ['photographer','videographer','mua','designer','venue','caterer','decor','florist','music','planner','other'] as const;
-type VendorCategory = typeof VENDOR_CATEGORIES[number];
+// ── THE TAXONOMY IS THE SERVER'S, NOT THIS FILE'S (F-15.10 · R-35.26/.28) ────
+// A hardcoded `VENDOR_CATEGORIES` stood here carrying the pre-0123 eleven, and
+// its default was `photographer` — a token migration 0126 RETIRES. Shipping the
+// migration without this edit would have refused every add-booking that accepted
+// the default picker value.
+//
+// R-34.34 is the law being followed: the SERVER'S `allowed[]` answers "which
+// tokens exist", `labelFor` is only its display half. `Object.keys(CAT_LABEL)`
+// is NOT the taxonomy — `lib/frost/categoryLabels.ts:22-25` rules that in ink,
+// and `components/frost/blooms/expenses.tsx:656-657` is the committed reader
+// following it. This is the third such reader.
+//
+// DEGRADED-BUT-FUNCTIONAL (R-35.28 rider). `category` is NOT NULL and this
+// control is a select, so the empty-`allowed` posture expenses.tsx can afford —
+// it still takes a typed name — is not available here. On a failed fetch the
+// picker holds the single fallback below and reads `Something else` on her
+// glass: no error copy, no new byte, indistinguishable from designed, and she
+// can always complete a booking. `other` is the founder's own
+// fold-everything-else token, it survives 0126, and the edit sheet reads the
+// same door for her re-categorisation.
+const CATEGORY_FALLBACK = ['other'];
+type VendorCategory = string;
 const PIPELINE_STATES = [{key:'paid',label:'PAID'},{key:'advance_paid',label:'ADVANCE PAID'},{key:'booked',label:'BOOKED'}];
 
 interface VendorsRoomProps { dark:boolean; accent:string; }
@@ -45,19 +67,38 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
   const [saving,   setSaving]   = React.useState(false);
 
   const [newName,  setNewName]  = React.useState('');
-  const [newCat,   setNewCat]   = React.useState<VendorCategory>('photographer');
+  const [newCat,   setNewCat]   = React.useState<VendorCategory>('other');
   const [newTotal, setNewTotal] = React.useState('');
   const [newAdv,   setNewAdv]   = React.useState('');
   const [newDue,   setNewDue]   = React.useState('');
   const [newNotes, setNewNotes] = React.useState('');
 
   const [editName,  setEditName]  = React.useState('');
-  const [editCat,   setEditCat]   = React.useState<VendorCategory>('photographer');
+  const [editCat,   setEditCat]   = React.useState<VendorCategory>('other');
   const [editTotal, setEditTotal] = React.useState('');
   const [editAdv,   setEditAdv]   = React.useState('');
   const [editDue,   setEditDue]   = React.useState('');
   const [editNotes, setEditNotes] = React.useState('');
   const [payAmount, setPayAmount] = React.useState('');
+  // R-34.34 — the taxonomy, fetched. Fetching on OPEN rather than on mount keeps
+  // the cost off every Vendors visit, mirroring expenses.tsx:222-228.
+  const [allowed,   setAllowed]   = React.useState<string[]>(CATEGORY_FALLBACK);
+  // HER OWN TOKEN IS ALWAYS AN OPTION. Without this, opening Edit on a
+  // `jewellery` booking while `allowed` is still the fallback would leave the
+  // select matching no option — the browser shows the first one, and Save would
+  // silently re-categorise her booking to `other`. A picker that quietly
+  // rewrites the row it was opened to edit is worse than one that failed to
+  // load. The union is display-only; it adds no token to the server's taxonomy.
+  const optionsFor = (current: string) =>
+    allowed.includes(current) ? allowed : [current, ...allowed];
+
+  const loadAllowed = async () => {
+    if (allowed !== CATEGORY_FALLBACK) return;
+    try {
+      const a = await fetchEnvelopeCategories();
+      if (a.length > 0) setAllowed(a);
+    } catch { /* CATEGORY_FALLBACK stands — the sheet still saves */ }
+  };
   const [payDate,   setPayDate]   = React.useState('');
 
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(''),2500); };
@@ -81,7 +122,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
     setEditTotal(b.amount_total?String(b.amount_total):'');
     setEditAdv(b.amount_advance?String(b.amount_advance):'');
     setEditDue(b.balance_due_date||''); setEditNotes(b.notes||'');
-    setAction(b); setShowEdit(true);
+    setAction(b); setShowEdit(true); loadAllowed();
   };
 
   const handleAdd = async () => {
@@ -95,7 +136,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
       if(newNotes.trim()) body.notes=newNotes.trim();
       const b=await createBooking(body);
       setBookings(prev=>[b,...prev]);
-      setShowAdd(false);setNewName('');setNewCat('photographer');setNewTotal('');setNewAdv('');setNewDue('');setNewNotes('');
+      setShowAdd(false);setNewName('');setNewCat('other');setNewTotal('');setNewAdv('');setNewDue('');setNewNotes('');
       showToast('Booking added.');
     } catch { showToast('Could not add. Try again.'); }
     setSaving(false);
@@ -164,7 +205,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
             <div><span style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:'#6B9E8F'}}>{fmtRs(totalPaid)}</span><span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em',marginLeft:4}}>paid</span></div>
           </div>}
         </div>
-        <button onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
+        <button onClick={()=>{setShowAdd(true);loadAllowed();}} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',borderRadius:100,border:`0.5px solid ${ac}44`,background:'transparent',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:ac,cursor:'pointer'}}>+ Add</button>
       </div>
 
       {/* List */}
@@ -192,7 +233,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
               const waLink = e.routing_handle
                 ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + e.routing_handle)}`
                 : null;
-              const meta=[e.category,e.city].filter(Boolean).join(' · ');
+              const meta=[e.category&&labelFor(e.category),e.city].filter(Boolean).join(' · ');
               return(
                 <div key={e.id} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`}}>
                   <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(e.vendor_name?.[0]||e.category?.[0]||'·').toUpperCase()}</div>
@@ -234,7 +275,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
             <div style={{padding:`14px ${FS.gutter}px 6px`,fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute}}>{g.label}</div>
             {g.items.map(b=>{
               const balance=(b.amount_total||0)-(b.amount_paid||0);
-              const meta=[b.category,b.amount_total?fmtRs(b.amount_total):null,b.balance_due_date?`Due ${new Date(b.balance_due_date).toLocaleDateString('en-IN',{month:'short',day:'numeric'})}`:null].filter(Boolean).join(' · ');
+              const meta=[b.category&&labelFor(b.category),b.amount_total?fmtRs(b.amount_total):null,b.balance_due_date?`Due ${new Date(b.balance_due_date).toLocaleDateString('en-IN',{month:'short',day:'numeric'})}`:null].filter(Boolean).join(' · ');
               return(
                 <div key={b.id} onClick={()=>setAction(b)} style={{display:'flex',alignItems:'center',gap:14,padding:`12px ${FS.gutter}px`,borderBottom:`0.5px solid ${line}`,cursor:'pointer'}}>
                   <div style={{width:36,height:36,borderRadius:18,border:`0.5px solid ${line}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:inkMute}}>{(b.category?.[0]||b.vendor_name?.[0]||'·').toUpperCase()}</div>
@@ -266,7 +307,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Aanya Studio" style={inpStyle}/></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
               <select value={newCat} onChange={e=>setNewCat(e.target.value as VendorCategory)} style={{...inpStyle,appearance:'none' as any,WebkitAppearance:'none' as any}}>
-                {VENDOR_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+                {allowed.map(c=><option key={c} value={c}>{labelFor(c)}</option>)}
               </select></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total amount (Rs, optional)</div><input value={newTotal} onChange={e=>setNewTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance agreed (Rs, optional)</div><input value={newAdv} onChange={e=>setNewAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
@@ -284,7 +325,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
         <div onClick={()=>setAction(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:200}}/>
         <div style={{position:'fixed',bottom:0,left:0,right:0,zIndex:201,background:paper,borderRadius:'20px 20px 0 0',padding:`24px 24px calc(24px + env(safe-area-inset-bottom,0px))`}}>
           <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,marginBottom:2,fontFeatureSettings:'"opsz" 9'}}>{action.vendor_name}</div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:inkMute,textTransform:'uppercase' as any,marginBottom:16}}>{action.category} · {action.state.replace(/_/g,' ')}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',color:inkMute,textTransform:'uppercase' as any,marginBottom:16}}>{labelFor(action.category)} · {action.state.replace(/_/g,' ')}</div>
           {action.amount_total&&<div style={{display:'flex',gap:24,marginBottom:20}}>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em'}}>TOTAL</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:ink}}>{fmtRs(action.amount_total)}</div></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:inkMute,letterSpacing:'.22em'}}>PAID</div><div style={{fontFamily:"'Fraunces',serif",fontWeight:400,fontSize:19,color:'#6B9E8F'}}>{fmtRs(action.amount_paid)}</div></div>
@@ -311,7 +352,7 @@ export function VendorsRoom({ dark, accent }: VendorsRoomProps) {
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Vendor name</div><input value={editName} onChange={e=>setEditName(e.target.value)} style={inpStyle}/></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Category</div>
               <select value={editCat} onChange={e=>setEditCat(e.target.value as VendorCategory)} style={{...inpStyle,appearance:'none' as any,WebkitAppearance:'none' as any}}>
-                {VENDOR_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}
+                {optionsFor(editCat).map(c=><option key={c} value={c}>{labelFor(c)}</option>)}
               </select></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Total (Rs)</div><input value={editTotal} onChange={e=>setEditTotal(e.target.value)} placeholder="450000" inputMode="numeric" style={inpStyle}/></div>
             <div><div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:6}}>Advance (Rs)</div><input value={editAdv} onChange={e=>setEditAdv(e.target.value)} placeholder="50000" inputMode="numeric" style={inpStyle}/></div>
