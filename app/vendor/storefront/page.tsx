@@ -5,7 +5,13 @@
 // how she appears to couples lives behind the word that says so (information
 // scent). FORK 1 = (a), chair relay #1: this is a HUB PAGE whose sections LINK
 // the existing routes; /vendor/portfolio, /vendor/discover,
-// /vendor/discover/leads and /vendor/collab keep byte-identical paths (the
+// M-LEADS-TRUTH (R-35.36): THE LEADS TILE IS GONE. The founder ruled the
+// storefront is profile and portfolio, not leads — and the page it linked to
+// could not see deduped enquiries at all (F-16.21), so it told vendors nothing
+// had arrived when something had. Leads live at /vendor/list/leads, which holds
+// every lead however it came. The old route survives as a redirect stub because
+// delivered alerts carry it. b07_p5 §12.5 pins this tile's absence.
+// /vendor/collab keeps its byte-identical path (the
 // P1-admin precedent — deep links held, not redirected). Nothing that lived at
 // those routes moved; this door is a new front on standing rooms.
 //
@@ -89,7 +95,6 @@ interface Item { href: string; label: string; description: string; glyph: string
 const SECTIONS: Item[] = [
   { href: '/vendor/portfolio',      label: 'Portfolio', description: 'images and photo library',           glyph: '▣' },
   { href: '/vendor/discover',       label: 'Discover',  description: 'your profile on The Dream Wedding',  glyph: '◈' },
-  { href: '/vendor/discover/leads', label: 'Leads',     description: 'couples who enquired',               glyph: '✉' },
   { href: '/vendor/collab',         label: 'Collab',    description: 'shared weddings with other vendors', glyph: '◇' },
 ];
 

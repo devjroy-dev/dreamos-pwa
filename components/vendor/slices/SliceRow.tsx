@@ -76,8 +76,24 @@ export interface Row {
       slice module that fetched them. The shell derives mastheads from these,
       never by parsing the formatted strings above (a masthead that reads its own
       display text is a masthead that lies the moment formatting changes). */
+  /** M-LEADS-TRUTH: the lead arrived through The Dream Wedding. Renders the TDW
+      mark beside the state pill. Display-only — F-04.7's fence holds, no editor
+      grows on this row. */
+  tdw?: boolean;
   pipelineValue?: number;   // leads: budget_max · expenses: amount
   sortDate?: string | null; // events: event_date · expenses: expense_date (ISO)
+}
+
+// M-LEADS-TRUTH · the ARRIVAL date. Founder copy, approved 2026-08-22, frozen at
+// the character: day + short month, en-IN, no year — '21 Aug'.
+// DELIBERATELY NOT fmtDate BELOW, which renders '21 Aug 2026'. The year is what
+// makes a WEDDING date read like a wedding date, and a lead row already carries
+// one of those on the same line. Dropping it is how the eye tells the two apart.
+export function fmtArrival(iso: string | null | undefined) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
 // TDW_09 R-U25: the name stays for its importers; the string comes from the one home.
@@ -154,7 +170,25 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             fontFamily: F.script, fontWeight: 500, fontSize: 16,
             color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>{row.primary}</div>
+          }}>
+            {row.primary}
+            {/* M-LEADS-TRUTH · the TDW mark. Founder copy, approved 2026-08-22,
+                frozen at the character: three letters, no expansion, no tooltip.
+                It rides the NAME line rather than the meta line because it says
+                something about WHO this is, not when they came — and because the
+                meta line already carries the wedding date and the city and
+                would ellipsis first on a narrow phone.
+                Display-only: F-04.7's fence holds, no editor grows here. */}
+            {row.tdw && (
+              <span style={{
+                marginLeft: 8, verticalAlign: 'middle',
+                fontFamily: F.label, fontWeight: 500, fontSize: 9,
+                letterSpacing: '0.14em', color: A.brass,
+                border: '0.5px solid rgba(201,168,76,0.38)', borderRadius: 3,
+                padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
+              }}>TDW</span>
+            )}
+          </div>
           <div style={{
             fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
             color: A.inkMute, letterSpacing: '0.01em', marginTop: 3,

@@ -94,7 +94,11 @@ function DemoBottomNav({ handle }: { handle: string }) {
   ];
   const DISCOVER_ITEMS: SubItem[] = [
     { href:`${base}/portfolio`,      label:'Portfolio', glyph:'▣' },
-    { href:`${base}/discover/leads`, label:'Leads',     glyph:'✉' },
+    // M-LEADS-TRUTH (R-35.36): repointed, not removed. The demo offers its own
+    // /business and /list routes, so the Leads door has somewhere honest to go
+    // and no nav slot goes empty. The demo's discover/leads page is a redirect
+    // stub for the same reason the product's is.
+    { href:`${base}/business`,       label:'Leads',     glyph:'✉' },
     { href:`${base}/collab`,         label:'Collab',    glyph:'◇' },
   ];
 

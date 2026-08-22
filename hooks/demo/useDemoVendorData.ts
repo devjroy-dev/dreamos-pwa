@@ -33,7 +33,8 @@ export function useDemoLeadsData(handle: string): LoadState<Lead[]> {
         // This mapper read `bride_phone`, `bride_wedding_date`, `bride_wedding_city`,
         // `state` and `raw_message` off a `DemoLead` that declared them and a wire that
         // has never sent them. Every one resolved `undefined`. The subtitle under every
-        // bride's name on /discover/leads has been permanently empty since F-07.41's
+        // bride's name on the retired /discover/leads dashboard was permanently empty
+        // since F-07.41's
         // mask landed, and no compiler could say so, because the TYPE was the lie.
         //
         // THE `as Lead` CAST IS GONE. It was the second silencer: even a corrected
@@ -67,7 +68,8 @@ export function useDemoLeadsData(handle: string): LoadState<Lead[]> {
           // `demo_leads` has FIFTEEN columns after `0108` and NO `state` column, and
           // there is no mechanism anywhere to action or book a demo lead. So this is
           // not a fallback over a missing read — it is a CONSTANT, and the zeros the
-          // two counters at discover/leads/page.tsx:15 and :17 render are structurally
+          // two counters that USED TO render at discover/leads/page.tsx:15 and :17
+          // (that page is a redirect stub since M-LEADS-TRUTH, R-35.36) are structurally
           // TRUE today rather than fabricated.
           //
           // IT BECOMES FALSE THE DAY DEMO LEADS GAIN A LIFECYCLE. `scripts/

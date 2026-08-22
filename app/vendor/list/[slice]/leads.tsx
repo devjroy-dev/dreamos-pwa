@@ -9,7 +9,7 @@
 import { useCallback, useMemo } from 'react';
 import { useLeadsData, useCabinetData } from '@/hooks/vendor/useVendorData';
 import { SliceScreen } from '@/components/vendor/slices/SliceShell';
-import { fmtRs, fmtLeadDate, cap, type Row } from '@/components/vendor/slices/SliceRow';
+import { fmtRs, fmtLeadDate, fmtArrival, cap, type Row } from '@/components/vendor/slices/SliceRow';
 import { amountWordsAdjacent, phoneKey } from '@/lib/vendor/cabinet';
 import { API_BASE } from '@/lib/vendor/api/_base';
 import type { Lead } from '@/lib/vendor/types/vendor';
@@ -18,8 +18,26 @@ import type { CabinetBinder } from '@/lib/vendor/api/vendor';
 // F-04.9 (founder-ruled 2026-07-15): every primer is a completable STEM in the
 // tell_victor grammar — "About {name}: …" — mid-sentence, never a question.
 // A question invites an answer; a stem invites the fact.
+// M-LEADS-TRUTH · the meta line now leads with WHEN THE LEAD ARRIVED.
+// Founder copy, approved 2026-08-22, frozen: '21 Aug' — day + short month, no
+// year (fmtArrival, not fmtDate; the reason is at that function's home).
+//
+// WHY IT LEADS. F-16.21's wound was a vendor who could not tell that anything
+// had arrived. `created_at` was on the wire and in the handler's mapper since
+// TDW_04 and simply was never shown — the truth existed and had no surface.
+// The wedding date keeps its place behind it: SliceRow joins these with ' · '
+// and ellipsises from the right, so on the narrowest phone the row loses the
+// wedding date before it loses the arrival, which is the correct order of
+// sacrifice for a page whose question is "who came in, and when".
+function leadMeta(l: Lead): string | undefined {
+  const arrived = fmtArrival(l.created_at);
+  const wedding = l.wedding_date ? fmtLeadDate(l.wedding_date, l.wedding_date_precision) : '';
+  const parts = [arrived, wedding].filter(Boolean);
+  return parts.length ? parts.join(' · ') : undefined;
+}
+
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: l.wedding_date?fmtLeadDate(l.wedding_date, l.wedding_date_precision):undefined, badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? 0, detail: [{label:'State',value:l.state},{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
+  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? 0, tdw: l.tdw === true, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
 }
 
 // TDW_04 A2 (L-2, F-04.2's ratified cure): DELETE means the REAL soft-delete

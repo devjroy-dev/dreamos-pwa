@@ -34,7 +34,8 @@ export interface DemoVendor {
 // It compiled because the type is what made it compile: `hooks/demo/useDemoVendorData.ts`
 // read `bride_phone`, `bride_wedding_date`, `bride_wedding_city`, `state` and
 // `raw_message` off it, got `undefined` for every one, and `tsc` had no reason to object.
-// The subtitle under every bride's name on `/discover/leads` has been permanently empty
+// The subtitle under every bride's name on the RETIRED `/discover/leads` dashboard
+// (M-LEADS-TRUTH R-35.36 — now a redirect stub) was permanently empty
 // since F-07.41's mask landed, and nobody could see it from the compiler.
 //
 // THESE SIX FIELDS ARE THE WIRE, derived at dream-os `97166b1` from

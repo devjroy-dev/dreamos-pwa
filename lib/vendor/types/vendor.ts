@@ -662,6 +662,12 @@ export interface Lead {
   raw_message:             string | null;
   notes?:                  string | null; // TDW_04 A2 (F-04.7): on the wire for the read-row
   created_at:              string;
+  /** M-LEADS-TRUTH (R-35.35): this lead is linkage-backed — an engagement on the
+      TDW_16 spine points at it. Read through src/lib/engagements.js's batched
+      export, NEVER off `leads.source`, which createLead's phone-dedupe can never
+      set (F-16.21). DECLARED GAP: pre-P1 engagements carry a NULL lead_id and do
+      not badge until their next enquiry refreshes them. */
+  tdw?:                    boolean;
   // TDW_04 A1: the P3 wishbone wire, typed to leadDraftWire's exact shape
   // (leads.js, verified at HEAD 5773888). Present only while cells are missing;
   // completion promotes the row and the wire disappears.
