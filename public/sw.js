@@ -1,4 +1,4 @@
-// The Dream Wedding — Service Worker v5
+// The Dream Wedding — Service Worker v6
 // Strategy: Cache images only. Never cache pages or API. Always network-first for HTML/JS.
 //
 // ── TDW_07 P4b-FINAL · F-07.33 — THE 503s IN THIS FILE ARE MANUFACTURED HERE. ──────────
@@ -32,8 +32,8 @@
 // produced it, no header means the 503 is real and upstream. The finding closes on that
 // evidence rather than on this paragraph.
 
-const CACHE_NAME = 'tdw-v5';
-const IMAGE_CACHE = 'tdw-images-v5';
+const CACHE_NAME = 'tdw-v6';
+const IMAGE_CACHE = 'tdw-images-v6';
 
 // ── Install: skip waiting immediately, no pre-caching of pages ───────────────
 self.addEventListener('install', (event) => {
@@ -52,6 +52,21 @@ self.addEventListener('activate', (event) => {
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
+  // ── TDW P0-1 · R-36.7 — NON-GETs ARE NEVER INTERCEPTED. ────────────────────
+  // WHY, from a founder-witnessed incident (2026-08-23): iOS/iPad vendors could
+  // not upload portfolio photos — the direct Cloudinary POST died on the phone
+  // (no asset, no vendor_portfolio row), while macOS succeeded through the same
+  // SW-controlled session. A POST to cloudinary.com matched the image branch
+  // below by HOSTNAME, and that branch is built for GETs only: the Cache API
+  // cannot hold non-GETs — `cache.put()` REJECTS on a POST request — so routing
+  // a POST through `respondWith` on that branch turns the upload into a network
+  // error the page reads as a dead server. There is nothing to cache in a
+  // non-GET anyway: every POST/PATCH/DELETE on this estate is a write, and a
+  // write must reach its server or fail honestly — never be answered by a cache
+  // or a synthetic response. So the browser handles all non-GETs natively; this
+  // worker never sees them past this line.
+  if (event.request.method !== 'GET') return;
+
   const { request } = event;
   const url = new URL(request.url);
 

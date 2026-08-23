@@ -665,7 +665,42 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
     Object.entries(params).forEach(([k, v]) => form.append(k, String(v)));
     form.append('file', file);
     const cloudRes = await fetch(upload_url, { method: 'POST', body: form });
-    if (!cloudRes.ok) { show(COPY.B3, 'error'); return false; }
+    if (!cloudRes.ok) {
+      // ── TDW P0-1 · R-36.7 — CAPTURE THE REFUSAL'S OWN SENTENCE. ────────────
+      // The iOS incident (2026-08-23) died on this leg with nothing but B3 on
+      // screen: Cloudinary's actual refusal — the one byte that names the next
+      // sitting — was read by nobody. So on !ok the response body is read here,
+      // BOUNDED (2KB; a refusal is a sentence, not a stream), and parked in two
+      // places the founder can pull via Web Inspector: a tagged console.error
+      // (live) and a window-scoped stash (`window.__tdwLastUploadGlitch`),
+      // readable in the console any time in the same session. NOT localStorage
+      // — §8.1 of this screen's sealed floor forbids it here, and the stash
+      // loses nothing: reading either store already requires the inspector.
+      // The body read is try/caught: a capture must never grow its own failure
+      // mode, and a body read can die if the network died first. NOT routed to
+      // the chat glitch-report door: that
+      // route reads no request body (derived at dream-os chat.js glitch-report
+      // handler — `fileGlitchReport(supabase, agentId)` only) and files against
+      // the newest DELIVERED CHAT witness, so posting an upload failure through
+      // it would flag an unrelated chat turn — a wrong write, declared to the
+      // chair rather than committed. ZERO vendor-facing bytes: the toast below
+      // is B3, byte-identical; everything above it is invisible chrome-side.
+      try {
+        const body = (await cloudRes.text()).slice(0, 2048);
+        const capture = {
+          at: new Date().toISOString(),
+          leg: 'cloudinary-post',
+          status: cloudRes.status,
+          statusText: cloudRes.statusText,
+          body,
+        };
+        console.error('[TDW P0-1 upload-glitch]', capture);
+        (window as unknown as Record<string, unknown>).__tdwLastUploadGlitch = capture;
+      } catch { /* body unreadable — the status alone still names the leg */
+        console.error('[TDW P0-1 upload-glitch]', { at: new Date().toISOString(), leg: 'cloudinary-post', status: cloudRes.status, statusText: cloudRes.statusText, body: null });
+      }
+      show(COPY.B3, 'error'); return false;
+    }
     const cloudData = await cloudRes.json();
     const regRes = await registerPortfolioImage({ image_url: cloudData.secure_url });
     if (!regRes.ok) { show((regRes as { error?: string }).error ?? COPY.B3, 'error'); return false; }
