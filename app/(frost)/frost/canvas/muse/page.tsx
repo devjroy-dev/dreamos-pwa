@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';
-import { useFrostMode } from '../../../layout';
+import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout
 import { MUSE_LOOKS, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
 import { fetchMuseSaves, deleteMuseSave, fetchSaveActivity, uploadMuseImage, createMuseSaveFromUrl } from '../../../../../lib/frost-api/muse';
 import type { MuseSave, MuseActivity } from '../../../../../lib/types/discover';

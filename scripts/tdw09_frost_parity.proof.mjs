@@ -581,7 +581,15 @@ ok('6.4', 'F-09.159 — MODES.E1A.soft is byte-equal to V2_WINE_NIGHT.inkSoft',
    `V2 ${v2soft} vs MODES ${modesSoft}`);
 
 /* F-09.160 — the fifth seat */
-const lay = read('app/(frost)/layout.tsx') || '';
+// ── RE-AIMED AT R-36.11, RETIRE-WITH-THE-READER ─────────────────────────────
+// This cell read the Wine default out of `app/(frost)/layout.tsx`. The context
+// and its default MOVED to lib/frost/FrostCtx.tsx, because Next 16 refuses any
+// export from a layout outside its permitted set and `useFrostMode` was one.
+// The cell follows its subject: the LAW is unchanged (the fifth seat stays
+// pinned to Wine), only the file holding it moved. CE-119's discipline — a true
+// cell aimed one surface over is a false green — cuts both ways, so it is
+// re-aimed rather than duplicated.
+const lay = read('lib/frost/FrostCtx.tsx') || '';
 ok('6.5', 'F-09.160 — the context default is pinned to Wine, not E3',
    /homeMode:\s*'E1A'/.test(lay) && /mode:\s*MODES\['E1A'\]/.test(lay) && /look:\s*'E1'/.test(lay) &&
    !/homeMode:\s*'E3'/.test(lay));

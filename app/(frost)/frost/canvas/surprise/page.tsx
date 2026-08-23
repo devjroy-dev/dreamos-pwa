@@ -11,7 +11,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useFrostMode } from '../../../layout';
+import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout
 import { MUSE_LOOKS, MODES, FF, SP, FR, EASE } from '../../../../../lib/frost/tokens';
 
 declare const process: { env: { NEXT_PUBLIC_API_BASE?: string } };

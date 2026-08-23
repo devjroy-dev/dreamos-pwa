@@ -11,7 +11,7 @@ import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
 // Same URL. Same component. Sanctuary is always underneath.
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useFrostMode } from '../../../layout';
+import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout
 import { setFrostMode } from '../../../../../lib/frost/tokens';
 import { EASE, FROST_COPY, FT, FS, FI, daysUntil, getCoupleIdForFrost } from '../../../../../lib/frost/tokens';
 import { Send } from 'lucide-react';

@@ -5,7 +5,7 @@
 // Ported from tdw-2/components/frost/FrostedSurface.tsx
 
 import React from 'react';
-import { useFrostMode } from '../../app/(frost)/layout';
+import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout
 import { FROST_SURFACE, EASE } from '../../lib/frost/tokens';
 
 type Mode = 'button' | 'composer' | 'panel';

@@ -3,7 +3,7 @@
 // Frost has NO tab bar, NO top chrome. The landing IS the home.
 // Mode context provides E1A/E3 and dream/sanctuary to all canvases.
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { apiGet, getAccessToken, isBrideDemoMode } from '../../lib/frost-api/_base';
 import {
@@ -11,35 +11,17 @@ import {
   museLookFromHomeMode, getFrostMode, getContentMode,
   setFrostMode, setContentMode as persistContentMode,
 } from '../../lib/frost/tokens';
+import { FrostCtx, type FrostModeCtx } from '../../lib/frost/FrostCtx';
 
-export interface FrostModeCtx {
-  homeMode:       HomeModeKey;
-  contentMode:    ContentMode;
-  mode:           ModeDescriptor;
-  look:           MuseLook;
-  setHomeMode:    (m: HomeModeKey) => void;
-  setContentMode: (c: ContentMode) => void;
-}
-
-// ── F-09.160 · THE FIFTH SEAT OF THE SINGLE-THEME RULING (TDW_09 atelier) ──────
-// The Wine-only ruling pinned four seats, all in lib/frost/tokens.ts: getV2Tokens,
-// museLookFromHomeMode, getFrostMode, setFrostMode. THIS default was the fifth and
-// it was left reading 'E3' — the LIGHT theme. It is inert while the provider wraps
-// every consumer, which it does today. It is also byte-for-byte the shape of the
-// defect the ruling's second seat cured: a light literal sitting upstream of a
-// pinned reader, waiting for the one render that does not reach the provider.
-// Pinned to Wine, deliberately NOT deleted — the context still needs a default, and
-// a default that disagrees with the ruling is a trap with a fuse in it.
-const FrostCtx = createContext<FrostModeCtx>({
-  homeMode:       'E1A',
-  contentMode:    'dream',
-  mode:           MODES['E1A'],
-  look:           'E1',
-  setHomeMode:    () => {},
-  setContentMode: () => {},
-});
-
-export const useFrostMode = () => useContext(FrostCtx);
+// ── THE CONTEXT MOVED OUT (R-36.11) ─────────────────────────────────────────
+// `FrostModeCtx`, `FrostCtx` and `useFrostMode` lived HERE and are now in
+// lib/frost/FrostCtx.tsx, with the F-09.160 reasoning that travels with the
+// default value. Next 16 refuses any export from a `layout.tsx` outside its
+// permitted set, and this file now exports exactly one thing: its default.
+//
+// The move was forced by a coupling, not by the age of the export — see that
+// file's header for the bisect that killed my first explanation.
+// MODULE EXTRACTION ONLY: zero copy, zero behaviour delta.
 
 // F-05.39 (R2): a third byte-identical copy of isBrideDemoMode stood here with
 // ZERO callers in this file. Deleted, not re-pointed — the one home is

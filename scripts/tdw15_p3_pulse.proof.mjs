@@ -89,6 +89,25 @@ cell('§1 THE MASTHEAD IS BACK TO ITS APPROVED BYTES — byte-identical at ' + A
   }
   const now = raw(SANCTUARY);
   if (now === old) return true;
+
+  // ── AMENDED AT R-36.11, ONE LINE, LABELLED ────────────────────────────────
+  // This is a BYTE-PIN on a whole 4,300-line page, and that severity is the
+  // point: F-15.22 withdrew the budget pulse and the masthead had to return to
+  // approved bytes exactly. R-36.11 then ordered ONE line changed in this file —
+  // the `useFrostMode` import repointed from `../../../layout` to the extracted
+  // context, because a layout may not export a hook under Next 16.
+  //
+  // THE PIN IS NOT LOOSENED. It admits exactly that one ruled substitution and
+  // nothing else: the old import line must be GONE, the new one PRESENT, and
+  // every other byte still identical. A second edit to this page reddens here,
+  // which is what the pin was built for.
+  {
+    const OLD_IMPORT = "import { useFrostMode } from '../../../layout';";
+    const NEW_IMPORT = "import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout";
+    if (old.includes(OLD_IMPORT) && now.includes(NEW_IMPORT)
+        && now.replace(NEW_IMPORT, OLD_IMPORT) === old) return true;
+  }
+
   // Report the SHAPE of the difference, not merely its existence: a reader
   // chasing this needs to know whether something was left behind or lost.
   const a = old.split('\n'), b = now.split('\n');

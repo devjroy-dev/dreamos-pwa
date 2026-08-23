@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useFrostMode } from '../../app/(frost)/layout';
+import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout
 import { FROST_SURFACE, FF, EASE } from '../../lib/frost/tokens';
 
 export default function CanvasShell({
