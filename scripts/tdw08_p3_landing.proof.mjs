@@ -295,7 +295,23 @@ ok('§4.5 the census found the full demo route tree (18 sub-routes)',
 // `/list` is the ONE known orphan, ruled C(c) — LEAVE AND FILE. It was orphaned BEFORE
 // this sitting and is not P3's disease; it is named here so the assertion below is a
 // statement about what P3 changed, not a rediscovery of what it inherited.
-const KNOWN_ORPHANS = ['/list', '/list/[slice]'];
+// ── AMENDED AT R-35.36 (M-LEADS-TRUTH), LABELLED ────────────────────────────
+// `/discover/leads` JOINS THE ORPHAN LIST, and it is an orphan BY RULING rather
+// than by neglect — which is why it is entered here with its ground rather than
+// silently dropped from the census.
+//
+// The demo shell's Leads nav entry was repointed to the demo's own /business
+// when the storefront Leads dashboard was retired (its `source === 'discover'`
+// filter could not see deduped enquiries — F-16.21). The demo's copy of that
+// page SURVIVES AS A REDIRECT STUB, deliberately: R-35.36 chose delete-plus-
+// redirect over delete because WhatsApp alerts already delivered carry the old
+// URL in vendors' chat histories forever, and the demo mirrors the product.
+//
+// So the route is REACHABLE BY A REAL LINK IN A REAL CHAT and unreachable from
+// inside the demo tree — which is exactly what this census measures and exactly
+// why it must be named rather than counted as a defect. b07_p5 §12.3/§12.4
+// (dream-os) pin that the stub still resolves and never regrows data logic.
+const KNOWN_ORPHANS = ['/list', '/list/[slice]', '/discover/leads'];
 const unreached = demoPages.filter(r => !KNOWN_ORPHANS.includes(r) && ![...targets].some(t => t === r));
 
 ok('§4.6 THE STRIP ORPHANS NOTHING — every non-inherited-orphan sub-route is still reached',

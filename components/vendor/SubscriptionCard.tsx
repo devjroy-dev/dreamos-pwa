@@ -84,11 +84,30 @@ const V2 = {
   //
   // ⚠ READ THIS BEFORE YOU FILE 「 free 」 AS A DEFECT. IT IS A DECISION.
   //
-  // THE FIRST CYCLE IS NOT ZERO. It is Rs 2, configured at the plan level in the
-  // Razorpay dashboard — which is why dream-os `createSubscription` passes no
-  // `start_at`, no trial and no `offer_id`, and why grepping the tree for a free
-  // period finds nothing. The tree's silence is not evidence here; the authority
-  // lives outside it.
+  // THE FIRST CYCLE IS NOT ZERO. It is Rs 2 — and WHERE that Rs 2 lives was
+  // stated wrongly here until F-10.121, so the correction carries its own
+  // reasoning with it.
+  //
+  // ── CORRECTED AT F-10.121 (CE-224's dashboard witness) ────────────────────
+  // WHAT THIS PARAGRAPH SAID: "configured at the plan level in the Razorpay
+  // dashboard — which is why dream-os `createSubscription` passes no `start_at`,
+  // no trial and no `offer_id`, and why grepping the tree for a free period
+  // finds nothing."
+  //
+  // THE TRUTH: the Rs 2 lives in a METHOD-SCOPED RAZORPAY OFFER —
+  // `offer_TMeh1p2GXaMtqt`, UPI-ONLY, witnessed on the dashboard at CE-224. Not
+  // the plan. The distinction is the whole finding: a plan-level price applies
+  // to every method, an offer scoped to UPI does not.
+  //
+  // AND THE REASONING IS CORRECTED WITH THE SENTENCE, because leaving it would
+  // rebuild the hiding place. The old paragraph read the tree's silence as
+  // CONFIRMING a plan-level price. It confirms nothing of the kind: an absent
+  // `offer_id` is equally consistent with a dashboard offer nobody had looked
+  // for, which is exactly what was there. That inference is HOW F-10.121 stayed
+  // invisible — a corrected sentence standing on uncorrected reasoning is how
+  // the next one hides.
+  //
+  // The authority still lives outside the tree. It is now named.
   //
   // AND THAT Rs 2 IS KEPT, not refunded. dream-os `src/lib/billing/razorpay.js`,
   // `countsAsRevenue`, fires on `subscription.charged` + `captured` + amount > 0,
@@ -116,7 +135,7 @@ const V2 = {
   // applies on an UPGRADE between tiers is F-10.109, flagged and NOT chartered
   // (founder: 「 this is for a much later build 」), which is why
   // `upgradeExplain` below is byte-untouched and says nothing about it.
-  offer: 'First month free. Full price from the second month.',
+  offer: 'First month free. Full price from the second month. Offer applies to UPI payments only.',
   pickerAction:  'Choose',
   // BYTE-UNCHANGED, AND THAT IS A RULING (R-26.16 §B). A first draft proposed
   // naming the offer here too; the founder has not seen that byte, so adding it

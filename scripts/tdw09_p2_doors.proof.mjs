@@ -174,7 +174,18 @@ console.log('\n── §7 — the Storefront hub ──');
   const rows = [
     ['Portfolio', '/vendor/portfolio'],
     ['Discover',  '/vendor/discover'],
-    ['Leads',     '/vendor/discover/leads'],
+    // ── RETIRED AT R-35.36, NOT REPOINTED (RETIRE-WITH-THE-READER) ──────────
+    // This row pinned the storefront's Leads TILE. That tile no longer exists:
+    // the founder ruled the storefront is profile and portfolio, not leads, and
+    // the dashboard it linked to filtered `leads.source === 'discover'` — a
+    // predicate createLead's phone-dedupe can never satisfy, so the page denied
+    // enquiries it had itself alerted the vendor about (F-16.21).
+    //
+    // IT IS RETIRED, NOT REPOINTED. Repointing it to /vendor/list/leads would
+    // assert that the STOREFRONT links Leads, which is now false by ruling —
+    // a green cell about a tile that is gone. The Business Leads door has its
+    // own coverage; this cell's subject was deleted, so the cell goes with it.
+    // b07_p5 §12.5 (dream-os) pins the tile's ABSENCE from the other side.
     ['Collab',    '/vendor/collab'],
   ];
   rows.forEach(([label, href], i) =>

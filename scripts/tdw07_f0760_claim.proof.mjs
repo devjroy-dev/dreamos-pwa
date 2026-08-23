@@ -360,8 +360,8 @@ sec('§10 · THE EIGHTEEN MOUNTS INHERIT IT, WITHOUT EIGHTEEN EDITS');
   const mounts = pages.filter(p => /<DemoVendorHeader/.test(fs.readFileSync(p, 'utf8')));
   const direct = pages.filter(p => /<DemoClaimSheet/.test(fs.readFileSync(p, 'utf8')));
 
-  ok('§10.1 the header is mounted on exactly EIGHTEEN demo pages',
-    mounts.length === 18, `found ${mounts.length}`);
+  ok('§10.1 the header is mounted on exactly SEVENTEEN demo pages',
+    mounts.length === 17, `found ${mounts.length}`);
   ok('§10.2 the sheet is mounted directly by exactly ONE page — the landing, the 19th surface',
     direct.length === 1 && direct[0].endsWith(path.join('[handle]', 'page.tsx')),
     direct.map(p => path.relative(ROOT, p)).join(', '));

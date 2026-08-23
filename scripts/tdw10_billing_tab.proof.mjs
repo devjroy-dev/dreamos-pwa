@@ -323,7 +323,13 @@ sec('§8 · F-10.108 — THE OFFER REACHES HER BEFORE SHE PICKS (R-26.16)');
   const iHeading = crd.indexOf('V2.pickerHeading');
   const iOffer   = crd.indexOf('V2.offer');
   const iRows    = crd.indexOf('tiers.map');
-  cell('8.1', /offer: 'First month free\. Full price from the second month\.'/.test(CARD)
+  // ── RE-FOUNDED AT F-10.121 (founder byte, 2026-08-24) ──────────────────
+  // The line gained a third sentence. The Rs 2 first cycle is not a plan-level
+  // price — it is a METHOD-SCOPED Razorpay offer (offer_TMeh1p2GXaMtqt, UPI-only,
+  // dashboard-witnessed at CE-224), so a vendor paying by card was reading a
+  // promise the offer could not keep. The cell moves with the byte because a
+  // copy pin that lags its founder ruling is a green cell about last week.
+  cell('8.1', /offer: 'First month free\. Full price from the second month\. Offer applies to UPI payments only\.'/.test(CARD)
            && /\{V2\.offer\}/.test(crd)
            && iHeading > -1 && iOffer > iHeading && iRows > -1 && iOffer < iRows,
     'the founder-ruled offer line exists verbatim, is rendered, and is seated under the heading ABOVE all three tier rows');

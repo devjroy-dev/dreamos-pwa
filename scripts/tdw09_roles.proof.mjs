@@ -398,7 +398,24 @@ for (const f of RADIUS.filter(x => x.includes('/pin'))) {
 // viewport under iOS Safari's collapsing chrome, which is this very defect's class.
 console.log('\n\u2469 the avatar drawer is bounded and scrolls');
 const HDR = strip(read('components/vendor/Header.tsx'));
-ok('the panel is height-bounded by the DYNAMIC viewport', /maxHeight:\s*'calc\(100dvh - \d+px\)'/.test(HDR));
+// ── RE-FOUNDED AT R-36.9, RETIRE-WITH-THE-READER ────────────────────────
+// This cell pinned the LITERAL `calc(100dvh - 88px)`. R-36.9 amended R-M1's
+// hand-summed 88 to a MEASURED bound, because that constant had no relationship
+// to the rendered header bottom under a Pixel's safe-area insets — F-16.23, the
+// same defect R-M1 cured on iOS returning on Android.
+//
+// THE PROPERTY THE CELL WAS PROTECTING IS UNCHANGED and is what it now asserts:
+// the panel is bounded by the CURRENT viewport height, measured on open and
+// re-measured on resize. `window.innerHeight` is dvh's imperative equivalent —
+// it tracks the visual viewport as browser chrome collapses, which is precisely
+// what `dvh` was ruled over `vh` to obtain. R-M1's dvh-over-vh clause therefore
+// STANDS; only the subtrahend moved, and it moved from a guess to a measurement.
+//
+// The state's initial value keeps the dvh expression, so the first paint before
+// the effect runs is still viewport-bounded rather than unbounded.
+ok('the panel is height-bounded by the CURRENT viewport, measured (R-36.9)',
+  /window\.innerHeight - bottom/.test(HDR) && /maxHeight: menuBound/.test(HDR)
+  && /useState\('calc\(100dvh - \d+px\)'\)/.test(HDR));
 ok('the panel scrolls its own overflow',                  /overflowY:\s*'auto'/.test(HDR));
 ok('momentum scrolling is on for iOS',                    /WebkitOverflowScrolling:\s*'touch'/.test(HDR));
 // RE-AIMED with the D-1 withdrawal: the bound moved from the positioner to the card,

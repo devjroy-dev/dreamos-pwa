@@ -50,20 +50,41 @@ sec('§4 · F-09.87 — the leads page\u2019s gold inks themed; the \u25c6 plug 
   const goldInk = (strip(LEADS).match(/color:\s*'rgba\(201,168,76,[0-9.]+\)'/g) || []);
   ok('§4.1 gold-alpha-as-INK count on the page is ZERO (method: color: declarations only)',
     goldInk.length === 0, goldInk.join(' | '));
-  const goldLines = (strip(LEADS).match(/rgba\(201,168,76,[0-9.]+\)/g) || []);
-  ok('§4.2 the hairline/wash family REMAINS (F-09.84\u2019s queued class, not this rider\u2019s) — at least 8 non-ink sites stand',
-    goldLines.length >= 8, `found ${goldLines.length}`);
-  ok('§4.3 the three cured eyebrows wear the themed label role', (LEADS.match(/color: A\.brassWarm, margin/g) || []).length === 3);
-  ok('§4.4 the \u25c6 plug wears the themed page ground, the pinned espresso dead',
-    /var\(--atelier-page-bg\) 0%, var\(--atelier-page-bg\) 60%/.test(LEADS)
-    && !/#1F1612 0%, #1F1612 60%/.test(LEADS));
+
+// ── RETIRED AT R-35.36 (M-LEADS-TRUTH), RETIRE-WITH-THE-READER ───────────────
+// The four cells below pinned THEME TOKENS INSIDE
+// app/vendor/discover/leads/page.tsx — the storefront Leads dashboard. That page
+// no longer has a body: R-35.36 retired it to a REDIRECT STUB, because its
+// `leads.source === 'discover'` filter could never see enquiries that
+// createLead's phone-dedupe returned untouched, so it rendered "No TDW leads
+// yet." over a real enquiry the vendor had just been alerted about (F-16.21).
+//
+// THEIR SUBJECT WAS DELETED BY RULING, so they are retired WITH it. They are not
+// repointed (Business Leads is a different surface with its own coverage, and
+// aiming a cell one surface over is CE-119's named error), and they are not
+// deleted in silence (a vanished cell teaches the next reader nothing, and
+// §4.2 in particular existed to catch an OVER-DELETION — the exact failure mode
+// a silent removal would hide).
+//
+// WHAT SURVIVES: §4.1's law — gold-alpha-as-INK must be zero — is now
+// structurally guaranteed on this page, since a stub has no colour declarations
+// at all. §4.5 below asserts the page is still a stub, so the guarantee cannot
+// lapse by someone rebuilding the dashboard here.
+  ok('§4.5 the retired page is still a STUB, so §4.1 zero-gold-ink holds by construction',
+    /router\.replace/.test(LEADS) && !/rgba\(201,168,76,/.test(strip(LEADS)),
+    'the Leads dashboard has regrown a body here; the retired cells assumed it never would');
 }
 
 sec('§5 · THE DISCLOSED EXTENSION — the insight line, ratify-or-revert');
-ok('§5.1 the insight line wears the themed soft ink; the extension is labelled in-file with its revert',
-  /color: A\.inkSoft, lineHeight: 1\.5,/.test(LEADS) && /DISCLOSED EXTENSION \(ratify-or-revert\)/.test(LEADS));
+// §5.1 RETIRED WITH §4.2–§4.4, same ruling, same reason: the insight line it
+// pinned lived on the retired dashboard. The ratify-or-revert extension it
+// tracked was ratified and then removed WITH ITS WHOLE PAGE, which is the
+// strongest possible form of "reverted" and needs no cell to watch it.
 ok('§5.2 THE PER-SITE GUARD — the leads page carries ZERO pinned-cream inks while the Discover hero keeps its ONE (same literal, two grounds, opposite verdicts — the P-2 law walked)',
   !/rgba\(240,230,210/.test(strip(LEADS)) && (strip(DISC).match(/rgba\(240,230,210,0\.78\)/g) || []).length === 1);
+// §5.2 SURVIVES DELIBERATELY: its law is a CONTRAST between two pages — the same
+// literal, two grounds, opposite verdicts. The stub trivially satisfies its half,
+// and the Discover hero's half is the half that was ever at risk.
 
 
 sec('\u00a76 \u00b7 THE SECOND SHOOT \u2014 the Discover page\u2019s own species members (LABELED GROWTH 15\u219220, founder-walked + copy-worded 2026-08-07)');

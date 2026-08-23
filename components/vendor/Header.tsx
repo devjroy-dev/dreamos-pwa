@@ -62,6 +62,53 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   // same warrant, and the Discover step re-anchors on the bar.
 
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // ── R-36.9 · THE BOUND IS MEASURED, NOT HAND-SUMMED ───────────────────────
+  // R-M1 bounded this card at `calc(100dvh - 88px)` and cured F-09.71 on a
+  // 374x691 iOS frame. F-16.23 is that defect RETURNING on a Pixel 10 Pro — a
+  // recurrence PAST the cure, not its absence, and the tell is the founder's own
+  // words: "menu does not scroll".
+  //
+  // WHY THAT SENTENCE IS THE DIAGNOSIS. app/vendor/layout.tsx wraps every vendor
+  // surface in `height: 100dvh; overflowX: clip; overflowY: hidden`. This card is
+  // `position: absolute` inside the header, so it lives INSIDE that clip. Its own
+  // bound is `100dvh - 88px`; the room actually below the coin is
+  // `100dvh - <the coin's rendered bottom>`. When those disagree the card is
+  // CLIPPED, not scrolled — and a clipped card has no overflow of its own, so
+  // `overflowY: auto` produces no scrollbar and no gesture. A card merely too
+  // tall would scroll.
+  //
+  // 88 was a hand-sum: 10+34+12 header + 12 gap + 20 foot. It has no relationship
+  // to the RENDERED bottom under a device's safe-area insets or display scaling,
+  // which is why an iOS frame agreed with it and a Pixel does not.
+  //
+  // SO IT IS MEASURED ON OPEN. `getBoundingClientRect().bottom` of the coin is
+  // the real top edge of the card's room; the gap and foot stay as R-M1 sized
+  // them. R-36.9 amends that one clause and NOTHING ELSE of R-M1 — dvh over vh
+  // stands, its own scroll stands, momentum stands.
+  //
+  // ZERO HORIZONTAL DELTA, AND THAT IS BINDING. R-M1 withdrew `right: -16` /
+  // `minWidth: 292` with the stated condition that the next walk be a CLEAN TEST
+  // of the other (horizontal-clipping) suspect, and that test is still pending.
+  // This cure touches only a vertical bound, so the pending test survives this
+  // sitting uncontaminated. The `position: fixed` arm was refused for exactly
+  // this reason: it would change the containing block, which is horizontal
+  // geometry.
+  const [menuBound, setMenuBound] = useState('calc(100dvh - 88px)');
+  useEffect(() => {
+    if (!profileOpen) return;
+    const coin = profileRef.current;
+    if (!coin) return;
+    const measure = () => {
+      const bottom = coin.getBoundingClientRect().bottom;
+      // 12 gap (the card's own `top: calc(100% + 12px)`) + 20 foot, as R-M1 sized them.
+      setMenuBound(`${Math.max(160, window.innerHeight - bottom - 32)}px`);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [profileOpen]);
+
   useEffect(() => {
     if (!profileOpen) return;
     function h(e: MouseEvent) {
@@ -166,7 +213,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             // under iOS Safari's collapsing chrome — this defect's own class), with
             // its own scroll and momentum. overflowX stays hidden so the horizontal
             // axis behaves exactly as the retired `overflow: hidden` did.
-            maxHeight: 'calc(100dvh - 88px)',
+            maxHeight: menuBound, // R-36.9: measured on open, never hand-summed
             overflowY: 'auto',
             overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',

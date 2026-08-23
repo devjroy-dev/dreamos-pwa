@@ -78,8 +78,18 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
   cell('3.5', raw.includes('/vendor/discover/profile'), 'the block LINKS the bio route — byte-identical path');
   cell('3.6', src.includes('open_leads_count') && src.includes('photos live'),
     'live counts (founder 「 ok 」) from the standing endpoints');
-  cell('3.7', raw.includes("description: 'couples who enquired'") && raw.includes("description: 'shared weddings with other vendors'"),
-    'V1/V2 vetoed descriptions land');
+  // ── AMENDED AT R-35.36, RETIRE-WITH-THE-READER ──────────────────────────────
+  // This cell pinned TWO founder-vetoed tile descriptions. One of the two tiles
+  // no longer exists: the Leads tile ('couples who enquired') was retired when
+  // the founder ruled the storefront is profile and portfolio, not leads.
+  //
+  // THE SURVIVING HALF IS KEPT AND STILL PINNED — a vetoed byte does not stop
+  // being vetoed because its neighbour left. The retired half is not repointed
+  // and not deleted in silence: pinning copy that no surface renders is a green
+  // cell about nothing, and deleting the line without its reason teaches the
+  // next reader that vetoed copy may quietly lapse.
+  cell('3.7', raw.includes("description: 'shared weddings with other vendors'"),
+    "V2's vetoed description lands (V1's Leads tile retired at R-35.36 — its byte went with it)");
 }
 
 console.log('\n── §4 · the Frost honest line (F-6(a)) ──');

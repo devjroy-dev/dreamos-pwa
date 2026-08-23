@@ -36,8 +36,23 @@ function leadMeta(l: Lead): string | undefined {
   return parts.length ? parts.join(' · ') : undefined;
 }
 
+// ── R2 · THE `ENQUIRED VIA TDW` ROW (founder copy, 2026-08-22, frozen) ──────
+// LINKAGE-GATED: it is spread into the detail array only when `l.tdw` is true,
+// so an unbadged lead grows no row at all rather than an em-dash. The gate is
+// the SAME fact the badge reads — one linkage answer, two renders — and its
+// banked meaning is "a Discover enquiry is on record" (CE-224 doctrine:
+// leads.source names the DOOR, not the ORIGIN).
+//
+// IT SITS DIRECTLY UNDER `Arrived`, as ruled, and the two together are the
+// point: 5 Aug is when this LEAD was born, 21 Aug is when the ENQUIRY came.
+// F-16.22 was never a wrong number — it was a correct number about the wrong
+// event, which invites no suspicion. Both dates read through fmtArrival, which
+// is now IST-correct at the one home; `tdw_enquired_at` gets no third date path.
+//
+// DISPLAY-ONLY. F-04.7's fence holds: this is a read-row and no editor grows on
+// it. The sheet's actions are untouched.
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? 0, tdw: l.tdw === true, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
+  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? 0, tdw: l.tdw === true, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
 }
 
 // TDW_04 A2 (L-2, F-04.2's ratified cure): DELETE means the REAL soft-delete

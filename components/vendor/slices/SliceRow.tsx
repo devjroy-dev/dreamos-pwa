@@ -6,6 +6,7 @@
 // P4 adds swipe/bulk affordances; P3 adds draft chips. Not here.
 
 import type { ListSlice, DoorSlice } from '@/hooks/vendor/useLastSlice';
+import { istDayKey } from '@/lib/frost/tokens'; // R-35.23's IST home — one semantic, one home
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 export const A = {
@@ -89,12 +90,52 @@ export interface Row {
 // DELIBERATELY NOT fmtDate BELOW, which renders '21 Aug 2026'. The year is what
 // makes a WEDDING date read like a wedding date, and a lead row already carries
 // one of those on the same line. Dropping it is how the eye tells the two apart.
+//
+// ── AMENDED AT R2 (arm 2 ruled) · IT WAS WRONG TWICE, AND ONLY ONE WAS FILED ──
+// The byte that stood here was `d.toLocaleDateString('en-IN', {…})`.
+//
+//   1. LOCALE. Its two siblings below — fmtDate and fmtLeadDate — never construct
+//      a Date and never call a locale API; they regex the ISO and index a month
+//      array. A locale call's output depends on the runtime's ICU data, which
+//      can differ between server render and client hydration. This is the
+//      defect class NOTE 35 names.
+//   2. TIMEZONE — THE ONE THAT ACTUALLY MOVES A RENDERED DATE, and it was not
+//      filed. `created_at` and `engagements.updated_at` are timestamptz;
+//      `new Date(iso).toLocaleDateString()` renders in the BROWSER'S zone.
+//      Sarah's enquiry is 2026-08-21T18:12:47+00:00 = 23:42 IST, SAME DAY — so
+//      the walk that sealed M-LEADS-TRUTH could not have caught this. Every
+//      enquiry after 18:30 UTC rendered one day late to an Indian vendor.
+//
+// ARM 1 WAS REFUSED BY NAME: slicing the raw ISO would match the siblings'
+// letter and render the UTC calendar day, which is a DIFFERENT wrongness for an
+// IST audience — consistency bought with a new bug.
+//
+// SO THIS READS THROUGH THE ESTATE'S ONE IST HOME. `istDayKey` is R-35.23's
+// cure for F-15.17 (lib/frost/tokens.ts): it takes the IST calendar day of an
+// instant as a 'YYYY-MM-DD' key, and its header names the three
+// "simplifications" that put the bug straight back. This surface does not get a
+// second IST semantic; it arrives at the one that exists. L1's new row reads
+// through THIS function for the same reason — `tdw_enquired_at` must not be born
+// with a third date path.
+//
+// FIRST CROSSING, STATED: no vendor surface has imported from lib/frost/tokens
+// before. It is a leaf module with zero imports of its own and no server-only
+// marker, so the named export tree-shakes and the vendor bundle takes the
+// function, not the token tables.
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 export function fmtArrival(iso: string | null | undefined) {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  const key = istDayKey(d);              // 'YYYY-MM-DD' in IST — the one home
+  if (!key) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!m) return '';
+  return `${parseInt(m[3])} ${MONTHS_SHORT[parseInt(m[2]) - 1]}`;
 }
+// NOTE, queued not taken: fmtDate and fmtLeadDate below each hold their OWN
+// inline copy of this month array. Three copies is a tidy this sitting has no
+// ruling for, and their bytes are not in R2's charge. Filed, visible, untouched.
 
 // TDW_09 R-U25: the name stays for its importers; the string comes from the one home.
 export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : formatRs(n); }
@@ -180,10 +221,25 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 would ellipsis first on a narrow phone.
                 Display-only: F-04.7's fence holds, no editor grows here. */}
             {row.tdw && (
+              /* R2 · THE 9px EXEMPTION, GRANTED THROUGH THE SCALE'S OWN DOOR.
+                 R-35.25's pattern, this chair granting, cited here so the grant
+                 lives at the site rather than in a bench's memory.
+                 THE EVIDENCE: 9px on F.label is the chrome's established label
+                 rung — SliceShell.tsx:167/:713/:745, WishboneSheet.tsx:99/:148/
+                 :155, studioShared.tsx:52 all sit there and studioShared.tsx:78
+                 goes to 8. The badge is not the outlier; moving it alone would
+                 MAKE it one.
+                 AND IT PASSES THE CENSUS'S OWN THREE-LEG ENGRAVED TEST rather
+                 than any widening of it: letterSpacing + textTransform:
+                 'uppercase' in this one style object. The transform was absent
+                 only because the literal 'TDW' was already caps — the label was
+                 always engraved, it just never said so. tdw09_type's test is
+                 UNCHANGED by this delivery, so an eleventh un-cited site below
+                 the floor still reds, which is the condition of the grant. */
               <span style={{
                 marginLeft: 8, verticalAlign: 'middle',
                 fontFamily: F.label, fontWeight: 500, fontSize: 9,
-                letterSpacing: '0.14em', color: A.brass,
+                letterSpacing: '0.14em', textTransform: 'uppercase', color: A.brass,
                 border: '0.5px solid rgba(201,168,76,0.38)', borderRadius: 3,
                 padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
               }}>TDW</span>

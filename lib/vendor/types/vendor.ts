@@ -668,6 +668,14 @@ export interface Lead {
       set (F-16.21). DECLARED GAP: pre-P1 engagements carry a NULL lead_id and do
       not badge until their next enquiry refreshes them. */
   tdw?:                    boolean;
+  /** R2 (R-35.38): WHEN the Discover enquiry came, from the spine's
+      `engagements.updated_at` — NOT `created_at`, which is the LEAD's birthday.
+      On the founder's own row those are 21 Aug and 5 Aug: the lead was born from
+      a WhatsApp arrival and createLead's phone-dedupe returned it untouched
+      sixteen days later (F-16.22). Null on unbadged rows.
+      F-04.10 binds this field — this type is the mapper half; a wire the
+      interface cannot see is no wire at all. */
+  tdw_enquired_at?:        string | null;
   // TDW_04 A1: the P3 wishbone wire, typed to leadDraftWire's exact shape
   // (leads.js, verified at HEAD 5773888). Present only while cells are missing;
   // completion promotes the row and the wire disappears.

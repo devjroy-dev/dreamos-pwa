@@ -52,9 +52,34 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
   const T        = useT();
   const [theme, toggleTheme] = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
+
   // F-07.60: the claim sheet is now a thing this header OPENS, not a place it SENDS you.
   const [claimOpen, setClaimOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  // ── R-36.9 MIRRORED (chair ruled: cure the mirror, same arm, this sitting) ──
+  // This menu NEVER RECEIVED R-M1 AT ALL — no maxHeight, no overflowY, no
+  // momentum. The product's copy had a bound that was merely wrong on a Pixel;
+  // this one was unbounded on every device since it was written.
+  //
+  // IT IS THE SALES SURFACE. Prospects tap it on phones, so an unbounded menu
+  // here is a live wound on the funnel with a known cure one file away —
+  // R-35.36's mirror test, which the chair restated for this: mirror where the
+  // surface is really reached by real thumbs.
+  //
+  // Same measured arm, same zero horizontal delta.
+  const [menuBound, setMenuBound] = useState('calc(100dvh - 88px)');
+  useEffect(() => {
+    if (!profileOpen) return;
+    const coin = profileRef.current;  // the existing coin wrapper ref — no second ref grows
+    if (!coin) return;
+    const measure = () => {
+      const bottom = coin.getBoundingClientRect().bottom;
+      setMenuBound(`${Math.max(160, window.innerHeight - bottom - 32)}px`);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [profileOpen]);
   const isLight = theme === 'light';
 
   const mode = modeFromPath(pathname, handle);
@@ -113,7 +138,7 @@ export function DemoVendorHeader({ vendorName, handle, category, city }: Props) 
 
         {/* Dropdown */}
         <div style={{ position: 'absolute', top: 'calc(100% + 12px)', right: 0, minWidth: 260, zIndex: 200, opacity: profileOpen ? 1 : 0, transform: profileOpen ? 'translateY(0)' : 'translateY(-8px)', pointerEvents: profileOpen ? 'auto' : 'none', transition: `opacity 180ms ${EASE}, transform 220ms ${EASE}` }}>
-          <div className="atelier-card atelier-card-ornate" style={{ padding: 0, background: isLight ? `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)` : 'linear-gradient(180deg, rgba(35,26,21,0.97) 0%, rgba(28,21,17,0.99) 100%)', backdropFilter: 'blur(32px) saturate(1.6)', WebkitBackdropFilter: 'blur(32px) saturate(1.6)', boxShadow: isLight ? `0 8px 24px -4px rgba(26,15,8,0.15), 0 0 0 0.5px ${T.sheetBorder}` : '0 16px 40px -8px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(201,168,76,0.32)', overflow: 'hidden' }}>
+          <div className="atelier-card atelier-card-ornate" style={{ padding: 0, background: isLight ? `linear-gradient(180deg, ${T.sheetTop} 0%, ${T.sheetBot} 100%)` : 'linear-gradient(180deg, rgba(35,26,21,0.97) 0%, rgba(28,21,17,0.99) 100%)', backdropFilter: 'blur(32px) saturate(1.6)', WebkitBackdropFilter: 'blur(32px) saturate(1.6)', boxShadow: isLight ? `0 8px 24px -4px rgba(26,15,8,0.15), 0 0 0 0.5px ${T.sheetBorder}` : '0 16px 40px -8px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(201,168,76,0.32)', /* R-36.9 mirrored: `overflow: 'hidden'` retired INTO the pair below, exactly as the product's card did — the horizontal axis clips identically and the vertical one scrolls. */ maxHeight: menuBound, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
             <div style={{ padding: '18px 20px 16px', borderBottom: '0.5px solid rgba(201,168,76,0.22)' }}>
               <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 8 }}>The Maker</div>
               <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 24, color: isLight ? '#2C1F14' : 'var(--atelier-ink)', lineHeight: 1.1, letterSpacing: '0.005em' }}>{displayName}</div>
