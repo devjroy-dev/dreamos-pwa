@@ -185,6 +185,60 @@ export function ActionChip({ label, tone, onClick, disabled }: {
   );
 }
 
+// ── ActionLink ────────────────────────────────────────────────────────────────
+// ActionChip's twin for a destination that LEAVES THE APP.
+//
+// WHY A SECOND PRIMITIVE AND NOT A PROP ON THE FIRST (CE-225, FORK C ruled).
+// ActionChip is a <button>. A button cannot carry `target` or `rel`; opening a
+// new context from one means an onClick calling window.open, which a phone's
+// popup blocker may swallow and which loses the anchor's native long-press,
+// copy-link and open-in-app affordances. So the element itself has to change,
+// and an element swap is a new component, not a flag.
+//
+// The alternative ruled against was an inline <a> in each consuming page. Two
+// copies of a security-relevant attribute pair is how one of them later drifts
+// without the other: `rel="noopener noreferrer"` lives HERE, once, and no
+// consumer is trusted to remember it.
+//
+// STYLE IS ActionChip's, DELIBERATELY BYTE-FOR-BYTE — same tone map, same
+// fontSize/letterSpacing/borderRadius, the same 44px minHeight tap target and
+// the same press-scale. It sits in the same verb row as `Send welcome` and
+// `Delete` and must be indistinguishable from them; a founder should not be
+// able to tell that one of his three chips is a different HTML element.
+// The three additions an anchor needs and a button does not are display/align/
+// justify (a button centres its own text, an anchor does not) and
+// textDecoration: 'none'.
+//
+// stopPropagation matches ActionChip's: these live inside rows whose own
+// onClick toggles expansion, so a tap that reaches the parent would collapse
+// the drawer out from under the founder's thumb as he leaves for WhatsApp.
+export function ActionLink({ label, tone, href }: {
+  label: string; tone: 'ok' | 'no' | 'neutral'; href: string;
+}) {
+  const map = { ok: [T.success, T.successSoft], no: [T.danger, T.dangerSoft], neutral: [T.gold, T.goldSoft] } as const;
+  const [c, bg] = map[tone];
+  const [pressed, setPressed] = useState(false);
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => { e.stopPropagation(); }}
+      onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)}
+      style={{
+        flex: 1, background: bg,
+        border: `0.5px solid ${c}`,
+        color: c,
+        fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+        borderRadius: 9, minHeight: 44, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
+        transform: pressed ? 'scale(0.97)' : 'scale(1)',
+        transition: `all 120ms ${EASE}`,
+      }}
+    >{label}</a>
+  );
+}
+
 // ── Toast ─────────────────────────────────────────────────────────────────────
 // ── F-08.42 LIMB 2 · CE-RULED FORK 2(D) ──────────────────────────────────────
 // WAS: `useEffect(() => { const t = setTimeout(onDone, 3000); ... }, [onDone])`

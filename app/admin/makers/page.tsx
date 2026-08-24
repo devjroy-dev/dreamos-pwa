@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, Toast, FieldInput, ActionChip, GhostBtn } from '../_components/AdminUI';
+import { PageHeader, T, Toast, FieldInput, ActionChip, ActionLink, GhostBtn } from '../_components/AdminUI';
 import MintSheet from '../_components/MintSheet';
+import { waDialHref } from '../../../lib/admin/waDial';
 import { getVendors, patchVendorTier, patchVendorDiscover, type AdminVendor } from '../../../lib/admin-api/index';
 import { sendWelcome } from '../../../lib/admin-api/mint';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
@@ -214,6 +215,31 @@ export default function MakersPage() {
                         ? <ActionChip label={welcomeBusy === v.id ? 'Sending…' : 'Tap again to send on WhatsApp'} tone="ok" disabled={welcomeBusy === v.id} onClick={() => welcome(v)} />
                         : <ActionChip label="Send welcome" tone="ok" onClick={() => setConfirmWelcome(v.id)} />}
                     </div>
+                    {/* ── MICRO-WA-DIAL (CE-225) ───────────────────────────────
+                        The founder's own WhatsApp, opened on this maker's chat.
+                        It replaces: read the number off the row, copy it by
+                        hand, leave the app, paste, search. One tap instead.
+
+                        NO CONFIRM, unlike the two chips around it. `Send welcome`
+                        and `Delete` both act on the founder's behalf the instant
+                        they are tapped — one messages a real vendor, one destroys
+                        her account — so both earned tap-to-confirm. This sends
+                        nothing and changes nothing; it opens a compose window the
+                        founder still has to type into and press send in. A confirm
+                        here would be ceremony without a hazard behind it.
+
+                        ABSENT, NEVER DEAD: waDialHref returns null for a row whose
+                        stored number cannot be dialled safely, and null renders
+                        NOTHING — no greyed chip, no disabled state. The reasoning
+                        for which numbers those are lives at lib/admin/waDial.ts. */}
+                    {(() => {
+                      const href = waDialHref(v.phone);
+                      return href && (
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                          <ActionLink label="WhatsApp" tone="ok" href={href} />
+                        </div>
+                      );
+                    })()}
                     <div style={{ display: 'flex', gap: 8 }}>
                       {confirmDel === v.id
                         ? <ActionChip label="Tap again to delete permanently" tone="no" onClick={() => deleteVendor(v.id)} />

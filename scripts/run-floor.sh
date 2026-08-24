@@ -162,7 +162,32 @@ if [ "${1:-}" = "--check" ]; then
   # real regression gets absorbed.
   #
   # THE OTHER SIX .proof.ts BENCHES ARE GREEN, first run, no delta.
-  printf 'RED: run-assign-words-proof\nRED: tdw08_p5_prospects_console\nRED: tdw10_p3_deck\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  # ── BASE AMENDED, LABELLED — MICRO-WA-DIAL · CE-225 (2026-08-24) ───────────
+  # `tdw13_d4_extraction` JOINS, and it is not this delivery's red. It fails
+  # cell 2a — "every relocated line still exists, except the ten edited by
+  # ruling" — reporting ten eaten, the first being `const VENDOR_CATEGORIES`.
+  # It has been red since 8ebbe9e, which is pre-arc and inherited; CE-225
+  # RECORDED the floor as seven and 33652aa's own commit message says "Floor 7,
+  # unchanged" — but nobody amended this constant, so the runner has been
+  # counting six while every chair counted seven.
+  #
+  # THE COST OF LEAVING IT: `--check` exits 1 at an UNTOUCHED tip. A seat that
+  # cannot get a clean floor before it starts cannot tell its own delta from
+  # its inheritance, which is the one question this instrument exists to
+  # answer. That is not a cosmetic mismatch; it is the instrument lying at rest.
+  #
+  # Entered as BASE and not cured, with its ground stated rather than as a bare
+  # line: a wa.me affordance on two admin rows does not reach a block-13
+  # extraction census, and a base entry nobody can account for is how a real
+  # regression gets absorbed. The read-first that caught it did not chase it —
+  # the ten-eaten cause is still unexamined and is owed a sitting of its own.
+  #
+  # DESK LORE, banked here because it wasted a bounce: a `--depth 1` clone ALSO
+  # reds `tdw15_p2_envelopes` and `tdw15_p3_pulse`. Both call `git show` on old
+  # commits and both fail RATHER THAN PASS VACUOUSLY when the history is absent,
+  # which is correct conduct. `git fetch --unshallow` clears both. They are not
+  # base and must never be entered as base.
+  printf 'RED: run-assign-words-proof\nRED: tdw08_p5_prospects_console\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
   if diff /tmp/base.txt /tmp/floor.txt; then
     echo "FLOOR = NAMED BASE, no delta"
   else

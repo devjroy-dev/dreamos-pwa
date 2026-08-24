@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, Toast, FieldInput, ActionChip, GhostBtn } from '../_components/AdminUI';
+import { PageHeader, T, Toast, FieldInput, ActionChip, ActionLink, GhostBtn } from '../_components/AdminUI';
 import MintSheet from '../_components/MintSheet';
+import { waDialHref } from '../../../lib/admin/waDial';
 import { getCouples, patchCoupleTier, type AdminCouple } from '../../../lib/admin-api/index';
 import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
 
@@ -91,6 +92,25 @@ export default function DreamersPage() {
                       ))}
                     </div>
 
+                    {/* ── MICRO-WA-DIAL (CE-225) ───────────────────────────────
+                        The maker twin of this block lives at
+                        app/admin/makers/page.tsx and carries the same three
+                        bytes; both read the ONE predicate at lib/admin/waDial.ts,
+                        so the two surfaces cannot drift on which rows are
+                        dialable. Absent, never dead — null renders nothing.
+
+                        This lane's silent rows are not the same rows as the
+                        maker lane's: the 2026-08-24 census found the retirement
+                        sentinel HERE, among the dreamers, which is why one of
+                        these 52 rows shows no button and every maker shows one. */}
+                    {(() => {
+                      const href = waDialHref(c.phone);
+                      return href && (
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                          <ActionLink label="WhatsApp" tone="ok" href={href} />
+                        </div>
+                      );
+                    })()}
                     <div style={{ display: 'flex', gap: 8 }}>
                       {confirmDel === c.id
                         ? <ActionChip label="Tap again to delete permanently" tone="no" onClick={() => deleteCouple(c.id)} />
