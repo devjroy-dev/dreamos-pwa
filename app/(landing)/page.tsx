@@ -438,7 +438,31 @@ export default function Home() {
     if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
   };
 
-  const sendOtp = async (phoneNum: string) => {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // F-05.89 [R-37.1] — THE NAME TRAVELS WITH THE SEND-CODE REQUEST
+  // ═══════════════════════════════════════════════════════════════════════════
+  // The join door has made the first name COMPULSORY since 89e03eb (:879), and
+  // this function then posted the phone ALONE — the typed name sat in component
+  // state until `verifyOtp` reached /provision at :489, which only runs after a
+  // successful OTP. Every abandon in between minted a permanent NAMELESS row.
+  // The founder's census of 2026-08-25 measured 31 of them. His word: "the
+  // first name that's entered must not be discarded. it defeats the entire
+  // purpose of getting their name altogether."
+  //
+  // THE NAME IS AN ARGUMENT, NOT READ STATE, AND THAT IS THE WHOLE OF R-37.15.
+  // `joinName` is one `useState` on a component that renders EVERY screen, so
+  // it survives every screen transition. This function has FOUR callers — the
+  // join door (:879), two sign-in paths (:577, :589) and Resend (:909) — and if
+  // it read `joinName` off state, a visitor who typed "Priya" at the join door,
+  // backed out to Sign in, and entered A DIFFERENT NUMBER would ship "Priya" to
+  // the fresh mint of a stranger's phone. Server-side never-clobber would then
+  // protect that error permanently. The door that COLLECTED the name is the
+  // only door that spends it; every other caller passes nothing, deliberately,
+  // and a bench cell asserts the sign-in path ships no name.
+  //
+  // The server owns the coercion (textPresent + an 80-cap at both send-otp
+  // doors) — this side sends what was typed and does not second-guess it.
+  const sendOtp = async (phoneNum: string, nameArg?: string) => {
     const isVendor = role === 'Maker';
     const digits = phoneNum.replace(/\D/g, '');
     const e164 = country.dialCode + digits;
@@ -453,7 +477,7 @@ export default function Home() {
       const r = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164 }),
+        body: JSON.stringify({ phone: e164, name: nameArg?.trim() || undefined }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) { showToast(d.error || 'Could not send code. Try again.'); return; }
@@ -574,6 +598,14 @@ export default function Home() {
       // R-X10 arm (a): an unrecognised number on the returning path simply proceeds.
       // The OTP send self-mints on verify, so a visitor who taps `Sign in` before they
       // have an account is not turned away — they are signed up. Zero copy bytes.
+      //
+      // BOTH `sendOtp` CALLS IN THIS FUNCTION PASS NO NAME, AND THAT IS A
+      // RECORDED NON-ACT [R-37.15]. `joinName` is in scope here and survives
+      // every screen transition, so passing it would be one keystroke and a
+      // real defect: this path can mint a FRESH row (the `!d.exists` branch
+      // directly below), and a name left in state from an abandoned join
+      // attempt would found a stranger's row under someone else's name. This
+      // door never collected a name; it does not get to spend one.
       if (!d.ok || !d.exists) { sendOtp(phone); return; }
 
       if (d.pin_set) {
@@ -876,7 +908,7 @@ export default function Home() {
                     copy: the button label, the field label at :800 and the
                     placeholder at :804 all pre-date this, and a disabled button
                     mints no string. */}
-                <GoldBtn label="Send code →" onClick={() => sendOtp(phone)} disabled={phone.length < country.maxDigits || !joinName.trim() || (role === 'Maker' && !joinCategory)} />
+                <GoldBtn label="Send code →" onClick={() => sendOtp(phone, joinName)} disabled={phone.length < country.maxDigits || !joinName.trim() || (role === 'Maker' && !joinCategory)} />
               </>
             )}
 
@@ -906,7 +938,7 @@ export default function Home() {
                 </div>
                 <GoldBtn label="Verify →" onClick={verifyOtp} disabled={otp.join('').length < 6} />
                 <button
-                  onClick={() => { setOtp(['', '', '', '', '', '']); sendOtp(phone); }}
+                  onClick={() => { setOtp(['', '', '', '', '', '']); sendOtp(phone, screen === 'join_otp' ? joinName : undefined); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', touchAction: 'manipulation', fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.3)', marginTop: 12, display: 'block', width: '100%' }}
                 >Resend code</button>
               </>
