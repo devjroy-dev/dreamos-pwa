@@ -217,6 +217,19 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
           wedding_date: weddingDate || undefined,
           city:         city || undefined,
           budget_band:  band ?? undefined,
+          // ── F-16.25 (R-37.21 Fork A) · HER FLOOR TRAVELS TOO ──────────────
+          // `budget_band` is the band's CEILING, and the top band has none —
+          // so `Rs 10,00,000+` posted an empty string and the door stored the
+          // richest bride exactly like a bride who answered nothing.
+          //
+          // The floor is looked up from the SAME array the value came from, so
+          // the two cannot disagree, and it is `?? undefined` for the identical
+          // reason `budget_band` is: silence must OMIT the key. That omission is
+          // what keeps "she said nothing" distinguishable from "she said the
+          // open band", which the door now reads rather than discards.
+          budget_floor: band == null
+            ? undefined
+            : (BUDGET_BANDS.find((b) => b.value === band)?.floor ?? undefined),
         }),
       });
       // res.ok is CHECKED. A 4xx resolves normally from fetch, and an unchecked

@@ -10,6 +10,29 @@ import { useCallback, useMemo } from 'react';
 import { useLeadsData, useCabinetData } from '@/hooks/vendor/useVendorData';
 import { SliceScreen } from '@/components/vendor/slices/SliceShell';
 import { fmtRs, fmtLeadDate, fmtArrival, cap, type Row } from '@/components/vendor/slices/SliceRow';
+import { openBandLabelFor } from '@/lib/frost/budgetBands'; // F-16.25: the band's own byte, one home
+
+// ── F-16.25 (R-37.21) · THE BUDGET CELL READS THE PAIR, NOT THE CEILING ─────
+// `budget_total` is the CEILING (aliased from budget_max). The top band has
+// none, so `fmtRs(l.budget_total)` rendered `Rs —` for the richest enquiry on
+// the board — identical to a bride who answered nothing.
+//
+// The floor and the ceiling are now read TOGETHER, and the three states are
+// distinct: a ceiling renders the money as it always has · a floor with NO
+// ceiling renders the band's OWN founder-vetoed label ('Rs 10,00,000+'), which
+// is what she actually chose · neither renders `Rs —`, which is now true again
+// because it means she said nothing.
+//
+// THE LABEL IS NOT A NEW STRING. It comes from `budgetBands.ts`, the same array
+// the sheet showed her — one home, and the vendor reads the words the bride saw.
+// `openBandLabelFor` returns null rather than inventing when the floor matches
+// no open band, and this falls back to plain money in that case.
+function leadBudget(l: Lead): string {
+  if (l.budget_total != null) return fmtRs(l.budget_total);
+  const open = openBandLabelFor(l.budget_min ?? null);
+  if (open) return open;
+  return fmtRs(l.budget_total);
+}
 import { amountWordsAdjacent, phoneKey } from '@/lib/vendor/cabinet';
 import { API_BASE } from '@/lib/vendor/api/_base';
 import type { Lead } from '@/lib/vendor/types/vendor';
@@ -52,7 +75,7 @@ function leadMeta(l: Lead): string | undefined {
 // DISPLAY-ONLY. F-04.7's fence holds: this is a read-row and no editor grows on
 // it. The sheet's actions are untouched.
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? 0, tdw: l.tdw === true, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:fmtRs(l.budget_total)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
+  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
 }
 
 // TDW_04 A2 (L-2, F-04.2's ratified cure): DELETE means the REAL soft-delete

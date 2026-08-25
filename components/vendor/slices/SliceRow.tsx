@@ -81,6 +81,14 @@ export interface Row {
       mark beside the state pill. Display-only — F-04.7's fence holds, no editor
       grows on this row. */
   tdw?: boolean;
+  /** M-LEADGATE-RECUT (R-37.23): the wire's POSITIVE statement that this row's
+      mode-to-connect was withheld for tier. Read from the payload, never
+      inferred from an absent phone — page-trusts-the-wire, and an inference
+      from absence cannot tell "withheld" from "she never gave one". */
+  redacted?: boolean;
+  /** F-16.25 (R-37.21): the band's FLOOR in whole rupees. A floor with a NULL
+      ceiling is the open top band; both null is silence. */
+  budgetMin?: number | null;
   pipelineValue?: number;   // leads: budget_max · expenses: amount
   sortDate?: string | null; // events: event_date · expenses: expense_date (ISO)
 }

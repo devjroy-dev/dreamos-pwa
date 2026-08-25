@@ -9,7 +9,7 @@
     "components/vendor/OnboardingOverlay.tsx:423",
     "components/vendor/OnboardingOverlay.tsx:427",
     "components/vendor/TipsCarousel.tsx:377",
-    "components/vendor/slices/SliceShell.tsx:745"
+    "components/vendor/slices/SliceShell.tsx:771"
   ],
   "invariantPaths": [
     "app/vendor/pin/",

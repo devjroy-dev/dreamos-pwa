@@ -656,6 +656,15 @@ export interface Lead {
   wedding_date_precision?: 'day' | 'month' | 'year' | null;
   wedding_city:            string | null;
   budget_total:            number | null;
+  /** F-16.25 (R-37.21): the band's FLOOR in whole rupees, from
+      `public.leads.budget_min`. A floor with a NULL `budget_total` is the
+      open-ended top band; both null is silence. Deliberately NOT folded into
+      `budget_total`, which is the CEILING wearing an alias. */
+  budget_min?:             number | null;
+  /** M-LEADGATE-RECUT (R-36.13 / R-37.23): the wire says out loud that this
+      row's mode-to-connect was withheld for tier. Absent on paying tiers.
+      The surface keys on THIS, never on an absent `phone`. */
+  redacted?:               boolean;
   state:                   string;
   source:                  string | null;
   referrer:                string | null;

@@ -541,9 +541,35 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         apply: () => setBadge(row.id, 'booked'), revert: () => setBadge(row.id, null),
         commit: async () => { const r = await patchLeadState(row.id, 'booked'); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Could not book ${row.primary}.`, 'error'); },
         toastMsg: `${row.primary} → booked.` }) },
-      left: row.phone
-        ? { label: 'Call', onTrigger: () => { window.location.href = `tel:${row.phone}`; } }
-        : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
+      // ── R-37.22 · THE LEFT SIDE SUPPRESSES ON A REDACTED ROW ──────────────
+      // THE INCIDENT THIS CLOSES, written down because it was live: Seat A′'s
+      // recut withholds `phone` from a basic vendor's leads wire (R-36.13 — the
+      // gate is the mode to connect). This ternary keyed on `row.phone`, so on
+      // 0dc5a27's deploy every basic vendor's left swipe silently STOPPED being
+      // `Call` and BECAME `Mark lost` — a different verb in a remembered
+      // position, on the paid product, with no ruling behind it.
+      //
+      // GRADED HONESTLY, NOT DRAMATICALLY: it opened the standing confirm and
+      // `Mark lost` is itself undoable, so nothing was destroyed silently. The
+      // defect was the gesture changing identity underneath the vendor's thumb.
+      //
+      // THE RULING IS SUPPRESSION, NOT SUBSTITUTION. On a redacted row the left
+      // side renders NOTHING. The two refused arms are worth keeping visible:
+      // routing the gesture to the upsell was refused because A GESTURE MUST
+      // NEVER OPEN A SALES SURFACE, and keeping `Mark lost` was refused because
+      // per-tier gesture semantics is the muscle-memory trap itself. `Mark lost`
+      // stays reachable through the detail sheet's own control, so nothing is
+      // lost but the ambiguity.
+      //
+      // KEYED ON `redacted`, NEVER ON `!row.phone` (R-37.23). The wire's
+      // positive statement is the signal; an absent phone cannot tell a
+      // withheld number from a lead that never had one, and the second of those
+      // is a perfectly ordinary row whose swipe should keep working.
+      left: row.redacted
+        ? undefined
+        : row.phone
+          ? { label: 'Call', onTrigger: () => { window.location.href = `tel:${row.phone}`; } }
+          : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
     };
     if (slice === 'invoices') return {
       right: { label: 'Mark paid', onTrigger: () => {
@@ -863,6 +889,52 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const footerExtra = (
     <>
       {!confirmDel && markLostBlock}
+      {/* ── R-37.24 · THE CONNECT SLOT ────────────────────────────────────────
+          Where the WhatsApp and Call buttons would sit, a basic vendor gets ONE
+          affordance that says why they are not there and where to go.
+
+          IT SITS HERE AND NOT ON THE LIST ROW, and the reason is a correction
+          this seat had to make to its own committed handover: the list-row
+          contact buttons at SliceRow are `slice === 'clients'` and have NEVER
+          rendered for leads at any tier. Three documents said otherwise —
+          NOTE 36 §3, this arc's kickoff, and the Seat A′ handover I wrote — all
+          from one ungrounded grep. THIS footer is where lead contact actually
+          lives, so this is where its absence gets explained. A slot on the list
+          rows would be NEW chrome rather than a replacement, and R-37.24 refused
+          it this sitting as wanting its own founder word.
+
+          KEYED ON `sel?.redacted` (R-37.23) — the wire's positive statement.
+          Not `!sel?.phone`: a lead that simply never had a number is not a
+          withheld one, and telling that vendor to upgrade would be a lie.
+          Payload-keyed in both directions, so a paying card is byte-identical.
+
+          THE COPY IS THE FOUNDER'S, EXECUTED 2026-08-25, shipped character for
+          character. The CTA ships on his silence per the kickoff's own term. */}
+      {slice === 'leads' && sel?.redacted && !confirmDel && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
+          <div style={{
+            // 16px on F.script italic 300 is the row's OWN detail-line rung
+            // (SliceRow's `detailLine`), which is also the T-1 body floor. The
+            // first cut of this block shipped 15 and `tdw09_type` named it at
+            // the byte — a tenth declared size against nine rungs, below the
+            // floor. The census caught a sentence nobody would have squinted at.
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+            lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em', textAlign: 'center',
+          }}>Upgrade to Essential tier or above to connect with your lead.</div>
+          <a href="/vendor/billing" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '11px 0',
+            background: 'var(--atelier-input-bg)',
+            border: '0.5px solid var(--atelier-sheet-border)',
+            borderRadius: 2, textDecoration: 'none',
+          }}>
+            <span style={{
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+              letterSpacing: '0.32em', textTransform: 'uppercase',
+            }}>See plans</span>
+          </a>
+        </div>
+      )}
       {slice === 'leads' && sel?.phone && !confirmDel && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
           <a href={`https://wa.me/${sel.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
