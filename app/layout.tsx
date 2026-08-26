@@ -69,7 +69,11 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,300;1,9..144,400&family=Italianno&family=JetBrains+Mono:wght@300;400&display=swap"
           rel="stylesheet"
         />
-        <link rel="manifest" href="/manifest.json" />
+        {/* M-WORKLIST branch only — R-37.42: the branch PWA installs as its own app beside
+            the real one, so it advertises its own manifest. Production main keeps
+            /manifest.json; this line is one of exactly two edits this arc makes to a
+            pre-existing file, and it never travels to main. */}
+        <link rel="manifest" href="/worklist-manifest.json" />
         <meta name="theme-color" content="#1E0A0E" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
