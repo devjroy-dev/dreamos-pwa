@@ -27,6 +27,7 @@ export default function SupportPage() {
 .wl-support{padding:28px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
 .wl-supportbody{font-size:14px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 .wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:11px 16px;min-height:44px;font-family:'Jost',sans-serif;font-weight:500;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-supportaction:active{background:var(--atelier-row-hover)}
 .wl-supportaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
       `}</style>
     </WorklistShell>

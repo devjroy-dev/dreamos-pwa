@@ -32,10 +32,14 @@ export function FirstRun() {
     if (typeof window === 'undefined') return;
     if (!getVendorSession()?.access_token) return;
     let live = true;
-    getJson<{ ok: boolean; vendor?: { routing_handle?: string } }>('/api/v2/vendor/me', true)
+    // THE FIELD IS `handle`, NOT `routing_handle`. dream-os src/api/vendor/me.js:76 maps
+    // `handle: vendor.routing_handle || null` on the way out. The first cut of this file read
+    // the settings page's LOCAL variable name instead of the wire and hid card 1 on every
+    // load — reaching for the expected shape instead of the text in front of me. Derived now.
+    getJson<{ ok: boolean; vendor?: { handle?: string | null } }>('/api/v2/vendor/me', true)
       .then((d) => {
         if (!live || !d.ok) return;
-        const h = d.vendor?.routing_handle?.trim();
+        const h = d.vendor?.handle?.trim();
         setHandle(h ? h.toUpperCase() : null);
       })
       .catch(() => { /* fail closed: no handle, no card */ });
@@ -94,5 +98,6 @@ const FR_CSS = `
 .wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:9px 14px;min-height:40px;font-family:'Jost',sans-serif;font-weight:500;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-chips{display:flex;flex-wrap:wrap;gap:6px}
 .wl-chip{border:.5px solid var(--atelier-card-border);border-radius:2px;padding:7px 10px;font-size:11.5px;font-weight:400;color:var(--atelier-ink-dim)}
+.wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

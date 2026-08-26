@@ -76,5 +76,40 @@ cell('C6 no third container (R-37.64)', () => {
   return null;
 });
 
+// ── C7 · the chrome is PINNED. The first cut let the dock and both nav seats scroll off
+//    the bottom of a long Today. Mutation that reddens it: height 100dvh -> minHeight.
+cell('C7 chrome pinned, body scrolls', () => {
+  const shell = read('components/worklist/WorklistShell.tsx');
+  if (!/height:\s*'100dvh'/.test(shell)) return 'shell root is not a fixed 100dvh column';
+  if (!/overflow:\s*'hidden'/.test(shell)) return 'shell root does not clip — the chrome will scroll away';
+  if (!/\.wl-main\{[^}]*overflow-y:auto/.test(shell)) return 'the body does not scroll independently';
+  if (!/\.wl-nav\{[^}]*flex-shrink:0/.test(shell)) return 'the nav can be squeezed out of the column';
+  return null;
+});
+
+// ── C8 · every tap target answers the finger. A control with no pressed state and a
+//    300ms zoom delay reads as dead, and a dead control gets tapped again.
+cell('C8 touch answers', () => {
+  const files = ['components/worklist/WorklistShell.tsx','components/worklist/RoomsGrid.tsx',
+                 'components/worklist/AiDock.tsx','components/worklist/FirstRun.tsx','app/w/support/page.tsx'];
+  const missing = files.filter((f) => !/:active\{/.test(read(f)));
+  if (missing.length) return 'no pressed state in ' + missing.join(', ');
+  // Anchored to the .wl root rule specifically. An earlier cut of this cell matched
+  // touch-action anywhere in the file and stayed GREEN with the root rule deleted —
+  // vacuous, caught by its own mutation run and tightened here.
+  if (!/\.wl\{[^}]*touch-action:manipulation/.test(read('components/worklist/WorklistShell.tsx')))
+    return 'the .wl root carries no touch-action:manipulation — every tap waits on the double-tap-zoom gesture';
+  return null;
+});
+
+// ── C9 · the wire shape of the handle, asserted against dream-os's own mapping.
+//    /api/v2/vendor/me returns `handle`; reading `routing_handle` hides card 1 forever.
+cell('C9 card 1 reads the wire, not a local name', () => {
+  const fr = strip(read('components/worklist/FirstRun.tsx'));
+  if (/vendor\?\.routing_handle/.test(fr)) return 'reads vendor.routing_handle — the wire field is `handle` (dream-os me.js:76)';
+  if (!/vendor\?\.handle/.test(fr)) return 'does not read vendor.handle at all';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

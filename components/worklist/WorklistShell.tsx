@@ -44,7 +44,11 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 
   return (
     <div className="wl" data-wl-mode={mode} style={{
-      minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+      // FIXED VIEWPORT, SCROLLING BODY. The first cut used minHeight and let the whole column
+      // grow, so the dock and both nav seats scrolled off the bottom of a long Today and the
+      // shell had no visible chrome at rest. The old shell pins its bar for exactly this
+      // reason (app/vendor/layout.tsx: height 100dvh, overflowY hidden); this one now does too.
+      height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       background: 'var(--atelier-page-bg)', color: 'var(--atelier-ink)',
     }}>
       <style>{scopeCss(SCOPE) + SHELL_CSS}</style>
@@ -88,8 +92,22 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 // sizes and reads several shades lighter than its measured ratio — the founder caught
 // exactly this on the Chalk walk-through, and the cure was weight, not ink.
 const SHELL_CSS = `
-.wl{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;-webkit-tap-highlight-color:transparent}
-.wl-hdr{background:var(--atelier-header-bg);padding:16px 18px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);position:sticky;top:0;z-index:5}
+/* ── TOUCH ──────────────────────────────────────────────────────────────────
+   Two defects in the first cut, both found on the founder's device and neither
+   visible in a desktop render:
+
+   (a) NO PRESSED STATE ANYWHERE. -webkit-tap-highlight-color was set to transparent
+       and nothing replaced it, so a tap produced no feedback at all until the route
+       resolved. On a throttled connection that reads as a dead control, and the
+       honest response to a dead control is to tap it again. Every control below now
+       answers the finger on contact.
+
+   (b) NO touch-action. Without touch-action:manipulation the browser holds every tap for the
+       double-tap-zoom gesture before dispatching the click. That delay is the
+       difference between a shell that responds and one that has to be convinced. */
+.wl{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
+.wl button{touch-action:manipulation}
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px 18px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);z-index:5}
 .wl-lbl{font-family:'Jost',sans-serif;font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-label)}
 .wl-coin{background:none;border:none;cursor:pointer;color:var(--role-metal);font-size:16px;line-height:1;padding:6px;min-width:40px;min-height:40px}
 .wl-coindrawer{background:var(--atelier-sheet-bg);border-bottom:.5px solid var(--atelier-sheet-border);padding:6px 0}
@@ -97,10 +115,12 @@ const SHELL_CSS = `
 .wl-coinitem[aria-current="true"]{color:var(--atelier-accent-text)}
 .wl-glyph{color:var(--role-metal);font-size:11px}
 .wl-sub{font-family:'Jost',sans-serif;font-weight:500;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-left:auto}
-.wl-main{flex:1;display:flex;flex-direction:column;min-height:0}
-.wl-nav{display:flex;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
+.wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
 .wl-seat{flex:1;background:none;border:none;cursor:pointer;text-align:center;padding:14px 0 16px;font-family:'Jost',sans-serif;font-weight:500;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
+.wl-seat:active{background:var(--atelier-row-hover)}
+.wl-coin:active,.wl-coinitem:active{background:var(--atelier-row-hover)}
 .wl-seat:focus-visible,.wl-coin:focus-visible,.wl-coinitem:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.wl *{transition:none!important;animation:none!important}}
 `;
