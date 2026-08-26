@@ -582,8 +582,38 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       } },
       left: { label: 'Cancel', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
     };
+    // ── R-37.43 §8.3 · THE RIGHT SIDE SUPPRESSES ON AN EXPENSE ROW ──────────
+    // THE DISEASE, written down because it was live on the paid shell: the right
+    // swipe was labelled `Repeat` and its entire body was
+    // `showToast('Repeat-last lands with the AddSheet rebuild (A4).', 'success')`.
+    // Zero writes behind it, ungated, on every tier. A vendor swiped a real
+    // expense row, the gesture completed, and the estate answered in the SUCCESS
+    // register — the same green the invoice row beside it uses when a payment
+    // actually lands. §4's house law is one sentence: the UI confirms only what a
+    // tool result or an API response proved. This confirmed nothing and said so
+    // in the voice of proof.
+    //
+    // GRADED HONESTLY, NOT DRAMATICALLY: nothing was destroyed, no money moved,
+    // no row changed — the toast was the entire effect. The defect is that the
+    // vendor was told an act had occurred. A ledger surface that lies about a
+    // small act is not believed about a large one, and that is the whole cost.
+    //
+    // THE CURE IS SUPPRESSION, NOT SUBSTITUTION — R-37.22's shape, reused because
+    // this is the same class one gesture over. The right side renders NOTHING:
+    // SwipeRow clamps `next = 0` when a side is absent, so the row does not
+    // translate, no label reveals, and there is no handler to fire. The two
+    // refused arms are kept visible: an HONEST toast ("Repeat lands later") was
+    // refused because a gesture that answers is a gesture that did something, and
+    // a different verb in the remembered position was refused as the
+    // muscle-memory trap R-37.22 already named. No copy byte ships here — there
+    // is no byte to veto because there is no surface.
+    //
+    // WHAT RETURNS WHEN A4 LANDS: `Repeat` comes back with the AddSheet rebuild
+    // behind it, writing before it speaks. The gesture is not retired; it is held
+    // until it has something true to say. Delete is untouched — the left side was
+    // never part of this.
     if (slice === 'expenses') return {
-      right: { label: 'Repeat', onTrigger: () => showToast('Repeat-last lands with the AddSheet rebuild (A4).', 'success') },
+      right: undefined,
       left: { label: 'Delete', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
     };
     if (slice === 'events') return {
