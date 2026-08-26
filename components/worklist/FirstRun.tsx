@@ -90,14 +90,18 @@ export function FirstRun() {
 }
 
 const FR_CSS = `
-.wl-fr{padding:6px 16px 24px}
-.wl-frhead{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:20px;color:var(--atelier-ink);margin:0 0 14px;text-align:center}
-.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px 16px 14px;margin-bottom:10px}
-.wl-cardtitle{font-family:'Jost',sans-serif;font-weight:500;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 8px}
-.wl-cardbody{font-size:13.5px;font-weight:400;line-height:1.6;color:var(--atelier-ink-soft);margin:0}
-.wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:9px 14px;min-height:40px;font-family:'Jost',sans-serif;font-weight:500;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-accent-text)}
-.wl-chips{display:flex;flex-wrap:wrap;gap:6px}
-.wl-chip{border:.5px solid var(--atelier-card-border);border-radius:2px;padding:7px 10px;font-size:11.5px;font-weight:400;color:var(--atelier-ink-dim)}
+.wl-fr{padding:8px 16px 26px}
+.wl-frhead{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:22px;color:var(--atelier-ink);margin:0 0 16px;text-align:center}
+.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px 17px 16px;margin-bottom:10px}
+.wl-cardtitle{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
+.wl-cardbody{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0}
+/* R-37.73 ①: 40 was under the floor. */
+.wl-cardaction{margin-top:14px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;min-height:46px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-chips{display:flex;flex-wrap:wrap;gap:7px}
+/* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and
+   a chip-shaped thing invites a thumb, so they carry a real target rather than teaching
+   that some chips are dead. ②: 11.5 → 13. */
+.wl-chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:2px;padding:10px 13px;font-size:13px;font-weight:400;color:var(--atelier-ink-dim)}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

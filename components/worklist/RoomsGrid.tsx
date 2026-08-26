@@ -40,12 +40,13 @@ export function RoomsGrid() {
 }
 
 const GRID_CSS = `
-.wl-bands{padding:16px 12px 26px;flex:1}
-.wl-band+.wl-band{margin-top:20px}
-.wl-bandlabel{font-family:'Jost',sans-serif;font-weight:500;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 10px}
+.wl-bands{padding:18px 14px 28px;flex:1}
+.wl-band+.wl-band{margin-top:22px}
+.wl-bandlabel{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 11px}
 .wl-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.wl-tile{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;min-height:68px;display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer}
-.wl-tname{font-family:'Jost',sans-serif;font-weight:500;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--atelier-ink-soft);text-align:center;line-height:1.35}
+.wl-tile{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;min-height:74px;display:flex;align-items:center;justify-content:center;padding:8px 6px;cursor:pointer}
+/* R-37.73 ②: 9px CONVICTED as illegible chrome. 12 is the interactive floor. */
+.wl-tname{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-soft);text-align:center;line-height:1.3}
 .wl-tile:active{background:var(--atelier-row-hover);border-color:var(--atelier-accent-text)}
 .wl-tile:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

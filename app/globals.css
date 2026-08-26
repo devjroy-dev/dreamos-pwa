@@ -1262,3 +1262,114 @@ html.theme-light .dd-cab{
    risen sheet breaches it. Mechanism comment law (F-06.85): if either the
    className or the body class moves, this selector moves with it. */
 body.chat-risen .tdw-bottom-nav { display: none; }
+
+
+/* ══ BRANCH-ONLY · M-WORKLIST ZIP 3 (R-37.73 ④) — THE GRAPHITE OVERRIDE LAYER ══════════
+   Production `main` carries Espresso and Editorial Paper above; this block exists only on
+   the `worklist` branch and only so a deep-linked room stops falling back into the brown.
+
+   WHY IT IS APPENDED AND NOT EDITED IN PLACE. Every declaration above stays byte-untouched
+   and readable in a diff. An in-place rewrite of a hundred lines of ruled colour would have
+   buried the change and made the eventual merge unreviewable.
+
+   WHY !important, DELIBERATELY AND NARROWLY. Three things outrank a plain appended :root
+   here: the room atmospheres (`body.room-studio` = 0,1,1 against :root's 0,1,0), their own
+   existing !important page paints, and app/vendor/layout.tsx's inline pre-paint pin. This
+   layer overrides variables ONLY — never a layout property, never a component rule — so it
+   cannot change a single position, size or spacing. It is a palette, forced.
+
+   THE ATMOSPHERES KEEP THEIR SHAPE (§8.13): the same two gradients, the same geometry, the
+   same stop positions, re-keyed to Graphite grounds. Zero structural delta; only the ink of
+   the room changes, which is what the founder asked for. */
+:root {
+  --atelier-bg: #0F1011 !important;
+  --atelier-page-bg: #141516 !important;
+  --atelier-header-bg: #1A1B1D !important;
+  --atelier-section-bg: #171819 !important;
+  --atelier-sheet-bg: #1D1E20 !important;
+  --atelier-overlay-bg: #0A0B0C !important;
+  --atelier-card-bg: linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%) !important;
+  --atelier-card-border: rgba(240,244,246,0.11) !important;
+  --atelier-card-shadow: rgba(0,0,0,0.50) !important;
+  --atelier-row-hover: rgba(240,244,246,0.042) !important;
+  --atelier-grain: rgba(255,255,255,0.012) !important;
+  --atelier-input-bg: rgba(240,244,246,0.040) !important;
+  --atelier-input-border: rgba(104,201,180,0.58) !important;
+  --atelier-sheet-top: #232527 !important;
+  --atelier-sheet-bot: #191A1C !important;
+  --atelier-sheet-border: rgba(240,244,246,0.14) !important;
+  --atelier-overlay: rgba(10,11,12,0.74) !important;
+  --atelier-ink: #EDEEEF !important;
+  --atelier-ink-soft: #C8CACC !important;
+  --atelier-ink-dim: #A3A6A9 !important;
+  --atelier-ink-mute: #888B8E !important;
+  --atelier-ink-fade: #585B5E !important;
+  --atelier-label: #B9BCBF !important;
+  --atelier-accent-text: #68C9B4 !important;
+  --role-metal: #C9A84C !important;
+  --role-ink-on-metal: #141516 !important;
+  --role-ink-deep: #0F1011 !important;
+  --role-positive: #6FC98C !important;
+  --role-caution: #DFAE6C !important;
+  --role-critical: #E8836B !important;
+  --role-scrim: rgba(10,11,12,0.62) !important;
+  --role-sheet: #1D1E20 !important;
+  --role-today-coin-ink: #141516 !important;
+}
+
+html.theme-light {
+  --atelier-bg: #EDEEEF !important;
+  --atelier-page-bg: #F3F4F4 !important;
+  --atelier-header-bg: #FFFFFF !important;
+  --atelier-section-bg: #E7E9EA !important;
+  --atelier-sheet-bg: #FFFFFF !important;
+  --atelier-overlay-bg: #17191A !important;
+  --atelier-card-bg: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%) !important;
+  --atelier-card-border: rgba(23,25,26,0.13) !important;
+  --atelier-card-shadow: rgba(23,25,26,0.09) !important;
+  --atelier-row-hover: rgba(23,25,26,0.038) !important;
+  --atelier-grain: rgba(23,25,26,0.012) !important;
+  --atelier-input-bg: rgba(23,25,26,0.035) !important;
+  --atelier-input-border: rgba(13,106,90,0.68) !important;
+  --atelier-sheet-top: #F8F9F9 !important;
+  --atelier-sheet-bot: #EDEFEF !important;
+  --atelier-sheet-border: rgba(23,25,26,0.16) !important;
+  --atelier-overlay: rgba(23,25,26,0.44) !important;
+  --atelier-ink: #0E1112 !important;
+  --atelier-ink-soft: #272B2D !important;
+  --atelier-ink-dim: #3D4245 !important;
+  --atelier-ink-mute: #52585B !important;
+  --atelier-ink-fade: #767C80 !important;
+  --atelier-label: #3A3F42 !important;
+  --atelier-accent-text: #0D6A5A !important;
+  --role-metal: #8A6F2A !important;
+  --role-ink-on-metal: #FFFFFF !important;
+  --role-ink-deep: #17191A !important;
+  --role-positive: #2C7343 !important;
+  --role-caution: #8A5A18 !important;
+  --role-critical: #AE3A22 !important;
+  --role-scrim: rgba(23,25,26,0.38) !important;
+  --role-sheet: #FFFFFF !important;
+  --role-today-coin-ink: #FFFFFF !important;
+}
+
+html.room-studio,
+body.room-studio {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(240,244,246,0.045) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 10% 100%, rgba(28,30,32,0.55) 0%, transparent 65%),
+    linear-gradient(180deg, #16181A 0%, #111213 100%) !important;
+}
+
+html.theme-light.room-studio,
+html.theme-light body.room-studio {
+  background: #F3F4F4 !important;
+  color: #0E1112 !important;
+}
+
+html.room-discover,
+body.room-discover {
+  background:
+    radial-gradient(ellipse 50% 25% at 50% 0%, rgba(104,201,180,0.05) 0%, transparent 70%),
+    linear-gradient(180deg, #0C0D0E 0%, #08090A 100%) !important;
+}

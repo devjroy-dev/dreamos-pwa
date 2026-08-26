@@ -33,6 +33,48 @@
 
 export type WorklistMode = 'dark' | 'light';
 
+// ── THE TYPE SCALE (R-37.73 \u2461) ─────────────────────────────────────────────
+//
+// AD-HOC PX IS RETIRED. Tile names shipped at 9px in ZIP 1 and were convicted as illegible
+// chrome; the cure is not a bigger number at one call site, it is that sizes stop being
+// numbers at call sites at all. Every size below is named, and the floors are asserted by
+// the bench so a later edit cannot walk one back quietly.
+//
+// THE FLOORS, ruled: no label under 11px \u00b7 no interactive text under 12px \u00b7 body \u2265 14px.
+//
+// WHY 9px LOOKED FINE IN A DESKTOP RENDER AND FAILED ON GLASS: Jost at these sizes is a
+// hairline, and a hairline antialiases toward its ground. The measured contrast ratio is
+// honest for a flat block of colour and overstates a thin glyph every time \u2014 the same
+// mechanism that made Chalk read washed until the weights were corrected. Size and weight
+// are one decision, so they are set together here.
+export const TYPE = {
+  /** Uppercase Jost labels — headers, band captions, state marks. FLOOR 11. */
+  label:       { size: 11,   weight: 500, track: '0.18em' },
+  /** The nav seats and any other uppercase control label. FLOOR 12 (interactive). */
+  seat:        { size: 12,   weight: 500, track: '0.16em' },
+  /** Tile names. Interactive, so the 12 floor binds — 9 was the conviction. */
+  tile:        { size: 12,   weight: 500, track: '0.08em' },
+  /** Card titles. Interactive block headings. */
+  cardTitle:   { size: 12,   weight: 500, track: '0.14em' },
+  /** Body prose in cards and sheets. FLOOR 14. */
+  body:        { size: 14.5, weight: 400, track: '0' },
+  /** Chips — tappable, so the 12 floor binds and the target is padded to 44. */
+  chip:        { size: 13,   weight: 400, track: '0' },
+  /** Button labels. Interactive. */
+  action:      { size: 12,   weight: 500, track: '0.16em' },
+  /** The Today empty lines, set in the display face. */
+  display:     { size: 19,   weight: 400, track: '0' },
+  /** The first-run header. */
+  displayHead: { size: 22,   weight: 400, track: '0' },
+} as const;
+
+/** The ruled floors. The bench reads these, not a copy of them. */
+export const TYPE_FLOORS = { label: 11, interactive: 12, body: 14 } as const;
+
+/** Every control the finger can reach is at least this, in CSS px. R-37.73 \u2460. */
+export const TAP_MIN = 44;
+
+
 /** Every token the shell defines. Keys are written WITHOUT their prefix; prefixFor() adds it. */
 export type TokenKey =
   | 'bg' | 'page-bg' | 'header-bg' | 'section-bg' | 'sheet-bg' | 'overlay-bg'

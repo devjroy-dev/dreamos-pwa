@@ -34,9 +34,10 @@ export function AiDock() {
 }
 
 const DOCK_CSS = `
-.wl-dock{flex-shrink:0;display:flex;align-items:center;gap:9px;width:100%;background:var(--atelier-section-bg);border:none;border-top:.5px solid var(--atelier-card-border);cursor:pointer;padding:11px 20px;min-height:44px;text-align:left}
-.wl-dockglyph{color:var(--role-metal);font-size:10px;line-height:1}
-.wl-docktext{font-family:'Jost',sans-serif;font-weight:500;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text)}
+/* R-37.73 ①: 44 was the floor, met exactly. 50 gives it air. ②: glyph 10 → 12. */
+.wl-dock{flex-shrink:0;display:flex;align-items:center;gap:10px;width:100%;background:var(--atelier-section-bg);border:none;border-top:.5px solid var(--atelier-card-border);cursor:pointer;padding:14px 22px;min-height:50px;text-align:left}
+.wl-dockglyph{color:var(--role-metal);font-size:12px;line-height:1}
+.wl-docktext{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-dock:active{background:var(--atelier-row-hover)}
 .wl-dock:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 `;

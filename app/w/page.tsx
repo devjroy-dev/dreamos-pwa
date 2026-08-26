@@ -21,9 +21,9 @@ export default function TodayPage() {
       </div>
       <FirstRun />
       <style>{`
-.wl-empty{padding:34px 30px 22px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.wl-emptyline{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--atelier-ink-soft);text-align:center;margin:0}
-.wl-emptyline.dim{font-family:'DM Sans',sans-serif;font-weight:400;font-size:12.5px;color:var(--atelier-ink-mute)}
+.wl-empty{padding:36px 30px 24px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.wl-emptyline{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--atelier-ink-soft);text-align:center;margin:0}
+.wl-emptyline.dim{font-family:'DM Sans',sans-serif;font-weight:400;font-size:14px;color:var(--atelier-ink-mute)}
       `}</style>
     </WorklistShell>
   );

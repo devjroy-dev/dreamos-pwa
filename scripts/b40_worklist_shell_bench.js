@@ -111,5 +111,78 @@ cell('C9 card 1 reads the wire, not a local name', () => {
   return null;
 });
 
+// ── C10 · TAP-TARGET FLOOR. Every interactive control >= 44 CSS px (R-37.73 (1)).
+//    The rule reads min-height/min-width off the shipped CSS. A control with neither is
+//    a target that survives by accident, and this cell calls that a miss.
+cell('C10 every tap target >= 44px', () => {
+  const TAP_MIN = 44;
+  const files = {
+    'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-coinitem'],
+    'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
+    'components/worklist/AiDock.tsx':        ['wl-dock'],
+    'components/worklist/FirstRun.tsx':      ['wl-cardaction', 'wl-chip'],
+    'app/w/support/page.tsx':                ['wl-supportaction'],
+  };
+  const under = [];
+  for (const [f, classes] of Object.entries(files)) {
+    const css = read(f);
+    for (const c of classes) {
+      const m = css.match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
+      if (!m) { under.push(c + ' (rule not found)'); continue; }
+      const h = m[1].match(/min-height:(\d+)px/);
+      if (!h) { under.push(c + ' (no min-height — a target that survives by accident)'); continue; }
+      if (Number(h[1]) < TAP_MIN) under.push(c + ' at ' + h[1] + 'px');
+    }
+  }
+  if (under.length) return 'under the 44px floor: ' + under.join(', ');
+  return null;
+});
+
+// ── C11 · TYPE FLOORS (R-37.73 (2)). No label under 11px, no interactive text under 12px.
+//    9px on the tile names was the conviction; this makes it unrepeatable.
+cell('C11 type floors hold', () => {
+  const rules = [
+    ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
+    ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
+    ['components/worklist/WorklistShell.tsx', 'wl-sub', 11],
+    ['components/worklist/AiDock.tsx', 'wl-docktext', 12], ['components/worklist/AiDock.tsx', 'wl-dockglyph', 11],
+    ['components/worklist/FirstRun.tsx', 'wl-cardtitle', 12], ['components/worklist/FirstRun.tsx', 'wl-cardbody', 14],
+    ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/FirstRun.tsx', 'wl-cardaction', 12],
+  ];
+  const bad = [];
+  for (const [f, c, floor] of rules) {
+    const m = read(f).match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
+    if (!m) { bad.push(c + ' (rule not found)'); continue; }
+    const sz = m[1].match(/font-size:([\d.]+)px/);
+    if (!sz) { bad.push(c + ' (no font-size)'); continue; }
+    if (Number(sz[1]) < floor) bad.push(c + ' at ' + sz[1] + 'px, floor ' + floor);
+  }
+  if (bad.length) return 'under the type floor: ' + bad.join(', ');
+  return null;
+});
+
+// ── C12 · THE ROOMS ARM (R-37.73 (4)). The branch's /vendor tree must carry Graphite at
+//    ALL THREE colour homes, or the rooms come out half-converted — which reads worse than
+//    uniform brown. useT() consumers, var() consumers, and the inline pre-paint pin.
+cell('C12 the branch vendor tree carries Graphite at all three homes', () => {
+  // Comment-blindness law, and then some: the old palette is legitimately QUOTED in this
+  // file's prose while it explains why each role exists. Assert against the token blocks.
+  const th = read('lib/vendor/theme.ts');
+  for (const name of ['DARK', 'LIGHT']) {
+    const b = th.match(new RegExp('export const ' + name + ': ThemeTokens = \\{([\\s\\S]*?)\\n\\};'));
+    if (!b) return name + ' block not found';
+    const vals = (b[1].match(/:\s*'([^']*)'/g) || []).join(' ');
+    if (/#1A0F08|#F5F2EE|#7A3828|#1F1612|#241A15|122,56,40|245,235,212/.test(vals))
+      return name + ' still carries an Espresso/Paper value — useT() consumers stay brown';
+  }
+  if (!/#68C9B4/.test(th)) return 'lib/vendor/theme.ts has no signal colour — the palette did not land';
+  const css = read('app/globals.css');
+  if (!/M-WORKLIST ZIP 3/.test(css)) return 'globals.css carries no override layer — every var() consumer stays brown';
+  if (!/--atelier-page-bg: #141516 !important/.test(css)) return 'the override layer does not set the dark page ground';
+  const lay = read('app/vendor/layout.tsx');
+  if (/#F5F2EE|#1A0F08|122,56,40/.test(lay)) return 'LIGHT_VARS still pins Editorial Paper inline — inline beats every stylesheet';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

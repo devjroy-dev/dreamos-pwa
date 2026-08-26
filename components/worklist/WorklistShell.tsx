@@ -107,17 +107,20 @@ const SHELL_CSS = `
        difference between a shell that responds and one that has to be convinced. */
 .wl{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
 .wl button{touch-action:manipulation}
-.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px 18px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);z-index:5}
-.wl-lbl{font-family:'Jost',sans-serif;font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-label)}
-.wl-coin{background:none;border:none;cursor:pointer;color:var(--role-metal);font-size:16px;line-height:1;padding:6px;min-width:40px;min-height:40px}
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:17px 22px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);z-index:5}
+.wl-lbl{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-label)}
+/* R-37.73 ①: 40×40 was under the floor. 44 is the floor; this is 46 with air. */
+.wl-coin{background:none;border:none;cursor:pointer;color:var(--role-metal);font-size:17px;line-height:1;padding:8px;min-width:46px;min-height:46px;display:flex;align-items:center;justify-content:center;margin:-8px -8px -8px 0}
 .wl-coindrawer{background:var(--atelier-sheet-bg);border-bottom:.5px solid var(--atelier-sheet-border);padding:6px 0}
-.wl-coinitem{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;cursor:pointer;padding:12px 20px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--atelier-ink);text-align:left}
+.wl-coinitem{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;background:none;border:none;cursor:pointer;padding:13px 22px;font-family:'DM Sans',sans-serif;font-weight:400;font-size:14.5px;color:var(--atelier-ink);text-align:left}
 .wl-coinitem[aria-current="true"]{color:var(--atelier-accent-text)}
 .wl-glyph{color:var(--role-metal);font-size:11px}
-.wl-sub{font-family:'Jost',sans-serif;font-weight:500;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-left:auto}
+.wl-sub{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-left:auto}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
-.wl-seat{flex:1;background:none;border:none;cursor:pointer;text-align:center;padding:14px 0 16px;font-family:'Jost',sans-serif;font-weight:500;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+/* R-37.73 ①: no explicit height in ZIP 1 — it happened to clear 44 by padding alone,
+   which is a target that survives by accident. Stated now. ②: 9.5 → 12, the interactive floor. */
+.wl-seat{flex:1;min-height:52px;background:none;border:none;cursor:pointer;text-align:center;padding:15px 0 17px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
 .wl-coin:active,.wl-coinitem:active{background:var(--atelier-row-hover)}

@@ -1,3 +1,7 @@
+// ══ BRANCH-ONLY · M-WORKLIST ZIP 3 (R-37.73 ④) ═══════════════════════
+// LIGHT_VARS below are CHALK, not Editorial Paper. This pre-paint pin writes INLINE styles
+// on documentElement, which beat every stylesheet — leaving it on the old values would
+// have kept the light rooms cream no matter what globals.css said. Branch-only.
 'use client';
 // app/vendor/layout.tsx
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,28 +40,28 @@ import { getJson } from '@/lib/vendor/api/_base';
 // This runs in layout so it fires once for the whole shell
 // Inline light-mode vars applied before first paint — prevents dark flash
 const LIGHT_VARS: [string, string][] = [
-  ['--atelier-ink',          '#1A0F08'],
-  ['--atelier-ink-soft',     'rgba(26,15,8,0.80)'],
-  ['--atelier-ink-mute',     'rgba(26,15,8,0.58)'],
-  ['--atelier-ink-dim',      'rgba(26,15,8,0.38)'],
-  ['--atelier-label',        '#7A3828'],
-  ['--atelier-accent-text',  '#7A3828'],
-  ['--atelier-header-bg',    'rgba(245,242,238,0.96)'],
-  ['--atelier-sheet-top',    '#F5F2EE'],
-  ['--atelier-sheet-bot',    '#EDE8DF'],
-  ['--atelier-sheet-border', 'rgba(122,56,40,0.25)'],
-  ['--atelier-input-bg',     'rgba(26,15,8,0.04)'],
-  ['--atelier-input-border', 'rgba(122,56,40,0.22)'],
-  ['--atelier-card-border',  'rgba(122,56,40,0.20)'],
-  ['--atelier-row-hover',    'rgba(26,15,8,0.03)'],
-  ['--atelier-overlay-bg',   'rgba(26,15,8,0.55)'],
+  ['--atelier-ink',          '#0E1112'],
+  ['--atelier-ink-soft',     '#272B2D'],
+  ['--atelier-ink-mute',     '#52585B'],
+  ['--atelier-ink-dim',      '#3D4245'],
+  ['--atelier-label',        '#3A3F42'],
+  ['--atelier-accent-text',  '#0D6A5A'],
+  ['--atelier-header-bg',    '#FFFFFF'],
+  ['--atelier-sheet-top',    '#F8F9F9'],
+  ['--atelier-sheet-bot',    '#EDEFEF'],
+  ['--atelier-sheet-border', 'rgba(23,25,26,0.16)'],
+  ['--atelier-input-bg',     'rgba(23,25,26,0.035)'],
+  ['--atelier-input-border', 'rgba(13,106,90,0.68)'],
+  ['--atelier-card-border',  'rgba(23,25,26,0.13)'],
+  ['--atelier-row-hover',    'rgba(23,25,26,0.038)'],
+  ['--atelier-overlay-bg',   'rgba(23,25,26,0.44)'],
 ];
 
 function applyLightVars() {
   const r = document.documentElement.style;
   LIGHT_VARS.forEach(([k, v]) => r.setProperty(k, v));
-  document.documentElement.style.background = '#F5F2EE';
-  document.body.style.background = '#F5F2EE';
+  document.documentElement.style.background = '#F3F4F4';
+  document.body.style.background = '#F3F4F4';
 }
 
 function clearLightVars() {
