@@ -106,10 +106,17 @@ cell('C8 touch answers', () => {
 
 // ── C9 · the wire shape of the handle, asserted against dream-os's own mapping.
 //    /api/v2/vendor/me returns `handle`; reading `routing_handle` hides card 1 forever.
-cell('C9 card 1 reads the wire, not a local name', () => {
-  const fr = strip(read('components/worklist/FirstRun.tsx'));
-  if (/vendor\?\.routing_handle/.test(fr)) return 'reads vendor.routing_handle — the wire field is `handle` (dream-os me.js:76)';
-  if (!/vendor\?\.handle/.test(fr)) return 'does not read vendor.handle at all';
+// AMENDED BY LABEL (ZIP 7): the read moved out of FirstRun into a shared hook, because Rooms'
+// link card needs the same fact and two reads would be two chances to read the wrong field.
+// The assertion got stronger, not looser: the hook must be the ONLY home.
+cell('C9 the handle is read once, from the wire, in one home', () => {
+  const hook = strip(read('hooks/vendor/useVendorHandle.ts'));
+  if (/vendor\?\.routing_handle/.test(hook)) return 'reads vendor.routing_handle — the wire field is `handle` (dream-os me.js:76)';
+  if (!/vendor\?\.handle/.test(hook)) return 'the hook does not read vendor.handle';
+  for (const f of ['components/worklist/FirstRun.tsx', 'app/w/rooms/page.tsx']) {
+    const src = strip(read(f));
+    if (/\/api\/v2\/vendor\/me/.test(src)) return f + ' fetches /me itself — a second home for one fact';
+  }
   return null;
 });
 
@@ -121,7 +128,7 @@ cell('C10 every tap target >= 44px', () => {
   const files = {
     'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-coinitem'],
     'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
-    'components/worklist/AiDock.tsx':        ['wl-dock'],
+    'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // ZIP 7: the dock is an input; .wl-dock is its padding wrapper, .wl-dockfield is the target
     'components/worklist/FirstRun.tsx':      ['wl-cardaction', 'wl-chip'],
     'app/w/support/page.tsx':                ['wl-supportaction'],
   };
@@ -147,7 +154,7 @@ cell('C11 type floors hold', () => {
     ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-sub', 11],
-    ['components/worklist/AiDock.tsx', 'wl-docktext', 12], ['components/worklist/AiDock.tsx', 'wl-dockglyph', 11],
+    ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // ZIP 7: the logo row died; the placeholder is the dock's only type
     ['components/worklist/FirstRun.tsx', 'wl-cardtitle', 12], ['components/worklist/FirstRun.tsx', 'wl-cardbody', 14],
     ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/FirstRun.tsx', 'wl-cardaction', 12],
   ];
@@ -194,7 +201,9 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   const fr   = strip(read('components/worklist/FirstRun.tsx'));
 
   if (!/todayPromise:/.test(copy)) return 'the forward promise has no home in copy.ts';
-  if (!/COPY\.todayPromise/.test(fr)) return 'the forward promise is never rendered';
+  // AMENDED BY LABEL (ZIP 7 / R-37.76 ⑧): the promise is the PAGE's hero now, not a card's
+  // preamble — that was the whole cure for Today having no stature. It renders one level up.
+  if (!/COPY\.todayPromise/.test(strip(read('app/w/today/page.tsx')))) return 'the forward promise is never rendered on Today';
 
   const titles = ['cardDeskTitle', 'cardLinkTitle', 'cardAskTitle', 'cardRoomsTitle', 'cardMoreTitle'];
   const missing = titles.filter((t) => !new RegExp('COPY\\.' + t).test(fr));
@@ -312,6 +321,51 @@ cell('C17 rooms-first agrees on every surface', () => {
   if (!/COPY\.roomsPointer/.test(grid)) return 'the grid has no pointer byte';
   if (!/<Pointer\s*\/>/.test(grid)) return 'the pointer is defined but never mounted — a new vendor never meets the manual';
   if (!/\/w\/today/.test(grid)) return 'the pointer does not reach Today';
+  return null;
+});
+
+// ── C18 · R-37.80 · THE CHIP PROMISE, AND THE RAW-VAR CLASS. ZIP 5's split read A.brass and
+//    was structurally blind to controls that reach for a raw CSS variable instead. The mock
+//    drew the filter chips in Signal; this makes that picture true rather than aspirational.
+cell('C18 raw-var controls carry the signal', () => {
+  const rail = read('components/vendor/slices/FilterRail.tsx');
+  if (/--role-metal|--atelier-brass/.test(rail)) return 'the selected filter chip still reads the metal';
+  if (!/--atelier-accent-text/.test(rail)) return 'the filter rail carries no signal at all';
+  const converted = {
+    'components/vendor/slices/BulkBar.tsx': 'the bulk-action label',
+    'components/vendor/AtelierForm.tsx': 'a toggle\u2019s filled state',
+    'components/vendor/InputBar.tsx': 'the send button',
+    'components/vendor/FilingChip.tsx': 'the filing chip',
+  };
+  const bad = Object.entries(converted)
+    .filter(([f]) => !/--atelier-accent-text/.test(read(f)))
+    .map(([, why]) => why);
+  if (bad.length) return 'still metal: ' + bad.join(', ');
+  return null;
+});
+
+// ── C19 · ONE THEME VOCABULARY, ONE FONT WORLD (R-37.76 (3)+(7), R-37.79's two branch fixes).
+cell('C19 one vocabulary across shell and rooms', () => {
+  const hdr = read('components/vendor/Header.tsx');
+  if (/Espresso|Parchment/.test(hdr)) return 'the rooms\u2019 drawer still names a retired theme';
+  if (!/Graphite/.test(hdr) || !/Chalk/.test(hdr)) return 'the drawer does not name Graphite and Chalk';
+  const th = read('lib/worklist/theme.ts');
+  if (!/TYPE_ROLE/.test(th) || !/typeCss/.test(th)) return 'the type roles are not tokened';
+  const shell = read('components/worklist/WorklistShell.tsx');
+  if (!/typeCss\(SCOPE\)/.test(shell)) return 'the shell does not emit the type scope';
+  if (/'Jost',\s*sans-serif|'DM Sans',\s*sans-serif|'Cormorant Garamond',\s*serif/.test(shell))
+    return 'the shell still hard-codes a font family instead of reading its role';
+  return null;
+});
+
+// ── C20 · R-37.81(a) · the profile affordance opens the COUPLE VIEW, not the editor. Two
+//    surfaces exist and they are one word apart; opening the wrong one is a label outrunning
+//    its destination, which this arc has convicted twice already.
+cell('C20 the profile row opens the couple view', () => {
+  const grid = strip(read('components/worklist/RoomsGrid.tsx'));
+  if (!/roomsProfileTitle/.test(grid)) return 'no profile row';
+  if (/discover\/profile/.test(grid)) return 'the row opens the EDITOR (/discover/profile); the couple view is /discover/preview';
+  if (!/discover\/preview/.test(grid)) return 'the row does not open /vendor/discover/preview';
   return null;
 });
 

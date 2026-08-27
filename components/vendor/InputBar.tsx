@@ -50,7 +50,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
   const canSend = !!value.trim() && !disabled;
 
   // Brass accents for the toggle + note-mode tint.
-  const brassGrad = 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
+  const brassGrad = 'linear-gradient(180deg, var(--atelier-accent-text) 0%, var(--atelier-accent-text) 100%)';
   const toggleOffBg = T.isLight ? 'rgba(139,75,55,0.08)' : 'rgba(201,168,76,0.10)';
   const noteBorder = inNote ? 'var(--atelier-label)' : T.inputBorder;
 

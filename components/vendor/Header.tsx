@@ -24,7 +24,7 @@ const A = {
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-cormorant), Georgia, serif',
+  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
   body:    'var(--font-dm-sans), system-ui, sans-serif',
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
@@ -314,10 +314,10 @@ export function Header({ vendorName }: { vendorName: string | null }) {
 
             {/* THEME TOGGLE — between sections */}
             <SectionLabel isLight={isLight}>Display</SectionLabel>
-            <DItem glyph="●" label="Dark"  subtitle="Espresso"            isLight={isLight} accent={theme === 'dark'}  onClick={() => { setThemeMode('dark'); }} />
-            <DItem glyph="○" label="Light" subtitle="Parchment"           isLight={isLight} accent={theme === 'light'} onClick={() => { setThemeMode('light'); }} />
+            <DItem glyph="●" label="Dark"  subtitle="Graphite"            isLight={isLight} accent={theme === 'dark'}  onClick={() => { setThemeMode('dark'); }} />
+            <DItem glyph="○" label="Light" subtitle="Chalk"           isLight={isLight} accent={theme === 'light'} onClick={() => { setThemeMode('light'); }} />
             {/* TDW_09 R-U19: the third theme row is DELETED with its theme. Two rows
-                remain — Dark (Espresso) and Light (Editorial Paper), Addendum A's two. */}
+                remain — Dark (Graphite) and Light (Editorial Paper), Addendum A's two. */}
 
             {/* ACTIONS section */}
             <SectionLabel isLight={isLight}>Actions</SectionLabel>

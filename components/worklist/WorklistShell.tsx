@@ -12,7 +12,8 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
-import { scopeCss } from '@/lib/worklist/theme';
+import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
+import { scopeCss, typeCss } from '@/lib/worklist/theme';
 import { AiDock } from '@/components/worklist/AiDock';
 
 const MODE_KEY = 'tdw_worklist_mode';
@@ -23,6 +24,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   const router   = useRouter();
   const [mode, setMode] = useState<'dark' | 'light'>('dark');
   const [coinOpen, setCoinOpen] = useState(false);
+  const initials = useVendorInitials();
 
   // Persisted per device. Its own key: the old shell's 'dreamai_theme' names a different
   // pair of themes, and sharing the key would make one coin silently rule two palettes.
@@ -51,12 +53,16 @@ export function WorklistShell({ title, children }: { title: string; children: Re
       height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       background: 'var(--atelier-page-bg)', color: 'var(--atelier-ink)',
     }}>
-      <style>{scopeCss(SCOPE) + SHELL_CSS}</style>
+      <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS}</style>
 
       <header className="wl-hdr">
         <span className="wl-lbl">{title}</span>
-        <button type="button" className="wl-coin" aria-label="Settings" aria-expanded={coinOpen}
-                onClick={() => setCoinOpen((v) => !v)}>&#9678;</button>
+        {/* R-37.79: ONE IDENTITY EVERYWHERE. The shell's \u25ce glyph and the rooms' DR medallion
+            were two identities for one person. The medallion wins \u2014 it is the one a vendor
+            already recognises. Initials are derived, never a fixture; a vendor with no name
+            yet gets the glyph rather than an empty circle. */}
+        <button type="button" className="wl-coin" aria-label="Your profile" aria-expanded={coinOpen}
+                onClick={() => setCoinOpen((v) => !v)}>{initials || '\u25ce'}</button>
       </header>
 
       {coinOpen && (
@@ -111,19 +117,19 @@ const SHELL_CSS = `
 .wl{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
 .wl button{touch-action:manipulation}
 .wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:17px 22px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);z-index:5}
-.wl-lbl{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-label)}
+.wl-lbl{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-label)}
 /* R-37.73 ①: 40×40 was under the floor. 44 is the floor; this is 46 with air. */
-.wl-coin{background:none;border:none;cursor:pointer;color:var(--role-metal);font-size:17px;line-height:1;padding:8px;min-width:46px;min-height:46px;display:flex;align-items:center;justify-content:center;margin:-8px -8px -8px 0}
+.wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.06em;line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-coindrawer{background:var(--atelier-sheet-bg);border-bottom:.5px solid var(--atelier-sheet-border);padding:6px 0}
-.wl-coinitem{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;background:none;border:none;cursor:pointer;padding:13px 22px;font-family:'DM Sans',sans-serif;font-weight:400;font-size:14.5px;color:var(--atelier-ink);text-align:left}
+.wl-coinitem{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;background:none;border:none;cursor:pointer;padding:13px 22px;font-family:var(--wl-body);font-weight:400;font-size:14.5px;color:var(--atelier-ink);text-align:left}
 .wl-coinitem[aria-current="true"]{color:var(--atelier-accent-text)}
 .wl-glyph{color:var(--role-metal);font-size:11px}
-.wl-sub{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-left:auto}
+.wl-sub{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-left:auto}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
 /* R-37.73 ①: no explicit height in ZIP 1 — it happened to clear 44 by padding alone,
    which is a target that survives by accident. Stated now. ②: 9.5 → 12, the interactive floor. */
-.wl-seat{flex:1;min-height:52px;background:none;border:none;cursor:pointer;text-align:center;padding:15px 0 17px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-seat{flex:1;min-height:52px;background:none;border:none;cursor:pointer;text-align:center;padding:15px 0 17px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
 .wl-coin:active,.wl-coinitem:active{background:var(--atelier-row-hover)}

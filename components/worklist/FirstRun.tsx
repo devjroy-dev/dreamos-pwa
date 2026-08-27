@@ -12,12 +12,10 @@
 //
 // EVERY DESTINATION IS REAL. Never-404 binds, and every number resolves through its declared
 // home — F-09.190's law applied at birth rather than after.
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
 import { waNumberFor, supportWaNumber } from '@/lib/waNumbers';
-import { getVendorSession } from '@/lib/vendor/session';
-import { getJson } from '@/lib/vendor/api/_base';
+import { useVendorHandle } from '@/hooks/vendor/useVendorHandle';
 
 function openWa(number: string, text: string) {
   window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
@@ -28,25 +26,7 @@ export function FirstRun() {
   // Card 1 is HIDDEN ENTIRELY when no handle is set (R-37.68 \u2463). The settings surface
   // already guards this the same way; a share action with nothing behind it is the
   // never-404 failure wearing a different coat.
-  const [handle, setHandle] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!getVendorSession()?.access_token) return;
-    let live = true;
-    // THE FIELD IS `handle`, NOT `routing_handle`. dream-os src/api/vendor/me.js:76 maps
-    // `handle: vendor.routing_handle || null` on the way out. The first cut of this file read
-    // the settings page's LOCAL variable name instead of the wire and hid card 1 on every
-    // load — reaching for the expected shape instead of the text in front of me. Derived now.
-    getJson<{ ok: boolean; vendor?: { handle?: string | null } }>('/api/v2/vendor/me', true)
-      .then((d) => {
-        if (!live || !d.ok) return;
-        const h = d.vendor?.handle?.trim();
-        setHandle(h ? h.toUpperCase() : null);
-      })
-      .catch(() => { /* fail closed: no handle, no card */ });
-    return () => { live = false; };
-  }, []);
+  const handle = useVendorHandle();
 
   const tdwLink = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
 
@@ -55,12 +35,10 @@ export function FirstRun() {
       {/* R-37.68-B: the forward promise sits above everything. Naming what Today becomes is
           the honest cure for the feed being absent — and it is the one line here that stays
           true after the rest of the manual retires at first data. */}
-      <p className="wl-frpromise">{COPY.todayPromise}</p>
-
       <h2 className="wl-frhead">{COPY.firstRunHeader}</h2>
 
       {/* 1 · work reaches him */}
-      <article className="wl-card">
+      <article className="wl-card wl-card-lead">
         <h3 className="wl-cardtitle">{COPY.cardDeskTitle}</h3>
         <p className="wl-cardbody">{COPY.cardDeskBody}</p>
         <button type="button" className="wl-cardaction"
@@ -109,13 +87,15 @@ export function FirstRun() {
 
 const FR_CSS = `
 .wl-fr{padding:8px 16px 26px}
-.wl-frpromise{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-dim);text-align:center;margin:0 0 20px;padding:0 4px}
-.wl-frhead{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:22px;color:var(--atelier-ink);margin:0 0 16px;text-align:center}
+/* retired: the promise is the page's hero now, set in app/w/today. */
+.wl-frpromise-retired{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-dim);text-align:center;margin:0 0 20px;padding:0 4px}
+.wl-frhead{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:26px 0 12px;text-align:center}
+.wl-card-lead{border-left:2px solid var(--atelier-accent-text)}
 .wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px 17px 16px;margin-bottom:10px}
-.wl-cardtitle{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
-.wl-cardbody{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0}
+.wl-cardtitle{font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
+.wl-cardbody{font-family:var(--wl-body);font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0}
 /* R-37.73 ①: 40 was under the floor. */
-.wl-cardaction{margin-top:14px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;min-height:46px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-cardaction{margin-top:14px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;min-height:46px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-chips{display:flex;flex-wrap:wrap;gap:7px}
 /* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and
    a chip-shaped thing invites a thumb, so they carry a real target rather than teaching

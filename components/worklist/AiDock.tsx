@@ -1,43 +1,44 @@
 "use client";
-// components/worklist/AiDock.tsx — R-37.69's slim dock, above the nav, on every shell surface.
+// components/worklist/AiDock.tsx — R-37.76 ①: the dock is an INPUT, not a logo row.
 //
-// IT IS NOT A THIRD CONTAINER, and R-37.64's own test is why: it does not help you choose
-// where to go. It is a work surface. So it takes no nav seat and no room tile, and DreamAi
-// stays a verb rather than a destination.
+// WHY THE SHAPE AND NOT A BETTER LABEL. 「DREAMAI」 in a bar is a noun, and a noun in a bar
+// reads as a trademark — the founder’s exact complaint. A rounded field with muted
+// placeholder text is the universal costume of "you can talk to me"; no label ever taught
+// that as fast. The placeholder carries ONE REAL ASK rather than a generic prompt, because
+// an example teaches the grammar of the thing in the same glance.
 //
-// \u26a0 THE CARRIED MOUNT IS NOT HERE, AND THE REASON IS A FINDING, NOT A SHORTCUT.
-// ChatThread reads its colours from useT() (ThemeContext) — a React context of hard-coded
-// hex from the OLD two-theme pair — not from var(--atelier-*). Mounting it inside this scope
-// would render an Espresso-coloured thread inside a Graphite shell: R-37.65's "inherit
-// through the existing theme variables" does not reach a component that never reads them.
-// Curing that means teaching ThemeProvider to accept an override token set — an addition to
-// a shared single home, which is a ruling, not a Phase 1 byte.
+// R-37.78, THE NAMING GRAMMAR: this affordance says 「Ask TDW」 — the verb. The Rooms row
+// says 「TDW on WhatsApp」 — the founder’s byte. 「DreamAi」 stays the name, used in prose
+// about who answers. Affordances invite; sentences attribute.
 //
-// So Phase 1 summons the chat door by the SAME interim pattern A-4 already rules for every
-// room tile: the destination is real, reachable, and never a 404. The carried mount is bound
-// by label to the ThemeContext ruling. Filed in the handover; not absorbed.
-import { useRouter } from 'next/navigation';
+// THE DESTINATION IS HONEST TODAY. WhatsApp is where the assistant actually lives, so the tap
+// opens the vendor line through waNumberFor(‘vendor’) — never an inline literal (F-09.190).
+// When Phase 5 lands the in-app composer this one handler retargets and nothing else moves:
+// the shape, the placeholder and the grammar are already right.
 import { COPY } from '@/lib/worklist/copy';
+import { waNumberFor } from '@/lib/waNumbers';
 
 export function AiDock() {
-  const router = useRouter();
+  const open = () => window.open(
+    `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
   return (
     <>
-      <button type="button" className="wl-dock" aria-label={COPY.dockAria}
-              onClick={() => router.push('/vendor')}>
-        <span className="wl-dockglyph" aria-hidden>&#9670;</span>
-        <span className="wl-docktext">DreamAi</span>
-      </button>
+      <div className="wl-dock">
+        <button type="button" className="wl-dockfield" aria-label={COPY.dockAria} onClick={open}>
+          <span className="wl-dockph">{COPY.dockPlaceholder}</span>
+          <span className="wl-docksend" aria-hidden>&#8593;</span>
+        </button>
+      </div>
       <style>{DOCK_CSS}</style>
     </>
   );
 }
 
 const DOCK_CSS = `
-/* R-37.73 ①: 44 was the floor, met exactly. 50 gives it air. ②: glyph 10 → 12. */
-.wl-dock{flex-shrink:0;display:flex;align-items:center;gap:10px;width:100%;background:var(--atelier-section-bg);border:none;border-top:.5px solid var(--atelier-card-border);cursor:pointer;padding:14px 22px;min-height:50px;text-align:left}
-.wl-dockglyph{color:var(--role-metal);font-size:12px;line-height:1}
-.wl-docktext{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
-.wl-dock:active{background:var(--atelier-row-hover)}
-.wl-dock:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+.wl-dock{flex-shrink:0;padding:9px 12px;background:var(--atelier-header-bg);border-top:.5px solid var(--atelier-card-border)}
+.wl-dockfield{display:flex;align-items:center;gap:9px;width:100%;min-height:46px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:999px;padding:11px 8px 11px 16px;cursor:pointer;text-align:left}
+.wl-dockph{flex:1;font-family:var(--wl-body);font-weight:400;font-size:13.5px;color:var(--atelier-ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-docksend{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.wl-dockfield:active{background:var(--atelier-row-hover)}
+.wl-dockfield:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

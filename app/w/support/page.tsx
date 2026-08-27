@@ -26,7 +26,7 @@ export default function SupportPage() {
       <style>{`
 .wl-support{padding:28px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
 .wl-supportbody{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0;max-width:46ch}
-.wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:13px 20px;min-height:48px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:13px 20px;min-height:48px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-supportaction:active{background:var(--atelier-row-hover)}
 .wl-supportaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
       `}</style>

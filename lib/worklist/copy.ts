@@ -79,7 +79,7 @@ export const COPY = {
   cardRoomsBody:  'Leads, invoices, contracts, expenses, your team, your calendar \u2014 each has a room of its own, and every one is a single tap from Rooms. Nothing is buried behind a menu.',
   cardRoomsAction: 'See your rooms',
 
-  cardMoreTitle: 'Ask us for more',
+  cardMoreTitle: 'Customised solutions for your business',
   cardMoreBody:  'Want more reach \u2014 ads, better placement, a feature that would save you an hour a week? Tell us. Something broken works too, and it reaches a person who replies personally.',
 
   // ── R-37.75 · THE ROOMS POINTER ────────────────────────────────────────
@@ -92,8 +92,9 @@ export const COPY = {
   roomsPointerAction: 'Read it',
 
   // ── 8 · 9 — Contact Support (R-37.67 / R-37.67-A) ────────────────────────
-  supportTitle: 'Contact Support',
-  supportBody:  'Ask us for anything that would grow your work \u2014 ads, reach-outs, search placement, a feature you keep wishing existed. Report what\u2019s broken here too. It reaches us directly on WhatsApp and we reply ourselves.',
+  supportTitle: 'Business Solutions',
+  supportHeader: 'Customised solutions for your business',
+  supportBody:  'SEO, marketing automation, ads, campaign pages, a feature built for how you work \u2014 tell us what would grow your business and we build it with you. Something broken? That reaches us here too.',
   supportAction: 'Message us on WhatsApp',
 
   // ── 10 · 11 — the coin's two modes ───────────────────────────────────────
@@ -101,5 +102,18 @@ export const COPY = {
   themeLightName: 'Chalk',
 
   // ── the dock's summon. NOT a vetoed byte: it is an aria-label, invisible chrome.
-  dockAria: 'Open DreamAi',
+  // ── R-37.78 · THE NAMING GRAMMAR, now law rather than accident ──────────
+  // 「Ask TDW」 is the VERB — it labels affordances that invite the ask.
+  // 「DreamAi」 is the NAME — it appears in prose about who answers.
+  // 「TDW on WhatsApp」 is the founder's byte for the Rooms row.
+  // Affordances invite; sentences attribute. No surface may freelance a fourth name.
+  dockPlaceholder: 'Ask TDW \u2014 \u201cAm I free on 14 Feb?\u201d',
+  dockAria: 'Ask TDW',
+  roomsAskTitle: 'TDW on WhatsApp',
+  roomsAskSub:   'your 24/7 enquiry desk',
+  roomsProfileTitle: 'Profile layout',
+  roomsProfileSub:   'how couples see you',
+  linkCopy: 'Copy',
+  linkCopied: 'Copied',
+  todayMastheadCaption: 'needing you today',
 } as const;

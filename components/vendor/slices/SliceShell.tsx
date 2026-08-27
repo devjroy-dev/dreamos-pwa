@@ -685,8 +685,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       {selectMode && (
         <span aria-hidden style={{
           position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
-          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-brass, var(--role-metal))',
-          background: selected.has(row.id) ? 'var(--atelier-brass, var(--role-metal))' : 'transparent',
+          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-accent-text)',
+          background: selected.has(row.id) ? 'var(--atelier-accent-text)' : 'transparent',
         }} />
       )}
       <div style={selectMode ? { paddingLeft: 18 } : undefined}>

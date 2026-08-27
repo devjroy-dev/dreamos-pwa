@@ -23,7 +23,7 @@ const PALETTE = (isLight: boolean) => ({
   PILL_INK:  isLight ? 'rgba(12,10,9,0.70)'  : 'rgba(240,230,210,0.75)',
   TERRACOTTA:isLight ? '#B85C38' : 'var(--role-critical)',
 });
-const BRASS = 'var(--role-metal)';
+const BRASS = 'var(--atelier-accent-text)';
 
 export function FilingChip({ beat, onRetry, isLight = true }: { beat: FilingBeat; onRetry?: () => void; isLight?: boolean }) {
   const { INK, INK_DIM, HAIRLINE, SURFACE, PILL_EDGE, PILL_INK, TERRACOTTA } = PALETTE(isLight);

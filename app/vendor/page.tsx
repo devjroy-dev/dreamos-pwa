@@ -49,7 +49,7 @@ const A = {
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-cormorant), Georgia, serif',
+  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
   body:    'var(--font-dm-sans), system-ui, sans-serif',
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;

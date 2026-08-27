@@ -12,7 +12,7 @@ import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money h
 
 const F = {
   label:  'var(--font-jost), system-ui, sans-serif',
-  script: 'var(--font-cormorant), Georgia, serif',
+  script: 'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
 } as const;
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
@@ -102,7 +102,7 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
   const cueTopLine = T.isLight
     ? 'linear-gradient(90deg, transparent, rgba(122,56,40,0.12), transparent)'
     : 'linear-gradient(90deg, transparent, rgba(201,168,76,0.12), transparent)';
-  const brassC     = T.isLight ? T.accent                  : 'var(--role-metal)';
+  const brassC     = T.isLight ? T.accent                  : 'var(--atelier-accent-text)';
   const redC       = T.isLight ? '#7A3828'                 : 'var(--role-critical)';
   const dimC       = T.isLight ? 'rgba(26,15,8,0.22)'     : 'rgba(240,230,210,0.2)';
 

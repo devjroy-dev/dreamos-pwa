@@ -1,3 +1,6 @@
+// R-37.80: the selected chip is a CONTROL, so it carries the signal, not the metal. It sat
+// outside ZIP 5’s split because it reads a raw CSS variable rather than A.brass — a whole
+// class the classifier was structurally blind to. Converted here with its class-mates below.
 'use client';
 // components/vendor/slices/FilterRail.tsx — TDW_04 A4 (P4's rail, built).
 // Sticky chips under search. Per-slice sets (owner supplies chips+counts);
@@ -28,7 +31,7 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
         return (
           <button key={c.key} type="button" onClick={() => onSelect(on ? null : c.key)} style={{
             flexShrink: 0, padding: '6px 11px', borderRadius: 999, cursor: 'pointer',
-            border: `0.5px solid ${on ? 'var(--atelier-brass, var(--role-metal))' : 'var(--atelier-card-border)'}`,
+            border: `0.5px solid ${on ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)'}`,
             background: on ? 'rgba(201,168,76,0.12)' : 'transparent',
             fontFamily: F.label, fontWeight: on ? 400 : 300, fontSize: 9,
             letterSpacing: '0.18em', textTransform: 'uppercase',

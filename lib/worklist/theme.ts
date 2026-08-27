@@ -74,6 +74,34 @@ export const TYPE_FLOORS = { label: 11, interactive: 12, body: 14 } as const;
 /** Every control the finger can reach is at least this, in CSS px. R-37.73 \u2460. */
 export const TAP_MIN = 44;
 
+// ── THE FOUR TYPE ROLES, ONE JOB EACH (R-37.76 ③+⑦) ────────────────────────
+//
+// Four families already exist in the estate. What did NOT exist was one job each, and that
+// — not size — is why the shell and the carried rooms read as two font worlds: the rooms
+// set BODY COPY in Cormorant italic ("Enquiries pipeline", "From your binders", "Your client
+// stories live here") while the shell sets prose in DM Sans. Two families doing the same job
+// is the whole defect.
+//
+// So each family gets exactly one job, on every surface of the branch:
+export const TYPE_ROLE = {
+  /** Italiana — numerals and the masthead moment. Nothing else. */
+  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
+  /** Cormorant — RETIRED FROM PROSE. One deliberate line per surface: Today's hero,
+   *  a sheet header. Where it was carrying body copy it is replaced by body. */
+  feature: 'var(--font-cormorant), Georgia, serif',
+  /** DM Sans — ALL prose, in the rooms as well as the shell. */
+  body:    'var(--font-dm-sans), system-ui, sans-serif',
+  /** Jost — every micro-label, eyebrow, seat and state mark. */
+  label:   'var(--font-jost), system-ui, sans-serif',
+} as const;
+
+/** Emitted into the branch scope so a carried component inherits by variable, never by fork. */
+export function typeCss(scopeSelector: string): string {
+  return `${scopeSelector}{` +
+    `--wl-display:${TYPE_ROLE.display};--wl-feature:${TYPE_ROLE.feature};` +
+    `--wl-body:${TYPE_ROLE.body};--wl-label:${TYPE_ROLE.label};}`;
+}
+
 
 /** Every token the shell defines. Keys are written WITHOUT their prefix; prefixFor() adds it. */
 export type TokenKey =

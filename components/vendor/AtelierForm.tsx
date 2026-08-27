@@ -24,7 +24,7 @@ export const A = {
 } as const;
 export const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script: 'var(--font-cormorant), Georgia, serif',
+  script: 'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
   body: 'var(--font-dm-sans), system-ui, sans-serif',
   label: 'var(--font-jost), system-ui, sans-serif',
 } as const;
@@ -71,7 +71,7 @@ export function SToggle({ label, value, onChange }: { label: string; value: bool
       <button type="button" onClick={() => onChange(!value)} style={{
         width: 44, height: 24, borderRadius: 999, border: '0.5px solid var(--atelier-input-border)',
         cursor: 'pointer', flexShrink: 0,
-        background: value ? 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)' : 'var(--atelier-input-bg)',
+        background: value ? 'linear-gradient(180deg, var(--atelier-accent-text) 0%, var(--atelier-accent-text) 100%)' : 'var(--atelier-input-bg)',
         position: 'relative', transition: 'background 200ms',
       }}>
         <span style={{

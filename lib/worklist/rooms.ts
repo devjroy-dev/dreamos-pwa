@@ -55,7 +55,7 @@ export const ROOMS: readonly Room[] = [
   { id: 'tds',       label: 'TDS',       band: 'business', href: '/vendor/tds',         pinnable: true  },
   { id: 'billing',   label: 'Billing',   band: 'business', href: '/vendor/billing',     pinnable: true  },
   { id: 'settings',  label: 'Settings',  band: 'business', href: '/vendor/settings',    pinnable: true  },
-  { id: 'support',   label: 'Contact Support', band: 'business', href: '/w/support',    pinnable: false },
+  { id: 'support',   label: 'Business Solutions', band: 'business', href: '/w/support', pinnable: false },
 ] as const;
 
 export const ROOM_COUNT_EXPECTED = 16;
