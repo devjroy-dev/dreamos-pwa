@@ -273,9 +273,18 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   // Rooms card captioned a directory it sat on top of, and the Business Solutions card was
   // a second door to a room that has had a tile since R-37.66. Their keys must be GONE, not
   // orphaned — asserted three lines below with the ZIP 1 keys, same clause, same reason.
-  const titles = ['cardDeskTitle', 'cardLinkTitle', 'cardAskTitle'];
+  // AMENDED, LABELLED — CE-38 SEAL ②. R-37.68-B's order is amended to desk · ask · link,
+  // and the cell now asserts the ORDER and not merely the membership. It could not have
+  // caught F-38.21 before: three cards all rendered, in any sequence, satisfied it.
+  // The conditional card is last so its arrival APPENDS instead of inserting — the same
+  // property the cell has to guard, because a later seat tidying the JSX back into the old
+  // sequence would reintroduce the displacement with nothing to stop it.
+  const titles = ['cardDeskTitle', 'cardAskTitle', 'cardLinkTitle'];
   const missing = titles.filter((t) => !new RegExp('COPY\\.' + t).test(fr));
   if (missing.length) return 'cards defined but never rendered: ' + missing.join(', ');
+  const order = titles.map((t) => fr.indexOf('COPY.' + t));
+  if (order[0] > order[1] || order[1] > order[2])
+    return 'card order is not desk \u00b7 ask \u00b7 link — the conditional card must be last (F-38.21)';
 
   // Retired keys must be gone, not orphaned — an unrendered vetoed byte is a byte that
   // drifts unnoticed until someone renders it again.

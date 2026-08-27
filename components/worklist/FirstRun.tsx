@@ -36,14 +36,31 @@ function openWa(number: string, text: string) {
 }
 
 export function FirstRun() {
-  // Card 2 is HIDDEN ENTIRELY when no handle is set (R-37.68 ④). A share action with
-  // nothing behind it is the never-404 failure wearing a different coat.
+  // The handle seeds from a named cache and is corrected by the wire (F-38.21). On a
+  // device's first load it is still unknown until that read lands, which is why the card it
+  // gates is LAST — see the ordering note below.
   const handle = useVendorHandle();
   const tdwLink = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
 
   return (
     <div className="wl-fr">
       <h2 className="wl-frhead">{COPY.firstRunHeader}</h2>
+
+      {/* ── CE-38 SEAL ② · R-37.68-B AMENDED BY LABEL · ORDER IS DESK · ASK · LINK ──
+          THE CONDITIONAL CARD IS LAST, AND THE REASON IS F-38.21. The link card renders
+          only when a handle exists, and the handle is not in the session — so on a device's
+          FIRST load it cannot be known until the wire answers. Sitting between two
+          unconditional cards, its arrival INSERTED itself and pushed everything below it
+          down; the founder watched the feed jump. Last, its arrival APPENDS, and nothing
+          moves.
+
+          THE RULED SEQUENCE SURVIVES THE MOVE, which is why the amendment is by label
+          rather than a re-ruling: R-37.68-B orders the set by the vendor's own timeline —
+          work reaches him, then he runs it. The desk is still first because it is how work
+          arrives. The ask is how he runs it. The link is the one card whose EXISTENCE is
+          conditional, and a conditional member of an ordered set belongs at its end for the
+          same reason a nullable column goes last in a wire shape: everything before it can
+          be laid out without knowing the answer. */}
 
       {/* 1 · work reaches him */}
       <article className="wl-card wl-card-lead">
@@ -53,6 +70,18 @@ export function FirstRun() {
                 onClick={() => openWa(waNumberFor('vendor'), 'Hi')}>{COPY.cardDeskAction}</button>
       </article>
 
+      {/* 2 · and he runs it from where he already is */}
+      <article className="wl-card">
+        <h3 className="wl-cardtitle">{COPY.cardAskTitle}</h3>
+        <p className="wl-cardbody">{COPY.cardAskBody}</p>
+        <div className="wl-chips">
+          {COPY.cardAskChips.map((c) => <span className="wl-chip" key={c}>{c}</span>)}
+        </div>
+      </article>
+
+      {/* 3 · the conditional one, last by ruling. Hidden ENTIRELY when no handle is set
+          (R-37.68 ④): a share action with nothing behind it is the never-404 failure
+          wearing a different coat. */}
       {tdwLink && (
         <article className="wl-card">
           <h3 className="wl-cardtitle">{COPY.cardLinkTitle}</h3>
@@ -63,15 +92,6 @@ export function FirstRun() {
           }}>{COPY.cardLinkAction}</button>
         </article>
       )}
-
-      {/* 2 · and he runs it from where he already is */}
-      <article className="wl-card">
-        <h3 className="wl-cardtitle">{COPY.cardAskTitle}</h3>
-        <p className="wl-cardbody">{COPY.cardAskBody}</p>
-        <div className="wl-chips">
-          {COPY.cardAskChips.map((c) => <span className="wl-chip" key={c}>{c}</span>)}
-        </div>
-      </article>
 
       <style>{FR_CSS}</style>
     </div>

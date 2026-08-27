@@ -159,6 +159,14 @@ export const COPY = {
   // Sentence case. R-38.6: buttons are verbs of at most two words, and the engraved
   // Title Case went with the register that carried it.
   drawerSignOut: 'Sign out',
+  // ── CE-38 SEAL ① · SIGN OUT CONFIRMS ─────────────────────────────────────
+  // F-38.16: the founder tapped the word ACTIONS and the tap fell through to a 52px row
+  // that ended his session. Clearance was widened; the asymmetry stayed — this was the one
+  // destructive control in the estate acting on a single tap, while `CancelBlock` confirms
+  // and carries its irreversibility in words. Ruled: it confirms, in a two-button row
+  // INSIDE the drawer. No modal — a modal to leave a menu is more ceremony than the act.
+  // Bytes ship pending the founder's veto.
+  drawerCancel: 'Cancel',
 
   // ── R-38.9 · THE ADVISOR ROOM ────────────────────────────────────────────
   // The room's own word, at t2. Never a persona name (R-37.70).

@@ -436,6 +436,63 @@ async function seat(browser, mode) {
       F(tag + 'C-R11 the press survives the gesture', 'SURFACE NEVER MOUNTED — no measurement was taken');
     }
 
+    // ── C-R13 · SIGN OUT CONFIRMS, AND THE CONFIRM REPLACES  [CE-38 SEAL ①] ─
+    //
+    // F-38.16: the founder tapped a non-interactive label and the tap fell through to a
+    // 52px row that ended his session. Clearance was widened and the asymmetry stayed —
+    // this was the estate's one destructive control acting on a single tap.
+    //
+    // THE CELL ASSERTS BOTH HALVES, because either alone would pass on a defect:
+    //   (1) one tap does NOT sign out — the session survives and the drawer stays up
+    //   (2) the confirm REPLACES the row rather than appearing beneath it, so the
+    //       destructive button is never where the thumb was already travelling. That is
+    //       F-38.16's mechanism, not its symptom, and a confirm added below the row would
+    //       satisfy a naive test while reproducing the defect exactly.
+    if (await settle(p, '/w/rooms', '.wl-coin', mode)) {
+      await p.click('.wl-coin');
+      await new Promise((r) => setTimeout(r, 350));
+      const conf = await p.evaluate(async () => {
+        const rows = [...document.querySelectorAll('.tdw-drawer .wl-drow')];
+        const out = rows.find((r) => /Sign out/i.test(r.textContent || ''));
+        if (!out) return { found: false };
+        const beforeY = out.getBoundingClientRect().top;
+        out.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 250));
+        const btns = [...document.querySelectorAll('.tdw-drawer .wl-dbtn')];
+        const stillRow = [...document.querySelectorAll('.tdw-drawer .wl-drow')]
+          .some((r) => /Sign out/i.test(r.textContent || ''));
+        const danger = btns.find((b) => /Sign out/i.test(b.textContent || ''));
+        return {
+          found: true,
+          drawerStillUp: !!document.querySelector('.tdw-drawer'),
+          sessionAlive: !!localStorage.getItem('vendor_session'),
+          confirmShown: btns.length === 2,
+          rowReplaced: !stillRow,
+          // The destructive button must not land under where the finger already was.
+          movedAway: !!danger && Math.abs(danger.getBoundingClientRect().top - beforeY) > 4,
+        };
+      });
+      if (!conf.found) F(tag + 'C-R13 sign out confirms', 'no sign-out row in the drawer');
+      else if (conf.drawerStillUp && conf.sessionAlive && conf.confirmShown && conf.rowReplaced && conf.movedAway)
+        P(tag + 'C-R13 sign out confirms', 'one tap opens two buttons in place; the session survives and the row is replaced, not stacked under');
+      else F(tag + 'C-R13 sign out confirms', JSON.stringify(conf));
+    } else {
+      F(tag + 'C-R13 sign out confirms', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    }
+
+    // ── C-R14 · THE CONDITIONAL CARD IS LAST  [CE-38 SEAL ②] ────────────────
+    // R-37.68-B amended by label: desk · ask · link. b40 asserts the order in SOURCE; this
+    // asserts it in the DOM, which is the only place a reorder actually reaches the vendor.
+    if (await settle(p, '/w/today', '.wl-fr', mode)) {
+      const seq = await p.evaluate(() => [...document.querySelectorAll('.wl-fr .wl-card')]
+        .map((c) => (c.querySelector('.wl-cardtitle')?.textContent || '').trim()));
+      const lastIsLink = seq.length > 0 && /TDW link/i.test(seq[seq.length - 1]);
+      if (lastIsLink) P(tag + 'C-R14 the conditional card is last', seq.join(' \u00b7 '));
+      else F(tag + 'C-R14 the conditional card is last', 'order is ' + seq.join(' \u00b7 ') + ' — the conditional card inserts instead of appending (F-38.21)');
+    } else {
+      F(tag + 'C-R14 the conditional card is last', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    }
+
     // ── C-R12 · THE LINK CARD DOES NOT ARRIVE LATE  [F-38.21] ───────────────
     //
     // Founder: 「it takes a few seconds to load and then displaces whatever is there.」 The

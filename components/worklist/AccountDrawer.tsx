@@ -114,6 +114,7 @@ export function AccountDrawer({ mode, onPickMode, onSignOut, onClose }: {
 }) {
   const [held, setHeld] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
@@ -122,9 +123,13 @@ export function AccountDrawer({ mode, onPickMode, onSignOut, onClose }: {
   // timer, so no popup blocker sees it — and the menu then spends one beat visibly
   // acknowledging the tap before it leaves. Nothing about the app got slower; the vendor
   // simply stops being shown a result with no cause.
-  function press(id: string) {
+  // `dismiss: false` is for a row that OPENS something inside the drawer rather than
+  // leaving it — the sign-out confirmation. It still paints its beat, because the vendor
+  // must see that his tap registered; it simply has nowhere to go yet.
+  function press(id: string, dismiss = true) {
     if (timer.current) return;          // one beat per opening; a second tap changes nothing
     setHeld(id);
+    if (!dismiss) return;
     setLeaving(true);
     timer.current = setTimeout(onClose, BEAT_MS);
   }
@@ -147,7 +152,24 @@ export function AccountDrawer({ mode, onPickMode, onSignOut, onClose }: {
       {row('dark',  { label: COPY.themeDarkName,  onAct: () => onPickMode('dark'),  current: mode === 'dark',  mode: true })}
       {row('light', { label: COPY.themeLightName, onAct: () => onPickMode('light'), current: mode === 'light', mode: true })}
       <div className="wl-dsec">{COPY.drawerActions}</div>
-      {row('signout', { label: COPY.drawerSignOut, onAct: onSignOut, danger: true })}
+      {/* ── CE-38 SEAL ① · SIGN OUT CONFIRMS, IN PLACE ──────────────────────
+          One tap opens a two-button row inside the drawer. NO MODAL, ruled: a modal to
+          leave a menu is more ceremony than the act it guards, and it would put a second
+          dismissable layer over a drawer that already has one.
+          The confirm row REPLACES the sign-out row rather than appearing beneath it, so
+          the destructive button is never where the vendor's thumb was already travelling —
+          which is F-38.16's actual mechanism, not merely its symptom. */}
+      {!confirming
+        ? <Row label={COPY.drawerSignOut} onAct={() => setConfirming(true)} danger
+               pressed={held === 'signout'} onPress={() => press('signout', false)} />
+        : (
+          <div className="wl-dconfirm">
+            <button type="button" className="wl-dbtn danger"
+                    onClick={() => { press('signout'); onSignOut(); }}>{COPY.drawerSignOut}</button>
+            <button type="button" className="wl-dbtn"
+                    onClick={() => { setConfirming(false); setHeld(null); }}>{COPY.drawerCancel}</button>
+          </div>
+        )}
     </div>
   );
 }
@@ -178,6 +200,10 @@ const DRAWER_CSS = `
    the last thing the vendor sees is the row he chose. The transition is on the way IN only;
    a fade-out here would spend the beat undoing the acknowledgement it exists to give. */
 .tdw-drawer .wl-drow{transition:background 90ms linear}
+.tdw-drawer .wl-dconfirm{display:flex;gap:8px;padding:8px 16px 12px;margin-top:6px}
+.tdw-drawer .wl-dbtn{flex:1;min-height:44px;padding:10px 12px;border-radius:2px;cursor:pointer;background:transparent;border:.5px solid var(--atelier-input-border);color:var(--atelier-accent-text);font:var(--wl-t4);touch-action:manipulation}
+.tdw-drawer .wl-dbtn.danger{border-color:var(--role-critical);color:var(--role-critical)}
+.tdw-drawer .wl-dbtn:active{background:var(--atelier-row-hover)}
 /* The menu enters and leaves as a consequence of the coin and of the row, rather than
    appearing and vanishing between frames. 170ms out matches the beat exactly, so the
    dismissal completes as the fade completes instead of cutting it off. */

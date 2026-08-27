@@ -979,6 +979,55 @@ late, laying out twice. The cure is the same each time — answer from what is a
 hand, then let the wire correct — and the cell is the same each time: **read the first
 paint, wait for nothing.**
 
+## §18 · THE SEAL — CE-38's FOUR RULINGS
+
+**① `Sign out` CONFIRMS.** One tap opens a two-button row inside the drawer, no modal.
+**The confirm REPLACES the sign-out row rather than appearing beneath it** — that is
+F-38.16's mechanism and not its symptom: a confirm stacked below would put the destructive
+button exactly where the thumb was already travelling, satisfying a naive cell while
+reproducing the defect. `drawerCancel` ships pending the founder's veto.
+
+**② R-37.68-B AMENDED BY LABEL — the conditional card is last.** Order is desk · ask · link.
+Its arrival now appends instead of inserting, which is the half F-38.21's cache could not
+reach: a device's first load has no cached handle and never will. **The ruled sequence
+survives the move**, which is why this is an amendment and not a re-ruling — the desk is
+still how work arrives and the ask is still how he runs it. A conditional member of an
+ordered set belongs at its end for the same reason a nullable field goes last in a wire
+shape: everything before it lays out without knowing the answer.
+
+**③ F-38.18 → SITTING 2**, folded into the crossings. `TipsCarousel:25` and
+`OnboardingOverlay:102/110` retire with the surfaces they sit on. **No byte patched in
+place** — a vetoed string edited on a surface that is about to be recut is a byte that gets
+vetoed twice.
+
+**④ THE `⑥` SPLIT RATIFIED.** Mechanism in the audit, behaviour in the arm. The chair filed
+its own relay's error as c-38.3.
+
+### THE TWO CELLS THE SEAL ADDED, BOTH PROVEN AT THE TIP
+
+```
+C-R13 sign out confirms                    cured PASS   ·  7af1e82 FAIL  sessionAlive:false
+C-R14 the conditional card is last         cured PASS   ·  7af1e82 FAIL  desk · link · ask
+```
+
+`sessionAlive: false` at the tip is the defect stated as plainly as an instrument can: **one
+tap ended the session.** And b40's C13 is amended by label, count preserved at 23 — it
+asserted card MEMBERSHIP and would have passed on any sequence; it asserts the ORDER now,
+because a later seat tidying the JSX back would otherwise reintroduce the displacement with
+nothing to stop it.
+
+### ⚠ D-38.1 · WHERE THE DOCTRINE WENT, AND WHY NOT WHERE IT WAS SENT
+
+The seal instructed the doctrine paragraph into `FINDINGS_LOG` as D-38.1. **That file lives
+in `dream-os`, not here** — `find . -name "FINDINGS*"` returns nothing in `dreamos-pwa`, and
+every handover in this repo opens by stating it touches neither `FINDINGS_LOG.md` nor the
+masterplan. This sitting carries zero `dream-os` bytes.
+
+It is authored whole and self-contained at
+`docs/D-38.1_DOCTRINE_PRESENCE_IS_NOT_BEHAVIOUR.md`, **for transplant**, with that reasoning
+in its own header. A doctrine paragraph that exists only in a relay is a ruling with no
+artifact.
+
 ## §10 · THE NEXT SITTING
 
 The fourteen uncrossed rooms, in `INTERIM_VENDOR_ROOMS` order · Settings' body onto the six
