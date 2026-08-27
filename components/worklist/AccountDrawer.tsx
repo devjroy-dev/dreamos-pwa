@@ -43,6 +43,7 @@
 // Settings and Billing point at `/w/settings` and `/w/billing`, not at the `/vendor` routes
 // they used to. So a vendor who opens the coin in a carried room lands in the NEW chrome,
 // and the drawer stops being a way to stay in the old one.
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { COPY } from '@/lib/worklist/copy';
 import { waNumberFor } from '@/lib/waNumbers';
@@ -50,21 +51,48 @@ import { typeCss } from '@/lib/worklist/theme';
 
 export const DRAWER_SCOPE = 'tdw-drawer';
 
-function Row({ label, href, onClick, current, danger, mode, onGo }: {
-  label: string; href?: string; onClick?: () => void;
-  current?: boolean; danger?: boolean; mode?: boolean; onGo?: () => void;
+// ── F-38.20 · THE ACKNOWLEDGEMENT NEEDS A FRAME TO EXIST IN ─────────────────
+//
+// Founder: 「theres no interaction when i click anything on the setting. like the dimming
+// or pushing of a button. it just vanishes into the action that its for. it feels like
+// woosh its gone.」
+//
+// F-38.14 raised the press fill from 1.12:1 to 1.51:1 and it did not help, because the
+// contrast was only half the problem and the smaller half. THE STATE WAS NEVER ON SCREEN
+// LONG ENOUGH TO BE SEEN. A row's handler fired and closed the drawer in the SAME FRAME:
+// `:active` ends at mouse-up, the parent unmounts on the same event, and the vendor's
+// acknowledgement had nowhere to happen. Measuring a colour nobody ever sees is measuring
+// the wrong thing — which is the fourth time this sitting I have improved an assertion
+// about a control instead of the control.
+//
+// THE CURE IS TIME, NOT COLOUR, AND IT DOES NOT DELAY THE ACTION. The row paints its
+// pressed state immediately and holds it; the DISMISSAL is what waits a beat. Navigation
+// and mode changes fire exactly as before — a Link still navigates on its own click — so
+// nothing gets slower. What changes is that the menu leaves as a visible consequence of the
+// tap instead of disappearing simultaneously with it.
+const BEAT_MS = 170;
+
+function Row({ label, href, onAct, current, danger, mode, pressed, onPress }: {
+  label: string; href?: string; onAct: () => void;
+  current?: boolean; danger?: boolean; mode?: boolean;
+  pressed: boolean; onPress: () => void;
 }) {
-  const cls = 'wl-drow' + (danger ? ' danger' : '') + (mode ? ' mode' : '');
+  // `held` is a CLASS, not a reliance on the active pseudo-class, because that state ends
+  // at pointer release and this one has to outlive the gesture that started it.
+  const cls = 'wl-drow' + (danger ? ' danger' : '') + (mode ? ' mode' : '') + (pressed ? ' held' : '');
+  const fire = () => { onPress(); onAct(); };
   if (href) {
+    // Navigation is the anchor's own, unchanged and unprefixed by any timer: R-38.2's
+    // prefetch and its instant route are untouched. Only the drawer's dismissal waits.
     return (
-      <Link href={href} role="menuitem" className={cls} onClick={onGo}>
+      <Link href={href} role="menuitem" className={cls} onClick={fire}>
         <span className="wl-dlabel">{label}</span>
       </Link>
     );
   }
   return (
     <button type="button" role="menuitem" className={cls}
-            aria-current={current ? 'true' : undefined} onClick={onClick}>
+            aria-current={current ? 'true' : undefined} onClick={fire}>
       <span className="wl-dlabel">{label}</span>
     </button>
   );
@@ -73,10 +101,10 @@ function Row({ label, href, onClick, current, danger, mode, onGo }: {
 /**
  * The four sections, in order. CE-38 relay #3 ITEM 3, arm (b).
  *
- * `mode` and `onPickMode` are optional: the carried rooms drive their own theme through the
- * old ThemeContext and pass their own pair, while the shell drives `data-wl-mode`. The ROWS
- * are the same either way — what differs is only which authority the tap reaches, and that
- * is the caller's business rather than this file's.
+ * `mode` and `onPickMode` are optional in spirit: the carried rooms drive their theme
+ * through the old ThemeContext and pass their own pair, while the shell drives
+ * `data-wl-mode`. The ROWS are the same either way — what differs is only which authority
+ * the tap reaches, and that is the caller's business rather than this file's.
  */
 export function AccountDrawer({ mode, onPickMode, onSignOut, onClose }: {
   mode: 'dark' | 'light';
@@ -84,22 +112,42 @@ export function AccountDrawer({ mode, onPickMode, onSignOut, onClose }: {
   onSignOut: () => void;
   onClose: () => void;
 }) {
+  const [held, setHeld] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  // THE ACTION IS IMMEDIATE. THE DISMISSAL IS WHAT WAITS. Every row runs its own effect on
+  // the click it was given — a window opened here is opened from the gesture, not from a
+  // timer, so no popup blocker sees it — and the menu then spends one beat visibly
+  // acknowledging the tap before it leaves. Nothing about the app got slower; the vendor
+  // simply stops being shown a result with no cause.
+  function press(id: string) {
+    if (timer.current) return;          // one beat per opening; a second tap changes nothing
+    setHeld(id);
+    setLeaving(true);
+    timer.current = setTimeout(onClose, BEAT_MS);
+  }
+
+  const row = (id: string, props: Omit<Parameters<typeof Row>[0], 'pressed' | 'onPress'>) => (
+    <Row {...props} pressed={held === id} onPress={() => press(id)} />
+  );
+
   return (
-    <div className={DRAWER_SCOPE} role="menu">
+    <div className={DRAWER_SCOPE + (leaving ? ' is-leaving' : '')} role="menu">
       <style>{typeCss('.' + DRAWER_SCOPE) + DRAWER_CSS}</style>
       <div className="wl-dsec">{COPY.drawerAccount}</div>
-      <Row label={COPY.settingsTitle} href="/w/settings" onGo={onClose} />
-      <Row label={COPY.billingTitle} href="/w/billing" onGo={onClose} />
+      {row('settings', { label: COPY.settingsTitle, href: '/w/settings', onAct: () => {} })}
+      {row('billing',  { label: COPY.billingTitle,  href: '/w/billing',  onAct: () => {} })}
       <div className="wl-dsec">{COPY.drawerReachUs}</div>
-      <Row label={COPY.roomsAskTitle} onClick={() => {
-        onClose();
+      {row('wa', { label: COPY.roomsAskTitle, onAct: () => {
         window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
-      }} />
+      } })}
       <div className="wl-dsec">{COPY.drawerDisplay}</div>
-      <Row label={COPY.themeDarkName}  onClick={() => onPickMode('dark')}  current={mode === 'dark'} mode />
-      <Row label={COPY.themeLightName} onClick={() => onPickMode('light')} current={mode === 'light'} mode />
+      {row('dark',  { label: COPY.themeDarkName,  onAct: () => onPickMode('dark'),  current: mode === 'dark',  mode: true })}
+      {row('light', { label: COPY.themeLightName, onAct: () => onPickMode('light'), current: mode === 'light', mode: true })}
       <div className="wl-dsec">{COPY.drawerActions}</div>
-      <Row label={COPY.drawerSignOut} danger onClick={onSignOut} />
+      {row('signout', { label: COPY.drawerSignOut, onAct: onSignOut, danger: true })}
     </div>
   );
 }
@@ -125,6 +173,21 @@ const DRAWER_CSS = `
 .tdw-drawer .wl-dlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .tdw-drawer .wl-drow[aria-current="true"] .wl-dlabel{color:var(--atelier-accent-text)}
 .tdw-drawer .wl-drow.danger .wl-dlabel{color:var(--role-critical)}
-.tdw-drawer .wl-drow:active{background:var(--atelier-row-hover)}
+.tdw-drawer .wl-drow:active,.tdw-drawer .wl-drow.held{background:var(--atelier-row-hover)}
+/* F-38.20. The held row does not fade back out — it is still lit when the menu leaves, so
+   the last thing the vendor sees is the row he chose. The transition is on the way IN only;
+   a fade-out here would spend the beat undoing the acknowledgement it exists to give. */
+.tdw-drawer .wl-drow{transition:background 90ms linear}
+/* The menu enters and leaves as a consequence of the coin and of the row, rather than
+   appearing and vanishing between frames. 170ms out matches the beat exactly, so the
+   dismissal completes as the fade completes instead of cutting it off. */
+.tdw-drawer{animation:tdwDrawerIn 130ms cubic-bezier(0.22,1,0.36,1) both;transform-origin:top right}
+.tdw-drawer.is-leaving{animation:tdwDrawerOut 170ms cubic-bezier(0.4,0,1,1) both}
+@keyframes tdwDrawerIn{from{opacity:0;transform:translateY(-6px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes tdwDrawerOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-4px) scale(.99)}}
+@media (prefers-reduced-motion:reduce){
+  .tdw-drawer,.tdw-drawer.is-leaving{animation:none}
+  .tdw-drawer .wl-drow{transition:none}
+}
 .tdw-drawer .wl-drow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 `;

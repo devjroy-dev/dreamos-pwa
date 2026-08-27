@@ -48,7 +48,14 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   // THE ONE SURVIVING router CALL. Sign-out is a post-action redirect, not a tap on a
   // destination, and `replace` is deliberate: the signed-out vendor must not be able to
   // come back to a shell surface with the browser's own back gesture.
-  const signOut = () => { close(); clearVendorSession(); router.replace('/'); };
+  // ── F-38.20 · THE DRAWER OWNS ITS OWN DISMISSAL ───────────────────────────
+  // `close()` used to be the FIRST thing both of these did, which is why the acknowledgement
+  // beat did nothing when it was added: the drawer scheduled its exit for 170ms and the
+  // handler tore it down in the same frame anyway. Two authorities over one dismissal, and
+  // the louder one won.
+  // Neither closes now. `AccountDrawer` decides when the menu leaves, because it is the
+  // thing that knows a row was pressed and that the press is still being shown.
+  const signOut = () => { clearVendorSession(); router.replace('/'); };
 
   // Persisted per device. Its own key: the old shell's 'dreamai_theme' names a different
   // pair of themes, and sharing the key would make one coin silently rule two palettes.
@@ -61,7 +68,6 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 
   function pick(next: 'dark' | 'light') {
     setMode(next);
-    close();
     try { localStorage.setItem(MODE_KEY, next); } catch { /* non-fatal */ }
   }
 

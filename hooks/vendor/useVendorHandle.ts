@@ -12,15 +12,61 @@ import { useEffect, useState } from 'react';
 import { getVendorSession } from '@/lib/vendor/session';
 import { getJson } from '@/lib/vendor/api/_base';
 
+// ── F-38.21 · THE HANDLE IS CACHED, BECAUSE IT IS NOT IN THE SESSION ────────
+//
+// Founder: 「same problem with your TDW link. it takes a few seconds to load and then
+// displaces whatever is there in its place.」
+//
+// SAME SHAPE AS F-38.19, ONE MATERIAL DIFFERENCE. The medallion's cure was to seed from
+// `getVendorSession()`, which already carries `name`. **`VendorSession` has no `handle`** —
+// derived, not assumed: its fields are id, user_id, name, phone, tier, access_token,
+// refresh_token. So there was nothing local to seed from, and the card genuinely could not
+// know whether to exist until the wire answered. It then appeared mid-feed and pushed
+// everything below it down.
+//
+// SO THE ANSWER IS A CACHE, AND IT IS NAMED ONE. This key is NOT session truth and must
+// never be read as authorisation for anything: it is a remembered answer to a question the
+// server owns, kept so the SECOND load does not re-ask before it can lay out. The wire read
+// still runs on every mount and still wins.
+//
+// ⚠ WHAT THIS DOES NOT FIX, STATED PLAINLY: the FIRST-EVER load on a device still has no
+// cached answer, so the card still arrives late and still displaces. Removing that entirely
+// means the conditional card cannot sit ABOVE other cards — it would have to be last, so
+// its arrival appends instead of inserting. That is a change to R-37.68-B's ruled order
+// (work reaches him, then he runs it) and is the chair's, not this seat's. Cached here,
+// reported there.
+const HANDLE_KEY = 'tdw_vendor_handle';
+
 export function useVendorHandle(): string | null {
   const [handle, setHandle] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!getVendorSession()?.access_token) return;
+
+    // Seeded in the effect, not in useState's initialiser: this tree is server-rendered
+    // before it hydrates, and seeding at first render would emit one markup on the server
+    // and another on the client. A hydration mismatch is not an improvement on a reflow.
+    try {
+      const cached = localStorage.getItem(HANDLE_KEY);
+      if (cached) setHandle(cached);
+    } catch { /* private mode — the wire read below still answers */ }
+
     let live = true;
     getJson<{ ok: boolean; vendor?: { handle?: string | null } }>('/api/v2/vendor/me', true)
-      .then((d) => { if (!live || !d.ok) return; const h = d.vendor?.handle?.trim(); setHandle(h ? h.toUpperCase() : null); })
-      .catch(() => { /* fail closed */ });
+      .then((d) => {
+        if (!live || !d.ok) return;
+        const h = d.vendor?.handle?.trim();
+        const next = h ? h.toUpperCase() : null;
+        setHandle(next);
+        // THE CACHE IS CORRECTED IN BOTH DIRECTIONS. A handle that was REMOVED server-side
+        // must clear the key, or the card would go on rendering a link that no longer
+        // routes anywhere — which is the never-404 failure with a stale cache behind it.
+        try {
+          if (next) localStorage.setItem(HANDLE_KEY, next);
+          else localStorage.removeItem(HANDLE_KEY);
+        } catch { /* non-fatal */ }
+      })
+      .catch(() => { /* fail closed — the cached answer stands until the wire disagrees */ });
     return () => { live = false; };
   }, []);
   return handle;

@@ -881,6 +881,104 @@ d0949e4  FAIL C-R10 — first paint reads "◎" — the coin is waiting on the w
 lesson: a cell that observes at a convenient moment rather than the decisive one is a cell
 that will pass on the defect it was written for.
 
+## §16 · F-38.20 — THE ACKNOWLEDGEMENT HAD NO FRAME TO EXIST IN
+
+「theres no interaction when i click anything on the setting. like the dimming or pushing of
+a button. it just vanishes into the action that its for. it feels like woosh its gone.」
+
+**F-38.14 raised the press fill from 1.116:1 to 1.511:1 and it changed nothing**, because
+the contrast was the smaller half of the problem and I fixed only that half. The row's
+handler closed the drawer **in the same frame the press began**: the active pseudo-class
+ends at pointer release, the parent unmounted on the same event, and the acknowledgement had
+nowhere to happen. **Measuring a colour nobody is ever shown is measuring the wrong thing.**
+
+### THE CURE IS TIME, AND IT MAKES NOTHING SLOWER
+
+The action fires immediately — a `<Link>` still navigates on its own click with its
+prefetch intact, and the WhatsApp row still opens its window **from the gesture**, not from
+a timer, so no popup blocker sees it. **The DISMISSAL is what waits**, one beat of 170ms,
+during which the pressed row stays lit and the menu fades out. Nothing about the app got
+slower; the vendor simply stops being shown a result with no visible cause.
+
+The pressed state is a **class**, not the active pseudo-class, because that state ends at
+release and this one has to outlive the gesture that started it. It does not fade back out —
+the row he chose is still lit as the menu leaves.
+
+### AND THE FIRST CUT OF THE CURE DID NOTHING, FOR A REASON WORTH KEEPING
+
+C-R11 reddened on the cured tree: `heldAfterRelease:false, drawerStillUp:false`. **The
+drawer had two dismissal authorities.** It scheduled its own exit for 170ms, and
+`WorklistShell`'s `pick()` and `signOut()` both still called `close()` as their first
+statement — so the handler tore the menu down in the same frame anyway and the louder
+authority won.
+
+Neither closes now. **The drawer owns its own dismissal**, because it is the only thing that
+knows a row was pressed and that the press is still being shown. Two owners of one decision
+is the same disease as two homes for one fact, and it hid inside a cure for exactly one
+build.
+
+### C-R11 · THE CELL ASSERTS TIME, NOT COLOUR
+
+Written deliberately to fail on the tree that measured green: it presses, **releases**, and
+looks 60ms later, when the active pseudo-class is long over. A row still lit then is holding
+its own state; a row that is not was only ever lit while the finger was down.
+
+```
+cured    PASS C-R11 — row still lit 60ms after release, menu leaving rather than vanished
+600e332  FAIL C-R11 — heldAfterRelease:false, drawerStillUp:false
+                      — the acknowledgement did not outlive the tap
+```
+
+**This is the sixth instance of the sitting's one habit**, and the clearest statement of it:
+F-38.14 asserted a property of the control and the founder asked whether anything happened.
+The property was true. Nothing happened.
+
+## §17 · F-38.21 — THE LINK CARD ARRIVED LATE AND PUSHED THE FEED DOWN
+
+「same problem with your TDW link. it takes a few seconds to load and then displaces
+whatever is there in its place.」
+
+**Same shape as F-38.19, one material difference.** The medallion's cure was to seed from
+`getVendorSession()`, which carries `name`. **`VendorSession` has no `handle`** — derived,
+not assumed: id, user_id, name, phone, tier, access_token, refresh_token. There was nothing
+local to seed from, so the card genuinely could not know whether to exist until the wire
+answered, and it then inserted itself mid-feed and pushed everything below it down.
+
+**So the answer is a cache, and it is named one.** `tdw_vendor_handle` is NOT session truth
+and must never be read as authorisation: it is a remembered answer to a question the server
+owns, kept so the second load does not re-ask before it can lay out. The wire read still
+runs on every mount and still wins — **and it corrects in both directions.** A handle removed
+server-side clears the key, or the card would go on rendering a link that no longer routes
+anywhere, which is the never-404 failure with a stale cache behind it.
+
+**⚠ WHAT THIS DOES NOT FIX, AND IT IS THE HALF THAT NEEDS A RULING.** The first-ever load on
+a device has no cached answer, so the card still arrives late and still displaces. Removing
+that entirely means the conditional card cannot sit ABOVE other cards — it would have to be
+last, so its arrival appends instead of inserting. **That is a change to R-37.68-B's ruled
+order** (work reaches him: the desk, the link; then he runs it: the ask). Cached here,
+reported to the chair there.
+
+### C-R12 · READS THE FIRST PAINT, LIKE C-R10
+
+The defect is only visible before the fetch lands, so a cell that settles first would pass on
+a broken tree. With a handle cached, the card must be in the feed's FIRST layout rather than
+inserted into it afterwards.
+
+```
+cured    PASS C-R12 — seeded from the handle cache; 3 cards in the first layout
+600e332  FAIL C-R12 — absent at first paint with a cached handle; it will insert
+                      itself later and displace the feed
+```
+
+The arm seeds the cache alongside the session, because the fixture's token is synthetic and
+the wire read cannot supply a handle — seeding it is the only way to exercise the seeded
+path at all.
+
+**Two of the sitting's last three findings are one shape:** a surface that knows the answer
+late, laying out twice. The cure is the same each time — answer from what is already in
+hand, then let the wire correct — and the cell is the same each time: **read the first
+paint, wait for nothing.**
+
 ## §10 · THE NEXT SITTING
 
 The fourteen uncrossed rooms, in `INTERIM_VENDOR_ROOMS` order · Settings' body onto the six

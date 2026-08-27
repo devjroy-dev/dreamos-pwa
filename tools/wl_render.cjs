@@ -171,6 +171,10 @@ async function seat(browser, mode) {
     try {
       localStorage.setItem('vendor_session', JSON.stringify(s));
       localStorage.setItem('tdw_worklist_mode', m);
+      // F-38.21: the handle cache. The fixture's token is synthetic, so /me will 401 and
+      // the wire read cannot supply a handle — seeding the cache is the only way to
+      // exercise the seeded path at all, and exercising it is the whole point of C-R12.
+      localStorage.setItem('tdw_vendor_handle', 'DEVROY');
     } catch { /* private mode */ }
   }, SEED, mode);
   // THE SECOND SEEDING AND THE DOUBLE NAVIGATION BOTH RETIRE. `evaluateOnNewDocument`
@@ -390,6 +394,70 @@ async function seat(browser, mode) {
     if (fit.tiles === 18 && fit.overflow === 0 && fit.slack >= 8)
       P(tag + 'C-R8 eighteen rooms at rest', fit.tiles + ' tiles at ' + fit.tileH + 'px, overflow ' + fit.overflow + ', slack ' + fit.slack + 'px');
     else F(tag + 'C-R8 eighteen rooms at rest', JSON.stringify(fit));
+
+    // ── C-R11 · THE PRESS SURVIVES THE GESTURE  [F-38.20] ───────────────────
+    //
+    // Founder: 「it just vanishes into the action that its for. it feels like woosh its
+    // gone.」 F-38.14 measured the press FILL to 1.511:1 and it changed nothing, because
+    // the fill was the smaller half: the row's handler closed the drawer in the same frame
+    // the press began, so the acknowledgement had no frame to exist in.
+    //
+    // SO THIS CELL ASSERTS TIME, NOT COLOUR — and it is deliberately written to fail on the
+    // tree that measured green. It releases the pointer immediately, then looks 60ms LATER,
+    // when the active pseudo-class is long over. A row still lit at that moment is a row
+    // holding its own state; a row that is not was only ever lit while the finger was down.
+    if (await settle(p, '/w/rooms', '.wl-coin', mode)) {
+      await p.click('.wl-coin');
+      await new Promise((r) => setTimeout(r, 350));
+      const beat = await p.evaluate(async () => {
+        const rows = [...document.querySelectorAll('.tdw-drawer .wl-drow')];
+        const target = rows.find((r) => /Graphite|Chalk/.test(r.textContent || '')) || rows[0];
+        if (!target) return { found: false };
+        // A real press and release, then a look after the gesture is over.
+        target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+        target.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 60));
+        const el = document.querySelector('.tdw-drawer .wl-drow.held');
+        const drawer = document.querySelector('.tdw-drawer');
+        return {
+          found: true,
+          heldAfterRelease: !!el,
+          drawerStillUp: !!drawer,
+          leaving: !!drawer && drawer.className.includes('is-leaving'),
+        };
+      });
+      if (!beat.found) F(tag + 'C-R11 the press survives the gesture', 'no drawer rows to press');
+      else if (beat.heldAfterRelease && beat.drawerStillUp && beat.leaving)
+        P(tag + 'C-R11 the press survives the gesture', 'row still lit 60ms after release, menu leaving rather than vanished');
+      else
+        F(tag + 'C-R11 the press survives the gesture', JSON.stringify(beat) + ' — the acknowledgement did not outlive the tap');
+    } else {
+      F(tag + 'C-R11 the press survives the gesture', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    }
+
+    // ── C-R12 · THE LINK CARD DOES NOT ARRIVE LATE  [F-38.21] ───────────────
+    //
+    // Founder: 「it takes a few seconds to load and then displaces whatever is there.」 The
+    // card is conditional on a handle that only the wire knew, so it appeared mid-feed and
+    // pushed the cards below it down.
+    //
+    // LIKE C-R10, THIS READS THE FIRST PAINT and waits for nothing else — the defect is
+    // only visible before the fetch lands, so a cell that settles first would pass on a
+    // broken tree. With the handle cached, the card must be in the feed's FIRST layout,
+    // not inserted into it afterwards.
+    await p.goto(BASE + '/w/today', { waitUntil: 'domcontentloaded' });
+    let linkAtFirstPaint = null;
+    try {
+      await p.waitForSelector('.wl-fr', { timeout: 15000 });
+      linkAtFirstPaint = await p.evaluate(() => {
+        const cards = [...document.querySelectorAll('.wl-fr .wl-card')];
+        return { cards: cards.length, hasLink: cards.some((c) => /Your TDW link/.test(c.textContent || '')) };
+      });
+    } catch { /* reported below */ }
+    if (!linkAtFirstPaint) F(tag + 'C-R12 the link card does not arrive late', 'no first-run feed at first paint');
+    else if (linkAtFirstPaint.hasLink) P(tag + 'C-R12 the link card does not arrive late', 'seeded from the handle cache; ' + linkAtFirstPaint.cards + ' cards in the first layout');
+    else F(tag + 'C-R12 the link card does not arrive late', 'the link card is absent at first paint with a cached handle — it will insert itself later and displace the feed');
 
     // ── C-R10 · THE MEDALLION NEVER SHOWS A PLACEHOLDER IDENTITY  [F-38.19] ─
     //
