@@ -90,17 +90,10 @@ const FR_CSS = `
 /* retired: the promise is the page's hero now, set in app/w/today. */
 .wl-frpromise-retired{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-dim);text-align:center;margin:0 0 20px;padding:0 4px}
 .wl-frhead{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:26px 0 12px;text-align:center}
-.wl-card-lead{border-left:2px solid var(--atelier-accent-text)}
-.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px 17px 16px;margin-bottom:10px}
-.wl-cardtitle{font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
-.wl-cardbody{font-family:var(--wl-body);font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0}
 /* R-37.73 ①: 40 was under the floor. */
-.wl-cardaction{margin-top:14px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;min-height:46px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-chips{display:flex;flex-wrap:wrap;gap:7px}
 /* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and
    a chip-shaped thing invites a thumb, so they carry a real target rather than teaching
    that some chips are dead. ②: 11.5 → 13. */
 .wl-chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:2px;padding:10px 13px;font-size:13px;font-weight:400;color:var(--atelier-ink-dim)}
-.wl-cardaction:active{background:var(--atelier-row-hover)}
-.wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

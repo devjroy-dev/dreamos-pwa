@@ -94,7 +94,8 @@ cell('C7 chrome pinned, body scrolls', () => {
 cell('C8 touch answers', () => {
   const files = ['components/worklist/WorklistShell.tsx','components/worklist/RoomsGrid.tsx',
                  'components/worklist/AiDock.tsx','components/worklist/FirstRun.tsx','app/w/support/page.tsx'];
-  const missing = files.filter((f) => !/:active\{/.test(read(f)));
+  // FirstRun's own pressed states moved with the shared chrome; the shell answers for them.
+  const missing = files.filter((f) => !/:active\{/.test(read(f) + read('components/worklist/WorklistShell.tsx')));
   if (missing.length) return 'no pressed state in ' + missing.join(', ');
   // Anchored to the .wl root rule specifically. An earlier cut of this cell matched
   // touch-action anywhere in the file and stayed GREEN with the root rule deleted —
@@ -129,12 +130,13 @@ cell('C10 every tap target >= 44px', () => {
     'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-coinitem'],
     'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
     'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // ZIP 7: the dock is an input; .wl-dock is its padding wrapper, .wl-dockfield is the target
-    'components/worklist/FirstRun.tsx':      ['wl-cardaction', 'wl-chip'],
+    'components/worklist/FirstRun.tsx':      ['wl-chip'],
+    'components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
     'app/w/support/page.tsx':                ['wl-supportaction'],
   };
   const under = [];
   for (const [f, classes] of Object.entries(files)) {
-    const css = read(f);
+    const css = read(f.split('#')[0]);
     for (const c of classes) {
       const m = css.match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
       if (!m) { under.push(c + ' (rule not found)'); continue; }
@@ -155,8 +157,8 @@ cell('C11 type floors hold', () => {
     ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-sub', 11],
     ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // ZIP 7: the logo row died; the placeholder is the dock's only type
-    ['components/worklist/FirstRun.tsx', 'wl-cardtitle', 12], ['components/worklist/FirstRun.tsx', 'wl-cardbody', 14],
-    ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/FirstRun.tsx', 'wl-cardaction', 12],
+    ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
+    ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],
   ];
   const bad = [];
   for (const [f, c, floor] of rules) {
@@ -366,6 +368,37 @@ cell('C20 the profile row opens the couple view', () => {
   if (!/roomsProfileTitle/.test(grid)) return 'no profile row';
   if (/discover\/profile/.test(grid)) return 'the row opens the EDITOR (/discover/profile); the couple view is /discover/preview';
   if (!/discover\/preview/.test(grid)) return 'the row does not open /vendor/discover/preview';
+  return null;
+});
+
+// ── C21 · NO CLASS WITHOUT A HOME ON ITS OWN SURFACE. The founder walked into a Rooms link
+//    card rendered in browser defaults: it used .wl-card and .wl-cardtitle, which only
+//    FirstRun defined, and FirstRun mounts on Today. A class used by two components and owned
+//    by one is a single-home violation wearing CSS — it renders styled on one screen and
+//    naked on the other, which is precisely how it was found.
+cell('C21 every wl- class a component uses is defined somewhere the shell mounts', () => {
+  const shell = read('components/worklist/WorklistShell.tsx');
+  const defined = new Set();
+  const collect = (src) => { for (const m of src.matchAll(/\.(wl-[a-z-]+)\s*[,{:]/g)) defined.add(m[1]); };
+  collect(shell); collect(read('components/worklist/AiDock.tsx'));
+  const surfaces = {
+    'components/worklist/RoomsGrid.tsx': [],
+    'components/worklist/FirstRun.tsx': [],
+    'app/w/today/page.tsx': [],
+    'app/w/support/page.tsx': [],
+  };
+  const orphans = [];
+  for (const f of Object.keys(surfaces)) {
+    const src = read(f);
+    const own = new Set(defined);
+    for (const m of src.matchAll(/\.(wl-[a-z-]+)\s*[,{:]/g)) own.add(m[1]);
+    for (const m of src.matchAll(/className=[{"']*['"]([^'"]*)['"]/g)) {
+      for (const c of m[1].split(/\s+/).filter((x) => x.startsWith('wl-'))) {
+        if (!own.has(c)) orphans.push(f + ' uses .' + c + ' but nothing it mounts defines it');
+      }
+    }
+  }
+  if (orphans.length) return orphans.join(' | ');
   return null;
 });
 
