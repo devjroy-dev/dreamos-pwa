@@ -326,3 +326,128 @@ palette while explaining the roles; it now reads the DARK/LIGHT value blocks onl
 
 The emulator is disqualified for this delivery, per ⑥. Every beat below is the founder's real
 handset.
+
+---
+
+# §16 · R-37.68-B — THE FIRST-RUN MANUAL, EXPANDED (rides ZIP 3)
+
+## The order, and why it isn't a feature list
+
+Cards run in the order of the vendor's own timeline, not the platform's org chart:
+**work reaches him** (the enquiry desk, the link) → **work gets run** (WhatsApp, the rooms) →
+**something is missing, so he asks** (ask us for more). No section headers between the groups:
+grouping by sequence rather than by chrome is what keeps this a set of cards instead of a
+manual with chapters. The three-sentence ceiling binds every body and cell **C13** counts them.
+
+## The chip census — five capabilities, five tools, zero drops
+
+Derived at dream-os `409c602`, `src/agent/tools.js`.
+
+| chip | capability | tool | line | verdict |
+|---|---|---|---|---|
+| `Am I free on 14 February?` | availability | `query_day` | `:443` | BACKED |
+| `How many open leads do I have?` | leads | `list_leads` | `:90` | BACKED — the ask appears in the tool's own description |
+| `Raise an invoice for Meghna` | an invoice | `create_invoice` | `:222` | BACKED — "raise invoice / send invoice / create invoice" are its named triggers |
+| `Log a studio hire expense` | an expense | `log_expense` | `:351` | BACKED — studio hire is an enumerated trigger |
+| `Tell Priya the date works` | the drafting ask | `send_to_couple` | `:512` | BACKED — this exact phrasing is one of the tool's own examples |
+
+**ONE CHIP DELIBERATELY DOES NOT COPY ITS TOOL.** `send_to_couple`'s description offers
+「quote Ananya 4 lakh」 as its first example. `4 lakh` is precisely the shorthand the money
+register forbids on a vendor-facing surface, so the chip uses the same tool's other example —
+which carries no figure at all — rather than teaching a vendor the register the house bans.
+Cell **C14** now guards the rupee glyph and lakh/k/Cr shorthand across every string in
+`copy.ts`, so this cannot be reintroduced by someone reading the tool and copying it faithfully.
+
+## The forward promise
+
+`todayPromise` renders above everything, including the header. It is the honest cure for the
+feed's absence — naming the destination instead of hiding the hole — and it is the only line in
+this set that stays true after the rest retires at first data.
+
+## Retirement, unchanged from R-37.68-A
+
+The whole set is Phase-1 static and becomes the true first-run state at Phase 4, shown when the
+endpoint reports no-data-ever; quiet days get the resting state instead. The `has_any` half of
+the Phase 3 contract (§7) is what makes that distinguishable. The tour still points at chrome
+once; this feed explains capability every time until data arrives, then never again.
+
+## Cells and their proofs
+
+| cell | mutation that reddened it |
+|---|---|
+| C13 | a body pushed to four sentences → *cardDeskBody has 4 sentences* |
+| C13 | a chip dropped, 5 → 4 → *chip count is 4, expected 5* |
+| C13 | promise defined in copy.ts but not rendered → *the forward promise is never rendered* |
+| C14 | chip replaced with the tool's verbatim `Quote Ananya 4 lakh` → *money shorthand appears in a vendor-facing byte* |
+
+All restored `cmp`-identical. **Floor: fourteen cells, exit 0. `npx tsc --noEmit`: exit 0.**
+
+ZIP 1's `cardAi*` keys are retired from `copy.ts` rather than left orphaned — an unrendered
+vetoed byte is a byte that drifts unnoticed until someone renders it again. C13 asserts they
+are gone.
+
+---
+
+# §17 · THE FOUNDER WALK ON `3ca510e` — TWO FINDINGS, ONE ROOT
+
+## §17.1 · Why the palette carry changed almost nothing the eye lands on
+
+Derived after the walk, by counting usages in the carried tree:
+
+```
+brass      202      brassWarm  116      brassLine  10      brassSoft   6
+accent      22      accentLine   1      metal       1
+```
+
+ZIP 3 mapped `accent` to the signal and left `brass` gold. **The old shell's interactive
+chrome is overwhelmingly `brass` — 202 usages against `accent`'s 22.** So the carry moved the
+token the new direction *renamed* rather than the token the old shell actually *uses*, and the
+result reads as a neutral ground under warm gold controls. Warm gold on warm brown was
+coherent. Warm gold on cold graphite is the discord the founder named.
+
+## §17.2 · The loudest controls are not tokens at all
+
+`app/globals.css:981-1024` hard-codes the FAB, the today coin and the hot ribbon:
+`#D4B86A`, `#B59548`, `#E0BC6E`, `#1A120E` on dark; `#9B4E38`, `#7A3828`, `#F5F2EE` on light.
+A variables-only override layer cannot reach a literal. **This is the FAB the founder called
+out, and it is the same root as §17.1: interactive controls still wearing the identity colour.**
+
+**CURED IN THIS ZIP** by an appended conversion block. Stated plainly as a scope widening on
+the layer above — that layer promised variables only, and this one sets properties. It still
+touches colour alone: no position, size or spacing moves. Cell **C15** guards it and reddens
+when the block is removed.
+
+R-37.43 is the warrant, not a new preference: gold retreats to the metal, the signal takes
+every interactive role. A floating action button is the most interactive control in the estate.
+
+## §17.3 · THE OPEN FORK — `brass`, 202 usages, UNRULED
+
+Curing the FAB does not cure §17.1. `brass` drives rules, hairlines, labels **and** controls —
+one token doing two jobs, which is precisely the conflation direction B was chosen to end.
+Remapping it is not a Phase 1 byte:
+
+- **(i) `brass` → signal, `brassLine`/`brassSoft` stay neutral hairlines.** The shell reads
+  teal-interactive throughout. Gold then survives on `metal` alone — one usage — which means
+  gold effectively leaves the vendor shell. That is larger than the palette pick ratified.
+- **(ii) Leave `brass` gold; convert controls only, case by case, as literals are found.**
+  Small blast radius, but the discord returns wherever a control reads `brass`.
+- **(iii) Split the token: `brass` for rules, a new interactive token for controls.** The
+  correct answer structurally, and the largest diff — it edits call sites, not values, which
+  means it is no longer a values-only carry and D-2 has to be argued per component.
+
+**Not picked here.** Reported.
+
+## §17.4 · TOUCH IN THE CARRIED ROOMS — OUT OF C10's REACH, ALSO UNRULED
+
+C10 holds the 44px floor across the worklist shell. It does **not** reach `/vendor/**`, and the
+founder's "touch needs to be optimized everywhere" is about those rooms. Extending the floor
+there is a real sweep across shared components — filter chips, slice-door chips, row actions,
+sheet controls — each of which is a single home with other consumers on `main`. Scope, blast
+radius and the D-2 argument per component all want a ruling before a byte.
+
+## §17.5 · A PROCESS ERROR OF MINE, DISCLOSED
+
+The R-37.68-B re-cut was packaged under the **same filename** as the first ZIP 3. The founder
+applied and pushed the first (`3ca510e`), which carries the Graphite override but **not** the
+expanded first-run manual — so the walk above judged a build without the promise line, the
+enquiry-desk card, the rooms card or the five chips. Deliveries from here carry distinct names.

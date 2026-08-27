@@ -1373,3 +1373,47 @@ body.room-discover {
     radial-gradient(ellipse 50% 25% at 50% 0%, rgba(104,201,180,0.05) 0%, transparent 70%),
     linear-gradient(180deg, #0C0D0E 0%, #08090A 100%) !important;
 }
+
+
+/* ── THE UNCONVERTED LITERALS (founder walk, 2026-08-27) ───────────────────────────────
+   The variable layer above moved every token and changed nothing the founder's eye landed
+   on, because the estate's loudest controls are NOT tokens — they are hard-coded hex in the
+   component rules at :981-:1024. The FAB, the today coin and the hot ribbon carried Espresso
+   gold onto a graphite ground and Editorial oxblood onto chalk. Warm gold on warm brown was
+   coherent; warm gold on cold graphite is the discord the founder named.
+
+   THIS IS COMPLETING THE CARRY, NOT A NEW DECISION. R-37.43 ruled that gold retreats to the
+   metal and the signal takes every interactive role. A floating action button is the single
+   most interactive control in the estate; leaving it gold is the exact conflation the
+   direction was picked to end.
+
+   PROPERTIES, NOT VARIABLES — so this block is a scope widening on the layer above, stated
+   rather than slipped in. It still touches only colour: no position, size or spacing moves. */
+.atelier-fab {
+  background: linear-gradient(180deg, #6FD0BA 0%, #4EA694 100%) !important;
+  border: 0.5px solid #8FE0CC !important;
+  color: #0F1011 !important;
+  box-shadow:
+    0 16px 36px -8px rgba(0,0,0,0.55),
+    0 4px 12px -2px rgba(104,201,180,0.30),
+    inset 0 1px 1px rgba(220,255,246,0.45) !important;
+}
+
+html.theme-light .atelier-fab {
+  background: linear-gradient(180deg, #128872 0%, #0D6A5A 100%) !important;
+  border-color: #0D6A5A !important;
+  color: #FFFFFF !important;
+}
+
+.atelier-today-coin {
+  background: linear-gradient(180deg, #D8BC72 0%, #B59548 100%) !important;
+  color: #141516 !important;
+}
+
+html.theme-light .atelier-today-coin {
+  background: linear-gradient(180deg, #9A7C2F 0%, #8A6F2A 100%) !important;
+  color: #FFFFFF !important;
+}
+
+.atelier-hot-ribbon { color: #0F1011 !important; }
+html.theme-light .atelier-hot-ribbon { color: #FFFFFF !important; }

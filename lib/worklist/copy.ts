@@ -37,25 +37,47 @@ export const COPY = {
   // ── the first-run manual (R-37.68 / R-37.68-A). It deletes itself at Phase 4. ──
   firstRunHeader: 'What TDW does for you',   // R-37.72: amended from "this app"
 
+  // ── R-37.68-B · THE FORWARD PROMISE ────────────────────────────────────
+  // Above everything. The feed is absent in Phase 1 and the honest cure for an absence is
+  // to name what fills it, not to hide the hole. It is also the only line here that will
+  // still be true after the manual retires.
+  todayPromise: 'Once your work starts flowing, Today becomes your morning brief \u2014 what needs attention, what\u2019s due, what got done.',
+
+  // ── THE CARD SET (R-37.68-B) ───────────────────────────────────────────
+  // ORDER FOLLOWS THE VENDOR\u2019S OWN TIMELINE, not a feature list: work reaches him
+  // (1, 2), work gets run (3, 4), and if something is missing he asks (5). No section
+  // headers between them — grouping by sequence rather than by chrome is what keeps this
+  // a set of cards instead of documentation.
+  // THREE-SENTENCE CEILING binds every body below and is asserted by the bench.
+
+  cardDeskTitle: 'Your 24/7 enquiry desk',
+  cardDeskBody:  'DreamAi answers every enquiry on WhatsApp, at any hour, in your name. It asks what you\u2019d ask \u2014 date, city, budget \u2014 and hands the conversation over once it\u2019s worth your time. You stay the one who quotes.',
+  cardDeskAction: 'Message DreamAi',
+
   cardLinkTitle: 'Your TDW link',
-  cardLinkBody:  'Share it anywhere you already are \u2014 your bio, a story, a reply. A couple who taps it lands in WhatsApp already routed to you. Nothing for them to install.',
+  cardLinkBody:  'One link that routes every enquiry straight to you. Share it in your bio, a story, a reply \u2014 whoever taps it lands in WhatsApp already routed to you, with nothing to install. No enquiry ends up in an inbox you forget to open.',
   cardLinkAction: 'Share link',
 
-  cardAiTitle: 'DreamAi answers for you',
-  cardAiBody:  'It picks up enquiries on WhatsApp at any hour and asks what you\u2019d ask. When a conversation is worth your time, it hands it over. You stay the one who quotes.',
-  cardAiAction: 'Message DreamAi',
-
-  // Each chip is backed by a tool in the engine census (src/agent/tools.js).
-  // Verdicts per chip are stated in the handover; no chip ships unbacked.
-  cardAskTitle: 'What to ask DreamAi',
+  // Every chip is backed by a tool in the engine census (dream-os src/agent/tools.js).
+  // Per-chip verdicts with line addresses are stated in the handover. No chip ships unbacked.
+  //
+  // ONE CHIP WAS NOT WRITTEN THE WAY THE TOOL\u2019S OWN DESCRIPTION WRITES IT: send_to_couple
+  // names 「quote Ananya 4 lakh」 as its example, and 「4 lakh」 is exactly the shorthand the
+  // money register forbids on a vendor-facing surface. The drafting chip uses the same
+  // tool\u2019s other example instead, which carries no figure at all.
+  cardAskTitle: 'Run it all from WhatsApp',
+  cardAskBody:  'You never have to open TDW to use it. Text DreamAi the way you\u2019d text a colleague, and the work lands here.',
   cardAskChips: [
-    'Am I free on 14 February?',      // query_day        tools.js:443
-    'How many open leads do I have?', // list_leads       tools.js:90
-    'Log a studio hire expense',      // log_expense      tools.js:351
-    'Mark Aarti\u2019s invoice paid', // record_payment   tools.js:291
+    'Am I free on 14 February?',        // query_day        tools.js:443
+    'How many open leads do I have?',   // list_leads       tools.js:90
+    'Raise an invoice for Meghna',      // create_invoice   tools.js:222
+    'Log a studio hire expense',        // log_expense      tools.js:351
+    'Tell Priya the date works',        // send_to_couple   tools.js:512
   ] as const,
 
-  cardAskTitle_: undefined as never | undefined,
+  cardRoomsTitle: 'Every part of your business has a room',
+  cardRoomsBody:  'Leads, invoices, contracts, expenses, your team, your calendar \u2014 each has a room of its own, and every one is a single tap from Rooms. Nothing is buried behind a menu.',
+  cardRoomsAction: 'See your rooms',
 
   cardMoreTitle: 'Ask us for more',
   cardMoreBody:  'Want more reach \u2014 ads, better placement, a feature that would save you an hour a week? Tell us. Something broken works too, and it reaches a person who replies personally.',

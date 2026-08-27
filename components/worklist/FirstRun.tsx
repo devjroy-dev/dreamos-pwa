@@ -13,6 +13,7 @@
 // EVERY DESTINATION IS REAL. Never-404 binds, and every number resolves through its declared
 // home — F-09.190's law applied at birth rather than after.
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
 import { waNumberFor, supportWaNumber } from '@/lib/waNumbers';
 import { getVendorSession } from '@/lib/vendor/session';
@@ -23,6 +24,7 @@ function openWa(number: string, text: string) {
 }
 
 export function FirstRun() {
+  const router = useRouter();
   // Card 1 is HIDDEN ENTIRELY when no handle is set (R-37.68 \u2463). The settings surface
   // already guards this the same way; a share action with nothing behind it is the
   // never-404 failure wearing a different coat.
@@ -50,7 +52,20 @@ export function FirstRun() {
 
   return (
     <div className="wl-fr">
+      {/* R-37.68-B: the forward promise sits above everything. Naming what Today becomes is
+          the honest cure for the feed being absent — and it is the one line here that stays
+          true after the rest of the manual retires at first data. */}
+      <p className="wl-frpromise">{COPY.todayPromise}</p>
+
       <h2 className="wl-frhead">{COPY.firstRunHeader}</h2>
+
+      {/* 1 · work reaches him */}
+      <article className="wl-card">
+        <h3 className="wl-cardtitle">{COPY.cardDeskTitle}</h3>
+        <p className="wl-cardbody">{COPY.cardDeskBody}</p>
+        <button type="button" className="wl-cardaction"
+                onClick={() => openWa(waNumberFor('vendor'), 'Hi')}>{COPY.cardDeskAction}</button>
+      </article>
 
       {tdwLink && (
         <article className="wl-card">
@@ -63,20 +78,23 @@ export function FirstRun() {
         </article>
       )}
 
-      <article className="wl-card">
-        <h3 className="wl-cardtitle">{COPY.cardAiTitle}</h3>
-        <p className="wl-cardbody">{COPY.cardAiBody}</p>
-        <button type="button" className="wl-cardaction"
-                onClick={() => openWa(waNumberFor('vendor'), 'Hi')}>{COPY.cardAiAction}</button>
-      </article>
-
+      {/* 2 · work gets run */}
       <article className="wl-card">
         <h3 className="wl-cardtitle">{COPY.cardAskTitle}</h3>
+        <p className="wl-cardbody">{COPY.cardAskBody}</p>
         <div className="wl-chips">
           {COPY.cardAskChips.map((c) => <span className="wl-chip" key={c}>{c}</span>)}
         </div>
       </article>
 
+      <article className="wl-card">
+        <h3 className="wl-cardtitle">{COPY.cardRoomsTitle}</h3>
+        <p className="wl-cardbody">{COPY.cardRoomsBody}</p>
+        <button type="button" className="wl-cardaction"
+                onClick={() => router.push('/w/rooms')}>{COPY.cardRoomsAction}</button>
+      </article>
+
+      {/* 3 · and if something is missing, he asks */}
       <article className="wl-card">
         <h3 className="wl-cardtitle">{COPY.cardMoreTitle}</h3>
         <p className="wl-cardbody">{COPY.cardMoreBody}</p>
@@ -91,6 +109,7 @@ export function FirstRun() {
 
 const FR_CSS = `
 .wl-fr{padding:8px 16px 26px}
+.wl-frpromise{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-dim);text-align:center;margin:0 0 20px;padding:0 4px}
 .wl-frhead{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:22px;color:var(--atelier-ink);margin:0 0 16px;text-align:center}
 .wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px 17px 16px;margin-bottom:10px}
 .wl-cardtitle{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}

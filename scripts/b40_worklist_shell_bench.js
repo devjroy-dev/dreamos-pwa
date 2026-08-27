@@ -184,5 +184,70 @@ cell('C12 the branch vendor tree carries Graphite at all three homes', () => {
   return null;
 });
 
+// ── C13 · THE FIRST-RUN SET (R-37.68-B). Five cards, the promise above them, five chips,
+//    and the three-sentence ceiling on every body. "Cards, never documentation" is a rule
+//    that only survives if something counts the sentences.
+cell('C13 first-run set: shape and the three-sentence ceiling', () => {
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const fr   = strip(read('components/worklist/FirstRun.tsx'));
+
+  if (!/todayPromise:/.test(copy)) return 'the forward promise has no home in copy.ts';
+  if (!/COPY\.todayPromise/.test(fr)) return 'the forward promise is never rendered';
+
+  const titles = ['cardDeskTitle', 'cardLinkTitle', 'cardAskTitle', 'cardRoomsTitle', 'cardMoreTitle'];
+  const missing = titles.filter((t) => !new RegExp('COPY\\.' + t).test(fr));
+  if (missing.length) return 'cards defined but never rendered: ' + missing.join(', ');
+
+  // Retired keys must be gone, not orphaned — an unrendered vetoed byte is a byte that
+  // drifts unnoticed until someone renders it again.
+  if (/cardAiTitle|cardAiBody|cardAiAction/.test(copy)) return 'ZIP 1 card keys survive in copy.ts';
+
+  const chips = copy.match(/cardAskChips[^\]]*\]/);
+  if (!chips) return 'chip list not found';
+  const n = (chips[0].match(/'/g) || []).length / 2;
+  if (n !== 5) return 'chip count is ' + n + ', expected 5 (one per capability)';
+
+  // The ceiling. Sentence-enders outside the ellipsis/decimal cases.
+  const bodies = ['cardDeskBody', 'cardLinkBody', 'cardAskBody', 'cardRoomsBody', 'cardMoreBody'];
+  const over = [];
+  for (const b of bodies) {
+    const m = copy.match(new RegExp(b + ":\\s*'((?:[^'\\\\]|\\\\.)*)'"));
+    if (!m) { over.push(b + ' (not found)'); continue; }
+    const count = (m[1].match(/[.?!](\s|$)/g) || []).length;
+    if (count > 3) over.push(b + ' has ' + count + ' sentences');
+  }
+  if (over.length) return 'over the three-sentence ceiling: ' + over.join(', ');
+  return null;
+});
+
+// ── C14 · MONEY REGISTER on the chips. send_to_couple's own description offers
+//    「quote Ananya 4 lakh」 as its example; lakh/k/Cr shorthand and the rupee glyph are
+//    forbidden on a vendor-facing surface, so the chip may not copy the tool verbatim.
+cell('C14 money register holds on vendor-facing bytes', () => {
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const strings = (copy.match(/'(?:[^'\\]|\\.)*'/g) || []).join(' ');
+  if (/\u20b9/.test(strings)) return 'the rupee glyph appears in a vendor-facing byte';
+  if (/\b\d+\s?(lakh|lakhs|cr|crore|k)\b/i.test(strings)) return 'money shorthand appears in a vendor-facing byte';
+  return null;
+});
+
+// ── C15 · THE UNCONVERTED LITERALS. The variable layer cannot reach a hard-coded hex, and
+//    the estate's loudest controls are hard-coded. A gold FAB on a graphite ground is the
+//    conflation R-37.43 was picked to end, wearing the new palette.
+cell('C15 no Espresso/Paper literal survives in a component rule', () => {
+  const css = read('app/globals.css');
+  const after = css.split('THE UNCONVERTED LITERALS')[1];
+  if (!after) return 'the unconverted-literal block is absent — the FAB stays gold';
+  for (const rule of ['.atelier-fab', '.atelier-today-coin']) {
+    const idx = after.indexOf(rule);
+    if (idx < 0) return rule + ' is not converted';
+  }
+  // the specific literals the founder walked into
+  if (!/#6FD0BA/.test(after)) return 'the dark FAB does not carry the signal';
+  if (!/#0D6A5A/.test(after)) return 'the light FAB does not carry the signal';
+  if (/#D4B86A|#9B4E38|#7A3828/.test(after)) return 'an Espresso/Paper literal survives in the conversion block';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
