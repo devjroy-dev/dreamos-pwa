@@ -104,8 +104,15 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           background: T.inputBg,
           color: T.ink,
           padding: '12px 18px',
-          fontFamily: 'var(--font-cormorant), Georgia, serif',
-          fontStyle: value ? 'normal' : 'italic',
+          // ZIP 14 · F-16.38 CURE (R-37.83 / R-37.84 (7)). The old input chrome —
+          // Cormorant + a value-keyed italic — survived inside the risen chat and the
+          // founder read it as "the chat ai looks same". The render arm measured the
+          // COMPUTED style: font-style italic, family Cormorant Garamond. Both go to
+          // branch tokens; the italic goes entirely, since a placeholder's job is done
+          // by colour here and the leaning serif WAS the old voice. The
+          // «Ask anything...» BYTE is untouched — founder-era copy, flagged not moved.
+          fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
+          fontStyle: 'normal',
           fontWeight: 400, fontSize: 16,
           lineHeight: `${LINE_HEIGHT}px`,
           outline: 'none', overflowY: 'hidden',

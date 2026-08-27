@@ -30,19 +30,33 @@ cell('C1 token completeness, both modes', () => {
 });
 
 // R-37.75: the freeze law now protects the flipped seat order too — C17 owns the seats,
-// C2 owns the sixteen tiles. Amended by label, not by loosening.
-cell('C2 sixteen rooms in frozen order, 7 + 9 (seats flipped, R-37.75)', () => {
+// C2 owns the tiles.
+//
+// AMENDED BY LABEL — ZIP 14 (R-37.87, founder word 2026-08-27). SIXTEEN becomes SEVENTEEN
+// and the bottom band nine becomes ten: Collab does not sit inside Storefront and takes its
+// own tile. THE COUNT HISTORY, every step worded or derived: 11 -> 15 -> 16 -> 17.
+// The cell is amended by LABEL, never by loosening — it still asserts an exact count and an
+// exact order, because the freeze is the anti-feature. The expected numbers now read from
+// lib/worklist/rooms.ts's own exported constants rather than from literals retyped here, so
+// the next amendment happens in ONE home and this cell cannot drift away from the registry
+// it guards. Position is the founder's to reorder in one word; this cell asserts wherever
+// he puts it, and reddens on any reorder he did not word.
+cell('C2 seventeen rooms in frozen order, 7 + 10 (seats flipped, R-37.75; R-37.87)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
+  const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
+  const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
+  if (EXP_ALL !== 17 || EXP_TOP !== 7 || EXP_BOT !== 10)
+    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 17/7/10';
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
-  if (ids.length !== 16) return 'registry has ' + ids.length + ' rooms, expected 16';
+  if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
   if (!fb) return 'FROZEN_ORDER not found';
   const frozen = (fb[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1));
   if (frozen.join(',') !== ids.join(',')) return 'order drift: registry [' + ids.join(',') + '] vs frozen [' + frozen.join(',') + ']';
   const work = (src.match(/band:\s*'work'/g) || []).length;
   const biz  = (src.match(/band:\s*'business'/g) || []).length;
-  if (work !== 7) return 'top band has ' + work + ', expected 7';
-  if (biz !== 9) return 'bottom band has ' + biz + ', expected 9';
+  if (work !== EXP_TOP) return 'top band has ' + work + ', expected ' + EXP_TOP;
+  if (biz !== EXP_BOT) return 'bottom band has ' + biz + ', expected ' + EXP_BOT;
   return null;
 });
 

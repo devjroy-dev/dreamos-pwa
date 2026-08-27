@@ -70,7 +70,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
     }}>
       <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS}</style>
 
-      <header className="wl-hdr" style={{ position: "relative" }}>
+      <header className="wl-hdr" style={{ position: "relative", zIndex: coinOpen ? 21 : 5 }}>
         {/* R-37.84 (2): the shell header stops being bare. The house name leads; the surface
             label sits beneath it. Same treatment on both shell surfaces. */}
         <div className="wl-hstack">
@@ -83,8 +83,14 @@ export function WorklistShell({ title, children }: { title: string; children: Re
             yet gets the glyph rather than an empty circle. */}
         <button type="button" className="wl-coin" aria-label="Your profile" aria-expanded={coinOpen}
                 onClick={() => setCoinOpen((v) => !v)}>{initials || '\u25ce'}</button>
-      </header>
-
+        {/* ZIP 14 · F-16.37 CURE. This block was a SIBLING of the header it anchors to.
+           `.wl-drawer` is position:absolute with top:calc(100% + 8px), so it resolved
+           against the nearest POSITIONED ancestor — and `.wl` is static, so 100% meant
+           one whole viewport. The render arm measured it: top 852 against a 844px
+           viewport, a fully-formed 248x485 box painting 8px below the fold and clipped
+           by `.wl`'s overflow:hidden. The anchor and the anchored were siblings; the
+           fix is that they stop being. The header already carried position:relative
+           for exactly this job. */}
       {coinOpen && (
         <>
           {/* R-37.79 COMPLETED: the ruling adopted the medallion WITH ITS DRAWER, and this seat
@@ -107,6 +113,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
           </div>
         </>
       )}
+      </header>
 
       <main className="wl-main">{children}</main>
 

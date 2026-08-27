@@ -1,4 +1,4 @@
-// lib/worklist/rooms.ts — THE SIXTEEN ROOMS, IN FROZEN ORDER.
+// lib/worklist/rooms.ts — THE SEVENTEEN ROOMS, IN FROZEN ORDER.
 //
 // R-37.60 (six seats for the slices) \u00b7 R-37.61 (Settings and Billing take tiles)
 // \u00b7 R-37.62 (Portfolio pinnable, not pre-pinned) \u00b7 R-37.66 as amended (Contact Support
@@ -46,7 +46,7 @@ export const ROOMS: readonly Room[] = [
   { id: 'events',    label: 'Events',    band: 'work', href: '/vendor/list/events',    pinnable: true  },
   { id: 'notes',     label: 'Notes',     band: 'work', href: '/vendor/list/notes',     pinnable: true  },
   { id: 'calendar',  label: 'Calendar',  band: 'work', href: '/vendor/calendar',       pinnable: true  },
-  // ── BOTTOM BAND \u00b7 nine ────────────────────────────────────────────────
+  // ── BOTTOM BAND \u00b7 ten ─────────────────────────────────────────────────
   { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',  pinnable: true  },
   { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/vendor/portfolio',   pinnable: true  },
   { id: 'couture',   label: 'Couture',   band: 'business', href: '/vendor/couture',     pinnable: true  },
@@ -56,16 +56,21 @@ export const ROOMS: readonly Room[] = [
   { id: 'billing',   label: 'Billing',   band: 'business', href: '/vendor/billing',     pinnable: true  },
   { id: 'settings',  label: 'Settings',  band: 'business', href: '/vendor/settings',    pinnable: true  },
   { id: 'support',   label: 'Business Solutions', band: 'business', href: '/w/support', pinnable: false },
+  // R-37.87. A-4 interim like every other href: the tile DEEP-LINKS the existing collab
+  // surface, carried not rebuilt, until Phase 2. Position is last by default and is the
+  // founder's to reorder in one word — the frozen-order cell below asserts wherever he puts it.
+  { id: 'collab',    label: 'Collab',    band: 'business', href: '/vendor/collab',      pinnable: true  },
 ] as const;
 
-export const ROOM_COUNT_EXPECTED = 16;
+export const ROOM_COUNT_EXPECTED = 17;
 export const TOP_BAND_EXPECTED = 7;
-export const BOTTOM_BAND_EXPECTED = 9;
+export const BOTTOM_BAND_EXPECTED = 10;
 
 /** The frozen order, by id. The cell compares against this and nothing else. */
 export const FROZEN_ORDER: readonly string[] = [
   'leads', 'clients', 'invoices', 'expenses', 'events', 'notes', 'calendar',
   'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'billing', 'settings', 'support',
+  'collab',
 ] as const;
 
 export function roomsInBand(band: Band): Room[] {

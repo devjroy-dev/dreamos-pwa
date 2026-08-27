@@ -95,8 +95,15 @@ const GRID_CSS = `
 .wl-pointerbtn{min-height:46px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-pointerbtn:active{background:var(--atelier-row-hover)}
 .wl-pointerbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-/* R-37.82 (1): the column owns the gutter; the bands no longer set their own. */
-.wl-bands{padding:18px 0 28px;flex:1}
+/* R-37.82 (1): the column owns the gutter; the bands no longer set their own.
+   ZIP 14 · F-16.39 CURE. The line below USED TO READ "padding:18px 0 28px", and the
+   comment above it was wrong the day it was written: the shorthand's "0" set a
+   horizontal inset — to nothing — and overrode the gutter ".wl-main > *" supplies.
+   The render arm measured the result: --wl-gutter 12px declared, applied inset 0px,
+   first tile left 0, third tile right 390 in a 390px viewport. Flush to both edges
+   for twelve ZIPs, passed by a served-bytes gate that asserted the rule was PRESENT
+   and never that it APPLIED. Longhand now, so the horizontal axis is left alone. */
+.wl-bands{padding-top:18px;padding-bottom:28px;flex:1}
 /* ZIP 13 · scope ③ — .wl-stack deleted. ZIP 12's subject implied it was already
    gone; it was not, and the claim was never re-derived. Zero consumers at
    deletion, derived across the whole source tree. The band rhythm below is what

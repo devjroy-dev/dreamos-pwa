@@ -99,7 +99,10 @@ interface Item { href: string; label: string; description: string; glyph: string
 const SECTIONS: Item[] = [
   { href: '/vendor/portfolio',      label: 'Portfolio', description: 'images and photo library',           glyph: '▣' },
   { href: '/vendor/discover',       label: 'Discover',  description: 'your profile on The Dream Wedding',  glyph: '◈' },
-  { href: '/vendor/collab',         label: 'Collab',    description: 'shared weddings with other vendors', glyph: '◇' },
+  // R-37.87 (ZIP 14): Collab's row is REMOVED here because it now has its own tile in the
+  // shell's bottom band. One home, or it is two — and two doors to one room is the disease
+  // the sixteen-tile grid was ruled to end. The SURFACE is untouched and the route is
+  // byte-identical (/vendor/collab); only this second door closes. On `main` the row stands.
 ];
 
 function StoreRow({ item }: { item: Item }) {

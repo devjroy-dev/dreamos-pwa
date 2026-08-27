@@ -88,8 +88,16 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
   // and not deleted in silence: pinning copy that no surface renders is a green
   // cell about nothing, and deleting the line without its reason teaches the
   // next reader that vetoed copy may quietly lapse.
-  cell('3.7', raw.includes("description: 'shared weddings with other vendors'"),
-    "V2's vetoed description lands (V1's Leads tile retired at R-35.36 — its byte went with it)");
+  // AMENDED, LABELLED — ZIP 14 (R-37.87, founder word 2026-08-27). This cell pinned the
+  // Collab row's vetoed description INSIDE Storefront's pill list. Collab now holds its own
+  // tile in the shell's bottom band, and the pill row dropped it in the same delivery — one
+  // home, or it is two. So the cell's SUBJECT was retired by ruling, exactly as its own
+  // paragraph above describes happening to V1's Leads tile: the byte goes with the surface.
+  // RETIRE-WITH-THE-READER — the assertion inverts rather than vanishing, so the next reader
+  // meets the reasoning instead of an absence, and a silent RE-ADD of the second door reddens.
+  // Cell count unchanged; `main` is untouched and keeps the row.
+  cell('3.7', !raw.includes("description: 'shared weddings with other vendors'"),
+    "Collab's pill row is GONE from Storefront — R-37.87 gave it a tile; two doors to one room reddens");
 }
 
 console.log('\n── §4 · the Frost honest line (F-6(a)) ──');
