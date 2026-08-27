@@ -29,32 +29,15 @@ import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
 import { waNumberFor } from '@/lib/waNumbers';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
 import { AiDock } from '@/components/worklist/AiDock';
+import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 
 const MODE_KEY = 'tdw_worklist_mode';
 const SCOPE = '.wl';
 
-/** A drawer row that navigates. Anchor, prefetched, closes the drawer on the way out. */
-function DLink({ label, href, onGo }: { label: string; href: string; onGo: () => void }) {
-  return (
-    <Link href={href} role="menuitem" className="wl-drow" onClick={onGo}>
-      <span className="wl-dlabel">{label}</span>
-    </Link>
-  );
-}
-
-/** A drawer row that acts rather than navigates: mode picks, the external house link, sign-out. */
-function DAct({ label, onClick, current, danger, mode }: {
-  label: string; onClick: () => void; current?: boolean; danger?: boolean; mode?: boolean;
-}) {
-  return (
-    <button type="button" role="menuitem"
-            className={'wl-drow' + (danger ? ' danger' : '') + (mode ? ' mode' : '')}
-            aria-current={current ? 'true' : undefined} onClick={onClick}>
-      <span className="wl-dlabel">{label}</span>
-    </button>
-  );
-}
-
+// `DLink` and `DAct` retired here with the markup they built. The shared AccountDrawer owns
+// the row shapes now, and two row builders for one row set is exactly the duplication this
+// consolidation removed — leaving them behind as unused helpers would have been the
+// wl-plink disease in TypeScript.
 export function WorklistShell({ title, children }: { title: string; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/w';
   const router   = useRouter();
@@ -117,27 +100,11 @@ export function WorklistShell({ title, children }: { title: string; children: Re
                 anchors to, not its sibling. `.wl-drawer` is position:absolute with
                 top:calc(100% + 8px); when the two were siblings that resolved against the
                 initial containing block, so 100% meant one whole viewport down. */}
-            <div className="wl-drawer" role="menu">
-              <div className="wl-dsec">{COPY.drawerAccount}</div>
-              {/* R-38.1: both of these are SHELL routes now. Tapping them mounts no second
-                  layout, no second masthead and no second session resolve. */}
-              <DLink label={COPY.settingsTitle} href="/w/settings" onGo={close} />
-              <DLink label={COPY.billingTitle} href="/w/billing" onGo={close} />
-              {/* ── REACH US · CE-38 relay #3 ITEM 3, arm (b) ─────────────────────
-                  R-38.7 gave this founder byte its one home in this drawer. It never
-                  belonged under 「Account」 and neither did the marketing-site row that used
-                  to sit beside it — that row is retired. The number keeps its own single
-                  home in lib/waNumbers.ts; no literal enters this file (cell C3). */}
-              <div className="wl-dsec">{COPY.drawerReachUs}</div>
-              <DAct label={COPY.roomsAskTitle} onClick={() => {
-                close();
-                window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
-              }} />
-              <div className="wl-dsec">{COPY.drawerDisplay}</div>
-              <DAct label={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} mode />
-              <DAct label={COPY.themeLightName} onClick={() => pick('light')} current={mode === 'light'} mode />
-              <div className="wl-dsec">{COPY.drawerActions}</div>
-              <DAct label={COPY.drawerSignOut} danger onClick={signOut} />
+            <div className="wl-drawer">
+              {/* ONE DEFINITION, TWO MOUNTS. See components/worklist/AccountDrawer.tsx —
+                  the carried rooms mount the same component through Header.tsx, so the
+                  founder meets one menu behind one medallion everywhere in the estate. */}
+              <AccountDrawer mode={mode} onPickMode={pick} onSignOut={signOut} onClose={close} />
             </div>
           </>
         )}
@@ -168,51 +135,24 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 // mechanical now: selectors in these comments are written in words, not in code marks.
 const SHELL_CSS = `
 .wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
-.wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20;min-width:248px;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:3px;overflow:hidden;box-shadow:0 18px 40px -12px var(--atelier-card-shadow)}
-/* R-38.4: a section eyebrow. One of the TWO places letter-spaced uppercase is permitted,
-   and at .08em rather than the retired .2em engraved register. */
-.wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:14px var(--wl-gutter) 10px}
-/* ── F-38.15 · SEPARATORS INSIDE THE GROUPS, NONE BETWEEN THEM ───────────────
-   Founder's walk: 「theres a line that comes between graphite and chalk」.
-   The old rule was an ADJACENT-SIBLING selector, so it fired between any two
-   consecutive rows and never across a section — because the eyebrow is a <div> sitting
-   between them and breaks the adjacency. The result is exactly backwards for a grouped
-   list: hairlines INSIDE each group, nothing at the group boundaries.
-   And Graphite/Chalk is the case that makes it obviously wrong: those two are not two
-   destinations, they are ONE CONTROL IN TWO STATES. A hairline between them says 「two
-   things」 about a radio pair.
-   The boundary now sits on the section eyebrow, which is where the grouping actually
-   changes, and the mode pair is explicitly exempt. */
-.wl-drow{display:flex;align-items:center;width:100%;min-height:var(--wl-row);padding:8px var(--wl-gutter);background:none;border:none;cursor:pointer;text-align:left;text-decoration:none}
-.wl-drow + .wl-drow{border-top:.5px solid var(--atelier-card-border)}
-.wl-drow.mode + .wl-drow.mode{border-top:none}
-.wl-dsec + .wl-drow{border-top:none}
-.wl-dsec:not(:first-child){border-top:.5px solid var(--atelier-card-border)}
-/* ── F-38.16 · A DESTRUCTIVE CONTROL SAT 6px UNDER A LABEL ────────────────────
-   Founder's walk: 「clicking action signs me out」. He tapped the word ACTIONS. The
-   eyebrow is not interactive, so the tap landed on the 52px row beneath it — Sign out,
-   which is irreversible in effect and has no confirmation step. Six pixels of padding
-   was the whole margin for error on the one control in this drawer that ends the
-   session. Separation is widened here; whether Sign out should ALSO confirm is a
-   ruling and is put to the chair rather than taken. */
-.wl-drow.danger{margin-top:6px}
-.wl-dlabel{font:var(--wl-t3);color:var(--atelier-ink)}
-.wl-drow[aria-current="true"] .wl-dlabel{color:var(--atelier-accent-text)}
-.wl-drow.danger .wl-dlabel{color:var(--role-critical)}
-.wl-drow:active{background:var(--atelier-row-hover)}
-/* ── R-37.82 ① THE GUTTER LAW, RAISED 12 → 16 (R-38.5) ─────────────────────────
-   ONE horizontal gutter, owned by the scroll column. Every element inherits it; no
-   component sets its own horizontal margin or width, ever. The founder's misalignment
-   existed because the rows chose their own inset — that freedom is removed by
-   construction, not by care.
-   ── ③ THE RHYTHM LAW: vertical spacing is the 8-scale. Nothing improvised.
-   The gutter, step, tile and row values are emitted by typeCss() from lib/worklist/theme
-   GRID, so the grid has one home and this stylesheet reads it rather than restating it. */
+.wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20}
+/* R-37.82 the gutter law, raised 12 to 16 (R-38.5). ONE horizontal gutter, owned by the
+   scroll column. Every element inherits it; no component sets its own horizontal margin or
+   width, ever. The founder's misalignment existed because rows chose their own inset, and
+   that freedom is removed by construction rather than by care.
+   The rhythm law: vertical spacing is the 8-scale, nothing improvised. Gutter, step, tile
+   and row are emitted by typeCss from the theme GRID, so the grid has one home and this
+   stylesheet reads it rather than restating it.
+
+   THIS RULE WAS DESTROYED ONCE AND THE ARM CAUGHT IT. Consolidating the drawer, I deleted
+   the old row rules with a regex instead of reading them; it ate the declaration bodies and
+   left the selectors, which then swallowed this rule into a malformed one. C-R2 reported
+   the gutter rendering at 0 of 390 and C-R7a reported the tile and plan-card edges at 0.
+   An automated edit to a stylesheet is a blind edit, and the block below is hand-written. */
 .wl-main > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
-/* ── SHARED CARD CHROME · ONE HOME (founder walk, ZIP 7) ────────────────────────────
-   Used by the first-run cards, the Today empty state and Billing. A class used by three
-   components and owned by one is a single-home violation wearing CSS; the shell emits
-   them, because the shell is the one thing every surface is inside. */
+/* SHARED CARD CHROME, ONE HOME. Used by the first-run cards, the Today empty state and
+   Billing. A class used by three components and owned by one is a single-home violation
+   wearing CSS; the shell emits them, because the shell is what every surface is inside. */
 .wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
 .wl-card-lead{border-left:2px solid var(--atelier-accent-text)}
 .wl-cardtitle{font:var(--wl-t4);color:var(--atelier-accent-text);margin:0 0 8px}
@@ -220,27 +160,24 @@ const SHELL_CSS = `
 .wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-/* ── TOUCH ──────────────────────────────────────────────────────────────────
-   (a) NO PRESSED STATE ANYWHERE was the first cut's defect: tap-highlight was set to
-       transparent and nothing replaced it, so a tap produced no feedback until the route
-       resolved. Every control below answers the finger on contact.
-   (b) NO touch-action. Without manipulation the browser holds every tap for the
-       double-tap-zoom gesture before dispatching the click. */
+/* TOUCH. Two defects in the first cut, both found on the founder's device and neither
+   visible in a desktop render: no pressed state anywhere, and no touch-action, so the
+   browser held every tap for the double-tap-zoom gesture before dispatching the click. */
 .wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
 .wl button,.wl a{touch-action:manipulation}
-/* R-38.5 · THE EDGE. The header's horizontal padding IS the gutter, so the wordmark's left
-   edge, the first tile's left border, the dock field's left border and Billing's plan card
-   all resolve to one x. It was 22px here and 12px everywhere else, which is the
-   misalignment the founder kept seeing and no cell could name. */
+/* R-38.5 the edge. The header's horizontal padding IS the gutter, so the wordmark's left
+   edge, the first tile's border, the dock field's border and Billing's plan card all
+   resolve to one x. It was 22px here and 12px everywhere else, which is the misalignment
+   the founder kept seeing and no cell could name. */
 .wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
 .wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
 .wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-/* R-38.5 · the nav's content box shares the main column's left edge — the container half
-   of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the wordmark,
-   the grid, the dock and the plan card, and this one reads the boxes. */
+/* R-38.5: the nav's content box shares the main column's left edge, which is the container
+   half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
+   wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
 .wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
@@ -249,3 +186,4 @@ const SHELL_CSS = `
 .wl-seat:focus-visible,.wl-coin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.wl *{transition:none!important;animation:none!important}}
 `;
+

@@ -255,9 +255,40 @@ async function coverage() {
   // case, and the engraved Title Case went with the register that carried it.
   // The assertion does not loosen — it still names every row and reddens on any absence.
   const rows = ['Settings', 'Billing', 'Reach us', 'TDW on WhatsApp', 'Sign out', 'Graphite'];
-  const missingRows = rows.filter((r) => !shell.includes(r));
-  if (missingRows.length) F('R-37.79 shell drawer complete', 'missing rows: ' + missingRows.join(' \u00b7 '));
-  else P('R-37.79 shell drawer complete', 'all ' + rows.length + ' rows plus Display in the shell bundle');
+  // ── AMENDED · founder's second walk — ONE DRAWER, ASSERTED ON BOTH TREES ────
+  // The cell read the SHELL bundle only, and passed for the whole time a second hardcoded
+  // drawer stood behind the same medallion on fourteen carried rooms with different rows,
+  // different destinations and three retired-or-banned bytes. A cell scoped to one of two
+  // implementations cannot see a divergence between them — which is the same shape as
+  // F-38.13's ⑥ (a cell whose subject was the defect, reporting a pass) and the fourth
+  // instance this sitting of presence standing in for behaviour.
+  //
+  // It now asserts the SAME row set on the shell AND on a carried room, and asserts the
+  // retired rows are absent from BOTH. A drawer that diverges reddens on whichever side
+  // diverged, and the message names which.
+  // THE RETIRED-ROW CHECK READS ROW MARKUP, NOT THE WHOLE CORPUS, and the first cut did
+  // not. It matched 「DreamAi on WhatsApp」 anywhere in the carried bundle and reddened a
+  // cured tree on TipsCarousel's PROSE — body copy that describes the row rather than being
+  // it. That is the same over-reach as the withdrawn thedreamwedding.in entry: a retired
+  // ROW is a row. Anchored on the drawer's own label span.
+  //
+  // ⚠ AND THE PROSE IT MATCHED IS NOW A REAL, SMALLER FINDING, FILED NOT CURED:
+  // TipsCarousel:25 still tells the vendor to 「Tap "DreamAi on WhatsApp" in your profile」
+  // — a control that no longer exists in either drawer. Copy outliving its subject is the
+  // wl-plink disease in prose. It is founder-vetoed copy on a carried surface and belongs
+  // to the sitting that crosses TipsCarousel, not to this cell.
+  const rowLabel = (body, text) => new RegExp('wl-dlabel[^}]{0,80}' + text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(body)
+    || new RegExp('label:"' + text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"').test(body);
+  const RETIRED_ROWS = ['DreamAi on WhatsApp', 'Tips & Features', 'Discover Profile'];
+  const missShell   = rows.filter((r) => !shell.includes(r));
+  const missCarried = rows.filter((r) => !room.includes(r));
+  const aliveShell   = RETIRED_ROWS.filter((r) => rowLabel(shell, r));
+  const aliveCarried = RETIRED_ROWS.filter((r) => rowLabel(room, r));
+  if (missShell.length)   F('R-37.79 one drawer, both trees', 'shell is missing rows: ' + missShell.join(' \u00b7 '));
+  else if (missCarried.length) F('R-37.79 one drawer, both trees', 'the carried room is missing rows: ' + missCarried.join(' \u00b7 ') + ' \u2014 two drawers behind one medallion');
+  else if (aliveShell.length)   F('R-37.79 one drawer, both trees', 'retired rows still on the shell: ' + aliveShell.join(' \u00b7 '));
+  else if (aliveCarried.length) F('R-37.79 one drawer, both trees', 'retired rows still on the carried room: ' + aliveCarried.join(' \u00b7 '));
+  else P('R-37.79 one drawer, both trees', 'the same ' + rows.length + ' rows on /w and on a carried room; ' + RETIRED_ROWS.length + ' retired rows absent from both');
 
   // ── R-38.1 · NO /vendor HREF REACHABLE FROM A SHELL CONTROL ────────────────
   // THE ASSERTION IS A SET, NOT AN ABSENCE, and that is the whole of its honesty. Fourteen

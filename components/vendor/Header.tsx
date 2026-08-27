@@ -13,6 +13,7 @@
 // components/Header.tsx — Atelier rebuild · Calling-card dropdown + theme toggle
 
 import { useEffect, useRef, useState } from 'react';
+import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 import { useRouter } from 'next/navigation';
 import { TipsCarousel } from '@/components/vendor/TipsCarousel';
 import { useVendorMe } from '@/hooks/vendor/useVendorMe';
@@ -299,83 +300,34 @@ export function Header({ vendorName }: { vendorName: string | null }) {
               )}
             </div>
 
-            {/* ATELIER section */}
-            <SectionLabel isLight={isLight}>Atelier</SectionLabel>
-            {/* TDW_07 P2: this entry has said "Discover Profile" since long before the screen
-                existed, and pointed at /vendor/settings for want of anywhere better. The
-                screen exists now, in DISCOVER mode where it belongs. The label was always
-                this feature's name arriving early; only the destination changes. */}
-            <DItem glyph="◈" label="Discover Profile"    subtitle="How couples see you" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/discover/profile'); }} />
-            {/* ── TDW_09 · F-09.118 · C2 · FORK 2(a), FOUNDER-APPROVED 「 yes 」 ──
-                THE SETTINGS DOOR, REACHABLE FROM THE COIN. Founder verbatim:
-                「 The settings is not accessible through the avatar in the top
-                right 」 — /vendor/settings existed and was reachable ONLY through
-                More → Account, so the surface a vendor reaches for by instinct
-                (her own initials) had no route to her own settings.
-                Seated in ATELIER beneath Discover Profile, which is the row it
-                belongs beside: both are "your own particulars", and the section
-                above already carries the identity register.
-                The glyph ⚙ and the subtitle's three nouns are BORROWED from the
-                More row (app/vendor/more/page.tsx, ACCOUNT_ITEMS) so one door
-                does not learn a second vocabulary — the subtitle's leading
-                capital is the founder's approved byte, not the donor's.
-                THE MORE → ACCOUNT → SETTINGS DOOR IS KEPT, by ruling. Two doors
-                to one destination is the intent here, not a duplicate: the
-                overflow list is the exhaustive index, the coin is the reflex. */}
-            {/* SUBTITLE AMENDED, TDW_10 THE BILLING TAB: it read 「 Profile,
-                billing, preferences 」 until this sitting and that middle noun
-                stopped being true the moment billing left this door. A subtitle
-                that promises a thing the screen no longer holds is a lying
-                control with a smaller font. The donor row in
-                `app/vendor/more/page.tsx` (ACCOUNT_ITEMS) carries the same three
-                nouns and is amended in the SAME delivery — the comment above
-                says outright they were borrowed so one door does not learn a
-                second vocabulary, and curing one without the other would break
-                the stated reason they were shared. */}
-            <DItem glyph="⚙" label="Settings"             subtitle="Profile and preferences" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/settings'); }} />
-            {/* ── TDW_10 THE BILLING TAB · R-26.4 FORK C ─────────────────────
-                FOUNDER-RULED 「 Lets put it in avatar under Billing 」. Billing
-                is the estate's only revenue surface and it sat ninth on the
-                settings page, behind seven cards about something else.
+            {/* ── ONE DRAWER, ONE DEFINITION · founder's second walk ──────────────
+                「why is setting not uniform across all in the avatar?」
 
-                SEATED IN ATELIER, DIRECTLY AFTER SETTINGS, and the adjacency is
-                the point, not tidiness: the vendor who goes hunting for billing
-                in Settings — because its subtitle promised it until this same
-                delivery — meets the new door in her eyeline at the exact moment
-                that promise is withdrawn. Atelier is also the right section on
-                its own merits: it runs particulars-first (Discover Profile,
-                Settings) then outward (the site, the manual), and her plan is
-                the third particular.
+                A SECOND, HARDCODED DRAWER STOOD HERE. Its own rows, its own destinations,
+                its own glyphs and subtitles, its own register — behind the same medallion
+                as the shell's. Every ruling that landed on the shell's drawer missed this
+                one, because this one was somewhere nobody was looking, and it was still
+                shipping three bytes the estate had retired or banned:
+                  the persona name in chrome (R-37.70/.78/.83)
+                  the Tips row, pointing at a route R-38.1 forbids from a shell control
+                  the marketing-site row, retired at CE-38 relay #3 ITEM 3
 
-                GLYPH ◇, founder-vetoed: the same geometric family as Discover
-                Profile's ◈, which is itself already doubled on Tips, so family
-                reuse is the set's own precedent rather than a new vocabulary. */}
-            <DItem glyph="◇" label="Billing"              subtitle="Plan and payment" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/billing'); }} />
-            <DItem glyph="★" label="The Dream Wedding"   isLight={isLight} onClick={() => { setProfileOpen(false); window.open('https://thedreamwedding.in', '_blank'); }} />
-            <DItem glyph="◈" label="Tips &amp; Features" subtitle="Mini manual" isLight={isLight} onClick={() => { setProfileOpen(false); setTipsOpen(true); }} accent />
+                It is REPLACED, not patched. `AccountDrawer` is the one definition and both
+                trees mount it, so the row set, the destinations, the section names and the
+                order exist exactly once. Its Settings and Billing rows point INTO the
+                shell, so opening the coin in a carried room lands the vendor in the new
+                chrome rather than keeping him in the old one.
 
-            {/* THEME TOGGLE — between sections */}
-            <SectionLabel isLight={isLight}>Display</SectionLabel>
-            <DItem glyph="●" label="Dark"  subtitle="Graphite"            isLight={isLight} accent={theme === 'dark'}  onClick={() => { setThemeMode('dark'); }} />
-            <DItem glyph="○" label="Light" subtitle="Chalk"           isLight={isLight} accent={theme === 'light'} onClick={() => { setThemeMode('light'); }} />
-            {/* TDW_09 R-U19: the third theme row is DELETED with its theme. Two rows
-                remain — Dark (Graphite) and Light (Editorial Paper), Addendum A's two. */}
-
-            {/* ACTIONS section */}
-            <SectionLabel isLight={isLight}>Actions</SectionLabel>
-            {/* ── TDW_09 MICRO-2 · F-09.75 · FORK 5 = (a), FOUNDER-RULED — THE ROW IS DEAD ──
-                A `Request Invite · For a client` row stood here. It opened
-                wa.me/917982159047 with an invite prefill — THE SAME NUMBER the row
-                below opens with "Hi". A duplicate door, and its noun was the
-                vocabulary of the invite/waitlist ceremony that dream-os retired whole
-                (`src/api/waitlist.js` deleted; see docs/TDW_09_MICRO_HANDOVER.md, L1).
-                Removed by ruling, not by cleanup: accounted REMOVED-BY-RULING in this
-                sitting's control inventory. Its handler `requestInvite()` went
-                caller-zero in the same edit and was deleted with it — an orphaned
-                handler is an orphaned require, only quieter.
-                THE ROW BELOW IS THE SURVIVING DOOR and is byte-untouched. */}
-            <DItem glyph="◎" label="DreamAi on WhatsApp" subtitle="Chat with us" isLight={isLight} onClick={() => window.open('https://wa.me/917982159047?text=Hi', '_blank')} accent />
-            <DItem glyph="→" label="Sign Out" isLight={isLight} onClick={signOut} danger last />
+                THE MODE PAIR REACHES THIS TREE'S OWN AUTHORITY. `setThemeMode` is the old
+                ThemeContext's setter and it stays the setter here; the shell passes its
+                own. Same rows, different authority, which is the caller's business and
+                not the drawer's. */}
+            <AccountDrawer
+              mode={theme === 'light' ? 'light' : 'dark'}
+              onPickMode={(m) => setThemeMode(m)}
+              onSignOut={signOut}
+              onClose={() => setProfileOpen(false)}
+            />
           </div>
         </div>
         </>

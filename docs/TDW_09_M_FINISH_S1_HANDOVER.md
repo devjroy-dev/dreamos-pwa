@@ -763,6 +763,78 @@ It ends when the twelve remaining rooms cross. Whether anything should be done b
 — hide the old coin, or leave it — is the chair's, and patching the old drawer to match
 would give the drawer's rows a second home, which is what R-38.1 exists to end.
 
+## §14 · F-38.17 — TWO DRAWERS BEHIND ONE MEDALLION
+
+「why is setting not uniform across all in the avatar? is it so hard to check?」
+
+**It was never a checking problem. It was two definitions.** `/w/*` rendered the shell's
+drawer; the fourteen carried rooms rendered `Header.tsx`'s own hardcoded one, with different
+rows, different destinations, different glyphs and a different register. Two menus behind one
+medallion in one app.
+
+**I reported this twice as 「the interim's declared cost」.** That was accurate and it was
+not a cure. **A vendor does not experience a declaration.** He opens the coin twice and gets
+two answers.
+
+And the second drawer was still shipping three bytes the estate had already retired or
+banned — 「DreamAi on WhatsApp」 (R-37.70/.78/.83), 「Tips & Features」 pointing at a route
+R-38.1 forbids, and 「The Dream Wedding」, retired at relay #3 ITEM 3. **Every ruling that
+landed on the shell's drawer missed the other one, because the other one was somewhere
+nobody was looking.**
+
+### THE CURE, AND THE ARGUMENT I GOT WRONG THE FIRST TIME
+
+`components/worklist/AccountDrawer.tsx` is **one definition**; both trees mount it. The row
+set, destinations, section names and order exist exactly once, and a ruling that lands there
+lands everywhere at the same moment.
+
+**I argued against this a message earlier** — that making the old drawer match would give
+the rows a second home. That is true of COPYING them into `Header.tsx` and is the opposite
+of true here: two definitions collapse into one. I refused the right thing for a reason that
+applied to a different thing.
+
+The tokens travel with it: the drawer emits `typeCss` onto its own root, because it renders
+outside `.wl` where no rung variable exists. That is why `typeCss` takes a selector — one
+home for the scale, any number of scopes. And **the carried mount is now a door INTO the
+shell**: Settings and Billing point at `/w/*`, so opening the coin in a carried room lands
+the vendor in the new chrome instead of keeping him in the old one.
+
+### THE CELL COULD NOT HAVE CAUGHT THIS, AND THAT IS THE FIFTH INSTANCE
+
+`R-37.79` read the SHELL bundle only. **A cell scoped to one of two implementations cannot
+see a divergence between them** — so it passed for the entire life of the defect. It now
+asserts the same row set on `/w` AND on a carried room, and the retired rows absent from
+both; the message names which side diverged. At the tip it reads:
+
+```
+FAIL R-37.79 one drawer, both trees — the carried room is missing rows:
+     Reach us · TDW on WhatsApp · Sign out — two drawers behind one medallion
+```
+
+`b40`'s C19 is amended the same way, count preserved: it asserted the literals 「Graphite」
+and 「Chalk」 inside `Header.tsx`, which only worked BECAUSE that file hardcoded a drawer. It
+now asserts Header mounts the shared drawer and that the mode names live at their one home
+in `copy.ts` — **one vocabulary made structural instead of checked.**
+
+### TWO FAULTS OF MINE WHILE DOING IT
+
+**I deleted CSS with a regex.** Stripping the shell's now-duplicate row rules, the sweep ate
+the declaration bodies and left the selectors, which swallowed the gutter law into a
+malformed rule. **C-R2 caught it** — `declared 16px; rendered left 0, right 390 of 390` —
+and C-R7a with it. An automated edit to a stylesheet is a blind edit; that block is
+hand-written now, with the incident recorded in it.
+
+**And the retired-row check over-reached**, matching 「DreamAi on WhatsApp」 in
+`TipsCarousel`'s PROSE rather than in a row, and reddening a cured tree. Same shape as the
+withdrawn `thedreamwedding.in` entry. Anchored on the drawer's own label span.
+
+### F-38.18 · FILED, NOT CURED — COPY THAT OUTLIVED ITS CONTROL
+
+`TipsCarousel.tsx:25` still tells the vendor to 「Tap "DreamAi on WhatsApp" in your
+profile」. **That row no longer exists in either drawer.** `OnboardingOverlay.tsx:102/110`
+carries the same name. Copy outliving its subject is the wl-plink disease in prose. It is
+founder-vetoed copy on carried surfaces and belongs to the sitting that crosses them.
+
 ## §10 · THE NEXT SITTING
 
 The fourteen uncrossed rooms, in `INTERIM_VENDOR_ROOMS` order · Settings' body onto the six

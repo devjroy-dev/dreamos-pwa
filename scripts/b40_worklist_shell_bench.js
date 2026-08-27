@@ -437,7 +437,20 @@ cell('C18 raw-var controls carry the signal', () => {
 cell('C19 one vocabulary across shell and rooms', () => {
   const hdr = read('components/vendor/Header.tsx');
   if (/Espresso|Parchment/.test(hdr)) return 'the rooms\u2019 drawer still names a retired theme';
-  if (!/Graphite/.test(hdr) || !/Chalk/.test(hdr)) return 'the drawer does not name Graphite and Chalk';
+  // AMENDED, LABELLED — founder's second walk. Cell count unchanged; the assertion is
+  // STRENGTHENED, not re-aimed. It read `Header.tsx` for the literals 「Graphite」 and
+  // 「Chalk」 because that file HARDCODED its own drawer. It no longer has one: the second
+  // drawer was replaced by `components/worklist/AccountDrawer.tsx`, which both trees mount,
+  // and the mode names come from `COPY.themeDarkName`/`themeLightName` — their one home.
+  //
+  // ONE VOCABULARY IS NOW STRUCTURAL RATHER THAN CHECKED. The old cell could only ever
+  // catch a divergence AFTER someone typed a second word; this catches the reappearance of
+  // a second DRAWER, which is what made divergence possible. It reddens if Header stops
+  // mounting the shared drawer, or if the copy home loses either mode name.
+  if (!/AccountDrawer/.test(hdr)) return 'Header does not mount the shared drawer — a second drawer can diverge again';
+  const copy = read('lib/worklist/copy.ts');
+  if (!/themeDarkName:\s*'Graphite'/.test(copy) || !/themeLightName:\s*'Chalk'/.test(copy))
+    return 'the mode names are not at their one home in copy.ts';
   const th = read('lib/worklist/theme.ts');
   if (!/TYPE_ROLE/.test(th) || !/typeCss/.test(th)) return 'the type roles are not tokened';
   const shell = read('components/worklist/WorklistShell.tsx');
