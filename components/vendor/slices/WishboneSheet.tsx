@@ -99,7 +99,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>
           Complete the file
         </div>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300,  fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
           {personLabel} — {remaining.length} detail{remaining.length === 1 ? '' : 's'} missing
         </div>
 

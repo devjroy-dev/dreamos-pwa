@@ -204,6 +204,9 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
                 width: '100%', padding: '12px 14px',
                 background: 'var(--atelier-input-bg)',
                 border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
+                // R-37.86 per-site verdict: KEEP. Italic here marks an EMPTY field and normal a filled
+                // one — that is STATE, the job a placeholder colour does, not the prose voice the
+                // mock's screen four killed. Converting it would delete a signal.
                 fontFamily: F.script, fontStyle: file ? 'normal' : 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
                 color: file ? A.ink : A.inkMute, textAlign: 'left',
               }}>

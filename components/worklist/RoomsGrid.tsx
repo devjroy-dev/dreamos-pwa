@@ -87,9 +87,6 @@ const GRID_CSS = `
 .wl-pglyph{color:var(--role-metal);font-size:12px;line-height:1;flex-shrink:0}
 .wl-ptitle{flex:1;font-family:var(--wl-body);font-weight:500;font-size:13px;color:var(--atelier-ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wl-pchev{color:var(--atelier-ink-dim);font-size:10px;line-height:1;flex-shrink:0}
-.wl-plink{flex:1;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--atelier-ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-basis:0}
-.wl-pcopy{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
-.wl-pcopy.on{color:var(--role-positive)}
 .wl-prow:active{background:var(--atelier-row-hover)}
 /* One rhythm down the column: the rows now sit on the same 16px gutter and carry the same
    card shape as everything below them, instead of running full-bleed against inset cards. */

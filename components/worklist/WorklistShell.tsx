@@ -12,6 +12,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
+import { clearVendorSession } from '@/lib/vendor/session';
 import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
 import { AiDock } from '@/components/worklist/AiDock';
@@ -19,12 +20,26 @@ import { AiDock } from '@/components/worklist/AiDock';
 const MODE_KEY = 'tdw_worklist_mode';
 const SCOPE = '.wl';
 
+function DRow({ label, sub, onClick, current, danger }: {
+  label: string; sub?: string; onClick: () => void; current?: boolean; danger?: boolean;
+}) {
+  return (
+    <button type="button" role="menuitem" className={'wl-drow' + (danger ? ' danger' : '')}
+            aria-current={current ? 'true' : undefined} onClick={onClick}>
+      <span className="wl-dlabel">{label}</span>
+      {sub && <span className="wl-dsub">{sub}</span>}
+    </button>
+  );
+}
+
 export function WorklistShell({ title, children }: { title: string; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/w';
   const router   = useRouter();
   const [mode, setMode] = useState<'dark' | 'light'>('dark');
   const [coinOpen, setCoinOpen] = useState(false);
   const initials = useVendorInitials();
+  const go = (href: string) => { setCoinOpen(false); router.push(href); };
+  const signOut = () => { setCoinOpen(false); clearVendorSession(); router.replace('/'); };
 
   // Persisted per device. Its own key: the old shell's 'dreamai_theme' names a different
   // pair of themes, and sharing the key would make one coin silently rule two palettes.
@@ -55,7 +70,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
     }}>
       <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS}</style>
 
-      <header className="wl-hdr">
+      <header className="wl-hdr" style={{ position: "relative" }}>
         {/* R-37.84 (2): the shell header stops being bare. The house name leads; the surface
             label sits beneath it. Same treatment on both shell surfaces. */}
         <div className="wl-hstack">
@@ -71,16 +86,26 @@ export function WorklistShell({ title, children }: { title: string; children: Re
       </header>
 
       {coinOpen && (
-        <div className="wl-coindrawer" role="menu">
-          <button type="button" role="menuitem" className="wl-coinitem" onClick={() => pick('dark')}
-                  aria-current={mode === 'dark' ? 'true' : undefined}>
-            <span className="wl-glyph">&#9679;</span>Dark<span className="wl-sub">{COPY.themeDarkName}</span>
-          </button>
-          <button type="button" role="menuitem" className="wl-coinitem" onClick={() => pick('light')}
-                  aria-current={mode === 'light' ? 'true' : undefined}>
-            <span className="wl-glyph">&#9675;</span>Light<span className="wl-sub">{COPY.themeLightName}</span>
-          </button>
-        </div>
+        <>
+          {/* R-37.79 COMPLETED: the ruling adopted the medallion WITH ITS DRAWER, and this seat
+              shipped two rows of it. The founder could not sign out or reach Settings from the
+              shell's own coin — a half-adoption that left the shell less capable than the
+              rooms it fronts. Full row set, same order as the rooms' drawer, one scrim. */}
+          <button type="button" className="wl-drawerscrim" aria-label="Close menu" onClick={() => setCoinOpen(false)} />
+          <div className="wl-drawer" role="menu">
+            <div className="wl-dsec">Atelier</div>
+            <DRow label="Discover Profile" sub="How couples see you" onClick={() => go('/vendor/discover/preview')} />
+            <DRow label="Settings"         sub="Profile and preferences" onClick={() => go('/vendor/settings')} />
+            <DRow label="Billing"          sub="Plan and payment" onClick={() => go('/vendor/billing')} />
+            <DRow label="The Dream Wedding" onClick={() => { setCoinOpen(false); window.open('https://thedreamwedding.in', '_blank', 'noopener'); }} />
+            <DRow label="Tips & Features"  sub="Mini manual" onClick={() => go('/vendor/more')} />
+            <div className="wl-dsec">Display</div>
+            <DRow label="Dark"  sub={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} />
+            <DRow label="Light" sub={COPY.themeLightName} onClick={() => pick('light')} current={mode === 'light'} />
+            <div className="wl-dsec">Actions</div>
+            <DRow label="Sign Out" danger onClick={signOut} />
+          </div>
+        </>
       )}
 
       <main className="wl-main">{children}</main>
@@ -106,6 +131,16 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 // sizes and reads several shades lighter than its measured ratio — the founder caught
 // exactly this on the Chalk walk-through, and the cure was weight, not ink.
 const SHELL_CSS = `
+.wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
+.wl-drawer{position:absolute;top:calc(100% + 8px);right:var(--wl-gutter);z-index:20;min-width:248px;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:3px;overflow:hidden;box-shadow:0 18px 40px -12px var(--atelier-card-shadow)}
+.wl-dsec{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:12px 16px 6px}
+.wl-drow{display:flex;flex-direction:column;gap:2px;width:100%;min-height:48px;justify-content:center;padding:8px 16px;background:none;border:none;cursor:pointer;text-align:left}
+.wl-drow + .wl-drow{border-top:.5px solid var(--atelier-card-border)}
+.wl-dlabel{font-family:var(--wl-body);font-weight:400;font-size:14px;color:var(--atelier-ink)}
+.wl-drow[aria-current="true"] .wl-dlabel{color:var(--atelier-accent-text)}
+.wl-drow.danger .wl-dlabel{color:var(--role-critical)}
+.wl-dsub{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-drow:active{background:var(--atelier-row-hover)}
 /* ── R-37.82 ① THE GUTTER LAW ────────────────────────────────────────────────────
    ONE horizontal gutter, owned by the scroll column, equal to the tile grid's own edge.
    Every element inherits it; no component sets its own horizontal margin or width, ever.

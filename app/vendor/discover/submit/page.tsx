@@ -267,7 +267,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               onChange={e => setPitch(e.target.value.slice(0, 500))}
               rows={6}
               placeholder="Twelve years of weddings, signature documentary style, recent feature in Vogue India…"
-              style={{ ...inputStyle, resize: 'none', fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: 16, lineHeight: 1.5 }}
+              style={{ ...inputStyle, resize: 'none', /* R-37.86 per-site verdict: KEEP — empty-vs-filled state, not voice. */ fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: 16, lineHeight: 1.5 }}
             />
             <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
           </>

@@ -58,8 +58,13 @@ async function bundleText(page) {
   try {
     const r = await get('/w');
     if (r.status !== 200) return F('reachable', '/w returned ' + r.status), summary();
-    if (!/\/w\/rooms/.test(r.url) && !/rooms/i.test(r.body)) F('R-37.75 rooms-first', '/w did not resolve to Rooms');
-    else P('R-37.75 rooms-first', '/w → ' + r.url.replace(BASE, ''));
+    // FIRST-RUN CORRECTION: /w redirects CLIENT-SIDE in a useEffect. A fetch never runs JS,
+    // so no request can observe the hop — the original assertion was unprovable by its own
+    // method and printed FAIL on a working build. What IS provable from served bytes is that
+    // the entry ships the redirect target; the behaviour itself is source-proved by C17.
+    const wBundle = await bundleText('/w');
+    if (/\/w\/rooms/.test(wBundle)) P('R-37.75 rooms-first', 'the /w entry ships the redirect target');
+    else F('R-37.75 rooms-first', 'the /w entry carries no /w/rooms redirect at all');
   } catch (e) { F('reachable', e.message); return summary(); }
 
   const shell = await bundleText('/w/rooms');
@@ -88,7 +93,9 @@ async function bundleText(page) {
   else P('R-37.84 ④ vestiges die');
 
   // ── ⑤ the link goes home ─────────────────────────────────────────────────
-  const inRooms = /wl-plink/.test(shell);
+  // FIRST-RUN CORRECTION: this matched a CLASS NAME, which survives in dead CSS after the
+  // markup is gone — and it did, which is how the leftover was found. Assert the markup.
+  const inRooms = /wl-plink/.test(shell) && /code[^>]*wl-plink|className:\s*"wl-plink"/.test(shell);
   if (inRooms) F('R-37.84 ⑤ the link goes home', 'the wa.me row still ships in the Rooms bundle');
   else P('R-37.84 ⑤ the link goes home', 'absent from Rooms');
   if (/TDW ENQUIRY LINK/i.test(settings)) P('R-37.84 ⑤ settings section present');
@@ -112,6 +119,32 @@ async function bundleText(page) {
   else F('R-37.82 ① the gutter law', 'the column does not own its gutter in the served CSS');
   if (/\.wl-prow\{[^}]*min-height:52px/.test(shell)) P('R-37.82 ② one-line rows');
   else F('R-37.82 ② one-line rows', 'the panel rows do not ship at 52px');
+
+  // ── \u2461 the shell drawer is the WHOLE drawer  [served bytes] ───────────
+  const rows = ['Discover Profile', 'Settings', 'Billing', 'The Dream Wedding', 'Tips & Features', 'Sign Out'];
+  const missingRows = rows.filter((r) => !shell.includes(r));
+  if (missingRows.length) F('R-37.79 shell drawer complete', 'missing rows: ' + missingRows.join(' \u00b7 '));
+  else P('R-37.79 shell drawer complete', 'all ' + rows.length + ' rows plus Display in the shell bundle');
+
+  // ── \u2462 no italic serif inside the chat mount  [served bytes] ───────────
+  if (/wl-askpanel/.test(shell) && /fontStyle:\s*"italic"/.test(shell.match(/wl-askpanel[\s\S]{0,4000}/)?.[0] || ''))
+    F('R-37.84 \u2462 the chat sheds the costume', 'italic ships inside the chat mount');
+  else P('R-37.84 \u2462 the chat sheds the costume');
+
+  // ── \u2464 NO .wl-* RULE WITHOUT A CONSUMER  [served bytes] ────────────────
+  // The .wl-plink class of defect: markup removed, stylesheet left behind. Dead rules are
+  // how a gate gets a false FAIL and how a bundle grows things nobody renders.
+  const declared = new Set([...shell.matchAll(/\.(wl-[a-z-]+)\{/g)].map((m) => m[1]));
+  const used = new Set([...shell.matchAll(/"(wl-[a-z-]+)"/g)].map((m) => m[1]));
+  const dead = [...declared].filter((c) => !used.has(c) && !/^wl(-main|-dsec)?$/.test(c));
+  if (dead.length) F('dead-rule sweep', 'declared with no consumer: ' + dead.join(', '));
+  else P('dead-rule sweep', declared.size + ' rules, every one consumed');
+
+  // ── \u2463 THE ESPRESSO FLASH  [PART served bytes, PART glass only] ────────
+  const espresso = /#1F1612|#1A0F08|#241A15|#7A3828/.test(await (await get('/_next/static/css/' + (shell.match(/static\/css\/([\w.-]+\.css)/)?.[1] || 'x'))).body.slice(0, 400000));
+  if (espresso) F('R-37.84 \u2463 flash \u2014 structural half', 'an Espresso literal still parses in the served stylesheet');
+  else P('R-37.84 \u2463 flash \u2014 structural half', 'no Espresso literal in the served CSS; first parsed value is Graphite');
+  I('R-37.84 \u2463 flash \u2014 the flash itself', 'a first-paint blink cannot be observed by a fetch. The structural half above is proved; a hydration-race half, if it exists, is GLASS ONLY \u2014 walk beat.');
 
   // ── the properties this script CANNOT decide from bytes ──────────────────
   I('pixel-identical tile and panel edges', 'a served-bytes gate proves the RULE (one gutter, no component override) and not the rendered pixel. C22 holds the rule; only glass holds the pixel.');

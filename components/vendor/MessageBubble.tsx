@@ -87,7 +87,7 @@ const NUMBERED = /^\s*\d+[.)]\s+/;
 const HEADING = /^\s*#{1,3}\s+/;
 function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode[] {
   const pStyle = {
-    fontFamily: F.script, fontStyle: 'italic' as const, fontWeight: 400,
+    fontFamily: F.script, fontWeight: 400,
     fontSize: 16, color: T.ink, lineHeight: 1.42, letterSpacing: '0.005em',
     margin: 0, whiteSpace: 'pre-wrap' as const,
   };
