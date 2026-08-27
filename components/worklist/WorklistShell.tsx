@@ -39,7 +39,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
     try { localStorage.setItem(MODE_KEY, next); } catch { /* non-fatal */ }
   }
 
-  const onToday = pathname === '/w';
+  const onToday = pathname.startsWith('/w/today');
   const onRooms = pathname.startsWith('/w/rooms') || pathname.startsWith('/w/support');
 
   return (
@@ -76,13 +76,16 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 
       <AiDock />
 
+      {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
+          /w's redirect are three statements of one decision — if they ever disagree, the app
+          disagrees with itself, so C17 asserts all three together rather than any one alone. */}
       <nav className="wl-nav" aria-label="Sections">
-        <button type="button" className={'wl-seat' + (onToday ? ' on' : '')}
-                aria-current={onToday ? 'page' : undefined}
-                onClick={() => router.push('/w')}>{COPY.navToday}</button>
         <button type="button" className={'wl-seat' + (onRooms ? ' on' : '')}
                 aria-current={onRooms ? 'page' : undefined}
                 onClick={() => router.push('/w/rooms')}>{COPY.navRooms}</button>
+        <button type="button" className={'wl-seat' + (onToday ? ' on' : '')}
+                aria-current={onToday ? 'page' : undefined}
+                onClick={() => router.push('/w/today')}>{COPY.navToday}</button>
       </nav>
     </div>
   );

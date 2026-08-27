@@ -29,7 +29,9 @@ cell('C1 token completeness, both modes', () => {
   return null;
 });
 
-cell('C2 sixteen rooms in frozen order, 7 + 9', () => {
+// R-37.75: the freeze law now protects the flipped seat order too — C17 owns the seats,
+// C2 owns the sixteen tiles. Amended by label, not by loosening.
+cell('C2 sixteen rooms in frozen order, 7 + 9 (seats flipped, R-37.75)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== 16) return 'registry has ' + ids.length + ' rooms, expected 16';
@@ -281,6 +283,35 @@ cell('C16 the brass split holds across every token map', () => {
   const th = read('lib/vendor/theme.ts');
   if (!/interactive:\s*'#68C9B4'/.test(th)) return 'DARK has no interactive token';
   if (!/interactive:\s*'#0D6A5A'/.test(th)) return 'LIGHT has no interactive token';
+  return null;
+});
+
+// ── C17 · ROOMS-FIRST, ASSERTED ON ALL FOUR SURFACES AT ONCE (R-37.75). The manifest, the
+//    bare-shell redirect, the seat order and the carried nav are four statements of one
+//    decision. Any cell that checked only one would go green while the app argued with itself.
+cell('C17 rooms-first agrees on every surface', () => {
+  const man = JSON.parse(read('public/worklist-manifest.json'));
+  if (man.start_url !== '/w/rooms') return 'manifest start_url is ' + man.start_url + ', expected /w/rooms';
+
+  const idx = strip(read('app/w/page.tsx'));
+  if (!/replace\('\/w\/rooms'\)/.test(idx)) return 'the bare /w shell does not resolve to Rooms';
+
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const seats = [...shell.matchAll(/COPY\.(navRooms|navToday)/g)].map((m) => m[1]);
+  if (seats.join(',') !== 'navRooms,navToday') return 'seat order is ' + seats.join(',') + ', expected Rooms then Today';
+
+  const nav = strip(read('components/vendor/BottomNav.tsx'));
+  const doors = [...nav.matchAll(/label:\s*'(\w+)'/g)].map((m) => m[1]);
+  if (doors.join(',') !== 'Rooms,Today') return 'the carried nav still reads ' + doors.join(',') + ' — one app, one nav';
+
+  // The pointer is what keeps a Rooms-first vendor meeting the first-run manual at all.
+  const grid = strip(read('components/worklist/RoomsGrid.tsx'));
+  // An earlier draft checked only that COPY.roomsPointer APPEARED in the file. Removing
+  // <Pointer /> from the render left that green — the component still referenced the byte
+  // while rendering nothing. Vacuous, caught on its own mutation, tightened to the mount.
+  if (!/COPY\.roomsPointer/.test(grid)) return 'the grid has no pointer byte';
+  if (!/<Pointer\s*\/>/.test(grid)) return 'the pointer is defined but never mounted — a new vendor never meets the manual';
+  if (!/\/w\/today/.test(grid)) return 'the pointer does not reach Today';
   return null;
 });
 

@@ -9,6 +9,7 @@
 // POSITIONS NEVER REORDER. Rider \u2461, R-37.22 cited. Badges will move in Phase 4; tiles
 // will not. The order comes from FROZEN_ORDER and nowhere else.
 import { useRouter } from 'next/navigation';
+import { COPY } from '@/lib/worklist/copy';
 import { ROOMS, roomsInBand, type Room } from '@/lib/worklist/rooms';
 
 function Tile({ room }: { room: Room }) {
@@ -19,6 +20,17 @@ function Tile({ room }: { room: Room }) {
             data-room={room.id} data-interim={external ? 'true' : undefined}>
       <span className="wl-tname">{room.label}</span>
     </button>
+  );
+}
+
+function Pointer() {
+  const router = useRouter();
+  return (
+    <div className="wl-pointer">
+      <span className="wl-pointertext">{COPY.roomsPointer}</span>
+      <button type="button" className="wl-pointerbtn"
+              onClick={() => router.push('/w/today')}>{COPY.roomsPointerAction}</button>
+    </div>
   );
 }
 
@@ -33,6 +45,7 @@ export function RoomsGrid() {
         <div className="wl-bandlabel">&mdash; your business &mdash;</div>
         <div className="wl-tiles">{roomsInBand('business').map((r) => <Tile key={r.id} room={r} />)}</div>
       </section>
+      <Pointer />
       <div hidden data-room-count={ROOMS.length} />
       <style>{GRID_CSS}</style>
     </div>
@@ -40,6 +53,11 @@ export function RoomsGrid() {
 }
 
 const GRID_CSS = `
+.wl-pointer{margin-top:22px;padding:16px 16px 14px;border:.5px solid var(--atelier-card-border);border-radius:3px;background:var(--atelier-card-bg);display:flex;flex-direction:column;gap:11px;align-items:flex-start}
+.wl-pointertext{font-size:14.5px;font-weight:400;line-height:1.6;color:var(--atelier-ink-soft)}
+.wl-pointerbtn{min-height:46px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-pointerbtn:active{background:var(--atelier-row-hover)}
+.wl-pointerbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-bands{padding:18px 14px 28px;flex:1}
 .wl-band+.wl-band{margin-top:22px}
 .wl-bandlabel{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 11px}

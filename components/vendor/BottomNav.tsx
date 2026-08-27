@@ -84,16 +84,20 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 // no tab — exactly as they lit none under the old bar.
 type DoorItem = { href: string; label: string; glyph: string; exact?: boolean; activePrefixes?: string[] };
 
+// ══ BRANCH-ONLY · M-WORKLIST ZIP 6 (R-37.75, "one app, one nav") ═══════════════════════
+// The five doors are replaced by the worklist's two seats so a vendor never meets two
+// different navigations in one app. Every job the old doors reached still has a home and
+// none of them is this bar:
+//   Home       -> the DreamAi dock, a work surface not a destination (R-37.69)
+//   Calendar   -> the Calendar room, top band, a default pin (§8.2)
+//   Business   -> the six slice rooms, top band (R-37.60)
+//   Storefront -> the Storefront room, bottom band
+//   More       -> retired (R-37.63 ④); its rows are the bottom band
+// Rooms first, Today second, matching the shell exactly — R-37.75.
+// Production `main` keeps its five doors; this diverges on the branch only.
 const DOORS: DoorItem[] = [
-  { href: '/vendor',            label: 'Home',       glyph: '✦', exact: true },
-  { href: '/vendor/calendar',   label: 'Calendar',   glyph: '◐' },
-  // TDW_03 P1 (CE ruling Q1, 2026-07-14): prefix match so the tab highlights on
-  // /vendor/list/* now that the landing redirects to a slice. Behaviour carried
-  // verbatim from the retired STUDIO_ITEMS entry.
-  { href: '/vendor/list',       label: 'Business',   glyph: '≡' },
-  { href: '/vendor/storefront', label: 'Storefront', glyph: '▣',
-    activePrefixes: ['/vendor/storefront', '/vendor/portfolio', '/vendor/discover', '/vendor/collab'] },
-  { href: '/vendor/more',       label: 'More',       glyph: '⋯', exact: true },
+  { href: '/w/rooms', label: 'Rooms', glyph: '\u25a3' },
+  { href: '/w/today', label: 'Today', glyph: '\u2726' },
 ];
 
 function doorActive(item: DoorItem, pathname: string): boolean {

@@ -82,6 +82,15 @@ export const COPY = {
   cardMoreTitle: 'Ask us for more',
   cardMoreBody:  'Want more reach \u2014 ads, better placement, a feature that would save you an hour a week? Tell us. Something broken works too, and it reaches a person who replies personally.',
 
+  // ── R-37.75 · THE ROOMS POINTER ────────────────────────────────────────
+  // Rooms-first means a new vendor may never tap the second seat, and the first-run manual
+  // lives behind it. This is the pointer that keeps him meeting it. It is UNCONDITIONAL in
+  // Phase 1 because the signal that should gate it — the `has_any` flag — is Phase 3's, so
+  // gating on it now would be gating on nothing. Phase 4 makes it conditional on the same
+  // flag that retires the manual, and the two disappear together.
+  roomsPointer: 'New here? Today has a short guide to what TDW does for you.',
+  roomsPointerAction: 'Read it',
+
   // ── 8 · 9 — Contact Support (R-37.67 / R-37.67-A) ────────────────────────
   supportTitle: 'Contact Support',
   supportBody:  'Ask us for anything that would grow your work \u2014 ads, reach-outs, search placement, a feature you keep wishing existed. Report what\u2019s broken here too. It reaches us directly on WhatsApp and we reply ourselves.',
