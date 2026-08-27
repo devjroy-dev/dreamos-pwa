@@ -9,7 +9,6 @@
 // POSITIONS NEVER REORDER. Rider \u2461, R-37.22 cited. Badges will move in Phase 4; tiles
 // will not. The order comes from FROZEN_ORDER and nowhere else.
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { COPY } from '@/lib/worklist/copy';
 import { waNumberFor } from '@/lib/waNumbers';
 import { ROOMS, roomsInBand, type Room } from '@/lib/worklist/rooms';
@@ -25,10 +24,10 @@ function Tile({ room }: { room: Room }) {
   );
 }
 
-function Panel({ handle }: { handle?: string | null }) {
+// R-37.84 (5): the wa.me row moved to Settings, beside the handle field that mints it.
+// A link belongs next to the thing that defines it, not in a directory footer.
+function Panel() {
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
-  const url = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
   const wa = () => window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
   return (
     <div className="wl-panel">
@@ -44,15 +43,6 @@ function Panel({ handle }: { handle?: string | null }) {
         <span className="wl-ptitle">{COPY.roomsProfileTitle}</span>
         <span className="wl-pchev" aria-hidden>&rsaquo;</span>
       </button>
-      {url && (
-        <button type="button" className="wl-prow" onClick={() => {
-          navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => {});
-        }}>
-          {/* the row shows a link, which explains itself — no section label above it */}
-          <code className="wl-plink">{url.replace('https://', '')}</code>
-          <span className={'wl-pcopy' + (copied ? ' on' : '')}>{copied ? COPY.linkCopied : COPY.linkCopy}</span>
-        </button>
-      )}
     </div>
   );
 }
@@ -68,7 +58,7 @@ function Pointer() {
   );
 }
 
-export function RoomsGrid({ handle }: { handle?: string | null }) {
+export function RoomsGrid() {
   return (
     <div className="wl-bands">
       <section className="wl-band" aria-label="Your work">
@@ -79,7 +69,7 @@ export function RoomsGrid({ handle }: { handle?: string | null }) {
         <div className="wl-bandlabel">&mdash; your business &mdash;</div>
         <div className="wl-tiles">{roomsInBand('business').map((r) => <Tile key={r.id} room={r} />)}</div>
       </section>
-      <Panel handle={handle} />
+      <Panel />
       <Pointer />
       <div hidden data-room-count={ROOMS.length} />
       <style>{GRID_CSS}</style>

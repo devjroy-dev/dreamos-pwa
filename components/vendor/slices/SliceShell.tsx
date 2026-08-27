@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/SliceShell.tsx — TDW_03 P1
 // Two exports:
@@ -170,7 +174,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
           every record-surface title, house voice. No surface claims totality it
           doesn't have. */}
       <div style={{ padding: '0 22px 2px', marginTop: -4 }}>
-        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
+        <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
       </div>
 
       {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
@@ -214,7 +218,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
             {!loading && !error && rows.length === 0 && (
               <div style={{
                 padding: '40px 24px', textAlign: 'center',
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+                fontFamily: F.script, fontWeight: 300, fontSize: 16,
                 color: A.inkMute, lineHeight: 1.5,
               }}>
                 {query
@@ -230,7 +234,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
             {!loading && !error && rows.length > 0 && CHIP_BLINDNESS[slice] && (
               <div style={{
                 padding: '14px 22px 20px',
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+                fontFamily: F.script, fontWeight: 300, fontSize: 16,
                 color: A.inkMute, lineHeight: 1.5,
               }}>{CHIP_BLINDNESS[slice]}</div>
             )}
@@ -741,7 +745,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           missing set); tap opens the WishboneSheet. */}
       {slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 && (
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 8 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 8 }}>
             Still missing — tap to complete:
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -817,7 +821,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               }}>Add</button>
             )}
           </div>
-          {scheduleLoading && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
+          {scheduleLoading && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
           {schedule && schedule.map(ms => (
             <div key={ms.id} style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
@@ -825,7 +829,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{ms.milestone_label}</div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
                   Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${ms.due_date}` : ''}
                 </div>
               </div>
@@ -858,7 +862,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       {slice === 'leads' && (leadDetail || loadingDetail) && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
           {loadingDetail && !leadDetail
-            ? <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>
+            ? <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>
             : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} />
           }
         </div>
@@ -882,7 +886,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           {/* F-04.12's confession — one line, only when the leap is backwards-unusual */}
           {isBackwardUnusual(sel?.badge) && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5, marginBottom: 8 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5, marginBottom: 8 }}>
                 This one&rsquo;s further along — marking lost will keep the record, state the reason?
               </div>
               <input
@@ -948,7 +952,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             // first cut of this block shipped 15 and `tdw09_type` named it at
             // the byte — a tenth declared size against nine rungs, below the
             // floor. The census caught a sentence nobody would have squinted at.
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+            fontFamily: F.script, fontWeight: 300, fontSize: 16,
             lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em', textAlign: 'center',
           }}>Upgrade to Essential tier or above to connect with your lead.</div>
           <a href="/vendor/billing" style={{
@@ -1046,7 +1050,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             </div>
             <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Payment Schedule</div>
             <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 4 }}>Add Milestones</div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
               Must sum to 100%. Amounts computed from invoice total.
             </div>
 
@@ -1126,7 +1130,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               return (
                 <>
                   {!canSave && (
-                    <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>
+                    <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>
                       {Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
                     </div>
                   )}

@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/contracts — Contracts · Atelier rebuild
 // PDF storage. List + upload + detail sheet with state transitions.
@@ -130,12 +134,12 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         </div>
       ) : contracts.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 6 }}>
           <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>No contracts yet.</div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Tap the + to upload your first.</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Tap the + to upload your first.</div>
         </div>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
@@ -206,8 +210,8 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
                 {file ? file.name : 'Choose a PDF…'}
               </button>
             </div>
-            {(!canUpload && !uploading) && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>Title and PDF are required.</div>}
-            {uploading && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>{uploadProgress}</div>}
+            {(!canUpload && !uploading) && <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>Title and PDF are required.</div>}
+            {uploading && <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>{uploadProgress}</div>}
 
             <button type="button" onClick={doUpload} disabled={!canUpload || uploading} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canUpload && !uploading) ? 'pointer' : 'default',
@@ -240,11 +244,11 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
                 letterSpacing: '0.28em', textTransform: 'uppercase',
                 border: `0.5px solid ${STATE_COLOR[selected.state]}`, borderRadius: 2, padding: '4px 9px',
               }}>{selected.state}</span>
-              {selected.file_size && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{Math.round(selected.file_size/1024)} KB</span>}
-              {selected.sent_at && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Sent {new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
-              {selected.signed_at && <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.green }}>Signed {new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
+              {selected.file_size && <span style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{Math.round(selected.file_size/1024)} KB</span>}
+              {selected.sent_at && <span style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Sent {new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
+              {selected.signed_at && <span style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.green }}>Signed {new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
             </div>
-            {selected.notes && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>{selected.notes}</div>}
+            {selected.notes && <div style={{ fontFamily: F.script, fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>{selected.notes}</div>}
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               <button type="button" onClick={() => doDownload(selected)} className="atelier-fab" style={{

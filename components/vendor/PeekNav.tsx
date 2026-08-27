@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // PeekNav — brass thread above InputBar.
 // Scroll up in chat → brass thread appears → tap → panel slides up.
@@ -289,7 +293,7 @@ export function PeekNav({ scrollRef, context, onSend }: PeekNavProps) {
                 )}
 
                 <div style={{
-                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontFamily: F.script, fontWeight: 300,
                   fontSize: 16,
                   color: cue.locked ? T.inkDim : T.isLight ? T.inkSoft : 'rgba(240,230,210,0.68)',
                   lineHeight: 1.3, marginBottom: 3, paddingRight: 14,

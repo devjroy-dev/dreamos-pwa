@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 
 // app/wedding/calendar/page.tsx — Atelier rebuild
@@ -441,8 +445,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           }} />
           <div style={{
             flex: 1,
-            fontFamily: F.script, fontStyle: 'italic',
-            fontSize: 16, lineHeight: 1.5, fontWeight: 400,
+            fontFamily: F.script, fontSize: 16, lineHeight: 1.5, fontWeight: 400,
             color: 'var(--atelier-ink-soft)', letterSpacing: '0.01em',
           }}>
             {hotThisMonth === 1 ? 'One auspicious date this month — peak season approaches' : `${hotThisMonth === 2 ? 'Two' : hotThisMonth === 3 ? 'Three' : hotThisMonth} auspicious dates this month — peak season approaches`}
@@ -574,7 +577,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
       {winData?.truncated && (
         <div style={{
           padding: '2px 22px 10px',
-          fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+          fontFamily: F.script, fontWeight: 300,
           fontSize: 16, lineHeight: 1.5, color: A.inkMute,
         }}>Over 200 entries in this span — the furthest are not drawn.</div>
       )}
@@ -631,7 +634,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           </div>
         ) : nextThree.length === 0 ? (
           <div style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, lineHeight: 1.5, color: A.inkMute,
             padding: '4px 0 8px',
           }}>Nothing on the horizon.</div>

@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/tds — TDS ledger · Atelier rebuild
 // FY selector, summary card, entries list, CSV export, log entry FAB.
@@ -155,7 +159,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{fy}</span>
             <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
-            <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{summary.entry_count} entries</span>
+            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{summary.entry_count} entries</span>
           </div>
           <div style={{
             display: 'flex', alignItems: 'stretch',
@@ -178,7 +182,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
           {summary.by_section.length > 0 && (
             <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
               {summary.by_section.map(s => (
-                <span key={s.section} style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.005em' }}>
+                <span key={s.section} style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.005em' }}>
                   {s.section} · Rs {s.tds.toLocaleString('en-IN')} ({s.count})
                 </span>
               ))}
@@ -189,11 +193,11 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         </div>
       ) : entries.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', lineHeight: 1.5 }}>
             No TDS entries for {fy}.<br /><span style={{ color: A.brassWarm }}>Log your first below.</span>
           </div>
         </div>
@@ -210,7 +214,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
                 <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: 'var(--atelier-label)', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 3 }}>
                   {e.deduction_date} · {e.section || '—'} · {e.tds_rate}%
                 </div>
-                <div style={{ display: 'flex', gap: 14, marginTop: 5, fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5 }}>
+                <div style={{ display: 'flex', gap: 14, marginTop: 5, fontFamily: F.script, fontSize: 16, lineHeight: 1.5 }}>
                   <span style={{ color: A.inkSoft }}>Gross Rs {e.gross_amount.toLocaleString('en-IN')}</span>
                   <span style={{ color: A.red }}>TDS Rs {e.tds_amount.toLocaleString('en-IN')}</span>
                 </div>
@@ -277,7 +281,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
                 background: 'var(--atelier-input-bg)',
                 border: '0.5px solid var(--atelier-card-border)',
                 borderRadius: 2, display: 'flex', gap: 18,
-                fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5,
+                fontFamily: F.script, fontSize: 16, lineHeight: 1.5,
               }}>
                 <span style={{ color: A.inkSoft }}>TDS: <strong style={{ color: A.red, fontStyle: 'normal' }}>Rs {tdsAmt.toLocaleString('en-IN')}</strong></span>
                 <span style={{ color: A.inkSoft }}>Net: <strong style={{ color: A.brassWarm, fontStyle: 'normal' }}>Rs {netAmt.toLocaleString('en-IN')}</strong></span>
@@ -298,7 +302,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
             <div><div style={labelStyle}>Client TAN</div><input style={inputStyle} value={tan} onChange={e => setTan(e.target.value.toUpperCase())} placeholder="DELS01234C" /></div>
             <div><div style={labelStyle}>Certificate / Form 16A No.</div><input style={inputStyle} value={certNo} onChange={e => setCertNo(e.target.value)} placeholder="Optional" /></div>
 
-            {!canCreate && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>Client name and gross amount are required.</div>}
+            {!canCreate && <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>Client name and gross amount are required.</div>}
 
             <button type="button" onClick={doCreate} disabled={!canCreate || saving} className="atelier-fab" style={{
               padding: '14px 0', borderRadius: 2, cursor: (canCreate && !saving) ? 'pointer' : 'default',

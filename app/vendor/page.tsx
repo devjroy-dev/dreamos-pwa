@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // app/wedding/page.tsx — AI Hub · Atelier rebuild
 //
@@ -208,7 +212,7 @@ function GreetingLine({ context, money, today }: { context: VendorContextRespons
         </div>
       ) : (
         <div style={{
-          fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+          fontFamily: F.script, fontWeight: 300,
           fontSize: 20, color: T.inkSoft,
           lineHeight: 1.4, letterSpacing: '0.01em',
           maxWidth: 320, margin: '0 auto',
@@ -455,7 +459,7 @@ function LedgerCell({
         color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', marginTop: 6,
       }}>{label}</div>
       <div style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+        fontFamily: F.script, fontWeight: 300,
         fontSize: 16, lineHeight: 1.5, color: T.inkDim,
         marginTop: 2, letterSpacing: '0.02em',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -609,7 +613,7 @@ function WaitingZone({ today, discoverPending, onAct, onOpen, onOverflow }: {
           }}
         >
           <span style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, lineHeight: 1.4, color: T.ink,
           }}>{line.text}</span>
           <span style={{
@@ -626,7 +630,7 @@ function WaitingZone({ today, discoverPending, onAct, onOpen, onOverflow }: {
           onClick={onOverflow}
           style={{
             background: 'none', border: 'none', padding: '10px 0', minHeight: 44,
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+            fontFamily: F.script, fontWeight: 300, fontSize: 16,
             color: T.inkDim, cursor: 'pointer', textAlign: 'left', width: '100%',
           }}
         >{`…and ${extra} more →`}</button>
@@ -661,7 +665,7 @@ function WeekStrip({ today }: { today: TodayResponse | null }) {
   return (
     <div style={{
       margin: '12px 22px 0',
-      fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+      fontFamily: F.script, fontWeight: 300,
       fontSize: 16, lineHeight: 1.5, color: T.inkDim,
       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
     }}>
@@ -729,11 +733,11 @@ function FirstRunExemplars({ onAct }: { onAct: (draft: string) => void }) {
             color: T.isLight ? T.inkMute : 'rgba(201,168,76,0.75)', flexShrink: 0,
           }}>Example</span>
           <span style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, lineHeight: 1.4, color: T.ink,
           }}>{`“${text}”`}</span>
           <span style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, color: T.inkDim, marginLeft: 'auto', flexShrink: 0,
           }}>tap to try</span>
         </button>

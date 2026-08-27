@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /vendor/discover/profile — DISCOVER PROFILE · TDW_07 P2
 //
@@ -228,7 +232,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '18px 0 26px' }}>
             {hints.map((h) => (
               <div key={h.term} style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                fontFamily: F.script, fontWeight: 300,
                 fontSize: 16, lineHeight: 1.5, color: A.inkSoft, letterSpacing: '0.01em',
               }}>· {HINT_COPY[h.term](gaps[h.term])}</div>
             ))}
@@ -237,7 +241,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
         {/* ── PHOTOS: P3's slot. This screen states the truth and links out. ── */}
         <SCard title="Portfolio">
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             {/* FOUNDER-VETOED 2026-07-29 (copy slot 3, 「 go 」). BOTH numbers, one line —
                 F-07.4's two readings can never contradict each other on a screen that
                 shows them together. The gate counts uploaded; the feed shows approved. */}
@@ -262,7 +266,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           {/* FOUNDER-VETOED 2026-07-29 (copy slot 6, 「 go 」). business_name is the one
               field the ruling sent here despite a second consumer — the card headline AND
               the invoice letterhead. The vendor is told, rather than surprised. */}
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             This is the name couples see and the name on your invoices.
           </div>
           <SField label="City" value={current.city} onChange={(v) => update({ city: v })} />
@@ -323,7 +327,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           </div>
           <SToggle label="Show starting price on Discover"
                    value={current.rate_display} onChange={(v) => update({ rate_display: v })} />
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {/* The register law (tokens.ts:41): always "Rs", never the glyph, never k/L/Cr.
                 formatRs is the on-register donor; lib/vendor/cabinet.ts's short form is not. */}
             {current.rate_display
@@ -352,7 +356,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           {/* FOUNDER-VETOED 2026-07-29 (copy slot 1, 「 go 」). Shown ALWAYS, not only while
               paused: consequences a vendor reads before acting are the point. This switch
               retires the founder-run UPDATE that P1's smoke card step ⑤ required. */}
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             Hidden from Discover. Your approval stays. Enquiries already in flight still reach you.
           </div>
           <SaveBtn dirty={isDirty(['discover_paused'])} loading={saving === 'pause'}
@@ -411,7 +415,7 @@ function TagEditor({ category, value, onChange }: {
                 padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
                 background: 'transparent',
                 border: '0.5px dashed rgba(201,168,76,0.4)',
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1,
+                fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1,
                 color: A.ink,
               }}>{tag} ×</button>
           ))}
@@ -432,7 +436,7 @@ function TagEditor({ category, value, onChange }: {
           textTransform: 'uppercase', color: 'var(--atelier-label)' }}>Add</button>
       </div>
       {/* FOUNDER-VETOED (relay #2 slate + RIDER4 §5): the custom-tag honesty byte. */}
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
         Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
       </div>
     </div>

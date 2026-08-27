@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /vendor/team-hub — TDW_04.5 P4 · ruling F11(c).
 //
@@ -42,7 +46,7 @@ export default function TeamHubPage() {
         {!prestige && (
           <div style={{ padding: '24px 28px 8px' }}>
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+              fontFamily: F.script, fontWeight: 300, fontSize: 16,
               color: A.inkMute, lineHeight: 1.55, textAlign: 'center',
             }}>
               Team Hub is reserved for Prestige.<br />Contact Swati to upgrade.

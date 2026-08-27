@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/discover/submit — Multi-step Discover request · Atelier rebuild
 // Step 1 rates · Step 2 aesthetic tags · Step 3 pitch
@@ -155,7 +159,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid rgba(201,168,76,0.12)' }}>
         <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Request Discover</span>
-        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 3</span>
+        <span style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 3</span>
       </div>
 
       {/* Step indicator */}
@@ -179,7 +183,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
 
         {step === 1 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Brides on Discover see your range. Be honest — Swati matches by budget fit.
             </div>
             {/* TDW_07 P4b · F4 (WIDENED) — THE MAX FIELD IS REMOVED-BY-RULING.
@@ -195,7 +199,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               <div style={{ marginTop: 8 }}>
                 <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</div>
                 <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>{rateMin}</div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>From your bio — edit there</div>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>From your bio — edit there</div>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
@@ -210,11 +214,11 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
 
         {step === 2 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Choose up to ten that describe your work. Brides filter by these.
             </div>
             {tagsFromBio && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4 }}>From your bio — edit there</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4 }}>From your bio — edit there</div>
             )}
             {vocab && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
@@ -246,16 +250,16 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
                 textTransform: 'uppercase', color: A.interactiveWarm }}>Add</button>
             </div>
             {/* FOUNDER-VETOED: the custom-tag honesty byte. */}
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
             </div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
           </>
         )}
 
         {step === 3 && (
           <>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Tell Swati why your work belongs. Experience, signature, notable weddings.
             </div>
             <textarea
@@ -265,7 +269,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               placeholder="Twelve years of weddings, signature documentary style, recent feature in Vogue India…"
               style={{ ...inputStyle, resize: 'none', fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: 16, lineHeight: 1.5 }}
             />
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
           </>
         )}
 

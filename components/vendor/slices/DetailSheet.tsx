@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/DetailSheet.tsx — TDW_03 P1
 // Bottom sheet chrome (blur 40px, brass hairline) — content injected per slice.
@@ -95,13 +99,13 @@ export function DetailSheet({
             </div>
           ) : deleteMsg ? (
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+              fontFamily: F.script, fontWeight: 300, fontSize: 16,
               color: deleteMsg.startsWith('Done') || deleteMsg.includes('cancelled') ? A.brassWarm : A.red,
               textAlign: 'center', lineHeight: 1.5, padding: '8px 0',
             }}>{deleteMsg}</div>
           ) : (
             <>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, textAlign: 'center', lineHeight: 1.6 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, textAlign: 'center', lineHeight: 1.6 }}>
                 {slice === 'invoices' ? 'Cancel' : 'Remove'} <span style={{ color: 'var(--atelier-ink)', fontStyle: 'normal' }}>{sel?.primary}</span>?<br/>
                 <span style={{ fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
                   {/* TDW_04 A3.3 (F-04.15): each line now names what its door

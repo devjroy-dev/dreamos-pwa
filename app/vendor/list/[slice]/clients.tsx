@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // app/vendor/list/[slice]/clients.tsx — TDW_03 P2 · binder cards
 // The Clients slice reads the records plane raw: cabinet.clients, the same
@@ -70,7 +74,7 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
           {empty && (
             <div style={{
               padding: '40px 24px', textAlign: 'center',
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+              fontFamily: F.script, fontWeight: 300, fontSize: 16,
               color: A.inkMute, lineHeight: 1.6,
             }}>
               {query

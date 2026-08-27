@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /vendor/storefront — THE STOREFRONT DOOR · TDW_09 PACKAGE 2 (R-X27 arm (a))
 //
@@ -120,7 +124,7 @@ function StoreRow({ item }: { item: Item }) {
         }}>{item.label}</div>
         {item.description && (
           <div style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2, letterSpacing: '0.01em',
           }}>{item.description}</div>
         )}
@@ -251,7 +255,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink, lineHeight: 1.15 }}>Your bio</div>
               {/* The drawer's own vetoed byte, carried. */}
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>How couples see you</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>How couples see you</div>
             </div>
             <Chevron />
           </Link>

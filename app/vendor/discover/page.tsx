@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/discover — Discover · Atelier rebuild · Gallery edition
 //
@@ -168,7 +172,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               marginBottom: 10,
             }}>Appear before couples<br />planning their wedding.</div>
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+              fontFamily: F.script, fontWeight: 300,
               fontSize: 16, lineHeight: 1.5, color: 'rgba(240,230,210,0.78)',
               letterSpacing: '0.01em',
             }}>A curated stage, not a marketplace.</div>
@@ -200,7 +204,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               textTransform: 'uppercase', color: A.brassWarm,
             }}>Discover Profile</span>
             <span style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+              fontFamily: F.script, fontWeight: 300,
               fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em',
             }}>How couples see you</span>
           </span>
@@ -249,7 +253,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <div style={{ padding: '20px 22px 8px' }}>
           {loading ? (
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+              fontFamily: F.script, fontWeight: 300,
               fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 20,
             }}>Loading…</div>
           ) : state === 'not_requested' ? (
@@ -268,7 +272,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   Build portfolio first
                 </button>
                 <div style={{
-                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontFamily: F.script, fontWeight: 300,
                   fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center',
                 }}>
                   Upload at least {floor} pieces to request access. You have {portfolioTotal}.
@@ -299,7 +303,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 color: A.brass, marginBottom: 6,
               }}>Under Review</div>
               <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                fontFamily: F.script, fontWeight: 300,
                 fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 Your application is being reviewed by Swati. Expected response within five days.
@@ -319,7 +323,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 color: approvedButHidden ? A.red : A.brassWarm, marginBottom: 6,
               }}>{approvedButHidden ? 'Hidden For Now' : 'Approved'}</div>
               <div style={{
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                fontFamily: F.script, fontWeight: 300,
                 fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 {approvedButHidden
@@ -352,7 +356,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   color: A.red, marginBottom: 6,
                 }}>Hidden</div>
                 <div style={{
-                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontFamily: F.script, fontWeight: 300,
                   fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
                 }}>
                   Your profile is hidden from couples right now. You can apply again
@@ -385,7 +389,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   color: A.red, marginBottom: 6,
                 }}>Not Approved</div>
                 <div style={{
-                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontFamily: F.script, fontWeight: 300,
                   fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
                 }}>{status?.last_decision_reason ?? 'Application not approved.'}</div>
               </div>
@@ -418,7 +422,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               letterSpacing: '0.005em',
             }}>Your latest work</div>
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+              fontFamily: F.script, fontWeight: 300,
               fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 18,
               letterSpacing: '0.01em',
             }}>As couples will see it, curated.</div>
@@ -465,7 +469,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         {!loading && collection.length === 0 && (
           <div style={{ padding: '40px 24px', textAlign: 'center' }}>
             <div style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+              fontFamily: F.script, fontWeight: 300,
               fontSize: 16, color: A.inkMute, lineHeight: 1.5,
             }}>
               Your collection is empty.<br />

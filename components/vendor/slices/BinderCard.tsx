@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/BinderCard.tsx — TDW_03 P2 · the crown jewel
 // One client's story as a card: name, THE money story, stage + last touch,
@@ -89,7 +93,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
         </div>
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
         <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
           Money is edited in chat — the witnessed door. Everything else lives here.
         </div>
 
@@ -244,7 +248,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             }}>{cap(binder.stage)}</span>
           )}
           {touched && (
-            <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               {touched}
             </span>
           )}
@@ -288,7 +292,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               ))}
             </div>
           ) : (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               No story yet — it grows as you talk in chat.
             </div>
           )}

@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // app/vendor/list/[slice]/page.tsx — TDW_03 P1
 // Thin router: slice → module. Session guard verbatim from the monofile.
@@ -33,7 +37,7 @@ export default function SlicePage() {
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   if (!['clients','leads','invoices','events','expenses','notes'].includes(slice))
     return <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', color: A.inkMute }}>Unknown.</div>
+      <div style={{ fontFamily: F.script, color: A.inkMute }}>Unknown.</div>
     </div>;
   const Mod = MODULES[slice];
   return <Mod vendorId={session.id} />;

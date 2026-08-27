@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // app/vendor/portfolio/page.tsx — THE PORTFOLIO MANAGER (TDW_07 P3)
 //
@@ -933,22 +937,22 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           }}>{COPY.A1(images.length, cap)}</div>
         )}
         {full && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             {COPY.A2(cap)}
           </div>
         )}
         {images.length > 1 && canReorder && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {COPY.G1}
           </div>
         )}
         {images.length > 1 && !canReorder && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {COPY.G3}
           </div>
         )}
         {images.length > 0 && (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {COPY.F4}
           </div>
         )}
@@ -962,11 +966,11 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         onPointerCancel={onPointerUp}
       >
         {loading ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>
             Loading…
           </div>
         ) : images.length === 0 ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', padding: '60px 20px', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', padding: '60px 20px', lineHeight: 1.5 }}>
             No images yet. <br />
             <span style={{ color: A.brassWarm }}>Tap upload to add your first.</span>
           </div>
@@ -1080,7 +1084,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 first and the reassurance second has been sold to; the other way
                 round, they have been told the truth first. */}
             <p style={{
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+              fontFamily: F.script, fontWeight: 300, fontSize: 16,
               color: A.inkSoft, margin: '0 0 14px', lineHeight: 1.55,
             }}>{COPY.H3}</p>
 
@@ -1303,7 +1307,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {/* THE ONLY SCROLLING REGION. */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 18px 16px' }}>
             {igItems.length === 0 ? (
-              <p style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
                 {COPY.H10}
               </p>
             ) : (
@@ -1371,13 +1375,13 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             }}>{sel.approval_state}</div>
 
             {sel.rejection_reason && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
                 {sel.rejection_reason}
               </div>
             )}
 
             {sel.position === 0 && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 {COPY.E4}
               </div>
             )}
@@ -1443,10 +1447,10 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                  an irreversible act behind a single touch. Inline rather than a
                  second sheet so the photo stays on screen while they decide. */
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink }}>
                   {COPY.C1}
                 </div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.45 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.45 }}>
                   {COPY.C2}
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>

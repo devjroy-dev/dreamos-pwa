@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/couture — Couture · Atelier rebuild
 // Availability + appointments. Gated on couture_eligible.
@@ -89,7 +93,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         }}>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>Couture · Invite Only</div>
           <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             Couture access is reserved for invited makers.<br />Contact Swati to be considered.
           </div>
           <button type="button" onClick={() => router.back()} style={{
@@ -134,15 +138,15 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '20px 22px 100px' }}>
         {loading ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
         ) : tab === 'availability' ? (
           slots.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>No slots yet.<br /><span style={{ color: A.brassWarm }}>Add your first.</span></div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>No slots yet.<br /><span style={{ color: A.brassWarm }}>Add your first.</span></div>
           ) : slots.map(slot => (
             <div key={slot.id} style={{ display: 'flex', alignItems: 'center', padding: '14px 4px', gap: 14, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{fmtDate(slot.slot_at)}</div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
                   Rs {slot.fee_inr.toLocaleString('en-IN')} · {slot.duration_minutes} min · <span style={{ color: slot.state === 'open' ? A.brassWarm : A.inkMute }}>{slot.state}</span>
                 </div>
               </div>
@@ -158,11 +162,11 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           ))
         ) : (
           appointments.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
           ) : appointments.map(appt => (
             <div key={appt.id} className="atelier-card" style={{ padding: '14px 18px', marginBottom: 10 }}>
               <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{fmtDate(appt.appointment_at)}</div>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
                 Rs {appt.fee_inr.toLocaleString('en-IN')} · {appt.state}
               </div>
             </div>

@@ -1,3 +1,14 @@
+// ══ BRANCH-ONLY · M-WORKLIST ZIP 11 (R-37.84 (1) and (6)) ══════════════════
+// (1) ONE MEDALLION. The shell’s coin and this avatar were two identities for one person.
+//     This one adopts the shell’s chrome exactly: --role-metal ring, 44px, the label family.
+// (6) THE DRAWER IS AN OVERLAY, NOT A SHOVE. It rendered inline and pushed the grid down.
+//     It is now anchored under the header’s right edge on a scrim, with the page unmoved
+//     beneath it and a scrim-tap to dismiss. A drawer that displaces the page is a drawer
+//     that costs the reader his place.
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/Header.tsx — Atelier rebuild · Calling-card dropdown + theme toggle
 
@@ -164,14 +175,16 @@ export function Header({ vendorName }: { vendorName: string | null }) {
       <div ref={profileRef} style={{ position: 'relative', flexShrink: 0 }}>
         <button data-tour="profile-coin" type="button" onClick={() => setProfileOpen(o => !o)} aria-label="Profile menu"
           style={{
-            width: 34, height: 34, borderRadius: '50%',
-            border: `1.5px solid ${A.interactive}`,
-            background: 'rgba(201,168,76,0.14)',
+            // R-37.84 (1): identical to the shell's .wl-coin — same ring token, same 44px,
+            // same face. Two identities for one person is one identity too many. The teal
+            // ring and the gold wash both go: the medallion is metal, like the shell's.
+            width: 44, height: 44, borderRadius: '50%',
+            border: '1px solid var(--role-metal)',
+            background: 'transparent',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0,
-            boxShadow: '0 0 0 3px rgba(201,168,76,0.06), inset 0 1px 2px rgba(255,235,200,0.15)',
-            fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
-            color: A.interactiveWarm, letterSpacing: '0.04em',
+            cursor: 'pointer', flexShrink: 0, touchAction: 'manipulation',
+            fontFamily: F.label, fontWeight: 500, fontSize: 12, lineHeight: 1,
+            color: 'var(--role-metal)', letterSpacing: '0.06em',
           }}>
           {initials(displayName)}
         </button>
@@ -203,6 +216,13 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             so the element's own overflow cannot clip it. Zero horizontal delta from
             origin. R-M1's substance — viewport-bounded maxHeight, its own scroll,
             momentum on, the card's chrome intact — is fully served. */}
+        <>
+        {/* R-37.84 (6): the scrim. Fixed, so the page beneath keeps its scroll position, and
+            tapping it dismisses. Without this the drawer rendered in flow and shoved the grid
+            down — a drawer that displaces the page costs the reader his place. */}
+        <button type="button" aria-label="Close menu" onClick={() => setProfileOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 199, background: 'var(--role-scrim)',
+                   border: 'none', cursor: 'pointer' }} />
         <div style={{
           position: 'absolute', top: 'calc(100% + 12px)', right: 0,
           minWidth: 260, zIndex: 200,
@@ -250,7 +270,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
               }}>{displayName}</div>
               {subtitle && (
                 <div style={{
-                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontFamily: F.script, fontWeight: 300,
                   fontSize: 16, lineHeight: 1.5, color: inkMuteColor, marginTop: 5,
                   letterSpacing: '0.01em',
                 }}>{subtitle}</div>
@@ -336,6 +356,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             <DItem glyph="→" label="Sign Out" isLight={isLight} onClick={signOut} danger last />
           </div>
         </div>
+        </>
       </div>
 
       {/* Brass under-rule */}
@@ -406,7 +427,7 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight 
         }}>{label}</span>
         {subtitle && (
           <span style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, lineHeight: 1.5, color: subtitleColor, marginTop: 1,
             letterSpacing: '0.01em',
           }}>{subtitle}</span>

@@ -56,7 +56,12 @@ export function WorklistShell({ title, children }: { title: string; children: Re
       <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS}</style>
 
       <header className="wl-hdr">
-        <span className="wl-lbl">{title}</span>
+        {/* R-37.84 (2): the shell header stops being bare. The house name leads; the surface
+            label sits beneath it. Same treatment on both shell surfaces. */}
+        <div className="wl-hstack">
+          <span className="wl-house">The Dream Wedding</span>
+          <span className="wl-lbl">{title}</span>
+        </div>
         {/* R-37.79: ONE IDENTITY EVERYWHERE. The shell's \u25ce glyph and the rooms' DR medallion
             were two identities for one person. The medallion wins \u2014 it is the one a vendor
             already recognises. Initials are derived, never a fixture; a vendor with no name
@@ -139,7 +144,9 @@ const SHELL_CSS = `
 .wl{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
 .wl button{touch-action:manipulation}
 .wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:17px 22px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);z-index:5}
-.wl-lbl{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-label)}
+.wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-house{font-family:var(--wl-feature);font-weight:400;font-size:17px;line-height:1.1;color:var(--atelier-ink)}
+.wl-lbl{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 /* R-37.73 ①: 40×40 was under the floor. 44 is the floor; this is 46 with air. */
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.06em;line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-coindrawer{background:var(--atelier-sheet-bg);border-bottom:.5px solid var(--atelier-sheet-border);padding:6px 0}

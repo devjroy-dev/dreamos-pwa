@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/featured — Featured · Atelier rebuild
 // Promo slot submissions. Gated on featured_eligible.
@@ -89,7 +93,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         <div className="atelier-card atelier-card-ornate" style={{ margin: '40px 22px', padding: '32px 24px', textAlign: 'center' }}>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>Featured · Locked</div>
           <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>Discover first.</div>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             Featured promos unlock once you&apos;re approved for Discover.
           </div>
           <button type="button" onClick={() => router.push('/vendor/discover')} className="atelier-fab" style={{
@@ -128,7 +132,7 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '20px 22px 32px' }}>
         {submissions.length === 0 ? (
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>
             No submissions yet.<br />
             <span style={{ color: A.brassWarm }}>Apply for your first slot above.</span>
           </div>
@@ -142,11 +146,11 @@ function FeaturedScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 border: `0.5px solid ${stateColor(sub.state)}`, borderRadius: 2, padding: '4px 9px',
               }}>{sub.state}</span>
             </div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               Rs {sub.fee_inr.toLocaleString('en-IN')}
             </div>
             {sub.rejection_reason && (
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 6 }}>{sub.rejection_reason}</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 6 }}>{sub.rejection_reason}</div>
             )}
           </div>
         ))}

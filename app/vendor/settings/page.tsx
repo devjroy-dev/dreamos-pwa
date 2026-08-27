@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // /wedding/settings — Settings · Atelier rebuild
 // All PATCH-able vendor fields. Per-section save. Hooks and logic untouched.
@@ -92,12 +96,12 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
 
   if (loading) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
+      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
     </div>
   );
   if (error) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red }}>{error}</div>
+      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red }}>{error}</div>
     </div>
   );
 
@@ -145,8 +149,9 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
         <SCard title="Discover Profile">
           <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
             background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.interactiveWarm,
-          }}>Moved to your Discover Profile. ›</button>
+            fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.interactiveWarm,
+          }}>{/* R-37.84 (4): branch-only. A transition-era pointer is noise in a shell whose grid
+                    IS the directory — Discover Profile has a room. `main` keeps the pointer. */}</button>
         </SCard>
 
         <SCard title="Payments">
@@ -214,7 +219,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                 color: A.interactiveWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
               }}>+</button>
             </div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 8 }}>
               How many bookings each slot of a day can hold. The calendar refuses the one after.
             </div>
             {current.slot_capacity !== '' && (
@@ -241,7 +246,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           <SField label="Handle" value={current.routing_handle} onChange={v => update({ routing_handle: v.toUpperCase().replace(/[^A-Z0-9]/g, '') })} placeholder="YOURHANDLE" />
           {handle && (
             <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{waLink}</div>
+              <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{waLink}</div>
               <button type="button" onClick={() => navigator.clipboard.writeText(waLink).then(() => show('Link copied', 'success'))}
                 style={{
                   background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
@@ -257,7 +262,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
         <SCard title="Invoice Settings">
           <SField label="Invoice prefix" value={current.invoice_prefix} onChange={v => update({ invoice_prefix: v })} placeholder="TDW/DEV550" />
           {prefixCounter != null && (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
+            <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
               Next invoice: {current.invoice_prefix}/{String(prefixCounter + 1).padStart(2, '0')}
             </div>
           )}
@@ -319,8 +324,8 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           <SCard title="Subscription">
             <button type="button" onClick={() => router.push('/vendor/billing')} style={{
               background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.interactiveWarm,
-            }}>Moved to Billing. ›</button>
+              fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.interactiveWarm,
+            }}>{/* R-37.84 (4): branch-only — Billing has a tile. */}</button>
           </SCard>
         </div>
 

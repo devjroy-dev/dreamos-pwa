@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/CalendarBands.tsx
 // TDW_04.5 · P2 — THE WEDDING-BAND VIEW (spec §P2, CE-ruled F1–F7).
@@ -142,7 +146,7 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         color: A.inkMute, whiteSpace: 'nowrap',
       }}>{fmtShort(fn.date)}</span>
       <span style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+        fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         color: A.inkSoft, maxWidth: 74, overflow: 'hidden',
         textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>{fn.kind}</span>
@@ -216,8 +220,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     // empty board, which would assert "no weddings" on the strength of a failed GET.
     return (
       <div style={{
-        padding: '18px 22px 26px', fontFamily: F.script, fontStyle: 'italic',
-        fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+        padding: '18px 22px 26px', fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
       }}>The board could not be read just now.</div>
     );
   }
@@ -228,8 +231,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
   if (bands.length === 0 && loose.length === 0) {
     return (
       <div style={{
-        padding: '18px 22px 26px', fontFamily: F.script, fontStyle: 'italic',
-        fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.5,
+        padding: '18px 22px 26px', fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.5,
       }}>{EMPTY_BOARD}</div>
     );
   }
@@ -270,7 +272,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
                     this element does not exist. It never renders ₹0. */}
                 {whisper && (
                   <span style={{
-                    fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                    fontFamily: F.script, fontWeight: 300,
                     fontSize: 16, lineHeight: 1.5, color: A.inkMute,
                   }}>{whisper}</span>
                 )}
@@ -311,8 +313,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
           is a finding, not a shrug. */}
       {data?.truncated && (
         <div style={{
-          padding: '10px 22px 0', fontFamily: F.script, fontStyle: 'italic',
-          fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+          padding: '10px 22px 0', fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
         }}>Over 400 entries in this span — the furthest are not drawn.</div>
       )}
     </div>
