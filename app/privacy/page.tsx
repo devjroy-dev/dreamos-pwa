@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 // into the served HTML — exactly what Meta's fetcher needs.
 export const dynamic = 'force-static';
 
-const EFFECTIVE_DATE = '20 July 2026';
+const EFFECTIVE_DATE = '28 August 2026';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -298,7 +298,25 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">5</span> Data retention
+            <span className="num">5</span> Google Business Profile
+          </h2>
+          <p>
+            If you connect your Google Business Profile to your vendor account, we
+            access it only with your consent, through Google&rsquo;s official APIs. We
+            read your profile details, reviews and performance metrics to show them in
+            your dashboard, and we update the fields you edit in our app &mdash; your
+            description, hours, services and photos &mdash; on your profile. We never
+            create profiles without your authorisation, never act on a profile you have
+            not connected, and never sync in the other direction. Your Google access
+            tokens are encrypted at rest and used only for these purposes. You can
+            disconnect at any time from your account settings, or revoke our access
+            directly from your Google account.
+          </p>
+        </section>
+
+        <section>
+          <h2>
+            <span className="num">6</span> Data retention
           </h2>
           <p>
             We keep your personal data for as long as your account is active and for as
@@ -311,7 +329,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">6</span> Your rights
+            <span className="num">7</span> Your rights
           </h2>
           <p>
             Subject to the DPDP Act and other applicable law, you have the right to:
@@ -332,26 +350,26 @@ export default function PrivacyPolicyPage() {
           </ul>
           <p>
             To exercise any of these rights, contact us at{' '}
-            <a href="mailto:help@thedreamwedding.in">help@thedreamwedding.in</a>. We
+            <a href="mailto:hello@thedreamwedding.in">hello@thedreamwedding.in</a>. We
             will respond within the timelines required by applicable law.
           </p>
         </section>
 
         <section>
           <h2>
-            <span className="num">7</span> Stopping messages
+            <span className="num">8</span> Stopping messages
           </h2>
           <p>
             You can stop receiving messages from our assistant at any time by replying{' '}
             <strong>STOP</strong> to any WhatsApp message from us. You may also contact
-            us at <a href="mailto:help@thedreamwedding.in">help@thedreamwedding.in</a>{' '}
+            us at <a href="mailto:hello@thedreamwedding.in">hello@thedreamwedding.in</a>{' '}
             to opt out or to close your account.
           </p>
         </section>
 
         <section>
           <h2>
-            <span className="num">8</span> Data security
+            <span className="num">9</span> Data security
           </h2>
           <p>
             We use reasonable security practices and procedures to protect your
@@ -366,7 +384,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">9</span> Children
+            <span className="num">10</span> Children
           </h2>
           <p>
             Our service is intended for adults planning or providing services for
@@ -378,7 +396,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">10</span> Changes to this policy
+            <span className="num">11</span> Changes to this policy
           </h2>
           <p>
             We may update this policy from time to time. When we do, we will change the
@@ -389,7 +407,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">11</span> Grievance officer and contact
+            <span className="num">12</span> Grievance officer and contact
           </h2>
           <p>
             If you have questions, requests or complaints about this policy or your
@@ -398,7 +416,7 @@ export default function PrivacyPolicyPage() {
           <div className="contact-block">
             <span className="who">Grievance Officer, The Dream Wedding</span>
             <br />
-            Email: <a href="mailto:help@thedreamwedding.in">help@thedreamwedding.in</a>
+            Email: <a href="mailto:hello@thedreamwedding.in">hello@thedreamwedding.in</a>
             <br />
             Address: 9/1506, Lotus Boulevard, Sector 100, Noida, Uttar Pradesh, India
           </div>
