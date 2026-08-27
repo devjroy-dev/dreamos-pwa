@@ -584,6 +584,111 @@ never ran. Restored `cmp`-identical.
 At the specimen after the cure: **18 PASS · 0 FAIL, 24 fullPage frames.** The deploy run is
 the founder's paste and nothing here claims otherwise.
 
+## §11 · THE FOUNDER'S WALK — F-38.13, AND WHAT THE GATE PASSED OVER
+
+Both gates were GREEN on the deploy before this walk. **The founder found in ten minutes
+what six instrument runs could not**, because every arm frame is `__SYNTHETIC-SPLASH` — the
+token is not real, every authenticated fetch fails closed, and no captured surface carries
+data. His walk is the only real-session evidence this arc has.
+
+### F-38.13 · THE MASTHEAD AVATAR WAS DEAD IN ALL FOURTEEN CARRIED ROOMS
+
+「the masthead avatar doesnt work in most of the rooms. billing is the only one it works in.」
+
+**Derived, not guessed.** `Header.tsx:152` is `position:sticky, zIndex:20` — a stacking
+context. The coin at `:176` carries **no position and no z-index**. The scrim at `:224` is
+`position:fixed, inset:0, zIndex:199` — and `grep -n profileOpen Header.tsx` returned eight
+hits, **not one of which gated a mount**. The panel is hidden by style; the scrim was hidden
+by nothing. A full-viewport button sat permanently over a coin painted beneath it. `/w/*`
+renders no `Header`, which is exactly why Billing — the surface that crossed — was the only
+place the avatar answered.
+
+**Mine, and branch-only.** `66dd7dc`, ZIP 11, R-37.84 (6) — the ruling that gave the drawer
+a scrim so it would stop displacing the page. The scrim was right; mounting it
+unconditionally was not. `git merge-base --is-ancestor 66dd7dc origin/main` → not an
+ancestor. **No paying vendor has ever met it.**
+
+**CURED, arm (a):** `{profileOpen && (…)}` at the scrim. One line. The panel stays
+style-hidden because its transition needs a node to animate from — which is why arm (b) was
+refused, and the asymmetry is reasoned at the site rather than left to look like an
+oversight.
+
+### ⚠ AND THE CELL WHOSE SUBJECT WAS THE DEFECT REPORTED A PASS ON IT
+
+```
+PASS  R-37.84 ⑥ drawer overlays — fixed scrim present; the grid is not in flow behind it
+```
+
+It asserted the scrim **exists**. It never asserted the scrim exists **only when the drawer
+is open** — and an unconditional mount satisfies that predicate perfectly. **This is the
+third time this sitting that presence stood in for behaviour**: F-38.7 (C-R6 passing on an
+empty page), F-38.13 here, and the vacuous R-38.2 tile clause. The pattern is not
+carelessness at three sites; it is one habit of writing 「the thing is there」 where the
+ruling said 「the thing works」.
+
+### THE CORRECTION TO RELAY #3, REPORTED NOT ABSORBED
+
+The ruling put all three new assertions — scrim absent at rest, present when open, and a
+**synthetic tap** flipping `profileOpen` — inside `wl_audit`'s `R-37.84 ⑥`. **None of the
+three is reachable from served bytes.** A fetch runs no JavaScript, dispatches no tap, and
+has no notion of 「at rest」; by this gate's own ratified law (ZIP 14 ①) that class prints
+INCONCLUSIVE and never PASS. So the cell was amended **in place, count preserved**, to
+assert the MECHANISM — the scrim ships behind a guard — and the three behavioural clauses
+became **C-R9** in the render arm, on `/vendor/list/leads`, because that is where the defect
+lived and `/w/*` would have exonerated the tree by not containing the thing under test.
+
+**C-R9's middle clause is a HIT-TEST, not a query:** `elementFromPoint` at the coin's own
+centre must return the coin or a descendant. It is the only assertion in this estate that
+would have caught F-38.13, because the coin was always present, always styled correctly,
+and always covered.
+
+**Two instrument faults found writing it, both mine, both disclosed:**
+- **C-R9 raced `Splash`.** The cold-open hero is a fixed z-10000 div that unmounts on a
+  timer (MIN_MS 2200 + 600 + 450). The cell hit-tested at ~1500ms and convicted a CURED
+  tree of covering its own coin — the exact mirror of F-38.7, an instrument reporting on a
+  moment rather than a state. It waits the transient out now, with a bound, and still
+  convicts a cover that never leaves.
+- **The `⑥` predicate matched the wrong site.** Anchored on `--role-scrim`, it found
+  `ThemeContext`'s `applyCSSVars` several hundred bytes earlier and reddened a cured tree.
+  Anchored on the scrim's own `aria-label` now.
+- **And C-R4/C-R5 inherited C-R9's page** and threw `No element found for selector:
+  .wl-dock`. A cell that depends on the previous cell's leftover page has an invisible
+  argument; they settle their own surface now.
+
+### ONE WITHDRAWAL, KEPT WITH ITS REASONING
+
+I added `thedreamwedding.in` to the retired-strings cell on the reasoning 「a retired row's
+destination must not ship either」. It reddened a correct tree: **the domain is the estate's
+own**, shipping on every surface from `public/admin-manifest.json`'s `start_url` and
+`scope`. **A retired row is a row, not a URL.** The six-row drawer cell is the honest guard.
+Withdrawn, and the withdrawal is written at the site.
+
+## §12 · RELAY #3's OTHER RULINGS, EXECUTED
+
+**THE DRAWER — arm (b), site row retired.** 「why do i have a dream wedding there?」 was a
+grouping question and he was right: three of four rows under a heading true of two. R-38.6
+retired 「Atelier」 as a section name and this seat replaced the NAME while carrying the rows
+under it unexamined. **A better heading over the same unexamined set is not a cure.**
+
+```
+ACCOUNT    Settings · Billing
+REACH US   TDW on WhatsApp
+DISPLAY    Graphite · Chalk
+ACTIONS    Sign out
+```
+
+`The Dream Wedding` leaves; product chrome does not link to its own homepage. `Sign out` is
+sentence case. Row-set cell amended by label, count preserved at six.
+
+**TWO BILLING DESK DEFECTS.** The chip read `BASIC` under a plan card reading `Basic` — a
+chip that repeats the line above it is decoration, not status; it is absent on the floor
+tier now. And the plan rows had **no affordance at all**: tappable and looking inert,
+because R-38.8's row shape waits on three inclusion lines nobody has written. The chevron
+ships now, ahead of the copy — **what the row does is not waiting on what the row says.**
+
+**R-38.9's 「six full rows」 struck.** Geometry accepted; C-R8 already asserts all eighteen
+visible at rest.
+
 ## §10 · THE NEXT SITTING
 
 The fourteen uncrossed rooms, in `INTERIM_VENDOR_ROOMS` order · Settings' body onto the six
@@ -592,3 +697,27 @@ rungs (and the AtelierForm question underneath it, which has main-side consumers
 lines · the two orphan rows in §3, on the founder's word · the stale named base ·
 Phase 4's tile badges · and the walk card, which does not come to the chair until the
 founder's paste prints all-PASS on both gates.
+
+**SITTING 2'S CHARTER, as ruled at CE-38 relay #3 and R-38.10:**
+- **TODAY FROM THE TYPED FEED.** `/vendor` retires as a surface at Phase 4 and gets no tile.
+  The shell's Today is built from `GET /api/v2/vendor/worklist/today` (typed plane, frozen
+  §3 contract) — **not** the engine reader the founder was looking at. F-P3.11 witnessed
+  that reader disagreeing with typed truth, 12 against 11, on this same account. The shell
+  will not inherit a number the estate cannot explain; the engine reader retires at the
+  §8.9 seam once F-P3.11 is diagnosed.
+- **R-38.10 · KHATA, the nineteenth room.** Tile byte 「Khata」, Your Work band. One ruled
+  register: every money movement in date order, credit and debit in aligned tabular
+  columns, a running balance, a `Received / Outstanding` head in t2 numerals. Reads the
+  Cabinet endpoint's money slices only, and sits beside Invoices and Expenses as the ledger
+  those two write into. **Workbench, Cards, the Cabinet sheet and the hood gesture all
+  retire** — Workbench was a fourth view of three rooms that already have tiles, and no
+  third door survives R-37.64. Geometry re-derives at build with the STOP clause: nineteen
+  at 64px still clears 844 by this seat's own measured numbers, but that is arithmetic
+  until the arm says otherwise.
+- **F-38.3's cure** — `AskSheet` drops `<ThemeProvider pinned>` once every component it
+  renders reads CSS variables only.
+- **The remaining twelve crossings**, in `INTERIM_VENDOR_ROOMS` order, and Settings' body
+  onto the six rungs.
+- **The `TODAY` copy section**, proposed by the seat in the functional register. Nothing
+  crosses from the hub as copy: not the spelled masthead, not the triptych, not the italic
+  lead prose.

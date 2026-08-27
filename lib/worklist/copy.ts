@@ -137,11 +137,28 @@ export const COPY = {
   // ── THE DRAWER · section eyebrows and rows ───────────────────────────────
   // Nouns, at most two words. 「Atelier」 retires as a section name: it named a design era,
   // not a group of rows, and a vendor reading it learns nothing about what is beneath it.
+  // ── AMENDED · CE-38 relay #3 ITEM 3, arm (b) ─────────────────────────────
+  // THE FOUNDER'S QUESTION WAS 「why do i have a dream wedding there?」 AND HE WAS RIGHT.
+  // The shipped drawer read: ACCOUNT · Settings · Billing · TDW on WhatsApp · The Dream
+  // Wedding — three of four rows under a heading true of two. R-38.6 retired 「Atelier」 as
+  // a section name because it named a design era rather than a group of rows; this seat
+  // replaced the NAME and carried the rows under it without re-deriving whether each one
+  // belonged. The ruling being executed was about the name, and the grouping never got
+  // looked at. A better heading over the same unexamined set is not a cure.
+  //
+  // `The Dream Wedding` RETIRES from the drawer entirely: it opened the marketing site, and
+  // product chrome does not need a door to its own homepage.
+  //
+  // `REACH US` is the chair's byte, under founder veto. It exists so 「TDW on WhatsApp」 —
+  // a founder byte with a ruled home in this drawer since R-38.7 — sits under a heading
+  // that is true of it.
   drawerAccount: 'Account',
+  drawerReachUs: 'Reach us',
   drawerDisplay: 'Display',
   drawerActions: 'Actions',
-  drawerHouse:   'The Dream Wedding',
-  drawerSignOut: 'Sign Out',
+  // Sentence case. R-38.6: buttons are verbs of at most two words, and the engraved
+  // Title Case went with the register that carried it.
+  drawerSignOut: 'Sign out',
 
   // ── R-38.9 · THE ADVISOR ROOM ────────────────────────────────────────────
   // The room's own word, at t2. Never a persona name (R-37.70).

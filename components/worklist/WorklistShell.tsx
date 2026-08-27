@@ -122,17 +122,15 @@ export function WorklistShell({ title, children }: { title: string; children: Re
                   layout, no second masthead and no second session resolve. */}
               <DLink label={COPY.settingsTitle} href="/w/settings" onGo={close} />
               <DLink label={COPY.billingTitle} href="/w/billing" onGo={close} />
-              {/* R-38.7: the founder vetoed the horizontal-strip treatment of this row on
-                  Rooms. It leaves the Rooms body and this is its ONE home
-                  (R-37.69/.83 amended). The number keeps its own single home in
-                  lib/waNumbers.ts — no literal enters this file (cell C3). */}
+              {/* ── REACH US · CE-38 relay #3 ITEM 3, arm (b) ─────────────────────
+                  R-38.7 gave this founder byte its one home in this drawer. It never
+                  belonged under 「Account」 and neither did the marketing-site row that used
+                  to sit beside it — that row is retired. The number keeps its own single
+                  home in lib/waNumbers.ts; no literal enters this file (cell C3). */}
+              <div className="wl-dsec">{COPY.drawerReachUs}</div>
               <DAct label={COPY.roomsAskTitle} onClick={() => {
                 close();
                 window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
-              }} />
-              <DAct label={COPY.drawerHouse} onClick={() => {
-                close();
-                window.open('https://thedreamwedding.in', '_blank', 'noopener');
               }} />
               <div className="wl-dsec">{COPY.drawerDisplay}</div>
               <DAct label={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} />

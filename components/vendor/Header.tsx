@@ -219,10 +219,32 @@ export function Header({ vendorName }: { vendorName: string | null }) {
         <>
         {/* R-37.84 (6): the scrim. Fixed, so the page beneath keeps its scroll position, and
             tapping it dismisses. Without this the drawer rendered in flow and shoved the grid
-            down — a drawer that displaces the page costs the reader his place. */}
-        <button type="button" aria-label="Close menu" onClick={() => setProfileOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 199, background: 'var(--role-scrim)',
-                   border: 'none', cursor: 'pointer' }} />
+            down — a drawer that displaces the page costs the reader his place.
+
+            ── F-38.13 · IT IS MOUNTED ONLY WHEN THE DRAWER IS OPEN. CE-38 relay #3, arm (a).
+            IT WAS NOT, AND THAT KILLED THE AVATAR ON EVERY CARRIED ROOM. The panel below is
+            hidden by `opacity` and `pointerEvents`; this scrim had no such guard and no
+            conditional mount, so a full-viewport `position:fixed` button sat permanently at
+            `zIndex:199` inside this header's own stacking context (`:152-153`,
+            position:sticky + zIndex:20). The coin at `:176` carries no `position` and no
+            `zIndex`, so it painted BELOW the scrim and could not be tapped. Founder-witnessed
+            on `/vendor/team-hub`, `/vendor/list/leads` and `/vendor/list/invoices`; `/w/*`
+            renders no Header, which is exactly why Billing — the surface that crossed — was
+            the only place the avatar answered.
+
+            MINE, AND BRANCH-ONLY: introduced at `66dd7dc` (ZIP 11) by the very ruling this
+            comment cites. `git merge-base --is-ancestor 66dd7dc origin/main` → not an
+            ancestor. No paying vendor has met it.
+
+            A CONDITIONAL MOUNT HERE AND STYLE-HIDING BELOW IS NOT AN INCONSISTENCY. The
+            panel must stay mounted to animate from — its transition needs a node to move —
+            and the scrim has no motion to preserve. Gating both would cost the open/close
+            animation, which is why arm (b) was refused. */}
+        {profileOpen && (
+          <button type="button" aria-label="Close menu" onClick={() => setProfileOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 199, background: 'var(--role-scrim)',
+                     border: 'none', cursor: 'pointer' }} />
+        )}
         <div style={{
           position: 'absolute', top: 'calc(100% + 12px)', right: 0,
           minWidth: 260, zIndex: 200,

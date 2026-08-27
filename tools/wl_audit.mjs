@@ -166,10 +166,47 @@ async function coverage() {
   if (/TDW ENQUIRY LINK/i.test(settings)) P('R-37.84 ⑤ settings section present');
   else I('R-37.84 ⑤ settings row', 'the section label was not found in the served bundle — check by eye');
 
-  // ── ⑥ the drawer is an overlay ───────────────────────────────────────────
-  if (/position:\s*"fixed",\s*inset:\s*0/.test(room) && /--role-scrim/.test(room))
-    P('R-37.84 ⑥ drawer overlays', 'fixed scrim present; the grid is not in flow behind it');
-  else F('R-37.84 ⑥ drawer overlays', 'no fixed scrim in the room bundle — the drawer still renders in flow');
+  // ── ⑥ the drawer is an overlay, AND ONLY WHEN IT IS OPEN ─────────────────
+  //
+  // AMENDED, LABELLED — CE-38 relay #3 ITEM 1. Cell count unchanged; the predicate gains
+  // one clause and the name gains the condition it was always missing.
+  //
+  // THIS CELL WAS GREEN THROUGHOUT F-38.13, AND THAT IS THE FINDING'S SECOND HALF. It
+  // asserted the scrim EXISTS. It never asserted the scrim exists ONLY WHEN THE DRAWER IS
+  // OPEN — and an unconditionally mounted scrim satisfies the old predicate perfectly while
+  // sitting at zIndex 199 over a coin with no z-index, killing the avatar on fourteen
+  // carried rooms. Same disease as F-38.7: PRESENCE STOOD IN FOR BEHAVIOUR, and the cell
+  // whose subject was the defect reported a pass on it.
+  //
+  // ⚠ A CORRECTION TO THE RULING, REPORTED RATHER THAN SILENTLY SPLIT. Relay #3 asks this
+  // cell for three assertions: scrim absent at rest, present with the drawer open, and a
+  // SYNTHETIC TAP on the coin flipping `profileOpen`. **None of the three is reachable from
+  // served bytes.** A fetch runs no JavaScript, dispatches no tap, and has no notion of
+  // 「at rest」. By this file's own ratified law (ZIP 14 ①) assertions of that class print
+  // INCONCLUSIVE here and never PASS. All three live in the render arm as C-R9, with their
+  // own both-ways proof and a capture of a carried room at rest and open.
+  //
+  // WHAT IS PROVABLE HERE IS THE MECHANISM: the served bundle carries the scrim BEHIND A
+  // GUARD rather than as an unconditional element. That is precisely the byte that changed,
+  // so this cell reddens at the uncured tree and greens at the cured one, while the arm
+  // proves the behaviour the byte was supposed to produce.
+  //
+  // THE PREDICATE IS ANCHORED ON THE SCRIM'S OWN aria-label, NOT ON `--role-scrim`. The
+  // first cut searched for the token and matched `ThemeContext`'s `applyCSSVars`, which
+  // calls `setProperty("--role-scrim", …)` several hundred bytes earlier in the same
+  // corpus — a site that has no `&&` near it and never will. The cell reddened a CURED
+  // tree on that alone. `aria-label:"Close menu"` occurs once and belongs to the element
+  // under test; the guard is the `&&` immediately before its `jsx("button"` call.
+  const scrimIdx  = room.indexOf('Close menu');
+  const scrimSite = scrimIdx > -1 ? room.slice(Math.max(0, scrimIdx - 120), scrimIdx + 200) : '';
+  const hasScrim  = /zIndex:\s*199/.test(scrimSite) && /--role-scrim/.test(scrimSite);
+  const guarded   = /&&\s*\(0,[\w$.]+\)\("button"/.test(scrimSite);
+  if (hasScrim && guarded)
+    P('R-37.84 ⑥ drawer overlays, and only when open', 'the scrim ships behind a condition, not as an unconditional mount');
+  else if (!hasScrim)
+    F('R-37.84 ⑥ drawer overlays, and only when open', 'no fixed scrim in the room bundle — the drawer still renders in flow');
+  else
+    F('R-37.84 ⑥ drawer overlays, and only when open', 'the scrim is mounted UNCONDITIONALLY — F-38.13: a full-viewport fixed button at zIndex 199 over a coin with no z-index');
 
   // ── ⑦ / R-37.85 ③ the risen chat, in branch tokens ───────────────────────
   if (/wl-asksheet/.test(shell) && /wl-askpanel/.test(shell)) P('R-37.84 ⑦ the chat mounts');
@@ -209,7 +246,15 @@ async function coverage() {
   // retirement (P1 handover §7) and the shell's own first-run cards are its manual.
   // 'TDW on WhatsApp' JOINED: R-38.7 gives the founder's byte its one home here.
   // The assertion does not loosen — it still names every row and reddens on any absence.
-  const rows = ['Settings', 'Billing', 'TDW on WhatsApp', 'The Dream Wedding', 'Sign Out', 'Graphite'];
+  // ── LABELLED AMENDMENT · CE-38 relay #3 ITEM 3 · ROW SET RECUT, COUNT PRESERVED AT SIX ──
+  // `The Dream Wedding` LEAVES: it opened the marketing site, and product chrome does not
+  // need a door to its own homepage. `Reach us` JOINS as the section heading that is
+  // actually true of the WhatsApp row — the founder's 「why do i have a dream wedding
+  // there?」 was a grouping question and the answer was that three of four rows sat under a
+  // heading true of two. `Sign Out` becomes `Sign out`: R-38.6 puts buttons in sentence
+  // case, and the engraved Title Case went with the register that carried it.
+  // The assertion does not loosen — it still names every row and reddens on any absence.
+  const rows = ['Settings', 'Billing', 'Reach us', 'TDW on WhatsApp', 'Sign out', 'Graphite'];
   const missingRows = rows.filter((r) => !shell.includes(r));
   if (missingRows.length) F('R-37.79 shell drawer complete', 'missing rows: ' + missingRows.join(' \u00b7 '));
   else P('R-37.79 shell drawer complete', 'all ' + rows.length + ' rows plus Display in the shell bundle');
@@ -307,6 +352,18 @@ async function coverage() {
     'Every part of your business has a room',
     "Cancelled. You're on Basic.", "Payment failed. You're on Basic.",
     'Moved to Basic \u2014 subscription cancelled', 'Free \u2014 no AI',
+    // ⚠ `thedreamwedding.in` WAS ADDED HERE AND WITHDRAWN IN THE SAME SITTING, and the
+    // withdrawal is the entry worth keeping. The reasoning was 「the retired row's
+    // destination must not ship either」, which sounds right and convicts the wrong thing:
+    // the domain is the ESTATE'S OWN, and it ships on every surface from
+    // `public/admin-manifest.json`'s `start_url` and `scope`. The cell reddened a correct
+    // tree, and it would have gone on reddening for as long as the app is called what it
+    // is called.
+    //
+    // A RETIRED ROW IS A ROW, NOT A URL. The row set two cells above asserts exactly six
+    // drawer rows by name and reddens the moment a seventh appears — which is the honest
+    // guard for a retirement whose subject is a control. Convicting a string that has
+    // legitimate homes elsewhere is the comment-blindness disease pointed at a domain.
   ];
   const alive = RETIRED.filter((t) => shellOnly.includes(t));
   if (alive.length) F('R-38.6 retired strings absent', 'still shipped: ' + alive.join(' \u00b7 '));

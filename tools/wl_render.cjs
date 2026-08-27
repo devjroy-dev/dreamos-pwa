@@ -391,6 +391,81 @@ async function seat(browser, mode) {
       P(tag + 'C-R8 eighteen rooms at rest', fit.tiles + ' tiles at ' + fit.tileH + 'px, overflow ' + fit.overflow + ', slack ' + fit.slack + 'px');
     else F(tag + 'C-R8 eighteen rooms at rest', JSON.stringify(fit));
 
+    // ── C-R9 · THE COIN IS TAPPABLE IN A CARRIED ROOM  [F-38.13] ────────────
+    //
+    // THE CELL THE AUDIT CANNOT WRITE, and the chair asked for it in three clauses. A
+    // served-bytes gate runs no JavaScript and dispatches no tap; it proved the MECHANISM
+    // (the scrim ships behind a guard) and this proves the BEHAVIOUR that mechanism exists
+    // to produce. The distinction is the whole reason this file exists.
+    //
+    //   (1) AT REST the scrim is not in the document at all — not merely transparent, not
+    //       merely pointer-events:none. Absent. The old defect was an element that WAS
+    //       there, and every style-based test would have passed on it.
+    //   (2) A REAL TAP ON THE COIN OPENS THE DRAWER. `elementFromPoint` at the coin's own
+    //       centre must return the coin or a descendant — this is a HIT-TEST, not a query.
+    //       It is the only assertion in this estate that would have caught F-38.13, because
+    //       the coin was always present, always styled correctly, and always covered.
+    //   (3) WITH THE DRAWER OPEN the scrim is present, so R-37.84 ⑥'s original substance
+    //       survives intact: the drawer still overlays rather than displacing the page.
+    //
+    // IT RUNS ON A CARRIED ROOM (`/vendor/list/leads`) because that is where the defect
+    // lived. `/w/*` renders no Header and would have exonerated the tree by not containing
+    // the thing under test.
+    const CARRIED = '/vendor/list/leads';
+    if (!await settle(p, CARRIED, 'header', mode)) {
+      F(tag + 'C-R9 the coin is tappable in a carried room', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    } else {
+      // ⚠ WAIT OUT `Splash` BEFORE HIT-TESTING, AND THE FIRST CUT DID NOT. `Splash` is a
+      // fixed z-10000 cold-open hero (`components/vendor/Splash.tsx:47`) that unmounts on a
+      // timer — MIN_MS 2200 + 600 + 450, once per session via `sessionStorage`. The cell
+      // hit-tested at ~1500ms, found the coin under a fixed z-10000 div, and reported the
+      // coin uncovered-by-nothing as covered. THAT WOULD HAVE BEEN A FALSE CONVICTION OF A
+      // CURED TREE — and it is the exact mirror of F-38.7, which passed on an empty page:
+      // an instrument reporting on a moment rather than on a state.
+      //
+      // IT WAITS FOR THE TRANSIENT AND NEVER ASSUMES IT. If the cover is still there after
+      // the bound, the hit-test below runs anyway and names what it found, so a PERMANENT
+      // z-10000 cover is still convicted rather than waited out forever.
+      await p.waitForFunction(() => ![...document.querySelectorAll('div')].some((e) => {
+        const c = getComputedStyle(e);
+        return c.position === 'fixed' && Number(c.zIndex) >= 10000;
+      }), { timeout: 9000 }).catch(() => {});
+      const rest = await p.evaluate(() => {
+        const coin = document.querySelector('[data-tour="profile-coin"]');
+        if (!coin) return { found: false };
+        const r = coin.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return {
+          found: true,
+          scrimAtRest: !!document.querySelector('button[aria-label="Close menu"]'),
+          // The hit-test. `coin.contains(hit)` covers the glyph span inside the button.
+          coinReceivesTap: !!hit && (hit === coin || coin.contains(hit)),
+          covering: hit ? (hit.getAttribute('aria-label') || hit.tagName.toLowerCase()) : null,
+        };
+      });
+      if (!rest.found) {
+        F(tag + 'C-R9 the coin is tappable in a carried room', 'no profile coin on ' + CARRIED);
+      } else if (rest.scrimAtRest) {
+        F(tag + 'C-R9 the coin is tappable in a carried room', 'F-38.13: the scrim is in the document AT REST');
+      } else if (!rest.coinReceivesTap) {
+        F(tag + 'C-R9 the coin is tappable in a carried room', 'the coin does not receive its own tap — covered by: ' + rest.covering);
+      } else {
+        await p.click('[data-tour="profile-coin"]');
+        await new Promise((r) => setTimeout(r, 450));
+        const open = await p.evaluate(() => ({
+          scrimOpen: !!document.querySelector('button[aria-label="Close menu"]'),
+          // The drawer answered: its own rows are reachable, which is what a flipped
+          // `profileOpen` actually buys the vendor.
+          rowsReachable: [...document.querySelectorAll('button, a')]
+            .some((el) => /Sign Out|Sign out/.test(el.textContent || '')),
+        }));
+        if (open.scrimOpen && open.rowsReachable)
+          P(tag + 'C-R9 the coin is tappable in a carried room', 'no scrim at rest, coin wins its own hit-test, drawer opens with its scrim');
+        else
+          F(tag + 'C-R9 the coin is tappable in a carried room', 'the tap landed but the drawer did not open: ' + JSON.stringify(open));
+      }
+    }
+
     // ── C-R4 / C-R5 RUN LAST, AND THE ORDER IS LOAD-BEARING  [F-38.8] ───────
     // These two open the chat, and opening the chat fires an AUTHENTICATED call
     // (`AiDock.ensureBusiness()` -> `fetchVictorMode()`). On a synthetic token the deploy
@@ -406,6 +481,16 @@ async function seat(browser, mode) {
     // ── C-R4 · THE CHAT SHEDS THE COSTUME  [computed, not matched] ──────────
     // NB `sans-serif` CONTAINS `serif`; the first cut of this cell reddened a cured
     // tree on that alone. The sans- form is stripped before the serif test.
+    // C-R9 leaves the page on a CARRIED room, which has no dock. These cells used the page
+    // as they found it, so the arm threw `No element found for selector: .wl-dock` the
+    // moment a cell was inserted above them. A cell that depends on the previous cell's
+    // leftover page is a cell with an invisible argument; it settles its own surface now.
+    if (!await settle(p, '/w/rooms', '.wl-dockfield', mode)) {
+      F(tag + 'C-R4 chat input in branch tokens', 'SURFACE NEVER MOUNTED — no measurement was taken');
+      F(tag + 'C-R5 chat opens at work-surface height', 'SURFACE NEVER MOUNTED — no measurement was taken');
+      await p.close();
+      continue;
+    }
     await p.click('.wl-dockfield').catch(() => p.click('.wl-dock'));
     await new Promise((r) => setTimeout(r, 700));
     const c = await p.evaluate(() => {
@@ -530,6 +615,16 @@ async function seat(browser, mode) {
         await p.click('.wl-dockfield'); await new Promise((r) => setTimeout(r, 800));
         await shot('tapped-chat');
       }
+      // F-38.13's evidence: a CARRIED room at rest and with its drawer open. The founder
+      // found this defect on exactly these surfaces and the frame set had none of them
+      // open — every drawer frame was a shell surface, where no Header renders and the
+      // defect could not appear.
+      if (await settle(p, CARRIED, 'header', mode)) {
+        await shot('carried-leads-at-rest');
+        await p.click('[data-tour="profile-coin"]');
+        await new Promise((r) => setTimeout(r, 450));
+        await shot('carried-leads-drawer-open');
+      }
       } catch (e) {
         // ── F-38.11 · THE EVIDENCE PATH IS ONE GUARDED REGION, AND THAT IS THE RULE ──
         //
@@ -563,7 +658,7 @@ async function seat(browser, mode) {
   if (CAPTURE) {
     const n = fs.readdirSync(CAPTURE).length;
     console.log('captures: ' + n + ' frames in ' + CAPTURE);
-    if (n < 24) console.log('  \u26a0 EVIDENCE INCOMPLETE — 24 frames were ruled, ' + n + ' were written. The cells above stand; the walk card does not go to the founder on a short set.');
+    if (n < 28) console.log('  \u26a0 EVIDENCE INCOMPLETE — 28 frames were ruled, ' + n + ' were written. The cells above stand; the walk card does not go to the founder on a short set.');
   }
   console.log(fail === 0 ? 'RENDER ARM GREEN.' : 'RENDER ARM RED — the ZIP bounces.');
   process.exit(fail === 0 ? 0 : 1);

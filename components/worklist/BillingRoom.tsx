@@ -77,8 +77,15 @@ export function BillingRoom({ current, show, loading = false }: { current: Field
             {!PLAN_PRICE[current.tier] && (
               <p className="wl-billbasic">{COPY.planBasicIncludes}</p>
             )}
-            {/* NO CHIP ON AN UNRECOGNISED STATUS — see billingChip.ts. */}
-            {chip.label !== null && <span className={'wl-chipstatus ' + chip.tone}>{chip.label}</span>}
+            {/* NO CHIP ON AN UNRECOGNISED STATUS — see billingChip.ts.
+                ── DESK DEFECT, founder's walk: the card read 「Basic」 and then 「BASIC」.
+                The chip is the RAIL and the card above it is the PLAN, and on a floor-tier
+                vendor those two words collide — the chip was repeating the plan name back
+                at her and saying nothing. A chip that duplicates the line above it is not a
+                status, it is decoration. Absent on the floor tier now: her plan says Basic
+                once, and the rail speaks only when it has something of its own to say. */}
+            {chip.label !== null && chip.label !== planLabel &&
+              <span className={'wl-chipstatus ' + chip.tone}>{chip.label}</span>}
           </>
         )}
       </section>
@@ -173,6 +180,13 @@ function PlansList({ currentTier, isUpgrade, show }: {
                   onClick={() => setPicked(picked === t ? null : t)}>
             <span className="wl-planname">{PLAN_LABEL[t]}</span>
             <span className="wl-planprice">{PLAN_PRICE[t]}</span>
+            {/* ── DESK DEFECT, founder's walk: the rows had NO affordance at all ────
+                R-38.8 rules each row as name · inclusion · price · one action, and three of
+                the four inclusion lines are owed bytes nobody has written. That left rows
+                which are tappable and look inert — the shape of a control that has to be
+                discovered. The chevron is the action affordance and it ships NOW, ahead of
+                the copy: what the row DOES is not waiting on what the row SAYS. */}
+            <span className="wl-planchev" aria-hidden>{picked === t ? '\u2039' : '\u203a'}</span>
           </button>
           {picked === t && (
             <div className="wl-planconfirm">
@@ -270,6 +284,8 @@ const BILL_CSS = `
 .wl-planname{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-planprice{font:var(--wl-t4);color:var(--atelier-ink-mute);text-align:right}
 .wl-planprice{font-variant-numeric:tabular-nums}
+.wl-planchev{flex-shrink:0;font:var(--wl-t4);color:var(--atelier-ink-dim);line-height:1}
+.wl-planrow[aria-expanded="true"] .wl-planchev{color:var(--atelier-accent-text)}
 .wl-planconfirm{padding:12px 2px 4px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
 .wl-billbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
 .wl-billaction{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;font:var(--wl-t4);color:var(--atelier-accent-text);text-decoration:none;touch-action:manipulation}

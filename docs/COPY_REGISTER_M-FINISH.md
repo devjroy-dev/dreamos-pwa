@@ -60,8 +60,20 @@ product never took.
 | `roomsAskTitle` — "TDW on WhatsApp" | **UNCHANGED**, R-37.78 founder byte. New home: the coin drawer. |
 | `roomsProfileTitle` — "Profile layout" | **UNCHANGED**, founder byte. New home: a row inside Settings. |
 | band captions `— your work —` / `— your business —` | **"your work" / "your business"** — the em-dash bracketing retires with the engraved register. A label needing decoration to read as a label is not a label. |
-| drawer section `Atelier` | **`Account`.** It named a design era, not a group of rows; a vendor reading it learns nothing about what is beneath it. |
-| drawer rows `Discover Profile` / `Tips & Features` | **RETIRED from the drawer.** The first is now `Profile layout` in Settings (R-38.7); the second pointed at `/vendor/more`, which R-38.1 forbids from a shell control and which is slated for retirement anyway. |
+| drawer section `Atelier` | **`Account`.** It named a design era, not a group of rows. |
+| drawer rows `Discover Profile` / `Tips & Features` | **RETIRED from the drawer.** The first is now `Profile layout` in Settings (R-38.7); the second pointed at `/vendor/more`, which R-38.1 forbids from a shell control. |
+| drawer row `The Dream Wedding` → thedreamwedding.in | **RETIRED.** Founder's walk: 「why do i have a dream wedding there?」 Product chrome does not need a door to its own homepage. |
+| — | `drawerReachUs` — **"Reach us"**. Chair's byte, under founder veto. It exists so 「TDW on WhatsApp」 sits under a heading that is true of it. |
+| `Sign Out` | **"Sign out"** — sentence case. R-38.6 puts buttons in sentence case; the engraved Title Case went with the register that carried it. |
+
+**The drawer as ruled (CE-38 relay #3, arm (b)):**
+
+```
+ACCOUNT    Settings · Billing
+REACH US   TDW on WhatsApp
+DISPLAY    Graphite · Chalk
+ACTIONS    Sign out
+```
 
 ## 4 · BILLING — R-38.8
 
