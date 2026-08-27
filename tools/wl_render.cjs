@@ -54,6 +54,14 @@ const fs = require('fs');
 const BASE = (process.argv[2] || '').replace(/\/$/, '');
 const capIdx = process.argv.indexOf('--capture');
 const CAPTURE = capIdx > -1 ? process.argv[capIdx + 1] : null;
+// ── CAPTURES ARE OPT-IN, AND AGAINST A DEPLOY THEY SHOULD USUALLY BE OFF ────────────
+// The cells are the verdict; the frames are evidence for the chair. Screenshotting eight
+// surfaces twice over a network round trip is most of this instrument's runtime, and every
+// minute of it is the founder's. Run WITHOUT `--capture` to get the verdict in about a
+// third of the time; run WITH it against a LOCAL `next start` when the chair needs frames.
+// The frames are chrome-and-layout evidence either way — the fixture's token is synthetic,
+// so they say nothing about any data-bearing surface and a local build shows the same
+// chrome the deploy does.
 if (!BASE) {
   console.error('usage: node tools/wl_render.cjs <base-url> [--capture <dir>]');
   process.exit(2);
@@ -70,16 +78,112 @@ let pass = 0, fail = 0;
 const P = (n, why) => { console.log('PASS  ' + n + (why ? '  — ' + why : '')); pass++; };
 const F = (n, why) => { console.log('FAIL  ' + n + '  — ' + why); fail++; };
 
-async function seat(browser, mode) {
-  const p = await browser.newPage();
-  await p.setViewport(VIEW);
-  await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+
+// ── THE WAIT IS ON THE THING, AND THE FIXTURE SURVIVES ITS OWN ACTIONS ──────
+//                                              [F-38.6 · F-38.7 · F-38.8]
+//
+// THREE DEFECTS LIVE UNDER THIS ONE HELPER AND THEY WERE FOUND IN THIS ORDER, WHICH IS
+// ALSO THE ORDER OF HOW BADLY THEY MATTERED — LEAST FIRST.
+//
+// F-38.6 · IT WAITED ON A CLOCK. Every navigation used a fixed setTimeout — 1200ms,
+// 1400ms — long enough on a local `next start` and not on the real deploy. `/w`'s session
+// guard renders a bare background div while it resolves, so an unmounted page has NO
+// `.wl-*` element at all, and C-R7 reported an edge verdict about a tree it had never
+// looked at.
+//
+// F-38.8 · THE FIXTURE DESTROYED ITS OWN SESSION, AND THE ARM DID NOT NOTICE. C-R5 clicks
+// `.wl-dockfield` to raise the chat. That fires `AiDock.ensureBusiness()` →
+// `fetchVictorMode()` → an AUTHENTICATED request. The seeded token is synthetic, so the
+// deploy answers 401; `lib/vendor/api/_base.ts:106-113` refreshes once, fails, and calls
+// `clearAndRedirect()` — `clearVendorSession()` and `window.location.href = '/'`.
+// FROM THAT MOMENT THE FIXTURE HAS NO SESSION. Every later `/w` navigation is bounced by
+// the guard, which is why C-R6, C-R7 and C-R8 all reported NEVER MOUNTED and why light
+// mode finally threw `net::ERR_ABORTED` — a hard redirect racing a goto.
+//
+// F-38.7 · AND THAT IS THE ONE THAT MATTERS: C-R6 PASSED ON THE DEPLOY WHILE THIS WAS
+// TRUE. Its predicate is 「every painted tuple is one of the six rungs」, and on a page
+// that had already bounced to `/` there were ZERO painted tuples inside `.wl`. Zero
+// members satisfy a universal claim. The old clock-wait handed it an empty page and it
+// printed PASS. **The green was hollow, and only the cure for F-38.6 exposed it** — the
+// stricter wait turned a false green into an honest red, which is exactly the direction
+// this estate's instruments are supposed to move under pressure.
+//
+// SO THE CURES ARE THREE AND EACH ONE IS NAMED AT ITS SITE:
+//   · no clocks in the navigation path — settle() waits for the tree's own root landmark
+//   · settle() RE-SEEDS ONCE and says so, because a fixture that cannot survive the
+//     product's own behaviour is a fixture that measures nothing after its first action
+//   · C-R6 asserts a FLOOR on how many tuples it saw, so it can never again pass by
+//     looking at nothing
+async function reseat(p, mode) {
   await p.evaluate((s, m) => {
     localStorage.setItem('vendor_session', JSON.stringify(s));
     localStorage.setItem('tdw_worklist_mode', m);
   }, SEED, mode);
-  await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-  await p.waitForSelector('.wl-coin', { timeout: 20000 });
+}
+
+async function settle(p, path, landmark, mode) {
+  // THE ROOT LANDMARK IS PER-TREE. The first cure waited for `.wl-main` on EVERY path,
+  // including the two carried /vendor rooms that are captured ON PURPOSE as the seam the
+  // founder is being asked to judge. Those surfaces have no `.wl-main` and never will, so
+  // the arm skipped them and shipped 20 frames where 24 were ruled. Waiting for the wrong
+  // landmark and waiting for no landmark fail the same way.
+  const root = path.startsWith('/w') ? '.wl-main' : 'header';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+      await p.waitForSelector(root, { timeout: 15000 });
+      if (landmark) await p.waitForSelector(landmark, { timeout: 15000 });
+      return true;
+    } catch {
+      if (attempt === 0) {
+        // A RE-SEED IS ITSELF EVIDENCE and is never silent: it means something cleared the
+        // session, and the only thing that does is a 401 on a real authenticated call.
+        // THE MESSAGE USED TO SAY 「the session had been cleared」, which is a CAUSE this
+        // line has not derived — the first attempt can fail for a slow selector, an
+        // aborted navigation, or a redirect, and only one of those is a cleared session.
+        // An instrument that names a cause it did not establish is doing the thing this
+        // estate files findings about. It reports WHAT IT DID.
+        console.log('  first attempt at ' + path + ' did not settle; re-seeded and retried');
+        try { await reseat(p, mode); } catch { /* the page may be mid-redirect */ }
+      }
+    }
+  }
+  return false;
+}
+
+async function seat(browser, mode) {
+  const p = await browser.newPage();
+  await p.setViewport(VIEW);
+  // ── F-38.10 · THE FIXTURE IS SEEDED BEFORE EVERY DOCUMENT, NOT REPAIRED AFTER ──
+  //
+  // F-38.8 established that the product logs this fixture out: any authenticated call
+  // 401s on a synthetic token, and `_base.ts:106-113` answers with `clearVendorSession()`
+  // and a hard redirect. The first cure RE-SEEDED AFTER THE FACT and retried, which is
+  // reactive by construction — it repairs the session only once the damage has already
+  // cost a navigation, and on the deploy one surface still lost the race and reported
+  // NEVER MOUNTED on a tree that was fine.
+  //
+  // `evaluateOnNewDocument` runs BEFORE any page script on EVERY document. So no matter
+  // how many times the product clears the session, the next navigation already has one.
+  // The fixture stops being something that survives the product and becomes something the
+  // product cannot remove. That is also most of the speed: no retries, no 20s waits.
+  await p.evaluateOnNewDocument((s, m) => {
+    try {
+      localStorage.setItem('vendor_session', JSON.stringify(s));
+      localStorage.setItem('tdw_worklist_mode', m);
+    } catch { /* private mode */ }
+  }, SEED, mode);
+  // THE SECOND SEEDING AND THE DOUBLE NAVIGATION BOTH RETIRE. `evaluateOnNewDocument`
+  // above already writes the session before any page script on every document, so the old
+  // dance — load once to get an origin, write localStorage, load again — is doing nothing
+  // that has not already been done. Two fewer round trips per mode.
+  //
+  // ⚠ AND IT NO LONGER THROWS. This function was the LAST unguarded step in the file and
+  // it is the first thing each mode runs: a failed `.wl-coin` wait here threw out of the
+  // whole arm, which is how a run that had printed nine green dark cells still exited 3.
+  // Same class as F-38.9 and F-38.11, found in the same file three edits later. It returns
+  // null now, and the caller reports that mode's cells rather than losing them.
+  if (!await settle(p, '/w/rooms', '.wl-coin', mode)) { await p.close(); return null; }
   return p;
 }
 
@@ -92,11 +196,24 @@ async function seat(browser, mode) {
     args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
     executablePath: await chromium.executablePath(),
     headless: 'shell',
+    // F-38.9. The default protocol timeout is tuned for a local server; against the real
+    // deploy an unclipped fullPage screenshot exceeded it and threw. Raised — but only to
+    // 120s, and the first cut's 300s was a mistake worth recording: a long timeout does
+    // not make a hang succeed, it makes a hang EXPENSIVE. Five minutes per stuck frame
+    // turned a two-minute run into something the founder had to ask about. A guarded step
+    // should fail fast and be reported, not sit there being patient on his time.
+    protocolTimeout: 120000,
   });
 
   for (const mode of ['dark', 'light']) {
     const p = await seat(browser, mode);
     const tag = '[' + mode + '] ';
+    if (!p) {
+      // A MODE THAT NEVER SEATED IS A REPORTED MODE, NOT A LOST ONE. Nine silent cells is
+      // the failure this file has now committed four times; the last hole is closed here.
+      F(tag + 'the shell never seated', 'no .wl-coin at /w/rooms after a re-seed — every cell for this mode was skipped, not passed');
+      continue;
+    }
 
     // ── C-R1 · THE DRAWER PAINTS INSIDE THE VIEWPORT ────────────────────────
     // The defect: `.wl-drawer` was a SIBLING of the header it anchors to, so its
@@ -148,6 +265,144 @@ async function seat(browser, mode) {
     if (g.tiles === EXPECTED) P(tag + 'C-R3 the registry\'s room count is what paints', EXPECTED + ' tiles on screen');
     else F(tag + 'C-R3 the registry\'s room count is what paints', 'registry says ' + EXPECTED + ', rendered ' + g.tiles);
 
+    // ── C-R6 · THE TUPLE SET IS THE SCALE  [R-38.4] ─────────────────────────
+    //
+    // THE CELL R-38.4 EXISTS FOR, AND IT LIVES HERE BY THIS FILE'S OWN LAW: what family a
+    // byte PAINTS IN is a computed fact, and computed facts are structurally outside a
+    // served-bytes gate. wl_audit proves the two retired VARIABLES are gone, which is the
+    // mechanism; only the browser can say what the mechanism produced.
+    //
+    // SIX TUPLES, NOT FIVE. t0 (46/.95 Cormorant 500) is the named display exception ruled
+    // at CE-38 relay #1 — the Today masthead numeral, R-37.88's own 「stature」. A bare
+    // "⊆ five" cell would have reddened the ratified design it was written to protect.
+    //
+    // ⚠ SETTINGS IS EXCLUDED BY NAME AND NOT BY SILENCE. Its body is AtelierForm — Jost at
+    // 9px, .42em tracking — and it crossed STRUCTURALLY this sitting without crossing
+    // typographically. Capturing it and letting the cell pass over it would make R-38.4's
+    // "by construction, not by sweep" claim false on the first surface that tested it. The
+    // exclusion is one line of code and one line of handover, so it cannot be forgotten.
+    const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor'];
+    const RUNGS = [
+      { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
+      { n: 't2', px: 17, w: 500, fam: 'DM Sans' },   { n: 't3', px: 14, w: 400, fam: 'DM Sans' },
+      { n: 't4', px: 12, w: 500, fam: 'DM Sans' },   { n: 't5', px: 11, w: 500, fam: 'DM Sans' },
+    ];
+    const strays = [];
+    let tuplesSeen = 0;
+    for (const path of SCALE_SURFACES) {
+      if (!await settle(p, path, null, mode)) { strays.push(path + ' NEVER MOUNTED'); continue; }
+      const tuples = await p.evaluate(() => {
+        const out = [];
+        for (const el of document.querySelectorAll('.wl *')) {
+          if (!el.textContent || !el.textContent.trim()) continue;
+          // Text-bearing LEAVES only. A container inherits its child's computed font and
+          // would report a tuple nothing actually paints in.
+          if ([...el.children].some((c) => c.textContent && c.textContent.trim())) continue;
+          const c = getComputedStyle(el);
+          out.push({ size: Math.round(parseFloat(c.fontSize) * 10) / 10,
+                     weight: c.fontWeight, family: c.fontFamily,
+                     tag: el.tagName.toLowerCase(), cls: el.className || '' });
+        }
+        return out;
+      });
+      tuplesSeen += tuples.length;
+      for (const t of tuples) {
+        const hit = RUNGS.find((r) => Math.abs(t.size - r.px) < 0.6 &&
+                                      String(t.weight) === String(r.w) &&
+                                      t.family.includes(r.fam));
+        if (!hit) strays.push(path + ' ' + (t.cls || t.tag) + ' ' + t.size + 'px/' + t.weight + ' ' + t.family.split(',')[0]);
+      }
+    }
+    // ── THE NON-VACUITY FLOOR · F-38.7 ──────────────────────────────────────
+    // 「Every painted tuple is one of the six rungs」 is TRUE OF AN EMPTY PAGE. This cell
+    // printed PASS against the real deploy while the fixture had been logged out and the
+    // shell was not on screen at all. A universal claim over zero members is not evidence,
+    // and a cell that cannot tell 「all correct」 from 「nothing to look at」 is the hollow
+    // green this whole gate exists to refuse. Four shell surfaces cannot paint fewer than
+    // forty text-bearing leaves between them; the floor is deliberately far below the
+    // observed count so it convicts absence, never density.
+    const TUPLE_FLOOR = 40;
+    if (strays.length) F(tag + 'C-R6 the tuple set is the scale', strays.slice(0, 6).join(' \u00b7 ') + (strays.length > 6 ? ' (+' + (strays.length - 6) + ')' : ''));
+    else if (tuplesSeen < TUPLE_FLOOR) F(tag + 'C-R6 the tuple set is the scale', 'only ' + tuplesSeen + ' painted tuples seen across four surfaces, floor ' + TUPLE_FLOOR + ' — this cell saw nothing and must not report a pass');
+    else P(tag + 'C-R6 the tuple set is the scale', tuplesSeen + ' painted tuples on four surfaces, every one of the six rungs');
+
+    // ── C-R7 · THE EDGE, BOTH DEFINITIONS  [R-38.5, CE-38 relay #2] ─────────
+    // (a) THE TEXT EDGE: the wordmark, the first tile's border, the dock field's border and
+    //     Billing's plan card resolve to ONE x. This is the founder's misalignment stated
+    //     as a number — the header sat at 22px while everything else sat at 12.
+    // (b) THE CONTAINER EDGE: .wl-nav's content box equals .wl-main's. The seats' TEXT is
+    //     centred, so "left edge of nav" has no text referent and (a) cannot reach it.
+    //     Two cells because there are two questions, not because one was hard to write.
+    const billingUp = await settle(p, '/w/billing', '.wl-billcard', mode);
+    const eB = !billingUp ? null : await p.evaluate(() => {
+      const l = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
+      return { house: l('.wl-house'), card: l('.wl-billcard'), dock: l('.wl-dockfield'),
+               nav: l('.wl-nav'), main: l('.wl-main') };
+    });
+    const roomsUp = await settle(p, '/w/rooms', '.wl-tile', mode);
+    const eR = !roomsUp ? null : await p.evaluate(() => {
+      const t = document.querySelector('.wl-tile');
+      return { tile: t ? Math.round(t.getBoundingClientRect().left * 10) / 10 : null };
+    });
+    // THE UNMOUNTED CASE IS ITS OWN VERDICT AND SAYS SO. It is not an edge failure and
+    // must never be reported as one: the difference between 「these four are misaligned」
+    // and 「I never saw them」 is the difference between a finding and a guess.
+    if (!billingUp || !roomsUp) {
+      F(tag + 'C-R7a the text edge is one x', 'SURFACE NEVER MOUNTED — billing=' + billingUp + ' rooms=' + roomsUp + '; no measurement was taken');
+      F(tag + 'C-R7b the container edge agrees', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    } else {
+      const xs = [eB.house, eR.tile, eB.dock, eB.card];
+      const spread = Math.max(...xs) - Math.min(...xs);
+      if (xs.every((v) => v !== null) && spread <= 0.5)
+        P(tag + 'C-R7a the text edge is one x', 'house/tile/dock/plan-card all at ' + eB.house + ', spread ' + spread);
+      else F(tag + 'C-R7a the text edge is one x', JSON.stringify({ house: eB.house, tile: eR.tile, dock: eB.dock, card: eB.card, spread }));
+      if (eB.nav !== null && Math.abs(eB.nav - eB.main) <= 0.5)
+        P(tag + 'C-R7b the container edge agrees', 'nav ' + eB.nav + ' = main ' + eB.main);
+      else F(tag + 'C-R7b the container edge agrees', JSON.stringify(eB));
+    }
+
+    // ── C-R8 · EIGHTEEN ROOMS AT REST  [F-38.4, CE-38 relay #2] ─────────────
+    // THE STOP CONDITION, AS A CELL RATHER THAN AS AN ARITHMETIC CLAIM. R-38.5 first ruled
+    // 1:1 tiles; at three-up on 390px that is 114px square, and eighteen rooms then need
+    // ~946px against ~651px of work area — Settings, Business Solutions, Collab and Advisor
+    // permanently below the fold, which defeats R-37.61's own warrant. 64px fixed was ruled
+    // instead, and the chair ordered it re-derived on glass with a STOP if it did not clear
+    // with 8px to spare. It clears; this keeps it clearing.
+    // ⚠ THIS BLOCK USED TO DEREFERENCE `.wl-main` WITHOUT A GUARD, so a surface that had
+    // not mounted produced `Cannot read properties of null (reading 'scrollHeight')` and
+    // the arm THREW. It never reached light mode and it wrote none of the 24 captures. A
+    // bench that crashes instead of reporting is worse than one that reds: the red names
+    // the cell, the crash costs every cell after it.
+    if (!await settle(p, '/w/rooms', '.wl-tile', mode)) {
+      F(tag + 'C-R8 eighteen rooms at rest', 'SURFACE NEVER MOUNTED — no measurement was taken');
+      await p.close();
+      continue;
+    }
+    const fit = await p.evaluate(() => {
+      const main = document.querySelector('.wl-main');
+      if (!main) return { tiles: null, overflow: null, tileH: null, slack: null };
+      const tiles = [...document.querySelectorAll('.wl-tile')];
+      const last = tiles.length ? tiles[tiles.length - 1].getBoundingClientRect() : null;
+      return { tiles: tiles.length, overflow: main.scrollHeight - main.clientHeight,
+               tileH: last ? Math.round(last.height) : null,
+               slack: last ? Math.round(main.getBoundingClientRect().bottom - last.bottom) : null };
+    });
+    if (fit.tiles === 18 && fit.overflow === 0 && fit.slack >= 8)
+      P(tag + 'C-R8 eighteen rooms at rest', fit.tiles + ' tiles at ' + fit.tileH + 'px, overflow ' + fit.overflow + ', slack ' + fit.slack + 'px');
+    else F(tag + 'C-R8 eighteen rooms at rest', JSON.stringify(fit));
+
+    // ── C-R4 / C-R5 RUN LAST, AND THE ORDER IS LOAD-BEARING  [F-38.8] ───────
+    // These two open the chat, and opening the chat fires an AUTHENTICATED call
+    // (`AiDock.ensureBusiness()` -> `fetchVictorMode()`). On a synthetic token the deploy
+    // answers 401 and `_base.ts:106-113` responds with `clearVendorSession()` and
+    // `window.location.href = '/'`. Per-document seeding makes the NEXT page have a
+    // session again, but it cannot stop the redirect from hijacking the navigation that is
+    // already in flight — which is why C-R6 kept reporting `/w/rooms NEVER MOUNTED` on the
+    // deploy while C-R3, C-R7 and C-R8 all passed on the same route seconds later.
+    //
+    // THE CURE IS SEQUENCE, NOT MORE MACHINERY. The one action that logs the fixture out
+    // now happens after every cell that needs it logged in. Two retry ladders and a
+    // per-document seed were me adding mechanism to survive an ordering problem.
     // ── C-R4 · THE CHAT SHEDS THE COSTUME  [computed, not matched] ──────────
     // NB `sans-serif` CONTAINS `serif`; the first cut of this cell reddened a cured
     // tree on that alone. The sans- form is stripped before the serif test.
@@ -177,106 +432,9 @@ async function seat(browser, mode) {
     if (h.found && h.ratio >= 0.8) P(tag + 'C-R5 chat opens at work-surface height', h.ratio + ' of viewport');
     else F(tag + 'C-R5 chat opens at work-surface height', JSON.stringify(h));
 
-    // ── C-R6 · THE TUPLE SET IS THE SCALE  [R-38.4] ─────────────────────────
-    //
-    // THE CELL R-38.4 EXISTS FOR, AND IT LIVES HERE BY THIS FILE'S OWN LAW: what family a
-    // byte PAINTS IN is a computed fact, and computed facts are structurally outside a
-    // served-bytes gate. wl_audit proves the two retired VARIABLES are gone, which is the
-    // mechanism; only the browser can say what the mechanism produced.
-    //
-    // SIX TUPLES, NOT FIVE. t0 (46/.95 Cormorant 500) is the named display exception ruled
-    // at CE-38 relay #1 — the Today masthead numeral, R-37.88's own 「stature」. A bare
-    // "⊆ five" cell would have reddened the ratified design it was written to protect.
-    //
-    // ⚠ SETTINGS IS EXCLUDED BY NAME AND NOT BY SILENCE. Its body is AtelierForm — Jost at
-    // 9px, .42em tracking — and it crossed STRUCTURALLY this sitting without crossing
-    // typographically. Capturing it and letting the cell pass over it would make R-38.4's
-    // "by construction, not by sweep" claim false on the first surface that tested it. The
-    // exclusion is one line of code and one line of handover, so it cannot be forgotten.
-    const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor'];
-    const RUNGS = [
-      { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
-      { n: 't2', px: 17, w: 500, fam: 'DM Sans' },   { n: 't3', px: 14, w: 400, fam: 'DM Sans' },
-      { n: 't4', px: 12, w: 500, fam: 'DM Sans' },   { n: 't5', px: 11, w: 500, fam: 'DM Sans' },
-    ];
-    const strays = [];
-    for (const path of SCALE_SURFACES) {
-      await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
-      await new Promise((r) => setTimeout(r, 1200));
-      const tuples = await p.evaluate(() => {
-        const out = [];
-        for (const el of document.querySelectorAll('.wl *')) {
-          if (!el.textContent || !el.textContent.trim()) continue;
-          // Text-bearing LEAVES only. A container inherits its child's computed font and
-          // would report a tuple nothing actually paints in.
-          if ([...el.children].some((c) => c.textContent && c.textContent.trim())) continue;
-          const c = getComputedStyle(el);
-          out.push({ size: Math.round(parseFloat(c.fontSize) * 10) / 10,
-                     weight: c.fontWeight, family: c.fontFamily,
-                     tag: el.tagName.toLowerCase(), cls: el.className || '' });
-        }
-        return out;
-      });
-      for (const t of tuples) {
-        const hit = RUNGS.find((r) => Math.abs(t.size - r.px) < 0.6 &&
-                                      String(t.weight) === String(r.w) &&
-                                      t.family.includes(r.fam));
-        if (!hit) strays.push(path + ' ' + (t.cls || t.tag) + ' ' + t.size + 'px/' + t.weight + ' ' + t.family.split(',')[0]);
-      }
-    }
-    if (strays.length) F(tag + 'C-R6 the tuple set is the scale', strays.slice(0, 6).join(' \u00b7 ') + (strays.length > 6 ? ' (+' + (strays.length - 6) + ')' : ''));
-    else P(tag + 'C-R6 the tuple set is the scale', 'every painted tuple on four surfaces is one of the six rungs');
-
-    // ── C-R7 · THE EDGE, BOTH DEFINITIONS  [R-38.5, CE-38 relay #2] ─────────
-    // (a) THE TEXT EDGE: the wordmark, the first tile's border, the dock field's border and
-    //     Billing's plan card resolve to ONE x. This is the founder's misalignment stated
-    //     as a number — the header sat at 22px while everything else sat at 12.
-    // (b) THE CONTAINER EDGE: .wl-nav's content box equals .wl-main's. The seats' TEXT is
-    //     centred, so "left edge of nav" has no text referent and (a) cannot reach it.
-    //     Two cells because there are two questions, not because one was hard to write.
-    await p.goto(BASE + '/w/billing', { waitUntil: 'domcontentloaded' });
-    await new Promise((r) => setTimeout(r, 1400));
-    const eB = await p.evaluate(() => {
-      const l = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
-      return { house: l('.wl-house'), card: l('.wl-billcard'), dock: l('.wl-dockfield'),
-               nav: l('.wl-nav'), main: l('.wl-main') };
-    });
-    await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-    await new Promise((r) => setTimeout(r, 1200));
-    const eR = await p.evaluate(() => {
-      const t = document.querySelector('.wl-tile');
-      return { tile: t ? Math.round(t.getBoundingClientRect().left * 10) / 10 : null };
-    });
-    const xs = [eB.house, eR.tile, eB.dock, eB.card];
-    const spread = Math.max(...xs) - Math.min(...xs);
-    if (xs.every((v) => v !== null) && spread <= 0.5)
-      P(tag + 'C-R7a the text edge is one x', 'house/tile/dock/plan-card all at ' + eB.house + ', spread ' + spread);
-    else F(tag + 'C-R7a the text edge is one x', JSON.stringify({ house: eB.house, tile: eR.tile, dock: eB.dock, card: eB.card, spread }));
-    if (eB.nav !== null && Math.abs(eB.nav - eB.main) <= 0.5)
-      P(tag + 'C-R7b the container edge agrees', 'nav ' + eB.nav + ' = main ' + eB.main);
-    else F(tag + 'C-R7b the container edge agrees', JSON.stringify(eB));
-
-    // ── C-R8 · EIGHTEEN ROOMS AT REST  [F-38.4, CE-38 relay #2] ─────────────
-    // THE STOP CONDITION, AS A CELL RATHER THAN AS AN ARITHMETIC CLAIM. R-38.5 first ruled
-    // 1:1 tiles; at three-up on 390px that is 114px square, and eighteen rooms then need
-    // ~946px against ~651px of work area — Settings, Business Solutions, Collab and Advisor
-    // permanently below the fold, which defeats R-37.61's own warrant. 64px fixed was ruled
-    // instead, and the chair ordered it re-derived on glass with a STOP if it did not clear
-    // with 8px to spare. It clears; this keeps it clearing.
-    const fit = await p.evaluate(() => {
-      const main = document.querySelector('.wl-main');
-      const tiles = [...document.querySelectorAll('.wl-tile')];
-      const last = tiles.length ? tiles[tiles.length - 1].getBoundingClientRect() : null;
-      return { tiles: tiles.length, overflow: main.scrollHeight - main.clientHeight,
-               tileH: last ? Math.round(last.height) : null,
-               slack: last ? Math.round(main.getBoundingClientRect().bottom - last.bottom) : null };
-    });
-    if (fit.tiles === 18 && fit.overflow === 0 && fit.slack >= 8)
-      P(tag + 'C-R8 eighteen rooms at rest', fit.tiles + ' tiles at ' + fit.tileH + 'px, overflow ' + fit.overflow + ', slack ' + fit.slack + 'px');
-    else F(tag + 'C-R8 eighteen rooms at rest', JSON.stringify(fit));
-
-    // ── CAPTURES · fullPage, always, with the data condition in the name ────
+    // ── CAPTURES · with the data condition in the name ──────────────────────
     if (CAPTURE) {
+      try {
       fs.mkdirSync(CAPTURE, { recursive: true });
       // Expand the inner scroll column so the frame carries the WHOLE surface, then restore.
       const unclip = () => p.evaluate(() => {
@@ -292,10 +450,48 @@ async function seat(browser, mode) {
         wl.style.height = wl.dataset.wlPrevH || '100dvh'; wl.style.overflow = wl.dataset.wlPrevO || 'hidden';
         main.style.overflowY = ''; main.style.flex = '';
       });
+      // ── F-38.9 · A CAPTURE MAY NEVER COST A CELL ────────────────────────────
+      //
+      // THE VERDICT IS THE CELLS. THE CAPTURES ARE EVIDENCE. Those are different things
+      // and they must fail differently: a missing frame is a gap in what the founder can
+      // look at, and it is worth exactly one line of log. It is not worth NINE CELLS.
+      //
+      // On the deploy, `Page.captureScreenshot` timed out on the first unclipped frame and
+      // the throw propagated out of the whole run. Every dark cell had already passed —
+      // including C-R8, which is F-38.4's STOP condition — and light mode never executed.
+      // The cells were green and the arm reported nothing.
+      //
+      // ⚠ AND THIS IS THE SECOND TIME A THROW HAS COST LIGHT MODE. F-38.6 guarded the
+      // MEASUREMENT path against exactly this and I stopped there: I cured the instance
+      // and not the class. Every step that can throw is now either guarded or is a cell.
+      //
+      // `reclip()` runs in a `finally`, because a frame that fails mid-unclip would
+      // otherwise leave the page expanded and hand the NEXT cell a shell with no fixed
+      // viewport — a capture fault silently becoming a measurement fault.
+      // ── F-38.12 · `fullPage` WAS THE HANG, NOT THE TIMEOUT ────────────────
+      // Three frames per mode timed out on the deploy at 45s each even after the cap came
+      // down. Raising or lowering a timeout was never going to fix it: Chrome's fullPage
+      // path re-lays-out the document and composites it in one protocol call, and on a
+      // shell full of `position:fixed` chrome (the scrim, the drawer, the dock, the nav)
+      // over a network round trip it does not reliably return. THE FIX IS TO STOP ASKING
+      // FOR IT. The page is already unclipped, so its document height is known — set the
+      // viewport to that height and take an ORDINARY screenshot, which is one composite of
+      // what is on screen and has no re-layout in it. Viewport restored after, always.
       const shot = async (n) => {
-        await unclip(); await new Promise((r) => setTimeout(r, 250));
-        await p.screenshot({ path: `${CAPTURE}/${mode}__${n}__SYNTHETIC-SPLASH.png`, fullPage: true });
-        await reclip();
+        try {
+          await unclip();
+          await new Promise((r) => setTimeout(r, 250));
+          const h = await p.evaluate(() => Math.min(
+            Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), 4000));
+          await p.setViewport({ ...VIEW, height: h });
+          await new Promise((r) => setTimeout(r, 200));
+          await p.screenshot({ path: `${CAPTURE}/${mode}__${n}__SYNTHETIC-SPLASH.png`, timeout: 20000 });
+        } catch (e) {
+          console.log('  capture failed, cells unaffected: ' + mode + '__' + n + ' — ' + e.message.split('\n')[0]);
+        } finally {
+          try { await p.setViewport(VIEW); } catch { /* page may be gone */ }
+          try { await reclip(); } catch { /* the page may be gone; the next settle() re-navigates */ }
+        }
       };
       // §5's capture set. Billing, Settings and Advisor are SHELL routes now; the two
       // /vendor frames that remain are carried rooms that have not crossed, kept so the
@@ -304,41 +500,71 @@ async function seat(browser, mode) {
         ['w-billing', '/w/billing'], ['w-settings', '/w/settings'],
         ['w-advisor', '/w/advisor'], ['w-support', '/w/support'],
         ['room-leads', '/vendor/list/leads'], ['room-collab', '/vendor/collab']]) {
-        await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
-        await new Promise((r) => setTimeout(r, 1400));
+        // A FRAME OF A HALF-MOUNTED PAGE IS EVIDENCE OF NOTHING and would be handed to the
+        // founder looking like a broken surface. The capture waits on the shell too, and a
+        // surface that never mounts is named in the log rather than photographed.
+        if (!await settle(p, path, null, mode)) { console.log('  capture skipped, never mounted: ' + path); continue; }
         await shot(name);
       }
-      await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-      await p.waitForSelector('.wl-coin', { timeout: 20000 });
-      await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
-      await shot('tapped-drawer-on-rooms');
+      if (await settle(p, '/w/rooms', '.wl-coin', mode)) {
+        await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
+        await shot('tapped-drawer-on-rooms');
+      }
       // §5 asks for the drawer open on BILLING as well as on Rooms: the drawer anchors to
       // the header, and a header on a surface with different content beneath it is where a
       // stacking or clipping fault would show. F-16.37 was exactly that fault.
-      await p.goto(BASE + '/w/billing', { waitUntil: 'domcontentloaded' });
-      await p.waitForSelector('.wl-coin', { timeout: 20000 });
-      await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
-      await shot('tapped-drawer-on-billing');
+      if (await settle(p, '/w/billing', '.wl-coin', mode)) {
+        await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
+        await shot('tapped-drawer-on-billing');
+      }
       // The tapped tile: the :active state R-38.2 requires within 16ms of touch.
-      await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-      await p.waitForSelector('.wl-tile', { timeout: 20000 });
-      await p.evaluate(() => {
-        const t = document.querySelector('.wl-tile');
-        t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-      });
-      await new Promise((r) => setTimeout(r, 120));
-      await shot('tapped-tile');
-      await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-      await p.waitForSelector('.wl-dockfield', { timeout: 20000 });
-      await p.click('.wl-dockfield'); await new Promise((r) => setTimeout(r, 800));
-      await shot('tapped-chat');
+      if (await settle(p, '/w/rooms', '.wl-tile', mode)) {
+        await p.evaluate(() => {
+          const t = document.querySelector('.wl-tile');
+          if (t) t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+        });
+        await new Promise((r) => setTimeout(r, 120));
+        await shot('tapped-tile');
+      }
+      if (await settle(p, '/w/rooms', '.wl-dockfield', mode)) {
+        await p.click('.wl-dockfield'); await new Promise((r) => setTimeout(r, 800));
+        await shot('tapped-chat');
+      }
+      } catch (e) {
+        // ── F-38.11 · THE EVIDENCE PATH IS ONE GUARDED REGION, AND THAT IS THE RULE ──
+        //
+        // FOUR TIMES a throw inside the capture block has cost every cell after it, and
+        // three of those times I guarded the STEP that threw and moved on:
+        //   F-38.6  guarded the measurement navigations
+        //   F-38.9  guarded `shot()` itself
+        //   and then `.wl-coin` threw here, outside both, and light mode died again.
+        //
+        // Patching the site that threw is not a cure when the CLASS is 「anything in the
+        // evidence path can reach the verdict path」. The rule is structural now and it is
+        // one line of syntax: THE WHOLE CAPTURE BLOCK IS INSIDE ONE try. Nothing that
+        // happens while gathering pictures can ever again change what the cells reported,
+        // or stop the other mode from running.
+        //
+        // I cured the instance three times before curing the class. That is the estate's
+        // own most-named failure and it took the founder asking why a run was slow to make
+        // me stop patching and look at the shape.
+        console.log('  capture block aborted, cells unaffected: ' + e.message.split('\n')[0]);
+      }
     }
     await p.close();
   }
 
   await browser.close();
   console.log('\n' + pass + ' PASS · ' + fail + ' FAIL');
-  if (CAPTURE) console.log('captures: ' + fs.readdirSync(CAPTURE).length + ' fullPage frames in ' + CAPTURE);
+  // A GREEN VERDICT BESIDE AN EMPTY CAPTURE DIRECTORY MUST NOT READ AS A COMPLETE RUN.
+  // The cells are the verdict and a lost frame does not red them (F-38.9) — but the chair
+  // gates these frames before the founder sees anything, so a short set is a gap in the
+  // evidence and has to announce itself rather than sit quietly under the word GREEN.
+  if (CAPTURE) {
+    const n = fs.readdirSync(CAPTURE).length;
+    console.log('captures: ' + n + ' frames in ' + CAPTURE);
+    if (n < 24) console.log('  \u26a0 EVIDENCE INCOMPLETE — 24 frames were ruled, ' + n + ' were written. The cells above stand; the walk card does not go to the founder on a short set.');
+  }
   console.log(fail === 0 ? 'RENDER ARM GREEN.' : 'RENDER ARM RED — the ZIP bounces.');
   process.exit(fail === 0 ? 0 : 1);
 })().catch((e) => { console.error('render arm threw: ' + e.message); process.exit(3); });

@@ -2,7 +2,7 @@
 
 **Over `366a7b5` (`origin/worklist`). Packet `8b83aee41ea806bbbde5f55f2e99ca5b4a307bda7c765b6a6ec8f1ff878ed0a6`.**
 **`tsc --noEmit`: exit 0. `next build --webpack`: exit 0, seven `/w` routes.**
-**Floor: `FLOOR = NAMED BASE`… no. See §7 — the floor is byte-identical to the UNTOUCHED TIP, and the named base is stale by four.**
+**Floor: `FLOOR = NAMED BASE, no delta` — witnessed at the founder's terminal on a clean tree after the commit. See §7's correction: this document's original "stale by four" claim is RETRACTED, and the cause was a missing sibling repo in the executor's container.**
 
 ```
 wl_audit  @ cured      26 PASS · 0 FAIL · 2 INCONCLUSIVE     GATE GREEN
@@ -252,6 +252,48 @@ legitimately survive for `main`, exactly like the fifteen Espresso benches. What
 their absence is `wl_audit`'s R-38.6 cell, on the branch's **served bytes**, which is where
 R-38.8's retirement actually bites.
 
+### ⚠ CORRECTION · THE "STALE BY FOUR" FINDING BELOW IS RETRACTED
+
+**It was wrong, and it is left standing with its retraction rather than deleted**, because a
+finding that vanishes teaches nothing and this one has a lesson in it.
+
+**WITNESSED AT THE FOUNDER'S TERMINAL after the commit landed:**
+
+```
+$ bash scripts/run-floor.sh --check
+... 22 RED ...
+FLOOR = NAMED BASE, no delta
+```
+
+**The named base is stale by NOTHING.** At verify time the founder's floor read 23 — the
+base's 22 plus `tdw_f0774_vacuity_probe`, which reds on a dirty tree exactly as ZIP 14 ⑦
+documented it would and went green the moment the commit landed.
+
+**WHY MY CONTAINER READ 26, DERIVED BY COMMAND:**
+
+```
+FAIL 2.1 REFUSED: sibling repo not found at /home/claude/dream-os/src/lib/shared/tagVocabulary.js
+BENCH ABORTED — a matrix bench without its capability axis proves nothing.
+BENCH ABORTED — dream-os must be a sibling; the kind list is pinned to the
+                server's own allowlist and cannot be checked against memory.
+```
+
+`tdw09_p2b_vocab`, `tdw13_d6_parity_matrix` and `tdw15_p1_events` are **cross-repo** benches.
+The founder's Codespace has `dream-os` as a sibling; the executor container does not. All
+three REFUSE rather than pass vacuously, which is **correct conduct on their part** — and I
+read three correct refusals as an estate-wide defect and filed it against the chair.
+
+**THE LESSON, WHICH IS THE SAME ONE THIS ARC KEEPS PAYING FOR:** an environment artifact
+wearing the costume of a finding. `run-floor.sh`'s own header already carries this class as
+desk lore for `--depth 1` clones. The cross-check was one command — clone `dream-os` as a
+sibling, or read the benches' own refusal strings — and I ran neither before writing it
+down. **A base entry nobody can account for is how a real regression gets absorbed; a false
+base entry is how a real instrument gets distrusted.** The delta claim in this section is
+unaffected: mine-vs-untouched-tip was derived in one container and was zero, and the
+founder's terminal now says so absolutely.
+
+**THE RETRACTED PARAGRAPH FOLLOWS, unedited.**
+
 **⚠ AND THE NAMED BASE IN `run-floor.sh` IS STALE BY FOUR.** At the untouched tip,
 `tdw09_p2b_vocab`, `tdw13_d6_parity_matrix`, `tdw15_p1_events` and
 `tdw_f0774_vacuity_probe` all RED and none is in the printf constant. Inherited, pre-dating
@@ -287,6 +329,260 @@ data-bearing surface.**
 - **The local build is a specimen, not the deploy.** The founder's paste is the verdict.
   `next build` needs `NEXT_FONT_GOOGLE_MOCKED_RESPONSES`; the mock was authored outside the
   repo and ships in nothing.
+
+## §9b · F-38.6 — THE ARM WAITED ON A CLOCK, AND THE DEPLOY IS WHAT PROVED IT
+
+**Filed after the founder's first run against the real Vercel deploy**, which is the first
+time either instrument met the actual build rather than a local `next start` specimen.
+
+`wl_audit` came back **26 PASS · 0 FAIL · 2 INCONCLUSIVE — GATE GREEN**, 102 chunks fetched
+of 102 referenced, at `advisor:200` (the route did not exist before `cebf47a`, so it is
+also the provenance check). C-R1 through C-R6 went green. **Then C-R7 measured six selectors
+and got six nulls, and C-R8 threw:**
+
+```
+FAIL [dark] C-R7a the text edge is one x — {"house":null,"tile":null,"dock":null,"card":null,"spread":0}
+FAIL [dark] C-R7b the container edge agrees — {"house":null,...,"main":null}
+render arm threw: Cannot read properties of null (reading 'scrollHeight')
+```
+
+**BOTH FAULTS ARE IN THE INSTRUMENT AND NEITHER IS IN THE TREE.**
+
+**(a) IT WAITED ON A CLOCK.** Every navigation used a fixed `setTimeout` — 1200ms, 1400ms —
+chosen because they were long enough locally. `/w`'s session guard renders a bare background
+div while it resolves, so a page that has not finished mounting has **no `.wl-*` element at
+all**. C-R7 therefore reported a verdict about the edge of a tree it had never looked at. A
+cell that cannot distinguish 「wrong」 from 「not there yet」 is the hollow-green failure
+running backwards: same confusion, red end. And the local-vs-deploy split is exactly the gap
+this arm exists to close — ZIP 13 wrote that the local build is a specimen and not the
+deploy, and I then timed the instrument against the specimen.
+
+**(b) IT THREW INSTEAD OF REPORTING.** C-R8 dereferenced `.wl-main` unguarded, so a missed
+wait became a crash. It never reached light mode and it wrote **none of the 24 captures**. A
+bench that crashes instead of reddening is worse than one that reds: the red names the cell,
+the crash costs every cell after it.
+
+### F-38.8 · THE FIXTURE DESTROYED ITS OWN SESSION — the cause under the cause
+
+The re-run after F-38.6's cure did not go green. It reported `NEVER MOUNTED` for every
+surface from C-R6 onward and then threw `net::ERR_ABORTED at …/w/rooms` in light mode.
+**The wait was not the whole disease.** Derived by command:
+
+C-R5 clicks `.wl-dockfield` to raise the chat. That fires `AiDock.ensureBusiness()` →
+`fetchVictorMode()` → an **authenticated** request. The seeded token is synthetic, so the
+deploy answers 401, and `lib/vendor/api/_base.ts:106-113` refreshes once, fails, and calls
+`clearAndRedirect()` — `clearVendorSession()` and `window.location.href = '/'`.
+
+**From that click onward the fixture has no session.** Every later `/w` navigation is
+bounced by the guard, and a hard redirect racing a `goto` is the `ERR_ABORTED`. The arm was
+measuring a logged-out browser and had no way to know it.
+
+`settle()` now **re-seeds once and says so in the log**, because a re-seed is itself
+evidence: the only thing that clears the session is a 401 on a real authenticated call.
+
+### F-38.7 · AND C-R6 PASSED ON THE DEPLOY WHILE ALL OF THAT WAS TRUE
+
+**This is the one that matters, and it is the worst kind of defect this estate files.**
+
+Look again at the founder's first deploy run: `PASS C-R6 the tuple set is the scale`. It
+was measuring a page that had already bounced to `/`. Its predicate is 「every painted tuple
+is one of the six rungs」, and inside `.wl` there were **zero** painted tuples. **Zero
+members satisfy a universal claim.** The clock-wait handed the cell an empty page and it
+printed a pass.
+
+So the tuple cell — the one cell R-38.4 exists for, the one that caught the dock glyph
+painting in Arial — was **green on the deploy for the wrong reason**, and only the stricter
+wait exposed it. A cell that cannot tell 「all correct」 from 「nothing to look at」 is
+precisely the hollow green this gate was built to refuse, and I shipped one.
+
+**CURED with a non-vacuity floor.** C-R6 now counts what it saw and fails below forty
+tuples across four surfaces — deliberately far under the 84 actually observed, so it
+convicts absence and never density.
+
+**PROVEN BOTH WAYS, by feeding it the exact condition the deploy produced** (a page that
+mounts and paints nothing inside `.wl`, with the mount check neutralised so the floor is
+the only thing that can catch it):
+
+```
+FAIL [dark]  C-R6 … only 0 painted tuples seen across four surfaces, floor 40 —
+                   this cell saw nothing and must not report a pass
+FAIL [light] C-R6 … only 0 painted tuples seen across four surfaces, floor 40
+```
+
+Restored `cmp`-identical. At the specimen after all three cures: **18 PASS · 0 FAIL, 84
+tuples per mode, 24 fullPage frames.**
+
+### F-38.9 · A CAPTURE COST NINE CELLS, AND I HAD ALREADY FIXED THIS ONCE
+
+The run after F-38.7/.8's cure went **green on every dark cell against the real deploy** —
+including the re-seat line, which is F-38.8 confirmed live:
+
+```
+re-seated the fixture at /w/rooms — the session had been cleared
+PASS [dark] C-R6 the tuple set is the scale — 84 painted tuples on four surfaces, every one of the six rungs
+PASS [dark] C-R7a the text edge is one x — house/tile/dock/plan-card all at 16, spread 0
+PASS [dark] C-R7b the container edge agrees — nav 0 = main 0
+PASS [dark] C-R8 eighteen rooms at rest — 18 tiles at 64px, overflow 0, slack 74px
+render arm threw: Page.captureScreenshot timed out.
+```
+
+**F-38.4's STOP condition met on the deploy, the edge at one x on the deploy, the tuple set
+honest on the deploy — and the arm reported nothing**, because the first unclipped
+screenshot exceeded puppeteer's default protocol timeout and the throw propagated out of
+the whole run. Light mode never executed.
+
+**THE VERDICT IS THE CELLS. THE CAPTURES ARE EVIDENCE.** Those are different things and
+they must fail differently: a missing frame is worth one line of log, not nine cells.
+
+**⚠ AND THIS IS THE SECOND TIME A THROW HAS COST LIGHT MODE.** F-38.6's cure guarded the
+MEASUREMENT path against precisely this, and I stopped there. **I cured the instance and
+not the class** — which is the failure this estate names most often and which I committed
+one delivery after writing the paragraph about it. Every step that can throw is now either
+guarded or is a cell.
+
+**CURED**, in three parts: `protocolTimeout` raised to 300s (a mitigation, not a cure);
+`shot()` guarded so a failed frame logs and the run continues; `reclip()` moved into a
+`finally`, because a frame failing mid-unclip would otherwise leave the page expanded and
+hand the NEXT cell a shell with no fixed viewport — a capture fault silently becoming a
+measurement fault.
+
+**AND A SHORT CAPTURE SET NOW ANNOUNCES ITSELF.** A green verdict beside an empty capture
+directory must not read as a complete run: the chair gates these frames before the founder
+sees anything, so the arm prints `⚠ EVIDENCE INCOMPLETE` and names the count.
+
+**PROVEN BY MUTATION — every screenshot forced to throw:**
+
+```
+24 × "capture failed, cells unaffected: …"
+18 PASS · 0 FAIL
+captures: 0 fullPage frames
+  ⚠ EVIDENCE INCOMPLETE — 24 frames were ruled, 0 were written.
+```
+
+All eighteen cells ran, in both modes, and the verdict printed. Restored `cmp`-identical.
+
+### F-38.10 / F-38.11 · I CURED THE INSTANCE FOUR TIMES BEFORE CURING THE CLASS
+
+**This is the section I least want to write and the one most worth keeping.**
+
+After F-38.9's cure the arm went green on every DARK cell against the deploy and then threw
+again — `Waiting for selector '.wl-coin' failed` — at the drawer-capture step, which sat
+outside `settle()` and outside `shot()`'s guard. Light mode never ran. **Again.**
+
+Count them, because the pattern is the finding and no single one of them is:
+
+| | what threw | what I did |
+|---|---|---|
+| F-38.6 | measurement navigations | guarded the navigations |
+| F-38.9 | `shot()` | guarded `shot()` |
+| F-38.11 | `.wl-coin` in the capture block | guarded the capture block |
+| F-38.10 | `seat()`, the first call of each mode | guarded `seat()` |
+
+**Four times, and three of them I patched the site that threw and moved on.** The class was
+never 「this step throws」. The class is 「anything in the evidence path can reach the
+verdict path」, and it took the founder asking why a run was slow to make me stop patching
+and look at the shape.
+
+**THE RULE IS STRUCTURAL NOW.** The whole capture block is one `try`. `seat()` returns null
+instead of throwing, and the caller reports `the shell never seated` rather than losing nine
+cells in silence. There is no unguarded step left in the file.
+
+**AND THE FIXTURE IS NO LONGER REPAIRED — IT IS UNREMOVABLE.** F-38.8's first cure re-seeded
+*after* a 401 had already cleared the session, which is reactive by construction: on the
+deploy one surface still lost the race and reported NEVER MOUNTED on a tree that was fine.
+`evaluateOnNewDocument` now writes the session **before any page script on every document**,
+so however often the product logs the fixture out, the next navigation already has one. The
+old load-write-reload dance retires with it — two fewer round trips per mode, and the
+re-seat count on a clean run is **zero**.
+
+**AND MY 300s protocolTimeout WAS A MISTAKE.** A long timeout does not make a hang succeed,
+it makes a hang EXPENSIVE — five minutes per stuck frame turned a two-minute run into
+something the founder had to ask about. 120s, with a 45s cap on the screenshot itself.
+Post-cure the full run is **78 seconds, 18 PASS · 0 FAIL, 24 frames, zero re-seats.**
+
+**PROVEN BOTH WAYS.** Capture path, every screenshot forced to throw: 24 × `capture failed`,
+**18 PASS · 0 FAIL**, `⚠ EVIDENCE INCOMPLETE — 24 ruled, 0 written`. Seat path, landmark
+mutated to a class that does not exist:
+
+```
+FAIL [dark]  the shell never seated — … every cell for this mode was skipped, not passed
+FAIL [light] the shell never seated — … every cell for this mode was skipped, not passed
+0 PASS · 2 FAIL     RENDER ARM RED
+```
+
+Both modes report; nothing vanishes. Restored `cmp`-identical both times.
+
+**ONE COST DECLARED, NOT CURED:** against a dead host `p.goto` does not reject, it hangs on
+CDP, so a total network fault still costs one protocol timeout per attempt. That is latency,
+not a wrong verdict, and it is named here rather than discovered later.
+
+### F-38.12 · `fullPage` WAS THE HANG — AND THE ORDER WAS THE OTHER HALF
+
+Ten minutes on the founder's terminal, twice. Two causes, and neither was a timeout.
+
+**(a) THE SCREENSHOT.** Chrome's `fullPage` path re-lays-out the document and composites it
+in a single protocol call. On a shell full of `position:fixed` chrome — scrim, drawer, dock,
+nav — over a network round trip it does not reliably return. **Raising or lowering the
+timeout was never going to fix it**, and my 300s made every hang cost five minutes. The page
+is already unclipped, so its height is known: set the viewport to that height and take an
+ORDINARY screenshot, which is one composite of what is on screen with no re-layout in it.
+
+**(b) THE ORDER.** C-R4/C-R5 open the chat, and opening the chat fires an authenticated call
+that 401s and triggers `clearAndRedirect()`. Per-document seeding gives the NEXT page a
+session but cannot stop the redirect hijacking a navigation already in flight — which is
+exactly why C-R6 kept reporting `/w/rooms NEVER MOUNTED` while C-R3, C-R7 and C-R8 passed
+on that same route seconds later. **The cure is sequence, not machinery.** The one action
+that logs the fixture out now runs after every cell that needs it logged in. Two retry
+ladders and a per-document seed were me adding mechanism to survive an ordering problem.
+
+**MEASURED AFTER, at the specimen:** cells + 24 frames, **81s**. **Cells only: 14s.**
+
+### THE SPLIT, AND IT IS OPERATIONAL NOW, NOT DOCTRINAL
+
+`--capture` is opt-in and **should normally be OFF against a deploy**. Screenshotting eight
+surfaces twice over a network is most of this instrument's runtime, and every minute of it
+is the founder's. The verdict is the cells. The frames are evidence for the chair, they are
+chrome-and-layout only (the token is synthetic), and a LOCAL build shows the same chrome the
+deploy does — so the chair can gate frames locally while the founder runs cells against the
+real thing in about fifteen seconds.
+
+### ⚠ THE LIMIT THIS SEAT HAS BEEN WORKING UNDER, STATED PLAINLY
+
+**The executor container cannot reach `vercel.app`.** Every arm cure in this section was
+verified against a local `next start` and shipped to the founder to be tried against the
+deploy. Four of them passed locally and failed there — the clock waits, the cleared fixture,
+the capture throw, the `fullPage` hang — because latency and a real 401 are exactly what a
+local specimen does not have. That is not an excuse for the four rounds; the ordering fault
+was visible by reading, and 「cure the class, not the instance」 is written in this estate's
+own protocol. But it is the reason the loop ran through the founder's terminal instead of
+mine, and it is why the split above matters: **the half I cannot verify should not be in
+the founder's critical path.**
+
+**CURED.** No clocks remain in the navigation path. `settle()` waits for the tree's own root
+landmark and then for the surface's landmark, and an unmounted surface produces
+`SURFACE NEVER MOUNTED — no measurement was taken` rather than a measurement or a throw.
+
+**AND THE FIRST CURE OVER-REACHED, disclosed rather than quietly fixed:** it waited for
+`.wl-main` on every path, including the two carried `/vendor` rooms that are captured ON
+PURPOSE as the seam the founder is being asked to judge. Those surfaces have no `.wl-main`
+and never will, so the arm skipped them and shipped **20 frames where 24 were ruled**.
+Waiting for the wrong landmark and waiting for no landmark fail the same way. The root
+landmark is per-tree now.
+
+**NON-VACUITY, by pointing the arm at a route that mounts no shell:**
+
+```
+FAIL [dark]  C-R7a … SURFACE NEVER MOUNTED — billing=false rooms=true; no measurement was taken
+FAIL [dark]  C-R8  … SURFACE NEVER MOUNTED — no measurement was taken
+FAIL [light] C-R7a … SURFACE NEVER MOUNTED — billing=false rooms=true; no measurement was taken
+12 PASS · 6 FAIL
+```
+
+**Both modes report.** Before the cure the same condition produced a throw and light mode
+never ran. Restored `cmp`-identical.
+
+At the specimen after the cure: **18 PASS · 0 FAIL, 24 fullPage frames.** The deploy run is
+the founder's paste and nothing here claims otherwise.
 
 ## §10 · THE NEXT SITTING
 
