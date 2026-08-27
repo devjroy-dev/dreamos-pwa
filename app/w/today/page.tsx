@@ -35,14 +35,15 @@ export default function TodayPage() {
       <p className="wl-stillbuilt">{COPY.todayEmptyLine1} {COPY.todayEmptyLine2}</p>
       <FirstRun />
       <style>{`
-.wl-masthead{padding:22px 18px 0}
+/* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
+.wl-masthead{padding:22px 0 0}
 .wl-mdate{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-mcount{display:flex;align-items:baseline;gap:9px;margin-top:9px}
 .wl-mnum{font-family:var(--wl-display);font-size:46px;line-height:.95;color:var(--atelier-ink)}
 .wl-mcap{font-family:var(--wl-body);font-weight:400;font-size:14px;color:var(--atelier-ink-dim)}
 .wl-mrule{height:.5px;background:var(--role-metal);opacity:.55;margin-top:16px}
-.wl-hero{font-family:var(--wl-feature);font-weight:400;font-size:24px;line-height:1.34;color:var(--atelier-ink);margin:20px 18px 0;letter-spacing:-.005em}
-.wl-stillbuilt{font-family:var(--wl-body);font-weight:400;font-size:13px;color:var(--atelier-ink-mute);margin:10px 18px 0}
+.wl-hero{font-family:var(--wl-feature);font-weight:400;font-size:24px;line-height:1.34;color:var(--atelier-ink);margin:20px 0 0;letter-spacing:-.005em}
+.wl-stillbuilt{font-family:var(--wl-body);font-weight:400;font-size:13px;color:var(--atelier-ink-mute);margin:10px 0 0}
       `}</style>
     </WorklistShell>
   );

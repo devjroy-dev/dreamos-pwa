@@ -129,7 +129,7 @@ cell('C10 every tap target >= 44px', () => {
   const files = {
     'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-coinitem'],
     'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
-    'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // ZIP 7: the dock is an input; .wl-dock is its padding wrapper, .wl-dockfield is the target
+    'components/worklist/AiDock.tsx':        ['wl-dock'],  // R-37.83: the field costume is retired; the dock is a row again
     'components/worklist/FirstRun.tsx':      ['wl-chip'],
     'components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
     'app/w/support/page.tsx':                ['wl-supportaction'],
@@ -156,7 +156,7 @@ cell('C11 type floors hold', () => {
     ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-sub', 11],
-    ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // ZIP 7: the logo row died; the placeholder is the dock's only type
+    ['components/worklist/AiDock.tsx', 'wl-docktext', 12],  // R-37.83: the row's title is the dock's only type
     ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
     ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],
   ];
@@ -399,6 +399,31 @@ cell('C21 every wl- class a component uses is defined somewhere the shell mounts
     }
   }
   if (orphans.length) return orphans.join(' | ');
+  return null;
+});
+
+// ── C22 · R-37.82 (1) THE GUTTER LAW. The founder's misalignment existed because the rows
+//    chose their own inset. The cure is not care, it is construction: the column owns one
+//    gutter and no component under it may set a horizontal margin, width or padding-x.
+cell('C22 no component takes back the gutter', () => {
+  const shell = read('components/worklist/WorklistShell.tsx');
+  if (!/--wl-gutter/.test(shell)) return 'the column declares no gutter token';
+  if (!/\.wl-main > \*\{[^}]*padding-left:var\(--wl-gutter\)/.test(shell)) return 'the column does not apply its own gutter';
+  const offenders = [];
+  for (const f of ['components/worklist/RoomsGrid.tsx', 'components/worklist/FirstRun.tsx', 'app/w/today/page.tsx']) {
+    const css = read(f);
+    for (const m of css.matchAll(/\.(wl-[a-z-]+)\{([^}]*)\}/g)) {
+      const [, cls, decl] = m;
+      // A NONZERO horizontal component only. `margin: 0 0 8px` is vertical rhythm and legal;
+      // an earlier draft of this cell flagged it and would have taught the reader to ignore
+      // the cell, which is worse than not having it.
+      const mh = decl.match(/margin:\s*[\d.]+px\s+([\d.]+)px/);
+      if (mh && Number(mh[1]) !== 0) offenders.push(cls + ' sets a horizontal margin');
+      if (/margin-(left|right):/.test(decl)) offenders.push(cls + ' sets a side margin');
+      if (/\bwidth:\s*calc\(100% -/.test(decl)) offenders.push(cls + ' sets its own width against the gutter');
+    }
+  }
+  if (offenders.length) return offenders.join(', ');
   return null;
 });
 

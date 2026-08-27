@@ -101,13 +101,21 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 // sizes and reads several shades lighter than its measured ratio — the founder caught
 // exactly this on the Chalk walk-through, and the cure was weight, not ink.
 const SHELL_CSS = `
+/* ── R-37.82 ① THE GUTTER LAW ────────────────────────────────────────────────────
+   ONE horizontal gutter, owned by the scroll column, equal to the tile grid's own edge.
+   Every element inherits it; no component sets its own horizontal margin or width, ever.
+   The founder's misalignment existed because the rows chose their own inset — that
+   freedom is removed by construction, not by care. C22 asserts no component takes it back.
+   ── ③ THE RHYTHM LAW: vertical spacing is the 8-scale. Nothing improvised. */
+.wl{--wl-gutter:12px;--wl-step:8px}
+.wl-main > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
 /* ── SHARED CARD CHROME · ONE HOME (founder walk, ZIP 7) ────────────────────────────
    These four classes are used by BOTH the first-run manual and the Rooms link card. They
    used to live inside FirstRun's own style block, which mounts on Today only — so the same
    markup rendered styled on one surface and unstyled on the other. A class used by two
    components and owned by one is a single-home violation wearing CSS. The shell emits them
    now, because the shell is the one thing every surface is inside. C21 holds the line. */
-.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px;margin:0 16px 10px}
+.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px;margin:0 0 10px}
 .wl-card-lead{border-left:2px solid var(--atelier-accent-text)}
 .wl-cardtitle{font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
 .wl-cardbody{font-family:var(--wl-body);font-weight:400;font-size:14.5px;line-height:1.65;color:var(--atelier-ink-soft);margin:0}

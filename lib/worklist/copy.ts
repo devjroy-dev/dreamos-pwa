@@ -109,6 +109,8 @@ export const COPY = {
   // Affordances invite; sentences attribute. No surface may freelance a fourth name.
   dockPlaceholder: 'Ask TDW \u2014 \u201cAm I free on 14 Feb?\u201d',
   dockAria: 'Ask TDW',
+  // R-37.83: the dock names its destination while the chat is not yet here to answer.
+  dockRowTitle: 'Ask TDW',
   roomsAskTitle: 'TDW on WhatsApp',
   roomsAskSub:   'your 24/7 enquiry desk',
   roomsProfileTitle: 'Profile layout',

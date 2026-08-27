@@ -25,53 +25,34 @@ function Tile({ room }: { room: Room }) {
   );
 }
 
-// R-37.76 ① / R-37.78: the assistant, offered as a row between the bands and the pointer.
-// Title is the founder’s byte. Destination is the same vendor line the dock opens, through
-// the same declared home — one number, one resolver, no seventh inline literal.
-function AskRow() {
-  return (
-    <button type="button" className="wl-row" onClick={() => window.open(
-      `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener')}>
-      <span className="wl-rowglyph" aria-hidden>&#9670;</span>
-      <span className="wl-rowtext">{COPY.roomsAskTitle}<span className="wl-rowsub">{COPY.roomsAskSub}</span></span>
-      <span className="wl-rowchev" aria-hidden>&rsaquo;</span>
-    </button>
-  );
-}
-
-// R-37.81(a): DERIVED, not guessed. Two couple-facing surfaces exist at tip —
-//   /vendor/discover/profile  is the EDITOR (its own header: "the spec calls this Profile
-//                             Studio", founder-renamed 2026-07-29)
-//   /vendor/discover/preview  is the COUPLE VIEW (its own header quotes the founder’s
-//                             contract of 2026-07-31: "see what couples see")
-// The ruling asks for the couple-view, so this opens /preview. Near-zero wiring, as expected:
-// the surface already exists and needed only an affordance.
-function ProfileRow() {
+function Panel({ handle }: { handle?: string | null }) {
   const router = useRouter();
-  return (
-    <button type="button" className="wl-row" onClick={() => router.push('/vendor/discover/preview')}>
-      <span className="wl-rowglyph" aria-hidden>&#9678;</span>
-      <span className="wl-rowtext">{COPY.roomsProfileTitle}<span className="wl-rowsub">{COPY.roomsProfileSub}</span></span>
-      <span className="wl-rowchev" aria-hidden>&rsaquo;</span>
-    </button>
-  );
-}
-
-// R-37.76 ⑥: the vendor’s own share link, rendered as ITSELF. A link a vendor can see is a
-// link he trusts and pastes. Composed through waNumberFor, never inline.
-function LinkCard({ handle }: { handle: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}`;
+  const url = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
+  const wa = () => window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
   return (
-    <div className="wl-card wl-linkcard">
-      <h3 className="wl-cardtitle">{COPY.cardLinkTitle}</h3>
-      <button type="button" className="wl-linkrow" onClick={() => {
-        navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); })
-          .catch(() => { /* clipboard denied — the link is still readable, which was the point */ });
-      }}>
-        <code className="wl-linkcode">{url.replace('https://', '')}</code>
-        <span className={'wl-copy' + (copied ? ' on' : '')}>{copied ? COPY.linkCopied : COPY.linkCopy}</span>
+    <div className="wl-panel">
+      {/* R-37.82 (2): ONE LINE PER ROW. The caps-tracked subtitles are DELETED — the titles
+          carry the meaning alone, and the manual’s cards already teach the rest. */}
+      <button type="button" className="wl-prow" onClick={wa}>
+        <span className="wl-pglyph" aria-hidden>&#9670;</span>
+        <span className="wl-ptitle">{COPY.roomsAskTitle}</span>
+        <span className="wl-pchev" aria-hidden>&rsaquo;</span>
       </button>
+      <button type="button" className="wl-prow" onClick={() => router.push('/vendor/discover/preview')}>
+        <span className="wl-pglyph" aria-hidden>&#9678;</span>
+        <span className="wl-ptitle">{COPY.roomsProfileTitle}</span>
+        <span className="wl-pchev" aria-hidden>&rsaquo;</span>
+      </button>
+      {url && (
+        <button type="button" className="wl-prow" onClick={() => {
+          navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => {});
+        }}>
+          {/* the row shows a link, which explains itself — no section label above it */}
+          <code className="wl-plink">{url.replace('https://', '')}</code>
+          <span className={'wl-pcopy' + (copied ? ' on' : '')}>{copied ? COPY.linkCopied : COPY.linkCopy}</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -98,10 +79,8 @@ export function RoomsGrid({ handle }: { handle?: string | null }) {
         <div className="wl-bandlabel">&mdash; your business &mdash;</div>
         <div className="wl-tiles">{roomsInBand('business').map((r) => <Tile key={r.id} room={r} />)}</div>
       </section>
-      <div className="wl-stack"><AskRow />
-      <ProfileRow />
-      {handle && <LinkCard handle={handle} />}
-      <Pointer /></div>
+      <Panel handle={handle} />
+      <Pointer />
       <div hidden data-room-count={ROOMS.length} />
       <style>{GRID_CSS}</style>
     </div>
@@ -109,29 +88,31 @@ export function RoomsGrid({ handle }: { handle?: string | null }) {
 }
 
 const GRID_CSS = `
+/* R-37.82 (2): the panel is the grid's SIBLING — same card-bg, same .5px border, same 3px
+   radius as the tiles above it, flush to the gutter the column owns. It must not read as a
+   guest sitting on the grid's page. Rows are separated by hairlines, never by gaps. */
+.wl-panel{margin-top:24px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;overflow:hidden}
+.wl-prow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 14px;background:transparent;border:none;cursor:pointer;text-align:left}
+.wl-prow + .wl-prow{border-top:.5px solid var(--atelier-card-border)}
+.wl-pglyph{color:var(--role-metal);font-size:12px;line-height:1;flex-shrink:0}
+.wl-ptitle{flex:1;font-family:var(--wl-body);font-weight:500;font-size:13px;color:var(--atelier-ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-pchev{color:var(--atelier-ink-dim);font-size:10px;line-height:1;flex-shrink:0}
+.wl-plink{flex:1;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--atelier-ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-basis:0}
+.wl-pcopy{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
+.wl-pcopy.on{color:var(--role-positive)}
+.wl-prow:active{background:var(--atelier-row-hover)}
 /* One rhythm down the column: the rows now sit on the same 16px gutter and carry the same
    card shape as everything below them, instead of running full-bleed against inset cards. */
-.wl-row{display:flex;align-items:center;gap:11px;width:calc(100% - 32px);min-height:64px;margin:0 16px 10px;padding:14px 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;cursor:pointer;text-align:left}
-.wl-rowglyph{color:var(--atelier-accent-text);font-size:13px;line-height:1}
-.wl-rowtext{font-family:var(--wl-body);font-weight:400;font-size:14.5px;color:var(--atelier-ink-soft);display:flex;flex-direction:column;gap:2px;flex:1}
-.wl-rowsub{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
-.wl-rowchev{color:var(--atelier-ink-mute);font-size:18px;line-height:1}
-.wl-row:active{background:var(--atelier-row-hover)}
-.wl-linkcard{margin:0 16px 10px}
-.wl-linkrow{display:flex;align-items:center;gap:9px;width:100%;margin-top:12px;min-height:46px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:2px;padding:11px 12px;cursor:pointer;text-align:left}
-.wl-linkcode{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--atelier-accent-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-.wl-copy{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-ink-mute);flex-shrink:0}
-.wl-copy.on{color:var(--atelier-accent-text)}
-.wl-linkrow:active{background:var(--atelier-row-hover)}
-.wl-pointer{margin:0 16px 10px;padding:17px;border:.5px solid var(--atelier-card-border);border-radius:3px;background:var(--atelier-card-bg);display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.wl-pointer{margin:24px 0 0;padding:17px;border:.5px solid var(--atelier-card-border);border-radius:3px;background:var(--atelier-card-bg);display:flex;flex-direction:column;gap:12px;align-items:flex-start}
 .wl-pointertext{font-size:14.5px;font-weight:400;line-height:1.6;color:var(--atelier-ink-soft)}
 .wl-pointerbtn{min-height:46px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .wl-pointerbtn:active{background:var(--atelier-row-hover)}
 .wl-pointerbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.wl-bands{padding:18px 14px 28px;flex:1}
+/* R-37.82 (1): the column owns the gutter; the bands no longer set their own. */
+.wl-bands{padding:18px 0 28px;flex:1}
 .wl-stack{margin-top:20px}
-.wl-band+.wl-band{margin-top:22px}
-.wl-bandlabel{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 11px}
+.wl-band+.wl-band{margin-top:24px}
+.wl-bandlabel{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 8px}
 .wl-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .wl-tile{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;min-height:74px;display:flex;align-items:center;justify-content:center;padding:8px 6px;cursor:pointer}
 /* R-37.73 ②: 9px CONVICTED as illegible chrome. 12 is the interactive floor. */

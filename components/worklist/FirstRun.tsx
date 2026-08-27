@@ -86,9 +86,7 @@ export function FirstRun() {
 }
 
 const FR_CSS = `
-.wl-fr{padding:8px 16px 26px}
-/* retired: the promise is the page's hero now, set in app/w/today. */
-.wl-frpromise-retired{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-dim);text-align:center;margin:0 0 20px;padding:0 4px}
+.wl-fr{padding:8px 0 26px}
 .wl-frhead{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:26px 0 12px;text-align:center}
 /* R-37.73 ①: 40 was under the floor. */
 .wl-chips{display:flex;flex-wrap:wrap;gap:7px}
