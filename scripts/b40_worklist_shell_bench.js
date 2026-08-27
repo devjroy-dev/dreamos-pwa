@@ -129,7 +129,7 @@ cell('C10 every tap target >= 44px', () => {
   const files = {
     'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-coinitem'],
     'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
-    'components/worklist/AiDock.tsx':        ['wl-dock'],  // R-37.83: the field costume is retired; the dock is a row again
+    'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // Arm A: the costume is back and honest; .wl-dock is the padding wrapper
     'components/worklist/FirstRun.tsx':      ['wl-chip'],
     'components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
     'app/w/support/page.tsx':                ['wl-supportaction'],
@@ -156,7 +156,7 @@ cell('C11 type floors hold', () => {
     ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-sub', 11],
-    ['components/worklist/AiDock.tsx', 'wl-docktext', 12],  // R-37.83: the row's title is the dock's only type
+    ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // Arm A: the placeholder is the dock's only type
     ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
     ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],
   ];
@@ -424,6 +424,24 @@ cell('C22 no component takes back the gutter', () => {
     }
   }
   if (offenders.length) return offenders.join(', ');
+  return null;
+});
+
+// ── C23 · R-37.84 (7): THE COSTUME MUST TELL THE TRUTH. A field-shaped dock is only honest if
+//    the tap opens somewhere you type. If the dock ever wears the field again while jumping to
+//    WhatsApp, this reddens \u2014 the pairing is asserted, not remembered.
+cell('C23 the dock\'s shape and its destination agree', () => {
+  const dock = strip(read('components/worklist/AiDock.tsx'));
+  const field = /wl-dockfield/.test(dock);
+  const teleports = /wa\.me|waNumberFor/.test(dock);
+  if (field && teleports) return 'the dock wears the field costume AND jumps to WhatsApp \u2014 a shape that lies';
+  if (field && !/AskSheet/.test(dock)) return 'the dock wears the field costume but opens nothing you can type into';
+  if (!field && /AskSheet/.test(dock)) return 'the dock opens the chat but hides it behind a row \u2014 the costume undersells the truth';
+  const sheet = strip(read('components/worklist/AskSheet.tsx'));
+  for (const need of ['ChatThread', 'InputBar', 'useChat', 'ThemeProvider']) {
+    if (!new RegExp(need).test(sheet)) return 'the sheet does not carry ' + need;
+  }
+  if (/function ChatThread|function InputBar/.test(sheet)) return 'the sheet FORKED a carried component (D-2)';
   return null;
 });
 

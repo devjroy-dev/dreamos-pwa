@@ -80,7 +80,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 
       <main className="wl-main">{children}</main>
 
-      <AiDock />
+      <AiDock mode={mode} />
 
       {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
           /w's redirect are three statements of one decision — if they ever disagree, the app
