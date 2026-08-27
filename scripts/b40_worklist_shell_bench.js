@@ -127,7 +127,14 @@ cell('C9 the handle is read once, from the wire, in one home', () => {
 cell('C10 every tap target >= 44px', () => {
   const TAP_MIN = 44;
   const files = {
-    'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-coinitem'],
+    // AMENDED, LABELLED — ZIP 13 (CE ruling F-4). `wl-coinitem` leaves this list
+    // because the RULE was deleted, not because it stopped mattering: it styled
+    // the two-row coin drawer ZIP 12 replaced when it completed R-37.79, and it
+    // had zero consumers at deletion. RETIRE-WITH-THE-READER — the name goes with
+    // its subject and the reason stands where the name stood. The cell itself is
+    // untouched and the cell COUNT is unchanged; only this one guarded class is
+    // withdrawn. `wl-coin` stays: the medallion is very much alive.
+    'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat'],
     'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
     'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // Arm A: the costume is back and honest; .wl-dock is the padding wrapper
     'components/worklist/FirstRun.tsx':      ['wl-chip'],
@@ -155,7 +162,9 @@ cell('C11 type floors hold', () => {
   const rules = [
     ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
     ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
-    ['components/worklist/WorklistShell.tsx', 'wl-sub', 11],
+    // AMENDED, LABELLED — ZIP 13 (CE ruling F-4), same deletion as C10's.
+    // `wl-sub` was the coin drawer's right-hand micro-label; the rule is gone and
+    // the guarded name goes with it. Cell untouched, cell count unchanged.
     ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // Arm A: the placeholder is the dock's only type
     ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
     ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],

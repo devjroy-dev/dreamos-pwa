@@ -97,7 +97,10 @@ const GRID_CSS = `
 .wl-pointerbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 /* R-37.82 (1): the column owns the gutter; the bands no longer set their own. */
 .wl-bands{padding:18px 0 28px;flex:1}
-.wl-stack{margin-top:20px}
+/* ZIP 13 · scope ③ — .wl-stack deleted. ZIP 12's subject implied it was already
+   gone; it was not, and the claim was never re-derived. Zero consumers at
+   deletion, derived across the whole source tree. The band rhythm below is what
+   actually spaces the grid. */
 .wl-band+.wl-band{margin-top:24px}
 .wl-bandlabel{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 8px}
 .wl-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}

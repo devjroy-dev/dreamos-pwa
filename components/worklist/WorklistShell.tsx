@@ -184,11 +184,13 @@ const SHELL_CSS = `
 .wl-lbl{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 /* R-37.73 ①: 40×40 was under the floor. 44 is the floor; this is 46 with air. */
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.06em;line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
-.wl-coindrawer{background:var(--atelier-sheet-bg);border-bottom:.5px solid var(--atelier-sheet-border);padding:6px 0}
-.wl-coinitem{display:flex;align-items:center;gap:11px;width:100%;min-height:48px;background:none;border:none;cursor:pointer;padding:13px 22px;font-family:var(--wl-body);font-weight:400;font-size:14.5px;color:var(--atelier-ink);text-align:left}
-.wl-coinitem[aria-current="true"]{color:var(--atelier-accent-text)}
-.wl-glyph{color:var(--role-metal);font-size:11px}
-.wl-sub{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-left:auto}
+/* ZIP 13 · CE ruling F-4 — .wl-coindrawer, .wl-coinitem (and its [aria-current]
+   variant), .wl-glyph and .wl-sub deleted here. They styled the TWO-ROW coin
+   drawer that ZIP 12 replaced when it completed R-37.79; the markup went and the
+   stylesheet stayed. That is the .wl-plink disease recommitted by the very
+   delivery that named it — which is why the corrected sweep asserts this class
+   of rot rather than any seat's diligence. Their consumer count at deletion,
+   derived across the whole source tree, was zero. */
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
 /* R-37.73 ①: no explicit height in ZIP 1 — it happened to clear 44 by padding alone,
@@ -196,7 +198,9 @@ const SHELL_CSS = `
 .wl-seat{flex:1;min-height:52px;background:none;border:none;cursor:pointer;text-align:center;padding:15px 0 17px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
-.wl-coin:active,.wl-coinitem:active{background:var(--atelier-row-hover)}
-.wl-seat:focus-visible,.wl-coin:focus-visible,.wl-coinitem:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+/* ZIP 13 · F-4: the .wl-coinitem limbs of these two shared rules go with the
+   class. The .wl-coin limbs stay — the medallion itself is very much alive. */
+.wl-coin:active{background:var(--atelier-row-hover)}
+.wl-seat:focus-visible,.wl-coin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.wl *{transition:none!important;animation:none!important}}
 `;

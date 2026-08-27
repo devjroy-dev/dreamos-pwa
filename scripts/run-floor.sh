@@ -187,7 +187,42 @@ if [ "${1:-}" = "--check" ]; then
   # commits and both fail RATHER THAN PASS VACUOUSLY when the history is absent,
   # which is correct conduct. `git fetch --unshallow` clears both. They are not
   # base and must never be entered as base.
-  printf 'RED: run-assign-words-proof\nRED: tdw08_p5_prospects_console\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  # ── BASE AMENDED, LABELLED — M-WORKLIST P1 · ZIP 13 (CE-37, 2026-08-27) ────
+  # FIFTEEN LINES JOIN, ON THIS BRANCH ONLY, AND NONE OF THEM IS THIS
+  # DELIVERY'S RED. Derived on a pristine clone of `worklist` at 03a7759 before
+  # any of ZIP 13's files existed: 24 red, base 7, extras 17, none vanished.
+  #
+  # tdw07_p2_profile · tdw07_p3_portfolio · tdw07_p4b_body · tdw08_p3_landing ·
+  # tdw09_p1_canon · tdw09_p2_doors · tdw09_p2c · tdw09_palette · tdw09_roles ·
+  # tdw09_surface · tdw09_theme_retire · tdw09_type · tdw09_uivendor ·
+  # tdw10_billing_tab · tdw10_p2_retint
+  #
+  # THE GROUND, cited rather than asserted: every one of these asserts the
+  # ESPRESSO-ERA design system — the palette literals, the type ladder, the role
+  # bindings and the surface chrome that R-37.65 replaced on this branch when it
+  # ruled Graphite & Signal at the token layer, both modes, 33 tokens. They fail
+  # because the branch changed what they assert, by ruling. A bench that reds
+  # because the estate moved under it is not a regression; it is a bench whose
+  # subject was retired without it.
+  #
+  # WHY LABELLED AND NOT CURED: rewriting fifteen design-system benches is not a
+  # gate-repair sitting's work, and rewriting them to the NEW palette would also
+  # be wrong while `main` still runs the old one. MAIN REMAINS THEIR
+  # JURISDICTION — they are correct there and must stay green there. Their final
+  # disposition on this branch (retire-with-the-reader, or rewrite to Graphite at
+  # cutover) is Phase 2 / cutover business and is owed a sitting of its own.
+  #
+  # WHY THE COUNT IS FIFTEEN AND NOT SEVENTEEN, since seventeen extras were
+  # derived: `wl_audit` LEAVES the floor rather than joining the base — it moved
+  # to `tools/` this ZIP per CE ruling F-5(a), because it is an instrument and
+  # the glob below runs benches. It was never a bench and its red was the glob's
+  # error, not the tree's. And `tdw_f0774_vacuity_probe` is DELIBERATELY ABSENT
+  # from this block: see the standing note above — its red is a finding by
+  # definition, its cause is now derived, and it is NOT branch divergence. It is
+  # reported as an open STOP, not absorbed here. A base entry nobody can account
+  # for is how a real regression gets absorbed; entering that one would have been
+  # exactly that.
+  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
   if diff /tmp/base.txt /tmp/floor.txt; then
     echo "FLOOR = NAMED BASE, no delta"
   else
