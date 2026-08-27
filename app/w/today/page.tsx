@@ -1,49 +1,72 @@
 "use client";
-// app/w/page.tsx — TODAY, Phase 1.
+// app/w/today/page.tsx — TODAY, Phase 1.
 //
-// IT READS NOTHING, AND IT SAYS SO. Byte 5 states that the instrument is not running; it does
-// NOT say the reading is zero. "All clear" here would assert an absence never checked — the
-// same class as a control that reports a success it did not perform, and the reason bytes 6
-// and 7 exist but are not rendered until Phase 4 can prove the claim.
+// IT READS NOTHING, AND IT SAYS SO. `todayNotLive` states that the instrument is not
+// running; it does NOT say the reading is zero. 「All clear」 here would assert an absence
+// never checked — the same class as a control reporting a success it did not perform.
 //
-// Beneath it, the first-run manual (R-37.68), static in this phase so the install walk does
-// not open onto a blank room.
+// ── R-38.4 · THE ONE t0 IN THE APP ──────────────────────────────────────────
+// The masthead numeral is the single named exception to the five-rung scale, ruled at
+// CE-38 relay #1 after this seat filed the collision: R-37.88's ratified mock — the one
+// §0 hash-gates — is built on Italiana at 46px, and a bare "⊆ five rungs" cell would have
+// reddened the design it was written to protect. t0 is 46/.95 Cormorant 500, one element
+// per app, and the arm asserts it appears exactly here.
+//
+// ITALIANA RETIRES WITH JOST. The numeral changes family, not stature.
+import Link from 'next/link';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { FirstRun } from '@/components/worklist/FirstRun';
 import { COPY } from '@/lib/worklist/copy';
 
 // Derived at render, never a fixture. Locale pinned so the string cannot drift with the
-// runtime's ICU data \u2014 the same reason the estate pins its own date formatters.
+// runtime's ICU data — the same reason the estate pins its own date formatters.
 const DATE_LINE = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
 export default function TodayPage() {
   return (
     <WorklistShell title={COPY.navToday}>
-      {/* R-37.76 \u2467 \u00b7 THE MASTHEAD. Today opens on a moment, not on body copy. The numeral
-          is 0 in Phase 1 and comes from the live feed in Phase 4 \u2014 the treatment does not move,
-          only the number does, which is why Phase 4 inherits this as spec rather than redesigning. */}
       <section className="wl-masthead">
         <div className="wl-mdate">{DATE_LINE}</div>
-        <div className="wl-mcount"><span className="wl-mnum">0</span><span className="wl-mcap">{COPY.todayMastheadCaption}</span></div>
+        <div className="wl-mcount">
+          <span className="wl-mnum">0</span>
+          <span className="wl-mcap">{COPY.todayCountCaption}</span>
+        </div>
         <div className="wl-mrule" />
       </section>
 
-      {/* THE PROMISE IS THE HEADLINE. Byte 5 stays, verbatim, but drops beneath it \u2014 the honest
-          statement survives; it just stops being the loudest sentence on the page. Today had no
-          stature because its first line was an apology. */}
-      <p className="wl-hero">{COPY.todayPromise}</p>
-      <p className="wl-stillbuilt">{COPY.todayEmptyLine1} {COPY.todayEmptyLine2}</p>
+      {/* R-38.4: ONE t1 PER SURFACE, and this is Today's. It was a two-clause paragraph
+          (`todayPromise`) standing where a page title goes — the surface had no stature
+          because its loudest line was an explanation. */}
+      <h1 className="wl-title">{COPY.todayTitle}</h1>
+
+      {/* R-38.6: an empty state is one sentence naming what will appear here, and one
+          action. The honest line about the instrument keeps its own row beneath, at t5,
+          because it is metadata about the reading rather than a promise about the feed. */}
+      <p className="wl-empty">{COPY.todayEmpty}</p>
+      <Link href="/w/rooms" className="wl-emptyaction">{COPY.todayEmptyAction}</Link>
+      <p className="wl-notlive">{COPY.todayNotLive}</p>
+
       <FirstRun />
       <style>{`
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
-.wl-masthead{padding:22px 0 0}
-.wl-mdate{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute)}
-.wl-mcount{display:flex;align-items:baseline;gap:9px;margin-top:9px}
-.wl-mnum{font-family:var(--wl-display);font-size:46px;line-height:.95;color:var(--atelier-ink)}
-.wl-mcap{font-family:var(--wl-body);font-weight:400;font-size:14px;color:var(--atelier-ink-dim)}
+.wl-masthead{padding-top:20px}
+.wl-mdate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-mcount{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+/* THE t0 SITE. font-variant-numeric is declared AFTER the shorthand deliberately: the
+   \`font\` shorthand RESETS it, so tabular figures set before this line would be silently
+   thrown away. R-38.5 asks every right-aligned figure to be tabular; this one is
+   left-aligned and single-digit today, and it carries the setting anyway so the Phase 4
+   feed's two- and three-digit counts do not jump the caption sideways. */
+.wl-mnum{font:var(--wl-t0);color:var(--atelier-ink)}
+.wl-mnum{font-variant-numeric:tabular-nums}
+.wl-mcap{font:var(--wl-t5);color:var(--atelier-ink-dim)}
 .wl-mrule{height:.5px;background:var(--role-metal);opacity:.55;margin-top:16px}
-.wl-hero{font-family:var(--wl-feature);font-weight:400;font-size:24px;line-height:1.34;color:var(--atelier-ink);margin:20px 0 0;letter-spacing:-.005em}
-.wl-stillbuilt{font-family:var(--wl-body);font-weight:400;font-size:13px;color:var(--atelier-ink-mute);margin:10px 0 0}
+.wl-title{font:var(--wl-t1);color:var(--atelier-ink);margin:16px 0 0}
+.wl-empty{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:8px 0 0}
+.wl-emptyaction{display:inline-flex;align-items:center;min-height:44px;margin-top:12px;padding:12px 16px;border:.5px solid var(--atelier-input-border);border-radius:2px;font:var(--wl-t4);color:var(--atelier-accent-text);text-decoration:none;touch-action:manipulation}
+.wl-emptyaction:active{background:var(--atelier-row-hover)}
+.wl-emptyaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.wl-notlive{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:12px 0 0}
       `}</style>
     </WorklistShell>
   );

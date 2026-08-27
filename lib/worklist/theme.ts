@@ -33,73 +33,103 @@
 
 export type WorklistMode = 'dark' | 'light';
 
-// ── THE TYPE SCALE (R-37.73 \u2461) ─────────────────────────────────────────────
+// ── THE TYPE SCALE · R-38.4, AMENDED AT CE-38 RELAY #1 ──────────────────────
 //
-// AD-HOC PX IS RETIRED. Tile names shipped at 9px in ZIP 1 and were convicted as illegible
-// chrome; the cure is not a bigger number at one call site, it is that sizes stop being
-// numbers at call sites at all. Every size below is named, and the floors are asserted by
-// the bench so a later edit cannot walk one back quietly.
+// SIX TUPLES, NAMED, AND NO OTHERS. The founder's "the fonts are all over the place" was
+// not a taste note, it was a count: at 366a7b5 the shell and the rooms it fronted spent
+// four families across fourteen sizes. A sweep cures that for one sitting. A SCALE cures
+// it by construction, which is why the rungs below are emitted as the CSS `font`
+// SHORTHAND rather than as three separate variables: a call site physically cannot set a
+// size without also taking that rung's family and weight. There is no way to author a
+// seventh tuple by accident — only by writing a literal, which the render arm reddens.
 //
-// THE FLOORS, ruled: no label under 11px \u00b7 no interactive text under 12px \u00b7 body \u2265 14px.
+//   t0  46/.95   Cormorant 500   the Today masthead numeral. ONE ELEMENT PER APP.
+//   t1  24/1.2   Cormorant 500   page title, at most one per surface
+//   t2  17/1.3   DM Sans   500   section heading, the wordmark
+//   t3  14/1.45  DM Sans   400   body, row primary, input text
+//   t4  12/1.4   DM Sans   500   row secondary, buttons, nav seats
+//   t5  11/1.3   DM Sans   500   captions, metadata, section eyebrows
 //
-// WHY 9px LOOKED FINE IN A DESKTOP RENDER AND FAILED ON GLASS: Jost at these sizes is a
-// hairline, and a hairline antialiases toward its ground. The measured contrast ratio is
-// honest for a flat block of colour and overstates a thin glyph every time \u2014 the same
-// mechanism that made Chalk read washed until the weights were corrected. Size and weight
-// are one decision, so they are set together here.
+// JOST AND ITALIANA RETIRE FROM THE SHELL. Both were real families doing real jobs — Jost
+// every micro-label, Italiana the masthead numeral — and the retirement is a ruling, not a
+// tidy: R-38.4 names the six and the arm asserts the set is a subset of them. `--wl-label`
+// and `--wl-display` are DELETED rather than aliased. An alias would have let every one of
+// the fourteen call sites keep its old name and quietly acquire a new value, which is the
+// shape of a change nobody can review. They are gone, and the compiler finds the callers.
+//
+// THE WORDMARK IS t2, DM SANS. CE-38's own "Cormorant at the wordmark" line was struck at
+// relay #1: Cormorant-at-17 would have been a seventh tuple, and the whole warrant of a
+// closed set is that it is closed. Cormorant survives at t0 and t1 only — the numeral and
+// the page title. Italic never appears in functional chrome, at any rung.
+//
+// LETTER-SPACED UPPERCASE, TWO PLACES ONLY: the nav seats (t4) and section eyebrows (t5),
+// both at .08em. The old .16em–.42em engraved register is retired with Jost; it was the
+// other half of why chrome read as costume. Tracking is NOT part of the asserted tuple —
+// the arm asserts family, size and weight — so this reading is stated here rather than
+// enforced, and the handover names it as the reading taken.
 export const TYPE = {
-  /** Uppercase Jost labels — headers, band captions, state marks. FLOOR 11. */
-  label:       { size: 11,   weight: 500, track: '0.18em' },
-  /** The nav seats and any other uppercase control label. FLOOR 12 (interactive). */
-  seat:        { size: 12,   weight: 500, track: '0.16em' },
-  /** Tile names. Interactive, so the 12 floor binds — 9 was the conviction. */
-  tile:        { size: 12,   weight: 500, track: '0.08em' },
-  /** Card titles. Interactive block headings. */
-  cardTitle:   { size: 12,   weight: 500, track: '0.14em' },
-  /** Body prose in cards and sheets. FLOOR 14. */
-  body:        { size: 14.5, weight: 400, track: '0' },
-  /** Chips — tappable, so the 12 floor binds and the target is padded to 44. */
-  chip:        { size: 13,   weight: 400, track: '0' },
-  /** Button labels. Interactive. */
-  action:      { size: 12,   weight: 500, track: '0.16em' },
-  /** The Today empty lines, set in the display face. */
-  display:     { size: 19,   weight: 400, track: '0' },
-  /** The first-run header. */
-  displayHead: { size: 22,   weight: 400, track: '0' },
+  t0: { size: 46, line: 0.95, weight: 500, family: 'feature' },
+  t1: { size: 24, line: 1.2,  weight: 500, family: 'feature' },
+  t2: { size: 17, line: 1.3,  weight: 500, family: 'body'    },
+  t3: { size: 14, line: 1.45, weight: 400, family: 'body'    },
+  t4: { size: 12, line: 1.4,  weight: 500, family: 'body'    },
+  t5: { size: 11, line: 1.3,  weight: 500, family: 'body'    },
 } as const;
 
-/** The ruled floors. The bench reads these, not a copy of them. */
+export type Rung = keyof typeof TYPE;
+
+/** The rungs, in one array, so the bench and the arm read the set rather than a copy. */
+export const RUNGS: readonly Rung[] = ['t0', 't1', 't2', 't3', 't4', 't5'] as const;
+
+/** The ruled floors, unchanged and still true of the six: min 11, interactive 12, body 14. */
 export const TYPE_FLOORS = { label: 11, interactive: 12, body: 14 } as const;
 
 /** Every control the finger can reach is at least this, in CSS px. R-37.73 \u2460. */
 export const TAP_MIN = 44;
 
-// ── THE FOUR TYPE ROLES, ONE JOB EACH (R-37.76 ③+⑦) ────────────────────────
-//
-// Four families already exist in the estate. What did NOT exist was one job each, and that
-// — not size — is why the shell and the carried rooms read as two font worlds: the rooms
-// set BODY COPY in Cormorant italic ("Enquiries pipeline", "From your binders", "Your client
-// stories live here") while the shell sets prose in DM Sans. Two families doing the same job
-// is the whole defect.
-//
-// So each family gets exactly one job, on every surface of the branch:
+/**
+ * R-38.5 \u00b7 THE GRID, as amended for F-38.4.
+ *
+ * FOUR-PX BASE, EIGHT-PX RHYTHM (R-37.82 \u2462 stands). One gutter, raised 12 \u2192 16.
+ *
+ * TILE HEIGHT IS FIXED AT 64 AND IS NOT AN ASPECT. R-38.5 first ruled 1:1, and 1:1 at
+ * three-up on a 390px viewport makes a 114px tile: eighteen rooms then measure ~946px of
+ * grid against ~651px of work area, so Settings, Business Solutions, Collab and Advisor
+ * sit permanently below the fold. R-37.61's whole warrant is that a room reachable only
+ * through the coin is a hidden room — an aspect ratio that hides four of them defeats the
+ * ruling it was decorating. 64 clears the 44 tap floor with air and lets the two-line
+ * label fit at t5. Ruled at CE-38 relay #2; the arm re-derives the sum at capture.
+ */
+export const GRID = { base: 4, step: 8, gutter: 16, tile: 64, row: 52 } as const;
+
+// ── THE TWO FAMILIES, ONE JOB EACH ──────────────────────────────────────────
+// Four families existed and each was doing several jobs; that — not size — is why the
+// shell and the rooms read as two font worlds. Two remain, and neither can drift, because
+// no call site names a family at all: it names a rung.
 export const TYPE_ROLE = {
-  /** Italiana — numerals and the masthead moment. Nothing else. */
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  /** Cormorant — RETIRED FROM PROSE. One deliberate line per surface: Today's hero,
-   *  a sheet header. Where it was carrying body copy it is replaced by body. */
+  /** Cormorant \u2014 t0 and t1 only. The numeral and the page title. Never prose. */
   feature: 'var(--font-cormorant), Georgia, serif',
-  /** DM Sans — ALL prose, in the rooms as well as the shell. */
+  /** DM Sans \u2014 every other byte in the shell, at t2 through t5. */
   body:    'var(--font-dm-sans), system-ui, sans-serif',
-  /** Jost — every micro-label, eyebrow, seat and state mark. */
-  label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
 
-/** Emitted into the branch scope so a carried component inherits by variable, never by fork. */
+/**
+ * Emit the scope's type layer.
+ *
+ * ONE VARIABLE PER RUNG, AS THE `font` SHORTHAND. `font: var(--wl-t3)` sets family, size,
+ * line-height and weight in one indivisible act. The shorthand RESETS font-variant-numeric,
+ * so any rule wanting tabular figures must declare `font-variant-numeric` AFTER its `font`
+ * line \u2014 stated here because the ordering is silent when it is wrong.
+ */
 export function typeCss(scopeSelector: string): string {
-  return `${scopeSelector}{` +
-    `--wl-display:${TYPE_ROLE.display};--wl-feature:${TYPE_ROLE.feature};` +
-    `--wl-body:${TYPE_ROLE.body};--wl-label:${TYPE_ROLE.label};}`;
+  const fam = (k: Rung) => (TYPE[k].family === 'feature' ? TYPE_ROLE.feature : TYPE_ROLE.body);
+  const rung = (k: Rung) => `--wl-${k}:${TYPE[k].weight} ${TYPE[k].size}px/${TYPE[k].line} ${fam(k)};`;
+  return (
+    `${scopeSelector}{` +
+    RUNGS.map(rung).join('') +
+    `--wl-gutter:${GRID.gutter}px;--wl-step:${GRID.step}px;` +
+    `--wl-tile:${GRID.tile}px;--wl-row:${GRID.row}px;}`
+  );
 }
 
 

@@ -132,9 +132,21 @@ async function seat(browser, mode) {
     if (insetOk) P(tag + 'C-R2 the gutter APPLIES', 'inset ' + g.left + 'px both sides, --wl-gutter ' + g.gutter);
     else F(tag + 'C-R2 the gutter APPLIES', 'declared ' + g.gutter + 'px; rendered left ' + g.left + ', right ' + g.right + ' of ' + g.innerW);
 
-    // ── C-R3 · THE ROOM COUNT ON SCREEN  [R-37.87] ──────────────────────────
-    if (g.tiles === 17) P(tag + 'C-R3 seventeen tiles render', '17 tiles on screen');
-    else F(tag + 'C-R3 seventeen tiles render', 'rendered ' + g.tiles);
+    // ── C-R3 · THE ROOM COUNT ON SCREEN  [R-37.87, amended R-38.9] ──────────
+    // AMENDED, LABELLED — M-FINISH S1. Seventeen becomes EIGHTEEN by founder word: the
+    // Advisor room joins the business band. Count history, every step worded or derived:
+    // 11 -> 15 -> 16 -> 17 -> 18.
+    //
+    // AND THE NUMBER STOPS BEING A LITERAL HERE. It is read from the registry's own
+    // exported constant, the same correction b40's C2 took at ZIP 14: a count retyped into
+    // an instrument is a second home for the count, and the two drift without either one
+    // erroring. What this cell uniquely proves is that the registry's number and the
+    // number of tiles the BROWSER painted agree — b40 can only compare the registry to
+    // itself.
+    const EXPECTED = Number((fs.readFileSync('lib/worklist/rooms.ts', 'utf8')
+      .match(/ROOM_COUNT_EXPECTED\s*=\s*(\d+)/) || [])[1]);
+    if (g.tiles === EXPECTED) P(tag + 'C-R3 the registry\'s room count is what paints', EXPECTED + ' tiles on screen');
+    else F(tag + 'C-R3 the registry\'s room count is what paints', 'registry says ' + EXPECTED + ', rendered ' + g.tiles);
 
     // ── C-R4 · THE CHAT SHEDS THE COSTUME  [computed, not matched] ──────────
     // NB `sans-serif` CONTAINS `serif`; the first cut of this cell reddened a cured
@@ -165,6 +177,104 @@ async function seat(browser, mode) {
     if (h.found && h.ratio >= 0.8) P(tag + 'C-R5 chat opens at work-surface height', h.ratio + ' of viewport');
     else F(tag + 'C-R5 chat opens at work-surface height', JSON.stringify(h));
 
+    // ── C-R6 · THE TUPLE SET IS THE SCALE  [R-38.4] ─────────────────────────
+    //
+    // THE CELL R-38.4 EXISTS FOR, AND IT LIVES HERE BY THIS FILE'S OWN LAW: what family a
+    // byte PAINTS IN is a computed fact, and computed facts are structurally outside a
+    // served-bytes gate. wl_audit proves the two retired VARIABLES are gone, which is the
+    // mechanism; only the browser can say what the mechanism produced.
+    //
+    // SIX TUPLES, NOT FIVE. t0 (46/.95 Cormorant 500) is the named display exception ruled
+    // at CE-38 relay #1 — the Today masthead numeral, R-37.88's own 「stature」. A bare
+    // "⊆ five" cell would have reddened the ratified design it was written to protect.
+    //
+    // ⚠ SETTINGS IS EXCLUDED BY NAME AND NOT BY SILENCE. Its body is AtelierForm — Jost at
+    // 9px, .42em tracking — and it crossed STRUCTURALLY this sitting without crossing
+    // typographically. Capturing it and letting the cell pass over it would make R-38.4's
+    // "by construction, not by sweep" claim false on the first surface that tested it. The
+    // exclusion is one line of code and one line of handover, so it cannot be forgotten.
+    const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor'];
+    const RUNGS = [
+      { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
+      { n: 't2', px: 17, w: 500, fam: 'DM Sans' },   { n: 't3', px: 14, w: 400, fam: 'DM Sans' },
+      { n: 't4', px: 12, w: 500, fam: 'DM Sans' },   { n: 't5', px: 11, w: 500, fam: 'DM Sans' },
+    ];
+    const strays = [];
+    for (const path of SCALE_SURFACES) {
+      await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+      await new Promise((r) => setTimeout(r, 1200));
+      const tuples = await p.evaluate(() => {
+        const out = [];
+        for (const el of document.querySelectorAll('.wl *')) {
+          if (!el.textContent || !el.textContent.trim()) continue;
+          // Text-bearing LEAVES only. A container inherits its child's computed font and
+          // would report a tuple nothing actually paints in.
+          if ([...el.children].some((c) => c.textContent && c.textContent.trim())) continue;
+          const c = getComputedStyle(el);
+          out.push({ size: Math.round(parseFloat(c.fontSize) * 10) / 10,
+                     weight: c.fontWeight, family: c.fontFamily,
+                     tag: el.tagName.toLowerCase(), cls: el.className || '' });
+        }
+        return out;
+      });
+      for (const t of tuples) {
+        const hit = RUNGS.find((r) => Math.abs(t.size - r.px) < 0.6 &&
+                                      String(t.weight) === String(r.w) &&
+                                      t.family.includes(r.fam));
+        if (!hit) strays.push(path + ' ' + (t.cls || t.tag) + ' ' + t.size + 'px/' + t.weight + ' ' + t.family.split(',')[0]);
+      }
+    }
+    if (strays.length) F(tag + 'C-R6 the tuple set is the scale', strays.slice(0, 6).join(' \u00b7 ') + (strays.length > 6 ? ' (+' + (strays.length - 6) + ')' : ''));
+    else P(tag + 'C-R6 the tuple set is the scale', 'every painted tuple on four surfaces is one of the six rungs');
+
+    // ── C-R7 · THE EDGE, BOTH DEFINITIONS  [R-38.5, CE-38 relay #2] ─────────
+    // (a) THE TEXT EDGE: the wordmark, the first tile's border, the dock field's border and
+    //     Billing's plan card resolve to ONE x. This is the founder's misalignment stated
+    //     as a number — the header sat at 22px while everything else sat at 12.
+    // (b) THE CONTAINER EDGE: .wl-nav's content box equals .wl-main's. The seats' TEXT is
+    //     centred, so "left edge of nav" has no text referent and (a) cannot reach it.
+    //     Two cells because there are two questions, not because one was hard to write.
+    await p.goto(BASE + '/w/billing', { waitUntil: 'domcontentloaded' });
+    await new Promise((r) => setTimeout(r, 1400));
+    const eB = await p.evaluate(() => {
+      const l = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
+      return { house: l('.wl-house'), card: l('.wl-billcard'), dock: l('.wl-dockfield'),
+               nav: l('.wl-nav'), main: l('.wl-main') };
+    });
+    await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+    await new Promise((r) => setTimeout(r, 1200));
+    const eR = await p.evaluate(() => {
+      const t = document.querySelector('.wl-tile');
+      return { tile: t ? Math.round(t.getBoundingClientRect().left * 10) / 10 : null };
+    });
+    const xs = [eB.house, eR.tile, eB.dock, eB.card];
+    const spread = Math.max(...xs) - Math.min(...xs);
+    if (xs.every((v) => v !== null) && spread <= 0.5)
+      P(tag + 'C-R7a the text edge is one x', 'house/tile/dock/plan-card all at ' + eB.house + ', spread ' + spread);
+    else F(tag + 'C-R7a the text edge is one x', JSON.stringify({ house: eB.house, tile: eR.tile, dock: eB.dock, card: eB.card, spread }));
+    if (eB.nav !== null && Math.abs(eB.nav - eB.main) <= 0.5)
+      P(tag + 'C-R7b the container edge agrees', 'nav ' + eB.nav + ' = main ' + eB.main);
+    else F(tag + 'C-R7b the container edge agrees', JSON.stringify(eB));
+
+    // ── C-R8 · EIGHTEEN ROOMS AT REST  [F-38.4, CE-38 relay #2] ─────────────
+    // THE STOP CONDITION, AS A CELL RATHER THAN AS AN ARITHMETIC CLAIM. R-38.5 first ruled
+    // 1:1 tiles; at three-up on 390px that is 114px square, and eighteen rooms then need
+    // ~946px against ~651px of work area — Settings, Business Solutions, Collab and Advisor
+    // permanently below the fold, which defeats R-37.61's own warrant. 64px fixed was ruled
+    // instead, and the chair ordered it re-derived on glass with a STOP if it did not clear
+    // with 8px to spare. It clears; this keeps it clearing.
+    const fit = await p.evaluate(() => {
+      const main = document.querySelector('.wl-main');
+      const tiles = [...document.querySelectorAll('.wl-tile')];
+      const last = tiles.length ? tiles[tiles.length - 1].getBoundingClientRect() : null;
+      return { tiles: tiles.length, overflow: main.scrollHeight - main.clientHeight,
+               tileH: last ? Math.round(last.height) : null,
+               slack: last ? Math.round(main.getBoundingClientRect().bottom - last.bottom) : null };
+    });
+    if (fit.tiles === 18 && fit.overflow === 0 && fit.slack >= 8)
+      P(tag + 'C-R8 eighteen rooms at rest', fit.tiles + ' tiles at ' + fit.tileH + 'px, overflow ' + fit.overflow + ', slack ' + fit.slack + 'px');
+    else F(tag + 'C-R8 eighteen rooms at rest', JSON.stringify(fit));
+
     // ── CAPTURES · fullPage, always, with the data condition in the name ────
     if (CAPTURE) {
       fs.mkdirSync(CAPTURE, { recursive: true });
@@ -187,9 +297,13 @@ async function seat(browser, mode) {
         await p.screenshot({ path: `${CAPTURE}/${mode}__${n}__SYNTHETIC-SPLASH.png`, fullPage: true });
         await reclip();
       };
+      // §5's capture set. Billing, Settings and Advisor are SHELL routes now; the two
+      // /vendor frames that remain are carried rooms that have not crossed, kept so the
+      // founder can see the seam he is being asked to judge rather than only the cured half.
       for (const [name, path] of [['w-rooms', '/w/rooms'], ['w-today', '/w/today'],
-        ['w-support', '/w/support'], ['room-leads', '/vendor/list/leads'],
-        ['room-settings', '/vendor/settings'], ['room-collab', '/vendor/collab']]) {
+        ['w-billing', '/w/billing'], ['w-settings', '/w/settings'],
+        ['w-advisor', '/w/advisor'], ['w-support', '/w/support'],
+        ['room-leads', '/vendor/list/leads'], ['room-collab', '/vendor/collab']]) {
         await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
         await new Promise((r) => setTimeout(r, 1400));
         await shot(name);
@@ -197,7 +311,23 @@ async function seat(browser, mode) {
       await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
       await p.waitForSelector('.wl-coin', { timeout: 20000 });
       await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
-      await shot('tapped-drawer');
+      await shot('tapped-drawer-on-rooms');
+      // §5 asks for the drawer open on BILLING as well as on Rooms: the drawer anchors to
+      // the header, and a header on a surface with different content beneath it is where a
+      // stacking or clipping fault would show. F-16.37 was exactly that fault.
+      await p.goto(BASE + '/w/billing', { waitUntil: 'domcontentloaded' });
+      await p.waitForSelector('.wl-coin', { timeout: 20000 });
+      await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
+      await shot('tapped-drawer-on-billing');
+      // The tapped tile: the :active state R-38.2 requires within 16ms of touch.
+      await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+      await p.waitForSelector('.wl-tile', { timeout: 20000 });
+      await p.evaluate(() => {
+        const t = document.querySelector('.wl-tile');
+        t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      });
+      await new Promise((r) => setTimeout(r, 120));
+      await shot('tapped-tile');
       await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
       await p.waitForSelector('.wl-dockfield', { timeout: 20000 });
       await p.click('.wl-dockfield'); await new Promise((r) => setTimeout(r, 800));

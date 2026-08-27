@@ -1,33 +1,55 @@
 "use client";
 // components/worklist/WorklistShell.tsx — the shell chrome. ONE HOME for the scope, the
-// mode, the nav and the dock.
+// mode, the drawer, the dock and the nav.
 //
 // THE SCOPE IS THE THEME. Every token is defined on this element, not on :root, so the old
-// shell's own layer is untouched even though both trees live in one deployment. A component
-// imported into a room here inherits Graphite; the same component on /vendor still inherits
-// Espresso. That is R-37.65's "zero forks" carried literally.
+// shell's own layer is untouched even though both trees live in one deployment.
 //
 // NO THIRD CONTAINER. R-37.64: no search field, no hamburger, no overflow. Two seats and a
 // coin, and the coin is the only drawer.
+//
+// ── R-38.2 · NAVIGATION IS `<Link>` ─────────────────────────────────────────
+// Every navigable control in this file is an anchor from `next/link` with default
+// prefetch. It was `<button onClick={router.push}>` at 366a7b5, and that shape is why the
+// founder's taps felt dead: a button tells Next nothing, so the route's chunk and its RSC
+// payload were both fetched ON TAP. An anchor is announced, so the work happens while the
+// thumb is still travelling. `router.push` survives in exactly one place below — the
+// post-action redirect after sign-out, which is not navigation the vendor aimed at.
+//
+// EVERY CONTROL ANSWERS THE FINGER WITHIN A FRAME. `:active` on every one, and
+// `touch-action:manipulation` so the browser stops holding taps for the double-tap-zoom
+// gesture. Neither is decoration: without them a fast route still reads as a dead control,
+// and the honest response to a dead control is to tap it again.
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
 import { clearVendorSession } from '@/lib/vendor/session';
 import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
+import { waNumberFor } from '@/lib/waNumbers';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
 import { AiDock } from '@/components/worklist/AiDock';
 
 const MODE_KEY = 'tdw_worklist_mode';
 const SCOPE = '.wl';
 
-function DRow({ label, sub, onClick, current, danger }: {
-  label: string; sub?: string; onClick: () => void; current?: boolean; danger?: boolean;
+/** A drawer row that navigates. Anchor, prefetched, closes the drawer on the way out. */
+function DLink({ label, href, onGo }: { label: string; href: string; onGo: () => void }) {
+  return (
+    <Link href={href} role="menuitem" className="wl-drow" onClick={onGo}>
+      <span className="wl-dlabel">{label}</span>
+    </Link>
+  );
+}
+
+/** A drawer row that acts rather than navigates: mode picks, the external house link, sign-out. */
+function DAct({ label, onClick, current, danger }: {
+  label: string; onClick: () => void; current?: boolean; danger?: boolean;
 }) {
   return (
     <button type="button" role="menuitem" className={'wl-drow' + (danger ? ' danger' : '')}
             aria-current={current ? 'true' : undefined} onClick={onClick}>
       <span className="wl-dlabel">{label}</span>
-      {sub && <span className="wl-dsub">{sub}</span>}
     </button>
   );
 }
@@ -38,8 +60,11 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   const [mode, setMode] = useState<'dark' | 'light'>('dark');
   const [coinOpen, setCoinOpen] = useState(false);
   const initials = useVendorInitials();
-  const go = (href: string) => { setCoinOpen(false); router.push(href); };
-  const signOut = () => { setCoinOpen(false); clearVendorSession(); router.replace('/'); };
+  const close = () => setCoinOpen(false);
+  // THE ONE SURVIVING router CALL. Sign-out is a post-action redirect, not a tap on a
+  // destination, and `replace` is deliberate: the signed-out vendor must not be able to
+  // come back to a shell surface with the browser's own back gesture.
+  const signOut = () => { close(); clearVendorSession(); router.replace('/'); };
 
   // Persisted per device. Its own key: the old shell's 'dreamai_theme' names a different
   // pair of themes, and sharing the key would make one coin silently rule two palettes.
@@ -52,67 +77,71 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 
   function pick(next: 'dark' | 'light') {
     setMode(next);
-    setCoinOpen(false);
+    close();
     try { localStorage.setItem(MODE_KEY, next); } catch { /* non-fatal */ }
   }
 
   const onToday = pathname.startsWith('/w/today');
-  const onRooms = pathname.startsWith('/w/rooms') || pathname.startsWith('/w/support');
+  const onRooms = !onToday;
 
   return (
     <div className="wl" data-wl-mode={mode} style={{
-      // FIXED VIEWPORT, SCROLLING BODY. The first cut used minHeight and let the whole column
-      // grow, so the dock and both nav seats scrolled off the bottom of a long Today and the
-      // shell had no visible chrome at rest. The old shell pins its bar for exactly this
-      // reason (app/vendor/layout.tsx: height 100dvh, overflowY hidden); this one now does too.
+      // FIXED VIEWPORT, SCROLLING BODY. The first cut used minHeight and let the whole
+      // column grow, so the dock and both nav seats scrolled off the bottom of a long
+      // Today and the shell had no visible chrome at rest.
       height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       background: 'var(--atelier-page-bg)', color: 'var(--atelier-ink)',
     }}>
       <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS}</style>
 
-      <header className="wl-hdr" style={{ position: "relative", zIndex: coinOpen ? 21 : 5 }}>
-        {/* R-37.84 (2): the shell header stops being bare. The house name leads; the surface
-            label sits beneath it. Same treatment on both shell surfaces. */}
+      <header className="wl-hdr" style={{ position: 'relative', zIndex: coinOpen ? 21 : 5 }}>
+        {/* R-38.4: the wordmark is t2, DM SANS. It was Cormorant at 17/400 and CE-38's own
+            first draft kept it there — struck at relay #1, because Cormorant-at-17 is a
+            seventh tuple and the whole warrant of a closed set is that it is closed.
+            Cormorant survives at t0 and t1: the numeral and the page title. */}
         <div className="wl-hstack">
           <span className="wl-house">The Dream Wedding</span>
           <span className="wl-lbl">{title}</span>
         </div>
-        {/* R-37.79: ONE IDENTITY EVERYWHERE. The shell's \u25ce glyph and the rooms' DR medallion
-            were two identities for one person. The medallion wins \u2014 it is the one a vendor
-            already recognises. Initials are derived, never a fixture; a vendor with no name
-            yet gets the glyph rather than an empty circle. */}
+        {/* R-37.79: ONE IDENTITY EVERYWHERE. Initials are derived, never a fixture; a
+            vendor with no name yet gets the glyph rather than an empty circle.
+            R-38.5/CE-38 relay #2: the coin stays 44 — at the tap floor, with the
+            stale "this is 46 with air" comment retired alongside the rule it lied about. */}
         <button type="button" className="wl-coin" aria-label="Your profile" aria-expanded={coinOpen}
                 onClick={() => setCoinOpen((v) => !v)}>{initials || '\u25ce'}</button>
-        {/* ZIP 14 · F-16.37 CURE. This block was a SIBLING of the header it anchors to.
-           `.wl-drawer` is position:absolute with top:calc(100% + 8px), so it resolved
-           against the nearest POSITIONED ancestor — and `.wl` is static, so 100% meant
-           one whole viewport. The render arm measured it: top 852 against a 844px
-           viewport, a fully-formed 248x485 box painting 8px below the fold and clipped
-           by `.wl`'s overflow:hidden. The anchor and the anchored were siblings; the
-           fix is that they stop being. The header already carried position:relative
-           for exactly this job. */}
-      {coinOpen && (
-        <>
-          {/* R-37.79 COMPLETED: the ruling adopted the medallion WITH ITS DRAWER, and this seat
-              shipped two rows of it. The founder could not sign out or reach Settings from the
-              shell's own coin — a half-adoption that left the shell less capable than the
-              rooms it fronts. Full row set, same order as the rooms' drawer, one scrim. */}
-          <button type="button" className="wl-drawerscrim" aria-label="Close menu" onClick={() => setCoinOpen(false)} />
-          <div className="wl-drawer" role="menu">
-            <div className="wl-dsec">Atelier</div>
-            <DRow label="Discover Profile" sub="How couples see you" onClick={() => go('/vendor/discover/preview')} />
-            <DRow label="Settings"         sub="Profile and preferences" onClick={() => go('/vendor/settings')} />
-            <DRow label="Billing"          sub="Plan and payment" onClick={() => go('/vendor/billing')} />
-            <DRow label="The Dream Wedding" onClick={() => { setCoinOpen(false); window.open('https://thedreamwedding.in', '_blank', 'noopener'); }} />
-            <DRow label="Tips & Features"  sub="Mini manual" onClick={() => go('/vendor/more')} />
-            <div className="wl-dsec">Display</div>
-            <DRow label="Dark"  sub={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} />
-            <DRow label="Light" sub={COPY.themeLightName} onClick={() => pick('light')} current={mode === 'light'} />
-            <div className="wl-dsec">Actions</div>
-            <DRow label="Sign Out" danger onClick={signOut} />
-          </div>
-        </>
-      )}
+        {coinOpen && (
+          <>
+            <button type="button" className="wl-drawerscrim" aria-label="Close menu" onClick={close} />
+            {/* ZIP 14 · F-16.37's cure stands: this block is a CHILD of the <header> it
+                anchors to, not its sibling. `.wl-drawer` is position:absolute with
+                top:calc(100% + 8px); when the two were siblings that resolved against the
+                initial containing block, so 100% meant one whole viewport down. */}
+            <div className="wl-drawer" role="menu">
+              <div className="wl-dsec">{COPY.drawerAccount}</div>
+              {/* R-38.1: both of these are SHELL routes now. Tapping them mounts no second
+                  layout, no second masthead and no second session resolve. */}
+              <DLink label={COPY.settingsTitle} href="/w/settings" onGo={close} />
+              <DLink label={COPY.billingTitle} href="/w/billing" onGo={close} />
+              {/* R-38.7: the founder vetoed the horizontal-strip treatment of this row on
+                  Rooms. It leaves the Rooms body and this is its ONE home
+                  (R-37.69/.83 amended). The number keeps its own single home in
+                  lib/waNumbers.ts — no literal enters this file (cell C3). */}
+              <DAct label={COPY.roomsAskTitle} onClick={() => {
+                close();
+                window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
+              }} />
+              <DAct label={COPY.drawerHouse} onClick={() => {
+                close();
+                window.open('https://thedreamwedding.in', '_blank', 'noopener');
+              }} />
+              <div className="wl-dsec">{COPY.drawerDisplay}</div>
+              <DAct label={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} />
+              <DAct label={COPY.themeLightName} onClick={() => pick('light')} current={mode === 'light'} />
+              <div className="wl-dsec">{COPY.drawerActions}</div>
+              <DAct label={COPY.drawerSignOut} danger onClick={signOut} />
+            </div>
+          </>
+        )}
       </header>
 
       <main className="wl-main">{children}</main>
@@ -120,93 +149,75 @@ export function WorklistShell({ title, children }: { title: string; children: Re
       <AiDock mode={mode} />
 
       {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
-          /w's redirect are three statements of one decision — if they ever disagree, the app
-          disagrees with itself, so C17 asserts all three together rather than any one alone. */}
+          /w's redirect are three statements of one decision — if they ever disagree, the
+          app disagrees with itself, so C17 asserts all three together. */}
       <nav className="wl-nav" aria-label="Sections">
-        <button type="button" className={'wl-seat' + (onRooms ? ' on' : '')}
-                aria-current={onRooms ? 'page' : undefined}
-                onClick={() => router.push('/w/rooms')}>{COPY.navRooms}</button>
-        <button type="button" className={'wl-seat' + (onToday ? ' on' : '')}
-                aria-current={onToday ? 'page' : undefined}
-                onClick={() => router.push('/w/today')}>{COPY.navToday}</button>
+        <Link href="/w/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}
+              aria-current={onRooms ? 'page' : undefined}>{COPY.navRooms}</Link>
+        <Link href="/w/today" className={'wl-seat' + (onToday ? ' on' : '')}
+              aria-current={onToday ? 'page' : undefined}>{COPY.navToday}</Link>
       </nav>
     </div>
   );
 }
 
-// Type weights are explicit everywhere. Jost at 300 antialiases toward the ground at these
-// sizes and reads several shades lighter than its measured ratio — the founder caught
-// exactly this on the Chalk walk-through, and the cure was weight, not ink.
 const SHELL_CSS = `
 .wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
-.wl-drawer{position:absolute;top:calc(100% + 8px);right:var(--wl-gutter);z-index:20;min-width:248px;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:3px;overflow:hidden;box-shadow:0 18px 40px -12px var(--atelier-card-shadow)}
-.wl-dsec{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:12px 16px 6px}
-.wl-drow{display:flex;flex-direction:column;gap:2px;width:100%;min-height:48px;justify-content:center;padding:8px 16px;background:none;border:none;cursor:pointer;text-align:left}
+.wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20;min-width:248px;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:3px;overflow:hidden;box-shadow:0 18px 40px -12px var(--atelier-card-shadow)}
+/* R-38.4: a section eyebrow. One of the TWO places letter-spaced uppercase is permitted,
+   and at .08em rather than the retired .2em engraved register. */
+.wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:12px var(--wl-gutter) 6px}
+.wl-drow{display:flex;align-items:center;width:100%;min-height:var(--wl-row);padding:8px var(--wl-gutter);background:none;border:none;cursor:pointer;text-align:left;text-decoration:none}
 .wl-drow + .wl-drow{border-top:.5px solid var(--atelier-card-border)}
-.wl-dlabel{font-family:var(--wl-body);font-weight:400;font-size:14px;color:var(--atelier-ink)}
+.wl-dlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-drow[aria-current="true"] .wl-dlabel{color:var(--atelier-accent-text)}
 .wl-drow.danger .wl-dlabel{color:var(--role-critical)}
-.wl-dsub{font-family:var(--wl-label);font-weight:500;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-drow:active{background:var(--atelier-row-hover)}
-/* ── R-37.82 ① THE GUTTER LAW ────────────────────────────────────────────────────
-   ONE horizontal gutter, owned by the scroll column, equal to the tile grid's own edge.
-   Every element inherits it; no component sets its own horizontal margin or width, ever.
-   The founder's misalignment existed because the rows chose their own inset — that
-   freedom is removed by construction, not by care. C22 asserts no component takes it back.
-   ── ③ THE RHYTHM LAW: vertical spacing is the 8-scale. Nothing improvised. */
-.wl{--wl-gutter:12px;--wl-step:8px}
+/* ── R-37.82 ① THE GUTTER LAW, RAISED 12 → 16 (R-38.5) ─────────────────────────
+   ONE horizontal gutter, owned by the scroll column. Every element inherits it; no
+   component sets its own horizontal margin or width, ever. The founder's misalignment
+   existed because the rows chose their own inset — that freedom is removed by
+   construction, not by care.
+   ── ③ THE RHYTHM LAW: vertical spacing is the 8-scale. Nothing improvised.
+   The gutter, step, tile and row values are emitted by typeCss() from lib/worklist/theme
+   GRID, so the grid has one home and this stylesheet reads it rather than restating it. */
 .wl-main > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
 /* ── SHARED CARD CHROME · ONE HOME (founder walk, ZIP 7) ────────────────────────────
-   These four classes are used by BOTH the first-run manual and the Rooms link card. They
-   used to live inside FirstRun's own style block, which mounts on Today only — so the same
-   markup rendered styled on one surface and unstyled on the other. A class used by two
-   components and owned by one is a single-home violation wearing CSS. The shell emits them
-   now, because the shell is the one thing every surface is inside. C21 holds the line. */
-.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px;margin:0 0 10px}
+   Used by the first-run cards, the Today empty state and Billing. A class used by three
+   components and owned by one is a single-home violation wearing CSS; the shell emits
+   them, because the shell is the one thing every surface is inside. */
+.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
 .wl-card-lead{border-left:2px solid var(--atelier-accent-text)}
-.wl-cardtitle{font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
-.wl-cardbody{font-family:var(--wl-body);font-weight:400;font-size:14.5px;line-height:1.65;color:var(--atelier-ink-soft);margin:0}
-.wl-cardaction{margin-top:14px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 18px;min-height:46px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-cardtitle{font:var(--wl-t4);color:var(--atelier-accent-text);margin:0 0 8px}
+.wl-cardbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
+.wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-
 /* ── TOUCH ──────────────────────────────────────────────────────────────────
-   Two defects in the first cut, both found on the founder's device and neither
-   visible in a desktop render:
-
-   (a) NO PRESSED STATE ANYWHERE. -webkit-tap-highlight-color was set to transparent
-       and nothing replaced it, so a tap produced no feedback at all until the route
-       resolved. On a throttled connection that reads as a dead control, and the
-       honest response to a dead control is to tap it again. Every control below now
-       answers the finger on contact.
-
-   (b) NO touch-action. Without touch-action:manipulation the browser holds every tap for the
-       double-tap-zoom gesture before dispatching the click. That delay is the
-       difference between a shell that responds and one that has to be convinced. */
-.wl{font-family:'DM Sans',system-ui,sans-serif;font-weight:300;touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
-.wl button{touch-action:manipulation}
-.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:17px 22px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal);z-index:5}
+   (a) NO PRESSED STATE ANYWHERE was the first cut's defect: tap-highlight was set to
+       transparent and nothing replaced it, so a tap produced no feedback until the route
+       resolved. Every control below answers the finger on contact.
+   (b) NO touch-action. Without manipulation the browser holds every tap for the
+       double-tap-zoom gesture before dispatching the click. */
+.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
+.wl button,.wl a{touch-action:manipulation}
+/* R-38.5 · THE EDGE. The header's horizontal padding IS the gutter, so the wordmark's left
+   edge, the first tile's left border, the dock field's left border and Billing's plan card
+   all resolve to one x. It was 22px here and 12px everywhere else, which is the
+   misalignment the founder kept seeing and no cell could name. */
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
-.wl-house{font-family:var(--wl-feature);font-weight:400;font-size:17px;line-height:1.1;color:var(--atelier-ink)}
-.wl-lbl{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-ink-mute)}
-/* R-37.73 ①: 40×40 was under the floor. 44 is the floor; this is 46 with air. */
-.wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.06em;line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
-/* ZIP 13 · CE ruling F-4 — .wl-coindrawer, .wl-coinitem (and its [aria-current]
-   variant), .wl-glyph and .wl-sub deleted here. They styled the TWO-ROW coin
-   drawer that ZIP 12 replaced when it completed R-37.79; the markup went and the
-   stylesheet stayed. That is the .wl-plink disease recommitted by the very
-   delivery that named it — which is why the corrected sweep asserts this class
-   of rot rather than any seat's diligence. Their consumer count at deletion,
-   derived across the whole source tree, was zero. */
+.wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
+.wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* R-38.5 · the nav's content box shares the main column's left edge — the container half
+   of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the wordmark,
+   the grid, the dock and the plan card, and this one reads the boxes. */
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
-/* R-37.73 ①: no explicit height in ZIP 1 — it happened to clear 44 by padding alone,
-   which is a target that survives by accident. Stated now. ②: 9.5 → 12, the interactive floor. */
-.wl-seat{flex:1;min-height:52px;background:none;border:none;cursor:pointer;text-align:center;padding:15px 0 17px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
-/* ZIP 13 · F-4: the .wl-coinitem limbs of these two shared rules go with the
-   class. The .wl-coin limbs stay — the medallion itself is very much alive. */
 .wl-coin:active{background:var(--atelier-row-hover)}
 .wl-seat:focus-visible,.wl-coin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.wl *{transition:none!important;animation:none!important}}

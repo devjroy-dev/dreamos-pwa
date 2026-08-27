@@ -267,7 +267,22 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // searched only the old file would go RED on correct code, and a cell narrowed
   // to green itself would stop guarding the bytes. Three of the nine are
   // FURTHER amended below where the ruling genuinely changed what is true.
-  const ss = strip(CARD) + '\n' + strip(read('lib/vendor/billing/statusLine.ts'));
+  // ── LABELLED AMENDMENT · M-FINISH S1 — THE CORPUS FOLLOWS THE FILES ─────────
+  // Two pure moves this sitting changed WHERE these bytes live and nothing about WHAT they
+  // say: `SettingsScreen` left `app/vendor/settings/page.tsx` for its own component file
+  // (Next 16 refuses a non-page export from a route file, by name, at build time), and the
+  // vetoed money block left `SubscriptionCard.tsx` for `lib/vendor/billing/plans.ts`
+  // (importing it from a COMPONENT module dragged that component and its statusLine
+  // dependency onto the shell's Billing chunk, shipping four retired sentences to the
+  // browser — the wl_audit R-38.6 cell reddened on it).
+  //
+  // SO THE READS ARE RE-POINTED, NOT LOOSENED. Every predicate below is byte-identical;
+  // only the handles moved. A cell that had been RE-AIMED to a weaker file would be the
+  // thing this amendment must not be, so the two additions are the exact new homes of the
+  // exact old bytes, and the old handles stay in the corpus so a partial move reddens.
+  const SCREEN = read('components/vendor/SettingsScreen.tsx');
+  const PLANS  = read('lib/vendor/billing/plans.ts');
+  const ss = strip(CARD) + '\n' + strip(PLANS) + '\n' + strip(read('lib/vendor/billing/statusLine.ts'));
   ok('the subscription surface exists', /SCard title="Subscription"/.test(ss));
   ok('the Tier read-row is REPLACED, not duplicated — one home for the plan word',
      !/SReadRow label="Tier"/.test(ss) && /SReadRow label="Plan"/.test(ss));
@@ -308,12 +323,30 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // therefore still load-bearing, and the signpost it proves reachable is the
   // only thing standing between a capped vendor and a dead end. A cell, because
   // an anchor is exactly the kind of thing a later refactor silently drops.
+  //
+  // ⚠ AND THE ANCHOR MOVED FILES THIS SITTING WITHOUT MOVING ADDRESS. `SettingsScreen` is
+  // now `components/vendor/SettingsScreen.tsx`; `app/vendor/settings/page.tsx` is the
+  // ROUTE that renders it. The wire address /vendor/settings#tier resolves exactly as
+  // before — the route is untouched and still mounts the screen that carries the id. The
+  // cell reads BOTH files, so it cannot go green on a route that renders nothing, nor on
+  // a screen no route mounts. That is stricter than reading either one.
   ok('the #tier anchor exists — the wire address still resolves to a page carrying the signpost',
-     /id="tier"/.test(strip(SETT)));
+     /id="tier"/.test(strip(SCREEN)) && /SettingsScreen/.test(strip(SETT)));
 
   // Money register law: Rs X,XXX, zero glyphs, zero shorthand.
-  ok('canon prices render in the money register, verbatim',
-     /'Rs 999 \/ month'/.test(ss) && /'Rs 1,999 \/ month'/.test(ss) && /'Rs 2,999 \/ month'/.test(ss));
+  // AMENDED, LABELLED — M-FINISH S1. THE PREDICATE IS STRENGTHENED, NOT RE-AIMED, AND THE
+  // CELL COUNT IS UNCHANGED. It still asserts the three canon prices render verbatim in
+  // the money register; it now also asserts they are DECLARED EXACTLY ONCE, and not in a
+  // component. `lib/vendor/billing/plans.ts` is that one home. If a later seat copies them
+  // back beside the JSX for convenience, the estate has two price tables again — F-10.63's
+  // family, and the reason TIER_PAISE pins them as integers upstream. A component may
+  // RENDER the canon and must not DECLARE it. Folded into this cell rather than added as a
+  // new one, because the ruled amendment is count-preserved.
+  ok('canon prices render in the money register, verbatim, from exactly one home',
+     /'Rs 999 \/ month'/.test(ss) && /'Rs 1,999 \/ month'/.test(ss) && /'Rs 2,999 \/ month'/.test(ss)
+     && /Rs 999 \/ month/.test(PLANS)
+     && !/'Rs 999 \/ month'/.test(strip(CARD))
+     && !/'Rs 999 \/ month'/.test(strip(read('components/worklist/BillingRoom.tsx'))));
   // Read STRIPPED, not raw. These three cells forbid words that this file's own
   // warrants legitimately DISCUSS — the persona cell first reddened on a comment
   // explaining what the flip-reason line spares the vendor from, which is a bench

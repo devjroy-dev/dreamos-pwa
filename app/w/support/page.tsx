@@ -24,9 +24,12 @@ export default function SupportPage() {
         </button>
       </div>
       <style>{`
-.wl-support{padding:28px 20px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
-.wl-supportbody{font-size:14.5px;font-weight:400;line-height:1.65;color:var(--atelier-ink-soft);margin:0;max-width:46ch}
-.wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:13px 20px;min-height:48px;font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+/* R-38.5: the column owns the gutter. This block set its own 20px inset and was one of the
+   sites the founder's misalignment came from — a component taking back the freedom
+   R-37.82 (1) removed. Vertical only now. */
+.wl-support{padding-top:20px;padding-bottom:24px;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+.wl-supportbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+.wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-supportaction:active{background:var(--atelier-row-hover)}
 .wl-supportaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
       `}</style>

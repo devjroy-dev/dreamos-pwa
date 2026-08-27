@@ -41,12 +41,18 @@ cell('C1 token completeness, both modes', () => {
 // the next amendment happens in ONE home and this cell cannot drift away from the registry
 // it guards. Position is the founder's to reorder in one word; this cell asserts wherever
 // he puts it, and reddens on any reorder he did not word.
-cell('C2 seventeen rooms in frozen order, 7 + 10 (seats flipped, R-37.75; R-37.87)', () => {
+// AMENDED, LABELLED — M-FINISH S1 (R-38.9). SEVENTEEN BECOMES EIGHTEEN by founder word:
+// the Advisor room joins the business band. Count history, every step worded or derived:
+// 11 -> 15 -> 16 -> 17 -> 18. The cell does NOT loosen — it still asserts an exact count
+// and an exact order, and it still reads BOTH from the registry's own exported constants
+// rather than from literals retyped here, so the numbers cannot drift from the registry
+// they guard. Only the ruled expectation moved, and it moved with a name on it.
+cell('C2 eighteen rooms in frozen order, 7 + 11 (seats flipped, R-37.75; R-37.87; R-38.9)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
   const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
-  if (EXP_ALL !== 17 || EXP_TOP !== 7 || EXP_BOT !== 10)
-    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 17/7/10';
+  if (EXP_ALL !== 18 || EXP_TOP !== 7 || EXP_BOT !== 11)
+    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 18/7/11';
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
@@ -161,8 +167,20 @@ cell('C10 every tap target >= 44px', () => {
     for (const c of classes) {
       const m = css.match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
       if (!m) { under.push(c + ' (rule not found)'); continue; }
-      const h = m[1].match(/min-height:(\d+)px/);
-      if (!h) { under.push(c + ' (no min-height — a target that survives by accident)'); continue; }
+      // AMENDED, LABELLED — M-FINISH S1 (F-38.4). `.wl-tile` states `height`, not
+      // `min-height`, because the tile is now a FIXED 64px: R-38.5's 1:1 aspect put four
+      // of eighteen rooms below the fold and was replaced by a fixed height at CE-38
+      // relay #2. The floor is unchanged and still 44 — this reads either declaration, so
+      // a control with NEITHER still fails as 'a target that survives by accident'. The
+      // token form is read too, because the grid's values now have one home in theme.ts
+      // and the stylesheet reads var(--wl-tile) rather than restating 64.
+      let h = m[1].match(/min-height:(\d+)px/) || m[1].match(/height:(\d+)px/);
+      if (!h && /height:var\(--wl-(tile|row)\)/.test(m[1])) {
+        const g = read('lib/worklist/theme.ts').match(/GRID\s*=\s*\{[^}]*?(tile|row):\s*(\d+)/g) || [];
+        const t = read('lib/worklist/theme.ts').match(/tile:\s*(\d+)/);
+        h = t ? [null, t[1]] : null;
+      }
+      if (!h) { under.push(c + ' (no stated height — a target that survives by accident)'); continue; }
       if (Number(h[1]) < TAP_MIN) under.push(c + ' at ' + h[1] + 'px');
     }
   }
@@ -183,13 +201,29 @@ cell('C11 type floors hold', () => {
     ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
     ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],
   ];
+  // AMENDED, LABELLED — M-FINISH S1 (R-38.4). AD-HOC px IS GONE FROM THE SHELL: every rule
+  // now reads `font:var(--wl-tN)`, the CSS `font` SHORTHAND, so a call site cannot set a
+  // size without also taking that rung's family and weight. So this cell stops looking for
+  // a `font-size` literal — which would now report 'no font-size' for every correct rule,
+  // exactly as it did on the first run — and RESOLVES THE RUNG through theme.ts's own TYPE
+  // object instead. The floors are untouched and the cell count is unchanged. It is
+  // STRICTER than before, not looser: a rule that names no rung at all fails, where a
+  // literal would merely have had to clear a number.
+  const TYPE_SRC = read('lib/worklist/theme.ts');
+  const rungSize = (t) => {
+    const m = TYPE_SRC.match(new RegExp(t + ':\\s*\\{\\s*size:\\s*([\\d.]+)'));
+    return m ? Number(m[1]) : null;
+  };
   const bad = [];
   for (const [f, c, floor] of rules) {
     const m = read(f).match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
     if (!m) { bad.push(c + ' (rule not found)'); continue; }
-    const sz = m[1].match(/font-size:([\d.]+)px/);
-    if (!sz) { bad.push(c + ' (no font-size)'); continue; }
-    if (Number(sz[1]) < floor) bad.push(c + ' at ' + sz[1] + 'px, floor ' + floor);
+    let size = null;
+    const rung = m[1].match(/font:var\(--wl-(t\d)\)/);
+    if (rung) size = rungSize(rung[1]);
+    else { const sz = m[1].match(/font-size:([\d.]+)px/); if (sz) size = Number(sz[1]); }
+    if (size === null) { bad.push(c + ' (names no type rung and sets no size)'); continue; }
+    if (size < floor) bad.push(c + ' at ' + size + 'px, floor ' + floor);
   }
   if (bad.length) return 'under the type floor: ' + bad.join(', ');
   return null;
@@ -225,18 +259,31 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   const copy = strip(read('lib/worklist/copy.ts'));
   const fr   = strip(read('components/worklist/FirstRun.tsx'));
 
-  if (!/todayPromise:/.test(copy)) return 'the forward promise has no home in copy.ts';
-  // AMENDED BY LABEL (ZIP 7 / R-37.76 ⑧): the promise is the PAGE's hero now, not a card's
-  // preamble — that was the whole cure for Today having no stature. It renders one level up.
-  if (!/COPY\.todayPromise/.test(strip(read('app/w/today/page.tsx')))) return 'the forward promise is never rendered on Today';
+  // AMENDED, LABELLED — M-FINISH S1 (R-38.6). `todayPromise` RETIRES: it was a two-clause
+  // paragraph standing where a page title goes, and it is recut to `todayTitle` at t1.
+  // RETIRE-WITH-THE-READER, and the assertion INVERTS rather than vanishing — a silent
+  // re-add of the paragraph reddens — while the clause that mattered (Today must open on a
+  // line with stature, R-37.76 ⑧) is preserved against its successor.
+  if (/todayPromise:/.test(copy)) return 'the retired paragraph todayPromise is back in copy.ts';
+  if (!/todayTitle:/.test(copy)) return 'Today has no page title byte in copy.ts';
+  if (!/COPY\.todayTitle/.test(strip(read('app/w/today/page.tsx')))) return 'the page title is never rendered on Today';
 
-  const titles = ['cardDeskTitle', 'cardLinkTitle', 'cardAskTitle', 'cardRoomsTitle', 'cardMoreTitle'];
+  // AMENDED, LABELLED — M-FINISH S1 (R-38.6). FIVE CARDS BECOME THREE. `cardRoomsTitle`
+  // and `cardMoreTitle` leave this list because their SUBJECTS were retired by ruling: the
+  // Rooms card captioned a directory it sat on top of, and the Business Solutions card was
+  // a second door to a room that has had a tile since R-37.66. Their keys must be GONE, not
+  // orphaned — asserted three lines below with the ZIP 1 keys, same clause, same reason.
+  const titles = ['cardDeskTitle', 'cardLinkTitle', 'cardAskTitle'];
   const missing = titles.filter((t) => !new RegExp('COPY\\.' + t).test(fr));
   if (missing.length) return 'cards defined but never rendered: ' + missing.join(', ');
 
   // Retired keys must be gone, not orphaned — an unrendered vetoed byte is a byte that
   // drifts unnoticed until someone renders it again.
   if (/cardAiTitle|cardAiBody|cardAiAction/.test(copy)) return 'ZIP 1 card keys survive in copy.ts';
+  const retiredKeys = ['cardRoomsTitle', 'cardRoomsBody', 'cardRoomsAction', 'cardMoreTitle', 'cardMoreBody',
+                       'roomsPointer', 'roomsAskSub', 'roomsProfileSub', 'todayMastheadCaption'];
+  const orphans = retiredKeys.filter((k) => new RegExp(k + ':').test(copy));
+  if (orphans.length) return 'retired keys survive in copy.ts: ' + orphans.join(', ');
 
   const chips = copy.match(/cardAskChips[^\]]*\]/);
   if (!chips) return 'chip list not found';
@@ -244,7 +291,10 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   if (n !== 5) return 'chip count is ' + n + ', expected 5 (one per capability)';
 
   // The ceiling. Sentence-enders outside the ellipsis/decimal cases.
-  const bodies = ['cardDeskBody', 'cardLinkBody', 'cardAskBody', 'cardRoomsBody', 'cardMoreBody'];
+  // AMENDED with the card set above, and TIGHTENED: R-38.6 cuts the ceiling from three
+  // sentences to ONE. The cell that counted to three would pass a two-sentence body, which
+  // is exactly the drift the recut exists to prevent.
+  const bodies = ['cardDeskBody', 'cardLinkBody', 'cardAskBody'];
   const over = [];
   for (const b of bodies) {
     const m = copy.match(new RegExp(b + ":\\s*'((?:[^'\\\\]|\\\\.)*)'"));
@@ -338,14 +388,28 @@ cell('C17 rooms-first agrees on every surface', () => {
   const doors = [...nav.matchAll(/label:\s*'(\w+)'/g)].map((m) => m[1]);
   if (doors.join(',') !== 'Rooms,Today') return 'the carried nav still reads ' + doors.join(',') + ' — one app, one nav';
 
-  // The pointer is what keeps a Rooms-first vendor meeting the first-run manual at all.
+  // AMENDED, LABELLED — M-FINISH S1 (R-38.6/R-38.7). THE POINTER RETIRES WITH ITS SUBJECT.
+  // It existed because Rooms-first meant a new vendor might never tap the second seat and
+  // meet the manual; R-38.7 rules that Rooms shows the tile grid AND NOTHING ELSE, and a
+  // directory does not advertise a manual. The assertion INVERTS — a silent re-add of the
+  // vetoed card reddens — and the clause it replaces keeps doing the same job the old one
+  // did after ZIP 7 tightened it: assert the MOUNT, never the mere presence of the byte.
   const grid = strip(read('components/worklist/RoomsGrid.tsx'));
-  // An earlier draft checked only that COPY.roomsPointer APPEARED in the file. Removing
-  // <Pointer /> from the render left that green — the component still referenced the byte
-  // while rendering nothing. Vacuous, caught on its own mutation, tightened to the mount.
-  if (!/COPY\.roomsPointer/.test(grid)) return 'the grid has no pointer byte';
-  if (!/<Pointer\s*\/>/.test(grid)) return 'the pointer is defined but never mounted — a new vendor never meets the manual';
-  if (!/\/w\/today/.test(grid)) return 'the pointer does not reach Today';
+  if (/roomsPointer|wl-pointer/.test(grid)) return 'the retired Rooms pointer is mounted again';
+  // The mount half of the same amendment. ZIP 7 added this clause because checking that
+  // COPY.roomsPointer merely APPEARED in the file went green with <Pointer /> deleted from
+  // the render — the component still referenced the byte while rendering nothing. That
+  // lesson is why the inverted assertion above reads the mount too, and why this line
+  // inverts rather than disappearing: a byte with no mount and a mount with no ruling are
+  // the same defect seen from two sides.
+  if (/<Pointer\s*\/>/.test(grid)) return 'the retired Rooms pointer is mounted again';
+  // The DESTINATION half. It asserted that the grid reaches /w/today, which was the
+  // pointer's route. With the pointer retired the grid must not link to Today at all — the
+  // nav seat is that door, and a second door to Today from inside Rooms is the two-homes
+  // shape R-38.7 removed from this surface. The assertion moves to where the guarantee now
+  // lives: Today is still one tap away, from the seat, on every shell surface.
+  if (/\/w\/today/.test(grid)) return 'the grid links to Today again — the seat is that door';
+  if (!/href="\/w\/today"/.test(shell)) return 'the Today seat is not an anchor in the shell';
   return null;
 });
 
@@ -386,11 +450,21 @@ cell('C19 one vocabulary across shell and rooms', () => {
 // ── C20 · R-37.81(a) · the profile affordance opens the COUPLE VIEW, not the editor. Two
 //    surfaces exist and they are one word apart; opening the wrong one is a label outrunning
 //    its destination, which this arc has convicted twice already.
+// AMENDED, LABELLED — M-FINISH S1 (R-38.7). THE ROW MOVED, THE ASSERTION DID NOT WEAKEN.
+// The founder vetoed the horizontal-strip treatment on Rooms, so 「Profile layout」 leaves
+// the grid and becomes a row inside Settings. R-37.81(a)'s substance is untouched and is
+// the whole reason this cell exists: the affordance opens the COUPLE VIEW (/preview), not
+// the EDITOR (/profile), because a vendor tapping 「how couples see you」 and landing in a
+// form has been told a small lie by her own chrome. The cell now reads the new home, and
+// it still reddens on the editor URL. It ALSO asserts the row is gone from the grid, so
+// the vetoed strip cannot come back wearing this cell's approval.
 cell('C20 the profile row opens the couple view', () => {
   const grid = strip(read('components/worklist/RoomsGrid.tsx'));
-  if (!/roomsProfileTitle/.test(grid)) return 'no profile row';
-  if (/discover\/profile/.test(grid)) return 'the row opens the EDITOR (/discover/profile); the couple view is /discover/preview';
-  if (!/discover\/preview/.test(grid)) return 'the row does not open /vendor/discover/preview';
+  if (/roomsProfileTitle/.test(grid)) return 'the vetoed profile row is back in the Rooms grid';
+  const set = strip(read('app/w/settings/page.tsx'));
+  if (!/roomsProfileTitle/.test(set)) return 'no profile row in Settings — the byte lost its home in the move';
+  if (/discover\/profile/.test(set)) return 'the row opens the EDITOR (/discover/profile); the couple view is /discover/preview';
+  if (!/discover\/preview/.test(set)) return 'the row does not open /vendor/discover/preview';
   return null;
 });
 

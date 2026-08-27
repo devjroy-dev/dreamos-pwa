@@ -60,6 +60,24 @@ export function AskSheet({ vendorId, mode, onClose }: { vendorId: string; mode: 
   );
 }
 
+// ── R-38.4 · THE SHEET HEAD IS t2 ──────────────────────────────────────────
+// It was Jost at 12px/.16em uppercase through `--wl-label`. That variable is deleted with
+// the family, and the head becomes the section-heading rung: it NAMES the surface rather
+// than captioning it, and letter-spaced uppercase survives in exactly two places of which
+// a sheet title is neither.
+//
+// ⚠ THIS EXPLANATION LIVES IN A JS COMMENT AND NOT IN THE CSS, AND THAT IS THE POINT.
+// The first cut wrote it as a /* */ comment INSIDE the template literal below — so the
+// words 「--wl-label」 were emitted into the served stylesheet, and the audit's
+// retired-variable cell reddened on my own tombstone. ZIP 14 ⑧ owned this exact family
+// ("I shipped a verify line asserting the absence of a class NAME while my own labelled
+// deletion comments named those classes"); this is the same mistake pointing the other
+// way, and the gate caught it in one run. A comment about a retirement must not ship to
+// the vendor's browser, or it becomes the thing it is describing.
+//
+// NOTE FOR THE ARM'S TUPLE CELL: this sheet is NOT in the §5 capture set. Its body is
+// ChatThread and InputBar, carried components with their own type, and bringing them onto
+// the scale is the same sitting that drops this file's ThemeProvider (F-38.3).
 const ASK_CSS = `
 .wl-asksheet{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end}
 .wl-askscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
@@ -74,7 +92,7 @@ const ASK_CSS = `
 .wl-askpanel > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
 .wl-askgrab{flex-shrink:0;align-self:center;width:38px;height:4px;margin:8px 0 2px;padding:0;border:none;border-radius:2px;background:var(--atelier-ink-fade);cursor:grab;touch-action:none}
 .wl-askhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:.5px solid var(--atelier-card-border)}
-.wl-asktitle{font-family:var(--wl-label);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.wl-asktitle{font:var(--wl-t2);color:var(--atelier-accent-text)}
 .wl-askclose{width:44px;height:44px;margin:-10px -10px -10px 0;background:none;border:none;color:var(--atelier-ink-mute);font-size:22px;line-height:1;cursor:pointer}
 .wl-askbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px}
 `;

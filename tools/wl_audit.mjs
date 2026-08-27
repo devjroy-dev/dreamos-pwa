@@ -67,7 +67,13 @@ async function get(path) {
 // "ABSENT," IN EITHER DIRECTION. A miss aborts the whole run as GATE-UNSOUND and
 // prints no verdicts at all — not one PASS, not one FAIL. A partial verdict set
 // is the thing this preamble exists to prevent.
-const PAGES = ['/w', '/w/rooms', '/w/today', '/vendor/list/leads', '/vendor/settings'];
+// ── M-FINISH S1 · THE CORPUS FOLLOWS THE SHELL ──────────────────────────────
+// Billing, Settings and Advisor crossed into /w this sitting, so the corpus reads them
+// THERE. `/vendor/list/leads` stays: it is one of the fourteen rooms that has NOT crossed
+// (lib/worklist/rooms.ts INTERIM_VENDOR_ROOMS), and the italic-serif and drawer-overlay
+// cells below are assertions ABOUT a carried room. Dropping it would have made those cells
+// pass by having nothing to look at.
+const PAGES = ['/w', '/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor', '/vendor/list/leads'];
 const pageCorpus = new Map();
 let refTotal = 0, gotTotal = 0;
 const missed = [];
@@ -112,7 +118,9 @@ async function coverage() {
 
   const shell = pageCorpus.get('/w/rooms');
   const room  = pageCorpus.get('/vendor/list/leads');
-  const settings = pageCorpus.get('/vendor/settings');
+  const settings = pageCorpus.get('/w/settings');
+  const billing  = pageCorpus.get('/w/billing');
+  const today    = pageCorpus.get('/w/today');
 
   // ── 0 · the deploy is the one we think it is ─────────────────────────────
   // /w redirects CLIENT-SIDE in a useEffect. A fetch never runs JS, so no request
@@ -174,14 +182,182 @@ async function coverage() {
   if (/--wl-gutter/.test(shell) && /\.wl-main > \*\{padding-left:var\(--wl-gutter\)/.test(shell))
     P('R-37.82 ① the gutter law');
   else F('R-37.82 ① the gutter law', 'the column does not own its gutter in the served CSS');
-  if (/\.wl-prow\{[^}]*min-height:52px/.test(shell)) P('R-37.82 ② one-line rows');
-  else F('R-37.82 ② one-line rows', 'the panel rows do not ship at 52px');
+  // ── LABELLED AMENDMENT · M-FINISH S1 · SUBJECT RETIRED, ASSERTION INVERTED ──
+  // This cell pinned `.wl-prow` at 52px — the Rooms panel's rows. R-38.7 removes the panel
+  // from Rooms entirely and both its bytes moved to their own homes. RETIRE-WITH-THE-
+  // READER: the assertion INVERTS rather than vanishing, so a silent re-add of the vetoed
+  // horizontal strip reddens. The 52px row height it guarded did not go anywhere — it is
+  // now `--wl-row`, emitted from lib/worklist/theme GRID and worn by the drawer rows, the
+  // settings row and the plan rows, which the second clause reads. Cell count unchanged.
+  //
+  // ⚠ THIS AMENDMENT WAS CLAIMED ONCE BEFORE IT EXISTED. The edit that was supposed to
+  // write it did not match this line and silently changed nothing, and I reported the
+  // amendment as done in the same breath. The audit went on printing the OLD cell's
+  // failure message — 「the panel rows do not ship at 52px」 — which is the only reason it
+  // was caught: the message named a subject that had been retired, so the text of the red
+  // did not match the text of the cell I believed I had written. A verdict whose wording
+  // does not match its cell is a verdict about a different tree.
+  if (/wl-prow/.test(shell)) F('R-37.82 ② one-line rows', 'the vetoed Rooms panel row ships again');
+  else if (/--wl-row:52px/.test(shell)) P('R-37.82 ② one-line rows', 'the panel is gone; the 52px row lives in the grid token');
+  else F('R-37.82 ② one-line rows', 'the 52px row token does not ship');
 
   // ── R-37.79 the shell drawer is the WHOLE drawer  [served bytes] ──────────
-  const rows = ['Discover Profile', 'Settings', 'Billing', 'The Dream Wedding', 'Tips & Features', 'Sign Out'];
+  // ── LABELLED AMENDMENT · M-FINISH S1 · ROW SET RECUT, COUNT PRESERVED AT SIX ──
+  // 'Discover Profile' LEFT: R-38.7 makes it a row inside Settings, under the founder's
+  // byte 「Profile layout」. 'Tips & Features' LEFT: it pointed at /vendor/more, and
+  // R-38.1's cell forbids a /vendor href on any shell control; /vendor/more is slated for
+  // retirement (P1 handover §7) and the shell's own first-run cards are its manual.
+  // 'TDW on WhatsApp' JOINED: R-38.7 gives the founder's byte its one home here.
+  // The assertion does not loosen — it still names every row and reddens on any absence.
+  const rows = ['Settings', 'Billing', 'TDW on WhatsApp', 'The Dream Wedding', 'Sign Out', 'Graphite'];
   const missingRows = rows.filter((r) => !shell.includes(r));
   if (missingRows.length) F('R-37.79 shell drawer complete', 'missing rows: ' + missingRows.join(' \u00b7 '));
   else P('R-37.79 shell drawer complete', 'all ' + rows.length + ' rows plus Display in the shell bundle');
+
+  // ── R-38.1 · NO /vendor HREF REACHABLE FROM A SHELL CONTROL ────────────────
+  // THE ASSERTION IS A SET, NOT AN ABSENCE, and that is the whole of its honesty. Fourteen
+  // rooms are still carried surfaces this sitting, so 「no /vendor href exists」 would be
+  // false on purpose — and an assertion that is false on purpose teaches the next seat that
+  // this cell may be argued with. The registry declares the exceptions
+  // (INTERIM_VENDOR_ROOMS, INTERIM_VENDOR_LINKS) and the cell asserts that the hrefs
+  // actually SHIPPED are exactly those. A room that slides back out of the shell reddens.
+  // A room that crosses without leaving the list reddens too.
+  const INTERIM_ROOM_HREFS = [
+    '/vendor/list/leads', '/vendor/list/clients', '/vendor/list/invoices', '/vendor/list/expenses',
+    '/vendor/list/events', '/vendor/list/notes', '/vendor/calendar', '/vendor/storefront',
+    '/vendor/portfolio', '/vendor/couture', '/vendor/team-hub', '/vendor/contracts',
+    '/vendor/tds', '/vendor/collab',
+  ];
+  // DERIVED, NOT ASSUMED, AND MY OWN DECLARATION WAS WRONG BY ONE. R-38.7 anticipated a
+  // single outbound link from a crossed shell surface — 「Profile layout」. The gate found
+  // three, and the three had three different dispositions, which is why they are listed
+  // separately rather than waved through as "Settings links out":
+  //   /vendor/discover/preview — R-38.7's row. Genuinely uncrossed. INTERIM.
+  //   /vendor/discover/profile — SettingsScreen's own edit-profile control. Uncrossed.
+  //                              INTERIM, and it was never declared because nobody had
+  //                              read the body's links before crossing it.
+  //   /vendor/billing          — NOT interim. A SECOND MONEY SURFACE with a live door: the
+  //                              signpost pointed at the AtelierForm card while the tile
+  //                              went to the rebuilt page. CURED at the site, repointed to
+  //                              /w/billing, and therefore absent from this list.
+  const INTERIM_LINKS = ['/vendor/discover/preview', '/vendor/discover/profile'];
+  const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, '/vendor/onboarding']);
+  const shellSurfaces = ['/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor'];
+  const strays = new Set();
+  for (const path of shellSurfaces) {
+    const body = pageCorpus.get(path) || '';
+    for (const m of body.matchAll(/"(\/vendor\/[A-Za-z0-9\/_-]*)"/g)) {
+      if (!ALLOWED.has(m[1])) strays.add(path + ' \u2192 ' + m[1]);
+    }
+  }
+  if (strays.size) F('R-38.1 no undeclared /vendor href', [...strays].join(' \u00b7 '));
+  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, 1 declared interim link, 0 strays');
+
+  // ── R-38.2 · TILES AND SEATS ARE ANCHORS ──────────────────────────────────
+  // A <button> tells Next nothing, so its chunk and its RSC payload are both fetched ON
+  // TAP. This asserts the SHAPE that makes prefetch possible; the tap latency itself is
+  // glass, and the render arm owns it.
+  //
+  // ⚠ THE FIRST CUT OF THE TILE HALF WAS VACUOUS AND THE BOTH-WAYS RUN IS WHAT SAID SO.
+  // It read `!/onClick:…router…push…room\.href/`, which is SOURCE syntax: the minifier
+  // renames `room` to a single letter, so the pattern could never match a built bundle and
+  // the clause was `true` by construction. At 366a7b5 — where every tile IS a button
+  // calling router.push — it printed `tile=true`. A cell that cannot fail on the tree it
+  // was written to convict is not a cell, and it took RUNNING it at the uncured tip to see
+  // that; reading it back, it looked right.
+  //
+  // The cure asserts the SHAPE that survives minification: an anchor carries an `href` in
+  // the same props object as its className, and a button carries the literal element name
+  // "button" immediately before one. Both halves now read a window around the class.
+  const near = (cls, needle) => {
+    for (const m of shell.matchAll(new RegExp('className:"[^"]*' + cls + '[^"]*"', 'g'))) {
+      const w = shell.slice(Math.max(0, m.index - 220), m.index + 220);
+      if (w.includes(needle)) return true;
+    }
+    return false;
+  };
+  const tileIsAnchor = near('wl-tile', 'href:') && !near('wl-tile', '"button"');
+  const seatIsAnchor = near('wl-seat', 'href:') && !near('wl-seat', '"button"');
+  if (tileIsAnchor && seatIsAnchor) P('R-38.2 tiles and seats are anchors', 'href in both props objects, no button element behind either');
+  else F('R-38.2 tiles and seats are anchors', 'tile=' + tileIsAnchor + ' seat=' + seatIsAnchor);
+
+  // ── R-38.4 · THE RETIRED FAMILIES ARE GONE FROM THE SHELL ─────────────────
+  // The TUPLE SET is a computed fact — what actually paints, in what family, at what
+  // weight — and by this file's own law (ZIP 14 ①) computed facts are structurally outside
+  // a served-bytes gate. THE RENDER ARM OWNS THE TUPLE CELL. What IS provable here is that
+  // the two retired VARIABLES no longer ship, which is the mechanism the tuple set rests
+  // on: with --wl-label and --wl-display deleted rather than aliased, a call site cannot
+  // reach Jost or Italiana at all without writing a literal.
+  const shellOnly = shellSurfaces.map((p) => pageCorpus.get(p) || '').join('');
+  const retiredVars = ['--wl-label', '--wl-display'].filter((v) => shellOnly.includes(v));
+  if (retiredVars.length) F('R-38.4 Jost and Italiana retire', 'still shipped: ' + retiredVars.join(' '));
+  else P('R-38.4 Jost and Italiana retire', 'neither --wl-label nor --wl-display ships on any shell surface');
+  // t0 is ONE ELEMENT PER APP, and it is named. A second t0 site is a scale with six rungs
+  // and no rule, which is the state R-38.4 replaced.
+  const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test((pageCorpus.get(p) || '').replace(/--wl-t0:[^;]*;/g, '')));
+  if (t0Sites.length === 1 && t0Sites[0] === '/w/today') P('R-38.4 t0 is one element', 'consumed on /w/today only');
+  else F('R-38.4 t0 is one element', 'consumed on: ' + (t0Sites.join(' ') || 'nowhere'));
+
+  // ── R-38.6 · THE RETIRED STRINGS ARE ABSENT ───────────────────────────────
+  // Named bytes, not a shape heuristic. A retired sentence that quietly ships is the
+  // .wl-plink disease in copy: the ruling lands, the markup moves, the string stays.
+  const RETIRED = [
+    'needing you today', 'New here? Today has a short guide',
+    'your 24/7 enquiry desk', 'how couples see you',
+    'Every part of your business has a room',
+    "Cancelled. You're on Basic.", "Payment failed. You're on Basic.",
+    'Moved to Basic \u2014 subscription cancelled', 'Free \u2014 no AI',
+  ];
+  const alive = RETIRED.filter((t) => shellOnly.includes(t));
+  if (alive.length) F('R-38.6 retired strings absent', 'still shipped: ' + alive.join(' \u00b7 '));
+  else P('R-38.6 retired strings absent', RETIRED.length + ' retired bytes, none on any shell surface');
+
+  // ── R-38.7 · THE TWO ROWS LEFT THE ROOMS BODY ─────────────────────────────
+  const rooms = pageCorpus.get('/w/rooms') || '';
+  const panelGone = !/wl-panel|wl-prow|wl-pointer/.test(rooms);
+  const waInDrawer = shell.includes('TDW on WhatsApp');
+  const profileInSettings = (settings || '').includes('Profile layout');
+  if (panelGone && waInDrawer && profileInSettings)
+    P('R-38.7 the two rows relocate', 'panel and pointer gone from Rooms; both bytes at their new homes');
+  else F('R-38.7 the two rows relocate',
+         'panelGone=' + panelGone + ' waInDrawer=' + waInDrawer + ' profileInSettings=' + profileInSettings);
+
+  // ── R-38.9 · THE ADVISOR ROOM, AND NO PERSONA NAME IN CHROME ──────────────
+  const advisor = pageCorpus.get('/w/advisor') || '';
+  if (/Advisor/.test(advisor) && /vendor-e\/mode/.test(advisor))
+    P('R-38.9 the advisor room', 'the room ships and reaches the mode door');
+  else F('R-38.9 the advisor room', 'header word or the mode door is missing from /w/advisor');
+  // R-37.70. 「Victor」 is an internal seat name and belongs in no vendor-facing byte. The
+  // API TYPE is named VictorMode and legitimately survives minification into the bundle,
+  // so this reads rendered STRINGS rather than identifiers — the distinction is the cell.
+  const personaHits = new Set();
+  for (const path of shellSurfaces) {
+    const body = pageCorpus.get(path) || '';
+    for (const m of body.matchAll(/"([^"]{0,200})"/g)) {
+      if (/\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(m[1])) personaHits.add(path + ' \u2192 ' + m[1].slice(0, 60));
+    }
+  }
+  if (personaHits.size) F('R-37.70 no persona name in chrome', [...personaHits].join(' \u00b7 '));
+  else P('R-37.70 no persona name in chrome', 'no persona name in any rendered string on five shell surfaces');
+
+  // ── ARM (c) · NO useT UNDER THE SHELL ─────────────────────────────────────
+  // The cell CE-38 relay #2 asked for, stated the only way served bytes can state it: a
+  // ThemeProvider mounted on a crossing page would ship its own marker. `AskSheet` is the
+  // grandfathered exception (F-38.3, OPEN) and it lives behind the dock on every surface,
+  // so this reads the BILLING and SETTINGS bundles' own toast instead: WlToast ships and
+  // main's Toast does not.
+  const toastOk = ['/w/billing', '/w/settings'].every((p) => (pageCorpus.get(p) || '').includes('wl-toast'));
+  if (toastOk) P('arm (c) the shell toast', 'wl-toast ships on both crossing surfaces');
+  else F('arm (c) the shell toast', 'a crossing surface does not carry wl-toast');
+
+  // ── R-38.8 · BILLING IS A MONEY PAGE ──────────────────────────────────────
+  const moneyBad = /\u20b9/.test(billing || '') || /\b\d+\s?(k|L|Cr)\b/.test(billing || '');
+  const chipsShip = /wl-chipstatus/.test(billing || '');
+  const readRowsGone = !/SReadRow|wl-readrow/.test(billing || '');
+  if (!moneyBad && chipsShip && readRowsGone)
+    P('R-38.8 billing is a money page', 'chips ship, no AtelierForm read-rows, money register clean');
+  else F('R-38.8 billing is a money page',
+         'glyphOrShorthand=' + moneyBad + ' chips=' + chipsShip + ' readRowsGone=' + readRowsGone);
 
   // ── no italic serif inside the chat mount  [served bytes] ─────────────────
   if (/wl-askpanel/.test(shell) && /fontStyle:\s*"italic"/.test(shell.match(/wl-askpanel[\s\S]{0,4000}/)?.[0] || ''))
@@ -231,7 +407,7 @@ async function coverage() {
     if (lits.length) F('R-37.84 \u2463 flash — structural half', 'Espresso literals still parse: ' + lits.join(' '));
     else P('R-37.84 \u2463 flash — structural half', 'no Espresso literal in the served CSS; first parsed value is Graphite');
   }
-  I('R-37.84 \u2463 flash — the flash itself', 'a first-paint blink cannot be observed by a fetch. The structural half above is proved; the remaining suspect is app/vendor/layout.tsx\'s pre-paint pin writing documentElement.style on mount — a hydration race, GLASS ONLY. Named walk beat.');
+  I('R-37.84 \u2463 flash — the flash itself', 'a first-paint blink cannot be observed by a fetch. The structural half above is proved; the remaining suspect is app/vendor/layout.tsx\'s pre-paint pin writing documentElement.style on mount — a hydration race, GLASS ONLY. Named walk beat. \u26a0 F-38.3, FILED OPEN AT CE-38 RELAY #2: components/worklist/AskSheet.tsx:32 mounts <ThemeProvider pinned>, and a pinned provider WRITES html.theme-light (ThemeContext.tsx:117) and documentElement.style.background (:85-87). That is a SECOND writer of the convicted class, living inside /w. Grandfathered this sitting; cure priced for sitting 2.');
 
   // ── the properties this script CANNOT decide from bytes ──────────────────
   I('pixel-identical tile and panel edges', 'a served-bytes gate proves the RULE (one gutter, no component override) and not the rendered pixel. C22 holds the rule; only glass holds the pixel.');

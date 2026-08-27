@@ -2,19 +2,33 @@
 // components/worklist/FirstRun.tsx — the manual that deletes itself (R-37.68 / R-37.68-A).
 //
 // PHASE 1 SHIPS IT STATICALLY. No state logic exists yet, and the install walk should not
-// open onto a blank room. Phase 4 makes it the true first-run state, shown when the endpoint
-// reports no-data-ever, while quiet days get the resting state instead.
+// open onto a blank room. Phase 4 makes it the true first-run state, shown when the
+// endpoint reports no-data-ever, while quiet days get the resting state instead.
 //
-// THE DIVISION FROM THE TOUR (\u00a78.10), stated so Phase 4 can retire the right thing:
-// the tour points at chrome ONCE and is dismissed. This feed explains CAPABILITY every time
-// until data arrives, then never again. First real data is the app explaining itself by
-// working, so the manual's retirement condition is the vendor no longer needing it.
+// THE DIVISION FROM THE TOUR (§8.10), stated so Phase 4 can retire the right thing: the
+// tour points at chrome ONCE and is dismissed. This feed explains CAPABILITY every time
+// until data arrives, then never again.
 //
-// EVERY DESTINATION IS REAL. Never-404 binds, and every number resolves through its declared
-// home — F-09.190's law applied at birth rather than after.
-import { useRouter } from 'next/navigation';
+// ── R-38.6 · FIVE CARDS BECOME THREE, AND EACH BODY BECOMES ONE SENTENCE ────
+//
+// TWO CARDS DID NOT SHRINK — THEY WENT, and each for a reason of its own:
+//
+//   THE ROOMS CARD explained that every part of the business has a room, in a paragraph,
+//   directly above a screen that IS eighteen rooms. A directory does not need a caption
+//   telling the reader it is a directory; the tile grid explains the rooms by being them.
+//
+//   THE 「customised solutions」 CARD was a second door to Business Solutions, which has
+//   been a ROOM with its own tile and its own surface since R-37.66. Two doors to one room
+//   is the disease the tile grid was ruled to end (R-37.87's own words about the Collab
+//   pill), and the card was the older of the two.
+//
+// The three that remain follow the vendor's timeline rather than a feature list: work
+// reaches him (the desk, the link), then he runs it from where he already is.
+//
+// EVERY DESTINATION IS REAL. Never-404 binds, and every number resolves through its
+// declared home in lib/waNumbers.ts — no literal enters this file (cell C3).
 import { COPY } from '@/lib/worklist/copy';
-import { waNumberFor, supportWaNumber } from '@/lib/waNumbers';
+import { waNumberFor } from '@/lib/waNumbers';
 import { useVendorHandle } from '@/hooks/vendor/useVendorHandle';
 
 function openWa(number: string, text: string) {
@@ -22,19 +36,13 @@ function openWa(number: string, text: string) {
 }
 
 export function FirstRun() {
-  const router = useRouter();
-  // Card 1 is HIDDEN ENTIRELY when no handle is set (R-37.68 \u2463). The settings surface
-  // already guards this the same way; a share action with nothing behind it is the
-  // never-404 failure wearing a different coat.
+  // Card 2 is HIDDEN ENTIRELY when no handle is set (R-37.68 ④). A share action with
+  // nothing behind it is the never-404 failure wearing a different coat.
   const handle = useVendorHandle();
-
   const tdwLink = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
 
   return (
     <div className="wl-fr">
-      {/* R-37.68-B: the forward promise sits above everything. Naming what Today becomes is
-          the honest cure for the feed being absent — and it is the one line here that stays
-          true after the rest of the manual retires at first data. */}
       <h2 className="wl-frhead">{COPY.firstRunHeader}</h2>
 
       {/* 1 · work reaches him */}
@@ -56,7 +64,7 @@ export function FirstRun() {
         </article>
       )}
 
-      {/* 2 · work gets run */}
+      {/* 2 · and he runs it from where he already is */}
       <article className="wl-card">
         <h3 className="wl-cardtitle">{COPY.cardAskTitle}</h3>
         <p className="wl-cardbody">{COPY.cardAskBody}</p>
@@ -65,33 +73,22 @@ export function FirstRun() {
         </div>
       </article>
 
-      <article className="wl-card">
-        <h3 className="wl-cardtitle">{COPY.cardRoomsTitle}</h3>
-        <p className="wl-cardbody">{COPY.cardRoomsBody}</p>
-        <button type="button" className="wl-cardaction"
-                onClick={() => router.push('/w/rooms')}>{COPY.cardRoomsAction}</button>
-      </article>
-
-      {/* 3 · and if something is missing, he asks */}
-      <article className="wl-card">
-        <h3 className="wl-cardtitle">{COPY.cardMoreTitle}</h3>
-        <p className="wl-cardbody">{COPY.cardMoreBody}</p>
-        <button type="button" className="wl-cardaction"
-                onClick={() => openWa(supportWaNumber(), 'Hi')}>{COPY.supportAction}</button>
-      </article>
-
       <style>{FR_CSS}</style>
     </div>
   );
 }
 
+// NO HIDDEN PREFETCH LINK REPLACES THE RETIRED ROOMS CARD, and the note is here so the
+// next reader does not add one as a kindness: the nav's Rooms seat is an anchor and
+// already announces that route. A second, invisible announcement would be a second home
+// for one decision, and invisible things are the ones that survive every later sweep.
 const FR_CSS = `
-.wl-fr{padding:8px 0 26px}
-.wl-frhead{font-family:var(--wl-label);font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:26px 0 12px;text-align:center}
-/* R-37.73 ①: 40 was under the floor. */
-.wl-chips{display:flex;flex-wrap:wrap;gap:7px}
-/* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and
-   a chip-shaped thing invites a thumb, so they carry a real target rather than teaching
-   that some chips are dead. ②: 11.5 → 13. */
-.wl-chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:2px;padding:10px 13px;font-size:13px;font-weight:400;color:var(--atelier-ink-dim)}
+.wl-fr{padding:0 0 24px}
+/* R-38.4: a section eyebrow at t5, .08em. Was 11px Jost at .2em. */
+.wl-frhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:24px 0 8px}
+.wl-chips{display:flex;flex-wrap:wrap;gap:8px}
+/* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and a
+   chip-shaped thing invites a thumb, so they carry a real target rather than teaching that
+   some chips are dead. */
+.wl-chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:2px;padding:10px 12px;font:var(--wl-t4);color:var(--atelier-ink-dim)}
 `;
