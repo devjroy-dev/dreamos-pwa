@@ -13,6 +13,10 @@ import { fetchMe, fetchCoutureSlots, addCoutureSlot, removeCoutureSlot, fetchCou
 import type { CoutureSlot, CoutureAppointment } from '@/lib/vendor/types/vendor';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
   brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', brassLine: 'rgba(201,168,76,0.18)', red: 'var(--role-critical)',
 } as const;
@@ -91,7 +95,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           <button type="button" onClick={() => router.back()} style={{
             padding: '12px 24px', background: 'transparent',
             border: `0.5px solid rgba(201,168,76,0.32)`, borderRadius: 2, cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+            fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Back</button>
         </div>
@@ -105,7 +109,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Couture</span>
         {tab === 'availability' && eligible && (
           <button type="button" onClick={() => setAddOpen(true)} className="atelier-fab" style={{
@@ -121,9 +125,9 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           <button key={t} type="button" onClick={() => setTab(t)} style={{
             flex: 1, padding: '14px 0', background: 'none', border: 'none', cursor: 'pointer',
             fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,
-            color: tab === t ? A.brassWarm : A.inkMute,
+            color: tab === t ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.32em', textTransform: 'uppercase',
-            borderBottom: tab === t ? `0.5px solid ${A.brass}` : '0.5px solid rgba(201,168,76,0.08)',
+            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid rgba(201,168,76,0.08)',
           }}>{t}</button>
         ))}
       </div>
@@ -186,7 +190,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               width: '100%', padding: '12px 14px', boxSizing: 'border-box',
               background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-               marginBottom: 14, caretColor: A.brass,
+               marginBottom: 14, caretColor: A.interactive,
             }} />
 
             <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Fee (Rs)</label>
@@ -194,7 +198,7 @@ function CoutureScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               width: '100%', padding: '12px 14px', boxSizing: 'border-box',
               background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-              marginBottom: 16, caretColor: A.brass,
+              marginBottom: 16, caretColor: A.interactive,
             }} />
 
             <button type="button" onClick={doAddSlot} disabled={saving || !slotAt || !feeInr} className="atelier-fab" style={{

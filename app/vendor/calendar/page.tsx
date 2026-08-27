@@ -28,6 +28,10 @@ import { fetchBands } from '@/lib/vendor/api/vendor';
 
 // ── Atelier tokens ──────────────────────────────────────────────
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -305,7 +309,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                   fontFamily: F.label, fontWeight: 300, fontSize: 8,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
-                  color: view === v ? A.brassWarm : A.inkMute,
+                  color: view === v ? A.interactiveWarm : A.inkMute,
                 }}>{v === 'month' ? 'Month' : 'Weddings'}</button>
             </span>
           ))}
@@ -417,7 +421,7 @@ function CalendarScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           <span style={{
             fontFamily: F.label, fontWeight: 300, fontSize: 8,
             letterSpacing: '0.32em', textTransform: 'uppercase',
-            color: hotOn ? A.brassWarm : A.inkMute,
+            color: hotOn ? A.interactiveWarm : A.inkMute,
           }}>Hot Dates</span>
         </button>
       </div>

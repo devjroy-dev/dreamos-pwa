@@ -15,6 +15,10 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
   brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
@@ -140,7 +144,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
     width: '100%', padding: '12px 14px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)', border: '0.5px solid rgba(201,168,76,0.28)', borderRadius: 2,
     fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-    caretColor: A.brass, 
+    caretColor: A.interactive, 
   };
 
   return (
@@ -149,7 +153,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid rgba(201,168,76,0.12)' }}>
-        <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Request Discover</span>
         <span style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 3</span>
       </div>
@@ -222,7 +226,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
                       background: on ? 'rgba(201,168,76,0.18)' : 'transparent',
                       border: `0.5px solid ${on ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                      color: on ? A.brassWarm : A.inkMute,
+                      color: on ? A.interactiveWarm : A.inkMute,
                       letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{tag}</button>
                   );
@@ -239,7 +243,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
                 padding: '10px 16px', borderRadius: 2, cursor: 'pointer',
                 background: 'transparent', border: '0.5px solid var(--atelier-label)',
                 fontFamily: F.label, fontWeight: 400, fontSize: 9, letterSpacing: '0.32em',
-                textTransform: 'uppercase', color: A.brassWarm }}>Add</button>
+                textTransform: 'uppercase', color: A.interactiveWarm }}>Add</button>
             </div>
             {/* FOUNDER-VETOED: the custom-tag honesty byte. */}
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>

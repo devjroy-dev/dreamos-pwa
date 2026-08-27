@@ -14,6 +14,10 @@ import { useVictorMode, type VictorMode } from '@/hooks/vendor/useVictorMode';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   inkMute:   'var(--atelier-ink-mute)',
   inputBg:   'var(--atelier-input-bg)',
@@ -73,7 +77,7 @@ export function VictorModeChip({ onThreadReset, onMode }: { onThreadReset?: () =
             <span style={{
               fontFamily: F.label, fontWeight: 300, fontSize: 9,
               letterSpacing: '0.22em', textTransform: 'uppercase',
-              color: active ? A.brassWarm : (T && T.inkMute) || A.inkMute,
+              color: active ? A.interactiveWarm : (T && T.inkMute) || A.inkMute,
               transition: `color 200ms ${EASE}`, lineHeight: 1,
             }}>{seg.label}</span>
           </button>

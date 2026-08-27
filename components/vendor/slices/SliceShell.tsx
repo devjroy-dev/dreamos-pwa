@@ -163,7 +163,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
           beneath the lane line — the back/label row stays (navigation), the
           masthead carries THE number. */}
       <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
       </div>
       {/* TDW_04 A1 (L-1, ST-1): the lane declaration — one provenance line under
@@ -198,7 +198,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
               border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 2,
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-              outline: 'none', caretColor: A.brass,
+              outline: 'none', caretColor: A.interactive,
             }}
           />
         </div>
@@ -812,7 +812,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               <button type="button" onClick={() => setScheduleOpen(true)} style={{
                 padding: '5px 10px', background: 'transparent',
                 border: '0.5px solid rgba(201,168,76,0.5)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
                 letterSpacing: '0.28em', textTransform: 'uppercase',
               }}>Add</button>
             )}
@@ -1068,7 +1068,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                       fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-                      outline: 'none', caretColor: A.brass,
+                      outline: 'none', caretColor: A.interactive,
                     }}
                   />
                   <input
@@ -1081,7 +1081,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                       fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-                      outline: 'none', textAlign: 'right', caretColor: A.brass,
+                      outline: 'none', textAlign: 'right', caretColor: A.interactive,
                     }}
                   />
                   <span style={{ fontFamily: F.label, fontSize: 16, lineHeight: 1.5, color: A.inkMute, flexShrink: 0 }}>%</span>
@@ -1099,7 +1099,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                     fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft,
-                    outline: 'none', caretColor: A.brass,
+                    outline: 'none', caretColor: A.interactive,
                   }}
                 />
               </div>
@@ -1110,7 +1110,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 style={{
                   padding: '6px 12px', background: 'transparent',
                   border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                 }}>+ Add Row</button>
               <span style={{

@@ -254,8 +254,8 @@ export function SubscriptionCard({ current, show }: {
                 rel="noopener noreferrer"
                 style={{
                   display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
-                  border: `0.5px solid ${A.brass}`, borderRadius: 2, textDecoration: 'none',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+                  border: `0.5px solid ${A.interactive}`, borderRadius: 2, textDecoration: 'none',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactive,
                   letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}
               >Set up monthly payment</a>
@@ -429,7 +429,7 @@ function TierPicker({ currentTier, isUpgrade, onDone, show }: {
             style={{
               display: 'flex', width: '100%', alignItems: 'baseline', justifyContent: 'space-between',
               padding: '13px 14px', background: 'transparent', cursor: busy ? 'default' : 'pointer',
-              border: `0.5px solid ${picked === t ? A.brass : 'rgba(0,0,0,0.12)'}`, borderRadius: 2,
+              border: `0.5px solid ${picked === t ? A.interactive : 'rgba(0,0,0,0.12)'}`, borderRadius: 2,
             }}
           >
             <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.ink }}>
@@ -457,8 +457,8 @@ function TierPicker({ currentTier, isUpgrade, onDone, show }: {
                 style={{
                   display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
                   background: 'transparent', cursor: busy ? 'default' : 'pointer',
-                  border: `0.5px solid ${A.brass}`, borderRadius: 2,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+                  border: `0.5px solid ${A.interactive}`, borderRadius: 2,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactive,
                   letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}
               >{busy ? '…' : V2.pickerAction}</button>
@@ -528,9 +528,9 @@ function CancelBlock({ label, onDone, show }: {
         }}>{busy ? '…' : V2.cancelYes}</button>
         <button type="button" disabled={busy} onClick={() => setAsking(false)} style={{
           flex: 1, padding: '13px 0', background: 'transparent',
-          border: `0.5px solid ${A.brass}`, borderRadius: 2,
+          border: `0.5px solid ${A.interactive}`, borderRadius: 2,
           cursor: busy ? 'default' : 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactive,
           letterSpacing: '0.42em', textTransform: 'uppercase',
         }}>{V2.cancelNo}</button>
       </div>

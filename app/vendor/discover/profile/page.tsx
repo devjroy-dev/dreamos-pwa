@@ -198,7 +198,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         <button type="button" onClick={() => router.push('/vendor/discover')} style={{
           background: 'none', border: 'none', padding: '14px 0', cursor: 'pointer',
           fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em',
-          textTransform: 'uppercase', color: A.brassWarm,
+          textTransform: 'uppercase', color: A.interactiveWarm,
         }}>‹ Discover</button>
 
         {/* ── THE METER — this screen's ONE gold ──────────────────────────── */}
@@ -216,9 +216,9 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             screen). A quiet bordered control, the same register as Save. */}
         <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
           display: 'block', width: '100%', margin: '18px 0 0', padding: '13px 0',
-          background: 'none', border: `0.5px solid ${A.brassWarm}`, borderRadius: 2,
+          background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 2,
           cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
-          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.brassWarm,
+          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.interactiveWarm,
         }}>
           See your profile as couples do
         </button>
@@ -246,7 +246,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           <button type="button" onClick={() => router.push('/vendor/portfolio')} style={{
             alignSelf: 'flex-start', background: 'none', padding: '6px 0', border: 'none', cursor: 'pointer',
             fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.36em',
-            textTransform: 'uppercase', color: A.brassWarm,
+            textTransform: 'uppercase', color: A.interactiveWarm,
           }}>Manage photos ›</button>
         </SCard>
 

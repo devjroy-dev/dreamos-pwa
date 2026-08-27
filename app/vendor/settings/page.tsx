@@ -110,7 +110,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Settings</span>
       </div>
 
@@ -145,7 +145,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
         <SCard title="Discover Profile">
           <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
             background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.brassWarm,
+            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.interactiveWarm,
           }}>Moved to your Discover Profile. ›</button>
         </SCard>
 
@@ -183,7 +183,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                    Same disease: −/+ set in the display serif, which has no drawn
                    glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
                    leaving the other is two faces on one control. F.body 20. */
-                color: A.brassWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
+                color: A.interactiveWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
               }}>−</button>
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontFamily: F.display, fontSize: 31, color: A.ink, lineHeight: 1 }}>
@@ -211,7 +211,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                    Same disease: −/+ set in the display serif, which has no drawn
                    glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
                    leaving the other is two faces on one control. F.body 20. */
-                color: A.brassWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
+                color: A.interactiveWarm, fontFamily: F.body, fontSize: 20, lineHeight: 1,
               }}>+</button>
             </div>
             <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 8 }}>
@@ -221,7 +221,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
               <button type="button" onClick={() => update({ slot_capacity: '' })} style={{
                 marginTop: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                 fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                letterSpacing: '0.28em', textTransform: 'uppercase', color: A.brassWarm,
+                letterSpacing: '0.28em', textTransform: 'uppercase', color: A.interactiveWarm,
               }}>Use category default{current.capacity_default != null ? ` (${current.capacity_default})` : ''}</button>
             )}
             <SaveBtn
@@ -246,7 +246,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
                 style={{
                   background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
                   padding: '5px 10px', cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
                 }}>Copy</button>
             </div>
@@ -319,7 +319,7 @@ function SettingsScreen({ vendorName }: { vendorName: string | null }) {
           <SCard title="Subscription">
             <button type="button" onClick={() => router.push('/vendor/billing')} style={{
               background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
-              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.brassWarm,
+              fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.interactiveWarm,
             }}>Moved to Billing. ›</button>
           </SCard>
         </div>

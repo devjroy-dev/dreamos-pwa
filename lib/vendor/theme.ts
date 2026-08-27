@@ -22,6 +22,14 @@
 import { useTheme } from '@/hooks/vendor/useTheme';
 
 export interface ThemeTokens {
+  /** BRANCH-ONLY · the interactive half of the old `brass`.
+   *  `brass` was doing two jobs — the wordmark, section headers and hairlines that tell you
+   *  WHERE YOU ARE, and the buttons, chips, carets and active states that tell you WHAT YOU
+   *  CAN DO. One token cannot carry both, and that conflation is exactly what Graphite &
+   *  Signal was picked to end. 88 call sites moved here; 96 stayed on `brass`. */
+  interactive: string;
+  interactiveWarm: string;
+
   ink: string;
   inkSoft: string;
   inkMute: string;
@@ -121,6 +129,8 @@ export interface ThemeTokens {
 export const INK_DEEP = '#1A120E';
 
 export const DARK: ThemeTokens = {
+  interactive: '#68C9B4',
+  interactiveWarm: '#8FE0CC',
   ink:        '#EDEEEF',            // 14.35:1 on pageBg
   inkSoft:    '#C8CACC', //  6.65:1
   // ── TDW_09 · R-U18 — THE LADDER (F-09.4's cure on the vendor lane) ──────────
@@ -181,6 +191,8 @@ export const DARK: ThemeTokens = {
 // #C9A84C — brass, sparingly. FAB only.
 // ──────────────────────────────────────────────────────────────
 export const LIGHT: ThemeTokens = {
+  interactive: '#0D6A5A',
+  interactiveWarm: '#128872',
   ink:        '#0E1112',           // letterpress deep — 16.87:1 on pageBg
   inkSoft:    '#272B2D', // strong secondary — 9.60:1
   // TDW_09 · R-U18 — the same ladder on the paper theme. WAS .58 (4.48:1, just

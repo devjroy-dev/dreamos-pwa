@@ -152,7 +152,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
               <button type="button" onClick={() => tellVictor(active)} style={{
                 flex: 1, padding: '11px 14px', background: 'transparent',
                 border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>{victorOnly ? 'Send to chat' : 'Ask in chat instead'}</button> {/* A4 copy law: persona-free chrome */}
             </div>

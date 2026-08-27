@@ -10,6 +10,10 @@ import { istDayKey } from '@/lib/frost/tokens'; // R-35.23's IST home — one se
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 export const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -187,6 +191,11 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
   const A = {
     ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
     brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', green: 'var(--role-positive)', red: 'var(--role-critical)',
+    // R-37.74 arm (iii): the interactive half of the old `brass`. This local map SHADOWS the
+    // module-level A above, so the split has to land in both — a shadowed const is exactly
+    // where a token split goes quietly wrong.
+    interactive:     'var(--atelier-accent-text)',
+    interactiveWarm: 'var(--atelier-accent-text)',
   };
 
   // Build detail line — always has content, never blank
@@ -267,7 +276,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
               <a href={row.crossChipHref} onClick={e => e.stopPropagation()} style={{
                 display: 'inline-block', textDecoration: 'none',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                color: A.brassWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
                 marginTop: 4, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>{row.crossChip} ›</a>
             ) : (
@@ -316,7 +325,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-sheet-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-              fontFamily: F.display, fontSize: 16, color: A.brassWarm, lineHeight: 1,
+              fontFamily: F.display, fontSize: 16, color: A.interactiveWarm, lineHeight: 1,
             }}>☎</a>
         </div>
       )}

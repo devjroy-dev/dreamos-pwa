@@ -66,7 +66,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
     background: 'var(--atelier-input-bg)',
     border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
     fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-    outline: 'none', caretColor: A.brass,
+    outline: 'none', caretColor: A.interactive,
   };
   const labelStyle: React.CSSProperties = {
     fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute,
@@ -230,7 +230,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           <a href="/vendor/list/leads" onClick={e => e.stopPropagation()} style={{
             display: 'inline-block', textDecoration: 'none',
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: A.brassWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
             marginTop: 6,
           }}>Also a lead · {cap(crossLead.state)} ›</a>
         )}
@@ -303,7 +303,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             <button type="button" onClick={() => setEditOpen(true)} style={{
               flex: 1, padding: '11px 14px', background: 'transparent',
               border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
               letterSpacing: '0.32em', textTransform: 'uppercase',
             }}>Edit</button>
             {!hideConfirm ? (

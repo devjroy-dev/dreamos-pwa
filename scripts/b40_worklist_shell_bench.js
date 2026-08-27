@@ -249,5 +249,40 @@ cell('C15 no Espresso/Paper literal survives in a component rule', () => {
   return null;
 });
 
+// ── C16 · THE BRASS SPLIT (R-37.74 arm iii). One token was doing two jobs: telling you where
+//    you are, and telling you what you can do. The split only holds if the interactive half
+//    never falls back to gold — so every token map that HAS `brass` must also carry
+//    `interactive`, and the caret colours (the most interactive pixels on any screen) must
+//    have moved. A shadowed local map is where a split like this goes quietly wrong.
+cell('C16 the brass split holds across every token map', () => {
+  const fs2 = require('fs'), path2 = require('path');
+  const walk = (d, out = []) => {
+    for (const e of fs2.readdirSync(path2.join(ROOT, d), { withFileTypes: true })) {
+      const rel = d + '/' + e.name;
+      if (e.isDirectory()) walk(rel, out);
+      else if (e.name.endsWith('.tsx')) out.push(rel);
+    }
+    return out;
+  };
+  const files = walk('components/vendor').concat(walk('app/vendor'));
+  const carets = [];
+  for (const f of files) {
+    const src = read(f);
+    // NOTE: an earlier draft of this cell also tried to catch a token map that offers
+    // `brass` without `interactive`. It did not redden on its mutation — vacuous — and the
+    // arm was cut rather than shipped. That defect is caught by the TYPE FLOOR: when
+    // SliceRow's shadowed map lacked the key, `npx tsc --noEmit` produced two TS2339 errors.
+    // A cell that duplicates a stronger guard badly is worse than no cell.
+    for (const m of src.matchAll(/caretColor:\s*([AT])\.(\w+)/g)) {
+      if (/^brass/.test(m[2])) carets.push(f + ' caretColor still gold');
+    }
+  }
+  if (carets.length) return carets.join(', ');
+  const th = read('lib/vendor/theme.ts');
+  if (!/interactive:\s*'#68C9B4'/.test(th)) return 'DARK has no interactive token';
+  if (!/interactive:\s*'#0D6A5A'/.test(th)) return 'LIGHT has no interactive token';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

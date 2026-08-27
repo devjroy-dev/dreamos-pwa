@@ -21,6 +21,10 @@ import { fetchDiscoverStatus, fetchPortfolio } from '@/lib/vendor/api/vendor';
 import type { DiscoverStatus, PortfolioImage } from '@/lib/vendor/types/vendor';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -258,7 +262,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                     border: `0.5px solid rgba(201,168,76,0.4)`,
                     borderRadius: 2, cursor: 'pointer',
                     fontFamily: F.label, fontWeight: 300, fontSize: 10,
-                    color: A.brassWarm, letterSpacing: '0.42em', textTransform: 'uppercase',
+                    color: A.interactiveWarm, letterSpacing: '0.42em', textTransform: 'uppercase',
                     marginBottom: 10,
                   }}>
                   Build portfolio first
@@ -450,7 +454,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 border: `0.5px solid rgba(201,168,76,0.32)`,
                 borderRadius: 2, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 300, fontSize: 10,
-                color: A.brassWarm, letterSpacing: '0.42em', textTransform: 'uppercase',
+                color: A.interactiveWarm, letterSpacing: '0.42em', textTransform: 'uppercase',
               }}>
               Manage Collection
             </button>
@@ -472,7 +476,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   border: '0.5px solid rgba(201,168,76,0.4)',
                   borderRadius: 2, cursor: 'pointer',
                   fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  color: A.brassWarm, letterSpacing: '0.36em', textTransform: 'uppercase',
+                  color: A.interactiveWarm, letterSpacing: '0.36em', textTransform: 'uppercase',
                 }}>Upload your first piece</button>
             </div>
           </div>

@@ -48,6 +48,10 @@ import { useT } from '@/lib/vendor/ThemeContext';
 import { pressedStyle } from '@/lib/vendor/controls';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
@@ -127,7 +131,7 @@ function NavTab({ item, active, reducedMotion }: { item: DoorItem; active: boole
   // the vendor tree for it and reads comments too (ChatThread.tsx's own precedent:
   // naming a deleted string is not the same act as keeping it). This comment's
   // first draft reproduced it and was convicted by that cell before delivery.
-  const color = active ? A.brassWarm : A.ink;
+  const color = active ? A.interactiveWarm : A.ink;
 
   // TDW_09 P2 · F-09.21 — the pressed acknowledgment. The bar suppresses the
   // native tap flash (`WebkitTapHighlightColor: 'transparent'` below) and this

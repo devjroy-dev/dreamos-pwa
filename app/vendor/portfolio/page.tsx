@@ -50,6 +50,10 @@ import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 const STATE_FILTERS = ['all', 'approved', 'pending', 'rejected'] as const;
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -858,7 +862,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       }}>
         <button type="button" onClick={() => router.back()} style={{
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-          color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
+          color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1,
         }}>‹</button>
         <span style={{
           fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -898,9 +902,9 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       <div style={{ padding: '10px 22px 0' }}>
         <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
           display: 'block', width: '100%', padding: '11px 0',
-          background: 'none', border: `0.5px solid ${A.brassWarm}`, borderRadius: 2,
+          background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 2,
           cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
-          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.brassWarm,
+          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.interactiveWarm,
         }}>
           See your profile as couples do
         </button>
@@ -915,7 +919,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             background: filter === sf ? 'rgba(201,168,76,0.18)' : 'transparent',
             border: `0.5px solid ${filter === sf ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: filter === sf ? A.brassWarm : A.inkMute,
+            color: filter === sf ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.28em', textTransform: 'uppercase',
           }}>{sf}</button>
         ))}
@@ -1119,7 +1123,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                       border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
                       cursor: 'pointer',
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                      color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                      color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.H4}</a>
                 ) : (
                   <button type="button" disabled={igBusy !== null} onClick={igConnectRetry}
@@ -1128,7 +1132,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                       border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
                       cursor: igBusy ? 'default' : 'pointer', opacity: igBusy ? 0.4 : 1,
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                      color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                      color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.H4}</button>
                 )}
 
@@ -1173,7 +1177,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                     border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
                     cursor: (igBusy || full) ? 'default' : 'pointer', opacity: (igBusy || full) ? 0.4 : 1,
                     fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                    color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                    color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                   }}>{COPY.H1}</button>
                 <button type="button" disabled={igBusy !== null} onClick={igDisconnect}
                   style={{
@@ -1332,7 +1336,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                   cursor: igPicked.length ? 'pointer' : 'default',
                   opacity: (igPicked.length === 0 || igBusy) ? 0.4 : 1,
                   fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  color: igPicked.length ? '#F8F7F5' : A.brassWarm,
+                  color: igPicked.length ? '#F8F7F5' : A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                 }}>{COPY.H7.replace('{n}', String(igPicked.length))}</button>
             </div>
@@ -1390,7 +1394,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                 width: '100%', padding: '11px 0', marginBottom: 10,
                 background: 'transparent', border: '0.5px solid rgba(201,168,76,0.4)', borderRadius: 2,
                 cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                color: A.brassWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: A.interactiveWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Save caption</button>
 
             {/* CURE B — the deterministic path. Disabled at the ends rather than
@@ -1408,7 +1412,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                         border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
                         cursor: dead ? 'default' : 'pointer', opacity: dead ? 0.35 : 1,
                         fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                        color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                        color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                       }}>{delta === -1 ? COPY.G4 : COPY.G5}</button>
                   );
                 })}
@@ -1423,7 +1427,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                       flex: 1, padding: '13px 0', background: 'transparent',
                       border: '0.5px solid rgba(201,168,76,0.5)', borderRadius: 2, cursor: 'pointer',
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                      color: A.brassWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
+                      color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.E2}</button>
                 )}
                 <button type="button" onClick={() => setConfirming(true)}
@@ -1451,7 +1455,7 @@ function ManagerScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
                       flex: 1, padding: '13px 0', background: 'transparent',
                       border: '0.5px solid rgba(201,168,76,0.3)', borderRadius: 2, cursor: 'pointer',
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                      color: A.brassWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
+                      color: A.interactiveWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
                     }}>{COPY.C4}</button>
                   <button type="button" onClick={() => doDelete(sel.id)}
                     style={{

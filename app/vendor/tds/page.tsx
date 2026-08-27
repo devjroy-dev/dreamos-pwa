@@ -14,6 +14,10 @@ import { fetchTdsEntries, fetchTdsSummary, createTdsEntry, deleteTdsEntry, expor
 import type { TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
   brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
@@ -28,7 +32,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', boxSizing: 'border-box',
   background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
   fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-  caretColor: A.brass, 
+  caretColor: A.interactive, 
 };
 const labelStyle: React.CSSProperties = {
   fontFamily: F.label, fontWeight: 300, fontSize: 8,
@@ -121,12 +125,12 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>TDS</span>
         <button type="button" onClick={doExport} style={{
           padding: '6px 12px', background: 'transparent',
           border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+          fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Export CSV</button>
       </div>
@@ -139,7 +143,7 @@ function TdsScreen({ vendorId, vendorName }: { vendorId: string; vendorName: str
             background: fy === f ? 'rgba(201,168,76,0.18)' : 'transparent',
             border: `0.5px solid ${fy === f ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: fy === f ? A.brassWarm : A.inkMute,
+            color: fy === f ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.28em', textTransform: 'uppercase',
           }}>{f}</button>
         ))}

@@ -109,7 +109,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           fontWeight: 400, fontSize: 16,
           lineHeight: `${LINE_HEIGHT}px`,
           outline: 'none', overflowY: 'hidden',
-          caretColor: T.brass,
+          caretColor: T.interactive,
           letterSpacing: '0.005em',
           transition: 'border-color 220ms cubic-bezier(0.22,1,0.36,1)',
         }}

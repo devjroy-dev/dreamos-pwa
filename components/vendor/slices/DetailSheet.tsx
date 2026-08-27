@@ -129,7 +129,7 @@ export function DetailSheet({
                 <button type="button" onClick={() => setConfirmDel(false)} style={{
                   flex: 1, padding: '12px 16px', background: 'transparent',
                   border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>Back</button>
                 <button type="button" onClick={confirmDelete} disabled={deleting} style={{

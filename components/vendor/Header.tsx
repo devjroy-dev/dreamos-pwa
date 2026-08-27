@@ -10,6 +10,10 @@ import { useT } from '@/lib/vendor/ThemeContext';
 import { clearVendorSession } from '@/lib/vendor/session';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -161,13 +165,13 @@ export function Header({ vendorName }: { vendorName: string | null }) {
         <button data-tour="profile-coin" type="button" onClick={() => setProfileOpen(o => !o)} aria-label="Profile menu"
           style={{
             width: 34, height: 34, borderRadius: '50%',
-            border: `1.5px solid ${A.brass}`,
+            border: `1.5px solid ${A.interactive}`,
             background: 'rgba(201,168,76,0.14)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', flexShrink: 0,
             boxShadow: '0 0 0 3px rgba(201,168,76,0.06), inset 0 1px 2px rgba(255,235,200,0.15)',
             fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
-            color: A.brassWarm, letterSpacing: '0.04em',
+            color: A.interactiveWarm, letterSpacing: '0.04em',
           }}>
           {initials(displayName)}
         </button>

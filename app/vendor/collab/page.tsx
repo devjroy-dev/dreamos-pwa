@@ -19,6 +19,10 @@ import { CITIES, matchCity } from '@/lib/vendor/cityMatch';
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -201,9 +205,9 @@ function CollabScreen({ vendorId, vendorName, tier }: { vendorId: string; vendor
           <button key={t} type="button" onClick={() => setTab(t)} style={{
             flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer',
             fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,
-            color: tab === t ? A.brassWarm : A.inkMute,
+            color: tab === t ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.32em', textTransform: 'uppercase',
-            borderBottom: tab === t ? `0.5px solid ${A.brass}` : '0.5px solid rgba(201,168,76,0.10)',
+            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid rgba(201,168,76,0.10)',
             transition: `all 200ms ${EASE}`,
           }}>{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My Posts' : 'Roster'}</button>
         ))}
@@ -344,7 +348,7 @@ function OpportunityCard({ post, onRespond }: {
           flex: 1, padding: '11px 0', background: 'transparent',
           border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
           cursor: working ? 'default' : 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brassWarm,
+          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactiveWarm,
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Pass</button>
       </div>
@@ -473,7 +477,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                     flex: 1, padding: '10px 0',
                     background: 'rgba(201,168,76,0.10)',
                     border: '0.5px solid rgba(201,168,76,0.4)', borderRadius: 2, cursor: 'pointer',
-                    fontFamily: F.label, fontWeight: 400, fontSize: 10, color: A.brassWarm,
+                    fontFamily: F.label, fontWeight: 400, fontSize: 10, color: A.interactiveWarm,
                     letterSpacing: '0.32em', textTransform: 'uppercase',
                   }}>View Responses</button>
               </div>
@@ -528,7 +532,7 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
         <button type="button" onClick={() => setAdding(true)} style={{
           padding: '8px 14px', background: 'transparent', borderRadius: 2,
           border: '0.5px solid var(--atelier-sheet-border)', cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Add someone</button>
       </div>
@@ -573,7 +577,7 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
                   border: '0.5px solid var(--atelier-sheet-border)',
                   cursor: r.bridged || minting === r.id ? 'default' : 'pointer', flexShrink: 0,
                   fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                  color: r.bridged ? A.inkMute : A.brassWarm,
+                  color: r.bridged ? A.inkMute : A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                   opacity: r.bridged ? 0.45 : (minting === r.id ? 0.6 : 1),
                 }}>{r.bridged ? MINT_DONE_LABEL : (minting === r.id ? 'Adding…' : MINT_ACTION_LABEL)}</button>
@@ -621,7 +625,7 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
         </div>
         <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
           <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Add someone</div>
-          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.brassWarm, fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.interactiveWarm, fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
         </div>
         <div style={{ padding: '0 24px' }}>
           <Label>Name</Label>
@@ -763,7 +767,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
             </div>
           </div>
           <button type="button" onClick={onClose} style={{
-            background: 'none', border: 'none', color: A.brassWarm,
+            background: 'none', border: 'none', color: A.interactiveWarm,
             fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4, flexShrink: 0,
           }}>×</button>
         </div>
@@ -780,7 +784,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
                       </span>
                       <button type="button" onClick={() => removeItem(i)} style={{
                         background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-                        fontFamily: F.display, fontSize: 16, lineHeight: 1, color: A.brassWarm,
+                        fontFamily: F.display, fontSize: 16, lineHeight: 1, color: A.interactiveWarm,
                       }}>×</button>
                     </div>
                   )}
@@ -797,7 +801,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
               {items.length < 8 && (
                 <button type="button" onClick={addItem} style={{
                   background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginBottom: 22,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>Add another</button>
               )}
@@ -822,7 +826,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22, cursor: 'pointer' }}>
                 <input type="checkbox" checked={form.open_to_other_cities}
                   onChange={e => set('open_to_other_cities', e.target.checked)}
-                  style={{ accentColor: A.brass, width: 16, height: 16 }} />
+                  style={{ accentColor: A.interactive, width: 16, height: 16 }} />
                 <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
                   Also open to vendors who travel
                 </span>
@@ -890,7 +894,7 @@ function Pill({ children, active, onClick }: { children: React.ReactNode; active
       background: active ? 'rgba(201,168,76,0.18)' : 'transparent',
       border: `0.5px solid ${active ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
       fontFamily: F.label, fontWeight: 300, fontSize: 9,
-      color: active ? A.brassWarm : A.inkMute,
+      color: active ? A.interactiveWarm : A.inkMute,
       letterSpacing: '0.28em', textTransform: 'uppercase',
       transition: `all 180ms ${EASE}`,
       WebkitTapHighlightColor: 'transparent',
@@ -905,5 +909,5 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 2, color: A.ink,
   fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
   fontSize: 16, lineHeight: 1.5, fontWeight: 300, outline: 'none', 
-  caretColor: A.brass,
+  caretColor: A.interactive,
 };

@@ -15,6 +15,10 @@ import React from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
 
 export const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
   brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
@@ -47,7 +51,7 @@ export function SField({ label, value, onChange, multiline, placeholder, inputMo
     width: '100%', padding: '11px 14px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
     fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-    caretColor: A.brass, resize: 'none' as const, 
+    caretColor: A.interactive, resize: 'none' as const, 
   };
   return (
     <div>

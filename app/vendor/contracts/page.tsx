@@ -14,6 +14,10 @@ import { fetchContracts, requestContractUpload, finalizeContract,
 import type { Contract } from '@/lib/vendor/types/vendor';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
   brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', green: 'var(--role-positive)', red: 'var(--role-critical)',
 } as const;
@@ -32,7 +36,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', boxSizing: 'border-box',
   background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
   fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-  caretColor: A.brass,
+  caretColor: A.interactive,
 };
 const labelStyle: React.CSSProperties = {
   fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute,
@@ -120,7 +124,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+        <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Contracts</span>
       </div>
 
@@ -253,7 +257,7 @@ function ContractsScreen({ vendorName }: { vendorName: string | null }) {
                 <button type="button" onClick={() => doSend(selected)} disabled={saving} style={{
                   flex: 1, padding: '12px 0', background: 'transparent',
                   border: '0.5px solid rgba(201,168,76,0.5)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>Mark Sent</button>
               )}
