@@ -162,7 +162,19 @@ export const GRAPHITE: Record<TokenKey, string> = {
   'card-bg':       'linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%)',
   'card-border':   'rgba(240,244,246,0.11)',
   'card-shadow':   'rgba(0,0,0,0.50)',
-  'row-hover':     'rgba(240,244,246,0.042)',
+  // ── F-38.14 · A PRESS STATE AT 1.12:1 IS NOT A PRESS STATE ────────────────
+  // Founder's walk: 「theres no feeling that a button is being pressed. no press
+  // animation.」 The rule was there — `.wl-drow:active{background:var(--atelier-row-hover)}`
+  // — and R-38.2's cell asserted it EXISTS. MEASURED, it moved the sheet from
+  // rgb(29,30,32) to rgb(38,39,41): a contrast ratio of **1.116:1**, which is nine values
+  // per channel and is invisible on glass.
+  //
+  // THIS IS THE SAME DISEASE AS F-38.7 AND F-38.13, FOR THE THIRD AND FOURTH TIME:
+  // presence standing in for behaviour. The ruling said the control must ANSWER the
+  // finger; the cell asked whether a rule was present; the founder asked whether anything
+  // happened. Only one of those three is the product.
+  // 0.14 measures 1.511:1 — a plate change the eye reads without reading as a new colour.
+  'row-hover':     'rgba(240,244,246,0.14)',
   'grain':         'rgba(255,255,255,0.012)',
   'input-bg':      'rgba(240,244,246,0.040)',
   'input-border':  'rgba(104,201,180,0.58)',   // 3.72:1 on the sheet
@@ -198,7 +210,10 @@ export const CHALK: Record<TokenKey, string> = {
   'card-bg':       'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%)',
   'card-border':   'rgba(23,25,26,0.13)',
   'card-shadow':   'rgba(23,25,26,0.09)',
-  'row-hover':     'rgba(23,25,26,0.038)',
+  // F-38.14, Chalk's arm. 0.038 measured 1.081:1. White grounds carry less headroom than
+  // dark ones — 0.11 reaches 1.251:1, which is the most a light sheet gives before the
+  // press reads as a disabled row rather than a pressed one. Measured, not matched.
+  'row-hover':     'rgba(23,25,26,0.11)',
   'grain':         'rgba(23,25,26,0.012)',
   'input-bg':      'rgba(23,25,26,0.035)',
   'input-border':  'rgba(13,106,90,0.68)',     // 3.25:1 on the sheet \u2014 0.62 measured 2.88 and was raised

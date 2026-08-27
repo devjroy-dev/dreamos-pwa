@@ -43,11 +43,12 @@ function DLink({ label, href, onGo }: { label: string; href: string; onGo: () =>
 }
 
 /** A drawer row that acts rather than navigates: mode picks, the external house link, sign-out. */
-function DAct({ label, onClick, current, danger }: {
-  label: string; onClick: () => void; current?: boolean; danger?: boolean;
+function DAct({ label, onClick, current, danger, mode }: {
+  label: string; onClick: () => void; current?: boolean; danger?: boolean; mode?: boolean;
 }) {
   return (
-    <button type="button" role="menuitem" className={'wl-drow' + (danger ? ' danger' : '')}
+    <button type="button" role="menuitem"
+            className={'wl-drow' + (danger ? ' danger' : '') + (mode ? ' mode' : '')}
             aria-current={current ? 'true' : undefined} onClick={onClick}>
       <span className="wl-dlabel">{label}</span>
     </button>
@@ -133,8 +134,8 @@ export function WorklistShell({ title, children }: { title: string; children: Re
                 window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
               }} />
               <div className="wl-dsec">{COPY.drawerDisplay}</div>
-              <DAct label={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} />
-              <DAct label={COPY.themeLightName} onClick={() => pick('light')} current={mode === 'light'} />
+              <DAct label={COPY.themeDarkName}  onClick={() => pick('dark')}  current={mode === 'dark'} mode />
+              <DAct label={COPY.themeLightName} onClick={() => pick('light')} current={mode === 'light'} mode />
               <div className="wl-dsec">{COPY.drawerActions}</div>
               <DAct label={COPY.drawerSignOut} danger onClick={signOut} />
             </div>
@@ -159,14 +160,42 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   );
 }
 
+// ⚠ NO BACKTICKS BELOW THIS LINE, EVER. Everything after it is inside a JS template
+// literal, so a backtick — including one written around a CSS selector in a comment while
+// explaining that selector — ENDS THE LITERAL and fails the compile. This sitting paid for
+// that four separate times, in four files, always in a comment ABOUT a syntax written
+// INSIDE that syntax. ZIP 14 ⑧ named the family; naming it did not stop it. The rule is
+// mechanical now: selectors in these comments are written in words, not in code marks.
 const SHELL_CSS = `
 .wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
 .wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20;min-width:248px;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:3px;overflow:hidden;box-shadow:0 18px 40px -12px var(--atelier-card-shadow)}
 /* R-38.4: a section eyebrow. One of the TWO places letter-spaced uppercase is permitted,
    and at .08em rather than the retired .2em engraved register. */
-.wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:12px var(--wl-gutter) 6px}
+.wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:14px var(--wl-gutter) 10px}
+/* ── F-38.15 · SEPARATORS INSIDE THE GROUPS, NONE BETWEEN THEM ───────────────
+   Founder's walk: 「theres a line that comes between graphite and chalk」.
+   The old rule was an ADJACENT-SIBLING selector, so it fired between any two
+   consecutive rows and never across a section — because the eyebrow is a <div> sitting
+   between them and breaks the adjacency. The result is exactly backwards for a grouped
+   list: hairlines INSIDE each group, nothing at the group boundaries.
+   And Graphite/Chalk is the case that makes it obviously wrong: those two are not two
+   destinations, they are ONE CONTROL IN TWO STATES. A hairline between them says 「two
+   things」 about a radio pair.
+   The boundary now sits on the section eyebrow, which is where the grouping actually
+   changes, and the mode pair is explicitly exempt. */
 .wl-drow{display:flex;align-items:center;width:100%;min-height:var(--wl-row);padding:8px var(--wl-gutter);background:none;border:none;cursor:pointer;text-align:left;text-decoration:none}
 .wl-drow + .wl-drow{border-top:.5px solid var(--atelier-card-border)}
+.wl-drow.mode + .wl-drow.mode{border-top:none}
+.wl-dsec + .wl-drow{border-top:none}
+.wl-dsec:not(:first-child){border-top:.5px solid var(--atelier-card-border)}
+/* ── F-38.16 · A DESTRUCTIVE CONTROL SAT 6px UNDER A LABEL ────────────────────
+   Founder's walk: 「clicking action signs me out」. He tapped the word ACTIONS. The
+   eyebrow is not interactive, so the tap landed on the 52px row beneath it — Sign out,
+   which is irreversible in effect and has no confirmation step. Six pixels of padding
+   was the whole margin for error on the one control in this drawer that ends the
+   session. Separation is widened here; whether Sign out should ALSO confirm is a
+   ruling and is put to the chair rather than taken. */
+.wl-drow.danger{margin-top:6px}
 .wl-dlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-drow[aria-current="true"] .wl-dlabel{color:var(--atelier-accent-text)}
 .wl-drow.danger .wl-dlabel{color:var(--role-critical)}

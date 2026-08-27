@@ -689,6 +689,80 @@ ships now, ahead of the copy — **what the row does is not waiting on what the 
 **R-38.9's 「six full rows」 struck.** Geometry accepted; C-R8 already asserts all eighteen
 visible at rest.
 
+## §13 · THE SECOND WALK — F-38.13 CURED, THREE MORE FOUND
+
+**F-38.13 holds on glass.** The avatar opens on `/vendor/tds` and `/vendor/list/leads`.
+Founder-witnessed, which is the only witness that counts for a hit-test.
+
+### F-38.14 · A PRESS STATE AT 1.12:1 IS NOT A PRESS STATE
+
+「theres no feeling that a button is being pressed. no press animation.」
+
+The rule was there. R-38.2's cell asserted it exists. **Measured**, the drawer row moved
+from `rgb(29,30,32)` to `rgb(38,39,41)` on press — **1.116:1** in Graphite, **1.081:1** in
+Chalk. Nine values per channel. Invisible.
+
+**This is the fourth appearance of one habit.** F-38.7 (a cell passing on an empty page),
+F-38.13 (a cell asserting the scrim exists, not that it is conditional), the vacuous R-38.2
+tile clause, and now this: **presence standing in for behaviour.** The ruling said the
+control must ANSWER the finger. The cell asked whether a rule was present. The founder
+asked whether anything happened. Only the third question is the product.
+
+Sized by measurement, not by eye: Graphite `0.14` → **1.511:1**; Chalk `0.11` → **1.251:1**,
+which is the most a white ground gives before a pressed row starts reading as a disabled
+one. Token values only — count unchanged, C1 green.
+
+### F-38.15 · THE SEPARATORS WERE INSIDE THE GROUPS AND ABSENT BETWEEN THEM
+
+「theres a line that comes between graphite and chalk」
+
+The rule was an adjacent-sibling selector, so it fired between any two consecutive rows and
+**never across a section** — the eyebrow is a `div` sitting between them, which breaks the
+adjacency. Exactly backwards for a grouped list: hairlines inside each group, nothing at the
+boundaries.
+
+Graphite/Chalk is the case that makes it obvious: those are **one control in two states**,
+and a hairline between them says 「two things」 about a radio pair. The boundary moves onto
+the section eyebrow, where the grouping actually changes, and the mode pair is exempt by
+name.
+
+### F-38.16 · A DESTRUCTIVE CONTROL SAT SIX PIXELS UNDER A LABEL
+
+「clicking action signs me out」
+
+He tapped the word ACTIONS. The eyebrow is not interactive, so the tap fell through to the
+52px row beneath it — **Sign out**, which ends the session and has no confirmation. Six
+pixels of padding was the entire margin for error on the one control in this drawer that
+cannot be undone by tapping again.
+
+Separation widened. **Whether Sign out should also CONFIRM is a ruling and is put to the
+chair, not taken** — every other destructive control in this estate confirms
+(`CancelBlock` does, and its warning carries the irreversibility), so the asymmetry is real
+and is the chair's to close.
+
+### AND THE FOURTH BACKTICK FAULT — CURED AS A CLASS, NOT AN INSTANCE
+
+Writing F-38.15's comment I closed a template literal with a backtick around a CSS selector,
+for the fourth time this sitting, in the fourth file. ZIP 14 ⑧ named the family and naming it
+did not stop it. `WorklistShell.tsx` now carries a standing rule above its CSS block:
+selectors in those comments are written in words, not in code marks. Mechanical, not
+attentive — the same reason R-38.4 emits a font shorthand instead of trusting call sites.
+
+### THE TWO-DRAWER STATE, REPORTED
+
+「the settings in other rooms is completely different. its the earlier setting.」
+
+**Correct, and it is the interim's declared cost** — the fourteen uncrossed rooms wear the
+old `Header` and its drawer. But it is worse than 「different」, and that part is not
+declared anywhere: that drawer still ships **`DreamAi on WhatsApp`** (banned by
+R-37.70/.78/.83), **`Tips & Features → /vendor/more`** (a route R-38.1 forbids from a shell
+control), and **`The Dream Wedding`** (retired from the shell drawer at relay #3 ITEM 3).
+Three retired or banned bytes, live on fourteen surfaces.
+
+It ends when the twelve remaining rooms cross. Whether anything should be done before then
+— hide the old coin, or leave it — is the chair's, and patching the old drawer to match
+would give the drawer's rows a second home, which is what R-38.1 exists to end.
+
 ## §10 · THE NEXT SITTING
 
 The fourteen uncrossed rooms, in `INTERIM_VENDOR_ROOMS` order · Settings' body onto the six
