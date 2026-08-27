@@ -391,6 +391,29 @@ async function seat(browser, mode) {
       P(tag + 'C-R8 eighteen rooms at rest', fit.tiles + ' tiles at ' + fit.tileH + 'px, overflow ' + fit.overflow + ', slack ' + fit.slack + 'px');
     else F(tag + 'C-R8 eighteen rooms at rest', JSON.stringify(fit));
 
+    // ── C-R10 · THE MEDALLION NEVER SHOWS A PLACEHOLDER IDENTITY  [F-38.19] ─
+    //
+    // Founder's walk: the coin painted its fallback glyph and then swapped to DR once
+    // /api/v2/vendor/me returned. The name was in localStorage the whole time.
+    //
+    // THE ASSERTION IS ABOUT THE FIRST PAINT, so it cannot be made after settle() has
+    // already waited for the shell — by then the fetch may well have landed and a broken
+    // tree would pass. It navigates and reads the coin as early as the element exists,
+    // WITHOUT waiting for anything else, which is the only moment the defect is visible.
+    //
+    // The fixture's session carries `name: 'Dev Roy'`, so a seeded coin reads DR. A coin
+    // showing the glyph at first paint means the seed did not happen and the vendor is
+    // watching a placeholder identity turn into his own.
+    await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+    let firstPaint = null;
+    try {
+      await p.waitForSelector('.wl-coin', { timeout: 15000 });
+      firstPaint = await p.evaluate(() => (document.querySelector('.wl-coin')?.textContent || '').trim());
+    } catch { /* reported below */ }
+    if (firstPaint === null) F(tag + 'C-R10 the medallion never shows a placeholder identity', 'no coin at first paint');
+    else if (firstPaint === 'DR') P(tag + 'C-R10 the medallion never shows a placeholder identity', 'seeded from the session: ' + firstPaint);
+    else F(tag + 'C-R10 the medallion never shows a placeholder identity', 'first paint reads ' + JSON.stringify(firstPaint) + ' — the coin is waiting on the wire for a name already in localStorage');
+
     // ── C-R9 · THE COIN IS TAPPABLE IN A CARRIED ROOM  [F-38.13] ────────────
     //
     // THE CELL THE AUDIT CANNOT WRITE, and the chair asked for it in three clauses. A

@@ -835,6 +835,52 @@ profile」. **That row no longer exists in either drawer.** `OnboardingOverlay.t
 carries the same name. Copy outliving its subject is the wl-plink disease in prose. It is
 founder-vetoed copy on carried surfaces and belongs to the sitting that crosses them.
 
+## §15 · F-38.19 — THE COIN ASKED THE NETWORK FOR A NAME IT ALREADY HAD
+
+「look at image 3 avatar. before loading DR it shows this」
+
+`useVendorInitials` started at `''`, so the medallion painted its fallback glyph and then
+swapped to `DR` when `/api/v2/vendor/me` returned. On Fast 4G that is most of a second of a
+vendor watching a placeholder identity turn into his own.
+
+**The name was in localStorage the whole time.** `getVendorSession()` carries `name`, and
+the old `Header` never had this flicker for exactly that reason — it took the name from the
+session synchronously. This hook asked the network a question it could already answer.
+
+**CURED by seeding, not by removing the fetch.** A session name can be stale — renamed on
+another device, or edited in Settings before the session is rewritten — so the server stays
+the truth. The seed paints immediately and the wire read overwrites it if it differs. **What
+goes is the WAIT, not the check.** And the wire read now only overwrites on a real answer:
+an empty name from the server must not blank a seed that is currently correct.
+
+**IT SEEDS IN THE EFFECT, NOT IN useState's INITIALISER**, and that is deliberate. This
+component is server-rendered before it hydrates; `window` does not exist there, so seeding
+at first render would have the server emit the glyph while the client emits DR — a hydration
+mismatch traded for a flicker. One frame is not perceptible; a hydration error is a different
+defect wearing the cure's clothes.
+
+The initials rule is extracted to one function, so the seed and the wire read cannot disagree
+about shape.
+
+### C-R10 · AND THE CELL HAD TO BE WRITTEN AGAINST THE FIRST PAINT
+
+This is the assertion that could not be made the easy way. Every other cell in the arm runs
+after `settle()`, and by then the fetch has usually landed — **a broken tree would pass.**
+C-R10 navigates and reads the coin as early as the element exists, waiting for nothing else,
+because the first paint is the only moment the defect is visible.
+
+Both ways, and it reproduces the founder's screenshot exactly:
+
+```
+cured    PASS C-R10 — seeded from the session: DR
+d0949e4  FAIL C-R10 — first paint reads "◎" — the coin is waiting on the wire
+                      for a name already in localStorage
+```
+
+**This one is not the presence-for-behaviour habit.** It is the other half of the same
+lesson: a cell that observes at a convenient moment rather than the decisive one is a cell
+that will pass on the defect it was written for.
+
 ## §10 · THE NEXT SITTING
 
 The fourteen uncrossed rooms, in `INTERIM_VENDOR_ROOMS` order · Settings' body onto the six
