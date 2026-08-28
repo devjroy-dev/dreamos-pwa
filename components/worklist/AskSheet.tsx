@@ -3,13 +3,24 @@
 //
 // THE COSTUME TELLS THE TRUTH AGAIN. R-37.83 stripped the field shape because tapping it
 // teleported to WhatsApp. Now the tap opens the chat, so the shape may promise what it
-// delivers: the vendor types where he was invited to type, and DreamAi answers there.
+// delivers: the vendor types where he was invited to type, and the answer comes back.
+//
+// ── R-38.17 · AND THE SHEET SAYS WHERE IT COMES BACK ────────────────────────
+// `askSheetNote` — 「TDW replies on WhatsApp.」 The vendor types in-app; the reply arrives
+// on her phone. A surface that takes the message and says nothing about where the answer
+// goes is wearing the costume again in the other direction: it looks like a thread, and
+// the thread is somewhere else. One line, under the head, at t5.
+//
+// (The old note in this comment named a persona. 「DreamAi」 is banned outright from every
+// vendor-facing byte at R-38.17 and the ban is worth honouring in the file's own prose too,
+// so that the next reader does not learn the word here and then use it in a string.)
 //
 // D-2 THROUGHOUT: ChatThread, InputBar, useChat and reportGlitch are all imported at their
 // single homes. Nothing here is a copy of anything. The one thing this component adds is the
 // ThemeProvider mount — which is not a shim: it is the estate's own provider, and on this
 // branch it hands out Graphite and Chalk because ZIP 3 rewrote its token source.
 import { useEffect, useRef } from 'react';
+import { COPY } from '@/lib/worklist/copy';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
@@ -30,7 +41,7 @@ export function AskSheet({ vendorId, mode, onClose }: { vendorId: string; mode: 
 
   return (
     <ThemeProvider pinned={mode}>
-      <div className="wl-asksheet" role="dialog" aria-modal="true" aria-label="Ask TDW">
+      <div className="wl-asksheet" role="dialog" aria-modal="true" aria-label={COPY.dockAria}>
         <button type="button" className="wl-askscrim" aria-label="Close" onClick={onClose} />
         <div className="wl-askpanel">
           {/* R-37.89: the drag-down affordance. A sheet this tall needs a dismissal the thumb
@@ -40,8 +51,14 @@ export function AskSheet({ vendorId, mode, onClose }: { vendorId: string; mode: 
                   onPointerDown={(e) => { dragFrom.current = e.clientY; }}
                   onPointerUp={(e) => { if (dragFrom.current !== null && e.clientY - dragFrom.current > 60) onClose();
                                         dragFrom.current = null; }} />
-          <div className="wl-askhead"><span className="wl-asktitle">Ask TDW</span>
+          {/* THE TITLE WAS AN INLINE LITERAL AND THAT WAS A COPY-LAW BREACH, not a tidy.
+              Nothing in the shell may inline a vendor-facing string; a vetoed byte at its
+              point of use drifts a character at a time with no instrument watching. It
+              reads `dockAria` because the sheet's title and the label of the control that
+              opens it are ONE statement about what this is, not two that can disagree. */}
+          <div className="wl-askhead"><span className="wl-asktitle">{COPY.dockAria}</span>
             <button type="button" className="wl-askclose" aria-label="Close" onClick={onClose}>&times;</button></div>
+          <p className="wl-asknote">{COPY.askSheetNote}</p>
           <div className="wl-askbody" ref={scrollRef}>
             <ChatThread messages={messages} loading={loading} onChipTap={send} scrollRef={scrollRef}
               /* onConfirm/onCancel are required by Props and no-op'd by every caller,
@@ -93,6 +110,10 @@ const ASK_CSS = `
 .wl-askgrab{flex-shrink:0;align-self:center;width:38px;height:4px;margin:8px 0 2px;padding:0;border:none;border-radius:2px;background:var(--atelier-ink-fade);cursor:grab;touch-action:none}
 .wl-askhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-asktitle{font:var(--wl-t2);color:var(--atelier-accent-text)}
+/* R-38.17 the channel note. t5, ink-mute: it is metadata about where the answer lands,
+   not a sentence the vendor has to read before typing. It sits under the head's rule so
+   the scroll body still starts at the thread. */
+.wl-asknote{flex-shrink:0;font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0}
 .wl-askclose{width:44px;height:44px;margin:-10px -10px -10px 0;background:none;border:none;color:var(--atelier-ink-mute);font-size:22px;line-height:1;cursor:pointer}
 .wl-askbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px}
 `;

@@ -12,6 +12,70 @@ import { useEffect, useState } from 'react';
 import { getVendorSession } from '@/lib/vendor/session';
 import { getJson } from '@/lib/vendor/api/_base';
 
+// ── F-38.26 · ONE GET /me PER SESSION, AND THE READ HAS ONE SITE ───────────
+//
+// THE DEFECT, OBSERVED RATHER THAN REASONED (D-38.1). Walking Rooms -> Leads -> Rooms
+// asked the server who the vendor was on every step. Three call sites want the answer and
+// each one fetched it for itself: app/w/layout.tsx (the onboarding verdict),
+// useVendorInitials (the medallion) and useVendorHandle (the link card). The layout asks
+// once per document, but WorklistShell REMOUNTS on every route change, so the medallion's
+// read is paid for on every tap — and every one of those round trips lands in front of the
+// screen the vendor is waiting for. R-38.3 removed exactly this shape from the old
+// layout's guard and left it standing in the hook beside it.
+//
+// THE CURE IS A PROMISE, NOT A CACHE, AND THE DISTINCTION IS THE WHOLE DESIGN. A cache
+// stores an answer and then owns the question of when it is stale. This stores the
+// REQUEST: the first caller starts it, every later caller awaits the same one, and there
+// is exactly one wire read behind any number of readers. Module scope is the right
+// lifetime because it is the SESSION's lifetime — client navigation keeps it, a real page
+// load resets it, and a page load is the one moment the answer could have changed
+// underneath us anyway.
+//
+// IT IS KEYED ON THE TOKEN, WHICH IS WHAT MAKES IT SAFE. A different token is a different
+// vendor, and answering her with the previous session's identity would be the worst class
+// of defect this file could produce. Sign-out clears it explicitly as well
+// (components/worklist/WorklistShell.tsx) — belt and braces on the one path where being
+// wrong is unrecoverable.
+//
+// ⚠ ONE THING THIS COSTS, STATED RATHER THAN DISCOVERED. A routing-handle or name change
+// made in Settings inside the SAME session is no longer picked up on the next navigation;
+// it needs a reload. Before this, every mount re-asked and so it corrected itself. The
+// honest cure is one call to `forgetVendorMe()` in the success arm of
+// components/vendor/SettingsScreen.tsx's handle and name writes — a file outside this
+// seat's contention grant, so it is NAMED here and filed (F-38.28) rather than edited
+// quietly. The export exists and is ready for it.
+export interface VendorMeResponse {
+  ok: boolean;
+  vendor?: {
+    id?: string | null;
+    name?: string | null;
+    handle?: string | null;
+    onboarding?: { complete: boolean };
+  };
+}
+
+let mePromise: Promise<VendorMeResponse> | null = null;
+let meToken: string | null = null;
+
+/** THE ONE SITE THAT ASKS THE SERVER WHO THIS VENDOR IS. Every reader goes through here. */
+export function vendorMe(): Promise<VendorMeResponse> {
+  const token = getVendorSession()?.access_token ?? null;
+  if (!mePromise || meToken !== token) {
+    meToken = token;
+    mePromise = getJson<VendorMeResponse>('/api/v2/vendor/me', true)
+      // A REJECTION IS NOT AN ANSWER AND MUST NOT BE REMEMBERED AS ONE. getJson only
+      // rejects on a transport failure; caching that would mean one flaked request left
+      // the medallion and the link card blank for the rest of the session. It clears
+      // itself and rethrows, so the next mount asks again and every caller still fails
+      // closed on this one.
+      .catch((e) => { mePromise = null; meToken = null; throw e; });
+  }
+  return mePromise;
+}
+
+/** Drop the remembered request. Called at sign-out, where being wrong is unrecoverable. */
+export function forgetVendorMe(): void { mePromise = null; meToken = null; }
+
 // ── F-38.21 · THE HANDLE IS CACHED, BECAUSE IT IS NOT IN THE SESSION ────────
 //
 // Founder: 「same problem with your TDW link. it takes a few seconds to load and then
@@ -52,7 +116,7 @@ export function useVendorHandle(): string | null {
     } catch { /* private mode — the wire read below still answers */ }
 
     let live = true;
-    getJson<{ ok: boolean; vendor?: { handle?: string | null } }>('/api/v2/vendor/me', true)
+    vendorMe()
       .then((d) => {
         if (!live || !d.ok) return;
         const h = d.vendor?.handle?.trim();
@@ -111,7 +175,7 @@ export function useVendorInitials(): string {
     if (seeded) setIni(seeded);
 
     let live = true;
-    getJson<{ ok: boolean; vendor?: { name?: string | null } }>('/api/v2/vendor/me', true)
+    vendorMe()
       .then((d) => {
         if (!live || !d.ok) return;
         // Only overwrite on a real answer. An empty name from the wire must not blank a

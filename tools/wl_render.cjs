@@ -27,13 +27,34 @@
 // for the dependency pair. Driven with `puppeteer-core`. Real Chromium, real next/font, real
 // computed styles.
 //
-// THE FIXTURE, AND ITS HONESTY. The session below is SYNTHETIC: its token is not a real one,
-// so every authenticated fetch fails closed. That is stated, never hidden — the coin renders
-// its fallback glyph instead of initials for exactly this reason, and any frame this file
-// captures is SYNTHETIC-SPLASH unless a fixture layer is added and declared. A frame whose
-// data condition is unstated is not evidence. Every seed field is derived, never guessed:
-// lib/vendor/session.ts — SESSION_KEY (:11), id must not be MOCK_VENDOR_ID (:19),
-// access_token must not be MOCK_ACCESS_TOKEN (:20), _v >= SESSION_VERSION = 2 (:24).
+// ── THE FIXTURE IS REAL NOW, OR THE ARM SAYS SO AND REDS  [F-38.8, item 1(c)] ────────
+//
+// It used to be SYNTHETIC always: a seeded token that was not a real one, so every
+// authenticated fetch failed closed. That was stated honestly and it was still the wrong
+// shape, for two reasons that only look separate.
+//
+//   (1) IT COULD ONLY EVER SPEAK ABOUT CHROME. Nothing behind the token was ever asserted,
+//       so three cells about the vendor's own identity and her own link were passing on
+//       values this file had planted in localStorage a moment earlier. A cell that asserts
+//       a value the instrument itself wrote is a mirror, not a measurement.
+//   (2) IT MADE THE PRODUCT LOG THE FIXTURE OUT. A synthetic token 401s; _base.ts:103-124
+//       refreshes once, fails, and calls clearAndRedirect. FOUR CURES IN THIS FILE ARE
+//       MACHINERY BUILT TO SURVIVE THAT LOGOUT — and a real token simply does not cause it.
+//
+// SO: `source tools/wl_mint_token.sh` exports WL_RENDER_TOKEN into the shell, this file
+// reads it from the ENVIRONMENT, and asks the real GET /api/v2/vendor/me with it before a
+// browser is launched. What comes back is the identity the cells assert against.
+//
+// THERE IS NO /me STUB ANYWHERE IN THIS FILE, and the prohibition is the point rather than
+// a detail. A stub would let every cell go green with no server behind it, which is the
+// hollow green this whole gate exists to refuse (D-38.1). With no token the arm prints
+// `fixture: SYNTHETIC — every authenticated cell will FAIL` AND THEN DOES EXACTLY THAT: the
+// three authenticated cells red, the chrome cells stay green, and the verdict is RED. A
+// synthetic run is a usable chrome run that can never be mistaken for a complete one.
+//
+// The non-token seed fields are derived, never guessed: lib/vendor/session.ts — SESSION_KEY
+// (:11), id must not be MOCK_VENDOR_ID (:19), access_token must not be MOCK_ACCESS_TOKEN
+// (:20), _v >= SESSION_VERSION = 2 (:24).
 //
 // CAPTURES SHOW THE WHOLE SURFACE, AND fullPage ALONE DOES NOT ACHIEVE THAT HERE.
 // Two lessons, both paid for by this instrument's own frames:
@@ -67,11 +88,74 @@ if (!BASE) {
   process.exit(2);
 }
 
-const SEED = {
-  id: '11111111-2222-3333-4444-555555555555', user_id: 'wl-render-arm',
-  name: 'Dev Roy', phone: '+919888294440', tier: 'signature',
-  access_token: 'wl-render-arm-token', refresh_token: 'wl-render-arm-token', _v: 2,
-};
+// ── THE TOKEN COMES FROM THE ENVIRONMENT AND FROM NOWHERE ELSE ──────────────────────
+// Not argv (a token in argv is in `ps` and in every log that echoes its command) and not a
+// file in the tree (a dotfile with a bearer token in it survives the sitting and gets
+// committed by someone in a hurry). tools/wl_mint_token.sh is the only issuer.
+const TOKEN = process.env.WL_RENDER_TOKEN || '';
+
+// THE STANDING TEST VENDOR (founder's ruling, 2026-07-29). One home for the number in this
+// file, and the mint script refuses to authenticate as anyone else.
+//
+// ⚠ THE ARM CANNOT RE-DERIVE THIS FROM THE WIRE, AND SAYS SO RATHER THAN IMPLYING IT CAN.
+// GET /api/v2/vendor/me carries id, name, business_name, category, city, handle, tier and
+// more (dream-os src/api/vendor/me.js:68-92) — and NO phone field. So the 9888294440 in the
+// fixture line below is true because wl_mint_token.sh refuses every other number, not
+// because this file read it back. That provenance is printed, not assumed.
+const TEST_PHONE = '9888294440';
+
+// ── THE API HOST IS READ FROM ITS ONE HOME, NOT RETYPED ─────────────────────────────
+// The browser reaches the API through lib/vendor/api/_base.ts's API_BASE. Copying that
+// literal here would be a second home for the host, and the two would drift the day the
+// deploy moves — the same correction C-R3 took for the room count at ZIP 14. An override
+// exists for a local or preview API and is the same variable the mint script reads, so the
+// token and the probe can never be pointed at two different servers.
+const API_BASE = process.env.WL_RENDER_API_BASE ||
+  (fs.readFileSync('lib/vendor/api/_base.ts', 'utf8').match(/'(https:\/\/[^']+)'/) || [])[1] || '';
+
+// What the wire says the vendor IS. Filled by the probe below; every authenticated cell
+// asserts against it, and an unfilled WIRE is what makes those cells red under SYNTHETIC.
+let WIRE = { ok: false, id: null, name: null, handle: null, tier: null, status: 0 };
+
+async function readWire() {
+  if (!TOKEN || !API_BASE) return;
+  try {
+    const r = await fetch(API_BASE + '/api/v2/vendor/me', {
+      headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    });
+    WIRE.status = r.status;
+    const j = await r.json().catch(() => null);
+    if (r.ok && j && j.ok && j.vendor) {
+      WIRE = { ok: true, id: j.vendor.id || null, name: j.vendor.name || null,
+               handle: j.vendor.handle || null, tier: j.vendor.tier || null, status: r.status };
+    }
+  } catch (e) { WIRE.status = -1; }
+}
+
+// The seed is assembled AFTER the probe, so under REAL it carries the vendor's own id, name
+// and tier beside the real token — which is what a pin-login actually writes into the
+// session. Under SYNTHETIC it keeps the old declared-fake identity so the CHROME cells still
+// have a shell to measure; only the authenticated cells lose their subject.
+function seedSession() {
+  return WIRE.ok
+    ? { id: WIRE.id, user_id: 'wl-render-arm', name: WIRE.name,
+        phone: '+91' + TEST_PHONE, tier: WIRE.tier,
+        // The refresh token is the access token deliberately: it is never exercised,
+        // because a real access token does not 401 and _base.ts only refreshes on a 401.
+        // A second real secret in this process to cover a path that cannot be taken would
+        // be a widened blast radius bought with nothing.
+        access_token: TOKEN, refresh_token: TOKEN, _v: 2 }
+    : { id: '11111111-2222-3333-4444-555555555555', user_id: 'wl-render-arm',
+        name: 'Dev Roy', phone: '+91' + TEST_PHONE, tier: 'signature',
+        access_token: 'wl-render-arm-token', refresh_token: 'wl-render-arm-token', _v: 2 };
+}
+let SEED = null;
+
+/** The initials rule, asserted rather than owned. Its home is hooks/vendor/useVendorHandle.ts
+ *  `initialsOf`; C-R10 has to compute the expectation to compare against what painted. */
+const initialsOf = (n) => (n || '').trim().split(/\s+/).filter(Boolean)
+  .slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+
 const VIEW = { width: 390, height: 844, deviceScaleFactor: 2 };
 
 let pass = 0, fail = 0;
@@ -110,45 +194,45 @@ const F = (n, why) => { console.log('FAIL  ' + n + '  — ' + why); fail++; };
 //
 // SO THE CURES ARE THREE AND EACH ONE IS NAMED AT ITS SITE:
 //   · no clocks in the navigation path — settle() waits for the tree's own root landmark
-//   · settle() RE-SEEDS ONCE and says so, because a fixture that cannot survive the
-//     product's own behaviour is a fixture that measures nothing after its first action
 //   · C-R6 asserts a FLOOR on how many tuples it saw, so it can never again pass by
 //     looking at nothing
-async function reseat(p, mode) {
-  await p.evaluate((s, m) => {
-    localStorage.setItem('vendor_session', JSON.stringify(s));
-    localStorage.setItem('tdw_worklist_mode', m);
-  }, SEED, mode);
-}
-
-async function settle(p, path, landmark, mode) {
+//
+// ── THE RE-SEED RETIRES · A RECOVERY WAS THE WRONG SHAPE  [item 1(a)] ──────────────
+//
+// settle() used to retry once, re-seeding the session in between, and it printed a line
+// saying so. That line was scrupulous about not naming a cause it had not derived — and it
+// was still an instrument REPAIRING ITS SUBJECT MID-MEASUREMENT and then reporting green.
+//
+// THE ONLY THING THAT CLEARS THIS SESSION IS THE PRODUCT DECIDING TO. `_base.ts:103-124`
+// calls clearAndRedirect when an authenticated call 401s and the refresh fails. So a
+// surface that needed a re-seed to settle is a surface the vendor was ALSO thrown out of;
+// the retry did not fix that, it hid it, and it hid it behind a PASS. Four cures in this
+// file were built to survive that logout, which is three more than the problem deserved:
+// with a real token it does not happen at all, and when it does happen it is the finding.
+//
+// SO THE RE-SEED IS REFUSED AND THE CELL REDS. settle() takes the names of the cells that
+// depend on it and records the failure against each of them, because the alternative —
+// returning false and trusting every call site to remember — is how a surface that never
+// mounted becomes a cell that was never printed.
+async function settle(p, path, landmark, cells) {
   // THE ROOT LANDMARK IS PER-TREE. The first cure waited for `.wl-main` on EVERY path,
   // including the two carried /vendor rooms that are captured ON PURPOSE as the seam the
   // founder is being asked to judge. Those surfaces have no `.wl-main` and never will, so
   // the arm skipped them and shipped 20 frames where 24 were ruled. Waiting for the wrong
   // landmark and waiting for no landmark fail the same way.
   const root = path.startsWith('/w') ? '.wl-main' : 'header';
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
-      await p.waitForSelector(root, { timeout: 15000 });
-      if (landmark) await p.waitForSelector(landmark, { timeout: 15000 });
-      return true;
-    } catch {
-      if (attempt === 0) {
-        // A RE-SEED IS ITSELF EVIDENCE and is never silent: it means something cleared the
-        // session, and the only thing that does is a 401 on a real authenticated call.
-        // THE MESSAGE USED TO SAY 「the session had been cleared」, which is a CAUSE this
-        // line has not derived — the first attempt can fail for a slow selector, an
-        // aborted navigation, or a redirect, and only one of those is a cleared session.
-        // An instrument that names a cause it did not establish is doing the thing this
-        // estate files findings about. It reports WHAT IT DID.
-        console.log('  first attempt at ' + path + ' did not settle; re-seeded and retried');
-        try { await reseat(p, mode); } catch { /* the page may be mid-redirect */ }
-      }
-    }
+  try {
+    await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+    await p.waitForSelector(root, { timeout: 15000 });
+    if (landmark) await p.waitForSelector(landmark, { timeout: 15000 });
+    return true;
+  } catch {
+    // `cells` is omitted by the capture loop and by seat(), which report their own way and
+    // must not manufacture cell verdicts out of a missing picture.
+    for (const c of (cells || [])) F(c, 'surface did not settle; re-seed refused');
+    if (!cells || !cells.length) console.log('  did not settle: ' + path + ' (re-seed refused)');
+    return false;
   }
-  return false;
 }
 
 async function seat(browser, mode) {
@@ -171,10 +255,12 @@ async function seat(browser, mode) {
     try {
       localStorage.setItem('vendor_session', JSON.stringify(s));
       localStorage.setItem('tdw_worklist_mode', m);
-      // F-38.21: the handle cache. The fixture's token is synthetic, so /me will 401 and
-      // the wire read cannot supply a handle — seeding the cache is the only way to
-      // exercise the seeded path at all, and exercising it is the whole point of C-R12.
-      localStorage.setItem('tdw_vendor_handle', 'DEVROY');
+      // ⚠ `tdw_vendor_handle` IS NO LONGER SEEDED, AND ITS DELETION IS THE POINT.
+      // This file used to write DEVROY into the handle cache because the synthetic token
+      // could not make the wire answer — and C-R12, whose whole subject is that cache,
+      // then asserted a value THIS FILE HAD JUST WRITTEN. That is a mirror, not a
+      // measurement. With a real token the wire fills the cache the way it does on a
+      // vendor's second load, and C-R12 warms it by NAVIGATING rather than by planting it.
     } catch { /* private mode */ }
   }, SEED, mode);
   // THE SECOND SEEDING AND THE DOUBLE NAVIGATION BOTH RETIRE. `evaluateOnNewDocument`
@@ -187,14 +273,33 @@ async function seat(browser, mode) {
   // whole arm, which is how a run that had printed nine green dark cells still exited 3.
   // Same class as F-38.9 and F-38.11, found in the same file three edits later. It returns
   // null now, and the caller reports that mode's cells rather than losing them.
-  if (!await settle(p, '/w/rooms', '.wl-coin', mode)) { await p.close(); return null; }
+  if (!await settle(p, '/w/rooms', '.wl-coin')) { await p.close(); return null; }
   return p;
 }
 
 (async () => {
   console.log('wl_render · ' + BASE + '\n');
-  console.log('fixture: SYNTHETIC-SPLASH — the seeded token is not real, so every');
-  console.log('authenticated fetch fails closed. Chrome is real; data is not.\n');
+
+  // ── THE FIRST LINE IS A DERIVED CLAIM, NOT A LABEL  [item 1(c)] ──────────────────
+  // The probe runs before a browser exists, so the run declares what it is before it can
+  // have spent a minute of the founder's time pretending to be something else.
+  await readWire();
+  SEED = seedSession();
+  if (WIRE.ok) {
+    console.log('fixture: REAL (' + TEST_PHONE + ')');
+    // The provenance, immediately underneath, because the line above names a number this
+    // file did not read. GET /me carries no phone (dream-os src/api/vendor/me.js:68-92):
+    // the number is true because tools/wl_mint_token.sh refuses to mint for any other.
+    console.log('  phone asserted by tools/wl_mint_token.sh, which refuses every other');
+    console.log('  number; /me carries no phone field. Wire read: ' + JSON.stringify(
+      { name: WIRE.name, handle: WIRE.handle, tier: WIRE.tier }) + '\n');
+  } else {
+    console.log('fixture: SYNTHETIC — every authenticated cell will FAIL');
+    console.log('  ' + (TOKEN
+      ? 'WL_RENDER_TOKEN is set but GET /me answered ' + WIRE.status
+      : 'WL_RENDER_TOKEN is not set. Run: source tools/wl_mint_token.sh'));
+    console.log('  chrome cells still measure a real shell; the verdict will be RED.\n');
+  }
 
   const browser = await puppeteer.launch({
     args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
@@ -215,7 +320,7 @@ async function seat(browser, mode) {
     if (!p) {
       // A MODE THAT NEVER SEATED IS A REPORTED MODE, NOT A LOST ONE. Nine silent cells is
       // the failure this file has now committed four times; the last hole is closed here.
-      F(tag + 'the shell never seated', 'no .wl-coin at /w/rooms after a re-seed — every cell for this mode was skipped, not passed');
+      F(tag + 'the shell never seated', 'no .wl-coin at /w/rooms and the re-seed is refused — every cell for this mode was skipped, not passed');
       continue;
     }
 
@@ -306,7 +411,7 @@ async function seat(browser, mode) {
     const strays = [];
     let tuplesSeen = 0;
     for (const path of SCALE_SURFACES) {
-      if (!await settle(p, path, null, mode)) { strays.push(path + ' NEVER MOUNTED'); continue; }
+      if (!await settle(p, path, null)) { strays.push(path + ' NEVER MOUNTED'); continue; }
       const tuples = await p.evaluate(() => {
         const out = [];
         for (const el of document.querySelectorAll('.wl *')) {
@@ -349,24 +454,24 @@ async function seat(browser, mode) {
     // (b) THE CONTAINER EDGE: .wl-nav's content box equals .wl-main's. The seats' TEXT is
     //     centred, so "left edge of nav" has no text referent and (a) cannot reach it.
     //     Two cells because there are two questions, not because one was hard to write.
-    const billingUp = await settle(p, '/w/billing', '.wl-billcard', mode);
+    //
+    // THE UNMOUNTED CASE IS ITS OWN VERDICT AND SAYS SO — it is not an edge failure and
+    // must never be reported as one. It used to be written out by hand here; settle() owns
+    // it now, so the two cells are named ONCE, at the step that can lose them, and a third
+    // surface added to this measurement cannot forget to report itself.
+    const CR7 = [tag + 'C-R7a the text edge is one x', tag + 'C-R7b the container edge agrees'];
+    const billingUp = await settle(p, '/w/billing', '.wl-billcard', CR7);
     const eB = !billingUp ? null : await p.evaluate(() => {
       const l = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
       return { house: l('.wl-house'), card: l('.wl-billcard'), dock: l('.wl-dockfield'),
                nav: l('.wl-nav'), main: l('.wl-main') };
     });
-    const roomsUp = await settle(p, '/w/rooms', '.wl-tile', mode);
+    const roomsUp = billingUp && await settle(p, '/w/rooms', '.wl-tile', CR7);
     const eR = !roomsUp ? null : await p.evaluate(() => {
       const t = document.querySelector('.wl-tile');
       return { tile: t ? Math.round(t.getBoundingClientRect().left * 10) / 10 : null };
     });
-    // THE UNMOUNTED CASE IS ITS OWN VERDICT AND SAYS SO. It is not an edge failure and
-    // must never be reported as one: the difference between 「these four are misaligned」
-    // and 「I never saw them」 is the difference between a finding and a guess.
-    if (!billingUp || !roomsUp) {
-      F(tag + 'C-R7a the text edge is one x', 'SURFACE NEVER MOUNTED — billing=' + billingUp + ' rooms=' + roomsUp + '; no measurement was taken');
-      F(tag + 'C-R7b the container edge agrees', 'SURFACE NEVER MOUNTED — no measurement was taken');
-    } else {
+    if (billingUp && roomsUp) {
       const xs = [eB.house, eR.tile, eB.dock, eB.card];
       const spread = Math.max(...xs) - Math.min(...xs);
       if (xs.every((v) => v !== null) && spread <= 0.5)
@@ -389,8 +494,7 @@ async function seat(browser, mode) {
     // the arm THREW. It never reached light mode and it wrote none of the 24 captures. A
     // bench that crashes instead of reporting is worse than one that reds: the red names
     // the cell, the crash costs every cell after it.
-    if (!await settle(p, '/w/rooms', '.wl-tile', mode)) {
-      F(tag + 'C-R8 eighteen rooms at rest', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    if (!await settle(p, '/w/rooms', '.wl-tile', [tag + 'C-R8 eighteen rooms at rest'])) {
       await p.close();
       continue;
     }
@@ -418,7 +522,7 @@ async function seat(browser, mode) {
     // tree that measured green. It releases the pointer immediately, then looks 60ms LATER,
     // when the active pseudo-class is long over. A row still lit at that moment is a row
     // holding its own state; a row that is not was only ever lit while the finger was down.
-    if (await settle(p, '/w/rooms', '.wl-coin', mode)) {
+    if (await settle(p, '/w/rooms', '.wl-coin', [tag + 'C-R11 the press survives the gesture'])) {
       await p.click('.wl-coin');
       await new Promise((r) => setTimeout(r, 350));
       const beat = await p.evaluate(async () => {
@@ -444,8 +548,6 @@ async function seat(browser, mode) {
         P(tag + 'C-R11 the press survives the gesture', 'row still lit 60ms after release, menu leaving rather than vanished');
       else
         F(tag + 'C-R11 the press survives the gesture', JSON.stringify(beat) + ' — the acknowledgement did not outlive the tap');
-    } else {
-      F(tag + 'C-R11 the press survives the gesture', 'SURFACE NEVER MOUNTED — no measurement was taken');
     }
 
     // ── C-R13 · SIGN OUT CONFIRMS, AND THE CONFIRM REPLACES  [CE-38 SEAL ①] ─
@@ -460,7 +562,7 @@ async function seat(browser, mode) {
     //       destructive button is never where the thumb was already travelling. That is
     //       F-38.16's mechanism, not its symptom, and a confirm added below the row would
     //       satisfy a naive test while reproducing the defect exactly.
-    if (await settle(p, '/w/rooms', '.wl-coin', mode)) {
+    if (await settle(p, '/w/rooms', '.wl-coin', [tag + 'C-R13 sign out confirms'])) {
       await p.click('.wl-coin');
       await new Promise((r) => setTimeout(r, 350));
       const conf = await p.evaluate(async () => {
@@ -488,21 +590,23 @@ async function seat(browser, mode) {
       else if (conf.drawerStillUp && conf.sessionAlive && conf.confirmShown && conf.rowReplaced && conf.movedAway)
         P(tag + 'C-R13 sign out confirms', 'one tap opens two buttons in place; the session survives and the row is replaced, not stacked under');
       else F(tag + 'C-R13 sign out confirms', JSON.stringify(conf));
-    } else {
-      F(tag + 'C-R13 sign out confirms', 'SURFACE NEVER MOUNTED — no measurement was taken');
     }
 
     // ── C-R14 · THE CONDITIONAL CARD IS LAST  [CE-38 SEAL ②] ────────────────
     // R-37.68-B amended by label: desk · ask · link. b40 asserts the order in SOURCE; this
     // asserts it in the DOM, which is the only place a reorder actually reaches the vendor.
-    if (await settle(p, '/w/today', '.wl-fr', mode)) {
+    if (await settle(p, '/w/today', '.wl-fr', [tag + 'C-R14 the conditional card is last'])) {
       const seq = await p.evaluate(() => [...document.querySelectorAll('.wl-fr .wl-card')]
         .map((c) => (c.querySelector('.wl-cardtitle')?.textContent || '').trim()));
-      const lastIsLink = seq.length > 0 && /TDW link/i.test(seq[seq.length - 1]);
+      // THE EXPECTED TITLE IS READ FROM THE REGISTER, NOT RETYPED. It was the literal
+      // 「TDW link」 and R-38.17 recut the byte to 「Your link」 — a cell holding its own copy
+      // of a vetoed string goes red on a correct tree the day the byte is re-vetoed, which
+      // teaches the next seat to loosen it. Same correction C-R3 took for the room count.
+      const LINK_TITLE = (fs.readFileSync('lib/worklist/copy.ts', 'utf8')
+        .match(/cardLinkTitle:\s*'((?:[^'\\]|\\.)*)'/) || [])[1] || '';
+      const lastIsLink = seq.length > 0 && LINK_TITLE !== '' && seq[seq.length - 1] === LINK_TITLE;
       if (lastIsLink) P(tag + 'C-R14 the conditional card is last', seq.join(' \u00b7 '));
       else F(tag + 'C-R14 the conditional card is last', 'order is ' + seq.join(' \u00b7 ') + ' — the conditional card inserts instead of appending (F-38.21)');
-    } else {
-      F(tag + 'C-R14 the conditional card is last', 'SURFACE NEVER MOUNTED — no measurement was taken');
     }
 
     // ── C-R12 · THE LINK CARD DOES NOT ARRIVE LATE  [F-38.21] ───────────────
@@ -515,18 +619,66 @@ async function seat(browser, mode) {
     // only visible before the fetch lands, so a cell that settles first would pass on a
     // broken tree. With the handle cached, the card must be in the feed's FIRST layout,
     // not inserted into it afterwards.
-    await p.goto(BASE + '/w/today', { waitUntil: 'domcontentloaded' });
-    let linkAtFirstPaint = null;
-    try {
-      await p.waitForSelector('.wl-fr', { timeout: 15000 });
-      linkAtFirstPaint = await p.evaluate(() => {
-        const cards = [...document.querySelectorAll('.wl-fr .wl-card')];
-        return { cards: cards.length, hasLink: cards.some((c) => /Your TDW link/.test(c.textContent || '')) };
-      });
-    } catch { /* reported below */ }
-    if (!linkAtFirstPaint) F(tag + 'C-R12 the link card does not arrive late', 'no first-run feed at first paint');
-    else if (linkAtFirstPaint.hasLink) P(tag + 'C-R12 the link card does not arrive late', 'seeded from the handle cache; ' + linkAtFirstPaint.cards + ' cards in the first layout');
-    else F(tag + 'C-R12 the link card does not arrive late', 'the link card is absent at first paint with a cached handle — it will insert itself later and displace the feed');
+    //
+    // ── AUTHENTICATED · THE CACHE IS WARMED BY THE WIRE, NOT BY THIS FILE  [item 1(c)] ──
+    // The old cut planted DEVROY in `tdw_vendor_handle` and then asserted a card built from
+    // it: the instrument writing its own expected value. Now the arm LOADS Today once so the
+    // product's own wire read fills its own cache — which is exactly the vendor's second
+    // load, the state F-38.21's cure is about — and then measures the load after it. And the
+    // assertion is against WIRE.handle, the handle the SERVER says she has, so a card
+    // rendering somebody else's address or a stale one reds.
+    const CR12 = tag + 'C-R12 the link card does not arrive late';
+    if (!WIRE.ok) {
+      F(CR12, 'SYNTHETIC fixture — no wire handle to assert against; source tools/wl_mint_token.sh');
+    } else if (!WIRE.handle) {
+      // A REFUSAL, NOT A PASS AND NOT A CONVICTION. The card is ruled to hide entirely when
+      // no handle is set (R-37.68 (4)), so there is nothing here to measure — and a cell that
+      // greened on that would be reporting an absence it never checked.
+      F(CR12, 'the wire says this vendor has no routing handle, so the card is ruled absent — this cell has no subject and must not report a pass');
+    } else {
+      // The warm-up. Its own settle, so a failure here is this cell's failure and not a
+      // silent mismeasurement of the load that follows.
+      const warm = await settle(p, '/w/today', '.wl-fr', [CR12]);
+      let linkAtFirstPaint = null;
+      if (warm) {
+        // ── THE SUBJECT IS THE CARD, NOT THE HANDLE'S BYTES  [ZIP 2 cure] ────
+        // The first cut asserted that WIRE.handle appeared in the card's TEXT, and it
+        // would have reddened the CURED tree: item 3 arm (a) withholds the address row
+        // until /v/ answers (F-38.30 = F-19.14), and the wa.me link the card carries
+        // meanwhile lives in a JS closure, not in the DOM. The cell was written against
+        // the card R-38.17 describes while the ZIP shipped the card the withholding rule
+        // permits — my two halves disagreeing, found by the founder's run.
+        //
+        // WHAT IS STILL AUTHENTICATED, AND IT IS THE WHOLE POINT OF THE CELL: the card
+        // renders ONLY when a handle exists (R-37.68 (4)), and the handle comes from the
+        // wire and from nowhere else now that the seeded cache is deleted. So a card in
+        // the first layout IS the warmed wire answer, and no token means no card.
+        //
+        // THE TITLE IS READ FROM THE REGISTER, never retyped — a cell holding its own copy
+        // of a vetoed byte reddens a correct tree the day the byte is re-vetoed.
+        const LINK_T = (fs.readFileSync('lib/worklist/copy.ts', 'utf8')
+          .match(/cardLinkTitle:\s*'((?:[^'\\]|\\.)*)'/) || [])[1] || '';
+        await p.goto(BASE + '/w/today', { waitUntil: 'domcontentloaded' });
+        try {
+          await p.waitForSelector('.wl-fr', { timeout: 15000 });
+          linkAtFirstPaint = await p.evaluate((t) => {
+            const cards = [...document.querySelectorAll('.wl-fr .wl-card')];
+            return { cards: cards.length,
+                     hasLink: t !== '' && cards.some((c) =>
+                       (c.querySelector('.wl-cardtitle') || {}).textContent?.trim() === t) };
+          }, LINK_T);
+        } catch { /* reported below */ }
+        if (!linkAtFirstPaint) F(CR12, 'no first-run feed at first paint');
+        else if (linkAtFirstPaint.hasLink) P(CR12, 'the wire handle ' + WIRE.handle + ' produced the link card in the first layout, ' + linkAtFirstPaint.cards + ' cards');
+        else F(CR12, 'the link card is absent at first paint on a warmed cache — it will insert itself later and displace the feed');
+        // ⚠ WITHHELD ASSERTION, SAME DATE AS THE ROW IT WOULD READ. When TDW_19 P0-B step 4
+        // lands /v/<code> and FirstRun.tsx's address row is uncommented, add back the
+        // stronger claim — that the card's TEXT carries the wire's own handle — so a card
+        // rendering a stale or another vendor's address reddens. Until the row exists there
+        // is nothing on screen for it to read, and an assertion with no subject is the
+        // hollow green this file refuses.
+      }
+    }
 
     // ── C-R10 · THE MEDALLION NEVER SHOWS A PLACEHOLDER IDENTITY  [F-38.19] ─
     //
@@ -538,20 +690,234 @@ async function seat(browser, mode) {
     // tree would pass. It navigates and reads the coin as early as the element exists,
     // WITHOUT waiting for anything else, which is the only moment the defect is visible.
     //
-    // The fixture's session carries `name: 'Dev Roy'`, so a seeded coin reads DR. A coin
-    // showing the glyph at first paint means the seed did not happen and the vendor is
-    // watching a placeholder identity turn into his own.
-    await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-    let firstPaint = null;
-    try {
-      await p.waitForSelector('.wl-coin', { timeout: 15000 });
-      firstPaint = await p.evaluate(() => (document.querySelector('.wl-coin')?.textContent || '').trim());
-    } catch { /* reported below */ }
-    if (firstPaint === null) F(tag + 'C-R10 the medallion never shows a placeholder identity', 'no coin at first paint');
-    else if (firstPaint === 'DR') P(tag + 'C-R10 the medallion never shows a placeholder identity', 'seeded from the session: ' + firstPaint);
-    else F(tag + 'C-R10 the medallion never shows a placeholder identity', 'first paint reads ' + JSON.stringify(firstPaint) + ' — the coin is waiting on the wire for a name already in localStorage');
+    // ── AUTHENTICATED · THE EXPECTATION IS THE SERVER'S NAME  [item 1(c)] ────
+    // It used to assert the literal 'DR', against a session this file had seeded with the
+    // literal 'Dev Roy'. Both halves were the instrument's own invention, so the cell could
+    // not tell a working seed from a lucky one. The expectation is now initialsOf(WIRE.name)
+    // — the name GET /me returns — and the seed carries that same name because that is what
+    // a real pin-login writes into the session. A coin showing the glyph at first paint
+    // still means the seed did not happen and the vendor is watching a placeholder identity
+    // turn into her own; a coin showing the WRONG initials now reds too, which the old cell
+    // could not do.
+    const CR10 = tag + 'C-R10 the medallion never shows a placeholder identity';
+    const want = initialsOf(WIRE.name);
+    if (!WIRE.ok || !want) {
+      F(CR10, WIRE.ok
+        ? 'the wire returned no name, so there is no identity to assert'
+        : 'SYNTHETIC fixture — no wire identity to assert against; source tools/wl_mint_token.sh');
+    } else {
+      await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+      let firstPaint = null;
+      try {
+        await p.waitForSelector('.wl-coin', { timeout: 15000 });
+        firstPaint = await p.evaluate(() => (document.querySelector('.wl-coin')?.textContent || '').trim());
+      } catch { /* reported below */ }
+      if (firstPaint === null) F(CR10, 'no coin at first paint');
+      else if (firstPaint === want) P(CR10, 'first paint reads ' + firstPaint + ', the wire name\'s own initials');
+      else F(CR10, 'first paint reads ' + JSON.stringify(firstPaint) + ', the wire name gives ' + want + ' — the coin is waiting on the wire for a name already in localStorage');
+    }
 
-    // ── C-R9 · THE COIN IS TAPPABLE IN A CARRIED ROOM  [F-38.13] ────────────
+    // ── C-R15 · THE SESSION SURVIVES THE WIRE  [F-38.8, NEW at item 1] ──────
+    //
+    // THIS IS THE THING FOUR CURES IN THIS FILE WERE BUILT TO HIDE, PROMOTED TO A CELL.
+    // F-38.8 established that an authenticated call on a bad token 401s, that _base.ts's
+    // refresh then fails, and that clearAndRedirect wipes the session and sends the browser
+    // to '/'. Every one of those cures — the re-seed, the per-document seeding, the
+    // load-bearing cell order — is machinery for continuing to measure a shell the product
+    // had already thrown the fixture out of. None of them ASSERTED that it had not.
+    //
+    // It observes at the moment the defect is visible (D-38.1): it waits for the response to
+    // the shell's own GET /me rather than for a clock, then asks two questions the redirect
+    // answers. Under SYNTHETIC this reds, and that red is the honest report of a fixture
+    // that has been logged out — which is what the arm spent an arc pretending had not
+    // happened.
+    const CR15 = tag + 'C-R15 the session survives the wire';
+    {
+      // ── A LISTENER, NOT A SINGLE-SHOT WAITER  [ZIP 2 cure] ────────────────
+      // The first cut used `waitForResponse`, which resolves on the FIRST match after the
+      // call and can be consumed or stranded by whatever is already in flight. C-R10 leaves
+      // a /me from /w/rooms unfinished, and the navigation below aborts it — so the cell
+      // reported 「the shell never asked GET /me」 in light mode and passed in dark, on the
+      // same tree, in the same run. A cell whose verdict depends on which mode ran first is
+      // not a cell, and the founder's run is what said so.
+      //
+      // It listens for the whole navigation and reads the LAST /me it saw, then waits for
+      // the network to go quiet before asking its questions — the same shape C-R16 uses,
+      // which came back identical in both modes.
+      // ── IT NAVIGATES THROUGH settle(), AND THE THIRD CUT IS WHY  [ZIP 3] ──
+      //
+      // This was the ONE navigation in the file that did not use the helper the rest of it
+      // trusts: a bare goto with its error swallowed, followed by a wait on `.wl-main`.
+      // `.wl-main` IS ALREADY ON SCREEN from the previous cell's surface. So if the goto
+      // was aborted by C-R10's in-flight requests, the selector resolved against the OLD
+      // document, no new /me was ever issued, and the cell reported 「never asked」 while
+      // standing on /w/rooms — describing the shell as silent when it had simply not been
+      // asked to load anything.
+      //
+      // ZIP 2's cure removed a race and exposed this one underneath it: the first cut's
+      // `waitForResponse` had been catching the LEFTOVER /me from /w/rooms and reporting
+      // that page's status, which is why dark 「passed」 and light did not on one tree in one
+      // run. Two bugs stacked, and each had to be removed before the next was visible.
+      //
+      // settle() proves a new document mounted or reds the cell. And the observed path now
+      // rides EVERY failure message, so a cell that saw nothing says where it was standing
+      // rather than leaving the next reader to guess.
+      let meStatus = null;
+      const seenMe = [];
+      const catchMe = (r) => {
+        if (r.url().includes('/api/v2/vendor/me')) { meStatus = r.status(); seenMe.push(r.status()); }
+      };
+      p.on('response', catchMe);
+      const up = await settle(p, '/w/today', '.wl-masthead', [CR15]);
+      if (up) await p.waitForNetworkIdle({ idleTime: 700, timeout: 15000 }).catch(() => {});
+      p.off('response', catchMe);
+      const after = !up ? null : await p.evaluate(() => ({
+        session: !!localStorage.getItem('vendor_session'),
+        path: location.pathname,
+      })).catch(() => null);
+      if (up && !after) F(CR15, 'the page was gone before it could be read — a hard redirect is the only thing that does that');
+      else if (up && meStatus === null)
+        F(CR15, 'no GET /me was observed while ' + after.path + ' mounted, so this cell saw nothing and must not report a pass');
+      else if (up && meStatus === 200 && after.session && after.path.startsWith('/w'))
+        P(CR15, 'GET /me answered 200 (' + seenMe.length + ' seen); the session is intact and the shell is still mounted at ' + after.path);
+      else if (up)
+        F(CR15, 'GET /me answered ' + JSON.stringify(seenMe) + '; session=' + after.session + ' path=' + after.path +
+                ' — the product signed the fixture out mid-measurement (F-38.8)');
+    }
+
+    // ── C-R17 · THE MASTHEAD DOES NOT CLAIM A READING IT DID NOT TAKE  [F-38.31] ──
+    //
+    // wl_audit can prove the SENTENCE is absent from the served bytes. It cannot prove the
+    // NUMERAL is not on screen, because the t0 rule legitimately ships on this surface —
+    // that is the rung's home, and it stays its home when Phase 4 turns the numeral on. So
+    // the painted claim is this file's, exactly as the tuple set is.
+    //
+    // BOTH DIRECTIONS, because either alone passes on a defect: the not-reading line is
+    // there AND the true-empty line is not AND nothing is painting at t0. A surface that
+    // printed the honest sentence with a `0` still standing beside it would satisfy a cell
+    // that only looked at words, and the `0` is the same claim in digits.
+    const CR17 = tag + 'C-R17 the masthead claims no reading it did not take';
+    if (await settle(p, '/w/today', '.wl-masthead', [CR17])) {
+      const m = await p.evaluate(() => {
+        const txt = (document.querySelector('.wl-masthead') || {}).textContent || '';
+        const num = document.querySelector('.wl-mnum');
+        // Anything painting at the t0 size, wherever it lives — the cell is about the
+        // stature on screen, not about one class name.
+        const t0 = [...document.querySelectorAll('.wl *')].filter((el) => {
+          if (!el.textContent || !el.textContent.trim()) return false;
+          if ([...el.children].some((c) => c.textContent && c.textContent.trim())) return false;
+          return Math.abs(parseFloat(getComputedStyle(el).fontSize) - 46) < 0.6;
+        }).length;
+        return { txt: txt.trim(), numeral: !!num, t0 };
+      });
+      const notLive = /isn't reading your work yet/.test(m.txt);
+      const trueEmpty = /Nothing needs you yet/.test(m.txt);
+      if (notLive && !trueEmpty && !m.numeral && m.t0 === 0)
+        P(CR17, 'the not-reading line stands alone; no numeral and nothing painting at t0');
+      else F(CR17, JSON.stringify({ notLive, trueEmpty, numeral: m.numeral, t0: m.t0 }) +
+                   ' — the masthead is asserting a reading nothing took (F-38.31)');
+    }
+
+    // ── C-R18 · THE ADD CONTROL SITS WHERE IT WAS RULED  [R-38.18, item 4] ──
+    //
+    // THE OFFSET IS ARITHMETIC IN A STYLESHEET AND ARITHMETIC IS NOT EVIDENCE. The FAB's
+    // bottom is a calc over two chrome heights it does not own; if the dock gains a row or
+    // the nav's safe-area resolves differently the rule stays true and the control lands on
+    // top of the dock. This measures the painted gap, which is the only version of the
+    // ruling a vendor experiences.
+    //
+    // It also asserts the control is NOT on Today — R-38.18's scope, on glass rather than
+    // in an import graph. A mount is easy to add in a hurry and hard to notice.
+    const CR18 = tag + 'C-R18 the Add control clears the dock and lives only on Rooms';
+    if (await settle(p, '/w/rooms', '.wl-fab', [CR18])) {
+      const geo = await p.evaluate(() => {
+        const fab = document.querySelector('.wl-fab');
+        const dock = document.querySelector('.wl-dock');
+        if (!fab || !dock) return null;
+        const f = fab.getBoundingClientRect(), d = dock.getBoundingClientRect();
+        const cs = getComputedStyle(fab);
+        return {
+          w: Math.round(f.width), h: Math.round(f.height),
+          gap: Math.round(d.top - f.bottom),
+          rightInset: Math.round(window.innerWidth - f.right),
+          gutter: Math.round(parseFloat(getComputedStyle(document.querySelector('.wl'))
+            .getPropertyValue('--wl-gutter')) || 0),
+          bg: cs.backgroundColor,
+          accent: getComputedStyle(document.querySelector('.wl')).getPropertyValue('--atelier-accent-text').trim(),
+          label: (fab.textContent || '').trim(),
+        };
+      });
+      if (!geo) F(CR18, 'no FAB or no dock on Rooms');
+      else {
+        const sized = geo.w === 56 && geo.h === 56;
+        // 16px above the dock, and never overlapping it. A negative gap is the control
+        // sitting on the thing it was ruled to sit above.
+        const seated = geo.gap >= 15 && geo.gap <= 17 && geo.rightInset === geo.gutter;
+        const plus = geo.label === '+';
+        if (sized && seated && plus) {
+          const onToday = await settle(p, '/w/today', '.wl-masthead')
+            ? await p.evaluate(() => !!document.querySelector('.wl-fab')) : null;
+          if (onToday === true) F(CR18, 'the Add control also paints on Today — R-38.18 scopes it to Rooms');
+          else if (onToday === null) F(CR18, 'Today never mounted, so the scope half of this cell was not measured');
+          else P(CR18, '56px, ' + geo.gap + 'px above the dock, ' + geo.rightInset + 'px in on the accent ' + geo.bg + '; absent on Today');
+        } else {
+          F(CR18, JSON.stringify(geo) + ' — expected 56x56, a 16px gap over the dock, right inset at the gutter, and a plus');
+        }
+      }
+    }
+
+    // ── C-R16 · ONE GET /me PER SESSION  [F-38.26, item 2] ──────────────────
+    //
+    // THE CELL IS A NETWORK OBSERVATION AND IT COULD NOT HAVE BEEN ANYTHING ELSE. Three
+    // call sites want the vendor's identity; a source-reading bench can count the sites but
+    // not the REQUESTS, and the requests are what the vendor waits for. WorklistShell
+    // remounts on every route change, so the number the founder pays is a function of how
+    // he walks, not of how many `getJson` lines exist. Only the wire knows.
+    //
+    // IT LISTENS BEFORE IT NAVIGATES (D-38.1). A listener attached after the shell has
+    // mounted misses the first read — the one the layout makes — and would report two where
+    // the vendor paid three. Observation starts before the moment the defect is visible.
+    //
+    // THE WALK IS IN-APP, AND THAT IS LOAD-BEARING. The memo lives in module scope, so a
+    // p.goto between rooms would reset it and the cell would green on a broken tree by
+    // measuring three separate sessions. Rooms -> Leads -> Rooms is walked the way the
+    // vendor walks it: a tile, then the nav seat, both anchors, both client navigation.
+    const CR16 = tag + 'C-R16 one GET /me per session across Rooms -> Leads -> Rooms';
+    if (!WIRE.ok) {
+      F(CR16, 'SYNTHETIC fixture — /me 401s and the walk is broken by the sign-out it causes; source tools/wl_mint_token.sh');
+    } else {
+      let meSeen = 0;
+      const countMe = (r) => { if (r.url().includes('/api/v2/vendor/me')) meSeen++; };
+      p.on('response', countMe);
+      let walked = false;
+      try {
+        await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+        await p.waitForSelector('.wl-tile[data-room="leads"]', { timeout: 15000 });
+        await p.click('.wl-tile[data-room="leads"]');
+        // The leads room, not merely a route change: the shell's masthead label is what
+        // says the new tree actually mounted.
+        await p.waitForFunction(() => location.pathname === '/w/leads', { timeout: 15000 });
+        await p.waitForSelector('.wl-coin', { timeout: 15000 });
+        await p.click('.wl-nav .wl-seat');
+        await p.waitForFunction(() => location.pathname === '/w/rooms', { timeout: 15000 });
+        await p.waitForSelector('.wl-tile', { timeout: 15000 });
+        // A LATE READ IS STILL A READ. Counting the instant the last click settles would
+        // miss a fetch that has been issued and not answered, which is precisely the shape
+        // this cure removes. Quiet, then count.
+        await p.waitForNetworkIdle({ idleTime: 700, timeout: 10000 }).catch(() => {});
+        walked = true;
+      } catch (e) {
+        F(CR16, 'the walk did not complete: ' + String(e.message).split('\n')[0]);
+      }
+      p.off('response', countMe);
+      if (walked) {
+        if (meSeen === 1) P(CR16, 'one wire read for three surfaces');
+        else if (meSeen === 0) F(CR16, 'no GET /me was observed at all — this cell saw nothing and must not report a pass');
+        else F(CR16, meSeen + ' GET /me across one walk — the identity read has more than one site (F-38.26)');
+      }
+    }
+
+    // ── C-R9 · THE COIN IS TAPPABLE WHERE LEADS NOW LIVES  [F-38.13, item 1(b)] ─
     //
     // THE CELL THE AUDIT CANNOT WRITE, and the chair asked for it in three clauses. A
     // served-bytes gate runs no JavaScript and dispatches no tap; it proved the MECHANISM
@@ -568,13 +934,63 @@ async function seat(browser, mode) {
     //   (3) WITH THE DRAWER OPEN the scrim is present, so R-37.84 ⑥'s original substance
     //       survives intact: the drawer still overlays rather than displacing the page.
     //
-    // IT RUNS ON A CARRIED ROOM (`/vendor/list/leads`) because that is where the defect
-    // lived. `/w/*` renders no Header and would have exonerated the tree by not containing
-    // the thing under test.
+    // ── IT MOVES TO /w/leads, AND THE MOVE IS THE POINT ─────────────────────
+    // It ran on /vendor/list/leads because that is where the founder met the defect. Leads
+    // CROSSED at S2 §4-1: the room the vendor actually opens from the tile is /w/leads now,
+    // and it is the shell's own coin and the shell's own drawer there. A cell that went on
+    // hit-testing only the fallback would have kept saying yes about a surface the vendor
+    // had stopped visiting — the same shape as the AddSheet literal that would have gone on
+    // passing after calendar crossed. The subject follows the room.
+    const LEADS_ROOM = '/w/leads';
+    const CR9 = tag + 'C-R9 the coin is tappable in the crossed leads room';
+    if (await settle(p, LEADS_ROOM, '.wl-coin', [CR9])) {
+      const rest = await p.evaluate(() => {
+        const coin = document.querySelector('.wl-coin');
+        if (!coin) return { found: false };
+        const r = coin.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return {
+          found: true,
+          scrimAtRest: !!document.querySelector('.wl-drawerscrim'),
+          // The hit-test. `coin.contains(hit)` covers any glyph node inside the button.
+          coinReceivesTap: !!hit && (hit === coin || coin.contains(hit)),
+          covering: hit ? (hit.getAttribute('aria-label') || hit.className || hit.tagName.toLowerCase()) : null,
+        };
+      });
+      if (!rest.found) F(CR9, 'no shell coin on ' + LEADS_ROOM);
+      else if (rest.scrimAtRest) F(CR9, 'F-38.13: the scrim is in the document AT REST');
+      else if (!rest.coinReceivesTap) F(CR9, 'the coin does not receive its own tap — covered by: ' + rest.covering);
+      else {
+        await p.click('.wl-coin');
+        await new Promise((r) => setTimeout(r, 450));
+        const open = await p.evaluate(() => ({
+          scrimOpen: !!document.querySelector('.wl-drawerscrim'),
+          // The drawer answered: its own rows are reachable, which is what a flipped
+          // coinOpen actually buys the vendor.
+          rowsReachable: [...document.querySelectorAll('.tdw-drawer button, .tdw-drawer a')]
+            .some((el) => /Sign out/i.test(el.textContent || '')),
+        }));
+        if (open.scrimOpen && open.rowsReachable)
+          P(CR9, 'no scrim at rest, coin wins its own hit-test, drawer opens with its scrim');
+        else F(CR9, 'the tap landed but the drawer did not open: ' + JSON.stringify(open));
+      }
+    }
+
+    // ── C-R9b · AND THE FALLBACK IS STILL COVERED, UNTIL PHASE 7 ────────────
+    //
+    // /vendor/list/leads did not stop existing when leads crossed; it is the surviving
+    // fallback, it still mounts Header and its medallion, and F-38.13 lived in exactly that
+    // chrome. Dropping the assertion with the move would have retired a cell by relocating
+    // it — coverage lost in a step that looked like coverage kept, which is the shape S2's
+    // ZIP bounce convicted twice (the SliceDoor re-point, the tier gate).
+    //
+    // ⚠ THIS CELL RETIRES AT PHASE 7, WITH app/vendor/layout.tsx AND ITS Header, and not
+    // before. That is written here rather than in a handover because the seat that deletes
+    // the layout will be reading this file to find out what depended on it, and a
+    // retirement date that lives only in prose is a retirement nobody performs.
     const CARRIED = '/vendor/list/leads';
-    if (!await settle(p, CARRIED, 'header', mode)) {
-      F(tag + 'C-R9 the coin is tappable in a carried room', 'SURFACE NEVER MOUNTED — no measurement was taken');
-    } else {
+    const CR9B = tag + 'C-R9b the coin is tappable in the carried fallback (retires at Phase 7)';
+    if (await settle(p, CARRIED, 'header', [CR9B])) {
       // ⚠ WAIT OUT `Splash` BEFORE HIT-TESTING, AND THE FIRST CUT DID NOT. `Splash` is a
       // fixed z-10000 cold-open hero (`components/vendor/Splash.tsx:47`) that unmounts on a
       // timer — MIN_MS 2200 + 600 + 450, once per session via `sessionStorage`. The cell
@@ -598,31 +1014,24 @@ async function seat(browser, mode) {
         return {
           found: true,
           scrimAtRest: !!document.querySelector('button[aria-label="Close menu"]'),
-          // The hit-test. `coin.contains(hit)` covers the glyph span inside the button.
           coinReceivesTap: !!hit && (hit === coin || coin.contains(hit)),
           covering: hit ? (hit.getAttribute('aria-label') || hit.tagName.toLowerCase()) : null,
         };
       });
-      if (!rest.found) {
-        F(tag + 'C-R9 the coin is tappable in a carried room', 'no profile coin on ' + CARRIED);
-      } else if (rest.scrimAtRest) {
-        F(tag + 'C-R9 the coin is tappable in a carried room', 'F-38.13: the scrim is in the document AT REST');
-      } else if (!rest.coinReceivesTap) {
-        F(tag + 'C-R9 the coin is tappable in a carried room', 'the coin does not receive its own tap — covered by: ' + rest.covering);
-      } else {
+      if (!rest.found) F(CR9B, 'no profile coin on ' + CARRIED);
+      else if (rest.scrimAtRest) F(CR9B, 'F-38.13: the scrim is in the document AT REST');
+      else if (!rest.coinReceivesTap) F(CR9B, 'the coin does not receive its own tap — covered by: ' + rest.covering);
+      else {
         await p.click('[data-tour="profile-coin"]');
         await new Promise((r) => setTimeout(r, 450));
         const open = await p.evaluate(() => ({
           scrimOpen: !!document.querySelector('button[aria-label="Close menu"]'),
-          // The drawer answered: its own rows are reachable, which is what a flipped
-          // `profileOpen` actually buys the vendor.
           rowsReachable: [...document.querySelectorAll('button, a')]
             .some((el) => /Sign Out|Sign out/.test(el.textContent || '')),
         }));
         if (open.scrimOpen && open.rowsReachable)
-          P(tag + 'C-R9 the coin is tappable in a carried room', 'no scrim at rest, coin wins its own hit-test, drawer opens with its scrim');
-        else
-          F(tag + 'C-R9 the coin is tappable in a carried room', 'the tap landed but the drawer did not open: ' + JSON.stringify(open));
+          P(CR9B, 'no scrim at rest, coin wins its own hit-test, drawer opens with its scrim');
+        else F(CR9B, 'the tap landed but the drawer did not open: ' + JSON.stringify(open));
       }
     }
 
@@ -645,9 +1054,9 @@ async function seat(browser, mode) {
     // as they found it, so the arm threw `No element found for selector: .wl-dock` the
     // moment a cell was inserted above them. A cell that depends on the previous cell's
     // leftover page is a cell with an invisible argument; it settles its own surface now.
-    if (!await settle(p, '/w/rooms', '.wl-dockfield', mode)) {
-      F(tag + 'C-R4 chat input in branch tokens', 'SURFACE NEVER MOUNTED — no measurement was taken');
-      F(tag + 'C-R5 chat opens at work-surface height', 'SURFACE NEVER MOUNTED — no measurement was taken');
+    if (!await settle(p, '/w/rooms', '.wl-dockfield',
+                      [tag + 'C-R4 chat input in branch tokens',
+                       tag + 'C-R5 chat opens at work-surface height'])) {
       await p.close();
       continue;
     }
@@ -755,22 +1164,22 @@ async function seat(browser, mode) {
         // A FRAME OF A HALF-MOUNTED PAGE IS EVIDENCE OF NOTHING and would be handed to the
         // founder looking like a broken surface. The capture waits on the shell too, and a
         // surface that never mounts is named in the log rather than photographed.
-        if (!await settle(p, path, null, mode)) { console.log('  capture skipped, never mounted: ' + path); continue; }
+        if (!await settle(p, path, null)) { console.log('  capture skipped, never mounted: ' + path); continue; }
         await shot(name);
       }
-      if (await settle(p, '/w/rooms', '.wl-coin', mode)) {
+      if (await settle(p, '/w/rooms', '.wl-coin')) {
         await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
         await shot('tapped-drawer-on-rooms');
       }
       // §5 asks for the drawer open on BILLING as well as on Rooms: the drawer anchors to
       // the header, and a header on a surface with different content beneath it is where a
       // stacking or clipping fault would show. F-16.37 was exactly that fault.
-      if (await settle(p, '/w/billing', '.wl-coin', mode)) {
+      if (await settle(p, '/w/billing', '.wl-coin')) {
         await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
         await shot('tapped-drawer-on-billing');
       }
       // The tapped tile: the :active state R-38.2 requires within 16ms of touch.
-      if (await settle(p, '/w/rooms', '.wl-tile', mode)) {
+      if (await settle(p, '/w/rooms', '.wl-tile')) {
         await p.evaluate(() => {
           const t = document.querySelector('.wl-tile');
           if (t) t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
@@ -778,7 +1187,7 @@ async function seat(browser, mode) {
         await new Promise((r) => setTimeout(r, 120));
         await shot('tapped-tile');
       }
-      if (await settle(p, '/w/rooms', '.wl-dockfield', mode)) {
+      if (await settle(p, '/w/rooms', '.wl-dockfield')) {
         await p.click('.wl-dockfield'); await new Promise((r) => setTimeout(r, 800));
         await shot('tapped-chat');
       }
@@ -786,7 +1195,7 @@ async function seat(browser, mode) {
       // found this defect on exactly these surfaces and the frame set had none of them
       // open — every drawer frame was a shell surface, where no Header renders and the
       // defect could not appear.
-      if (await settle(p, CARRIED, 'header', mode)) {
+      if (await settle(p, CARRIED, 'header')) {
         await shot('carried-leads-at-rest');
         await p.click('[data-tour="profile-coin"]');
         await new Promise((r) => setTimeout(r, 450));

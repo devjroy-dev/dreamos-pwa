@@ -60,6 +60,36 @@ export function NotesBody() {
   const [draft, setDraft]     = useState('');
   const [saving, setSaving]   = useState(false);
 
+  // ── R-38.17 item 5 · THE ADD SHEET OPENS FROM THE ADDRESS ──────────────────
+  //
+  // The shell's Add control (components/worklist/AddFab.tsx) has a Note leg, and Notes is
+  // the one room in the family with no `AddSheet` of its own — its composer is this
+  // component's own `addOpen`. So the leg navigates to /w/notes?add=1 and this reads it.
+  // It calls the EXISTING setter and adds no second way to open the composer; a parameter
+  // that opened its own copy of the sheet would be two homes for one surface.
+  //
+  // ⚠ DEVIATION FROM THE RULED SHAPE, DISCLOSED AND RATIFY-OR-REVERT. The ruling says one
+  // useEffect over `useSearchParams`. This reads `window.location.search` instead, and the
+  // reason is the estate's own precedent on this exact parameter class:
+  // app/vendor/calendar/page.tsx:280-282 reads its `?block=` leg the same way and states
+  // why — 「no useSearchParams: keeps the page free of a Suspense boundary」. Under Next 16
+  // `useSearchParams` in a client component forces a Suspense boundary at every caller or
+  // the statically-prerendered route deopts, and THIS COMPONENT HAS THREE CALLERS, two of
+  // them outside this seat's contention grant (app/vendor/list/[slice]/notes.tsx and
+  // app/vendor/studio/notes/page.tsx). Choosing the hook would have meant editing two
+  // out-of-scope files to add boundaries, to read one integer.
+  // The revert is five lines if the chair prefers the hook.
+  //
+  // IT RUNS ONCE, ON MOUNT. The parameter is an instruction to open, not a state to keep
+  // in sync — re-running it on every navigation would re-open the composer behind a vendor
+  // who had just dismissed it.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get('add') === '1') setAddOpen(true);
+    } catch { /* no-op: an unreadable address is not a reason to fail a page */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     fetchNotes().then(r => {
       if (r.ok) setNotes((r as { notes: OwnerNote[] }).notes);

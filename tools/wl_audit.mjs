@@ -419,8 +419,15 @@ async function coverage() {
   else P('R-38.4 Jost and Italiana retire', 'neither --wl-label nor --wl-display ships on any shell surface');
   // t0 is ONE ELEMENT PER APP, and it is named. A second t0 site is a scale with six rungs
   // and no rule, which is the state R-38.4 replaced.
+  // ⚠ THIS CELL ASSERTS WHERE THE RUNG LIVES, NOT THAT IT PAINTS, and after S2/2 the two
+  // are different facts. R-38.17 as amended at c-38.14 gates the numeral on the feed having
+  // answered, and no feed exists — so the t0 RULE ships on /w/today (correctly: it is that
+  // surface's styling and no other's) while no element consumes it on screen. The render
+  // arm's C-R17 owns the painted claim. Saying so here is the whole of D-38.1: presence in
+  // a stylesheet is not presence on screen, and a cell that quietly meant both would be
+  // making one of them up.
   const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test((pageCorpus.get(p) || '').replace(/--wl-t0:[^;]*;/g, '')));
-  if (t0Sites.length === 1 && t0Sites[0] === '/w/today') P('R-38.4 t0 is one element', 'consumed on /w/today only');
+  if (t0Sites.length === 1 && t0Sites[0] === '/w/today') P('R-38.4 t0 is one element', 'the rung is declared on /w/today only; whether it PAINTS is C-R17');
   else F('R-38.4 t0 is one element', 'consumed on: ' + (t0Sites.join(' ') || 'nowhere'));
 
   // ── R-38.6 · THE RETIRED STRINGS ARE ABSENT ───────────────────────────────
@@ -432,6 +439,22 @@ async function coverage() {
     'Every part of your business has a room',
     "Cancelled. You're on Basic.", "Payment failed. You're on Basic.",
     'Moved to Basic \u2014 subscription cancelled', 'Free \u2014 no AI',
+    // ── R-38.17's SET, ADDED AT S2/2 ──────────────────────────────────────
+    // Four Today bytes and two card bodies. `Your morning brief.` and
+    // `When your work starts flowing` are the page title and empty state the masthead
+    // status replaced; `See your rooms` was an action duplicating a nav seat that is on
+    // screen at all times; the two card bodies were a simile and an explanation standing
+    // over a chip list and an address that explain themselves.
+    'Your morning brief.', 'When your work starts flowing', 'See your rooms',
+    'Text DreamAi the way you would text a colleague',
+    'One link that routes every enquiry straight to you',
+    'Your 24/7 enquiry desk', 'Message DreamAi', 'Run it all from WhatsApp',
+    // ⚠ `Nothing needs you yet.` IS A RETIRED BYTE **FOR NOW** AND THE ASTERISK MATTERS.
+    // It is not wrong copy; it is TRUE copy shipped one phase early (F-38.31, c-38.14). It
+    // must not reach a vendor until the Phase 4 feed has answered, and this list is what
+    // stops it arriving by a later tidy. IT COMES OFF THIS LIST in the same edit that wires
+    // lib/worklist/feed.ts to a real read — the byte lives in copy.ts the whole time.
+    'Nothing needs you yet.',
     // ⚠ `thedreamwedding.in` WAS ADDED HERE AND WITHDRAWN IN THE SAME SITTING, and the
     // withdrawal is the entry worth keeping. The reasoning was 「the retired row's
     // destination must not ship either」, which sounds right and convicts the wrong thing:
@@ -471,7 +494,11 @@ async function coverage() {
   for (const path of shellSurfaces) {
     const body = pageCorpus.get(path) || '';
     for (const m of body.matchAll(/"([^"]{0,200})"/g)) {
-      if (/\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(m[1])) personaHits.add(path + ' \u2192 ' + m[1].slice(0, 60));
+      // AMENDED, LABELLED — R-38.17. 「DreamAi」 JOINS THE SET. R-37.70 used to permit it in
+      // prose about who answers and forbid it only in labels; that exemption retires with
+      // R-37.78's grammar, because a ban with a register-shaped exception is a ban that
+      // loses one sentence at a time — and two card bodies had already taken it.
+      if (/\bDreamAi\b|\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(m[1])) personaHits.add(path + ' \u2192 ' + m[1].slice(0, 60));
     }
   }
   if (personaHits.size) F('R-37.70 no persona name in chrome', [...personaHits].join(' \u00b7 '));

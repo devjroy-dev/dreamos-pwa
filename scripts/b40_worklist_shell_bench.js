@@ -255,7 +255,7 @@ cell('C12 the branch vendor tree carries Graphite at all three homes', () => {
 // ── C13 · THE FIRST-RUN SET (R-37.68-B). Five cards, the promise above them, five chips,
 //    and the three-sentence ceiling on every body. "Cards, never documentation" is a rule
 //    that only survives if something counts the sentences.
-cell('C13 first-run set: shape and the three-sentence ceiling', () => {
+cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word ceiling', () => {
   const copy = strip(read('lib/worklist/copy.ts'));
   const fr   = strip(read('components/worklist/FirstRun.tsx'));
 
@@ -265,8 +265,16 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   // re-add of the paragraph reddens — while the clause that mattered (Today must open on a
   // line with stature, R-37.76 ⑧) is preserved against its successor.
   if (/todayPromise:/.test(copy)) return 'the retired paragraph todayPromise is back in copy.ts';
-  if (!/todayTitle:/.test(copy)) return 'Today has no page title byte in copy.ts';
-  if (!/COPY\.todayTitle/.test(strip(read('app/w/today/page.tsx')))) return 'the page title is never rendered on Today';
+  // AMENDED, LABELLED — M-FINISH S2/2 (R-38.17 as amended at c-38.14). `todayTitle` RETIRES
+  // in its turn: a page title over a masthead that already names the day is two lines where
+  // the surface needed one, and neither said what state Today was in. RETIRE-WITH-THE-READER
+  // — the assertion INVERTS rather than vanishing, and the clause that mattered (Today opens
+  // on a line with stature, R-37.76 (8)) is preserved against its successor, the STATUS.
+  if (/todayTitle:/.test(copy)) return 'the retired page title todayTitle is back in copy.ts';
+  if (!/todayNotLive:/.test(copy) || !/todayNothingYet:/.test(copy))
+    return 'Today is missing one of its two status bytes in copy.ts';
+  if (!/COPY\.todayNotLive/.test(strip(read('app/w/today/page.tsx'))))
+    return 'the not-reading status is never rendered on Today';
 
   // AMENDED, LABELLED — M-FINISH S1 (R-38.6). FIVE CARDS BECOME THREE. `cardRoomsTitle`
   // and `cardMoreTitle` leave this list because their SUBJECTS were retired by ruling: the
@@ -289,12 +297,22 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   // Retired keys must be gone, not orphaned — an unrendered vetoed byte is a byte that
   // drifts unnoticed until someone renders it again.
   if (/cardAiTitle|cardAiBody|cardAiAction/.test(copy)) return 'ZIP 1 card keys survive in copy.ts';
+  // AMENDED, LABELLED — S2/2. R-38.17's four retirements join the list: an unrendered
+  // vetoed byte drifts unnoticed until someone renders it again, and `todayEmptyAction` in
+  // particular would come back as a second door to Rooms with the nav seat already on
+  // screen.
   const retiredKeys = ['cardRoomsTitle', 'cardRoomsBody', 'cardRoomsAction', 'cardMoreTitle', 'cardMoreBody',
-                       'roomsPointer', 'roomsAskSub', 'roomsProfileSub', 'todayMastheadCaption'];
+                       'roomsPointer', 'roomsAskSub', 'roomsProfileSub', 'todayMastheadCaption',
+                       'todayTitle', 'todayEmpty', 'todayEmptyAction'];
   const orphans = retiredKeys.filter((k) => new RegExp(k + ':').test(copy));
   if (orphans.length) return 'retired keys survive in copy.ts: ' + orphans.join(', ');
 
-  const chips = copy.match(/cardAskChips[^\]]*\]/);
+  // ⚠ THE MATCHER IS ANCHORED ON THE COLON, and it was not. `cardAskChips` is a PREFIX of
+  // `cardAskChipsEyebrow`, so the moment R-38.17 added the eyebrow key beside the list the
+  // old expression matched from the eyebrow to the first bracket and counted its byte as a
+  // sixth chip. The cell reddened a correct tree — the same class as the audit matcher that
+  // read double-quoted attributes only, and the same cure: match what you mean.
+  const chips = copy.match(/cardAskChips:\s*\[[^\]]*\]/);
   if (!chips) return 'chip list not found';
   const n = (chips[0].match(/'/g) || []).length / 2;
   if (n !== 5) return 'chip count is ' + n + ', expected 5 (one per capability)';
@@ -303,15 +321,30 @@ cell('C13 first-run set: shape and the three-sentence ceiling', () => {
   // AMENDED with the card set above, and TIGHTENED: R-38.6 cuts the ceiling from three
   // sentences to ONE. The cell that counted to three would pass a two-sentence body, which
   // is exactly the drift the recut exists to prevent.
-  const bodies = ['cardDeskBody', 'cardLinkBody', 'cardAskBody'];
+  // ── F-38.29 · THE COMMENT SAID ONE AND THE CODE COUNTED TO THREE ──────────
+  // The S1 amendment above stated in words that R-38.6 cuts the ceiling from three
+  // sentences to ONE, and the assertion beneath it went on reading `count > 3`. A cell
+  // whose comment reads like the ruling and whose code does not perform it is worse than
+  // no cell: it is a paragraph nobody re-derived, agreeing with itself. Filed and cured
+  // here at the same site, with R-38.17's own clause folded in — each card body is at most
+  // ONE sentence of at most FOURTEEN words.
+  //
+  // TWO CARDS NOW HAVE NO BODY AT ALL and their keys must be GONE, not empty: `cardAskBody`
+  // and `cardLinkBody` retire with R-38.17. An empty vetoed byte is a byte a later reader
+  // fills in.
+  if (/cardAskBody:|cardLinkBody:/.test(copy))
+    return 'R-38.17 gives cards 2 and 3 no body; the retired body keys survive in copy.ts';
+  const bodies = ['cardDeskBody'];
   const over = [];
   for (const b of bodies) {
     const m = copy.match(new RegExp(b + ":\\s*'((?:[^'\\\\]|\\\\.)*)'"));
     if (!m) { over.push(b + ' (not found)'); continue; }
-    const count = (m[1].match(/[.?!](\s|$)/g) || []).length;
-    if (count > 3) over.push(b + ' has ' + count + ' sentences');
+    const sentences = (m[1].match(/[.?!](\s|$)/g) || []).length;
+    const words = m[1].trim().split(/\s+/).filter(Boolean).length;
+    if (sentences > 1) over.push(b + ' has ' + sentences + ' sentences, ceiling 1');
+    if (words > 14) over.push(b + ' has ' + words + ' words, ceiling 14');
   }
-  if (over.length) return 'over the three-sentence ceiling: ' + over.join(', ');
+  if (over.length) return 'over R-38.17\'s card-body ceiling: ' + over.join(', ');
   return null;
 });
 
@@ -847,6 +880,127 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   const problems = [...strays.values()];
   if (!fallback) problems.push("FALLBACK_SLICE_BASE is not declared — the Slice Door's fallback prefix has no home in the registry");
   return problems.length ? problems.join(' | ') : null;
+});
+
+// ── C32 · NO PERSONA NAME IN ANY SHELL BYTE, AND 「DreamAi」 IS ONE NOW  [R-38.17] ──
+//    The audit asks this of SERVED bytes on five surfaces. This asks it of the SOURCE, over
+//    every file the shell owns, because the audit can only see what a fetch renders and a
+//    string behind a condition nobody triggered is still a byte waiting to reach a vendor.
+//    R-37.70's prose exemption for 「DreamAi」 retires with R-37.78's grammar: a ban with a
+//    register-shaped exception is a ban that loses one sentence at a time.
+cell('C32 no persona name in a shell string, DreamAi included (R-37.70 as amended)', () => {
+  const files = ['lib/worklist/copy.ts', 'components/worklist/FirstRun.tsx',
+                 'components/worklist/AskSheet.tsx', 'components/worklist/AiDock.tsx',
+                 'components/worklist/AddFab.tsx', 'components/worklist/AccountDrawer.tsx',
+                 'components/worklist/RoomsGrid.tsx', 'components/worklist/WorklistShell.tsx',
+                 'app/w/today/page.tsx', 'app/w/rooms/page.tsx'];
+  const hits = [];
+  for (const f of files) {
+    // STRINGS ONLY, and comments already stripped. A file may EXPLAIN that the word is
+    // banned — this one does, and so does copy.ts's tombstone — without shipping it.
+    const src = strip(read(f));
+    for (const m of src.matchAll(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g)) {
+      const lit = m[1] ?? m[2] ?? '';
+      if (/\bDreamAi\b|\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(lit)) hits.push(f + ' -> ' + lit.slice(0, 50));
+    }
+  }
+  if (hits.length) return 'persona name in a shell string: ' + hits.join(' | ');
+  // AND THE GRAMMAR THAT PERMITTED IT IS RECORDED AS RETIRED, not silently deleted.
+  const copy = strip(read('lib/worklist/copy.ts'));
+  if (!/R-37\.78/.test(read('lib/worklist/copy.ts'))) return 'R-37.78 retires without a tombstone in copy.ts';
+  if (/askSheetNote:/.test(copy) === false) return 'the sheet no longer says where the reply lands';
+  return null;
+});
+
+// ── C33 · THREE KEYS, ONE BYTE — THEY CANNOT DRIFT WHILE THEY ALL EXIST  [F-38.23's class] ──
+//    `dockAria`, `dockRowTitle` and `cardAskTitle` are three separately-vetoed bytes that
+//    currently spell the same words. The honest consolidation is a sitting of its own
+//    because each has its own ruling behind it; until then the duplication is asserted
+//    rather than explained, exactly as C30 does for the six header words.
+cell('C33 the ask affordance spells one byte in three homes', () => {
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const val = (k) => { const m = copy.match(new RegExp(k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1] : null; };
+  const keys = ['dockAria', 'dockRowTitle', 'cardAskTitle'];
+  const vals = keys.map(val);
+  if (vals.some((v) => v === null)) return 'missing: ' + keys.filter((k, i) => vals[i] === null).join(', ');
+  if (new Set(vals).size !== 1) return 'they have drifted: ' + keys.map((k, i) => k + '=' + vals[i]).join(' | ');
+  // AND THE SHEET READS THE REGISTER RATHER THAN INLINING IT. The head was a literal in
+  // AskSheet.tsx, which is the copy law broken by the file the copy law exists for.
+  const ask = strip(read('components/worklist/AskSheet.tsx'));
+  if (/>Ask TDW</.test(ask)) return 'AskSheet still inlines the vendor-facing title';
+  if (!/COPY\.dockAria/.test(ask)) return 'AskSheet does not read the title from the register';
+  return null;
+});
+
+// ── C34 · THE MASTHEAD REPORTS THE INSTRUMENT  [R-38.17 as amended at c-38.14] ──
+//    F-38.31: 「Nothing needs you yet.」 asserts an absence nothing has checked, and a `0`
+//    beside it is the identical claim in digits. Both are gated on the feed having
+//    ANSWERED, and the gate has one home. The cell asserts the gate rather than the words,
+//    because a surface that prints the right sentence for the wrong reason will print the
+//    wrong one the moment the reason changes.
+cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)', () => {
+  const today = strip(read('app/w/today/page.tsx'));
+  if (!/from '@\/lib\/worklist\/feed'/.test(today)) return 'Today does not read the feed module';
+  const feed = strip(read('lib/worklist/feed.ts'));
+  if (!/responded:\s*false/.test(feed)) return 'the feed module does not report that nothing has read anything';
+  if (/openItems:\s*0\b/.test(feed)) return 'the feed module coerces an unread count to 0 — the lie in digits';
+  // THE NUMERAL IS BEHIND THE GATE. A default would satisfy every cell about the sentence.
+  if (/\?\?\s*0/.test(today)) return 'the numeral falls back to 0 — an unmeasured zero is the claim F-38.31 convicted';
+  if (!/feed\.responded[\s\S]{0,120}wl-mnum/.test(today)) return 'the numeral is not gated on feed.responded';
+  if (!/feed\.responded\s*\?\s*COPY\.todayNothingYet\s*:\s*COPY\.todayNotLive/.test(today))
+    return 'the status does not choose between the two bytes on the reading';
+  return null;
+});
+
+// ── C35 · THE ADD CONTROL  [R-38.18] ────────────────────────────────────────
+//    Order, legs and scope. The ORDER is the anti-feature (R-37.22's reasoning: a control
+//    that moves under the thumb cannot be learned), and the LEGS are the claim that this is
+//    an entrance rather than a second home for create.
+cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
+  const fab = strip(read('components/worklist/AddFab.tsx'));
+  const order = (fab.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  const want = ['calendar', 'lead', 'client', 'invoice', 'expense', 'event', 'note'];
+  if (order.join(',') !== want.join(',')) return 'row order is ' + order.join(' ') + ', ruled ' + want.join(' ');
+  // THE THIRD CASE, NAMED. Every leg resolves to a /w/ route, an AddSheet leg, or a
+  // DECLARED interim href from the registry — and calendar is the third kind today.
+  const interim = strip(read('lib/worklist/rooms.ts')).match(/INTERIM_VENDOR_ROOMS[^=]*=\s*\[([\s\S]*?)\]/);
+  if (!interim || !/'calendar'/.test(interim[1]))
+    return 'the calendar leg is a declared interim href and calendar is not in INTERIM_VENDOR_ROOMS';
+  if (!/roomHref\('calendar'\)/.test(fab)) return 'the calendar leg spells an address instead of asking the registry';
+  if (!/'\/w\/notes\?add=1'/.test(fab)) return 'the note leg does not open the notes composer';
+  const slices = (fab.match(/slice:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  if (slices.join(',') !== 'leads,clients,invoices,expenses,events')
+    return 'the AddSheet legs are ' + slices.join(' ') + ', expected the five list slices in row order';
+  // NO SECOND FORM. Every create hands off to the surface that already owns it.
+  if (/CreateLeadRequest|createInvoice|createExpense/.test(fab)) return 'the Add sheet builds its own create call — a second home for create';
+  // SCOPE IS A MOUNT, not a pathname test inside the component.
+  if (/usePathname/.test(fab)) return 'the control decides for itself where it exists — a second copy of R-38.18';
+  const mounted = ['app/w/rooms/page.tsx'];
+  const others = ['app/w/today/page.tsx', 'components/worklist/WorklistShell.tsx'];
+  for (const f of mounted) if (!/<AddFab/.test(strip(read(f)))) return 'the Add control is not mounted on Rooms';
+  for (const f of others) if (/<AddFab/.test(strip(read(f)))) return 'the Add control is mounted outside Rooms: ' + f;
+  // c-38.11: the accent TOKEN, never a literal. The ZIP 4 gold-FAB finding was this
+  // control painting a hard-coded brass that bypassed the variable layer.
+  if (/#[0-9a-fA-F]{6}|rgba?\(/.test(fab.replace(/rgba\(0,0,0,\.\d+\)/g, '')))
+    return 'the Add control hard-codes a colour — c-38.11 puts it on var(--atelier-accent-text)';
+  if (!/background:var\(--atelier-accent-text\)/.test(fab)) return 'the FAB is not on the accent token';
+  return null;
+});
+
+// ── C36 · THE NOTE LEG HAS A DESTINATION THAT ANSWERS  [item 5] ─────────────
+//    A leg to `/w/notes?add=1` is a never-404 promise about a parameter, not just a route.
+//    The route exists; the parameter has to be READ, and by the surface that already owns
+//    the composer rather than by a second one.
+cell('C36 ?add=1 opens the composer the notes body already owns', () => {
+  const body = strip(read('components/vendor/NotesBody.tsx'));
+  if (!/get\('add'\)/.test(body)) return 'NotesBody never reads the add parameter';
+  if (!/setAddOpen\(true\)/.test(body)) return 'the parameter does not open the existing composer';
+  // ONE READ, ON MOUNT. A dependency array would re-open the sheet behind a vendor who had
+  // just dismissed it.
+  const m = body.match(/get\('add'\)[\s\S]{0,220}?\}, \[([^\]]*)\]\);/);
+  if (!m) return 'the add-parameter effect has no visible dependency array';
+  if (m[1].trim() !== '') return 'the add-parameter effect re-runs on ' + m[1] + ' — it must fire once, on mount';
+  return null;
 });
 
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');

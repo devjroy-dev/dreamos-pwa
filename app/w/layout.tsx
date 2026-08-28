@@ -34,7 +34,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getVendorSession } from '@/lib/vendor/session';
-import { getJson } from '@/lib/vendor/api/_base';
+import { vendorMe } from '@/hooks/vendor/useVendorHandle';
 
 export default function WorklistLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -54,7 +54,10 @@ export default function WorklistLayout({ children }: { children: React.ReactNode
     asked.current = true;
 
     let live = true;
-    getJson<{ ok: boolean; vendor?: { onboarding?: { complete: boolean } } }>('/api/v2/vendor/me', true)
+    // F-38.26: the SAME request the medallion and the link card await. This layout asks
+    // once per document and the shell asks on every remount, so the three reads were three
+    // round trips a vendor paid for on the tap. One site now owns the question.
+    vendorMe()
       .then((d) => {
         if (!live || !d.ok) return;
         if (d.vendor?.onboarding?.complete === false) router.replace('/vendor/onboarding');

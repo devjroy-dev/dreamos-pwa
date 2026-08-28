@@ -25,7 +25,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
 import { clearVendorSession } from '@/lib/vendor/session';
-import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
+import { useVendorInitials, forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
 import { waNumberFor } from '@/lib/waNumbers';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
 import { AiDock } from '@/components/worklist/AiDock';
@@ -55,7 +55,11 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   // the louder one won.
   // Neither closes now. `AccountDrawer` decides when the menu leaves, because it is the
   // thing that knows a row was pressed and that the press is still being shown.
-  const signOut = () => { clearVendorSession(); router.replace('/'); };
+  // F-38.26: the remembered GET /me is dropped here and only here. The read is memoised
+  // for the session and keyed on the access token, so a new sign-in would miss it anyway —
+  // but identity is the one place where being stale is unrecoverable rather than untidy,
+  // and a structural guarantee plus an explicit one is the right amount of care for it.
+  const signOut = () => { forgetVendorMe(); clearVendorSession(); router.replace('/'); };
 
   // Persisted per device. Its own key: the old shell's 'dreamai_theme' names a different
   // pair of themes, and sharing the key would make one coin silently rule two palettes.

@@ -56,6 +56,7 @@ import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastState } from '@/hooks/vendor/useToast';
 import { Toast } from '@/components/vendor/Toast';
 import { updateMe, updateRoutingHandle, updateInvoicePrefix } from '@/lib/vendor/api/vendor';
+import { forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
 import { clearVendorSession, getVendorSession, setVendorSession } from '@/lib/vendor/session';
 import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F } from '@/components/vendor/AtelierForm';
 
@@ -95,6 +96,12 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
       const res = await updateMe(patch);
       if (!res.ok) { show((res as { error?: string }).error ?? 'Save failed.', 'error'); return; }
       markSaved(Object.fromEntries(fields.map(f => [f, current[f]])) as Parameters<typeof markSaved>[0]);
+      // F-38.28 · THE SHELL'S REMEMBERED /me MUST NOT OUTLIVE A WRITE TO ITS SUBJECT.
+      // hooks/vendor/useVendorHandle.ts memoises GET /me for the session (F-38.26), so
+      // without this line a name saved here would keep showing the old initials in the
+      // shell's medallion until a full reload. Scope widened for this one line and the
+      // twin in saveHandle() by CE-38 S2/2 relay #2; nothing else in this file moves.
+      forgetVendorMe();
       // If name was saved, update the session so the Header reflects it immediately
       if (patch.name && typeof patch.name === 'string') {
         const existing = getVendorSession();
@@ -112,6 +119,11 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
       const res = await updateRoutingHandle({ routing_handle: h });
       if (!res.ok) { show((res as { error?: string }).error ?? 'Save failed.', 'error'); return; }
       setHandleSaved(res.routing_handle);
+      // F-38.28, the twin of the line in saveMe(). The link card reads the handle off the
+      // memoised /me; a handle changed here and not invalidated leaves the vendor sharing
+      // her PREVIOUS address for the rest of the session, which is the never-404 failure
+      // with a stale memo behind it.
+      forgetVendorMe();
       markSaved({ routing_handle: res.routing_handle });
       show('Handle updated', 'success');
     } catch { show('Network error.', 'error'); }

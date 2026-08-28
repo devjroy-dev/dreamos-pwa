@@ -35,12 +35,49 @@
 //   cardMoreTitle · cardMoreBody           — Business Solutions is a ROOM with its own
 //                                            surface; the card was a second door to it.
 //
+// ── R-38.17 · WHAT RETIRED AT S2/2, AND THE ONE THING THAT CAME BACK ────────
+//   todayTitle                             — 「Your morning brief.」 A page title over a
+//                                            masthead that already names the day. The
+//                                            masthead STATUS carries the surface's stature
+//                                            now, at t1, one line instead of two.
+//   todayEmpty · todayEmptyAction          — an empty state with its own action, above
+//                                            three cards each of which is an action. The
+//                                            nav's Rooms seat is the same destination and
+//                                            is on screen at all times.
+//   cardAskBody · cardLinkBody             — R-38.17 gives cards 2 and 3 no body at all.
+//                                            A chip list and an address say what they are.
+//   dockRowTitle                           — SEE BELOW. Not retired; re-homed.
+//
+// ⚠ todayNotLive DID NOT RETIRE, AND THE ROUND TRIP IS THE ENTRY WORTH KEEPING.
+// R-38.17 first replaced it with 「Nothing needs you yet.」 and this seat filed F-38.31
+// against the ruling: that sentence asserts an absence NOTHING HAS CHECKED, which is the
+// exact claim `todayCountCaption` and `todayNotLive` were written to refuse. The chair
+// amended his own byte at c-38.14 rather than defending it. So:
+//   · until the Phase 4 feed answers, the status reads `todayNotLive` and THE NUMERAL DOES
+//     NOT RENDER — an unmeasured 0 is the same lie in digits, and leaving it would have
+//     cured the sentence while keeping the claim.
+//   · `todayNothingYet` is the TRUE-empty state and ships behind the feed's first 200.
+// Both bytes live here from the moment they were vetoed; lib/worklist/feed.ts decides which
+// one the vendor sees, and it has exactly one home.
+//
 // R-37.72 — THE SELF-REFERENCE REGISTER. TDW refers to itself as TDW (or The Dream Wedding
 // in full dress), never "this app" / "the app". Swept across every byte below.
 //
-// R-37.70 — PERSONA NAMES. DreamAi in prose about who answers; never in a label. 「Victor」
-// is an internal seat name and appears in no vendor-facing byte, and neither does
-// 「Advisor」 as a persona — the Advisor ROOM is named for the room, not for a character.
+// ── R-37.70 AS AMENDED AT R-38.17 · 「DreamAi」 JOINS THE BANNED LIST ────────
+// It used to be permitted in PROSE about who answers, and forbidden only in labels. That
+// distinction is retired with the grammar that carried it (see the R-37.78 tombstone
+// below). 「Victor」, 「Donna」, 「Harvey」, 「Mira」 and now 「DreamAi」 appear in NO
+// vendor-facing byte of the shell, in prose or in a label. 「Advisor」 is not a persona
+// here either — the Advisor ROOM is named for the room, not for a character.
+//
+// THE REASON THE PROSE EXEMPTION HAD TO GO, rather than being narrowed again: it was a
+// rule about WHERE a name may appear, and every surface that wanted the name could argue
+// it was writing prose. `cardDeskBody` and `cardAskBody` both did. A ban with a
+// register-shaped exception is a ban that loses one sentence at a time.
+//
+// WHAT THE VENDOR IS TOLD INSTEAD IS THE CHANNEL, NOT THE CHARACTER. 「on WhatsApp」,
+// 「in your name」. The vendor does not need to know who answers; she needs to know that
+// it is answered, where, and as whom.
 'use strict';
 
 export const COPY = {
@@ -57,17 +94,20 @@ export const COPY = {
   // phase because nothing is read, so a caption asserting what the 0 MEANT would be
   // reporting a measurement that never ran.
   todayCountCaption: 'open items',
-  /** t1, the page title. One per surface. */
-  todayTitle: 'Your morning brief.',
-  /** The empty state's one sentence: what will appear here. */
-  todayEmpty: 'When your work starts flowing, what needs attention lands here.',
-  /** Its one action. A verb of two words. */
-  todayEmptyAction: 'See your rooms',
-  // THE HONEST LINE SURVIVES THE RECUT, merged into one sentence rather than dropped.
-  // 「All clear」 would assert an absence never checked; this says the instrument is not
-  // running, which is the difference between a zero reading and no reading. It retires at
-  // Phase 4 with the feed, not before.
-  todayNotLive: 'Today is not reading your work yet.',
+  // ── THE MASTHEAD STATUS · R-38.17 AS AMENDED AT c-38.14 · TWO BYTES, ONE SLOT ──
+  // Exactly one of these renders, and which one is not a copy decision — it is a question
+  // about whether an instrument answered. lib/worklist/feed.ts holds that fact.
+  //
+  // THE NOT-READING LINE, at t1. It survives R-38.17's first cut, which had retired it.
+  // 「All clear」 or 「Nothing needs you yet」 over an unread feed asserts an absence never
+  // checked; this says the instrument is not running, which is the difference between a
+  // zero reading and NO reading. Sentence recut to a contraction with the promotion to t1:
+  // it is the surface's loudest line now, and 「is not」 at that stature reads as a notice
+  // rather than as speech.
+  todayNotLive: "Today isn't reading your work yet.",
+  // THE TRUE-EMPTY STATE. Ships behind the feed's first 200 and not one deploy before it —
+  // it is the only line here that makes a claim about the vendor's actual work.
+  todayNothingYet: 'Nothing needs you yet.',
 
   // ── 6 · 7 — the resting state. PHASE 4, not rendered by this shell. Carried here
   // so the vetoed bytes have one home from the moment they were vetoed.
@@ -77,15 +117,34 @@ export const COPY = {
   // ── THE FIRST-RUN CARDS · THREE, ONE SENTENCE EACH (R-38.6) ──────────────
   // ORDER FOLLOWS THE VENDOR'S OWN TIMELINE, not a feature list: work reaches him (1, 2),
   // then he runs it from where he already is (3). The set deletes itself at Phase 4.
-  firstRunHeader: 'What TDW does for you',   // R-37.72: amended from "this app"
+  // R-38.17: a SECTION EYEBROW, not a sentence about the product. 「What TDW does for you」
+  // was a heading that explained the set beneath it; three cards that each name an action
+  // do not need a caption saying they are things TDW does.
+  firstRunHeader: 'Get started',
 
-  cardDeskTitle:  'Your 24/7 enquiry desk',
-  cardDeskBody:   'DreamAi answers every enquiry on WhatsApp, at any hour, in your name.',
-  cardDeskAction: 'Message DreamAi',
+  // ── CARD 1 · R-38.17 ─────────────────────────────────────────────────────
+  // A NOUN, one word. The old title was a claim about hours (「Your 24/7 enquiry desk」)
+  // and the body then repeated it. The body keeps the two facts that are the vendor's:
+  // it is answered on WhatsApp, and it is answered as her.
+  cardDeskTitle:  'Enquiries',
+  cardDeskBody:   'Every enquiry is answered on WhatsApp in your name.',
+  cardDeskAction: 'Open WhatsApp',
 
-  cardLinkTitle:  'Your TDW link',
-  cardLinkBody:   'One link that routes every enquiry straight to you, with nothing for anyone to install.',
-  cardLinkAction: 'Share link',
+  // ── CARD 3 · R-38.17 ─────────────────────────────────────────────────────
+  // No body. The address IS the explanation, and a sentence explaining an address the
+  // vendor can read is the product narrating itself.
+  cardLinkTitle:  'Your link',
+  // TWO ACTIONS, TWO VERBS. `Copy` for the vendor putting it in a bio; `Share` for the
+  // system sheet. They were one button that guessed which the vendor meant.
+  cardLinkAction: 'Copy',
+  cardLinkCopied: 'Copied',
+  cardLinkShare:  'Share',
+  // ⚠ WITHHELD BYTE · THE ADDRESS ITSELF. See components/worklist/FirstRun.tsx: the
+  // `thedreamwedding.in/v/<handle>` row is withheld by rule (CE-38 S2/2 relay #2, arm (a))
+  // because `/v/` is a 404 today — F-38.30, the same finding P0-B filed as F-19.14. The
+  // byte is vetoed and lives here from the moment it was vetoed; the ROW that renders it
+  // is commented out with its uncomment step dated to TDW_19 P0-B step 4.
+  cardLinkAddressBase: 'thedreamwedding.in/v/',
 
   // Every chip is backed by a tool in the engine census (dream-os src/agent/tools.js).
   // Per-chip verdicts with line addresses are stated in the P1 handover. No chip ships
@@ -95,8 +154,13 @@ export const COPY = {
   // 「quote Ananya 4 lakh」 as its first example, and 「4 lakh」 is exactly the shorthand
   // the money register forbids on a vendor-facing surface. The drafting chip uses the same
   // tool's other example, which carries no figure at all.
-  cardAskTitle: 'Run it all from WhatsApp',
-  cardAskBody:  'Text DreamAi the way you would text a colleague, and the work lands here.',
+  // ── CARD 2 · R-38.17 · NO BODY ───────────────────────────────────────────
+  // The title is the affordance's own name and the chips are the demonstration. The old
+  // body (「Text DreamAi the way you would text a colleague…」) was a simile explaining a
+  // list of examples that stands directly beneath it.
+  cardAskTitle: 'Ask TDW',
+  // The eyebrow over the chips. A verb of one word: they are examples to try, not a menu.
+  cardAskChipsEyebrow: 'Try',
   cardAskChips: [
     'Am I free on 14 February?',        // query_day        tools.js:443
     'How many open leads do I have?',   // list_leads       tools.js:90
@@ -118,14 +182,29 @@ export const COPY = {
   themeDarkName:  'Graphite',
   themeLightName: 'Chalk',
 
-  // ── R-37.78 · THE NAMING GRAMMAR ─────────────────────────────────────────
-  // 「Ask TDW」 is the VERB — it labels affordances that invite the ask.
-  // 「DreamAi」 is the NAME — it appears in prose about who answers.
-  // 「TDW on WhatsApp」 is the founder's byte for the row.
-  // Affordances invite; sentences attribute. No surface may freelance a fourth name.
+  // ── R-37.78 · THE NAMING GRAMMAR · RETIRED AT R-38.17, RECORDED ──────────
+  // It read: 「Ask TDW」 is the VERB, 「DreamAi」 is the NAME appearing in prose about who
+  // answers, 「TDW on WhatsApp」 is the founder's byte for the row — affordances invite,
+  // sentences attribute.
+  //
+  // IT RETIRES BECAUSE ITS MIDDLE CLAUSE RETIRED. With 「DreamAi」 banned outright there is
+  // no NAME left for the grammar to place, and a two-term grammar over one term is not a
+  // grammar. What survives is simpler and needs no register theory: TDW refers to itself as
+  // TDW (R-37.72), affordances are labelled with what they do, and nothing in the shell
+  // attributes an answer to a character. The tombstone is written rather than the block
+  // deleted, because a rule that vanishes gets reinvented by the next reader who notices
+  // there is no rule.
   dockPlaceholder: 'Ask TDW \u2014 \u201cAm I free on 14 Feb?\u201d',
+  // ⚠ THREE KEYS, ONE BYTE — the same shape as F-38.23's six header words, and named for
+  // the same reason. `dockAria` labels the control, `dockRowTitle` labels the drawer row
+  // and `cardAskTitle` titles card 2; they are three separately-vetoed bytes that currently
+  // agree. b40 C32 asserts they cannot drift apart while all three exist. The honest
+  // consolidation is a sitting of its own because each has its own ruling behind it.
   dockAria: 'Ask TDW',
   dockRowTitle: 'Ask TDW',
+  // R-38.17: the sheet says where the answer comes back. The vendor types in-app and the
+  // reply arrives on WhatsApp, and a surface that does not say so is a costume again.
+  askSheetNote: 'TDW replies on WhatsApp.',
   // R-38.7: the founder vetoed the horizontal-strip treatment on Rooms. This byte keeps
   // its ONE home and that home is now the coin drawer (R-37.69/.83 amended at R-38.7).
   roomsAskTitle: 'TDW on WhatsApp',
@@ -167,6 +246,20 @@ export const COPY = {
   // INSIDE the drawer. No modal — a modal to leave a menu is more ceremony than the act.
   // Bytes ship pending the founder's veto.
   drawerCancel: 'Cancel',
+
+  // ── R-38.18 · THE ADD CONTROL ────────────────────────────────────────────
+  // NOUNS, SINGULAR, ONE WORD EACH. A row in this sheet answers 「add a ___」, so the
+  // plural room name would be the wrong word in the wrong grammatical slot: the vendor is
+  // making ONE lead, not visiting Leads. That is also what keeps these seven bytes from
+  // being a fourth spelling of the six header words (F-38.23) — they are a different word.
+  addTitle:    'Add',
+  addCalendar: 'Calendar',
+  addLead:     'Lead',
+  addClient:   'Client',
+  addInvoice:  'Invoice',
+  addExpense:  'Expense',
+  addEvent:    'Event',
+  addNote:     'Note',
 
   // ── R-38.9 · THE ADVISOR ROOM ────────────────────────────────────────────
   // The room's own word, at t2. Never a persona name (R-37.70).

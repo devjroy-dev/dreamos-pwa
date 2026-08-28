@@ -10,41 +10,53 @@
 // CE-38 relay #1 after this seat filed the collision: R-37.88's ratified mock — the one
 // §0 hash-gates — is built on Italiana at 46px, and a bare "⊆ five rungs" cell would have
 // reddened the design it was written to protect. t0 is 46/.95 Cormorant 500, one element
-// per app, and the arm asserts it appears exactly here.
+// per app.
+//
+// ⚠ AND TODAY IT DOES NOT PAINT. R-38.17 as amended at c-38.14 gates the numeral on the
+// feed having answered, and no feed exists yet — so t0's RULE ships (it is this surface's
+// styling and this surface's alone, which is what wl_audit's t0 cell asserts) while no
+// element consumes it. The render arm's C-R17 asserts the absence on glass. Two different
+// claims, deliberately in two different instruments: one about where the rung lives, one
+// about whether it is being painted.
 //
 // ITALIANA RETIRES WITH JOST. The numeral changes family, not stature.
-import Link from 'next/link';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { FirstRun } from '@/components/worklist/FirstRun';
 import { COPY } from '@/lib/worklist/copy';
+import { todayFeed } from '@/lib/worklist/feed';
 
 // Derived at render, never a fixture. Locale pinned so the string cannot drift with the
 // runtime's ICU data — the same reason the estate pins its own date formatters.
 const DATE_LINE = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
 export default function TodayPage() {
+  // ── R-38.17 as amended at c-38.14 · THE MASTHEAD REPORTS THE INSTRUMENT ────
+  // Both arms are live code and neither is a placeholder: `todayFeed()` returns the true
+  // answer for today, which is that nothing has read anything. When Phase 4 wires it, this
+  // component does not change.
+  const feed = todayFeed();
   return (
     <WorklistShell title={COPY.navToday}>
       <section className="wl-masthead">
         <div className="wl-mdate">{DATE_LINE}</div>
-        <div className="wl-mcount">
-          <span className="wl-mnum">0</span>
-          <span className="wl-mcap">{COPY.todayCountCaption}</span>
-        </div>
+        {/* THE NUMERAL IS GATED, NOT DEFAULTED TO ZERO. A `0` that no instrument produced
+            is 「Nothing needs you yet」 written in digits, and F-38.31 convicted the
+            sentence. Rendering `feed.openItems ?? 0` would have kept the claim while
+            passing every cell about the sentence — the cosmetic cure this gate refuses. */}
+        {feed.responded && feed.openItems !== null && (
+          <div className="wl-mcount">
+            <span className="wl-mnum">{feed.openItems}</span>
+            <span className="wl-mcap">{COPY.todayCountCaption}</span>
+          </div>
+        )}
+        {/* R-38.4: ONE t1 PER SURFACE, and the status is Today's. It was a page title
+            (`todayTitle`) over a masthead that already names the day — two lines where the
+            surface needed one, and neither of them said what state Today was in. */}
+        <h1 className="wl-status">
+          {feed.responded ? COPY.todayNothingYet : COPY.todayNotLive}
+        </h1>
         <div className="wl-mrule" />
       </section>
-
-      {/* R-38.4: ONE t1 PER SURFACE, and this is Today's. It was a two-clause paragraph
-          (`todayPromise`) standing where a page title goes — the surface had no stature
-          because its loudest line was an explanation. */}
-      <h1 className="wl-title">{COPY.todayTitle}</h1>
-
-      {/* R-38.6: an empty state is one sentence naming what will appear here, and one
-          action. The honest line about the instrument keeps its own row beneath, at t5,
-          because it is metadata about the reading rather than a promise about the feed. */}
-      <p className="wl-empty">{COPY.todayEmpty}</p>
-      <Link href="/w/rooms" className="wl-emptyaction">{COPY.todayEmptyAction}</Link>
-      <p className="wl-notlive">{COPY.todayNotLive}</p>
 
       <FirstRun />
       <style>{`
@@ -60,13 +72,14 @@ export default function TodayPage() {
 .wl-mnum{font:var(--wl-t0);color:var(--atelier-ink)}
 .wl-mnum{font-variant-numeric:tabular-nums}
 .wl-mcap{font:var(--wl-t5);color:var(--atelier-ink-dim)}
+/* THE STATUS IS THE SURFACE'S t1. The four rules that carried todayTitle, todayEmpty,
+   todayEmptyAction and todayNotLive-at-t5 retire with the bytes R-38.17 cut, because a
+   class whose only consumer has been deleted is the wl-plink disease in CSS.
+   NO BACKTICKS AND NO CODE MARKS IN THIS BLOCK: it is inside a JS template literal, and a
+   backtick written around a selector while explaining that selector ends the literal. The
+   estate has paid for this five times now; the sixth was this comment, caught by tsc. */
+.wl-status{font:var(--wl-t1);color:var(--atelier-ink);margin:8px 0 0}
 .wl-mrule{height:.5px;background:var(--role-metal);opacity:.55;margin-top:16px}
-.wl-title{font:var(--wl-t1);color:var(--atelier-ink);margin:16px 0 0}
-.wl-empty{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:8px 0 0}
-.wl-emptyaction{display:inline-flex;align-items:center;min-height:44px;margin-top:12px;padding:12px 16px;border:.5px solid var(--atelier-input-border);border-radius:2px;font:var(--wl-t4);color:var(--atelier-accent-text);text-decoration:none;touch-action:manipulation}
-.wl-emptyaction:active{background:var(--atelier-row-hover)}
-.wl-emptyaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.wl-notlive{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:12px 0 0}
       `}</style>
     </WorklistShell>
   );
