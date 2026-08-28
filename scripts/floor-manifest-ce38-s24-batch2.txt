@@ -1,0 +1,31 @@
+# scripts/floor-manifest-ce38-s24-batch2.txt
+#
+# CE-38 S2/4 · §4-4 BATCH ② — TEAM · CONTRACTS · TDS CROSS, AND F-38.59.
+#
+# [F-19.16] A delivery tree is dirty by definition and R-33.7 forbids the
+# executor the commit that would clean it. Every dirty path must be named here;
+# one byte outside and the runner refuses. The manifest's files are SHA-256'd
+# before the run and re-hashed after, so the SET is tolerated and the CONTENTS
+# are not.
+#
+# SIXTEEN PATHS. Three room bodies split out, three shell routes, three fallback
+# routes rewritten, the shared Studio module's two gutters, the registry, the
+# copy register, b40 (C39, new), CALENDAR — a §4-2 room, cured here for F-38.59
+# because leaving it while curing its two siblings is the instance-not-class
+# failure by name — and this manifest with its handover.
+app/vendor/calendar/screen.tsx
+app/vendor/contracts/page.tsx
+app/vendor/contracts/screen.tsx
+app/vendor/tds/page.tsx
+app/vendor/tds/screen.tsx
+app/vendor/team-hub/page.tsx
+app/vendor/team-hub/screen.tsx
+app/w/contracts/page.tsx
+app/w/tds/page.tsx
+app/w/team/page.tsx
+docs/TDW_09_M_FINISH_S24_BATCH2_HANDOVER.md
+lib/vendor/studioShared.tsx
+lib/worklist/copy.ts
+lib/worklist/rooms.ts
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce38-s24-batch2.txt

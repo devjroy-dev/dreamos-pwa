@@ -48,7 +48,7 @@ export function Chevron() {
 
 export function SectionLabel({ label, first }: { label: string; first?: boolean }) {
   return (
-    <div style={{ padding: first ? '24px 24px 14px' : '32px 24px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ padding: first ? '24px var(--slice-inset, 24px) 14px' : '32px var(--slice-inset, 24px) 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
       <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass }}>{label}</span>
       <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
     </div>
@@ -58,7 +58,10 @@ export function SectionLabel({ label, first }: { label: string; first?: boolean 
 export function Row({ item }: { item: Item }) {
   const isLocked = item.locked;
   const rowStyle: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 18,
+    // \u00a74-4: the gutter is DECLARED, not swept. `RoomBody` sets --slice-inset to 0 inside
+    // the shell so this row inherits the column's 16; the fallback in the var is this row's
+    // own 24, which is what /vendor renders and has always rendered. A MOVE, not a fork.
+    display: 'flex', alignItems: 'center', padding: '16px var(--slice-inset, 24px)', gap: 18,
     textDecoration: 'none',
     borderBottom: '0.5px solid var(--atelier-card-border)',
     cursor: isLocked ? 'default' : 'pointer', opacity: isLocked ? 0.55 : 1,

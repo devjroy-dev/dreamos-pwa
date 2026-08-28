@@ -67,9 +67,16 @@ export const ROOMS: readonly Room[] = [
   { id: 'storefront',label: 'Storefront',band: 'business', href: '/w/storefront',       pinnable: true  },
   { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/w/portfolio',        pinnable: true  },
   { id: 'couture',   label: 'Couture',   band: 'business', href: '/w/couture',          pinnable: true  },
-  { id: 'team',      label: 'Team',      band: 'business', href: '/vendor/team-hub',    pinnable: true  },
-  { id: 'contracts', label: 'Contracts', band: 'business', href: '/vendor/contracts',   pinnable: true  },
-  { id: 'tds',       label: 'TDS',       band: 'business', href: '/vendor/tds',         pinnable: true  },
+  // \u00a74-4 \u00b7 BATCH \u2461. Three bodies with nothing shared \u2014 a hub of Studio rows, a document
+  // list and a ledger \u2014 so this batch buys none of the family coherence \u00a74-3 did. It is a
+  // batch because the three crossings are mechanically identical after \u00a74-3 proved the
+  // shape, and because splitting them would cost three floor runs to learn the same thing.
+  // \u26a0 `team`'s href moves from `/vendor/team-hub` to `/w/team`, so the ROUTE SEGMENT
+  // changes name as well as tree. The fallback keeps its own spelling; only the tile's
+  // destination is renamed, and no other file spells either one (derived, not assumed).
+  { id: 'team',      label: 'Team',      band: 'business', href: '/w/team',             pinnable: true  },
+  { id: 'contracts', label: 'Contracts', band: 'business', href: '/w/contracts',        pinnable: true  },
+  { id: 'tds',       label: 'TDS',       band: 'business', href: '/w/tds',              pinnable: true  },
   // R-38.1 \u00b7 CROSSED AT M-FINISH S1. These two now render as children of WorklistShell
   // under app/w/, so tapping them mounts no second layout, no second header and no second
   // session resolve. The /vendor routes survive on disk as untouched fallbacks and nothing
@@ -139,7 +146,11 @@ export const INTERIM_VENDOR_ROOMS: readonly string[] = [
   // WHOLE ARC and it is the one set R-38.11's shrink-or-hold standing binds hardest: four
   // rooms remain, the number is derived from this list rather than kept in a handover
   // sentence, and the next batch is team \u00b7 contracts \u00b7 tds, then collab alone.
-  'team', 'contracts', 'tds', 'collab',
+  // SHRANK BY THREE AT \u00a74-4 (four \u2192 one). Team, Contracts and TDS left in the SAME EDIT
+  // that changed their hrefs above. ONE ROOM REMAINS \u2014 collab \u2014 and when it goes this
+  // list is empty, which is the condition F-38.52's mode bridge names for its own
+  // retirement. The number is derived from this list and from nowhere else.
+  'collab',
 ] as const;
 
 /**
@@ -195,6 +206,22 @@ export const INTERIM_VENDOR_LINKS: readonly string[] = [
   // declared seam rather than a hidden one. It retires when Discover crosses at Phase 7,
   // not before, and it is counted here so it cannot grow quietly in the meantime.
   '/vendor/discover',
+  // ── §4-4 · TEAM'S THREE, RULED IN ADVANCE RATHER THAN DECLARED AFTERWARDS ──
+  // `/w/team` crosses as a ROOM OF DECLARED DOORS: every one of its three rows leaves the
+  // shell. That is Storefront's Discover row's class, but three-of-three rather than
+  // one-of-two, so it went to the chair at the survey and was ratified before the crossing
+  // landed rather than explained after it.
+  //
+  // All three are Studio surfaces with no registry entry and no crossing chartered this
+  // block. They cross at their own block or they die with `app/vendor/layout.tsx` at Phase
+  // 7 — and THIS LEDGER IS WHAT WILL SAY WHICH, because a set that must be edited to retire
+  // an entry cannot be retired by forgetting.
+  //   lib/vendor/studioShared.tsx — `STUDIO_ITEMS`, the Team row
+  '/vendor/studio/team',
+  //   lib/vendor/studioShared.tsx — `STUDIO_ITEMS`, the Tasks row
+  '/vendor/studio/tasks',
+  //   lib/vendor/studioShared.tsx — `STUDIO_ITEMS`, the Team Payments row
+  '/vendor/studio/team-payments',
 ] as const;
 
 /**

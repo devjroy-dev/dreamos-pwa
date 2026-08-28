@@ -1297,5 +1297,69 @@ cell('C38 the withheld vendor address is not a live export anywhere in lib/ (F-3
   return null;
 });
 
+// ── C39 · A FIXED CONTROL IN A CROSSED BODY READS THE TREE  [F-38.59] ─────────────
+//    HOMED HERE ON PURPOSE, BESIDE C24/C25/C26. This file is where the crossing checklist
+//    lives — the registry set, the shell mount, the census — so batch ③ and every crossing
+//    after it inherits this cell for free rather than someone remembering to write it. A
+//    cell filed next to the thing it guards is the only kind that gets run by accident.
+//
+//    THE RULE EXISTED AND HAD NO CELL, WHICH IS WHY IT LOST TWICE. `SliceShell` derived the
+//    pair when the list family crossed and wrote the arithmetic at its own site: 82 clears
+//    the OLD shell's BottomNav; the worklist shell's chrome is the dock (8+44+8) plus the
+//    nav seat (52) = 112.5, and 120 is that plus one step of the 8-scale. Calendar crossed
+//    at §4-2 keeping a bare 82 and its Add button sat ON the ask field; Contracts and TDS
+//    would have made it three. Nothing caught it — the render arm measures text edges,
+//    container edges and tuples, and no cell measured a control's clearance.
+//
+//    ⚠ AND IT IS A HIT-TEST, WHICH IS WHY IT RATES A CELL RATHER THAN A NOTE. R-38.22 ruled
+//    the sheets fine because they are FULL-cover with live catchers. A FAB at 82 is
+//    PARTIALLY behind the dock: the top of a 46px button clears, the bottom does not, and
+//    the thumb lands on the ask field. Partial coverage is the shape that stops a batch.
+//
+//    Fourth instance of the class-walks-away shape on this arc, and the first that was a
+//    hit-test: a cure applied where somebody happened to be looking, and the class left to
+//    find its own way to the next site.
+cell('C39 a fixed control in a crossed body clears the shell chrome (F-38.59)', () => {
+  // The bodies a /w route imports — derived from the shell routes, so a crossing joins this
+  // cell in the edit that creates its route and there is nothing to remember.
+  const bodies = new Set();
+  const walkRoutes = (rel) => {
+    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
+      const r = rel + '/' + e.name;
+      if (e.isDirectory()) { walkRoutes(r); continue; }
+      if (e.name !== 'page.tsx') continue;
+      for (const m of strip(read(r)).matchAll(/from\s+'@\/(app\/vendor\/[A-Za-z0-9\[\]\/_-]+)'/g)) {
+        for (const ext of ['.tsx', '.ts']) {
+          const cand = m[1] + ext;
+          if (fs.existsSync(path.join(ROOT, cand))) { bodies.add(cand); break; }
+        }
+      }
+    }
+  };
+  walkRoutes('app/w');
+  if (!bodies.size) return 'no crossed bodies found from app/w — this cell would pass vacuously';
+  const offenders = [];
+  for (const b of [...bodies].sort()) {
+    const src = strip(read(b));
+    // Only FIXED controls anchored to the BOTTOM. A fixed full-cover scrim (`inset:0`) is
+    // R-38.22's ruled sheet behaviour and is not this cell's subject; a sheet PANEL at
+    // `bottom:0` spans the full width and is covered by its own scrim, so it is not a
+    // partial-coverage hit-test either. What this catches is a control with a bottom
+    // OFFSET — a FAB — which is the only shape that can sit half-behind the chrome.
+    for (const m of src.matchAll(/position:\s*'fixed'[^}]*?bottom:\s*([^,}]+)/g)) {
+      const expr = m[1];
+      if (!/calc\(/.test(expr)) continue;          // bottom:0 and friends: not an offset
+      if (/inShell\s*\?/.test(expr)) continue;     // reads the tree — the cure
+      offenders.push(b + ' — ' + expr.trim().slice(0, 72));
+    }
+  }
+  if (offenders.length)
+    return 'a fixed control carries a bare bottom offset in a body reachable from /w, so it '
+      + 'sits behind the dock and the nav inside the shell: ' + offenders.join(' · ')
+      + ' — the ruled pair is `inShell ? calc(120px + env(safe-area-inset-bottom)) : '
+      + 'calc(82px + env(safe-area-inset-bottom))`, derived at components/vendor/slices/SliceShell.tsx';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

@@ -1,59 +1,35 @@
-// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
-// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
-// still reads as the old voice. The mock’s screen four killed the pairing, not just the
-// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
-// /vendor/team-hub — TDW_04.5 P4 · ruling F11(c).
+// app/vendor/team-hub/page.tsx — THE SURVIVING FALLBACK ROUTE.
 //
-// The SECOND entry point to the Team Hub. More → Team Hub lands here; the
-// Studio page keeps showing the same section beneath Your Studio, and both
-// render it from the same module, so there is exactly one place the founder's
-// three rows are written down.
+// ── §4-4 · TEAM CROSSED, AND THIS FILE IS WHAT STAYED BEHIND ───────────────
+// The room the vendor reaches from the tile is `/w/team` now. This route is not deleted and
+// must not be: R-38.11's "nothing deletes" holds until Phase 7, and this was always the
+// SECOND entry point to the Team Hub — More → Team Hub lands here and the Studio page shows
+// the same section beneath Your Studio. Both still render it from one module.
 //
-// THIS ROUTE RENDERS THE TEAM HUB SECTION ONLY — Team · Tasks · Team Payments,
-// and nothing else. No Your Studio lists, no new rows, no new strings. If this
-// screen ever grows a fourth row, it grows it in studioShared.tsx and both
-// entry points get it together.
+// ── IT OWNS THE CHROME, AND THAT IS THE WHOLE REASON THE FILE SPLIT ────────
+// `<Header/>` is mounted HERE and imported HERE. A conditional does not remove a module
+// from a bundle; only not importing it does.
 //
-// ONE PRESTIGE GATE: the lock state and the upgrade line come from the same
-// `isPrestige` the Studio page asks. Two screens, one answer.
-//
-// NAV: this adds a destination, not an information-architecture change. Collab
-// stays under Discover — the Team-Hub-vs-Discover question is founder-deferred
-// (CE-59), and nothing here presumes it.
-
+// ── THE MOUNT CENSUS HOLDS AT 1 FOR THIS PATH ─────────────────────────────
+// Body and route were ONE file, so the mount moved WITHIN the crossing rather than out of
+// it — calendar's §4-2 precedent. `INTERIM_VENDOR_ROOMS` is the constant that shrinks.
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Header } from '@/components/vendor/Header';
-import { A, F, STUDIO_ITEMS, SectionLabel, Row, isPrestige } from '@/lib/vendor/studioShared';
+import { TeamHubScreen } from '@/app/vendor/team-hub/screen';
 
 export default function TeamHubPage() {
   const router = useRouter();
-  const { session, loading: sl } = useVendorSession();
-  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
-  if (sl || !session) return <div style={{ flex: 1 }} />;
-
-  const prestige = isPrestige(session.tier);
+  const { session, loading } = useVendorSession();
+  useEffect(() => { if (!loading && !session) router.replace('/'); }, [loading, session, router]);
+  if (loading || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Header vendorName={session.name ?? null} />
-      <div style={{ flex: 1, paddingBottom: 32 }}>
-        <SectionLabel label="Team Hub" first />
-        {STUDIO_ITEMS.map(item => <Row key={item.href} item={{ ...item, locked: !prestige }} />)}
-
-        {!prestige && (
-          <div style={{ padding: '24px 28px 8px' }}>
-            <div style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: 16,
-              color: A.inkMute, lineHeight: 1.55, textAlign: 'center',
-            }}>
-              Team Hub is reserved for Prestige.<br />Contact Swati to upgrade.
-            </div>
-          </div>
-        )}
-      </div>
+      <TeamHubScreen tier={session.tier} />
     </div>
   );
 }

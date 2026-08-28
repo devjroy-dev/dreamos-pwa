@@ -345,6 +345,18 @@ export const COPY = {
   storefrontTitle: 'Storefront',
   portfolioTitle:  'Portfolio',
   coutureTitle:    'Couture',
+  // §4-4: Team, Contracts and TDS join at batch ②. Same shape rule and the same bytes as
+  // each tile's `label` in lib/worklist/rooms.ts, and the same reason as the three above
+  // for not being compared against `LABELS` — none of them is in the Slice Door.
+  //
+  // ⚠ 「Team」, NOT 「Team Hub」. The tile has read `Team` since the registry was written and
+  // the shell's masthead takes the TILE's byte, so the room is named the same thing in the
+  // grid and at the top of the surface it opens. The body's own 「Team Hub」 section label
+  // retires inside the shell for exactly that reason — two names for one room, stacked.
+  // The /vendor fallback keeps 「Team Hub」, because there nothing else names the surface.
+  teamTitle:       'Team',
+  contractsTitle:  'Contracts',
+  tdsTitle:        'TDS',
   calendarTitle: 'Calendar',
   leadsTitle:    'Leads',
   clientsTitle:  'Clients',
