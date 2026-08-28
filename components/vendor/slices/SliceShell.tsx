@@ -15,10 +15,15 @@
 // P2/P4/P5 will migrate them into their modules as those phases rebuild them.
 // Zero behavior change is the P1 contract.
 
-import { useRouter, usePathname } from 'next/navigation';
+// `usePathname` LEFT WITH THE HOOK. It was read by exactly one thing — `useInShell`'s body
+// — and once that moved, the specifier was dead. Derived, not assumed: zero call sites
+// remain in this file. An unused import is not tidiness debt; it is a named binding the
+// next reader wires something to (the `vendorName` finding at §4-2, same shape).
+import { useRouter } from 'next/navigation';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { useInShell } from '@/hooks/vendor/useInShell';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
@@ -86,20 +91,17 @@ const SCHEDULE_ENABLED: boolean = false;
 // per the standing ruling). Counts slot reserved — TDW_09 may add.
 const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
 
-// ── M-FINISH S2 · R-38.11 · ONE DERIVATION OF "AM I INSIDE THE SHELL?" ──────
-// The list family is mounted from TWO route trees: /w/<room> (the shell) and the surviving
-// /vendor/list/<slice> fallback. Three things differ between them and all three follow from
-// the same fact, so the fact has ONE home rather than three props threaded through six
-// modules that have no business knowing which shell they are in.
+// ── M-FINISH S2 · §4-3 · `useInShell` MOVED OUT OF THIS FILE, AND ONLY MOVED ──
+// It was DEFINED here at §4-1 because the list family was the only caller. Storefront,
+// Portfolio and Couture cross at §4-3 and each needs the same predicate; none of them is in
+// this family, and a named import from this module reaches `SliceShell`, `SliceDoor` and
+// `DetailSheet` behind it. Its one home is `hooks/vendor/useInShell.ts` now — main-side, so
+// both trees may read it and neither inverts D-2 — and this file IMPORTS it like every
+// other caller rather than keeping a re-export beside it. A re-export would be a second
+// name for one thing, which is the disease one directory over.
 //
-// IT IS DERIVED FROM THE ROUTE, NOT PASSED. The route IS the authority on which tree
-// mounted this component; a prop is a second statement of that fact and can disagree with
-// it. D-38.1 (S2 kickoff §1; banked at next band) is the reason the cells below assert what
-// the surface DOES at each route rather than whether a prop was spelled correctly.
-export function useInShell(): boolean {
-  const pathname = usePathname();
-  return !!pathname && pathname.startsWith('/w/');
-}
+// The reasoning that used to sit here travelled WITH the code and is not summarised: a
+// comment that paraphrases a decision living elsewhere is the next stale comment (F-38.29).
 
 export function SliceDoor({ active }: { active: DoorSlice }) {
   const router = useRouter();

@@ -67,7 +67,15 @@ console.log('\n── §2 · the profile editor (the second free-text field, cur
 
 console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
 {
-  const raw = R('app/vendor/storefront/page.tsx');
+  // ── \u00a74-3 \u00b7 F-38.43 \u00b7 THE SUBJECT MOVED; THIS SECTION FOLLOWS IT ────────────────
+  // Storefront crossed into the shell and its body split out of the route file so the
+  // `<Header/>` import could leave the shell's bundle. Every claim in this section is about
+  // the BODY \u2014 the vetoed heading, the meter, the bio row, the live counts \u2014 and the body
+  // is `screen.tsx` now. A cell left pointing at the old path would have reddened a correct
+  // tree. Declared at this reading section, not at the top: \u00a72 above reads other files for
+  // other claims and must not appear to share a subject with this one.
+  const SF_BODY = 'app/vendor/storefront/screen.tsx';
+  const raw = R(SF_BODY);
   const src = strip(raw);
   cell('3.1', raw.includes('label="Complete your bio"'), 'the FOUNDER-VETOED heading seats as §1');
   cell('3.2', src.includes('scoreOf(gaps)') && src.includes('<Meter score={score} />'),

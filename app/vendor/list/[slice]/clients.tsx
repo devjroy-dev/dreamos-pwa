@@ -14,7 +14,8 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCabinetData, useLeadsData } from '@/hooks/vendor/useVendorData';
 import { phoneKey } from '@/lib/vendor/cabinet';
-import { SliceShell, useInShell } from '@/components/vendor/slices/SliceShell';
+import { SliceShell } from '@/components/vendor/slices/SliceShell';
+import { useInShell } from '@/hooks/vendor/useInShell';
 import { BinderCard } from '@/components/vendor/slices/BinderCard';
 import { Masthead } from '@/components/vendor/slices/Masthead'; // TDW_04 A3
 import { deriveClients } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
@@ -31,7 +32,10 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
   // import in SliceShell.tsx. This slice drives SliceShell directly, so it carries its own
   // mount; it does NOT carry its own copy of the predicate. `useInShell` is imported from
   // the one file that defines it, because a pathname test written twice is a decision with
-  // two homes, and the second one is the one that stops agreeing.
+  // two homes, and the second one is the one that stops agreeing. That file is
+  // `hooks/vendor/useInShell.ts` since §4-3 — the sentence above is unchanged, only the
+  // address it points at moved, and it moved so three rooms outside this family could read
+  // it without importing this family.
   const ToastView = useInShell() ? WlToast : Toast;
   const cab = useCabinetData(vendorId);
   const typedLeads = useLeadsData(vendorId); // R1(b): the typed plane, for the cross-chip

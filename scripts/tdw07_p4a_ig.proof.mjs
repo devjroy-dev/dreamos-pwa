@@ -25,7 +25,18 @@ const raw = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 // scripts/lib/stripComments.mjs and nowhere else. §0 below carries the canaries.
 const code = (rel) => stripComments(raw(rel));
 
-const MANAGER = 'app/vendor/portfolio/page.tsx';
+  // ── \u00a74-3 \u00b7 F-38.43 \u00b7 THE SUBJECT MOVED; THIS CELL FOLLOWS IT ──────────────────
+// Portfolio crossed into the shell, and its body split out of the route file so the
+// `<Header/>` import could leave the shell's bundle (S2's lesson: a conditional does not
+// remove a module from a bundle; only not importing it does). Every claim in this
+// section is about the BODY, and the body is `screen.tsx` now.
+//
+// A CELL RENAMED TO FOLLOW ITS SUBJECT IS NOT A LOOSENED CELL. A cell left pointing at
+// the old path would have reddened a correct tree and taught the next seat that this
+// bench may be argued with. The constant is declared HERE, at this reading section,
+// rather than once at the top: the sections below read this file for different claims,
+// and a shared constant invites a third reader to assume they check the same thing.
+const MANAGER = 'app/vendor/portfolio/screen.tsx';
 const CLIENT  = 'lib/vendor/api/vendor.ts';
 const M = code(MANAGER);
 const C = code(CLIENT);
@@ -40,7 +51,29 @@ const COPY_BLOCK = Mraw.slice(COPY_START, Mraw.indexOf('} as const;', COPY_START
 // The rendered region — everything AFTER the ledger. Ordering cells must read
 // this, never the whole file: the ledger mentions slot ids too, and a position
 // comparison over both regions compares a definition against a usage.
-const JSX = M.slice(code(MANAGER).indexOf('export default function PortfolioPage'));
+// \u00a74-3 \u00b7 THE ANCHOR FOLLOWS THE SUBJECT, AND IT REFUSES BY NAME WHEN IT MISSES.
+//
+// This read `indexOf('export default function PortfolioPage')`. That component is the
+// fallback ROUTE now and lives in `page.tsx`; the body it anchors is `PortfolioScreen` in
+// `screen.tsx`. **AND THE MISS DID NOT ANNOUNCE ITSELF.** `indexOf` returned -1, `.slice(-1)`
+// returned the file's last character, the IG block slice came back empty, and \u00a71.5 and \u00a71.6
+// reported `-1 vs -1` \u2014 a FAIL about the TREE for a fault in the READER, on a tree where
+// both bytes are exactly where the ruling wants them.
+//
+// THAT IS F-38.44 EXACTLY, IN A SECOND FILE. There the cure was `corpus(path)` refusing by
+// name before any assertion could be scoped to a page it never fetched; here it is the same
+// shape one level down \u2014 a slice whose anchor is absent must STOP, not silently return a
+// one-character corpus for eleven cells to reason about. A reader that defaults on a miss
+// converts its own breakage into a finding about the code it is reading.
+const ANCHOR = 'export function PortfolioScreen';
+const _anchorAt = code(MANAGER).indexOf(ANCHOR);
+if (_anchorAt < 0) {
+  console.error(`GATE-UNSOUND \u2014 anchor ${JSON.stringify(ANCHOR)} not found in ${MANAGER}. `
+    + 'Every position cell below scopes to a slice taken from it, so they would assert '
+    + 'against an empty corpus and report the tree as broken. Refusing instead.');
+  process.exit(3);
+}
+const JSX = M.slice(_anchorAt);
 
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -61,7 +94,9 @@ const JSX = M.slice(code(MANAGER).indexOf('export default function PortfolioPage
 // call-site fooled this estate for a whole block, so the call-site is asserted.
 sec('§0 · THE CANARY — the stripper must not swallow live code');
 {
-  const _c = code('app/vendor/portfolio/page.tsx');
+    // The canary reads the SAME file MANAGER names \u2014 it is the stripper's
+  // non-vacuity probe for this bench's own subject, so it moves with it.
+  const _c = code(MANAGER);
   ok('§0.1 canary survives stripping — page.tsx: const [loading, setLoading] = useState(true)', _c.includes('const [loading, setLoading] = useState(true);'));
   ok('§0.2 canary survives stripping — page.tsx: finally { setUploading(false); setProgress(C', _c.includes('finally { setUploading(false); setProgress(COPY.B1); }'));
   ok('§0.3 canary survives stripping — page.tsx: dead={!igPicked.includes(item.source_url) &&', _c.includes('dead={!igPicked.includes(item.source_url) && igPicked.length >= igRoom}'));

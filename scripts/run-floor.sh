@@ -80,8 +80,27 @@ done
 
 # `git status --porcelain` paths, one per line. Rename entries carry `old -> new`
 # and BOTH sides are dirt a manifest must account for.
+#
+# ── §4-3 · `-uall` · A MANIFEST NAMES FILES, SO THE DIRT MUST BE FILES ──────
+# Bare `--porcelain` COLLAPSES an untracked directory to one entry with a trailing slash:
+# a delivery that adds `app/w/storefront/page.tsx` shows up as `app/w/storefront/`. The
+# manifest above it is a FILE table by its own header — it is the delivery's own file list,
+# which is the whole reason using it costs nothing — so the two could never match and the
+# runner refused a correct delivery with "contamination", naming three directories that
+# contain nothing but declared files.
+#
+# THE FAILURE POINTED AT THE TREE FOR A FAULT IN THE READER, which is F-38.44's shape and
+# the second time this arc a comparison has been made against a corpus that was not what it
+# claimed. The cure is on the READER side deliberately: the alternative was to teach every
+# future manifest to declare directory forms beside file forms, which is a second spelling
+# of one fact in every delivery from now on, and the first one to forget it gets this same
+# refusal. `-uall` makes the enumeration mean what the manifest already means.
+#
+# It cannot loosen the check: `-uall` only ever EXPANDS a directory into the files it holds,
+# so a path outside the manifest is still outside it. A delivery that adds an undeclared
+# file inside a declared directory is now CAUGHT where the collapsed form hid it.
 dirt_paths() {
-  git status --porcelain 2>/dev/null | while IFS= read -r line; do
+  git status --porcelain -uall 2>/dev/null | while IFS= read -r line; do
     p="${line:3}"
     case "$p" in
       *" -> "*) echo "${p%% -> *}"; echo "${p##* -> }" ;;

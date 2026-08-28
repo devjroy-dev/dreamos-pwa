@@ -58,9 +58,15 @@ export const ROOMS: readonly Room[] = [
   { id: 'notes',     label: 'Notes',     band: 'work', href: '/w/notes',     pinnable: true  },
   { id: 'calendar',  label: 'Calendar',  band: 'work', href: '/w/calendar',           pinnable: true  },
   // ── BOTTOM BAND \u00b7 eleven ──────────────────────────────────
-  { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',  pinnable: true  },
-  { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/vendor/portfolio',   pinnable: true  },
-  { id: 'couture',   label: 'Couture',   band: 'business', href: '/vendor/couture',     pinnable: true  },
+  // \u00a74-3 \u00b7 THE FIRST BATCH OF THE SEVEN CROSSED TOGETHER, AND THE KINSHIP IS THE
+  // REASON. These three are the VISUAL family \u2014 how the vendor looks to a couple. They do
+  // not share a definition the way the six list rooms did, so the family motion buys less
+  // here; what it buys is that Storefront's own Portfolio row crosses in the SAME cut as
+  // Portfolio, so the address book answers correctly at every instant rather than pointing
+  // a crossed surface at an uncrossed one for the length of a sitting.
+  { id: 'storefront',label: 'Storefront',band: 'business', href: '/w/storefront',       pinnable: true  },
+  { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/w/portfolio',        pinnable: true  },
+  { id: 'couture',   label: 'Couture',   band: 'business', href: '/w/couture',          pinnable: true  },
   { id: 'team',      label: 'Team',      band: 'business', href: '/vendor/team-hub',    pinnable: true  },
   { id: 'contracts', label: 'Contracts', band: 'business', href: '/vendor/contracts',   pinnable: true  },
   { id: 'tds',       label: 'TDS',       band: 'business', href: '/vendor/tds',         pinnable: true  },
@@ -128,25 +134,67 @@ export const INTERIM_VENDOR_ROOMS: readonly string[] = [
   // this list is the SAME EDIT that changed its href above — which is the whole point of
   // asserting the SET rather than a count: a room that crosses without leaving here reddens,
   // and a room that slides back out of the shell reddens too.
-  'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'collab',
+  // SHRANK BY THREE AT \u00a74-3 (seven \u2192 four). Storefront, Portfolio and Couture left in the
+  // SAME EDIT that changed their hrefs above. THIS IS THE LOAD-BEARING ASSERTION OF THE
+  // WHOLE ARC and it is the one set R-38.11's shrink-or-hold standing binds hardest: four
+  // rooms remain, the number is derived from this list rather than kept in a handover
+  // sentence, and the next batch is team \u00b7 contracts \u00b7 tds, then collab alone.
+  'team', 'contracts', 'tds', 'collab',
 ] as const;
 
 /**
- * THE ONE /vendor LINK A CROSSED SHELL SURFACE STILL CARRIES.
+ * THE /vendor LINKS CROSSED SHELL SURFACES STILL CARRY.
  *
- * R-38.7 puts 「Profile layout」 inside Settings, and Settings crossed this sitting while
- * /vendor/discover/preview did not. So a shell surface links out of the shell exactly once,
- * and the cell asserts THE SET rather than the absence — an exception that is counted
- * cannot grow without reddening, whereas an exception that is merely explained can.
+ * R-38.7 puts 「Profile layout」 inside Settings, and Settings crossed at S1 while
+ * /vendor/discover/preview did not. So a shell surface links out of the shell, and the cell
+ * asserts THE SET rather than the absence — an exception that is counted cannot grow
+ * without reddening, whereas an exception that is merely explained can.
+ *
+ * ── §4-3 · C-2 · THIS SET GROWS AT A CROSSING, AND THAT IS RULED ────────────
+ * R-38.11 as amended reads that "the interim sets may only shrink or hold with the movement
+ * stated", and this file's own `INTERIM_HUB_PRIMERS` note cites that standing over THIS
+ * set. Storefront's crossing convicted the reading: its Discover row points at
+ * `/vendor/discover`, a surface with no registry entry and no crossing chartered this
+ * block, so the crossing could not happen without adding an entry here.
+ *
+ * **SHRINK-ONLY IS UNSATISFIABLE FOR THIS SET BY CONSTRUCTION.** It is not a crossing
+ * ledger. `INTERIM_VENDOR_ROOMS` and `INTERIM_VENDOR_MOUNTS` count what has NOT crossed, so
+ * they shrink as the arc proceeds and shrink-only is exactly right for them. This one
+ * counts what crossed surfaces still POINT AT — so it necessarily grows whenever a room
+ * crosses holding a link to an uncrossed non-room, and it can only shrink when the TARGET
+ * crosses at Phase 7. Forbidding its growth forbids crossing itself.
+ *
+ * RULED AT CE-38 RELAY #1, §4-3: shrink-or-hold binds the two crossing ledgers; this set
+ * grows by NAMED ENTRY at a crossing and shrinks only at Phase 7. No fourth set was minted
+ * — the `INTERIM_HUB_PRIMERS` precedent bought a separate name for a CLASS no instrument
+ * could see, and this is an existing class gaining a member.
+ *
+ * EVERY ENTRY NAMES ITS SOURCE LINE, per the same ruling: an entry whose site is not named
+ * is an entry nobody can retire, because retiring it means proving the last caller is gone.
  */
 export const INTERIM_VENDOR_LINKS: readonly string[] = [
   // R-38.7's row: 「Profile layout」, inside Settings.
+  //   components/vendor/SettingsScreen.tsx — the Profile layout row
+  //   app/vendor/portfolio/screen.tsx — 「See your profile as couples do」, since §4-3.
+  //     A SECOND SITE FOR AN ENTRY THAT WAS ALREADY COUNTED, which is the set working as
+  //     designed: the string was already declared, so Portfolio's crossing added a caller
+  //     and not an exception.
   '/vendor/discover/preview',
   // DERIVED BY THE GATE, NOT BY READING. SettingsScreen's own edit-profile control. It was
   // missing from the first cut of this list because the body's outbound links had never
   // been enumerated before the surface crossed — the audit found it in one run, and the
   // list is honest only because it is asserted rather than described.
+  //   components/vendor/SettingsScreen.tsx — the edit-profile control
+  //   app/vendor/storefront/screen.tsx — the 「Your bio」 row, since §4-3.
   '/vendor/discover/profile',
+  // ⚠ THE §4-3 ENTRY, AND THE ONE THAT FORCED C-2's RULING ABOVE.
+  //   app/vendor/storefront/screen.tsx — `SECTIONS`, the Discover row.
+  // Storefront is a hub page whose sections LINK standing surfaces, and Discover is the one
+  // section target that is not a room. The vendor who taps it LEAVES THE SHELL — second
+  // layout, second Splash, second session resolve — which is F-38.1's shape surviving at a
+  // declared seam rather than a hidden one. It retires when Discover crosses at Phase 7,
+  // not before, and it is counted here so it cannot grow quietly in the meantime.
+  '/vendor/discover',
 ] as const;
 
 /**
@@ -186,7 +234,15 @@ export const INTERIM_VENDOR_MOUNTS: readonly (readonly [string, number])[] = [
   ['app/vendor/collab/[post_id]/responses/page.tsx', 1],
   ['app/vendor/collab/page.tsx', 1],
   ['app/vendor/contracts/page.tsx', 1],
-  ['app/vendor/couture/page.tsx', 2],
+  // ── §4-3 · 2 → 1, THE ONE LINE IN THIS BATCH THAT ACTUALLY SHRINKS ────────
+  // `CoutureScreen` carried TWO `<Header/>` mounts, in two RETURN ARMS of one component:
+  // the `couture_eligible === false` gate and the main screen. A mount at the fallback
+  // ROUTE sits above both arms, so two became one. Storefront and Portfolio each had a
+  // single mount and theirs MOVED to their fallback routes rather than leaving, so their
+  // lines below hold at 1 — calendar's §4-2 precedent, and R-38.11 as amended is satisfied
+  // by the movement being STATED rather than by the number being made to fall.
+  // Three rooms crossing, one line shrinking: 26 → 25 across 22 files.
+  ['app/vendor/couture/page.tsx', 1],
   ['app/vendor/discover/page.tsx', 1],
   ['app/vendor/discover/profile/page.tsx', 1],
   ['app/vendor/discover/submit/page.tsx', 1],

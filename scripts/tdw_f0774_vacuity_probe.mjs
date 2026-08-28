@@ -104,9 +104,28 @@ const DECLARED_MANIFEST = process.env.TDW_FLOOR_DELIVERY_MANIFEST || '';
 // harmless there because `dirty` was only ever PRINTED. The moment it became
 // something the code reasons about, the trim became a defect. Witnessed on the
 // first run of the escape, not reasoned about.
+// ── §4-3 · `-uall`, AND THE ENUMERATION HAS TWO HOMES ─────────────────────
+// Bare `--porcelain` COLLAPSES an untracked directory to a single trailing-slash entry, so
+// a delivery adding `app/w/storefront/page.tsx` reads as `app/w/storefront/`. A manifest is
+// a FILE table by its own header, so the two can never match and this probe refused a
+// correct delivery — naming three directories that contain nothing but declared files. It
+// is `run-floor.sh`'s identical defect, found in the same run.
+//
+// ⚠ AND THAT IS THE ENTRY, NOT THE FLAG. F-19.16's own header promises "ONE MANIFEST HOME,
+// ONE ENV NAME, one bench that reads it" — and the MANIFEST does have one home. THE DIRT
+// ENUMERATION HAS TWO: this file and `scripts/run-floor.sh`, in two languages, each with
+// its own `git status --porcelain` and its own parsing of the three-character prefix. They
+// agreed for as long as nobody handed them a case they read differently, and an untracked
+// DIRECTORY was that case. Cured identically in both, which is a cure applied twice rather
+// than a duplication removed; unifying them means a shared helper across bash and node and
+// is priced, not attempted inside a crossing.
+//
+// `-uall` cannot loosen the check: it only ever expands a directory into the files it
+// holds, so a path outside the manifest stays outside it — and an UNDECLARED file inside a
+// declared directory, which the collapsed form hid, is now caught.
 let dirty = null;
 try {
-  dirty = execSync('git status --porcelain', { cwd: ROOT, encoding: 'utf8' }).replace(/\n+$/, '');
+  dirty = execSync('git status --porcelain -uall', { cwd: ROOT, encoding: 'utf8' }).replace(/\n+$/, '');
 } catch {
   console.log('STOP — could not run `git status` to prove the tree is clean. Nothing was touched.');
   process.exit(1);

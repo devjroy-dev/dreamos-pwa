@@ -40,7 +40,18 @@ const raw  = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 // scripts/lib/stripComments.mjs and nowhere else. §0 below carries the canaries.
 const code = (rel) => stripComments(raw(rel));
 
-const MANAGER = 'app/vendor/portfolio/page.tsx';
+  // ── \u00a74-3 \u00b7 F-38.43 \u00b7 THE SUBJECT MOVED; THIS CELL FOLLOWS IT ──────────────────
+// Portfolio crossed into the shell, and its body split out of the route file so the
+// `<Header/>` import could leave the shell's bundle (S2's lesson: a conditional does not
+// remove a module from a bundle; only not importing it does). Every claim in this
+// section is about the BODY, and the body is `screen.tsx` now.
+//
+// A CELL RENAMED TO FOLLOW ITS SUBJECT IS NOT A LOOSENED CELL. A cell left pointing at
+// the old path would have reddened a correct tree and taught the next seat that this
+// bench may be argued with. The constant is declared HERE, at this reading section,
+// rather than once at the top: the sections below read this file for different claims,
+// and a shared constant invites a third reader to assume they check the same thing.
+const MANAGER = 'app/vendor/portfolio/screen.tsx';
 const C = code(MANAGER);
 const R = raw(MANAGER);
 
@@ -62,7 +73,9 @@ const R = raw(MANAGER);
 // call-site fooled this estate for a whole block, so the call-site is asserted.
 sec('§0 · THE CANARY — the stripper must not swallow live code');
 {
-  const _c = code('app/vendor/portfolio/page.tsx');
+    // The canary reads the SAME file MANAGER names \u2014 it is the stripper's
+  // non-vacuity probe for this bench's own subject, so it moves with it.
+  const _c = code(MANAGER);
   ok('§0.1 canary survives stripping — page.tsx: const [loading, setLoading] = useState(true)', _c.includes('const [loading, setLoading] = useState(true);'));
   ok('§0.2 canary survives stripping — page.tsx: finally { setUploading(false); setProgress(C', _c.includes('finally { setUploading(false); setProgress(COPY.B1); }'));
   ok('§0.3 canary survives stripping — page.tsx: dead={!igPicked.includes(item.source_url) &&', _c.includes('dead={!igPicked.includes(item.source_url) && igPicked.length >= igRoom}'));

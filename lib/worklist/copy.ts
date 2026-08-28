@@ -151,31 +151,17 @@ export const COPY = {
   cardLinkAction: 'Copy',
   cardLinkCopied: 'Copied',
   cardLinkShare:  'Share',
-  // ── ⚠ RE-WITHHELD BY RULE · CE-38 S3 · c-38.28 + F-38.49 ─────────────────
+  // ── THE ADDRESS ITSELF · WITHHOLDING DISCHARGED AT CE-38 S3 ──────────────
+  // Withheld from the first cut because `/v/` was a 404 (F-38.30 = F-19.14) and an
+  // address that does not resolve is the never-404 failure wearing a different coat.
+  // The dated condition was `TDW_19 P0-B step 4 lands /v/<code> as a 200`, and it has
+  // arrived: `app/v/[code]/page.tsx` is at origin, witnessed by command at this seat
+  // rather than taken from the kickoff.
   //
-  // THIS KEY IS GONE, NOT COMMENTED, and that is the F-38.49 half. It was a SECOND
-  // statement of the vendor's web address carrying its own copy of the domain literal,
-  // beside `subdomainFor()` in lib/solutions/types.ts which already owned that decision.
-  // Two homes for one thing, and the address is now built by `pathAddressFor(handle)` in
-  // that one home. Nothing about the domain lives in this file any more.
-  //
-  // AND THE CARD IS BACK IN ITS BOX, which is the c-38.28 half. The withholding was
-  // discharged at a22e391 on a MISREAD TRIGGER. The dated condition was 「/v/<code> lands
-  // as a 200」; the seat verified 「app/v exists in the branch」 and called it fired. Those
-  // are not the same proposition. `cardLinkAddressBase` is the PRODUCTION apex, so the
-  // only condition that can ever discharge it is production serving the route — and
-  // production serves `main`, which has never carried `app/v`. The founder opened
-  // thedreamwedding.in/v/DEV440 and got a 404 off his own first-run card.
-  //
-  //   WHEN — RUN THIS, DO NOT REASON ABOUT IT:
-  //     curl -sS -o /dev/null -w '%{http_code}\n' https://thedreamwedding.in/v/DEV440
-  //   DISCHARGE ONLY ON: 200. Any other number, or a redirect to a 404 page, is not the
-  //   condition. `git ls-tree` on a branch is NOT this command and never was.
-  //
-  //   DO: re-open the address row and the wl-cardaddr rule in FirstRun.tsx, and point
-  //       them at `pathAddressFor(handle)` from '@/lib/solutions/types'. No key returns
-  //       to this file — the address is derived, not copy, and that is why it was able
-  //       to have two homes while it lived here.
+  // NO SCHEME AND NO TRAILING PATH. The vendor reads this, and `https://` is chrome he
+  // does not need to see; the two actions build the real URL from it. One home for the
+  // base means the card cannot drift from what Copy puts on his clipboard.
+  cardLinkAddressBase: 'thedreamwedding.in/v/',
 
   // Every chip is backed by a tool in the engine census (dream-os src/agent/tools.js).
   // Per-chip verdicts with line addresses are stated in the P1 handover. No chip ships
@@ -331,6 +317,20 @@ export const COPY = {
   // shape rule — a NOUN, one word — and it is here for the same reason as the others: the
   // shell may not inline a vendor-facing string. F-38.23's duplication note covers it too;
   // b40 C30 compares the set against the door labels and reddens on any disagreement.
+  // §4-3: Storefront, Portfolio and Couture join at the first batch of the seven. Same
+  // shape rule — a NOUN, one word — and the same byte as each tile's `label` in
+  // lib/worklist/rooms.ts.
+  //
+  // ⚠ THESE THREE ARE NOT COMPARED AGAINST `LABELS`, AND THE DIFFERENCE IS REAL RATHER
+  // THAN AN EXEMPTION. `LABELS` is keyed by `DoorSlice` — the six list rooms — and b40's
+  // C30 asserts the six against it. Storefront, Portfolio and Couture have no door label
+  // and never will, for the same reason Calendar has none: they are not in the Slice Door.
+  // Widening C30 to cover them would assert a correspondence that does not exist, which is
+  // the shape D-38.1 convicts. F-38.23's duplication note still covers all ten against the
+  // tile labels, which IS a correspondence that exists.
+  storefrontTitle: 'Storefront',
+  portfolioTitle:  'Portfolio',
+  coutureTitle:    'Couture',
   calendarTitle: 'Calendar',
   leadsTitle:    'Leads',
   clientsTitle:  'Clients',

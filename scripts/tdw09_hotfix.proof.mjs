@@ -112,13 +112,20 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   // cell; a cell left pointing at the old path would have gone red on a correct tree and
   // taught the next seat that this bench may be argued with.
   const CAL_BODY = 'app/vendor/calendar/screen.tsx';
-  const adopters = ['app/vendor/storefront/page.tsx', 'app/vendor/page.tsx', CAL_BODY];
+  // \u00a74-3: STOREFRONT CROSSED THE SAME WAY, AND THE SAME SENTENCE APPLIES. Its body split
+  // out of its route file for the identical reason, so the adopter of the Reserve primitive
+  // is `screen.tsx`. Second firing of the paragraph above; the constant is named rather than
+  // the path being retyped, so the third crossing that reaches this cell has one edit.
+  const SF_BODY = 'app/vendor/storefront/screen.tsx';
+  const adopters = [SF_BODY, 'app/vendor/page.tsx', CAL_BODY];
   cell('2.6', adopters.every(f => /from '@\/components\/vendor\/Reserve'/.test(R(f))),
     'all THREE named adopters import the one primitive (no fourth shape)');
 
   // ── F-09.111 · the storefront ──
   {
-    const raw = R('app/vendor/storefront/page.tsx');
+    // The same subject as the adopter cell above, read for a different claim \u2014 so it names
+    // the constant rather than re-spelling the path, and cannot drift away from 2.6.
+    const raw = R(SF_BODY);
     const src = strip(raw);
     cell('2.7', !/if \(loading\) return null;/.test(src),
       'F-09.111 — the null-return is GONE (this is the mutation cell: restoring it reddens)');
