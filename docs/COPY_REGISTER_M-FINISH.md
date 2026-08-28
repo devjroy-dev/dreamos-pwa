@@ -139,3 +139,50 @@ speaking two registers with no record of which half was ruled.
 
 Declared, priced, and named as excluded from the render arm's tuple cell in code
 (`tools/wl_render.cjs`, `SCALE_SURFACES`) so it cannot be forgotten by being quiet.
+
+## 8 · M-FINISH S2 §4-1 — THE LIST FAMILY'S SIX HEADER WORDS
+
+Six rooms crossed and each gained exactly one new vendor-facing byte: the word the shell
+prints in its header. Nouns of one word, so R-38.6's shape rule is met without effort.
+
+| key | byte |
+|---|---|
+| `leadsTitle` | **"Leads"** |
+| `clientsTitle` | **"Clients"** |
+| `invoicesTitle` | **"Invoices"** |
+| `expensesTitle` | **"Expenses"** |
+| `eventsTitle` | **"Events"** |
+| `notesTitle` | **"Notes"** |
+
+**THESE ARE NOT NEW WORDS AND THAT IS WORTH SAYING PLAINLY.** They are the same six bytes
+the tiles already carry (`lib/worklist/rooms.ts` `label`) and the same the Slice Door
+already carries (`components/vendor/slices/SliceRow.tsx` `LABELS`). Three surfaces now
+spell each of these words, and this file is **not yet** the one home for them.
+
+It was not made the one home this sitting. `LABELS` is read by the surviving `/vendor`
+fallback, so pointing it at the shell's copy register would make a main-side component
+depend on a branch-side register — the direction D-2 forbids. The honest shape is the
+reverse, and it is a small sitting of its own because `LABELS` is keyed by `DoorSlice`
+while the shell is keyed by room id. **Filed as F-38.23, priced.**
+
+The duplication cannot drift while it exists: `b40` C30 compares all six against `LABELS`
+and reddens on any disagreement. An exception that is asserted cannot grow quietly,
+whereas an exception that is merely explained can.
+
+## 9 · THE SIX CROSSED BODIES — NOT IN THIS SHEET, FOR §7's REASON
+
+Nothing inside the six rooms is in this sheet. Their **chrome** is the header word above;
+their **bodies** kept their existing bytes and layout under R-38.12, which limits a crossing
+to chrome and forbids the redesign a copy recut would be.
+
+Two facts about those bodies are declared rather than swept, and both are named as excluded
+from the render arm's tuple cell in code (`tools/wl_render.cjs`, `SCALE_SURFACES`):
+
+- **F-38.22** — thirty colour literals across seven files in the slice tree. Inside the
+  shell's scope they bypass the variable layer and paint Espresso brass where the accent is
+  teal. Same root cause as the ZIP 4 gold-FAB finding. The cure is mechanical
+  (`color-mix` against `--atelier-accent-text`, which renders identically on main) and it
+  is a sitting of its own, not a sweep folded into a structural crossing.
+- **F-38.23** — the older type register those bodies were built in.
+
+The frames are still captured. The founder sees the gap he is being asked to price.

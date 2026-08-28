@@ -216,7 +216,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
       <button type="button" onClick={onSelect} style={{
         flex: 1, minWidth: 0,
         display: 'flex', alignItems: 'center', gap: 16,
-        padding: '15px 16px 15px 22px',
+        padding: '15px 16px 15px var(--slice-inset, 22px)',
         background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
       }}>
         {/* Monogram glyph — always present, anchors left edge */}

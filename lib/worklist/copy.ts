@@ -187,6 +187,28 @@ export const COPY = {
   // home for a number that already drifted once (F-10.63).
   settingsTitle:    'Settings',
   billingTitle:     'Billing',
+
+  // ── M-FINISH S2 · R-38.11 · THE LIST FAMILY'S SIX HEADER WORDS ───────────
+  // NOUNS, ONE WORD EACH — R-38.6's shape rule, met without effort because a room's word
+  // IS a noun. They are the SAME bytes the tiles carry (lib/worklist/rooms.ts `label`) and
+  // the same the Slice Door carries (components/vendor/slices/SliceRow.tsx LABELS), which
+  // is a fact worth stating plainly rather than leaving for a reader to notice: THREE
+  // SURFACES SPELL THESE WORDS AND THIS FILE IS NOT YET THE ONE HOME FOR THEM.
+  //
+  // It is not made the one home this sitting, and the reason is that `LABELS` is read by
+  // the /vendor fallback too — pointing it at the shell's copy file would make a main-side
+  // component depend on a branch-side register, which is the direction D-2 forbids. The
+  // honest shape is the reverse (the shell reads LABELS), and it is a small sitting of its
+  // own because LABELS is keyed by DoorSlice and the shell is keyed by room id. Filed as
+  // F-38.23, priced, and asserted in the meantime: b40's C30 compares these six against
+  // LABELS and reddens if they ever disagree, so the duplication cannot drift even while
+  // it exists.
+  leadsTitle:    'Leads',
+  clientsTitle:  'Clients',
+  invoicesTitle: 'Invoices',
+  expensesTitle: 'Expenses',
+  eventsTitle:   'Events',
+  notesTitle:    'Notes',
   billingPlanLead:  'Your plan',
   billingPlansHead: 'Plans',
   // The status chips. Each reports THE RAIL and stops — it makes no claim about her plan,

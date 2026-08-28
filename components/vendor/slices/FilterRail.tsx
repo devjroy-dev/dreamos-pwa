@@ -23,7 +23,7 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
   if (!chips.length) return null;
   return (
     <div style={{
-      display: 'flex', gap: 6, overflowX: 'auto', padding: '2px 22px 10px',
+      display: 'flex', gap: 6, overflowX: 'auto', padding: '2px var(--slice-inset, 22px) 10px',
       scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
     }}>
       {chips.map(c => {

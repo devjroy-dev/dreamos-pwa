@@ -15,15 +15,24 @@
 // P2/P4/P5 will migrate them into their modules as those phases rebuild them.
 // Zero behavior change is the P1 contract.
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
-import { Header } from '@/components/vendor/Header';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
+// ── M-FINISH S2 · CE-38 relay #2 arm (c), REACHING THE LIST FAMILY ──────────
+// `Toast` reads five values off `useT()` as JAVASCRIPT, not as CSS variables, so inside the
+// shell — where no ThemeProvider mounts and none may (F-38.3) — it falls to
+// createContext(DARK)'s default and paints Espresso-dark on a Chalk page, in both modes,
+// forever. It does not throw, which is exactly why it would have shipped: the room renders,
+// the toast is simply the wrong colour, and only a capture with a toast ON SCREEN would
+// have caught it. D-38.1 is the doctrine — observe at the moment the defect is visible.
+// The pair is chosen by the SAME derivation that chooses everything else here, so there is
+// one fact about which tree we are in and one place it is read.
+import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -76,8 +85,24 @@ const SCHEDULE_ENABLED: boolean = false;
 // per the standing ruling). Counts slot reserved — TDW_09 may add.
 const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
 
+// ── M-FINISH S2 · R-38.11 · ONE DERIVATION OF "AM I INSIDE THE SHELL?" ──────
+// The list family is mounted from TWO route trees: /w/<room> (the shell) and the surviving
+// /vendor/list/<slice> fallback. Three things differ between them and all three follow from
+// the same fact, so the fact has ONE home rather than three props threaded through six
+// modules that have no business knowing which shell they are in.
+//
+// IT IS DERIVED FROM THE ROUTE, NOT PASSED. The route IS the authority on which tree
+// mounted this component; a prop is a second statement of that fact and can disagree with
+// it. D-38.1 (S2 kickoff §1; banked at next band) is the reason the cells below assert what
+// the surface DOES at each route rather than whether a prop was spelled correctly.
+export function useInShell(): boolean {
+  const pathname = usePathname();
+  return !!pathname && pathname.startsWith('/w/');
+}
+
 export function SliceDoor({ active }: { active: DoorSlice }) {
   const router = useRouter();
+  const inShell = useInShell();
   const [, setSlice] = useLastSlice();
   const rowRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLButtonElement | null>(null);
@@ -89,7 +114,7 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
 
   return (
     <div ref={rowRef} style={{
-      display: 'flex', gap: 4, padding: '0 22px 6px',
+      display: 'flex', gap: 4, padding: '0 var(--slice-inset, 22px) 6px',
       overflowX: 'auto', scrollbarWidth: 'none',
       borderBottom: '0.5px solid var(--atelier-card-border)',
     }}>
@@ -101,18 +126,30 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
             ref={isActive ? activeRef : undefined}
             type="button"
             aria-current={isActive ? 'page' : undefined}
-            onClick={() => { if (!isActive) { setSlice(s); router.push(`/vendor/list/${s}`); } }}
+            onClick={() => { if (!isActive) { setSlice(s); router.push(inShell ? `/w/${s}` : `/vendor/list/${s}`); } }}
             style={{
               flexShrink: 0,
               background: 'transparent', border: 'none', cursor: 'pointer',
               minHeight: 24, padding: '8px 10px', // pads the 24px line to a 40px touch target
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
             }}>
+            {/* ── THE OBLIGATION theme.ts SHIPPED UNDER BAR, DISCHARGED AT ITS NAMED SITTING ──
+                lib/worklist/theme.ts:28-31 recorded the inactive chip at 4.02:1 dark and
+                3.01:1 light against a 4.5 bar, named THIS line as the cause (a hard-coded
+                opacity 0.45, which no ink value can climb out of) and bound the cure BY
+                LABEL to "the Phase 2 SliceDoor sitting". The list family crossing is that
+                sitting, so it is discharged here rather than carried a third time.
+                THE OPACITY IS GONE, NOT TUNED. Two ink tokens carry the two states, and
+                both are MEASURED in theme.ts against the ground they sit on: ink-mute is
+                4.98:1 dark and 6.79:1 light, ink is 15.74:1 and 17.82:1. An opacity over a
+                token is a colour nobody measured; a token is a colour somebody did.
+                It reads correctly on the /vendor fallback too, because both trees define
+                these two variables — this is the one-home move, not a branch fork (D-2). */}
             <span style={{
               fontFamily: F.label, fontWeight: isActive ? 400 : 300, fontSize: 10,
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: 'var(--atelier-ink)', opacity: isActive ? 0.9 : 0.45,
-              transition: 'opacity 200ms ease',
+              color: isActive ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
+              transition: 'color 200ms ease',
             }}>
               {LABELS[s]}
               {/* counts slot reserved — TDW_09 may add */}
@@ -134,7 +171,8 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
 // Sheets/overlays/toast are passed through as children by SliceScreen.
 interface SliceShellProps {
   slice: ListSlice;
-  vendorName: string | null;
+  /** THE BACK/LABEL ROW ONLY. Inside the shell the row does not render, so this is never
+      called there — the shell's two nav seats are the way out and there is no chevron. */
   onBack: () => void;
   query: string;
   setQuery: (q: string) => void;
@@ -158,22 +196,46 @@ interface SliceShellProps {
   children?: ReactNode;
 }
 
-export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
+// ══ M-FINISH S2 · R-38.11 · WHAT CROSSED HERE, AND WHAT DELIBERATELY DID NOT ══
+//
+// `vendorName` LEFT WITH THE MASTHEAD, exactly as it left SettingsScreen at S1
+// (components/vendor/SettingsScreen.tsx:78). It existed to feed <Header>, and a prop that
+// no longer feeds anything is a prop the next reader will wire something to. Both callers
+// still hold the session; neither needs to hand it here.
+//
+// ⚠ `Header` IS NOT IMPORTED BY THIS FILE ANY MORE, AND THE DIFFERENCE FROM A CONDITIONAL
+// IS THE WHOLE FINDING — S1 paid for it once already. Keeping `import { Header }` and
+// writing `{chrome && <Header …/>}` renders correctly and STILL SHIPS the old masthead into
+// every shell room's chunk, with its drawer, its /vendor rows and 「DreamAi on WhatsApp」
+// (Header.tsx:355, banned by R-37.70/.78/.83). A conditional does not remove a module from
+// a bundle; only not importing it does. `Header` mounts at the fallback ROUTE now
+// (app/vendor/list/[slice]/page.tsx), which is the only place it is wanted.
+//
+// THE BODY DID NOT CROSS AND IS NOT REDESIGNED (R-38.12). Rows, sheets, mastheads and the
+// filter rail keep their current layout. Two things about them are DECLARED GAPS rather
+// than silent ones, and both are named in the handover and excluded from the render arm's
+// tuple cell by name: the slice tree's thirty colour LITERALS (F-38.22) and its old type
+// register. Neither is swept inside a structural crossing.
+export function SliceShell({ slice, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
+  const inShell = useInShell();
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
-      <Header vendorName={vendorName} />
-
-      {/* Sub-header: back + brass label. TDW_04 A3: the P5 masthead now sits
-          beneath the lane line — the back/label row stays (navigation), the
-          masthead carries THE number. */}
-      <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
-        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
-      </div>
+      {/* ── THE BACK/LABEL ROW IS THE OLD LAYOUT'S CHROME ────────────────────
+          Inside the shell it would be the two-mastheads defect one level down from where
+          R-38.1 removed it: WorklistShell already prints the room's word in its header and
+          already owns the way out. There is no chevron in the shell by construction — the
+          two nav seats are the way back, which is the same contract Billing and Settings
+          crossed under at S1. On the /vendor fallback the row renders exactly as before. */}
+      {!inShell && (
+        <div style={{ padding: '12px var(--slice-inset, 22px) 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
+        </div>
+      )}
       {/* TDW_04 A1 (L-1, ST-1): the lane declaration — one provenance line under
           every record-surface title, house voice. No surface claims totality it
           doesn't have. */}
-      <div style={{ padding: '0 22px 2px', marginTop: -4 }}>
+      <div style={{ padding: '0 var(--slice-inset, 22px) 2px', marginTop: -4 }}>
         <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
       </div>
 
@@ -181,14 +243,14 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
           the same function the hub Ledger reads. */}
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 0 }}>{masthead}</div>
-        {sortControl && <div style={{ padding: '14px 22px 0 0' }}>{sortControl}</div>}
+        {sortControl && <div style={{ padding: '14px var(--slice-inset, 22px) 0 0' }}>{sortControl}</div>}
       </div>
 
       {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
       <SliceDoor active={slice} />
 
       {/* Search */}
-      <div style={{ padding: '12px 22px 6px' }}>
+      <div style={{ padding: '12px var(--slice-inset, 22px) 6px' }}>
         <div style={{ position: 'relative' }}>
           <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: F.display, fontSize: 16, color: A.inkMute, lineHeight: 1, pointerEvents: 'none' }}>⌕</span>
           <input
@@ -233,7 +295,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
                 Said plainly, at the foot of the list, in the house voice. */}
             {!loading && !error && rows.length > 0 && CHIP_BLINDNESS[slice] && (
               <div style={{
-                padding: '14px 22px 20px',
+                padding: '14px var(--slice-inset, 22px) 20px',
                 fontFamily: F.script, fontWeight: 300, fontSize: 16,
                 color: A.inkMute, lineHeight: 1.5,
               }}>{CHIP_BLINDNESS[slice]}</div>
@@ -246,7 +308,13 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
       <button type="button" onClick={onAdd} aria-label={`Add ${LABELS[slice].toLowerCase()}`}
         className="atelier-fab"
         style={{
-          position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
+          // DERIVED, NOT GUESSED. The old shell's BottomNav is 82 tall, which is where the
+          // 82 came from. The worklist shell's chrome below the scroll column is the dock
+          // (8 + 44 + 8 padding/field, AiDock.tsx:82-83) plus the nav seat (52,
+          // WorklistShell.tsx:188) = 112.5, so a FAB at 82 would have sat ON the ask field.
+          // 120 is that plus one step of the 8-scale. Two numbers, each read from the file
+          // that owns the chrome it clears.
+          position: 'fixed', bottom: inShell ? 'calc(120px + env(safe-area-inset-bottom))' : 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
           width: 46, height: 46, borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
@@ -282,6 +350,7 @@ export interface SliceScreenProps<T extends { id: string }> {
 
 export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest }: SliceScreenProps<T>) {
   const router = useRouter();
+  const ToastView = useInShell() ? WlToast : Toast;
   const { session } = useVendorSession();
   const d = useData(vendorId);
 
@@ -1001,7 +1070,6 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   return (
     <SliceShell
       slice={slice}
-      vendorName={session?.name ?? null}
       onBack={() => router.back()}
       query={query}
       setQuery={setQuery}
@@ -1023,7 +1091,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       ) : undefined}
       onAdd={onAdd}
     >
-      <Toast toast={toast} />
+      <ToastView toast={toast} />
       <AddSheet
         open={addOpen}
         slice={slice}

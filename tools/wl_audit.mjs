@@ -31,6 +31,26 @@ if (!BASE) {
   process.exit(2);
 }
 
+// ── M-FINISH S2 · THE REGISTRY IS READ, NOT RETYPED ────────────────────────
+// The interim list below used to be fourteen literals copied out of lib/worklist/rooms.ts.
+// Two homes for one set, and the second home is the one that stops agreeing: the moment
+// six rooms crossed, this file would have gone on asserting that their /vendor hrefs were
+// legitimate and the cell would have PASSED on a shell linking backwards. That is not a
+// hypothetical — it is what this edit was about to be, until the list was derived instead.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
+const REGISTRY = readFileSync(join(REPO, 'lib/worklist/rooms.ts'), 'utf8');
+/** Every /vendor href the registry itself still ships, in its own words. */
+const registryVendorHrefs = () =>
+  (REGISTRY.match(/href:\s*'(\/vendor\/[^']+)'/g) || []).map((x) => x.match(/'([^']+)'/)[1]);
+/** The declared outbound exceptions, which R-38.11's amended standing says may only shrink. */
+const registryVendorLinks = () => {
+  const m = REGISTRY.match(/INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  return m ? (m[1].match(/'(\/vendor\/[^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
+};
+
 let pass = 0, fail = 0, incon = 0;
 const P = (n, why) => { console.log('PASS         ' + n + (why ? '  — ' + why : '')); pass++; };
 const F = (n, why) => { console.log('FAIL         ' + n + '  — ' + why); fail++; };
@@ -73,7 +93,13 @@ async function get(path) {
 // (lib/worklist/rooms.ts INTERIM_VENDOR_ROOMS), and the italic-serif and drawer-overlay
 // cells below are assertions ABOUT a carried room. Dropping it would have made those cells
 // pass by having nothing to look at.
-const PAGES = ['/w', '/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor', '/vendor/list/leads'];
+// M-FINISH S2 §4-1: the six crossed rooms join the corpus. `/vendor/list/leads` STAYS —
+// it is the surviving fallback and the R-37.79 one-drawer cell reads it as the carried
+// tree's specimen. A crossed room and its fallback are two different surfaces now and both
+// are fetched, because the interesting failure is them disagreeing.
+const PAGES = ['/w', '/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor',
+  '/w/leads', '/w/clients', '/w/invoices', '/w/expenses', '/w/events', '/w/notes',
+  '/vendor/list/leads'];
 const pageCorpus = new Map();
 let refTotal = 0, gotTotal = 0;
 const missed = [];
@@ -298,12 +324,9 @@ async function coverage() {
   // (INTERIM_VENDOR_ROOMS, INTERIM_VENDOR_LINKS) and the cell asserts that the hrefs
   // actually SHIPPED are exactly those. A room that slides back out of the shell reddens.
   // A room that crosses without leaving the list reddens too.
-  const INTERIM_ROOM_HREFS = [
-    '/vendor/list/leads', '/vendor/list/clients', '/vendor/list/invoices', '/vendor/list/expenses',
-    '/vendor/list/events', '/vendor/list/notes', '/vendor/calendar', '/vendor/storefront',
-    '/vendor/portfolio', '/vendor/couture', '/vendor/team-hub', '/vendor/contracts',
-    '/vendor/tds', '/vendor/collab',
-  ];
+  // DERIVED FROM THE REGISTRY AT RUN TIME (M-FINISH S2). It was fourteen literals here and
+  // eight now; nobody edits this line to make that true. See the note at the top of the file.
+  const INTERIM_ROOM_HREFS = registryVendorHrefs();
   // DERIVED, NOT ASSUMED, AND MY OWN DECLARATION WAS WRONG BY ONE. R-38.7 anticipated a
   // single outbound link from a crossed shell surface — 「Profile layout」. The gate found
   // three, and the three had three different dispositions, which is why they are listed
@@ -316,9 +339,13 @@ async function coverage() {
   //                              signpost pointed at the AtelierForm card while the tile
   //                              went to the rebuilt page. CURED at the site, repointed to
   //                              /w/billing, and therefore absent from this list.
-  const INTERIM_LINKS = ['/vendor/discover/preview', '/vendor/discover/profile'];
+  // Also derived. R-38.11's amended standing (CE-38 relay #1 item 3) permits exactly the
+  // declared set and says it MAY ONLY SHRINK, so reading it is the only way this cell can
+  // enforce that direction rather than merely restate today's contents.
+  const INTERIM_LINKS = registryVendorLinks();
   const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, '/vendor/onboarding']);
-  const shellSurfaces = ['/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor'];
+  const shellSurfaces = ['/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor',
+    '/w/leads', '/w/clients', '/w/invoices', '/w/expenses', '/w/events', '/w/notes'];
   const strays = new Set();
   for (const path of shellSurfaces) {
     const body = pageCorpus.get(path) || '';
@@ -327,7 +354,7 @@ async function coverage() {
     }
   }
   if (strays.size) F('R-38.1 no undeclared /vendor href', [...strays].join(' \u00b7 '));
-  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, 1 declared interim link, 0 strays');
+  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, ' + INTERIM_LINKS.length + ' declared interim links, 0 strays across ' + shellSurfaces.length + ' shell surfaces');
 
   // ── R-38.2 · TILES AND SEATS ARE ANCHORS ──────────────────────────────────
   // A <button> tells Next nothing, so its chunk and its RSC payload are both fetched ON

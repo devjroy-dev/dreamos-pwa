@@ -285,6 +285,18 @@ async function seat(browser, mode) {
     // typographically. Capturing it and letting the cell pass over it would make R-38.4's
     // "by construction, not by sweep" claim false on the first surface that tested it. The
     // exclusion is one line of code and one line of handover, so it cannot be forgotten.
+    //
+    // ⚠ THE SIX CROSSED LIST ROOMS ARE EXCLUDED BY NAME TOO, ON THE SAME REASONING AND
+    // WITH THE SAME REFUSAL TO GO QUIET ABOUT IT. They crossed STRUCTURALLY at S2 §4-1 and
+    // their CHROME conforms; their BODIES do not, and R-38.12 is why they were not made to.
+    // Two facts about those bodies are filed rather than swept:
+    //   F-38.22 — thirty colour literals across seven files in the slice tree, which bypass
+    //             the variable layer and paint Espresso brass inside a Graphite scope.
+    //   F-38.23 — the older type register the slice tree was built in.
+    // Capturing these six and letting this cell pass over them would make R-38.4's "by
+    // construction, not by sweep" claim false on six surfaces at once. The exclusion is
+    // three lines of code and a paragraph of handover, so it cannot be forgotten — and the
+    // frames are still taken, so the founder SEES the gap he is being asked to price.
     const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor'];
     const RUNGS = [
       { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
@@ -729,10 +741,17 @@ async function seat(browser, mode) {
       // §5's capture set. Billing, Settings and Advisor are SHELL routes now; the two
       // /vendor frames that remain are carried rooms that have not crossed, kept so the
       // founder can see the seam he is being asked to judge rather than only the cured half.
+      // M-FINISH S2 §4-1. The six crossed rooms are captured AT REST, and `/vendor/list/leads`
+      // is kept beside `/w/leads` on purpose: they are the same body in two shells now, so
+      // the pair is the evidence of what the crossing actually did. The remaining /vendor
+      // frame is a room that has NOT crossed, kept so the founder judges the seam rather
+      // than only the cured half.
       for (const [name, path] of [['w-rooms', '/w/rooms'], ['w-today', '/w/today'],
         ['w-billing', '/w/billing'], ['w-settings', '/w/settings'],
         ['w-advisor', '/w/advisor'], ['w-support', '/w/support'],
-        ['room-leads', '/vendor/list/leads'], ['room-collab', '/vendor/collab']]) {
+        ['w-leads', '/w/leads'], ['w-clients', '/w/clients'], ['w-invoices', '/w/invoices'],
+        ['w-expenses', '/w/expenses'], ['w-events', '/w/events'], ['w-notes', '/w/notes'],
+        ['fallback-leads', '/vendor/list/leads'], ['room-collab', '/vendor/collab']]) {
         // A FRAME OF A HALF-MOUNTED PAGE IS EVIDENCE OF NOTHING and would be handed to the
         // founder looking like a broken surface. The capture waits on the shell too, and a
         // surface that never mounts is named in the log rather than photographed.

@@ -188,7 +188,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       <SwipeRow right={swipeRight} left={swipeLeft}>
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} style={{
         width: '100%', display: 'block', textAlign: 'left',
-        padding: '16px 22px 14px', background: 'transparent', border: 'none', cursor: 'pointer',
+        padding: '16px var(--slice-inset, 22px) 14px', background: 'transparent', border: 'none', cursor: 'pointer',
       }}>
         {/* Line 1 — the name */}
         <div style={{
@@ -282,7 +282,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
 
       {/* Expand — the story timeline + actions */}
       {open && (
-        <div style={{ padding: '0 22px 16px' }}>
+        <div style={{ padding: '0 var(--slice-inset, 22px) 16px' }}>
           {timeline.length > 0 ? (
             <div style={{ borderLeft: '0.5px solid rgba(201,168,76,0.35)', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {timeline.map((line, i) => (

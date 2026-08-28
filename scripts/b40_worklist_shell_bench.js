@@ -564,5 +564,195 @@ cell('C23 the dock\'s shape and its destination agree', () => {
   return null;
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// M-FINISH S2 · §4-1 · THE LIST FAMILY CROSSED. SEVEN CELLS.
+//
+// D-38.1 (S2 kickoff §1; banked at next band) governs every one of them: "A cell asserts
+// behaviour, never presence; and it observes at the moment the defect is visible, not the
+// moment the instrument is comfortable." Read concretely here that means C25 does not ask
+// whether the word `WorklistShell` appears in a route file — it asks whether the route
+// mounts the shell AND does not import the old masthead, which is the pair that was
+// actually wrong. And C26 does not ask whether SliceShell "still has a Header import"; it
+// counts every mount in the tree against a declared census, because the mount this family
+// hid was in `notes.tsx`, a file nobody would have thought to look in.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// A comment-blind reader of the whole tree. The base census S1 published was 28; re-derived
+// through `strip()` it is 27, because a `<Header …/>` written inside a comment ABOUT
+// `<Header …/>` was counted as a mount. F-38.24. The instrument that prevents exactly this
+// is at the top of this file and was simply never pointed at the census.
+function mountCensus(tag) {
+  const seen = new Map();
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      if (e.name === 'node_modules' || e.name === '.next' || e.name === '.git') continue;
+      const rel = dir + '/' + e.name;
+      if (e.isDirectory()) walk(rel);
+      else if (e.name.endsWith('.tsx')) {
+        const n = (strip(read(rel)).match(new RegExp('<' + tag + '[\\s/>]', 'g')) || []).length;
+        if (n) seen.set(rel, n);
+      }
+    }
+  };
+  walk('app'); walk('components');
+  return seen;
+}
+
+cell('C24 the six list rooms crossed in the registry, as a set', () => {
+  const src = strip(read('lib/worklist/rooms.ts'));
+  const FAMILY = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
+  for (const id of FAMILY) {
+    const m = src.match(new RegExp("\\{\\s*id:\\s*'" + id + "'[^}]*href:\\s*'([^']+)'"));
+    if (!m) return 'room ' + id + ' vanished from the registry';
+    if (m[1] !== '/w/' + id) return id + ' still points at ' + m[1] + ' — the tile did not cross';
+  }
+  // THE SET, NOT A COUNT. A room that crosses without leaving the interim list is a registry
+  // saying two different things about the same room.
+  const ib = src.match(/INTERIM_VENDOR_ROOMS[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  if (!ib) return 'INTERIM_VENDOR_ROOMS not found';
+  const interim = (ib[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
+  for (const id of FAMILY) {
+    if (interim.includes(id)) return id + ' crossed but is still declared an interim /vendor room';
+  }
+  const stillVendor = (src.match(/href:\s*'\/vendor\/[^']*'/g) || []).length;
+  if (stillVendor !== interim.length)
+    return 'the registry carries ' + stillVendor + ' /vendor hrefs but declares ' + interim.length + ' interim rooms';
+  return null;
+});
+
+cell('C25 each crossed room mounts the shell and no second masthead', () => {
+  const bad = [];
+  for (const id of ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes']) {
+    const f = 'app/w/' + id + '/page.tsx';
+    if (!fs.existsSync(path.join(ROOT, f))) { bad.push(f + ' does not exist'); continue; }
+    const src = strip(read(f));
+    if (!/<WorklistShell/.test(src)) bad.push(id + ' does not mount WorklistShell');
+    if (/<Header[\s/>]/.test(src)) bad.push(id + ' mounts the old masthead inside the shell');
+    if (/components\/vendor\/Header/.test(src)) bad.push(id + ' IMPORTS Header — a conditional does not empty a chunk');
+    if (!/<RoomBody/.test(src)) bad.push(id + ' does not sit in RoomBody — it will double the gutter');
+    if (!new RegExp('COPY\\.' + id + 'Title').test(src)) bad.push(id + ' does not take its header word from the copy register');
+  }
+  return bad.length ? bad.join(' | ') : null;
+});
+
+cell('C26 the old chrome mounts equal their declared census, exactly', () => {
+  const src = strip(read('lib/worklist/rooms.ts'));
+  const parse = (name) => {
+    const m = src.match(new RegExp(name + '[^=]*=\\s*\\[([\\s\\S]*?)\\n\\] as const;'));
+    if (!m) throw new Error(name + ' not found');
+    return m[1];
+  };
+  const declared = new Map();
+  for (const m of parse('INTERIM_VENDOR_MOUNTS').matchAll(/\['([^']+)',\s*(\d+)\]/g)) declared.set(m[1], Number(m[2]));
+  const actual = mountCensus('Header');
+  const problems = [];
+  for (const [f, n] of actual) {
+    if (!declared.has(f)) problems.push('UNDECLARED mount in ' + f + ' (' + n + ')');
+    else if (declared.get(f) !== n) problems.push(f + ' has ' + n + ' mounts, census says ' + declared.get(f));
+  }
+  // A REMOVAL REDDENS UNTIL THE CENSUS SHRINKS. That direction is what keeps the list honest
+  // as rooms cross: crossing a room without deleting its line here leaves a census nobody
+  // re-derived, which is the F-04.67 class.
+  for (const f of declared.keys()) if (!actual.has(f)) problems.push(f + ' is declared but mounts nothing — shrink the census');
+  const nav = mountCensus('BottomNav');
+  const navDeclared = (parse('INTERIM_BOTTOMNAV_MOUNTS').match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1));
+  for (const [f] of nav) if (!navDeclared.includes(f)) problems.push('UNDECLARED BottomNav mount in ' + f);
+  for (const f of navDeclared) if (!nav.has(f)) problems.push(f + ' declared for BottomNav but mounts none');
+  return problems.length ? problems.join(' | ') : null;
+});
+
+cell('C27 the shell tree imports neither piece of the old chrome', () => {
+  const offenders = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = dir + '/' + e.name;
+      if (e.isDirectory()) walk(rel);
+      else if (/\.tsx?$/.test(e.name)) {
+        const src = strip(read(rel));
+        if (/components\/vendor\/Header/.test(src)) offenders.push(rel + ' imports Header');
+        if (/components\/vendor\/BottomNav/.test(src)) offenders.push(rel + ' imports BottomNav');
+        // F-38.3's standing clause, carried onto the new routes rather than restated.
+        if (/\buseT\s*\(/.test(src)) offenders.push(rel + ' reads useT — the shell reads CSS variables only');
+      }
+    }
+  };
+  walk('app/w'); walk('components/worklist');
+  return offenders.length ? offenders.join(' | ') : null;
+});
+
+cell('C28 the Slice Door goes where it is mounted, and its inactive chip is legible', () => {
+  const src = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const door = src.slice(src.indexOf('export function SliceDoor'), src.indexOf('export function SliceShell'));
+  if (!door) return 'SliceDoor not found';
+  // BEHAVIOUR: the destination is a function of the tree, not a constant. A door that always
+  // pushes /vendor is a /vendor href reachable from a shell control, which the standing
+  // ruling forbids; a door that always pushes /w breaks the surviving fallback.
+  if (!/inShell \? `\/w\/\$\{s\}` : `\/vendor\/list\/\$\{s\}`/.test(door))
+    return 'the door does not choose its destination from the tree it is mounted in';
+  // theme.ts:28-31 shipped the contrast obligation UNDER BAR and named this very line as the
+  // cause. The cure is the removal of the opacity, so the cell asserts its absence at the
+  // chip and the presence of two measured tokens in its place.
+  if (/opacity:\s*isActive/.test(door)) return 'the inactive chip is still dimmed by a hard-coded opacity (theme.ts:28-31)';
+  if (!/isActive \? 'var\(--atelier-ink\)' : 'var\(--atelier-ink-mute\)'/.test(door))
+    return 'the chip does not carry the two measured ink tokens';
+  return null;
+});
+
+cell('C29 the crossed body contributes no horizontal inset of its own (R-37.82 (1))', () => {
+  const problems = [];
+  // The column components only. Sheets and overlays are not children of the scroll column
+  // and their own padding is theirs — flagging them would teach the reader to ignore this
+  // cell, which is worse than not having it.
+  const COLUMN = [
+    'components/vendor/slices/SliceShell.tsx', 'components/vendor/slices/SliceRow.tsx',
+    'components/vendor/slices/SwipeRow.tsx', 'components/vendor/slices/Masthead.tsx',
+    'components/vendor/slices/FilterRail.tsx', 'components/vendor/slices/BinderCard.tsx',
+  ];
+  for (const f of COLUMN) {
+    const src = strip(read(f));
+    for (const m of src.matchAll(/padding[^:]*:\s*'([^']*22px[^']*)'/g)) {
+      if (!/--slice-inset/.test(m[1])) problems.push(f + ' sets a bare 22px inset: ' + m[1]);
+    }
+  }
+  // ONE DECLARER. If a second surface starts declaring the variable, the room's inset has two
+  // homes again and the next disagreement between them is silent.
+  const declarers = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = dir + '/' + e.name;
+      if (e.isDirectory()) walk(rel);
+      else if (/\.tsx?$/.test(e.name) && /--slice-inset'\s*as|--slice-inset\s*:/.test(strip(read(rel)))) declarers.push(rel);
+    }
+  };
+  walk('app'); walk('components');
+  if (declarers.length !== 1 || declarers[0] !== 'components/worklist/RoomBody.tsx')
+    problems.push('the inset variable is declared at ' + (declarers.join(', ') || 'nowhere') + ', expected exactly components/worklist/RoomBody.tsx');
+  return problems.length ? problems.join(' | ') : null;
+});
+
+cell('C30 the header words cannot drift from the door labels, and the toast follows the tree', () => {
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const rowsrc = strip(read('components/vendor/slices/SliceRow.tsx'));
+  const lm = rowsrc.match(/LABELS[^=]*=\s*\{([^}]*)\}/);
+  if (!lm) return 'LABELS not found in SliceRow.tsx';
+  const labels = {};
+  for (const m of lm[1].matchAll(/([a-z]+):\s*'([^']+)'/g)) labels[m[1]] = m[2];
+  const bad = [];
+  for (const id of ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes']) {
+    const c = copy.match(new RegExp(id + "Title:\\s*'([^']+)'"));
+    if (!c) { bad.push(id + 'Title has no home in the copy register'); continue; }
+    if (c[1] !== labels[id]) bad.push(id + ': header word ' + JSON.stringify(c[1]) + ' but door label ' + JSON.stringify(labels[id]));
+  }
+  // The toast pairing rides in this cell rather than taking one of its own: it is the same
+  // fact — a component reading a context the shell does not provide and painting the wrong
+  // world without erroring.
+  const shell = strip(read('components/vendor/slices/SliceShell.tsx'));
+  if (/<Toast\s/.test(shell)) bad.push('SliceShell mounts Toast directly — inside /w it falls to createContext(DARK)');
+  if (!/ToastView = useInShell\(\) \? WlToast : Toast/.test(shell)) bad.push('SliceScreen does not pair its toast to the tree');
+  const cl = strip(read('app/vendor/list/[slice]/clients.tsx'));
+  if (/<Toast\s/.test(cl)) bad.push('the clients module mounts Toast directly');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

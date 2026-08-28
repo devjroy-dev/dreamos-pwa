@@ -58,7 +58,7 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
     : String(shown);
 
   return (
-    <div style={{ padding: '10px 22px 12px' }}>
+    <div style={{ padding: '10px var(--slice-inset, 22px) 12px' }}>
       <div style={{
         fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         letterSpacing: '0.06em', color: A.inkMute,

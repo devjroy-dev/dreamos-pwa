@@ -14,18 +14,25 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCabinetData, useLeadsData } from '@/hooks/vendor/useVendorData';
 import { phoneKey } from '@/lib/vendor/cabinet';
-import { SliceShell } from '@/components/vendor/slices/SliceShell';
+import { SliceShell, useInShell } from '@/components/vendor/slices/SliceShell';
 import { BinderCard } from '@/components/vendor/slices/BinderCard';
 import { Masthead } from '@/components/vendor/slices/Masthead'; // TDW_04 A3
 import { deriveClients } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { A, F } from '@/components/vendor/slices/SliceRow';
 import { AddSheet } from '@/components/vendor/AddSheet';
 import { Toast } from '@/components/vendor/Toast';
+import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
 export default function ClientsSlice({ vendorId }: { vendorId: string }) {
   const router = useRouter();
+  // The same pairing as SliceScreen's, for the same reason — see the note at the WlToast
+  // import in SliceShell.tsx. This slice drives SliceShell directly, so it carries its own
+  // mount; it does NOT carry its own copy of the predicate. `useInShell` is imported from
+  // the one file that defines it, because a pathname test written twice is a decision with
+  // two homes, and the second one is the one that stops agreeing.
+  const ToastView = useInShell() ? WlToast : Toast;
   const cab = useCabinetData(vendorId);
   const typedLeads = useLeadsData(vendorId); // R1(b): the typed plane, for the cross-chip
   const leadByPhone = useMemo(() => {
@@ -55,7 +62,6 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
   return (
     <SliceShell
       slice="clients"
-      vendorName={cab.data?.vendor?.name ?? null}
       onBack={() => router.back()}
       query={query}
       setQuery={setQuery}
@@ -95,7 +101,7 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
         </>
       }
     >
-      <Toast toast={toast} />
+      <ToastView toast={toast} />
       <AddSheet
         open={addOpen}
         slice="clients"

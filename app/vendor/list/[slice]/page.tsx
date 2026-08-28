@@ -10,6 +10,7 @@
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { Header } from '@/components/vendor/Header';
 import type { DoorSlice } from '@/hooks/vendor/useLastSlice';
 import { A, F } from '@/components/vendor/slices/SliceRow';
 import LeadsSlice from './leads';
@@ -40,5 +41,24 @@ export default function SlicePage() {
       <div style={{ fontFamily: F.script, color: A.inkMute }}>Unknown.</div>
     </div>;
   const Mod = MODULES[slice];
-  return <Mod vendorId={session.id} />;
+  // ── M-FINISH S2 · R-38.11 · THE MASTHEAD MOUNTS HERE, NOT INSIDE THE FAMILY ──
+  // `SliceShell` and the `notes` module each carried their own <Header>. Both are mounted
+  // from TWO trees now — this fallback and /w/<room> — so a masthead inside them is a
+  // masthead inside the shell, which is the two-mastheads defect R-38.1 removed.
+  //
+  // IT IS NOT GATED BY A PROP, IT IS MOUNTED AT THE ROUTE, and S1 paid to learn the
+  // difference: a conditional still BUNDLES Header into the shell's chunk with its drawer
+  // and its banned bytes, and the audit's R-38.1 cell reddens on those hrefs. Only not
+  // importing it keeps it out. This route is the only place it is wanted, so this is where
+  // it is imported. One mount covers all six modules, including `notes`.
+  //
+  // ⚠ THIS ROUTE IS AN UNTOUCHED FALLBACK NOW. Nothing in the shell links to it; the six
+  // room tiles point at /w/<room> (lib/worklist/rooms.ts). It survives on disk for main and
+  // for any wire address already in the world, and it retires at cutover, not before.
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <Header vendorName={session.name ?? null} />
+      <Mod vendorId={session.id} />
+    </div>
+  );
 }

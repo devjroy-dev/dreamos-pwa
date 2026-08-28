@@ -37,14 +37,20 @@ export interface Room {
 /** \u00a78.2: Calendar and Storefront are the two default pins. Nothing else pre-pins. */
 export const DEFAULT_PINS: readonly string[] = ['calendar', 'storefront'] as const;
 
+// R-38.11 \u00b7 CROSSED AT M-FINISH S2, \u00a74-1. THE LIST FAMILY CROSSED AS A FAMILY, and the
+// reason is structural rather than tidy: six of these rooms are ONE definition
+// (components/vendor/slices/SliceShell.tsx) mounted six times. Crossing them one at a time
+// would have meant the shared shell losing its masthead on the first crossing and the other
+// five rendering headless under the OLD layout until they caught up \u2014 five broken
+// surfaces as a deliberate intermediate state, for no gain.
 export const ROOMS: readonly Room[] = [
   // ── TOP BAND \u00b7 seven ───────────────────────────────────────
-  { id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/list/leads',     pinnable: true  },
-  { id: 'clients',   label: 'Clients',   band: 'work', href: '/vendor/list/clients',   pinnable: true  },
-  { id: 'invoices',  label: 'Invoices',  band: 'work', href: '/vendor/list/invoices',  pinnable: true  },
-  { id: 'expenses',  label: 'Expenses',  band: 'work', href: '/vendor/list/expenses',  pinnable: true  },
-  { id: 'events',    label: 'Events',    band: 'work', href: '/vendor/list/events',    pinnable: true  },
-  { id: 'notes',     label: 'Notes',     band: 'work', href: '/vendor/list/notes',     pinnable: true  },
+  { id: 'leads',     label: 'Leads',     band: 'work', href: '/w/leads',     pinnable: true  },
+  { id: 'clients',   label: 'Clients',   band: 'work', href: '/w/clients',   pinnable: true  },
+  { id: 'invoices',  label: 'Invoices',  band: 'work', href: '/w/invoices',  pinnable: true  },
+  { id: 'expenses',  label: 'Expenses',  band: 'work', href: '/w/expenses',  pinnable: true  },
+  { id: 'events',    label: 'Events',    band: 'work', href: '/w/events',    pinnable: true  },
+  { id: 'notes',     label: 'Notes',     band: 'work', href: '/w/notes',     pinnable: true  },
   { id: 'calendar',  label: 'Calendar',  band: 'work', href: '/vendor/calendar',       pinnable: true  },
   // ── BOTTOM BAND \u00b7 eleven ──────────────────────────────────
   { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',  pinnable: true  },
@@ -109,7 +115,11 @@ export const FROZEN_ORDER: readonly string[] = [
  * that nobody re-derives.
  */
 export const INTERIM_VENDOR_ROOMS: readonly string[] = [
-  'leads', 'clients', 'invoices', 'expenses', 'events', 'notes', 'calendar',
+  // SHRANK BY SIX AT M-FINISH S2 \u00a74-1 (fourteen \u2192 eight). The list family left this
+  // list in the SAME edit that changed its hrefs, which is the whole point of asserting the
+  // SET rather than a count: a room that crosses without leaving here reddens, and a room
+  // that slides back out of the shell reddens too.
+  'calendar',
   'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'collab',
 ] as const;
 
@@ -129,6 +139,74 @@ export const INTERIM_VENDOR_LINKS: readonly string[] = [
   // been enumerated before the surface crossed — the audit found it in one run, and the
   // list is honest only because it is asserted rather than described.
   '/vendor/discover/profile',
+] as const;
+
+/**
+ * THE OLD CHROME'S SURVIVING MOUNTS \u2014 ENUMERATED, BECAUSE "ZERO" WAS NOT REACHABLE.
+ *
+ * R-38.11 first read "`Header.tsx` and `BottomNav.tsx` end this sitting with zero mounts on
+ * the branch". Derived at 7af1e82 that could not be met and could not be met LATER either,
+ * and the two reasons are worth writing down rather than discovering twice:
+ *
+ *   \u00b7 Of the twenty-seven Header mounts on the branch, only twelve belonged to rooms that
+ *     are crossing at all. The rest sit on the /vendor hub itself, on Discover, Featured,
+ *     More and the four Studio surfaces \u2014 pages that are not rooms, are not in this
+ *     registry, and are not chartered to cross in this block.
+ *   \u00b7 `BottomNav` has exactly ONE mount in the whole tree and it is not in any room:
+ *     `app/vendor/layout.tsx` mounts it. Crossing every room in this registry removes zero
+ *     BottomNav mounts. Only retiring that layout does, and R-38.11's own "nothing deletes"
+ *     forbids it this block.
+ *
+ * SO THE CELL ASSERTS THE SET, in the shape this file already uses twice above. The ruling
+ * was struck and re-cut at CE-38 relay #1 item 2. An assertion that is false on purpose is
+ * worse than no assertion \u2014 a seat reading it would either loosen it or ignore it, and both
+ * teach that this cell may be argued with.
+ *
+ * THE COUNTS ARE COMMENT-BLIND, and that is not a detail. S1's census read 28 by eye and
+ * counted a `<Header \u2026/>` written INSIDE a comment explaining `<Header \u2026/>`. The bench's
+ * own `strip()` law exists for exactly this and was not applied to the census that produced
+ * the number. Re-derived through `strip()` at 7af1e82 the true base was 27 across 23 files;
+ * after \u00a74-1 it is 26 across 22. Filed as F-38.24.
+ *
+ * A RE-ADD REDDENS. A REMOVAL REDDENS UNTIL THIS SHRINKS. That is the whole contract: the
+ * exception is counted rather than explained, so it cannot grow quietly, and a room that
+ * crosses without deleting its line here does not get to call itself crossed.
+ */
+export const INTERIM_VENDOR_MOUNTS: readonly (readonly [string, number])[] = [
+  ['app/vendor/billing/page.tsx', 1],
+  ['app/vendor/calendar/page.tsx', 1],
+  ['app/vendor/collab/[post_id]/responses/page.tsx', 1],
+  ['app/vendor/collab/page.tsx', 1],
+  ['app/vendor/contracts/page.tsx', 1],
+  ['app/vendor/couture/page.tsx', 2],
+  ['app/vendor/discover/page.tsx', 1],
+  ['app/vendor/discover/profile/page.tsx', 1],
+  ['app/vendor/discover/submit/page.tsx', 1],
+  ['app/vendor/featured/page.tsx', 2],
+  // THE FAMILY'S ONE SURVIVING MOUNT, AND IT IS NEW. `SliceShell` and the `notes` module
+  // each carried their own; both gave them up, and the fallback ROUTE took one mount that
+  // covers all six modules. Net for \u00a74-1: minus two, plus one.
+  ['app/vendor/list/[slice]/page.tsx', 1],
+  ['app/vendor/more/page.tsx', 1],
+  ['app/vendor/page.tsx', 1],
+  ['app/vendor/portfolio/page.tsx', 1],
+  ['app/vendor/settings/page.tsx', 1],
+  ['app/vendor/storefront/page.tsx', 1],
+  ['app/vendor/studio/notes/page.tsx', 1],
+  ['app/vendor/studio/tasks/page.tsx', 2],
+  ['app/vendor/studio/team-payments/page.tsx', 2],
+  ['app/vendor/studio/team/page.tsx', 1],
+  ['app/vendor/tds/page.tsx', 1],
+  ['app/vendor/team-hub/page.tsx', 1],
+] as const;
+
+/**
+ * `BottomNav`'s one mount. Separate from the list above because it is a DIFFERENT FACT with
+ * a different retirement: it is not a room's chrome at all, it is the old root layout's, and
+ * it leaves when that layout does. Ruled at CE-38 relay #1 item 2 \u2014 Phase 7, with the layout.
+ */
+export const INTERIM_BOTTOMNAV_MOUNTS: readonly string[] = [
+  'app/vendor/layout.tsx',
 ] as const;
 
 export function roomsInBand(band: Band): Room[] {
