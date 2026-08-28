@@ -92,6 +92,26 @@ export function readModeClient(): WlMode {
 //   RETIRES WHEN `INTERIM_VENDOR_ROOMS` IS EMPTY. Not on a date and not next sitting: on
 //   the last crossing, when there is no room left that reads the other key. The condition
 //   is derivable from the registry by command, so nothing has to remember it.
+//
+// ── RETIRED AT §4-4 BATCH ③. THE CONDITION FIRED AND THE WRITE IS GONE. ────
+// Collab crossed, `INTERIM_VENDOR_ROOMS` is `[]`, and no room in the registry reads the
+// other key any more. The bridge write is removed from `writeMode` below. The clause above
+// is kept rather than deleted because it is the REASON this line existed and the reason it
+// stopped existing; a retirement that erases its own condition leaves the next reader
+// unable to tell a cure from a deletion.
+//
+// ⚠ THE CAVEAT, AND IT IS A REAL ONE THE FOUNDER SHOULD READ BEFORE HE WALKS. The `/vendor`
+// FALLBACK ROUTES REMAIN ON DISK until Phase 7 retires `app/vendor/layout.tsx`. A vendor who
+// reaches one by a raw URL, a stale bookmark or a service-worker cache renders under the old
+// lane and that lane reads `dreamai_theme` — which now holds whatever it held at the last
+// flip before this deploy, and stops tracking her choice from here on. NOTHING IN THE SHELL
+// LINKS THERE: eighteen tiles, every cross-room leg and both fallback bases were derived at
+// this cut. So the divergence is reachable only by leaving the product the way it is built,
+// and it dies with the routes at Phase 7.
+//
+// THE KEY KEEPS ITS NAME AND ITS EXPORT because the old lane still READS it at three sites
+// and the inverted bench still asserts that exactly nothing WRITES it. A constant deleted
+// while its readers live is how a string comes back as a literal.
 export const VENDOR_LANE_KEY = 'dreamai_theme';
 
 /** The one writer. The drawer toggle calls this and nothing else writes the mode. */
@@ -102,7 +122,10 @@ export function writeMode(mode: WlMode): void {
   document.cookie = `${MODE_COOKIE}=${mode}; path=/; max-age=31536000; samesite=lax`;
   try {
     localStorage.setItem(MODE_LEGACY_KEY, mode);
-    // F-38.52, the bridge. Same call, same writer, retiring with the last crossing.
-    localStorage.setItem(VENDOR_LANE_KEY, mode);
-  } catch { /* private mode — the cookie holds the /w lane and the bridge is lost with it */ }
+    // ── F-38.52's BRIDGE WRITE STOOD HERE AND RETIRED AT §4-4 BATCH ③ ────────
+    // `localStorage.setItem(VENDOR_LANE_KEY, mode)` — removed on its own stated condition,
+    // the last crossing, not on a date. The cookie is the one authority now and there is
+    // nothing left for it to be kept in step with. The caveat about the surviving fallback
+    // routes is written at the key's declaration above, where the key still lives.
+  } catch { /* private mode — the cookie holds the /w lane and the legacy key is lost with it */ }
 }

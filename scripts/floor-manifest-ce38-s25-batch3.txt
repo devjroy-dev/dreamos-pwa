@@ -1,0 +1,33 @@
+# scripts/floor-manifest-ce38-s25-batch3.txt — BASE a33d70d (re-cut; the 1838a1b cut is void)
+# M-FINISH S2/5 · §4-4 BATCH ③ — COLLAB CROSSES; THE SHELL COMPLETES.
+# [F-19.16] The delivery's own file table, which the handover carries anyway.
+# The runner tolerates a dirty SET, never dirty CONTENTS.
+
+# §3-1 · the crossing, room and interior
+app/vendor/collab/screen.tsx
+app/vendor/collab/page.tsx
+app/vendor/collab/[post_id]/responses/screen.tsx
+app/vendor/collab/[post_id]/responses/page.tsx
+app/w/collab/page.tsx
+app/w/collab/[post_id]/responses/page.tsx
+lib/worklist/rooms.ts
+lib/worklist/copy.ts
+# F-38.p1 — the calendar crew sheet's cross-room leg asks the address book now
+components/vendor/CalendarCrewSheet.tsx
+# F-38.p2 — C31 reads the fallback-base SET; amended by label, not loosened
+scripts/b40_worklist_shell_bench.js
+
+# §3-2 · the bridge retires; its bench inverts, count preserved
+lib/worklist/mode.ts
+scripts/modeBridge.proof.ts
+
+# §3-3 · the seam frame goes true-tense
+tools/wl_render.cjs
+
+# §3-4 · the un-stripped-reader guard, RED at birth by ruling
+scripts/tdw_f0774_readers.proof.mjs
+scripts/run-floor.sh
+
+# the handover
+docs/TDW_09_M_FINISH_S25_BATCH3_HANDOVER.md
+scripts/floor-manifest-ce38-s25-batch3.txt

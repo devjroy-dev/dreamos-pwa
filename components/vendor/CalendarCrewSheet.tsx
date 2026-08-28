@@ -16,6 +16,7 @@ import { commitCrew } from '@/lib/vendor/crewCommit';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import type { TeamMember, DayEvent } from '@/lib/vendor/types/vendor';
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
+import { roomHref } from '@/lib/worklist/rooms'; // §4-4 batch ③: the one home for where a room lives
 
 const SHEET: React.CSSProperties = {
   background: 'var(--atelier-sheet-top)',
@@ -132,7 +133,17 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
     const qs = new URLSearchParams({ post: '1', date: eventDate, city });
     if (type) qs.set('type', type);
     onClose();
-    router.push(`/vendor/collab?${qs.toString()}`);
+    // ── §4-4 BATCH ③ · THE ADDRESS BOOK ANSWERS FOR THIS LEG NOW ──────────
+    // This was a literal `/vendor/collab?…`, written before the shell existed, and it was
+    // CORRECT until this sitting: collab's registry href WAS that address, so the literal
+    // and the registry agreed by coincidence rather than by construction. Collab crossing
+    // makes them disagree, and this sheet is reachable from `/w/calendar` — so a vendor
+    // prefilling a collab post from her calendar would have been thrown out of the shell.
+    // A cross-link to a DIFFERENT room is a departure whichever tree it starts in, which is
+    // the registry's ruled asymmetry with `SliceDoor`: the Door is lateral movement inside
+    // one family and is tree-aware; this is not, so it asks the one home and both trees get
+    // the same answer. C31 found it in the same edit that broke it.
+    router.push(`${roomHref('collab')}?${qs.toString()}`);
   }
 
   // TDW_09 R-U25: was the glyph form. A crew rate is money a vendor reads.

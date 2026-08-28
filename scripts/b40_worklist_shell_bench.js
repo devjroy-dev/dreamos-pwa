@@ -975,8 +975,15 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // exists to catch. Both-ways proof caught it: RED for the wrong reason is not RED on the
   // cure assertion. The missing declaration is now collected as one more stray and the walk
   // runs regardless, so the cell reddens on the DEFECT and mentions the scaffolding.
-  const fb = reg.match(/FALLBACK_SLICE_BASE\s*=\s*'([^']+)'/);
-  const fallback = fb ? fb[1] : null;
+  // ── AMENDED BY LABEL — §4-4 BATCH ③. THE SCALAR BECAME A SET, AND THE CELL DID NOT ──
+  // ── LOOSEN. `FALLBACK_SLICE_BASE` held one string because at S2 §9 there was one
+  // tree-aware fallback base. Collab's interior is the second instance of the same class, and
+  // a second scalar with a second name is how the class walks away from its cure — twice
+  // filed on this arc already. The match is still EXACT, member by member: a BASE passes and
+  // a whole carried href does not, which is the property that catches a room sliding back out
+  // of the shell. What changed is the arity, not the strictness.
+  const fbm = reg.match(/export const FALLBACK_TREE_BASES[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  const fallbacks = fbm ? (fbm[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
   const pm = reg.match(/INTERIM_HUB_PRIMERS[^=]*=\s*\[([\s\S]*?)\] as const;/);
   const primers = pm ? (pm[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
 
@@ -994,7 +1001,7 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
       // EXACT, not prefix. '/vendor/list/' is the Door's tree-aware fallback and passes;
       // '/vendor/list/leads' is a full carried href and does not, because a whole address
       // in the bytes means a room slid back out of the shell.
-      if (fallback && h.href === fallback) continue;
+      if (fallbacks.includes(h.href)) continue;
       // The declared hub primers (F-38.41). EXACT, not prefix, for the same reason as the
       // fallback base: `/vendor?draft=` passes, `/vendor?draft=x/y` does not.
       if (primers.includes(h.href)) continue;
@@ -1007,7 +1014,10 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
     }
   }
   const problems = [...strays.values()];
-  if (!fallback) problems.push("FALLBACK_SLICE_BASE is not declared — the Slice Door's fallback prefix has no home in the registry");
+  // AN EMPTY SET IS THE MISSING DECLARATION, and it is collected as one more problem rather
+  // than returned on, for the reason written above: a cell that reddens on its own
+  // scaffolding never walks the graph it exists to walk.
+  if (!fallbacks.length) problems.push('FALLBACK_TREE_BASES is not declared or is empty — the tree-aware fallback bases have no home in the registry');
   if (!primers.length) problems.push('INTERIM_HUB_PRIMERS is not declared — the four /vendor?<query> doors have no home in the registry (F-38.41)');
   return problems.length ? problems.join(' | ') : null;
 });

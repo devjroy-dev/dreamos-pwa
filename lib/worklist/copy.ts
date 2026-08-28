@@ -357,6 +357,12 @@ export const COPY = {
   teamTitle:       'Team',
   contractsTitle:  'Contracts',
   tdsTitle:        'TDS',
+  // §4-4 batch ③. The tile has read 「Collab」 since the registry was written and the masthead
+  // takes the tile's byte, so the room is named the same thing in the grid and at the top of
+  // what it opens — `teamTitle`'s precedent. It also titles the room's INTERIOR (the
+  // responses thread), because the shell's masthead says where the vendor IS; the thread's
+  // own heading says what she is looking at.
+  collabTitle:     'Collab',
   calendarTitle: 'Calendar',
   leadsTitle:    'Leads',
   clientsTitle:  'Clients',

@@ -1240,13 +1240,21 @@ async function seat(browser, mode) {
         }
       };
       // §5's capture set. Billing, Settings and Advisor are SHELL routes now; the two
-      // /vendor frames that remain are carried rooms that have not crossed, kept so the
-      // founder can see the seam he is being asked to judge rather than only the cured half.
+      // /vendor frames that remain are CARRIED FALLBACKS of rooms that have crossed, kept so
+      // the founder can see the seam he is being asked to judge rather than only the cured
+      // half.
       // M-FINISH S2 §4-1. The six crossed rooms are captured AT REST, and `/vendor/list/leads`
       // is kept beside `/w/leads` on purpose: they are the same body in two shells now, so
-      // the pair is the evidence of what the crossing actually did. The remaining /vendor
-      // frame is a room that has NOT crossed, kept so the founder judges the seam rather
-      // than only the cured half.
+      // the pair is the evidence of what the crossing actually did.
+      //
+      // ── §4-4 BATCH ③ · THIS PREAMBLE WENT TRUE-TENSE WITH THE FRAME BELOW ──
+      // It read 「carried rooms that have not crossed」 and 「the remaining /vendor frame is a
+      // room that has NOT crossed」. BOTH SENTENCES DIED THE MOMENT COLLAB CROSSED, and they
+      // are the same F-38.29 shape as the frame's own comment three lines down — a comment
+      // describing the tree it used to sit in. Correcting the frame and leaving its own
+      // preamble false would have cured the sentence somebody happened to be looking at,
+      // which is the class-walks-away shape this arc has filed twice. Every /vendor frame in
+      // this set is now a fallback of a crossed room, and there is no other kind left.
       // ── THE SET IS DERIVED FROM THE REGISTRY  [§4-2] ────────────────────
       // It was thirteen hand-typed pairs, correct until a room crossed. Calendar crossed
       // and would have been the one surface the founder never saw a frame of — the newest
@@ -1258,9 +1266,21 @@ async function seat(browser, mode) {
         .map((k) => k.split('\u0000'));
       for (const [name, path] of [['w-rooms', '/w/rooms'], ['w-today', '/w/today'],
         ...shellFrames,
-        // The seam the founder is being asked to judge: a crossed room beside its own
-        // fallback, and a room that has NOT crossed. Both kept on purpose.
-        ['fallback-leads', '/vendor/list/leads'], ['room-collab', '/vendor/collab']]) {
+        // ── §4-4 BATCH ③ · THE SECOND FRAME'S COMMENT WAS TRUE UNTIL COLLAB CROSSED ──
+        // It read 「a room that has NOT crossed」, which is F-38.29's exact shape the moment
+        // the crossing lands: a comment that describes the tree it used to sit in. Collab is
+        // a shell room now — `/w/collab` joins the DERIVED `shellFrames` above with no edit
+        // here, which is what deriving the set bought.
+        //
+        // SO THE FRAME IS RE-POINTED AT WHAT IT ACTUALLY SHOWS NOW: the carried fallback,
+        // beside its crossed room, exactly as `fallback-leads` sits beside `/w/leads`. Two
+        // pairs of the same evidence — the same body in two shells — rather than one pair
+        // and one orphan. The name moves with the meaning, because a frame called
+        // `room-collab` filed next to `w-collab` is two names for one room in the founder's
+        // capture directory.
+        //
+        // IT RETIRES AT PHASE 7, with `app/vendor/layout.tsx` and the fallback routes.
+        ['fallback-leads', '/vendor/list/leads'], ['fallback-collab', '/vendor/collab']]) {
         // A FRAME OF A HALF-MOUNTED PAGE IS EVIDENCE OF NOTHING and would be handed to the
         // founder looking like a broken surface. The capture waits on the shell too, and a
         // surface that never mounts is named in the log rather than photographed.

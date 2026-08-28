@@ -1,4 +1,4 @@
-// lib/worklist/rooms.ts — THE SEVENTEEN ROOMS, IN FROZEN ORDER.
+// lib/worklist/rooms.ts — THE EIGHTEEN ROOMS, IN FROZEN ORDER.
 //
 // R-37.60 (six seats for the slices) \u00b7 R-37.61 (Settings and Billing take tiles)
 // \u00b7 R-37.62 (Portfolio pinnable, not pre-pinned) \u00b7 R-37.66 as amended (Contact Support
@@ -84,10 +84,12 @@ export const ROOMS: readonly Room[] = [
   { id: 'billing',   label: 'Billing',   band: 'business', href: '/w/billing',          pinnable: true  },
   { id: 'settings',  label: 'Settings',  band: 'business', href: '/w/settings',         pinnable: true  },
   { id: 'support',   label: 'Business Solutions', band: 'business', href: '/w/support', pinnable: false },
-  // R-37.87. A-4 interim like every other /vendor href: the tile DEEP-LINKS the existing
-  // collab surface, carried not rebuilt, until it crosses. Position is the founder's to
-  // reorder in one word — the frozen-order cell asserts wherever he puts it.
-  { id: 'collab',    label: 'Collab',    band: 'business', href: '/vendor/collab',      pinnable: true  },
+  // R-37.87, and CROSSED AT §4-4 BATCH ③ — THE LAST ROOM. The tile deep-linked the carried
+  // collab surface for four sittings; it points into the shell now, and its own interior
+  // (the responses thread) crossed in the SAME cut, because a room whose interior stayed
+  // behind is F-38.1 inside that room's walls. Position is the founder's to reorder in one
+  // word — the frozen-order cell asserts wherever he puts it.
+  { id: 'collab',    label: 'Collab',    band: 'business', href: '/w/collab',           pinnable: true  },
   // ── R-38.9 \u00b7 THE ADVISOR ROOM ─────────────────────────────────
   // F-38.2: `victor_mode` is live server truth (engine.agents.victor_mode, PATCH
   // /api/v2/vendor-e/mode — lib/vendor/api/vendor.ts:33-35) and the branch had ZERO
@@ -150,7 +152,24 @@ export const INTERIM_VENDOR_ROOMS: readonly string[] = [
   // that changed their hrefs above. ONE ROOM REMAINS \u2014 collab \u2014 and when it goes this
   // list is empty, which is the condition F-38.52's mode bridge names for its own
   // retirement. The number is derived from this list and from nowhere else.
-  'collab',
+  //
+  // ── SHRANK BY ONE AT \u00a74-4 BATCH \u2462 (one \u2192 ZERO). THE LIST IS EMPTY. ──────────
+  // Collab left in the SAME EDIT that changed its href above, for the fifth and last time.
+  // EIGHTEEN ROOMS, EIGHTEEN SHELL ROUTES: no tile in this registry deep-links the old tree
+  // any more, and the count that says so was derived from this list at every step rather
+  // than carried in a handover sentence nobody re-derives. The arc ran 14 \u2192 8 \u2192 7 \u2192
+  // 4 \u2192 1 \u2192 0.
+  //
+  // ⚠ EMPTY IS NOT RETIRED, AND THE DIFFERENCE IS THE WHOLE REASON THIS STAYS. The cell
+  // asserts the SET BOTH WAYS \u2014 every /vendor href in ROOMS appears here, and every id
+  // here still carries one \u2014 so at zero it now asserts that NO room has a /vendor href.
+  // A room that slides back out of the shell reddens against an empty list exactly as it
+  // would have against a full one. Deleting the constant would delete that guard on the day
+  // it finally became simple to state.
+  //
+  // ITS CONDITION FIRED. F-38.52's mode bridge named this emptiness as its own retirement
+  // trigger and the bridge retires in this same cut \u2014 derivable by command from this
+  // file, which is why nothing had to remember it.
 ] as const;
 
 /**
@@ -258,6 +277,18 @@ export const INTERIM_VENDOR_LINKS: readonly string[] = [
 export const INTERIM_VENDOR_MOUNTS: readonly (readonly [string, number])[] = [
   ['app/vendor/billing/page.tsx', 1],
   ['app/vendor/calendar/page.tsx', 1],
+  // ── \u00a74-4 BATCH \u2462 \u00b7 TWO PATHS MOVE HERE AND BOTH HOLD AT 1 ─────────────────
+  // The census does not fall for collab, and R-38.11 as amended is satisfied by the
+  // MOVEMENTS BEING STATED rather than by a number being made to drop. In each of the two
+  // files below, body and route were ONE file: the split put the body in a `screen.tsx` the
+  // shell imports and left the mount on the fallback ROUTE, so each mount moved WITHIN its
+  // crossing rather than out of it. Calendar's \u00a74-2 precedent, taken twice in one cut.
+  //
+  // BOTH MOVEMENTS, NAMED, because the room and its interior crossed together and a reader
+  // who saw only one line move would think the other stayed behind:
+  //   \u00b7 app/vendor/collab/page.tsx                      \u2014 body \u2192 app/vendor/collab/screen.tsx
+  //   \u00b7 app/vendor/collab/[post_id]/responses/page.tsx  \u2014 body \u2192 \u2026/responses/screen.tsx
+  // The estate-wide total therefore holds at 25 across 22 files, unchanged by this batch.
   ['app/vendor/collab/[post_id]/responses/page.tsx', 1],
   ['app/vendor/collab/page.tsx', 1],
   ['app/vendor/contracts/page.tsx', 1],
@@ -377,7 +408,42 @@ export const INTERIM_HUB_PRIMERS: readonly string[] = [
   '/vendor?draft=',
 ] as const;
 
-export const FALLBACK_SLICE_BASE = '/vendor/list/';
+/**
+ * THE TREE-AWARE FALLBACK BASES \u2014 EVERY `/vendor` PREFIX A CROSSED ROOM STILL SHIPS.
+ *
+ * ── \u00a74-4 BATCH \u2462 \u00b7 THIS WAS A SCALAR AND IT IS A SET NOW, BY LABEL ──────────
+ * `FALLBACK_SLICE_BASE` held ONE string because at S2 \u00a79 there was one: `SliceDoor`'s
+ * lateral movement inside the list family. Collab's crossing produced the SECOND instance of
+ * the identical class \u2014 `openResponses` in `app/vendor/collab/screen.tsx` pushes a room's
+ * own INTERIOR and is tree-aware for the same reason the Door is.
+ *
+ * MINTING A SECOND SCALAR WITH A SECOND NAME IS HOW THE CLASS WALKS AWAY FROM ITS CURE, and
+ * this arc has filed that shape twice in three sittings (F-38.59, the FAB offset; F-38.60,
+ * the quote pairing) \u2014 both times a rule reasoned about carefully at one site and never
+ * carried to the next. A set with the reason at each member is the shape that survives a
+ * third instance. C31 reads the SET and matches EXACTLY, exactly as it read the scalar.
+ *
+ * WHAT A MEMBER IS: a BASE, never a whole address. `/vendor/list/` passes and
+ * `/vendor/list/leads` does not, because a full carried href in the bytes means a room slid
+ * back out of the shell. That exactness is the whole guard and it does not loosen here.
+ *
+ * DECLARED, NOT ALLOWED. Each of these is a live `/vendor` string inside a crossed room's
+ * chunk. The alternative was to notice them, judge them legitimate, and leave the audit and
+ * the bench with an exception they cannot see \u2014 the shape the S2 ZIP bounce convicted.
+ *
+ * THEY RETIRE WITH THEIR OWN FALLBACK ROUTES AT PHASE 7, NOT BEFORE.
+ */
+export const FALLBACK_TREE_BASES: readonly string[] = [
+  // components/vendor/slices/SliceShell.tsx \u2014 `SliceDoor`, mounted on the surviving
+  // fallback, pushes `/vendor/list/<slice>` so a vendor deep-linked into the old tree is not
+  // thrown half-way into the new one mid-family. Ruled tree-aware at the S2 ZIP bounce.
+  '/vendor/list/',
+  // app/vendor/collab/screen.tsx \u2014 `openResponses`, since \u00a74-4 batch \u2462. The responses
+  // thread is COLLAB'S OWN INTERIOR, so the same rule applies for the same reason: the
+  // vendor stays in the tree she is already in. It does NOT ask `roomHref`, because the
+  // address book answers for ROOMS and a sub-route is not a room.
+  '/vendor/collab/',
+] as const;
 
 export function roomHref(id: string): string {
   const room = ROOMS.find((r) => r.id === id);

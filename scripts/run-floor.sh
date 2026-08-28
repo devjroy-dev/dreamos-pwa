@@ -373,7 +373,39 @@ if [ "$CHECK" = "yes" ]; then
   # reported as an open STOP, not absorbed here. A base entry nobody can account
   # for is how a real regression gets absorbed; entering that one would have been
   # exactly that.
-  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  # ── BASE AMENDED, LABELLED — M-FINISH S2/5 · §4-4 BATCH ③ (CE-38 relay #2) ──
+  # ONE LINE JOINS: `tdw_f0774_readers`, and it is NOT this delivery's regression.
+  # It is a bench that ARRIVES RED BY RULING.
+  #
+  # `scripts/tdw_f0774_readers.proof.mjs` is the general guard F-38.60 §6 asked for:
+  # a reader whose subject is CODE strips before it parses; a reader whose subject
+  # is PROSE is declared. Derived over scripts/ + tools/ at this tip it finds 88
+  # readers and names EIGHTEEN that read .ts/.tsx production source and match
+  # tokens in it without stripping first — the class that let a comment convict a
+  # correct tree at F-38.60 and let a cure walk away from its site at F-38.59.
+  #
+  # THE CHAIR REFUSED THE TWO GREEN OPTIONS AND THE REASONING BELONGS HERE, not
+  # only in a handover: a declared-subset green is a bench made to pass wearing a
+  # charter as a fig leaf, and deferral leaves the class unguarded for however many
+  # sittings the design charter waits. 「The first thing an honest instrument does
+  # on a diseased corpus is red.」
+  #
+  # THE FLOOR GAINS EXACTLY ONE LINE, NOT EIGHTEEN. The eighteen are the bench's
+  # FINDINGS and are printed by it; the floor's unit is the bench. A reader who
+  # expects eighteen entries here has mistaken a report for a set.
+  #
+  # WHAT RETIRES IT: the cure sitting, chartered at relay #2. `tools/wl_render.cjs`
+  # is flagged FIRST among the fourteen live cures — a gate instrument in the
+  # diseased set outranks the benches. The four already dark at base
+  # (tdw09_palette · tdw09_theme_retire · tdw09_type · tdw13_d4_extraction) join
+  # their existing findings. When they land, THIS LABEL COMES OUT and the bench
+  # starts guarding instead of reporting.
+  #
+  # ⚠ A BASE ENTRY NOBODY CAN ACCOUNT FOR IS HOW A REAL REGRESSION GETS ABSORBED,
+  # which is why this one carries its number, its ruling and its exit condition. If
+  # this bench reds for any reason OTHER than the eighteen it names, that is a
+  # finding and not this line.
+  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
   if diff /tmp/base.txt /tmp/floor.txt; then
     echo "FLOOR = NAMED BASE, no delta"
   else
