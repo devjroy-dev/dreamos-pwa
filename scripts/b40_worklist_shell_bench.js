@@ -884,7 +884,13 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
     seen.add(entry);
     const src = blankComments(fs.readFileSync(entry, 'utf8'));
     src.split('\n').forEach((line, i) => {
-      for (const m of line.matchAll(/['"`](\/vendor\/[A-Za-z0-9\/_-]*)/g)) {
+      // ── F-38.41 · THE MATCHER REQUIRED A TRAILING SLASH AND FOUR DOORS WALKED THROUGH ──
+      // `/vendor?draft=` and `/vendor?aiPrimer=` are the OLD HUB ROOT with a query string and
+      // no path segment. This expression matched `\/vendor\/` and could not see them, so
+      // three shell surfaces have pushed the vendor out of the shell since §4-2 while this
+      // cell reported zero strays. Second sighting of this exact family: S2's bounce found a
+      // matcher that read double-quoted attributes only. **Match what you mean.**
+      for (const m of line.matchAll(/['"`](\/vendor(?:\/[A-Za-z0-9\/_-]*|[?#][A-Za-z0-9_=-]*)?)/g)) {
         hits.push({ at: path.relative(ROOT, entry) + ':' + (i + 1), href: m[1] });
       }
     });
@@ -911,6 +917,8 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // runs regardless, so the cell reddens on the DEFECT and mentions the scaffolding.
   const fb = reg.match(/FALLBACK_SLICE_BASE\s*=\s*'([^']+)'/);
   const fallback = fb ? fb[1] : null;
+  const pm = reg.match(/INTERIM_HUB_PRIMERS[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  const primers = pm ? (pm[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
 
   const strays = new Map();
   // EVERY shell room, crossed or native: a /vendor literal reachable from Billing is as
@@ -927,12 +935,20 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
       // '/vendor/list/leads' is a full carried href and does not, because a whole address
       // in the bytes means a room slid back out of the shell.
       if (fallback && h.href === fallback) continue;
+      // The declared hub primers (F-38.41). EXACT, not prefix, for the same reason as the
+      // fallback base: `/vendor?draft=` passes, `/vendor?draft=x/y` does not.
+      if (primers.includes(h.href)) continue;
+      // A bare `/vendor` with no query is a TYPE or a predicate, never a destination —
+      // `tell_victor: { path: '/vendor' }` in the wire contract, `href.startsWith('/vendor')`
+      // in RoomsGrid. Derived by reading all three sites, not assumed from the shape.
+      if (h.href === '/vendor') continue;
       const key = h.at + ' ' + h.href;
       if (!strays.has(key)) strays.set(key, h.href + ' <- ' + h.at + ' (reachable from /w/' + room + ')');
     }
   }
   const problems = [...strays.values()];
   if (!fallback) problems.push("FALLBACK_SLICE_BASE is not declared — the Slice Door's fallback prefix has no home in the registry");
+  if (!primers.length) problems.push('INTERIM_HUB_PRIMERS is not declared — the four /vendor?<query> doors have no home in the registry (F-38.41)');
   return problems.length ? problems.join(' | ') : null;
 });
 
@@ -951,6 +967,9 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
 //    audit's own interim list had, and the identical cure: derive, never retype.
 //    R-38.11 as amended: reachable is reachable. Proven by mutation — restoring the
 //    MessageBubble byte reddens this cell alone.
+/** THE BANNED NAMES, ONE HOME. Both of C32's arms read this; a sixth name is one edit. */
+const PERSONAS = '\\bDreamAi\\b|\\bVictor\\b|\\bDonna\\b|\\bHarvey\\b|\\bMira\\b';
+
 cell('C32 no persona name reachable from any shell surface, DreamAi included (R-37.70 as amended)', () => {
   const resolveSpec = (spec, from) => {
     let base = null;
@@ -986,9 +1005,21 @@ cell('C32 no persona name reachable from any shell surface, DreamAi included (R-
     // empty pair of braces, so a cure note sitting above the very byte under test cut the
     // text run in half and the span never reached the name. Both boundary characters are
     // accepted now. Proven on all four shapes by mutation, each reddening this cell alone.
-    for (const m of src.matchAll(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|[>}]([^<>{}]{0,300}?DreamAi[^<>{}]{0,300}?)[<{]/g)) {
+    // ⚠ FOURTH CUT, AND THE THIRD ONE COVERED ONE NAME OUT OF FIVE. The bare-JSX-text arm
+    // hardcoded `DreamAi` INSIDE THE PATTERN, so the persona test below it only ever saw
+    // runs containing that one word — and 「Ask Victor about this date →」, bare JSX text in
+    // a sheet calendar dragged into the shell today, was invisible. The served-bytes gate
+    // caught what this source sweep could not, which is the wrong way round for a cell whose
+    // whole warrant is seeing behind conditions a fetch never triggers.
+    //
+    // THE HABIT, NAMED: each previous cut widened the SHAPE for the byte in front of me and
+    // never for the CLASS the cell claims. The persona list has one home now and both arms
+    // read it, so a sixth name is one edit and cannot land in only half the matcher.
+    for (const m of src.matchAll(new RegExp(
+      "'((?:[^'\\\\]|\\\\.)*)'" + '|"((?:[^"\\\\]|\\\\.)*)"' +
+      '|[>}]([^<>{}]{0,300}?(?:' + PERSONAS + ')[^<>{}]{0,300}?)[<{]', 'g'))) {
       const lit = m[1] ?? m[2] ?? m[3] ?? '';
-      if (/\bDreamAi\b|\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(lit))
+      if (new RegExp(PERSONAS).test(lit))
         hits.push(path.relative(ROOT, entry) + ' -> ' + lit.trim().slice(0, 50));
     }
     for (const m of src.matchAll(/from\s+['"]([^'"]+)['"]/g)) {

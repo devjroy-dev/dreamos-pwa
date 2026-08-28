@@ -255,6 +255,45 @@ export const INTERIM_BOTTOMNAV_MOUNTS: readonly string[] = [
  *
  * It retires with `app/vendor/list/` at Phase 7, not before.
  */
+/**
+ * THE HUB PRIMERS \u2014 FOUR DOORS OUT OF THE SHELL THAT NO INSTRUMENT COULD SEE.
+ *
+ * ── F-38.41, AND IT PREDATES THIS SITTING BY A CROSSING ────────────────────
+ * `wl_audit` and `b40` C31 both match `/vendor/` \u2014 with the trailing slash. Every one of
+ * these pushes `/vendor?<query>`: the OLD HUB ROOT with a query string and no path segment.
+ * The matcher walked straight past all four, and three have been reachable from crossed
+ * rooms since \u00a74-1 while both gates reported zero strays. The audit found the fourth only
+ * because calendar crossed today and dragged a persona byte in beside it.
+ *
+ * **A SHELL SURFACE THAT PUSHES `/vendor?draft=` UNMOUNTS THE SHELL.** The vendor taps
+ * 「Send to Chat」 in Notes and lands on the old hub \u2014 second layout, second Splash, second
+ * medallion, second session resolve. That is F-38.1 entire, still live, on eight rooms,
+ * behind a control the founder uses.
+ *
+ * ── DECLARED, NOT ALLOWED (the FALLBACK_SLICE_BASE precedent, S2 \u00a79) ────────
+ * The alternative was to notice them, judge them legitimate and say nothing, leaving both
+ * instruments with an exception they cannot see \u2014 which is the exact shape the S2 ZIP
+ * bounce convicted. Counted here so it cannot grow quietly, and matched EXACTLY: `/vendor`
+ * with a query passes, `/vendor/anything` does not.
+ *
+ * ⚠ THESE ARE **NOT** IN `INTERIM_VENDOR_LINKS`, AND THE SEPARATION IS DELIBERATE. That set
+ * is shrink-only by R-38.11's amended standing; adding four entries to it would be widening
+ * a set the estate has ruled may only narrow. This is a new, separately-named exception with
+ * its own retirement, so the shrink-only guarantee on the other set stays literally true.
+ *
+ * THE CURE IS NOT A RE-POINT. These carry a PREFILL into a chat surface, and the shell's own
+ * `AskSheet` takes no draft parameter \u2014 giving it one is a design sitting, not a string
+ * edit. Priced, not attempted here. **Ratify-or-revert.**
+ */
+export const INTERIM_HUB_PRIMERS: readonly string[] = [
+  // components/vendor/CalendarDaySheet.tsx:431 \u2014 「Ask Victor about this date」, reachable
+  // from /w/calendar since \u00a74-2, today.
+  '/vendor?aiPrimer=',
+  // components/vendor/slices/WishboneSheet.tsx:70 (six crossed rooms) \u00b7 BinderCard.tsx:163
+  // (clients) \u00b7 NotesBody.tsx:210 (notes) \u2014 all 「Send to Chat」, reachable since \u00a74-1.
+  '/vendor?draft=',
+] as const;
+
 export const FALLBACK_SLICE_BASE = '/vendor/list/';
 
 export function roomHref(id: string): string {

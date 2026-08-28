@@ -128,12 +128,51 @@ async function get(path) {
 // it is the surviving fallback and the R-37.79 one-drawer cell reads it as the carried
 // tree's specimen. A crossed room and its fallback are two different surfaces now and both
 // are fetched, because the interesting failure is them disagreeing.
-// `/w` and `/w/today` are not rooms and are not in the registry \u2014 one is the entry
-// redirect, one is a nav seat \u2014 so they are named, and everything that IS a room is
-// derived. `/vendor/list/leads` stays because a crossed room and its fallback are two
-// surfaces now and the interesting failure is them disagreeing.
-const PAGES = [...new Set(['/w', '/w/today', ...registryShellRooms(), '/vendor/list/leads'])];
+// ── THE THREE SURFACES THAT ARE NOT ROOMS, NAMED; EVERYTHING THAT IS, DERIVED ──
+//
+// `/w` is the entry redirect, `/w/today` is a nav seat, and **`/w/rooms` is the directory
+// itself** \u2014 none of them is a registry entry, because none of them is a room.
+//
+// ⚠ `/w/rooms` WAS MISSING FROM THE FIRST CUT OF THIS LINE AND IT COST A WHOLE GATE RUN.
+// Half the cells in this file read the Rooms corpus; with the page unfetched they were
+// handed `undefined`, six of them reported the shell bundle as absent, and the run threw on
+// `.includes`. The seat that wrote it printed 「PAGES = 14 surfaces」, checked the COUNT, and
+// did not read the membership sitting in the same output. **A count is not a set** \u2014 which
+// is the sentence R-38.19 exists to enforce about floors, applied here to a list of pages.
+//
+// ⚠ AND THE FIRST GUARD WRITTEN FOR THIS WAS VACUOUS \u2014 CAUGHT BY MUTATING IT.
+// It read the three names into a constant and then checked that each one was in `PAGES`.
+// `PAGES` is BUILT by spreading that same constant, so the check was true by construction:
+// dropping a name removed it from both sides at once and the guard said nothing. **A cell
+// that cannot fail on the broken tree is not a cell** (D-38.1), and one guarding the reader
+// is no exception. It is deleted rather than shipped.
+//
+// THE REAL GUARD IS `corpus()` BELOW, and it is non-vacuous by construction rather than by
+// intention: a cell that reads a page nobody fetched cannot get an empty string out of it,
+// only a named refusal. That is the assertion this defect actually needed \u2014 not "is the
+// list I wrote the list I wrote", but "did every cell read bytes this run actually has".
+const PAGES = [...new Set(['/w', '/w/rooms', '/w/today', ...registryShellRooms(), '/vendor/list/leads'])];
 const pageCorpus = new Map();
+/**
+ * READ A PAGE'S CORPUS, OR REFUSE BY NAME.
+ *
+ * Cells reached into the Map directly. Some wrote `|| ''` and some did not, so a page
+ * missing from PAGES produced two different failures from one cause: cells that defaulted
+ * to the empty string reported the shell bundle as ABSENT \u2014 a FAIL about the tree, for a
+ * fault in the reader \u2014 and the first cell that did not defaulted to a TypeError that
+ * ended the run.
+ *
+ * **A gate that reports on a page it never fetched is worse than one that stops.** This
+ * stops, and it names the page.
+ */
+const corpus = (path) => {
+  if (!pageCorpus.has(path)) {
+    console.error('\nGATE-UNSOUND \u2014 no corpus for ' + path + '. It is not in PAGES, so every');
+    console.error('assertion scoped to it would be reporting on bytes this run never fetched.');
+    process.exit(3);
+  }
+  return pageCorpus.get(path);
+};
 let refTotal = 0, gotTotal = 0;
 const missed = [];
 
@@ -203,18 +242,18 @@ async function coverage() {
 
   await coverage();
 
-  const shell = pageCorpus.get('/w/rooms');
-  const room  = pageCorpus.get('/vendor/list/leads');
-  const settings = pageCorpus.get('/w/settings');
-  const billing  = pageCorpus.get('/w/billing');
-  const today    = pageCorpus.get('/w/today');
+  const shell = corpus('/w/rooms');
+  const room  = corpus('/vendor/list/leads');
+  const settings = corpus('/w/settings');
+  const billing  = corpus('/w/billing');
+  const today    = corpus('/w/today');
 
   // ── 0 · the deploy is the one we think it is ─────────────────────────────
   // /w redirects CLIENT-SIDE in a useEffect. A fetch never runs JS, so no request
   // can observe the hop — the original assertion was unprovable by its own method
   // and printed FAIL on a working build. What IS provable from served bytes is
   // that the entry ships the redirect target; the behaviour is source-proved by C17.
-  if (/\/w\/rooms/.test(pageCorpus.get('/w'))) P('R-37.75 rooms-first', 'the /w entry ships the redirect target');
+  if (/\/w\/rooms/.test(corpus('/w'))) P('R-37.75 rooms-first', 'the /w entry ships the redirect target');
   else F('R-37.75 rooms-first', 'the /w entry carries no /w/rooms redirect at all');
 
   // ── ① one medallion ──────────────────────────────────────────────────────
@@ -404,11 +443,18 @@ async function coverage() {
   // declared set and says it MAY ONLY SHRINK, so reading it is the only way this cell can
   // enforce that direction rather than merely restate today's contents.
   const INTERIM_LINKS = registryVendorLinks();
-  const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, '/vendor/onboarding']);
-  const shellSurfaces = [...new Set(['/w/today', ...registryShellRooms()])];
+  // The declared hub primers ride the allow-set the same way the interim links do: counted
+  // in the registry, read here, never retyped. A bare `/vendor` is a type or a predicate
+  // (`tell_victor: { path: '/vendor' }`, `href.startsWith('/vendor')`) and never a
+  // destination — derived by reading all three sites.
+  const HUB_PRIMERS = (REGISTRY.match(/INTERIM_HUB_PRIMERS[^=]*=\s*\[([\s\S]*?)\] as const;/) || [, ''])[1]
+    .match(/'([^']+)'/g)?.map((x) => x.slice(1, -1)) || [];
+  const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, ...HUB_PRIMERS, '/vendor', '/vendor/onboarding']);
+  // Same set minus the entry redirect, which serves no chrome of its own.
+  const shellSurfaces = [...new Set(['/w/rooms', '/w/today', ...registryShellRooms()])];
   const strays = new Set();
   for (const path of shellSurfaces) {
-    const body = pageCorpus.get(path) || '';
+    const body = corpus(path) || '';
     // ── THE MATCHER, WIDENED AT THE S2 ZIP BOUNCE ──────────────────────────
     // It read DOUBLE-QUOTED attributes only. Two holes, and the second is the dangerous one:
     //   \u00b7 minifiers emit single quotes as readily as double, so half the estate's own
@@ -421,7 +467,14 @@ async function coverage() {
     // \u00a74-2. A cell that goes on passing while its link rots is this instrument committing
     // D-38.1 against itself, which is the whole reason the widening is not deferred.
     const FALLBACK = registryFallbackBase();
-    for (const m of body.matchAll(/['"`](\/vendor\/[A-Za-z0-9\/_-]*)/g)) {
+    // ── F-38.41 · THE TRAILING SLASH WAS A HOLE FOUR DOORS FIT THROUGH ────────
+    // `/vendor?draft=` and `/vendor?aiPrimer=` are the OLD HUB ROOT with a query and no path
+    // segment, and a shell surface that pushes one UNMOUNTS THE SHELL — second layout,
+    // second Splash, second medallion, second session resolve, which is F-38.1 entire. This
+    // expression required `\/vendor\/`, so it reported 「0 strays」 across eight rooms that
+    // were carrying one. Second sighting of this family after the S2 bounce's
+    // double-quote-only matcher; the lesson is the same and it is now written in two files.
+    for (const m of body.matchAll(/['"`](\/vendor(?:\/[A-Za-z0-9\/_-]*|[?#][A-Za-z0-9_=-]*)?)/g)) {
       if (ALLOWED.has(m[1])) continue;
       // The Slice Door's fallback prefix, declared at lib/worklist/rooms.ts. A PREFIX match
       // and nothing looser: '/vendor/list/' passes, '/vendor/list/leads' does not, because
@@ -431,7 +484,7 @@ async function coverage() {
     }
   }
   if (strays.size) F('R-38.1 no undeclared /vendor href', [...strays].join(' \u00b7 '));
-  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, ' + INTERIM_LINKS.length + ' declared interim links, 0 strays across ' + shellSurfaces.length + ' shell surfaces');
+  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, ' + INTERIM_LINKS.length + ' declared interim links, ' + HUB_PRIMERS.length + ' declared hub primers (F-38.41), 0 strays across ' + shellSurfaces.length + ' shell surfaces');
 
   // ── R-38.2 · TILES AND SEATS ARE ANCHORS ──────────────────────────────────
   // A <button> tells Next nothing, so its chunk and its RSC payload are both fetched ON
@@ -468,7 +521,7 @@ async function coverage() {
   // the two retired VARIABLES no longer ship, which is the mechanism the tuple set rests
   // on: with --wl-label and --wl-display deleted rather than aliased, a call site cannot
   // reach Jost or Italiana at all without writing a literal.
-  const shellOnly = shellSurfaces.map((p) => pageCorpus.get(p) || '').join('');
+  const shellOnly = shellSurfaces.map((p) => corpus(p) || '').join('');
   const retiredVars = ['--wl-label', '--wl-display'].filter((v) => shellOnly.includes(v));
   if (retiredVars.length) F('R-38.4 Jost and Italiana retire', 'still shipped: ' + retiredVars.join(' '));
   else P('R-38.4 Jost and Italiana retire', 'neither --wl-label nor --wl-display ships on any shell surface');
@@ -516,7 +569,7 @@ async function coverage() {
   // a source fact and belongs to `b40` (C37). Whether the rung PAINTS is a computed fact
   // and belongs to the render arm (C-R17). Three instruments, three claims, none of them
   // pretending to hold another's.
-  const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test(pageCorpus.get(p) || ''));
+  const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test(corpus(p) || ''));
   if (t0Sites.length === 0)
     P('R-38.4 t0 is one element', 'no shell surface consumes the rung — the numeral is withheld until the feed answers (F-38.31/c-38.14); the declaration is b40 C37, the paint is C-R17');
   else
@@ -572,7 +625,7 @@ async function coverage() {
   else P('R-38.6 retired strings absent', RETIRED.length + ' retired bytes, none on any shell surface');
 
   // ── R-38.7 · THE TWO ROWS LEFT THE ROOMS BODY ─────────────────────────────
-  const rooms = pageCorpus.get('/w/rooms') || '';
+  const rooms = corpus('/w/rooms') || '';
   const panelGone = !/wl-panel|wl-prow|wl-pointer/.test(rooms);
   const waInDrawer = shell.includes('TDW on WhatsApp');
   const profileInSettings = (settings || '').includes('Profile layout');
@@ -582,7 +635,7 @@ async function coverage() {
          'panelGone=' + panelGone + ' waInDrawer=' + waInDrawer + ' profileInSettings=' + profileInSettings);
 
   // ── R-38.9 · THE ADVISOR ROOM, AND NO PERSONA NAME IN CHROME ──────────────
-  const advisor = pageCorpus.get('/w/advisor') || '';
+  const advisor = corpus('/w/advisor') || '';
   if (/Advisor/.test(advisor) && /vendor-e\/mode/.test(advisor))
     P('R-38.9 the advisor room', 'the room ships and reaches the mode door');
   else F('R-38.9 the advisor room', 'header word or the mode door is missing from /w/advisor');
@@ -591,7 +644,7 @@ async function coverage() {
   // so this reads rendered STRINGS rather than identifiers — the distinction is the cell.
   const personaHits = new Set();
   for (const path of shellSurfaces) {
-    const body = pageCorpus.get(path) || '';
+    const body = corpus(path) || '';
     for (const m of body.matchAll(/"([^"]{0,200})"/g)) {
       // AMENDED, LABELLED — R-38.17. 「DreamAi」 JOINS THE SET. R-37.70 used to permit it in
       // prose about who answers and forbid it only in labels; that exemption retires with
@@ -609,7 +662,7 @@ async function coverage() {
   // grandfathered exception (F-38.3, OPEN) and it lives behind the dock on every surface,
   // so this reads the BILLING and SETTINGS bundles' own toast instead: WlToast ships and
   // main's Toast does not.
-  const toastOk = ['/w/billing', '/w/settings'].every((p) => (pageCorpus.get(p) || '').includes('wl-toast'));
+  const toastOk = ['/w/billing', '/w/settings'].every((p) => (corpus(p) || '').includes('wl-toast'));
   if (toastOk) P('arm (c) the shell toast', 'wl-toast ships on both crossing surfaces');
   else F('arm (c) the shell toast', 'a crossing surface does not carry wl-toast');
 

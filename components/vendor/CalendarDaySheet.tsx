@@ -12,7 +12,7 @@
 //      riding the 409 body whole (conflictOr400 puts conflict.message in
 //      `error` and the conflict object beside it; _base's handleResponse never
 //      throws on non-2xx, so the refusal ARRIVES and renders VERBATIM — the
-//      door reasons, this sheet only renders) · Ask Victor primer.
+//      door reasons, this sheet only renders) · the ask primer.
 //
 // HONESTY POSTURE: every verdict line printed here is the wire's own sentence.
 // A refused Move renders the checker's message and moves nothing; an advisory
@@ -389,7 +389,7 @@ export function CalendarDaySheet({
             </div>
           )}
 
-          {/* Actions: the block toggles + the full-day flow + Ask Victor */}
+          {/* Actions: the block toggles + the full-day flow + the ask primer */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8, borderTop: D.border }}>
             <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase' }}>
               Hold the day
@@ -433,7 +433,13 @@ export function CalendarDaySheet({
               background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', textAlign: 'left',
               fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,
               letterSpacing: '0.22em', textTransform: 'uppercase',
-            }}>Ask Victor about this date →</button>
+            }}>{/* R-37.70: 「Victor」 is an internal SEAT name and appears in no vendor-facing
+                    byte. This control was invisible to the shell's persona sweep until
+                    calendar crossed at §4-2 and the served-bytes gate found it — and then
+                    invisible to the sweep AGAIN, because that matcher covered one name out
+                    of five in bare JSX text (F-38.40's sibling). The affordance keeps its
+                    verb; only the character leaves. */}
+              Ask TDW about this date →</button>
           </div>
         </div>
       </div>

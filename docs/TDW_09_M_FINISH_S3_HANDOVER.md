@@ -1,6 +1,6 @@
 # M-FINISH · SITTING 2, SESSION 3 — §4-2 OPENS: CALENDAR CROSSES
 
-**BASE (R-38.15): `4f2482d` = `origin/worklist`, re-derived at the moment of cutting.**
+**BASE (R-38.15): `f3e23dd` = `origin/worklist`, re-derived at the moment of cutting.**
 Sibling `dream-os` `f7f5a6e` = `origin/main`, clean. **Railway/Vercel green: NOT CLAIMED** —
 nothing here ran against a deploy.
 
@@ -16,7 +16,7 @@ bash tools/preflight.sh worklist
 ```
 
 ```
-pwa worklist 4f2482d · dream-os main f7f5a6e · both clean · node_modules present
+pwa worklist f3e23dd · dream-os main f7f5a6e · both clean · node_modules present
 branch alias: https://dreamos-pwa-git-worklist-devjroy-devs-projects.vercel.app
 ```
 
@@ -194,6 +194,108 @@ break some of them. The floor at the cut is what finds them; there is no reading
 
 ---
 
+## §4b · F-38.40 · THE GATE STOPPED FETCHING THE PAGE HALF ITS CELLS READ
+
+§3 replaced the audit's hand-typed surface lists with a registry derivation. **`/w/rooms` is
+not a registry entry** — there is no room with id `rooms`; it is the directory surface
+itself — so it fell out of `PAGES` and the gate stopped fetching it. Six cells that
+defaulted to `|| ''` then reported the shell bundle as **absent** — a FAIL about the tree,
+for a fault in the reader — and the first cell that did not default threw
+`Cannot read properties of undefined (reading 'includes')` and ended the run.
+
+**I PRINTED `PAGES = 14 surfaces` WHEN I MADE THAT CHANGE AND CHECKED THE COUNT.** The
+derived list was in the same output, `/w/rooms` visibly not in it. **A count is not a set** —
+the sentence R-38.19 exists to enforce about floors, and I did not apply it one line above
+where I had just written it.
+
+**THE CURE IS `corpus(path)`, NOT A LONGER LIST.** Cells reached into the Map directly, some
+with `|| ''` and some without, so one cause produced two unrelated-looking failures. A page
+missing from `PAGES` now refuses **by name** before any assertion is scoped to it. Thirteen
+call sites rewired. Non-vacuity exercised: a corpus without `/w/rooms` exits 3 naming the
+page.
+
+**AND THE FIRST GUARD I WROTE FOR THIS WAS VACUOUS.** It read the three non-room surfaces
+into a constant and checked each was in `PAGES` — which is built by spreading that same
+constant. Dropping a name removed it from both sides at once and the guard said nothing.
+Caught by mutating it. **A guard that cannot fail on the broken tree is not a guard**
+(D-38.1), and it is deleted rather than shipped: the real assertion was never "is the list I
+wrote the list I wrote", it was "did every cell read bytes this run actually has".
+
+**ONE THING F-38.37's CURE CANNOT REACH, RECORDED SO IT IS NOT REDISCOVERED:**
+`GATE-UNSOUND` fires during coverage, and the `DEPLOY:` stamp is read out of the corpus
+coverage builds. So on a corpus failure the gate cannot say which commit it was looking at.
+Inherent, not a defect — but it is the one hole in the build-stamp law.
+
+**The 404 that preceded it was a deployment swap**, not a broken build: the audit read
+`/w/today`'s HTML from one build and walked its chunk list after the alias had moved, and
+chunk names are content-hashed. Confirmed by command — the named chunk was absent from a
+fresh fetch — and the re-run reached 246/246.
+
+## §4c · F-38.41 · FOUR DOORS OUT OF THE SHELL THAT NEITHER GATE COULD SEE
+
+**The audit's one surviving FAIL was `/w/calendar → Ask Victor about this date →`, and it
+led to something older and larger.**
+
+### The byte
+
+`components/vendor/CalendarDaySheet.tsx:436`, bare JSX text, dragged into the shell by
+today's crossing. `Victor` is an internal SEAT name and R-37.70 admits no exception for it.
+Cured to `Ask TDW about this date →` — the affordance keeps its verb, only the character
+leaves.
+
+**`b40` C32 WALKS THE SAME GRAPH AND PASSED, WHICH IS THE WRONG WAY ROUND.** Its
+bare-JSX-text arm hardcoded `DreamAi` **inside the pattern**, so the persona test only ever
+saw runs containing that one word. Fourth cut of that matcher; each previous one widened the
+SHAPE for the byte in front of me and never the CLASS the cell claims. The five names have
+one home now and both arms read it, so a sixth is one edit and cannot land in half the
+matcher. **A source sweep that sees less than a fetch is a sweep whose whole warrant —
+seeing behind conditions a fetch never triggers — is forfeit.**
+
+### The line above it, which is the finding
+
+```
+router.push(`/vendor?aiPrimer=${…}`)
+```
+
+**`/vendor?<query>` is the OLD HUB ROOT with a query string and no path segment.** Both
+`wl_audit` and `b40` C31 matched `\/vendor\/` — with the trailing slash — so every one of
+these walked straight past. Derived by command, four live sites:
+
+| site | reachable from |
+|---|---|
+| `CalendarDaySheet.tsx:431` — 「Ask … about this date」 | `/w/calendar`, since today |
+| `WishboneSheet.tsx:70` — 「Send to Chat」 | **six crossed rooms, since §4-1** |
+| `BinderCard.tsx:163` — 「Send to Chat」 | `/w/clients`, since §4-1 |
+| `NotesBody.tsx:210` — 「Send to Chat」 | `/w/notes`, since §4-1 |
+
+**A SHELL SURFACE THAT PUSHES `/vendor?draft=` UNMOUNTS THE SHELL** — second layout, second
+Splash, second medallion, second session resolve. That is F-38.1 entire, still live, on
+eight rooms, behind a control the founder uses. **Both gates have reported 「0 strays」 across
+those rooms since §4-1.**
+
+Second sighting of this family: the S2 bounce convicted a matcher that read double-quoted
+attributes only. **Match what you mean** — now written in both files.
+
+### Declared, not allowed — and NOT in the shrink-only set
+
+`INTERIM_HUB_PRIMERS` in `lib/worklist/rooms.ts`, matched EXACTLY. The alternative was to
+notice them, judge them legitimate and say nothing, leaving both instruments with an
+exception they cannot see, which is the shape the S2 bounce convicted.
+
+**They are deliberately NOT in `INTERIM_VENDOR_LINKS`.** That set is shrink-only under
+R-38.11's amended standing, and adding four entries would widen a set the estate ruled may
+only narrow. A separately-named exception with its own retirement keeps that guarantee
+literally true.
+
+**THE CURE IS NOT A RE-POINT AND IS NOT ATTEMPTED HERE.** These carry a PREFILL into a chat
+surface; the shell's own `AskSheet` takes no draft parameter, and giving it one is a design
+sitting. Priced. **Ratify-or-revert**, and the three false positives are named in the
+registry so the next reader does not re-derive them: two are wire-contract types
+(`tell_victor: { path: '/vendor' }`) and one is `RoomsGrid`'s interim predicate.
+
+Non-vacuity, by mutating the registry: undeclaring `/vendor?draft=` reds C31 naming all
+three of its sites and their rooms; restoring returns `FLOOR GREEN`.
+
 ## §5 · FLOORS AT THE CUT (R-38.19)
 
 **pwa, dirty tree: 23.** Set = the named base **22** plus `tdw_f0774_vacuity_probe`, which
@@ -201,7 +303,7 @@ reds on any dirty tree and greens on commit. `tdw37_leadgate_b_slot` stays green
 `tdw09_hotfix` returns to green after the re-point. Derived twice, before and after the
 cure, and diffed by set.
 
-`b40` **37/37**. `npx tsc --noEmit` **exit 0**.
+`b40` **37/37**. `npx tsc --noEmit` **exit 0**. Audit at the deploy: 25 PASS \u00b7 1 FAIL \u00b7 2 INCONCLUSIVE before this cut \u2014 the FAIL is \u00a74c, cured here.
 
 ---
 
