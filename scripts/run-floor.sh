@@ -21,11 +21,109 @@
 # EXIT CODE IS THE VERDICT, never the printed text: benches in this estate use at
 # least three report formats and only the exit code is shared by all of them.
 #
-# Usage:  bash scripts/run-floor.sh            # print the red set
-#         bash scripts/run-floor.sh --check    # diff against the named base
+# Usage:  bash scripts/run-floor.sh                            # print the red set
+#         bash scripts/run-floor.sh --check                    # diff against the named base
+#         bash scripts/run-floor.sh --delivery FILE [--check]  # [F-19.16] declared-dirt tree
+#
+# ── F-19.16 · THE PWA FLOOR COULD NOT MEASURE ANY DELIVERY TREE ──────────────
+#
+# `--delivery` is ported from `dream-os/scripts/run-floor.sh:129`, where it has
+# worked since F-14.16. The finding it cures here is the same disease wearing a
+# different coat, and the coat is worth naming because it is why this repo was
+# said not to have the gap.
+#
+# `dream-os`'s RUNNER refuses a dirty tree. This runner never did — it only NOTEs
+# dirt after the fact. The refusal in this repo lives in a BENCH:
+# `scripts/tdw_f0774_vacuity_probe.mjs` writes to production source and restores
+# it, so on a dirty tree it cannot prove the restore was clean and it stops. The
+# effect at delivery time is identical either way: A DELIVERY TREE IS DIRTY BY
+# DEFINITION, R-33.7 forbids the executor the commit that would clean it, and so
+# the floor could not gate the one tree it exists to gate. Every pwa seat has
+# been paying this, not only the one that filed it.
+#
+# THE DIFFERENCE `--delivery` DRAWS IS BETWEEN CONTAMINATION AND A DELIVERY, and
+# a delivery's dirt is DECLARED. The manifest is the delivery's own file table,
+# which its handover carries anyway, so nothing new has to be written to use it.
+#
+# THE DEFAULT IS UNCHANGED. No manifest, no new behaviour: the NOTE still fires
+# and nothing refuses that did not refuse before. This is deliberate — a runner
+# that started refusing dirty trees today would break every seat mid-sitting to
+# cure a problem none of them asked about, and the ruled cure is an ADDITION.
+#
+# ── THE ENV CONTRACT, AND WHY THE RUNNER CANNOT CURE THIS ALONE ──────────────
+#
+# Porting the flag here is necessary and not sufficient: the bench refuses on its
+# own, whatever the runner thinks. So `--delivery` exports the manifest's
+# absolute path as `TDW_FLOOR_DELIVERY_MANIFEST` and the probe honours it at its
+# own refusal site. ONE MANIFEST HOME (this file), ONE ENV NAME, one bench that
+# reads it. A second bench that grows a clean-tree guard tomorrow joins by
+# reading the same variable, and `NEEDS_CLEAN` below already finds such benches
+# by derivation rather than by a list.
 
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
+
+# ── ARGUMENTS ────────────────────────────────────────────────────────────────
+# Order-independent, because a caller who types `--check --delivery FILE` means
+# the same thing as the reverse and should not be punished for it. This replaces
+# the old positional `${1:-} = "--check"` test, which silently ignored a second
+# argument and would have swallowed `--delivery` without a word.
+CHECK=""
+MANIFEST=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check)    CHECK="yes"; shift ;;
+    --delivery) MANIFEST="${2:-}"; shift 2 || { echo "STOP — --delivery needs a manifest path."; exit 1; } ;;
+    *)          echo "STOP — unknown argument: $1"; exit 1 ;;
+  esac
+done
+
+# `git status --porcelain` paths, one per line. Rename entries carry `old -> new`
+# and BOTH sides are dirt a manifest must account for.
+dirt_paths() {
+  git status --porcelain 2>/dev/null | while IFS= read -r line; do
+    p="${line:3}"
+    case "$p" in
+      *" -> "*) echo "${p%% -> *}"; echo "${p##* -> }" ;;
+      *)        echo "$p" ;;
+    esac
+  done | sed 's/^"//; s/"$//' | sort -u
+}
+
+DIRT=$(dirt_paths)
+
+if [ -n "$MANIFEST" ]; then
+  if [ ! -f "$MANIFEST" ]; then
+    echo "STOP — manifest not found: ${MANIFEST}. Nothing was run."
+    exit 1
+  fi
+  # Blank lines and `#` comments allowed, so the manifest can carry its own
+  # reasons and be the same artefact the handover prints.
+  DECLARED=$(sed 's/#.*//' "$MANIFEST" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' | sort -u)
+  UNDECLARED=$(comm -23 <(echo "$DIRT") <(echo "$DECLARED"))
+  if [ -n "$UNDECLARED" ]; then
+    echo "STOP — dirt OUTSIDE the declared manifest. This is contamination, not a"
+    echo "delivery, and the difference is the whole point of this mode."
+    echo "$UNDECLARED" | sed 's/^/  /'
+    exit 1
+  fi
+  # PRINTED INTO THE OUTPUT: a floor that quietly forgave something is not a
+  # floor. Whoever reads this measurement reads what it tolerated.
+  echo "[F-19.16] --delivery mode: $(echo "$DIRT" | grep -c . ) dirty path(s), all declared in ${MANIFEST}:" >&2
+  echo "$DIRT" | sed 's/^/  declared: /' >&2
+  echo "" >&2
+
+  # CONTENTS ARE NOT TOLERATED, ONLY THE SET. A bench that corrupts a manifest
+  # file would hide inside expected dirt; these hashes are what catch it.
+  MANIFEST_SHA_BEFORE=$(echo "$DIRT" | while IFS= read -r p; do
+    [ -f "$p" ] && sha256sum "$p" || echo "ABSENT  $p"
+  done)
+
+  # THE ENV CONTRACT. Absolute, because the benches below are spawned with this
+  # repo as cwd but a caller may have passed a path relative to their own.
+  TDW_FLOOR_DELIVERY_MANIFEST="$(cd "$(dirname "$MANIFEST")" && pwd)/$(basename "$MANIFEST")"
+  export TDW_FLOOR_DELIVERY_MANIFEST
+fi
 
 # All three extensions, de-duplicated — *.mjs already contains *.proof.mjs, and
 # without `sort -u` every proof bench would run twice and double its runtime.
@@ -124,16 +222,50 @@ done
 # ── THE FLOOR MUST NOT LEAVE FOOTPRINTS ──────────────────────────────────────
 # Reported, never silently cleaned: a bench writing into the tree is a real
 # defect and hiding it here would bury the thing that caused the bounce above.
-DIRT=$(git status --porcelain 2>/dev/null)
-if [ -n "$DIRT" ]; then
-  echo "NOTE — the floor itself dirtied the tree. A bench is writing output into"
-  echo "the repo; this is filed, not cured here (out of D-7's radius):"
-  echo "$DIRT" | sed 's/^/  /'
+if [ -z "$MANIFEST" ]; then
+  POST=$(git status --porcelain 2>/dev/null)
+  if [ -n "$POST" ]; then
+    echo "NOTE — the floor itself dirtied the tree. A bench is writing output into"
+    echo "the repo; this is filed, not cured here (out of D-7's radius):"
+    echo "$POST" | sed 's/^/  /'
+  fi
+else
+  # [F-19.16] Two questions in this mode, and the second is the one the NOTE
+  # above could never ask: did the DIRTY SET grow (a bench touched a file nobody
+  # declared), and did any DECLARED FILE'S CONTENTS move (a bench corrupted the
+  # delivery itself, hiding inside dirt that was already expected)?
+  #
+  # THE SECOND QUESTION IS F-19.18's, ASKED FROM THE RUNNER. That finding is a
+  # bench leaving a mutation in production source after being killed mid-run.
+  # `mutateCopy` cures it at the bench, where it belongs; this asks the same
+  # question from outside, because a cure at one site and a check from another is
+  # how the estate proves a property instead of asserting it.
+  POST_DIRT=$(dirt_paths)
+  POST_UNDECLARED=$(comm -23 <(echo "$POST_DIRT") <(echo "$DECLARED"))
+  if [ -n "$POST_UNDECLARED" ]; then
+    echo ""
+    echo "STOP — a bench dirtied a file OUTSIDE the manifest. It did not restore"
+    echo "what it mutated, and this floor was measured over changed source."
+    echo "$POST_UNDECLARED" | sed 's/^/  /'
+    exit 1
+  fi
+  MANIFEST_SHA_AFTER=$(echo "$DIRT" | while IFS= read -r p; do
+    [ -f "$p" ] && sha256sum "$p" || echo "ABSENT  $p"
+  done)
+  if [ "$MANIFEST_SHA_BEFORE" != "$MANIFEST_SHA_AFTER" ]; then
+    echo ""
+    echo "STOP — a DECLARED file's contents moved during the run. The manifest"
+    echo "tolerates a dirty SET, never dirty CONTENTS: a bench corrupted the"
+    echo "delivery and would have hidden inside dirt that was already expected."
+    diff <(echo "$MANIFEST_SHA_BEFORE") <(echo "$MANIFEST_SHA_AFTER") | sed 's/^/  /'
+    exit 1
+  fi
+  echo "[F-19.16] declared files unmoved — set and contents both verified." >&2
 fi
 printf "%b" "$RED" | sort > /tmp/floor.txt
 cat /tmp/floor.txt
 
-if [ "${1:-}" = "--check" ]; then
+if [ "$CHECK" = "yes" ]; then
   # THE NAMED BASE — pre-existing reds at dreamos-pwa 2916661, each verified on a
   # clean clone at that tip and untouched by block 13. A red that is not on this
   # list is this delivery's; a base red that VANISHES is also a delta and fails
