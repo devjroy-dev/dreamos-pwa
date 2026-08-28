@@ -27,9 +27,19 @@
 
 const BASE = (process.argv[2] || '').replace(/\/$/, '');
 if (!BASE) {
-  console.error('usage: node tools/wl_audit.mjs https://<branch-domain>');
+  console.error('usage: node tools/wl_audit.mjs https://<branch-domain> [--any-commit]');
   process.exit(2);
 }
+// ── F-38.37 · THE GATE NAMES THE TREE IT MEASURED ──────────────────────────
+// Without this the run is unattributable: every FAIL reads either as 「the cure is missing」
+// or as 「the deploy predates the cure」, and this seat spent four gate runs and two blind
+// freshness checks failing to tell those apart. The build stamps its commit
+// (next.config.ts, components/worklist/WorklistShell.tsx); this compares it to the tree on
+// disk and REFUSES on a mismatch rather than printing verdicts about somebody else's build.
+//
+// `--any-commit` exists because measuring an OLD deploy on purpose is legitimate — but it
+// has to be asked for, out loud, so a mismatch can never be absorbed as a passing detail.
+const ANY_COMMIT = process.argv.includes('--any-commit');
 
 // ── M-FINISH S2 · THE REGISTRY IS READ, NOT RETYPED ────────────────────────
 // The interim list below used to be fourteen literals copied out of lib/worklist/rooms.ts.
@@ -134,6 +144,34 @@ async function coverage() {
     console.log('Unreachable:\n  ' + missed.join('\n  '));
     console.log('\nNo assertions were run. Fix the deploy or the reader, then re-run.');
     process.exit(3);
+  }
+
+  // ── F-38.37 · WHICH TREE DID THIS JUST MEASURE? ──────────────────────────
+  // The stamp is inlined into a chunk by next.config.ts's `env` and referenced by
+  // WorklistShell, so it rides the same corpus every cell reads. Placed here — after
+  // coverage, before a single assertion — for the same reason the base guard runs before
+  // `cp`: a verdict about the wrong build is not a weaker verdict, it is a verdict about
+  // something else.
+  const whole = [...pageCorpus.values()].join('');
+  const stamp = (whole.match(/data-tdw-commit["'\]:=\s]{1,4}["']([0-9a-f]{7}|local)["']/) || [])[1] || null;
+  let local = null;
+  try {
+    local = (await import('node:child_process')).execSync('git rev-parse --short=7 HEAD', { encoding: 'utf8' }).trim();
+  } catch { /* not a git checkout — reported below rather than assumed away */ }
+
+  if (!stamp) {
+    console.log('DEPLOY: UNSTAMPED — this build predates F-38.37 and cannot say which commit it is.');
+    console.log('  Every FAIL below has two readings: the cure is missing, or the deploy predates it.');
+    console.log('  Re-deploy from a tree carrying next.config.ts\'s NEXT_PUBLIC_TDW_COMMIT, then re-run.\n');
+  } else if (local && stamp !== local && !ANY_COMMIT) {
+    console.log('REFUSED — the deploy is commit ' + stamp + '; this tree is ' + local + '.');
+    console.log('  No assertions were run. A gate that reports on a build the operator did not');
+    console.log('  intend launders a stale deploy into a verdict about the current source —');
+    console.log('  which is the exact confusion that cost four gate runs at S2/2.');
+    console.log('  Wait for the deploy, or pass --any-commit to measure this one on purpose.');
+    process.exit(4);
+  } else {
+    console.log('DEPLOY: ' + stamp + (local ? (stamp === local ? ' = this tree' : ' \u2260 this tree ' + local + ' (--any-commit)') : '') + '\n');
   }
 }
 

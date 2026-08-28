@@ -127,6 +127,12 @@ export function WorklistShell({ title, children }: { title: string; children: Re
       {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
           /w's redirect are three statements of one decision — if they ever disagree, the
           app disagrees with itself, so C17 asserts all three together. */}
+      {/* F-38.37 · THE BUILD STAMP. Hidden, inert, and the same shape RoomsGrid already uses
+          for its room count — a fact the instruments need that the vendor must not see.
+          It exists so `wl_audit` can name the commit it just measured rather than leaving
+          the operator to infer it from which bytes came back. */}
+      <div hidden data-tdw-commit={process.env.NEXT_PUBLIC_TDW_COMMIT || 'local'} />
+
       <nav className="wl-nav" aria-label="Sections">
         <Link href="/w/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}
               aria-current={onRooms ? 'page' : undefined}>{COPY.navRooms}</Link>

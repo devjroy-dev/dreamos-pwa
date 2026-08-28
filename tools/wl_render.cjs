@@ -285,6 +285,30 @@ async function seat(browser, mode) {
   // have spent a minute of the founder's time pretending to be something else.
   await readWire();
   SEED = seedSession();
+
+  // ── F-38.37 · THE ARM NAMES THE TREE IT MEASURED TOO ─────────────────────
+  // Same reasoning as wl_audit's: a run whose build cannot be identified produces cells
+  // that are unattributable, and three of this arm's runs this sitting were spent on that.
+  // It REPORTS rather than refuses — the arm's first navigation is where a wrong build
+  // shows up anyway, and a browser launch is cheap enough that being told beats being
+  // stopped. The audit refuses because it is the gate; this informs because it is evidence.
+  try {
+    const { execSync } = require('child_process');
+    const local = execSync('git rev-parse --short=7 HEAD', { encoding: 'utf8' }).trim();
+    const html = await (await fetch(BASE + '/w/today')).text();
+    const refs = [...new Set([...html.matchAll(/\/_next\/static\/[^"'\\ )]+?\.js/g)].map((m) => m[0]))];
+    let stamp = null;
+    for (const r of refs.slice(0, 40)) {
+      const body = await (await fetch(BASE + r)).text();
+      const m = body.match(/data-tdw-commit["'\]:=\s]{1,4}["']([0-9a-f]{7}|local)["']/);
+      if (m) { stamp = m[1]; break; }
+    }
+    if (!stamp) console.log('deploy: UNSTAMPED — this build predates F-38.37; cells cannot be attributed to a commit\n');
+    else if (stamp === local) console.log('deploy: ' + stamp + ' = this tree\n');
+    else console.log('deploy: ' + stamp + ' \u2260 this tree ' + local + ' — EVERY CELL BELOW IS ABOUT THE DEPLOYED BUILD\n');
+  } catch (e) {
+    console.log('deploy: could not be identified (' + String(e.message).split('\n')[0] + ')\n');
+  }
   if (WIRE.ok) {
     console.log('fixture: REAL (' + TEST_PHONE + ')');
     // The provenance, immediately underneath, because the line above names a number this
@@ -343,8 +367,28 @@ async function seat(browser, mode) {
     // ── C-R2 · THE GUTTER APPLIES  [R-37.82 ①] ──────────────────────────────
     // Not "is the rule in the stylesheet" — that is the byte-gate's question and it
     // answered yes for twelve ZIPs while the grid ran flush to both edges.
-    await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
-    await p.waitForSelector('.wl-tile', { timeout: 20000 });
+    //
+    // ── ⚠ F-38.36 · THIS WAS THE LAST UNGUARDED NAVIGATION IN THE FILE ───────
+    // A bare goto and a bare waitForSelector, outside settle() and outside any try. On the
+    // founder's run the tiles did not arrive and it threw `Waiting for selector .wl-tile
+    // failed` OUT OF THE WHOLE ARM: C-R1 had printed, and thirty-nine cells after it were
+    // never evaluated. One PASS and a stack trace, from a gate whose entire job is to
+    // report on forty things.
+    //
+    // THAT IS F-38.11's CLASS, THE FOURTH SIGHTING, AND I CURED THE INSTANCE THREE TIMES
+    // BEFORE CURING THE CLASS — F-38.6 guarded the measurement navigations, F-38.9 guarded
+    // shot(), F-38.11 wrapped the whole capture block, and this line sat outside all three
+    // because it predated them and nothing swept for siblings. The rule is structural now:
+    // EVERY navigation in this file goes through settle(), which names the cells that die
+    // with it and reds them instead of throwing.
+    //
+    // THE INVARIANT, STATED SO IT CAN BE CHECKED RATHER THAN TRUSTED: every `p.goto(` in
+    // this file is either INSIDE settle() or inside a try whose catch reports its own cell.
+    // Four sites, verified by grep at the cut — settle at :225, C-R12's held-wire walk,
+    // C-R10's first paint, C-R16's in-app walk. A fifth added outside both is a regression
+    // and there is now nothing subtle about spotting it.
+    const CR23 = [tag + 'C-R2 the gutter APPLIES', tag + "C-R3 the registry's room count is what paints"];
+    if (!await settle(p, '/w/rooms', '.wl-tile', CR23)) { await p.close(); continue; }
     const g = await p.evaluate(() => {
       const tiles = [...document.querySelectorAll('.wl-tile')];
       const first = tiles[0].getBoundingClientRect();
@@ -706,9 +750,11 @@ async function seat(browser, mode) {
         ? 'the wire returned no name, so there is no identity to assert'
         : 'SYNTHETIC fixture — no wire identity to assert against; source tools/wl_mint_token.sh');
     } else {
-      await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+      // The goto is guarded too, and it was not: a navigation that rejects outside the try
+      // below throws past this cell exactly as C-R2's did. Same sweep, same sitting.
       let firstPaint = null;
       try {
+        await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
         await p.waitForSelector('.wl-coin', { timeout: 15000 });
         firstPaint = await p.evaluate(() => (document.querySelector('.wl-coin')?.textContent || '').trim());
       } catch { /* reported below */ }

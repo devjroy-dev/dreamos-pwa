@@ -1,6 +1,6 @@
 # M-FINISH · SITTING 2, SESSION 2 — THE SIX ITEMS
 
-**BASE (R-38.15): `9a868c8` = `origin/worklist`, re-derived at the moment of cutting** (relay #3 re-cut; the first cut of this sitting was `7142cbf` and landed as `e790792`, on which P0-B step 3 then landed).
+**BASE (R-38.15): `47fa0cf` = `origin/worklist`, re-derived at the moment of cutting** (relay #3 re-cut; the first cut of this sitting was `7142cbf` and landed as `e790792`, on which P0-B step 3 then landed).
 dream-os `b65b27a` = `origin/main`, sibling clone present. **Railway/Vercel green: NOT
 CLAIMED** — nothing here ran against a deploy, and the render arm needs one.
 
@@ -14,7 +14,7 @@ Founder's line: `fb83289a2c8b7b7f5b846804101f07f11eeb334644c8e8da2d8df6dcc238bfb
 
 ```
 bash tools/preflight.sh worklist          <- §0 IS THIS COMMAND, NOT A SENTENCE
-pwa worklist 9a868c8 · dream-os main b52448f
+pwa worklist 47fa0cf · dream-os main b52448f
 branch alias (answers every run this arc, follows the branch not the commit):
   https://dreamos-pwa-git-worklist-devjroy-devs-projects.vercel.app
 npm ci in BOTH repos before anything. The pwa's is not optional:
@@ -597,6 +597,77 @@ different servers.
 Every founder-bound block in this delivery is a single command. `&&`-chains die in his shell
 on the same RVM hook, which is why the guard had to move into the tree: a chained guard is
 a guard that does not run.
+
+## §9d · F-38.36 · THE FOURTH SIGHTING OF ONE CLASS
+
+`render arm threw: Waiting for selector .wl-tile failed`. C-R1 printed and **thirty-nine
+cells were never evaluated** — one PASS and a stack trace, from a gate whose whole job is
+to report on forty things.
+
+C-R2 held a bare `p.goto` and a bare `waitForSelector`, outside `settle()` and outside any
+`try`. C-R10 had the same shape one line above its own try.
+
+**THIS FILE HAS NOW CURED THIS CLASS FOUR TIMES AND THREE OF THEM WERE INSTANCES.**
+F-38.6 guarded the measurement navigations. F-38.9 guarded `shot()`. F-38.11 put the whole
+capture block inside one try and wrote 「anything in the evidence path can reach the verdict
+path」 as a structural rule. **These two lines sat outside all three because they predated
+them and nobody swept for siblings** — the cure was applied where the failure was seen, and
+the shape was never searched for elsewhere in the same file.
+
+Every navigation goes through `settle()` or a reporting `try` now, and the invariant is
+written so it can be CHECKED rather than trusted: four `p.goto(` sites in the file, each
+named at the site — `settle()`, C-R12's held-wire walk, C-R10's first paint, C-R16's in-app
+walk. A fifth outside both is a regression and there is nothing subtle about spotting it.
+
+**AND A FRESHNESS CHECK THIS SEAT HANDED THE FOUNDER WAS ITSELF BLIND.** Told to confirm
+the deploy carried the cut, it offered `curl … /w/leads | grep -c "Talk to DreamAi"` — and
+that byte lives in a JS chunk, which is why the audit fetches 236 of them and a `curl`
+fetches one document. It would print `0` on a stale build and a fresh one alike. The
+correct marker is one the prerendered HTML actually carries: `wl-mnum`, which this cut
+removed from `/w/today`'s inline style block. **An instrument answering a question it
+cannot see is the same defect as a cell passing on an empty page** (F-38.7), committed
+three messages after writing that sentence down.
+
+## §9e · F-38.37 · THE GATE COULD NOT NAME THE TREE IT MEASURED
+
+**Four gate runs this sitting were spent on a deploy nobody could identify**, and this seat
+handed the founder two freshness checks that could not see what they were asked about:
+
+- `curl … /w/leads | grep "Talk to DreamAi"` — that byte lives in a **JS chunk**, which is
+  why the audit fetches 236 of them and a `curl` fetches one document. `0` on a stale build
+  and a fresh one alike.
+- `curl … /w/today | grep "wl-mnum"` — **the shell never prerenders**. `app/w/layout.tsx`
+  returns a bare loading div until the session resolves, so the served document for every
+  `/w` route is a placeholder and carries no shell CSS at all. Blind for a second time, ten
+  minutes later.
+
+Both were the F-38.7 shape — **an instrument answering a question it cannot see** — offered
+by the seat that had written that sentence into this document three sections earlier.
+
+**THE CURE IS THAT THE BUILD SAYS WHICH COMMIT IT IS.** Vercel sets
+`VERCEL_GIT_COMMIT_SHA`; `next.config.ts` exposes seven characters of it and
+`WorklistShell` carries it as an inert hidden attribute — the same shape `RoomsGrid`
+already uses for its room count, a fact the instruments need and the vendor never sees. It
+rides the same corpus every cell already reads.
+
+**`wl_audit` REFUSES on a mismatch, before a single assertion runs**, and the placement is
+the base guard's reasoning: a verdict about the wrong build is not a weaker verdict, it is
+a verdict about something else. `--any-commit` exists because measuring an old deploy on
+purpose is legitimate — but it has to be asked for out loud, so a mismatch can never be
+absorbed as a passing detail. `wl_render` **reports** rather than refuses: the audit is the
+gate, the arm is evidence, and a browser launch is cheap enough that being told beats being
+stopped.
+
+`wl_audit.mjs`'s own header has carried the warning since the day it was written —
+「the estate has been burned by a source that was right beside a build that was stale」 —
+and the gate had no way to tell. It does now.
+
+**⚠ `next.config.ts` IS OUTSIDE EVERY DECLARED GRANT.** Three lines, no runtime behaviour,
+mechanical to revert. Disclosed rather than slipped in; ratify-or-revert.
+
+**THE FIRST RUN AFTER THIS LANDS WILL SAY `DEPLOY: UNSTAMPED`**, because the build carrying
+the stamp is the one being deployed by this commit. That is expected and it is the last time
+it can be ambiguous.
 
 ## §10 · THE NEXT SITTING
 
