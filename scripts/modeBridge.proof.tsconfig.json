@@ -1,0 +1,18 @@
+{
+  "//": "TDW_04.5 P2 — standalone compile config for scripts/modeBridge.proof.ts. The proof",
+  "//2": "imports the REAL lib/worklist/mode.ts through the repo's `@/*` alias; a bare",
+  "//3": "`tsc file.ts` cannot see that alias and fails TS2307.",
+  "//4": "This config supplies exactly the alias and nothing else — no error is suppressed.",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": { "@/*": ["./*"] },
+    "module": "commonjs",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmitOnError": true
+  },
+  "files": ["modeBridge.proof.ts"]
+}

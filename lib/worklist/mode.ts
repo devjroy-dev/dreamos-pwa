@@ -57,11 +57,52 @@ export function readModeClient(): WlMode {
   try { return asMode(localStorage.getItem(MODE_LEGACY_KEY)); } catch { return 'dark'; }
 }
 
+// ── F-38.52 · THE INTERIM BRIDGE TO THE /vendor LANE ───────────────────────
+//
+// THE FOUNDER'S WALK, IN HIS WORDS: 「half the rooms dont match with the theme colr … for
+// some the main room and interior specific room have same theme and for others they
+// dont」. He was right, and it was not a bug in the mode — it was TWO THEME SYSTEMS.
+//
+// `lib/worklist/rooms.ts` still points SEVEN rooms at `/vendor` (Storefront, Portfolio,
+// Couture, Team, Contracts, TDS, Collab) against eleven on `/w`. The two lanes share no
+// key, no mechanism and no vocabulary:
+//
+//     /w        cookie `tdw_wl_mode`   -> `data-wl-mode` on the .wl scope
+//     /vendor   localStorage `dreamai_theme` -> `html.theme-light` + JS tokens
+//                 (app/vendor/layout.tsx:77, hooks/vendor/useTheme.ts:10,
+//                  lib/vendor/ThemeContext.tsx:6)
+//
+// So the shell's coin wrote one key and seven rooms read the other. Not a race and not a
+// second authority fighting a first — two independent systems never wired together. The
+// vendor could flip Chalk all day and Storefront would not hear about it.
+//
+// ── THIS IS ONE WRITER, NOT A SECOND HOME ─────────────────────────────────
+// `writeMode` is still the ONLY thing that writes the mode anywhere in the estate. It now
+// writes two keys in one call. The reverse write deliberately does not exist: the old
+// lane's own toggle is NOT taught to write the cookie, because one writer means one, and a
+// bridge with traffic in both directions is two authorities wearing a bridge's name.
+//
+// ── THE MAPPING IS SEMANTIC, NOT PALETTE ──────────────────────────────────
+// Chalk -> 'light', Graphite -> 'dark'. Cream is not Chalk and espresso is not Graphite —
+// the two lanes render the same WORD in their own palettes, and that is the honest
+// reading, because the word the vendor chose is 「light」 or 「dark」. Mapping Chalk to the
+// old lane's dark on the grounds that cream ≠ Chalk would make one tap mean opposite
+// things on two screens, which is a worse error than two palettes agreeing on a word.
+//
+//   RETIRES WHEN `INTERIM_VENDOR_ROOMS` IS EMPTY. Not on a date and not next sitting: on
+//   the last crossing, when there is no room left that reads the other key. The condition
+//   is derivable from the registry by command, so nothing has to remember it.
+export const VENDOR_LANE_KEY = 'dreamai_theme';
+
 /** The one writer. The drawer toggle calls this and nothing else writes the mode. */
 export function writeMode(mode: WlMode): void {
   if (typeof document === 'undefined') return;
   // One year. A display preference that expires is a vendor who finds his shell has
   // changed colour for no reason he can name.
   document.cookie = `${MODE_COOKIE}=${mode}; path=/; max-age=31536000; samesite=lax`;
-  try { localStorage.setItem(MODE_LEGACY_KEY, mode); } catch { /* private mode — cookie holds */ }
+  try {
+    localStorage.setItem(MODE_LEGACY_KEY, mode);
+    // F-38.52, the bridge. Same call, same writer, retiring with the last crossing.
+    localStorage.setItem(VENDOR_LANE_KEY, mode);
+  } catch { /* private mode — the cookie holds the /w lane and the bridge is lost with it */ }
 }
