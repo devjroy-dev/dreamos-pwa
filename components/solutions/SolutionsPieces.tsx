@@ -115,15 +115,22 @@ export function SolutionsStyles() {
 .sol-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
   min-height:56px;padding:12px 0;text-decoration:none;
   border-bottom:.5px solid var(--atelier-card-border);touch-action:manipulation}
+/* Founder walk: the Benchmarks chip clipped at the row edge. Two causes, both
+   fixed here rather than by shortening the word. The label column could grow
+   past its share, and the chip — being the flex item with the longest single
+   token — was the one that lost. min-width:0 lets the text column actually
+   shrink (a flex item's default min-width is auto, so it refuses to), and
+   flex:0 0 auto takes the chip out of the negotiation entirely. */
 .sol-row:last-of-type{border-bottom:none}
 .sol-row:active{background:var(--atelier-row-hover)}
 .sol-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
 .sol-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
-.sol-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.sol-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .sol-chip{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;
-  white-space:nowrap;color:var(--atelier-ink-soft);
+  white-space:nowrap;color:var(--atelier-ink-soft);flex:0 0 auto;
   border:.5px solid var(--atelier-input-border);border-radius:2px;padding:3px 7px}
 .sol-chip--connected{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .sol-chip--live{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
@@ -157,10 +164,18 @@ export function SolutionsStyles() {
   color:var(--atelier-accent-text);touch-action:manipulation}
 .sol-btn:active{background:var(--atelier-row-hover)}
 .sol-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.sol-btn[disabled]{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border);cursor:default}
+ /* F-19.20: the founder pressed a disabled button and nothing happened, so it
+    did not read as disabled. Dimmed further and given not-allowed, and the
+    surface prints COPY.withheldNote beside it — a withheld door must LOOK
+    withheld, not merely behave that way. */
+.sol-btn[disabled]{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border);
+  cursor:not-allowed;opacity:.55}
 .sol-btn[disabled]:active{background:transparent}
 
 .sol-addr{font:var(--wl-t3);color:var(--atelier-ink);margin:16px 0 0;word-break:break-all}
+/* F-19.21: a RESERVED name, not a live address. Muted and not link-coloured, so
+   nothing about it invites a tap that would land on DEPLOYMENT_NOT_FOUND. */
+.sol-reserved{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:14px 0 0;word-break:break-all}
 .sol-note{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
 
 .sol-footer{margin-top:28px;padding-top:20px;border-top:.5px solid var(--atelier-card-border);

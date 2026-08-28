@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROWS, ROW_EYEBROWS, BUTTONS } from '@/lib/solutions/copy';
+import { fetchGateLive } from '@/lib/solutions/client';
 import { fetchProof } from '@/lib/solutions/client';
 import type { ProofDoc } from '@/lib/solutions/types';
 import { SurfaceFrame, SurfaceEmpty, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
@@ -31,10 +32,20 @@ const LABELS: Record<ProofDoc['kind'], string> = {
 function Screen() {
   const [d, setD] = useState<ProofDoc[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // F-19.20 — false until proven open. A surface that cannot confirm its
+  // gate treats it as closed: an enabled button over a withheld door is the
+  // defect; a disabled one over a working door is an inconvenience.
+  const [live, setLive] = useState(false);
   useEffect(() => {
     let alive = true;
     fetchProof().then((x) => { if (alive) setD(x); }).catch(() => { if (alive) setErr(COPY.surfaceUnavailable); });
     return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    let on = true;
+    fetchGateLive('proof').then((v) => { if (on) setLive(v); });
+    return () => { on = false; };
   }, []);
 
   const KINDS: ProofDoc['kind'][] = ['rate_card', 'one_pager', 'qa'];
@@ -56,9 +67,10 @@ function Screen() {
             );
           })}
         </div>
+        {!live ? <p className="sol-note">{COPY.withheldNote}</p> : null}
         <div className="sol-actions">
-          <button type="button" className="sol-btn" disabled>{BUTTONS.make}</button>
-          <button type="button" className="sol-btn" disabled>{BUTTONS.share}</button>
+          <button type="button" className="sol-btn" disabled={!live}>{BUTTONS.make}</button>
+          <button type="button" className="sol-btn" disabled={!live}>{BUTTONS.share}</button>
         </div>
       </SurfaceFrame>
       <SolutionsStyles />

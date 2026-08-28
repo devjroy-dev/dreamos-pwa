@@ -542,3 +542,134 @@ both repos redden), doors that already answer honestly in the empty state,
 surfaces built against those real answers rather than mocks, an env ledger where
 turning a phase on is setting a key, and a public address that exists from today
 so P2 replaces a body and not a URL.
+
+---
+---
+
+# STEP 5b — THE FOUNDER-WALK CURES (CE-38 consolidated relay)
+
+**Base at the cut:** `dreamos-pwa` `9b63ef3` · `dream-os` `f7f5a6e` · preflight CLEAR.
+
+⚠ **RE-CUT ONCE. The first cut was base-pinned to `4f2482d` and the guard refused
+it at the founder's hand** — `REFUSED — HEAD is 9b63ef3, base is 4f2482d`. S3's
+`4-2` calendar crossing had landed in between. This is R-38.15 working exactly as
+written: the base check ran **before a single file was copied**, and F-38.25's
+mechanism — a whole-file copy silently reverting someone else's work — never got
+the chance.
+
+Re-derived rather than re-cut blind. S3 touched **none of this delivery's twelve
+files**, so a whole-file copy reverts nothing; but they did touch all three files
+this delivery's cells READ, so each was checked at the new tip:
+`supportTitle`/`supportBody`/`supportAction` survive (`copy.ts:195-198`), b40
+C10's census still maps `app/w/support/page.tsx` to `wl-supportaction`
+(`b40:162`), and `rooms.ts:73` still labels the room `Business Solutions`. All
+three gates re-run at `9b63ef3`: `tsc` exit 0, `bs_audit` 27 PASS · 0 FAIL, b40
+FLOOR GREEN, and the floor `NAMED BASE, no delta` with the delivery withdrawn.
+**§1 rulings received and applied to the register:** `Coming` APPROVED as the
+seventh chip (spec §9 amended by label); the demo asymmetry STANDS with its
+retirement condition on the register; the four inline transcriptions ACCEPTED.
+
+## §30 · WHAT THE WALK FOUND THAT NO CELL HAD
+
+Three defects, all of them things the founder could see and no source-reading
+instrument could. Worth naming as a class before the cures: **`bs_audit` asserted
+that the surfaces could not be wrong in the ways this block can be wrong, and
+every one of those assertions held.** What it never asserted was that a vendor
+pressing a button gets a response, or that a printed address resolves. D-38.1's
+warning, arriving from the other direction: presence is not behaviour, and source
+is not paint.
+
+### F-19.19 · `/v/<unknown>` rendered Next's raw framework 404
+
+`notFound()` with **no `app/not-found.tsx` anywhere in the tree** — so a couple
+who tapped a friend's WhatsApp link got a developer artefact.
+
+Cured: the miss branch renders on the **same ground as a real card**, one
+sentence, no status code visible anywhere. Derived as the relay asked: absent and
+paused reach that branch **by construction, not coincidence** — the door returns
+one indistinguishable body for absent, paused and inactive (`vendorCard.js:139`,
+byte-identity asserted by b44 §4.4) and `fetchCard` returns null on any non-ok
+response, so there is exactly one `if (!card)` and no path on which they diverge.
+C25 asserts the single branch, the shared stylesheet, and the absence of `404`.
+
+### F-19.20 · withheld doors rendered active
+
+The founder pressed `Connect` and nothing happened. The button *was* `disabled` —
+**but hardcoded**, which was right only by accident: it would have stayed dead the
+day `GOOGLE_OAUTH_CLIENT_ID` was set, and R-19.5's whole point is that turning a
+row on is setting a key, not shipping a build.
+
+Cured: `fetchGateLive(slug)` reads the gate through the index the room already
+serves — **no door's contract moves and no shape is amended**. It returns `false`
+on any failure, because an enabled button over a withheld door is the defect and a
+disabled one over a working door is an inconvenience. Each surface prints
+`withheldNote` beside the control, and `[disabled]` now carries `not-allowed` and
+reduced opacity — it did not *read* as disabled, which is why it was pressed.
+
+### F-19.21 · the Website surface printed a live address that was not
+
+`<handle>.thedreamwedding.in` in body type; the founder opened one and got
+`DEPLOYMENT_NOT_FOUND`. **No wildcard DNS exists** — P2 infrastructure plus a
+founder-side Vercel/DNS action, filed in the ledger.
+
+Cured: the row states `Arrives with your own domain`; the reserved name renders
+muted and unlinked with a sentence saying it goes live later. C27 asserts the
+class, the muting, the absence of a link, and both sentences.
+
+## §31 · DESK NOTES
+
+**The Benchmarks chip clipped at the row edge** — two causes, both fixed at the
+layout rather than by shortening the word: a flex item's default `min-width` is
+`auto`, so the text column refused to shrink, and the chip was the item that lost.
+`flex:1 1 auto` + `min-width:0` on the text, `flex:0 0 auto` on the chip, ellipsis
+on the eyebrow.
+
+**The footer shrank to the ruled one-liner.** It was `WL.supportBody` — four lines
+about SEO, ads and campaign pages, written when this room *was* the offer. The six
+rows now say all of it, so the paragraph repeated the page back to itself and
+pushed the one control that reaches a human below the fold. **The tail of the
+sentence is the button:** `supportAction` already reads `Message us on WhatsApp`,
+so this seat added only the three new words and those four keep their one home.
+
+⚠ **`WL.supportBody` is now unreferenced** — an orphan in `lib/worklist/copy.ts`,
+which is the S2 seat's file. Reported, not touched. It joins `supportHeader`,
+already orphaned before this seat arrived (§16).
+
+## §32 · GATE AT THE CUT
+
+```
+tools/preflight.sh worklist       PREFLIGHT CLEAR — 4f2482d / f7f5a6e, both behind 0
+npx tsc --noEmit                  exit 0
+node tools/bs_audit.mjs           27 PASS · 0 FAIL, exit 0   (24 → 27)
+node scripts/b40_..._bench.js     FLOOR GREEN — S2's bench unbroken
+pwa floor, delivery tree          1 red: tdw_f0774_vacuity_probe (F-19.16, dirt)
+pwa floor, delivery withdrawn     FLOOR = NAMED BASE, no delta, exit 0 — compared by SET
+```
+
+### Non-vacuity — each mutation restores the defect the founder walked into
+
+| # | Mutation | Reddened |
+|---|---|---|
+| W1 | `/v/` back to `notFound()` | C25 — *still calls notFound(); still imports next/navigation* |
+| W2 | a button back to hardcoded `disabled` | C26 — *a hardcoded 'disabled' survives; not driven by the gate* |
+| W3 | the address back to the live-address class | C27 — *still uses the live-address class* |
+
+C24 also fired unprompted during the build, naming all four new copy keys as
+absent from the register before they were added. It is doing the job it was
+written for.
+
+## §33 · F-19.18, THIRD SIGHTING — AND THE PROCEDURE THAT FINALLY HELD
+
+The pristine measurement was taken by copying the delivery **outside the tree
+first**, then `git checkout --`, then restoring from that copy. Nothing was lost.
+
+But the restore was still botched — it nested `app/v/v/` and scattered
+`lib/solutions/*.ts` into `components/solutions/`. **The gate caught it**: C25
+went red with *the miss branch does not share the card stylesheet*, and
+`git status` showed four stray untracked files. Corrected, re-verified, and W2
+re-run against the rebuilt tree rather than carried over.
+
+So: three encounters with this hazard in one block, and the only one that cost
+nothing was the one where a backup existed *before* the measurement began. That
+is the third piece of evidence for the chartered `--delivery` port, and the first
+where the procedure's cost was paid in minutes rather than in work.

@@ -24,6 +24,7 @@ import { getJson } from '@/lib/vendor/api/_base';
 import { API } from './routes';
 import type {
   SolutionsIndex,
+  SolutionsRow,
   GoogleStatus,
   DomainStatus,
   DomainSearchResult,
@@ -38,6 +39,32 @@ type Env<K extends string, T> = { ok: boolean } & { [P in K]: T };
 export async function fetchIndex(): Promise<SolutionsIndex> {
   const r = await getJson<Env<'index', SolutionsIndex>>(API.index());
   return r.index;
+}
+
+/**
+ * F-19.20 · WHETHER ONE SURFACE'S DOOR IS OPEN.
+ *
+ * The founder pressed `Connect` on a withheld surface and nothing happened. The
+ * button was `disabled` — but hardcoded, which is right today only by accident:
+ * it would still be dead the day `GOOGLE_OAUTH_CLIENT_ID` is set, and the whole
+ * point of R-19.5 is that turning a row on is setting a key, not shipping a
+ * build.
+ *
+ * `gates()` already knows. This reads it through the index the room already
+ * serves, so no door's contract moves and no shape is amended. It returns
+ * `false` on any failure — **a surface that cannot confirm its gate is open
+ * treats it as closed**, because an enabled button over a withheld door is the
+ * exact defect this cures, and the reverse is merely a disabled button on a
+ * working one.
+ */
+export async function fetchGateLive(slug: SolutionsRow['slug']): Promise<boolean> {
+  try {
+    const ix = await fetchIndex();
+    const row = ix.rows.find((r) => r.slug === slug);
+    return row ? row.live === true : false;
+  } catch {
+    return false;
+  }
 }
 
 export async function fetchGoogle(): Promise<GoogleStatus> {

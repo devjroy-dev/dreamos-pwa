@@ -10,7 +10,8 @@
 // THE WHATSAPP LINE SURVIVES, AS THE FOOTER. Ruled at CE-38 relay #1 item 6, and
 // the reasoning is worth keeping at the site: displacing it would have traded
 // the one row on this page that reaches a person for six rows that all read
-// `Coming`. It consumes `COPY.supportBody` and `COPY.supportAction` UNCHANGED
+// `Coming`. It consumes `COPY.supportAction` UNCHANGED (the footer body shrank to
+// the ruled one-liner at the founder walk — see the footer block below)
 // from `lib/worklist/copy.ts` — read, never edited, because that file is the
 // M-FINISH S2 seat's (kickoff §2). No string is orphaned and no relay was needed.
 //
@@ -93,7 +94,21 @@ function SolutionsIndexScreen() {
           live element should not be edited to accommodate a rename that bought
           nothing. Its rule is carried below, ≥44px, where the census can see it. */}
       <div className="sol-footer">
-        <p className="sol-footerbody">{WL.supportBody}</p>
+        {/* ── DESK NOTE · THE FOOTER SHRINKS TO THE RULED ONE-LINER ──────────
+            Was `WL.supportBody`, a four-line paragraph about SEO, ads and
+            campaign pages — written when this room WAS the offer. The six rows
+            above now say all of that, so the paragraph repeated the page back to
+            itself and pushed the one control that reaches a human below the fold.
+
+            The ruled line is `Something broken? Message us on WhatsApp.` and it
+            renders as exactly that: THE TAIL OF THE SENTENCE IS THE BUTTON.
+            `WL.supportAction` already reads `Message us on WhatsApp`, so those
+            four words keep their one home in the S2 seat's file and this seat
+            adds only the three that are new.
+
+            ⚠ `WL.supportBody` is now unreferenced — an orphan in
+            `lib/worklist/copy.ts`, which is S2's. Reported, not touched. */}
+        <p className="sol-footerbody">{COPY.footerLine}</p>
         <button
           type="button"
           className="wl-supportaction"

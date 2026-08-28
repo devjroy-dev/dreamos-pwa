@@ -553,6 +553,86 @@ try {
   }
 }
 
+// ── C25 · F-19.19 · THE PUBLIC MISS IS A DESIGNED PAGE, NOT A FRAMEWORK 404 ──
+// The founder walked `/v/<unknown>` and got Next's raw 404 — a developer
+// artefact shown to a couple who tapped a friend's WhatsApp link. `notFound()`
+// with no `app/not-found.tsx` anywhere in the tree is what produced it.
+//
+// Absent and paused reach the same branch by construction, not by coincidence:
+// the door returns one indistinguishable body for absent, paused AND inactive
+// (b44 §4.4), and `fetchCard` returns null on any non-ok response — so there is
+// exactly one `if (!card)` and no path on which they could diverge. This cell
+// asserts the branch renders, sits on the shared stylesheet, and shows no
+// status code.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C25 /v/ renders a designed page for a miss', 'app/v/[code]/page.tsx not found');
+  else {
+    const code = strip(pv);
+    const bad = [];
+    if (/\bnotFound\s*\(/.test(code))            bad.push('still calls notFound()');
+    if (/from 'next\/navigation'/.test(code))    bad.push("still imports next/navigation");
+    if (!/if \(!card\)/.test(code))              bad.push('no single miss branch');
+    if (!/PublicStyles/.test(code))              bad.push('the miss branch does not share the card stylesheet');
+    if (/\b404\b/.test(code))                    bad.push('a status code is visible in the rendered output');
+    // One miss branch only — two would be two grounds to drift.
+    const misses = (code.match(/if \(!card\)/g) || []).length;
+    if (misses !== 1) bad.push(`${misses} miss branches, expected exactly 1`);
+    bad.length === 0
+      ? P('C25 /v/ renders a designed page for a miss', 'one branch, shared ground, no status code')
+      : F('C25 /v/ renders a designed page for a miss', bad.join('; '));
+  }
+}
+
+// ── C26 · F-19.20 · A WITHHELD DOOR LOOKS WITHHELD ────────────────────────
+// The founder pressed `Connect` and nothing happened. The button WAS disabled —
+// but hardcoded, which is right today only by accident: it would still be dead
+// the day the key is set, and R-19.5's whole point is that turning a row on is
+// setting a key, not shipping a build. `disabled` must come from `gates()`.
+{
+  const WITH_BUTTONS = ['google', 'website', 'marketing', 'proof'];
+  const bad = [];
+  for (const s of WITH_BUTTONS) {
+    const src = surfaceSrc[s];
+    if (!src) { bad.push(`${s}: unreadable`); continue; }
+    const code = strip(src);
+    if (/disabled>/.test(code))                    bad.push(`${s}: a hardcoded 'disabled' survives`);
+    if (!/disabled=\{!live\}/.test(code))          bad.push(`${s}: button not driven by the gate`);
+    if (!/fetchGateLive\('/.test(code))            bad.push(`${s}: never reads gates()`);
+    if (!/useState\(false\)/.test(code))           bad.push(`${s}: gate does not default closed`);
+    if (!/COPY\.withheldNote/.test(code))          bad.push(`${s}: no note beside the withheld control`);
+  }
+  bad.length === 0
+    ? P('C26 every withheld button is gate-driven and says so', `${WITH_BUTTONS.length} surfaces, default closed`)
+    : F('C26 every withheld button is gate-driven and says so', bad.join('; '));
+}
+
+// ── C27 · F-19.21 · NO SURFACE IMPLIES AN ADDRESS THAT RESOLVES ───────────
+// The Website surface printed `<handle>.thedreamwedding.in` in body type as
+// though it were live. The founder opened one: DEPLOYMENT_NOT_FOUND. No
+// wildcard DNS exists — P2 infrastructure and a founder-side Vercel action.
+{
+  const src = surfaceSrc.website;
+  const bad = [];
+  if (!src) bad.push('website surface unreadable');
+  else {
+    const code = strip(src);
+    if (/className="sol-addr"/.test(code))          bad.push('the address still uses the live-address class');
+    if (!/className="sol-reserved"/.test(code))     bad.push('the reserved-name class is not used');
+    if (!/COPY\.websiteAddressPending/.test(code))  bad.push('the row does not state when the address arrives');
+    if (!/COPY\.websiteAddressNote/.test(code))     bad.push('no sentence disclaiming that it resolves');
+    if (/<a [^>]*sol-reserved/.test(code))          bad.push('the reserved name is a link');
+  }
+  // And the muted colour is the affordance — a reserved name must not read as ink.
+  if (piecesSrc && !/\.sol-reserved\{[^}]*--atelier-ink-mute/.test(piecesSrc)) {
+    bad.push('the reserved name is not muted');
+  }
+  bad.length === 0
+    ? P('C27 the web address is shown as reserved, never as live', 'muted, unlinked, with its arrival stated')
+    : F('C27 the web address is shown as reserved, never as live', bad.join('; '));
+}
+
 console.log('');
 console.log(`${pass} PASS \u00b7 ${fail} FAIL`);
 process.exit(fail === 0 ? 0 : 1);

@@ -18,9 +18,12 @@ different people.
 
 ---
 
-## ⚠ 1 · THE THREE THINGS THAT NEED A RULING, NOT JUST A READ
+## 1 · THE THREE ITEMS — ALL RULED (CE-38 consolidated relay, 2026-08-28)
 
-### 1a · `Coming` is a SEVENTH chip. Spec §9 approved six.
+They are kept in place rather than deleted: the reasoning is why the bytes read
+as they do, and a register that drops it leaves the next reader guessing.
+
+### 1a · `Coming` — ✅ **APPROVED as the seventh chip.** Spec §9 amended by label; its six were authored before R-19.5's gates existed, and a gated-off phase needs a state name. The chip set is now seven, closed.
 
 | Approved (spec §9) | Proposed addition |
 |---|---|
@@ -32,10 +35,9 @@ cannot**, which is the one thing she must not be told. `Coming` is styled the
 quietest of the seven on purpose: it is the only chip that describes *us* rather
 than *her*.
 
-`bs_audit` C8 prints it on every run so it cannot become approved by nobody
-noticing. Strike it and the fallback is yours to name.
+`bs_audit` C8 prints it on every run. It is now approved rather than proposed.
 
-### 1b · The demo page shows a button the real page does not.
+### 1b · The demo asymmetry — ✅ **STANDS AS SHIPPED**, stated not hidden.
 
 | Page | `Enquire on WhatsApp` |
 |---|---|
@@ -51,11 +53,9 @@ strength of a choice she was never asked to make.
 gathered when the demo was built, on a page that says it is a demonstration.
 
 So the two pages differ, and **a couple who sees both will notice**. That is the
-cost of the ruling, stated rather than buried. It resolves when a
-`public_contact_phone` is chartered with the vendor's explicit consent — priced
-into P2.
+cost of the ruling, stated rather than buried. **It retires the day a real public-contact field is chartered (P2).** Until then the demo page carries one affordance the real page does not, and this sentence is the register's record of why.
 
-### 1c · Two strings are transcribed, not imported. `copy.ts` is still their home.
+### 1c · The inline transcriptions — ✅ **ACCEPTED** with their home-and-reason notes. `bs_audit` C24 now guards them.
 
 | String | Home | Also written as a literal in | Why |
 |---|---|---|---|
@@ -131,6 +131,10 @@ Verbs, ≤2 words. `bs_audit` C7 refuses any word not in spec §9's set.
 | `benchmarksBelowCohort` | Not enough vendors in {city} yet. | Spec §7's own byte. `{city}` is substituted at render. |
 | `benchmarksNoCity` | Not enough vendors in your category yet. | ⚠ **Not in the spec.** It exists because `Not enough vendors in null yet` is the byte that ships if nobody writes the second sentence. |
 | `subdomainPending` | Your web address is ready once onboarding is finished. | For a vendor mid-onboarding with no `routing_handle`. The alternative was showing her `null.thedreamwedding.in`. |
+| `websiteAddressPending` | Arrives with your own domain | ⚠ **F-19.21.** The surface printed `<handle>.thedreamwedding.in` as a live address; the founder opened one and got `DEPLOYMENT_NOT_FOUND`. **No wildcard DNS exists** — that is P2 infrastructure plus a founder-side Vercel/DNS action, filed in the ledger. The row now states when the address arrives. |
+| `websiteAddressNote` | Your address is reserved. It goes live when your domain is set up. | Shown under the reserved name, which is rendered muted and unlinked so nothing invites a tap. |
+| `withheldNote` | This opens once we finish connecting the service. | ⚠ **F-19.20.** Beside any button whose gate is closed. The founder pressed `Connect` and nothing happened — a withheld door must look withheld and say who is waiting on what. |
+| `footerLine` | Something broken? | The room footer, shrunk to the ruled one-liner. **The tail of the sentence is the button:** `supportAction` already reads `Message us on WhatsApp`, so together they render `Something broken? Message us on WhatsApp.` |
 
 ## 7 · THE EMPTY STATES
 

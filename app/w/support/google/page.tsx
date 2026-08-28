@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROWS, ROW_EYEBROWS, BUTTONS } from '@/lib/solutions/copy';
+import { fetchGateLive } from '@/lib/solutions/client';
 import { fetchGoogle } from '@/lib/solutions/client';
 import type { GoogleStatus } from '@/lib/solutions/types';
 import { SurfaceFrame, SurfaceEmpty, StateChip, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
@@ -25,10 +26,20 @@ export default function Page() {
 function Screen() {
   const [d, setD] = useState<GoogleStatus | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // F-19.20 — false until proven open. A surface that cannot confirm its
+  // gate treats it as closed: an enabled button over a withheld door is the
+  // defect; a disabled one over a working door is an inconvenience.
+  const [live, setLive] = useState(false);
   useEffect(() => {
     let alive = true;
     fetchGoogle().then((x) => { if (alive) setD(x); }).catch(() => { if (alive) setErr(COPY.surfaceUnavailable); });
     return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    let on = true;
+    fetchGateLive('google').then((v) => { if (on) setLive(v); });
+    return () => { on = false; };
   }, []);
 
   const connected = d?.status === 'connected';
@@ -55,8 +66,9 @@ function Screen() {
             is dead because Google has not yet answered a quota application would be
             the wrong fact about her own product, so the two are shown apart. */}
         {d && !d.gbpQuotaApproved ? <p className="sol-note">{COPY.googleQuotaPending}</p> : null}
+        {!live ? <p className="sol-note">{COPY.withheldNote}</p> : null}
         <div className="sol-actions">
-          <button type="button" className="sol-btn" disabled>
+          <button type="button" className="sol-btn" disabled={!live}>
             {connected ? BUTTONS.disconnect : BUTTONS.connect}
           </button>
         </div>

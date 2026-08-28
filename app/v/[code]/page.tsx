@@ -32,8 +32,6 @@
 // client component would ship a spinner to a stranger who has no reason to wait,
 // and would put the fetch on their connection instead of ours.
 
-import { notFound } from 'next/navigation';
-
 export const dynamic = 'force-dynamic';
 
 /**
@@ -85,10 +83,30 @@ export default async function PublicVendorPage(
   const { code } = await params;
   const card = await fetchCard(code);
 
-  // One outcome for absent, paused, inactive and unreachable. `notFound()`
-  // renders the app's own 404, which carries `COPY.unknown`'s meaning without
-  // this route needing to decide what kind of miss it was.
-  if (!card) return notFound();
+  // ── F-19.19 · THE NEUTRAL PAGE IS RENDERED, NOT DELEGATED ────────────────
+  // This was `notFound()`, and with no `app/not-found.tsx` anywhere in the tree
+  // that meant Next's raw framework 404 — a developer artefact shown to a couple
+  // who tapped a friend's WhatsApp link. The founder walked it and saw exactly
+  // that.
+  //
+  // ABSENT AND PAUSED REACH HERE BY THE SAME PATH, derived not assumed: the door
+  // returns its one indistinguishable 404 body for absent, paused AND inactive
+  // (`vendorCard.js:139`, asserted byte-identical by b44 §4.4), and `fetchCard`
+  // returns null on any non-ok response. So one branch serves all three, and
+  // there is no code path on which they could diverge.
+  //
+  // It renders on the SAME GROUND as a real card — same background, same type,
+  // same frame — carrying one sentence. **No status code is visible anywhere**,
+  // because "404" tells a couple nothing and tells a curious stranger that the
+  // handle space is worth probing.
+  if (!card) {
+    return (
+      <main className="pv">
+        <p className="pv-line">{COPY.unknown}</p>
+        <PublicStyles />
+      </main>
+    );
+  }
 
   const sub = [card.city, card.category].filter(Boolean).join(' · ');
   const wa = card.enquiry_phone
@@ -122,7 +140,19 @@ export default async function PublicVendorPage(
           Cormorant is the display face at t1; DM Sans carries everything else.
           No webfont is loaded: a stranger on a phone gets the system stack
           instantly rather than a flash of nothing while two files download. */}
-      <style>{`
+      <PublicStyles />
+    </main>
+  );
+}
+
+/**
+ * ONE STYLESHEET FOR BOTH BRANCHES. The neutral page must sit on the SAME
+ * ground as a real card (F-19.19) — a second copy of these rules is a second
+ * ground that drifts the first time one is edited.
+ */
+function PublicStyles() {
+  return (
+    <style>{`
 .pv{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;padding:32px 24px;background:#F8F7F5;color:#0C0A09;text-align:center;
   font:400 14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -137,7 +167,6 @@ export default async function PublicVendorPage(
 .pv-cta:active{background:#F2EFE9}
 .pv-cta:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
 .pv-demo{font:400 11px/1.4 inherit;color:#8A837C;margin:18px 0 0;max-width:36ch}
-      `}</style>
-    </main>
+    `}</style>
   );
 }

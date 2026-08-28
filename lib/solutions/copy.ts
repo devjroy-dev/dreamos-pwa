@@ -124,6 +124,31 @@ export const COPY = {
    */
   googleQuotaPending: 'Automatic updates start once Google approves our access.',
 
+  /**
+   * F-19.20 · shown beside a button whose gate is closed. It names WHO is
+   * waiting on WHAT, rather than leaving a dead control to explain itself.
+   */
+  withheldNote: 'This opens once we finish connecting the service.',
+
+  /**
+   * F-19.21 · THE WEBSITE ROW NO LONGER IMPLIES AN ADDRESS THAT RESOLVES.
+   * The surface printed `<handle>.thedreamwedding.in` as though it were live;
+   * the founder opened it and got DEPLOYMENT_NOT_FOUND. No wildcard DNS exists
+   * — that is P2 infrastructure, and a founder-side Vercel/DNS action filed in
+   * the ledger. Until the wildcard is live the row states when the address
+   * arrives and shows nothing that looks clickable.
+   */
+  websiteAddressPending: 'Arrives with your own domain',
+  websiteAddressNote:    'Your address is reserved. It goes live when your domain is set up.',
+
+  /**
+   * The room footer, shrunk to the ruled one line. The tail of the sentence IS
+   * the button — `COPY.supportAction` in `lib/worklist/copy.ts` already reads
+   * `Message us on WhatsApp`, so the two render as the ruled sentence without a
+   * second home for those four words.
+   */
+  footerLine: 'Something broken?',
+
   // ── THE SENTENCES SPEC §9 REQUIRES TO EXIST ──────────────────────────────
   // Each is PROPOSED. The founder's bytes replace them at his one pass.
 
