@@ -962,7 +962,11 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // the same edit.
   const reg = strip(read('lib/worklist/rooms.ts'));
   const declared = new Set((reg.match(/href:\s*'(\/vendor\/[^']+)'/g) || []).map((x) => x.match(/'([^']+)'/)[1]));
-  const lm = reg.match(/INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  // F-38.60: anchored on the DECLARATION, matching wl_audit's cure. This cell has always
+  // been safe because it strips first — that is why b40 was GREEN on the tree wl_audit
+  // called red — but "safe because of what the other line does" is not a property to leave
+  // two readers relying on. The anchor makes it safe on its own terms.
+  const lm = reg.match(/export const INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
   if (lm) for (const x of lm[1].match(/'(\/vendor\/[^']+)'/g) || []) declared.add(x.slice(1, -1));
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT
   // MATTERS. The first cut returned on a missing FALLBACK_SLICE_BASE, so at the bounced

@@ -50,8 +50,40 @@ const ANY_COMMIT = process.argv.includes('--any-commit');
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+// F-38.60 / F-07.99: imported AND invoked at the read below. A stripper that is ported and
+// never called fooled this estate for a whole block; the invocation is the point.
+import { stripComments } from '../scripts/lib/stripComments.mjs';
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
-const REGISTRY = readFileSync(join(REPO, 'lib/worklist/rooms.ts'), 'utf8');
+// ── F-38.60 · THE REGISTRY IS PARSED AS CODE, SO ITS PROSE MUST GO FIRST ────
+//
+// `registryDeclaredSet` matched quoted strings with a PAIR matcher, `'([^']+)'`, against
+// the raw block — comments included. At §4-4 the `INTERIM_VENDOR_LINKS` block reached
+// **21 apostrophes**, an ODD count, because the entries' own quotes sit among prose that
+// says 「R-38.7's row」, 「Storefront's Discover row's class」, 「TEAM'S THREE」. One unmatched
+// apostrophe offsets every pairing after it, so real entries fall INSIDE phantom strings
+// and out of the set.
+//
+// ⚠ AND THE ASYMMETRY IS THE WHOLE DIAGNOSTIC, BECAUSE IT SHOWS THE EARLIER ENTRIES WERE
+// NEVER SAFE EITHER. `/vendor/discover/preview`, `/vendor/discover/profile` and
+// `/vendor/discover` parsed correctly for one reason only: the comment apostrophes ABOVE
+// each of them happened to arrive in EVEN numbers (running counts 4, 8, 12). §4-4's comment
+// contributed THREE — 「TEAM'S」, 「Storefront's」, 「row's」 — the count went odd at 15, and
+// Team's three entries were swallowed. **The set that passed was passing by luck, and the
+// luck ran out on the first entry added after an odd comment.**
+//
+// THIS IS F-38.46's DEFECT IN ITS THIRD HOME. `b40` C5 read `copy.ts` — 151 apostrophes —
+// with the same pairing and could not fail; the pairing was abandoned there rather than
+// repaired. The lesson reached that cell and not this file. And `b40` C24 reads THIS SAME
+// REGISTRY with the same shape of matcher and has always been immune — because it calls
+// `strip()` first. **One reader stripped and one did not, and only the unstripped one was
+// ever going to break.**
+//
+// THE ESTATE ALREADY OWNS THE CURE AND THIS FILE WAS NOT CALLING IT.
+// `scripts/lib/stripComments.mjs` is F-07.74's one home, a character scan with
+// string-literal tracking, and F-07.99 is the finding about a stripper that was ported and
+// never invoked. Imported and invoked ONCE, at the read, so every derivation below sees
+// code and no derivation has to remember to strip.
+const REGISTRY = stripComments(readFileSync(join(REPO, 'lib/worklist/rooms.ts'), 'utf8'));
 /**
  * EVERY DECLARED SET, READ FROM ITS DECLARATION AND NOT FROM ITS NAME.
  *
