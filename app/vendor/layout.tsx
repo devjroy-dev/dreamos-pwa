@@ -35,6 +35,7 @@ import { BottomNav } from '@/components/vendor/BottomNav';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 import { getVendorSession } from '@/lib/vendor/session';
 import { getJson } from '@/lib/vendor/api/_base';
+import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
 // Apply saved theme class immediately on mount to avoid flash
 // This runs in layout so it fires once for the whole shell
@@ -211,6 +212,10 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
 
   return (
     <ThemeProvider>
+      {/* F-19.36: the SW registrar mounts PER AUTHENTICATED SHELL. It used to sit
+          in the root layout registering an origin-wide scope, so one visit to the
+          public landing claimed /v/ and /r/ for that browser. */}
+      <ServiceWorkerRegistrar />
     {!onLogin && <Splash />}{/* TDW_04 A4 (P6): cold-open only; nav never re-triggers */}
     <div style={{
       height: '100dvh', width: '100%', overflowX: 'clip', overflowY: 'hidden',

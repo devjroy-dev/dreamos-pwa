@@ -49,7 +49,7 @@
 // are built from ONE response and cannot describe two different vendors — which
 // is the failure mode of fetching twice, not a performance note.
 
-import VendorProfileContent, { PROFILE_PALETTE } from '@/components/shared/VendorProfileContent';
+import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/components/shared/VendorProfileContent';
 
 /** Five minutes. See the header. */
 export const revalidate = 300;
@@ -73,10 +73,34 @@ const COPY = {
   enquire:  'Enquire on WhatsApp',
   unknown:  'This page is no longer available.',
   demoNote: 'This is a demonstration page, built from work published publicly.',
+  /** D-19.1 §2, founder-amended. TDW appears on this page EXACTLY ONCE, as a
+   *  credit line at the foot — no logo, no gold, no rule of its own. The page
+   *  opens on her name and closes on it; this sits under the close, smaller.
+   *  PROPOSED, on the register, awaiting the founder's pass. */
+  colophon: 'Created and managed by The Dream Wedding',
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
+
+/**
+ * ── THE PAGE NAMES ITS OWN BUILD — W2-6's permanent cure ───────────────────
+ * Two walks in two sittings were run against deployment-hash URLs nobody had
+ * confirmed carried the commit under test. The first burned four exchanges on a
+ * `/v/` route that did not exist in the build being opened; the second produced
+ * two findings (W2-2, W2-3) that closed as unattributable because the build
+ * could not be identified after the fact.
+ *
+ * A walk now begins by reading the commit off the page itself. Vercel injects
+ * `VERCEL_GIT_COMMIT_SHA` at build time; `unknown` locally, which is honest — a
+ * dev server is not a deploy and should not claim to be one.
+ *
+ * **A finding on a page whose build cannot be named is filed as unattributable,
+ * not chased.** That is the standing rule this tag exists to make cheap.
+ */
+const BUILD = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+  ?? process.env.VERCEL_GIT_COMMIT_SHA
+  ?? 'unknown';
 
 type Photo = {
   url: string;
@@ -154,7 +178,10 @@ export async function generateMetadata(
   const card = await fetchCard(code);
 
   if (!card) {
-    return { title: 'The Dream Wedding', description: COPY.unknown, robots: { index: false } };
+    // The miss names the build too — a walk of the miss must be attributable on
+    // the same terms as a walk of the card. It carries nothing else: no name, no
+    // image, not indexed.
+    return { title: 'The Dream Wedding', description: COPY.unknown, other: { 'tdw-build': BUILD }, robots: { index: false } };
   }
 
   const name = card.business_name || 'The Dream Wedding';
@@ -169,6 +196,7 @@ export async function generateMetadata(
   return {
     title,
     description,
+    other: { 'tdw-build': BUILD },
     alternates: { canonical: `${SITE_BASE}/v/${card.handle}` },
     openGraph: {
       title,
@@ -230,20 +258,38 @@ export default async function PublicVendorPage(
           from a forward is deciding in about a second whether this is for her,
           and no sentence does that job. `loading="eager"` because this image IS
           the page's first paint, not something below it. */}
+      {/* ── THE HERO CARRIES THE VENDOR, NOT TDW — D-19.1 §1 ────────────────────
+          S4 put the TDW wordmark over her photograph and the founder could not
+          read it. The seat's diagnosis was that the scrim had not been ported
+          with the element; the chair's ruling went further and struck the
+          premise: **no scrim recipe makes white type reliably legible over an
+          arbitrary photograph**, and more to the point, *this is her page and
+          TDW does not caption her photograph.*
+
+          What rises out of the scrim is HER identity, rendered by the SAME
+          component that renders the card below — `parts="identity"` on
+          `HERO_PALETTE`. Not a second heading hand-written over the image: that
+          would be the second profile design arriving by the back door. */}
       {hero && (
         <div className="pv-hero">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={hero.url} alt={hero.caption || card.business_name || ''} loading="eager" />
-          {/* The wordmark over her work, and the gradient that dissolves the
-              photograph INTO the page. W-4: the old cut stopped the image at a
-              hard edge against a white block, which is why it read as stacked
-              boxes rather than as one composition. Both are the demo studio's,
-              inverted for cream. */}
-          <div className="pv-mark">
-            <span className="pv-mark-name">The Dream Wedding</span>
-            <span className="pv-mark-sub">India&apos;s First Wedding OS</span>
+          <div className="pv-scrim" />
+          <div className="pv-identity">
+            <VendorProfileContent
+              palette={HERO_PALETTE}
+              parts="identity"
+              nameAs="h1"
+              fields={{
+                name:          card.business_name,
+                category:      card.category,
+                city:          card.city,
+                about:         null,
+                startingPrice: null,
+                vibeTags:      [],
+              }}
+            />
           </div>
-          <div className="pv-fade" />
         </div>
       )}
 
@@ -256,7 +302,7 @@ export default async function PublicVendorPage(
             exists to publish. */}
         <VendorProfileContent
           palette={PROFILE_PALETTE.onCream}
-          nameAs="h1"
+          parts="body"
           fields={{
             name:          card.business_name,
             category:      card.category,
@@ -319,11 +365,15 @@ export default async function PublicVendorPage(
         </div>
       )}
 
-      {/* THE CLOSE. W-4: the old cut's last photograph simply stopped and the
-          document ended, so nothing told a couple she had reached the bottom of
-          something made on purpose. The studio signs off; so does this. */}
+      {/* ── THE CLOSE IS HERS, THE COLOPHON IS OURS — D-19.1 §2, amended ───────
+          S4 closed on `The Dream Wedding` in an ink that computed 2.36:1 — a
+          brand block, illegibly. Both halves were wrong. The founder struck the
+          brand block: the page opens on her name and closes on it, and TDW
+          appears exactly once, as a credit line, at a ratio that computes clear.
+          No logo, no gold, no second rule. `bs_audit` C35 holds both inks. */}
       <footer className="pv-close">
-        <span className="pv-close-mark">The Dream Wedding</span>
+        <span className="pv-close-mark">{card.business_name}</span>
+        <span className="pv-colophon">{COPY.colophon}</span>
       </footer>
 
       <PublicStyles />
@@ -351,24 +401,31 @@ function PublicStyles() {
   return (
     <style>{`
 /* ── THE ARRIVAL (W-4) ──────────────────────────────────────────────────────
-   The walk's verdict was that the page "starts abruptly, ends abruptly, has
-   nothing… no transition." It was true: the old cut had no @keyframes at all.
+   The first walk's verdict was that the page "starts abruptly, ends abruptly,
+   has nothing... no transition." True: that cut had no @keyframes at all.
 
-   ⚠ THE REASONING THAT PRODUCED THAT, STATED SO IT IS NOT REPEATED. This route
-   refuses a client component — a carousel needs state, state needs hydration,
-   and a hydration bundle on a page serving strangers is a real cost. That
-   refusal was CORRECT about the carousel and was then over-applied to
-   everything that moved. CSS animation needs no JavaScript, no state and no
-   hydration; a server component can arrive beautifully at zero client cost.
-   The whole sitting had optimised for instant first paint and produced a page
-   that arrives instantly and feels like nothing arrived.
+   The reasoning that produced it, kept so it is not repeated: this route refuses
+   a client component, because state needs hydration and a hydration bundle on a
+   page serving strangers is a real cost. That was CORRECT about a carousel and
+   then over-applied to everything that moved. CSS animation needs no JavaScript,
+   no state and no hydration.
 
-   Ported from app/demo/vendor/[handle] rather than re-invented — same easing,
-   same 10px lift, same staggered delays — so the estate's two vendor
+   Ported from app/demo/vendor/[handle] rather than re-invented -- same easing,
+   same 10px lift, same staggered delays -- so the estate's two vendor
    presentations cannot drift into two houses. "both" fill so nothing flashes
    before its delay elapses. */
 @keyframes pvRise { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-@keyframes pvIn   { from{opacity:0} to{opacity:1} }
+
+/* ⚠ TWO ELEMENTS MOVE, AND NOTHING ELSE — D-19.1 §3, verbatim: "the hero name
+   and eyebrow fade-and-rise 400ms ease-out, 80ms stagger; card content follows
+   at 150ms... Nothing else animates."
+   S4 staged FIVE blocks and the arm caught four of them surviving into this cut.
+   The restraint is the ruling: an arrival is a moment, and a page where every
+   block takes its turn is a page that keeps the reader waiting for itself. */
+/* D-19.1 section 3. A slow breath, not a strobe -- this sits under a wedding
+   photograph on a stranger's phone, and a fast shimmer on that surface reads as
+   a broken page rather than a loading one. */
+@keyframes pvHold { 0%{opacity:1} 50%{opacity:.55} 100%{opacity:1} }
 
 .pv{min-height:100vh;background:#F8F7F5;color:#0C0A09;
   font:400 14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -376,90 +433,85 @@ function PublicStyles() {
   gap:10px;padding:32px 24px;text-align:center}
 .pv-card{max-width:430px;margin:0 auto;padding:0 0 8px}
 
-/* ── THE HERO'S HEIGHT IS DERIVED, NOT CHOSEN (W-2) ─────────────────────────
-   CE-38's requirement, verbatim: the hero must leave the name and city visible
-   without scrolling on a 390 column. So the number falls out of arithmetic
-   rather than taste, and the arithmetic is here to be checked.
+/* ── THE HERO -- D-19.1 section 1 ───────────────────────────────────────────
+   clamp(320px, 56vh, 460px), the chair's ruled measure: her name and the top
+   edge of Enquire share the first fold at 374x900. Checked at both ends --
+   375x667 gives 373px and the name lands at ~600 of 667; 390x844 gives 460px
+   capped and the name at ~690 of 844. The name is INSIDE the hero now, so the
+   fold requirement is met by construction rather than by arithmetic below it.
 
-     the first text block below the hero, measured from the core's own styles:
-       24px  .pv-body padding-top
-       13px  eyebrow  (9px Jost, line-height ~1.4)
-        8px  eyebrow margin-bottom
-       31px  name     (28px Cormorant, line-height 1.1)
-       ────
-       76px  to the name's baseline
-      +64px  breathing, so the name is not jammed against the fold edge
-       ────
-      140px  reserved below the hero
+   ⚠ THE BOX IS SIZED BEFORE THE IMAGE EXISTS, and that is the CLS cure. Height
+   comes from clamp() and never from the image's intrinsic ratio, so the
+   photograph paints into a box that was already the right size -- zero layout
+   shift on settle, by construction, which is a property the page can actually
+   keep rather than a number it hopes for. */
+.pv-hero{position:relative;width:100%;height:clamp(320px, 56vh, 460px);
+  overflow:hidden;background:#EDEAE4}
+/* ⚠ THE PLACEHOLDER IS THE IMG'S OWN BACKGROUND, AND THE LIMIT IS STATED.
+   D-19.1 section 3 asked, where honestly implementable without client JS, that
+   the arrival trigger on image settle rather than a timer. IT IS NOT: there is
+   no CSS-only observer of image decode -- no selector, no media query, no
+   :has() form sees it. So the amendment's own fallback ships: the shimmer is
+   the image element's background, which the decoded photograph simply paints
+   over with no JavaScript and no shift, and the name's arrival stays
+   time-staged. Said here rather than discovered later. */
+.pv-hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;
+  background:#EDEAE4;animation:pvHold 1600ms ease-in-out infinite}
+/* The scrim. One gradient, bottom only -- the studio's :333 shape, tuned to the
+   ruled stop. It exists so HER NAME is legible, which is a different job from
+   the one S4's scrim was doing (making TDW's wordmark legible over her work),
+   and the difference is why that element is gone. */
+.pv-scrim{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;
+  background:linear-gradient(180deg, transparent 45%, rgba(12,10,9,.72) 100%)}
+.pv-identity{position:absolute;left:0;right:0;bottom:18px;padding:0 24px;z-index:2;
+  animation:pvRise 400ms ease-out 80ms both}
 
-   → height: calc(100svh - 140px). "svh" and not "vh" because "vh" on iOS is the
-   LARGE viewport and ignores the browser chrome, which is exactly the 100px
-   that would push the name off the screen this rule exists to keep it on.
-
-   The 420px cap is the second half of the requirement. On a tall phone
-   100svh-140 is ~560px, which passes the arithmetic and still fills the screen
-   with one photograph — which is the "too big" the walk actually reported.
-   Checked at both ends: 375x667 → min(410,420)=410, name lands at 486 of ~550
-   usable; 390x844 → min(560,420)=420, name at 496 of ~700. */
-.pv-hero{position:relative;width:100%;height:min(calc(100svh - 140px), 420px);
-  min-height:240px;overflow:hidden;background:#EFECE7;
-  animation:pvIn 900ms cubic-bezier(0.22,1,0.36,1) both}
-.pv-hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
-.pv-mark{position:absolute;top:calc(env(safe-area-inset-top,0px) + 20px);left:22px;z-index:2;
-  display:flex;flex-direction:column;gap:5px;pointer-events:none;
-  animation:pvIn 1200ms cubic-bezier(0.22,1,0.36,1) 300ms both}
-.pv-mark-name{font:italic 300 15px/1 "Cormorant Garamond",Georgia,serif;
-  color:rgba(248,247,245,0.9);letter-spacing:.02em;text-shadow:0 1px 6px rgba(0,0,0,.4)}
-.pv-mark-sub{font:400 6px/1 inherit;letter-spacing:.38em;text-transform:uppercase;
-  color:rgba(201,168,76,.9);text-shadow:0 1px 4px rgba(0,0,0,.5)}
-/* The photograph dissolves into the page instead of stopping at an edge. */
-.pv-fade{position:absolute;left:0;right:0;bottom:0;height:38%;pointer-events:none;
-  background:linear-gradient(to top,#F8F7F5 0%,rgba(248,247,245,.55) 45%,transparent 100%)}
-
-.pv-body{padding:8px 24px 0;animation:pvRise 700ms cubic-bezier(0.22,1,0.36,1) 220ms both}
+.pv-body{padding:22px 24px 0;animation:pvRise 400ms ease-out 150ms both}
 .pv-line{font:400 14px/1.45 inherit;color:#403B36;margin:8px 0 0;max-width:34ch}
 .pv:not(.pv-card) .pv-line{margin:0;max-width:34ch}
+/* D-19.1 section 2: the gold moves off 4.48:1. #7A621C computes 6.03:1 on cream
+   -- proven by the cell, not chosen by eye, which is the whole lesson of W2-4. */
 .pv-cta{margin-top:22px;display:inline-flex;align-items:center;min-height:44px;
-  padding:12px 22px;border:.5px solid #C9A84C;border-radius:2px;color:#8A6F1F;
+  padding:12px 22px;border:.5px solid #C9A84C;border-radius:2px;color:#7A621C;
   text-decoration:none;font:500 12px/1.4 inherit;letter-spacing:.04em;
-  touch-action:manipulation;animation:pvRise 700ms cubic-bezier(0.22,1,0.36,1) 420ms both}
+  touch-action:manipulation}
 .pv-cta:active{background:#F2EFE9}
 .pv-cta:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
-.pv-demo{font:400 11px/1.4 inherit;color:#8A837C;margin:18px 0 0;max-width:36ch}
+.pv-demo{font:400 11px/1.4 inherit;color:#6B6560;margin:18px 0 0;max-width:36ch}
 
-/* The section break. Brightest beside the diamond, dying at the margin — the
+/* The section break. Brightest beside the diamond, dying at the margin -- the
    studio's own reversal, after its first cut faded to nothing at the centre and
    left the diamond reading as a stray dot. */
-.pv-rule{display:flex;align-items:center;gap:10px;margin:30px 24px 0;
-  animation:pvIn 900ms cubic-bezier(0.22,1,0.36,1) 560ms both}
+.pv-rule{display:flex;align-items:center;gap:10px;margin:30px 24px 0}
 .pv-rule-line{flex:1;height:1px}
 .pv-rule-line:first-child{background:linear-gradient(to left,rgba(201,168,76,.5),rgba(201,168,76,0))}
 .pv-rule-line:last-child{background:linear-gradient(to right,rgba(201,168,76,.5),rgba(201,168,76,0))}
 .pv-diamond{font:9px/1 "Cormorant Garamond",Georgia,serif;color:rgba(201,168,76,.85)}
 
-/* ── THE STRIP IS A GLANCE, NOT A SECOND SLIDESHOW (W-2) ────────────────────
-   The old cut used flex:0 0 72% at 4/5, so each thumbnail was ~280x350 and the
-   strip read as another full-height gallery under the first one. 104px wide is
-   a hint that more exists, which is the job. */
+/* ── THE STRIP IS A GLANCE (W-2) ───────────────────────────────────────────
+   104px, and pv_render measured it rendering at exactly 104x130 cold and primed
+   at the founder's own 374px viewport. The number is witnessed, not declared. */
 .pv-strip{display:flex;gap:8px;overflow-x:auto;padding:18px 24px 0;
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;animation:pvRise 700ms cubic-bezier(0.22,1,0.36,1) 640ms both}
+  scrollbar-width:none}
 .pv-strip::-webkit-scrollbar{display:none}
 .pv-strip img{flex:0 0 104px;aspect-ratio:4/5;object-fit:cover;display:block;
-  background:#EFECE7;scroll-snap-align:start}
+  background:#EDEAE4;scroll-snap-align:start}
 
-/* The close. Something made on purpose ends on purpose. */
+/* The close is HERS; the colophon is the one place TDW appears. */
 .pv-close{margin-top:40px;padding:0 24px 32px;text-align:center;
-  animation:pvIn 900ms cubic-bezier(0.22,1,0.36,1) 760ms both}
-.pv-close-mark{font:italic 300 13px/1 "Cormorant Garamond",Georgia,serif;
-  color:#A8A29B;letter-spacing:.02em}
+  display:flex;flex-direction:column;gap:8px}
+.pv-close-mark{font:300 15px/1.2 "Cormorant Garamond",Georgia,serif;color:#403B36;letter-spacing:.01em}
+.pv-colophon{font:400 9px/1.4 inherit;letter-spacing:.18em;text-transform:uppercase;color:#6B6560}
 
 /* ⚠ MOTION IS AN ENHANCEMENT, NEVER A GATE. Everything above animates from
-   opacity 0, so a reader who has asked their phone to stop moving things must
-   still get the whole page. Without this rule, "both" fill would hold them
-   invisible forever. */
+   opacity 0 with "both" fill. Without this rule a reader who has asked their
+   phone to stop moving things would be held at opacity 0 forever -- a blank
+   page, served to the people least able to diagnose it. The shimmer stops too:
+   a pulse that never resolves is the same defect wearing a slower coat. */
 @media (prefers-reduced-motion: reduce){
-  .pv-hero,.pv-mark,.pv-body,.pv-cta,.pv-rule,.pv-strip,.pv-close{animation:none}
+  .pv-identity,.pv-body{animation:none}
+  .pv-hero img{animation:none}
 }
     `}</style>
   );

@@ -255,6 +255,30 @@ real one does not* — is retired. It described a real asymmetry and the asymmet
 narrowed to its honest remainder: the house routes for real vendors, demos
 deep-link their own.
 
+### ⚠ D-19.1, FOUNDER-AMENDED — TDW APPEARS ON HER PAGE EXACTLY ONCE
+
+**Struck: the TDW wordmark, from the hero AND from the close.** S4 put it over
+her photograph, where it was unreadable; the founder's ruling went past the
+legibility and struck the premise. *This is her page. TDW does not caption her
+photograph.* The page now opens on her name, over her own work, and closes on it.
+
+**Added, PROPOSED, awaiting your pass:**
+
+| Key | Ships as | Where |
+|---|---|---|
+| `publicPageColophon` | Created and managed by The Dream Wedding | `/v/<code>`, last line, t5, `#6B6560` |
+
+It is a **credit line, not a brand block** — no logo, no gold, no rule of its
+own, and it sits under her studio name at a smaller size. `bs_audit` C35 computes
+it at **5.37:1** on cream; the close above it is `#403B36` at **10.34:1**. Nothing
+on this page is now chosen by eye and left unmeasured — W2-4 shipped at 2.36:1
+through a 34-cell audit because no instrument in the estate had ever computed a
+ratio. One does now.
+
+The Enquire ink moved with it: `#8A6F1F` computed **4.48:1**, 0.02 under the bar,
+and is replaced by `#7A621C` at **5.46:1**. A documented near-miss nobody wrote
+down is how the next one ships.
+
 ### WHAT MOVED RATHER THAN ARRIVED
 
 `publicPageLine` — *Takes enquiries through The Dream Wedding.* — is unchanged

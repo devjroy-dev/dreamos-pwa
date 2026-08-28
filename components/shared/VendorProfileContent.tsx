@@ -92,7 +92,46 @@ export const PROFILE_PALETTE = {
   },
 } as const;
 
-export type ProfilePalette = typeof PROFILE_PALETTE[keyof typeof PROFILE_PALETTE];
+/**
+ * THE HERO'S GROUND — D-19.1 §1, and it is `onGlass` with one substitution.
+ *
+ * Her name rises out of a bottom scrim that darkens the photograph to
+ * `rgba(12,10,9,.72)`, so the deck's cream ink is right for the name and the
+ * deck's 0.5-alpha eyebrow is not: at that opacity over an arbitrary photograph
+ * it is the W2-1 failure again, one element to the left. The eyebrow takes gold
+ * at .95, which reads on the darkened band and belongs to the house.
+ *
+ * ⚠ THIS IS A THIRD GROUND AND NOT A THIRD DESIGN. It substitutes two ink
+ * values and nothing else — no size, no face, no spacing moves — because the
+ * type scale is what makes it one card and only the ground ever changes.
+ */
+export const HERO_PALETTE = {
+  eyebrow: 'rgba(201,168,76,0.95)',
+  name:    '#F8F7F5',
+  about:   'rgba(248,247,245,0.72)',
+  meta:    'rgba(248,247,245,0.72)',
+} as const;
+
+/**
+ * THE FOUR INK ROLES — a shape, not a roster.
+ *
+ * ⚠ WIDENED AT D-19.1, and the reason is at site. It was
+ * `typeof PROFILE_PALETTE[keyof typeof PROFILE_PALETTE]` — a union of the two
+ * palettes that happened to exist — so the type enumerated the known grounds
+ * rather than describing what a ground IS. The moment a third arrived
+ * (`HERO_PALETTE`, her name over the scrim) a correct value failed to typecheck
+ * against a type that had no business knowing how many grounds there were.
+ *
+ * The contract that matters is that a palette supplies these four roles. A type
+ * listing its instances is a type that must be edited every time the estate
+ * grows, which is how a type stops describing and starts gatekeeping.
+ */
+export type ProfilePalette = {
+  eyebrow: string;
+  name: string;
+  about: string;
+  meta: string;
+};
 
 /**
  * THE CORE'S OWN CONTRACT — the fields it renders, and nothing else.
@@ -145,24 +184,52 @@ export interface VendorProfileContentProps {
    * one card and only the ground moved.
    */
   nameAs?: 'h1' | 'h2';
+  /**
+   * ⚠ WHICH HALF OF THE CARD THIS MOUNT RENDERS — D-19.1 §1.
+   *
+   * The founder struck the TDW wordmark from the hero: *this is her page, and
+   * TDW does not caption her photograph.* What rises out of the hero's fade
+   * instead is HER identity — `PHOTOGRAPHY · DELHI` and her name — while the
+   * prose and the rate stay on the cream card below.
+   *
+   * That splits one component across two grounds on one page, and the naive cure
+   * would have been for `/v/` to hand-render the eyebrow and the name over the
+   * hero itself. **That is the second profile design the one-card law exists to
+   * forbid**, arriving by the back door: two copies of a heading that would drift
+   * the first time either was touched.
+   *
+   * So the renderer stays single and gains a part selector. `/v/` mounts it
+   * TWICE — `identity` on `onGlass` inside the hero, `body` on `onCream` in the
+   * card — and the palette seam S2 built does exactly the work it was built for.
+   * One renderer, one type scale, two grounds, zero duplicated markup.
+   *
+   * DEFAULTS TO `'all'`, and the default is load-bearing: the three deck mounts
+   * pass nothing and their markup is unchanged, which
+   * `scripts/tdw19_p2a_profile_core.proof.mjs` §2.2 holds byte-for-byte.
+   */
+  parts?: 'all' | 'identity' | 'body';
 }
 
 export default function VendorProfileContent({
-  fields, palette, isBlind = false, eyebrow = null, nameAs = 'h2',
+  fields, palette, isBlind = false, eyebrow = null, nameAs = 'h2', parts = 'all',
 }: VendorProfileContentProps) {
   const Name = nameAs;
+  const identity = parts === 'all' || parts === 'identity';
+  const body     = parts === 'all' || parts === 'body';
   return (
     <>
-      {eyebrow}
+      {identity && eyebrow}
+      {identity && (
       <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: palette.eyebrow, margin: '0 0 8px' }}>
         {fields.category}&nbsp;·&nbsp;{fields.city}
       </p>
-      {!isBlind && (
+      )}
+      {identity && !isBlind && (
         <Name style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: palette.name, margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
           {fields.name}
         </Name>
       )}
-      {fields.about && (
+      {body && fields.about && (
         <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, fontStyle: 'italic', color: palette.about, margin: '0 0 12px', lineHeight: 1.5 }}>
           {fields.about}
         </p>
@@ -171,12 +238,12 @@ export default function VendorProfileContent({
           it renders "Rs 1,50,000": grouped Indian digits, the word Rs, never the
           ₹ glyph and never a k/L/Cr short form. The guard above it is unchanged
           from P4b: null renders nothing at all. */}
-      {!isBlind && fields.startingPrice != null && (
+      {body && !isBlind && fields.startingPrice != null && (
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: palette.meta, margin: '0 0 20px' }}>
           Starting at {formatRs(fields.startingPrice)}
         </p>
       )}
-      {isBlind && fields.vibeTags.length > 0 && (
+      {body && isBlind && fields.vibeTags.length > 0 && (
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.15em', color: palette.meta, margin: '0 0 20px' }}>
           {fields.vibeTags.join(' · ')}
         </p>

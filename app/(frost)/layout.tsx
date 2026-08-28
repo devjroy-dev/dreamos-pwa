@@ -12,6 +12,7 @@ import {
   setFrostMode, setContentMode as persistContentMode,
 } from '../../lib/frost/tokens';
 import { FrostCtx, type FrostModeCtx } from '../../lib/frost/FrostCtx';
+import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
 // ── THE CONTEXT MOVED OUT (R-36.11) ─────────────────────────────────────────
 // `FrostModeCtx`, `FrostCtx` and `useFrostMode` lived HERE and are now in
@@ -99,6 +100,10 @@ export default function FrostLayout({ children }: { children: React.ReactNode })
 
   return (
     <FrostCtx.Provider value={ctx}>
+      {/* F-19.36: the SW registrar mounts PER AUTHENTICATED SHELL. It used to sit
+          in the root layout registering an origin-wide scope, so one visit to the
+          public landing claimed /v/ and /r/ for that browser. */}
+      <ServiceWorkerRegistrar />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Italianno&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Jost:wght@200;300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; }

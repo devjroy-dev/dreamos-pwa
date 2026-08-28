@@ -16,8 +16,13 @@
 import { cookies } from 'next/headers';
 import { MODE_COOKIE, asMode } from '@/lib/worklist/mode';
 import { WorklistBoot } from './WorklistBoot';
+import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
 export default async function WorklistLayout({ children }: { children: React.ReactNode }) {
   const mode = asMode((await cookies()).get(MODE_COOKIE)?.value);
-  return <WorklistBoot initialMode={mode}>{children}</WorklistBoot>;
+  // F-19.36: the SW registrar mounts PER AUTHENTICATED SHELL. It used to sit in
+  // the root layout with an origin-wide scope, so one visit to the landing page
+  // claimed /v/ and /r/ for that browser. Chair-granted one-liner in this seat's
+  // fence; no other byte of this file moves.
+  return <WorklistBoot initialMode={mode}><ServiceWorkerRegistrar />{children}</WorklistBoot>;
 }

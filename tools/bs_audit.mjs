@@ -680,7 +680,12 @@ try {
     // The miss return, isolated: everything between the metadata miss branch and
     // its closing brace. Asserting on THAT rather than on the whole file is what
     // stops the card's own og:image from satisfying this cell.
-    const m = code.match(/if \(!card\) \{\s*return \{([^}]*)\}/);
+    // ⚠ `[^}]*` COULD NOT SEE PAST A NESTED OBJECT. The miss return grew
+    // `other: { 'tdw-build': BUILD }` for W2-6's cure, and the character class
+    // stopped at that inner brace — so `robots` fell outside the captured text
+    // and this cell reported a page defect that did not exist. Balanced to the
+    // end of the return statement instead.
+    const m = code.match(/if \(!card\) \{\s*(return \{[\s\S]*?\};)/);
     if (!m) bad.push('the metadata miss branch could not be read');
     else {
       const miss = m[1];
@@ -839,10 +844,26 @@ try {
     const bad = [];
     if (!hero)  bad.push('no .pv-hero rule');
     else {
-      if (!/height:\s*min\(/.test(hero))   bad.push('the hero height is not capped by min()');
-      if (!/svh/.test(hero))               bad.push('the hero uses vh, which ignores browser chrome');
-      if (!/min-height:/.test(hero))       bad.push('no floor on very short viewports');
-      if (/aspect-ratio/.test(hero))       bad.push('the hero is sized by ratio, so it is unbounded on tall phones');
+      // ⚠ LABELLED AMENDMENT (D-19.1 §1). S4 derived the hero as
+      // `min(calc(100svh - 140px), 420px)` from the reserved space below it,
+      // because the NAME SAT BELOW THE HERO and had to be pushed above the fold.
+      // D-19.1 moves her name INSIDE the hero, over the scrim — so the fold
+      // requirement is met by construction and the arithmetic it was derived
+      // from no longer describes the page. The chair ruled the measure:
+      // `clamp(320px, 56vh, 460px)`, her name and Enquire's top edge sharing the
+      // first fold at 374×900.
+      //
+      // WHAT THE CELL STILL REFUSES IS UNCHANGED: an unbounded hero. `clamp`
+      // carries its own floor and ceiling, which is why `min-height` is no
+      // longer required — the floor moved inside the function rather than
+      // disappearing. A bare `aspect-ratio` hero is still forbidden: it is
+      // unbounded on a tall phone, and it is also what made the box un-sizable
+      // before the image loaded, which is now the CLS property (§3).
+      if (!/height:\s*clamp\(/.test(hero)) bad.push('the hero height is not bounded by clamp()');
+      if (/aspect-ratio/.test(hero))       bad.push('the hero is sized by ratio, so it is unbounded and cannot pre-size the box');
+      const cl = hero.match(/clamp\(\s*(\d+)px\s*,\s*([\d.]+)vh\s*,\s*(\d+)px\s*\)/);
+      if (!cl)                             bad.push('the clamp is not floor/viewport/ceiling in px,vh,px');
+      else if (Number(cl[3]) > 520)        bad.push(`ceiling ${cl[3]}px fills a phone with one photograph`);
     }
     if (!strip) bad.push('no .pv-strip img rule');
     else {
@@ -854,7 +875,8 @@ try {
     }
     // The arithmetic must be READABLE, not just correct — a derived number with
     // no derivation at site is a taste number wearing a formula.
-    if (!/reserved below the hero/.test(pv)) bad.push('the derivation is not stated at site');
+    if (!/her name and Enquire|checked at both ends|Checked at both ends/i.test(pv))
+      bad.push('the measure is not reasoned at site');
     bad.length === 0
       ? P('C33 the hero and strip are bounded by the fold law', 'min() + svh + floor; strip is a fixed-px glance; arithmetic at site')
       : F('C33 the hero and strip are bounded by the fold law', bad.join('; '));
@@ -880,8 +902,16 @@ try {
     const bad = [];
     const frames = (pv.match(/@keyframes\s+\w+/g) || []);
     if (frames.length < 2)                      bad.push('fewer than two keyframes — nothing arrives');
+    // ⚠ LABELLED AMENDMENT (D-19.1 §3). This asked for four or more staged
+    // blocks, which was right for S4's composition and is wrong for the ruled
+    // one: "the hero name and eyebrow fade-and-rise 400ms ease-out, 80ms
+    // stagger; card content follows at 150ms... **Nothing else animates.**"
+    // A cell demanding four would now demand a divergence from the ruling —
+    // which is exactly what it was doing, because S4's five survived into the
+    // cut and `pv_render` caught them, not this file.
     const delays = (pv.match(/\d+ms\s+both/g) || []);
-    if (delays.length < 4)                      bad.push('no staggered arrival across the movements');
+    if (delays.length < 2)  bad.push('nothing arrives at all');
+    if (delays.length > 3)  bad.push(`${delays.length} staged blocks — D-19.1 §3 rules two`);
     if (!/prefers-reduced-motion/.test(pv))     bad.push('NO REDUCED-MOTION ESCAPE — opacity:0 would be permanent');
     // ⚠ ASSERTED IN THE MARKUP, NOT THE STYLESHEET. The first cut tested each
     // class name against the whole file, so deleting `className="pv-close"` from
@@ -891,18 +921,144 @@ try {
     const markup = strip(pv).split('function PublicStyles')[0];
     if (!/className="pv-close"/.test(markup)) bad.push('the page renders no close');
     if (!/className="pv-rule"/.test(markup))  bad.push('no section break between the movements');
-    if (!/className="pv-fade"/.test(markup))  bad.push('the hero still stops at a hard edge');
+    // `pv-fade` became `pv-scrim` at D-19.1: same gradient, different job. It
+    // stopped being the thing that dissolved the photo into a cream page and
+    // became the thing that makes HER NAME legible over her own work — which is
+    // why the element it used to protect (the TDW wordmark) is gone entirely.
+    if (!/className="pv-scrim"/.test(markup)) bad.push('the hero has no scrim under the name');
+    if (!/className="pv-identity"/.test(markup)) bad.push('the name does not render over the hero');
     // The reduced-motion rule must actually cover the animated elements, not
     // merely exist — a media query naming one class would pass a bare presence
     // check and still strand the rest at opacity 0.
-    const rm = (pv.match(/@media \(prefers-reduced-motion: reduce\)\{[^}]*\}/) || [''])[0];
-    for (const cls of ['pv-hero', 'pv-body', 'pv-cta', 'pv-strip', 'pv-close']) {
-      if (rm && !rm.includes(cls)) bad.push(`reduced-motion does not cover .${cls}`);
+    // The escape must cover exactly what MOVES — no less, and a roster of
+    // classes that no longer animate is a cell asserting yesterday's page.
+    // Derived: every selector carrying an `animation:` in the sheet.
+    const sheet = (pv.match(/<style>\{`[\s\S]*?`\}<\/style>/) || [''])[0];
+    const movers = [...sheet.matchAll(/\.([a-z-]+)(?:\s+\w+)?\s*\{[^}]*animation:\s*pv/g)].map((m) => m[1]);
+    const rm = (sheet.match(/@media \(prefers-reduced-motion: reduce\)\{[\s\S]*?\n\}/) || [''])[0];
+    if (!movers.length) bad.push('no element carries an animation');
+    for (const cls of new Set(movers)) {
+      if (!rm.includes(cls)) bad.push(`reduced-motion does not cover .${cls}, which animates`);
     }
     bad.length === 0
       ? P('C34 the page arrives, and reduced-motion still gets all of it', `${frames.length} keyframes, ${delays.length} staged, escape covers every animated block`)
       : F('C34 the page arrives, and reduced-motion still gets all of it', bad.join('; '));
   }
+}
+
+// ── C35 · EVERY DECLARED INK ON THE PUBLIC ROUTES COMPUTES ≥ 4.5:1 ──────────
+// W2-4: the close shipped at 2.36:1 through a 34-cell audit, and the CTA sat at
+// 4.48:1 — 0.02 under — with nobody having computed either. Every ink on this
+// page was chosen by eye, and only an eye was ever asked about them.
+//
+// **No instrument in this estate had ever computed a contrast ratio.** This is
+// the cheapest high-value cell the block could add: the arithmetic is exact, the
+// inputs are in the stylesheet, and a founder should never be the first to
+// notice that type is unreadable.
+//
+// It reads the DECLARED pairs. What a light glyph sits on when the background is
+// a photograph is not computable from any stylesheet — that is `pv_render`'s,
+// and it is why D-19.1 removed the one element that depended on it.
+{
+  const lum = (hex) => {
+    const c = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (a, b) => {
+    const la = lum(a), lb = lum(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  };
+
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C35 every declared ink on /v/ clears 4.5:1', 'app/v/[code]/page.tsx not found');
+  else {
+    const sheet = (pv.match(/<style>\{`[\s\S]*?`\}<\/style>/) || [''])[0];
+    // The page's ground, derived from the rule rather than assumed.
+    const groundM = sheet.match(/\.pv\{[^}]*background:\s*(#[0-9A-Fa-f]{6})/);
+    const ground = groundM ? groundM[1].slice(1) : null;
+    const bad = [];
+    if (!ground) bad.push('the page ground could not be read from .pv');
+    else {
+      // Every class that carries type on that ground. Selectors inside the hero
+      // are excluded BY NAME and with a reason: they sit on a photograph under a
+      // scrim, so a cream comparison would be arithmetic about the wrong surface.
+      const ON_PHOTO = ['pv-identity'];
+      const rules = [...sheet.matchAll(/\.([a-z-]+)\s*\{([^}]*)\}/g)];
+      let checked = 0;
+      for (const [, cls, body] of rules) {
+        if (ON_PHOTO.includes(cls)) continue;
+        const m = body.match(/(?:^|;|\s)color:\s*(#[0-9A-Fa-f]{6})/);
+        if (!m) continue;
+        const r = ratio(m[1].slice(1), ground);
+        checked++;
+        if (r < 4.5) bad.push(`.${cls} ${m[1]} on #${ground} = ${r.toFixed(2)}:1`);
+      }
+      if (checked < 4) bad.push(`only ${checked} inks found — the sheet did not parse`);
+      if (bad.length === 0) {
+        P('C35 every declared ink on /v/ clears 4.5:1', `${checked} inks computed against #${ground}`);
+      }
+    }
+    if (bad.length) F('C35 every declared ink on /v/ clears 4.5:1', bad.join('; '));
+  }
+}
+
+// ── C36 · THE PUBLIC ROUTES ARE OUT FROM UNDER THE APP SHELL (F-19.36) ──────
+// Two facts, and a mutation of either reddened NOTHING before this cell existed:
+// removing the service-worker bypass, and dropping the build meta tag. Both are
+// invisible to every other instrument here, and both are cures the founder's
+// walks paid for.
+//
+// 1. THE REGISTRAR IS NOT IN THE ROOT LAYOUT. It was, with
+//    `register('/sw.js')` and no `scope` — which defaults to the whole origin —
+//    so one visit to the public landing claimed `/v/` and `/r/` for that
+//    browser. It mounts per authenticated shell now. The structural cure.
+// 2. `sw.js` BYPASSES THE PUBLIC PREFIXES for browsers already claimed, and
+//    does so WITHOUT unregistering: c-38.40 ruled that ending an origin-wide
+//    worker because a stranger opened a storefront would kill a vendor's push
+//    and image cache in the same browser. The cure must not outcost the disease.
+// 3. THE PAGE NAMES ITS BUILD, so a walk begins by reading the commit off the
+//    page rather than trusting a deployment URL. Two walks were run against
+//    unidentified builds; the second closed two findings as unattributable.
+{
+  const bad = [];
+  let root = null, sw = null, pv = null;
+  try { root = readFileSync(join(ROOT, 'app/layout.tsx'), 'utf8'); } catch { bad.push('app/layout.tsx not found'); }
+  try { sw   = readFileSync(join(ROOT, 'public/sw.js'), 'utf8'); } catch { bad.push('public/sw.js not found'); }
+  try { pv   = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { bad.push('the public page not found'); }
+
+  if (root && /ServiceWorkerRegistrar/.test(strip(root)))
+    bad.push('the registrar is back in the root layout — every public route is claimed again');
+
+  // Derived, not rostered: every authenticated shell layout must carry a mount.
+  // A shell added tomorrow that forgets one loses its worker silently.
+  const SHELLS = ['app/vendor/layout.tsx', 'app/w/layout.tsx', 'app/coplanner/layout.tsx', 'app/(frost)/layout.tsx'];
+  for (const f of SHELLS) {
+    let src = null;
+    try { src = readFileSync(join(ROOT, f), 'utf8'); } catch { bad.push(`${f} not found`); continue; }
+    if (!/<ServiceWorkerRegistrar\s*\/>/.test(strip(src))) bad.push(`${f} has no registrar mount`);
+  }
+
+  if (sw) {
+    const code = strip(sw);
+    if (!/PUBLIC_PREFIXES/.test(code))                    bad.push('sw.js declares no public prefixes');
+    if (!/startsWith\(p\)/.test(code))                    bad.push('the bypass does not test the prefixes');
+    if (/registration\.unregister\(/.test(code))          bad.push('sw.js unregisters — c-38.40 forbids the collateral');
+    for (const pre of ["'/v/'", "'/r/'"]) if (!code.includes(pre)) bad.push(`${pre} is not bypassed`);
+    // The bypass only reaches a claimed browser when the worker's bytes change.
+    if (!/Service Worker v7/.test(sw))                    bad.push('the worker version did not advance — claimed browsers never receive the bypass');
+  }
+
+  if (pv) {
+    const code = strip(pv);
+    if (!/'tdw-build'/.test(code))                        bad.push('the page does not name its build');
+    if ((code.match(/'tdw-build'/g) || []).length < 2)     bad.push('only one branch names the build — a miss must be attributable too');
+  }
+
+  bad.length === 0
+    ? P('C36 the public routes are out from under the app shell', 'registrar per-shell, sw v7 bypasses /v/ and /r/ without unregistering, both branches name the build')
+    : F('C36 the public routes are out from under the app shell', bad.join('; '));
 }
 
 console.log('');

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Italiana, Cormorant_Garamond, DM_Sans, Jost } from 'next/font/google';
 import './globals.css';
 import './globals-v2.css';
-import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
 // ── Atelier typography stack ─────────────────────────────────────────────────
 //   Italiana           — display: numerals, month names, glyphs (C L I ◐ ×)
@@ -144,7 +143,6 @@ export default function RootLayout({
         />
       </head>
       <body style={{ margin: 0, padding: 0 }}>
-        <ServiceWorkerRegistrar />
         {children}
       </body>
     </html>
