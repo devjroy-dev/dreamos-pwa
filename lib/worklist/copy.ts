@@ -151,17 +151,31 @@ export const COPY = {
   cardLinkAction: 'Copy',
   cardLinkCopied: 'Copied',
   cardLinkShare:  'Share',
-  // ── THE ADDRESS ITSELF · WITHHOLDING DISCHARGED AT CE-38 S3 ──────────────
-  // Withheld from the first cut because `/v/` was a 404 (F-38.30 = F-19.14) and an
-  // address that does not resolve is the never-404 failure wearing a different coat.
-  // The dated condition was `TDW_19 P0-B step 4 lands /v/<code> as a 200`, and it has
-  // arrived: `app/v/[code]/page.tsx` is at origin, witnessed by command at this seat
-  // rather than taken from the kickoff.
+  // ── ⚠ RE-WITHHELD BY RULE · CE-38 S3 · c-38.28 + F-38.49 ─────────────────
   //
-  // NO SCHEME AND NO TRAILING PATH. The vendor reads this, and `https://` is chrome he
-  // does not need to see; the two actions build the real URL from it. One home for the
-  // base means the card cannot drift from what Copy puts on his clipboard.
-  cardLinkAddressBase: 'thedreamwedding.in/v/',
+  // THIS KEY IS GONE, NOT COMMENTED, and that is the F-38.49 half. It was a SECOND
+  // statement of the vendor's web address carrying its own copy of the domain literal,
+  // beside `subdomainFor()` in lib/solutions/types.ts which already owned that decision.
+  // Two homes for one thing, and the address is now built by `pathAddressFor(handle)` in
+  // that one home. Nothing about the domain lives in this file any more.
+  //
+  // AND THE CARD IS BACK IN ITS BOX, which is the c-38.28 half. The withholding was
+  // discharged at a22e391 on a MISREAD TRIGGER. The dated condition was 「/v/<code> lands
+  // as a 200」; the seat verified 「app/v exists in the branch」 and called it fired. Those
+  // are not the same proposition. `cardLinkAddressBase` is the PRODUCTION apex, so the
+  // only condition that can ever discharge it is production serving the route — and
+  // production serves `main`, which has never carried `app/v`. The founder opened
+  // thedreamwedding.in/v/DEV440 and got a 404 off his own first-run card.
+  //
+  //   WHEN — RUN THIS, DO NOT REASON ABOUT IT:
+  //     curl -sS -o /dev/null -w '%{http_code}\n' https://thedreamwedding.in/v/DEV440
+  //   DISCHARGE ONLY ON: 200. Any other number, or a redirect to a 404 page, is not the
+  //   condition. `git ls-tree` on a branch is NOT this command and never was.
+  //
+  //   DO: re-open the address row and the wl-cardaddr rule in FirstRun.tsx, and point
+  //       them at `pathAddressFor(handle)` from '@/lib/solutions/types'. No key returns
+  //       to this file — the address is derived, not copy, and that is why it was able
+  //       to have two homes while it lived here.
 
   // Every chip is backed by a tool in the engine census (dream-os src/agent/tools.js).
   // Per-chip verdicts with line addresses are stated in the P1 handover. No chip ships

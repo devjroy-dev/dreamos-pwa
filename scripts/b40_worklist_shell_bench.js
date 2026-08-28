@@ -1214,5 +1214,70 @@ cell('C37 the t0 rung survives while its consumer is withheld', () => {
   return null;
 });
 
+// ── C38 · THE WITHHELD ADDRESS MUST NOT BE A LIVE EXPORT  [F-38.55 / c-38.28 / F-38.49] ──
+//    THIS CELL EXISTS BECAUSE ITS RULE DID NOT HAVE ONE, AND THE RULE LOST.
+//
+//    S3 deleted `cardLinkAddressBase` at e3db79e for two reasons, both written down twice
+//    and both correct: it was a SECOND home for the vendor's domain literal beside
+//    `pathAddressFor()`/`subdomainFor()` in lib/solutions/types.ts (F-38.49), and its
+//    withholding had been discharged on a misread trigger — the seat proved `app/v` exists
+//    in a BRANCH when the condition was PRODUCTION serving a 200, and the founder opened
+//    thedreamwedding.in/v/DEV440 and got a 404 off his own first-run card (c-38.28).
+//
+//    A whole-file copy from a delivery based one commit earlier put it back. The apply had
+//    skipped `tools/base_guard.sh`, which is the control written for exactly that, and it
+//    was the ONLY control: this bench ran GREEN and the floor came back at the named base
+//    on the reverted tree, because both were right — nothing anywhere asserted the absence.
+//    A guard is one command a human can forget. THIS IS THE SECOND CONTROL, and it fails
+//    whoever reintroduces the key, however they do it.
+//
+//    THE S2 LAW IT ENFORCES, RESTATED AT ITS SITE: **a withheld byte must not be a live
+//    export.** 「Nothing needs you yet.」 sat on a retired list and shipped anyway, because a
+//    live export ships and a list stops nobody. The scope below is `lib/` entire rather than
+//    copy.ts alone for the same reason — the finding is not "this key is in this file", it
+//    is "this address has one home", and a key re-added one directory over is the identical
+//    defect with a new address.
+//
+//    D-38.1: this asserts BEHAVIOUR (the export does not exist) and not presence, and it
+//    could fail on the broken tree — it was verified failing on the reverted tree before
+//    the restore, naming the file and the line.
+cell('C38 the withheld vendor address is not a live export anywhere in lib/ (F-38.55)', () => {
+  // ── THE SHAPES ARE A TABLE, NEVER INLINE  [F-38.45's law, and it caught this cell] ──
+  //    The first cut of this matcher read `cardLinkAddressBase\s*:` — the OBJECT-LITERAL
+  //    KEY, which is the shape the byte had in copy.ts when I wrote it. Its NAME claimed
+  //    "a live export anywhere in lib/", and a plant of
+  //    `export const cardLinkAddressBase = '…'` in lib/solutions/types.ts passed it green.
+  //    A cell scoped to one of several shapes of its subject cannot see the others, and
+  //    this one was written to BE the second control after a rule with no cell lost.
+  //    Caught by mutating live source, not by reading it back.
+  const KEY = 'cardLinkAddressBase';
+  const SHAPES = [
+    { what: 'object-literal key',    re: new RegExp('^.*\\b' + KEY + '\\s*:', 'm') },
+    { what: 'binding declaration',   re: new RegExp('^.*\\b(?:const|let|var)\\s+' + KEY + '\\b', 'm') },
+    { what: 'named re-export',       re: new RegExp('^.*export\\s*\\{[^}]*\\b' + KEY + '\\b', 'm') },
+    { what: 'function or class decl', re: new RegExp('^.*\\b(?:function|class)\\s+' + KEY + '\\b', 'm') },
+  ];
+  const hits = [];
+  const walk = (rel) => {
+    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
+      const r = rel + '/' + e.name;
+      if (e.isDirectory()) { walk(r); continue; }
+      if (!/\.(ts|tsx)$/.test(e.name)) continue;
+      const src = strip(read(r));
+      for (const s of SHAPES) {
+        const m = src.match(s.re);
+        if (m) hits.push(r + ' (' + s.what + ') — ' + m[0].trim().slice(0, 60));
+      }
+    }
+  };
+  walk('lib');
+  if (hits.length)
+    return 'the withheld address is a live export again: ' + hits.join(' · ')
+      + ' — it has ONE home (pathAddressFor in lib/solutions/types.ts) and the row in '
+      + 'FirstRun.tsx stays withheld until `curl -sS -o /dev/null -w "%{http_code}" '
+      + 'https://thedreamwedding.in/v/DEV440` returns 200';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
