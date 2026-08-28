@@ -576,11 +576,40 @@ try {
     if (!/if \(!card\)/.test(code))              bad.push('no single miss branch');
     if (!/PublicStyles/.test(code))              bad.push('the miss branch does not share the card stylesheet');
     if (/\b404\b/.test(code))                    bad.push('a status code is visible in the rendered output');
-    // One miss branch only — two would be two grounds to drift.
+    // §3-3, PAGE SIDE. The door proves absent/paused/inactive are byte-identical
+    // ON THE WIRE (b44 §4.4). This is the same property at the edge: the render
+    // for a miss must mention nothing about a vendor, so the enriched card —
+    // hero, prose, price, strip — gives a miss no new way to betray itself.
+    // ⚠ ANCHORED ON `<main`, AND THE FIRST CUT WAS NOT. A bare
+    // `if \(!card\) \{ … \}` matches the FIRST such branch, which since P2-A is
+    // `generateMetadata`'s — so the cell ran green while testing a subject that
+    // structurally cannot contain `pv-strip`. Passing on the wrong branch is
+    // D-38.1's class, found by diffing this branch against P0-B's bytes and
+    // getting a difference that was the regex's, not the page's.
+    const missRender = (code.match(/if \(!card\) \{\s*return \(\s*<main[\s\S]*?\n  \}/) || [''])[0];
+    if (!missRender) bad.push('the RENDER miss branch could not be read');
+    if (/card\.|hero|photos|starting_price|pv-strip|pv-hero/.test(missRender))
+      bad.push('the miss render reaches for card data');
+    // ⚠ LABELLED AMENDMENT (TDW_19 P2-A §3-2) — THE EXPECTED COUNT MOVES 1 → 2,
+    // AND THE REASON IS AT SITE RATHER THAN IN A COMMIT MESSAGE.
+    //
+    // At P0-B this route had ONE function and therefore one miss branch, and
+    // "two would be two grounds to drift" was exactly right. P2-A gives the
+    // route `generateMetadata`, because the WhatsApp link preview is half of
+    // what this page is FOR — and metadata cannot be produced through the body's
+    // return. So a second miss branch is now STRUCTURALLY REQUIRED, and a cell
+    // demanding one would be demanding a page that crashes on an unknown handle.
+    //
+    // THE RISK THE OLD COUNT WAS GUARDING DID NOT GO AWAY; IT MOVED. Two miss
+    // branches that drift would let a link preview name a business the page
+    // refuses to show — the enumeration oracle leaking through metadata instead
+    // of through a status code. That is now C28's subject, aimed at the leak
+    // itself rather than at a proxy for it. This cell keeps the count so a THIRD
+    // branch still announces itself.
     const misses = (code.match(/if \(!card\)/g) || []).length;
-    if (misses !== 1) bad.push(`${misses} miss branches, expected exactly 1`);
+    if (misses !== 2) bad.push(`${misses} miss branches, expected exactly 2 (body + generateMetadata)`);
     bad.length === 0
-      ? P('C25 /v/ renders a designed page for a miss', 'one branch, shared ground, no status code')
+      ? P('C25 /v/ renders a designed page for a miss', 'body + metadata branches, shared ground, no status code')
       : F('C25 /v/ renders a designed page for a miss', bad.join('; '));
   }
 }
@@ -631,6 +660,130 @@ try {
   bad.length === 0
     ? P('C27 the web address is shown as reserved, never as live', 'muted, unlinked, with its arrival stated')
     : F('C27 the web address is shown as reserved, never as live', bad.join('; '));
+}
+
+// ── C28 · THE MISS DOES NOT LEAK THROUGH THE LINK PREVIEW ────────────────────
+// C25's old count guarded drift between two miss branches by forbidding the
+// second. P2-A requires the second, so the guard moves to the leak: metadata for
+// an unknown, paused or inactive handle must name no business, carry no image,
+// and ask not to be indexed. A title reading "Quiet Co · Decor · Delhi" in a
+// WhatsApp preview answers "does this handle exist?" just as loudly as a 404 body
+// would, and the door's byte-identical miss (b44 §4.4) would be undone at the edge.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C28 the miss leaks nothing through metadata', 'app/v/[code]/page.tsx not found');
+  else {
+    const code = strip(pv);
+    const bad = [];
+    if (!/export async function generateMetadata/.test(code)) bad.push('no generateMetadata on the route');
+    // The miss return, isolated: everything between the metadata miss branch and
+    // its closing brace. Asserting on THAT rather than on the whole file is what
+    // stops the card's own og:image from satisfying this cell.
+    const m = code.match(/if \(!card\) \{\s*return \{([^}]*)\}/);
+    if (!m) bad.push('the metadata miss branch could not be read');
+    else {
+      const miss = m[1];
+      if (/business_name|card\./.test(miss))     bad.push('the miss names the vendor');
+      if (/images|openGraph|og:/.test(miss))      bad.push('the miss carries an image');
+      if (!/robots/.test(miss))                   bad.push('the miss does not ask to be unindexed');
+    }
+    bad.length === 0
+      ? P('C28 the miss leaks nothing through metadata', 'no name, no image, not indexed')
+      : F('C28 the miss leaks nothing through metadata', bad.join('; '));
+  }
+}
+
+// ── C29 · THE HERO REACHES THE OG CARD ───────────────────────────────────────
+// This page exists to be forwarded. An `og:image` that is absent, or that is a
+// site logo rather than her work, is the product failing at the only moment it
+// was built for — and it is invisible on the page itself, so nothing else in
+// this repo would catch it.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C29 the OG card is built from her own hero', 'app/v/[code]/page.tsx not found');
+  else {
+    const code = strip(pv);
+    const bad = [];
+    if (!/openGraph:/.test(code))                       bad.push('no openGraph block');
+    // ⚠ SCOPED TO EACH BLOCK, AND THE FIRST CUT WAS NOT. A file-wide
+    // `/images:\s*hero\s*\?/` is satisfied by EITHER of the two `images:` sites,
+    // so gutting `openGraph.images` to `[]` left the cell green on the strength
+    // of `twitter.images` — a mutation that applied, changed the product, and
+    // reddened nothing. Each block is extracted and asserted on its own.
+    const og = (code.match(/openGraph:\s*\{[\s\S]*?\n    \}/) || [''])[0];
+    const tw = (code.match(/twitter:\s*\{[\s\S]*?\n    \}/) || [''])[0];
+    if (!og) bad.push('the openGraph block could not be read');
+    else if (!/images:\s*hero\s*\?/.test(og))          bad.push('og:image is not the hero');
+    if (!tw) bad.push('the twitter block could not be read');
+    else if (!/images:\s*hero\s*\?/.test(tw))          bad.push('the twitter image is not the hero');
+    if (!/heroOf\(/.test(code))                         bad.push('the hero is not derived from the approved set');
+    if (!/twitter:/.test(code))                         bad.push('no twitter card');
+    if (!/alternates:\s*\{\s*canonical/.test(code))    bad.push('no canonical URL');
+    // The money never travels in a preview: a price out of the register and out
+    // of her control, quoted by a stranger's phone.
+    if (/starting_price/.test((code.match(/export async function generateMetadata[\s\S]*?\n\}/) || [''])[0]))
+      bad.push('the price reaches the link preview');
+    bad.length === 0
+      ? P('C29 the OG card is built from her own hero', 'og + twitter + canonical, image off heroOf, no money')
+      : F('C29 the OG card is built from her own hero', bad.join('; '));
+  }
+}
+
+// ── C30 · ONE COUPLE-FACING CARD, AND /v/ MOUNTS IT ─────────────────────────
+// The third band §2-4: "/v/ renders through VendorProfileView's shape — reuse it
+// or extract its core into a shared component both call; two drifting profile
+// designs is the disease." This cell refuses the re-declaration: `/v/` must
+// mount `VendorProfileContent`, on the CREAM palette, and must not grow its own
+// name/about/price markup beside it.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C30 /v/ mounts the one card, on cream', 'app/v/[code]/page.tsx not found');
+  else {
+    const code = strip(pv);
+    const bad = [];
+    if (!/<VendorProfileContent/.test(code))              bad.push('the shared core is not mounted');
+    if (!/PROFILE_PALETTE\.onCream/.test(code))           bad.push('not mounted on the cream ground');
+    if (/PROFILE_PALETTE\.onGlass/.test(code))            bad.push('the public page reaches for the deck ground');
+    if (!/nameAs="h1"/.test(code))                        bad.push('the name is not this surface\u2019s t1');
+    // A second implementation announces itself as markup this page should not own.
+    if (/<h2[\s>]/.test(code))                            bad.push('the page declares its own heading markup');
+    if (/formatRs|Starting at/.test(code))                bad.push('the page builds its own money line');
+    if (/force-dynamic/.test(code))                       bad.push('force-dynamic was not retired');
+    if (!/export const revalidate/.test(code))            bad.push('no revalidate — the page is not static-friendly');
+    bad.length === 0
+      ? P('C30 /v/ mounts the one card, on cream', 'shared core, cream ground, h1, revalidate on')
+      : F('C30 /v/ mounts the one card, on cream', bad.join('; '));
+  }
+}
+
+// ── C31 · THE PAGE POLICES NEITHER APPROVAL NOR THE RATE, AND MUST NOT ───────
+// Both are the DOOR's, asserted at `b44` §7.1 and §7.6: only approved rows are
+// fetched, and `rate_display=false` nulls `starting_price` before it reaches the
+// wire. A page that filtered again would be a second home for a ruling — and the
+// second home is the one that gets forgotten when the first changes. What this
+// cell asserts is the ABSENCE of a second gate, plus the presence of the null
+// guard that is genuinely the page's (an absent price renders nothing at all).
+{
+  let pv = null, core = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  try { core = readFileSync(join(ROOT, 'components/shared/VendorProfileContent.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv || !core) F('C31 approval and rate stay the door\u2019s rulings', 'a source file is missing');
+  else {
+    const code = strip(pv);
+    const c = strip(core);
+    const bad = [];
+    if (/approval_state|approved/.test(code))   bad.push('the page re-filters on approval');
+    if (/rate_display/.test(code))              bad.push('the page re-reads the rate switch');
+    if (!/startingPrice\s*!=\s*null/.test(c))  bad.push('the core lost the null-renders-nothing guard');
+    if (/\u20B9/.test(code) || /\u20B9/.test(c)) bad.push('the rupee glyph reached a couple-facing byte');
+    if (/\b\d+(\.\d+)?\s?(k|L|Cr)\b/.test(code)) bad.push('shorthand money on the public page');
+    bad.length === 0
+      ? P('C31 approval and rate stay the door\u2019s rulings', 'no second gate; null still renders nothing; register clean')
+      : F('C31 approval and rate stay the door\u2019s rulings', bad.join('; '));
+  }
 }
 
 console.log('');

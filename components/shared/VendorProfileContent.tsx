@@ -126,11 +126,31 @@ export interface VendorProfileContentProps {
   isBlind?: boolean;
   /** The FEATURED eyebrow, composed by the mount. See the header. */
   eyebrow?: React.ReactNode;
+  /**
+   * ⚠ THE NAME'S HEADING LEVEL — the one prop `/v/` needed that this component
+   * lacked, added once, at its home, per the third band §2-4.
+   *
+   * **It defaults to `'h2'`, and the default is the load-bearing part.** Inside
+   * the app the shell owns the page title and this card is a section of a
+   * screen, so `h2` is right and the three deck mounts pass nothing — which is
+   * what keeps their markup byte-identical through this change
+   * (`scripts/tdw19_p2a_profile_core.proof.mjs` §2.2).
+   *
+   * `/v/<code>` is not inside the shell. It is a public page whose whole purpose
+   * is to be forwarded into WhatsApp, and a shared page with no `h1` is a page
+   * whose reading order and link preview have no subject. It passes `'h1'`.
+   *
+   * THE TYPE SCALE DOES NOT MOVE WITH THE TAG. Both render at 28px Cormorant —
+   * the element changes, the design does not, because the size is what makes it
+   * one card and only the ground moved.
+   */
+  nameAs?: 'h1' | 'h2';
 }
 
 export default function VendorProfileContent({
-  fields, palette, isBlind = false, eyebrow = null,
+  fields, palette, isBlind = false, eyebrow = null, nameAs = 'h2',
 }: VendorProfileContentProps) {
+  const Name = nameAs;
   return (
     <>
       {eyebrow}
@@ -138,9 +158,9 @@ export default function VendorProfileContent({
         {fields.category}&nbsp;·&nbsp;{fields.city}
       </p>
       {!isBlind && (
-        <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: palette.name, margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+        <Name style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: palette.name, margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
           {fields.name}
-        </h2>
+        </Name>
       )}
       {fields.about && (
         <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, fontStyle: 'italic', color: palette.about, margin: '0 0 12px', lineHeight: 1.5 }}>

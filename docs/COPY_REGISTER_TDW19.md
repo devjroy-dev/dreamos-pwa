@@ -198,6 +198,50 @@ handle absent, vendor paused, vendor inactive. If they differed, the route would
 answer *does this handle exist?* for anyone willing to walk a six-character
 keyspace.
 
+## 9b · P2A — THE STOREFRONT'S NEW BYTES (TDW_19 P2-A §3-5)
+
+⚠ **PROPOSED, pending your veto.** `/v/<code>` stopped being a holding page: it
+now carries her photographs, her own prose and her rate. Section 9 above is
+unchanged and still ships; this section is only what P2-A added or moved.
+
+| Key | Ships as | Where |
+|---|---|---|
+| *(core)* `Starting at ` + `formatRs` | Starting at Rs 60,000 | `/v/<code>`, and the Frost deck, and the vendor's own preview |
+| *(metadata)* title | `<business name> · <category> · <city>` | the WhatsApp / social link preview |
+| *(metadata)* description | her `about`, first 200 chars — or `publicPageLine` if she has written none | the link preview |
+| *(metadata)* miss title | The Dream Wedding | unknown, paused or inactive handle |
+
+### ⚠ THREE THINGS THIS SECTION ASKS YOU TO RULE
+
+**1 · `Starting at Rs 60,000`, not `From Rs 60,000`.** The relay drafted *From*.
+That string is **not this page's to choose**: it lives in the shared card core,
+which the Frost deck and the vendor's own Discover preview render from the same
+line. Changing it here would either change what every couple sees in the deck, or
+fork the money line into two — and forking it is the exact disease the one-card
+law exists to prevent. `Starting at` is the byte in the tree today and the byte
+the vendor was already promised on her own preview. **If you want *From*, it
+changes everywhere at once and that is the right way round** — say so and it
+moves in the core, in one cut.
+
+**2 · Her `about` becomes the link preview's description.** A couple forwards
+this into a thread and her own sentences are what her friend reads first. Nothing
+is generated, summarised or padded — it is her text, trimmed to 200 characters at
+a word-safe boundary, and the standing line only when she has written nothing.
+The alternative was a written-for-her summary, which would put words in her mouth
+on the one surface she has least control over.
+
+**3 · The price never travels into a preview.** `starting_price` is on the page
+and deliberately not in the OG description — a rate quoted by a stranger's phone,
+outside its register and outside her control, is a number she cannot correct.
+`bs_audit` C29 asserts it stays off.
+
+### WHAT MOVED RATHER THAN ARRIVED
+
+`publicPageLine` — *Takes enquiries through The Dream Wedding.* — is unchanged
+but now renders **only where a vendor has written no `about`**. Under her own
+prose it was a second, quieter voice saying less than the first. On the demo leg
+and on a bare profile it still carries the page.
+
 ## 10 · WHAT IS NOT HERE
 
 - **Persona names.** Victor, Donna, Harvey, Mira appear nowhere in product
