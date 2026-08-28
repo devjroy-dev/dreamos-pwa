@@ -14,7 +14,33 @@
 //      throws on non-2xx, so the refusal ARRIVES and renders VERBATIM — the
 //      door reasons, this sheet only renders) · the ask primer.
 //
-// HONESTY POSTURE: every verdict line printed here is the wire's own sentence.
+// HONESTY POSTURE, AMENDED AT F-38.61 (founder walk, 2026-08-29) — READ THE AMENDMENT, NOT ONLY THE RULE.
+// This block used to read 「every verdict line printed here is the wire's own sentence」, and
+// that stopped being literally true the moment the Collab pill's two refusals were ruled into
+// this sheet's verdict surface. THEY ARE NOT WIRE SENTENCES; they are client-side pre-checks
+// that fire BEFORE any door is called. Leaving the old sentence standing would have been a
+// comment asserting a contract the same cut falsified — F-38.29's shape, three lines from the
+// code it describes.
+//
+// THE WIDENED CONTRACT: this surface renders exactly THREE kinds of line, each labelled at
+// its render site with `data-verdict-kind`, and none is ever invented or softened.
+//   (1) `wire`      — the door's own sentence, verbatim. The original rule, still binding.
+//   (2) `preflight` — this sheet's own pre-check, from the veto ledger's exact bytes, saying
+//                     why a door was NOT CALLED at all. The collab pill's two refusals.
+//   (3) `transport` — the door was called and did not answer. The client saying so.
+//
+// A FOURTH CANNOT SLIP IN UNLABELLED, and that is structural rather than a promise: the kind
+// lives in the state's TYPE, so there is no way to write this surface without saying what the
+// line is, and a new kind cannot arrive without widening a union that `b40` C42 reads.
+//
+// ⚠ KIND (3) IS NOT NEW — IT WAS FOUND BY THIS AMENDMENT, IN THE FIRST MINUTE. Five `catch`
+// arms have printed `'Network error.'` here for as long as the sheet has existed, under a
+// header calling every line the wire's own sentence. It was a third kind all along and
+// NOTHING COULD SEE IT while one untyped setter carried everything. Forcing it into `wire`
+// to keep the count at two would have been the type asserting a lie. Filed as F-38.p7.
+//
+// The founder ruled ONE refusal surface rather than a second; the honest form of that ruling
+// is to say what the one surface actually carries.
 // A refused Move renders the checker's message and moves nothing; an advisory
 // (ok:true + conflict) renders as a heads-up over work that LANDED. Nothing is
 // invented, nothing is softened. isOverridable never reaches this file (Q-C-3:
@@ -31,6 +57,17 @@ import type {
 import { SLOT_LABELS, SLOT_ORDER, SLOT_HEADINGS } from '@/lib/vendor/slotWords';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
+import { fetchMe } from '@/lib/vendor/api/vendor';
+import { requirementForKind } from '@/lib/vendor/api/roster';
+import { roomHref } from '@/lib/worklist/rooms'; // the one home for where a room lives
+
+// ── F-38.61 · THE COLLAB LEG'S THREE BYTES, MOVED HERE WITH THE CONTROL ────────
+// Founder walk, 2026-08-29: 「in crew, edit etc — collab should be there」. The leg is
+// F10(b)'s and its bytes are the veto ledger's exact ones; what moved is the home, not the
+// words. Copy has ONE HOME and the home is wherever the control is.
+const POST_TO_COLLAB = 'Collab';
+const PAST_DATE      = 'This date has passed. Collab posts need a future date.';
+const NO_CITY        = 'Add a city to your profile before posting.';
 
 const D = {
   border: '0.5px solid var(--atelier-card-border)',
@@ -96,8 +133,42 @@ export function CalendarDaySheet({
   const [day, setDay] = useState<VendorDayResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
-  // The inline verdict line — the wire's own sentence, rendered verbatim.
-  const [verdict, setVerdict] = useState<string | null>(null);
+  // The inline verdict line. See the HONESTY POSTURE amendment at the head of this file:
+  // it carries wire sentences AND, since F-38.61, this sheet's own two collab refusals.
+  const [verdict, setVerdictState] = useState<{ kind: 'wire' | 'preflight' | 'transport'; line: string } | null>(null);
+
+  // ── THE TWO WRITERS, AND THERE IS NO THIRD ────────────────────────────────
+  // The chair ruled the amended contract must NAME BOTH KINDS AND LABEL EACH AT ITS RENDER
+  // SITE, so a third kind cannot slip in unlabelled. A single `wireVerdict(string)` could not
+  // carry that: every call would have to remember which kind it was, and the one that forgot
+  // would render as whichever the reader assumed. So the KIND IS IN THE TYPE. There is no
+  // way to write this state without saying what it is, and `b40` C42 asserts no bare writer
+  // grows back.
+  //
+  // `wireVerdict` — the door's own sentence, verbatim, never softened.
+  // `preflightRefusal` — this sheet's own pre-check, from the veto ledger's bytes, saying why
+  //   no door was called at all.
+  // `transportFailure` — see below. THE THIRD KIND, AND IT WAS ALREADY HERE.
+  //
+  // ⚠ MAKING THE KIND EXPLICIT FOUND A THIRD KIND IN THE FIRST MINUTE, WHICH IS THE WHOLE
+  // ARGUMENT FOR THE RULING. Five `catch` arms printed `'Network error.'` into this surface
+  // and the old header called every line 「the wire's own sentence」 — but the wire never
+  // answered; that is the client saying so. It has been a third, unlabelled kind since long
+  // before the collab pill, and nothing could see it while one untyped setter carried all
+  // three.
+  //
+  // FORCING IT INTO `wire` WOULD HAVE BEEN THE TYPE ASSERTING A LIE, so it is named instead.
+  // It is not a preflight either: the door WAS called and did not answer. Filed as F-38.p7 —
+  // the class is 「a surface whose declared contract was narrower than its traffic」, and its
+  // cure here is a label, not a rewrite of five catch arms.
+  const wireVerdict = (line: string) => setVerdictState({ kind: 'wire', line });
+  const preflightRefusal = (line: string) => setVerdictState({ kind: 'preflight', line });
+  const transportFailure = (line: string) => setVerdictState({ kind: 'transport', line });
+  const clearVerdict = () => setVerdictState(null);
+  // F-38.61: the city the collab post would carry. Read once when the sheet opens, from the SAME
+  // /me the profile screen reads — never guessed, never cached across sessions (no browser
+  // storage in this estate). Travelled here with the leg, unchanged.
+  const [city, setCity] = useState<string | null>(null);
   // Move state: which booking is being moved, and the picker's values.
   const [moveId, setMoveId] = useState<string | null>(null);
   const [moveDate, setMoveDate] = useState('');
@@ -115,9 +186,14 @@ export function CalendarDaySheet({
   }, [vendorId, dateIso]);
 
   useEffect(() => {
-    if (!open || !dateIso) { setDay(null); setVerdict(null); setMoveId(null); return; }
-    setVerdict(null); setMoveId(null); setMoveDate(''); setMoveSlot('');
+    if (!open || !dateIso) { setDay(null); clearVerdict(); setMoveId(null); return; }
+    clearVerdict(); setMoveId(null); setMoveDate(''); setMoveSlot('');
+    let liveMe = true;
+    fetchMe()
+      .then((r) => { if (liveMe) setCity(((r as { vendor?: { city?: string } })?.vendor?.city) || null); })
+      .catch(() => { /* soft — a null city fires the refusal in words, not a crash */ });
     void load();
+    return () => { liveMe = false; };
   }, [open, dateIso, load]);
 
   if (!dateIso) return null;
@@ -128,28 +204,28 @@ export function CalendarDaySheet({
 
   async function toggleSlot(slot: 'morning' | 'noon' | 'evening') {
     if (working || !dateIso) return;
-    setWorking(true); setVerdict(null);
+    setWorking(true); clearVerdict();
     try {
       const existing = slotBlock(slot);
       if (existing) {
         const r = await unblockDate(existing.id);
-        if (!r.ok) { setVerdict((r as ApiErr).error ?? 'Could not unblock.'); return; }
+        if (!r.ok) { wireVerdict((r as ApiErr).error ?? 'Could not unblock.'); return; }
         onToast('Slot unblocked', 'success');
       } else {
         const r = await blockDate({ blocked_date: dateIso, slot });
         // The refusal (full_day already held, or the race's 409) arrives in
         // `error` — the door's sentence, rendered verbatim, moving nothing.
-        if (!r.ok) { setVerdict((r as ApiErr).error ?? 'Could not block.'); return; }
+        if (!r.ok) { wireVerdict((r as ApiErr).error ?? 'Could not block.'); return; }
         onToast('Slot blocked', 'success');
       }
       await load(); onRefresh();
-    } catch { setVerdict('Network error.'); }
+    } catch { transportFailure('Network error.'); }
     finally { setWorking(false); }
   }
 
   async function doMove(ev: DayEvent) {
     if (working || !moveDate) return;
-    setWorking(true); setVerdict(null);
+    setWorking(true); clearVerdict();
     try {
       const body: { event_date: string; slot?: 'morning' | 'noon' | 'evening' } = { event_date: moveDate };
       if (moveSlot) body.slot = moveSlot;
@@ -160,7 +236,7 @@ export function CalendarDaySheet({
         // beside it. Print the sentence; name the holders if they rode along.
         const e = r as ApiErr & { conflict?: { holding?: { title: string }[] } };
         const holders = e.conflict?.holding?.map((h) => h.title).filter(Boolean) ?? [];
-        setVerdict((e.error ?? 'Could not move it.') + (holders.length ? ` Holding: ${holders.join(', ')}.` : ''));
+        wireVerdict((e.error ?? 'Could not move it.') + (holders.length ? ` Holding: ${holders.join(', ')}.` : ''));
         return;
       }
       const adv = (r as unknown as { conflict?: { message?: string } }).conflict;
@@ -171,31 +247,69 @@ export function CalendarDaySheet({
       onToast(adv?.message ? `Moved — heads-up: ${adv.message}` : 'Moved.', 'success');
       setMoveId(null); setMoveDate(''); setMoveSlot('');
       await load(); onRefresh();
-    } catch { setVerdict('Network error.'); }
+    } catch { transportFailure('Network error.'); }
     finally { setWorking(false); }
+  }
+
+  // ── F-38.61 · POST TO COLLAB, FROM THE EVENT'S OWN ACTION ROW ─────────────
+  // FOUNDER WALK, 2026-08-29: 「in crew, edit etc — collab should be there」.
+  //
+  // THE ACTION WAS FILED UNDER THE WRONG NOUN, and that is the finding rather than the
+  // placement. This leg has been live since F10(b) — buried inside `CalendarCrewSheet`, so a
+  // vendor who wanted to post a requirement for an event had to open a sheet ABOUT HER OWN
+  // TEAM to reach a door about hiring SOMEBODY ELSE'S. A live capability behind a door nobody
+  // would think to open is F-09.129's shape, and it was found the same way that one was: by
+  // walking, not by reading.
+  //
+  // ONE HOME. The crew sheet's button RETIRED in the same cut rather than staying as a second
+  // door — founder-ruled, and two homes for one action is the disease this estate names most
+  // often. The function, its two refusals, its city read and its three bytes all travelled
+  // together; a leg split across two files is how the halves drift.
+  //
+  // THE GAP YOU ARE LOOKING AT IS THE REQUIREMENT. Rather than make the vendor retype the
+  // date, the city and the category on another screen, this hands them to the composer in
+  // the URL — unchanged from F10(b), including `requirementForKind`'s map from its one home
+  // and its deliberate refusal to prefill a chip it cannot be sure of.
+  //
+  // BOTH REFUSALS FIRE HERE, IN WORDS, BEFORE NAVIGATION. Sending someone to a composer that
+  // will reject them is the failure this control exists to avoid, and a disabled pill would
+  // tell her nothing about why. Founder-ruled at F-38.61: they render in the VERDICT surface this
+  // sheet already owns — one refusal surface, never a second.
+  function postToCollab(ev: DayEvent) {
+    clearVerdict();
+    if (!dateIso || new Date(dateIso) < new Date(new Date().toDateString())) {
+      preflightRefusal(PAST_DATE); return;
+    }
+    if (!city) { preflightRefusal(NO_CITY); return; }
+    const type = requirementForKind(ev.kind);
+    const qs = new URLSearchParams({ post: '1', date: dateIso, city });
+    if (type) qs.set('type', type);
+    onClose();
+    // The address book, not a literal — §4-4 batch ③'s ruling holds wherever this leg lives.
+    router.push(`${roomHref('collab')}?${qs.toString()}`);
   }
 
   async function doCancel(ev: DayEvent) {
     if (working) return;
-    setWorking(true); setVerdict(null);
+    setWorking(true); clearVerdict();
     try {
       const r = await cancelEvent(ev.id);
-      if (!r.ok) { setVerdict((r as ApiErr).error ?? 'Could not cancel.'); return; }
+      if (!r.ok) { wireVerdict((r as ApiErr).error ?? 'Could not cancel.'); return; }
       onToast('Cancelled.', 'success');
       await load(); onRefresh();
-    } catch { setVerdict('Network error.'); }
+    } catch { transportFailure('Network error.'); }
     finally { setWorking(false); }
   }
 
   async function doMarkPaid(id: string, amount: number) {
     if (working) return;
-    setWorking(true); setVerdict(null);
+    setWorking(true); clearVerdict();
     try {
       const r = await markMilestonePaid(id, amount);
-      if (!r.ok) { setVerdict((r as ApiErr).error ?? 'Could not mark it paid.'); return; }
+      if (!r.ok) { wireVerdict((r as ApiErr).error ?? 'Could not mark it paid.'); return; }
       onToast('Marked paid.', 'success');
       await load();
-    } catch { setVerdict('Network error.'); }
+    } catch { transportFailure('Network error.'); }
     finally { setWorking(false); }
   }
 
@@ -269,7 +383,17 @@ export function CalendarDaySheet({
               padding: '10px 14px', borderRadius: 10,
               border: '0.5px solid rgba(224,112,112,0.4)', background: 'rgba(180,40,40,0.10)',
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
-            }}>{verdict}</div>
+            }}>
+              {/* ── EACH KIND LABELLED AT ITS RENDER SITE, chair-ruled ────────────────
+                  The label is for the READER OF THIS FILE and for the cell that walks it —
+                  it is `data-verdict-kind`, not a visible eyebrow. THE VENDOR SEES ONE
+                  SENTENCE and should: she does not care whether a door refused her or was
+                  never called, only what to do next, and printing 「preflight」 over her copy
+                  would be the estate talking to itself on her screen.
+                  A fourth kind cannot arrive unlabelled, because it cannot arrive without a
+                  writer, and a writer cannot exist without widening the union above. */}
+              <span data-verdict-kind={verdict.kind}>{verdict.line}</span>
+            </div>
           )}
 
           {loading && !day && (
@@ -318,8 +442,12 @@ export function CalendarDaySheet({
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                      <button type="button" onClick={() => { setVerdict(null); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn(D.gold)}>Move</button>
+                      <button type="button" onClick={() => { clearVerdict(); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn(D.gold)}>Move</button>
                       <button type="button" onClick={() => { onClose(); onAssignCrew(ev); }} style={pillBtn('var(--atelier-label)')}>Crew</button>
+                      {/* F-38.61, founder-ruled order: Move · Crew · Collab · Edit · Cancel.
+                          Beside Crew because both answer 「who works this event」, and both
+                          ahead of the destructive Cancel. */}
+                      <button type="button" onClick={() => postToCollab(ev)} style={pillBtn('var(--atelier-label)')}>{POST_TO_COLLAB}</button>
                       <button type="button" onClick={() => { onClose(); onEdit(ev); }} style={pillBtn('var(--atelier-label)')}>Edit</button>
                       <button type="button" onClick={() => void doCancel(ev)} style={pillBtn(D.terracotta, 'rgba(224,123,92,0.4)')}>Cancel</button>
                     </div>

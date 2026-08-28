@@ -104,6 +104,12 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
   // DATE, which DayEvent does not carry. Both entry points already know it — the
   // band pip from fn.date, the day sheet from the day it is showing — so it is
   // handed down rather than re-derived inside the sheet.
+  // ── F-38.61 · `crewDate` IS WRITTEN AND NEVER READ NOW ───────────────────
+  // It existed to feed `CalendarCrewSheet`'s `eventDate`, which left with the collab leg.
+  // KEPT, NOT DELETED, and the reason is stated rather than assumed: `:398` seeds it from a
+  // function row on a path this walk did not exercise, so removing the state would edit a
+  // path nobody has witnessed in this sitting. A write with no reader is dead weight and it
+  // is FILED (F-38.p8) rather than swept inside a copy-and-control cut. One motion at a time.
   const [crewDate, setCrewDate] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -757,7 +763,6 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       <CalendarCrewSheet
         open={!!crewEvent}
         event={crewEvent}
-        eventDate={crewDate}
         onClose={() => { setCrewEvent(null); setCrewDate(null); }}
         onToast={showToast}
         onRefresh={refreshAll}

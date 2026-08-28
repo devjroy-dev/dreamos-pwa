@@ -10,13 +10,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchTeam, updateEvent, fetchMe } from '@/lib/vendor/api/vendor';
-import { requirementForKind } from '@/lib/vendor/api/roster';
+import { fetchTeam, updateEvent } from '@/lib/vendor/api/vendor';
 import { commitCrew } from '@/lib/vendor/crewCommit';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import type { TeamMember, DayEvent } from '@/lib/vendor/types/vendor';
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
-import { roomHref } from '@/lib/worklist/rooms'; // §4-4 batch ③: the one home for where a room lives
 
 const SHEET: React.CSSProperties = {
   background: 'var(--atelier-sheet-top)',
@@ -40,10 +38,11 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 // COPY (founder veto standing — proposals ship unless vetoed):
 const EMPTY_STATE = 'No one on your team yet — add crew in Studio.';
 
-// TDW_04.5 P4 · ruling F10(b) — the veto ledger's exact bytes.
-const POST_TO_COLLAB = 'Post to Collab';
-const PAST_DATE      = 'This date has passed. Collab posts need a future date.';
-const NO_CITY        = 'Add a city to your profile before posting.';
+// ── F10(b)'s THREE BYTES LEFT WITH THE LEG — F-38.61, founder walk 2026-08-29 ──
+// `POST_TO_COLLAB`, `PAST_DATE` and `NO_CITY` moved to `CalendarDaySheet.tsx`, which owns the
+// Collab pill now. They are copy with ONE HOME and the home is wherever the control is; a
+// constant left behind here would be a byte nobody renders and the next reader's first wrong
+// turn. See that file's F-38.61 block for the whole reasoning.
 
 interface Props {
   open: boolean;
@@ -52,23 +51,20 @@ interface Props {
       the day sheet and the band board each know it, so they hand it down rather
       than the sheet guessing. Absent = the date refusal fires, which is the
       honest failure. */
-  eventDate?: string | null;
+  // `eventDate` LEFT WITH THE LEG AT F-38.61. It existed to carry the post's date into the
+  // collab composer and had no other reader in this sheet — derived, not assumed. The caller
+  // hands it to the day sheet now.
   onClose: () => void;
   onToast: (msg: string, kind?: ToastKind) => void;
   onRefresh: () => void;
 }
 
-export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, onRefresh }: Props) {
+export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [working, setWorking] = useState(false);
-  // F10(b): the city the post would carry. Read once when the sheet opens, from
-  // the SAME /me the profile screen reads — never guessed, never cached across
-  // sessions (no browser storage in this estate).
-  const [city, setCity] = useState<string | null>(null);
-  const [collabRefusal, setCollabRefusal] = useState('');
 
   // On open: fetch the ACTIVE team (fetchTeam reused — no new fetch shape), seed the
   // toggles from THIS booking's crew (day-fetch's always-an-array assigned_member_ids).
@@ -81,10 +77,6 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
       .then((r) => { if (live && r && (r as { ok?: boolean }).ok) setMembers((r as { members: TeamMember[] }).members || []); })
       .catch(() => { /* soft — empty list renders the empty state */ })
       .finally(() => { if (live) setLoading(false); });
-    fetchMe()
-      .then((r) => { if (live) setCity(((r as { vendor?: { city?: string } })?.vendor?.city) || null); })
-      .catch(() => { /* soft — a null city fires the in-sheet refusal, not a crash */ });
-    setCollabRefusal('');
     return () => { live = false; };
   }, [open, event]);
 
@@ -111,40 +103,18 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
     }
   }
 
-  // ── F10(b): POST TO COLLAB ────────────────────────────────────────────────
-  // The gap you are looking at IS the requirement. Rather than make the vendor
-  // retype the date, the city and the category on another screen, the sheet
-  // hands them to the composer in the URL.
+  // ── F10(b)'s LEG MOVED OUT AT F-38.61 (founder walk, 2026-08-29) ──────────
+  // `postToCollab` and its two refusals now live in `CalendarDaySheet.tsx`, on the Collab
+  // pill in the event's own action row.
   //
-  // BOTH REFUSALS FIRE HERE, IN WORDS, BEFORE NAVIGATION. Sending someone to a
-  // composer that will reject them is the failure this row exists to avoid —
-  // and a disabled button would tell them nothing about why.
-  function postToCollab() {
-    if (!event) return;
-    if (!eventDate || new Date(eventDate) < new Date(new Date().toDateString())) {
-      setCollabRefusal(PAST_DATE); return;
-    }
-    if (!city) { setCollabRefusal(NO_CITY); return; }
-
-    // Appendix A's map, from its one home. `other`/`blocked`/unknown prefill
-    // NOTHING — a wrong chip is worse than an empty one — and the two-chip ASK
-    // (fitting/trial) deliberately prefills nothing so the vendor chooses.
-    const type = requirementForKind(event.kind);
-    const qs = new URLSearchParams({ post: '1', date: eventDate, city });
-    if (type) qs.set('type', type);
-    onClose();
-    // ── §4-4 BATCH ③ · THE ADDRESS BOOK ANSWERS FOR THIS LEG NOW ──────────
-    // This was a literal `/vendor/collab?…`, written before the shell existed, and it was
-    // CORRECT until this sitting: collab's registry href WAS that address, so the literal
-    // and the registry agreed by coincidence rather than by construction. Collab crossing
-    // makes them disagree, and this sheet is reachable from `/w/calendar` — so a vendor
-    // prefilling a collab post from her calendar would have been thrown out of the shell.
-    // A cross-link to a DIFFERENT room is a departure whichever tree it starts in, which is
-    // the registry's ruled asymmetry with `SliceDoor`: the Door is lateral movement inside
-    // one family and is tree-aware; this is not, so it asks the one home and both trees get
-    // the same answer. C31 found it in the same edit that broke it.
-    router.push(`${roomHref('collab')}?${qs.toString()}`);
-  }
+  // THE FOUNDER FOUND IT BY WALKING, AND THE DIAGNOSIS IS THAT THE ACTION WAS FILED UNDER
+  // THE WRONG NOUN. A vendor who wanted to post a requirement for an event had to open a
+  // sheet about HER OWN TEAM to find a door about hiring SOMEBODY ELSE'S. The capability was
+  // live the whole time and buried one level down — F-09.129's shape, and found the same way.
+  //
+  // ONE HOME, NOT TWO. The button here retires rather than staying as a second door; two
+  // homes for one action is the disease this estate names most often, and this sheet is the
+  // wrong home by the same reasoning that gave the pill its right one.
 
   // TDW_09 R-U25: was the glyph form. A crew rate is money a vendor reads.
   const rate = (m: TeamMember) => (m.daily_rate_inr != null ? formatRs(m.daily_rate_inr) : null);
@@ -221,24 +191,6 @@ export function CalendarCrewSheet({ open, event, eventDate, onClose, onToast, on
                 </button>
               );
             })
-          )}
-        </div>
-
-        {/* F10(b) — Post to Collab. A ROW, deliberately not a button: the Save
-            CTA below is this screen's ONE GOLD and stays that way. This is the
-            same brass-outline vocabulary the estate uses for secondary acts. */}
-        <div style={{ padding: '12px 24px 0', borderTop: D.border }}>
-          <button type="button" onClick={postToCollab} style={{
-            width: '100%', padding: '11px 0', background: 'transparent',
-            border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 12,
-            cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)',
-            letterSpacing: '0.3em', textTransform: 'uppercase',
-          }}>{POST_TO_COLLAB}</button>
-          {collabRefusal && (
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, marginTop: 8, lineHeight: 1.5 }}>
-              {collabRefusal}
-            </p>
           )}
         </div>
 

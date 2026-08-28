@@ -127,7 +127,20 @@ const REQUIREMENT_TYPES = [
 ];
 const EVENT_TYPES     = ['wedding','pre_wedding','engagement','editorial','brand_shoot','portrait','other'];
 const PAYMENT_PERIODS = ['per_day','per_shoot','total','tbd'];
+// ── F-38.62 · THE TAB ORDER IS THE FOUNDER'S, AND IT IS NOT THIS TYPE'S ───
+// Founder walk, 2026-08-29: 「my post should be first, opportunities be second — which means
+// collab should open on my posts」. The union's spelling order is not a render order and never
+// was; `TAB_ORDER` below is the one that reaches the screen, so a reader cannot mistake this
+// declaration for the ruling.
 type Tab = 'opportunities' | 'my_posts' | 'roster';
+
+// THE RULED ORDER, ONE HOME. A control that moves under the thumb is a control that cannot be
+// learned — R-37.22's reasoning, which is why the room grid is frozen and why this is a named
+// constant rather than an array literal inside the render. `b40` C40 asserts it.
+const TAB_ORDER: readonly Tab[] = ['my_posts', 'opportunities', 'roster'] as const;
+// The landing tab, derived from the order rather than restated beside it: the vendor lands
+// where the founder put the first pill, and a reorder cannot leave the two disagreeing.
+const TAB_DEFAULT: Tab = TAB_ORDER[0];
 
 
 // F10(b)'s prefill arrives in the URL, not in storage — browser storage is
@@ -149,7 +162,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
   const searchParams = useSearchParams();
   const prefill = readPrefill(searchParams);
 
-  const [tab,      setTab]      = useState<Tab>('opportunities');
+  const [tab,      setTab]      = useState<Tab>(TAB_DEFAULT);
   const [feed,     setFeed]     = useState<CollabPost[]>([]);
   const [myPosts,  setMyPosts]  = useState<CollabPost[]>([]);
   const [roster,   setRoster]   = useState<RosterEntry[]>([]);
@@ -242,7 +255,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
 
       {/* Tabs */}
       <div style={{ display: 'flex', padding: '0 22px', marginBottom: 4 }}>
-        {(['opportunities', 'my_posts', 'roster'] as Tab[]).map(t => (
+        {TAB_ORDER.map(t => (
           <button key={t} type="button" onClick={() => setTab(t)} style={{
             flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer',
             fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,

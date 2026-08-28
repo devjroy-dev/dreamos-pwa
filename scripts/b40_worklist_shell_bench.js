@@ -1375,5 +1375,106 @@ cell('C39 a fixed control in a crossed body clears the shell chrome (F-38.59)', 
   return null;
 });
 
+// ── C40 · COLLAB'S TAB ORDER AND ITS LANDING TAB  [F-38.62] ─────────────────────
+//    The founder ruled My Posts first, Opportunities second, and the room OPENING on My
+//    Posts. Nothing asserted the tab order before this cut, so the reorder would have landed
+//    unguarded — and the whole reason for the ruling is that My Posts is where he lands.
+//
+//    ⚠ THE LANDING TAB IS ASSERTED AS A DERIVATION, NOT AS A LITERAL. The screen reads
+//    `TAB_DEFAULT = TAB_ORDER[0]`, so a future reorder cannot leave the first pill and the
+//    landing tab disagreeing. A cell that checked for the string 'my_posts' would have passed
+//    on a screen that hardcoded it beside a reordered array — asserting the LINK is what
+//    makes a reorder safe, and asserting the ORDER is what makes it the founder's.
+cell('C40 collab opens on the first pill, and the pills are in the ruled order (F-38.62)', () => {
+  const src = strip(read('app/vendor/collab/screen.tsx'));
+  const m = src.match(/TAB_ORDER:\s*readonly Tab\[\]\s*=\s*\[([^\]]*)\]/);
+  if (!m) return 'TAB_ORDER is not declared — the render order has no home';
+  const order = (m[1].match(/'([a-z_]+)'/g) || []).map((x) => x.slice(1, -1));
+  const RULED = ['my_posts', 'opportunities', 'roster'];
+  if (order.join(',') !== RULED.join(','))
+    return 'the pills read ' + order.join(' · ') + ', the founder ruled ' + RULED.join(' · ');
+  if (!/TAB_DEFAULT:\s*Tab\s*=\s*TAB_ORDER\[0\]/.test(src))
+    return 'the landing tab is not derived from the order — a reorder could leave them disagreeing';
+  if (!/useState<Tab>\(TAB_DEFAULT\)/.test(src))
+    return 'the screen does not open on TAB_DEFAULT';
+  // THE ORDER MUST REACH THE SCREEN. A constant nothing renders is a ruling nobody sees.
+  if (!/TAB_ORDER\.map\(/.test(src)) return 'the render does not walk TAB_ORDER — the constant is decorative';
+  return null;
+});
+
+// ── C41 · THE COLLAB PILL IS IN THE EVENT'S ACTION ROW, AND ONLY THERE [F-38.61] ─
+//    The leg was live since F10(b) and buried inside the CREW sheet: a door about hiring
+//    somebody else's team, filed under a sheet about your own. F-09.129's shape. The founder
+//    ruled the pill the ONE HOME and the crew sheet's button retired in the same cut, so this
+//    cell asserts BOTH halves — a re-added second door reddens here.
+cell('C41 the collab leg has one home, the day sheet\'s action row (F-38.61)', () => {
+  const day = strip(read('components/vendor/CalendarDaySheet.tsx'));
+  const crew = strip(read('components/vendor/CalendarCrewSheet.tsx'));
+  if (!/function postToCollab/.test(day)) return 'the day sheet does not own the collab leg';
+  if (/postToCollab/.test(crew)) return 'the crew sheet still carries a collab leg — two homes for one action';
+  // ── THE ROW ORDER, READ OFF THE RENDER — AND THE FIRST CUT OF THIS MATCHER WAS WRONG.
+  // It looked for the literal `>Collab<` and reddened a CORRECT tree: the pill renders
+  // `{POST_TO_COLLAB}`, because copy has one home and the home is the constant. The cell was
+  // asserting how the byte is SPELLED AT THE RENDER rather than what the row SAYS — D-38.1's
+  // shape in a matcher. So the constant is RESOLVED first and the row is read through it,
+  // which is also what keeps this cell honest if the founder vetoes the word later: the
+  // ruling is about the POSITION, and the byte is his to change without reddening a bench.
+  const lbl = day.match(/POST_TO_COLLAB\s*=\s*'([^']+)'/);
+  if (!lbl) return 'POST_TO_COLLAB has no declaration in the day sheet — the pill\'s byte has no home';
+  const resolved = day.replace(/\{POST_TO_COLLAB\}/g, lbl[1]);
+  const pills = (resolved.match(new RegExp('>(Move|Crew|' + lbl[1] + '|Edit|Cancel)<', 'g')) || [])
+    .map((x) => x.slice(1, -1)).map((x) => (x === lbl[1] ? 'Collab' : x));
+  const RULED = ['Move', 'Crew', 'Collab', 'Edit', 'Cancel'];
+  if (pills.join(',') !== RULED.join(','))
+    return 'the action row reads ' + pills.join(' · ') + ', the founder ruled ' + RULED.join(' · ');
+  // ── THE REFUSALS LAND IN THE ONE SURFACE, AND THIS CELL FOLLOWED THE CURE RATHER THAN
+  // ── OUTLIVING IT. It read `setVerdict(PAST_DATE)` until the chair ruled the kinds explicit;
+  // the writer is `preflightRefusal` now and the old spelling would have reddened a tree that
+  // had just been made MORE honest. RETIRE-WITH-THE-READER, one sitting after the ruling that
+  // named the doctrine — and the successor assertion is stronger, because it pins the refusals
+  // to the PREFLIGHT kind rather than merely to the surface.
+  if (!/preflightRefusal\(PAST_DATE\)/.test(day) || !/preflightRefusal\(NO_CITY\)/.test(day))
+    return 'the collab refusals do not render as preflight lines in the one verdict surface';
+  // And the address book still answers, wherever the leg lives.
+  if (!/roomHref\('collab'\)/.test(day)) return 'the leg spells an address instead of asking the registry';
+  return null;
+});
+
+// ── C42 · THE VERDICT SURFACE'S CONTRACT IS STRUCTURAL, NOT A PROMISE  [F-38.61] ──
+//    Chair-ruled at the F-38.61 relay: the amended header must NAME BOTH KINDS AND LABEL EACH
+//    AT ITS RENDER SITE so a third cannot slip in unlabelled. Making the kind explicit found
+//    a third IMMEDIATELY — five `catch` arms printing 'Network error.' under a header that
+//    called every line the wire's own sentence (F-38.p7). This cell is what keeps the fourth
+//    from arriving the same way.
+//
+//    IT ASSERTS THE MECHANISM, NOT THE COUNT. A cell that checked for 「three kinds」 would go
+//    stale the day a fourth is ruled in; what must never happen is a WRITER WITH NO KIND. So
+//    it asserts that no bare setter survives and that every declared kind has a writer —
+//    D-38.1's own distinction between a snapshot and the behaviour underneath it.
+cell('C42 no verdict line reaches the day sheet without declaring its kind (F-38.61)', () => {
+  const src = strip(read('components/vendor/CalendarDaySheet.tsx'));
+  const m = src.match(/useState<\{\s*kind:\s*([^;]+);\s*line:\s*string\s*\}/);
+  if (!m) return 'the verdict state does not carry a kind — a line can be written without saying what it is';
+  const kinds = (m[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
+  if (kinds.length < 2) return 'the verdict union declares ' + kinds.length + ' kind(s); the contract names at least wire and preflight';
+  // Every declared kind must have a named writer. A kind in the union with no writer is a
+  // contract clause nothing can satisfy; a writer with no kind is what this cell exists for.
+  const WRITERS = { wire: 'wireVerdict', preflight: 'preflightRefusal', transport: 'transportFailure' };
+  for (const k of kinds) {
+    const w = WRITERS[k];
+    if (!w) return 'the union declares an unmapped kind: ' + k + ' — add its writer and name it here';
+    if (!new RegExp('const ' + w + ' = ').test(src)) return 'kind ' + k + ' has no named writer';
+  }
+  // THE BARE SETTER MUST NOT SURVIVE. `setVerdictState` is the raw React setter; only the
+  // three named writers and the clear may call it.
+  const bare = (src.match(/setVerdictState\(/g) || []).length;
+  if (bare !== kinds.length + 1)
+    return 'setVerdictState is called ' + bare + ' times; expected one per kind plus the clear — a bare writer has grown back';
+  // And the label reaches the render, or the kind is bookkeeping nobody can read.
+  if (!/data-verdict-kind=\{verdict\.kind\}/.test(src))
+    return 'the kind is not labelled at the render site — it cannot be read off the surface';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
