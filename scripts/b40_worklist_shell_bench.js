@@ -625,6 +625,24 @@ cell('C22 no component takes back the gutter', () => {
       if (mh && Number(mh[1]) !== 0) offenders.push(cls + ' sets a horizontal margin');
       if (/margin-(left|right):/.test(decl)) offenders.push(cls + ' sets a side margin');
       if (/\bwidth:\s*calc\(100% -/.test(decl)) offenders.push(cls + ' sets its own width against the gutter');
+      // ── F-38.58 · PADDING IS THE OTHER MECHANISM, AND THE CELL NAMED THE CLASS ──
+      // This cell is called 「no component takes back the gutter」 and it read MARGIN only.
+      // `.wl-fr{padding:0 0 24px}` took the gutter back through the shorthand's horizontal
+      // component — same specificity as `.wl-main > *`, later in source order, so it won —
+      // and the first-run region painted at x=0 for the whole arc while this cell stood
+      // green beside it. **A cell scoped to one mechanism of its subject cannot see the
+      // others**, and that is D-38.1's corollary for the third time on this arc.
+      //
+      // A ZERO horizontal padding is the whole finding, and flagging it is safe in both
+      // directions: on a direct child of `.wl-main` it CANCELS the gutter, and anywhere
+      // else it is a no-op that should have been written `padding-bottom`. Either way the
+      // shorthand is wrong at the site. A NONZERO horizontal padding is a component's own
+      // interior (`.wl-card{padding:16px}`) and is legal — flagging it would have taught
+      // the reader to ignore this cell, which the margin half already learned once.
+      const ph = decl.match(/padding:\s*([\d.]+)(?:px)?\s+([\d.]+)(?:px)?(?:\s+[\d.]+(?:px)?)*/);
+      if (ph && Number(ph[2]) === 0)
+        offenders.push(cls + ' zeroes the horizontal padding in shorthand — write padding-bottom, or it takes back the gutter');
+      if (/padding-(left|right):\s*0/.test(decl)) offenders.push(cls + ' zeroes a side padding');
     }
   }
   if (offenders.length) return offenders.join(', ');

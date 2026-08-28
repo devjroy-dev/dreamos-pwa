@@ -1,0 +1,18 @@
+# scripts/floor-manifest-ce38-s24-gatered.txt
+#
+# CE-38 S2/4 · THE GATE-RED CURES — F-38.56 · F-38.57 · F-38.58.
+#
+# [F-19.16] A delivery tree is dirty by definition and R-33.7 forbids the
+# executor the commit that would clean it. Every dirty path must be named here;
+# one byte outside and the runner refuses. The manifest's files are SHA-256'd
+# before the run and re-hashed after, so the SET is tolerated and the CONTENTS
+# are not.
+#
+# FIVE PATHS. One product byte (the gutter the first-run region was taking
+# back), two instruments (the audit's extractor and its appetite, b40's gutter
+# cell widened to the class it names), this manifest and its handover.
+components/worklist/FirstRun.tsx
+docs/TDW_09_M_FINISH_S24_GATERED_HANDOVER.md
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce38-s24-gatered.txt
+tools/wl_audit.mjs

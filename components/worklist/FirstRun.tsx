@@ -203,7 +203,23 @@ export function FirstRun() {
 //
 // t3 with tabular figures: an address is read character by character, not scanned.
 const FR_CSS = `
-.wl-fr{padding:0 0 24px}
+/* ── F-38.58 · THIS RULE TOOK BACK THE SHELL'S GUTTER FOR THE WHOLE ARC ──────
+   It read \`padding:0 0 24px\`. The shorthand sets padding-left and padding-right to ZERO,
+   and \`.wl-main > *{padding-left:var(--wl-gutter)}\` has the SAME specificity (0,1,0) — so
+   source order decided it, this stylesheet mounts after the shell's, and the first-run
+   region painted at x=0 on every device since the gutter law landed at ZIP9.
+
+   THE CARDS HID IT. \`.wl-card\` carries its own 16px padding, so a card sitting at x=0
+   puts its title at 16.5 — half a pixel off the house edge, which reads as correct to the
+   eye and to any cell measuring card INTERIORS. Only the eyebrow, which has no padding of
+   its own, sat where the container actually was. C-R7a gained the eyebrow at H-1(b) and
+   named it in one run.
+
+   \`padding-bottom\` alone now, so the region inherits the column's gutter like every other
+   direct child. The eyebrow lands at the house edge (16) per the standing ruling, and the
+   cards move to 16 with their interiors at 32.5 — which is where every OTHER card in the
+   shell already sits (\`.wl-billcard\` measures at the house edge in C-R7a today). */
+.wl-fr{padding-bottom:24px}
 /* R-38.4: a section eyebrow at t5, .08em. Was 11px Jost at .2em. */
 .wl-frhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:24px 0 8px}
 /* R-38.17: the chip eyebrow. Same rung and tracking as every other section eyebrow in the

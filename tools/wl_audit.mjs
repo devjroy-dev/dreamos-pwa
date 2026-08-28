@@ -52,14 +52,52 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const REGISTRY = readFileSync(join(REPO, 'lib/worklist/rooms.ts'), 'utf8');
+/**
+ * EVERY DECLARED SET, READ FROM ITS DECLARATION AND NOT FROM ITS NAME.
+ *
+ * ── F-38.57 · THE EXTRACTOR READ A COMMENT AND HANDED BACK THE WRONG ARRAY ──
+ * `INTERIM_HUB_PRIMERS[^=]*=\s*\[…\]` finds the FIRST occurrence of the symbol. At §4-3 the
+ * first occurrence stopped being the declaration: C-2's ruling text above
+ * `INTERIM_VENDOR_LINKS` cites `INTERIM_HUB_PRIMERS` by name to explain why the two sets are
+ * separate, there is no `=` between that mention and the LINKS declaration below it, and so
+ * `[^=]*` walked straight across the prose and captured **the links array**.
+ *
+ * The primers were therefore absent from `ALLOWED`, and the seven declared doors — six
+ * `/vendor?draft=` and calendar's `/vendor?aiPrimer=` — reported as strays. **A FAIL ABOUT
+ * THE TREE FOR A FAULT IN THE READER**, and the tree was correct: both entries are declared
+ * in the registry with their source lines, exactly where the third band ratified them.
+ *
+ * ⚠ THE COMMENT THAT BROKE IT WAS RIGHT TO EXIST. Naming the other set is how a reader
+ * learns why there are two; the defect is a parser keyed on a bare symbol against a file
+ * that discusses its own symbols in prose. **A census keyed on a symbol counts homonyms**
+ * (CE-38's own banked law, and F-38.53 restated it one sitting ago). Anchored on
+ * `export const NAME` now, which is the DECLARATION and cannot be written in passing.
+ *
+ * AND IT REFUSES RATHER THAN RETURNING `[]`. An empty set here does not read as "broken" —
+ * it reads as "nothing is allowed", so every declared exception becomes a stray and the gate
+ * reports a catastrophe about a correct tree. That is F-38.44's shape, third sighting on
+ * this arc: a reader that defaults on a miss converts its own breakage into a verdict.
+ */
+const registryDeclaredSet = (name) => {
+  const m = REGISTRY.match(new RegExp('export const ' + name + '[^=]*=\\s*\\[([\\s\\S]*?)\\] as const;'));
+  if (!m) {
+    console.error('GATE-UNSOUND — `export const ' + name + '` not found in lib/worklist/rooms.ts. '
+      + 'Every /vendor exception this gate allows is read from it, so an empty set would report '
+      + 'every declared door as a stray. Refusing instead.');
+    process.exit(3);
+  }
+  return (m[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1)).filter((s) => s.startsWith('/vendor'));
+};
 /** Every /vendor href the registry itself still ships, in its own words. */
 const registryVendorHrefs = () =>
   (REGISTRY.match(/href:\s*'(\/vendor\/[^']+)'/g) || []).map((x) => x.match(/'([^']+)'/)[1]);
-/** The declared outbound exceptions, which R-38.11's amended standing says may only shrink. */
-const registryVendorLinks = () => {
-  const m = REGISTRY.match(/INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
-  return m ? (m[1].match(/'(\/vendor\/[^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
-};
+/** The declared outbound exceptions. R-38.11's amended standing binds the two CROSSING
+ *  ledgers; this set grows by named entry at a crossing and shrinks only at Phase 7 (C-2,
+ *  §4-3), so reading it is the only way the cell tracks it rather than restating a snapshot. */
+const registryVendorLinks = () => registryDeclaredSet('INTERIM_VENDOR_LINKS');
+/** The declared hub primers — F-38.47's seven doors, product cure chartered to their own
+ *  design sitting (AskSheet grows a `draft` parameter), not to any crossing batch. */
+const registryHubPrimers = () => registryDeclaredSet('INTERIM_HUB_PRIMERS');
 /**
  * EVERY /w SURFACE THE REGISTRY DECLARES \u2014 DERIVED, BECAUSE A CROSSING MUST NOT NEED
  * THIS FILE TO BE REMEMBERED.
@@ -90,6 +128,57 @@ const I = (n, why) => { console.log('INCONCLUSIVE ' + n + '  — ' + why); incon
 async function get(path) {
   const res = await fetch(BASE + path, { redirect: 'follow', headers: { 'user-agent': 'wl-audit' } });
   return { status: res.status, url: res.url, body: await res.text() };
+}
+
+// ── F-38.56 · THE GATE MANUFACTURED ITS OWN GATE-UNSOUND ────────────────────
+//
+// Witnessed on the founder's terminal: ~325 chunk fetches from one IP with no spacing,
+// Vercel 403s the repeats, and the run reports the corpus incomplete. A single-fetch
+// control returned 200 on the very same chunk seconds later. **The tree was fine and the
+// instrument's appetite was the finding.**
+//
+// AN INSTRUMENT MUST NOT CONVERT ITS OWN APPETITE INTO A VERDICT ABOUT THE TREE. That is
+// this arc's recurring shape — F-38.44's `-1` slice, the extractor that read a comment,
+// the corpus that defaulted to `''` — arriving this time through the network rather than
+// through a regex. The three cures below are ordered by what they cost:
+//
+//   (1) CACHE, and it is the cheapest half by a wide margin. Chunk URLs are content-hashed
+//       and SHARED: the layout chunk is ONE url referenced by all nineteen pages, so the
+//       old loop fetched identical bytes nineteen times. Deduplicating across pages —
+//       not merely within one — is most of the volume gone for nothing but a Map.
+//   (2) PACING. What is left is spaced, so a burst never looks like a scrape.
+//   (3) RETRY WITH BACKOFF on 403/429 only. A 404 is a fact about the deploy and is not
+//       retried; a 403 from a CDN is a fact about US.
+//
+// AND THE REPORT DISTINGUISHES THEM, which is the half that makes the run readable: a
+// chunk REFUSED after N retries and a chunk ABSENT are different findings with different
+// owners, and collapsing them into 「unreachable」 is what sent the founder looking at his
+// deploy for a defect that was in this file.
+const chunkCache = new Map();
+const SPACING_MS = 75;
+const RETRIES = 3;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** A chunk, fetched at most once per run however many pages reference it. */
+async function getChunk(url) {
+  if (chunkCache.has(url)) return chunkCache.get(url);
+  let out = null;
+  for (let attempt = 0; attempt <= RETRIES; attempt++) {
+    if (attempt > 0) await sleep(400 * Math.pow(2, attempt - 1));
+    else await sleep(SPACING_MS);
+    try {
+      const r = await get(url);
+      // 403/429 are the CDN declining US. Anything else — including 404 — is an answer
+      // about the deploy, and retrying it would only turn one honest fact into four.
+      if (r.status === 403 || r.status === 429) { out = { kind: 'refused', status: r.status, attempts: attempt + 1 }; continue; }
+      out = r.status === 200 ? { kind: 'ok', body: r.body } : { kind: 'absent', status: r.status };
+      break;
+    } catch (e) {
+      out = { kind: 'error', message: e.message };
+    }
+  }
+  chunkCache.set(url, out);
+  return out;
 }
 
 // ── THE COVERAGE PREAMBLE  [F-16.36 · CE ruling F-1(a)] ─────────────────────
@@ -175,6 +264,7 @@ const corpus = (path) => {
 };
 let refTotal = 0, gotTotal = 0;
 const missed = [];
+const refused = [];
 
 async function coverage() {
   for (const page of PAGES) {
@@ -184,22 +274,33 @@ async function coverage() {
     refTotal += refs.length;
     let all = html;
     for (const s of refs) {
-      try {
-        const r = await get(s);
-        if (r.status !== 200) { missed.push(page + ' → ' + s + ' (HTTP ' + r.status + ')'); continue; }
-        all += r.body;
-        gotTotal++;
-      } catch (e) {
-        missed.push(page + ' → ' + s + ' (' + e.message + ')');
-      }
+      const r = await getChunk(s);
+      if (r.kind === 'ok') { all += r.body; gotTotal++; continue; }
+      if (r.kind === 'refused') refused.push(page + ' → ' + s + ' (HTTP ' + r.status + ' after ' + r.attempts + ' attempts)');
+      else if (r.kind === 'error') missed.push(page + ' → ' + s + ' (' + r.message + ')');
+      else missed.push(page + ' → ' + s + ' (HTTP ' + r.status + ')');
     }
     pageCorpus.set(page, all);
   }
-  console.log('chunks: ' + gotTotal + ' fetched / ' + refTotal + ' referenced\n');
+  console.log('chunks: ' + gotTotal + ' fetched / ' + refTotal + ' referenced / '
+    + chunkCache.size + ' unique urls (' + (refTotal - chunkCache.size) + ' served from cache)\n');
+  if (refused.length) {
+    // THE CDN DECLINED US, AND THAT IS NOT A CLAIM ABOUT THE TREE. Named separately so the
+    // operator reaches for the pacing constants in this file rather than for the deploy.
+    console.log('GATE-UNSOUND — refused by the CDN after retries, which is this instrument\'s');
+    console.log('appetite and not a defect in the deploy (F-38.56). Raise SPACING_MS or re-run.');
+    console.log('Refused:\n  ' + refused.join('\n  '));
+  }
   if (missed.length) {
     console.log('GATE-UNSOUND — the corpus is incomplete, so no verdict is trustworthy.');
     console.log('Unreachable:\n  ' + missed.join('\n  '));
     console.log('\nNo assertions were run. Fix the deploy or the reader, then re-run.');
+    process.exit(3);
+  }
+  // A REFUSED CORPUS STOPS THE RUN TOO. Naming the cause separately is so the operator
+  // knows where to look; it is not a licence to assert against bytes this run never had.
+  if (refused.length) {
+    console.log('\nNo assertions were run — the corpus was short by ' + refused.length + ' chunk(s).');
     process.exit(3);
   }
 
@@ -447,12 +548,19 @@ async function coverage() {
   // in the registry, read here, never retyped. A bare `/vendor` is a type or a predicate
   // (`tell_victor: { path: '/vendor' }`, `href.startsWith('/vendor')`) and never a
   // destination — derived by reading all three sites.
-  const HUB_PRIMERS = (REGISTRY.match(/INTERIM_HUB_PRIMERS[^=]*=\s*\[([\s\S]*?)\] as const;/) || [, ''])[1]
-    .match(/'([^']+)'/g)?.map((x) => x.slice(1, -1)) || [];
+  const HUB_PRIMERS = registryHubPrimers();
   const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, ...HUB_PRIMERS, '/vendor', '/vendor/onboarding']);
   // Same set minus the entry redirect, which serves no chrome of its own.
   const shellSurfaces = [...new Set(['/w/rooms', '/w/today', ...registryShellRooms()])];
   const strays = new Set();
+  // ── THE PRIMER PAIRS ARE COUNTED, NOT WAVED THROUGH  [CE-38, §4-3] ────────
+  // A set has two entries and the shell carries SEVEN doors through them — six 「Send to
+  // Chat」 and calendar's 「Ask … about this date」. Reporting the set's SIZE would say 「2
+  // declared hub primers」 while seven surfaces each hold one, and the number the chair
+  // needs to watch is the number of DOORS, because that is what the F-38.47 design sitting
+  // has to re-point. A pair that vanishes is progress; a pair that appears on a newly
+  // crossed room is the thing this count exists to surface.
+  const primerPairs = new Set();
   for (const path of shellSurfaces) {
     const body = corpus(path) || '';
     // ── THE MATCHER, WIDENED AT THE S2 ZIP BOUNCE ──────────────────────────
@@ -475,6 +583,7 @@ async function coverage() {
     // were carrying one. Second sighting of this family after the S2 bounce's
     // double-quote-only matcher; the lesson is the same and it is now written in two files.
     for (const m of body.matchAll(/['"`](\/vendor(?:\/[A-Za-z0-9\/_-]*|[?#][A-Za-z0-9_=-]*)?)/g)) {
+      if (HUB_PRIMERS.includes(m[1])) { primerPairs.add(path + ' \u2192 ' + m[1]); continue; }
       if (ALLOWED.has(m[1])) continue;
       // The Slice Door's fallback prefix, declared at lib/worklist/rooms.ts. A PREFIX match
       // and nothing looser: '/vendor/list/' passes, '/vendor/list/leads' does not, because
@@ -484,7 +593,7 @@ async function coverage() {
     }
   }
   if (strays.size) F('R-38.1 no undeclared /vendor href', [...strays].join(' \u00b7 '));
-  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, ' + INTERIM_LINKS.length + ' declared interim links, ' + HUB_PRIMERS.length + ' declared hub primers (F-38.41), 0 strays across ' + shellSurfaces.length + ' shell surfaces');
+  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, ' + INTERIM_LINKS.length + ' declared interim links, ' + primerPairs.size + ' declared primers (F-38.47) through ' + HUB_PRIMERS.length + ' registry entries, 0 strays across ' + shellSurfaces.length + ' shell surfaces');
 
   // ── R-38.2 · TILES AND SEATS ARE ANCHORS ──────────────────────────────────
   // A <button> tells Next nothing, so its chunk and its RSC payload are both fetched ON
