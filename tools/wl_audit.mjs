@@ -487,14 +487,23 @@ async function coverage() {
   // WHEN: Phase 4's feed first answers 200 — the same commit that restores the wl-mnum
   //       rules to app/w/today/page.tsx and uncomments COPY.todayNothingYet.
   // DO:   flip this back to `t0Sites.length === 1 && t0Sites[0] === '/w/today'`.
-  const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test((pageCorpus.get(p) || '').replace(/--wl-t0:[^;]*;/g, '')));
-  const t0Declared = shellSurfaces.filter((p) => /--wl-t0:/.test(pageCorpus.get(p) || ''));
-  if (t0Sites.length === 0 && t0Declared.length > 0)
-    P('R-38.4 t0 is one element', 'the rung is declared on ' + t0Declared.length + ' surface(s) and consumed by none — the numeral is withheld until the feed answers (F-38.31/c-38.14)');
-  else if (t0Sites.length)
-    F('R-38.4 t0 is one element', 'the withheld numeral has a consumer again: ' + t0Sites.join(' '));
+  // ⚠ AND THE DECLARATION HALF WAS ASKED OF A CORPUS THAT CANNOT CONTAIN IT.
+  // `typeCss` builds every rung as `--wl-${k}:…` (lib/worklist/theme.ts), which compiles to
+  // string CONCATENATION — so the literal `--wl-t0:` has never appeared in a served byte in
+  // this instrument's whole life, and the `.replace(/--wl-t0:[^;]*;/g, '')` above it was a
+  // no-op the entire time. A cell that demanded it red a correct tree and said so in words
+  // that sounded like a finding about the theme.
+  //
+  // SO THE SPLIT IS BY WHAT IS OBSERVABLE, WHICH IS THIS GATE'S OWN LAW. A CONSUMER is a
+  // literal in a stylesheet and this file can see it. A DECLARATION composed at runtime is
+  // a source fact and belongs to `b40` (C37). Whether the rung PAINTS is a computed fact
+  // and belongs to the render arm (C-R17). Three instruments, three claims, none of them
+  // pretending to hold another's.
+  const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test(pageCorpus.get(p) || ''));
+  if (t0Sites.length === 0)
+    P('R-38.4 t0 is one element', 'no shell surface consumes the rung — the numeral is withheld until the feed answers (F-38.31/c-38.14); the declaration is b40 C37, the paint is C-R17');
   else
-    F('R-38.4 t0 is one element', 'the t0 rung is not declared anywhere — it must survive its withheld consumer, or Phase 4 re-invents it at a new value');
+    F('R-38.4 t0 is one element', 'the withheld numeral has a consumer again: ' + t0Sites.join(' '));
 
   // ── R-38.6 · THE RETIRED STRINGS ARE ABSENT ───────────────────────────────
   // Named bytes, not a shape heuristic. A retired sentence that quietly ships is the

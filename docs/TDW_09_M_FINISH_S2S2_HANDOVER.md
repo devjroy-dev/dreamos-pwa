@@ -1,6 +1,6 @@
 # M-FINISH · SITTING 2, SESSION 2 — THE SIX ITEMS
 
-**BASE (R-38.15): `47fa0cf` = `origin/worklist`, re-derived at the moment of cutting** (relay #3 re-cut; the first cut of this sitting was `7142cbf` and landed as `e790792`, on which P0-B step 3 then landed).
+**BASE (R-38.15): `d7def14` = `origin/worklist`, re-derived at the moment of cutting** (relay #3 re-cut; the first cut of this sitting was `7142cbf` and landed as `e790792`, on which P0-B step 3 then landed).
 dream-os `b65b27a` = `origin/main`, sibling clone present. **Railway/Vercel green: NOT
 CLAIMED** — nothing here ran against a deploy, and the render arm needs one.
 
@@ -14,7 +14,7 @@ Founder's line: `fb83289a2c8b7b7f5b846804101f07f11eeb334644c8e8da2d8df6dcc238bfb
 
 ```
 bash tools/preflight.sh worklist          <- §0 IS THIS COMMAND, NOT A SENTENCE
-pwa worklist 47fa0cf · dream-os main b52448f
+pwa worklist d7def14 · dream-os main b52448f
 branch alias (answers every run this arc, follows the branch not the commit):
   https://dreamos-pwa-git-worklist-devjroy-devs-projects.vercel.app
 npm ci in BOTH repos before anything. The pwa's is not optional:
@@ -696,6 +696,60 @@ is dated to the same commit that restores the rules and uncomments the byte.
 `COPY.todayNothingYet` · the two-armed status in `app/w/today/page.tsx` · the `wl-mnum`
 trio's CSS · `wl_audit`'s R-38.6 entry — and now a fifth, this cell's predicate. Every one
 names its date at its own site.
+
+## §9g · THE ARM IS GREEN ON THE TREE, AND THE LAST TWO REDS WERE BLIND INSTRUMENTS
+
+`DEPLOY: d7def14 = this tree`, and every one of relay #3's four cures is measured on glass:
+
+| cell | reading |
+|---|---|
+| C-R16 | one wire read for three surfaces — F-38.26, four to one |
+| C-R18 | 56px, **16px** above the dock, on the accent token, absent on Today |
+| C-R17 | the not-reading line alone; no numeral, nothing painting at t0 |
+| C-R12 | the masthead up and the feed empty while `/me` is in flight, both modes |
+| C-R15 | `GET /me` 200, one seen, session intact, still at `/w/today` |
+
+**Both survivors were instruments asking questions they could not see, and both were mine.**
+
+### C-R14 · an over-escaped regex reported as a finding about `copy.ts`
+
+Written through a heredoc, the escapes doubled: the JS source read `'^\\s*'`, so the
+RegExp received a literal backslash followed by `s` and matched nothing. Every title came
+back empty and the cell printed 「a card title byte is missing from the register」 — **a true
+statement about its own regex, phrased as a finding about the copy file.** Re-derived by
+running the file's own line against `copy.ts` rather than by reading it, which is the only
+method that would have caught it.
+
+### R-38.4 t0 · a served-bytes gate demanding a byte that is composed at runtime
+
+`typeCss` builds every rung as `` `--wl-${k}:…` ``, which compiles to **string
+concatenation** — so the literal `--wl-t0:` has never appeared in a served byte in this
+instrument's whole life, and the `.replace(/--wl-t0:[^;]*;/g, '')` sitting above the
+assertion was a no-op the entire time. My replacement cell demanded that byte and reddened
+a correct tree in words that sounded like a finding about the theme.
+
+**THE CLAIM SPLITS THREE WAYS, BY WHAT EACH INSTRUMENT CAN ACTUALLY SEE** — which is this
+gate's own founding law, applied to itself:
+
+- **the CONSUMER's absence** is a literal in a stylesheet → `wl_audit`
+- **the DECLARATION's survival** is a source fact → `b40` **C37**, new
+- **whether it PAINTS** is a computed fact → `wl_render` **C-R17**
+
+C37 is not tidiness. With the numeral withheld, **nothing anywhere reads t0**, and a rung
+with no reader is exactly what a later sweep deletes as dead — after which Phase 4
+re-invents the Today numeral at whatever size looks right, against R-37.88's ratified mock.
+The rung has to outlive its own consumer, and now something says so. **Non-vacuity, both
+directions, by mutating production source:** dropping t0 to 40px reds C37 naming the drift;
+pointing `.wl-status` at `var(--wl-t0)` reds C37 naming the returned consumer; restoring
+either returns `FLOOR GREEN`.
+
+### THE PATTERN THIS SITTING KEEPS PRODUCING, STATED FOR WHOEVER INHERITS IT
+
+Six instrument defects, one shape: **C32's hand-listed file set, C32's letters-and-spaces
+matcher, C32's brace boundary, the two blind freshness `curl`s, the t0 declaration, and
+C-R14's escapes.** Every one was an assertion written from a reading of what the code
+*should* contain rather than from a run against what it *does*. Every one was caught by a
+run, none by a reading. `b40` is now **37 cells**; the arm is **20 per mode**.
 
 ## §10 · THE NEXT SITTING
 

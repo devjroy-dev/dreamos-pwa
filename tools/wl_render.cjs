@@ -665,7 +665,13 @@ async function seat(browser, mode) {
       // copy of a vetoed byte reddens a correct tree the day the byte is re-vetoed, which
       // teaches the next seat to loosen it.
       const copySrc = fs.readFileSync('lib/worklist/copy.ts', 'utf8');
-      const byte = (k) => (copySrc.match(new RegExp('^\\\\s*' + k + ":\\\\s*'((?:[^'\\\\\\\\]|\\\\\\\\.)*)'", 'm')) || [])[1] || '';
+      // ⚠ THIS LINE WAS OVER-ESCAPED AND THE CELL RED ON A CORRECT TREE. Written through a
+      // heredoc, the escapes doubled: the JS source read `'^\\\\s*'`, so the RegExp got a
+      // literal backslash followed by `s` and matched nothing. Every title came back empty
+      // and the cell reported 「a card title byte is missing from the register」 — a true
+      // statement about its own regex, phrased as a finding about copy.ts.
+      // Re-derived by running the expression against the file rather than by reading it.
+      const byte = (k) => (copySrc.match(new RegExp('^\\s*' + k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'", 'm')) || [])[1] || '';
       const WANT = [byte('cardDeskTitle'), byte('cardAskTitle'), byte('cardLinkTitle')];
       let held = null, settledSeq = null, laterSeq = null, err = null;
       try {

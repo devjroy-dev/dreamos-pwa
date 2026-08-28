@@ -1069,5 +1069,33 @@ cell('C36 ?add=1 opens the composer the notes body already owns', () => {
   return null;
 });
 
+// ── C37 · THE WITHHELD RUNG SURVIVES ITS WITHHELD CONSUMER  [F-38.31 / c-38.14] ──
+//    The audit cannot hold this claim and the reason is the whole of the division:
+//    `typeCss` builds each rung as a template literal, which compiles to concatenation, so
+//    the string `--wl-t0:` never exists in a served byte. The declaration is a SOURCE fact.
+//    The consumer's absence is a served-bytes fact (wl_audit). Whether it paints is a
+//    computed fact (C-R17). One claim each, and none of them borrowed.
+//
+//    WHY IT MATTERS RATHER THAN BEING TIDY: with the numeral withheld, nothing anywhere
+//    reads t0. A rung with no reader is exactly the thing a later sweep deletes as dead —
+//    and Phase 4 would then re-invent the Today numeral at whatever size looked right,
+//    against R-37.88's ratified mock. The rung has to outlive its own consumer.
+cell('C37 the t0 rung survives while its consumer is withheld', () => {
+  const theme = strip(read('lib/worklist/theme.ts'));
+  const m = theme.match(/t0:\s*\{([^}]*)\}/);
+  if (!m) return 'the t0 rung is gone from lib/worklist/theme.ts — Phase 4 will re-invent the numeral at a new size';
+  const size = (m[1].match(/size:\s*(\d+)/) || [])[1];
+  const weight = (m[1].match(/weight:\s*(\d+)/) || [])[1];
+  if (size !== '46' || weight !== '500')
+    return 'the t0 rung drifted to ' + size + '/' + weight + ' while nothing consumed it — R-37.88 ratified 46/500';
+  if (!/'t0'/.test(theme)) return 't0 is not in the RUNGS list, so typeCss never emits it';
+  // AND NOTHING CONSUMES IT IN SOURCE EITHER, which is the withholding asserted at its
+  // other end: a consumer re-added here would paint a numeral over an unread feed.
+  const today = strip(read('app/w/today/page.tsx'));
+  if (/var\(--wl-t0\)/.test(today))
+    return 'the withheld numeral has a consumer again in app/w/today/page.tsx (F-38.31)';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
