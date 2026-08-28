@@ -44,7 +44,24 @@ export function FirstRun() {
   // device's first load it is still unknown until that read lands, which is why the card it
   // gates is LAST — see the ordering note below.
   const { handle, settled } = useVendorHandle();
-  const tdwLink = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
+  // ── CE-38 S3 · BOTH ACTIONS ACT ON THE ADDRESS THE CARD SHOWS ─────────────
+  //
+  // Until the withholding was discharged, Copy and Share carried a `wa.me` deep link while
+  // the card showed no address at all — which is the founder's walk finding in one
+  // sentence: two buttons and nothing to read. A control that copies something the surface
+  // never displayed is a control the vendor cannot check, and he finds out what it did
+  // after it is already in his bio.
+  //
+  // THE SCHEME IS ADDED HERE AND NOWHERE ELSE. `cardLinkAddressBase` is the displayed
+  // bytes; `https://` is what a clipboard needs and an eye does not. One derivation, so the
+  // address on screen and the address on the clipboard cannot drift apart.
+  //
+  // THE GATE BELOW IS `handle`, NOT A DERIVED URL. It used to be this binding, which meant
+  // a `wa.me` string was computed for the sole purpose of deciding whether to render a card
+  // about a DIFFERENT address. The card's real precondition has always been R-37.68 ④ — no
+  // handle, no card, because a share action with nothing behind it is never-404's failure
+  // in another coat — and the gate now says that in its own words.
+  const shareUrl = handle ? 'https://' + COPY.cardLinkAddressBase + handle : null;
 
   // ── THE SET PAINTS ATOMICALLY · CE-38 S2/2 RELAY #3 ITEM 3 ─────────────────
   //
@@ -106,46 +123,27 @@ export function FirstRun() {
       {/* 3 · the conditional one, last by ruling. Hidden ENTIRELY when no handle is set
           (R-37.68 ④): a share action with nothing behind it is the never-404 failure
           wearing a different coat. */}
-      {tdwLink && (
+      {shareUrl && (
         <article className="wl-card">
           <h3 className="wl-cardtitle">{COPY.cardLinkTitle}</h3>
 
-          {/* ── ⚠ WITHHELD BY RULE · CE-38 S2/2 RELAY #2, ARM (a) ────────────────────
-              R-38.17 rules this card's body to be THE ADDRESS: `thedreamwedding.in/v/<handle>`
-              at t3, tabular. The row below is the ruled markup and it is commented out,
-              because `/v/` IS A 404 TODAY.
-
-              F-38.30, and the P0-B seat filed the same fact independently as F-19.14: no
-              per-vendor public URL exists anywhere in the estate, `middleware.ts` rewrites
-              on demo hosts only with no wildcard handle map, and `tdw_referral_invite` is
-              APPROVED at Meta pointing at `/v/`. Shipping the address would put a dead
-              address on the vendor's own first-run card and replace a working affordance
-              with one that never-404 forbids.
-
-              THE UNCOMMENT STEP, DATED AND EXACT — nothing to infer:
-                WHEN: TDW_19 P0-B step 4 lands `/v/<code>` as a 200 holding page.
-                DO:   delete this comment block and the two markers around the div below;
-                      change `SHARE_URL` to `'https://' + COPY.cardLinkAddressBase + handle`.
-                      Nothing else in this file moves.
-
-              Until then Copy and Share carry the wa.me link the card has always carried,
-              which routes and which the vendor is already using.
-
+          {/* R-38.17: THE BODY IS THE ADDRESS. No sentence explains it — a sentence
+              explaining an address the vendor can read is the product narrating itself.
+              t3 with tabular figures, because an address is read character by character
+              rather than scanned. */}
           <div className="wl-cardaddr">{COPY.cardLinkAddressBase}{handle}</div>
-
-              ── end withheld row ────────────────────────────────────────────────── */}
 
           <div className="wl-cardactions">
             <button type="button" className="wl-cardaction" onClick={() => {
-              navigator.clipboard?.writeText(tdwLink);
+              navigator.clipboard?.writeText(shareUrl);
               setCopied(true);
             }}>{copied ? COPY.cardLinkCopied : COPY.cardLinkAction}</button>
             <button type="button" className="wl-cardaction" onClick={() => {
               // `navigator.share` is absent on desktop and on some in-app browsers. Falling
               // back to the clipboard means the control always does something rather than
               // being a button that works on the founder's phone and nowhere else.
-              if (navigator.share) navigator.share({ url: tdwLink }).catch(() => { /* dismissed */ });
-              else { navigator.clipboard?.writeText(tdwLink); setCopied(true); }
+              if (navigator.share) navigator.share({ url: shareUrl }).catch(() => { /* dismissed */ });
+              else { navigator.clipboard?.writeText(shareUrl); setCopied(true); }
             }}>{COPY.cardLinkShare}</button>
           </div>
         </article>
@@ -160,24 +158,11 @@ export function FirstRun() {
 // next reader does not add one as a kindness: the nav's Rooms seat is an anchor and
 // already announces that route. A second, invisible announcement would be a second home
 // for one decision, and invisible things are the ones that survive every later sweep.
-// ── ⚠ THE ADDRESS ROW'S RULE IS WITHHELD TOO · relay #3 item 2 ─────────────
-// The first cut shipped this rule while its markup was commented out, reasoning that the
-// uncomment step should be one comment block rather than two. That reasoning was wrong in
-// the only way that counts: an unconsumed rule is in the served bytes, and the audit's
-// dead-rule sweep is byte-strict. Two uncomments in one commit is cheaper than a rule the
-// gate has to be argued with about.
-//
-// IT IS PARKED HERE, IN JS COMMENT SPACE, AND NOT INSIDE THE LITERAL BELOW — a CSS comment
-// inside the template literal ships, so the class name would still be declared and the
-// sweep would still fire.
-//
-//   WHEN: TDW_19 P0-B step 4 lands /v/<code> as a 200.
-//   DO:   paste the rule back below, uncomment the address row above, and uncomment
-//         COPY.cardLinkAddressBase. Three uncomments, one commit.
-//
-//   .wl-cardaddr{font:var(--wl-t3);font-variant-numeric:tabular-nums;color:var(--atelier-ink);word-break:break-all;margin:0 0 4px}
-//
-// t3 with tabular figures: an address is read character by character, not scanned.
+// THE ADDRESS ROW'S RULE CAME HOME WITH ITS MARKUP AT CE-38 S3. It was parked in JS
+// comment space rather than inside the literal below, because a CSS comment inside a
+// template literal SHIPS — the class would still have been declared and the audit's
+// byte-strict dead-rule sweep would still have fired on a rule with no consumer. That
+// parking is discharged: the rule is live in FR_CSS and its consumer is the row above.
 const FR_CSS = `
 .wl-fr{padding:0 0 24px}
 /* R-38.4: a section eyebrow at t5, .08em. Was 11px Jost at .2em. */
@@ -186,6 +171,11 @@ const FR_CSS = `
    shell — the two permitted homes for letter-spaced uppercase are the nav seats and
    section eyebrows, and this is the second kind. */
 .wl-chipeyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
+/* R-38.17: t3 with tabular figures. An address is read character by character rather
+   than scanned, and the break rule keeps a long handle inside the card instead of pushing
+   the card wider than the gutter. NO BACKTICKS IN THIS LITERAL — one around a property
+   name closed FR_CSS mid-comment on the first cut and tsc reported it four lines later. */
+.wl-cardaddr{font:var(--wl-t3);font-variant-numeric:tabular-nums;color:var(--atelier-ink);word-break:break-all;margin:0 0 4px}
 .wl-cardactions{display:flex;gap:8px}
 .wl-chips{display:flex;flex-wrap:wrap;gap:8px}
 /* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and a

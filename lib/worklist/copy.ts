@@ -151,19 +151,17 @@ export const COPY = {
   cardLinkAction: 'Copy',
   cardLinkCopied: 'Copied',
   cardLinkShare:  'Share',
-  // ── ⚠ WITHHELD BY RULE · THE ADDRESS ITSELF ──────────────────────────────
-  // `/v/` is a 404 today — F-38.30, the same finding P0-B filed as F-19.14 — so the row
-  // that renders this is commented out in components/worklist/FirstRun.tsx (relay #2, arm
-  // (a)). The key was left LIVE beside the withheld row and that was half a withholding:
-  // an export with no consumer still ships, which is exactly what relay #3 item 2 convicted
-  // in `todayNothingYet`. Same disease, same treatment, one key beyond the ruling's letter
-  // and disclosed as such.
+  // ── THE ADDRESS ITSELF · WITHHOLDING DISCHARGED AT CE-38 S3 ──────────────
+  // Withheld from the first cut because `/v/` was a 404 (F-38.30 = F-19.14) and an
+  // address that does not resolve is the never-404 failure wearing a different coat.
+  // The dated condition was `TDW_19 P0-B step 4 lands /v/<code> as a 200`, and it has
+  // arrived: `app/v/[code]/page.tsx` is at origin, witnessed by command at this seat
+  // rather than taken from the kickoff.
   //
-  //   WHEN: TDW_19 P0-B step 4 lands /v/<code> as a 200.
-  //   DO:   uncomment the line below AND the address row in FirstRun.tsx AND the
-  //         wl-cardaddr rule in that file's FR_CSS — three uncomments, one commit.
-  //
-  // cardLinkAddressBase: 'thedreamwedding.in/v/',
+  // NO SCHEME AND NO TRAILING PATH. The vendor reads this, and `https://` is chrome he
+  // does not need to see; the two actions build the real URL from it. One home for the
+  // base means the card cannot drift from what Copy puts on his clipboard.
+  cardLinkAddressBase: 'thedreamwedding.in/v/',
 
   // Every chip is backed by a tool in the engine census (dream-os src/agent/tools.js).
   // Per-chip verdicts with line addresses are stated in the P1 handover. No chip ships
