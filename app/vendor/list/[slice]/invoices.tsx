@@ -4,6 +4,7 @@
 // The schedule/PDF machinery stays in SliceScreen verbatim for P1 (guarded by
 // slice === 'invoices'); P4 migrates it here when swipe/mark-paid lands.
 
+import { roomHref } from '@/lib/worklist/rooms';
 import { useCallback, useMemo } from 'react';
 import { useInvoicesData, useLeadsData } from '@/hooks/vendor/useVendorData';
 import { SliceScreen } from '@/components/vendor/slices/SliceShell';
@@ -38,7 +39,11 @@ export default function InvoicesSlice({ vendorId }: { vendorId: string }) {
       const k = phoneKey(row.client_phone);
       const l = k ? leadByPhone.get(k) : undefined;
       if (!l) return row;
-      return { ...row, crossChip: `Also an enquiry · ${cap(l.state)}`, crossChipHref: '/vendor/list/leads' };
+      // R-38.1 CURE (S2 ZIP bounce, scope widened by founder word). The whisper's
+      // destination is asked of the registry rather than spelled here \u2014 a cross-plane
+      // chip is a door out of this room, and R-38.11 amended by label covers every file in
+      // a crossed room's import graph, not only the ones it mounts.
+      return { ...row, crossChip: `Also an enquiry · ${cap(l.state)}`, crossChipHref: roomHref('leads') };
     }), [leadByPhone]);
 
   return <SliceScreen slice="invoices" vendorId={vendorId} useData={useInvoicesData} toRows={toRowsChipped} deleteRequest={deleteRequest} />;

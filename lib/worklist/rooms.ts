@@ -209,6 +209,55 @@ export const INTERIM_BOTTOMNAV_MOUNTS: readonly string[] = [
   'app/vendor/layout.tsx',
 ] as const;
 
+/**
+ * WHERE A ROOM LIVES \u2014 THE ONE ANSWER, READ FROM THE ONE PLACE THAT KNOWS.
+ *
+ * R-38.1 FAILED at the S2 ZIP bounce on nine reachable pairs from four source sites, and
+ * every one of them was a HARDCODED `/vendor/\u2026` string written years before the shell:
+ * a tier-gate nudge and three cross-plane whispers. R-38.11's SliceDoor re-point never
+ * touched them because they are not doors, and the seat that wrote that re-point never
+ * looked past the doors. **Reachable is reachable** \u2014 R-38.11 amended by label: a crossing
+ * covers every file in a crossed room's import graph, not only the files the room mounts.
+ *
+ * THE CURE IS NOT A SWEEP, IT IS AN ADDRESS BOOK. A literal spells a destination; this
+ * function ASKS the registry, which is already the one home for where every room lives. A
+ * room that crosses at \u00a74-2 takes its inbound links with it, in the same edit that changes
+ * its href, with nothing else to remember.
+ *
+ * \u26a0 IT IS DELIBERATELY NOT TREE-AWARE, AND THE ASYMMETRY WITH `SliceDoor` IS RULED, NOT
+ * ACCIDENTAL (CE-38 relay, S2 ZIP bounce). The Door is LATERAL movement inside one family:
+ * six slices, one component, and staying in the tree you are already in is what keeps the
+ * /vendor fallback coherent as a whole surface. A cross-link to a DIFFERENT room is a
+ * departure whichever tree it starts in, so the registry's answer is the one answer and
+ * both trees get it. Two rules, two shapes, each with its reason at its own site.
+ */
+/**
+ * THE SLICE DOOR'S FALLBACK BASE \u2014 THE ONE `/vendor` PREFIX A CROSSED ROOM STILL SHIPS.
+ *
+ * `SliceDoor` is LATERAL movement inside one family and is ruled tree-aware (CE-38 relay,
+ * S2 ZIP bounce): mounted under /w it pushes `/w/<slice>`, mounted on the surviving
+ * fallback it pushes `/vendor/list/<slice>`, so a vendor deep-linked into the old tree does
+ * not get thrown half-way into the new one mid-family.
+ *
+ * That second branch is a `/vendor` string inside the six crossed rooms' chunks, and it
+ * stopped being covered the moment those six left INTERIM_VENDOR_ROOMS. **So it is
+ * DECLARED, not allowed.** The alternative was to notice it, judge it legitimate, and leave
+ * both the audit and the bench with an exception they cannot see \u2014 which is the shape the
+ * ZIP bounce just convicted: a cell that passes while a link rots.
+ *
+ * It retires with `app/vendor/list/` at Phase 7, not before.
+ */
+export const FALLBACK_SLICE_BASE = '/vendor/list/';
+
+export function roomHref(id: string): string {
+  const room = ROOMS.find((r) => r.id === id);
+  // A miss returns the directory rather than throwing. This runs inside render on a
+  // vendor's money surface, and a thrown error there costs her the page to save a typo the
+  // cell below catches at the bench. `b40` C31 asserts every id passed here resolves, so
+  // the fallback is a safety net that is never reached rather than a silent wrong answer.
+  return room ? room.href : '/w/rooms';
+}
+
 export function roomsInBand(band: Band): Room[] {
   return ROOMS.filter((r) => r.band === band);
 }

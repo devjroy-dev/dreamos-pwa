@@ -33,6 +33,7 @@ import { Toast } from '@/components/vendor/Toast';
 // The pair is chosen by the SAME derivation that chooses everything else here, so there is
 // one fact about which tree we are in and one place it is read.
 import { WlToast } from '@/components/worklist/WlToast';
+import { roomHref } from '@/lib/worklist/rooms';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -1024,7 +1025,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             fontFamily: F.script, fontWeight: 300, fontSize: 16,
             lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em', textAlign: 'center',
           }}>Upgrade to Essential tier or above to connect with your lead.</div>
-          <a href="/vendor/billing" style={{
+          {/* ── R-38.1 CURE (S2 ZIP bounce) · THE TIER GATE WAS THE SIXTH OF NINE ──
+              This CTA was a hardcoded `/vendor/billing`, and because `notes.tsx` imports
+              `SliceDoor` from this very file, the whole module \u2014 tier gate included \u2014 is in
+              all six crossed rooms' chunks. One literal, six failing pairs.
+              It is not a door, which is exactly why R-38.11's SliceDoor re-point walked
+              past it. Reachable is reachable (R-38.11 amended by label). `roomHref` asks
+              the registry instead of spelling the answer, so when Billing moves again this
+              link moves with it. */}
+          <a href={roomHref('billing')} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '11px 0',
             background: 'var(--atelier-input-bg)',

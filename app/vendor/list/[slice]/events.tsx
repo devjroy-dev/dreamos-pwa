@@ -8,6 +8,7 @@
 // "this row names no binder", never "no binder exists". SliceShell prints that
 // blindness once per list, per ST-2's own rule.
 
+import { roomHref } from '@/lib/worklist/rooms';
 import { useCallback, useMemo } from 'react';
 import { useEventsData, useCabinetData } from '@/hooks/vendor/useVendorData';
 import { SliceScreen } from '@/components/vendor/slices/SliceShell';
@@ -47,7 +48,11 @@ export default function EventsSlice({ vendorId }: { vendorId: string }) {
       if (b.stage) bits.push(cap(b.stage));
       const recv = b.amount_received ?? 0;
       if (recv > 0) bits.push(`${amountWordsAdjacent(recv)} in`);
-      return { ...row, crossChip: bits.join(' · '), crossChipHref: '/vendor/list/clients' };
+      // R-38.1 CURE (S2 ZIP bounce, scope widened by founder word). The whisper's
+      // destination is asked of the registry rather than spelled here \u2014 a cross-plane
+      // chip is a door out of this room, and R-38.11 amended by label covers every file in
+      // a crossed room's import graph, not only the ones it mounts.
+      return { ...row, crossChip: bits.join(' · '), crossChipHref: roomHref('clients') };
     });
   }, [binderById]);
 

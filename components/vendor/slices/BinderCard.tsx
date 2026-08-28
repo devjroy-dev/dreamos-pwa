@@ -14,6 +14,7 @@
 // Full-width, hairline-bounded, NO card chrome/shadows. Masthead-adjacent
 // numbers are ink — the received hairline is this screen's brass, within law.
 
+import { roomHref } from '@/lib/worklist/rooms';
 import { useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
@@ -231,7 +232,10 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           // TDW_04 A3 (L-3): the whisper becomes a door — tap jumps to the twin's
           // canonical slice. Still reads-only; nothing is linked or merged (16's
           // spine still owns the real join).
-          <a href="/vendor/list/leads" onClick={e => e.stopPropagation()} style={{
+          // R-38.1 CURE (S2 ZIP bounce). The destination is asked of the registry's
+          // address book rather than spelled here — same reasoning as the tier gate; a
+          // cross-plane whisper is still a door out of this room.
+          <a href={roomHref('leads')} onClick={e => e.stopPropagation()} style={{
             display: 'inline-block', textDecoration: 'none',
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
             color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',

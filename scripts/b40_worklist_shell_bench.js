@@ -754,5 +754,100 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
   return bad.length ? bad.join(' | ') : null;
 });
 
+
+// ── C31 · NO UNDECLARED /vendor LITERAL REACHABLE FROM A CROSSED ROOM ────────
+//
+// THE SOURCE-SIDE TWIN OF THE AUDIT'S R-38.1 CELL, AND IT EXISTS BECAUSE THE AUDIT CAUGHT
+// SOMETHING THIS BENCH COULD NOT. The S2 ZIP bounced on nine reachable pairs from four
+// source sites — a tier-gate CTA and three cross-plane whispers, all hardcoded
+// `/vendor/…` strings written years before the shell. R-38.11's SliceDoor re-point walked
+// straight past every one of them, because none is a door, and nothing on this bench asked
+// the question at all. The audit asks it of SERVED BYTES, which means it can only ask it
+// after a deploy — so the founder found it, in a ZIP, which is three steps too late.
+//
+// R-38.11 AMENDED BY LABEL (CE-38 relay, S2 ZIP bounce): a crossing covers every file in a
+// crossed room's IMPORT GRAPH, not only the files the room mounts. `notes.tsx` imports
+// `SliceDoor` from `SliceShell.tsx`, so the tier gate three hundred lines away is in the
+// notes chunk — one literal, six failing pairs. Reachable is reachable.
+//
+// SO THIS CELL WALKS THE GRAPH. Not the file, not the directory: the graph, transitively,
+// from each of the six room entry points, exactly as a bundler does.
+//
+// ⚠ COMMENT-BLINDNESS HERE IS LOAD-BEARING AND IT IS NOT `strip()`. The first probe used a
+// per-line strip and reported THIS SITTING'S OWN CURE NOTES as live literals, because a
+// multi-line {/* */} comment is invisible to a reader that only ever sees one line. The
+// blanker below preserves line counts so the address it reports is the address you open.
+function blankComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\/|\{\/\*[\s\S]*?\*\/\}/g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/(^|[^:])\/\/.*$/gm, (m, p) => p + ' '.repeat(Math.max(0, m.length - p.length)));
+}
+
+cell('C31 no undeclared /vendor literal is reachable from any crossed room', () => {
+  const resolveSpec = (spec, from) => {
+    let base = null;
+    if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
+    else if (spec.startsWith('.')) base = path.resolve(path.dirname(from), spec);
+    else return null;
+    for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts', '']) {
+      const p = base + ext;
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
+    }
+    return null;
+  };
+  const walk = (entry, seen, hits) => {
+    if (seen.has(entry)) return;
+    seen.add(entry);
+    const src = blankComments(fs.readFileSync(entry, 'utf8'));
+    src.split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/['"`](\/vendor\/[A-Za-z0-9\/_-]*)/g)) {
+        hits.push({ at: path.relative(ROOT, entry) + ':' + (i + 1), href: m[1] });
+      }
+    });
+    for (const m of src.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+      const r = resolveSpec(m[1], entry);
+      if (r && !r.includes('node_modules')) walk(r, seen, hits);
+    }
+  };
+
+  // THE DECLARED SETS ARE READ FROM THE REGISTRY, NEVER RETYPED HERE. Two homes for one set
+  // is how the audit's own list went stale, and this cell would inherit the same disease by
+  // copying it. A room that crosses shrinks the registry, and this cell tightens with it in
+  // the same edit.
+  const reg = strip(read('lib/worklist/rooms.ts'));
+  const declared = new Set((reg.match(/href:\s*'(\/vendor\/[^']+)'/g) || []).map((x) => x.match(/'([^']+)'/)[1]));
+  const lm = reg.match(/INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  if (lm) for (const x of lm[1].match(/'(\/vendor\/[^']+)'/g) || []) declared.add(x.slice(1, -1));
+  // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT
+  // MATTERS. The first cut returned on a missing FALLBACK_SLICE_BASE, so at the bounced
+  // tree it reddened on the ABSENT CONSTANT and never walked the graph — it reported the
+  // cure's own scaffolding as the finding and said nothing about the nine live literals it
+  // exists to catch. Both-ways proof caught it: RED for the wrong reason is not RED on the
+  // cure assertion. The missing declaration is now collected as one more stray and the walk
+  // runs regardless, so the cell reddens on the DEFECT and mentions the scaffolding.
+  const fb = reg.match(/FALLBACK_SLICE_BASE\s*=\s*'([^']+)'/);
+  const fallback = fb ? fb[1] : null;
+
+  const strays = new Map();
+  for (const room of ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes']) {
+    const entry = path.join(ROOT, 'app/w/' + room + '/page.tsx');
+    if (!fs.existsSync(entry)) return 'app/w/' + room + '/page.tsx does not exist';
+    const hits = [];
+    walk(entry, new Set(), hits);
+    for (const h of hits) {
+      if (declared.has(h.href)) continue;
+      // EXACT, not prefix. '/vendor/list/' is the Door's tree-aware fallback and passes;
+      // '/vendor/list/leads' is a full carried href and does not, because a whole address
+      // in the bytes means a room slid back out of the shell.
+      if (fallback && h.href === fallback) continue;
+      const key = h.at + ' ' + h.href;
+      if (!strays.has(key)) strays.set(key, h.href + ' <- ' + h.at + ' (reachable from /w/' + room + ')');
+    }
+  }
+  const problems = [...strays.values()];
+  if (!fallback) problems.push("FALLBACK_SLICE_BASE is not declared — the Slice Door's fallback prefix has no home in the registry");
+  return problems.length ? problems.join(' | ') : null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

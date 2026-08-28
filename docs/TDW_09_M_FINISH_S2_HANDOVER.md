@@ -351,3 +351,107 @@ array in `b40`, `C-R13`/`C-R14` in the render arm). The other twenty files are u
 `b251600` and carried over unchanged. Every count in this document was re-derived here.
 
 ---
+
+---
+
+## §9 · THE ZIP BOUNCE — R-38.1 FAILED ON NINE PAIRS, AND THE CELL THAT CAUGHT IT
+
+`aa809f8` shipped and the audit reddened: **nine undeclared `/vendor` hrefs reachable from
+the six crossed rooms.** The chair called the mechanism before the derivation and was right.
+
+### THE NINE, WITH LINE NUMBERS — AND WHY THE COUNT IS NOT FOUR
+
+Nine reachable **pairs**, four **source sites**. Both numbers are stated because the cure
+is per-site and the failure is per-pair, and reporting only one of them hides half the shape:
+
+| destination | source site | reaches |
+|---|---|---|
+| `/vendor/billing` | `components/vendor/slices/SliceShell.tsx:1027` | **all six** |
+| `/vendor/list/leads` | `components/vendor/slices/BinderCard.tsx:234` | clients |
+| `/vendor/list/leads` | `app/vendor/list/[slice]/invoices.tsx:41` | invoices |
+| `/vendor/list/clients` | `app/vendor/list/[slice]/events.tsx:50` | events |
+
+`SliceShell:1027` is M-LEADGATE's tier gate — the 「See plans」 CTA under a redacted lead.
+The other three are the R1(b) cross-plane whispers. **None is a door**, which is exactly why
+R-38.11's SliceDoor re-point walked past all four: the seat executing that ruling looked at
+navigation and did not ask what else the room could reach.
+
+`/w/notes` carries `/vendor/billing` too, and the reason is the whole lesson in one line:
+`notes.tsx` imports `SliceDoor` **from `SliceShell.tsx`**, so a tier gate three hundred lines
+away is in the notes chunk. **One literal, six failing pairs.**
+
+**R-38.11 AMENDED BY LABEL** (CE-38 relay, S2 ZIP bounce): a crossing covers every file in a
+crossed room's **import graph**, not only the files the room mounts. Reachable is reachable.
+
+Two of the four sites were **S2-external** — `invoices.tsx` and `events.tsx` were not in the
+delivery set — and were named under STOP rather than edited. Scope widened by founder word;
+all four are in this cut.
+
+### THE CURE IS AN ADDRESS BOOK, NOT A SWEEP
+
+`roomHref(id)` in `lib/worklist/rooms.ts`. A literal spells a destination; this asks the
+registry, which is already the one home for where a room lives. A room that crosses at §4-2
+takes its inbound links with it in the same edit that changes its href.
+
+**It is deliberately NOT tree-aware, and the asymmetry with `SliceDoor` is ruled rather than
+accidental.** The Door is lateral movement inside one family — six slices, one component —
+and staying in the tree you are already in is what keeps the `/vendor` fallback coherent as
+a surface. A cross-link to a *different* room is a departure whichever tree it starts in, so
+the registry's answer is the one answer and both trees get it.
+
+`roomHref` returns `/w/rooms` on a miss rather than throwing: this runs inside render on a
+vendor's money surface, and a thrown error there costs her the page to save a typo that
+C31 catches at the bench.
+
+### A TENTH LITERAL, AND THE INSTRUMENT'S OWN D-38.1
+
+`components/vendor/AddSheet.tsx:486` — ``router.push(`/vendor/calendar?block=${d}`)`` —
+reachable from **all six**, and the audit did not flag it. Not because it is legitimate:
+because the matcher read **double-quoted attributes only**. Two holes, the second worse than
+the first — minifiers emit single quotes as readily as double, and a template literal
+compiles to concatenation, leaving a bare prefix the old character class stopped short of.
+
+It resolves to `/vendor/calendar`, which is declared, so it passes today. **It would have
+gone on passing after calendar crosses at §4-2, while the link rotted.** A cell that keeps
+saying yes about a claim that has stopped being true is this instrument committing D-38.1
+against itself, which is why the widening was not deferred. Matcher now reads `'`, `"` and
+backtick; proven on all five shapes including the two it used to miss. `AddSheet.tsx:486` is
+declared and allowed until §4-2, and re-points then.
+
+### `FALLBACK_SLICE_BASE` — DECLARED, NOT ALLOWED
+
+The Slice Door's own `/vendor/list/${s}` arm stopped being covered the moment the six left
+`INTERIM_VENDOR_ROOMS`. The easy move was to notice it, judge it legitimate and say nothing,
+leaving both instruments with an exception they cannot see — **the exact shape this bounce
+just convicted.** It is a declared constant in the registry, read by the audit and by C31,
+matched EXACTLY and not as a prefix: `/vendor/list/` passes, `/vendor/list/leads` does not,
+because a whole address in the bytes means a room slid back out of the shell.
+
+### C31 — THE SOURCE-SIDE TWIN, AND TWO DEFECTS IN ITS OWN CONSTRUCTION
+
+The audit asks this of **served bytes**, so it can only ask after a deploy. The founder
+found the nine in a ZIP, which is three steps too late. C31 walks the import graph from each
+of the six entry points, transitively, as a bundler does.
+
+Two things went wrong building it and both are worth the record:
+
+1. **The first probe reported this sitting's own cure notes as live literals.** A per-line
+   comment strip cannot see a multi-line `{/* */}` block. The blanker preserves line counts
+   so the address reported is the address you open.
+2. **The first cut of the cell was VACUOUS in the direction that mattered.** It returned
+   early on a missing `FALLBACK_SLICE_BASE`, so at the bounced tree it reddened on *the
+   cure's own scaffolding* and never walked the graph — silent about all nine literals it
+   exists to catch. **RED for the wrong reason is not RED on the cure assertion**, and only
+   the both-ways run exposed it. The walk now runs regardless and the missing declaration is
+   collected as one more stray.
+
+**BOTH-WAYS AT `aa809f8`: C31 RED, naming all four sites and the missing constant; 30 green.
+MUTATION: restoring the single `BinderCard` literal reddens C31 alone, naming that one site.**
+
+### AND `tsc` CAUGHT ME AGAIN
+
+The `BinderCard` cure first shipped its note as `{/* */}` **inside a `{cond && ( … )}` arm**,
+which is expression context, not JSX-child context — a second expression there, and the arm
+stops parsing. `b40` greened on it, because a text-matching bench cannot see a syntax error.
+`tsc` did not. That is the second time this sitting the compile boundary was the thing that
+held, and it is the argument for R-38.15's STOP being where it is.

@@ -50,6 +50,11 @@ const registryVendorLinks = () => {
   const m = REGISTRY.match(/INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
   return m ? (m[1].match(/'(\/vendor\/[^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
 };
+/** The Slice Door's fallback prefix \u2014 declared in the registry, read here, never retyped. */
+const registryFallbackBase = () => {
+  const m = REGISTRY.match(/FALLBACK_SLICE_BASE\s*=\s*'([^']+)'/);
+  return m ? m[1] : null;
+};
 
 let pass = 0, fail = 0, incon = 0;
 const P = (n, why) => { console.log('PASS         ' + n + (why ? '  — ' + why : '')); pass++; };
@@ -349,8 +354,25 @@ async function coverage() {
   const strays = new Set();
   for (const path of shellSurfaces) {
     const body = pageCorpus.get(path) || '';
-    for (const m of body.matchAll(/"(\/vendor\/[A-Za-z0-9\/_-]*)"/g)) {
-      if (!ALLOWED.has(m[1])) strays.add(path + ' \u2192 ' + m[1]);
+    // ── THE MATCHER, WIDENED AT THE S2 ZIP BOUNCE ──────────────────────────
+    // It read DOUBLE-QUOTED attributes only. Two holes, and the second is the dangerous one:
+    //   \u00b7 minifiers emit single quotes as readily as double, so half the estate's own
+    //     hrefs could sit in a chunk unread
+    //   \u00b7 a template literal compiles to concatenation, so `router.push(\u2026${d})` leaves a
+    //     bare prefix in the bytes and the old class stopped at the first non-word character
+    // `components/vendor/AddSheet.tsx:486` is the live specimen: reachable from all six
+    // crossed rooms and INVISIBLE to this cell until now. It resolves to /vendor/calendar,
+    // which is declared, so it passes today \u2014 AND IT MUST RED WHEN CALENDAR CROSSES AT
+    // \u00a74-2. A cell that goes on passing while its link rots is this instrument committing
+    // D-38.1 against itself, which is the whole reason the widening is not deferred.
+    const FALLBACK = registryFallbackBase();
+    for (const m of body.matchAll(/['"`](\/vendor\/[A-Za-z0-9\/_-]*)/g)) {
+      if (ALLOWED.has(m[1])) continue;
+      // The Slice Door's fallback prefix, declared at lib/worklist/rooms.ts. A PREFIX match
+      // and nothing looser: '/vendor/list/' passes, '/vendor/list/leads' does not, because
+      // a full carried href would mean a room slid back out of the shell.
+      if (FALLBACK && m[1] === FALLBACK) continue;
+      strays.add(path + ' \u2192 ' + m[1]);
     }
   }
   if (strays.size) F('R-38.1 no undeclared /vendor href', [...strays].join(' \u00b7 '));
