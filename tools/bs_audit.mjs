@@ -925,6 +925,10 @@ try {
     // stopped being the thing that dissolved the photo into a cream page and
     // became the thing that makes HER NAME legible over her own work — which is
     // why the element it used to protect (the TDW wordmark) is gone entirely.
+    // W3-5, reported twice about the same edge: "theres no top of the page...
+    // starts abruptly with a picture." Nothing guarded it, so removing the
+    // header reddened no cell at all.
+    if (!/className="pv-top"/.test(markup)) bad.push('the page has no top — it opens on a photograph at y=0');
     if (!/className="pv-scrim"/.test(markup)) bad.push('the hero has no scrim under the name');
     if (!/className="pv-identity"/.test(markup)) bad.push('the name does not render over the hero');
     // The reduced-motion rule must actually cover the animated elements, not
@@ -1059,6 +1063,73 @@ try {
   bad.length === 0
     ? P('C36 the public routes are out from under the app shell', 'registrar per-shell, sw v7 bypasses /v/ and /r/ without unregistering, both branches name the build')
     : F('C36 the public routes are out from under the app shell', bad.join('; '));
+}
+
+// ── C37 · THE STYLESHEET'S OWN TRAPS ────────────────────────────────────────
+// Three cells, each paid for by a defect that shipped or nearly did.
+//
+// 1 · NO BACKTICK INSIDE THE <style> TEMPLATE LITERAL. Twice now this seat wrote
+//     CSS comments quoting identifiers the way the rest of the file does —
+//     `flex-basis`, `min-width: auto` — inside a template literal, where a
+//     backtick TERMINATES the string. The build broke both times with eighty
+//     lines of JSX errors pointing anywhere but the cause. Prose broke the code,
+//     and a cell is cheaper than a third occurrence.
+//
+// 2 · NO `infinite` ANIMATION ON A CONTENT ELEMENT. F-19.40: the hero shimmer
+//     was placed on the <img> with `infinite`, so it pulsed the PHOTOGRAPH
+//     forever and the founder walked a page that looked permanently loading.
+//     Every existing cell passed it — C34 asked about coverage, never duration.
+//     A placeholder may loop; a thing a reader is trying to look at may not.
+//
+// 3 · NO FLEX IMAGE WITHOUT `min-width`. F-19.38, the four-sitting bug: an
+//     `<img>` in a flex row with `min-width:auto` is floored at its INTRINSIC
+//     width, so a 104px basis rendered a 1080px photograph. The declaration was
+//     honoured and outranked, which is why five source derivations all cleared
+//     the page.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C37 the stylesheet carries none of its three known traps', 'app/v/[code]/page.tsx not found');
+  else {
+    const bad = [];
+    const open_ = pv.indexOf('<style>{`');
+    const close = pv.indexOf('`}</style>');
+    if (open_ < 0 || close < 0) bad.push('the style template could not be located');
+    else {
+      const sheet = pv.slice(open_ + 9, close);
+      const ticks = (sheet.match(/`/g) || []).length;
+      if (ticks) bad.push(`${ticks} backtick(s) inside the style template — it closes early`);
+
+      // A looping animation is permitted only where the element's own name says
+      // it is a placeholder. Derived from the rule, not from a roster.
+      for (const [, cls, body] of sheet.matchAll(/\.([a-z-]+)[^{]*\{([^}]*)\}/g)) {
+        if (!/animation:[^;]*\binfinite\b/.test(body)) continue;
+        // ⚠ A PLACEHOLDER MAY LOOP — BUT NOT WITHOUT A CAP. The first cut of
+        // this test exempted anything named `shimmer`, so re-introducing
+        // `infinite` on `.pv-shimmer` reddened nothing: a mutation that restored
+        // the founder's exact complaint passed. CE-38 capped it at three
+        // iterations, and the cap is the whole cure — CSS has no observer of
+        // image load, so a bounded count is the honest substitute for a stop.
+        const placeholder = /shimmer|placeholder|skeleton|spinner/.test(cls);
+        if (!placeholder) bad.push(`.${cls} loops forever and is not a placeholder`);
+        else bad.push(`.${cls} is a placeholder but loops forever — cap it (F-19.40)`);
+      }
+
+      // Every image inside a flex row needs its automatic minimum defused.
+      const flexParents = [...sheet.matchAll(/\.([a-z-]+)\s*\{[^}]*display:\s*flex[^}]*\}/g)].map((m) => m[1]);
+      for (const parent of flexParents) {
+        const re = new RegExp('\\.' + parent + '\\s+img\\s*\\{([^}]*)\\}');
+        const m = sheet.match(re);
+        if (!m) continue;
+        if (!/min-width:\s*0/.test(m[1])) {
+          bad.push(`.${parent} img has no min-width:0 — its intrinsic width will floor the flex basis`);
+        }
+      }
+    }
+    bad.length === 0
+      ? P('C37 the stylesheet carries none of its three known traps', 'no stray backtick; no content element loops; every flex image defuses min-width')
+      : F('C37 the stylesheet carries none of its three known traps', bad.join('; '));
+  }
 }
 
 console.log('');

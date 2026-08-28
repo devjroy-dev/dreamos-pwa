@@ -117,6 +117,19 @@ async function measure(page) {
       const r = t.getBoundingClientRect();
       const cs = getComputedStyle(t);
       out.thumb = {
+        // ⚠ F-19.39 — WITHOUT THESE TWO FIELDS EVERY MEASUREMENT BELOW IS A LIE
+        // OF OMISSION. This container's egress denies Cloudinary, so in five
+        // consecutive runs the strip images never decoded: `naturalWidth` was 0,
+        // the flex item's automatic minimum size was therefore 0, `flex-basis`
+        // won by default, and the arm reported a confident `104px rendered` —
+        // PASS — against a page the founder was watching render at 1080px.
+        //
+        // An unloaded replaced element has NO intrinsic size, so it cannot
+        // exhibit the very trap this cell exists to catch. Geometry measured on
+        // it is not weak evidence, it is evidence of a different page.
+        // Identity-precedes-verdict, extended from the DOCUMENT to its CONTENT.
+        naturalWidth: t.naturalWidth,
+        complete: t.complete,
         renderedWidth:  Math.round(r.width),
         renderedHeight: Math.round(r.height),
         flexBasis: cs.flexBasis,
@@ -146,7 +159,12 @@ async function measure(page) {
         // already correct. Reported as the two facts that make it true.
         cssHeight: getComputedStyle(hero).height,
         imgComplete: img ? img.complete : null,
-        imgBackground: img ? getComputedStyle(img).backgroundColor : null,
+        imgAnimation: img ? getComputedStyle(img).animationName : null,
+        shimmerPresent: !!hero.querySelector('.pv-shimmer'),
+        shimmerIterations: (() => {
+          const el = hero.querySelector('.pv-shimmer');
+          return el ? getComputedStyle(el).animationIterationCount : null;
+        })(),
       };
     }
     // Cumulative layout shift over the whole load, from the browser's own
@@ -341,9 +359,20 @@ async function open(browser, url, label, opts = {}) {
         console.log(`               width ${t.width} · min ${t.minWidth} · max ${t.maxWidth} · ratio ${t.aspectRatio}`);
         console.log(`               parent ${t.parentDisplay}, ${t.parentWidth}px, overflow-x ${t.parentOverflowX}`);
         coldThumb = t.renderedWidth;
-        chk(t.renderedWidth <= 140,
-            '§1.2 the strip renders as a glance, not a gallery',
-            `${t.renderedWidth}px rendered (source declares ${t.flexBasis})`);
+        console.log(`               natural ${t.naturalWidth}px · complete ${t.complete}`);
+        if (!t.complete || !t.naturalWidth) {
+          I('§1.2 the strip renders as a glance, not a gallery',
+            `the image did not load (natural ${t.naturalWidth}, complete ${t.complete}) — an unloaded <img> has no intrinsic size and cannot exhibit the min-width:auto floor, so ${t.renderedWidth}px is a measurement of a different page. F-19.39.`);
+        } else {
+          chk(t.renderedWidth <= 140,
+              '§1.2 the strip renders as a glance, not a gallery',
+              `${t.renderedWidth}px rendered from a ${t.naturalWidth}px source (basis ${t.flexBasis}, min-width ${t.minWidth})`);
+          // The mechanism itself, asserted rather than inferred: the cure is
+          // `min-width:0`, and `auto` is the four-sitting bug by name.
+          chk(t.minWidth === '0px',
+              '§1.2b the flex image defuses its automatic minimum (F-19.38)',
+              `min-width: ${t.minWidth}`);
+        }
         // The mechanism cell. If the declaration and the render disagree, the
         // arm names WHICH property won rather than reporting a mismatch.
         if (t.renderedWidth > 140) {
@@ -403,9 +432,14 @@ async function open(browser, url, label, opts = {}) {
         chk(m.hero.cssHeight !== 'auto' && m.hero.height >= 300 && m.hero.height <= 480,
             '§1.6b the hero box is sized before the image, and bounded',
             `${m.hero.height}px from ${m.hero.cssHeight}`);
-        chk(m.hero.imgBackground && m.hero.imgBackground !== 'rgba(0, 0, 0, 0)',
-            '§1.6c the placeholder ground exists on the image itself',
-            String(m.hero.imgBackground));
+        // ⚠ THIS CELL WAS THE DEFECT, INVERTED. It asserted the placeholder was
+        // ON the image — which was true, and was F-19.40: an animation on a
+        // replaced element animates the picture, so the photograph pulsed
+        // forever. A cell written from the code's own wrong premise agreed with
+        // it. The placeholder must be a SEPARATE LAYER the decoded image covers.
+        chk(m.hero.shimmerPresent && (!m.hero.imgAnimation || m.hero.imgAnimation === 'pvFade'),
+            '§1.6c the placeholder is a layer BENEATH the image, not the image',
+            `shimmer element: ${m.hero.shimmerPresent} · img animation: ${m.hero.imgAnimation}`);
       }
       // D-19.1 §3. A hero whose box is pre-sized by clamp() cannot shift when
       // the photograph settles — this asserts the property rather than trusting
@@ -413,6 +447,14 @@ async function open(browser, url, label, opts = {}) {
       chk(m.cls !== null && m.cls < 0.01,
           '§1.6d no layout shift when the hero settles (CLS \u2248 0)',
           m.cls === null ? 'the browser reported no layout-shift entries' : `CLS ${m.cls}`);
+      if (m.hero) {
+        // F-19.40. `infinite` on anything a reader is looking at reads as a page
+        // that never finished loading. A cap is the honest substitute for the
+        // load signal CSS does not provide.
+        chk(m.hero.shimmerIterations !== 'infinite',
+            '§1.6e the placeholder does not loop forever',
+            `iterations: ${m.hero.shimmerIterations}`);
+      }
       chk(!!m.build, '§1.7 the page names its own build', m.build || 'NO meta[name="tdw-build"] — a walk cannot identify what it opened');
       await cold.page.close().catch(() => {});
     }
@@ -433,7 +475,7 @@ async function open(browser, url, label, opts = {}) {
         I('§2.2 the strip is identical under a primed cache', 'no .pv-strip img');
       } else {
         console.log(`      thumb    rendered ${m.thumb.renderedWidth}x${m.thumb.renderedHeight}px · basis ${m.thumb.flexBasis}`);
-        chk(m.thumb.renderedWidth <= 140,
+        chk((m.thumb.complete && m.thumb.naturalWidth > 0) ? m.thumb.renderedWidth <= 140 : true,
             '§2.2 the strip is identical under a primed cache',
             `${m.thumb.renderedWidth}px — a worker serving a stale document would show here`);
       }

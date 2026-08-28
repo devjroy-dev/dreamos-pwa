@@ -77,7 +77,7 @@ const COPY = {
    *  credit line at the foot — no logo, no gold, no rule of its own. The page
    *  opens on her name and closes on it; this sits under the close, smaller.
    *  PROPOSED, on the register, awaiting the founder's pass. */
-  colophon: 'Created and managed by The Dream Wedding',
+  colophon: 'Created and managed by The Dream Wedding \u00b7 thedreamwedding.in',
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
@@ -254,6 +254,24 @@ export default async function PublicVendorPage(
 
   return (
     <main className="pv pv-card">
+      {/* ── THE PAGE HAS A TOP — W3-5, chair-ruled ──────────────────────────
+          "theres no top of the page in the pwa. starts abruptly with a picture."
+          Reported twice about the same edge: walk #1's "starts abruptly, ends
+          abruptly" was answered at the FOOT and the head was left as it was,
+          because D-19.1 struck the TDW wordmark from the hero and this seat read
+          that as "nothing stands above the image."
+
+          Too literal. The ruling was that TDW does not caption HER photograph —
+          not that her page opens with no threshold. So a 40px cream band carries
+          HER studio name and the document begins on a made edge.
+
+          Her name is here at 11px and again at t1 over the hero, and the
+          repetition is deliberate: this is a masthead, that is the page's
+          subject. A reader scrolled past the hero still knows whose page it is. */}
+      <header className="pv-top">
+        <span className="pv-top-name">{card.business_name}</span>
+      </header>
+
       {/* THE HERO IS HER OWN WORK, AND IT IS THE FIRST THING. A couple arriving
           from a forward is deciding in about a second whether this is for her,
           and no sentence does that job. `loading="eager"` because this image IS
@@ -272,6 +290,7 @@ export default async function PublicVendorPage(
           would be the second profile design arriving by the back door. */}
       {hero && (
         <div className="pv-hero">
+          <div className="pv-shimmer" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={hero.url} alt={hero.caption || card.business_name || ''} loading="eager" />
           <div className="pv-scrim" />
@@ -415,6 +434,14 @@ function PublicStyles() {
    presentations cannot drift into two houses. "both" fill so nothing flashes
    before its delay elapses. */
 @keyframes pvRise { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+/* ⚠ RETUNED AGAINST THE PWA LANDING -- the founder's own stated reference, which
+   cross-fades its photograph over 3s ("app/(landing)/page.tsx:681"). S5-b's
+   400ms/150ms was the chair's restraint read as speed, and the founder reported
+   "no animation for the page loading" against a page that WAS animating: an
+   arrival too brief to notice is not restraint, it is absence. The cadence is
+   the landing's, compressed -- the photograph settles over 1.2s, her name rises
+   behind it, the card follows. */
+@keyframes pvFade { from{opacity:0} to{opacity:1} }
 
 /* ⚠ TWO ELEMENTS MOVE, AND NOTHING ELSE — D-19.1 §3, verbatim: "the hero name
    and eyebrow fade-and-rise 400ms ease-out, 80ms stagger; card content follows
@@ -422,16 +449,29 @@ function PublicStyles() {
    S4 staged FIVE blocks and the arm caught four of them surviving into this cut.
    The restraint is the ruling: an arrival is a moment, and a page where every
    block takes its turn is a page that keeps the reader waiting for itself. */
-/* D-19.1 section 3. A slow breath, not a strobe -- this sits under a wedding
-   photograph on a stranger's phone, and a fast shimmer on that surface reads as
-   a broken page rather than a loading one. */
-@keyframes pvHold { 0%{opacity:1} 50%{opacity:.55} 100%{opacity:1} }
+/* D-19.1 section 3. A slow breath, not a strobe.
+   ⚠ CAPPED AT THREE ITERATIONS -- F-19.40, and the founder walked the defect it
+   cures: "the top image keeps glowing dark and light... in a loop." S5-b put
+   this animation ON THE <img>, so it pulsed the PHOTOGRAPH's own opacity, and
+   "infinite" meant it never stopped. The seat reasoned correctly that the
+   img's BACKGROUND gets painted over by the decoded image and then applied the
+   rule to the wrong layer.
+   Now it lives on a element BENEATH the image, which the opaque photo covers on
+   decode, and it runs three times rather than forever: CSS has no observer of
+   image load, so a cap is the honest substitute for a stop. ~4.8s of breathing
+   is longer than any first paint this page will have and shorter than a loop. */
+@keyframes pvHold { 0%{opacity:1} 50%{opacity:.45} 100%{opacity:1} }
 
 .pv{min-height:100vh;background:#F8F7F5;color:#0C0A09;
   font:400 14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
 .pv:not(.pv-card){display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;padding:32px 24px;text-align:center}
 .pv-card{max-width:430px;margin:0 auto;padding:0 0 8px}
+/* W3-5. A made edge, 40px, before the photograph. */
+.pv-top{height:40px;display:flex;align-items:center;justify-content:center;
+  padding:0 24px;background:#F8F7F5;border-bottom:.5px solid rgba(12,10,9,.07)}
+.pv-top-name{font:300 11px/1 "Cormorant Garamond",Georgia,serif;color:#403B36;
+  letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── THE HERO -- D-19.1 section 1 ───────────────────────────────────────────
    clamp(320px, 56vh, 460px), the chair's ruled measure: her name and the top
@@ -455,8 +495,15 @@ function PublicStyles() {
    the image element's background, which the decoded photograph simply paints
    over with no JavaScript and no shift, and the name's arrival stays
    time-staged. Said here rather than discovered later. */
-.pv-hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;
-  background:#EDEAE4;animation:pvHold 1600ms ease-in-out infinite}
+.pv-shimmer{position:absolute;inset:0;background:#EDEAE4;z-index:0;
+  animation:pvHold 1600ms ease-in-out 3}
+/* ⚠ THE IMAGE CARRIES NO ANIMATION AND NO BACKGROUND. Both were the bug: an
+   animation on a replaced element animates the PICTURE. It sits above the
+   shimmer and covers it on decode, which is the only "on load" signal CSS
+   actually has -- opacity, not a listener. */
+.pv-hero img{position:relative;z-index:1;width:100%;height:100%;
+  object-fit:cover;object-position:center top;display:block;
+  animation:pvFade 1200ms cubic-bezier(0.22,1,0.36,1) both}
 /* The scrim. One gradient, bottom only -- the studio's :333 shape, tuned to the
    ruled stop. It exists so HER NAME is legible, which is a different job from
    the one S4's scrim was doing (making TDW's wordmark legible over her work),
@@ -464,9 +511,9 @@ function PublicStyles() {
 .pv-scrim{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;
   background:linear-gradient(180deg, transparent 45%, rgba(12,10,9,.72) 100%)}
 .pv-identity{position:absolute;left:0;right:0;bottom:18px;padding:0 24px;z-index:2;
-  animation:pvRise 400ms ease-out 80ms both}
+  animation:pvRise 900ms cubic-bezier(0.22,1,0.36,1) 500ms both}
 
-.pv-body{padding:22px 24px 0;animation:pvRise 400ms ease-out 150ms both}
+.pv-body{padding:22px 24px 0;animation:pvRise 900ms cubic-bezier(0.22,1,0.36,1) 750ms both}
 .pv-line{font:400 14px/1.45 inherit;color:#403B36;margin:8px 0 0;max-width:34ch}
 .pv:not(.pv-card) .pv-line{margin:0;max-width:34ch}
 /* D-19.1 section 2: the gold moves off 4.48:1. #7A621C computes 6.03:1 on cream
@@ -488,21 +535,44 @@ function PublicStyles() {
 .pv-rule-line:last-child{background:linear-gradient(to right,rgba(201,168,76,.5),rgba(201,168,76,0))}
 .pv-diamond{font:9px/1 "Cormorant Garamond",Georgia,serif;color:rgba(201,168,76,.85)}
 
-/* ── THE STRIP IS A GLANCE (W-2) ───────────────────────────────────────────
-   104px, and pv_render measured it rendering at exactly 104x130 cold and primed
-   at the founder's own 374px viewport. The number is witnessed, not declared. */
+/* ── THE STRIP IS A GLANCE -- F-19.38, and this is the four-sitting bug ─────
+   The founder reported full-width thumbnails on four consecutive walks. Source
+   declared "flex:0 0 104px"; globals.css touches no img; Tailwind's preflight
+   only sets max-width/height:auto; the service worker was cleared by reading it;
+   and pv_render measured 104x130 rendered. Every derivation exonerated the page.
+   His console settled it in one line:
+
+     rendered 1080x1350 · basis 104px · width 1080px · minW auto
+
+   **"min-width: auto" on a flex item resolves to its AUTOMATIC MINIMUM SIZE,
+   which for a replaced element is its INTRINSIC width.** The photograph is
+   1080px wide, so the item's floor was 1080px; "flex-basis" was honoured and
+   simply outranked, and "flex-shrink:0" meant nothing pulled it back.
+
+   AND THE REASON FIVE SITTINGS MISSED IT: this container's egress denies
+   Cloudinary, so in every arm run "naturalWidth" was 0, the automatic minimum
+   was 0, and the basis won by default. The instrument measured a page whose
+   images did not exist and reported PASS -- F-19.39, cured in pv_render by
+   asserting "naturalWidth > 0" before trusting any geometry.
+
+   Proven in isolation, no framework involved: with a real 1080px image and
+   "min-width:auto" the item rendered 326px; with "min-width:0" it rendered 104.
+   "width" is belt to the basis's braces. */
 .pv-strip{display:flex;gap:8px;overflow-x:auto;padding:18px 24px 0;
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
   scrollbar-width:none}
 .pv-strip::-webkit-scrollbar{display:none}
-.pv-strip img{flex:0 0 104px;aspect-ratio:4/5;object-fit:cover;display:block;
-  background:#EDEAE4;scroll-snap-align:start}
+.pv-strip img{flex:0 0 104px;min-width:0;width:104px;aspect-ratio:4/5;
+  object-fit:cover;display:block;background:#EDEAE4;scroll-snap-align:start}
 
 /* The close is HERS; the colophon is the one place TDW appears. */
 .pv-close{margin-top:40px;padding:0 24px 32px;text-align:center;
   display:flex;flex-direction:column;gap:8px}
-.pv-close-mark{font:300 15px/1.2 "Cormorant Garamond",Georgia,serif;color:#403B36;letter-spacing:.01em}
-.pv-colophon{font:400 9px/1.4 inherit;letter-spacing:.18em;text-transform:uppercase;color:#6B6560}
+.pv-close-mark{font:300 17px/1.2 "Cormorant Garamond",Georgia,serif;color:#403B36;letter-spacing:.01em}
+/* W3-4: "should be smaller -- not a semi hero sizze -- and should have
+   thedreamwedding.in adress with it." One line, 11px, sentence case rather than
+   tracked-out caps, which is what made 9px read larger than it measured. */
+.pv-colophon{font:400 11px/1.4 inherit;letter-spacing:.01em;color:#6B6560}
 
 /* ⚠ MOTION IS AN ENHANCEMENT, NEVER A GATE. Everything above animates from
    opacity 0 with "both" fill. Without this rule a reader who has asked their
@@ -510,8 +580,11 @@ function PublicStyles() {
    page, served to the people least able to diagnose it. The shimmer stops too:
    a pulse that never resolves is the same defect wearing a slower coat. */
 @media (prefers-reduced-motion: reduce){
-  .pv-identity,.pv-body{animation:none}
+  .pv-identity,.pv-body,.pv-shimmer{animation:none}
   .pv-hero img{animation:none}
+  /* The shimmer must not merely stop animating -- held at opacity 1 it would
+     sit as a flat panel over nothing. It goes. */
+  .pv-shimmer{display:none}
 }
     `}</style>
   );

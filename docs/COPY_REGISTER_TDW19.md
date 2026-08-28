@@ -266,7 +266,14 @@ photograph.* The page now opens on her name, over her own work, and closes on it
 
 | Key | Ships as | Where |
 |---|---|---|
-| `publicPageColophon` | Created and managed by The Dream Wedding | `/v/<code>`, last line, t5, `#6B6560` |
+| `publicPageColophon` | Created and managed by The Dream Wedding · thedreamwedding.in | `/v/<code>`, last line, 11px, `#6B6560` |
+
+⚠ **Amended after walk #3 (W3-4), founder's word:** *"should be smaller — not a
+semi hero sizze — and should have thedreamwedding.in adress with it."* The
+address is in, and the line moved from 9px tracked-out uppercase to 11px
+sentence case — **the tracking is what made 9px read larger than it measured.**
+Her studio name above it moved 15px → 17px in the same pass, so the two are
+clearly a close and a credit rather than two competing lines.
 
 It is a **credit line, not a brand block** — no logo, no gold, no rule of its
 own, and it sits under her studio name at a smaller size. `bs_audit` C35 computes
