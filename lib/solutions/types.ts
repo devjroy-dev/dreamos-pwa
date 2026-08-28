@@ -243,6 +243,44 @@ export function subdomainFor(handle: string | null | undefined, root: string = S
   return trimmed.toLowerCase() + '.' + root;
 }
 
+/**
+ * `routing_handle` → the vendor's PATH address on the shared domain, or null.
+ *
+ * ── F-38.49 · ONE HOME FOR THE VENDOR'S ADDRESS ────────────────────────────
+ *
+ * The estate had TWO independent statements of a vendor's web address, in two
+ * rooms, in two shapes, each carrying its own copy of the domain literal:
+ *
+ *   Business Solutions → Website   `dev440.thedreamwedding.in`   subdomainFor(), here
+ *   Today → Your link              `thedreamwedding.in/v/DEV440` a literal in
+ *                                                                lib/worklist/copy.ts
+ *
+ * The founder walked both and both 404'd. The 404s are their own findings; the
+ * DUPLICATION is this one, and it is the older disease: two homes for one decision,
+ * and the second home is the one that stops agreeing. A domain change would have had
+ * to be made twice, and a reader asking 「what is a vendor's address」 got two answers
+ * with nothing saying which.
+ *
+ * ONE ROOT, TWO FORMS, ONE HOME. Both builders sit beside each other and both derive
+ * from `STOREFRONT_ROOT`. Neither carries a domain literal of its own. Which form the
+ * product ships is a chair ruling and not a constant's business; this file's job is
+ * that the answer is stated once.
+ *
+ * The case is preserved rather than lowercased, and the asymmetry with `subdomainFor`
+ * is deliberate: a DNS label is case-insensitive and `DEV550.thedreamwedding.in` is not
+ * an address anyone types, but a URL path is case-SENSITIVE and `/v/DEV440` is the byte
+ * the route actually matches. Lowercasing here would build an address that resolves in
+ * one form and 404s in the other.
+ */
+export const PATH_ADDRESS_SEGMENT = 'v';
+
+export function pathAddressFor(handle: string | null | undefined, root: string = STOREFRONT_ROOT): string | null {
+  if (typeof handle !== 'string') return null;
+  const trimmed = handle.trim();
+  if (!trimmed) return null;
+  return root + '/' + PATH_ADDRESS_SEGMENT + '/' + trimmed;
+}
+
 /** [input, expected] against the default root. Mirrored verbatim in contract.js. */
 export const SUBDOMAIN_FIXTURE: readonly (readonly [string | null, string | null])[] = [
   ['DEV550', 'dev550.thedreamwedding.in'],
