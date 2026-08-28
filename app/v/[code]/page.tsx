@@ -55,6 +55,45 @@ import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/component
 export const revalidate = 300;
 
 /**
+ * ── THIS ROUTE DECLARES ITS OWN CHROME — F-19.41 and F-19.42 ───────────────
+ *
+ * **F-19.41 · `themeColor`.** `app/layout.tsx:76` sets a STATIC
+ * `<meta name="theme-color" content="#1E0A0E">` — the app's near-black — and
+ * the inline script below it overrides that per lane, with branches for vendor,
+ * frost and landing. `/v/` and `/r/` match none, so a public storefront was
+ * inheriting the app's chrome: on a phone, a near-black status bar above a cream
+ * page. A couple arriving from a WhatsApp forward got the shell's colour on a
+ * page that is not the shell.
+ *
+ * This is F-19.36's class, correctly located. That finding was the root layout
+ * registering an origin-wide service worker and claiming these routes; this is
+ * the same file handing them browser chrome. **One file, two leaks, one shape:
+ * the root layout does not know that some of its children are not the app.**
+ * `bs_audit` C38 now refuses any app-lane metadata on a public route, so the
+ * third instance announces itself instead of shipping.
+ *
+ * **F-19.42 · `colorScheme`.** The founder photographed the miss page rendering
+ * on a dark ground. The seat named the root layout's background script as the
+ * cause and the probe refused it — `document.documentElement.style.background`
+ * was `null` on both branches, and `.pv` computed cream on both. The page was
+ * correct.
+ *
+ * What was missing was a DECLARATION. With `color-scheme` unset and `html`/`body`
+ * transparent, nothing tells the browser this ground was chosen, and Chrome's
+ * auto-dark heuristics invert an undeclared light document. Device emulation
+ * does not apply them, which is why the seat's captures and the founder's
+ * disagreed about the same URL on the same deployment.
+ *
+ * **The defect was never a wrong value; it was an absent one** — which is
+ * precisely what a value-checking cell cannot see, and why C38 asserts the
+ * declaration exists rather than checking what it says.
+ */
+export const viewport = {
+  themeColor: '#F8F7F5',
+  colorScheme: 'light' as const,
+};
+
+/**
  * ⚠ THE COPY IS INLINE HERE, AND THE REASON MATTERS.
  * `lib/solutions/copy.ts` is the home for these strings and
  * `docs/COPY_REGISTER_TDW19.md` carries them for the founder's pass. They are
@@ -78,6 +117,9 @@ const COPY = {
    *  opens on her name and closes on it; this sits under the close, smaller.
    *  PROPOSED, on the register, awaiting the founder's pass. */
   colophon: 'Created and managed by The Dream Wedding \u00b7 thedreamwedding.in',
+  /** The same byte, split at the address so it can be a link. The register
+   *  carries the whole line; if the two ever disagree, the register wins. */
+  colophonLead: 'Created and managed by The Dream Wedding \u00b7',
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
@@ -288,11 +330,34 @@ export default async function PublicVendorPage(
           component that renders the card below — `parts="identity"` on
           `HERO_PALETTE`. Not a second heading hand-written over the image: that
           would be the second profile design arriving by the back door. */}
+      {/* ── W4-1 · EVERY PHOTOGRAPH IS A LINK, AND NO JAVASCRIPT RUNS ────────────
+          "tapping the pictures does nothing." A page whose entire subject is her
+          work, on which the work could not be looked at.
+
+          THE OBVIOUS CURE WAS REFUSED FOR A REASON THAT OUTRANKED IT. A lightbox
+          needs state, state needs a client component, and this route's refusal of
+          client JS is load-bearing: `/v/` is served to strangers on mobile data
+          from a WhatsApp forward, and S5-b's registrar move was justified partly
+          on making it genuinely hydration-free. Reversing that inside a fix would
+          have traded a ruled property for a viewer, quietly.
+
+          So each photograph is an anchor to its own source and the BROWSER's own
+          image viewer does the zooming — pinch, rotate, save, share, all of it,
+          on every device, for zero bytes. CE-38 ruled shape (1) and refused the
+          CSS-only `:target` lightbox on its own merits: back-button weirdness on
+          a stranger's phone is a worse product than an honest link.
+
+          A real swipe viewer is chartered into §7d P2-B's first sitting, where
+          the route's client-surface question is re-ruled properly and
+          `lib/frost/photoPager.ts` is named as the reuse. */}
       {hero && (
         <div className="pv-hero">
           <div className="pv-shimmer" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={hero.url} alt={hero.caption || card.business_name || ''} loading="eager" />
+          <a className="pv-heroLink" href={hero.url} target="_blank" rel="noopener noreferrer"
+             aria-label={`Open this photograph from ${card.business_name || 'this vendor'}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={hero.url} alt={hero.caption || card.business_name || ''} loading="eager" />
+          </a>
           <div className="pv-scrim" />
           <div className="pv-identity">
             <VendorProfileContent
@@ -378,8 +443,11 @@ export default async function PublicVendorPage(
       {rest.length > 0 && (
         <div className="pv-strip">
           {rest.map((p) => (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img key={`${p.position}-${p.url}`} src={p.url} alt={p.caption || ''} loading="lazy" />
+            <a key={`${p.position}-${p.url}`} href={p.url} target="_blank" rel="noopener noreferrer"
+               aria-label={p.caption || `Open photograph ${p.position + 1}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.url} alt={p.caption || ''} loading="lazy" />
+            </a>
           ))}
         </div>
       )}
@@ -392,7 +460,18 @@ export default async function PublicVendorPage(
           No logo, no gold, no second rule. `bs_audit` C35 holds both inks. */}
       <footer className="pv-close">
         <span className="pv-close-mark">{card.business_name}</span>
-        <span className="pv-colophon">{COPY.colophon}</span>
+        {/* W4-2, second report on the size. S5-c moved it 9px tracked-caps → 11px
+            sentence case on the reading that TRACKING was what made it look big.
+            Half right at best: it stayed too large and began wrapping to two
+            lines, which reads as a paragraph rather than a credit. Back to 9px,
+            one line, no tracking — and the studio name above reverts 17px → 15px
+            in the same pass, because the gap that widening opened is part of what
+            read heavy. The address is a link now, and C35 holds its contrast like
+            every other ink here. */}
+        <span className="pv-colophon">
+          {COPY.colophonLead}{' '}
+          <a className="pv-colophon-link" href="https://thedreamwedding.in" target="_blank" rel="noopener noreferrer">thedreamwedding.in</a>
+        </span>
       </footer>
 
       <PublicStyles />
@@ -419,6 +498,14 @@ export default async function PublicVendorPage(
 function PublicStyles() {
   return (
     <style>{`
+/* ⚠ color-scheme IS A CSS PROPERTY, AND THE META ALONE DID NOT SETTLE IT.
+   F-19.42's first cut declared it through the route's viewport export. The arm
+   then read "getComputedStyle(document.documentElement).colorScheme" and got
+   "normal" — because that reads the CSS property, not a meta tag, and "normal"
+   is exactly the state Chrome's auto-dark inverts. The declaration has to reach
+   the cascade, so it is here as well. Two homes for one intent, and the reason
+   is stated so the next reader does not delete the one that does the work. */
+:root{color-scheme:light}
 /* ── THE ARRIVAL (W-4) ──────────────────────────────────────────────────────
    The first walk's verdict was that the page "starts abruptly, ends abruptly,
    has nothing... no transition." True: that cut had no @keyframes at all.
@@ -501,6 +588,12 @@ function PublicStyles() {
    animation on a replaced element animates the PICTURE. It sits above the
    shimmer and covers it on decode, which is the only "on load" signal CSS
    actually has -- opacity, not a listener. */
+/* W4-1. The anchor is the frame, so the link's box IS the photograph and a
+   thumb-sized tap target is the picture itself, not a hairline around it. */
+.pv-heroLink{position:absolute;inset:0;z-index:1;display:block}
+.pv-heroLink:focus-visible{outline:2px solid #C9A84C;outline-offset:-3px}
+.pv-strip a{flex:0 0 104px;min-width:0;display:block;line-height:0}
+.pv-strip a:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
 .pv-hero img{position:relative;z-index:1;width:100%;height:100%;
   object-fit:cover;object-position:center top;display:block;
   animation:pvFade 1200ms cubic-bezier(0.22,1,0.36,1) both}
@@ -562,17 +655,24 @@ function PublicStyles() {
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
   scrollbar-width:none}
 .pv-strip::-webkit-scrollbar{display:none}
-.pv-strip img{flex:0 0 104px;min-width:0;width:104px;aspect-ratio:4/5;
+/* ⚠ THE ANCHOR IS NOW THE FLEX ITEM, so F-19.38's cure moves ONTO IT — the
+   image inside is no longer a flex child and its min-width is irrelevant there.
+   Both carry the width: the anchor because it is what flexes, the image because
+   it must fill the anchor and must not re-inherit an intrinsic floor if a later
+   seat unwraps it. Getting this wrong would have reintroduced the four-sitting
+   bug through the door the cure for W4-1 opened. */
+.pv-strip img{width:104px;min-width:0;aspect-ratio:4/5;
   object-fit:cover;display:block;background:#EDEAE4;scroll-snap-align:start}
 
 /* The close is HERS; the colophon is the one place TDW appears. */
 .pv-close{margin-top:40px;padding:0 24px 32px;text-align:center;
   display:flex;flex-direction:column;gap:8px}
-.pv-close-mark{font:300 17px/1.2 "Cormorant Garamond",Georgia,serif;color:#403B36;letter-spacing:.01em}
+.pv-close-mark{font:300 15px/1.2 "Cormorant Garamond",Georgia,serif;color:#403B36;letter-spacing:.01em}
 /* W3-4: "should be smaller -- not a semi hero sizze -- and should have
    thedreamwedding.in adress with it." One line, 11px, sentence case rather than
    tracked-out caps, which is what made 9px read larger than it measured. */
-.pv-colophon{font:400 11px/1.4 inherit;letter-spacing:.01em;color:#6B6560}
+.pv-colophon{font:400 9px/1.4 inherit;letter-spacing:0;color:#6B6560;white-space:nowrap}
+.pv-colophon-link{color:#6B6560;text-decoration:underline;text-underline-offset:2px}
 
 /* ⚠ MOTION IS AN ENHANCEMENT, NEVER A GATE. Everything above animates from
    opacity 0 with "both" fill. Without this rule a reader who has asked their

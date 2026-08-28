@@ -268,6 +268,15 @@ photograph.* The page now opens on her name, over her own work, and closes on it
 |---|---|---|
 | `publicPageColophon` | Created and managed by The Dream Wedding · thedreamwedding.in | `/v/<code>`, last line, 11px, `#6B6560` |
 
+⚠ **Amended again after walk #4 (W4-2), founder's word — second report on the
+size:** *"created and managed by the dream wedding should be smaller — and
+thedreamwedding.in should be tapable."* The line goes to **9px, sentence case,
+no tracking, one line**, and `thedreamwedding.in` is now a **link** to
+`https://thedreamwedding.in` — computed at 5.37:1, held by C35 like every other
+ink. Her studio name above it **reverts 17px → 15px** in the same pass: S5-c
+widened it, and that gap is part of what read heavy. Two tunings of one number
+were enough; the pair moves together now.
+
 ⚠ **Amended after walk #3 (W3-4), founder's word:** *"should be smaller — not a
 semi hero sizze — and should have thedreamwedding.in adress with it."* The
 address is in, and the line moved from 9px tracked-out uppercase to 11px

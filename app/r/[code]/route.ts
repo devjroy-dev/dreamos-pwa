@@ -44,12 +44,23 @@ function page(line: string): Response {
   // Deliberately plain. This is not inside the shell — no session, no rungs, no
   // fonts to load. A stranger who tapped a WhatsApp button deserves a fast,
   // legible sentence, not a design system.
+  //
+  // ⚠ IT DECLARES ITS OWN CHROME — F-19.41 / F-19.42, and this route's version
+  // of the leak is an ABSENCE rather than an inheritance. It writes a whole
+  // document, so `app/layout.tsx` never touches it and the app's near-black
+  // `theme-color` never reaches here. What also never reached here was any
+  // declaration at all: with `color-scheme` unset, Chrome's auto-dark inverts an
+  // undeclared light page, and this ground is `#F8F7F5` by choice. Both metas
+  // say so now. Same two lines as `/v/`, for the opposite reason.
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#F8F7F5">
+<meta name="color-scheme" content="light">
 <title>The Dream Wedding</title>
 <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
 background:#F8F7F5;color:#0C0A09;font:400 16px/1.5 system-ui,-apple-system,sans-serif;padding:24px}
+html{color-scheme:light}
 p{margin:0;max-width:34ch;text-align:center}</style></head>
 <body><p>${line}</p></body></html>`;
   return new Response(html, {

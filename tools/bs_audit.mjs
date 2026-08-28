@@ -840,7 +840,15 @@ try {
   if (!pv) F('C33 the hero and strip are bounded by the fold law', 'app/v/[code]/page.tsx not found');
   else {
     const hero = (pv.match(/\.pv-hero\{[^}]*\}/) || [''])[0];
-    const strip = (pv.match(/\.pv-strip img\{[^}]*\}/) || [''])[0];
+    // ⚠ THE FLEX ITEM MOVED (W4-1). Wrapping each thumbnail in an anchor made
+    // `.pv-strip a` the flex child; the image inside is no longer flexed at all.
+    // This cell read `.pv-strip img` for the basis and correctly reddened — the
+    // guard caught its own subject moving out from under it, which is the whole
+    // reason it was written against the rule rather than against a screenshot.
+    // It now reads whichever element actually flexes.
+    const stripA = (pv.match(/\.pv-strip a\{[^}]*\}/) || [''])[0];
+    const stripImg = (pv.match(/\.pv-strip img\{[^}]*\}/) || [''])[0];
+    const strip = /flex:/.test(stripA) ? stripA : stripImg;
     const bad = [];
     if (!hero)  bad.push('no .pv-hero rule');
     else {
@@ -872,6 +880,13 @@ try {
       const px = (strip.match(/flex:\s*0\s+0\s+(\d+)px/) || [])[1];
       if (!px)                    bad.push('the strip has no fixed thumbnail width');
       else if (Number(px) > 140)  bad.push(`thumbnails at ${px}px read as a gallery, not a glance`);
+      // F-19.38 must survive the wrapper. Whatever flexes needs its automatic
+      // minimum defused, and the image needs it too in case a later seat unwraps
+      // the anchor — the four-sitting bug would otherwise return through the
+      // door W4-1's cure opened.
+      if (!/min-width:\s*0/.test(strip))    bad.push('the flex item does not defuse min-width (F-19.38)');
+      if (stripImg && !/min-width:\s*0/.test(stripImg))
+        bad.push('the thumbnail image does not defuse min-width');
     }
     // The arithmetic must be READABLE, not just correct — a derived number with
     // no derivation at site is a taste number wearing a formula.
@@ -1129,6 +1144,118 @@ try {
     bad.length === 0
       ? P('C37 the stylesheet carries none of its three known traps', 'no stray backtick; no content element loops; every flex image defuses min-width')
       : F('C37 the stylesheet carries none of its three known traps', bad.join('; '));
+  }
+}
+
+// ── C38 · NO APP-LANE CHROME REACHES A PUBLIC ROUTE (F-19.41 / F-19.42) ─────
+// THIRD INSTANCE OF ONE CLASS, and this cell exists so there is no fourth.
+//
+//   F-19.36  the root layout registered an origin-wide service worker, so one
+//            visit to the landing claimed /v/ and /r/ for that browser.
+//   F-19.41  the root layout's STATIC theme-color is the app's near-black, and
+//            its per-lane override has branches for vendor, frost and landing
+//            only — so a public storefront wore the shell's chrome.
+//   F-19.42  nothing declared `color-scheme` anywhere, so Chrome's auto-dark
+//            inverted a page whose cream ground was chosen deliberately.
+//
+// **One file, three leaks, one shape: the root layout does not know that some of
+// its children are not the app.** The first two were found by a founder walk;
+// the third by a probe after the seat's own file-derived mechanism was refused
+// by the browser. None of them was visible to any instrument here.
+//
+// ⚠ IT ASSERTS THE DECLARATION EXISTS, NOT WHAT IT SAYS — because F-19.42's
+// defect was never a wrong value, it was an ABSENT one, and an absent
+// declaration is exactly what a value-checking cell cannot see.
+{
+  const bad = [];
+  const APP_INK = '#1E0A0E';   // the root layout's static theme-color
+
+  // The leak's SOURCE, not only its symptom. The root layout's inline script
+  // paints a background per lane and its branches named vendor, frost, admin and
+  // landing — every app surface, and no public one. Deleting the storefront
+  // branch reddened nothing until this check existed, which meant the cure could
+  // silently regress while both public routes still looked correctly declared.
+  let root = null;
+  try { root = readFileSync(join(ROOT, 'app/layout.tsx'), 'utf8'); } catch { bad.push('app/layout.tsx not found'); }
+  if (root) {
+    const code = strip(root);
+    // ⚠ THE BRANCH MUST BE WIRED, NOT MERELY NAMED — D-38.1, in a cell written
+    // to catch a leak. The first cut grepped for `isPublicStorefront` anywhere
+    // in the file, so cutting the branch to `else if(false)` left the variable
+    // DECLARATION standing and the cell passed while /v/ fell through to an app
+    // lane again. Presence is not behaviour, and a predicate nothing branches on
+    // is a comment with a semicolon.
+    const declared = /var\s+isPublicStorefront\s*=/.test(code);
+    const branched = /else\s+if\s*\(\s*isPublicStorefront\s*\)\s*\{\s*bg\s*=/.test(code);
+    if (!declared)  bad.push('the root layout declares no public-storefront predicate');
+    if (!branched)  bad.push('the public-storefront predicate is declared but nothing branches on it — /v/ and /r/ still fall through to an app lane');
+    if (declared && !/indexOf\('\/v\/'\)===0/.test(code)) bad.push('the public predicate does not name /v/');
+    if (declared && !/indexOf\('\/r\/'\)===0/.test(code)) bad.push('the public predicate does not name /r/');
+  }
+
+  let pv = null, rr = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { bad.push('the public page not found'); }
+  try { rr = readFileSync(join(ROOT, 'app/r/[code]/route.ts'), 'utf8'); } catch { bad.push('the review route not found'); }
+
+  if (pv) {
+    const code = strip(pv);
+    if (!/export const viewport/.test(code))        bad.push('/v/ declares no viewport — it inherits the shell\u2019s chrome');
+    if (!/themeColor:/.test(code))                  bad.push('/v/ declares no themeColor');
+    if (!/colorScheme:\s*'light'/.test(code))       bad.push('/v/ does not declare color-scheme: light');
+    // ⚠ AND IT MUST REACH THE CASCADE. The viewport export alone did not settle
+    // it: the arm read `getComputedStyle(html).colorScheme` and got "normal",
+    // because that reads the CSS property and a meta tag is not one — and
+    // "normal" is the exact state auto-dark inverts. Removing the CSS rule
+    // reddened NOTHING on this cell's first run, so the half that does the work
+    // in a browser was unguarded while the half that reads well was not.
+    if (!/:root\{color-scheme:\s*light\}/.test(pv))  bad.push('/v/ declares color-scheme in metadata only — it never reaches the cascade');
+    if (code.includes(APP_INK))                     bad.push(`/v/ carries the app lane's ink ${APP_INK}`);
+  }
+  if (rr) {
+    const code = strip(rr);
+    // /r/ writes its own document, so its leak is an ABSENCE rather than an
+    // inheritance — the same two declarations, for the opposite reason.
+    if (!/name="theme-color"/.test(code))           bad.push('/r/ emits no theme-color');
+    if (!/color-scheme/.test(code))                 bad.push('/r/ declares no color-scheme');
+    if (code.includes(APP_INK))                     bad.push(`/r/ carries the app lane's ink ${APP_INK}`);
+  }
+
+  bad.length === 0
+    ? P('C38 no app-lane chrome reaches a public route', 'both public routes declare their own theme-color and color-scheme; neither carries the app ink')
+    : F('C38 no app-lane chrome reaches a public route', bad.join('; '));
+}
+
+// ── C39 · EVERY PHOTOGRAPH CAN BE OPENED, WITHOUT SHIPPING JAVASCRIPT ───────
+// W4-1: "tapping the pictures does nothing", on a page whose subject is the
+// work. CE-38 ruled shape (1) — an anchor per photograph to its own source, the
+// browser's own viewer doing the zooming — and refused the CSS-only `:target`
+// lightbox because back-button weirdness on a stranger's phone is a worse
+// product than an honest link.
+//
+// THE SECOND HALF IS THE ONE THAT PROTECTS THE RULING. This route's refusal of
+// client JS is load-bearing, and a later seat reaching for a viewer would reach
+// for `'use client'`. The cell refuses it here.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C39 every photograph opens, and no JavaScript ships', 'the public page not found');
+  else {
+    const code = strip(pv);
+    const markup = code.split('function PublicStyles')[0];
+    const bad = [];
+    if (!/className="pv-heroLink"/.test(markup))    bad.push('the hero is not tappable');
+    const stripAnchor = /<a[^>]*href=\{p\.url\}/.test(markup);
+    if (!stripAnchor)                               bad.push('the strip thumbnails are not tappable');
+    // An anchor that opens a new tab without `noopener` hands the opened page a
+    // handle on this one. On a public route that is a real hole, not a lint nit.
+    const targets = (markup.match(/target="_blank"/g) || []).length;
+    const noopener = (markup.match(/rel="noopener[^"]*"/g) || []).length;
+    if (targets > noopener)                         bad.push(`${targets} _blank links, only ${noopener} with rel=noopener`);
+    if (/'use client'/.test(code))                  bad.push('the public route became a client component — the ruled refusal is reversed');
+    if (/onClick|useState|useEffect/.test(code))    bad.push('client-side interactivity reached the public route');
+    bad.length === 0
+      ? P('C39 every photograph opens, and no JavaScript ships', `hero + strip anchored, ${targets} _blank links all noopener, no client runtime`)
+      : F('C39 every photograph opens, and no JavaScript ships', bad.join('; '));
   }
 }
 

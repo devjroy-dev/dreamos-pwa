@@ -207,6 +207,33 @@ async function measure(page) {
     // ── WHO IS CONTROLLING THIS DOCUMENT ──────────────────────────────────
     out.swController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
 
+    // ── F-19.41 / F-19.42 · THE GROUNDS THE BROWSER ACTUALLY PAINTED ─────────
+    // The walk-4 packet claimed the root layout's inline script wrote a dark
+    // background onto html/body. The probe refused it — both inline styles were
+    // null and `.pv` computed cream on both branches. The page was right; the
+    // browser inverted it, because nothing declared that the ground was chosen.
+    //
+    // A stylesheet cell can only ever read the ground a page DECLARES. This
+    // reads the three surfaces separately, so a divergence between what the
+    // sheet says and what the canvas is has somewhere to show up.
+    const pvEl = document.querySelector('.pv');
+    out.grounds = {
+      html:        getComputedStyle(document.documentElement).backgroundColor,
+      htmlInline:  document.documentElement.style.background || null,
+      body:        getComputedStyle(document.body).backgroundColor,
+      main:        pvEl ? getComputedStyle(pvEl).backgroundColor : null,
+      colorScheme: getComputedStyle(document.documentElement).colorScheme,
+      themeColor:  (document.querySelector('meta[name="theme-color"]') || {}).content || null,
+    };
+    // W4-1: anchored photographs, and every _blank carrying noopener.
+    const links = [...document.querySelectorAll('.pv-heroLink, .pv-strip a')];
+    out.photoLinks = links.map((a) => ({
+      href: a.getAttribute('href'),
+      blank: a.getAttribute('target') === '_blank',
+      noopener: /noopener/.test(a.getAttribute('rel') || ''),
+      tap: Math.round(a.getBoundingClientRect().width) + 'x' + Math.round(a.getBoundingClientRect().height),
+    }));
+
     // ── CONTRAST, sampled where type actually sits ────────────────────────
     // Declared pairs are `bs_audit`'s to compute. What only a browser knows is
     // what a light glyph is sitting ON when the background is a photograph —
@@ -454,6 +481,27 @@ async function open(browser, url, label, opts = {}) {
         chk(m.hero.shimmerIterations !== 'infinite',
             '§1.6e the placeholder does not loop forever',
             `iterations: ${m.hero.shimmerIterations}`);
+      }
+      // ── §1.8 · THE CHROME THIS ROUTE DECLARES (F-19.41 / F-19.42) ────────
+      if (m.grounds) {
+        const g = m.grounds;
+        console.log(`      grounds  html ${g.html} · body ${g.body} · main ${g.main}`);
+        console.log(`               color-scheme ${g.colorScheme} · theme-color ${g.themeColor}`);
+        chk(g.colorScheme === 'light',
+            '§1.8 the page declares its ground was chosen (F-19.42)',
+            `color-scheme: ${g.colorScheme} — "normal" is what auto-dark inverts`);
+        chk(g.themeColor === '#F8F7F5',
+            '§1.8b the browser chrome is this page\u2019s, not the app shell\u2019s (F-19.41)',
+            `theme-color: ${g.themeColor}`);
+        chk(g.main === 'rgb(248, 247, 245)',
+            '§1.8c the painted ground is the declared one', String(g.main));
+      }
+      // ── §1.9 · W4-1 · the photographs open ───────────────────────────────
+      if (m.photoLinks) {
+        const bad = m.photoLinks.filter((l) => !l.href || (l.blank && !l.noopener));
+        chk(m.photoLinks.length >= 2 && bad.length === 0,
+            '§1.9 every photograph is an anchor, and every _blank carries noopener',
+            `${m.photoLinks.length} link(s), taps ${m.photoLinks.map((l) => l.tap).join(' ')}`);
       }
       chk(!!m.build, '§1.7 the page names its own build', m.build || 'NO meta[name="tdw-build"] — a walk cannot identify what it opened');
       await cold.page.close().catch(() => {});
