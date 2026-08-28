@@ -645,6 +645,39 @@ function mountCensus(tag) {
   return seen;
 }
 
+// ── THE CROSSED SET IS DERIVED, NEVER RETYPED  [§4-2] ───────────────────────
+//    Four cells below held their own hand-typed list of the six list rooms. That is two
+//    homes for one set, and the second home is the one that stops agreeing: calendar
+//    crossed at §4-2 and not one of those four cells would have noticed — they would have
+//    gone on asserting six rooms while the shell served seven, which is the audit's own
+//    interim-list disease (S2 §5) reproduced in the bench written to guard against it.
+//
+//    A CROSSED ROOM IS A REGISTRY FACT: an entry whose href is a /w/ route with a page on
+//    disk. Each of the seven remaining crossings widens these cells in the same edit that
+//    changes a href, with nothing to remember. Verified non-vacuous: with calendar crossed
+//    this returns seven, and the count is asserted below rather than assumed.
+//
+//    ⚠ AND THE FIRST CUT CONFLATED TWO CATEGORIES, WHICH THE RUN CAUGHT IMMEDIATELY.
+//    Not every /w room is a CROSSED room. Billing, Settings, Business Solutions and Advisor
+//    are SHELL-NATIVE — built for /w, with no body in the /vendor tree and no Slice Door
+//    behind them — so `RoomBody` and the door-label clauses are meaningless for them and
+//    reddened a correct tree on five counts. The distinguishing property is not the href;
+//    it is whether the room's page imports a body out of `app/vendor`.
+function shellRooms() {
+  const reg = strip(read('lib/worklist/rooms.ts'));
+  const ids = [];
+  for (const m of reg.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'(\/w\/[a-z]+)'/g)) {
+    if (fs.existsSync(path.join(ROOT, 'app/w/' + m[1] + '/page.tsx'))) ids.push(m[1]);
+  }
+  return ids;
+}
+
+/** A room whose BODY came from the /vendor tree — the ones §4-1 and §4-2 move. */
+function crossedRooms() {
+  return shellRooms().filter((id) =>
+    /from '@\/app\/vendor\//.test(strip(read('app/w/' + id + '/page.tsx'))));
+}
+
 cell('C24 the six list rooms crossed in the registry, as a set', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const FAMILY = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
@@ -669,7 +702,7 @@ cell('C24 the six list rooms crossed in the registry, as a set', () => {
 
 cell('C25 each crossed room mounts the shell and no second masthead', () => {
   const bad = [];
-  for (const id of ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes']) {
+  for (const id of crossedRooms()) {
     const f = 'app/w/' + id + '/page.tsx';
     if (!fs.existsSync(path.join(ROOT, f))) { bad.push(f + ' does not exist'); continue; }
     const src = strip(read(f));
@@ -785,6 +818,10 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
   const labels = {};
   for (const m of lm[1].matchAll(/([a-z]+):\s*'([^']+)'/g)) labels[m[1]] = m[2];
   const bad = [];
+  // NOT the derived set: `LABELS` is keyed by DoorSlice and the Slice Door has exactly six
+  // members. Calendar has no door label and never will, so widening this loop would assert
+  // a correspondence that does not exist — which is what the first cut did, reporting
+  // 「door label undefined」 against five rooms that never had one.
   for (const id of ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes']) {
     const c = copy.match(new RegExp(id + "Title:\\s*'([^']+)'"));
     if (!c) { bad.push(id + 'Title has no home in the copy register'); continue; }
@@ -876,7 +913,10 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   const fallback = fb ? fb[1] : null;
 
   const strays = new Map();
-  for (const room of ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes']) {
+  // EVERY shell room, crossed or native: a /vendor literal reachable from Billing is as
+  // wrong as one reachable from Leads, and the S2 bounce found its worst specimen in a tier
+  // gate nobody thought of as a door. Verified at this cut: zero strays across all eleven.
+  for (const room of shellRooms()) {
     const entry = path.join(ROOT, 'app/w/' + room + '/page.tsx');
     if (!fs.existsSync(entry)) return 'app/w/' + room + '/page.tsx does not exist';
     const hits = [];
@@ -1027,12 +1067,23 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   const order = (fab.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   const want = ['calendar', 'lead', 'client', 'invoice', 'expense', 'event', 'note'];
   if (order.join(',') !== want.join(',')) return 'row order is ' + order.join(' ') + ', ruled ' + want.join(' ');
-  // THE THIRD CASE, NAMED. Every leg resolves to a /w/ route, an AddSheet leg, or a
-  // DECLARED interim href from the registry — and calendar is the third kind today.
-  const interim = strip(read('lib/worklist/rooms.ts')).match(/INTERIM_VENDOR_ROOMS[^=]*=\s*\[([\s\S]*?)\]/);
-  if (!interim || !/'calendar'/.test(interim[1]))
-    return 'the calendar leg is a declared interim href and calendar is not in INTERIM_VENDOR_ROOMS';
+  // AMENDED, LABELLED — §4-2. THE THIRD CASE CLOSED, AND THE ASSERTION INVERTS.
+  // R-38.18 named three kinds of leg: a /w/ route, an AddSheet leg, or a DECLARED interim
+  // href — and calendar was the third kind. It crossed at §4-2, so the interim clause is
+  // now FALSE and asserting it would red a correct tree. RETIRE-WITH-THE-READER: the cell
+  // asserts the successor rather than dropping the claim, so a calendar that slid back out
+  // of the shell reddens here too.
+  //
+  // WHAT DID NOT CHANGE IS THE POINT: the call site still asks `roomHref`. It was never
+  // touched by the crossing — the registry answered differently and the leg followed. That
+  // is the address book's whole warrant and it is asserted, not admired.
   if (!/roomHref\('calendar'\)/.test(fab)) return 'the calendar leg spells an address instead of asking the registry';
+  const interim = strip(read('lib/worklist/rooms.ts')).match(/INTERIM_VENDOR_ROOMS[^=]*=\s*\[([\s\S]*?)\]/);
+  if (!interim) return 'INTERIM_VENDOR_ROOMS is not declared';
+  if (/'calendar'/.test(interim[1]))
+    return 'calendar crossed but is still declared an interim /vendor room';
+  if (!fs.existsSync(path.join(ROOT, 'app/w/calendar/page.tsx')))
+    return 'the calendar leg resolves to a /w/ route that does not exist — never-404';
   if (!/'\/w\/notes\?add=1'/.test(fab)) return 'the note leg does not open the notes composer';
   const slices = (fab.match(/slice:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (slices.join(',') !== 'leads,clients,invoices,expenses,events')

@@ -446,6 +446,13 @@ async function seat(browser, mode) {
     // construction, not by sweep" claim false on six surfaces at once. The exclusion is
     // three lines of code and a paragraph of handover, so it cannot be forgotten — and the
     // frames are still taken, so the founder SEES the gap he is being asked to price.
+    // ⚠ AND CALENDAR JOINS THE NAMED EXCLUSIONS AT §4-2, ON THE SAME REASONING AS THE SIX
+    // AND WITH THE SAME REFUSAL TO GO QUIET ABOUT IT. It crossed STRUCTURALLY; its chrome
+    // conforms and its BODY does not — `app/vendor/calendar/screen.tsx` carries the slice
+    // tree's older type register and its own colour literals (F-38.22's family). Capturing
+    // it and letting this cell pass over it would make R-38.4's 「by construction, not by
+    // sweep」 claim false on a seventh surface. The frame is still taken, so the founder
+    // SEES the gap he is being asked to price.
     const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor'];
     const RUNGS = [
       { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
@@ -1207,11 +1214,19 @@ async function seat(browser, mode) {
       // the pair is the evidence of what the crossing actually did. The remaining /vendor
       // frame is a room that has NOT crossed, kept so the founder judges the seam rather
       // than only the cured half.
+      // ── THE SET IS DERIVED FROM THE REGISTRY  [§4-2] ────────────────────
+      // It was thirteen hand-typed pairs, correct until a room crossed. Calendar crossed
+      // and would have been the one surface the founder never saw a frame of — the newest
+      // one, which is the only one worth looking at. Every later crossing joins these
+      // frames in the edit that changes its href.
+      const shellFrames = [...new Set([...
+        (fs.readFileSync('lib/worklist/rooms.ts', 'utf8').matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/w\/([a-z]+)'/g))]
+        .map((m) => ['w-' + m[2], '/w/' + m[2]]).map((p) => p.join('\u0000')))]
+        .map((k) => k.split('\u0000'));
       for (const [name, path] of [['w-rooms', '/w/rooms'], ['w-today', '/w/today'],
-        ['w-billing', '/w/billing'], ['w-settings', '/w/settings'],
-        ['w-advisor', '/w/advisor'], ['w-support', '/w/support'],
-        ['w-leads', '/w/leads'], ['w-clients', '/w/clients'], ['w-invoices', '/w/invoices'],
-        ['w-expenses', '/w/expenses'], ['w-events', '/w/events'], ['w-notes', '/w/notes'],
+        ...shellFrames,
+        // The seam the founder is being asked to judge: a crossed room beside its own
+        // fallback, and a room that has NOT crossed. Both kept on purpose.
         ['fallback-leads', '/vendor/list/leads'], ['room-collab', '/vendor/collab']]) {
         // A FRAME OF A HALF-MOUNTED PAGE IS EVIDENCE OF NOTHING and would be handed to the
         // founder looking like a broken surface. The capture waits on the shell too, and a
@@ -1286,7 +1301,15 @@ async function seat(browser, mode) {
   if (CAPTURE) {
     const n = fs.readdirSync(CAPTURE).length;
     console.log('captures: ' + n + ' frames in ' + CAPTURE);
-    if (n < 28) console.log('  \u26a0 EVIDENCE INCOMPLETE — 28 frames were ruled, ' + n + ' were written. The cells above stand; the walk card does not go to the founder on a short set.');
+    // ── THE RULED COUNT IS DERIVED, AND THE LITERAL IT REPLACES WAS ALREADY STALE ──
+    // It read 「28 frames were ruled」 — a number from a capture set two sittings old, still
+    // printing itself as the ruling while the set had grown past it. It could only ever
+    // under-report, so it never fired and nobody noticed, which is exactly how a floor
+    // stops being one. Rooms and Today, every /w room the registry declares, the two
+    // /vendor seam frames, and six tapped states — twice, once per mode.
+    const RULED = (2 + [...new Set([...(fs.readFileSync('lib/worklist/rooms.ts', 'utf8')
+      .matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/w\/([a-z]+)'/g))].map((m) => m[2]))].length + 2 + 6) * 2;
+    if (n < RULED) console.log('  \u26a0 EVIDENCE INCOMPLETE — ' + RULED + ' frames were ruled, ' + n + ' were written. The cells above stand; the walk card does not go to the founder on a short set.');
   }
   console.log(fail === 0 ? 'RENDER ARM GREEN.' : 'RENDER ARM RED — the ZIP bounces.');
   process.exit(fail === 0 ? 0 : 1);

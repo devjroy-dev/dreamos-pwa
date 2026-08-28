@@ -315,6 +315,11 @@ export const COPY = {
   // F-38.23, priced, and asserted in the meantime: b40's C30 compares these six against
   // LABELS and reddens if they ever disagree, so the duplication cannot drift even while
   // it exists.
+  // §4-2: Calendar's masthead word joins the six. Same byte as the tile label and the same
+  // shape rule — a NOUN, one word — and it is here for the same reason as the others: the
+  // shell may not inline a vendor-facing string. F-38.23's duplication note covers it too;
+  // b40 C30 compares the set against the door labels and reddens on any disagreement.
+  calendarTitle: 'Calendar',
   leadsTitle:    'Leads',
   clientsTitle:  'Clients',
   invoicesTitle: 'Invoices',

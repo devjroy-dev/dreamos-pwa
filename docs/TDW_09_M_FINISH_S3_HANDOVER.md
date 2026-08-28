@@ -1,0 +1,243 @@
+# M-FINISH · SITTING 2, SESSION 3 — §4-2 OPENS: CALENDAR CROSSES
+
+**BASE (R-38.15): `4f2482d` = `origin/worklist`, re-derived at the moment of cutting.**
+Sibling `dream-os` `f7f5a6e` = `origin/main`, clean. **Railway/Vercel green: NOT CLAIMED** —
+nothing here ran against a deploy.
+
+**Packet:** the S3 charter arrived as a text relay; no hash to re-derive. Its scope is
+recorded verbatim in §1 so the next seat reads the charter rather than an account of it.
+
+---
+
+## §0 · ENVIRONMENT — A COMMAND, NOT A SENTENCE
+
+```
+bash tools/preflight.sh worklist
+```
+
+```
+pwa worklist 4f2482d · dream-os main f7f5a6e · both clean · node_modules present
+branch alias: https://dreamos-pwa-git-worklist-devjroy-devs-projects.vercel.app
+```
+
+R-38.20b. The word "present" is banned; the tip is printed.
+
+**⚠ THE TIP MOVED BENEATH THIS SITTING AND THE GUARD CAUGHT IT.** §0 opened at `14836e1`;
+P0-B step 5 landed `4f2482d` while this was building, and `base_guard.sh` refused the apply
+with *HEAD is 4f2482d, base is 14836e1 — the local checkout is not on the base*. **That is
+R-38.20 doing the exact job F-38.25 bought it**, and it is the first time in this arc a
+moved tip was met by a refusal instead of by a silent whole-file copy over somebody else's
+work. Re-cut here, on the tip, with every count below re-derived after the rebase.
+
+Step 5 touched `docs/COPY_REGISTER_TDW19.md`, `docs/TDW_19_P0B_HANDOVER.md` and
+`tools/bs_audit.mjs`. **Zero overlap with this delivery's twelve files**, derived by
+command, not assumed from the commit message.
+
+---
+
+## §1 · THE CHARTER, AND WHAT THIS SITTING REACHED
+
+Four items in order: ① calendar crosses ② the remaining seven, one at a time ③ Khata if
+the seam allows ④ Settings on the rungs + F-38.3's cure to close.
+
+**REACHED: ① ONLY. Banked at the first authored-drift tell, which arrived early and is the
+reason the seam closed here** — see §4. Items ②③④ are untouched and the next sitting opens
+on storefront with the shape below already proven.
+
+---
+
+## §2 · CALENDAR CROSSED — ONE EDIT, THREE SITES
+
+| site | what moved |
+|---|---|
+| `lib/worklist/rooms.ts` | href `/vendor/calendar` → `/w/calendar`; `INTERIM_VENDOR_ROOMS` 8 → 7 |
+| `components/vendor/AddSheet.tsx:496` | ``router.push(`/vendor/calendar?block=${d}`)`` → ``router.push(`${roomHref('calendar')}?block=${d}`)`` |
+| `components/worklist/AddFab.tsx` | **the code did not change.** Only the comment did |
+
+**THE THIRD SITE IS THE ADDRESS BOOK'S WHOLE WARRANT, PAID OUT.** R-38.18's Calendar leg
+has asked `roomHref('calendar')` since the day it was written, and its comment said: *it is
+a declared interim address, and it becomes a `/w/` route in the same edit that crosses the
+room, with nothing here to remember.* That is exactly what happened — the registry answered
+differently and the leg followed, untouched.
+
+**AND THE COMMENT STILL HAD TO BE REWRITTEN**, which is the half that is easy to skip. The
+old note described calendar as interim; a comment that has stopped being true is worse than
+none, because the next reader trusts it and reasons from a status that changed a sitting
+ago. This seat filed F-38.29 three times last sitting for the gap between a comment and the
+line beneath it. **Here the line was already right and the words were not — the same defect
+wearing the other face.**
+
+`AddSheet.tsx:496` was the TENTH literal the S2 ZIP bounce found. It was left
+declared-and-allowed on purpose, with a note saying it would re-point when calendar
+crossed. This is that edit.
+
+### THE FILE SPLIT, AND WHY IT IS STRUCTURAL RATHER THAN TIDY
+
+`app/vendor/calendar/page.tsx` was one file holding both the body and the route's chrome.
+It is now two:
+
+- **`app/vendor/calendar/screen.tsx`** — the body. `export function CalendarScreen`, and
+  **no `Header` import.**
+- **`app/vendor/calendar/page.tsx`** — the surviving fallback route. Session guard,
+  `<Header/>`, the shared body. Shape copied from `app/vendor/list/[slice]/page.tsx`
+  deliberately: one precedent, one shape, nothing for the next seven crossings to invent.
+
+**THE SPLIT IS NOT NEGOTIABLE AND S2 PAID FOR THE LESSON ONCE.** `SliceShell` kept
+`import { Header }` and wrote `{chrome && <Header/>}`. It rendered correctly and still
+shipped the old masthead — its drawer, its `/vendor` rows, its banned bytes — into every
+crossed room's chunk. **A conditional does not remove a module from a bundle; only not
+importing it does.** So body and chrome cannot share a file, and the `Header` import's
+absence from `screen.tsx` is asserted rather than intended.
+
+**`vendorName` LEFT WITH THE MOUNT.** It was read by exactly one thing, and once the Header
+lifted, the parameter was dead. Derived, not assumed: after the lift the only occurrence in
+the file was the signature. An unused prop is not tidiness debt — it is a named, typed hole
+the next reader fills, and then the body knows the vendor's name for no reason on a surface
+that must not print it.
+
+### THE MOUNT CENSUS DOES NOT SHRINK, AND THAT IS CORRECT
+
+The charter says `INTERIM_VENDOR_MOUNTS` shrinks with each crossing. **It cannot for this
+one, and the reason is structural rather than an omission.** The six list rooms gave up two
+mounts and their fallback route took one back: net minus one, one file leaving the census.
+Calendar's body and its fallback route were **one file**, so the mount moved *within* the
+crossing rather than out of it. `app/vendor/calendar/page.tsx` still renders exactly one
+`Header`, the census still declares it at 1, and the constant that shrinks is
+`INTERIM_VENDOR_ROOMS` (8 → 7).
+
+**A census bent to shrink here would have been a number edited to match a sentence.**
+Reported rather than forced; the same will be true of every room whose body and route are
+one file, which is most of the remaining seven.
+
+### BOTH-WAYS, AT THIS TIP
+
+The charter asked that the interim tracking redden on the stale literal at the uncured tree
+and green after. `wl_audit` needs a deploy, so its **source-side twin** carries the proof
+here and the founder's run carries the served-bytes half:
+
+- **Restore the `/vendor/calendar` literal in `AddSheet.tsx`** → `b40` C31 reds, naming
+  `AddSheet.tsx:496` reachable from **eight** rooms. An independent import-graph walk names
+  the same eight. Restore the cure → zero strays across all eleven shell rooms.
+- **Revert only the registry href** → C24 reds: *the registry carries 8 /vendor hrefs but
+  declares 7 interim rooms.* The set assertion catches a room sliding back out.
+
+---
+
+## §3 · FOUR INSTRUMENTS RE-POINTED, AND THREE OF THEM HELD A LIST THAT HAD STOPPED BEING TRUE
+
+**This is the sitting's real finding.** Calendar crossing was four hours of nothing; what
+took the time was that **four instruments each held their own hand-typed copy of "the
+crossed rooms," and not one of them would have noticed a seventh.**
+
+**`b40` — four lists, now one derived helper.** C25, C30 and C31 each retyped
+`['leads','clients','invoices','expenses','events','notes']`. They would have gone on
+asserting six rooms while the shell served seven. **That is `wl_audit`'s own interim-list
+disease from S2 §5, reproduced inside the bench written to guard against it.**
+
+**AND THE FIRST CUT OF THE HELPER CONFLATED TWO CATEGORIES, WHICH THE RUN CAUGHT IN ONE
+PASS.** Not every `/w` room is a *crossed* room: Billing, Settings, Business Solutions and
+Advisor are **shell-native**, built for `/w`, with no body in the `/vendor` tree and no
+Slice Door behind them. Deriving on the href alone reddened a correct tree on five counts —
+*billing does not sit in RoomBody*, *support does not take its header word from the copy
+register*, *door label undefined*. The distinguishing property is not the href; it is
+whether the room's page imports a body out of `app/vendor`. Two helpers now:
+
+- `shellRooms()` — every `/w` room the registry declares. C31 uses this, because a `/vendor`
+  literal reachable from Billing is as wrong as one reachable from Leads, and the S2 bounce
+  found its worst specimen in a tier gate nobody thought of as a door.
+- `crossedRooms()` — those whose page imports from `app/vendor`. C25 uses this.
+- **C30 goes back to the six by name.** Its subject is `LABELS`, keyed by `DoorSlice`.
+  Calendar has no door label and never will, so widening it asserts a correspondence that
+  does not exist.
+
+**`wl_audit` — `PAGES` and `shellSurfaces` derive from the registry.** Eleven surfaces,
+twelve with `/w/calendar`. Hand-typed, they were correct for exactly as long as the shell
+served eleven rooms.
+
+**`wl_render` — the capture set derives too, and its frame floor was already stale.** The
+set was thirteen hand-typed pairs; calendar would have been the one surface the founder
+never saw a frame of — the newest one, the only one worth looking at. And the completeness
+check read `if (n < 28)` from a capture set two sittings old: **it could only ever
+under-report, so it never fired and nobody noticed, which is exactly how a floor stops being
+one.** Derived now: **42**.
+
+Calendar's body joins `SCALE_SURFACES`'s named exclusions on the same reasoning as the six —
+it crossed structurally, its chrome conforms, its body carries the older type register and
+F-38.22's colour literals. The frame is still taken, so the founder sees the gap he is being
+asked to price.
+
+---
+
+## §4 · F-38.39 · THE CROSSING BROKE A FLOOR BENCH, AND R-38.19 CAUGHT IT AT THE CUT
+
+`scripts/tdw09_hotfix.proof.mjs` went RED on **twelve cells** the moment the file split —
+2.6, 2.17–2.20 and all of §3. Every one reads the calendar's body, and the body is
+`screen.tsx` now.
+
+**THIS IS F-38.27's CLASS, AND THE DIFFERENCE IS THE ENTRY.** At S2 the same thing happened
+— a crossing cure retired a literal a floor bench asserted, the bench went red with the cure
+and **shipped**, because the handover's floor line had been derived before the cure existed.
+R-38.19 was written out of that failure: *the floor is re-derived at the cut, never quoted,
+and you compare the SET, not the count.* **It fired exactly as designed.** The count would
+have looked almost innocent — 24 against a base of 23 — and the set named the bench.
+
+Cured by following the subject: `CAL_BODY = 'app/vendor/calendar/screen.tsx'`, declared at
+both reading sections rather than once at the top, because those two sections read the file
+for different claims and a shared constant would invite a third reader to assume they check
+the same thing. **A cell renamed to follow its subject is not a loosened cell**; a cell left
+pointing at the old path would have reddened a correct tree and taught the next seat that
+this bench may be argued with.
+
+**PRICE THIS FOR THE SEVEN REMAINING CROSSINGS.** Storefront, portfolio, couture, team,
+contracts, tds and collab are each read by benches under `scripts/`, and each split will
+break some of them. The floor at the cut is what finds them; there is no reading that will.
+
+---
+
+## §5 · FLOORS AT THE CUT (R-38.19)
+
+**pwa, dirty tree: 23.** Set = the named base **22** plus `tdw_f0774_vacuity_probe`, which
+reds on any dirty tree and greens on commit. `tdw37_leadgate_b_slot` stays green.
+`tdw09_hotfix` returns to green after the re-point. Derived twice, before and after the
+cure, and diffed by set.
+
+`b40` **37/37**. `npx tsc --noEmit` **exit 0**.
+
+---
+
+## §6 · WHAT THIS SEAT OWNS
+
+- **Nothing here ran against a deploy.** The audit and the arm both need one; the
+  served-bytes half of the crossing's both-ways is the founder's run.
+- **The census clause was reported, not met.** `INTERIM_VENDOR_MOUNTS` does not shrink for
+  calendar, and the reason is in §2. If the chair reads the clause as binding rather than
+  descriptive, the cure is to move the fallback's Header out of `app/vendor/calendar/` — and
+  there is nowhere honest for it to go.
+- **`app/vendor/calendar/page.tsx` renders one nesting level differently** from before the
+  split: the wrapper is `[slice]/page.tsx`'s, not the body's original. The body's own outer
+  div is unchanged and sits inside it. Glass-checkable, not proven here.
+- **`scripts/` was touched** (`tdw09_hotfix`), so per the charter the F-38.38 + F-19.18 cure
+  was in scope this sitting. **It is NOT in this ZIP** — the re-point was four string changes
+  and the signal-safe helper is a design that wants its own both-ways. Named, not smuggled.
+
+## §7 · THE NEXT SITTING
+
+**Storefront next**, then portfolio, couture, team, contracts, tds, collab. The shape is
+proven and mechanical now:
+
+1. split the body out of the route file if they share one; the `Header` import must not
+   reach the body
+2. `app/w/<room>/page.tsx` — `WorklistShell` + `RoomBody` + the body, header word from
+   `copy.ts`
+3. registry href → `/w/<room>`, id out of `INTERIM_VENDOR_ROOMS`
+4. any `/vendor/<room>` literal in the graph → `roomHref('<room>')`
+5. **run the floor and diff the SET** — expect a bench under `scripts/` to follow the body
+6. both-ways: restore the literal, C31 must name it; revert the href, C24 must name it
+
+Carried forward unchanged: `rooms.ts:1` still reads "THE SEVENTEEN ROOMS" against
+`ROOM_COUNT_EXPECTED = 18` — corrected to **NINETEEN at the Khata edit**, one correction at
+one site. Open: F-38.22, F-38.23, F-38.24, F-38.30 = F-19.14, F-38.31's Phase 4 half,
+F-38.32, F-38.38 + F-19.18.
+
+**Eight uncomments stay dated at their own sites** — five at Phase 4's first 200, three at
+TDW_19 P0-B step 4. None depends on this document being read.

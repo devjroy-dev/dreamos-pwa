@@ -60,6 +60,22 @@ const registryVendorLinks = () => {
   const m = REGISTRY.match(/INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
   return m ? (m[1].match(/'(\/vendor\/[^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
 };
+/**
+ * EVERY /w SURFACE THE REGISTRY DECLARES \u2014 DERIVED, BECAUSE A CROSSING MUST NOT NEED
+ * THIS FILE TO BE REMEMBERED.
+ *
+ * The two lists below used to be hand-typed. They were correct for exactly as long as the
+ * shell served eleven rooms, and calendar crossed at \u00a74-2 \u2014 at which point every cell
+ * scoped by them would have gone on asserting eleven surfaces while the vendor walked
+ * twelve, and the twelfth would have been the one nobody looked at. That is the SAME
+ * disease this file cured in its own interim list at S2 \u00a75, one list further down.
+ *
+ * Each of the seven remaining crossings widens this gate in the same edit that changes a
+ * href. Nothing to remember, and nothing to forget.
+ */
+const registryShellRooms = () =>
+  [...REGISTRY.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/w\/([a-z]+)'/g)].map((m) => '/w/' + m[2]);
+
 /** The Slice Door's fallback prefix \u2014 declared in the registry, read here, never retyped. */
 const registryFallbackBase = () => {
   const m = REGISTRY.match(/FALLBACK_SLICE_BASE\s*=\s*'([^']+)'/);
@@ -112,9 +128,11 @@ async function get(path) {
 // it is the surviving fallback and the R-37.79 one-drawer cell reads it as the carried
 // tree's specimen. A crossed room and its fallback are two different surfaces now and both
 // are fetched, because the interesting failure is them disagreeing.
-const PAGES = ['/w', '/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor',
-  '/w/leads', '/w/clients', '/w/invoices', '/w/expenses', '/w/events', '/w/notes',
-  '/vendor/list/leads'];
+// `/w` and `/w/today` are not rooms and are not in the registry \u2014 one is the entry
+// redirect, one is a nav seat \u2014 so they are named, and everything that IS a room is
+// derived. `/vendor/list/leads` stays because a crossed room and its fallback are two
+// surfaces now and the interesting failure is them disagreeing.
+const PAGES = [...new Set(['/w', '/w/today', ...registryShellRooms(), '/vendor/list/leads'])];
 const pageCorpus = new Map();
 let refTotal = 0, gotTotal = 0;
 const missed = [];
@@ -387,8 +405,7 @@ async function coverage() {
   // enforce that direction rather than merely restate today's contents.
   const INTERIM_LINKS = registryVendorLinks();
   const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, '/vendor/onboarding']);
-  const shellSurfaces = ['/w/rooms', '/w/today', '/w/billing', '/w/settings', '/w/advisor',
-    '/w/leads', '/w/clients', '/w/invoices', '/w/expenses', '/w/events', '/w/notes'];
+  const shellSurfaces = [...new Set(['/w/today', ...registryShellRooms()])];
   const strays = new Set();
   for (const path of shellSurfaces) {
     const body = pageCorpus.get(path) || '';

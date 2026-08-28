@@ -37,6 +37,11 @@ export interface Room {
 /** \u00a78.2: Calendar and Storefront are the two default pins. Nothing else pre-pins. */
 export const DEFAULT_PINS: readonly string[] = ['calendar', 'storefront'] as const;
 
+// \u00a74-2 \u00b7 CALENDAR CROSSED FIRST, AND ONE AT A TIME IS THE RULE HERE. The list family
+// crossed together because six rooms were ONE definition mounted six times; the remaining
+// eight are eight separate bodies with nothing shared, so a family motion would buy nothing
+// and cost the ability to say which crossing broke what. Smallest radius, one at a time.
+//
 // R-38.11 \u00b7 CROSSED AT M-FINISH S2, \u00a74-1. THE LIST FAMILY CROSSED AS A FAMILY, and the
 // reason is structural rather than tidy: six of these rooms are ONE definition
 // (components/vendor/slices/SliceShell.tsx) mounted six times. Crossing them one at a time
@@ -51,7 +56,7 @@ export const ROOMS: readonly Room[] = [
   { id: 'expenses',  label: 'Expenses',  band: 'work', href: '/w/expenses',  pinnable: true  },
   { id: 'events',    label: 'Events',    band: 'work', href: '/w/events',    pinnable: true  },
   { id: 'notes',     label: 'Notes',     band: 'work', href: '/w/notes',     pinnable: true  },
-  { id: 'calendar',  label: 'Calendar',  band: 'work', href: '/vendor/calendar',       pinnable: true  },
+  { id: 'calendar',  label: 'Calendar',  band: 'work', href: '/w/calendar',           pinnable: true  },
   // ── BOTTOM BAND \u00b7 eleven ──────────────────────────────────
   { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',  pinnable: true  },
   { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/vendor/portfolio',   pinnable: true  },
@@ -119,7 +124,10 @@ export const INTERIM_VENDOR_ROOMS: readonly string[] = [
   // list in the SAME edit that changed its hrefs, which is the whole point of asserting the
   // SET rather than a count: a room that crosses without leaving here reddens, and a room
   // that slides back out of the shell reddens too.
-  'calendar',
+  // SHRANK BY ONE AT \u00a74-2 (eight \u2192 seven). Calendar crossed first, and its removal from
+  // this list is the SAME EDIT that changed its href above — which is the whole point of
+  // asserting the SET rather than a count: a room that crosses without leaving here reddens,
+  // and a room that slides back out of the shell reddens too.
   'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'collab',
 ] as const;
 

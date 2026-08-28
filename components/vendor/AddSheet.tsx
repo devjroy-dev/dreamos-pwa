@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
+import { roomHref } from '@/lib/worklist/rooms';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import {
@@ -487,7 +488,12 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               const d = values.event_date.trim();
               onClose();
               if (onBlockInstead) onBlockInstead(d);
-              else router.push(`/vendor/calendar?block=${d}`);
+              // \u00a74-2: the address book, not a spelling. This literal was the TENTH one the
+              // S2 ZIP bounce found and it was left DECLARED-AND-ALLOWED on purpose, with a
+              // note saying it would re-point when calendar crossed. This is that edit. It
+              // would have gone on resolving and gone on being wrong the moment the room
+              // moved, which is the shape a cell cannot catch by reading a string.
+              else router.push(`${roomHref('calendar')}?block=${d}`);
             }} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
               fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,

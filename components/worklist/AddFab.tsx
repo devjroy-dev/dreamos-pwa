@@ -48,11 +48,18 @@ type AddRow =
   | { id: string; label: string; glyph: string; href: string };
 
 const ROWS: readonly AddRow[] = [
-  // ⚠ CALENDAR IS THE THIRD CASE AND IT IS NAMED RATHER THAN HIDDEN. It resolves through
-  // `roomHref`, which today returns the DECLARED INTERIM href `/vendor/calendar` — calendar
-  // has not crossed (lib/worklist/rooms.ts INTERIM_VENDOR_ROOMS). It is not a `/w/` route
-  // and it is not an AddSheet leg; it is a declared interim address, and it becomes a `/w/`
-  // route in the same edit that crosses the room, with nothing here to remember.
+  // ── CALENDAR CROSSED AT §4-2 AND THIS LINE DID NOT CHANGE ─────────────────
+  // It said, at R-38.18: 「it is a declared interim address, and it becomes a `/w/` route in
+  // the same edit that crosses the room, with nothing here to remember.」 That is exactly
+  // what happened — `roomHref('calendar')` returns `/w/calendar` now because the registry
+  // says so, and this file was not touched by the crossing.
+  //
+  // THE COMMENT IS UPDATED THOUGH, AND THAT IS THE HALF THAT IS EASY TO SKIP. The old note
+  // described calendar as interim, and a comment that has stopped being true is worse than
+  // no comment: the next reader trusts it and reasons from a room's status that changed two
+  // sittings ago. This seat filed F-38.29 three times this arc for exactly the gap between
+  // a comment and the line beneath it — here the line was already right and the words were
+  // not, which is the same defect wearing the other face.
   { id: 'calendar', label: COPY.addCalendar, glyph: '\u25a6', href: roomHref('calendar') },
   { id: 'lead',     label: COPY.addLead,     glyph: '\u25cb', slice: 'leads' },
   { id: 'client',   label: COPY.addClient,   glyph: '\u25c9', slice: 'clients' },

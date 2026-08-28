@@ -101,7 +101,18 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   cell('2.5', /visibility: 'hidden'/.test(psrc) && /aria-hidden/.test(psrc),
     'GHOST mode reserves the exact box by invisible render — no executor arithmetic under the reservation');
 
-  const adopters = ['app/vendor/storefront/page.tsx', 'app/vendor/page.tsx', 'app/vendor/calendar/page.tsx'];
+  // ── AMENDED, LABELLED — \u00a74-2 · THE SUBJECT MOVED, THE CLAIM DID NOT ──────────
+  // Calendar crossed into the shell, and its body split out of the route file so the
+  // `<Header/>` import could leave the shell's bundle (S2's lesson: a conditional does not
+  // remove a module from a bundle; only not importing it does). Every cell in this file
+  // that reads the calendar reads its BODY, and the body is `screen.tsx` now.
+  //
+  // THE ADOPTER IS STILL THE CALENDAR — one surface, one primitive, no fourth shape. What
+  // changed is which file holds it. A cell renamed to follow its subject is not a loosened
+  // cell; a cell left pointing at the old path would have gone red on a correct tree and
+  // taught the next seat that this bench may be argued with.
+  const CAL_BODY = 'app/vendor/calendar/screen.tsx';
+  const adopters = ['app/vendor/storefront/page.tsx', 'app/vendor/page.tsx', CAL_BODY];
   cell('2.6', adopters.every(f => /from '@\/components\/vendor\/Reserve'/.test(R(f))),
     'all THREE named adopters import the one primitive (no fourth shape)');
 
@@ -140,7 +151,7 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
 
   // ── F-09.113 · the calendar's false empty ──
   {
-    const src = strip(R('app/vendor/calendar/page.tsx'));
+    const src = strip(R(CAL_BODY));
     cell('2.17', /loading: eventsLoading/.test(src),
       'F-09.113 — the loader\u2019s loading flag is picked up (it was destructured away)');
     cell('2.18', /\{eventsLoading \? \(/.test(src),
@@ -157,7 +168,12 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§3 · F-09.114 — THE CALENDAR + OPENS THE ADD-EVENT SHEET');
 {
-  const raw = R('app/vendor/calendar/page.tsx');
+  // \u00a74-2: the calendar's body is `screen.tsx`. Re-pointed with \u00a72's adopter list, same
+  // reason, same sitting \u2014 and the constant is declared here too rather than in one shared
+  // place, because these two sections read the file for different claims and a single
+  // top-level constant would invite a third reader to assume they check the same thing.
+  const CAL_BODY = 'app/vendor/calendar/screen.tsx';
+  const raw = R(CAL_BODY);
   const src = strip(raw);
 
   const onAdd = src.split('function onAdd()')[1]?.split('function refreshAll')[0] ?? '';
