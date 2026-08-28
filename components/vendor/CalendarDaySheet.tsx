@@ -429,28 +429,63 @@ export function CalendarDaySheet({
               </span>
               {g.rows.map((ev) => (
                 <div key={ev.id} className="atelier-card" style={{ padding: '12px 14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 3 }}>
-                        {ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · done' : ''}
+                  {/* ── F-38.p9 · THE ACTIONS TOOK THEIR OWN ROW, AND THE ARITHMETIC IS WHY ──
+                      Founder walk, 2026-08-29, on the cut that added the fifth pill:
+                      「all working but the layout fucked」. He was right and it was not a
+                      tuning problem — the row ran out of card.
+
+                      DERIVED FROM THIS FILE'S OWN VALUES at his 374px viewport, not measured
+                      by eye. `pillBtn` is 8px Jost at 0.24em tracking with 5px 10px padding
+                      and a 0.5px border, `gap: 6`:
+
+                        Move 49 · Crew 49 · Collab 62 · Edit 49 · Cancel 62  = 271
+                        four gaps                                           =  24
+                                                                        row = 295px
+                        card inner at 374 (24 sheet gutter + 28 card padding) = 322px
+                        left for the title                                  =  17px
+
+                      The title carried `flex: 1, minWidth: 0` against pills at
+                      `flexShrink: 0`, so it collapsed to seventeen pixels and its text ran
+                      under the controls. FOUR pills was 251px and left 61 — tight, and it had
+                      been getting away with it; the fifth is what tipped it.
+
+                      ⚠ THE OLD ROW WAS ALREADY WRONG AND NOBODY HAD SEEN IT. An event with a
+                      long title was having its name squeezed by controls at four pills too.
+                      The fifth did not create the defect, it made it unmissable — which is
+                      the second time this arc a walk has found what no cell could.
+
+                      NOT `flexWrap`, AND THE REASON IS RULED RATHER THAN AESTHETIC. Wrapping
+                      breaks at a point that MOVES WITH THE TITLE'S LENGTH, so the pills would
+                      sit differently on every event. R-37.22: a control that moves under the
+                      thumb is a control that cannot be learned. A full-width row of its own
+                      puts every pill in the same place on every card.
+
+                      295px in 322px, nothing shrinking, and the title stops competing with
+                      the buttons entirely. */}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 3 }}>
+                      {ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · done' : ''}
+                    </div>
+                    <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{ev.title}</div>
+                    {ev.binder_name && (
+                      <div style={{ marginTop: 4, display: 'inline-block', padding: '3px 9px', borderRadius: 999, border: '0.5px solid rgba(201,168,76,0.28)', fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: D.gold }}>
+                        {ev.binder_name}
                       </div>
-                      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{ev.title}</div>
-                      {ev.binder_name && (
-                        <div style={{ marginTop: 4, display: 'inline-block', padding: '3px 9px', borderRadius: 999, border: '0.5px solid rgba(201,168,76,0.28)', fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: D.gold }}>
-                          {ev.binder_name}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                      <button type="button" onClick={() => { clearVerdict(); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn(D.gold)}>Move</button>
-                      <button type="button" onClick={() => { onClose(); onAssignCrew(ev); }} style={pillBtn('var(--atelier-label)')}>Crew</button>
-                      {/* F-38.61, founder-ruled order: Move · Crew · Collab · Edit · Cancel.
-                          Beside Crew because both answer 「who works this event」, and both
-                          ahead of the destructive Cancel. */}
-                      <button type="button" onClick={() => postToCollab(ev)} style={pillBtn('var(--atelier-label)')}>{POST_TO_COLLAB}</button>
-                      <button type="button" onClick={() => { onClose(); onEdit(ev); }} style={pillBtn('var(--atelier-label)')}>Edit</button>
-                      <button type="button" onClick={() => void doCancel(ev)} style={pillBtn(D.terracotta, 'rgba(224,123,92,0.4)')}>Cancel</button>
-                    </div>
+                    )}
+                  </div>
+                  {/* THE ACTION ROW · F-38.61's ruled order: Move · Crew · Collab · Edit ·
+                      Cancel. Collab beside Crew because both answer 「who works this event」,
+                      and both ahead of the destructive Cancel, which stays inline — founder's
+                      default at the F-38.p9 relay.
+                      No `flexShrink: 0` and no `flex: 1` on anything: the row owns the full
+                      card width now, so there is nothing for the pills to compete with and
+                      nothing to protect them from. */}
+                  <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                    <button type="button" onClick={() => { clearVerdict(); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn(D.gold)}>Move</button>
+                    <button type="button" onClick={() => { onClose(); onAssignCrew(ev); }} style={pillBtn('var(--atelier-label)')}>Crew</button>
+                    <button type="button" onClick={() => postToCollab(ev)} style={pillBtn('var(--atelier-label)')}>{POST_TO_COLLAB}</button>
+                    <button type="button" onClick={() => { onClose(); onEdit(ev); }} style={pillBtn('var(--atelier-label)')}>Edit</button>
+                    <button type="button" onClick={() => void doCancel(ev)} style={pillBtn(D.terracotta, 'rgba(224,123,92,0.4)')}>Cancel</button>
                   </div>
 
                   {/* The Move picker + inline verdict (item 4's centrepiece) */}

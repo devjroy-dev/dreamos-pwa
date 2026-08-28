@@ -1476,5 +1476,38 @@ cell('C42 no verdict line reaches the day sheet without declaring its kind (F-38
   return null;
 });
 
+// ── C43 · THE EVENT CARD'S ACTIONS DO NOT COMPETE WITH ITS TITLE  [F-38.p9] ──────
+//    C41 asserts the row's ORDER and stayed GREEN through the broken layout, which is the
+//    gap this cell closes: order is not fit. At 374px the five pills derive to 295px in a
+//    322px card, and the title — carrying `flex: 1, minWidth: 0` against pills at
+//    `flexShrink: 0` — collapsed to seventeen pixels and ran underneath them.
+//
+//    IT ASSERTS THE STRUCTURE, NOT A WIDTH. A pixel cell would need a char-advance constant
+//    this bench cannot measure, and it would red the day a label is vetoed longer even if the
+//    row still fit. What makes overflow IMPOSSIBLE regardless of label length is that the
+//    actions own a full-width row of their own — so that is the property asserted, and the
+//    arithmetic lives at the site where it was derived.
+cell('C43 the event card\'s action row does not share a row with its title (F-38.p9)', () => {
+  const src = strip(read('components/vendor/CalendarDaySheet.tsx'));
+  // ⚠ THE FIRST CUT OF THIS SLICE ANCHORED ON THE COMMENT 「The Move picker」 AND REFUSED.
+  // `strip()` had already deleted it, so the cell reddened on its own scaffolding rather than
+  // on the tree — F-38.57's family, self-caught on the first run. Anchored on CODE now: the
+  // picker's own guard expression, which `strip()` cannot touch. A reader that strips must
+  // anchor on what survives stripping.
+  const card = src.match(/\{g\.rows\.map\(\(ev\) =>[\s\S]*?moveId === ev\.id &&/);
+  if (!card) return 'the event card body could not be located — this cell would pass vacuously';
+  const body = card[0];
+  // The pills must not be a shrink-proof island beside a flexible title: that pairing is
+  // exactly what squeezed the title to nothing.
+  if (/flexShrink:\s*0/.test(body))
+    return 'a flexShrink:0 island survives in the event card — the title will be squeezed by the controls again';
+  if (/flex:\s*1,\s*minWidth:\s*0/.test(body))
+    return 'the title still claims flex:1 against the controls — it can collapse to nothing';
+  // And the actions must actually be their own row rather than inline.
+  if (!/display:\s*'flex',\s*gap:\s*6,\s*marginTop:\s*10/.test(body))
+    return 'the action row is not a full-width row of its own';
+  return null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
