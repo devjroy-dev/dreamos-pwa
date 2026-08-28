@@ -1,0 +1,173 @@
+"use client";
+// components/solutions/SolutionsPieces.tsx — TDW_19 P0-B · THE SHARED CHROME.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// R-38.2 IS THE LAW HERE, AND BILLING PAID FOR IT
+// ═══════════════════════════════════════════════════════════════════════════
+// `app/w/billing/page.tsx` carries the lesson in its own comments: a surface
+// that flashes a loading word and then a card is two paints where one will do.
+// **The FRAME renders immediately; the VALUES arrive with the fetch.** And the
+// frame renders on the ERROR path too — a vendor whose call failed sees her own
+// page with the reading missing and a sentence saying so, not a bare red line on
+// an empty screen. The chrome is a fact about the product; the values are a fact
+// about the fetch, and only the second one failed.
+//
+// That was found by the render arm, not by reading — Billing's first cut gated
+// the whole surface on `!loading` and the instrument had nothing to hold a ruler
+// against. `SurfaceFrame` below exists so these six surfaces inherit the cure
+// rather than rediscover it six times.
+//
+// ── THE RUNGS, RE-DERIVED AT `7142cbf` (lib/worklist/theme.ts:46-51) ───────
+//   t0  Cormorant  ONE ELEMENT PER APP — the Today masthead numeral.
+//                  ⚠ NO SURFACE IN THIS FILE MAY TOUCH IT.
+//   t1  Cormorant  page title, at most one per surface — owned by WorklistShell.
+//   t2  DM Sans    section heading                    <- our headers
+//   t3  DM Sans    body, row primary
+//   t4  DM Sans    row secondary, buttons
+//   t5  DM Sans    captions, eyebrows                 <- our eyebrows
+// Letter-spaced uppercase in TWO PLACES ONLY: nav seats (t4) and section
+// eyebrows (t5). Nothing here spends it anywhere else.
+
+import Link from 'next/link';
+import { CHIPS, type ChipKey } from '@/lib/solutions/copy';
+
+/**
+ * The state chip. Its text comes from `CHIPS` and nowhere else — a chip that
+ * built its own string would be a second copy home the founder's one pass never
+ * sees.
+ *
+ * `coming` is the one chip beyond spec §9's approved six (R-19.5 needs a word
+ * for a row whose env gate is closed, and `Not connected` would tell a vendor
+ * she can connect something she cannot). It is styled DIMMER than the others on
+ * purpose: it is the only chip that describes us rather than her.
+ */
+export function StateChip({ state }: { state: ChipKey }) {
+  return (
+    <span className={`sol-chip sol-chip--${state}`} data-state={state}>
+      {CHIPS[state]}
+    </span>
+  );
+}
+
+/** One row of the room index. The whole row is the target, not just the label. */
+export function SurfaceRow({
+  href, label, eyebrow, state,
+}: { href: string; label: string; eyebrow: string; state: ChipKey }) {
+  return (
+    <Link href={href} className="sol-row">
+      <span className="sol-rowtext">
+        <span className="sol-rowlabel">{label}</span>
+        <span className="sol-roweyebrow">{eyebrow}</span>
+      </span>
+      <StateChip state={state} />
+    </Link>
+  );
+}
+
+/**
+ * The frame every surface is built in.
+ *
+ * `error` renders as a fact beside the content, never instead of it — see the
+ * header. There is deliberately NO `loading` branch that replaces children:
+ * callers pass their frame as children unconditionally and let individual values
+ * be null until they arrive.
+ */
+export function SurfaceFrame({
+  heading, eyebrow, error, children,
+}: { heading: string; eyebrow: string; error?: string | null; children: React.ReactNode }) {
+  return (
+    <section className="sol-surface">
+      <p className="sol-eyebrow">{eyebrow}</p>
+      <h2 className="sol-heading">{heading}</h2>
+      {error ? <p className="sol-err">{error}</p> : null}
+      {children}
+    </section>
+  );
+}
+
+/** The empty-state sentence. R-19.2: this is the product's real first state. */
+export function SurfaceEmpty({ children }: { children: React.ReactNode }) {
+  return <p className="sol-empty">{children}</p>;
+}
+
+/** A labelled figure. `value` is a STRING — money is formatted before it arrives. */
+export function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="sol-stat">
+      <span className="sol-statvalue">{value}</span>
+      <span className="sol-statlabel">{label}</span>
+    </span>
+  );
+}
+
+/**
+ * The one stylesheet for all seven surfaces, mounted once per page.
+ *
+ * Every colour is an existing token, derived from the tree at `7142cbf` rather
+ * than invented: a new literal here would bypass the variable layer exactly as
+ * the hard-coded brass literals in `globals.css` did, which is the root cause
+ * the worklist branch already paid to find once.
+ */
+export function SolutionsStyles() {
+  return (
+    <style>{`
+.sol-rows{display:flex;flex-direction:column;padding-top:8px}
+.sol-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:56px;padding:12px 0;text-decoration:none;
+  border-bottom:.5px solid var(--atelier-card-border);touch-action:manipulation}
+.sol-row:last-of-type{border-bottom:none}
+.sol-row:active{background:var(--atelier-row-hover)}
+.sol-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sol-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.sol-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+
+.sol-chip{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;
+  white-space:nowrap;color:var(--atelier-ink-soft);
+  border:.5px solid var(--atelier-input-border);border-radius:2px;padding:3px 7px}
+.sol-chip--connected{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.sol-chip--live{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.sol-chip--needs_attention{color:var(--role-caution);border-color:var(--role-caution)}
+.sol-chip--expired{color:var(--role-critical);border-color:var(--role-critical)}
+/* The only chip that describes us rather than her — quietest of the seven. */
+.sol-chip--coming{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border)}
+
+.sol-surface{display:flex;flex-direction:column;padding-top:16px;padding-bottom:28px}
+.sol-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--atelier-ink-mute);margin:0 0 6px}
+.sol-heading{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 12px}
+.sol-err{font:var(--wl-t3);color:var(--role-critical);margin:0 0 12px}
+.sol-empty{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+
+.sol-stats{display:flex;flex-wrap:wrap;gap:24px;margin:16px 0 0}
+.sol-stat{display:flex;flex-direction:column;gap:2px}
+.sol-statvalue{font:var(--wl-t2);color:var(--atelier-ink)}
+.sol-statlabel{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+
+.sol-list{display:flex;flex-direction:column;margin:16px 0 0}
+.sol-item{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:48px;padding:10px 0;border-bottom:.5px solid var(--atelier-card-border)}
+.sol-item:last-child{border-bottom:none}
+.sol-itemlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.sol-itemnote{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+
+.sol-actions{display:flex;gap:10px;margin:20px 0 0;flex-wrap:wrap}
+.sol-btn{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;
+  cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);
+  color:var(--atelier-accent-text);touch-action:manipulation}
+.sol-btn:active{background:var(--atelier-row-hover)}
+.sol-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.sol-btn[disabled]{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border);cursor:default}
+.sol-btn[disabled]:active{background:transparent}
+
+.sol-addr{font:var(--wl-t3);color:var(--atelier-ink);margin:16px 0 0;word-break:break-all}
+.sol-note{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
+
+.sol-footer{margin-top:28px;padding-top:20px;border-top:.5px solid var(--atelier-card-border);
+  display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.sol-footerbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+
+@media (prefers-reduced-motion: reduce){.sol-row,.sol-btn{transition:none}}
+    `}</style>
+  );
+}

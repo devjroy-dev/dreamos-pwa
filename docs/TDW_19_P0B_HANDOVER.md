@@ -278,3 +278,157 @@ printed either side and `bs_audit.mjs` re-run green afterwards to prove it.
   `tdw_referral_invite` is APPROVED at Meta pointing at `/v/` and has been
   pointing at a 404 since 2026-08-28. Carried to the founder as a **Block 07
   prerequisite** as well as a Block 19 one.
+
+---
+---
+
+# STEP 3 — THE SURFACES (kickoff §4-3, R-19.2)
+
+**Authored on** `dreamos-pwa` `7142cbf` · **applied and re-gated on** `e790792` · sibling `dream-os` `b52448f`, resolvable per c-38.12.
+
+⚠ **THE TIP MOVED WHILE THIS DELIVERY WAS IN FLIGHT, AND THE ZIP'S HEADER SAID OTHERWISE.**
+It was authored against `7142cbf` and shipped claiming the tip was unmoved. In the
+interval the founder pushed M-FINISH S2's sitting 2 (`e790792`), which touched three
+files this step depends on: `lib/worklist/copy.ts` (+149), `scripts/b40_worklist_shell_bench.js`
+(+172, 31→36 cells) and `components/worklist/WorklistShell.tsx`. Re-derived at the new tip
+before applying rather than assumed: `supportTitle`/`supportBody`/`supportAction` all survive
+(`copy.ts:176-179`) and b40 C10's census still maps this file to `wl-supportaction`
+(`b40:162`), so §13's cure holds. All three gates re-run at `e790792`: `tsc` exit 0,
+`bs_audit` 23 PASS · 0 FAIL, `b40` FLOOR GREEN at 36 cells.
+**State:** kickoff §4 items 1–3 complete. Items 4 (the redirects) and 5 (register, handover close) not started.
+
+## §10 · WHAT LANDED
+
+| Path | Lines | Change |
+|---|---|---|
+| `lib/solutions/routes.ts` | 74 | NEW — the surface address book |
+| `lib/solutions/client.ts` | 86 | NEW — one fetcher per door |
+| `components/solutions/SolutionsPieces.tsx` | 173 | NEW — chip, row, frame, the one stylesheet |
+| `app/w/support/page.tsx` | 118 | **EDITED** — the coming-soon sheet becomes the room index |
+| `app/w/support/{google,website,seo,marketing,proof,benchmarks}/page.tsx` | 444 | NEW — the six surfaces |
+| `lib/solutions/copy.ts` | 191 | grown — the surface words |
+| `tools/bs_audit.mjs` | 528 | grown — 14 cells → 23 |
+
+`app/w/support/page.tsx` is the only existing file touched, and the kickoff gave
+this seat that room by name. **No byte in `lib/worklist/*`, `components/worklist/*`,
+`tools/wl_*`, `scripts/*` or any other `app/w/<room>`.**
+
+## §11 · `routes.ts` — CLOSING R-38.1's HOLE BEFORE FALLING IN IT
+
+`f542795` gave rooms one address book and `b40` C31 polices strays — but C31's
+matcher is keyed on `/vendor`, and these six live under `/w/support`. They are
+not rooms and cannot become rooms, because `rooms.ts` is S2's. Left alone, six
+scattered literals would have grown exactly where R-38.1 had just finished
+deleting four, in the newest code, uncaught.
+
+`surfaceHref` is the one home. **C16 carries C31's shape in this seat's own gate:
+no `/w/support` literal may appear anywhere outside `routes.ts`.** Proven by
+mutation S1.
+
+A name collision was caught while writing it: `lib/vendor/api/_base.ts:14` already
+exports `API_BASE`, meaning the API **origin**. A second `API_BASE` meaning "the
+solutions path" would read identically at every import site and mean the opposite
+thing. Renamed `SOLUTIONS_API_PATH`, with the reasoning at the site.
+
+## §12 · R-38.2 INHERITED RATHER THAN REDISCOVERED
+
+Billing's header records what it cost to learn: gating a surface on `!loading`
+gives two paints where one will do, and gating the frame on `!error` leaves a
+vendor with a bare red sentence on an empty page. `SurfaceFrame` exists so six
+surfaces inherit that cure once.
+
+Concretely on the index: **the six rows render immediately with `coming` chips,
+before any fetch resolves** — and `coming` is also the truthful state while every
+gate is closed, so the first paint is never a lie the fetch later corrects. If
+`GET /solutions` fails, the vendor sees her six rows, a sentence naming what is
+missing, and a WhatsApp button that still reaches a person.
+
+## §13 · CAUGHT BY S2's BENCH, AND CURED ON THIS SIDE
+
+The first floor run reddened **`b40_worklist_shell_bench` C10** — S2's tap-target
+census. Diagnosed by running it bare: its census at
+`scripts/b40_worklist_shell_bench.js:162` maps `app/w/support/page.tsx` to the
+class `wl-supportaction`, and the rewrite had renamed that button to `sol-btn`.
+
+**The rename was the error, not the census.** It is the same button, in the same
+place, doing the same job — the worklist's support action, not a solutions
+button. Its name was right and the rename bought nothing. Cured here: the class
+and its ≥44px rule are carried in this page, and **no relay was needed**. An S2
+census that correctly tracks a live element should not be edited to accommodate a
+rename with no purpose.
+
+`C21` now asserts the class as well as the strings, so the next seat cannot
+repeat it silently.
+
+## §14 · GATE
+
+```
+npx tsc --noEmit                        exit 0
+node tools/bs_audit.mjs                 23 PASS · 0 FAIL, exit 0
+node scripts/b40_worklist_shell_bench.js  FLOOR GREEN (S2's bench, unbroken)
+pwa floor --check, siblings present     2 reds, NEITHER THIS DELIVERY'S — proven below
+```
+
+**The two floor reds, and the proof they are not mine.** With this seat's entire
+footprint withdrawn and the three edited files reverted, the pwa floor at
+`7142cbf` still reports `tdw37_leadgate_b_slot` (S2's, F-38.27, arrived at
+`f542795`). `tdw_f0774_vacuity_probe` is F-19.16 — it reddens on tree dirt, and a
+delivery tree is dirty by definition. `b40` is not in the floor's glob; it was run
+directly.
+
+### Non-vacuity, by mutating production source
+
+| # | Mutation | Reddened |
+|---|---|---|
+| S1 | `surfaceHref(slug)` → a `/w/support/${slug}` template literal | C16 |
+| S2 | the surface heading spends `--wl-t0` | C17 |
+| S3 | the SEO surface drops its session guard | C19 |
+| S4 | the WhatsApp number goes inline | C21 (`NUMBER INLINE (F-09.190)`) |
+| S5 | a surface calls `fetch()` directly | C22 |
+| S6 | a chip word hardcoded in the component | C23 |
+| S7 | `wl-supportaction` renamed (rule left in place) | C21's class arm |
+
+**S7 is worth reading precisely, because a looser claim would be false.** With the
+class renamed *and its CSS rule left behind*, `b40` stays GREEN — C10 finds the
+orphaned rule. It went red originally only because the rule vanished with the
+rename. So C21 catches this earlier and more precisely than C10 does, and C10 is
+not a reliable backstop for it. Neither cell subsumes the other.
+
+## §15 · ⚠ A SELF-INFLICTED LOSS, DISCLOSED
+
+While withdrawing the footprint to measure the pristine floor, this seat ran
+`git checkout -- lib/solutions/copy.ts tools/bs_audit.mjs` **without a backup of
+either**, and the `mv` that restored the directory nested it one level deep
+(`app/w/support/support/`). The step-3 additions to both files — nine copy keys
+and nine audit cells — were destroyed and had to be rewritten from scratch.
+
+Nothing shipped wrong and nothing was silently lost: the reconstruction was
+verified by re-running `tsc`, the full 23-cell gate, and mutation S7 against the
+rebuilt file. But **the measurement technique that F-19.16 forces on every pwa
+delivery is itself dangerous** — it requires moving live work out of the tree by
+hand, and this seat proved it can go wrong. That is a second argument for
+F-19.16's cure (porting `--delivery` to the pwa runner) beyond the one already
+filed: the workaround has a failure mode of its own, and it lands on the work
+rather than the measurement.
+
+## §16 · OBSERVED, NOT CAUSED
+
+`COPY.supportHeader` in `lib/worklist/copy.ts:113` is unreferenced anywhere in
+`app/`, `components/`, `hooks/` or `lib/`. **Checked at the pristine tip before
+this seat's edits: it was already orphaned at `7142cbf`** — the coming-soon page
+used `supportTitle`, `supportBody` and `supportAction` only. Not caused here, not
+touched here, and it is S2's file. Reported for the chair.
+
+## §17 · WHAT STEP 4 INHERITS
+
+- `/r/<code>` → 302 to the review URL; `COPY.reviewUnsetLine` when unset.
+- `/v/<code>` → **200 holding page**, business name t1, city and category t4, one
+  sentence, `Enquire on WhatsApp` when the number is public. **Its t1 is its own**
+  — a public route outside the shell — which is why C18 scopes to `app/w/support`
+  and does not police `app/v`. The chair gates its frames separately as the
+  estate's first public byte.
+- **Demo vendors get a `/v/` address, flagged demo, no review link** (founder,
+  2026-08-28).
+- Copy for both is already drafted in `copy.ts`: `publicPageLine`,
+  `publicPageEnquire`, `publicPageUnknown`, `reviewUnsetLine`.
+- F-19.14 stands: no per-vendor public URL exists anywhere in the estate.

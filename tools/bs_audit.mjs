@@ -377,6 +377,152 @@ function copyOfFixture(src) {
     : F('C14 every row declares an empty state', 'missing: ' + missing.map((m) => m + 'Empty').join(', '));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SURFACE CELLS (step 3) — the six rows, the index, and the chrome
+// ═══════════════════════════════════════════════════════════════════════════
+// These read SOURCE, and say so. A rendered-DOM assertion needs a served tree,
+// which is `wl_render`'s job and the founder's frames'. D-38.1 in full: **none
+// of these cells asserts that a surface LOOKS right.** They assert it cannot be
+// wrong in the specific ways this block can be wrong. The founder's frames
+// remain the real-session evidence.
+
+const SURFACES = ['google', 'website', 'seo', 'marketing', 'proof', 'benchmarks'];
+const surfaceSrc = {};
+let surfacesReadable = true;
+for (const s of SURFACES) {
+  try { surfaceSrc[s] = readFileSync(join(ROOT, `app/w/support/${s}/page.tsx`), 'utf8'); }
+  catch { surfacesReadable = false; surfaceSrc[s] = null; }
+}
+let indexSrc = null, piecesSrc = null, routesSrc = null, clientSrc = null;
+try {
+  indexSrc  = readFileSync(join(ROOT, 'app/w/support/page.tsx'), 'utf8');
+  piecesSrc = readFileSync(join(ROOT, 'components/solutions/SolutionsPieces.tsx'), 'utf8');
+  routesSrc = readFileSync(join(ROOT, 'lib/solutions/routes.ts'), 'utf8');
+  clientSrc = readFileSync(join(ROOT, 'lib/solutions/client.ts'), 'utf8');
+} catch { surfacesReadable = false; }
+
+// ── C15 · all seven surfaces exist ────────────────────────────────────────
+{
+  const missing = SURFACES.filter((s) => !surfaceSrc[s]);
+  (surfacesReadable && missing.length === 0)
+    ? P('C15 six surfaces + the index exist', SURFACES.join(', '))
+    : F('C15 six surfaces + the index exist', missing.length ? 'missing: ' + missing.join(', ') : 'a shared file was unreadable');
+}
+
+// ── C16 · THE ADDRESS BOOK (R-38.1's shape, ratified by CE-38) ────────────
+// C31's shape in this seat's own gate. `/w/support` cannot go through
+// `roomHref` — these are not rooms and `rooms.ts` is S2's — so without this cell
+// six scattered literals would grow exactly where R-38.1 just finished deleting
+// four. The one home is `lib/solutions/routes.ts`.
+{
+  const files = { ...surfaceSrc, 'app/w/support/page.tsx': indexSrc, 'components/solutions/SolutionsPieces.tsx': piecesSrc, 'lib/solutions/client.ts': clientSrc };
+  const offenders = [];
+  for (const [name, src] of Object.entries(files)) {
+    if (!src) continue;
+    if (/['"`]\/w\/support/.test(strip(src))) offenders.push(name);
+  }
+  const declared = routesSrc && /SOLUTIONS_INDEX_HREF = '\/w\/support'/.test(strip(routesSrc));
+  if (!declared) F('C16 no /w/support literal outside surfaceHref', 'routes.ts does not declare the base');
+  else if (offenders.length) F('C16 no /w/support literal outside surfaceHref', 'literals in: ' + offenders.join(', '));
+  else P('C16 no /w/support literal outside surfaceHref', 'one home: lib/solutions/routes.ts');
+}
+
+// ── C17 · NO SURFACE TOUCHES t0 ───────────────────────────────────────────
+// theme.ts:46 — "ONE ELEMENT PER APP", the Today masthead numeral. A second t0
+// anywhere is a second masthead.
+{
+  const offenders = Object.entries({ ...surfaceSrc, index: indexSrc, pieces: piecesSrc })
+    .filter(([, src]) => src && /var\(--wl-t0\)/.test(src)).map(([n]) => n);
+  offenders.length === 0
+    ? P('C17 no surface spends t0', 'the masthead numeral stays the only one')
+    : F('C17 no surface spends t0', 'found in: ' + offenders.join(', '));
+}
+
+// ── C18 · AT MOST ONE t1 PER SURFACE, AND IT IS THE SHELL'S ───────────────
+{
+  const offenders = Object.entries({ ...surfaceSrc, index: indexSrc, pieces: piecesSrc })
+    .filter(([, src]) => src && /var\(--wl-t1\)/.test(src)).map(([n]) => n);
+  offenders.length === 0
+    ? P('C18 no surface declares its own t1', 'the shell owns the page title')
+    : F('C18 no surface declares its own t1', 'found in: ' + offenders.join(', '));
+}
+
+// ── C19 · EVERY SURFACE IS SESSION-GUARDED ────────────────────────────────
+// A surface that skipped it would render chrome to a signed-out visitor and then
+// fail its fetch — which is also how a public route gets created by accident.
+{
+  const bad = SURFACES.filter((s) => {
+    const src = surfaceSrc[s];
+    return !src || !/useVendorSession/.test(src) || !/router\.replace\('\/'\)/.test(src);
+  });
+  const idxOk = indexSrc && /useVendorSession/.test(indexSrc) && /router\.replace\('\/'\)/.test(indexSrc);
+  (bad.length === 0 && idxOk)
+    ? P('C19 every surface + the index is session-guarded', '7/7 redirect to / without a session')
+    : F('C19 every surface + the index is session-guarded', bad.concat(idxOk ? [] : ['index']).join(', '));
+}
+
+// ── C20 · NO MONEY STRING, NO PERSONA NAME ───────────────────────────────
+// Not a total ban on JSX text — row labels are structural and argued at their
+// sites. This refuses the two classes that actually leak.
+{
+  const files = { ...surfaceSrc, index: indexSrc, pieces: piecesSrc };
+  const bad = [];
+  for (const [name, src] of Object.entries(files)) {
+    if (!src) continue;
+    if (/\u20B9/.test(src)) bad.push(`${name}: rupee glyph`);
+    if (/\bRs\s*[{$\d]/.test(src)) bad.push(`${name}: money string built inline`);
+    for (const p of ['Victor', 'Donna', 'Harvey', 'Mira', 'Eliza']) {
+      if (new RegExp('\\b' + p + '\\b').test(strip(src))) bad.push(`${name}: persona "${p}"`);
+    }
+  }
+  bad.length === 0
+    ? P('C20 no money string or persona name in any surface', `${Object.keys(files).length} files scanned`)
+    : F('C20 no money string or persona name in any surface', bad.join('; '));
+}
+
+// ── C21 · THE FOOTER CONSUMES S2's STRINGS AND EDITS NOTHING ─────────────
+// CE-38 relay #1 item 6. The one row on the index that reaches a human survives,
+// by READING `lib/worklist/copy.ts`, never editing it. The class name is part of
+// the contract too — b40 C10's tap-target census maps this file to
+// `wl-supportaction`, and renaming it reddened S2's bench.
+{
+  const usesBody   = indexSrc && /WL\.supportBody/.test(indexSrc);
+  const usesAction = indexSrc && /WL\.supportAction/.test(indexSrc);
+  const usesNumber = indexSrc && /supportWaNumber\(\)/.test(indexSrc);
+  const inlineNum  = indexSrc && /wa\.me\/\d/.test(indexSrc);
+  const keepsClass = indexSrc && /className="wl-supportaction"/.test(indexSrc);
+  (usesBody && usesAction && usesNumber && !inlineNum && keepsClass)
+    ? P('C21 the WhatsApp footer survives, on S2\u2019s strings and its own class',
+        'supportBody + supportAction read, supportWaNumber() called, wl-supportaction kept for b40 C10')
+    : F('C21 the WhatsApp footer survives, on S2\u2019s strings and its own class',
+        [!usesBody && 'supportBody unused', !usesAction && 'supportAction unused',
+         !usesNumber && 'supportWaNumber() not called', inlineNum && 'NUMBER INLINE (F-09.190)',
+         !keepsClass && 'wl-supportaction renamed — b40 C10 census breaks'].filter(Boolean).join('; '));
+}
+
+// ── C22 · NO SURFACE RAW-FETCHES ─────────────────────────────────────────
+// `lib/vendor/api/vendor.ts:3` — *screen components import from here, never raw
+// fetch*. A `fetch()` in a surface is a second auth path that works until the
+// refresh logic changes underneath it.
+{
+  const offenders = Object.entries({ ...surfaceSrc, index: indexSrc })
+    .filter(([, src]) => src && /\bfetch\s*\(/.test(strip(src))).map(([n]) => n);
+  const clientUsesBase = clientSrc && /from '@\/lib\/vendor\/api\/_base'/.test(clientSrc);
+  (offenders.length === 0 && clientUsesBase)
+    ? P('C22 no surface raw-fetches; the client rides _base', 'one auth home')
+    : F('C22 no surface raw-fetches; the client rides _base',
+        offenders.length ? 'raw fetch in: ' + offenders.join(', ') : 'client.ts does not import _base');
+}
+
+// ── C23 · EVERY CHIP RENDERED COMES FROM THE COPY HOME ───────────────────
+{
+  const chipFromCopy = piecesSrc && /CHIPS\[state\]/.test(piecesSrc);
+  const litChip = piecesSrc && /(>|\s)(Not connected|Needs attention|Coming)</.test(piecesSrc);
+  (chipFromCopy && !litChip)
+    ? P('C23 chip text comes from CHIPS, never a literal', 'one copy home for all seven')
+    : F('C23 chip text comes from CHIPS, never a literal', litChip ? 'a chip word is hardcoded in the component' : 'CHIPS[state] not used');
+}
+
 console.log('');
 console.log(`${pass} PASS \u00b7 ${fail} FAIL`);
 process.exit(fail === 0 ? 0 : 1);

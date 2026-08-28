@@ -86,6 +86,44 @@ export const COPY = {
   // ── THE INDEX ────────────────────────────────────────────────────────────
   indexEyebrow: 'For your business',
 
+  /**
+   * When `GET /solutions` fails. It says what is missing and what still works —
+   * the six rows are still on screen beneath it, and the WhatsApp footer still
+   * reaches a person. R-38.2: the chrome is a fact about the product, the states
+   * are a fact about the fetch, and only the second one failed. It does not
+   * apologise, and it does not say "something went wrong", which tells a vendor
+   * nothing she can act on.
+   */
+  indexUnavailable: 'Current status could not be loaded. The rows below still open.',
+
+  // ── THE SMALL WORDS THE SURFACES NEED ────────────────────────────────────
+  // Each is here rather than inline in a component, because a word typed into a
+  // surface is a word the founder's one pass never sees.
+
+  /** When a surface's own door fails. Same shape as `indexUnavailable`. */
+  surfaceUnavailable: 'This could not be loaded just now.',
+
+  /** A thing that exists but has not happened yet. Never "N/A", never "empty". */
+  noneYet: 'None yet',
+
+  /** The SEO checklist's two states. Words, not ticks — see the surface. */
+  checkLive:    'Live',
+  checkPending: 'Not yet',
+
+  /** Proof document states. `stale` means a Couture change outran the document. */
+  docReady: 'Ready',
+  docStale: 'Needs redoing',
+
+  /** Prefixes the cohort median so a vendor knows whose number the second one is. */
+  medianLabel: 'median',
+
+  /**
+   * Spec §8 gates the Google SYNC on `GBP_QUOTA_APPROVED` separately from the
+   * OAuth grant. This sentence exists so a vendor is told the truthful, specific
+   * thing — that we are waiting on Google — rather than being shown a dead row.
+   */
+  googleQuotaPending: 'Automatic updates start once Google approves our access.',
+
   // ── THE SENTENCES SPEC §9 REQUIRES TO EXIST ──────────────────────────────
   // Each is PROPOSED. The founder's bytes replace them at his one pass.
 

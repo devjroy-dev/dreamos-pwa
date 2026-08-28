@@ -1,34 +1,114 @@
 "use client";
-// app/w/support/page.tsx — Contact Support (R-37.66 as amended: a ROOM, not a nav seat;
-// R-37.67 arm (c\u2032): the coming-soon sheet with a direct line to a person).
+// app/w/support/page.tsx — BUSINESS SOLUTIONS, THE ROOM INDEX (R-19.2).
 //
-// THE LABEL DOES NOT OUTRUN THE DESTINATION. The tile promises support and the button reaches
-// a human on WhatsApp — the concern is dissolved by the destination rather than argued away.
+// ═══════════════════════════════════════════════════════════════════════════
+// WHAT THIS PAGE WAS, AND WHAT SURVIVED THE TAKEOVER
+// ═══════════════════════════════════════════════════════════════════════════
+// It was the coming-soon sheet (R-37.66/.67 arm c′) — one sentence and a button
+// that reached a human on WhatsApp. R-19.2 makes it the index of six surfaces.
 //
-// THE NUMBER IS NEVER INLINE. supportWaNumber() is the declared home, env-overridable, so
-// "we wire that later" is a dashboard change and not a deploy. F-09.190 is the finding this
-// obeys at birth: that number already has six homes elsewhere in the estate, and this makes
-// no seventh.
+// THE WHATSAPP LINE SURVIVES, AS THE FOOTER. Ruled at CE-38 relay #1 item 6, and
+// the reasoning is worth keeping at the site: displacing it would have traded
+// the one row on this page that reaches a person for six rows that all read
+// `Coming`. It consumes `COPY.supportBody` and `COPY.supportAction` UNCHANGED
+// from `lib/worklist/copy.ts` — read, never edited, because that file is the
+// M-FINISH S2 seat's (kickoff §2). No string is orphaned and no relay was needed.
+//
+// THE NUMBER IS STILL NEVER INLINE. `supportWaNumber()` remains the declared
+// home. F-09.190 counts six homes for that number already; this makes no seventh.
+//
+// THE TITLE IS UNCHANGED. `rooms.ts:62` already labels this room `Business
+// Solutions` and `copy.ts` already reads `supportTitle: 'Business Solutions'`,
+// so the tile, the shell title and this page agreed before it was written.
+//
+// ── R-38.2 · THE FRAME RENDERS FIRST ───────────────────────────────────────
+// The six rows render IMMEDIATELY, with their `coming` chips, before any fetch
+// resolves. `GET /solutions` then supplies each row's real state. A vendor never
+// sees a spinner where her rooms should be, and if the call fails she sees the
+// six rows plus a sentence — not an empty page. Billing paid for this lesson;
+// this page inherits it.
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
-import { COPY } from '@/lib/worklist/copy';
+import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
+import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { COPY, ROWS, ROW_EYEBROWS } from '@/lib/solutions/copy';
+import { SURFACE_SLUGS, surfaceHref } from '@/lib/solutions/routes';
+import { fetchIndex } from '@/lib/solutions/client';
+import type { SolutionsRow } from '@/lib/solutions/types';
+import { SurfaceRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
-export default function SupportPage() {
+export default function SolutionsIndexPage() {
+  const router = useRouter();
+  const { session, loading: sl } = useVendorSession();
+  useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
+  if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
+  return <SolutionsIndexScreen />;
+}
+
+function SolutionsIndexScreen() {
+  // `null` means "not answered yet", and the rows render `coming` meanwhile —
+  // which is also the truthful answer while every gate is closed, so the first
+  // paint is never a lie that the fetch later corrects.
+  const [rows, setRows] = useState<SolutionsRow[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchIndex()
+      .then((ix) => { if (alive) setRows(ix.rows as SolutionsRow[]); })
+      .catch(() => { if (alive) setErr(COPY.indexUnavailable); });
+    return () => { alive = false; };
+  }, []);
+
+  const stateFor = (slug: string): SolutionsRow['state'] =>
+    rows?.find((r) => r.slug === slug)?.state ?? 'coming';
+
   return (
-    <WorklistShell title={COPY.supportTitle}>
-      <div className="wl-support">
-        <p className="wl-supportbody">{COPY.supportBody}</p>
-        <button type="button" className="wl-supportaction"
-                onClick={() => window.open(`https://wa.me/${supportWaNumber()}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener')}>
-          {COPY.supportAction}
+    <WorklistShell title={WL.supportTitle}>
+      <p className="sol-eyebrow" style={{ paddingTop: 14 }}>{COPY.indexEyebrow}</p>
+      {err ? <p className="sol-err">{err}</p> : null}
+      <nav className="sol-rows">
+        {SURFACE_SLUGS.map((slug) => (
+          <SurfaceRow
+            key={slug}
+            href={surfaceHref(slug)}
+            label={ROWS[slug]}
+            eyebrow={ROW_EYEBROWS[slug]}
+            state={stateFor(slug)}
+          />
+        ))}
+      </nav>
+
+      {/* The one row that reaches a human. Strings from their own home.
+          ⚠ THE CLASS IS `wl-supportaction`, NOT `sol-btn`, AND THAT IS DELIBERATE.
+          The first cut renamed it — gratuitously, since this is the same button
+          doing the same job in the same place — and `b40` C10 went RED: its tap-
+          target census at `scripts/b40_worklist_shell_bench.js:162` maps
+          `app/w/support/page.tsx` to exactly this class, and the rule vanished
+          from under it. The button is the worklist's support action, not a
+          solutions button, so its name was right and the rename was the error.
+          Cured here rather than relayed: an S2 census that correctly tracks a
+          live element should not be edited to accommodate a rename that bought
+          nothing. Its rule is carried below, ≥44px, where the census can see it. */}
+      <div className="sol-footer">
+        <p className="sol-footerbody">{WL.supportBody}</p>
+        <button
+          type="button"
+          className="wl-supportaction"
+          onClick={() => window.open(
+            `https://wa.me/${supportWaNumber()}?text=${encodeURIComponent('Hi')}`,
+            '_blank', 'noopener',
+          )}
+        >
+          {WL.supportAction}
         </button>
       </div>
+      <SolutionsStyles />
       <style>{`
-/* R-38.5: the column owns the gutter. This block set its own 20px inset and was one of the
-   sites the founder's misalignment came from — a component taking back the freedom
-   R-37.82 (1) removed. Vertical only now. */
-.wl-support{padding-top:20px;padding-bottom:24px;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
-.wl-supportbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+/* Carried from the surface this page replaced, byte-for-byte in its properties.
+   R-38.5: the column owns the gutter — vertical only, no horizontal inset. */
 .wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-supportaction:active{background:var(--atelier-row-hover)}
 .wl-supportaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
