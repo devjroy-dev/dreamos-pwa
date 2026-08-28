@@ -510,7 +510,7 @@ async function seat(browser, mode) {
     // must never be reported as one. It used to be written out by hand here; settle() owns
     // it now, so the two cells are named ONCE, at the step that can lose them, and a third
     // surface added to this measurement cannot forget to report itself.
-    const CR7 = [tag + 'C-R7a the text edge is one x', tag + 'C-R7b the container edge agrees'];
+    const CR7 = [tag + 'C-R7a the text edge is one x', tag + 'C-R7a first-run interiors are one x', tag + 'C-R7b the container edge agrees'];
     const billingUp = await settle(p, '/w/billing', '.wl-billcard', CR7);
     const eB = !billingUp ? null : await p.evaluate(() => {
       const l = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
@@ -522,12 +522,45 @@ async function seat(browser, mode) {
       const t = document.querySelector('.wl-tile');
       return { tile: t ? Math.round(t.getBoundingClientRect().left * 10) / 10 : null };
     });
+    // ── H-1(b) · F-38.40b · THE FIRST-RUN INTERIORS JOIN THE ANCHOR SET ───────
+    // C-R7a measured four anchors and every one of them was a CONTAINER edge — the
+    // wordmark, a tile's border, the dock field's border, the plan card's border. So the
+    // founder could look at Today, see text that did not line up, and the cell could
+    // honestly report one x: it had never looked at any of the text he was reading.
+    //
+    // Three anchors are added, and they are the three he actually reads. The eyebrow is at
+    // the HOUSE edge — it is a band label, kin to `YOUR WORK` on Rooms, and the chair has
+    // ruled it stays there. The card titles and bodies are at the CARD INTERIOR edge, one
+    // gutter plus one border plus one padding in. Two edges, deliberately, and the cell
+    // asserts each set is internally one x rather than pretending they are one number.
+    //
+    // THE DEFECT THIS WAS BUILT OVER: `.wl-card-lead` swapped a .5px border for 2px
+    // without compensating the padding, so card 1's interior painted 1.5px right of cards
+    // 2 and 3. Three titles, three x values. Nothing measured it because nothing looked.
+    const todayUp = billingUp && roomsUp && await settle(p, '/w/today', '.wl-fr', CR7);
+    const eT = !todayUp ? null : await p.evaluate(() => {
+      const l = (e) => (e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null);
+      const q = (s) => [...document.querySelectorAll(s)].map(l);
+      return { eyebrow: l(document.querySelector('.wl-frhead')),
+               titles: q('.wl-fr .wl-cardtitle'), bodies: q('.wl-fr .wl-cardbody') };
+    });
+    if (todayUp) {
+      const interiors = [...eT.titles, ...eT.bodies].filter((v) => v !== null);
+      const iSpread = interiors.length ? Math.max(...interiors) - Math.min(...interiors) : null;
+      if (eT.titles.length < 3)
+        F(tag + 'C-R7a first-run interiors are one x', 'saw ' + eT.titles.length + ' card titles on Today, expected 3 — this cell must not pass on a surface it could not see');
+      else if (iSpread !== null && iSpread <= 0.5)
+        P(tag + 'C-R7a first-run interiors are one x', interiors.length + ' titles/bodies all at ' + interiors[0] + ', spread ' + iSpread);
+      else
+        F(tag + 'C-R7a first-run interiors are one x', JSON.stringify({ titles: eT.titles, bodies: eT.bodies, spread: iSpread }));
+    }
     if (billingUp && roomsUp) {
       const xs = [eB.house, eR.tile, eB.dock, eB.card];
+      if (todayUp && eT.eyebrow !== null) xs.push(eT.eyebrow);
       const spread = Math.max(...xs) - Math.min(...xs);
       if (xs.every((v) => v !== null) && spread <= 0.5)
-        P(tag + 'C-R7a the text edge is one x', 'house/tile/dock/plan-card all at ' + eB.house + ', spread ' + spread);
-      else F(tag + 'C-R7a the text edge is one x', JSON.stringify({ house: eB.house, tile: eR.tile, dock: eB.dock, card: eB.card, spread }));
+        P(tag + 'C-R7a the text edge is one x', 'house/tile/dock/plan-card/eyebrow all at ' + eB.house + ', spread ' + spread);
+      else F(tag + 'C-R7a the text edge is one x', JSON.stringify({ house: eB.house, tile: eR.tile, dock: eB.dock, card: eB.card, eyebrow: todayUp ? eT.eyebrow : 'not measured', spread }));
       if (eB.nav !== null && Math.abs(eB.nav - eB.main) <= 0.5)
         P(tag + 'C-R7b the container edge agrees', 'nav ' + eB.nav + ' = main ' + eB.main);
       else F(tag + 'C-R7b the container edge agrees', JSON.stringify(eB));

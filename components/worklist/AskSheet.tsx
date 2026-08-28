@@ -40,6 +40,23 @@ export function AskSheet({ vendorId, mode, onClose }: { vendorId: string; mode: 
   }, [onClose]);
 
   return (
+    /* ── F-38.3 AMENDED (CE-38 S3) · THE PROVIDER STAYS, THE STAIN DOES NOT ────
+       This mount was convicted as a SECOND writer of the document ground: it sets
+       `documentElement.style.background` and the `theme-light` class, both outside
+       React's tree, and neither was undone when the sheet closed. The shell then
+       navigated onto a document still wearing the sheet's mode.
+
+       IT IS NOT DROPPED, AND THE REASON IS DERIVED RATHER THAN CAUTIOUS.
+       `ChatThread` (12 reads) and `InputBar` (13 reads) both call `useT()`, whose
+       context defaults to `DARK` with no throw — so removing the provider would render
+       those two SILENTLY dark inside Chalk rather than loudly broken. That is the
+       hollow-green shape, and trading a visible one-property stain for it is a worse
+       cure than the defect.
+
+       So the teardown lands instead: `ThemeContext` now snapshots the document before
+       the pin writes and restores it on unmount, with the clear-set recorded BY the
+       writer so the two cannot drift. F-38.50 charters the real cure — those two
+       components onto CSS variables — after which no /w surface needs this at all. */
     <ThemeProvider pinned={mode}>
       <div className="wl-asksheet" role="dialog" aria-modal="true" aria-label={COPY.dockAria}>
         <button type="button" className="wl-askscrim" aria-label="Close" onClick={onClose} />

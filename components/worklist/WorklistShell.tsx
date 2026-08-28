@@ -20,18 +20,17 @@
 // `touch-action:manipulation` so the browser stops holding taps for the double-tap-zoom
 // gesture. Neither is decoration: without them a fast route still reads as a dead control,
 // and the honest response to a dead control is to tap it again.
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
 import { clearVendorSession } from '@/lib/vendor/session';
 import { useVendorInitials, forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
-import { waNumberFor } from '@/lib/waNumbers';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
+import { useMode } from '@/lib/worklist/ModeContext';
 import { AiDock } from '@/components/worklist/AiDock';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 
-const MODE_KEY = 'tdw_worklist_mode';
 const SCOPE = '.wl';
 
 // `DLink` and `DAct` retired here with the markup they built. The shared AccountDrawer owns
@@ -41,7 +40,13 @@ const SCOPE = '.wl';
 export function WorklistShell({ title, children }: { title: string; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/w';
   const router   = useRouter();
-  const [mode, setMode] = useState<'dark' | 'light'>('dark');
+  // ── F-38.41 · THE MODE IS READ, NOT HELD ──────────────────────────────────
+  // It used to be `useState('dark')` here with a localStorage read in an effect, and that
+  // is why the founder's walk lost Chalk: every /w route mounts its own shell, so the
+  // mode reset to the default on every navigation and arrived one effect later. It now
+  // comes from the layout's provider, which does not remount when the route changes — the
+  // mode survives the walk by construction rather than by being restored after it.
+  const { mode, setMode } = useMode();
   const [coinOpen, setCoinOpen] = useState(false);
   const initials = useVendorInitials();
   const close = () => setCoinOpen(false);
@@ -61,19 +66,12 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   // and a structural guarantee plus an explicit one is the right amount of care for it.
   const signOut = () => { forgetVendorMe(); clearVendorSession(); router.replace('/'); };
 
-  // Persisted per device. Its own key: the old shell's 'dreamai_theme' names a different
-  // pair of themes, and sharing the key would make one coin silently rule two palettes.
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem(MODE_KEY);
-      if (s === 'light' || s === 'dark') setMode(s);
-    } catch { /* private mode — stay dark */ }
-  }, []);
-
-  function pick(next: 'dark' | 'light') {
-    setMode(next);
-    try { localStorage.setItem(MODE_KEY, next); } catch { /* non-fatal */ }
-  }
+  // THE READ-BACK EFFECT IS GONE WITH THE STATE IT CORRECTED. Persistence is
+  // `lib/worklist/mode.ts` — one home, cookie-first so the server can paint it, with the
+  // old localStorage key still written for one release so today's vendors are not reset
+  // to Graphite by this deploy. `pick` is now just the toggle's name for `setMode`; the
+  // provider owns the write.
+  const pick = setMode;
 
   const onToday = pathname.startsWith('/w/today');
   const onRooms = !onToday;
@@ -170,7 +168,13 @@ const SHELL_CSS = `
    Billing. A class used by three components and owned by one is a single-home violation
    wearing CSS; the shell emits them, because the shell is what every surface is inside. */
 .wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
-.wl-card-lead{border-left:2px solid var(--atelier-accent-text)}
+/* ── H-1(b) · F-38.40b · THE LEAD CARD'S INTERIOR REJOINS THE OTHERS ────────
+   The accent border was added to the box without compensating the padding, so this
+   card's contents painted at gutter + 2 + 16 = 34 while every other card's painted at
+   gutter + .5 + 16 = 32.5. Three card titles, three x values, where the whole point of
+   a card set is one. 1.5px is small and it is exactly the kind of thing an eye reads as
+   「something is off」 without being able to name it. */
+.wl-card-lead{border-left:2px solid var(--atelier-accent-text);padding-left:14.5px}
 .wl-cardtitle{font:var(--wl-t4);color:var(--atelier-accent-text);margin:0 0 8px}
 .wl-cardbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
 .wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}

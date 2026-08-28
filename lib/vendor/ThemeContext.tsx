@@ -6,8 +6,35 @@ const ThemeCtx = createContext<ThemeTokens>(DARK);
 const KEY = 'dreamai_theme';
 
 // Apply CSS custom properties directly to <html> so they cascade into every component.
-function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
-  const r = document.documentElement.style;
+// ── F-38.3 (AMENDED, CE-38 S3) · THE PIN ARM RECORDS EVERY DOCUMENT WRITE ───
+//
+// A pinned provider writes to `<html>` and `<body>` — nodes outside React's tree — so
+// nothing unmounts those writes when the provider goes. The Ask sheet closed and the
+// document kept its background; the shell then navigated and the ground was still the
+// mode the sheet had pinned. An inline style on the document element beats any stamp a
+// scoped shell can put on `.wl`, which is why the theme cookie could not have cured this
+// on its own.
+//
+// THE TEARDOWN IS DERIVED, NOT TRANSCRIBED. `written` is filled by the WRITER, so the
+// clear-set is whatever was actually set on this pass. A hand-kept list of twenty-five
+// property names beside twenty-five `setProperty` calls is two homes for one set, and the
+// second home is the one that stops agreeing the day a token is added — the exact disease
+// this estate keeps filing. Add a var below and the teardown picks it up for free.
+//
+// F-38.3's RADIUS IS REDUCED, NOT CLOSED: the pin still writes the document ground. It no
+// longer LEAVES it behind. The full cure is F-38.50 — `ChatThread` and `InputBar` moved off
+// `useT()` onto CSS variables, after which no `/w` surface needs this provider at all.
+// Twenty-five `T.*` reads across two files with the context defaulting to `DARK`, so
+// dropping the provider today would render those two silently dark inside Chalk rather
+// than loudly wrong. Chartered separately for that reason.
+export type PinWrites = { props: string[]; colorScheme: string; htmlBg: string; bodyBg: string; hadLight: boolean };
+
+function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light'): string[] {
+  const style = document.documentElement.style;
+  const written: string[] = [];
+  // The facade keeps all twenty-five call sites below byte-identical. They read as they
+  // always did; the recording is the only thing that changed.
+  const r = { setProperty: (n: string, v: string) => { written.push(n); style.setProperty(n, v); } };
 
   // Base theme vars — flip with theme
   r.setProperty('--atelier-ink',          t.ink);
@@ -85,6 +112,20 @@ function applyCSSVars(t: ThemeTokens, pin?: 'dark' | 'light') {
                    : (t.isLight ? '#F5F2EE' : (t.pageBg === '#090d17' ? '#090d17' : ''));
   document.documentElement.style.background = __bg;
   document.body.style.background = __bg;
+  return written;
+}
+
+/** Undo exactly what `applyCSSVars` + `applyTheme`'s class toggle put on the document. */
+function clearPinWrites(w: PinWrites) {
+  const style = document.documentElement.style;
+  for (const n of w.props) style.removeProperty(n);
+  style.colorScheme = w.colorScheme;
+  style.background = w.htmlBg;
+  document.body.style.background = w.bodyBg;
+  // `theme-light` is restored rather than removed. The class is not the pin's to own — the
+  // vendor lane sets it too — so a teardown that always removed it would hand a light
+  // vendor tree a dark document on the way out of a sheet.
+  document.documentElement.classList.toggle('theme-light', w.hadLight);
 }
 
 
@@ -110,20 +151,42 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
   const [tokens, setTokens] = useState<ThemeTokens>(initial);
   const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>(pinned ?? 'dark');
 
-  function applyTheme(theme: 'dark' | 'light') {
+  // The pinned path needs the written-property list back out of `applyTheme`, and the
+  // unpinned path does not care. One function returning it to both is cheaper than two
+  // that can disagree about what a theme application is.
+  function applyThemePinned(theme: 'dark' | 'light'): string[] { return applyTheme(theme); }
+
+  function applyTheme(theme: 'dark' | 'light'): string[] {
     const t = theme === 'light' ? LIGHT : DARK;
     setTokens(t);
     setCurrentTheme(theme);
     document.documentElement.classList.toggle('theme-light', theme === 'light');
     document.documentElement.classList.remove('theme-flair'); // TDW_09 R-U19: retired class swept
     // Apply base vars first
-    applyCSSVars(t, pinned);
+    return applyCSSVars(t, pinned);
   }
 
   useEffect(() => {
     // TDW_08 P3 · G-6 — a PINNED provider never touches storage. The read and the
     // listener are both inside this guard, so a pinned tree has no path to either.
-    if (pinned) { applyTheme(pinned); return; }
+    //
+    // ── F-38.3 (AMENDED) · THE PIN ARM NOW HAS A TEARDOWN ────────────────────
+    // The document state is snapshotted BEFORE the pin writes, and restored when the
+    // pinned tree unmounts. Snapshot-and-restore rather than blanket-remove, because the
+    // vendor lane writes the same properties and a pinned sheet is a GUEST on that
+    // document: it must hand back what it found, not what it thinks the default is.
+    if (pinned) {
+      const style = document.documentElement.style;
+      const before: PinWrites = {
+        props: [],
+        colorScheme: style.colorScheme,
+        htmlBg: style.background,
+        bodyBg: document.body.style.background,
+        hadLight: document.documentElement.classList.contains('theme-light'),
+      };
+      before.props = applyThemePinned(pinned);
+      return () => clearPinWrites(before);
+    }
 
     // Read stored preference
     try {
