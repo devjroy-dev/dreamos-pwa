@@ -654,7 +654,11 @@ async function coverage() {
     }
   }
   if (personaHits.size) F('R-37.70 no persona name in chrome', [...personaHits].join(' \u00b7 '));
-  else P('R-37.70 no persona name in chrome', 'no persona name in any rendered string on five shell surfaces');
+  // The count is DERIVED, and the literal it replaces had been wrong since \u00a74-1: it said
+  // 「five shell surfaces」 while this loop walked eleven, then thirteen. A green line
+  // reporting a scope that stopped being true is the F-38.29 family printing itself as
+  // evidence on every run \u2014 nobody re-reads a PASS.
+  else P('R-37.70 no persona name in chrome', 'no persona name in any rendered string on ' + shellSurfaces.length + ' shell surfaces');
 
   // ── ARM (c) · NO useT UNDER THE SHELL ─────────────────────────────────────
   // The cell CE-38 relay #2 asked for, stated the only way served bytes can state it: a

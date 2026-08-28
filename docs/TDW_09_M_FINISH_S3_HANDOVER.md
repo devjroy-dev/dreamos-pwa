@@ -296,6 +296,53 @@ registry so the next reader does not re-derive them: two are wire-contract types
 Non-vacuity, by mutating the registry: undeclaring `/vendor?draft=` reds C31 naming all
 three of its sites and their rooms; restoring returns `FLOOR GREEN`.
 
+## §4d · F-38.42 · TWO GREEN LINES THAT HAD STOPPED BEING TRUE
+
+Both gates came back green at `7c66da2` — audit 26/0/2, arm 40/0, calendar crossed and
+proven on glass in both modes. **Then two of the green lines turned out to be reporting a
+world that ended a crossing ago.**
+
+### `wl_audit`'s persona cell said 「five shell surfaces」 while walking thirteen
+
+A PASS message with a hardcoded scope. It has been wrong since §4-1 and printed itself as
+evidence on every run since. **Nobody re-reads a PASS** — that is the whole reason a stale
+number survives inside one. Derived from `shellSurfaces.length` now.
+
+### `b40` C5 was named for a rule the estate struck, and its reader was guesswork
+
+The cell was called *DreamAi, never a seat-name, in chrome* — R-37.70's ORIGINAL shape,
+which permitted the product name in prose. **R-38.17 retired that exemption**, and the cell
+went on stating the struck rule in green output. Its body was narrower than its name too:
+three names of five.
+
+**AND THE READER WAS BROKEN IN A WAY ONLY A MUTATION COULD SHOW.** It extracted quoted
+strings with a single-quote pair matcher and searched the join. `copy.ts` carries **151
+apostrophes** after stripping — an odd count, because the vetoed bytes themselves use them
+(「the vendor's own」, 「isn't reading」). One stray apostrophe offsets every pairing after it,
+so real strings fall inside phantom ones and out of the set. **Planting `DreamAi` directly
+in the register did not red this cell.** C32, reading the same file with a different reader,
+caught it — so the fragile reader was the one standing closest to the register it guards.
+
+**The pairing is abandoned, not repaired.** This file *is* the copy register: every string
+in it is vendor-facing by construction and every comment is stripped before the read. The
+honest question is not 「is this name inside a quoted literal」 but 「is this name in the
+register at all」 — no pairing, nothing to offset, strictly stronger. Non-vacuity: `DreamAi`,
+`Mira` and `Victor` each red C5 alone; the old body could see none of the first two.
+
+**And the persona list had two homes** — C5's three names and C32's five. One now, read by
+both, so a sixth name is one edit and cannot land in half the cells.
+
+### The pattern, for whoever counts this arc's findings
+
+**Every instrument defect this sitting was a cell agreeing with a description of itself.**
+`PAGES` derived without `/w/rooms` because a count was checked and not a set. C32's JSX arm
+covering one name of five. The vacuous PAGES guard. And now a stale PASS message and a cell
+whose name, scope and reader had each drifted from its claim in a different direction.
+
+**None was found by reading. All were found by running something** — a mutation, a diff, or
+the founder's own gate. The one that matters most is C5: it was *green*, it was *named after
+a rule*, and it could not have failed.
+
 ## §5 · FLOORS AT THE CUT (R-38.19)
 
 **pwa, dirty tree: 23.** Set = the named base **22** plus `tdw_f0774_vacuity_probe`, which

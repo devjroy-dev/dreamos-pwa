@@ -9,6 +9,16 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 /** Comment-blindness law: strip comments before any textual assertion against source. */
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
+/**
+ * THE BANNED NAMES, ONE HOME (R-37.70 as amended at R-38.17).
+ *
+ * Read by C5 at the register and by both of C32's arms across the import graph. It was
+ * declared beside C32 and C5 carried its own narrower copy of three names out of five \u2014
+ * two homes for one list, and the smaller one was the one nobody re-read. A sixth name is
+ * one edit here and cannot land in only some of the cells.
+ */
+const PERSONAS = '\\bDreamAi\\b|\\bVictor\\b|\\bDonna\\b|\\bHarvey\\b|\\bMira\\b';
+
 let fails = 0;
 function cell(name, fn) {
   try { const why = fn(); if (why) { console.log('RED   ' + name + ' — ' + why); fails++; }
@@ -84,9 +94,37 @@ cell('C4 self-reference register (R-37.72)', () => {
   return null;
 });
 
-cell('C5 DreamAi, never a seat-name, in chrome (R-37.70)', () => {
-  const strings = (strip(read('lib/worklist/copy.ts')).match(/'(?:[^'\\]|\\.)*'/g) || []).join(' ');
-  if (/\bVictor\b|\bHarvey\b|\bDonna\b/.test(strings)) return 'a persona seat-name appears in a vendor-facing byte';
+// ── AMENDED, LABELLED — \u00a74-2. THE NAME ASSERTED A RETIRED RULE ─────────────
+//    It was called 「DreamAi, never a seat-name, in chrome」 \u2014 R-37.70's ORIGINAL shape,
+//    which permitted the product name in prose and forbade only the seat names. R-38.17
+//    retired that exemption: DreamAi is banned outright, in prose and in labels. So the
+//    cell's NAME stated a rule the estate had struck, in green output, on every run.
+//
+//    ITS BODY WAS NARROWER THAN ITS NAME TOO \u2014 three names of five, and `copy.ts` alone.
+//    C32 walks the whole import graph for all five. This is the REGISTER's own guard: the
+//    one file every vetoed byte must pass through, checked at its source, so a banned name
+//    cannot be added to the register and then noticed later somewhere downstream.
+//    RETIRE-WITH-THE-READER: the claim survives its wording, and reads the same one home
+//    for the persona list that C32 does.
+//
+//    ⚠ AND ITS READER WAS GUESSWORK, WHICH ONLY A MUTATION SHOWED. The old body extracted
+//    quoted strings with a single-quote pair matcher and searched the JOIN. `copy.ts`
+//    carries 151 apostrophes after stripping — an ODD count, because prose inside vetoed
+//    bytes uses them (「the vendor's own」, 「isn't reading」). One stray apostrophe offsets
+//    every pairing after it, so real strings fall inside phantom ones and out of the set.
+//    Planting `DreamAi` in the register did NOT red this cell; C32, reading the same file
+//    with a different reader, caught it. **Two readers for one claim, and the fragile one
+//    was the cell standing closest to the register.**
+//
+//    THE PAIRING IS ABANDONED, NOT REPAIRED. This file IS the copy register: every string
+//    in it is vendor-facing by construction and every comment is stripped before the read.
+//    So the honest question is not 「is this name inside a quoted literal」 but 「is this name
+//    in the register at all」 — which needs no pairing, cannot be offset, and is strictly
+//    stronger. Proven by mutation on two names the old body could not see.
+cell('C5 no persona name in the copy register, all five (R-37.70 as amended at R-38.17)', () => {
+  const register = strip(read('lib/worklist/copy.ts'));
+  const hit = new RegExp(PERSONAS).exec(register);
+  if (hit) return 'a persona name appears in the copy register: ' + hit[0];
   return null;
 });
 
@@ -967,9 +1005,6 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
 //    audit's own interim list had, and the identical cure: derive, never retype.
 //    R-38.11 as amended: reachable is reachable. Proven by mutation — restoring the
 //    MessageBubble byte reddens this cell alone.
-/** THE BANNED NAMES, ONE HOME. Both of C32's arms read this; a sixth name is one edit. */
-const PERSONAS = '\\bDreamAi\\b|\\bVictor\\b|\\bDonna\\b|\\bHarvey\\b|\\bMira\\b';
-
 cell('C32 no persona name reachable from any shell surface, DreamAi included (R-37.70 as amended)', () => {
   const resolveSpec = (spec, from) => {
     let base = null;
