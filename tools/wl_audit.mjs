@@ -464,9 +464,37 @@ async function coverage() {
   // arm's C-R17 owns the painted claim. Saying so here is the whole of D-38.1: presence in
   // a stylesheet is not presence on screen, and a cell that quietly meant both would be
   // making one of them up.
+  //
+  // ── AMENDED, LABELLED — S2/2 relay #3 · THE ASSERTION INVERTS, IT DOES NOT LOOSEN ──
+  //
+  // THE CELL'S PROSE WAS AMENDED AND ITS PREDICATE WAS NOT, AND THAT IS THE WHOLE ENTRY.
+  // Withholding the masthead trio (relay #3 item 2) removed the ONLY consumer of the t0
+  // rung, and this seat rewrote the pass-message to say so while leaving
+  // `t0Sites.length === 1` standing above it. The gate reddened a correct tree and named
+  // the reason itself: 「consumed on: nowhere」.
+  //
+  // THAT IS F-38.29's EXACT SHAPE — a comment that reads like the ruling over code that
+  // does not perform it — filed by this seat, in this sitting, against C13. Third instance
+  // from this seat after C13's sentence ceiling and C13's prefix matcher. The habit being
+  // corrected is writing the explanation and not re-reading the line beneath it.
+  //
+  // RETIRE-WITH-THE-READER. The assertion INVERTS rather than vanishing, so the withholding
+  // cannot be quietly undone and the rung cannot quietly acquire a second consumer:
+  //   · while the numeral is withheld, NO shell surface consumes t0
+  //   · and the rung is still DECLARED, because Phase 4 restores its consumer and a
+  //     variable deleted in the meantime is a variable somebody re-invents at a new value
+  //
+  // WHEN: Phase 4's feed first answers 200 — the same commit that restores the wl-mnum
+  //       rules to app/w/today/page.tsx and uncomments COPY.todayNothingYet.
+  // DO:   flip this back to `t0Sites.length === 1 && t0Sites[0] === '/w/today'`.
   const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test((pageCorpus.get(p) || '').replace(/--wl-t0:[^;]*;/g, '')));
-  if (t0Sites.length === 1 && t0Sites[0] === '/w/today') P('R-38.4 t0 is one element', 'the rung is declared on /w/today only; whether it PAINTS is C-R17');
-  else F('R-38.4 t0 is one element', 'consumed on: ' + (t0Sites.join(' ') || 'nowhere'));
+  const t0Declared = shellSurfaces.filter((p) => /--wl-t0:/.test(pageCorpus.get(p) || ''));
+  if (t0Sites.length === 0 && t0Declared.length > 0)
+    P('R-38.4 t0 is one element', 'the rung is declared on ' + t0Declared.length + ' surface(s) and consumed by none — the numeral is withheld until the feed answers (F-38.31/c-38.14)');
+  else if (t0Sites.length)
+    F('R-38.4 t0 is one element', 'the withheld numeral has a consumer again: ' + t0Sites.join(' '));
+  else
+    F('R-38.4 t0 is one element', 'the t0 rung is not declared anywhere — it must survive its withheld consumer, or Phase 4 re-invents it at a new value');
 
   // ── R-38.6 · THE RETIRED STRINGS ARE ABSENT ───────────────────────────────
   // Named bytes, not a shape heuristic. A retired sentence that quietly ships is the

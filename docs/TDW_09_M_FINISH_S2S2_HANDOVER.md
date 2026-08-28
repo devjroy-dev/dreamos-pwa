@@ -669,6 +669,34 @@ mechanical to revert. Disclosed rather than slipped in; ratify-or-revert.
 the stamp is the one being deployed by this commit. That is expected and it is the last time
 it can be ambiguous.
 
+## §9f · THE THIRD TIME I AMENDED A COMMENT AND NOT THE LINE BENEATH IT
+
+`DEPLOY: 30651df = this tree` — the stamp works, and with the deploy finally attributable
+the three gate FAILs collapsed to one: R-37.70 clean across five surfaces, R-38.6 clean on
+eighteen retired bytes, the dead-rule sweep clean on 88 rules across 13 pages.
+
+**The survivor was mine.** `R-38.4 t0 is one element — consumed on: nowhere`. Withholding
+the masthead trio removed the only consumer of the t0 rung, and I rewrote that cell's
+pass-message to say exactly that — 「the rung is declared on /w/today only; whether it PAINTS
+is C-R17」 — while leaving `t0Sites.length === 1` standing directly above it. The prose
+described the new world; the assertion still demanded the old one.
+
+**THAT IS F-38.29's SHAPE, FILED BY THIS SEAT, IN THIS SITTING, AGAINST C13.** Third
+instance from this seat after C13's sentence ceiling and C13's prefix matcher. The habit is
+specific and worth naming rather than resolving to be careful about: **I write the
+explanation and do not re-read the line beneath it.** All three were caught by a run, none
+by a reading.
+
+The cell inverts rather than loosening — no shell surface may consume t0 while the numeral
+is withheld, AND the rung must still be declared, because Phase 4 restores its consumer and
+a variable deleted in the meantime is one somebody re-invents at a new value. The flip back
+is dated to the same commit that restores the rules and uncomments the byte.
+
+**THE UNCOMMENT LEDGER NOW HAS FOUR ENTRIES AT PHASE 4** and they are one commit:
+`COPY.todayNothingYet` · the two-armed status in `app/w/today/page.tsx` · the `wl-mnum`
+trio's CSS · `wl_audit`'s R-38.6 entry — and now a fifth, this cell's predicate. Every one
+names its date at its own site.
+
 ## §10 · THE NEXT SITTING
 
 §4-2's eight rooms remain, in `INTERIM_VENDOR_ROOMS` order: **calendar, storefront,
