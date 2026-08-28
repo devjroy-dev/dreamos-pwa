@@ -432,3 +432,113 @@ touched here, and it is S2's file. Reported for the chair.
 - Copy for both is already drafted in `copy.ts`: `publicPageLine`,
   `publicPageEnquire`, `publicPageUnknown`, `reviewUnsetLine`.
 - F-19.14 stands: no per-vendor public URL exists anywhere in the estate.
+
+---
+---
+
+# STEP 5 — THE COPY REGISTER, AND THE CLOSE OF P0-B
+
+**Base at the cut, by `tools/preflight.sh worklist` (R-38.20b):**
+`dreamos-pwa` `14836e1` · `dream-os` `f7f5a6e` · both `behind 0` · both clean ·
+PREFLIGHT CLEAR.
+
+## §24 · WHAT LANDED
+
+| Path | Lines | Change |
+|---|---|---|
+| `docs/COPY_REGISTER_TDW19.md` | 209 | NEW — the founder's one pass |
+| `tools/bs_audit.mjs` | 558 | grown — 23 cells → 24 |
+
+## §25 · THE REGISTER IS DERIVED, NOT TRANSCRIBED
+
+All fifty strings were extracted from `lib/solutions/copy.ts` **by command at the
+moment of writing**, not retyped. `bs_audit` C24 then asserts the register
+carries every one of them verbatim, and it earned itself on its first run:
+
+```
+absent from register: 1
+  MISSING benchmarksEmpty = How your reply time and enquiries compare with you…
+```
+
+The register had `another vendor's numbers` with a **straight apostrophe** where
+`copy.ts` ships `\u2019`. One character, invisible on the page — and the founder
+would have approved a string that does not exist. Corrected to the shipped byte;
+`50/50 verbatim`.
+
+**That is the whole reason C24 exists.** A register missing a string means a byte
+ships that no veto saw. A register showing a *different* byte is worse: he
+approves one thing and another goes out. Non-vacuity: altering one register byte
+reddens C24 naming the key; deleting the register reddens it too.
+
+## §26 · THE THREE THINGS THE REGISTER ASKS THE FOUNDER TO RULE
+
+Not buried in the tables — they are §1 of the document.
+
+1. **`Coming` is a seventh chip; spec §9 approved six.** None of the six says
+   honestly what a closed env gate means, and `Not connected` would tell a vendor
+   she can connect something she cannot.
+2. **The demo `/v/` page shows a WhatsApp button the real one does not.** A
+   couple who sees both will notice. Stated as the cost of the ruling rather than
+   buried. Resolves when `public_contact_phone` is chartered with consent (P2).
+3. **Four strings are transcribed inline** in `app/r` and `app/v` — public-edge
+   routes with no React runtime, where importing the copy module would drag
+   `types.ts`'s graph onto a route serving strangers. `copy.ts` remains the home;
+   if they disagree, `copy.ts` wins; each file says so at its site.
+
+## §27 · GATE AT THE CUT (R-38.19 — re-derived, never quoted)
+
+```
+tools/preflight.sh worklist        PREFLIGHT CLEAR, both tips named
+npx tsc --noEmit                   exit 0
+node tools/bs_audit.mjs            24 PASS · 0 FAIL, exit 0
+pwa floor, delivery tree           1 red: tdw_f0774_vacuity_probe  (F-19.16, dirt)
+pwa floor, footprint withdrawn     FLOOR = NAMED BASE, no delta, exit 0
+```
+
+The floor was compared by **set**, not count: withdrawing the delivery returns
+the base exactly, so the single red is the probe refusing tree dirt and nothing
+else.
+
+## §28 · ⚠ F-19.18 FIRED AGAIN, ON THIS SEAT, IN THE SAME SITTING
+
+Measuring the pristine floor requires withdrawing the delivery by hand. Doing it,
+this seat ran `git checkout -- tools/bs_audit.mjs` **with no backup for the second
+time in this block** and destroyed C24 minutes after writing it. Rebuilt, then
+re-verified: `tsc` clean, 24 cells, and C24's non-vacuity re-proven against the
+rebuilt file rather than assumed from the first run.
+
+**Twice in one block, by the seat that filed the finding.** That is the argument
+for F-19.16's cure stated as evidence rather than opinion: the workaround the
+missing `--delivery` forces on every pwa seat has a failure mode that lands on
+the work, and a careful operator following his own advice hit it twice in an
+afternoon.
+
+## §29 · P0-B IS CLOSED — WHAT EXISTS NOW
+
+| Step | Shipped |
+|---|---|
+| 1 | The wire contract, one home per repo, kept honest by a cross-repo digest |
+| 2 | Eight GETs on the contract's empty shape; nine POSTs conditional-withheld |
+| 3 | Six surfaces + the room index on Billing's rungs; the address book |
+| 4 | The first public per-vendor door and the two public routes |
+| 5 | The copy register and this close |
+
+**Instruments:** `bs_audit.mjs` 24 cells · `b43` 35 · `b44` 25. Every cell
+non-vacuous by mutation of production source.
+
+**Findings open at close:** F-19.14 (no per-vendor public URL existed — now
+partly cured by `/v/`, but no storefront exists), F-19.15 (`invoices.amount_total`
+is rupees, the rail is paise), F-19.16 (the pwa floor cannot gate a dirty tree),
+F-19.17 (no review-URL column; `/r/` is the unset sentence for everyone),
+F-19.18 (mutating benches do not restore on signal — chartered with F-38.38).
+
+**Open questions carried, neither dressed as fact:** `VERCEL_TEAM_ID`'s
+optionality rests on this seat's belief with no derive behind it, and P2 must
+settle it; the `Coming` chip and the demo-button asymmetry await the founder's
+veto.
+
+**What P1–P6 inherit:** shapes they cannot silently change (the digest moves and
+both repos redden), doors that already answer honestly in the empty state,
+surfaces built against those real answers rather than mocks, an env ledger where
+turning a phase on is setting a key, and a public address that exists from today
+so P2 replaces a body and not a URL.

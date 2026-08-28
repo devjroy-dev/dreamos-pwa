@@ -523,6 +523,36 @@ try {
     : F('C23 chip text comes from CHIPS, never a literal', litChip ? 'a chip word is hardcoded in the component' : 'CHIPS[state] not used');
 }
 
+// ── C24 · THE REGISTER CARRIES EVERY SHIPPED STRING, VERBATIM ─────────────
+// The founder gets ONE pass (spec §9), and he reads the register, not the code.
+// A register missing a string means a byte ships that no veto ever saw; a
+// register showing a DIFFERENT byte is worse, because he approves one thing and
+// another goes out.
+//
+// This cell caught exactly that on its first run: the register had
+// `another vendor's numbers` with a straight apostrophe where `copy.ts` ships
+// `\u2019`. One character, invisible on the page, and the approval would have
+// been for a string that does not exist.
+{
+  let reg = null;
+  try { reg = readFileSync(join(ROOT, 'docs/COPY_REGISTER_TDW19.md'), 'utf8'); } catch { /* reported below */ }
+  if (!reg) F('C24 the copy register carries every shipped string', 'docs/COPY_REGISTER_TDW19.md not found');
+  else {
+    const re = /^\s+([a-zA-Z_]+):\s+'((?:[^'\\]|\\.)*)',?\s*$/gm;
+    const missing = [];
+    let m, total = 0;
+    while ((m = re.exec(copyCode)) !== null) {
+      total++;
+      // The source carries `\u2019` escapes; the register carries the character.
+      const shipped = m[2].replace(/\\u2019/g, '\u2019').replace(/\\'/g, "'");
+      if (!reg.includes(shipped)) missing.push(m[1]);
+    }
+    if (total === 0) F('C24 the copy register carries every shipped string', 'no strings parsed from copy.ts — the cell had nothing to assert');
+    else if (missing.length) F('C24 the copy register carries every shipped string', `${missing.length} absent or altered: ${missing.join(', ')}`);
+    else P('C24 the copy register carries every shipped string', `${total}/${total} verbatim`);
+  }
+}
+
 console.log('');
 console.log(`${pass} PASS \u00b7 ${fail} FAIL`);
 process.exit(fail === 0 ? 0 : 1);
