@@ -97,10 +97,19 @@ type Card = {
   city: string | null;
   handle: string;
   is_demo: boolean;
-  enquiry_phone: string | null;
   about: string | null;
   starting_price: number | null;
   photos: Photo[];
+  /** W-1's cure (c-38.37). The house link for a real vendor, her own deep link
+   *  for a demo — built at the door, off `shapeVendor.js`'s ENQUIRE_BASE.
+   *
+   *  ⚠ THE WIRE'S `enquiry_phone` IS DELIBERATELY ABSENT FROM THIS TYPE. It is
+   *  still on the card (b44 asserts it) as the demo leg's raw datum, but this
+   *  page must never build a wa.me target from a phone number — that is the code
+   *  path by which a personal number would one day reach an open URL. A type
+   *  that declares a field nobody may read is an invitation; this one does not
+   *  offer it. One contact field, one home, and `bs_audit` C32 keeps it so. */
+  enquire_link: string | null;
 };
 
 async function fetchCard(code: string): Promise<Card | null> {
@@ -213,9 +222,7 @@ export default async function PublicVendorPage(
 
   const hero = heroOf(card);
   const rest = (card.photos || []).filter((p) => p !== hero);
-  const wa = card.enquiry_phone
-    ? `https://wa.me/${card.enquiry_phone.replace(/[^0-9]/g, '')}`
-    : null;
+  const wa = card.enquire_link;
 
   return (
     <main className="pv pv-card">
@@ -227,6 +234,16 @@ export default async function PublicVendorPage(
         <div className="pv-hero">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={hero.url} alt={hero.caption || card.business_name || ''} loading="eager" />
+          {/* The wordmark over her work, and the gradient that dissolves the
+              photograph INTO the page. W-4: the old cut stopped the image at a
+              hard edge against a white block, which is why it read as stacked
+              boxes rather than as one composition. Both are the demo studio's,
+              inverted for cream. */}
+          <div className="pv-mark">
+            <span className="pv-mark-name">The Dream Wedding</span>
+            <span className="pv-mark-sub">India&apos;s First Wedding OS</span>
+          </div>
+          <div className="pv-fade" />
         </div>
       )}
 
@@ -254,17 +271,23 @@ export default async function PublicVendorPage(
             own. Under her own prose it would be a second voice saying less. */}
         {!card.about && <p className="pv-line">{COPY.line}</p>}
 
-        {/* ⚠ THE BUTTON IS DEMO-ONLY, AND THAT ASYMMETRY IS RULED, NOT ACCIDENTAL.
-            Third band §2-5: `public.vendors` has no phone column and no "number
-            is public" flag — a vendor's number lives on `public.users.phone`, and
-            publishing it because a button needed a target would put a personal
-            WhatsApp number on an open URL on the strength of a choice she was
-            never asked to make. `demo_vendors.whatsapp_phone` is a business's own
-            public Instagram contact and this page states it is a demo. A real
-            vendor gets this button when a `public_contact_phone` is chartered
-            with her explicit consent — priced into P2 proper, not invented here.
-            The door already enforces it: `enquiry_phone` is null for every real
-            vendor (b44 §2.5), so this is the shape of a ruling, not its guard. */}
+        {/* ── W-1 · EVERY VENDOR GETS THIS BUTTON NOW (c-38.37) ────────────────
+            The founder walked the page and found nothing to tap. A storefront a
+            couple cannot act on is a brochure, and `tdw_referral_invite` lands
+            her here at her HIGHEST intent.
+
+            The third band §2-5 was right about the question it answered — a
+            vendor's personal number must not be published without her consent —
+            and this seat read that as "no contact", which does not follow. The
+            chair filed c-38.37 against the ruling: it answered the disclosure
+            question and never asked what the page was for.
+
+            NO NUMBER IS PUBLISHED. `enquire_link` for a real vendor is TDW's own
+            WhatsApp line with her handle in the message body, built at the door
+            off `shapeVendor.js`'s `ENQUIRE_BASE` — the exact link every Enquire
+            tap in the Frost deck has used since TDW_07. Donna routes from there.
+            A demo vendor keeps its own published contact. The asymmetry did not
+            disappear; it narrowed to its honest remainder. */}
         {wa && (
           <a className="pv-cta" href={wa} target="_blank" rel="noopener noreferrer">
             {COPY.enquire}
@@ -279,6 +302,14 @@ export default async function PublicVendorPage(
           component, and a client component drags a hydration bundle onto a route
           whose whole virtue is arriving instantly for a stranger. Scrolling is a
           gesture every phone already knows. */}
+      {/* The gold rule — the studio's section break, brightest beside the
+          diamond and dying at the margin. It is what gives the page a rhythm
+          instead of a stack, and it tells a reader that what follows is a
+          different movement rather than more of the same. */}
+      {rest.length > 0 && (
+        <div className="pv-rule"><span className="pv-rule-line" /><span className="pv-diamond">◆</span><span className="pv-rule-line" /></div>
+      )}
+
       {rest.length > 0 && (
         <div className="pv-strip">
           {rest.map((p) => (
@@ -287,6 +318,13 @@ export default async function PublicVendorPage(
           ))}
         </div>
       )}
+
+      {/* THE CLOSE. W-4: the old cut's last photograph simply stopped and the
+          document ended, so nothing told a couple she had reached the bottom of
+          something made on purpose. The studio signs off; so does this. */}
+      <footer className="pv-close">
+        <span className="pv-close-mark">The Dream Wedding</span>
+      </footer>
 
       <PublicStyles />
     </main>
@@ -312,27 +350,117 @@ export default async function PublicVendorPage(
 function PublicStyles() {
   return (
     <style>{`
+/* ── THE ARRIVAL (W-4) ──────────────────────────────────────────────────────
+   The walk's verdict was that the page "starts abruptly, ends abruptly, has
+   nothing… no transition." It was true: the old cut had no @keyframes at all.
+
+   ⚠ THE REASONING THAT PRODUCED THAT, STATED SO IT IS NOT REPEATED. This route
+   refuses a client component — a carousel needs state, state needs hydration,
+   and a hydration bundle on a page serving strangers is a real cost. That
+   refusal was CORRECT about the carousel and was then over-applied to
+   everything that moved. CSS animation needs no JavaScript, no state and no
+   hydration; a server component can arrive beautifully at zero client cost.
+   The whole sitting had optimised for instant first paint and produced a page
+   that arrives instantly and feels like nothing arrived.
+
+   Ported from app/demo/vendor/[handle] rather than re-invented — same easing,
+   same 10px lift, same staggered delays — so the estate's two vendor
+   presentations cannot drift into two houses. "both" fill so nothing flashes
+   before its delay elapses. */
+@keyframes pvRise { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pvIn   { from{opacity:0} to{opacity:1} }
+
 .pv{min-height:100vh;background:#F8F7F5;color:#0C0A09;
   font:400 14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
 .pv:not(.pv-card){display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;padding:32px 24px;text-align:center}
-.pv-card{max-width:430px;margin:0 auto;padding:0 0 48px}
-.pv-hero{width:100%;aspect-ratio:4/5;overflow:hidden;background:#EFECE7}
-.pv-hero img{width:100%;height:100%;object-fit:cover;display:block}
-.pv-body{padding:24px 24px 0}
+.pv-card{max-width:430px;margin:0 auto;padding:0 0 8px}
+
+/* ── THE HERO'S HEIGHT IS DERIVED, NOT CHOSEN (W-2) ─────────────────────────
+   CE-38's requirement, verbatim: the hero must leave the name and city visible
+   without scrolling on a 390 column. So the number falls out of arithmetic
+   rather than taste, and the arithmetic is here to be checked.
+
+     the first text block below the hero, measured from the core's own styles:
+       24px  .pv-body padding-top
+       13px  eyebrow  (9px Jost, line-height ~1.4)
+        8px  eyebrow margin-bottom
+       31px  name     (28px Cormorant, line-height 1.1)
+       ────
+       76px  to the name's baseline
+      +64px  breathing, so the name is not jammed against the fold edge
+       ────
+      140px  reserved below the hero
+
+   → height: calc(100svh - 140px). "svh" and not "vh" because "vh" on iOS is the
+   LARGE viewport and ignores the browser chrome, which is exactly the 100px
+   that would push the name off the screen this rule exists to keep it on.
+
+   The 420px cap is the second half of the requirement. On a tall phone
+   100svh-140 is ~560px, which passes the arithmetic and still fills the screen
+   with one photograph — which is the "too big" the walk actually reported.
+   Checked at both ends: 375x667 → min(410,420)=410, name lands at 486 of ~550
+   usable; 390x844 → min(560,420)=420, name at 496 of ~700. */
+.pv-hero{position:relative;width:100%;height:min(calc(100svh - 140px), 420px);
+  min-height:240px;overflow:hidden;background:#EFECE7;
+  animation:pvIn 900ms cubic-bezier(0.22,1,0.36,1) both}
+.pv-hero img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.pv-mark{position:absolute;top:calc(env(safe-area-inset-top,0px) + 20px);left:22px;z-index:2;
+  display:flex;flex-direction:column;gap:5px;pointer-events:none;
+  animation:pvIn 1200ms cubic-bezier(0.22,1,0.36,1) 300ms both}
+.pv-mark-name{font:italic 300 15px/1 "Cormorant Garamond",Georgia,serif;
+  color:rgba(248,247,245,0.9);letter-spacing:.02em;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.pv-mark-sub{font:400 6px/1 inherit;letter-spacing:.38em;text-transform:uppercase;
+  color:rgba(201,168,76,.9);text-shadow:0 1px 4px rgba(0,0,0,.5)}
+/* The photograph dissolves into the page instead of stopping at an edge. */
+.pv-fade{position:absolute;left:0;right:0;bottom:0;height:38%;pointer-events:none;
+  background:linear-gradient(to top,#F8F7F5 0%,rgba(248,247,245,.55) 45%,transparent 100%)}
+
+.pv-body{padding:8px 24px 0;animation:pvRise 700ms cubic-bezier(0.22,1,0.36,1) 220ms both}
 .pv-line{font:400 14px/1.45 inherit;color:#403B36;margin:8px 0 0;max-width:34ch}
 .pv:not(.pv-card) .pv-line{margin:0;max-width:34ch}
-.pv-cta{margin-top:20px;display:inline-flex;align-items:center;min-height:44px;
-  padding:12px 20px;border:.5px solid #C9A84C;border-radius:2px;color:#8A6F1F;
+.pv-cta{margin-top:22px;display:inline-flex;align-items:center;min-height:44px;
+  padding:12px 22px;border:.5px solid #C9A84C;border-radius:2px;color:#8A6F1F;
   text-decoration:none;font:500 12px/1.4 inherit;letter-spacing:.04em;
-  touch-action:manipulation}
+  touch-action:manipulation;animation:pvRise 700ms cubic-bezier(0.22,1,0.36,1) 420ms both}
 .pv-cta:active{background:#F2EFE9}
 .pv-cta:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
 .pv-demo{font:400 11px/1.4 inherit;color:#8A837C;margin:18px 0 0;max-width:36ch}
-.pv-strip{display:flex;gap:8px;overflow-x:auto;padding:28px 24px 0;
-  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
-.pv-strip img{flex:0 0 72%;aspect-ratio:4/5;object-fit:cover;display:block;
+
+/* The section break. Brightest beside the diamond, dying at the margin — the
+   studio's own reversal, after its first cut faded to nothing at the centre and
+   left the diamond reading as a stray dot. */
+.pv-rule{display:flex;align-items:center;gap:10px;margin:30px 24px 0;
+  animation:pvIn 900ms cubic-bezier(0.22,1,0.36,1) 560ms both}
+.pv-rule-line{flex:1;height:1px}
+.pv-rule-line:first-child{background:linear-gradient(to left,rgba(201,168,76,.5),rgba(201,168,76,0))}
+.pv-rule-line:last-child{background:linear-gradient(to right,rgba(201,168,76,.5),rgba(201,168,76,0))}
+.pv-diamond{font:9px/1 "Cormorant Garamond",Georgia,serif;color:rgba(201,168,76,.85)}
+
+/* ── THE STRIP IS A GLANCE, NOT A SECOND SLIDESHOW (W-2) ────────────────────
+   The old cut used flex:0 0 72% at 4/5, so each thumbnail was ~280x350 and the
+   strip read as another full-height gallery under the first one. 104px wide is
+   a hint that more exists, which is the job. */
+.pv-strip{display:flex;gap:8px;overflow-x:auto;padding:18px 24px 0;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;animation:pvRise 700ms cubic-bezier(0.22,1,0.36,1) 640ms both}
+.pv-strip::-webkit-scrollbar{display:none}
+.pv-strip img{flex:0 0 104px;aspect-ratio:4/5;object-fit:cover;display:block;
   background:#EFECE7;scroll-snap-align:start}
+
+/* The close. Something made on purpose ends on purpose. */
+.pv-close{margin-top:40px;padding:0 24px 32px;text-align:center;
+  animation:pvIn 900ms cubic-bezier(0.22,1,0.36,1) 760ms both}
+.pv-close-mark{font:italic 300 13px/1 "Cormorant Garamond",Georgia,serif;
+  color:#A8A29B;letter-spacing:.02em}
+
+/* ⚠ MOTION IS AN ENHANCEMENT, NEVER A GATE. Everything above animates from
+   opacity 0, so a reader who has asked their phone to stop moving things must
+   still get the whole page. Without this rule, "both" fill would hold them
+   invisible forever. */
+@media (prefers-reduced-motion: reduce){
+  .pv-hero,.pv-mark,.pv-body,.pv-cta,.pv-rule,.pv-strip,.pv-close{animation:none}
+}
     `}</style>
   );
 }

@@ -786,6 +786,125 @@ try {
   }
 }
 
+// ── C32 · W-1 · THE PAGE CAN BE ACTED ON ─────────────────────────────────────
+// The founder walk found a storefront with nothing to tap. Every instrument was
+// green: the core was mounted, the ground was cream, the OG image derived from
+// the hero. Not one cell asked whether a couple could DO anything.
+//
+// This is that cell. It asserts the button reaches EVERY vendor via the wire's
+// one contact field, and — the half that matters — that the page never builds a
+// wa.me target out of a raw phone number, which is how a personal number would
+// reach an open URL if a later seat "simplified" this.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C32 the page can be acted on', 'app/v/[code]/page.tsx not found');
+  else {
+    const code = strip(pv);
+    const bad = [];
+    if (!/card\.enquire_link/.test(code))        bad.push('the page does not read enquire_link');
+    if (!/className="pv-cta"/.test(code))        bad.push('no enquire affordance renders');
+    if (/enquiry_phone/.test(code))              bad.push('the page still reads the raw phone datum');
+    if (/wa\.me\/\$\{/.test(code))              bad.push('the page builds its own wa.me target');
+    // ⚠ THE GATE CHECK WAS SINGLE-LINE AND THE GATE IS NOT. `{wa && (` and
+    // `className="pv-cta"` sit on different lines, so `[^\n]*` could never match
+    // the regression this cell exists to catch: re-gating the button on is_demo
+    // applied cleanly and reddened nothing. The CONDITION is extracted instead —
+    // everything between the JSX open and the anchor tag.
+    const ctaGate = (code.match(/\{[^{}]*&&\s*\(\s*\n\s*<a className="pv-cta"/) || [''])[0];
+    if (!ctaGate)                          bad.push('the enquire affordance has no readable render condition');
+    else if (/is_demo/.test(ctaGate))      bad.push('the button is still gated on is_demo');
+    bad.length === 0
+      ? P('C32 the page can be acted on', 'one contact field, every vendor, no target built here')
+      : F('C32 the page can be acted on', bad.join('; '));
+  }
+}
+
+// ── C33 · W-2 · THE HERO'S HEIGHT IS DERIVED FROM A REQUIREMENT ──────────────
+// CE-38: the hero must leave the name and city visible without scrolling on a
+// 390 column — "derive the ratio from that requirement (not a taste number),
+// state it at site, and the photo strip follows the same law."
+//
+// A cell cannot see a screen. What it CAN refuse is the shape of a taste number:
+// an unbounded aspect-ratio hero, a strip sized as a percentage of the viewport,
+// and `vh` where `svh` is the only unit that accounts for browser chrome — which
+// is precisely the ~100px that would push the name below the fold.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C33 the hero and strip are bounded by the fold law', 'app/v/[code]/page.tsx not found');
+  else {
+    const hero = (pv.match(/\.pv-hero\{[^}]*\}/) || [''])[0];
+    const strip = (pv.match(/\.pv-strip img\{[^}]*\}/) || [''])[0];
+    const bad = [];
+    if (!hero)  bad.push('no .pv-hero rule');
+    else {
+      if (!/height:\s*min\(/.test(hero))   bad.push('the hero height is not capped by min()');
+      if (!/svh/.test(hero))               bad.push('the hero uses vh, which ignores browser chrome');
+      if (!/min-height:/.test(hero))       bad.push('no floor on very short viewports');
+      if (/aspect-ratio/.test(hero))       bad.push('the hero is sized by ratio, so it is unbounded on tall phones');
+    }
+    if (!strip) bad.push('no .pv-strip img rule');
+    else {
+      // A percentage basis is what made the strip a second slideshow.
+      if (/flex:\s*0\s+0\s+\d+%/.test(strip)) bad.push('the strip is sized as a percentage of the viewport');
+      const px = (strip.match(/flex:\s*0\s+0\s+(\d+)px/) || [])[1];
+      if (!px)                    bad.push('the strip has no fixed thumbnail width');
+      else if (Number(px) > 140)  bad.push(`thumbnails at ${px}px read as a gallery, not a glance`);
+    }
+    // The arithmetic must be READABLE, not just correct — a derived number with
+    // no derivation at site is a taste number wearing a formula.
+    if (!/reserved below the hero/.test(pv)) bad.push('the derivation is not stated at site');
+    bad.length === 0
+      ? P('C33 the hero and strip are bounded by the fold law', 'min() + svh + floor; strip is a fixed-px glance; arithmetic at site')
+      : F('C33 the hero and strip are bounded by the fold law', bad.join('; '));
+  }
+}
+
+// ── C34 · W-4 · THE PAGE ARRIVES, AND DOES NOT TRAP A READER WHO REFUSED ─────
+// "starts abruptly, ends abruptly, has nothing… no transition" — the founder,
+// on a page whose stylesheet contained no @keyframes at all. Absence of motion
+// is invisible to every other instrument in this estate; nothing would have
+// noticed.
+//
+// THE SECOND HALF IS THE ONE THAT COULD HURT SOMEONE. Every element here
+// animates from opacity 0 with `both` fill. Without a reduced-motion rule, a
+// reader who has asked their phone to stop moving things would be held at
+// opacity 0 forever — a blank page, served to the people least able to
+// troubleshoot it. Motion is an enhancement; this cell is what keeps it one.
+{
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
+  if (!pv) F('C34 the page arrives, and reduced-motion still gets all of it', 'app/v/[code]/page.tsx not found');
+  else {
+    const bad = [];
+    const frames = (pv.match(/@keyframes\s+\w+/g) || []);
+    if (frames.length < 2)                      bad.push('fewer than two keyframes — nothing arrives');
+    const delays = (pv.match(/\d+ms\s+both/g) || []);
+    if (delays.length < 4)                      bad.push('no staggered arrival across the movements');
+    if (!/prefers-reduced-motion/.test(pv))     bad.push('NO REDUCED-MOTION ESCAPE — opacity:0 would be permanent');
+    // ⚠ ASSERTED IN THE MARKUP, NOT THE STYLESHEET. The first cut tested each
+    // class name against the whole file, so deleting `className="pv-close"` from
+    // the JSX left the cell green on the strength of the `.pv-close{...}` rule
+    // still sitting in the <style> block — a page with a stylesheet for a close
+    // it no longer renders. Same for the rule and the gradient.
+    const markup = strip(pv).split('function PublicStyles')[0];
+    if (!/className="pv-close"/.test(markup)) bad.push('the page renders no close');
+    if (!/className="pv-rule"/.test(markup))  bad.push('no section break between the movements');
+    if (!/className="pv-fade"/.test(markup))  bad.push('the hero still stops at a hard edge');
+    // The reduced-motion rule must actually cover the animated elements, not
+    // merely exist — a media query naming one class would pass a bare presence
+    // check and still strand the rest at opacity 0.
+    const rm = (pv.match(/@media \(prefers-reduced-motion: reduce\)\{[^}]*\}/) || [''])[0];
+    for (const cls of ['pv-hero', 'pv-body', 'pv-cta', 'pv-strip', 'pv-close']) {
+      if (rm && !rm.includes(cls)) bad.push(`reduced-motion does not cover .${cls}`);
+    }
+    bad.length === 0
+      ? P('C34 the page arrives, and reduced-motion still gets all of it', `${frames.length} keyframes, ${delays.length} staged, escape covers every animated block`)
+      : F('C34 the page arrives, and reduced-motion still gets all of it', bad.join('; '));
+  }
+}
+
 console.log('');
 console.log(`${pass} PASS \u00b7 ${fail} FAIL`);
 process.exit(fail === 0 ? 0 : 1);

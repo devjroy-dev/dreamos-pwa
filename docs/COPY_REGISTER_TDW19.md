@@ -235,6 +235,26 @@ and deliberately not in the OG description — a rate quoted by a stranger's pho
 outside its register and outside her control, is a number she cannot correct.
 `bs_audit` C29 asserts it stays off.
 
+### ⚠ AMENDED AFTER THE FOUNDER WALK — W-1, c-38.37
+
+**Item 1b is struck. `Enquire on WhatsApp` now ships on EVERY vendor's page.**
+
+The walk found a storefront with nothing to tap, on the surface a couple reaches
+at her highest intent. **No number is published.** A real vendor's button opens
+TDW's own WhatsApp line with her handle in the message body — the identical link
+every Enquire tap in the Frost deck has used since TDW_07, built at the door from
+`shapeVendor.js`'s one home. Donna routes from there. A demo vendor keeps its own
+published contact.
+
+| Key | Ships as | Where |
+|---|---|---|
+| `publicPageEnquire` | Enquire on WhatsApp | `/v/<code>`, **every vendor** — was demo-only |
+
+The register's earlier note — *the demo `/v/` page shows a WhatsApp button the
+real one does not* — is retired. It described a real asymmetry and the asymmetry
+narrowed to its honest remainder: the house routes for real vendors, demos
+deep-link their own.
+
 ### WHAT MOVED RATHER THAN ARRIVED
 
 `publicPageLine` — *Takes enquiries through The Dream Wedding.* — is unchanged
