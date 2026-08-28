@@ -592,91 +592,91 @@ async function seat(browser, mode) {
       else F(tag + 'C-R13 sign out confirms', JSON.stringify(conf));
     }
 
-    // ── C-R14 · THE CONDITIONAL CARD IS LAST  [CE-38 SEAL ②] ────────────────
-    // R-37.68-B amended by label: desk · ask · link. b40 asserts the order in SOURCE; this
-    // asserts it in the DOM, which is the only place a reorder actually reaches the vendor.
-    if (await settle(p, '/w/today', '.wl-fr', [tag + 'C-R14 the conditional card is last'])) {
-      const seq = await p.evaluate(() => [...document.querySelectorAll('.wl-fr .wl-card')]
-        .map((c) => (c.querySelector('.wl-cardtitle')?.textContent || '').trim()));
-      // THE EXPECTED TITLE IS READ FROM THE REGISTER, NOT RETYPED. It was the literal
-      // 「TDW link」 and R-38.17 recut the byte to 「Your link」 — a cell holding its own copy
-      // of a vetoed string goes red on a correct tree the day the byte is re-vetoed, which
-      // teaches the next seat to loosen it. Same correction C-R3 took for the room count.
-      const LINK_TITLE = (fs.readFileSync('lib/worklist/copy.ts', 'utf8')
-        .match(/cardLinkTitle:\s*'((?:[^'\\]|\\.)*)'/) || [])[1] || '';
-      const lastIsLink = seq.length > 0 && LINK_TITLE !== '' && seq[seq.length - 1] === LINK_TITLE;
-      if (lastIsLink) P(tag + 'C-R14 the conditional card is last', seq.join(' \u00b7 '));
-      else F(tag + 'C-R14 the conditional card is last', 'order is ' + seq.join(' \u00b7 ') + ' — the conditional card inserts instead of appending (F-38.21)');
-    }
-
-    // ── C-R12 · THE LINK CARD DOES NOT ARRIVE LATE  [F-38.21] ───────────────
+    // ── C-R12 / C-R14 · THE FIRST-RUN SET PAINTS ONCE  [relay #3 item 3] ────
     //
-    // Founder: 「it takes a few seconds to load and then displaces whatever is there.」 The
-    // card is conditional on a handle that only the wire knew, so it appeared mid-feed and
-    // pushed the cards below it down.
+    // THESE TWO CELLS WERE RIGHT AND THE SURFACE WAS WRONG. C-R12 asked whether the link
+    // card was in the first layout and C-R14 asked whether it was last; on the deploy DARK
+    // saw two cards and LIGHT saw three, on one tree, in one run. The seeded handle cache
+    // is gone, so the handle now arrives WITH /me and the feed's first paint raced it.
     //
-    // LIKE C-R10, THIS READS THE FIRST PAINT and waits for nothing else — the defect is
-    // only visible before the fetch lands, so a cell that settles first would pass on a
-    // broken tree. With the handle cached, the card must be in the feed's FIRST layout,
-    // not inserted into it afterwards.
+    // RE-TIMING WAS THE OLD ANSWER TWICE OVER — the card was ordered last so its arrival
+    // would append, then the cache was added so the second load would beat it — and a
+    // re-timing can always still lose. The ruling retires the race: nothing in the set
+    // paints until the shell's one /me resolves, then all of it paints at once.
     //
-    // ── AUTHENTICATED · THE CACHE IS WARMED BY THE WIRE, NOT BY THIS FILE  [item 1(c)] ──
-    // The old cut planted DEVROY in `tdw_vendor_handle` and then asserted a card built from
-    // it: the instrument writing its own expected value. Now the arm LOADS Today once so the
-    // product's own wire read fills its own cache — which is exactly the vendor's second
-    // load, the state F-38.21's cure is about — and then measures the load after it. And the
-    // assertion is against WIRE.handle, the handle the SERVER says she has, so a card
-    // rendering somebody else's address or a stale one reds.
-    const CR12 = tag + 'C-R12 the link card does not arrive late';
+    // ⚠ SO THE CELLS ASSERT THE PRE-SETTLE STATE, AND THAT STATE IS UNOBSERVABLE WITHOUT
+    // HOLDING THE WIRE. The window between first paint and /me is milliseconds on a warm
+    // deploy; a cell that navigated and looked would pass on the broken tree most of the
+    // time, which is the hollow green this gate exists to refuse. The arm DELAYS the real
+    // /me response rather than answering it — the request goes to the real server, the real
+    // answer comes back, and only its arrival is held. That is the opposite of a stub: a
+    // stub removes the server, this one keeps it and widens the moment the defect lives in.
+    const CR12 = tag + 'C-R12 no first-run card paints before the wire settles';
+    const CR14 = tag + 'C-R14 on settle, the whole set paints at once in ruled order';
     if (!WIRE.ok) {
-      F(CR12, 'SYNTHETIC fixture — no wire handle to assert against; source tools/wl_mint_token.sh');
-    } else if (!WIRE.handle) {
-      // A REFUSAL, NOT A PASS AND NOT A CONVICTION. The card is ruled to hide entirely when
-      // no handle is set (R-37.68 (4)), so there is nothing here to measure — and a cell that
-      // greened on that would be reporting an absence it never checked.
-      F(CR12, 'the wire says this vendor has no routing handle, so the card is ruled absent — this cell has no subject and must not report a pass');
+      F(CR12, 'SYNTHETIC fixture — /me never settles with an answer; source tools/wl_mint_token.sh');
+      F(CR14, 'SYNTHETIC fixture — no wire answer, so there is no settled set to read');
     } else {
-      // The warm-up. Its own settle, so a failure here is this cell's failure and not a
-      // silent mismeasurement of the load that follows.
-      const warm = await settle(p, '/w/today', '.wl-fr', [CR12]);
-      let linkAtFirstPaint = null;
-      if (warm) {
-        // ── THE SUBJECT IS THE CARD, NOT THE HANDLE'S BYTES  [ZIP 2 cure] ────
-        // The first cut asserted that WIRE.handle appeared in the card's TEXT, and it
-        // would have reddened the CURED tree: item 3 arm (a) withholds the address row
-        // until /v/ answers (F-38.30 = F-19.14), and the wa.me link the card carries
-        // meanwhile lives in a JS closure, not in the DOM. The cell was written against
-        // the card R-38.17 describes while the ZIP shipped the card the withholding rule
-        // permits — my two halves disagreeing, found by the founder's run.
-        //
-        // WHAT IS STILL AUTHENTICATED, AND IT IS THE WHOLE POINT OF THE CELL: the card
-        // renders ONLY when a handle exists (R-37.68 (4)), and the handle comes from the
-        // wire and from nowhere else now that the seeded cache is deleted. So a card in
-        // the first layout IS the warmed wire answer, and no token means no card.
-        //
-        // THE TITLE IS READ FROM THE REGISTER, never retyped — a cell holding its own copy
-        // of a vetoed byte reddens a correct tree the day the byte is re-vetoed.
-        const LINK_T = (fs.readFileSync('lib/worklist/copy.ts', 'utf8')
-          .match(/cardLinkTitle:\s*'((?:[^'\\]|\\.)*)'/) || [])[1] || '';
+      // The expected titles come from the register, never retyped. A cell holding its own
+      // copy of a vetoed byte reddens a correct tree the day the byte is re-vetoed, which
+      // teaches the next seat to loosen it.
+      const copySrc = fs.readFileSync('lib/worklist/copy.ts', 'utf8');
+      const byte = (k) => (copySrc.match(new RegExp('^\\\\s*' + k + ":\\\\s*'((?:[^'\\\\\\\\]|\\\\\\\\.)*)'", 'm')) || [])[1] || '';
+      const WANT = [byte('cardDeskTitle'), byte('cardAskTitle'), byte('cardLinkTitle')];
+      let held = null, settledSeq = null, laterSeq = null, err = null;
+      try {
+        await p.setRequestInterception(true);
+        const hold = async (req) => {
+          try {
+            if (req.url().includes('/api/v2/vendor/me')) {
+              await new Promise((r) => setTimeout(r, 2500));
+              await req.continue();
+            } else await req.continue();
+          } catch { /* the request may already be handled on teardown */ }
+        };
+        p.on('request', hold);
         await p.goto(BASE + '/w/today', { waitUntil: 'domcontentloaded' });
-        try {
-          await p.waitForSelector('.wl-fr', { timeout: 15000 });
-          linkAtFirstPaint = await p.evaluate((t) => {
-            const cards = [...document.querySelectorAll('.wl-fr .wl-card')];
-            return { cards: cards.length,
-                     hasLink: t !== '' && cards.some((c) =>
-                       (c.querySelector('.wl-cardtitle') || {}).textContent?.trim() === t) };
-          }, LINK_T);
-        } catch { /* reported below */ }
-        if (!linkAtFirstPaint) F(CR12, 'no first-run feed at first paint');
-        else if (linkAtFirstPaint.hasLink) P(CR12, 'the wire handle ' + WIRE.handle + ' produced the link card in the first layout, ' + linkAtFirstPaint.cards + ' cards');
-        else F(CR12, 'the link card is absent at first paint on a warmed cache — it will insert itself later and displace the feed');
-        // ⚠ WITHHELD ASSERTION, SAME DATE AS THE ROW IT WOULD READ. When TDW_19 P0-B step 4
-        // lands /v/<code> and FirstRun.tsx's address row is uncommented, add back the
-        // stronger claim — that the card's TEXT carries the wire's own handle — so a card
-        // rendering a stale or another vendor's address reddens. Until the row exists there
-        // is nothing on screen for it to read, and an assertion with no subject is the
-        // hollow green this file refuses.
+        // The masthead does not wait on the wire, so it is the landmark that proves the
+        // surface is up while the feed is still legitimately empty.
+        await p.waitForSelector('.wl-masthead', { timeout: 15000 });
+        held = await p.evaluate(() => ({
+          cards: document.querySelectorAll('.wl-fr .wl-card').length,
+          fr: !!document.querySelector('.wl-fr'),
+        }));
+        // Now let it land, and read the set.
+        await p.waitForSelector('.wl-fr .wl-card', { timeout: 15000 });
+        settledSeq = await p.evaluate(() => [...document.querySelectorAll('.wl-fr .wl-card')]
+          .map((c) => (c.querySelector('.wl-cardtitle') || {}).textContent?.trim() || ''));
+        // AND NOTHING ARRIVES AFTER. The insertion this whole arc has been chasing happens
+        // late by definition, so the cell has to still be looking when it would.
+        await p.waitForNetworkIdle({ idleTime: 900, timeout: 12000 }).catch(() => {});
+        laterSeq = await p.evaluate(() => [...document.querySelectorAll('.wl-fr .wl-card')]
+          .map((c) => (c.querySelector('.wl-cardtitle') || {}).textContent?.trim() || ''));
+        p.off('request', hold);
+        await p.setRequestInterception(false);
+      } catch (e) {
+        err = String(e.message).split('\n')[0];
+        try { await p.setRequestInterception(false); } catch { /* page may be gone */ }
+      }
+
+      if (err) { F(CR12, 'the held-wire walk threw: ' + err); F(CR14, 'the held-wire walk threw: ' + err); }
+      else {
+        if (!held) F(CR12, 'the surface never mounted while the wire was held');
+        else if (held.cards === 0) P(CR12, 'the masthead is up and the feed is empty while /me is in flight' + (held.fr ? ' (region present, no cards)' : ''));
+        else F(CR12, held.cards + ' first-run cards painted BEFORE /me settled — the set is racing the wire again (R-37.68-B)');
+
+        if (!settledSeq || !settledSeq.length) F(CR14, 'no first-run set after the wire settled');
+        else if (WANT.some((w) => w === '')) F(CR14, 'a card title byte is missing from the register, so this cell has no expectation to compare against');
+        else {
+          // The link card is last OR absent — absent is legitimate for a vendor with no
+          // handle (R-37.68 (4)) and must not be read as a reorder.
+          const expected = WIRE.handle ? WANT : WANT.slice(0, 2);
+          const same = settledSeq.length === expected.length && settledSeq.every((t, i) => t === expected[i]);
+          const grew = laterSeq && laterSeq.length !== settledSeq.length;
+          if (same && !grew) P(CR14, settledSeq.join(' \u00b7 ') + ' \u2014 whole at first paint, nothing inserted after');
+          else if (grew) F(CR14, 'the set grew from ' + settledSeq.length + ' to ' + laterSeq.length + ' cards after settling — a card is still inserting itself (F-38.21)');
+          else F(CR14, 'order is ' + settledSeq.join(' \u00b7 ') + ', ruled ' + expected.join(' \u00b7 '));
+        }
       }
     }
 

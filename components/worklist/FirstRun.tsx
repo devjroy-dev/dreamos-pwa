@@ -43,8 +43,27 @@ export function FirstRun() {
   // The handle seeds from a named cache and is corrected by the wire (F-38.21). On a
   // device's first load it is still unknown until that read lands, which is why the card it
   // gates is LAST — see the ordering note below.
-  const handle = useVendorHandle();
+  const { handle, settled } = useVendorHandle();
   const tdwLink = handle ? `https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('TDW-' + handle)}` : null;
+
+  // ── THE SET PAINTS ATOMICALLY · CE-38 S2/2 RELAY #3 ITEM 3 ─────────────────
+  //
+  // NOTHING HERE RENDERS UNTIL THE SHELL'S ONE /me HAS RESOLVED. Not the eyebrow, not the
+  // two unconditional cards, nothing.
+  //
+  // WHY THE ORDERING CURE WAS NOT ENOUGH. CE-38 SEAL (2) put the conditional card LAST so
+  // its arrival would append instead of insert, and F-38.21's cache made the second load
+  // paint it immediately. Both were re-timings. On the real deploy, with the seeded cache
+  // deleted, the handle now arrives WITH /me — and dark's first paint lost that race while
+  // light won it. The same tree painted two different feeds in one run, which is the thing
+  // a re-timing can always still do.
+  //
+  // SO THE RACE IS RETIRED RATHER THAN RE-TIMED. The question is already in flight — it is
+  // the one read C-R16 asserts — so waiting for it costs no round trip and buys the
+  // property R-37.68-B actually wanted: the vendor sees a feed once, whole, in ruled order.
+  // An empty region for one wire read is a surface that has not started; a region that
+  // paints twice is a surface arguing with itself.
+  if (!settled) return null;
 
   return (
     <div className="wl-fr">
@@ -141,6 +160,24 @@ export function FirstRun() {
 // next reader does not add one as a kindness: the nav's Rooms seat is an anchor and
 // already announces that route. A second, invisible announcement would be a second home
 // for one decision, and invisible things are the ones that survive every later sweep.
+// ── ⚠ THE ADDRESS ROW'S RULE IS WITHHELD TOO · relay #3 item 2 ─────────────
+// The first cut shipped this rule while its markup was commented out, reasoning that the
+// uncomment step should be one comment block rather than two. That reasoning was wrong in
+// the only way that counts: an unconsumed rule is in the served bytes, and the audit's
+// dead-rule sweep is byte-strict. Two uncomments in one commit is cheaper than a rule the
+// gate has to be argued with about.
+//
+// IT IS PARKED HERE, IN JS COMMENT SPACE, AND NOT INSIDE THE LITERAL BELOW — a CSS comment
+// inside the template literal ships, so the class name would still be declared and the
+// sweep would still fire.
+//
+//   WHEN: TDW_19 P0-B step 4 lands /v/<code> as a 200.
+//   DO:   paste the rule back below, uncomment the address row above, and uncomment
+//         COPY.cardLinkAddressBase. Three uncomments, one commit.
+//
+//   .wl-cardaddr{font:var(--wl-t3);font-variant-numeric:tabular-nums;color:var(--atelier-ink);word-break:break-all;margin:0 0 4px}
+//
+// t3 with tabular figures: an address is read character by character, not scanned.
 const FR_CSS = `
 .wl-fr{padding:0 0 24px}
 /* R-38.4: a section eyebrow at t5, .08em. Was 11px Jost at .2em. */
@@ -149,10 +186,6 @@ const FR_CSS = `
    shell — the two permitted homes for letter-spaced uppercase are the nav seats and
    section eyebrows, and this is the second kind. */
 .wl-chipeyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
-/* THE ADDRESS ROW's rule ships while its markup is withheld, and that is deliberate: the
-   uncomment step is one comment block, not a comment block plus a stylesheet edit nobody
-   wrote down. t3, tabular figures — an address is read character by character. */
-.wl-cardaddr{font:var(--wl-t3);font-variant-numeric:tabular-nums;color:var(--atelier-ink);word-break:break-all;margin:0 0 4px}
 .wl-cardactions{display:flex;gap:8px}
 .wl-chips{display:flex;flex-wrap:wrap;gap:8px}
 /* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and a

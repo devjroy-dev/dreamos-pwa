@@ -419,7 +419,11 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
           </h2>
           {!isEdit && (
             <button type="button" onClick={goToChat} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.15em', textTransform: 'uppercase', flexShrink: 0 }}>
-              Talk to DreamAi →
+              {/* R-37.70 as amended at R-38.17: the persona name is banned outright, in
+                  prose as well as in labels. This control is reachable from all six crossed
+                  rooms (SliceShell imports AddSheet) and from the shell's own Add control,
+                  so the shell's ban reaches it. The affordance keeps its verb. */}
+              Ask TDW →
             </button>
           )}
         </div>

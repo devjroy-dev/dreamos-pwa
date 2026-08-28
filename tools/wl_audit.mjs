@@ -454,6 +454,13 @@ async function coverage() {
     // must not reach a vendor until the Phase 4 feed has answered, and this list is what
     // stops it arriving by a later tidy. IT COMES OFF THIS LIST in the same edit that wires
     // lib/worklist/feed.ts to a real read — the byte lives in copy.ts the whole time.
+    // ⚠ AND IT IS NOW WITHHELD AT SOURCE AS WELL, WHICH IS THE ACTUAL CURE.
+    // Relay #3 item 2: c-38.14 left the byte a LIVE EXPORT waiting for sitting 3, and a
+    // live export ships — this cell found it in the served bytes and was right to. The key
+    // is commented out in lib/worklist/copy.ts with a dated uncomment step, so this entry
+    // is now a REGRESSION GUARD rather than the thing holding the byte back: if it ever
+    // reappears in the bundle before the feed answers, this reddens.
+    // IT COMES OFF THIS LIST in the same commit that uncomments the key.
     'Nothing needs you yet.',
     // ⚠ `thedreamwedding.in` WAS ADDED HERE AND WITHDRAWN IN THE SAME SITTING, and the
     // withdrawal is the entry worth keeping. The reasoning was 「the retired row's

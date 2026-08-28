@@ -1,6 +1,6 @@
 # M-FINISH · SITTING 2, SESSION 2 — THE SIX ITEMS
 
-**BASE (R-38.15): `7142cbf` = `origin/worklist`, re-derived at the moment of cutting.**
+**BASE (R-38.15): `9a868c8` = `origin/worklist`, re-derived at the moment of cutting** (relay #3 re-cut; the first cut of this sitting was `7142cbf` and landed as `e790792`, on which P0-B step 3 then landed).
 dream-os `b65b27a` = `origin/main`, sibling clone present. **Railway/Vercel green: NOT
 CLAIMED** — nothing here ran against a deploy, and the render arm needs one.
 
@@ -13,7 +13,10 @@ Founder's line: `fb83289a2c8b7b7f5b846804101f07f11eeb334644c8e8da2d8df6dcc238bfb
 ## §0 · ENVIRONMENT — THE PRECONDITION, AND THE ONE THAT WAS NOT IN THE LAST HANDOVER
 
 ```
-pwa worklist 7142cbf · dream-os main b65b27a
+bash tools/preflight.sh worklist          <- §0 IS THIS COMMAND, NOT A SENTENCE
+pwa worklist 9a868c8 · dream-os main b52448f
+branch alias (answers every run this arc, follows the branch not the commit):
+  https://dreamos-pwa-git-worklist-devjroy-devs-projects.vercel.app
 npm ci in BOTH repos before anything. The pwa's is not optional:
 tools/wl_render.cjs requires @sparticuz/chromium out of node_modules.
 ```
@@ -430,6 +433,171 @@ fonts and for the route graph.**
 - **The FAB's `calc` offset is derived arithmetic.** C-R18 is what makes it evidence; if
   that cell is ever loosened, the number goes back to being a guess.
 
+## §9b · THE BOUNCE · RELAY #3's FOUR CURES (base `9a868c8`)
+
+`e790792` deployed and the gate reddened. Four cures, and **three of them convicted an
+instrument rather than a surface.**
+
+### ① The R-37.70 sweep, derived by import graph
+
+Four `DreamAi` bytes reachable from the crossed rooms, chains named not guessed:
+`AddSheet.tsx:414` and `ConversationThread.tsx:60` via `SliceShell`;
+`MessageBubble.tsx:233` via `WorklistShell → AiDock → AskSheet → ChatThread`; and
+`lib/frost/tokens.ts:587` via `SliceShell → Masthead → SliceRow`. Cured to `Ask TDW →`,
+`TDW`, `TDW`, `Ask TDW anything…`.
+
+**F-38.32 · `dreamCanvas` HAS ZERO CONSUMERS**, derived by command: the only line matching
+that identifier in the whole tree is its own declaration. It is a dead export on the BRIDE
+plane's token home, shipping into six vendor rooms because `SliceRow` imports `FT`/`FS`
+from the same module. **The honest cure is retirement, not a rename** — renaming keeps a
+dead export alive with a fresher byte. Not taken here because deleting a bride-side export
+inside a vendor sitting is a blast radius no cell on this branch measures. Byte made safe,
+retirement priced.
+
+`ConversationThread` and `MessageBubble` are **also mounted by
+`app/admin/conversations/{vendors,brides}`**, so the founder now reads `TDW` in the console
+too. That is the correct direction — the product refers to itself as TDW everywhere
+(R-37.72) — and it is named rather than discovered.
+
+**C32 WAS THE REAL DEFECT AND IT TOOK THREE CUTS.**
+- It read a **hand-listed set of ten** shell-owned files, and all four bytes lived outside
+  it. A set drafted before the crossing widened what the rooms bundle — the identical
+  disease as the audit's interim list, in the cell written to clean up after that bounce.
+  It walks the import graph from every route on disk under `app/w` now.
+- The second cut read three of four shapes. `Talk to DreamAi →` is bare JSX text across a
+  line break with an arrow glyph; a character class of letters and spaces walked past it.
+  **The double-quote matcher again, in my own instrument.**
+- The third cut still missed it: **a JSX text node is bounded by an angle bracket OR A
+  BRACE**, and `strip()` collapses a JSX comment to `{}` — so the cure note I had written
+  directly above the byte cut the text run in half. Both boundaries accepted now.
+- **Proven on all four shapes: each mutation reddens C32 alone, nothing else.**
+
+### ② The withheld byte that was still an export
+
+`Nothing needs you yet.` was on the audit's retired list and **exported live**, waiting for
+sitting 3. A live export ships; the audit found it in the served bytes and was right to.
+The list was stopping nobody. It ships commented, dated to the feed's first 200 — and
+**the two-armed status went with it**, because a live arm needs a live byte. My "both arms
+are live code" argument was overruled and the ruling is right: the arm cannot outlive the
+withholding of the thing it renders. `cardLinkAddressBase` got the same treatment, one key
+beyond the ruling's letter, disclosed.
+
+**THE ORPHANED RULES ARE PARKED IN JS COMMENT SPACE, NOT COMMENTED INSIDE THE LITERAL, and
+that is the whole of the fix.** A CSS comment inside a template literal SHIPS: the class
+names would still be in the served bytes, `.wl-mnum{` would still be declared, and the
+sweep is byte-strict with no annotation escape hatch. ZIP 14 ⑧ convicted this exact move in
+the other direction. A withheld rule has to actually not be there.
+
+### ③ The set paints once — the race retired, not re-timed
+
+C-R12 and C-R14 were right and the surface was wrong. **Dark saw two cards and light saw
+three, on one tree in one run**: the seeded cache is gone, so the handle arrives with `/me`
+and the feed's first paint raced it. Ordering the card last, then caching the handle, were
+both re-timings, and a re-timing can always still lose.
+
+`useVendorHandle` returns `{ handle, settled }` — the missing half was that
+`string | null` made 「no handle」 and 「no answer yet」 the same value. `settled` goes true on
+**any** resolution, including a refusal and a missing session, because a feed that waited
+only for success would hang forever for a signed-out vendor. `FirstRun` returns null until
+then; the wire read is already in flight (it is the one read C-R16 asserts), so waiting
+costs no round trip.
+
+**The cells hold the real wire rather than answering it.** The pre-settle window is
+milliseconds on a warm deploy, so a cell that navigated and looked would pass on the broken
+tree most of the time. The arm delays the real `/me` response by 2.5s — the request reaches
+the real server and the real answer comes back, only its arrival is held. **That is the
+opposite of a stub: a stub removes the server; this keeps it and widens the moment the
+defect lives in.** C-R14 also re-reads after network idle, because the insertion this arc
+has been chasing is late by definition.
+
+### ④ The FAB's offset, measured
+
+Gap came out **9px against the ruled 16**, everything else right. The first cut assembled
+the bottom chrome from its parts — nav 52 + dock 61 = 113 — and **113 is not what the
+browser paints**: the real chrome measures 120, and the seven missing pixels live in a line
+box I would have kept re-deriving from the stylesheet and kept getting wrong. Literal set
+from the measurement: `calc(136px + env(safe-area-inset-bottom))`. C-R18 measures the
+painted gap every run, so a stale literal is caught by the run rather than by a comment.
+
+**A rule assembled out of other rules' declared values is arithmetic about a stylesheet,
+not a fact about a page.** The gutter cell, the tile-height cell and the edge cell all
+exist because those two disagree.
+
+### Floors at this cut (R-38.19)
+
+Dirty tree **23**; set = named base **22** plus `tdw_f0774_vacuity_probe`, which greens on
+commit. `tdw37_leadgate_b_slot` stays green. `b40` 36/36. `tsc` 0.
+
+## §9c · THE TOOLING THE FOUNDER'S OWN SHELL FORCED (relay #2, R-38.20/.20b/.21)
+
+**Three deliveries' worth of my own protocol breaches, cured in the tree rather than in
+prose.**
+
+### F-38.33 · the guard ran after the copy
+
+R-38.15's words are that the base check STOPs *before* `cp -r deploy/*`. **Four ZIPs this
+sitting put APPLY first and VERIFY second** — the guard was decorative, firing over files
+already on disk. F-38.25 reproduced by the seat that had just written R-38.15 into its own
+handover. It also read the wrong ref: `origin/<branch>` is the REMOTE, and a stale local
+checkout passes it while HEAD is what gets overwritten.
+
+`tools/base_guard.sh <repo> <base> <branch>` — remote URL, package name, fetch, HEAD,
+`origin/branch`, clean tree; `SAFE TO APPLY` or `REFUSED — <check>` with a non-zero exit.
+**Both refusals witnessed here**: run inside `dream-os` it refuses on the package name; run
+in the right repo over this dirty tree it refuses and prints the sixteen files.
+
+**AND THE PACKAGE-NAME CHECK NEARLY SHIPPED BROKEN.** Derived by command: the pwa's
+`package.json` says `web` and dream-os's says `dream-os-backend`. **Neither matches its repo
+name**, so the hand-written guard I pasted the founder would have refused inside the correct
+repo — the worst kind of guard, one that teaches him to stop trusting it. The remote URL is
+the authority; the package name is a second witness read through a declared map.
+
+### F-38.34 · "sibling clone present" was never a fact about a commit
+
+Three §0s in a row said it. The founder's pwa workspace was holding a sibling **154 commits
+behind**, so every floor number this arc was derived against a dream-os from another month
+and nothing could tell. `tools/preflight.sh` prints both repos' names, tips, upstreams,
+behind-counts and dirt, and names what lies when a precondition is missing — the eight
+benches that refuse without `node_modules`, the three that refuse or misread without the
+sibling.
+
+**Its own first cut committed the same disease twice**, both caught by running it:
+- On a **detached HEAD** `--abbrev-ref` returns the literal `HEAD`, so it compared against
+  `origin/HEAD` — origin's DEFAULT branch — and printed an upstream and a behind-count
+  belonging to a branch the tree was not on. The expected branch is passed in now.
+- It printed **CLEAR over a sixteen-file dirty tree**, because the verdict read only the
+  sibling and `node_modules`. A preflight that clears a tree nobody could safely apply to is
+  a signature on a check that was never made.
+
+**Re-derived with the fresh sibling `b52448f`: the floor set is byte-identical to the
+stale-sibling derivation.** The numbers in this document stand — but they stood by luck, and
+the luck is what F-38.34 is about.
+
+### F-38.35 · `set -u` broke the founder's shell
+
+`wl_mint_token.sh` is SOURCED, so every option it set was permanent in his session. His RVM
+prompt hook reads one of its own unset variables and every command after the source died
+with `rvm_bash_nounset: unbound variable`. The token went with the shell and it cost an arm
+pass.
+
+**The cure is not save-and-restore.** That works and is the wrong shape: it needs a restore
+on every exit path, there are five `return`s in that file, and the sixth one somebody adds
+later leaks again. **No options are set at all**; every variable is defaulted at its use
+site, one line each, which no early return can skip. Generalised at R-38.21 (2): a sourced
+script may not change the caller's shell state — not options, not traps, not the working
+directory. **Proven, not asserted**: `echo $-` reads `hBc` before and `hBc` after, where it
+read `huBc` before the cure.
+
+The mint script also stopped retyping the API host: it reads `lib/vendor/api/_base.ts`, the
+same one home the render arm reads, so the token and the probe can never be pointed at two
+different servers.
+
+### R-38.21 (1) · one command per block
+
+Every founder-bound block in this delivery is a single command. `&&`-chains die in his shell
+on the same RVM hook, which is why the guard had to move into the tree: a chained guard is
+a guard that does not run.
+
 ## §10 · THE NEXT SITTING
 
 §4-2's eight rooms remain, in `INTERIM_VENDOR_ROOMS` order: **calendar, storefront,
@@ -443,9 +611,15 @@ retirement sweep (§4-6).
 Carried forward: `rooms.ts:1` still reads "THE SEVENTEEN ROOMS" against
 `ROOM_COUNT_EXPECTED = 18` — corrected to **NINETEEN at the Khata edit**, one correction at
 one site. **F-38.22** (thirty colour literals), **F-38.23** (six header words, three homes),
-**F-38.24** (the census), **F-38.30 = F-19.14** (`/v/` 404, blocks card 3's address) and
-**F-38.31**'s Phase 4 half (the true-empty byte, on the retired list until the feed answers)
-are open. C27 remains a guard, not a cure cell.
+**F-38.24** (the census), **F-38.30 = F-19.14** (`/v/` 404, blocks card 3's address),
+**F-38.31**'s Phase 4 half (the true-empty byte, withheld until the feed answers) and
+**F-38.32** (`dreamCanvas`, a dead export on the bride plane) are open.
+
+**THREE UNCOMMENTS ARE OWED AND EACH NAMES ITS DATE AT ITS SITE.** At TDW_19 P0-B step 4:
+`COPY.cardLinkAddressBase`, the address row in `FirstRun.tsx`, and the `wl-cardaddr` rule —
+three uncomments, one commit. At Phase 4's first 200: `COPY.todayNothingYet`, the two-armed
+status in `app/w/today/page.tsx`, the masthead trio's CSS, and the byte's removal from
+`wl_audit`'s RETIRED set — four, one commit. C27 remains a guard, not a cure cell.
 
 **THE 「THE MAKER」 NOTE, BESIDE R-37.79.** R-37.79 is one identity everywhere, and the
 identity the shell paints is initials off a name. `dream-os src/api/vendor/me.js:72` returns

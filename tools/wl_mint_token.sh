@@ -32,7 +32,26 @@
 # this script must be SOURCED. Executed, its export would die with the subshell
 # and the arm would run synthetic while the founder believed it had not — a
 # silent downgrade, which is the one failure this file exists to prevent.
-set -u
+#
+# ── ⚠ F-38.35 · `set -u` WAS ON THE NEXT LINE AND IT BROKE THE FOUNDER'S SHELL ──
+#
+# THIS FILE IS SOURCED, SO EVERY SHELL OPTION IT SETS IS PERMANENT IN HIS SESSION. `set -u`
+# was here for the reason it usually is — catch an unset variable — and the moment it was
+# sourced, his RVM prompt hook read one of its own unset variables and every command after
+# it died with `rvm_bash_nounset: unbound variable`. The token went with the shell. A
+# fixture that breaks the terminal it was minted in is worse than no fixture, and it cost a
+# whole arm pass today.
+#
+# THE CURE IS NOT TO SAVE AND RESTORE THE OPTION. That works and it is the wrong shape: it
+# puts a restore on every exit path — there are five `return`s below — and the sixth one
+# somebody adds later leaks again. NO OPTIONS ARE SET AT ALL. What `set -u` was buying is
+# bought instead by defaulting every variable at its use site, one line each, which no early
+# return can skip.
+#
+# THE RULE, GENERALISED (R-38.21 (2)): a sourced script may not change the caller's shell
+# state — not options, not traps, not the working directory. The only thing it leaves behind
+# is the thing it was asked for, which here is exactly one exported variable. Proven rather
+# than asserted: after sourcing, `echo $-` shows no `u`.
 
 # ── SOURCED-ONLY, ASSERTED RATHER THAN DOCUMENTED ───────────────────────────
 # `${BASH_SOURCE[0]}` is this file's path always; `$0` is this file's path only
@@ -47,15 +66,18 @@ fi
 
 # The standing test vendor. One home for the number; the refusal below reads it.
 WL_MINT_PHONE='+919888294440'
-WL_MINT_BASE="${WL_RENDER_API_BASE:-https://dream-os-production.up.railway.app}"
+# The API host is read from its one home, lib/vendor/api/_base.ts, exactly as the render
+# arm reads it. A literal here would be a second home for the host and the two would
+# drift the day the deploy moves.
+WL_MINT_BASE="${WL_RENDER_API_BASE:-$(grep -o "'https://[^']*'" lib/vendor/api/_base.ts | head -1 | tr -d "'")}"
 
 # ── THE REFUSAL, BEFORE ANYTHING IS TYPED ───────────────────────────────────
 # An optional argument exists ONLY so that passing the wrong number is a refusal
 # rather than a silent success against a phone nobody looked at. There is no
 # argument that widens this script.
-if [ "$#" -gt 0 ] && [ "$1" != "$WL_MINT_PHONE" ] && [ "$1" != "9888294440" ]; then
+if [ "$#" -gt 0 ] && [ "${1:-}" != "$WL_MINT_PHONE" ] && [ "${1:-}" != "9888294440" ]; then
   echo "wl_mint_token: REFUSED — this fixture mints for 9888294440 only." >&2
-  echo "  asked for: $1" >&2
+  echo "  asked for: ${1:-}" >&2
   unset WL_MINT_PHONE WL_MINT_BASE
   return 2
 fi
@@ -67,7 +89,7 @@ printf 'PIN (not echoed): '
 read -rs WL_MINT_PIN
 printf '\n'
 
-if ! printf '%s' "$WL_MINT_PIN" | grep -Eq '^[0-9]{4}$'; then
+if ! printf '%s' "${WL_MINT_PIN:-}" | grep -Eq '^[0-9]{4}$'; then
   # Matched against the server's own PIN_RE (dream-os src/api/vendor/auth.js:36)
   # so a typo is refused here rather than spending an attempt against the
   # five-try lockout on the founder's own test account.
@@ -91,7 +113,7 @@ WL_MINT_TOKEN=$(printf '%s' "$WL_MINT_RES" | node -e '
     catch { /* prints nothing; the caller treats empty as a refusal */ }
   });')
 
-if [ -z "$WL_MINT_TOKEN" ]; then
+if [ -z "${WL_MINT_TOKEN:-}" ]; then
   echo "wl_mint_token: REFUSED — no access_token." >&2
   # The server's own error is shown because the useful ones are specific:
   # pin_invalid carries attempts_remaining, pin_locked carries locked_until.

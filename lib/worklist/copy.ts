@@ -105,9 +105,21 @@ export const COPY = {
   // it is the surface's loudest line now, and 「is not」 at that stature reads as a notice
   // rather than as speech.
   todayNotLive: "Today isn't reading your work yet.",
-  // THE TRUE-EMPTY STATE. Ships behind the feed's first 200 and not one deploy before it —
-  // it is the only line here that makes a claim about the vendor's actual work.
-  todayNothingYet: 'Nothing needs you yet.',
+  // ── ⚠ WITHHELD BY RULE · CE-38 S2/2 RELAY #3 ITEM 2 ──────────────────────
+  // THE TRUE-EMPTY STATE. It is the only line in this file that makes a claim about the
+  // vendor's actual work, and it must not reach her until something has read that work.
+  //
+  // c-38.14 left it as a LIVE EXPORT waiting for sitting 3, and a live export SHIPS: the
+  // audit's R-38.6 sweep found it in the served bytes and reddened, correctly. A byte on a
+  // retired list that is nonetheless in the bundle is the retirement failing in the one way
+  // that matters. Conditional-withheld is the right shape and it was not applied.
+  //
+  //   WHEN: Phase 4's feed first answers 200 (lib/worklist/feed.ts, the same edit).
+  //   DO:   uncomment the line below, and remove `Nothing needs you yet.` from
+  //         tools/wl_audit.mjs's RETIRED set in the same commit. Nothing else moves —
+  //         app/w/today/page.tsx already reads it behind `feed.responded`.
+  //
+  // todayNothingYet: 'Nothing needs you yet.',
 
   // ── 6 · 7 — the resting state. PHASE 4, not rendered by this shell. Carried here
   // so the vetoed bytes have one home from the moment they were vetoed.
@@ -139,12 +151,19 @@ export const COPY = {
   cardLinkAction: 'Copy',
   cardLinkCopied: 'Copied',
   cardLinkShare:  'Share',
-  // ⚠ WITHHELD BYTE · THE ADDRESS ITSELF. See components/worklist/FirstRun.tsx: the
-  // `thedreamwedding.in/v/<handle>` row is withheld by rule (CE-38 S2/2 relay #2, arm (a))
-  // because `/v/` is a 404 today — F-38.30, the same finding P0-B filed as F-19.14. The
-  // byte is vetoed and lives here from the moment it was vetoed; the ROW that renders it
-  // is commented out with its uncomment step dated to TDW_19 P0-B step 4.
-  cardLinkAddressBase: 'thedreamwedding.in/v/',
+  // ── ⚠ WITHHELD BY RULE · THE ADDRESS ITSELF ──────────────────────────────
+  // `/v/` is a 404 today — F-38.30, the same finding P0-B filed as F-19.14 — so the row
+  // that renders this is commented out in components/worklist/FirstRun.tsx (relay #2, arm
+  // (a)). The key was left LIVE beside the withheld row and that was half a withholding:
+  // an export with no consumer still ships, which is exactly what relay #3 item 2 convicted
+  // in `todayNothingYet`. Same disease, same treatment, one key beyond the ruling's letter
+  // and disclosed as such.
+  //
+  //   WHEN: TDW_19 P0-B step 4 lands /v/<code> as a 200.
+  //   DO:   uncomment the line below AND the address row in FirstRun.tsx AND the
+  //         wl-cardaddr rule in that file's FR_CSS — three uncomments, one commit.
+  //
+  // cardLinkAddressBase: 'thedreamwedding.in/v/',
 
   // Every chip is backed by a tool in the engine census (dream-os src/agent/tools.js).
   // Per-chip verdicts with line addresses are stated in the P1 handover. No chip ships

@@ -19,6 +19,12 @@ interface Props {
   vendorSummary?: string | null;
 }
 
+// R-37.70 as amended at R-38.17 — the outbound speaker is 「TDW」, never a persona name.
+// This component is reachable from all six crossed rooms (SliceShell imports it) and is
+// ALSO mounted by app/admin/conversations/{vendors,brides}, so the founder sees the same
+// word in the console that the vendor sees in a room. That is the correct direction: the
+// product refers to itself as TDW everywhere (R-37.72), and a console that used the old
+// name would be teaching the next reader a byte the estate has banned.
 export function ConversationThread({ messages, vendorSummary }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -57,7 +63,7 @@ export function ConversationThread({ messages, vendorSummary }: Props) {
                   <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5, margin: 0 }}>{msg.body}</p>
                 </div>
                 <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, letterSpacing: '0.1em', marginTop: 2, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
-                  {isIn ? 'Bride' : 'DreamAi'} · {fmtTime(msg.created_at)}
+                  {isIn ? 'Bride' : 'TDW'} · {fmtTime(msg.created_at)}
                 </span>
               </div>
             );

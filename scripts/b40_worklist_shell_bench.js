@@ -271,8 +271,12 @@ cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word
   // — the assertion INVERTS rather than vanishing, and the clause that mattered (Today opens
   // on a line with stature, R-37.76 (8)) is preserved against its successor, the STATUS.
   if (/todayTitle:/.test(copy)) return 'the retired page title todayTitle is back in copy.ts';
-  if (!/todayNotLive:/.test(copy) || !/todayNothingYet:/.test(copy))
-    return 'Today is missing one of its two status bytes in copy.ts';
+  // AMENDED, LABELLED — relay #3 item 2. `todayNothingYet` is WITHHELD, not exported: a
+  // retired byte that ships is the retirement failing in the one way that matters, and the
+  // audit caught it in the served bytes. The assertion INVERTS rather than vanishing.
+  if (!/todayNotLive:/.test(copy)) return 'Today has no not-reading status byte in copy.ts';
+  if (/^\s*todayNothingYet:/m.test(copy))
+    return 'the true-empty byte is a live export again — it must stay withheld until the feed answers';
   if (!/COPY\.todayNotLive/.test(strip(read('app/w/today/page.tsx'))))
     return 'the not-reading status is never rendered on Today';
 
@@ -293,6 +297,16 @@ cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word
   const order = titles.map((t) => fr.indexOf('COPY.' + t));
   if (order[0] > order[1] || order[1] > order[2])
     return 'card order is not desk \u00b7 ask \u00b7 link — the conditional card must be last (F-38.21)';
+  // AMENDED, LABELLED — relay #3 item 3. THE SET PAINTS ATOMICALLY, and the source half of
+  // that claim is asserted here: the feed must not render at all until the wire has
+  // settled. Ordering alone was the answer twice (last-by-ruling, then the handle cache)
+  // and a re-timing can always still lose the race — on the deploy, dark painted two cards
+  // and light painted three, on one tree in one run. C-R12/C-R14 hold the wire and measure
+  // the paint; this stops the guard being deleted as a stray early return.
+  if (!/\{\s*handle\s*,\s*settled\s*\}\s*=\s*useVendorHandle\(\)/.test(fr))
+    return 'FirstRun does not read the settled flag — the set cannot know when to paint';
+  if (!/if\s*\(!settled\)\s*return null;/.test(fr))
+    return 'the first-run set renders before the wire settles — the race is re-timed, not retired';
 
   // Retired keys must be gone, not orphaned — an unrendered vetoed byte is a byte that
   // drifts unnoticed until someone renders it again.
@@ -888,23 +902,70 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
 //    string behind a condition nobody triggered is still a byte waiting to reach a vendor.
 //    R-37.70's prose exemption for 「DreamAi」 retires with R-37.78's grammar: a ban with a
 //    register-shaped exception is a ban that loses one sentence at a time.
-cell('C32 no persona name in a shell string, DreamAi included (R-37.70 as amended)', () => {
-  const files = ['lib/worklist/copy.ts', 'components/worklist/FirstRun.tsx',
-                 'components/worklist/AskSheet.tsx', 'components/worklist/AiDock.tsx',
-                 'components/worklist/AddFab.tsx', 'components/worklist/AccountDrawer.tsx',
-                 'components/worklist/RoomsGrid.tsx', 'components/worklist/WorklistShell.tsx',
-                 'app/w/today/page.tsx', 'app/w/rooms/page.tsx'];
-  const hits = [];
-  for (const f of files) {
-    // STRINGS ONLY, and comments already stripped. A file may EXPLAIN that the word is
-    // banned — this one does, and so does copy.ts's tombstone — without shipping it.
-    const src = strip(read(f));
-    for (const m of src.matchAll(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g)) {
-      const lit = m[1] ?? m[2] ?? '';
-      if (/\bDreamAi\b|\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(lit)) hits.push(f + ' -> ' + lit.slice(0, 50));
+// ── AMENDED, LABELLED — relay #3 item 1 · IT WALKS THE GRAPH NOW ────────────
+//    The first cut read a HAND-LISTED SET of ten shell-owned files, and every byte the
+//    chair's bounce found lived outside it: `Talk to DreamAi →` in AddSheet, the speaker
+//    label in ConversationThread, the assistant label in MessageBubble, a dead placeholder
+//    in the bride tree's token file that SliceRow drags into all six crossed rooms. A set
+//    drafted before the crossing widened what the rooms bundle — the identical disease the
+//    audit's own interim list had, and the identical cure: derive, never retype.
+//    R-38.11 as amended: reachable is reachable. Proven by mutation — restoring the
+//    MessageBubble byte reddens this cell alone.
+cell('C32 no persona name reachable from any shell surface, DreamAi included (R-37.70 as amended)', () => {
+  const resolveSpec = (spec, from) => {
+    let base = null;
+    if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
+    else if (spec.startsWith('.')) base = path.resolve(path.dirname(from), spec);
+    else return null;
+    for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts', '']) {
+      const q = base + ext;
+      if (fs.existsSync(q) && fs.statSync(q).isFile()) return q;
     }
-  }
-  if (hits.length) return 'persona name in a shell string: ' + hits.join(' | ');
+    return null;
+  };
+  const hits = [];
+  const seen = new Set();
+  const walk = (entry) => {
+    if (seen.has(entry)) return;
+    seen.add(entry);
+    let raw; try { raw = fs.readFileSync(entry, 'utf8'); } catch { return; }
+    // COMMENT-BLIND, and it has to be: this cell's own file, copy.ts's tombstone and three
+    // cure notes all EXPLAIN the ban by naming the word. A sweep that could not tell an
+    // explanation from a shipped byte would either red a cured tree or teach seats to stop
+    // writing down why.
+    const src = strip(raw);
+    // ⚠ FOUR SHAPES, AND THE FIRST CUT READ THREE. A persona name reaches a vendor as a
+    // quoted string OR as bare JSX text, and the bare form is where `Talk to DreamAi →`
+    // lived: across a line break, with an arrow glyph, inside a button. A character class
+    // of letters and spaces walked straight past it — this instrument committing the exact
+    // defect the S2 ZIP bounce convicted in wl_audit's double-quote-only matcher, in the
+    // cell written to clean up after that bounce.
+    //
+    // AND THE SECOND CUT STILL MISSED IT, for a reason worth writing down: a JSX text node
+    // is bounded by an angle bracket OR A BRACE. strip() collapses a JSX comment to an
+    // empty pair of braces, so a cure note sitting above the very byte under test cut the
+    // text run in half and the span never reached the name. Both boundary characters are
+    // accepted now. Proven on all four shapes by mutation, each reddening this cell alone.
+    for (const m of src.matchAll(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|[>}]([^<>{}]{0,300}?DreamAi[^<>{}]{0,300}?)[<{]/g)) {
+      const lit = m[1] ?? m[2] ?? m[3] ?? '';
+      if (/\bDreamAi\b|\bVictor\b|\bDonna\b|\bHarvey\b|\bMira\b/.test(lit))
+        hits.push(path.relative(ROOT, entry) + ' -> ' + lit.trim().slice(0, 50));
+    }
+    for (const m of src.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+      const r = resolveSpec(m[1], entry);
+      if (r && !r.includes('node_modules')) walk(r);
+    }
+  };
+  // EVERY SHELL SURFACE, derived from the routes on disk rather than listed — a room that
+  // crosses joins this sweep in the same edit that creates its page.
+  const wDir = path.join(ROOT, 'app/w');
+  const entries = fs.readdirSync(wDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => path.join(wDir, d.name, 'page.tsx'))
+    .filter((f) => fs.existsSync(f));
+  if (entries.length < 12) return 'only ' + entries.length + ' shell routes found under app/w — this sweep saw almost nothing and must not report a pass';
+  for (const e of entries) walk(e);
+  if (hits.length) return 'persona name reachable from the shell (' + entries.length + ' routes, ' + seen.size + ' files): ' + hits.join(' | ');
   // AND THE GRAMMAR THAT PERMITTED IT IS RECORDED AS RETIRED, not silently deleted.
   const copy = strip(read('lib/worklist/copy.ts'));
   if (!/R-37\.78/.test(read('lib/worklist/copy.ts'))) return 'R-37.78 retires without a tombstone in copy.ts';
@@ -947,8 +1008,13 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // THE NUMERAL IS BEHIND THE GATE. A default would satisfy every cell about the sentence.
   if (/\?\?\s*0/.test(today)) return 'the numeral falls back to 0 — an unmeasured zero is the claim F-38.31 convicted';
   if (!/feed\.responded[\s\S]{0,120}wl-mnum/.test(today)) return 'the numeral is not gated on feed.responded';
-  if (!/feed\.responded\s*\?\s*COPY\.todayNothingYet\s*:\s*COPY\.todayNotLive/.test(today))
-    return 'the status does not choose between the two bytes on the reading';
+  // AMENDED, LABELLED — relay #3 item 2. The two-armed status is withheld with its byte.
+  // What the cell asserts is that the surface prints the HONEST line and no other: a status
+  // that claims a reading is the whole of F-38.31, and it can arrive either as the wrong
+  // sentence or as a numeral, so both are refused.
+  if (!/COPY\.todayNotLive/.test(today)) return 'the surface does not print the not-reading status';
+  if (/COPY\.todayNothingYet/.test(today))
+    return 'the true-empty arm is live again while its byte is withheld';
   return null;
 });
 

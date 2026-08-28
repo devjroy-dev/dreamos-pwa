@@ -230,7 +230,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             fontFamily: F.label, fontWeight: 300, fontSize: 8,
             letterSpacing: '0.5em', textTransform: 'uppercase',
             color: T.isLight ? T.accent : 'rgba(201,168,76,0.65)', marginBottom: 6,
-          }}>DreamAi</div>
+          }}>TDW</div>
           <AiMessageText text={message.text} streaming={message.streaming} T={T} F={F} />
         </div>
         {contact?.phone && (

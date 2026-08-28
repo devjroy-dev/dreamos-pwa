@@ -101,15 +101,39 @@ export function forgetVendorMe(): void { mePromise = null; meToken = null; }
 // reported there.
 const HANDLE_KEY = 'tdw_vendor_handle';
 
-export function useVendorHandle(): string | null {
+/** What the first-run feed needs to know: the answer, and WHETHER THERE IS ONE YET. */
+export interface HandleState { handle: string | null; settled: boolean }
+
+// ── R-38.17 · THE SET PAINTS ONCE, SO THE HOOK REPORTS SETTLEMENT ───────────
+//
+// `settled` is the second half of the answer and it was missing. Returning only
+// `string | null` made 「no handle」 and 「no answer yet」 the same value, so the feed could
+// not tell a vendor with no link from a wire that had not replied — and it rendered its
+// first two cards immediately and inserted the third when /me landed. On the deploy dark
+// lost that race and light won it: THE SAME TREE PAINTED TWO DIFFERENT FEEDS IN ONE RUN.
+//
+// That is the defect R-37.68-B named, and re-timing it is not a cure. The feed now waits
+// for this flag and paints the whole set at once (components/worklist/FirstRun.tsx).
+// `settled` goes true on ANY resolution — an answer, a refusal, or a session that was never
+// there — because every one of those is 「the question is closed」, and a feed that waited
+// only for success would hang forever for a signed-out vendor.
+export function useVendorHandle(): HandleState {
   const [handle, setHandle] = useState<string | null>(null);
+  const [settled, setSettled] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!getVendorSession()?.access_token) return;
+    // NO SESSION IS A SETTLED ANSWER, not a pending one. The shell's own guard redirects a
+    // sessionless vendor, so this arm is the moment before that lands; leaving `settled`
+    // false would hold the feed dark behind a question nobody was ever going to ask.
+    if (!getVendorSession()?.access_token) { setSettled(true); return; }
 
     // Seeded in the effect, not in useState's initialiser: this tree is server-rendered
     // before it hydrates, and seeding at first render would emit one markup on the server
     // and another on the client. A hydration mismatch is not an improvement on a reflow.
+    //
+    // ⚠ THE CACHE NO LONGER RACES ANYTHING. It seeds the value, and the wire still decides
+    // when the set may paint — so a cached handle that the server has since revoked can no
+    // longer flash a dead link card before being corrected.
     try {
       const cached = localStorage.getItem(HANDLE_KEY);
       if (cached) setHandle(cached);
@@ -118,7 +142,8 @@ export function useVendorHandle(): string | null {
     let live = true;
     vendorMe()
       .then((d) => {
-        if (!live || !d.ok) return;
+        if (!live) return;
+        if (!d.ok) return;
         const h = d.vendor?.handle?.trim();
         const next = h ? h.toUpperCase() : null;
         setHandle(next);
@@ -130,10 +155,15 @@ export function useVendorHandle(): string | null {
           else localStorage.removeItem(HANDLE_KEY);
         } catch { /* non-fatal */ }
       })
-      .catch(() => { /* fail closed — the cached answer stands until the wire disagrees */ });
+      .catch(() => { /* fail closed — the cached answer stands until the wire disagrees */ })
+      // THE ONE PLACE `settled` IS SET, and it is in `finally` on purpose: a refusal and a
+      // transport failure close the question exactly as an answer does. Setting it in the
+      // success arm alone would leave the feed permanently dark on a bad network, which is
+      // a worse surface than the flicker this cure removes.
+      .finally(() => { if (live) setSettled(true); });
     return () => { live = false; };
   }, []);
-  return handle;
+  return { handle, settled };
 }
 
 /** One home for the initials rule, so the seed and the wire read cannot disagree on shape. */

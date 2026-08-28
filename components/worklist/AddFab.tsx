@@ -120,18 +120,28 @@ export function AddFab() {
 // template literal; a backtick written around a selector while explaining that selector
 // ends the literal and fails the compile. Six instances this arc. Selectors in words.
 const FAB_CSS = `
-/* ── THE FAB'S SEAT · 56px, bottom-right, ONE GUTTER IN, CLEAR OF THE DOCK ────
-   R-38.18 puts it 16px above the dock. The dock and the nav are both fixed-height chrome
-   at the bottom of the shell, so the offset is their two heights plus the gutter plus the
-   safe area: nav min-height 52, dock 8+8 padding over a 44 field with a half-pixel border
-   (61 rounded up), gutter 16.
+/* ── THE FAB'S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
+   ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
+   The first cut computed the bottom chrome from its parts: nav min-height 52, plus a dock
+   of 8+8 padding over a 44px field with a half-pixel border, call it 61. 113. Every other
+   thing about the control was right and the gap came out at NINE PIXELS in both modes,
+   because 113 is not what the browser paints — the real chrome measures 120, and the seven
+   missing pixels live somewhere in a line box I would have kept re-deriving from the
+   stylesheet and kept getting wrong.
 
-   THE ARITHMETIC IS NOT THE PROOF. It is derived here so a reader can follow it, and the
-   render arm's C-R18 MEASURES the painted gap on glass in both modes — because a computed
-   fact is structurally outside a source reading, and this file's whole neighbourhood is
-   made of rules that were present and did not apply. If a chrome height changes, the cell
-   reds; the comment does not. */
-.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-gutter) + 52px + 61px + env(safe-area-inset-bottom));z-index:18;width:56px;height:56px;border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
+   THAT IS THE WHOLE LESSON AND IT IS THIS FILE'S OWN NEIGHBOURHOOD: a rule assembled out
+   of other rules' declared values is arithmetic about a stylesheet, not a fact about a
+   page. The gutter cell, the tile-height cell and the edge cell all exist because
+   declarations and paint disagree.
+
+   MEASURED ON THE DEPLOY, 390x844, BOTH MODES: the dock's top edge sits 120px above the
+   viewport bottom. 120 + 16 = 136, and the safe-area inset rides on top because it is zero
+   on the measuring surface and is not zero on the founder's phone.
+
+   THE NUMBER IS NOT THE PROOF EITHER. C-R18 measures the painted gap every run and reds on
+   15..17; if the dock gains a row, this literal goes stale and the cell says so in the
+   run rather than in a comment nobody re-derives. */
+.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(136px + env(safe-area-inset-bottom));z-index:18;width:56px;height:56px;border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
 /* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
    F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
    nobody could see. That floor is a ratio between a row's pressed fill and the ground it

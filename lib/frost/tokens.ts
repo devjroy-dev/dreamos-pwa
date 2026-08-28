@@ -584,7 +584,19 @@ export const FROST_COPY = {
     sub:     'Everything you need, in one place.',
   },
   discoverCanvas: { blindSwipeEyebrow: 'Blind discovery' },
-  dreamCanvas:    { inputPlaceholder: 'Tell DreamAi anything…' },
+  // ⚠ R-37.70 as amended at R-38.17 — THE BYTE IS CURED AND THE EXPORT IS OWED (F-38.32).
+  // The old placeholder carried the banned persona name, and this module reaches ALL SIX
+  // crossed rooms: components/vendor/slices/SliceRow.tsx imports FT/FS from here, so every
+  // string in this file ships inside the shell's scope whether the shell uses it or not.
+  //
+  // THIS ENTRY HAS ZERO CONSUMERS IN THE WHOLE TREE — derived by command, not assumed: the
+  // only line matching `dreamCanvas` anywhere is this one. So the honest cure is RETIREMENT,
+  // not a rename: renaming keeps a dead export alive with a fresher byte, which is the
+  // wl-plink disease in a token file. It is not retired here because this is the BRIDE
+  // plane's token home and deleting a bride-side export inside a vendor sitting is a change
+  // whose blast radius no cell on this branch measures. Filed F-38.32, priced, and the byte
+  // is made safe in the meantime so the gate is not held open by a string nobody reads.
+  dreamCanvas:    { inputPlaceholder: 'Ask TDW anything…' },
   idlePool: [
     'The light in October will be the colour of old letters.',
     'A bride is not made. She arrives.',
