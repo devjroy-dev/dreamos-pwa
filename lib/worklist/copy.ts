@@ -119,11 +119,19 @@ export const COPY = {
   //         tools/wl_audit.mjs's RETIRED set in the same commit. Nothing else moves —
   //         app/w/today/page.tsx already reads it behind `feed.responded`.
   //
-  // ✔ FIRED AT PHASE 4. The feed answers; the withholding is discharged. The byte now
-  //   renders on ONE state and one only: a reading came back, the vendor has had work
-  //   before (`has_any`), and every attention list is empty. It is not the 「no reading」
-  //   line and it is not a heading over cards — `todayNotLive` holds the first and the
-  //   numeral holds the third.
+  // ✔ FIRED AT PHASE 4, AND RE-HOMED AT S4/3 (D-1/c5, chair's hand 2026-08-29).
+  //
+  // IT IS THE FIRST-RUN STATUS LINE NOW, NOT THE RESTING ONE. Phase 4 put it on the
+  // resting state — a vendor who HAS had work and has none today. D-1's ratified frames
+  // put it on `A1-first`, over the Get-started cards, and the resting state carries
+  // `todayRestingHead` at t1 instead with no numeral beside it.
+  //
+  // F-38.31 / c-38.14's GUARD STANDS IN ITS NEW PLACE, and that is the whole reason the
+  // move is legitimate rather than a walk-back. The objection was never to the sentence —
+  // it was to asserting an absence NOTHING HAD CHECKED. `has_any === false` is an ANSWER,
+  // not an absence: the feed ran, read the vendor's whole history and reported that there
+  // has never been anything. The claim is true of the state it now sits on, and it still
+  // cannot render before a 200.
   todayNothingYet: 'Nothing needs you yet.',
 
   // ── THE TRUNCATION TELL · §3 property 3 · founder-vetoed 2026-08-29 (copy line 6) ──
@@ -134,8 +142,54 @@ export const COPY = {
   // truncated count renders as a plain number anywhere on the surface.
   todayTruncatedSuffix: '+',
 
-  // ── 6 · 7 — the resting state. PHASE 4, not rendered by this shell. Carried here
-  // so the vetoed bytes have one home from the moment they were vetoed.
+  // ── R-39.14 · THE FOLD AND THE ROOM DOOR · founder-vetoed by delegation 2026-08-29 ──
+  // SENTENCE CASE AT t4, the shell's button register — deliberately NOT the tracked caps
+  // an eyebrow wears. R-38.4 permits letter-spaced uppercase in exactly two places and a
+  // control is neither of them.
+  //
+  // ⚠ `Show all {n}` INTERPOLATES THE TELL, NOT A TOTAL, AND THAT IS THE WHOLE CURE.
+  // When the wire capped the kind the label reads 「Show all 20+」, never 「Show all 25」:
+  // `counts[k]` is a FLOOR once `truncated[k]` fires (§3 property 3), so a bare total in a
+  // promise would be a badge that is secretly a floor wearing an affordance. The tell sits
+  // INSIDE the promise, which is why the room door may stand beside it without the two
+  // controls making two different promises (c-39.28, amending F-a).
+  todayFoldMore:  'Show all',
+  todayFoldLess:  'Show fewer',
+  // The door to the room that holds what the cap withheld. `{room}` is a ROOMS label.
+  todaySeeAllIn:  'See all in',
+
+  // ── THE INVOICE CARD'S TWO CAPTIONS · founder-vetoed by delegation 2026-08-29 ──
+  // `owed` sits under the figure at t5. `Due today` renders only when the invoice's
+  // due_date equals THE WIRE'S OWN `today` — never a client Date (F-b, ruled). The
+  // non-today arm drops the year: 「Due 29 Aug」.
+  // The ledger's eyebrow in the WORKING state only. The resting state has `All clear.` at
+  // t1 above it instead and needs no eyebrow — a heading over a heading.
+  todayDoneHead: 'Done today',
+  todayOwedCaption: 'owed',
+  todayDueToday:    'Due today',
+  todayDuePrefix:   'Due',
+
+  // ── D-1/c3 · THE KIND LINE'S FIVE NOUNS · founder-vetoed by delegation 2026-08-29 ──
+  //
+  // ⚠ THESE ARE NEW VENDOR-FACING BYTES AND NOT A FORMATTING OF `ROOMS`. Four rooms
+  // singularise cleanly — Leads/Invoices/Events/Contracts — but the fifth is labelled
+  // `Team` and the ruled line reads 「1 task」, which is the KIND's noun (`team_tasks`),
+  // not the room's. D-1 filed that rather than passing the set off as derived, and this
+  // map is its one home. The section eyebrows still read `ROOMS`; only the kind line
+  // reads this.
+  kindNouns: {
+    lead_unanswered:   ['lead', 'leads'],
+    invoice_due:       ['invoice', 'invoices'],
+    events_today:      ['event', 'events'],
+    contract_unsigned: ['contract', 'contracts'],
+    team_tasks:        ['task', 'tasks'],
+  } as const,
+
+  // ── 6 · 7 — the resting state, RENDERED SINCE PHASE 4 ────────────────────
+  // ⚠ `All clear.` IS THE RESTING READING, AND IT STANDS ALONE (D-1/c5). The resting
+  // masthead carries NO NUMERAL: a measured 0 beside 「All clear.」 says the same thing
+  // twice, in two registers, and the sentence is the better of the two. It is still
+  // resting-only — never over cards that disprove it.
   todayRestingHead:  'All clear.',
   todayRestingScope: 'Counts cover invoices, contracts and tasks \u2014 the three that record when they were finished.',
 

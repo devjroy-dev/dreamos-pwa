@@ -1199,7 +1199,14 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   if (/openItems:\s*0\b/.test(feed)) return 'the feed module coerces an unread count to 0 — the lie in digits';
   // THE NUMERAL IS BEHIND THE GATE. A default would satisfy every cell about the sentence.
   if (/\?\?\s*0/.test(today)) return 'the numeral falls back to 0 — an unmeasured zero is the claim F-38.31 convicted';
-  if (!/feed\.responded[\s\S]{0,120}wl-mnum/.test(today)) return 'the numeral is not gated on feed.responded';
+  // ⚠ S4/3 · THE GATE NARROWED AND THE ASSERTION FOLLOWS IT. The numeral used to render
+  // on any reading, including the resting day's measured 0. D-1/c5 draws no numeral on
+  // A1-rest — a 0 beside 「All clear.」 says the same thing twice — so the gate is now the
+  // WORKING state. F-38.31 is not weakened by that: `working` is DEFINED from
+  // `feed.responded`, which this cell asserts rather than assuming, so there is still no
+  // path on which a numeral paints without a reading behind it.
+  if (!/const working\s*=\s*feed\.responded/.test(today)) return 'the working state is not derived from a reading — the numeral could paint unmeasured';
+  if (!/\{working && feed\.openItems !== null && \(/.test(today)) return 'the numeral is not gated on the working state';
   // AMENDED TWICE, BOTH LABELLED. Relay #3 item 2 withheld the true-empty arm with its
   // byte, and this cell refused its presence. PHASE 4 DISCHARGES THAT: the feed answers, so
   // BOTH bytes are live and what the cell must hold is that each is gated on the state it
@@ -1210,8 +1217,15 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   if (!/COPY\.todayNothingYet/.test(today)) return 'the true-empty byte has no consumer while the feed answers';
   if (!/!feed\.responded && <h1[^\n]*todayNotLive/.test(today))
     return 'the not-reading line is not gated on the absence of a reading';
-  if (!/resting && <h1[^\n]*todayNothingYet/.test(today))
-    return 'the true-empty line is not gated on the resting state — it can stand over cards';
+  // ⚠ S4/3 · THE BYTE MOVED STATES (D-1/c5) AND THE ASSERTION MOVES WITH IT.
+  // 「Nothing needs you yet.」 is the FIRST-RUN status line now, not the resting one. The
+  // F-38.31 guard stands in its new place and is the thing this arm holds: `has_any ===
+  // false` is an ANSWER — the feed ran and reported that nothing has ever existed — not an
+  // absence. The refusal that does NOT change is that no status byte may stand over cards.
+  if (!/\{firstRun && <h1[^\n]*todayNothingYet/.test(today))
+    return 'the true-empty line is not gated on first-run';
+  if (/\{working && <h1/.test(today))
+    return 'a status byte stands over the cards (R-39.13)';
   return null;
 });
 
@@ -2130,7 +2144,8 @@ cell('C60 the masthead numeral is the sum of all five counts, computed in one ho
     if (/counts\s*\)?\s*\.\s*reduce|Object\.values\([^)]*counts/.test(src)) bad.push(f + ' sums counts itself — second home for the numeral');
   }
   const page = strip(read('app/w/today/page.tsx'));
-  if (!/feed\.responded && feed\.openItems !== null/.test(page)) bad.push('the numeral is not gated on a reading (F-38.31)');
+  if (!/const working\s*=\s*feed\.responded/.test(page)) bad.push('the working state is not derived from a reading (F-38.31)');
+  if (!/\{working && feed\.openItems !== null/.test(page)) bad.push('the numeral is not gated on the working state');
   return bad.length ? bad.join(' | ') : null;
 });
 
@@ -2277,7 +2292,15 @@ cell('C66 every figure site declares lining figures, not only the rung that brok
     ['app/w/today/page.tsx', 'wl-mnum'],
     ['components/worklist/RoomsGrid.tsx', 'wl-tcount'],
     ['components/worklist/TodayCards.tsx', 'wl-tseccount'],
-    ['components/worklist/TodayCards.tsx', 'wl-tcfigure'],
+    // RENAMED AT S4/3 to the ratified frames' own class names: the figure became a
+    // two-part cell inside the card's grid (value + caption) rather than a single block
+    // stapled under it, so one class became two and both carry figures.
+    ['components/worklist/TodayCards.tsx', 'wl-tcfigval'],
+    ['components/worklist/TodayCards.tsx', 'wl-tcdetail'],
+    ['components/worklist/TodayCards.tsx', 'wl-tmorecount'],
+    ['components/worklist/TodayCards.tsx', 'wl-tfoldbtn'],
+    ['components/worklist/TodayCards.tsx', 'wl-trestpart'],
+    ['app/w/today/page.tsx', 'wl-mkind'],
     ['components/worklist/TodayCards.tsx', 'wl-trestn'],
   ];
   for (const [f, cls] of SITES) {
@@ -2341,6 +2364,179 @@ cell('C68 done_today renders in both states, and only the resting arm carries a 
   if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state does not render its summary');
   // ZERO NEW BYTES: the three row labels are the registry's, not the executor's (s-39.6).
   if (/'Invoices paid'|'Contracts signed'|'Tasks done'/.test(cards)) bad.push('the summary spells its own row labels — three unvetoed vendor-facing bytes (s-39.6)');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+
+
+// ══ S4/3 · TODAY MATCHES THE MOCK ═════════════════════════════════════════════
+// Subject: docs/mocks/today-working-mock.html @ d1f2c80, frames A1-*. The A2-* frames in
+// the same file are the UNPICKED shape — D1_VETO_SHEET says a charter must name the FRAMES
+// and not only the file, "otherwise a cell reading the file finds two answers." These
+// cells read the SOURCE against the ratified bytes; whether the frame is MATCHED on glass
+// is the render arm's (C-R18/C-R19) and is declared REFUSED-egress at the LE seat.
+
+// C69 — the kind line reads counts from the wire and nouns from the one map.
+//    F-39.24's cure and D-1/c3. The nouns are FIVE NEW BYTES and not a formatting of
+//    ROOMS: four rooms singularise cleanly but the fifth is labelled `Team` while the
+//    ruled line reads `1 task`, which is the KIND's noun. Spelling any of them at the
+//    render site would put a sixth home in the tree for a byte the register owns.
+//    RED MUTATION: replace COPY.kindNouns[kind] with a literal in TodayCards.tsx.
+cell('C69 the kind line takes counts from the wire and nouns from the one map (D-1/c3)', () => {
+  const bad = [];
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const map = (copy.match(/kindNouns:\s*\{[\s\S]*?\}/) || [''])[0];
+  if (!map) { bad.push('kindNouns has no home in copy.ts'); return bad.join(' | '); }
+  const WANT = { lead_unanswered: "'lead', 'leads'", invoice_due: "'invoice', 'invoices'",
+                 events_today: "'event', 'events'", contract_unsigned: "'contract', 'contracts'",
+                 team_tasks: "'task', 'tasks'" };
+  for (const [k, v] of Object.entries(WANT)) {
+    if (!new RegExp(k + ':\\s*\\[' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\]').test(map))
+      bad.push('kindNouns.' + k + ' is not the vetoed pair [' + v + ']');
+  }
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  // ⚠ SCOPED TO THE KIND LINE, NOT THE FILE, AND THE FIRST CUT WAS NOT. Sweeping the whole
+  // module for a quoted noun reddened on `label('invoices')` and `label('contracts')` in
+  // the ledger — which are ROOM IDS handed to the registry, the opposite of a spelled byte.
+  // A cell that cannot tell a lookup key from a rendered word is asserting the presence of
+  // a substring rather than the property, and it would have gone on reddening a correct
+  // tree. The property belongs to one function, so the assertion reads one function.
+  const line = (src.match(/export function TodayKindLine[\s\S]*?\n\}/) || [''])[0];
+  if (!line) { bad.push('TodayKindLine has no home'); return bad.join(' | '); }
+  if (!/COPY\.kindNouns\[kind\]/.test(line)) bad.push('the kind line does not read the map');
+  for (const n of ['lead', 'invoice', 'event', 'contract', 'task'])
+    if (new RegExp("'" + n + "s?'").test(line)) bad.push('a kind noun is spelled at the render site: ' + n);
+  if (!/counts\[kind\]/.test(line)) bad.push('the kind line does not read counts from the wire');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C70 — every kind-line segment anchors to a section that exists.
+//    D-1 measured 5 of 5 anchors resolving. The id is built by one function read by both
+//    the line and the section, so an anchor cannot point at a heading that was renamed.
+//    RED MUTATION: spell the href as '#leads' at the kind line.
+cell('C70 each kind-line segment anchors to its own eyebrow, by one spelling (F-39.24)', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  if (!/export function sectionId/.test(src)) bad.push('the anchor id has no single home');
+  if (!/href=\{'#' \+ sectionId\(kind\)\}/.test(src)) bad.push('the kind line does not build its href from sectionId');
+  if (!/id=\{sectionId\(kind\)\}/.test(src)) bad.push('the section does not carry the id the line points at');
+  if (/href="#sec-/.test(src)) bad.push('an anchor is spelled inline — two homes for one address');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C71 — the fold shows the OLDEST three, keeps the rest in the DOM, and never sorts.
+//    §3 property 5: ties break oldest-first AS DELIVERED, so "the oldest three" is a slice
+//    of the wire's order and never a sort. The hidden rows stay in the DOM so opening the
+//    fold cannot re-rank anything — the alternative, slicing on open, would put the
+//    ordering decision inside a click handler.
+//    RED MUTATION: render rows.slice(-3) in place, or sort by created_at.
+cell('C71 the fold keeps three in place from the wire order and hides the rest in the DOM (R-39.14)', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  if (!/const IN_PLACE = 3/.test(src)) bad.push('the in-place count is not 3, or has no home');
+  if (!/i < IN_PLACE \? card :/.test(src)) bad.push('the first rows in place are not the first rows of the wire order');
+  if (/\.slice\(-/.test(src)) bad.push('the fold takes rows from the END — the newest, not the oldest (property 5)');
+  if (/\.sort\(|\.reverse\(/.test(src)) bad.push('the feed sorts or reverses — key and row order are the wire\'s (properties 4 and 5)');
+  if (!/wl-tfolded/.test(src)) bad.push('the hidden rows are not in the DOM — opening the fold would re-rank');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C72 — a capped kind never promises a total, and always offers the room.
+//    c-39.28 amending F-a. `counts[k]` is a FLOOR once `truncated[k]` fires (§3 property
+//    3), so "Show all 25" would be a badge that is secretly a floor wearing an affordance.
+//    The label interpolates the SAME text the count renders, tell included, which is why
+//    two controls may stand together: "Show all 20+" reveals the twenty the wire holds and
+//    "See all in Leads" goes where the twenty-first lives. One promise each.
+//    RED MUTATION: build the fold label from counts[kind] directly, or drop the room door.
+cell('C72 a capped kind shows the tell inside its promise and a door to the room (c-39.28)', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  if (!/function countText/.test(src)) bad.push('the figure-with-tell has no single home');
+  if (!/todayTruncatedSuffix/.test((src.match(/function countText[\s\S]*?\n\}/) || [''])[0]))
+    bad.push('countText does not carry the truncation tell');
+  const fold = (src.match(/todayFoldMore[\s\S]{0,120}/) || [''])[0];
+  if (!/countText\(today, kind\)/.test(fold)) bad.push('the fold label is built from a bare count, not the tell-carrying text');
+  if (!/todaySeeAllIn/.test(src)) bad.push('a capped kind offers no door to the room that holds the rest');
+  if (!/\{cut && \(/.test(src)) bad.push('the room door is not gated on truncated[k]');
+  const copy = strip(read('lib/worklist/copy.ts'));
+  for (const k of ['todayFoldMore', 'todayFoldLess', 'todaySeeAllIn', 'todayOwedCaption', 'todayDueToday', 'todayDoneHead'])
+    if (!new RegExp(k + ":\\s*'").test(copy)) bad.push(k + ' is not in the copy register');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C73 — "Due today" is answered by the WIRE's date, never the device's.
+//    F-b, ruled. The response carries `today` — the IST calendar date the feed was cut
+//    for — precisely so the client does not compute one. A `new Date()` comparison on a
+//    phone in another timezone labels a due invoice overdue, or the reverse, and the
+//    vendor cannot tell which clock she is reading. F-P3.8's class (istTodayISO had five
+//    homes) arriving on the pwa side.
+//    RED MUTATION: compare due_date to new Date().toISOString() in dueLine.
+cell('C73 the due line reads the wire\'s date and constructs none of its own (F-b)', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  const fn = (src.match(/function dueLine[\s\S]*?\n\}/) || [''])[0];
+  if (!fn) { bad.push('dueLine has no home'); return bad.join(' | '); }
+  if (/new Date\(\)|Date\.now\(\)/.test(fn)) bad.push('the due line builds a date from the device clock (F-P3.8 class)');
+  if (!/wireToday/.test(fn)) bad.push('the due line does not compare against the wire\'s today');
+  if (!/today\.today/.test(src)) bad.push('the wire\'s own date is never read');
+  // The whole card path: the only Date construction permitted is formatting a wire value.
+  const card = (src.match(/function Card\([\s\S]*?\n\}/) || [''])[0];
+  if (/new Date\(\)/.test(card)) bad.push('the card path constructs a device date');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C74 — the ledger shows the particular, and only the resting arm carries a status byte.
+//    F-d amending F-39.18(3)'s seal by name; s-39.6 discharged, because a particular
+//    removes the need for the three registry labels that stood in for a vetoed set.
+//    invoice_number, client_name, amount_total and the task title were all on the wire
+//    from Phase 3 and read by nobody — this is a client change only.
+//    RED MUTATION: render TodayResting in the working arm, or drop the particular.
+cell('C74 the done ledger carries its particular; the status byte is the resting arm\'s alone (F-d)', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  const sum = (src.match(/function DoneSummary[\s\S]*?\n\}/) || [''])[0];
+  if (!sum) { bad.push('DoneSummary has no single home'); return bad.join(' | '); }
+  for (const f of ['client_name', 'invoice_number', 'amount_total'])
+    if (!sum.includes(f)) bad.push('the ledger omits the invoice particular: ' + f);
+  if (!/wl-trestpart/.test(sum)) bad.push('the ledger renders no particular line');
+  if (!/formatRs/.test(sum)) bad.push('the ledger builds a money string outside the one money home (D-7)');
+  const resting = (src.match(/export function TodayResting[\s\S]*?\n\}/) || [''])[0];
+  const done    = (src.match(/export function TodayDone[\s\S]*?\n\}/) || [''])[0];
+  if (!/todayRestingHead/.test(resting)) bad.push('the resting state lost its status byte');
+  if (/todayRestingHead/.test(done)) bad.push('the working ledger carries a status byte over its cards (R-39.13)');
+  if (!/todayDoneHead/.test(done)) bad.push('the working ledger has no eyebrow');
+  if (/'Invoices paid'|'Contracts signed'|'Tasks done'/.test(src)) bad.push('the ledger spells its own row labels (s-39.6)');
+  const page = strip(read('app/w/today/page.tsx'));
+  if (!/\{working && today && <TodayDone/.test(page)) bad.push('the working state renders no ledger');
+  if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state renders no ledger');
+  // D-1/c5: the resting masthead carries no numeral. A 0 beside "All clear." twice-tells.
+  if (/\{resting && feed\.openItems/.test(page)) bad.push('the resting state paints a numeral beside All clear. (D-1/c5)');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C75 — the build id is computed per request, outside any cacheable chunk.
+//    F-39.16, wrong twice in the same direction. The stamp read an inlined NEXT_PUBLIC_*
+//    constant from a CLIENT component unchanged since 08ecf78, so Next's build cache
+//    restored the module with the previous build's commit inside it.
+//    ⚠ THIS CELL ASSERTS THE DYNAMIC PROPERTY, NOT A FILE NAME. A future seat removing the
+//    cookies() call would make the /w subtree static again, the element would still be in
+//    the right place, and the stamp would silently go stale once more. Location is not the
+//    property; being computed per request is. The two-build claim itself belongs to the
+//    render arm and is declared there.
+//    RED MUTATION: restore NEXT_PUBLIC_TDW_COMMIT to next.config.ts, or delete cookies().
+cell('C75 the build id is read per request in the server layer, not inlined at build (F-39.16)', () => {
+  const bad = [];
+  const cfg = strip(read('next.config.ts'));
+  if (/NEXT_PUBLIC_TDW_COMMIT/.test(cfg)) bad.push('the inlined constant is back in next.config.ts — a compile-time value cannot know its deployment');
+  const layout = strip(read('app/w/layout.tsx'));
+  if (/'use client'|"use client"/.test(layout)) bad.push('the identity layer is a client component — it cannot read a request-time env');
+  if (!/cookies\(\)/.test(layout)) bad.push('the /w subtree is no longer dynamic, so the id can be baked at build again');
+  if (!/process\.env\.VERCEL_GIT_COMMIT_SHA/.test(layout)) bad.push('the id is not read from the deployment\'s own env');
+  if (!/data-tdw-commit=\{commit\}/.test(layout)) bad.push('the stamp does not render the request-time value');
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  if (/data-tdw-commit=/.test(shell)) bad.push('a second stamp survives in the client shell — two ids, one of them stale');
+  for (const f of ['tools/wl_audit.mjs', 'tools/wl_render.cjs'])
+    if (!/data-tdw-commit/.test(read(f))) bad.push(f + ' no longer reads the stamp it reports');
   return bad.length ? bad.join(' | ') : null;
 });
 

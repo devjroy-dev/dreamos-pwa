@@ -21,7 +21,15 @@ const nextConfig: NextConfig = {
   // slipped in: three lines, no runtime behaviour, mechanical to revert. It is here because
   // the alternative is a fifth gate run whose result cannot be attributed to a tree.
   env: {
-    NEXT_PUBLIC_TDW_COMMIT: (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || 'local',
+    // ⚠ `NEXT_PUBLIC_TDW_COMMIT` DELETED AT S4/3 · F-39.16. An `env` entry here is INLINED
+    // AT BUILD into every module that reads it, and Next's build cache keys modules on
+    // source content rather than on env values — so a module whose bytes did not change is
+    // restored from the previous build with the previous commit still inside it. That is
+    // not a bug in the cache; it is what a compile-time constant means. The build id is
+    // read at REQUEST time in app/w/layout.tsx instead.
+    //
+    // THE LINE IS DELETED RATHER THAN LEFT UNUSED. A ready-made constant with exactly the
+    // right name is how the next reader re-creates this in one line.
   },
   async headers() {
     return [

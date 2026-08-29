@@ -352,7 +352,12 @@ async function coverage() {
   if (!stamp) {
     console.log('DEPLOY: UNSTAMPED — this build predates F-38.37 and cannot say which commit it is.');
     console.log('  Every FAIL below has two readings: the cure is missing, or the deploy predates it.');
-    console.log('  Re-deploy from a tree carrying next.config.ts\'s NEXT_PUBLIC_TDW_COMMIT, then re-run.\n');
+    // ⚠ F-39.16 · THE ADVICE CHANGED WITH THE MECHANISM. It used to name
+    // next.config.ts's NEXT_PUBLIC_TDW_COMMIT — the very constant that made the stamp go
+    // stale twice, because an `env` entry is inlined at build into modules the cache
+    // restores unchanged. The id is read per request in app/w/layout.tsx now, so a missing
+    // stamp means the /w layout did not render or lost its dynamic opt-out.
+    console.log('  The stamp is rendered per request by app/w/layout.tsx (F-39.16). A missing one means\\n  the /w layout did not render, or its cookies() dynamic opt-out was removed.\\n');
   } else if (local && stamp !== local && !ANY_COMMIT) {
     console.log('REFUSED — the deploy is commit ' + stamp + '; this tree is ' + local + '.');
     console.log('  No assertions were run. A gate that reports on a build the operator did not');

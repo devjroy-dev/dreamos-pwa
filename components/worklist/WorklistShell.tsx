@@ -136,11 +136,15 @@ export function WorklistShell({ title, children }: { title: string; children: Re
       {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
           /w's redirect are three statements of one decision — if they ever disagree, the
           app disagrees with itself, so C17 asserts all three together. */}
-      {/* F-38.37 · THE BUILD STAMP. Hidden, inert, and the same shape RoomsGrid already uses
-          for its room count — a fact the instruments need that the vendor must not see.
-          It exists so `wl_audit` can name the commit it just measured rather than leaving
-          the operator to infer it from which bytes came back. */}
-      <div hidden data-tdw-commit={process.env.NEXT_PUBLIC_TDW_COMMIT || 'local'} />
+      {/* F-38.37 · THE BUILD STAMP LEFT THIS FILE AT S4/3 — F-39.16, and the move IS the
+          cure. It read an inlined `NEXT_PUBLIC_*` constant from a CLIENT component whose
+          source had not changed since `08ecf78`, so Next's build cache restored the module
+          with the previous build's commit baked in and the stamp was stale by exactly one
+          build, twice. It now renders in `app/w/layout.tsx`, a SERVER component whose
+          `cookies()` call makes the whole /w subtree dynamic, so the value is read per
+          request from the deployment actually serving. RETIRE-WITH-THE-READER: the stamp
+          moved and this note stands where it stood, because a reader looking for the
+          estate's build id will look here first. */}
 
       <nav className="wl-nav" aria-label="Sections">
         <Link href="/w/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}

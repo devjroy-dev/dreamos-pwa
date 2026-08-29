@@ -22,7 +22,7 @@
 // ITALIANA RETIRES WITH JOST. The numeral changes family, not stature.
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { FirstRun } from '@/components/worklist/FirstRun';
-import { TodayCards, TodayResting, TodayDone } from '@/components/worklist/TodayCards';
+import { TodayCards, TodayResting, TodayDone, TodayKindLine } from '@/components/worklist/TodayCards';
 import { COPY } from '@/lib/worklist/copy';
 import { useTodayFeed } from '@/lib/worklist/feed';
 
@@ -59,37 +59,42 @@ export default function TodayPage() {
     <WorklistShell title={COPY.navToday}>
       <section className="wl-masthead">
         <div className="wl-mdate">{DATE_LINE}</div>
-        {/* THE NUMERAL IS GATED, NOT DEFAULTED TO ZERO. A `0` that no instrument produced
-            is 「Nothing needs you yet」 written in digits, and F-38.31 convicted the
-            sentence. The gate is the same expression Phase 1 shipped; what changed is
-            that `openItems` can now be a real number. */}
-        {feed.responded && feed.openItems !== null && (
+        {/* THE NUMERAL IS GATED, AND AT S4/3 IT IS GATED ON THE WORKING STATE.
+            Phase 4 rendered it whenever a reading came back, including a measured 0 on the
+            resting day. D-1/c5 draws no numeral on A1-rest: a 0 standing beside 「All
+            clear.」 says the same thing twice in two registers, and the sentence is the
+            better of the two. F-38.31 is unmoved — the numeral still never renders without
+            a reading behind it; it now also does not render where a sentence already
+            carries the same fact. */}
+        {working && feed.openItems !== null && (
           <div className="wl-mcount">
             <span className="wl-mnum">{feed.openItems}</span>
             <span className="wl-mcap">{COPY.todayCountCaption}</span>
           </div>
         )}
-        {/* R-38.4: ONE t1 PER SURFACE, and the status is Today's — on the two states that
-            have something to say about the instrument. On the working state the cards say
-            it, and a heading over them would be a third claim about the same fact. */}
+        {/* THE KIND LINE — F-39.24's CURE. Five kinds above the fold in one line at t5,
+            each segment anchoring to its own eyebrow. D-1 measured it at 96/110 px against
+            a 714 px work area, which is how three cards in place survive the clause. */}
+        {working && today && <TodayKindLine today={today} />}
+        {/* R-38.4: ONE t1 PER SURFACE. Three states, three owners, and no state carries
+            two: the not-reading line on a failed read, the true-empty line on first-run
+            (D-1/c5 — `has_any === false` is an ANSWER, not an absence), and on the resting
+            day the t1 is `All clear.` inside TodayResting. The WORKING state has none —
+            R-39.13: the numeral is the status, and a heading over the cards would be a
+            third claim about a fact they already make. */}
         {!feed.responded && <h1 className="wl-status">{COPY.todayNotLive}</h1>}
-        {resting && <h1 className="wl-status">{COPY.todayNothingYet}</h1>}
+        {firstRun && <h1 className="wl-status">{COPY.todayNothingYet}</h1>}
         <div className="wl-mrule" />
       </section>
 
       {/* §3 property 6 · `has_any` answers 「has this vendor ever had anything」, not
           「is today busy」. The manual on a quiet day is the thing that ruling exists to
           prevent, so FirstRun is gated on the FALSE and never on an empty list. Before the
-          reading settles it renders nothing: we do not yet know which state this is, and
+          reading settles nothing renders: we do not yet know which state this is, and
           guessing would put the manual in front of a vendor with eleven leads. */}
       {firstRun && <FirstRun />}
       {resting && today && <TodayResting today={today} />}
       {working && today && <TodayCards today={today} />}
-      {/* F-39.18 (3), RULED. `done_today` was on the wire in both states and read in one,
-          so a vendor with eleven leads saw only what she owed and no evidence of anything
-          she finished — a queue, not a morning brief. Same three keys, same summary form,
-          beneath the attention sections. No status byte over it: 「All clear.」 above the
-          cards that disprove it is F-38.31 with the sign flipped. */}
       {working && today && <TodayDone today={today} />}
       <style>{`
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
@@ -127,6 +132,13 @@ export default function TodayPage() {
 .wl-mcount{display:flex;align-items:baseline;gap:8px;margin-top:8px}
 .wl-mnum{font:var(--wl-t0);color:var(--atelier-ink)}
 .wl-mnum{font-variant-numeric:lining-nums tabular-nums}
+/* THE KIND LINE · F-39.24's cure. Rules transcribed from the ratified frames, not
+   re-authored. t5, ink-dim, nowrap per segment so a count never breaks from its noun. */
+.wl-mkinds{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin-top:10px}
+.wl-mkind{font:var(--wl-t5);color:var(--atelier-ink-dim);text-decoration:none;white-space:nowrap}
+.wl-mkind{font-variant-numeric:lining-nums tabular-nums}
+.wl-mkdot{font:var(--wl-t5);color:var(--atelier-ink-fade)}
+.wl-mkind:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-mcap{font:var(--wl-t5);color:var(--atelier-ink-dim)}
 .wl-status{font:var(--wl-t1);color:var(--atelier-ink);margin:8px 0 0}
 .wl-mrule{height:.5px;background:var(--role-metal);opacity:.55;margin-top:16px}
