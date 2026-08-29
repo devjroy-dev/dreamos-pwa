@@ -160,16 +160,32 @@ export function TodayCards({ today }: { today: WorklistTodayResponse }) {
  * instruction that follows is 「do not render a fourth bucket or a sentence explaining the
  * absence」 — so `todayRestingScope` is the one line about coverage and there is no second.
  */
-export function TodayResting({ today }: { today: WorklistTodayResponse }) {
+/**
+ * THE SUMMARY ITSELF, WITHOUT A STATUS BYTE OVER IT.
+ *
+ * Split out at F-39.18 (3) because it now renders in TWO states and only one of them may
+ * carry `todayRestingHead`. 「All clear.」 over a working day is the F-38.31 lie again —
+ * a claim of emptiness above eleven cards — so the head belongs to the resting arm and the
+ * summary belongs to both.
+ *
+ * ⚠ THE THREE ROW LABELS ARE READ FROM `ROOMS`, AND THAT IS A CORRECTION, NOT A STYLE.
+ * The first cut of this file spelled 「Invoices paid」, 「Contracts signed」 and
+ * 「Tasks done」 inline. Three vendor-facing bytes, minted by the executor, under a copy
+ * ruling that said ZERO NEW BYTES — disclosed as s-39.6 rather than left standing. The
+ * registry's labels cost nothing and cannot drift from the rooms they name; the scope line
+ * beneath already says these are the three kinds that record when they were finished, so
+ * the rows do not need to repeat it. A vetoed set of three would read better and is OWED.
+ */
+function DoneSummary({ today }: { today: WorklistTodayResponse }) {
   const d = today.done_today;
+  const label = (id: string) => ROOMS.find((r) => r.id === id)?.label ?? id;
   const groups: Array<[string, number]> = [
-    ['Invoices paid',    (d?.invoice_paid ?? []).length],
-    ['Contracts signed', (d?.contract_signed ?? []).length],
-    ['Tasks done',       (d?.team_task_done ?? []).length],
+    [label('invoices'),  (d?.invoice_paid ?? []).length],
+    [label('contracts'), (d?.contract_signed ?? []).length],
+    [label('team'),      (d?.team_task_done ?? []).length],
   ];
   return (
-    <section className="wl-trest" aria-label="Done today">
-      <h2 className="wl-tresthead">{COPY.todayRestingHead}</h2>
+    <>
       <div className="wl-trestrows">
         {groups.map(([label, n]) => (
           <div key={label} className="wl-trestrow">
@@ -180,6 +196,47 @@ export function TodayResting({ today }: { today: WorklistTodayResponse }) {
       </div>
       <p className="wl-trestscope">{COPY.todayRestingScope}</p>
       <style>{REST_CSS}</style>
+    </>
+  );
+}
+
+/**
+ * THE RESTING STATE — `done_today` UNDER ITS STATUS BYTE  [R-37.63 ③].
+ *
+ * §3 property 8: three keys, because only three kinds can PROVE 「today」; leads and events
+ * carry no completion timestamp. The response says so BY SHAPE, and the instruction that
+ * follows is 「do not render a fourth bucket or a sentence explaining the absence」 — so
+ * `todayRestingScope` is the one line about coverage and there is no second.
+ */
+export function TodayResting({ today }: { today: WorklistTodayResponse }) {
+  return (
+    <section className="wl-trest" aria-label="Done today">
+      <h2 className="wl-tresthead">{COPY.todayRestingHead}</h2>
+      <DoneSummary today={today} />
+    </section>
+  );
+}
+
+/**
+ * THE SAME SUMMARY, BENEATH A WORKING DAY  [F-39.18 (3), RULED].
+ *
+ * A vendor with eleven leads was shown only what she owes. `done_today` was on the wire in
+ * both states and read in one, so the surface was a queue rather than a morning brief.
+ *
+ * NO STATUS BYTE AND NO HEADING. The rule above it is the separation, and the scope line
+ * inside it says what the figures cover. A heading here would be a new vendor-facing byte
+ * under a ruling of zero, and 「All clear.」 would be a claim of emptiness standing over
+ * the cards that disprove it.
+ */
+export function TodayDone({ today }: { today: WorklistTodayResponse }) {
+  return (
+    <section className="wl-tdone" aria-label="Done today">
+      <div className="wl-tdonerule" />
+      <DoneSummary today={today} />
+      <style>{`
+.wl-tdone{padding-bottom:24px}
+.wl-tdonerule{height:.5px;background:var(--role-metal);opacity:.55;margin:0 0 20px}
+      `}</style>
     </section>
   );
 }
@@ -191,15 +248,26 @@ const FEED_CSS = `
 /* R-38.4 permits letter-spaced uppercase in exactly two places, and a section eyebrow is
    one of them. The card headers are section eyebrows over the feed's kinds. */
 .wl-tsecname{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
-.wl-tseccount{font:var(--wl-t5);color:var(--atelier-ink-mute);font-variant-numeric:tabular-nums}
+.wl-tseccount{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.wl-tseccount{font-variant-numeric:lining-nums tabular-nums}
 .wl-tcard{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;margin-bottom:var(--wl-step)}
 .wl-tcardtap{display:flex;flex-direction:column;gap:4px;padding:14px 16px;text-decoration:none}
 .wl-tcprimary{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-tcdetail{font:var(--wl-t5);color:var(--atelier-ink-mute)}
 /* R-38.5: a right-aligned figure is tabular. Declared after any shorthand that would
-   reset it — the shorthand wipes font-variant-numeric and takes the setting with it. */
+   reset it — the shorthand wipes font-variant-numeric and takes the setting with it.
+
+   ── F-39.15 · LINING FIGURES RIDE EVERY FIGURE SITE, NOT ONLY THE ONE THAT BROKE ──
+   NO BACKTICKS IN THIS BLOCK — it is inside a template literal. s-39.7, eighth instance.
+   These three rungs resolve to the body family (DM Sans), lining by default, so today the
+   declaration is a no-op here and the defect was only ever visible on t0's Cormorant.
+   IT IS DECLARED ANYWAY, AND THAT IS THE POINT: the alternative is a rule whose
+   correctness depends on which family a rung happens to resolve to, so a future re-point
+   of t4 or t5 would reintroduce oldstyle figures silently, in three places at once, and
+   the next person to see it would be the founder again. A figure site states that it wants
+   figures; it does not inherit that from a family map it cannot see. */
 .wl-tcfigure{font:var(--wl-t4);color:var(--atelier-ink-soft);text-align:right;padding:0 16px 12px}
-.wl-tcfigure{font-variant-numeric:tabular-nums}
+.wl-tcfigure{font-variant-numeric:lining-nums tabular-nums}
 .wl-tcgate{border-top:.5px solid var(--atelier-card-border);padding:12px 16px;display:flex;flex-direction:column;gap:10px}
 .wl-tcgateline{font:var(--wl-t4);color:var(--atelier-ink-mute);text-align:center}
 .wl-tcgatecta{display:flex;align-items:center;justify-content:center;padding:11px 0;background:var(--atelier-input-bg);border:.5px solid var(--atelier-sheet-border);border-radius:2px;text-decoration:none;font:var(--wl-t5);letter-spacing:.32em;text-transform:uppercase;color:var(--atelier-label)}
@@ -215,6 +283,6 @@ const REST_CSS = `
 .wl-trestrow+.wl-trestrow{border-top:.5px solid var(--atelier-card-border)}
 .wl-trestlabel{font:var(--wl-t4);color:var(--atelier-ink-soft)}
 .wl-trestn{font:var(--wl-t4);color:var(--atelier-ink)}
-.wl-trestn{font-variant-numeric:tabular-nums}
+.wl-trestn{font-variant-numeric:lining-nums tabular-nums}
 .wl-trestscope{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:10px 0 0}
 `;

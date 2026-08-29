@@ -549,11 +549,23 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // the ruling's shape and it is also the safe one — the /vendor tree is being retired at
   // Phase 7 and must not grow a behaviour that has to be retired with it.
   //
-  // ⚠ FOCUS AND SCROLL, NOT SELECT AND NOT OPEN. `selected` is the long-press BULK set and
-  // putting a URL into it would let a link arrive at select-mode with one row ticked — a
-  // gesture's state entered without the gesture. Opening the detail sheet was the other
-  // arm and is refused too: a sheet that opens itself from an address is a surface the
-  // vendor did not ask for. The row is brought to the eye; the tap remains hers.
+  // ⚠ IT OPENS THE SHEET — AND THE ARM IT REPLACES WAS THIS SEAT'S OWN ARGUMENT.
+  //
+  // The first cut focused and scrolled the row and stopped there, on the reasoning that a
+  // sheet opening itself from an address is a surface the vendor did not ask for. THE
+  // FOUNDER'S WALK CONVICTED IT IN ONE SENTENCE: 「essentially its a double tap to reach
+  // whats alredy there」. She DID ask — she tapped a card carrying one lead's name. Landing
+  // her in a list with that lead outlined answers a question she did not put and then asks
+  // her to put it again. Against W-1 the card removed nothing: Rooms→Leads→row was three
+  // taps and Today→card→row is three. Chair's F-39.11 arm withdrawn at c-39.25.
+  //
+  // ⚠ THE OTHER REFUSAL SURVIVES INTACT, AND IT IS THE ONE THAT MATTERS. `selected` is the
+  // long-press BULK set; a URL must NEVER enter select-mode with a row ticked, because that
+  // is a gesture's state entered without the gesture. `setSel` opens the record. The two
+  // were refused together and only one of them was wrong.
+  //
+  // THE SCROLL STAYS. When the vendor closes the sheet she lands on the row she came for,
+  // in view, rather than at the top of a list of eleven.
   //
   // IT RUNS WHEN THE ROWS DO. `rows` is the dependency because the element cannot be found
   // before the list paints, and a one-shot on mount would silently miss every time.
@@ -567,8 +579,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (!el) return;
     focusedRef.current = want;
     el.scrollIntoView({ block: 'center' });
-    const tap = el.querySelector<HTMLElement>('button');
-    (tap ?? el).focus({ preventScroll: true });
+    const row = rows.find((r) => r.id === want);
+    if (row) setSel(row);
   }, [screenInShell, slice, rows]);
 
   // Fetch lead detail when a lead row is selected

@@ -125,7 +125,9 @@ const GRID_CSS = `
    worth leaving recorded rather than tidied away. No selector is written out in this
    block. Nothing about the tile's geometry is renegotiated by a number arriving. */
 .wl-tcount{position:absolute;top:6px;right:8px;font:var(--wl-t5);color:var(--atelier-accent-text)}
-.wl-tcount{font-variant-numeric:tabular-nums}
+/* F-39.15: lining figures, stated rather than inherited from a family map. s-39.7 note —
+   no backticks anywhere in this literal. */
+.wl-tcount{font-variant-numeric:lining-nums tabular-nums}
 .wl-tile{position:relative;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;height:var(--wl-tile);display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer;text-decoration:none}
 /* t4, NOT t5, and NOT uppercase-tracked. Two rulings meet on this one line and both bind:
    R-37.73 ② put the interactive floor at 12px after 9px was convicted as illegible chrome,

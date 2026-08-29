@@ -2257,5 +2257,93 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
 });
 
 
+
+// ══ S4/2 · THE WALK'S CURES ═══════════════════════════════════════════════════
+
+// C66 — every figure site declares lining figures, and none inherits them from a family.
+//    F-39.15. The masthead numeral resolves to Cormorant Garamond, which ships OLDSTYLE
+//    figures by default: its oldstyle one is a bare stem, so eleven leads painted as two
+//    capital I's on the founder's screen. `tabular-nums` alone fixes column drift and says
+//    nothing about figure style.
+//    ⚠ THIS IS A SOURCE CELL AND IT CANNOT SEE A PAINTED GLYPH. It asserts that every rule
+//    which renders a figure STATES its figure style — so the correctness does not depend on
+//    which family a rung currently resolves to, and a re-point of t4 or t5 cannot
+//    reintroduce oldstyle figures silently. Whether the glyphs are lining ON GLASS belongs
+//    to the render arm (C-R18), and that split is this file's own law.
+//    RED MUTATION: drop `lining-nums` from .wl-mnum in app/w/today/page.tsx.
+cell('C66 every figure site declares lining figures, not only the rung that broke (F-39.15)', () => {
+  const bad = [];
+  const SITES = [
+    ['app/w/today/page.tsx', 'wl-mnum'],
+    ['components/worklist/RoomsGrid.tsx', 'wl-tcount'],
+    ['components/worklist/TodayCards.tsx', 'wl-tseccount'],
+    ['components/worklist/TodayCards.tsx', 'wl-tcfigure'],
+    ['components/worklist/TodayCards.tsx', 'wl-trestn'],
+  ];
+  for (const [f, cls] of SITES) {
+    const css = read(f);
+  // ⚠ EVERY RULE FOR THE SELECTOR, NOT THE FIRST ONE. This estate declares figure style
+  // in a SECOND rule for the same class, deliberately: the font shorthand RESETS
+  // font-variant-numeric, so the setting has to come AFTER it. A matcher that stopped at
+  // the first block found the shorthand, saw no figure style, and reddened a cured tree
+  // five times over — asserting where a declaration LIVES rather than whether it APPLIES,
+  // which is the F-15.12 family, and R-38.5's ordering rule is what makes it non-obvious.
+    const blocks = [...css.matchAll(new RegExp('\\.' + cls + '\\{([^}]*)\\}', 'g'))].map((b) => b[1]);
+    if (!blocks.length) { bad.push(cls + ' has no rule at all'); continue; }
+    const fvn = blocks.map((b) => (b.match(/font-variant-numeric:([^;}]*)/) || [])[1]).filter(Boolean).join(' ');
+    if (!fvn) { bad.push(cls + ' declares no figure style at all'); continue; }
+    const m = [null, fvn];
+    if (!m) { bad.push(cls + ' declares no figure style at all'); continue; }
+    if (!/lining-nums/.test(m[1])) bad.push(cls + ' is tabular but not lining — oldstyle figures survive on a serif rung');
+    if (!/tabular-nums/.test(m[1])) bad.push(cls + ' lost tabular figures (R-38.5)');
+  }
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C67 — the card tap opens the record; a URL never enters select-mode.
+//    F-39.17, re-ruled at c-39.25 after the founder's walk: 「essentially its a double tap
+//    to reach whats alredy there」. The refusal that SURVIVES is the other one — `selected`
+//    is the long-press bulk set, and a link arriving with a row ticked is a gesture's state
+//    entered without the gesture. Both were refused together; only one was wrong.
+//    RED MUTATION: replace `setSel(row)` with a focus() call in SliceShell.tsx.
+cell('C67 ?lead opens the record inside the shell, and never enters select-mode (F-39.17)', () => {
+  const bad = [];
+  const src = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const arm = src.match(/const want = new URLSearchParams[\s\S]{0,700}?\n  \}, \[screenInShell/);
+  if (!arm) { bad.push('the ?lead arm is gone from SliceShell'); return bad.join(' | '); }
+  if (!/setSel\(row\)/.test(arm[0])) bad.push('the ?lead arm does not open the record — the founder called that a double tap');
+  if (/setSelected/.test(arm[0])) bad.push('the ?lead arm touches the bulk-select set — a URL must never tick a row');
+  if (!/screenInShell/.test(arm[0])) bad.push('the ?lead arm is not gated on the shell — the /vendor fallback must ignore it');
+  if (!/scrollIntoView/.test(arm[0])) bad.push('the row is not scrolled to — closing the sheet would land at the top of the list');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C68 — done_today renders in BOTH states, from one summary, with a status byte over
+//    exactly one of them.
+//    F-39.18 (3). The wire carried done_today in both states and the surface read it in
+//    one, so a vendor with eleven leads saw only what she owed. The head is the resting
+//    arm's alone: "All clear." above the cards that disprove it is F-38.31 with the sign
+//    flipped, which is the same objection R-39.13 settled for the masthead.
+//    RED MUTATION: render TodayResting instead of TodayDone in the working arm.
+cell('C68 done_today renders in both states, and only the resting arm carries a status byte (F-39.18)', () => {
+  const bad = [];
+  const cards = strip(read('components/worklist/TodayCards.tsx'));
+  if (!/function DoneSummary/.test(cards)) bad.push('the summary has no single home — two states cannot read one shape');
+  const resting = (cards.match(/export function TodayResting[\s\S]*?\n\}/) || [''])[0];
+  const done    = (cards.match(/export function TodayDone[\s\S]*?\n\}/) || [''])[0];
+  if (!resting) bad.push('TodayResting is gone');
+  if (!done) bad.push('TodayDone is gone — the working state shows nothing finished');
+  if (!/todayRestingHead/.test(resting)) bad.push('the resting state lost its status byte');
+  if (/todayRestingHead/.test(done)) bad.push('the working state carries a status byte over its cards (R-39.13)');
+  for (const f of [resting, done]) if (f && !/DoneSummary/.test(f)) bad.push('a state builds its own summary instead of reading the one home');
+  const page = strip(read('app/w/today/page.tsx'));
+  if (!/\{working && today && <TodayDone/.test(page)) bad.push('the working state does not render done_today');
+  if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state does not render its summary');
+  // ZERO NEW BYTES: the three row labels are the registry's, not the executor's (s-39.6).
+  if (/'Invoices paid'|'Contracts signed'|'Tasks done'/.test(cards)) bad.push('the summary spells its own row labels — three unvetoed vendor-facing bytes (s-39.6)');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
