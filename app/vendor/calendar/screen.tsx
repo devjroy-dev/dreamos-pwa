@@ -22,6 +22,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useInShell } from '@/hooks/vendor/useInShell';
+import { Fab } from '@/components/worklist/Fab';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useState } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -706,26 +707,38 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       </div>{/* end scroll wrapper */}
 
       {/* Brass-key FAB */}
-      {/* ── F-38.59 · THE OFFSET READS THE TREE, AND IT SHOULD HAVE SINCE §4-2 ────
-          `SliceShell` derived this pair when the list family crossed and wrote the
-          arithmetic at its own site: the OLD shell's BottomNav is 82 tall, which is where
-          the 82 came from; the worklist shell's chrome below the scroll column is the dock
-          (8 + 44 + 8 padding/field, AiDock.tsx:82-83) plus the nav seat (52,
-          WorklistShell.tsx:188) = 112.5, and 120 is that plus one step of the 8-scale.
-          Two numbers, each read from the file that owns the chrome it clears.
+      {/* ── CE-39 S2/8 · F-39.4 · THE FOURTH SEAT, AND THE LAST ──────────────────
+          THE FOUNDER FOUND THIS ONE TOO. F-39.4's hotfix gave Rooms, the list family and
+          Notes one seat and left this file alone, so Calendar's button painted 46px at
+          bottom 120 against the ruled 56 at 136 — ten smaller and sixteen lower than every
+          other room, which is the exact complaint the hotfix was written to end.
 
-          THIS FILE CROSSED AT §4-2 AND KEPT THE BARE 82, so this control has been sitting
-          ON the ask field inside the shell ever since. Not a new defect and not a new
-          number — the cure was written one directory over and never reached its second
-          instance, because a rule with no cell behind it gets applied exactly where
-          somebody happened to be looking. `b40` C39 is that cell now. */}
-      <button type="button" onClick={onAdd} aria-label="Add event" className="atelier-fab" style={{
-        position: 'fixed', bottom: inShell ? 'calc(120px + env(safe-area-inset-bottom))' : 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
-        width: 46, height: 46, borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
-        cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-      }}>+</button>
+          ⚠ AND THE CELL WAVED IT THROUGH ON PURPOSE. `b40` C39 skipped any bottom value
+          containing an inShell ternary, because at F-38.59 that ternary WAS the cure — the
+          comment this block replaced said so in its last line, naming C39 as the guard.
+          F-39.4 moved the cure one rung up: the shell arm renders the one component and
+          names no number at all. **So F-38.59's cure shape became F-39.4's defect shape**,
+          and the cell went on exempting the thing it existed to catch. Ruled at CE-39 S2/8:
+          that skip is RETIRED, a tree-aware ternary in a bottom value REDS from this date,
+          and the only lawful exemption is the marker on the /vendor arm below.
+
+          The seat itself lives in GRID.fab (lib/worklist/theme.ts) and reaches the shell
+          arm through components/worklist/Fab.tsx. Nothing here names a number any more.
+          The /vendor arm keeps its 82 — it clears the OLD shell's BottomNav and dies with
+          that tree at Phase 7 — and DECLARES itself, so the exemption is claimed in the
+          markup rather than inferred from how near the word inShell happens to sit. */}
+      {inShell
+        ? <Fab label="Add event" onClick={onAdd} />
+        : (
+          <button type="button" onClick={onAdd} aria-label="Add event" className="atelier-fab"
+            data-tree="vendor" style={{
+              position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
+              width: 46, height: 46, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
+              cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
+            }}>+</button>
+        )}
 
       {/* B6-S2: the Date popup RETIRED into the day sheet (item 4) — its list,
           Edit, Cancel, and + affordances all live there now, enriched per P5.

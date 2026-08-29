@@ -7,6 +7,7 @@
 // Step 1 rates · Step 2 aesthetic tags · Step 3 pitch
 
 import { useEffect, useState } from 'react';
+import { COPY } from '@/lib/worklist/copy';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -184,7 +185,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
         {step === 1 && (
           <>
             <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
-              Brides on Discover see your range. Be honest — Swati matches by budget fit.
+              {COPY.discoverRangeNote}
             </div>
             {/* TDW_07 P4b · F4 (WIDENED) — THE MAX FIELD IS REMOVED-BY-RULING.
                 Control inventory (CE-115): the Max (Rs) input is the ONE control this
@@ -260,7 +261,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
         {step === 3 && (
           <>
             <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
-              Tell Swati why your work belongs. Experience, signature, notable weddings.
+              {COPY.discoverPitchNote}
             </div>
             <textarea
               value={pitch}

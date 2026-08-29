@@ -97,8 +97,24 @@ ok('\u00a76.3 the per-site law holds through the growth \u2014 the hero\u2019s s
   (strip(DISC).match(/rgba\(240,230,210,0\.78\)/g) || []).length === 1);
 ok('\u00a76.4 the founder\u2019s byte verbatim \u2014 \u300c As couples will see it, curated. \u300d, the brides line dead in code',
   /As couples will see it, curated\./.test(DISC) && !/As brides will see it/.test(strip(DISC)));
-ok('\u00a76.5 the Swati string at the review card is SIGHTED-NOT-TOUCHED (F-09.9\u2019s queued family) \u2014 this cell reddens if a later hand deletes it outside that finding\u2019s own sitting',
-  /reviewed by Swati/.test(DISC));
+// \u00a76.5 \u2014 AMENDED, LABELLED. CE-39 S2/8, F-39.6. THE TRIPWIRE FIRED AND IT WAS RIGHT.
+// It read: the Swati string at the review card is SIGHTED-NOT-TOUCHED (F-09.9's queued
+// family), and it reddened if a later hand deleted it OUTSIDE THAT FINDING'S OWN SITTING.
+// This is that sitting's superseding ruling rather than a later hand: the founder met
+// \u300cContact Swati to be considered.\u300d on the Couture screen, a census found eight sites, and
+// CE-39 ruled F-39.6 with three bytes vetoed verbatim. The condition the cell guarded has
+// been MET, not violated \u2014 and it caught the edit on the way past, which is the whole
+// reason a sighted-not-touched pin is worth writing down.
+//
+// THE PIN DOES NOT SIMPLY GO. What it protected was that the sentence not vanish without a
+// ruling, so the cell now asserts the RULED END STATE: the person's name is gone from this
+// page AND the sentence still exists, in the founder's bytes, read from the one home. A
+// deletion with nothing in its place would still red here, which is what the pin was for.
+ok('\u00a76.5 the review card speaks as the product \u2014 the real name gone, the founder\u2019s byte in its place from the one home (F-39.6, supersedes the F-09.9 pin)',
+  !/reviewed by Swati/.test(strip(DISC))
+  && /COPY\.discoverApplicationPending/.test(DISC)
+  && /discoverApplicationPending:\s*'Your application is with TDW\./.test(
+       read('lib/worklist/copy.ts')));
 
 console.log(`\n──────── tdw09_walkrider: ${pass}/${pass + fail} ────────`);
 process.exit(fail === 0 ? 0 : 1);

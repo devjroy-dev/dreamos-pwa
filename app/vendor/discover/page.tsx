@@ -14,6 +14,7 @@
 // Otherwise a warm-sunset gradient stands in.
 
 import { useEffect, useState } from 'react';
+import { COPY } from '@/lib/worklist/copy';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 // TDW_07 P2 · CE ruling §F — the floor comes from the server when it speaks, from the
@@ -306,7 +307,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 fontFamily: F.script, fontWeight: 300,
                 fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
-                Your application is being reviewed by Swati. Expected response within five days.
+                {COPY.discoverApplicationPending}
               </div>
             </div>
           ) : state === 'approved' ? (

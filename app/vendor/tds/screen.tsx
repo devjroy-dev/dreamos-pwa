@@ -36,6 +36,7 @@ import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useInShell } from '@/hooks/vendor/useInShell';
+import { Fab } from '@/components/worklist/Fab';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchTdsEntries, fetchTdsSummary, createTdsEntry, deleteTdsEntry, exportTdsCsv } from '@/lib/vendor/api/vendor';
@@ -257,31 +258,44 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
         </div>
       )}
 
-      <button type="button" onClick={() => setAddOpen(true)} aria-label="Add TDS entry" className="atelier-fab" style={{
-        // F-38.59: the offset reads the tree. 82 clears the OLD shell's BottomNav; the
-        // worklist shell's chrome is the dock (8+44+8, AiDock.tsx:82-83) plus the nav seat
-        // (52, WorklistShell.tsx:188) = 112.5, and 120 is that plus one step of the
-        // 8-scale. Two numbers, each read from the file that owns the chrome it clears —
-        // and neither invented here: `SliceShell` derived them when the list family
-        // crossed, and this crossing inherits rather than re-deriving.
-        position: 'fixed', bottom: inShell ? 'calc(120px + env(safe-area-inset-bottom))' : 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 10,
-        // ── TDW_09 · F-09.119 CURED · founder-acknowledged 「 ok 」 ────────────
-        // 「 TDS page shows a l in place of + fab 」. The plus was set in the
-        // DISPLAY serif (Italiana) at 25px. Italiana has no drawn glyph for
-        // U+002B, so the founder's phone fell back and rendered a bare vertical
-        // bar — the control read as a lowercase L. The character was always
-        // correct; the FACE could not draw it.
-        // The cure is the HOUSE IDIOM, census-derived rather than invented:
-        // F.body at 20 in a 46x46 coin is what the three sibling FAB sites
-        // already carry, so this stops being the odd one out. THE SIZE CHANGE
-        // IS PART OF THE CURE, NOT A SIDE EFFECT — the donor idiom travels
-        // whole, because half an idiom is a new fourth variant. 54 -> 46 is
-        // visible on the walk and is meant to be.
-        width: 46, height: 46, borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
-        cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-      }}>+</button>
+      {/* ── CE-39 S2/8 · F-39.4 · A FIFTH AND SIXTH SEAT, FOUND BY RETIRING A SKIP ──
+          This file inherited SliceShell's 46-at-120 when it crossed, and that was correct at
+          F-38.59. F-39.4 gave the estate ONE seat — 56 at GRID.fab.bottom, reached through
+          components/worklist/Fab.tsx — so an inherited number is now a second home for a
+          fact that has one. NOT FOUND BY A WALK AND NOT BY THE HOTFIX: found the moment
+          C39's inShell skip was retired, which is the ruling that let the cell see its own
+          exemption. The founder saw Calendar; the cell then named these two.
+          The /vendor arm keeps its 82 and DECLARES itself, so the exemption is claimed in
+          the markup rather than inferred from proximity. */}
+      {inShell
+        ? <Fab label="Add TDS entry" onClick={() => setAddOpen(true)} />
+        : (
+          <button type="button" onClick={() => setAddOpen(true)} aria-label="Add TDS entry" className="atelier-fab" data-tree="vendor" style={{
+            // F-38.59: the offset reads the tree. 82 clears the OLD shell's BottomNav; the
+            // worklist shell's chrome is the dock (8+44+8, AiDock.tsx:82-83) plus the nav seat
+            // (52, WorklistShell.tsx:188) = 112.5, and 120 is that plus one step of the
+            // 8-scale. Two numbers, each read from the file that owns the chrome it clears —
+            // and neither invented here: `SliceShell` derived them when the list family
+            // crossed, and this crossing inherits rather than re-deriving.
+            position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 10,
+            // ── TDW_09 · F-09.119 CURED · founder-acknowledged 「 ok 」 ────────────
+            // 「 TDS page shows a l in place of + fab 」. The plus was set in the
+            // DISPLAY serif (Italiana) at 25px. Italiana has no drawn glyph for
+            // U+002B, so the founder's phone fell back and rendered a bare vertical
+            // bar — the control read as a lowercase L. The character was always
+            // correct; the FACE could not draw it.
+            // The cure is the HOUSE IDIOM, census-derived rather than invented:
+            // F.body at 20 in a 46x46 coin is what the three sibling FAB sites
+            // already carry, so this stops being the odd one out. THE SIZE CHANGE
+            // IS PART OF THE CURE, NOT A SIDE EFFECT — the donor idiom travels
+            // whole, because half an idiom is a new fourth variant. 54 -> 46 is
+            // visible on the walk and is meant to be.
+            width: 46, height: 46, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
+            cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
+          }}>+</button>
+        )}
 
       {addOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setAddOpen(false)}>

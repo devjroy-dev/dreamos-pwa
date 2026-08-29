@@ -772,7 +772,13 @@ async function seat(browser, mode) {
     // browser painted 120, and the seven missing pixels lived in a line box. So this cell
     // reads getBoundingClientRect on every room and compares the rooms to each other.
     const CR20 = tag + 'C-R20 the FAB paints in one seat in every room (F-39.4)';
-    const FAB_ROOMS = ['/w/rooms', '/w/leads', '/w/invoices', '/w/notes', '/w/calendar'];
+    // ── CE-39 S2/8 · THE ROOM SET GREW WITH THE SEAT COUNT ────────────────
+    // It was five. Retiring C39's inShell skip found a fifth and sixth seat — Contracts and
+    // TDS — that neither the founder's walk nor the hotfix had reached, so both join here:
+    // a cell that measures the rooms somebody happened to check is the same defect as a
+    // cure applied where somebody happened to be looking.
+    const FAB_ROOMS = ['/w/rooms', '/w/leads', '/w/invoices', '/w/notes', '/w/calendar',
+                       '/w/contracts', '/w/tds'];
     const seats = [];
     for (const room of FAB_ROOMS) {
       if (!await settle(p, room, '.wl-main', [CR20])) { seats.push({ room, mounted: false }); break; }

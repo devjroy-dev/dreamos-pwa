@@ -37,6 +37,7 @@ import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useInShell } from '@/hooks/vendor/useInShell';
+import { Fab } from '@/components/worklist/Fab';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchContracts, requestContractUpload, finalizeContract,
@@ -197,21 +198,29 @@ export function ContractsScreen() {
         </div>
       )}
 
-      <button type="button" onClick={() => { setUploadOpen(true); setTitle(''); setFile(null); }}
-        aria-label="Upload contract" className="atelier-fab"
-        style={{
-        // F-38.59: the offset reads the tree. 82 clears the OLD shell's BottomNav; the
-          // worklist shell's chrome is the dock (8+44+8, AiDock.tsx:82-83) plus the nav seat
-          // (52, WorklistShell.tsx:188) = 112.5, and 120 is that plus one step of the
-          // 8-scale. Two numbers, each read from the file that owns the chrome it clears —
-          // and neither invented here: `SliceShell` derived them when the list family
-          // crossed, and this crossing inherits rather than re-deriving.
-          position: 'fixed', bottom: inShell ? 'calc(120px + env(safe-area-inset-bottom))' : 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 10,
-          width: 46, height: 46, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
-          cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-        }}>+</button>
+      {/* ── CE-39 S2/8 · F-39.4 · A FIFTH AND SIXTH SEAT, FOUND BY RETIRING A SKIP ──
+          This file inherited SliceShell's 46-at-120 when it crossed, and that was correct at
+          F-38.59. F-39.4 gave the estate ONE seat — 56 at GRID.fab.bottom, reached through
+          components/worklist/Fab.tsx — so an inherited number is now a second home for a
+          fact that has one. NOT FOUND BY A WALK AND NOT BY THE HOTFIX: found the moment
+          C39's inShell skip was retired, which is the ruling that let the cell see its own
+          exemption. The founder saw Calendar; the cell then named these two.
+          The /vendor arm keeps its 82 and DECLARES itself, so the exemption is claimed in
+          the markup rather than inferred from proximity. */}
+      {inShell
+        ? <Fab label="Upload contract" onClick={() => { setUploadOpen(true); setTitle(''); setFile(null); }} />
+        : (
+          <button type="button" onClick={() => { setUploadOpen(true); setTitle(''); setFile(null); }}
+            aria-label="Upload contract" className="atelier-fab" data-tree="vendor"
+            style={{
+              // 82 clears the OLD shell's BottomNav. This arm dies with that tree at Phase 7.
+              position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 10,
+              width: 46, height: 46, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
+              cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
+            }}>+</button>
+        )}
 
       {uploadOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => !uploading && setUploadOpen(false)}>

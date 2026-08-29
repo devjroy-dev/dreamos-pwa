@@ -19,6 +19,22 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$
  */
 const PERSONAS = '\\bDreamAi\\b|\\bVictor\\b|\\bDonna\\b|\\bHarvey\\b|\\bMira\\b';
 
+/**
+ * THE REAL NAMES, ONE HOME — CE-39 S2/8 · F-39.6.
+ *
+ * PERSONAS above bans the estate's INVENTED names. This list bans a REAL PERSON'S, and the
+ * two are different kinds of list rather than one list with more entries: a persona name is
+ * banned because it leaks an internal seat into the vendor's view, and a person's name is
+ * banned because product chrome speaks as the product. The founder met 「Contact Swati to be
+ * considered.」 on the Couture screen and asked what it was; the census found eight sites.
+ *
+ * NOTHING HAD EVER LOOKED, and that is the finding under the finding: C5 and both arms of
+ * C32 read PERSONAS, PERSONAS held five invented names, and a human's given name was
+ * outside every cell in the estate. Seeded with the one name the census found. A second
+ * name is one edit here and cannot land in only some of the cells.
+ */
+const REAL_NAMES = ['Swati'];
+
 let fails = 0;
 function cell(name, fn) {
   try { const why = fn(); if (why) { console.log('RED   ' + name + ' — ' + why); fails++; }
@@ -1432,7 +1448,18 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
     for (const m of src.matchAll(/position:\s*'fixed'[^}]*?bottom:\s*([^,}]+)/g)) {
       const expr = m[1];
       if (!/calc\(/.test(expr)) continue;          // bottom:0 and friends: not an offset
-      if (/inShell\s*\?/.test(expr)) continue;     // a tree-aware value — F-38.59's cure
+      // ── THE inShell SKIP IS RETIRED — CE-39 S2/8 RULING ────────────────────────
+      // It read: `if (/inShell\s*\?/.test(expr)) continue;  // reads the tree — the cure`.
+      // True at F-38.59, when a tree-aware ternary in the bottom VALUE was the cure. F-39.4
+      // moved the cure one rung up — the shell arm renders components/worklist/Fab.tsx and
+      // names no number — so the ternary stopped being a cure and became the shape a fourth
+      // seat hides in. app/vendor/calendar/screen.tsx carried a textbook one and this cell
+      // exempted it by name for two sittings; the founder found it on a walk.
+      //
+      // **F-38.59's CURE SHAPE IS F-39.4's DEFECT SHAPE.** A cell that keeps honouring a
+      // retired cure is not a lenient cell, it is a blind one — and it goes on printing
+      // green while the thing it guards walks away. The only lawful exemption now is the
+      // marker below: the /vendor arm SAYING which tree it belongs to.
       // The declaration sits on the opening tag, so look back to it and no further.
       const tagStart = src.lastIndexOf('<button', m.index);
       if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
@@ -1450,24 +1477,32 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
 });
 
 // ── C49 · ONE FAB, ONE SEAT, EVERY ROOM  [F-39.4, founder ruling 2026-08-29] ────
-//    THE FOUNDER FOUND THIS IN UNDER A MINUTE AND TWO INSTRUMENTS DID NOT. Three rooms drew
-//    three floating add controls — 56/gutter/136 on Rooms, 46/20/120 in the list family,
-//    52/24/80 on Notes — so the button changed size, corner and height as he walked, and on
-//    Notes it sat on the ask dock. Ruled: Rooms is the reference, its seat lives in
-//    GRID.fab, and nothing else in the shell may name a FAB size or a bottom offset.
+//    ⚠ RE-DERIVED FROM A CLEAN READ AT CE-39 S2/8, AND THE REASON IS THE WORST KIND.
+//    The first cut of this cell CORRECTLY reported app/vendor/calendar/screen.tsx. The seat
+//    that wrote it called the hit a false positive, asserted without deriving that the two
+//    facts sat "hundreds of lines apart in unrelated rules", and narrowed the cell until it
+//    went quiet — with a green bench on the other side of the decision. The hit was true:
+//    calendar carried a fourth seat, the founder found it on a walk, and retiring C39's
+//    skip then found a fifth and a sixth.
 //
-//    ⚠ THE ASSERTION IS ABSENCE-SHAPED ACROSS THE GRAPH AND PRESENCE-SHAPED AT THE HOME,
-//    which is the only pairing that catches this class: a cell that merely checked GRID.fab
-//    exists would pass on a tree where Notes still drew its own 80. Comments are stripped
-//    first — these files DESCRIBE the retired numbers at length, and a textual assertion
-//    that reads its own tombstones is F-38.60's family.
-cell('C49 one FAB seat, read from GRID, and no room names its own (F-39.4)', () => {
+//    **A cell narrowed until it stops reporting is not a cell, and the narrowing is worse
+//    than the defect it hid** — the instrument had done its job and a human overruled it
+//    without evidence. Ruled UNSOUND at 08ecf78 and rewritten here from the surfaces rather
+//    than patched from the old text. Its non-vacuity proof is the calendar hit itself.
+//
+//    WHAT IT ASSERTS, and each clause earns its place:
+//      (1) the seat is declared ONCE, in GRID.fab, and emitted — a constant nothing emits
+//          is a rule reading an undefined variable, which falls through to the user agent
+//          (C-R6's own finding on the dock glyph)
+//      (2) the one rule reads those variables rather than restating them
+//      (3) NO shell-reachable file draws a FAB of its own. Absence across the graph, which
+//          is the only shape that catches a seventh seat in a seventh file.
+cell('C49 one FAB seat, read from GRID, and no room draws its own (F-39.4)', () => {
   const theme = strip(read('lib/worklist/theme.ts'));
   const g = theme.match(/fab:\s*\{\s*size:\s*(\d+),\s*bottom:\s*(\d+)\s*\}/);
   if (!g) return 'GRID has no fab seat — the one home for the size and the offset is missing';
   if (!/--wl-fab:\$\{GRID\.fab\.size\}px/.test(theme) || !/--wl-fab-bottom:\$\{GRID\.fab\.bottom\}px/.test(theme))
-    return 'the fab seat is declared but never emitted — the rule below would read an undefined variable and fall through to the user agent';
-  // THE RULE READS THE VARIABLES RATHER THAN RESTATING THEM.
+    return 'the fab seat is declared but never emitted — the rule would read an undefined variable';
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
   const rule = shell.match(/\.wl-fab\{([^}]*)\}/);
   if (!rule) return 'the wl-fab rule is not in the shell — a room using the class would paint an unstyled button';
@@ -1477,7 +1512,9 @@ cell('C49 one FAB seat, read from GRID, and no room names its own (F-39.4)', () 
     return 'the wl-fab rule states its own bottom offset instead of reading GRID.fab';
   if (!/right:var\(--wl-gutter\)/.test(rule[1]))
     return 'the FAB sits at its own x rather than the gutter — the edge defect (R-38.5) wearing a circle';
-  // AND NO SHELL-REACHABLE FILE DRAWS A SECOND SEAT. Derived from the routes, never typed.
+
+  // THE GRAPH, walked as C31 walks it. Never a typed list: six seats existed when four
+  // were believed to, and a hand-written corpus is how the seventh would hide.
   const resolveSpec = (spec, from) => {
     let base = null;
     if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
@@ -1507,45 +1544,101 @@ cell('C49 one FAB seat, read from GRID, and no room names its own (F-39.4)', () 
   };
   walkRoutes('app/w');
   if (reach.size < 10) return 'only ' + reach.size + ' files reachable from app/w — this cell would pass over a graph it never walked';
-  const RULED = [Number(g[1]), Number(g[2])];
+
   const offenders = [];
   for (const abs of [...reach].sort()) {
     const rel = path.relative(ROOT, abs);
     if (rel === 'components/worklist/WorklistShell.tsx') continue;   // the seat's one home
     const src = strip(fs.readFileSync(abs, 'utf8'));
-    // A FIXED control with a BOTTOM OFFSET is a FAB by shape. The ruled seat names no
-    // number at all, so ANY literal here is a second seat — including the ruled values
-    // themselves, because a copy that happens to agree today is still a second home.
-    for (const m of src.matchAll(/position:\s*'fixed'[^}]*?bottom:\s*'calc\((\d+)px/g)) {
-      // The /vendor arm is ruled untouched: it clears the OLD shell's BottomNav and dies
-      // with that tree at Phase 7. It is lawful ONLY where the element DECLARES which tree
-      // it belongs to — see C39's amendment for why this is a marker and not a proximity
-      // guess. The first cut of this cell searched backwards 400 characters for the word
-      // inShell and convicted SliceShell's lawful arm, because the false branch sits
-      // further away than that. **A cell whose verdict depends on whitespace is not a
-      // cell**, and it would have been the second instrument this sitting to point at the
-      // tree for a fault in the reader (F-38.44's shape).
+    // A FIXED control with a BOTTOM OFFSET is a FAB by shape. The ruled shell arm names no
+    // number at all, so ANY literal or ternary here is a second seat — including one that
+    // happens to hold the ruled value today, because a copy that agrees is still a copy.
+    for (const m of src.matchAll(/position:\s*'fixed',?\s*bottom:\s*([^,}]+)/g)) {
+      if (!/calc\(/.test(m[1])) continue;
       const tagStart = src.lastIndexOf('<button', m.index);
+      // The /vendor arm is lawful ONLY where the element declares its tree. Read to the
+      // opening tag and no further: a window measured in characters is a verdict that
+      // depends on whitespace, which is how the first cut convicted a lawful arm.
       if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
-      offenders.push(rel + ' draws its own FAB seat at ' + m[1] + 'px');
-    }
-    // A DIMENSION IS ONLY A SEAT INSIDE A FIXED CONTROL'S OWN STYLE BLOCK. The first cut
-    // asked whether the FILE contained `width: 56` anywhere and whether it contained a
-    // fixed position anywhere, and convicted app/vendor/calendar/screen.tsx — which has
-    // both, hundreds of lines apart, in unrelated rules. **A guard that refuses an innocent
-    // file teaches the founder to stop reading it** (base_guard's own warrant). The window
-    // is the style block now, which is the only place the two facts mean one thing.
-    for (const m of src.matchAll(/position:\s*'fixed'([^}]*)/g)) {
-      const block = m[1];
-      const tagStart = src.lastIndexOf('<button', m.index);
-      if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
-      if (RULED.some((n) => new RegExp('(width|height):\\s*' + n + '\\b').test(block)))
-        offenders.push(rel + ' restates a ruled seat dimension inside a fixed control');
+      offenders.push(rel + ' draws its own FAB seat: ' + m[1].trim().slice(0, 56));
     }
   }
   return offenders.length
-    ? offenders.join(' | ') + ' — GRID.fab is the one home (founder ruling 2026-08-29: the FAB sits right on Rooms and nowhere else)'
+    ? offenders.join(' | ') + ' — GRID.fab is the one home, reached through components/worklist/Fab.tsx'
     : null;
+});
+
+// ── C50 · NO REAL PERSON IS NAMED IN A VENDOR-FACING BYTE  [F-39.6] ────────────
+//    Ruled at CE-39 S2/8. Three sentences were re-cut to the founder's bytes and moved to
+//    lib/worklist/copy.ts. The other five sites are ENTITLEMENT changes — Couture moves to
+//    Signature/Prestige, Team Hub opens to every tier — and their bytes may not move before
+//    their gates do, because a byte must not say what the gate does not do.
+//
+//    ⚠ SO THIS CELL SHIPS RED-BY-DECLARATION ON SIX PATHS AND THAT IS CORRECT.
+//    The alternative was a cell scoped to the sites already cured, which would print green
+//    over five live instances of the defect it is named after — the hollow green this whole
+//    floor exists to refuse. The exception list carries each path WITH THE SEAT THAT MUST
+//    RETIRE IT, so the gap is a declared debt with an owner rather than silence. **It
+//    shrinks to [] when the dream-os seat lands, and this cell fails if it does not.**
+//
+//    ADMIN SURFACES ARE EXCLUDED BY PATH, not by judgement: app/admin/* is the operator's
+//    own console, the founder and Swati are its users, and naming a colleague there is the
+//    correct register rather than a leak.
+// ── A THIRD CLASS THE RULING DID NOT ANTICIPATE, DECLARED RATHER THAN SILENCED ──
+//    Retiring nothing and narrowing nothing: these three files carry 「Swati Roy」 as a
+//    VENDOR'S BUSINESS NAME inside BRIDE-LANE MOCK FIXTURES — a sample booking, a sample
+//    receipt, a sample vendor card — not as a directive in product chrome. That is a
+//    different question from 「Contact Swati to be considered.」, and it is the founder's and
+//    the chair's to answer, not this seat's.
+//
+//    ⚠ THE TEMPTING MOVE WAS TO EXCLUDE lib/mocks AND lib/frost BY PATH and print green.
+//    THIS SITTING ALREADY CONVICTED THAT EXACT MOVE (see C49's header): a seat narrowed a
+//    cell until a true hit went quiet, and the defect it hid was live for two sittings. So
+//    the hits are LISTED, with what they actually are, and the ruling is asked for rather
+//    than assumed. If the chair rules fixtures out of subject, this list is deleted in one
+//    edit; if he rules them in, the names change and the list empties the same way.
+const REAL_NAME_FIXTURES = [
+  'lib/frost/journey.ts',   // sample events, receipts and bookings on the bride lane
+  'lib/frost-api/muse.ts',  // a sample vendor card
+  'lib/mocks/bride.ts',     // sample bookings and a sample assistant reply
+];
+
+const REAL_NAME_HELD = [
+  // Retired by the dream-os seat that moves Couture to tier Signature/Prestige (me.js:146).
+  'app/vendor/couture/screen.tsx',
+  // Retired by the dream-os seat that takes requirePrestige off the six studio routers;
+  // the sentence is DELETED there, not re-cut, because Team Hub opens to every tier.
+  'app/vendor/team-hub/screen.tsx',
+  'app/vendor/studio/team/page.tsx',
+  'app/vendor/studio/tasks/page.tsx',
+  'app/vendor/studio/team-payments/page.tsx',
+];
+cell('C50 no real person is named in a vendor-facing byte (F-39.6)', () => {
+  const re = new RegExp('\\b(' + REAL_NAMES.join('|') + ')\\b');
+  const hits = [];
+  const walk = (rel) => {
+    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
+      const r = rel + '/' + e.name;
+      if (e.isDirectory()) { if (!/^app\/admin/.test(r)) walk(r); continue; }
+      if (!/\.tsx?$/.test(e.name)) continue;
+      // Comments are stripped FIRST: these files explain the retirement at length, and a
+      // cell that reads its own tombstones is F-38.60's family.
+      if (re.test(strip(read(r)))) hits.push(r);
+    }
+  };
+  walk('app'); walk('components'); walk('lib');
+  const undeclared = hits.filter((h) => !REAL_NAME_HELD.includes(h) && !REAL_NAME_FIXTURES.includes(h));
+  if (undeclared.length)
+    return 'a real name reaches a vendor-facing byte at ' + undeclared.join(' \u00b7 ')
+      + ' \u2014 product chrome speaks as the product; the byte belongs in lib/worklist/copy.ts (F-39.6)';
+  // AND THE DECLARED GAP MUST BE REAL. A held path that no longer carries the name is a
+  // debt that quietly paid itself, and leaving it listed would let a future instance hide
+  // behind an exemption nobody re-read.
+  const stale = [...REAL_NAME_HELD, ...REAL_NAME_FIXTURES].filter((h) => !hits.includes(h));
+  if (stale.length)
+    return 'the held list names ' + stale.join(' \u00b7 ') + ', which no longer carries a real '
+      + 'name \u2014 the dream-os seat has landed, so the exception must shrink (F-39.6)';
+  return null;
 });
 
 // ── C40 · COLLAB'S TAB ORDER AND ITS LANDING TAB  [F-38.62] ─────────────────────

@@ -333,6 +333,26 @@ export const COPY = {
   // ruled home in a row of its own. Chair's byte, in the seat's inventory for veto.
   settingsEditProfile: 'Edit profile',
 
+  // ── CE-39 S2/8 · F-39.6 · A REAL PERSON'S NAME LEFT THE PRODUCT'S VOICE ──
+  // Eight vendor-facing surfaces told the vendor to contact, be reviewed by, or pitch to
+  // 「Swati」 — a real human named in product chrome, on screens the vendor meets alone.
+  // NO INSTRUMENT HAD EVER LOOKED: the copy law bans PERSONA names (DreamAi, Victor, Donna,
+  // Harvey, Mira) and b40 reads that list as its one home, so a person's given name fell
+  // outside every cell. Founder found it on the Couture screen; the census found seven more.
+  //
+  // ⚠ AND SEVERAL WERE DIRECTIVES WITH NO DOOR. 「Contact Swati」 named no address, no link,
+  // no WhatsApp leg — chrome pretending to be structure, which is app/vendor/more's own
+  // convicted class. Ruled: every sentence becomes a door or stops being a directive.
+  //
+  // THREE SHIP HERE (founder-vetoed 2026-08-29, verbatim). The other five are ENTITLEMENT
+  // changes — Couture moves to Signature/Prestige, Team Hub opens to every tier — and they
+  // ride the dream-os seat WITH THEIR GATES, because a byte must not say what the gate does
+  // not do. b40's REAL_NAMES cell carries those six sites as a declared exception list with
+  // that seat named as their retirer, so the gap is visible rather than silent.
+  discoverApplicationPending: 'Your application is with TDW. Expect a reply within one day.',
+  discoverRangeNote:         'Brides on Discover see your range. TDW matches by budget fit.',
+  discoverPitchNote:         'Your experience, signature, notable weddings.',
+
   // ── M-FINISH S2 · R-38.11 · THE LIST FAMILY'S SIX HEADER WORDS ───────────
   // NOUNS, ONE WORD EACH — R-38.6's shape rule, met without effort because a room's word
   // IS a noun. They are the SAME bytes the tiles carry (lib/worklist/rooms.ts `label`) and
