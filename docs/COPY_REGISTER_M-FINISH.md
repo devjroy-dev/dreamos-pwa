@@ -186,3 +186,23 @@ from the render arm's tuple cell in code (`tools/wl_render.cjs`, `SCALE_SURFACES
 - **F-38.23** — the older type register those bodies were built in.
 
 The frames are still captured. The founder sees the gap he is being asked to price.
+
+## 10 · CE-39 STEP 2a · R-39.6 / R-39.7 — TWO ENTITLEMENT BYTES, FOUR DELETIONS (founder-vetoed 2026-08-29)
+
+The dream-os pre-cutover seat moved two gates; the bytes moved with them, per C50's condition
+that a byte may not say what the gate does not do. Predicates live server-side (dream-os
+`me.js` `couture_eligible` = invite flag OR tier ∈ {signature, prestige}; `requirePrestige`
+retired from the six studio routers); the screens read one boolean or nothing.
+
+| key | byte | status |
+|---|---|---|
+| `coutureGateLabel` | **"Couture · Signature and Prestige"** | founder-vetoed 2026-08-29 (was 「Couture · Invite Only」) |
+| `coutureGateSentence` | **"Couture is part of Signature and Prestige. Upgrade in Billing."** — 「Billing」 is `coutureGateLinkWord`, routed through `roomHref('billing')` | founder-vetoed 2026-08-29 (was 「Couture access is reserved for invited makers. Contact Swati to be considered.」) |
+| — `app/vendor/team-hub/screen.tsx` | 「Team Hub is reserved for Prestige. Contact Swati to upgrade.」 | DELETED, not re-cut (R-39.7: no tier to upgrade to) |
+| — `app/vendor/studio/{team,tasks,team-payments}/page.tsx` | 「Team Hub is available on the Prestige plan. Contact Swati to upgrade.」 ×3 | DELETED with their `session.tier !== 'prestige'` arms |
+| — `lib/vendor/studioShared.tsx` `Row` | 「Prestige」 pill on a locked row | RETIRED with the `locked` arm and `isPrestige` (G-2) |
+
+Plan-card / rate-card bytes naming the Studio Suite as Prestige-only: swept comments-stripped
+across `lib/worklist/copy.ts`, `app/w/billing/page.tsx`, `components/vendor/SubscriptionCard.tsx`,
+`components/worklist/BillingRoom.tsx`, `lib/vendor/billing/plans.ts` — **zero found**; the
+three paid tiers still carry no inclusion line anywhere in this tree (§ above, `planBasicIncludes`).

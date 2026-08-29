@@ -29,7 +29,7 @@ export default function TeamHubPage() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Header vendorName={session.name ?? null} />
-      <TeamHubScreen tier={session.tier} />
+      <TeamHubScreen />
     </div>
   );
 }

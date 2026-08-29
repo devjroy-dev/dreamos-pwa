@@ -315,9 +315,13 @@ export const INTERIM_VENDOR_MOUNTS: readonly (readonly [string, number])[] = [
   ['app/vendor/settings/page.tsx', 1],
   ['app/vendor/storefront/page.tsx', 1],
   ['app/vendor/studio/notes/page.tsx', 1],
-  ['app/vendor/studio/tasks/page.tsx', 2],
-  ['app/vendor/studio/team-payments/page.tsx', 2],
-  ['app/vendor/studio/team/page.tsx', 1],
+  // ── CE-39 step 2a · R-39.7 · THREE GATES LEFT, AND THEIR MOUNTS WITH THEM ────
+  // Each studio page carried a second `<Header/>` inside its `session.tier !== 'prestige'`
+  // return arm; the arm is DELETED (Studio Suite is open to every tier), so the mount it
+  // carried is gone, not moved. tasks 2 → 1, team-payments 2 → 1, team 1 → 0 (its only
+  // counted mount was the gate's; the line leaves). Estate-wide: 25 → 22 across 21 files (derived by count at the cut, not arithmetic).
+  ['app/vendor/studio/tasks/page.tsx', 1],
+  ['app/vendor/studio/team-payments/page.tsx', 1],
   ['app/vendor/tds/page.tsx', 1],
   ['app/vendor/team-hub/page.tsx', 1],
 ] as const;

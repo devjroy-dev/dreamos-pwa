@@ -1603,16 +1603,14 @@ const REAL_NAME_FIXTURES = [
   'lib/mocks/bride.ts',     // sample bookings and a sample assistant reply
 ];
 
-const REAL_NAME_HELD = [
-  // Retired by the dream-os seat that moves Couture to tier Signature/Prestige (me.js:146).
-  'app/vendor/couture/screen.tsx',
-  // Retired by the dream-os seat that takes requirePrestige off the six studio routers;
-  // the sentence is DELETED there, not re-cut, because Team Hub opens to every tier.
-  'app/vendor/team-hub/screen.tsx',
-  'app/vendor/studio/team/page.tsx',
-  'app/vendor/studio/tasks/page.tsx',
-  'app/vendor/studio/team-payments/page.tsx',
-];
+// ── THE HELD LIST IS EMPTY, AND EMPTY BY EVIDENCE (CE-39 step 2a, 2026-08-29) ──────
+//    The dream-os pre-cutover seat moved the gates — Couture to tier Signature/Prestige
+//    (me.js `couture_eligible`), `requirePrestige` off the six studio routers — and the
+//    five bytes moved with them in the same pair of ZIPs: one re-cut to the founder's byte
+//    in lib/worklist/copy.ts, four DELETED. The cell's own stale-check enforces the empty
+//    list: a held path that no longer carries the name is a debt that paid itself, and it
+//    may not stay listed.
+const REAL_NAME_HELD = [];
 cell('C50 no real person is named in a vendor-facing byte (F-39.6)', () => {
   const re = new RegExp('\\b(' + REAL_NAMES.join('|') + ')\\b');
   const hits = [];
@@ -1991,6 +1989,80 @@ cell('C48 the Settings signposts render words and go somewhere (F-38.p10, F-39.4
   // out from under, and this signpost has already been re-pointed once.
   if (!/roomHref\('billing'\)/.test(src))
     bad.push('the subscription signpost does not resolve its address through roomHref — a literal drifts the moment Billing moves again (F-38.27)');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C58 · NO TIER GATES THE STUDIO SUITE  [R-39.7 · 2026-08-29] ───────────────────
+//    Founder: 「Team hub open it for everyone」 · 「no exclusive」. The pwa half of the seat
+//    that took `requirePrestige` off the six dream-os studio routers. Three things must be
+//    true at once, and the cell asks all three because any one alone is a hollow green:
+//    (1) no studio route or the Team Hub screen compares `tier` to a value — comments
+//    stripped, because these files explain the retirement at length; (2) `isPrestige` has
+//    no home and no reader — a dead export is how a gate comes back; (3) every STUDIO_ITEMS
+//    row renders as a door (`locked` has no reader in `Row`).
+//    RED MUTATION (shown in the handover): restore `if (session.tier !== 'prestige')` in
+//    any one of the three studio pages → red.
+cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (R-39.7)', () => {
+  const bad = [];
+  const sites = [
+    'app/vendor/team-hub/screen.tsx',
+    'app/vendor/studio/team/page.tsx',
+    'app/vendor/studio/tasks/page.tsx',
+    'app/vendor/studio/team-payments/page.tsx',
+    'app/w/team/page.tsx',
+  ];
+  for (const f of sites) {
+    const src = strip(read(f));
+    if (/tier\s*[!=]==?\s*['"]/.test(src)) bad.push(f + ' compares tier to a literal');
+    if (/isPrestige|locked:/.test(src)) bad.push(f + ' still asks a Prestige gate');
+    if (/\bSwati\b/.test(src)) bad.push(f + ' names a person (F-39.6)');
+  }
+  const shared = strip(read('lib/vendor/studioShared.tsx'));
+  if (/isPrestige/.test(shared)) bad.push('studioShared.tsx still exports isPrestige — a gate with no reader is a gate waiting for one');
+  if (/isLocked|locked\??:/.test(shared)) bad.push('studioShared.tsx Row still carries a locked arm');
+  const anyReader = ['app', 'components', 'lib'].some((d) => {
+    let hit = false;
+    const walk = (rel) => {
+      for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
+        const r = rel + '/' + e.name;
+        if (e.isDirectory()) { walk(r); continue; }
+        if (/\.tsx?$/.test(e.name) && /isPrestige/.test(strip(read(r)))) hit = true;
+      }
+    };
+    walk(d); return hit;
+  });
+  if (anyReader) bad.push('isPrestige still has a reader somewhere under app/, components/ or lib/');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C59 · THE COUTURE GATE SPEAKS THE VETOED BYTE AND OPENS THE BILLING DOOR  [R-39.6] ──
+//    The predicate moved server-side (dream-os me.js: invite flag OR tier in
+//    {signature, prestige}); this screen still reads ONE boolean, `couture_eligible`, so the
+//    cell asserts the byte and the door, not the tier — the tier is dream-os's cell. Both
+//    bytes are founder-vetoed 2026-08-29 and live in lib/worklist/copy.ts; the sentence
+//    carries its own link word and the screen routes that word through roomHref('billing').
+//    RED MUTATION: spell the sentence inline in screen.tsx, or point the link at a literal.
+cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing through roomHref (R-39.6)', () => {
+  const bad = [];
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const want = {
+    coutureGateLabel:    'Couture · Signature and Prestige',
+    coutureGateSentence: 'Couture is part of Signature and Prestige. Upgrade in Billing.',
+    coutureGateLinkWord: 'Billing',
+  };
+  for (const [k, v] of Object.entries(want)) {
+    const m = copy.match(new RegExp(k + ":\\s*'([^']*)'"));
+    if (!m) bad.push(k + ' has no byte in the copy register');
+    else if (m[1] !== v) bad.push(k + ' reads 「' + m[1] + '」, vetoed byte is 「' + v + '」');
+  }
+  if (!want.coutureGateSentence.includes(want.coutureGateLinkWord))
+    bad.push('the link word is not inside the sentence it must be split from');
+  const src = strip(read('app/vendor/couture/screen.tsx'));
+  for (const k of Object.keys(want)) if (!new RegExp('COPY\\.' + k + '\\b').test(src)) bad.push('screen.tsx does not read COPY.' + k);
+  if (!/roomHref\('billing'\)/.test(src)) bad.push('the Billing door does not resolve through roomHref (F-38.27)');
+  if (/Invite Only|reserved for invited/.test(src)) bad.push('the retired invite-only bytes are still on the screen');
+  if (/\bSwati\b/.test(src)) bad.push('screen.tsx names a person (F-39.6)');
+  if (/couture_eligible/.test(src) === false) bad.push('the screen no longer reads the one boolean it was ruled to read');
   return bad.length ? bad.join(' | ') : null;
 });
 

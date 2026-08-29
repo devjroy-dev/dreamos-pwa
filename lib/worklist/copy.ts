@@ -430,4 +430,14 @@ export const COPY = {
   planBasicIncludes: 'Profile and leads. No AI replies.',
   planAction:        'Choose',
   planCurrent:       'Current',
+  // ── CE-39 step 2a · R-39.6 · COUTURE = SIGNATURE + PRESTIGE ─────────────────
+  // app/vendor/couture/screen.tsx's ineligible gate. The gate's PREDICATE moved
+  // server-side (dream-os me.js: `couture_eligible` is now the invite flag OR tier in
+  // {signature, prestige}); the screen still reads one boolean. Both bytes founder-
+  // vetoed 2026-08-29. The sentence carries its own link word: the screen splits it at
+  // `coutureGateLinkWord` and routes that word through `roomHref('billing')`, never a
+  // literal (F-38.27's family). A person's name left this card here (F-39.6, C50).
+  coutureGateLabel:    'Couture · Signature and Prestige',
+  coutureGateSentence: 'Couture is part of Signature and Prestige. Upgrade in Billing.',
+  coutureGateLinkWord: 'Billing',
 } as const;

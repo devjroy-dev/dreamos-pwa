@@ -1,5 +1,5 @@
 'use client';
-// /wedding/studio/team-payments — Team payment balances. Prestige-gated.
+// /wedding/studio/team-payments — Team payment balances. Open to every tier (R-39.7, 2026-08-29).
 // Total owed banner + per-member balance cards.
 // Add payment sheet. Mark paid sheet. Save disabled with message if invalid.
 
@@ -60,18 +60,6 @@ export default function TeamPaymentsPage() {
   const { session, loading: sl } = useVendorSession();
   useEffect(() => { if (!sl && !session) router.replace('/'); }, [sl, session, router]);
   if (sl || !session) return <div style={{ flex: 1, background: 'transparent' }} />;
-  if (session.tier !== 'prestige') {
-    return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
-        <Header vendorName={session.name ?? null} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 12 }}>
-          <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 25, lineHeight: 1.5, color: D.cream }}>Team Payments</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6 }}>Team Hub is available on the Prestige plan. Contact Swati to upgrade.</p>
-          <button type="button" onClick={() => router.back()} style={{ marginTop: 16, padding: '11px 24px', backgroundColor: 'transparent', border: `0.5px solid ${D.borderCol}`, borderRadius: 999, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Back</button>
-        </div>
-      </div>
-    );
-  }
   return <PaymentsScreen vendorName={session.name ?? null} />;
 }
 

@@ -31,11 +31,15 @@
 // One `isPrestige` answers here and on the Studio page. Two screens, one answer, and this
 // crossing does not become the moment a second one appears.
 import { useInShell } from '@/hooks/vendor/useInShell';
-import { A, F, STUDIO_ITEMS, SectionLabel, Row, isPrestige } from '@/lib/vendor/studioShared';
+import { STUDIO_ITEMS, SectionLabel, Row } from '@/lib/vendor/studioShared';
 
-export function TeamHubScreen({ tier }: { tier: string | null | undefined }) {
+// R-39.7 (founder, 2026-08-29: 「Team hub open it for everyone」, 「no exclusive」). The
+// `tier` prop and the `isPrestige` gate left this screen with the gate; dream-os took
+// `requirePrestige` off the six studio routers in the same seat, so the byte and the
+// gate moved together (C50's condition). The sentence that named a person was DELETED,
+// not re-cut — there is no tier to upgrade to for this surface any more.
+export function TeamHubScreen() {
   const inShell = useInShell();
-  const prestige = isPrestige(tier);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
@@ -47,18 +51,7 @@ export function TeamHubScreen({ tier }: { tier: string | null | undefined }) {
             exactly as before, because there the Header prints the vendor's name and nothing
             else names the surface. */}
         {!inShell && <SectionLabel label="Team Hub" first />}
-        {STUDIO_ITEMS.map(item => <Row key={item.href} item={{ ...item, locked: !prestige }} />)}
-
-        {!prestige && (
-          <div style={{ padding: '24px var(--slice-inset, 28px) 8px' }}>
-            <div style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: 16,
-              color: A.inkMute, lineHeight: 1.55, textAlign: 'center',
-            }}>
-              Team Hub is reserved for Prestige.<br />Contact Swati to upgrade.
-            </div>
-          </div>
-        )}
+        {STUDIO_ITEMS.map(item => <Row key={item.href} item={item} />)}
       </div>
     </div>
   );

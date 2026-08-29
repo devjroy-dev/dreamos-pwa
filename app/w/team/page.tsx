@@ -41,7 +41,7 @@ export default function ShellTeamPage() {
 
   return (
     <WorklistShell title={COPY.teamTitle}>
-      <RoomBody><TeamHubScreen tier={session.tier} /></RoomBody>
+      <RoomBody><TeamHubScreen /></RoomBody>
     </WorklistShell>
   );
 }

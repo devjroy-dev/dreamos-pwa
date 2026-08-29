@@ -43,6 +43,9 @@
 import { useEffect, useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { COPY } from '@/lib/worklist/copy';
+import { roomHref } from '@/lib/worklist/rooms';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useInShell } from '@/hooks/vendor/useInShell';
 import { Toast } from '@/components/vendor/Toast';
@@ -122,10 +125,14 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
         <div className="atelier-card atelier-card-ornate" style={{
           margin: '40px var(--slice-inset, 22px)', padding: '32px 24px', textAlign: 'center',
         }}>
-          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>Couture · Invite Only</div>
+          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>{COPY.coutureGateLabel}</div>
           <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
           <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
-            Couture access is reserved for invited makers.<br />Contact Swati to be considered.
+            {/* R-39.6 · the vetoed byte is ONE string in lib/worklist/copy.ts; the link word
+                is split out of it here so the sentence and its door share a home. */}
+            {COPY.coutureGateSentence.split(COPY.coutureGateLinkWord)[0]}
+            <Link href={roomHref('billing')} style={{ color: A.interactiveWarm, textDecoration: 'underline', textUnderlineOffset: 3 }}>{COPY.coutureGateLinkWord}</Link>
+            {COPY.coutureGateSentence.split(COPY.coutureGateLinkWord)[1]}
           </div>
           <button type="button" onClick={() => router.back()} style={{
             padding: '12px 24px', background: 'transparent',
