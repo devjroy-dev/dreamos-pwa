@@ -48,6 +48,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
 import {
   fetchDay, blockDate, unblockDate, updateEvent, cancelEvent, markMilestonePaid,
 } from '@/lib/vendor/api/vendor';
@@ -130,6 +131,7 @@ export function CalendarDaySheet({
   open, dateIso, vendorId, muhuratLocal, onClose, onToast, onRefresh, onAddBooking, onFullDayBlock, onEdit, onAssignCrew,
 }: Props) {
   const router = useRouter();
+  const { openAsk } = useAsk();
   const [day, setDay] = useState<VendorDayResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
@@ -591,7 +593,12 @@ export function CalendarDaySheet({
 
             <button type="button" onClick={() => {
               onClose();
-              router.push(`/vendor?aiPrimer=${encodeURIComponent(`About ${fmtDate(dateIso)}: `)}`);
+              // CE-39 S2/6 · F-38.47: tree-blind. Was `router.push('/vendor?aiPrimer=…')`,
+              // which unmounted the shell from Calendar (§4-2's audit found it). The stem
+              // is F-04.9 prefill grammar; it reaches the sheet's input in place inside
+              // the shell, and the /vendor tree's provider makes the hub push (s-39.1 at
+              // app/vendor/layout.tsx names what changed there).
+              openAsk(`About ${fmtDate(dateIso)}: `);
             }} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', textAlign: 'left',
               fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,

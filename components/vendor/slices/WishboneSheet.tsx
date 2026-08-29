@@ -21,7 +21,7 @@
 
 import { useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
-import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
 import { A, F, cap } from './SliceRow';
 
 // One vocabulary, both planes (leads: draftContracts LEAD_EXPECTED; binders:
@@ -55,7 +55,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
   /** Called after the last cell completes, or on explicit close. */
   onDone: () => void;
 }) {
-  const router = useRouter();
+  const { openAsk } = useAsk();
   const [remaining, setRemaining] = useState<string[]>(missing);
   const [active, setActive] = useState<string | null>(missing[0] ?? null);
   const [value, setValue] = useState('');
@@ -63,11 +63,13 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
   const [error, setError] = useState<string | null>(null);
 
   function tellVictor(cell: string) {
-    // Prefill-not-fire: the Hub's prefill param is `draft` (composer
-    // initialValue) — `primer` without autoSend=1 is a no-op. Verified code
-    // truth (TDW_03 drift log); the grammar mirrors the wire's tell_victor.
+    // Prefill-not-fire: the grammar mirrors the wire's tell_victor (TDW_03 drift log).
+    // CE-39 S2/6 · F-38.47: this door is tree-blind. It asks lib/worklist/askContext.tsx
+    // and pushes nothing — inside the shell the ask sheet opens in place with the stem;
+    // on the /vendor tree the provider makes today's `?draft=` push. The push that stood
+    // here unmounted the shell from six crossed rooms.
     const primer = `About ${personLabel}: the ${chipLabel(cell).toLowerCase()} is `;
-    router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
+    openAsk(primer);
   }
 
   async function save() {

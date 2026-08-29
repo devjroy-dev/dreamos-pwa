@@ -150,9 +150,23 @@ t('events RIGHT is still Done, and still a real write (updateEvent)', () =>
 t('invoices and events LEFT are both still Cancel, both still confirm-gated', () =>
   (S().match(/left: \{ label: 'Cancel', destructive: true, onTrigger: \(\) => \{ setSel\(row\); setConfirmDel\(true\); \} \}/g) || []).length === 2
     ? true : 'one of the two Cancel gestures moved');
-t('clients (BinderCard) RIGHT is still Ask in chat, and still navigates rather than toasts', () =>
+// ── AMENDED, LABELLED — CE-39 S2/6 (F-38.27's family, and this is the second sighting) ──
+// This cell asserted the SPELLING of the mechanism: `router.push('/vendor?draft=`. R-39.3
+// cured F-38.47 — that push UNMOUNTED THE SHELL from every crossed room — and the door now
+// calls `openAsk(primer)` through lib/worklist/askContext.tsx, which opens the ask sheet in
+// place inside the shell and makes the identical push on the /vendor tree. So the bench
+// went red WITH the cure, exactly as F-38.27's did, and for the identical reason: it named
+// an address instead of asserting a property.
+//
+// THE PROPERTY IS UNCHANGED AND IS WHAT IS ASSERTED NOW: the clients RIGHT gesture is still
+// 「Ask in chat」, it still runs a real verb that OPENS THE CHAT, and it is still not a toast
+// reporting a success nobody performed — which is this whole bench's subject. The mechanism
+// is read at the door's own site rather than by its old spelling, so the next sitting that
+// moves it again is told what the cell wanted rather than which string it missed.
+t('clients (BinderCard) RIGHT is still Ask in chat, and still opens the chat rather than toasting', () =>
   /const swipeRight = \{ label: 'Ask in chat', onTrigger: askVictor \}/.test(CODE(BINDER_P))
-  && /router\.push\(`\/vendor\?draft=/.test(CODE(BINDER_P))
+  && /function askVictor\(\)/.test(CODE(BINDER_P))
+  && /openAsk\(primer\)/.test(CODE(BINDER_P))
     ? true : 'the clients gesture moved, or became a toast');
 t('clients LEFT is still Call-or-nothing, never a substituted verb', () =>
   /const swipeLeft = binder\.phone \? \{ label: 'Call'/.test(CODE(BINDER_P))

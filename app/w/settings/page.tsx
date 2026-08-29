@@ -8,18 +8,20 @@
 // second nav and no second session resolve. That is the whole of F-38.1 for this surface
 // and it is the change the founder will feel.
 //
-// THE BODY DID NOT. `SettingsScreen`'s fields are AtelierForm primitives, and AtelierForm
-// sets its labels in Jost at 9px with .42em–.5em tracking — the engraved register R-38.4
-// retires. So this surface still reads in the old type world below its own header, and
-// SAYING SO IS THE POINT: R-38.4's claim is that the scale holds "by construction, not by
-// sweep", and a seat that quietly captured Settings and let the tuple cell pass over it
-// would have made that claim false on the first surface that tested it.
+// AND SO DID THE BODY, AT CE-39 S2/6 — the sitting this block was priced into. It read:
+// 「the body did NOT cross. AtelierForm sets its labels in Jost at 9px with .42em–.5em
+// tracking, the engraved register R-38.4 retires, so this surface still reads in the old
+// type world below its own header」, and it named itself as the reason Settings was
+// EXCLUDED from the render arm's tuple cell. Both halves are now false and the exclusion
+// is gone with them: `SCALE_SURFACES` in tools/wl_render.cjs includes /w/settings, so the
+// claim that the scale holds 「by construction, not by sweep」 is finally asserted on the
+// surface that was built to test it.
 //
-// DECLARED GAP, NOT A SILENT ONE. The §5 tuple cell asserts over Rooms, Today and Billing
-// this sitting and NAMES Settings as excluded, with this file as the reason. Recutting
-// SettingsScreen to the six rungs is a copy-and-form sitting of its own — every field
-// label is a vetoed byte and AtelierForm has main-side consumers (Discover Profile) that
-// D-2 covers. Sitting 2's, priced, not smuggled.
+// THE CROSSING IS A VARIANT, NOT A SWEEP (bank §2, chair-accepted). AtelierForm's five
+// primitives take a `register` prop that DEFAULTS to the engraved bytes, so its four other
+// importers — Discover Profile, Billing, SubscriptionCard, ProfileMeter, all of them D-2's
+// concern — are byte-unchanged. `SettingsScreen` derives the variant from `chrome`, which
+// is the same prop that already means 「the shell owns the frame」. One truth, one prop.
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';

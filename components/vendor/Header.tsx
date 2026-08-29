@@ -14,12 +14,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
-import { useRouter } from 'next/navigation';
+import { SIGNOUT_SCOPE } from '@/components/worklist/SignOutSheet';
 import { TipsCarousel } from '@/components/vendor/TipsCarousel';
 import { useVendorMe } from '@/hooks/vendor/useVendorMe';
 import { useTheme } from '@/hooks/vendor/useTheme';
 import { useT } from '@/lib/vendor/ThemeContext';
-import { clearVendorSession } from '@/lib/vendor/session';
 
 const A = {
   // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
@@ -53,7 +52,6 @@ function titleCase(s: string | null | undefined): string {
 }
 
 export function Header({ vendorName }: { vendorName: string | null }) {
-  const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [tipsOpen, setTipsOpen]       = useState(false);
   const [theme, , setThemeMode] = useTheme();
@@ -128,17 +126,24 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   useEffect(() => {
     if (!profileOpen) return;
     function h(e: MouseEvent) {
+      // The sign-out sheet PORTALS out of this menu (SignOutSheet.tsx says why: this box
+      // carries a transform). A press on its buttons is a press outside profileRef, and
+      // without this clause the menu would unmount — taking the sheet with it — on the
+      // mousedown before the button's click could fire.
+      const t = e.target as Element | null;
+      if (t && t.closest && t.closest('.' + SIGNOUT_SCOPE)) return;
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
     }
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [profileOpen]);
 
-  function signOut() {
-    setProfileOpen(false);
-    clearVendorSession();
-    router.replace('/');
-  }
+  // ── CE-39 S2/6 §3 · `signOut()` LEFT WITH THE DRAWER ROW THAT CALLED IT ──
+  // It stood here: setProfileOpen(false); clearVendorSession(); router.replace('/') — a
+  // THIRD spelling of the verb, and the only one that never dropped the remembered /me
+  // (F-38.p14's class). The drawer now opens the estate's one sign-out sheet and the verb
+  // fires from there (components/worklist/SignOutSheet.tsx). This tree inherits it through
+  // the drawer's one definition; nothing here spells it.
 
   // TDW_09 MICRO-2 · F-09.75 — `requestInvite()` stood here and died with the drawer
   // row that was its only caller. See the tombstone at the Actions section below.
@@ -325,7 +330,6 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             <AccountDrawer
               mode={theme === 'light' ? 'light' : 'dark'}
               onPickMode={(m) => setThemeMode(m)}
-              onSignOut={signOut}
               onClose={() => setProfileOpen(false)}
             />
           </div>

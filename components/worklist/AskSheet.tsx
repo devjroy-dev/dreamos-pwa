@@ -27,7 +27,17 @@ import { InputBar } from '@/components/vendor/InputBar';
 import { useChat } from '@/hooks/vendor/useChat';
 import { reportGlitch } from '@/lib/vendor/api/vendor';
 
-export function AskSheet({ vendorId, mode, onClose }: { vendorId: string; mode: 'dark' | 'light'; onClose: () => void }) {
+// ── CE-39 S2/6 · F-38.47 · ONE PREFILL PARAMETER, ONE HOME ─────────────────
+// `prefill` is the text the input opens with — the four hub primers' payload, arriving
+// through lib/worklist/askContext.tsx rather than through a URL. It reaches `InputBar` as
+// `initialValue`, which is the SAME live mechanism the old hub uses for `?draft=`
+// (app/vendor/page.tsx, R-O14-AMENDED), so the shell primes the composer exactly as the hub
+// did and invents no second seam. PREFILL-NOT-FIRE: nothing here sends it; the vendor reads
+// the stem and completes it (F-04.9). An empty string is 「no prefill」 and InputBar's own
+// guard treats it so.
+export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
+  vendorId: string; mode: 'dark' | 'light'; prefill?: string; onClose: () => void;
+}) {
   const { messages, loading, send } = useChat({ vendorId });
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragFrom = useRef<number | null>(null);
@@ -86,7 +96,7 @@ export function AskSheet({ vendorId, mode, onClose }: { vendorId: string; mode: 
               onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user');
                                    if (last?.text) send(last.text); }} />
           </div>
-          <InputBar onSend={send} />
+          <InputBar onSend={send} initialValue={prefill || undefined} />
         </div>
       </div>
       <style>{ASK_CSS}</style>

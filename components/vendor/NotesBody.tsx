@@ -6,13 +6,13 @@
 // fetchNotes), same render, so the two doors can never diverge. No Header here: each caller
 // supplies its own chrome (the tab bar on the business screen; the studio hub's own frame).
 //
-// TAP-TO-VICTOR is the 128f882 signpost, unchanged: "Send to Chat" -> router.push('/vendor?draft='
+// TAP-TO-CHAT is the 128f882 signpost: "Send to Chat" -> openAsk(body) since CE-39 S2/6 (was a /vendor?draft= push
 // + encodeURIComponent(body)). The chat screen feeds ?draft= into InputBar initialValue (composer
 // prefill, visible text, NO hidden injection) and clears the param. It lands in the CURRENT room
 // at the CURRENT mode — this component neither knows nor changes victor_mode.
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/lib/vendor/api/vendor';
@@ -51,7 +51,7 @@ function fmtDate(iso: string): string {
 
 export function NotesBody() {
   const { toast, show } = useToast();
-  const router = useRouter();
+  const { openAsk } = useAsk();
   const [notes, setNotes]     = useState<OwnerNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery]     = useState('');
@@ -207,7 +207,12 @@ export function NotesBody() {
             <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
               <span style={{ fontFamily: F.label, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
-              <button type="button" onClick={() => router.push('/vendor?draft=' + encodeURIComponent(selected.body))} style={{
+              {/* CE-39 S2/6 · F-38.47: the note BODY is the prefill, and it never leaves
+                  memory — this is the door that refused arm (b), a URL param, because a
+                  note in a URL is a note in the history and the referrer. The ask door
+                  (lib/worklist/askContext.tsx) opens the sheet in place inside the shell
+                  and makes today's push on the /vendor tree. */}
+              <button type="button" onClick={() => openAsk(selected.body)} style={{
                 width: '100%', padding: '13px 0', background: 'var(--atelier-accent-text)', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
                 color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',

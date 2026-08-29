@@ -1018,7 +1018,17 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // than returned on, for the reason written above: a cell that reddens on its own
   // scaffolding never walks the graph it exists to walk.
   if (!fallbacks.length) problems.push('FALLBACK_TREE_BASES is not declared or is empty — the tree-aware fallback bases have no home in the registry');
-  if (!primers.length) problems.push('INTERIM_HUB_PRIMERS is not declared — the four /vendor?<query> doors have no home in the registry (F-38.41)');
+  // ── AMENDED, LABELLED — CE-39 S2/6 · THE CELL IS INVERTED BY LABEL ────────
+  // It read: an EMPTY set is the missing declaration, and pushed a problem. That was right
+  // while four doors were live and undeclared. R-39.3 cured them — the doors are tree-blind
+  // through lib/worklist/askContext.tsx and push nothing — so the empty set is now the
+  // CURED state and a NON-EMPTY one is the regression: a primer back in this registry is a
+  // shell door that pushes out of the shell again. The declaration itself must survive, or
+  // this cell has nothing to read; `[] as const` is what it asserts.
+  if (!/export const INTERIM_HUB_PRIMERS/.test(reg))
+    problems.push('INTERIM_HUB_PRIMERS is not declared at all — the inverted cell has nothing to read (CE-39 S2/6)');
+  else if (primers.length)
+    problems.push('INTERIM_HUB_PRIMERS is non-empty (' + primers.join(' · ') + ') — R-39.3 emptied it; a primer back in the registry is a shell door pushing out of the shell again (F-38.47)');
   return problems.length ? problems.join(' | ') : null;
 });
 
@@ -1507,6 +1517,140 @@ cell('C43 the event card\'s action row does not share a row with its title (F-38
   if (!/display:\s*'flex',\s*gap:\s*6,\s*marginTop:\s*10/.test(body))
     return 'the action row is not a full-width row of its own';
   return null;
+});
+
+// ── C44 · THE ASK DOOR IS A CONTEXT, AND BOTH TREES ANSWER IT  [F-38.47, R-39.3] ──
+//    THE FOUR DOORS ARE DUAL-TREE, which is the whole reason this is an interface and not a
+//    re-point. `BinderCard` is mounted by `app/vendor/page.tsx` — the OLD HUB — where the
+//    push primes the risen chat ON THE SAME PAGE; deleting it there would regress a live
+//    control. So the doors call `openAsk` and know nothing about trees, and each tree
+//    mounts a provider. A tree that stops mounting one does not fail loudly at build time
+//    — `useAsk()` throws at RENDER, on the vendor's screen, which is exactly why the
+//    mounting is asserted here rather than trusted.
+cell('C44 the four hub primer doors are tree-blind, and both trees mount a provider (R-39.3)', () => {
+  const DOORS = ['components/vendor/slices/WishboneSheet.tsx', 'components/vendor/slices/BinderCard.tsx',
+                 'components/vendor/NotesBody.tsx', 'components/vendor/CalendarDaySheet.tsx'];
+  const bad = [];
+  for (const d of DOORS) {
+    const src = strip(read(d));
+    if (!/useAsk\(\)/.test(src)) bad.push(d + ' does not ask the context');
+    // The DEFECT, stated as itself: a push to the old hub root with a query.
+    if (/router\.push\(\s*[`'"]\/vendor\?/.test(src)) bad.push(d + ' still pushes /vendor?<query> — the shell unmounts');
+  }
+  if (bad.length !== 0 && DOORS.length !== 4) bad.push('the door set is no longer four — this cell was written against four');
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const main  = strip(read('app/vendor/layout.tsx'));
+  if (!/<AskProvider/.test(shell)) bad.push('the shell mounts no AskProvider — every door under /w would throw at render');
+  if (!/<AskProvider/.test(main))  bad.push('app/vendor/layout.tsx mounts no AskProvider — every door on the carried tree would throw at render');
+  // The /vendor tree's implementation is TODAY'S PUSH, kept byte-identical. If it stops
+  // pushing, the hub's own 「Send to Chat」 has silently died and nothing else would say so.
+  if (!/\/vendor\?draft=/.test(main)) bad.push('the /vendor tree provider no longer makes the hub push — a live control on the old hub regressed');
+  // AND THE SHELL'S IMPLEMENTATION MUST NOT BE A PUSH. One provider making the other's
+  // choice is the defect wearing the cure's name.
+  if (/\/vendor\?/.test(shell)) bad.push('the shell provider carries a /vendor? address — arm (a) opens the sheet in place, it does not navigate');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C45 · THE DOCK DOES NOT OWN THE SHEET  [F-38.47] ────────────────────────────
+//    `AiDock` held `useState(false)` and was therefore the ONLY door to the ask sheet. The
+//    primers need the same sheet from inside a room body, so the state moved to the shell.
+//    A local `open` restored here would compile, render, and give the dock a SECOND sheet
+//    the primers cannot reach — two surfaces, one name, no error. That is the ruling's
+//    named mutation and this cell is what reddens on it.
+cell('C45 the dock consumes the ask context and owns no open state (R-39.3)', () => {
+  const src = strip(read('components/worklist/AiDock.tsx'));
+  if (!/useAsk\(\)/.test(src)) return 'AiDock does not read the ask context — the primers and the dock would open different sheets';
+  if (/useState\s*(<[^>]*>)?\s*\(\s*false\s*\)/.test(src))
+    return 'AiDock has taken back a local open state — a second sheet the four primer doors cannot reach';
+  const sheet = strip(read('components/worklist/AskSheet.tsx'));
+  if (!/prefill/.test(sheet)) return 'AskSheet takes no prefill — the primers have nothing to carry';
+  // PREFILL-NOT-FIRE. The stem reaches the composer, never the wire.
+  if (/send\(\s*prefill/.test(sheet)) return 'AskSheet SENDS the prefill — the door would spend the vendor\'s message on a stem (F-04.9)';
+  return null;
+});
+
+// ── C46 · ONE SIGN-OUT VERB, ONE SHEET, EVERY DOOR  [CE-39 §3, F-38.p14] ────────
+//    TWO DOORS END A SESSION and they had drifted: the shell's dropped the remembered /me
+//    (F-38.26) and Settings' did not. The cure is not 「add the missing line」 — that leaves
+//    two homes and waits for the next divergence. There is ONE verb, it is reachable only
+//    through the sheet, and both doors open the sheet.
+//
+//    ⚠ THE ASSERTION IS ABSENCE-SHAPED AT THE DOORS AND PRESENCE-SHAPED AT THE HOME, which
+//    is the only pairing that catches a bypass: a door that calls `clearVendorSession()`
+//    itself would satisfy 「a sheet exists somewhere」 while signing the vendor out on one
+//    tap. Comments are stripped first — the files DESCRIBE the retired calls at length.
+cell('C46 every sign-out door opens the one sheet, and only the sheet holds the verb (CE-39 §3)', () => {
+  const HOME = 'components/worklist/SignOutSheet.tsx';
+  const home = strip(read(HOME));
+  for (const call of ['forgetVendorMe()', 'clearVendorSession()', "replace('/')"])
+    if (!home.includes(call)) return 'the one sign-out verb is missing ' + call + ' at ' + HOME + ' — F-38.p14 was the two doors disagreeing about exactly this';
+  const DOORS = ['components/worklist/AccountDrawer.tsx', 'components/vendor/SettingsScreen.tsx', 'components/vendor/Header.tsx',
+                 'components/worklist/WorklistShell.tsx'];
+  const bad = [];
+  for (const d of DOORS) {
+    const src = strip(read(d));
+    if (/clearVendorSession\s*\(/.test(src)) bad.push(d + ' calls clearVendorSession itself — a door that bypasses the sheet');
+  }
+  // AND THE TWO DOORS THE FOUNDER TAPS MUST ACTUALLY MOUNT IT.
+  for (const d of ['components/worklist/AccountDrawer.tsx', 'components/vendor/SettingsScreen.tsx'])
+    if (!/useSignOut\(\)/.test(strip(read(d)))) bad.push(d + ' does not open the confirm sheet');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C47 · THE RECUT IS A VARIANT AND NOT A SWEEP  [bank §2, D-2] ────────────────
+//    AtelierForm has five importers across BOTH trees. Recutting its bytes in place would
+//    have swept every one of them, two of which D-2 protects outright. So the primitives
+//    take a register that DEFAULTS to the engraved bytes and exactly one consumer opts in.
+//    A second consumer passing 'rungs' is not a small thing: `--wl-t*` exists only inside
+//    the shell scope, so a main-side caller inheriting rungs paints in the user agent's
+//    fallback font — C-R6's own finding on the dock glyph, reproduced on a money surface.
+cell('C47 the six-rung register is opt-in, and exactly one consumer opts in (CE-39 S2/6)', () => {
+  const form = strip(read('components/vendor/AtelierForm.tsx'));
+  if (!/register\s*=\s*'engraved'/.test(form))
+    return 'the register prop does not default to the engraved bytes — every other consumer would be swept';
+  // Derived, never typed: who imports the primitives.
+  const consumers = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const r = dir + '/' + e.name;
+      if (e.isDirectory()) { walk(r); continue; }
+      if (!/\.tsx?$/.test(e.name)) continue;
+      const src = strip(read(r));
+      if (/from\s+'@\/components\/vendor\/AtelierForm'/.test(src)) consumers.push(r);
+    }
+  };
+  walk('app'); walk('components');
+  if (!consumers.length) return 'no AtelierForm consumers found — this cell would pass vacuously';
+  const optedIn = consumers.filter((c) => /'rungs'/.test(strip(read(c))));
+  if (optedIn.length !== 1)
+    return 'the rungs variant has ' + optedIn.length + ' consumers (' + (optedIn.join(' · ') || 'none') + ') — exactly one was ruled, and the variable it reads exists only inside the shell scope';
+  if (optedIn[0] !== 'components/vendor/SettingsScreen.tsx')
+    return 'the rungs consumer is ' + optedIn[0] + ', ruled to be components/vendor/SettingsScreen.tsx';
+  // AND THE OPT-IN MUST BE DERIVED FROM THE TREE, not a hardcoded literal that would paint
+  // rungs on the /vendor tree where the variables do not exist.
+  if (!/chrome\s*\?\s*'engraved'\s*:\s*'rungs'/.test(strip(read(optedIn[0]))))
+    return 'SettingsScreen does not derive its register from `chrome` — a literal would carry the shell rungs onto the /vendor tree, where --wl-t* is undefined';
+  return null;
+});
+
+// ── C48 · THE SIGNPOSTS HAVE WORDS  [F-38.p10, F-39.4] ─────────────────────────
+//    Two <button>s on this surface rendered EMPTY — no text, no aria-label — because
+//    R-37.84 (4) emptied them 「branch-only」 and a component has no branch, it has callers.
+//    A card titled Subscription over a 4px void is chrome pretending to be structure.
+//    The ruling's named mutation: empty one → red.
+cell('C48 the Settings signposts render words and go somewhere (F-38.p10, F-39.4)', () => {
+  const src = strip(read('components/vendor/SettingsScreen.tsx'));
+  const bad = [];
+  for (const key of ['COPY.settingsManageSubscription', 'COPY.settingsEditProfile'])
+    if (!src.includes(key)) bad.push(key + ' is not rendered — the signpost is an empty button again');
+  const copy = strip(read('lib/worklist/copy.ts'));
+  for (const key of ['settingsManageSubscription', 'settingsEditProfile'])
+    if (!new RegExp(key + ":\\s*'[^']+'").test(copy)) bad.push(key + ' has no byte in the copy register');
+  // THE ADDRESS IS DERIVED, NOT SPELLED. F-38.27: a literal is a spelling a cure can move
+  // out from under, and this signpost has already been re-pointed once.
+  if (!/roomHref\('billing'\)/.test(src))
+    bad.push('the subscription signpost does not resolve its address through roomHref — a literal drifts the moment Billing moves again (F-38.27)');
+  return bad.length ? bad.join(' | ') : null;
 });
 
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');

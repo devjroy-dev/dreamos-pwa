@@ -370,7 +370,8 @@ export const INTERIM_BOTTOMNAV_MOUNTS: readonly string[] = [
  * It retires with `app/vendor/list/` at Phase 7, not before.
  */
 /**
- * THE HUB PRIMERS \u2014 FOUR DOORS OUT OF THE SHELL THAT NO INSTRUMENT COULD SEE.
+ * THE HUB PRIMERS \u2014 FOUR DOORS OUT OF THE SHELL THAT NO INSTRUMENT COULD SEE. CURED AT
+ * CE-39 S2/6; the history below is kept in the past tense it now belongs to.
  *
  * ── F-38.41, AND IT PREDATES THIS SITTING BY A CROSSING ────────────────────
  * `wl_audit` and `b40` C31 both match `/vendor/` \u2014 with the trailing slash. Every one of
@@ -379,10 +380,10 @@ export const INTERIM_BOTTOMNAV_MOUNTS: readonly string[] = [
  * rooms since \u00a74-1 while both gates reported zero strays. The audit found the fourth only
  * because calendar crossed today and dragged a persona byte in beside it.
  *
- * **A SHELL SURFACE THAT PUSHES `/vendor?draft=` UNMOUNTS THE SHELL.** The vendor taps
- * 「Send to Chat」 in Notes and lands on the old hub \u2014 second layout, second Splash, second
- * medallion, second session resolve. That is F-38.1 entire, still live, on eight rooms,
- * behind a control the founder uses.
+ * **A SHELL SURFACE THAT PUSHES `/vendor?draft=` UNMOUNTS THE SHELL.** The vendor tapped
+ * 「Send to Chat」 in Notes and landed on the old hub \u2014 second layout, second Splash, second
+ * medallion, second session resolve. That was F-38.1 entire, live on eight rooms behind a
+ * control the founder uses, from \u00a74-1 until CE-39 S2/6.
  *
  * ── DECLARED, NOT ALLOWED (the FALLBACK_SLICE_BASE precedent, S2 \u00a79) ────────
  * The alternative was to notice them, judge them legitimate and say nothing, leaving both
@@ -395,18 +396,24 @@ export const INTERIM_BOTTOMNAV_MOUNTS: readonly string[] = [
  * a set the estate has ruled may only narrow. This is a new, separately-named exception with
  * its own retirement, so the shrink-only guarantee on the other set stays literally true.
  *
- * THE CURE IS NOT A RE-POINT. These carry a PREFILL into a chat surface, and the shell's own
- * `AskSheet` takes no draft parameter \u2014 giving it one is a design sitting, not a string
- * edit. Priced, not attempted here. **Ratify-or-revert.**
+ * THE CURE WAS NOT A RE-POINT, AND IT HAS LANDED (CE-39 S2/6, R-39.3). These carried a PREFILL
+ * into a chat surface, and the shell's own `AskSheet` took no draft parameter \u2014 giving it
+ * one was the design sitting this comment priced. `AskSheet` now takes ONE `prefill`, the four
+ * doors are tree-blind through lib/worklist/askContext.tsx (openAsk(text)), and inside the
+ * shell each opens the sheet IN PLACE. The masthead never leaves.
+ *
+ * ── THE SET IS EMPTY AND ITS CELL IS INVERTED BY LABEL ──────────────────────
+ * C31 used to redden on an ABSENT declaration (「four doors have no home in the registry」).
+ * It now reddens on a NON-EMPTY one: a primer that reappears here is a door that has slid
+ * back out of the shell, and the declaration stays so that the cell has something to read.
+ * The four sites, as they stood at 7addef1 (the predecessor's s-5 corrected the calendar
+ * cite from :431 to :594): components/vendor/slices/WishboneSheet.tsx `tellVictor` \u00b7
+ * components/vendor/slices/BinderCard.tsx `askVictor` \u00b7 components/vendor/NotesBody.tsx
+ * (the detail sheet's 「Send to Chat」) \u00b7 components/vendor/CalendarDaySheet.tsx (「Ask TDW
+ * about this date」). The /vendor tree still makes the push \u2014 from app/vendor/layout.tsx's
+ * provider, which is NOT reachable from any /w route and retires with the tree at Phase 7.
  */
-export const INTERIM_HUB_PRIMERS: readonly string[] = [
-  // components/vendor/CalendarDaySheet.tsx:431 \u2014 「Ask Victor about this date」, reachable
-  // from /w/calendar since \u00a74-2, today.
-  '/vendor?aiPrimer=',
-  // components/vendor/slices/WishboneSheet.tsx:70 (six crossed rooms) \u00b7 BinderCard.tsx:163
-  // (clients) \u00b7 NotesBody.tsx:210 (notes) \u2014 all 「Send to Chat」, reachable since \u00a74-1.
-  '/vendor?draft=',
-] as const;
+export const INTERIM_HUB_PRIMERS: readonly string[] = [] as const;
 
 /**
  * THE TREE-AWARE FALLBACK BASES \u2014 EVERY `/vendor` PREFIX A CROSSED ROOM STILL SHIPS.

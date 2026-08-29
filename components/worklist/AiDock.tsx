@@ -13,14 +13,20 @@
 //
 // The WhatsApp deep-link keeps exactly ONE home: the Rooms panel's own top row. This dock does
 // not duplicate it, because two doors to one destination is two places to drift.
-import { useState } from 'react';
 import { COPY } from '@/lib/worklist/copy';
+import { useAsk } from '@/lib/worklist/askContext';
 import { AskSheet } from '@/components/worklist/AskSheet';
 import { getVendorSession } from '@/lib/vendor/session';
 import { fetchVictorMode, setVictorMode } from '@/lib/vendor/api/vendor';
 
 export function AiDock({ mode }: { mode: 'dark' | 'light' }) {
-  const [open, setOpen] = useState(false);
+  // ── CE-39 S2/6 · THE DOCK NO LONGER OWNS `open` ───────────────────────────
+  // It was `useState(false)` here, which made the dock the only door to the sheet. The
+  // four hub primers (F-38.47) need to open the SAME sheet from inside a room body, so the
+  // state moved up to the shell's AskProvider (lib/worklist/askContext.tsx) and this dock
+  // is one consumer among five. The bench asserts the local state does not come back —
+  // a second `open` here would be a second sheet the primers cannot reach.
+  const { open, prefill, openAsk, closeAsk } = useAsk();
   const vendorId = getVendorSession()?.id || '';
 
   // ── R-38.9 · THE DOCK IS THE BUSINESS DOOR ────────────────────────────────
@@ -48,12 +54,12 @@ export function AiDock({ mode }: { mode: 'dark' | 'light' }) {
     <>
       <div className="wl-dock">
         <button type="button" className="wl-dockfield" aria-label={COPY.dockAria}
-                onClick={() => { setOpen(true); void ensureBusiness(); }}>
+                onClick={() => { openAsk(); void ensureBusiness(); }}>
           <span className="wl-dockph">{COPY.dockPlaceholder}</span>
           <span className="wl-docksend" aria-hidden>&#8593;</span>
         </button>
       </div>
-      {open && vendorId && <AskSheet vendorId={vendorId} mode={mode} onClose={() => setOpen(false)} />}
+      {open && vendorId && <AskSheet vendorId={vendorId} mode={mode} prefill={prefill} onClose={closeAsk} />}
       <style>{DOCK_CSS}</style>
     </>
   );

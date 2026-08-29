@@ -13,21 +13,22 @@
 // prefetch. It was `<button onClick={router.push}>` at 366a7b5, and that shape is why the
 // founder's taps felt dead: a button tells Next nothing, so the route's chunk and its RSC
 // payload were both fetched ON TAP. An anchor is announced, so the work happens while the
-// thumb is still travelling. `router.push` survives in exactly one place below — the
-// post-action redirect after sign-out, which is not navigation the vendor aimed at.
+// thumb is still travelling. No `router` call survives in this file: the one post-action
+// redirect — after sign-out, which is not navigation the vendor aimed at — fires from the
+// confirm sheet (`signOutVendor`, SignOutSheet.tsx).
 //
 // EVERY CONTROL ANSWERS THE FINGER WITHIN A FRAME. `:active` on every one, and
 // `touch-action:manipulation` so the browser stops holding taps for the double-tap-zoom
 // gesture. Neither is decoration: without them a fast route still reads as a dead control,
 // and the honest response to a dead control is to tap it again.
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { COPY } from '@/lib/worklist/copy';
-import { clearVendorSession } from '@/lib/vendor/session';
-import { useVendorInitials, forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
+import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
 import { useMode } from '@/lib/worklist/ModeContext';
+import { AskProvider, type AskApi } from '@/lib/worklist/askContext';
 import { AiDock } from '@/components/worklist/AiDock';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 
@@ -39,7 +40,6 @@ const SCOPE = '.wl';
 // wl-plink disease in TypeScript.
 export function WorklistShell({ title, children }: { title: string; children: React.ReactNode }) {
   const pathname = usePathname() ?? '/w';
-  const router   = useRouter();
   // ── F-38.41 · THE MODE IS READ, NOT HELD ──────────────────────────────────
   // It used to be `useState('dark')` here with a localStorage read in an effect, and that
   // is why the founder's walk lost Chalk: every /w route mounts its own shell, so the
@@ -50,21 +50,31 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   const [coinOpen, setCoinOpen] = useState(false);
   const initials = useVendorInitials();
   const close = () => setCoinOpen(false);
-  // THE ONE SURVIVING router CALL. Sign-out is a post-action redirect, not a tap on a
-  // destination, and `replace` is deliberate: the signed-out vendor must not be able to
-  // come back to a shell surface with the browser's own back gesture.
   // ── F-38.20 · THE DRAWER OWNS ITS OWN DISMISSAL ───────────────────────────
-  // `close()` used to be the FIRST thing both of these did, which is why the acknowledgement
-  // beat did nothing when it was added: the drawer scheduled its exit for 170ms and the
-  // handler tore it down in the same frame anyway. Two authorities over one dismissal, and
-  // the louder one won.
-  // Neither closes now. `AccountDrawer` decides when the menu leaves, because it is the
-  // thing that knows a row was pressed and that the press is still being shown.
-  // F-38.26: the remembered GET /me is dropped here and only here. The read is memoised
-  // for the session and keyed on the access token, so a new sign-in would miss it anyway —
-  // but identity is the one place where being stale is unrecoverable rather than untidy,
-  // and a structural guarantee plus an explicit one is the right amount of care for it.
-  const signOut = () => { forgetVendorMe(); clearVendorSession(); router.replace('/'); };
+  // `close()` used to be the FIRST thing the row handlers did, which is why the
+  // acknowledgement beat did nothing when it was added: the drawer scheduled its exit for
+  // 170ms and the handler tore it down in the same frame anyway. Two authorities over one
+  // dismissal, and the louder one won. `AccountDrawer` decides when the menu leaves.
+  // ── CE-39 S2/6 §3 · SIGN-OUT LEFT THIS FILE ENTIRELY ──────────────────────
+  // `signOut` stood here: forgetVendorMe (F-38.26), clearVendorSession, router.replace.
+  // Settings carried a copy of two of the three and the two had already drifted
+  // (F-38.p14). The verb now has ONE home, `signOutVendor` in
+  // components/worklist/SignOutSheet.tsx, and ONE caller — the confirm sheet — which the
+  // drawer opens itself. So this shell no longer holds a router at all: every navigation
+  // in it is an anchor, and the one post-action redirect fires from the sheet.
+
+  // ── CE-39 S2/6 · ARM (a) · THE SHELL'S ASK DOOR ───────────────────────────
+  // This is the shell's implementation of lib/worklist/askContext.tsx: openAsk opens the
+  // sheet IN PLACE with the prefill, and the masthead never leaves. The dock consumes it and
+  // the four hub primers (F-38.47) call it from inside room bodies. The state lives here
+  // and not in the dock because the shell is what every surface is inside; it lives here
+  // and not in a module because a writer outside React's tree is F-38.3's class.
+  const [askOpen, setAskOpen] = useState(false);
+  const [askPrefill, setAskPrefill] = useState('');
+  const openAsk = useCallback((text = '') => { setAskPrefill(text); setAskOpen(true); }, []);
+  const closeAsk = useCallback(() => { setAskOpen(false); setAskPrefill(''); }, []);
+  const ask = useMemo<AskApi>(() => ({ open: askOpen, prefill: askPrefill, openAsk, closeAsk }),
+                              [askOpen, askPrefill, openAsk, closeAsk]);
 
   // THE READ-BACK EFFECT IS GONE WITH THE STATE IT CORRECTED. Persistence is
   // `lib/worklist/mode.ts` — one home, cookie-first so the server can paint it, with the
@@ -77,6 +87,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   const onRooms = !onToday;
 
   return (
+    <AskProvider value={ask}>
     <div className="wl" data-wl-mode={mode} style={{
       // FIXED VIEWPORT, SCROLLING BODY. The first cut used minHeight and let the whole
       // column grow, so the dock and both nav seats scrolled off the bottom of a long
@@ -112,7 +123,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
               {/* ONE DEFINITION, TWO MOUNTS. See components/worklist/AccountDrawer.tsx —
                   the carried rooms mount the same component through Header.tsx, so the
                   founder meets one menu behind one medallion everywhere in the estate. */}
-              <AccountDrawer mode={mode} onPickMode={pick} onSignOut={signOut} onClose={close} />
+              <AccountDrawer mode={mode} onPickMode={pick} onClose={close} />
             </div>
           </>
         )}
@@ -138,6 +149,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
               aria-current={onToday ? 'page' : undefined}>{COPY.navToday}</Link>
       </nav>
     </div>
+    </AskProvider>
   );
 }
 

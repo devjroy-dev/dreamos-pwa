@@ -30,8 +30,9 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Splash } from '@/components/vendor/Splash'; // TDW_04 A4 (P6): cold-open hero
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BottomNav } from '@/components/vendor/BottomNav';
+import { AskProvider, type AskApi } from '@/lib/worklist/askContext';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 import { getVendorSession } from '@/lib/vendor/session';
 import { getJson } from '@/lib/vendor/api/_base';
@@ -192,6 +193,27 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
 
   useOnboardingGuard(pathname, onLogin);
 
+  // ── CE-39 S2/6 · ARM (a) · THIS TREE'S ASK DOOR IS TODAY'S PUSH ───────────
+  // The four hub primers (F-38.47) are dual-tree — BinderCard is mounted by app/vendor/
+  // page.tsx itself — so they ask lib/worklist/askContext.tsx and push nothing. On THIS
+  // tree the answer is the push they used to make, byte for byte: `/vendor?draft=` primes
+  // the risen chat through `InputBar initialValue` (app/vendor/page.tsx, R-O14-AMENDED).
+  // `open` is always false and `closeAsk` is inert because this tree has no sheet; the hub
+  // page owns its own risen state. It retires with this layout at Phase 7, alongside
+  // INTERIM_BOTTOMNAV_MOUNTS.
+  //
+  // s-39.1 (seat, disclosed): the calendar door used `?aiPrimer=` here, which INJECTED its
+  // stem as an assistant line (useChat.injectAiMessage) rather than prefilling the input.
+  // Its stem 「About <date>: 」 is F-04.9 prefill grammar — a sentence for the VENDOR to
+  // complete — so on this tree it now arrives as a draft like the other three. One
+  // parameter, one home; the difference is named here rather than smuggled.
+  const askRouter = useRouter();
+  const ask = useMemo<AskApi>(() => ({
+    open: false, prefill: '',
+    openAsk: (text = '') => askRouter.push('/vendor?draft=' + encodeURIComponent(text)),
+    closeAsk: () => {},
+  }), [askRouter]);
+
   // Set room class on BOTH html and body so the atmosphere paints both layers
   // (some browsers paint the html background, others the body — we cover both).
   //   room-studio   — cooler daylight
@@ -211,6 +233,7 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
   }, [pathname]);
 
   return (
+    <AskProvider value={ask}>
     <ThemeProvider>
       {/* F-19.36: the SW registrar mounts PER AUTHENTICATED SHELL. It used to sit
           in the root layout registering an origin-wide scope, so one visit to the
@@ -232,5 +255,6 @@ export default function WeddingLayout({ children }: { children: React.ReactNode 
       {!onLogin && !chromeless && <BottomNav />}
     </div>
     </ThemeProvider>
+    </AskProvider>
   );
 }

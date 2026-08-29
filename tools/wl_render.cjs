@@ -453,7 +453,16 @@ async function seat(browser, mode) {
     // it and letting this cell pass over it would make R-38.4's 「by construction, not by
     // sweep」 claim false on a seventh surface. The frame is still taken, so the founder
     // SEES the gap he is being asked to price.
-    const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor'];
+    //
+    // ── CE-39 S2/6 · SETTINGS JOINS THE SET, AND THAT IS THE POINT OF THE SITTING ──
+    // It was excluded BY NAME since S1 — `app/w/settings/page.tsx` declared the gap in its
+    // own header and this list was cited as the place the exclusion was recorded. The body
+    // has crossed typographically now (AtelierForm's `register` variant), so the exclusion
+    // goes with the gap. THIS IS THE CELL THAT TESTS THE WHOLE CLAIM: Settings is the
+    // densest label surface in the shell, and 「the scale holds by construction」 was always
+    // going to be decided here rather than on a page of three cards. The MUTATION named in
+    // the ruling is one restored 9px label → this cell must red.
+    const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor', '/w/settings'];
     const RUNGS = [
       { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
       { n: 't2', px: 17, w: 500, fam: 'DM Sans' },   { n: 't3', px: 14, w: 400, fam: 'DM Sans' },
@@ -493,10 +502,13 @@ async function seat(browser, mode) {
     // green this whole gate exists to refuse. Four shell surfaces cannot paint fewer than
     // forty text-bearing leaves between them; the floor is deliberately far below the
     // observed count so it convicts absence, never density.
+    // CE-39 S2/6: FIVE surfaces now, and the floor is left at 40 rather than raised in
+    // proportion. It exists to convict an empty page, not to police density, and a floor
+    // tuned to today's copy would red on the first sitting that shortens a screen.
     const TUPLE_FLOOR = 40;
     if (strays.length) F(tag + 'C-R6 the tuple set is the scale', strays.slice(0, 6).join(' \u00b7 ') + (strays.length > 6 ? ' (+' + (strays.length - 6) + ')' : ''));
-    else if (tuplesSeen < TUPLE_FLOOR) F(tag + 'C-R6 the tuple set is the scale', 'only ' + tuplesSeen + ' painted tuples seen across four surfaces, floor ' + TUPLE_FLOOR + ' — this cell saw nothing and must not report a pass');
-    else P(tag + 'C-R6 the tuple set is the scale', tuplesSeen + ' painted tuples on four surfaces, every one of the six rungs');
+    else if (tuplesSeen < TUPLE_FLOOR) F(tag + 'C-R6 the tuple set is the scale', 'only ' + tuplesSeen + ' painted tuples seen across ' + SCALE_SURFACES.length + ' surfaces, floor ' + TUPLE_FLOOR + ' — this cell saw nothing and must not report a pass');
+    else P(tag + 'C-R6 the tuple set is the scale', tuplesSeen + ' painted tuples on ' + SCALE_SURFACES.length + ' surfaces, every one of the six rungs');
 
     // ── C-R7 · THE EDGE, BOTH DEFINITIONS  [R-38.5, CE-38 relay #2] ─────────
     // (a) THE TEXT EDGE: the wordmark, the first tile's border, the dock field's border and
@@ -634,46 +646,118 @@ async function seat(browser, mode) {
         F(tag + 'C-R11 the press survives the gesture', JSON.stringify(beat) + ' — the acknowledgement did not outlive the tap');
     }
 
-    // ── C-R13 · SIGN OUT CONFIRMS, AND THE CONFIRM REPLACES  [CE-38 SEAL ①] ─
+    // ── C-R13 · SIGN OUT CONFIRMS, AT BOTH DOORS  [CE-38 SEAL ① → CE-39 §3] ─
     //
     // F-38.16: the founder tapped a non-interactive label and the tap fell through to a
     // 52px row that ended his session. Clearance was widened and the asymmetry stayed —
     // this was the estate's one destructive control acting on a single tap.
     //
-    // THE CELL ASSERTS BOTH HALVES, because either alone would pass on a defect:
-    //   (1) one tap does NOT sign out — the session survives and the drawer stays up
-    //   (2) the confirm REPLACES the row rather than appearing beneath it, so the
-    //       destructive button is never where the thumb was already travelling. That is
-    //       F-38.16's mechanism, not its symptom, and a confirm added below the row would
-    //       satisfy a naive test while reproducing the defect exactly.
-    if (await settle(p, '/w/rooms', '.wl-coin', [tag + 'C-R13 sign out confirms'])) {
-      await p.click('.wl-coin');
-      await new Promise((r) => setTimeout(r, 350));
-      const conf = await p.evaluate(async () => {
-        const rows = [...document.querySelectorAll('.tdw-drawer .wl-drow')];
-        const out = rows.find((r) => /Sign out/i.test(r.textContent || ''));
-        if (!out) return { found: false };
-        const beforeY = out.getBoundingClientRect().top;
-        out.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 250));
-        const btns = [...document.querySelectorAll('.tdw-drawer .wl-dbtn')];
-        const stillRow = [...document.querySelectorAll('.tdw-drawer .wl-drow')]
-          .some((r) => /Sign out/i.test(r.textContent || ''));
-        const danger = btns.find((b) => /Sign out/i.test(b.textContent || ''));
-        return {
+    // ── AMENDED, LABELLED — CE-39 S2/6 §3. THE OLD CELL WOULD HAVE PASSED ON THE DEFECT.
+    // It asserted the drawer's confirm and ONLY the drawer's, because at CE-38 the drawer
+    // was the only door anyone was looking at. Settings' button ended the session on one
+    // tap the entire time, one screen away, and this cell reported green on every run.
+    // A cell scoped to the door somebody happened to be curing is how the class walks away
+    // from its cure — filed four times on this arc, and this is the instrument's own
+    // instance of it. The cell now asserts the property that was always meant:
+    // EVERY SIGN-OUT DOOR IN THE SHELL OPENS THE ONE SHEET.
+    //
+    // THREE HALVES, because any one alone passes on a defect:
+    //   (1) one tap does NOT sign out — the session survives, at BOTH doors
+    //   (2) the sheet is OBSERVED 60ms AFTER the press and not asserted from the source
+    //       (D-38.1 corollary: observe at the defect's moment). A sheet that exists in a
+    //       component file and never mounts is presence, not behaviour.
+    //   (3) the doors are ENUMERATED from the surfaces, not typed in here. A third door
+    //       added tomorrow joins this cell by existing.
+    const CR13 = tag + 'C-R13 every sign-out door opens the one confirm sheet';
+    const DOORS = [
+      // [surface, landmark, how the door is reached]
+      ['/w/rooms',    '.wl-coin',   'coin drawer'],
+      ['/w/settings', '.wl-set',    'settings button'],
+    ];
+    const doorResults = [];
+    for (const [path, landmark, how] of DOORS) {
+      if (!await settle(p, path, landmark, [CR13])) { doorResults.push({ how, mounted: false }); break; }
+      if (how === 'coin drawer') { await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 350)); }
+      const r = await p.evaluate(async (how) => {
+        const hit = (sel, re) => [...document.querySelectorAll(sel)]
+          .find((e) => re.test((e.textContent || '').trim()));
+        const door = how === 'coin drawer'
+          ? hit('.tdw-drawer .wl-drow', /^Sign out$/i)
+          : hit('.wl button', /^Sign out$/i);
+        if (!door) return { found: false };
+        door.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        // THE WAIT IS THE CELL. 60ms after the press, per the ruling: long enough for a
+        // React commit, far too short for the cell to be measuring a later frame.
+        await new Promise((r) => setTimeout(r, 60));
+        const sheet = document.querySelector('.tdw-signout');
+        const btns = sheet ? [...sheet.querySelectorAll('.tdw-sobtn')].map((b) => (b.textContent || '').trim()) : [];
+        const line = sheet ? (sheet.querySelector('.tdw-soline') || {}).textContent : null;
+        const out = {
           found: true,
-          drawerStillUp: !!document.querySelector('.tdw-drawer'),
+          sheetUp: !!sheet,
           sessionAlive: !!localStorage.getItem('vendor_session'),
-          confirmShown: btns.length === 2,
-          rowReplaced: !stillRow,
-          // The destructive button must not land under where the finger already was.
-          movedAway: !!danger && Math.abs(danger.getBoundingClientRect().top - beforeY) > 4,
+          buttons: btns,
+          line: line && line.trim(),
+          // Cancel first: the destructive button is never where the thumb was travelling,
+          // which is F-38.16's mechanism carried across from the replaced-row shape.
+          cancelFirst: btns.length === 2 && /^Cancel$/i.test(btns[0]),
+        };
+        const cancel = sheet && [...sheet.querySelectorAll('.tdw-sobtn')]
+          .find((b) => /^Cancel$/i.test((b.textContent || '').trim()));
+        if (cancel) { cancel.dispatchEvent(new MouseEvent('click', { bubbles: true })); await new Promise((r) => setTimeout(r, 60)); }
+        out.dismissed = !document.querySelector('.tdw-signout');
+        out.stillHere = !!localStorage.getItem('vendor_session');
+        return out;
+      }, how);
+      doorResults.push({ how, ...r });
+    }
+    const badDoor = doorResults.find((d) => !d.mounted && d.mounted !== undefined ? true
+      : !d.found || !d.sheetUp || !d.sessionAlive || !d.cancelFirst || !d.dismissed || !d.stillHere);
+    if (doorResults.length !== DOORS.length)
+      F(CR13, 'only ' + doorResults.length + ' of ' + DOORS.length + ' doors reached — this cell must not pass on doors it never pressed: ' + JSON.stringify(doorResults));
+    else if (badDoor) F(CR13, JSON.stringify(badDoor));
+    else P(CR13, DOORS.length + ' doors, one sheet, observed 60ms after the press; Cancel first, session alive, scrim/Cancel dismisses');
+
+    // ── C-R19 · THE HUB PRIMERS OPEN THE SHEET IN PLACE  [F-38.47, R-39.3] ──
+    // (Derived by command, not assumed: C-R1..C-R18 are taken and 19 is the first free
+    //  number. The seat's first cut wrote this as C-R17 and `node --check` caught the
+    //  collision — two cells with one name is two verdicts the operator cannot tell apart.)
+    //
+    // Four doors pushed `/vendor?draft=` and each one UNMOUNTED THE SHELL. The source-side
+    // cells (b40 C31, wl_audit's R-38.1) can only say the literal is gone; neither can say
+    // the vendor stayed. This one presses the door and asks the two questions that matter
+    // at the moment they are answerable: IS THE MASTHEAD STILL THERE, and DID THE STEM
+    // ARRIVE IN THE INPUT. Prefill-not-fire is asserted too — a door that SENT the stem
+    // would satisfy 「the sheet opened」 while spending the vendor's message on a fragment.
+    const CR19 = tag + 'C-R19 a hub primer opens the ask sheet in place, prefilled';
+    if (await settle(p, '/w/notes', '.wl-main', [CR19])) {
+      const prim = await p.evaluate(async () => {
+        const note = document.querySelector('[data-wl-note]') || document.querySelector('.wl-main button');
+        if (!note) return { reachable: false };
+        note.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 200));
+        const send = [...document.querySelectorAll('button')]
+          .find((b) => /send to chat/i.test(b.textContent || ''));
+        if (!send) return { reachable: false };
+        const href0 = location.pathname + location.search;
+        send.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 250));
+        const input = document.querySelector('.wl-asksheet textarea, .wl-asksheet input');
+        return {
+          reachable: true,
+          sheetUp: !!document.querySelector('.wl-asksheet'),
+          shellStillMounted: !!document.querySelector('.wl-hdr') && !!document.querySelector('.wl-nav'),
+          urlUnchanged: (location.pathname + location.search) === href0,
+          prefilled: !!(input && input.value && input.value.trim().length),
+          // PREFILL-NOT-FIRE: the thread must hold no user turn yet.
+          notSent: !document.querySelector('.wl-askbody [data-role="user"]'),
         };
       });
-      if (!conf.found) F(tag + 'C-R13 sign out confirms', 'no sign-out row in the drawer');
-      else if (conf.drawerStillUp && conf.sessionAlive && conf.confirmShown && conf.rowReplaced && conf.movedAway)
-        P(tag + 'C-R13 sign out confirms', 'one tap opens two buttons in place; the session survives and the row is replaced, not stacked under');
-      else F(tag + 'C-R13 sign out confirms', JSON.stringify(conf));
+      // A note surface with no notes on it cannot answer this, and must not print a pass.
+      if (!prim.reachable) F(CR19, 'no note reachable on /w/notes for the fixture — this cell saw nothing and must not report a pass');
+      else if (prim.sheetUp && prim.shellStillMounted && prim.urlUnchanged && prim.prefilled && prim.notSent)
+        P(CR19, 'the sheet opened in place with the note as its prefill; masthead and nav still mounted, URL unchanged, nothing sent');
+      else F(CR19, JSON.stringify(prim));
     }
 
     // ── C-R12 / C-R14 · THE FIRST-RUN SET PAINTS ONCE  [relay #3 item 3] ────

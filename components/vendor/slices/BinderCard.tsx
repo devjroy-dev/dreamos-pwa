@@ -17,7 +17,7 @@
 import { roomHref } from '@/lib/worklist/rooms';
 import { useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
-import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
 import type { CabinetBinder, BinderEditFields } from '@/lib/vendor/api/vendor';
 import { editBinder } from '@/lib/vendor/api/vendor';
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: the chips' tap target
@@ -133,7 +133,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       Reads, never writes; absence means "no phone match", never "no twin". */
   crossLead?: { state: string };
 }) {
-  const router = useRouter();
+  const { openAsk } = useAsk();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
@@ -160,7 +160,11 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
     // completable, NEVER a question. No primer ends in a question mark; a
     // question invites an answer, a stem invites the fact.
     const primer = `About ${binder.client ?? 'this binder'}: `;
-    router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
+    // CE-39 S2/6 · F-38.47: tree-blind. The ask door (lib/worklist/askContext.tsx) opens
+    // the sheet in place inside the shell and makes today's `?draft=` push on the hub —
+    // where this card is mounted on the hub page itself, so nothing that worked there
+    // stops working. The push that stood here unmounted the shell from Clients.
+    openAsk(primer);
   }
 
   // TDW_04 A2 — the approved swipe table, clients row: right = Ask Victor

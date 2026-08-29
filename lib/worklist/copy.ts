@@ -269,14 +269,23 @@ export const COPY = {
   // Sentence case. R-38.6: buttons are verbs of at most two words, and the engraved
   // Title Case went with the register that carried it.
   drawerSignOut: 'Sign out',
-  // ── CE-38 SEAL ① · SIGN OUT CONFIRMS ─────────────────────────────────────
+  // ── CE-38 SEAL ① · SIGN OUT CONFIRMS — AMENDED AT CE-39 S2/6 §3 ──────────
   // F-38.16: the founder tapped the word ACTIONS and the tap fell through to a 52px row
-  // that ended his session. Clearance was widened; the asymmetry stayed — this was the one
-  // destructive control in the estate acting on a single tap, while `CancelBlock` confirms
-  // and carries its irreversibility in words. Ruled: it confirms, in a two-button row
-  // INSIDE the drawer. No modal — a modal to leave a menu is more ceremony than the act.
-  // Bytes ship pending the founder's veto.
+  // that ended his session. CE-38 ruled a two-button row INSIDE the drawer, no modal.
+  // CE-39 §3 SUPERSEDES THE SHAPE, NOT THE REASON: Settings carries a second sign-out door
+  // one screen away from the drawer, and a confirm that lives inside the drawer cannot be
+  // the confirm Settings mounts. The confirm is now ONE SHEET in one home
+  // (components/worklist/SignOutSheet.tsx) consumed by BOTH doors — full-cover, scrim-tap
+  // dismisses (R-38.22). The four bytes below are the founder's, vetoed 2026-08-29
+  // (「Sign Out of TDW / Sign Out - Cancel / Manage Subscription」), cased to R-38.6:
+  //   sheet line      signOutSheetLine        「Sign out of TDW」
+  //   confirm button  drawerSignOut (above)   「Sign out」   — the same byte the drawer row
+  //                                                          carries; two keys for one word
+  //                                                          would be two homes
+  //   dismiss button  drawerCancel (below)    「Cancel」
+  //   signpost        settingsManageSubscription, at the Billing block
   drawerCancel: 'Cancel',
+  signOutSheetLine: 'Sign out of TDW',
 
   // ── R-38.18 · THE ADD CONTROL ────────────────────────────────────────────
   // NOUNS, SINGULAR, ONE WORD EACH. A row in this sheet answers 「add a ___」, so the
@@ -311,6 +320,18 @@ export const COPY = {
   // home for a number that already drifted once (F-10.63).
   settingsTitle:    'Settings',
   billingTitle:     'Billing',
+  // ── CE-39 S2/6 · F-38.p10 CURED · THE SIGNPOST HAS WORDS ────────────────
+  // components/vendor/SettingsScreen.tsx's Subscription card held a <button> with an empty
+  // body since R-37.84 (4) — a signpost that rendered nothing, on both trees. The founder's
+  // byte, vetoed 2026-08-29; it routes to /w/billing through `roomHref('billing')`, never a
+  // literal (F-38.27's family).
+  settingsManageSubscription: 'Manage subscription',
+  // ── CE-39 S2/6 · F-39.4 · THE SIGNPOST'S TWIN HAD NO WORDS EITHER ────────
+  // components/vendor/SettingsScreen.tsx's Discover Profile card held the same empty
+  // <button> as the Subscription card, and on both trees. It opens the EDITOR, so it must
+  // not spell 「Profile layout」 — that founder byte names the PREVIEW and already has its
+  // ruled home in a row of its own. Chair's byte, in the seat's inventory for veto.
+  settingsEditProfile: 'Edit profile',
 
   // ── M-FINISH S2 · R-38.11 · THE LIST FAMILY'S SIX HEADER WORDS ───────────
   // NOUNS, ONE WORD EACH — R-38.6's shape rule, met without effort because a room's word
