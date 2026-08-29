@@ -9,6 +9,7 @@ import type {
   LeadsResponse,
   ClientsResponse, ClientDetailResponse,
   InvoicesResponse, ExpensesResponse, EventsResponse,
+  BooksResponse,
   ChatResponse, ContactCard, ClarifyPayload,
   SendOtpResponse, VerifyOtpResponse, PinStatusResponse, PinLoginResponse,
 } from '../types/vendor';
@@ -270,6 +271,22 @@ export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse>
   const expenses = (led.binders ?? []).filter((b) => b.direction === 'out').map(binderToExpense);
   const total_spent = expenses.reduce((s, e) => s + e.amount, 0);
   return { ok: led.ok, expenses, total_spent, total: expenses.length };
+}
+
+// ── Books (ROAD STEP 2b — the typed money plane) ──────────────────────────
+// ONE GET, NO ADAPTER, NO DERIVATION. Contrast `fetchInvoices` and
+// `fetchExpenses` directly above: each fans out to an engine reader and then
+// reshapes binders through `binderToInvoice` / `binderToExpense`, because the
+// typed shape had to be manufactured from a free-form ledger. This door already
+// speaks the shape, so there is nothing to adapt and no second place for the
+// arithmetic to live.
+//
+// THE TWO ABOVE ARE NOT RETIRED AND THAT IS RULED, NOT AN OVERSIGHT (arm (c)).
+// They cross at step 2c together with the five write controls keyed on their
+// binder ids — cancel, PDF, mark-paid, expense delete, and both Add paths. F-39.3
+// stays OPEN until then.
+export function fetchBooks(vendorId: string): Promise<BooksResponse> {
+  return getJson<BooksResponse>(`/api/v2/vendor/money/books/${vendorId}`);
 }
 
 // ── Events ────────────────────────────────────────────────────────────────

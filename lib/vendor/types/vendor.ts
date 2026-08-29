@@ -376,6 +376,45 @@ export interface ExpensesResponse {
   total: number;
 }
 
+// ── GET /api/v2/vendor/money/books/:vendorId ──────────────────────────────
+// ROAD STEP 2b. THE ONLY TYPED-PLANE MONEY CONTRACT ON THIS BRANCH.
+//
+// `InvoicesResponse` and `ExpensesResponse` above still describe the ENGINE
+// plane (`engine.records`, through `fetchCabinet` / `fetchLedger`) and they are
+// untouched this sitting by ruling — arm (c). They cross at step 2c, reads and
+// writes in one motion, because their row ids are binder ids that five live
+// controls are keyed on. This shape shares nothing with them and exposes no id
+// any control could use.
+//
+// EVERY FIGURE IS AN INTEGER OF RUPEES AND THE BALANCE IS SERVER-COMPUTED.
+// The client never derives the chain: two renderers computing one running
+// balance is two homes for it, and F-04.13 is the estate's record of what
+// happens to the second one.
+export interface BooksMovement {
+  /** Composite and DELIBERATELY NOT A ROW ID — `invoice:<uuid>`, `expense:<uuid>`,
+      `schedule:<invoice_id>:<ordinal>`. A React key, never an address: nothing
+      in this room acts on a row, so nothing may be able to. */
+  id: string;
+  /** YYYY-MM-DD. */
+  date: string;
+  /** True when the estate holds no payment clock for this credit and the date
+      shown is the invoice's `created_at` instead (F-39.8). The surface renders
+      `booksUndated` beside it rather than passing the substitution off silently. */
+  undated: boolean;
+  credit: number | null;
+  debit: number | null;
+  balance: number;
+}
+
+export interface BooksResponse {
+  ok: boolean;
+  received: number;
+  outstanding: number;
+  movements: BooksMovement[];
+  total: number;
+  error?: string;
+}
+
 // ── POST /api/v2/vendor/expenses ─────────────────────────────────────────
 export interface CreateExpenseRequest {
   amount:          number;

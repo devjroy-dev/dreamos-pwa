@@ -409,6 +409,49 @@ export const COPY = {
   clientsTitle:  'Clients',
   invoicesTitle: 'Invoices',
   expensesTitle: 'Expenses',
+  // ── ROAD STEP 2b · BOOKS. ELEVEN BYTES, ALL FOUNDER-VETOED 2026-08-29 ─────
+  // The tile byte and the masthead byte are the same word, which is `teamTitle`
+  // and `collabTitle`'s precedent: the shell's masthead says where the vendor
+  // IS, so it says what the tile she tapped said.
+  //
+  // THE CHARTER SAID 「Khata」 AT EVERY ONE OF THESE LINES. The founder answered
+  // 「Books」 and the register rows are marked vetoed on that date. The old byte
+  // lives in no string, symbol or route anywhere in either repo.
+  booksTitle:    'Books',
+  // The head. Two words, each naming a figure and claiming nothing about it —
+  // 'Received' is money that arrived, 'Outstanding' is money still owed on live
+  // invoices. Neither is a verdict on her business, which is the register the
+  // billing chips were recut into at R-38.8.
+  booksReceived:    'Received',
+  booksOutstanding: 'Outstanding',
+  // The four column heads. Nouns of one word; the tabular register R-38.10 ruled.
+  booksColDate:    'Date',
+  booksColCredit:  'Credit',
+  booksColDebit:   'Debit',
+  booksColBalance: 'Balance',
+  booksEmpty: 'No money movements yet.',
+  // ⚠ THIS BYTE RENDERS TWICE ON DROY550 AND THAT IS THE POINT, NOT AN EDGE CASE.
+  // Both of her credits carry `last_payment_at` NULL — the payment writer leaves
+  // it stale (F-39.8, filed at the chair's hand, NOT cured here) — so the door
+  // dates them by the invoice's `created_at` and flags `undated: true`. The row
+  // then SAYS the date is the invoice's and not the payment's. Showing
+  // `created_at` silently as though it were a payment date would be the surface
+  // asserting a fact the estate does not hold, which is the class Block 06 spent
+  // itself removing. The byte is small and lowercase because it is a caveat on a
+  // figure, not a warning about her money.
+  booksUndated: 'no date on file',
+  // THE ELEVENTH BYTE, vetoed after the seat WITHHELD it. It was withheld because
+  // ten had been vetoed and an executor-invented eleventh on a money surface is
+  // exactly what the veto slot exists to stop. Recorded here rather than only in
+  // a handover, because the next reader's question is why a room has two empty
+  // states.
+  //
+  // THE TWO ARE OPPOSITE FACTS AND NEITHER BYTE MAY CARRY THE OTHER. `booksEmpty`
+  // says the estate looked and found nothing; this one says the estate could not
+  // look. Rendering `booksEmpty` over a failed call tells a vendor WITH money that
+  // her money is gone. `advisorUnset`'s shape and register: it reports what the
+  // screen does not know, rather than asserting a state the server never confirmed.
+  booksFailed: 'Could not read your books just now \u2014 try again in a moment.',
   eventsTitle:   'Events',
   notesTitle:    'Notes',
   billingPlanLead:  'Your plan',

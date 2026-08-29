@@ -73,18 +73,35 @@ cell('C1 token completeness, both modes', () => {
 // and an exact order, and it still reads BOTH from the registry's own exported constants
 // rather than from literals retyped here, so the numbers cannot drift from the registry
 // they guard. Only the ruled expectation moved, and it moved with a name on it.
-cell('C2 eighteen rooms in frozen order, 7 + 11 (seats flipped, R-37.75; R-37.87; R-38.9)', () => {
+// AMENDED, LABELLED — ROAD STEP 2b (R-38.10, founder veto 2026-08-29). EIGHTEEN BECOMES
+// NINETEEN and the TOP band seven becomes eight: Books lands in the work band at INDEX 4,
+// beside Invoices and Expenses, by founder word. Count history, every step worded or
+// derived: 11 -> 15 -> 16 -> 17 -> 18 -> 19.
+//
+// THE LITERALS BELOW ARE THE REASON THIS CELL NEEDED EDITING AT ALL, and it is worth
+// naming because the charter did not name it. The comment above says the expected numbers
+// "now read from lib/worklist/rooms.ts's own exported constants rather than from literals
+// retyped here" — and they DO, for the ids and the bands. But the three-number guard on
+// the first line reads LITERALS, deliberately: it is what stops the registry from drifting
+// away from the RULING by editing its own constants. So a ruled amendment has to move both
+// homes in one edit, and moving only rooms.ts would have reddened this cell on a correct
+// registry. Derived by reading the cell, not by running it and reacting.
+cell('C2 nineteen rooms in frozen order, 8 + 11 (R-37.75; R-37.87; R-38.9; R-38.10)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
   const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
-  if (EXP_ALL !== 18 || EXP_TOP !== 7 || EXP_BOT !== 11)
-    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 18/7/11';
+  if (EXP_ALL !== 19 || EXP_TOP !== 8 || EXP_BOT !== 11)
+    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 19/8/11';
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
   if (!fb) return 'FROZEN_ORDER not found';
   const frozen = (fb[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1));
   if (frozen.join(',') !== ids.join(',')) return 'order drift: registry [' + ids.join(',') + '] vs frozen [' + frozen.join(',') + ']';
+  // R-38.10's PLACEMENT, asserted separately from the order. FROZEN_ORDER and the registry
+  // agreeing proves they match each other; it does not prove they match the FOUNDER'S WORD,
+  // which was index 4, beside Invoices and Expenses. Two files can drift together.
+  if (ids[4] !== 'books') return 'Books is at index ' + ids.indexOf('books') + ', ruled index 4 (beside Invoices/Expenses)';
   const work = (src.match(/band:\s*'work'/g) || []).length;
   const biz  = (src.match(/band:\s*'business'/g) || []).length;
   if (work !== EXP_TOP) return 'top band has ' + work + ', expected ' + EXP_TOP;

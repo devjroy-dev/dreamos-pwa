@@ -206,3 +206,63 @@ Plan-card / rate-card bytes naming the Studio Suite as Prestige-only: swept comm
 across `lib/worklist/copy.ts`, `app/w/billing/page.tsx`, `components/vendor/SubscriptionCard.tsx`,
 `components/worklist/BillingRoom.tsx`, `lib/vendor/billing/plans.ts` — **zero found**; the
 three paid tiers still carry no inclusion line anywhere in this tree (§ above, `planBasicIncludes`).
+
+## 11 · BOOKS — THE NINETEENTH ROOM, ROAD STEP 2b · ELEVEN BYTES, ALL VETOED 2026-08-29
+
+The charter, R-38.10, and every line of the 2b kickoff spelled this room **Khata**. The
+founder's veto answered **Books** on all ten lines put to him, and an eleventh was vetoed
+after the build (F-39.p3). The earlier byte survives in no string, symbol, route, comment or register
+row in either repo — it is named once, here, so the record shows it was ruled away rather
+than lost.
+
+| # | key | proposed | founder |
+|---|---|---|---|
+| 1 | `rooms.ts` label | Books | **YES** |
+| 2 | `booksTitle` | Books | **YES** |
+| 3 | `booksReceived` | Received | **YES** |
+| 4 | `booksOutstanding` | Outstanding | **YES** |
+| 5 | `booksColDate` | Date | **YES** |
+| 6 | `booksColCredit` | Credit | **YES** |
+| 7 | `booksColDebit` | Debit | **YES** |
+| 8 | `booksColBalance` | Balance | **YES** |
+| 9 | `booksEmpty` | No money movements yet. | **YES** |
+| 10 | `booksUndated` | no date on file | **YES** |
+| 11 | `booksFailed` | Could not read your books just now — try again in a moment. | **YES**, after the seat withheld it |
+
+**THE TILE BYTE AND THE MASTHEAD BYTE ARE ONE WORD**, which is `teamTitle` and
+`collabTitle`'s precedent: the shell's masthead says where the vendor IS, so it says what
+the tile she tapped said. §8's `LABELS` duplication does not apply — Books has no
+`/vendor` fallback and therefore no `DoorSlice` twin, so this is the first room whose
+header word has exactly ONE home. F-38.23 is unaffected; it does not grow.
+
+### Row 10 renders TWICE on the founder's own account, and that is not an edge case
+
+Both of DROY550's credits carry `last_payment_at` NULL. The payment writer leaves it
+stale — **F-39.8, filed at the chair's hand and NOT this seat's to cure** — so the door
+dates those credits by the invoice's `created_at` and flags `undated: true` on the wire.
+The row then SAYS the date is the invoice's rather than the payment's.
+
+Rendering `created_at` silently as though it were a payment date would be the surface
+asserting a fact the estate does not hold. The byte is small and lowercase deliberately: it
+is a caveat on a figure, not a warning about her money.
+
+### Rows 9 and 11 are OPPOSITE FACTS and neither may carry the other's meaning
+
+`booksEmpty` says the estate looked and found nothing. `booksFailed` says the estate could
+not look. Rendering the first over a failed call tells a vendor **with** money that her
+money is gone — so the failure path also replaces each head figure with an em-dash rather
+than Rs 0, which is the same lie in numerals.
+
+Row 11 was **WITHHELD at the build**, not shipped and explained afterwards: ten bytes had
+been ruled, and an executor-invented eleventh on a money surface is precisely what this
+register exists to catch (§4's own sentence about the three owed plan inclusion lines is
+the same law, and the same answer). It went to veto and came back YES. `advisorUnset`'s
+shape and register — it reports what the screen does not know, rather than asserting a
+state the server never confirmed.
+
+### The money register, stated once
+
+`Rs X,XX,XXX` from `lib/vendor/format.ts` :: `formatRs` — THE canonical home
+(R-U25/R-U27/R-U30). `components/vendor/slices/SliceRow.tsx` :: `fmtRs` is the second home
+F-38.p13 names and it is **not** used by this room: a new surface reaching for the second
+home is how a second home becomes permanent. No rupee glyph, no k/L/Cr, no truncation.

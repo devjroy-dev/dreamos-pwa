@@ -1,4 +1,4 @@
-// lib/worklist/rooms.ts — THE EIGHTEEN ROOMS, IN FROZEN ORDER.
+// lib/worklist/rooms.ts — THE NINETEEN ROOMS, IN FROZEN ORDER.
 //
 // R-37.60 (six seats for the slices) \u00b7 R-37.61 (Settings and Billing take tiles)
 // \u00b7 R-37.62 (Portfolio pinnable, not pre-pinned) \u00b7 R-37.66 as amended (Contact Support
@@ -54,6 +54,28 @@ export const ROOMS: readonly Room[] = [
   { id: 'clients',   label: 'Clients',   band: 'work', href: '/w/clients',   pinnable: true  },
   { id: 'invoices',  label: 'Invoices',  band: 'work', href: '/w/invoices',  pinnable: true  },
   { id: 'expenses',  label: 'Expenses',  band: 'work', href: '/w/expenses',  pinnable: true  },
+  // ── R-38.10 · BOOKS, THE NINETEENTH ROOM. LANDED AT ROAD STEP 2b ─────────
+  // INDEX 4, BESIDE INVOICES AND EXPENSES, BY FOUNDER WORD — it is the ledger
+  // those two write into, so it sits with them rather than at the end of the
+  // band. THAT IS AN INSERTION, AND AN INSERTION SHIFTS INDICES: events, notes
+  // and calendar each move down one. The freeze law (R-37.22) forbids tiles
+  // SORTING THEMSELVES — by recency, count, or anything a vendor did not ask
+  // for. It does not forbid the founder placing a new room, which is why C2
+  // reads FROZEN_ORDER rather than a set: a reorder nobody worded reddens, and
+  // this one is worded.
+  //
+  // ⚠ THE TILE BYTE IS 「Books」 AND NOT 「Khata」. R-38.10 and the whole 2b
+  // charter said Khata; the founder's veto of 2026-08-29 answered Books on all
+  // ten lines, and an eleventh after the build. The earlier byte survives in no
+  // string, symbol, route, comment or register row — including this one, which
+  // names it once to record that it was ruled away rather than lost.
+  //
+  // READ-ONLY BY CONSTRUCTION. The room mounts zero verbs: its door is
+  // `GET /api/v2/vendor/money/books/:vendorId` and dream-os's money router
+  // declares no non-GET. It is the only money surface on the TYPED plane —
+  // Invoices and Expenses still read `engine.records` and cross at step 2c,
+  // reads and writes together (F-39.3 stays OPEN by ruling until then).
+  { id: 'books',     label: 'Books',     band: 'work', href: '/w/books',     pinnable: true  },
   { id: 'events',    label: 'Events',    band: 'work', href: '/w/events',    pinnable: true  },
   { id: 'notes',     label: 'Notes',     band: 'work', href: '/w/notes',     pinnable: true  },
   { id: 'calendar',  label: 'Calendar',  band: 'work', href: '/w/calendar',           pinnable: true  },
@@ -106,16 +128,24 @@ export const ROOMS: readonly Room[] = [
   { id: 'advisor',   label: 'Advisor',   band: 'business', href: '/w/advisor',          pinnable: false },
 ] as const;
 
-// R-37.87's seventeen AMENDED BY FOUNDER WORD to eighteen (CE-38 R-38.9). Count history,
-// every step worded or derived: 11 → 15 → 16 → 17 → 18. Eighteen is six full rows of
-// three; the orphan row that R-37.87 left behind dies with this amendment.
-export const ROOM_COUNT_EXPECTED = 18;
-export const TOP_BAND_EXPECTED = 7;
+// R-37.87's seventeen AMENDED BY FOUNDER WORD to eighteen (CE-38 R-38.9), AND AMENDED
+// AGAIN BY LABEL to nineteen at ROAD STEP 2b (R-38.10, founder veto 2026-08-29): Books
+// joins the WORK band, so the top band moves 7 → 8 and the bottom band holds at 11. Count
+// history, every step worded or derived: 11 → 15 → 16 → 17 → 18 → 19.
+//
+// NINETEEN IS SIX FULL ROWS OF THREE PLUS ONE. Eighteen's tidiness was named when it
+// landed and it is being spent here, deliberately: the orphan row R-37.87 killed comes
+// back. The founder was told and ruled the placement anyway, because a ledger that sits
+// away from the two rooms it reconciles is a ledger nobody opens. Geometry is MEASURED at
+// 374x844 by the render arm rather than argued from this note — nineteen at 64px is
+// arithmetic until the arm says otherwise (R-38.10's own STOP clause).
+export const ROOM_COUNT_EXPECTED = 19;
+export const TOP_BAND_EXPECTED = 8;
 export const BOTTOM_BAND_EXPECTED = 11;
 
 /** The frozen order, by id. The cell compares against this and nothing else. */
 export const FROZEN_ORDER: readonly string[] = [
-  'leads', 'clients', 'invoices', 'expenses', 'events', 'notes', 'calendar',
+  'leads', 'clients', 'invoices', 'expenses', 'books', 'events', 'notes', 'calendar',
   'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'billing', 'settings', 'support',
   'collab', 'advisor',
 ] as const;

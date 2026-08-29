@@ -1,0 +1,13 @@
+# ROAD STEP 2b · Books, the nineteenth room. Dirt this ZIP creates on purpose;
+# anything OUTSIDE this list is contamination, not a delivery [F-19.16].
+app/w/books/page.tsx
+components/worklist/BooksBody.tsx
+app/w/expenses/page.tsx
+lib/worklist/rooms.ts
+lib/worklist/copy.ts
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce39-2b.txt
+docs/COPY_REGISTER_M-FINISH.md
+docs/TDW_CE39_2B_BOOKS_PWA_HANDOVER.md
