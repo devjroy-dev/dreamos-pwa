@@ -24,6 +24,7 @@ import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useInShell } from '@/hooks/vendor/useInShell';
+import { Fab } from '@/components/worklist/Fab';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
@@ -307,22 +308,34 @@ export function SliceShell({ slice, onBack, query, setQuery, loading, error, row
         )}
       </div>
 
-      {/* Brass-key FAB */}
-      <button type="button" onClick={onAdd} aria-label={`Add ${LABELS[slice].toLowerCase()}`}
-        className="atelier-fab"
-        style={{
-          // DERIVED, NOT GUESSED. The old shell's BottomNav is 82 tall, which is where the
-          // 82 came from. The worklist shell's chrome below the scroll column is the dock
-          // (8 + 44 + 8 padding/field, AiDock.tsx:82-83) plus the nav seat (52,
-          // WorklistShell.tsx:188) = 112.5, so a FAB at 82 would have sat ON the ask field.
-          // 120 is that plus one step of the 8-scale. Two numbers, each read from the file
-          // that owns the chrome it clears.
-          position: 'fixed', bottom: inShell ? 'calc(120px + env(safe-area-inset-bottom))' : 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
-          width: 46, height: 46, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
-          cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-        }}>+</button>
+{/* ── CE-39 S2/6 · F-39.4 · THE SHELL ARM STOPPED DRAWING ITS OWN SEAT ──────
+          This button carried its own geometry — 46px at right 20, bottom 120 inside the
+          shell — and the 120 was DERIVED CORRECTLY (the dock's 8+44+8 over the nav's 52 =
+          112.5, plus one step) and was still wrong, because Rooms' FAB had been MEASURED
+          at 136 against the painted dock and the two numbers were never compared. A
+          derivation and a measurement of the same thing, in two files, disagreeing by
+          16px — which the founder read as the button jumping when he changed rooms.
+          Ruled: Rooms is the reference and its seat is the only seat. The shell arm now
+          draws through components/worklist/Fab.tsx and names no number at all.
+
+          THE /vendor ARM IS UNTOUCHED, AND THAT IS THE RULING TOO. Its 82 clears the old
+          BottomNav, `.wl-fab` does not exist outside the shell scope, and that tree dies
+          whole at Phase 7. Two implementations, each with its reason at its site — the
+          same shape the ask door took two hours ago. */}
+      {inShell
+        ? <Fab label={`Add ${LABELS[slice].toLowerCase()}`} onClick={onAdd} />
+        : (
+          <button type="button" onClick={onAdd} aria-label={`Add ${LABELS[slice].toLowerCase()}`}
+            className="atelier-fab" data-tree="vendor"
+            style={{
+              // The old shell's BottomNav is 82 tall, which is where the 82 came from.
+              position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
+              width: 46, height: 46, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
+              cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
+            }}>+</button>
+        )}
 
       {children}
     </div>

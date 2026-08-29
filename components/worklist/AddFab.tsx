@@ -37,6 +37,7 @@ import { AddSheet } from '@/components/vendor/AddSheet';
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { COPY } from '@/lib/worklist/copy';
+import { Fab } from '@/components/worklist/Fab';
 import { roomHref } from '@/lib/worklist/rooms';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 
@@ -85,10 +86,12 @@ export function AddFab() {
 
   return (
     <>
-      <button type="button" className="wl-fab" aria-label={COPY.addTitle}
-              aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
-        <span aria-hidden>+</span>
-      </button>
+      {/* CE-39 S2/6 · F-39.4: Rooms' seat is now every room's seat, so this control draws
+          through the one component rather than being the one that happens to look right.
+          `aria-expanded` left with the local button: it announced a menu, and two of the
+          three FABs open a sheet rather than a menu, so the attribute cannot ride the
+          shared seat honestly. The sheet below is a dialog and names itself. */}
+      <Fab label={COPY.addTitle} onClick={() => setMenuOpen(true)} />
 
       {menuOpen && (
         <div className="wl-addsheet" role="dialog" aria-modal="true" aria-label={COPY.addTitle}>
@@ -126,42 +129,19 @@ export function AddFab() {
 // ⚠ NO BACKTICKS AND NO CODE MARKS BELOW THIS LINE. Everything after it is inside a JS
 // template literal; a backtick written around a selector while explaining that selector
 // ends the literal and fails the compile. Six instances this arc. Selectors in words.
+//
+// ── CE-39 S2/6 · THE SEAT IS NOT IN THIS FILE ANY MORE ──────────────────────
+// The wl-fab rule and its press and focus rules moved to WorklistShell's SHELL_CSS, with
+// the measurement paragraph that earned the number: three rooms draw a FAB now, and shared
+// chrome belongs to the thing every surface is inside rather than to the first component
+// that happened to need it. See components/worklist/Fab.tsx for why the rule may not
+// travel with the component.
+//
+// ⚠ AND THIS NOTE LIVES IN A JS COMMENT BECAUSE THE FIRST CUT PUT IT INSIDE THE LITERAL,
+// with the selector written in code marks — which ends the literal and fails the compile,
+// three lines under the warning that says so. Seventh instance on this arc. `tsc` caught
+// it in one run. Selectors in these comments are written in words.
 const FAB_CSS = `
-/* ── THE FAB'S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
-   ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
-   The first cut computed the bottom chrome from its parts: nav min-height 52, plus a dock
-   of 8+8 padding over a 44px field with a half-pixel border, call it 61. 113. Every other
-   thing about the control was right and the gap came out at NINE PIXELS in both modes,
-   because 113 is not what the browser paints — the real chrome measures 120, and the seven
-   missing pixels live somewhere in a line box I would have kept re-deriving from the
-   stylesheet and kept getting wrong.
-
-   THAT IS THE WHOLE LESSON AND IT IS THIS FILE'S OWN NEIGHBOURHOOD: a rule assembled out
-   of other rules' declared values is arithmetic about a stylesheet, not a fact about a
-   page. The gutter cell, the tile-height cell and the edge cell all exist because
-   declarations and paint disagree.
-
-   MEASURED ON THE DEPLOY, 390x844, BOTH MODES: the dock's top edge sits 120px above the
-   viewport bottom. 120 + 16 = 136, and the safe-area inset rides on top because it is zero
-   on the measuring surface and is not zero on the founder's phone.
-
-   THE NUMBER IS NOT THE PROOF EITHER. C-R18 measures the painted gap every run and reds on
-   15..17; if the dock gains a row, this literal goes stale and the cell says so in the
-   run rather than in a comment nobody re-derives. */
-.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(136px + env(safe-area-inset-bottom));z-index:18;width:56px;height:56px;border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
-/* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
-   F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
-   nobody could see. That floor is a ratio between a row's pressed fill and the ground it
-   sits on, and it does not transfer here: this control is a solid accent disc floating over
-   arbitrary content, so a darker accent has no fixed neighbour to be read against and any
-   number chosen for it would be a colour nobody measured — which is precisely what the
-   Slice Door's retired opacity was.
-   So the press is SIZE and DEPTH: 56 to 52.6 (6%) with the shadow pulled in. Both are
-   changes to the control itself, both survive on any ground, and C-R18 measures the
-   painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
-   PRESSED STATE, and that refusal is the point of the paragraph. */
-.wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
-.wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 .wl-addsheet{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}
 .wl-addscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
 .wl-addpanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:8px var(--wl-gutter) calc(8px + env(safe-area-inset-bottom))}

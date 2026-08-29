@@ -13,6 +13,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAsk } from '@/lib/worklist/askContext';
+import { useInShell } from '@/hooks/vendor/useInShell';
+import { Fab } from '@/components/worklist/Fab';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/lib/vendor/api/vendor';
@@ -52,6 +54,7 @@ function fmtDate(iso: string): string {
 export function NotesBody() {
   const { toast, show } = useToast();
   const { openAsk } = useAsk();
+  const inShell = useInShell();
   const [notes, setNotes]     = useState<OwnerNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery]     = useState('');
@@ -182,15 +185,30 @@ export function NotesBody() {
         </div>
       )}
 
-      {/* FAB */}
-      <button type="button" onClick={() => setAddOpen(true)} aria-label="New note" style={{
-        position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', right: 24, width: 52, height: 52,
-        borderRadius: '50%', backgroundColor: 'var(--atelier-accent-text)', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
-        boxShadow: '0 4px 20px var(--atelier-overlay-bg)',
-      }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
+{/* ── CE-39 S2/6 · F-39.4 · THIS IS THE ONE THE FOUNDER SAW ─────────────────
+          52px at right 24, bottom 80, and NO TREE AWARENESS AT ALL — so inside the shell
+          it painted ON the ask dock. That is F-38.59 exactly: the finding SliceShell was
+          cured for at §4-4, live in a third file, through the whole of that sitting and
+          this one. It survived because b40's C39 stops at the first file a /w route
+          imports and this component is one hop further out; the handover's §6 carries the
+          lesson and the cell now walks the graph.
+          The shell arm draws the one seat and names no number. The /vendor arm keeps its
+          80 — Notes is mounted by the old list tree and by the studio, both of which die
+          at Phase 7, and deleting the button there would take the only way to write a note
+          with it. Disclosed as s-39.8: the ruling named SliceShell's carve-out and this
+          component has the identical dual-tree property. */}
+      {inShell
+        ? <Fab label="New note" onClick={() => setAddOpen(true)} />
+        : (
+          <button type="button" onClick={() => setAddOpen(true)} aria-label="New note" data-tree="vendor" style={{
+            position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', right: 24, width: 52, height: 52,
+            borderRadius: '50%', backgroundColor: 'var(--atelier-accent-text)', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+            boxShadow: '0 4px 20px var(--atelier-overlay-bg)',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        )}
 
       {/* Detail sheet */}
       {selected && (

@@ -100,7 +100,20 @@ export const TAP_MIN = 44;
  * ruling it was decorating. 64 clears the 44 tap floor with air and lets the two-line
  * label fit at t5. Ruled at CE-38 relay #2; the arm re-derives the sum at capture.
  */
-export const GRID = { base: 4, step: 8, gutter: 16, tile: 64, row: 52 } as const;
+// ── CE-39 S2/6 HOTFIX · THE FAB'S SEAT JOINS THE GRID  [F-39.4] ─────────────
+// The founder's walk found the add control sitting in three different places: 136 on
+// Rooms, 120 in the five list rooms, 80 on Notes — and the Notes one painted ON the ask
+// dock. Three homes for one piece of arithmetic, which is how the number on Notes stayed
+// tree-blind through the sitting that cured exactly this class on SliceShell (F-38.59).
+//
+// FOUNDER RULING 2026-08-29: 「the FAB sits right on Rooms and nowhere else」 — Rooms is
+// the reference, so its measured seat is the one that survives. The values are NOT
+// re-derived here: 136 was MEASURED on the deploy at 390x844 in both modes (the dock's
+// top edge sits 120px above the viewport bottom, plus one 16px step) and the paragraph
+// recording that measurement stays at the rule in WorklistShell.tsx. What changes is that
+// the number now has ONE home and every FAB reads it.
+export const GRID = { base: 4, step: 8, gutter: 16, tile: 64, row: 52,
+                      fab: { size: 56, bottom: 136 } } as const;
 
 // ── THE TWO FAMILIES, ONE JOB EACH ──────────────────────────────────────────
 // Four families existed and each was doing several jobs; that — not size — is why the
@@ -128,7 +141,12 @@ export function typeCss(scopeSelector: string): string {
     `${scopeSelector}{` +
     RUNGS.map(rung).join('') +
     `--wl-gutter:${GRID.gutter}px;--wl-step:${GRID.step}px;` +
-    `--wl-tile:${GRID.tile}px;--wl-row:${GRID.row}px;}`
+    `--wl-tile:${GRID.tile}px;--wl-row:${GRID.row}px;` +
+    // The FAB's seat travels with the grid, so the one rule that draws a FAB reads the
+    // constant rather than restating it. `right` is the gutter and is NOT a fourth
+    // variable — a FAB that sat at its own x would be the edge defect (R-38.5) wearing a
+    // circle, and the gutter already has one home two lines up.
+    `--wl-fab:${GRID.fab.size}px;--wl-fab-bottom:${GRID.fab.bottom}px;}`
   );
 }
 

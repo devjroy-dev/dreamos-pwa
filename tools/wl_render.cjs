@@ -760,6 +760,61 @@ async function seat(browser, mode) {
       else F(CR19, JSON.stringify(prim));
     }
 
+    // ── C-R20 · ONE FAB, ONE SEAT, MEASURED IN EVERY ROOM  [F-39.4] ─────────
+    //
+    // THE SOURCE CELLS CANNOT CLOSE THIS AND THAT IS WHY THIS ONE EXISTS. b40's C49 can say
+    // no file names its own number; it cannot say the button PAINTS in the same place, and
+    // the founder's complaint was about paint. He walked five rooms and met a control that
+    // changed size, corner and height — one of them sitting on the ask dock.
+    //
+    // MEASURED, NOT DERIVED, which is this control's own history: AddFab's seat comment
+    // records that computing the offset from the stylesheet's parts gave 113 where the
+    // browser painted 120, and the seven missing pixels lived in a line box. So this cell
+    // reads getBoundingClientRect on every room and compares the rooms to each other.
+    const CR20 = tag + 'C-R20 the FAB paints in one seat in every room (F-39.4)';
+    const FAB_ROOMS = ['/w/rooms', '/w/leads', '/w/invoices', '/w/notes', '/w/calendar'];
+    const seats = [];
+    for (const room of FAB_ROOMS) {
+      if (!await settle(p, room, '.wl-main', [CR20])) { seats.push({ room, mounted: false }); break; }
+      seats.push({ room, ...await p.evaluate(() => {
+        const fabs = [...document.querySelectorAll('.wl-fab')];
+        // A SECOND FLOATING CONTROL IS THE DEFECT, so they are COUNTED and not found.
+        const others = [...document.querySelectorAll('button')].filter((b) => {
+          const c = getComputedStyle(b);
+          return c.position === 'fixed' && c.bottom !== '0px' && parseFloat(c.bottom) > 0
+                 && !b.classList.contains('wl-fab') && b.offsetParent !== null;
+        });
+        if (fabs.length !== 1) return { count: fabs.length, strays: others.length };
+        const r = fabs[0].getBoundingClientRect();
+        const dock = document.querySelector('.wl-dockfield');
+        const d = dock ? dock.getBoundingClientRect() : null;
+        return {
+          count: 1, strays: others.length,
+          w: Math.round(r.width), h: Math.round(r.height),
+          right: Math.round(window.innerWidth - r.right),
+          bottom: Math.round(window.innerHeight - r.bottom),
+          // THE CLEARANCE IS THE FOUNDER'S ACTUAL COMPLAINT: the gap to the dock's top edge.
+          gap: d ? Math.round(d.top - r.bottom) : null,
+        };
+      }) });
+    }
+    const missed = seats.find((x) => x.mounted === false);
+    const wrongCount = seats.find((x) => x.count !== 1 || x.strays > 0);
+    if (seats.length !== FAB_ROOMS.length || missed)
+      F(CR20, 'only ' + seats.length + ' of ' + FAB_ROOMS.length + ' rooms reached — this cell must not pass on rooms it never opened: ' + JSON.stringify(seats));
+    else if (wrongCount)
+      F(CR20, JSON.stringify(wrongCount) + ' — every room paints exactly one FAB and no second floating control');
+    else {
+      // ONE SEAT MEANS THE FIVE AGREE WITH EACH OTHER. Comparing each against a literal
+      // would re-introduce the number this ruling just gave one home.
+      const spread = (k) => Math.max(...seats.map((x) => x[k])) - Math.min(...seats.map((x) => x[k]));
+      const bad = ['w', 'h', 'right', 'bottom'].filter((k) => spread(k) > 0.5);
+      const onDock = seats.filter((x) => x.gap !== null && x.gap < 8);
+      if (bad.length) F(CR20, 'the seat differs across rooms in ' + bad.join(', ') + ': ' + JSON.stringify(seats));
+      else if (onDock.length) F(CR20, 'the FAB sits on or within 8px of the ask dock in ' + onDock.map((x) => x.room).join(' · ') + ' — this is what the founder saw');
+      else P(CR20, FAB_ROOMS.length + ' rooms, one seat: ' + seats[0].w + 'x' + seats[0].h + ' at right ' + seats[0].right + ', bottom ' + seats[0].bottom + ', clearing the dock by ' + seats[0].gap + 'px');
+    }
+
     // ── C-R12 / C-R14 · THE FIRST-RUN SET PAINTS ONCE  [relay #3 item 3] ────
     //
     // THESE TWO CELLS WERE RIGHT AND THE SURFACE WAS WRONG. C-R12 asked whether the link

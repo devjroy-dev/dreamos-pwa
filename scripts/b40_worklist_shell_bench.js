@@ -1206,9 +1206,22 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   for (const f of others) if (/<AddFab/.test(strip(read(f)))) return 'the Add control is mounted outside Rooms: ' + f;
   // c-38.11: the accent TOKEN, never a literal. The ZIP 4 gold-FAB finding was this
   // control painting a hard-coded brass that bypassed the variable layer.
-  if (/#[0-9a-fA-F]{6}|rgba?\(/.test(fab.replace(/rgba\(0,0,0,\.\d+\)/g, '')))
+  //
+  // ── AMENDED, LABELLED — CE-39 S2/6 · RETIRE-WITH-THE-READER  [F-39.4] ────────
+  // The colour clause read `AddFab.tsx` because the seat rule lived there. F-39.4 moved the
+  // rule to WorklistShell's SHELL_CSS — three rooms draw a FAB now, and shared chrome lives
+  // in the shell — so this cell went red WITH the cure, on a file that had simply stopped
+  // being where the rule is. THAT IS F-38.27'S FAMILY AND ITS SECOND SIGHTING TODAY: an
+  // assertion naming a LOCATION rather than a property. **Benches move with the code they
+  // test.** The subject is unchanged and is what is asserted: the one FAB rule paints from
+  // the accent token and no literal. It is read where the rule now is.
+  const fabRule = strip(read('components/worklist/WorklistShell.tsx')).match(/\.wl-fab\{([^}]*)\}/);
+  if (!fabRule) return 'the wl-fab rule is not in the shell — the seat has no home to assert against';
+  if (/#[0-9a-fA-F]{6}|rgba?\(/.test(fabRule[1].replace(/rgba\(0,0,0,\.\d+\)/g, '')))
     return 'the Add control hard-codes a colour — c-38.11 puts it on var(--atelier-accent-text)';
-  if (!/background:var\(--atelier-accent-text\)/.test(fab)) return 'the FAB is not on the accent token';
+  if (!/background:var\(--atelier-accent-text\)/.test(fabRule[1])) return 'the FAB is not on the accent token';
+  // AND THE FILE THAT LOST THE RULE MUST NOT GROW A SECOND ONE.
+  if (/\.wl-fab\{/.test(fab)) return 'AddFab has taken the seat rule back — two homes for one control';
   return null;
 });
 
@@ -1343,21 +1356,54 @@ cell('C38 the withheld vendor address is not a live export anywhere in lib/ (F-3
 //    Fourth instance of the class-walks-away shape on this arc, and the first that was a
 //    hit-test: a cure applied where somebody happened to be looking, and the class left to
 //    find its own way to the next site.
-cell('C39 a fixed control in a crossed body clears the shell chrome (F-38.59)', () => {
-  // The bodies a /w route imports — derived from the shell routes, so a crossing joins this
-  // cell in the edit that creates its route and there is nothing to remember.
+// ── AMENDED, LABELLED — CE-39 S2/6 · THIS CELL STOPPED AT THE FIRST FILE  [F-39.4] ──
+//    IT WAS WRITTEN FOR EXACTLY THE DEFECT THE FOUNDER FOUND AND IT COULD NOT SEE IT.
+//    `components/vendor/NotesBody.tsx` drew a fixed FAB at `bottom: calc(80px + …)` with no
+//    tree awareness, so inside the shell it painted ON the ask dock — F-38.59, live, through
+//    the sitting that cured F-38.59. This cell walked `app/w/*/page.tsx`, collected only the
+//    bodies imported DIRECTLY from `app/vendor/…`, and read those files alone. Notes imports
+//    `app/vendor/list/[slice]/notes`, which imports `NotesBody` from `components/` — one hop
+//    further out, and invisible.
+//
+//    C31 ALREADY KNEW BETTER. It walks the import graph transitively, "exactly as a bundler
+//    does", because the S2 bounce taught it that reachable is reachable. That lesson was
+//    learned in one cell and never carried to its neighbour, which is the same
+//    class-walks-away shape this cell's own comment complains about four lines down.
+//    **A cell that stops at the first file is presence, not behaviour** (F-19.37's kin: the
+//    identity of what you measured precedes any verdict about it).
+//
+//    SO THE WALK IS THE GRAPH NOW, and a fourth FAB in a fifth file is caught by existing.
+cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell chrome (F-38.59, F-39.4)', () => {
+  const resolveSpec = (spec, from) => {
+    let base = null;
+    if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
+    else if (spec.startsWith('.')) base = path.resolve(path.dirname(from), spec);
+    else return null;
+    for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts', '']) {
+      const p = base + ext;
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
+    }
+    return null;
+  };
   const bodies = new Set();
+  const collect = (abs, seen) => {
+    if (seen.has(abs)) return;
+    seen.add(abs);
+    const rel = path.relative(ROOT, abs);
+    // The shell's OWN components are not "crossed bodies" — they are the chrome this cell
+    // measures clearance AGAINST, and they carry the ruled seat rather than a bare offset.
+    if (!rel.startsWith('components/worklist/') && !rel.startsWith('app/w/')) bodies.add(rel);
+    for (const m of strip(fs.readFileSync(abs, 'utf8')).matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+      const r = resolveSpec(m[1], abs);
+      if (r && !r.includes('node_modules')) collect(r, seen);
+    }
+  };
   const walkRoutes = (rel) => {
     for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
       const r = rel + '/' + e.name;
       if (e.isDirectory()) { walkRoutes(r); continue; }
       if (e.name !== 'page.tsx') continue;
-      for (const m of strip(read(r)).matchAll(/from\s+'@\/(app\/vendor\/[A-Za-z0-9\[\]\/_-]+)'/g)) {
-        for (const ext of ['.tsx', '.ts']) {
-          const cand = m[1] + ext;
-          if (fs.existsSync(path.join(ROOT, cand))) { bodies.add(cand); break; }
-        }
-      }
+      collect(path.join(ROOT, r), new Set());
     }
   };
   walkRoutes('app/w');
@@ -1370,19 +1416,136 @@ cell('C39 a fixed control in a crossed body clears the shell chrome (F-38.59)', 
     // `bottom:0` spans the full width and is covered by its own scrim, so it is not a
     // partial-coverage hit-test either. What this catches is a control with a bottom
     // OFFSET — a FAB — which is the only shape that can sit half-behind the chrome.
+    // ── AMENDED, LABELLED — CE-39 S2/6. THE CURE'S SHAPE CHANGED AND THE SKIP FOLLOWED IT.
+    // The old skip read `inShell ?` INSIDE the bottom expression, because at F-38.59 the
+    // cure was a ternary in the value. F-39.4's cure is one rung up: the shell arm renders
+    // components/worklist/Fab.tsx and names no number at all, while the /vendor arm keeps
+    // its own literal and dies with that tree at Phase 7. So the lawful literal is no
+    // longer near a ternary — it is on a DECLARED element.
+    //
+    // ⚠ AND IT IS DECLARED RATHER THAN INFERRED, WHICH IS THE WHOLE POINT. The first cut
+    // of this amendment looked backwards N characters for the word inShell and passed or
+    // failed on how far away it happened to sit — a cell whose verdict depends on
+    // whitespace. `data-tree="vendor"` is the element SAYING which tree it belongs to,
+    // the same shape as every INTERIM_ set in the registry: declared, not allowed, and
+    // countable. A control that wants the exemption has to claim it in the markup.
     for (const m of src.matchAll(/position:\s*'fixed'[^}]*?bottom:\s*([^,}]+)/g)) {
       const expr = m[1];
       if (!/calc\(/.test(expr)) continue;          // bottom:0 and friends: not an offset
-      if (/inShell\s*\?/.test(expr)) continue;     // reads the tree — the cure
+      if (/inShell\s*\?/.test(expr)) continue;     // a tree-aware value — F-38.59's cure
+      // The declaration sits on the opening tag, so look back to it and no further.
+      const tagStart = src.lastIndexOf('<button', m.index);
+      if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
       offenders.push(b + ' — ' + expr.trim().slice(0, 72));
     }
   }
   if (offenders.length)
     return 'a fixed control carries a bare bottom offset in a body reachable from /w, so it '
       + 'sits behind the dock and the nav inside the shell: ' + offenders.join(' · ')
-      + ' — the ruled pair is `inShell ? calc(120px + env(safe-area-inset-bottom)) : '
-      + 'calc(82px + env(safe-area-inset-bottom))`, derived at components/vendor/slices/SliceShell.tsx';
+      + ' \u2014 the ruled shape since F-39.4 is: the shell arm renders '
+      + 'components/worklist/Fab.tsx and names NO number (the seat reads GRID.fab), while '
+      + 'a /vendor arm keeps its own literal and declares itself with data-tree="vendor". '
+      + 'Founder ruling 2026-08-29: the FAB sits right on Rooms and nowhere else.';
   return null;
+});
+
+// ── C49 · ONE FAB, ONE SEAT, EVERY ROOM  [F-39.4, founder ruling 2026-08-29] ────
+//    THE FOUNDER FOUND THIS IN UNDER A MINUTE AND TWO INSTRUMENTS DID NOT. Three rooms drew
+//    three floating add controls — 56/gutter/136 on Rooms, 46/20/120 in the list family,
+//    52/24/80 on Notes — so the button changed size, corner and height as he walked, and on
+//    Notes it sat on the ask dock. Ruled: Rooms is the reference, its seat lives in
+//    GRID.fab, and nothing else in the shell may name a FAB size or a bottom offset.
+//
+//    ⚠ THE ASSERTION IS ABSENCE-SHAPED ACROSS THE GRAPH AND PRESENCE-SHAPED AT THE HOME,
+//    which is the only pairing that catches this class: a cell that merely checked GRID.fab
+//    exists would pass on a tree where Notes still drew its own 80. Comments are stripped
+//    first — these files DESCRIBE the retired numbers at length, and a textual assertion
+//    that reads its own tombstones is F-38.60's family.
+cell('C49 one FAB seat, read from GRID, and no room names its own (F-39.4)', () => {
+  const theme = strip(read('lib/worklist/theme.ts'));
+  const g = theme.match(/fab:\s*\{\s*size:\s*(\d+),\s*bottom:\s*(\d+)\s*\}/);
+  if (!g) return 'GRID has no fab seat — the one home for the size and the offset is missing';
+  if (!/--wl-fab:\$\{GRID\.fab\.size\}px/.test(theme) || !/--wl-fab-bottom:\$\{GRID\.fab\.bottom\}px/.test(theme))
+    return 'the fab seat is declared but never emitted — the rule below would read an undefined variable and fall through to the user agent';
+  // THE RULE READS THE VARIABLES RATHER THAN RESTATING THEM.
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const rule = shell.match(/\.wl-fab\{([^}]*)\}/);
+  if (!rule) return 'the wl-fab rule is not in the shell — a room using the class would paint an unstyled button';
+  if (!/width:var\(--wl-fab\)/.test(rule[1]) || !/height:var\(--wl-fab\)/.test(rule[1]))
+    return 'the wl-fab rule states its own size instead of reading GRID.fab';
+  if (!/bottom:calc\(var\(--wl-fab-bottom\)/.test(rule[1]))
+    return 'the wl-fab rule states its own bottom offset instead of reading GRID.fab';
+  if (!/right:var\(--wl-gutter\)/.test(rule[1]))
+    return 'the FAB sits at its own x rather than the gutter — the edge defect (R-38.5) wearing a circle';
+  // AND NO SHELL-REACHABLE FILE DRAWS A SECOND SEAT. Derived from the routes, never typed.
+  const resolveSpec = (spec, from) => {
+    let base = null;
+    if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
+    else if (spec.startsWith('.')) base = path.resolve(path.dirname(from), spec);
+    else return null;
+    for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts', '']) {
+      const p = base + ext;
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
+    }
+    return null;
+  };
+  const reach = new Set();
+  const collect = (abs) => {
+    if (reach.has(abs)) return;
+    reach.add(abs);
+    for (const m of strip(fs.readFileSync(abs, 'utf8')).matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+      const r = resolveSpec(m[1], abs);
+      if (r && !r.includes('node_modules')) collect(r);
+    }
+  };
+  const walkRoutes = (rel) => {
+    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
+      const r = rel + '/' + e.name;
+      if (e.isDirectory()) { walkRoutes(r); continue; }
+      if (e.name === 'page.tsx') collect(path.join(ROOT, r));
+    }
+  };
+  walkRoutes('app/w');
+  if (reach.size < 10) return 'only ' + reach.size + ' files reachable from app/w — this cell would pass over a graph it never walked';
+  const RULED = [Number(g[1]), Number(g[2])];
+  const offenders = [];
+  for (const abs of [...reach].sort()) {
+    const rel = path.relative(ROOT, abs);
+    if (rel === 'components/worklist/WorklistShell.tsx') continue;   // the seat's one home
+    const src = strip(fs.readFileSync(abs, 'utf8'));
+    // A FIXED control with a BOTTOM OFFSET is a FAB by shape. The ruled seat names no
+    // number at all, so ANY literal here is a second seat — including the ruled values
+    // themselves, because a copy that happens to agree today is still a second home.
+    for (const m of src.matchAll(/position:\s*'fixed'[^}]*?bottom:\s*'calc\((\d+)px/g)) {
+      // The /vendor arm is ruled untouched: it clears the OLD shell's BottomNav and dies
+      // with that tree at Phase 7. It is lawful ONLY where the element DECLARES which tree
+      // it belongs to — see C39's amendment for why this is a marker and not a proximity
+      // guess. The first cut of this cell searched backwards 400 characters for the word
+      // inShell and convicted SliceShell's lawful arm, because the false branch sits
+      // further away than that. **A cell whose verdict depends on whitespace is not a
+      // cell**, and it would have been the second instrument this sitting to point at the
+      // tree for a fault in the reader (F-38.44's shape).
+      const tagStart = src.lastIndexOf('<button', m.index);
+      if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
+      offenders.push(rel + ' draws its own FAB seat at ' + m[1] + 'px');
+    }
+    // A DIMENSION IS ONLY A SEAT INSIDE A FIXED CONTROL'S OWN STYLE BLOCK. The first cut
+    // asked whether the FILE contained `width: 56` anywhere and whether it contained a
+    // fixed position anywhere, and convicted app/vendor/calendar/screen.tsx — which has
+    // both, hundreds of lines apart, in unrelated rules. **A guard that refuses an innocent
+    // file teaches the founder to stop reading it** (base_guard's own warrant). The window
+    // is the style block now, which is the only place the two facts mean one thing.
+    for (const m of src.matchAll(/position:\s*'fixed'([^}]*)/g)) {
+      const block = m[1];
+      const tagStart = src.lastIndexOf('<button', m.index);
+      if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
+      if (RULED.some((n) => new RegExp('(width|height):\\s*' + n + '\\b').test(block)))
+        offenders.push(rel + ' restates a ruled seat dimension inside a fixed control');
+    }
+  }
+  return offenders.length
+    ? offenders.join(' | ') + ' — GRID.fab is the one home (founder ruling 2026-08-29: the FAB sits right on Rooms and nowhere else)'
+    : null;
 });
 
 // ── C40 · COLLAB'S TAB ORDER AND ITS LANDING TAB  [F-38.62] ─────────────────────

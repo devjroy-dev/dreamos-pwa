@@ -192,6 +192,49 @@ const SHELL_CSS = `
 .wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+/* ── THE FAB'S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
+   ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
+   The first cut computed the bottom chrome from its parts: nav min-height 52, plus a dock
+   of 8+8 padding over a 44px field with a half-pixel border, call it 61. 113. Every other
+   thing about the control was right and the gap came out at NINE PIXELS in both modes,
+   because 113 is not what the browser paints — the real chrome measures 120, and the seven
+   missing pixels live somewhere in a line box I would have kept re-deriving from the
+   stylesheet and kept getting wrong.
+
+   THAT IS THE WHOLE LESSON AND IT IS THIS FILE'S OWN NEIGHBOURHOOD: a rule assembled out
+   of other rules' declared values is arithmetic about a stylesheet, not a fact about a
+   page. The gutter cell, the tile-height cell and the edge cell all exist because
+   declarations and paint disagree.
+
+   MEASURED ON THE DEPLOY, 390x844, BOTH MODES: the dock's top edge sits 120px above the
+   viewport bottom. 120 + 16 = 136, and the safe-area inset rides on top because it is zero
+   on the measuring surface and is not zero on the founder's phone.
+
+   THE NUMBER IS NOT THE PROOF EITHER. C-R18 measures the painted gap every run and reds on
+   15..17; if the dock gains a row, this literal goes stale and the cell says so in the
+   run rather than in a comment nobody re-derives.
+
+   ── CE-39 S2/6 · F-39.4 · THE NUMBER LEFT THIS RULE FOR THE GRID ──────────────
+   It was written here as 136 and 56, and two other files wrote their own — 120 and 46 in
+   the slice tree, 80 and 52 on Notes — so the founder met a button that changed size,
+   corner and height as he walked, and on Notes it sat on the ask dock. The measurement
+   above is unchanged and still the warrant; what changed is that it now has one home,
+   GRID.fab in lib/worklist/theme.ts, emitted by typeCss as two variables this rule reads.
+   Nothing else in the shell may name a FAB size or a bottom offset. */
+.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
+/* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
+   F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
+   nobody could see. That floor is a ratio between a row's pressed fill and the ground it
+   sits on, and it does not transfer here: this control is a solid accent disc floating over
+   arbitrary content, so a darker accent has no fixed neighbour to be read against and any
+   number chosen for it would be a colour nobody measured — which is precisely what the
+   Slice Door's retired opacity was.
+   So the press is SIZE and DEPTH: 56 to 52.6 (6%) with the shadow pulled in. Both are
+   changes to the control itself, both survive on any ground, and C-R18 measures the
+   painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
+   PRESSED STATE, and that refusal is the point of the paragraph. */
+.wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
+.wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 /* TOUCH. Two defects in the first cut, both found on the founder's device and neither
    visible in a desktop render: no pressed state anywhere, and no touch-action, so the
    browser held every tap for the double-tap-zoom gesture before dispatching the click. */
