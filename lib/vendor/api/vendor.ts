@@ -5,7 +5,7 @@
 import { getJson, postJson, patchJson, API_BASE, getAuthHeader, handleResponse } from './_base';
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
 import type {
-  MeResponse, VendorContextResponse, TodayResponse,
+  MeResponse, VendorContextResponse, TodayResponse, WorklistTodayResponse,
   LeadsResponse,
   ClientsResponse, ClientDetailResponse,
   InvoicesResponse, ExpensesResponse, EventsResponse,
@@ -216,6 +216,22 @@ export function reportGlitch(): Promise<GlitchReportResponse> {
 // ── Today dashboard ───────────────────────────────────────────────────────
 export function fetchToday(vendorId: string): Promise<TodayResponse> {
   return getJson<TodayResponse>(`/api/v2/vendor/today/${vendorId}`);
+}
+
+// ── THE WORKLIST FEED · GET /api/v2/vendor/worklist/today  [F-39.9, RULED] ──
+//
+// A SECOND DOOR, NOT A REPOINT, AND THE REASON IS THE WHOLE OF F-39.9. The Phase 4
+// kickoff read `fetchToday` above as "the pwa door" for the frozen contract. It is not:
+// different route (F-P3.9's deleted `/today/:vendorId`), different shape
+// (`TodayResponse` — three kinds, no `has_any`, no `counts`, no `truncated`, no
+// `done_today`), and a `:vendorId` argument the contract explicitly forbids.
+//
+// NO ARGUMENT, AND THAT IS THE CONTRACT SPEAKING. §3: 「the vendor is the token's;
+// there is no :vendorId」. A vendorId parameter here would be a second statement of a
+// fact the Bearer already carries, and two statements of one fact can disagree — which
+// is the whole reason the endpoint was built without one.
+export function fetchWorklistToday(): Promise<WorklistTodayResponse> {
+  return getJson<WorklistTodayResponse>('/api/v2/vendor/worklist/today');
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────

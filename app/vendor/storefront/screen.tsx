@@ -54,7 +54,7 @@ import { roomHref } from '@/lib/worklist/rooms';
 // this block LINKS /vendor/discover/profile, it does not absorb it.
 import { useState } from 'react';
 import { useSettings } from '@/hooks/vendor/useSettings';
-import { fetchDiscoverStatus, fetchPortfolio, fetchToday } from '@/lib/vendor/api/vendor';
+import { fetchDiscoverStatus, fetchPortfolio } from '@/lib/vendor/api/vendor';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
 import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
@@ -185,11 +185,24 @@ function BioBlock({ vendorId }: { vendorId: string }) {
   const [pending, setPending] = useState(0);
   const [hasHero, setHasHero] = useState(false);
   const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
-  const [leadsWaiting, setLeadsWaiting] = useState<number | null>(null);
-  // F-09.111: the two fetches that feed the SCORE, settled-or-failed. fetchToday
-  // is deliberately NOT counted — it feeds only the leads readout, which is
-  // already a conditional span inside an existing flex row and mounts without
-  // changing that row's height.
+  // ── F-39.10 · THE LEADS READOUT IS REMOVED-BY-RULING (CE-39, 2026-08-29) ───
+  // A `leadsWaiting` state, a `fetchToday` call and a conditional span stood here. All
+  // three are GONE, not gated.
+  //
+  // WHY, in the ruling's own terms: R-P3.5.6 ① says `open_leads_count` is never summed,
+  // compared or displayed against Today's masthead in ANY surface, and Storefront IS a
+  // room — a default pin, one tile away from Today. The figure came off the ENGINE plane
+  // while Today's numeral comes off the TYPED plane, so after Phase 4 this room and that
+  // masthead would have shown two numbers about the same leads, from two planes, able to
+  // disagree by construction. §8.9 names that as the disease and does not recommend it.
+  // TODAY IS THE ONE LEADS FIGURE.
+  //
+  // THE ENGINE READER ITSELF IS NOT TOUCHED. `fetchToday` and its remaining caller
+  // (`hooks/vendor/useVendorData.ts:216`) stand as they were; the predicate is not
+  // repaired, it RETIRES at the §8.9 seam (R-P3.5.6's whole reasoning). What left here is
+  // a DISPLAY, which is the half the ruling governs.
+  //
+  // F-09.111: the two fetches that feed the SCORE, settled-or-failed.
   const [statusDone, setStatusDone] = useState(false);
   const [heroDone,   setHeroDone]   = useState(false);
   const metricsReady = statusDone && heroDone;
@@ -211,9 +224,6 @@ function BioBlock({ vendorId }: { vendorId: string }) {
       if (res.ok) setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
     }).catch(() => { /* same */ })
       .finally(() => { if (live) setHeroDone(true); });
-    // Leads count: the SAME engine figure the home ledger reads
-    // (TodayResponse.open_leads_count) — one authority, R-O12/R-O15's law.
-    fetchToday(vendorId).then((t) => { if (live) setLeadsWaiting(t?.open_leads_count ?? null); }).catch(() => {});
     return () => { live = false; };
   }, [vendorId]);
 
@@ -292,11 +302,6 @@ function BioBlock({ vendorId }: { vendorId: string }) {
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
           {approved} photos live{pending > 0 ? ` · ${pending} pending` : ''}
         </span>
-        {leadsWaiting !== null && (
-          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: leadsWaiting > 0 ? A.brassWarm : A.inkMute }}>
-            {leadsWaiting} {leadsWaiting === 1 ? 'lead waiting' : 'leads waiting'}
-          </span>
-        )}
       </div>
     </div>
   );

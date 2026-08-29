@@ -366,7 +366,11 @@ export interface SliceScreenProps<T extends { id: string }> {
 
 export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest }: SliceScreenProps<T>) {
   const router = useRouter();
-  const ToastView = useInShell() ? WlToast : Toast;
+  // ONE DERIVATION, TWO READERS. `useInShell` was called inline for the toast alone; the
+  // F-39.11 focus arm below needs the same fact, and calling the hook twice in one
+  // component is two statements of one thing that a later edit can let disagree.
+  const screenInShell = useInShell();
+  const ToastView = screenInShell ? WlToast : Toast;
   const { session } = useVendorSession();
   const d = useData(vendorId);
 
@@ -533,6 +537,39 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // Leaving the screen COMMITS what's pending: the undo window is a courtesy
   // for the moment you're looking at the row, not a vote to discard the write.
   useEffect(() => () => { flushAllPending(); }, []);
+
+  // ── F-39.11 · `?lead=<id>` FOCUSES ONE ROW, INSIDE THE SHELL ONLY ──────────
+  //
+  // A Today card names a record; the room it lands in has to be able to show WHICH. There
+  // was no way for a route to say that — this module reads no search param anywhere — so
+  // the param is the smallest thing that closes it.
+  //
+  // ⚠ GATED ON `inShell`, AND THE FALLBACK IGNORES IT BY CONSTRUCTION. `/vendor/list/leads
+  // ?lead=…` does nothing at all: the effect returns before it reads the param. That is
+  // the ruling's shape and it is also the safe one — the /vendor tree is being retired at
+  // Phase 7 and must not grow a behaviour that has to be retired with it.
+  //
+  // ⚠ FOCUS AND SCROLL, NOT SELECT AND NOT OPEN. `selected` is the long-press BULK set and
+  // putting a URL into it would let a link arrive at select-mode with one row ticked — a
+  // gesture's state entered without the gesture. Opening the detail sheet was the other
+  // arm and is refused too: a sheet that opens itself from an address is a surface the
+  // vendor did not ask for. The row is brought to the eye; the tap remains hers.
+  //
+  // IT RUNS WHEN THE ROWS DO. `rows` is the dependency because the element cannot be found
+  // before the list paints, and a one-shot on mount would silently miss every time.
+  const focusedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!screenInShell || slice !== 'leads') return;
+    const want = new URLSearchParams(window.location.search).get('lead');
+    if (!want || focusedRef.current === want) return;
+    if (!rows.some((r) => r.id === want)) return;
+    const el = document.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(want)}"]`);
+    if (!el) return;
+    focusedRef.current = want;
+    el.scrollIntoView({ block: 'center' });
+    const tap = el.querySelector<HTMLElement>('button');
+    (tap ?? el).focus({ preventScroll: true });
+  }, [screenInShell, slice, rows]);
 
   // Fetch lead detail when a lead row is selected
   useEffect(() => {

@@ -20,6 +20,8 @@
 // it before he sees it.
 'use strict';
 
+import type { AttentionKind } from '@/lib/vendor/types/vendor';
+
 export type Band = 'work' | 'business';
 
 export interface Room {
@@ -139,6 +141,29 @@ export const ROOMS: readonly Room[] = [
 // away from the two rooms it reconciles is a ledger nobody opens. Geometry is MEASURED at
 // 374x844 by the render arm rather than argued from this note — nineteen at 64px is
 // arithmetic until the arm says otherwise (R-38.10's own STOP clause).
+/**
+ * KIND → ROOM. THE ONE-LINER, AND THE ONLY ONE.
+ *
+ * `TDW_09_WORKLIST_P3_HANDOVER.md` §7: 「the endpoint does not know the room registry and
+ * must not learn it」. So the wire ships a kind, this file owns where a kind lives, and
+ * `roomHref` below turns that into an address. Three facts, one home each.
+ *
+ * ⚠ IT MAPS TO AN `id`, NEVER TO A PATH. A literal `/w/leads` here would be the R-38.1
+ * disease with a new spelling: a second place that spells a destination, drifting the
+ * moment a room moves. Every consumer reads `roomHref(ROOM_FOR_KIND[k])`.
+ *
+ * ⚠ AND IT IS TOTAL OVER THE FIVE KINDS BY TYPE, not by convention. `Record<AttentionKind,
+ * string>` means a sixth kind arriving on the wire cannot be added to the contract without
+ * this object failing to compile — which is the alarm, not the inconvenience.
+ */
+export const ROOM_FOR_KIND: Readonly<Record<AttentionKind, string>> = {
+  lead_unanswered:   'leads',
+  invoice_due:       'invoices',
+  events_today:      'events',
+  contract_unsigned: 'contracts',
+  team_tasks:        'team',
+} as const;
+
 export const ROOM_COUNT_EXPECTED = 19;
 export const TOP_BAND_EXPECTED = 8;
 export const BOTTOM_BAND_EXPECTED = 11;

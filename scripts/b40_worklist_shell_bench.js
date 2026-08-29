@@ -342,12 +342,14 @@ cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word
   // — the assertion INVERTS rather than vanishing, and the clause that mattered (Today opens
   // on a line with stature, R-37.76 (8)) is preserved against its successor, the STATUS.
   if (/todayTitle:/.test(copy)) return 'the retired page title todayTitle is back in copy.ts';
-  // AMENDED, LABELLED — relay #3 item 2. `todayNothingYet` is WITHHELD, not exported: a
-  // retired byte that ships is the retirement failing in the one way that matters, and the
-  // audit caught it in the served bytes. The assertion INVERTS rather than vanishing.
+  // AMENDED TWICE, BOTH TIMES LABELLED. Relay #3 item 2 withheld `todayNothingYet` and this
+  // cell asserted its ABSENCE from the register. PHASE 4 DISCHARGES THAT WITHHOLDING — the
+  // feed answers, so the byte is a live export and the assertion INVERTS A SECOND TIME
+  // rather than being deleted. Retire-with-the-reader: a bench moves with the code it
+  // tests, and an assertion that simply vanishes leaves nothing watching the byte at all.
   if (!/todayNotLive:/.test(copy)) return 'Today has no not-reading status byte in copy.ts';
-  if (/^\s*todayNothingYet:/m.test(copy))
-    return 'the true-empty byte is a live export again — it must stay withheld until the feed answers';
+  if (!/^\s*todayNothingYet:\s*'Nothing needs you yet\.'/m.test(copy))
+    return 'the true-empty byte is withheld while the feed answers — it has a state to render now';
   if (!/COPY\.todayNotLive/.test(strip(read('app/w/today/page.tsx'))))
     return 'the not-reading status is never rendered on Today';
 
@@ -921,7 +923,16 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
   // world without erroring.
   const shell = strip(read('components/vendor/slices/SliceShell.tsx'));
   if (/<Toast\s/.test(shell)) bad.push('SliceShell mounts Toast directly — inside /w it falls to createContext(DARK)');
-  if (!/ToastView = useInShell\(\) \? WlToast : Toast/.test(shell)) bad.push('SliceScreen does not pair its toast to the tree');
+  // BEHAVIOUR, NOT SHAPE. This read `ToastView = useInShell() ? WlToast : Toast` as one
+  // literal until F-39.11 gave SliceScreen a second reader of the same fact and the
+  // derivation was named (`screenInShell`) rather than called twice. The cell reddened on a
+  // refactor that changed nothing it cares about — a line-shape assertion, the F-15.12
+  // family. What must hold is that SliceScreen derives the tree ONCE and picks its toast
+  // from that derivation, however the binding is spelled.
+  const tv = shell.match(/const ToastView = ([A-Za-z0-9_]+)\s*\?\s*WlToast\s*:\s*Toast/);
+  if (!tv) bad.push('SliceScreen does not pair its toast to the tree');
+  else if (!new RegExp('const ' + tv[1] + ' = useInShell\\(\\)').test(shell) && tv[1] !== 'useInShell()')
+    bad.push('SliceScreen\'s toast is picked from something other than useInShell');
   const cl = strip(read('app/vendor/list/[slice]/clients.tsx'));
   if (/<Toast\s/.test(cl)) bad.push('the clients module mounts Toast directly');
   return bad.length ? bad.join(' | ') : null;
@@ -1189,13 +1200,18 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // THE NUMERAL IS BEHIND THE GATE. A default would satisfy every cell about the sentence.
   if (/\?\?\s*0/.test(today)) return 'the numeral falls back to 0 — an unmeasured zero is the claim F-38.31 convicted';
   if (!/feed\.responded[\s\S]{0,120}wl-mnum/.test(today)) return 'the numeral is not gated on feed.responded';
-  // AMENDED, LABELLED — relay #3 item 2. The two-armed status is withheld with its byte.
-  // What the cell asserts is that the surface prints the HONEST line and no other: a status
-  // that claims a reading is the whole of F-38.31, and it can arrive either as the wrong
-  // sentence or as a numeral, so both are refused.
+  // AMENDED TWICE, BOTH LABELLED. Relay #3 item 2 withheld the true-empty arm with its
+  // byte, and this cell refused its presence. PHASE 4 DISCHARGES THAT: the feed answers, so
+  // BOTH bytes are live and what the cell must hold is that each is gated on the state it
+  // describes. The refusal that does NOT change is the one that matters — a status byte
+  // must never stand over cards, because a heading claiming emptiness above eleven rows is
+  // F-38.31 with the sign flipped.
   if (!/COPY\.todayNotLive/.test(today)) return 'the surface does not print the not-reading status';
-  if (/COPY\.todayNothingYet/.test(today))
-    return 'the true-empty arm is live again while its byte is withheld';
+  if (!/COPY\.todayNothingYet/.test(today)) return 'the true-empty byte has no consumer while the feed answers';
+  if (!/!feed\.responded && <h1[^\n]*todayNotLive/.test(today))
+    return 'the not-reading line is not gated on the absence of a reading';
+  if (!/resting && <h1[^\n]*todayNothingYet/.test(today))
+    return 'the true-empty line is not gated on the resting state — it can stand over cards';
   return null;
 });
 
@@ -1294,11 +1310,15 @@ cell('C37 the t0 rung survives while its consumer is withheld', () => {
   if (size !== '46' || weight !== '500')
     return 'the t0 rung drifted to ' + size + '/' + weight + ' while nothing consumed it — R-37.88 ratified 46/500';
   if (!/'t0'/.test(theme)) return 't0 is not in the RUNGS list, so typeCss never emits it';
-  // AND NOTHING CONSUMES IT IN SOURCE EITHER, which is the withholding asserted at its
-  // other end: a consumer re-added here would paint a numeral over an unread feed.
+  // ── PHASE 4 · THE CONSUMER CAME BACK, AND THE ASSERTION INVERTS WITH IT ────
+  // While the numeral was withheld this arm asserted that NOTHING consumed the rung. The
+  // feed answers now, so the honest claim is the one R-38.4 always made: t0 is ONE element
+  // per app, and that element is Today's numeral. A rung declared with no consumer is a
+  // variable somebody re-invents at a new value; a rung with two is the five-rung scale's
+  // exception quietly becoming a rule.
   const today = strip(read('app/w/today/page.tsx'));
-  if (/var\(--wl-t0\)/.test(today))
-    return 'the withheld numeral has a consumer again in app/w/today/page.tsx (F-38.31)';
+  if (!/var\(--wl-t0\)/.test(today)) return 'the masthead numeral does not consume t0 — the rung has no home';
+  if (!/wl-mnum\{font:var\(--wl-t0\)/.test(today)) return 'something other than the numeral consumes t0 on Today';
   return null;
 });
 
@@ -2082,6 +2102,160 @@ cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing t
   if (/couture_eligible/.test(src) === false) bad.push('the screen no longer reads the one boolean it was ruled to read');
   return bad.length ? bad.join(' | ') : null;
 });
+
+
+// ══ PHASE 4 · TODAY READS THE FEED ═══════════════════════════════════════════
+// Six cells. Every one of them asserts a SURFACE OR A BEHAVIOUR and none asserts a line
+// number or where a constant lives (the F-15.12 family). The RED MUTATION named on each is
+// a mutation of PRODUCTION CODE, never of a fixture: a cell that only reddens when you
+// break its own setup has proved nothing about the build.
+
+// C60 — the numeral is the sum of FIVE counts, and the sum has one home.
+//    §3 property 2: no total ships on the wire; the client sums, so the sum is authored
+//    here and this is the cell that watches it. `sumCounts` is factored out of the
+//    component precisely so this mutation is available: dropping one term is a
+//    one-character edit that yields a plausible smaller number no render cell would catch.
+//    RED MUTATION: delete `+ (counts.team_tasks ?? 0)` from sumCounts in lib/worklist/feed.ts.
+cell('C60 the masthead numeral is the sum of all five counts, computed in one home', () => {
+  const bad = [];
+  const feed = strip(read('lib/worklist/feed.ts'));
+  const KINDS = ['lead_unanswered', 'invoice_due', 'events_today', 'contract_unsigned', 'team_tasks'];
+  const m = feed.match(/export function sumCounts\([\s\S]*?\n\}/);
+  if (!m) { bad.push('sumCounts has no home in lib/worklist/feed.ts'); return bad.join(' | '); }
+  for (const k of KINDS) if (!m[0].includes(k)) bad.push('sumCounts does not read counts.' + k);
+  // ONE HOME: nothing else in the shell may reduce over `counts`, or the numeral and the
+  // tiles could be built by two recipes for one figure.
+  for (const f of ['app/w/today/page.tsx', 'components/worklist/RoomsGrid.tsx', 'components/worklist/TodayCards.tsx']) {
+    const src = strip(read(f));
+    if (/counts\s*\)?\s*\.\s*reduce|Object\.values\([^)]*counts/.test(src)) bad.push(f + ' sums counts itself — second home for the numeral');
+  }
+  const page = strip(read('app/w/today/page.tsx'));
+  if (!/feed\.responded && feed\.openItems !== null/.test(page)) bad.push('the numeral is not gated on a reading (F-38.31)');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C61 — the feed renders in the wire's key order and never re-sorts.
+//    §3 properties 4 and 5. JSON preserves insertion order and that order IS D-4's rank,
+//    so the render walks the body's own keys. A client-side sort would look tidy and would
+//    silently override a ranking the backend owns.
+//    RED MUTATION: add `.sort()` after `Object.keys(na)` in components/worklist/TodayCards.tsx.
+cell('C61 the feed renders in the wire\'s key order and re-sorts nothing', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/TodayCards.tsx'));
+  if (!/Object\.keys\(na\)/.test(src)) bad.push('the render does not read the body\'s own key order');
+  if (/\.sort\(/.test(src)) bad.push('the feed sorts — key order IS D-4\'s ranking (property 4)');
+  if (/\.reverse\(/.test(src)) bad.push('the feed reverses — ties break oldest-first as delivered (property 5)');
+  // ATTENTION_KINDS is a SET for the type system, not the sequence. If the render iterated
+  // it, a wire re-rank would be overridden by a constant in the client.
+  if (/ATTENTION_KINDS/.test(src)) bad.push('the render iterates the constant instead of the body');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C62 — a tile figure is counts[k], never a list length.
+//    R-37.63 ①, and §3 property 3 is why it matters: when the cap fires, counts[k] is a
+//    FLOOR and the array is exactly 20. A tile authored from `rows.length` is right until
+//    it silently is not — a badge that is secretly a floor, the false-done class.
+//    RED MUTATION: in RoomsGrid.tsx, build the figure from
+//                  `feed.today.needs_attention[kind].length` instead of `counts[kind]`.
+cell('C62 a tile figure is the wire\'s count, not a list length, and it is never called a badge', () => {
+  const bad = [];
+  const src = strip(read('components/worklist/RoomsGrid.tsx'));
+  if (!/counts\[kind\]/.test(src)) bad.push('the tile figure does not read counts[kind]');
+  if (/needs_attention\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length/.test(src)) bad.push('the tile figure is authored from a list length (property 1/3)');
+  if (!/useTodayFeed/.test(src)) bad.push('Rooms does not read the Today feed — R-37.63 (1) wants the SAME response');
+  // ONE WORD, ONE MEANING. SliceShell owns `badge` for a row-level state chip and the six
+  // list rooms import it; the tile figure must not answer to the same name.
+  if (/\bbadge\b/i.test(src)) bad.push('the tile figure is called a badge — SliceShell owns that word');
+  const rooms = strip(read('lib/worklist/rooms.ts'));
+  if (/\bbadge\b/i.test(rooms)) bad.push('rooms.ts spells badge — the registry\'s word is count');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C63 — the manual is gated on has_any FALSE; the resting state is gated on an empty
+//    reading; neither is gated on the other's condition.
+//    §3 property 6 in its own words: has_any answers "has this vendor ever had anything",
+//    not "is today busy". NEVER SHOW THE MANUAL ON A QUIET DAY. The inversion is the
+//    mutation because it is the failure that looks correct in a screenshot of a new account.
+//    RED MUTATION: change `today.has_any === false` to `=== true` in app/w/today/page.tsx.
+cell('C63 FirstRun rides has_any false and the resting state rides an empty reading', () => {
+  const bad = [];
+  const src = strip(read('app/w/today/page.tsx'));
+  if (!/const firstRun = [^\n]*has_any === false/.test(src)) bad.push('FirstRun is not gated on has_any === false (property 6)');
+  if (!/const resting\s*=\s*[^\n]*has_any === true[^\n]*openItems === 0/.test(src)) bad.push('the resting state is not gated on a reading that came back empty');
+  if (!/const working\s*=\s*[^\n]*openItems !== null[^\n]*openItems > 0/.test(src)) bad.push('the working state is not gated on a reading with work in it');
+  if (!/\{firstRun && <FirstRun \/>\}/.test(src)) bad.push('FirstRun is not behind its gate — it renders unconditionally');
+  const rest = strip(read('components/worklist/TodayCards.tsx'));
+  // property 8: exactly three keys, and no fourth bucket and no sentence explaining the absence.
+  for (const k of ['invoice_paid', 'contract_signed', 'team_task_done'])
+    if (!rest.includes(k)) bad.push('the resting summary omits done_today.' + k);
+  if (/lead[s]?_done|events_done|event_done/.test(rest)) bad.push('the resting summary invents a fourth bucket (property 8)');
+  if (!/todayRestingScope/.test(rest)) bad.push('the resting state does not carry its one coverage line');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C64 — the truncation tell rides the wire's flag, and no count can render bare when cut.
+//    §3 property 3: truncated[k] is the tell that the cap fired; the surface must say so or
+//    not imply otherwise. The suffix REPLACES nothing and ADDS to the figure, so there is no
+//    state in which a capped count reads as a plain 20.
+//    RED MUTATION: drop the `{cut ? COPY.todayTruncatedSuffix : ''}` from TodayCards.tsx.
+cell('C64 a capped count never renders bare — the truncation tell rides truncated[k]', () => {
+  const bad = [];
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const m = copy.match(/todayTruncatedSuffix:\s*'([^']*)'/);
+  if (!m) bad.push('the truncation tell has no byte in the copy register');
+  else if (m[1] !== '+') bad.push('the truncation tell reads 、' + m[1] + '、, vetoed byte is 、+、');
+  for (const f of ['components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx']) {
+    const src = strip(read(f));
+    if (!/truncated\[/.test(src) && !/truncated\b/.test(src)) bad.push(f + ' does not read truncated');
+    if (!/todayTruncatedSuffix/.test(src)) bad.push(f + ' renders a figure with no truncation tell available to it');
+  }
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// C65 — open_leads_count is absent from every Today and Rooms path, and the five dated
+//    uncomments fired together.
+//    R-P3.5.6 (1) as extended by F-39.10: Storefront is a room, so the engine figure leaves
+//    the display. The engine READER is untouched and retires at the 8.9 seam.
+//    RED MUTATION: re-comment `todayNothingYet` in copy.ts, or restore the leadsWaiting
+//                  span in app/vendor/storefront/screen.tsx.
+cell('C65 open_leads_count reaches no shell path, and the dated uncomments all fired', () => {
+  const bad = [];
+  // (a) the symbol is gone from every render path the shell can reach.
+  const PATHS = [
+    'app/w/today/page.tsx', 'components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx',
+    'lib/worklist/feed.ts', 'lib/worklist/rooms.ts', 'app/vendor/storefront/screen.tsx',
+  ];
+  for (const f of PATHS) if (/open_leads_count/.test(strip(read(f)))) bad.push(f + ' still displays or compares open_leads_count (R-P3.5.6 (1))');
+  // (b) the old door and its remaining reader are RULED UNTOUCHED — their absence would be
+  //     a different defect, so this cell asserts they are STILL THERE.
+  // ⚠ RAW READ, NOT `strip`, AND F-39.13 IS WHY. `lib/vendor/api/vendor.ts` carries four
+  // `/*` openers against three closers (a `/binders/*` path inside a line comment), so
+  // `strip`'s non-greedy block regex swallows from that point to end of file and
+  // `fetchToday` disappears from the stripped text. A stripper that eats live code makes
+  // every ABSENCE assertion over that file vacuously green — the dangerous half — and this
+  // presence assertion falsely red. The finding is filed; this cell does not work around it
+  // silently, it reads the bytes and says so.
+  if (!/fetchToday/.test(read('lib/vendor/api/vendor.ts'))) bad.push('the old fetchToday door was removed — F-39.9 ruled it untouched');
+  if (!/fetchToday/.test(read('hooks/vendor/useVendorData.ts'))) bad.push('useVendorData no longer reads the old door — ruled untouched');
+  // (c) all five dated uncomments fired in this one commit; a partial firing is the defect.
+  const copy = strip(read('lib/worklist/copy.ts'));
+  if (!/todayNothingYet:\s*'Nothing needs you yet\.'/.test(copy)) bad.push('COPY.todayNothingYet is still withheld');
+  const page = strip(read('app/w/today/page.tsx'));
+  if (!/\.wl-mnum\{font:var\(--wl-t0\)/.test(page)) bad.push('the wl-mnum rules were not restored to the style block');
+  if (!/font-variant-numeric/.test(page)) bad.push('the numeral is not tabular — the font shorthand reset it');
+  if (!/todayNothingYet/.test(page)) bad.push('the true-empty byte has no consumer');
+  const audit = strip(read('tools/wl_audit.mjs'));
+  if (/'Nothing needs you yet\.',/.test(audit)) bad.push('the byte is live in copy.ts and still on the audit RETIRED set');
+  if (!/t0Sites\.length === 1 && t0Sites\[0\] === '\/w\/today'/.test(audit)) bad.push('the R-38.4 t0 predicate was not flipped back');
+  const feed = strip(read('lib/worklist/feed.ts'));
+  if (/responded: false, openItems: null \}[\s;]*$/m.test(feed) && !/fetchWorklistToday/.test(feed)) bad.push('lib/worklist/feed.ts still returns the no-reading constant');
+  if (!/fetchWorklistToday/.test(feed)) bad.push('the feed does not call the worklist door');
+  // (d) the sixth site — markerless, and named so it cannot be missed twice.
+  const render = strip(read('tools/wl_render.cjs'));
+  if (!/paints exactly the reading the feed returned/.test(render)) bad.push('C-R17 was not rewritten — it still asserts the withheld-numeral inverse');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);

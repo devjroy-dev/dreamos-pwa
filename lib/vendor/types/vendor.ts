@@ -160,7 +160,84 @@ export interface VendorContextResponse {
   recent_notes: Array<{ content: string; }>;
 }
 
+// ── GET /api/v2/vendor/worklist/today ─────────────────────────────────────
+// THE FROZEN PHASE 4 CONTRACT, MIRRORED KEY-FOR-KEY.
+// Source of authority: dream-os `docs/TDW_09_WORKLIST_P3_HANDOVER.md` §3, read at
+// `7a03699`. This type is built against THAT SECTION and never against the handler.
+// Any divergence is a labelled contract amendment, not an edit here.
+//
+// ⚠ IT IS NOT `TodayResponse`, AND THE TWO MUST NOT BE MERGED. `TodayResponse` below
+// describes `/api/v2/vendor/today/:vendorId` — a route F-P3.9 records as deleted since
+// `f47c732`, still read by `hooks/vendor/useVendorData.ts` and, until this delivery, by
+// the storefront meter. Three attention kinds against five, no `has_any`, no `counts`,
+// no `truncated`, no `done_today`, and a `:vendorId` this contract forbids. Two doors,
+// two shapes, both named — F-39.9.
+export type AttentionKind =
+  | 'lead_unanswered' | 'invoice_due' | 'events_today' | 'contract_unsigned' | 'team_tasks';
+
+/**
+ * D-4's RANK ORDER, and the one place it is written down on this side of the wire.
+ * §3 property 4: key order in `needs_attention` IS the ranking and JSON preserves it.
+ * This array exists so a surface can iterate the kinds WITHOUT calling `Object.keys`
+ * on a parsed body — but it is never used to re-sort, and the render reads the body's
+ * own key order. It is the set, not the sequence authority.
+ */
+export const ATTENTION_KINDS: readonly AttentionKind[] = [
+  'lead_unanswered', 'invoice_due', 'events_today', 'contract_unsigned', 'team_tasks',
+] as const;
+
+export interface AttentionLead {
+  id: string; name: string | null;
+  wedding_date: string | null; wedding_city: string | null;
+  budget_min: number | null; budget_max: number | null;
+  state: string; created_at: string;
+  /** §3 property 7 · the wire's POSITIVE statement, never inferred from a missing field. */
+  redacted: boolean;
+}
+export interface AttentionInvoice {
+  id: string; invoice_number: string; client_name: string | null;
+  amount_total: number; amount_paid: number; amount_owed: number;
+  due_date: string | null; state: string;
+}
+export interface AttentionEvent {
+  id: string; title: string | null; event_date: string;
+  event_time: string | null; kind: string; slot: string | null; state: string;
+}
+export interface AttentionContract {
+  id: string; title: string | null; state: string;
+  sent_at: string | null; created_at: string;
+}
+export interface AttentionTask {
+  id: string; title: string | null; due_date: string | null;
+  priority: string | null; state: string; created_at: string;
+}
+
+export interface WorklistTodayResponse {
+  ok: boolean;
+  /** The IST calendar date the feed was cut for. */
+  today: string;
+  /** §3 property 6 · "has this vendor EVER had anything", not "is today busy". */
+  has_any: boolean;
+  needs_attention: {
+    lead_unanswered: AttentionLead[];
+    invoice_due: AttentionInvoice[];
+    events_today: AttentionEvent[];
+    contract_unsigned: AttentionContract[];
+    team_tasks: AttentionTask[];
+  };
+  /** §3 property 8 · EXACTLY THREE KEYS. Leads and events carry no completion stamp. */
+  done_today: {
+    invoice_paid: Array<{ id: string; invoice_number: string; client_name: string | null; amount_total: number; last_payment_at: string | null }>;
+    contract_signed: Array<{ id: string; title: string | null; signed_at: string | null }>;
+    team_task_done: Array<{ id: string; title: string | null; completed_at: string | null }>;
+  };
+  counts: Record<AttentionKind, number>;
+  truncated: Record<AttentionKind, boolean>;
+}
+
 // ── GET /api/v2/vendor/today/:vendorId ────────────────────────────────────
+// ⚠ THE OLD DOOR. F-39.9: left untouched with its two readers
+// (`hooks/vendor/useVendorData.ts:216`) so no one tidies it into the new one.
 export interface TodayResponse {
   ok: boolean;
   vendor: { name: string; category: string; city: string; };

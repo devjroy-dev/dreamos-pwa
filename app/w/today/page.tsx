@@ -22,8 +22,9 @@
 // ITALIANA RETIRES WITH JOST. The numeral changes family, not stature.
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { FirstRun } from '@/components/worklist/FirstRun';
+import { TodayCards, TodayResting } from '@/components/worklist/TodayCards';
 import { COPY } from '@/lib/worklist/copy';
-import { todayFeed } from '@/lib/worklist/feed';
+import { useTodayFeed } from '@/lib/worklist/feed';
 
 // Derived at render, never a fixture. Locale pinned so the string cannot drift with the
 // runtime's ICU data — the same reason the estate pins its own date formatters.
@@ -31,77 +32,59 @@ const DATE_LINE = new Date().toLocaleDateString('en-GB', { weekday: 'long', day:
 
 export default function TodayPage() {
   // ── R-38.17 as amended at c-38.14 · THE MASTHEAD REPORTS THE INSTRUMENT ────
-  // Both arms are live code and neither is a placeholder: `todayFeed()` returns the true
-  // answer for today, which is that nothing has read anything. When Phase 4 wires it, this
-  // component does not change.
-  const feed = todayFeed();
+  // The reader landed at Phase 4 and this component did not change shape, exactly as the
+  // Phase 1 comment promised: same gate, same two bytes, same one home for the fact.
+  const feed = useTodayFeed();
+  const today = feed.today;
+  // NO `?? 0` ON THIS SURFACE, and C34 is the cell that holds the line. A fallback zero
+  // reads as harmless — it feeds a predicate, not the numeral — but the whole of F-38.31
+  // is that an unmeasured 0 is a claim in digits, and a file that spells one anywhere
+  // invites the next reader to spell it in the render. The predicates read the nullable.
+
+  // THE THREE STATES, AND WHY THERE ARE THREE RATHER THAN THE TWO THE PARKED STEP NAMED.
+  // The withheld instruction at Phase 1 read `{feed.responded ? todayNothingYet :
+  // todayNotLive}` — written when the only two states were 「no reading」 and 「a reading」,
+  // because no reading had ever come back and an empty one was the only kind imagined.
+  // A live feed has three: no reading, a reading with nothing in it, and a reading with
+  // work in it. Printing 「Nothing needs you yet.」 above eleven cards is the F-38.31 lie
+  // with the sign flipped, so the third arm carries NO STATUS LINE and the numeral is the
+  // status — which keeps the delivery at zero new bytes, per the copy ruling.
+  // DISCLOSED as a correction rather than executed quietly: the parked step's two-arm
+  // ternary is not what shipped.
+  const firstRun = feed.responded && today !== null && today.has_any === false;
+  const resting  = feed.responded && today !== null && today.has_any === true && feed.openItems === 0;
+  const working  = feed.responded && today !== null && feed.openItems !== null && feed.openItems > 0;
+
   return (
     <WorklistShell title={COPY.navToday}>
       <section className="wl-masthead">
         <div className="wl-mdate">{DATE_LINE}</div>
         {/* THE NUMERAL IS GATED, NOT DEFAULTED TO ZERO. A `0` that no instrument produced
             is 「Nothing needs you yet」 written in digits, and F-38.31 convicted the
-            sentence. Rendering `feed.openItems ?? 0` would have kept the claim while
-            passing every cell about the sentence — the cosmetic cure this gate refuses. */}
+            sentence. The gate is the same expression Phase 1 shipped; what changed is
+            that `openItems` can now be a real number. */}
         {feed.responded && feed.openItems !== null && (
           <div className="wl-mcount">
             <span className="wl-mnum">{feed.openItems}</span>
             <span className="wl-mcap">{COPY.todayCountCaption}</span>
           </div>
         )}
-        {/* R-38.4: ONE t1 PER SURFACE, and the status is Today's. It was a page title
-            (`todayTitle`) over a masthead that already names the day — two lines where the
-            surface needed one, and neither of them said what state Today was in. */}
-        {/* ── ⚠ THE TRUE-EMPTY ARM IS WITHHELD WITH ITS BYTE · relay #3 item 2 ────
-            This shipped as a live ternary and I argued for it: both arms live code, neither
-            a placeholder, the bench able to reach both. THE CHAIR'S RULING SUPERSEDES THAT
-            REASONING AND IS RIGHT — a live arm needs a live byte, a live byte ships, and
-            `Nothing needs you yet.` must not reach a vendor before something has read her
-            work. The arm cannot outlive the withholding of the thing it renders.
-
-            WHEN: Phase 4's feed first answers 200 — the same edit that uncomments
-                  COPY.todayNothingYet, restores the masthead trio's CSS, and drops the byte
-                  from wl_audit's RETIRED set.
-            DO:   replace the line below with:
-
-                  {feed.responded ? COPY.todayNothingYet : COPY.todayNotLive}
-
-            The numeral's markup above stays live and gated: it renders no withheld byte,
-            and it is the half of F-38.31 that a later reader is most likely to "fix" back
-            into a default if it is not sitting here in working code. */}
-        <h1 className="wl-status">{COPY.todayNotLive}</h1>
+        {/* R-38.4: ONE t1 PER SURFACE, and the status is Today's — on the two states that
+            have something to say about the instrument. On the working state the cards say
+            it, and a heading over them would be a third claim about the same fact. */}
+        {!feed.responded && <h1 className="wl-status">{COPY.todayNotLive}</h1>}
+        {resting && <h1 className="wl-status">{COPY.todayNothingYet}</h1>}
         <div className="wl-mrule" />
       </section>
 
-      <FirstRun />
-      {/* ── ⚠ THE MASTHEAD TRIO IS WITHHELD BY RULE · relay #3 item 2 ─────────────
-          The numeral's three rules shipped while its markup was gated on a feed that does
-          not exist, so the audit's dead-rule sweep found three declarations with no
-          consumer and reddened, correctly.
-
-          THEY ARE PARKED IN THIS JSX COMMENT AND NOT COMMENTED INSIDE THE STYLE BLOCK, and
-          the distinction is the whole of the lesson: a CSS comment inside the template
-          literal SHIPS. The class names would still be in the served bytes, the sweep would
-          still see three declarations, and the sweep is byte-strict with no annotation
-          escape hatch. ZIP 14 (8) convicted this exact move in the other direction — a
-          retirement comment naming the classes it retired. A withheld rule has to actually
-          not be there.
-
-          WHEN: Phase 4's feed first answers 200 (lib/worklist/feed.ts, the same edit that
-                uncomments COPY.todayNothingYet).
-          DO:   paste the three rules below back into the style block, above wl-status.
-
-          .wl-mcount{display:flex;align-items:baseline;gap:8px;margin-top:8px}
-          .wl-mnum{font:var(--wl-t0);color:var(--atelier-ink)}
-          .wl-mnum{font-variant-numeric:tabular-nums}
-          .wl-mcap{font:var(--wl-t5);color:var(--atelier-ink-dim)}
-
-          The t0 note, kept with the rule it explains: font-variant-numeric is declared
-          AFTER the shorthand deliberately, because the font shorthand RESETS it and
-          tabular figures set before that line would be silently thrown away. R-38.5 asks
-          every right-aligned figure to be tabular; the numeral is left-aligned and
-          single-digit at first, and carries the setting anyway so the feed's two- and
-          three-digit counts do not jump the caption sideways. */}
+      {/* §3 property 6 · `has_any` answers 「has this vendor ever had anything」, not
+          「is today busy」. The manual on a quiet day is the thing that ruling exists to
+          prevent, so FirstRun is gated on the FALSE and never on an empty list. Before the
+          reading settles it renders nothing: we do not yet know which state this is, and
+          guessing would put the manual in front of a vendor with eleven leads. */}
+      {firstRun && <FirstRun />}
+      {resting && today && <TodayResting today={today} />}
+      {working && today && <TodayCards today={today} />}
       <style>{`
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
 .wl-masthead{padding-top:20px}
@@ -112,6 +95,15 @@ export default function TodayPage() {
    NO BACKTICKS AND NO CODE MARKS IN THIS BLOCK: it is inside a JS template literal, and a
    backtick written around a selector while explaining that selector ends the literal. The
    estate has paid for this five times now; the sixth was this comment, caught by tsc. */
+/* ✔ THE MASTHEAD TRIO IS RESTORED AT PHASE 4. It was parked in a JSX comment rather
+   than commented inside this literal, because a CSS comment inside the template SHIPS
+   and the audit's dead-rule sweep is byte-strict with no annotation escape hatch.
+   font-variant-numeric is declared AFTER the shorthand deliberately: the font shorthand
+   RESETS it, and tabular figures set before that line are silently thrown away. */
+.wl-mcount{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.wl-mnum{font:var(--wl-t0);color:var(--atelier-ink)}
+.wl-mnum{font-variant-numeric:tabular-nums}
+.wl-mcap{font:var(--wl-t5);color:var(--atelier-ink-dim)}
 .wl-status{font:var(--wl-t1);color:var(--atelier-ink);margin:8px 0 0}
 .wl-mrule{height:.5px;background:var(--role-metal);opacity:.55;margin-top:16px}
       `}</style>

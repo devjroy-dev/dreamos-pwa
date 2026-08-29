@@ -119,7 +119,20 @@ export const COPY = {
   //         tools/wl_audit.mjs's RETIRED set in the same commit. Nothing else moves —
   //         app/w/today/page.tsx already reads it behind `feed.responded`.
   //
-  // todayNothingYet: 'Nothing needs you yet.',
+  // ✔ FIRED AT PHASE 4. The feed answers; the withholding is discharged. The byte now
+  //   renders on ONE state and one only: a reading came back, the vendor has had work
+  //   before (`has_any`), and every attention list is empty. It is not the 「no reading」
+  //   line and it is not a heading over cards — `todayNotLive` holds the first and the
+  //   numeral holds the third.
+  todayNothingYet: 'Nothing needs you yet.',
+
+  // ── THE TRUNCATION TELL · §3 property 3 · founder-vetoed 2026-08-29 (copy line 6) ──
+  // The cap is 20 per kind and `truncated[k]` is the tell that it fired. When it has,
+  // `counts[k]` IS A FLOOR, and a bare `20` beside a list of twenty is a badge that is
+  // secretly a floor — the false-done class in miniature, which §3 names in those words.
+  // A SUFFIX, NOT A SENTENCE: it replaces the figure, so there is no state in which a
+  // truncated count renders as a plain number anywhere on the surface.
+  todayTruncatedSuffix: '+',
 
   // ── 6 · 7 — the resting state. PHASE 4, not rendered by this shell. Carried here
   // so the vetoed bytes have one home from the moment they were vetoed.

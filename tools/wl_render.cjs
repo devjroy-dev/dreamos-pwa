@@ -1042,22 +1042,48 @@ async function seat(browser, mode) {
                 ' — the product signed the fixture out mid-measurement (F-38.8)');
     }
 
-    // ── C-R17 · THE MASTHEAD DOES NOT CLAIM A READING IT DID NOT TAKE  [F-38.31] ──
+    // ── C-R17 · THE MASTHEAD PAINTS EXACTLY THE READING THE FEED RETURNED ─────
     //
-    // wl_audit can prove the SENTENCE is absent from the served bytes. It cannot prove the
-    // NUMERAL is not on screen, because the t0 rule legitimately ships on this surface —
-    // that is the rung's home, and it stays its home when Phase 4 turns the numeral on. So
-    // the painted claim is this file's, exactly as the tuple set is.
+    // ⚠ REWRITTEN AT PHASE 4, AND IT CARRIED NO DATED MARKER — WHICH IS WHY IT IS WORTH
+    // A PARAGRAPH. Five sites in this tree carried a `WHEN: Phase 4's feed first answers
+    // 200` step; this cell carried none, and it asserted the INVERSE of what Phase 4 makes
+    // true: `notLive && !trueEmpty && !numeral && t0 === 0`. A commit that fired the five
+    // and left this alone would have shipped a RED render arm over a correct build, and a
+    // red that looks like a defect in the product is worse than one that looks like a
+    // bench — the first gets the code changed. RETIRE-WITH-THE-READER: a bench moves with
+    // the code it tests, whether or not somebody remembered to leave it a note.
     //
-    // BOTH DIRECTIONS, because either alone passes on a defect: the not-reading line is
-    // there AND the true-empty line is not AND nothing is painting at t0. A surface that
-    // printed the honest sentence with a `0` still standing beside it would satisfy a cell
-    // that only looked at words, and the `0` is the same claim in digits.
-    const CR17 = tag + 'C-R17 the masthead claims no reading it did not take';
+    // THE CLAIM IS UNCHANGED IN KIND. It was never 「there is no numeral」; it was 「the
+    // masthead claims no reading it did not take」. Phase 1 had no reading, so that read as
+    // an absence. Now there is one, so it reads as a MATCH: whatever the surface paints
+    // must be what the feed returned, and the cell asks the feed itself rather than
+    // trusting the page's own arithmetic.
+    //
+    // BOTH DIRECTIONS ON EACH ARM, because either alone passes on a defect:
+    //   · no reading      -> the not-reading line, NO numeral, nothing at t0
+    //   · a reading, zero -> `Nothing needs you yet.`, and the numeral reads 0
+    //   · a reading, work -> the numeral equals the SUM OF THE FIVE COUNTS, and NEITHER
+    //                        status byte is on screen (a heading over cards is a third
+    //                        claim about a fact the cards already make)
+    //
+    // THE EXPECTED SUM IS COMPUTED FROM THE WIRE, NOT FROM THE PAGE. The response is
+    // captured off the network as the surface mounts, so this cell and the component
+    // derive the same number from the same body by two different routes — which is the
+    // only arrangement in which agreement means anything.
+    const CR17 = tag + 'C-R17 the masthead paints exactly the reading the feed returned';
     if (await settle(p, '/w/today', '.wl-masthead', [CR17])) {
+      let body = null;
+      const catchFeed = async (r) => {
+        if (!/\/api\/v2\/vendor\/worklist\/today/.test(r.url())) return;
+        try { body = await r.json(); } catch { /* a body that will not parse is no reading */ }
+      };
+      p.on('response', catchFeed);
+      await p.reload({ waitUntil: 'networkidle' }).catch(() => {});
+      p.off('response', catchFeed);
+
       const m = await p.evaluate(() => {
         const txt = (document.querySelector('.wl-masthead') || {}).textContent || '';
-        const num = document.querySelector('.wl-mnum');
+        const numEl = document.querySelector('.wl-mnum');
         // Anything painting at the t0 size, wherever it lives — the cell is about the
         // stature on screen, not about one class name.
         const t0 = [...document.querySelectorAll('.wl *')].filter((el) => {
@@ -1065,14 +1091,29 @@ async function seat(browser, mode) {
           if ([...el.children].some((c) => c.textContent && c.textContent.trim())) return false;
           return Math.abs(parseFloat(getComputedStyle(el).fontSize) - 46) < 0.6;
         }).length;
-        return { txt: txt.trim(), numeral: !!num, t0 };
+        return { txt: txt.trim(), numeral: numEl ? numEl.textContent.trim() : null, t0 };
       });
-      const notLive = /isn't reading your work yet/.test(m.txt);
+
+      const notLive   = /isn't reading your work yet/.test(m.txt);
       const trueEmpty = /Nothing needs you yet/.test(m.txt);
-      if (notLive && !trueEmpty && !m.numeral && m.t0 === 0)
-        P(CR17, 'the not-reading line stands alone; no numeral and nothing painting at t0');
-      else F(CR17, JSON.stringify({ notLive, trueEmpty, numeral: m.numeral, t0: m.t0 }) +
-                   ' — the masthead is asserting a reading nothing took (F-38.31)');
+      const reading   = !!body && body.ok === true && !!body.counts;
+      const KINDS = ['lead_unanswered', 'invoice_due', 'events_today', 'contract_unsigned', 'team_tasks'];
+      const expect = reading ? KINDS.reduce((a, k) => a + (body.counts[k] || 0), 0) : null;
+      const state  = { notLive, trueEmpty, numeral: m.numeral, t0: m.t0, expect };
+
+      if (!reading) {
+        if (notLive && !trueEmpty && m.numeral === null && m.t0 === 0)
+          P(CR17, 'no reading came back; the not-reading line stands alone with no numeral and nothing at t0');
+        else F(CR17, JSON.stringify(state) + ' \u2014 the masthead is asserting a reading nothing took (F-38.31)');
+      } else if (expect === 0) {
+        if (trueEmpty && !notLive && m.numeral === '0' && m.t0 === 1)
+          P(CR17, 'the feed answered empty; the true-empty line stands over a measured 0');
+        else F(CR17, JSON.stringify(state) + ' \u2014 the feed returned 0 and the masthead does not say so');
+      } else {
+        if (!notLive && !trueEmpty && m.numeral === String(expect) && m.t0 === 1)
+          P(CR17, 'the numeral reads ' + expect + ', the sum of the five counts, and neither status byte is on screen');
+        else F(CR17, JSON.stringify(state) + ' \u2014 the painted numeral is not the sum of counts, or a status byte is claiming over the cards');
+      }
     }
 
     // ── C-R18 · THE ADD CONTROL SITS WHERE IT WAS RULED  [R-38.18, item 4] ──

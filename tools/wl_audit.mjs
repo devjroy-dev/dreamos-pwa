@@ -695,9 +695,10 @@ async function coverage() {
   //   · and the rung is still DECLARED, because Phase 4 restores its consumer and a
   //     variable deleted in the meantime is a variable somebody re-invents at a new value
   //
-  // WHEN: Phase 4's feed first answers 200 — the same commit that restores the wl-mnum
-  //       rules to app/w/today/page.tsx and uncomments COPY.todayNothingYet.
-  // DO:   flip this back to `t0Sites.length === 1 && t0Sites[0] === '/w/today'`.
+  // ✔ FLIPPED BACK AT PHASE 4, in the same commit that restored the wl-mnum rules to
+  //   app/w/today/page.tsx and uncommented COPY.todayNothingYet. The numeral has a
+  //   consumer again, and the assertion is the one it was written to make: EXACTLY ONE
+  //   shell surface consumes t0, and it is Today.
   // ⚠ AND THE DECLARATION HALF WAS ASKED OF A CORPUS THAT CANNOT CONTAIN IT.
   // `typeCss` builds every rung as `--wl-${k}:…` (lib/worklist/theme.ts), which compiles to
   // string CONCATENATION — so the literal `--wl-t0:` has never appeared in a served byte in
@@ -711,10 +712,28 @@ async function coverage() {
   // and belongs to the render arm (C-R17). Three instruments, three claims, none of them
   // pretending to hold another's.
   const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test(corpus(p) || ''));
-  if (t0Sites.length === 0)
-    P('R-38.4 t0 is one element', 'no shell surface consumes the rung — the numeral is withheld until the feed answers (F-38.31/c-38.14); the declaration is b40 C37, the paint is C-R17');
+  if (t0Sites.length === 1 && t0Sites[0] === '/w/today')
+    P('R-38.4 t0 is one element', 'the masthead numeral is the rung\'s one consumer, and it is Today\'s');
   else
-    F('R-38.4 t0 is one element', 'the withheld numeral has a consumer again: ' + t0Sites.join(' '));
+    F('R-38.4 t0 is one element', 't0 consumers: ' + (t0Sites.join(' ') || 'none') + ' — the rung is one element per app and that element is /w/today\'s numeral');
+
+  // ── R-P3.5.6 ① · `open_leads_count` REACHES NO SHELL SURFACE ───────────────
+  //
+  // THE SYMBOL, NOT THE NUMBER. R-P3.5.6 ① bans `open_leads_count` from being summed,
+  // compared or displayed against Today's masthead in any surface — and F-39.10 ruled that
+  // Storefront, being a room, is such a surface. The engine predicate is NOT repaired; it
+  // retires at the §8.9 seam. What this cell holds is the DISPLAY half: no shell surface
+  // may carry the symbol at all, so a later reader cannot reintroduce the second leads
+  // figure by wiring the old door back into a room.
+  //
+  // ⚠ IT ASSERTS OVER SERVED BYTES, WHICH IS THIS FILE'S OWN LAW. The old reader still
+  // exists in the tree (`lib/vendor/api/vendor.ts`, `hooks/vendor/useVendorData.ts`) and is
+  // ruled untouched; what must be true is that nothing REACHABLE FROM THE SHELL ships it.
+  const olcSites = shellSurfaces.filter((p) => /open_leads_count/.test(corpus(p) || ''));
+  if (olcSites.length === 0)
+    P('R-P3.5.6 open_leads_count reaches no shell surface', 'the symbol is absent from every /w bundle; Today is the one leads figure');
+  else
+    F('R-P3.5.6 open_leads_count reaches no shell surface', 'the engine figure is reachable again from: ' + olcSites.join(' ') + ' — two leads numbers from two planes (\u00a78.9)');
 
   // ── R-38.6 · THE RETIRED STRINGS ARE ABSENT ───────────────────────────────
   // Named bytes, not a shape heuristic. A retired sentence that quietly ships is the
@@ -735,19 +754,18 @@ async function coverage() {
     'Text DreamAi the way you would text a colleague',
     'One link that routes every enquiry straight to you',
     'Your 24/7 enquiry desk', 'Message DreamAi', 'Run it all from WhatsApp',
-    // ⚠ `Nothing needs you yet.` IS A RETIRED BYTE **FOR NOW** AND THE ASTERISK MATTERS.
-    // It is not wrong copy; it is TRUE copy shipped one phase early (F-38.31, c-38.14). It
-    // must not reach a vendor until the Phase 4 feed has answered, and this list is what
-    // stops it arriving by a later tidy. IT COMES OFF THIS LIST in the same edit that wires
-    // lib/worklist/feed.ts to a real read — the byte lives in copy.ts the whole time.
-    // ⚠ AND IT IS NOW WITHHELD AT SOURCE AS WELL, WHICH IS THE ACTUAL CURE.
-    // Relay #3 item 2: c-38.14 left the byte a LIVE EXPORT waiting for sitting 3, and a
-    // live export ships — this cell found it in the served bytes and was right to. The key
-    // is commented out in lib/worklist/copy.ts with a dated uncomment step, so this entry
-    // is now a REGRESSION GUARD rather than the thing holding the byte back: if it ever
-    // reappears in the bundle before the feed answers, this reddens.
-    // IT COMES OFF THIS LIST in the same commit that uncomments the key.
-    'Nothing needs you yet.',
+    // ✔ `Nothing needs you yet.` CAME OFF THIS LIST AT PHASE 4, in the same commit that
+    //   uncommented the key in lib/worklist/copy.ts and wired lib/worklist/feed.ts to a
+    //   real read. It was never wrong copy — it was TRUE copy shipped one phase early
+    //   (F-38.31, c-38.14), and this entry held it back until an instrument had actually
+    //   read the vendor's work. It has. The byte is now live on exactly one state and the
+    //   claim it makes is one the feed took.
+    //
+    //   ⚠ NOT DELETED SILENTLY — MOVED TO A LIVE ASSERTION. A retirement that simply ends
+    //   leaves nothing watching the thing it was watching, so the guard did not vanish, it
+    //   CHANGED SUBJECT: C-R17 in tools/wl_render.cjs now asserts the byte appears on the
+    //   resting state and on NO other, which is the property this list was standing in for
+    //   while there was no feed to ask.
     // ⚠ `thedreamwedding.in` WAS ADDED HERE AND WITHDRAWN IN THE SAME SITTING, and the
     // withdrawal is the entry worth keeping. The reasoning was 「the retired row's
     // destination must not ship either」, which sounds right and convicts the wrong thing:

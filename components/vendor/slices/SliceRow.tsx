@@ -209,7 +209,11 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
   const pillColor = stateColor(slice, row.badge);
 
   return (
-    <div style={{
+    // `data-row-id` is a DOM HOOK AND NOTHING ELSE — no behaviour, no styling, no prop
+    // threaded down. F-39.11's focus arm needs to find one row in the list without the
+    // list knowing anything about the URL, and an attribute is the smallest thing that
+    // does that. It ships in both trees because it is inert in both.
+    <div data-row-id={row.id} style={{
       display: 'flex', alignItems: 'center',
       borderBottom: '0.5px solid var(--atelier-card-border)',
     }}>
