@@ -302,6 +302,38 @@ but now renders **only where a vendor has written no `about`**. Under her own
 prose it was a second, quieter voice saying less than the first. On the demo leg
 and on a bare profile it still carries the page.
 
+### ⚠ HOTFIX S7 — THE PHOTOGRAPHS' UTILITY COPY (F-19.44, added 2026-08-29)
+
+**Your veto is RECORDED on these two, 2026-08-29: YES.** They ship as proposed.
+They are the first screen-reader strings this block has put on the register, and
+they were never on it before — which is why they are an **ADD** rather than an
+amendment. A blind couple reaching this page from a WhatsApp forward hears these
+and nothing else about the pictures.
+
+| Key | Ships as | Where |
+|---|---|---|
+| *(utility)* photograph selector | Show photograph 1, Show photograph 2, … | `aria-label` on each hidden radio, `/v/<code>` |
+| *(utility)* hero photograph link | **DELETED** | was `aria-label` on the hero anchor, which no longer exists |
+
+**Why the verb changed.** It read *Open photograph 3* while a thumbnail was a
+link that opened the file in the browser's own viewer. Under the founder's
+2026-08-29 ruling a thumbnail no longer opens anything — it **displaces the hero
+picture at the top**. *Open* would have promised a new window that never arrives,
+which is worse than a plain label: a couple who taps expecting to leave the page
+and does not is a couple who thinks the page is broken.
+
+**Where the name lives, and why it is not on the label.** The visible thumbnail is
+a `<label>`; the thing that is actually focused, announced and reported selected
+is the hidden radio it points at. The string sits on the radio. Putting it on
+both would announce the same photograph twice, and putting it only on the label
+would leave the control unnamed. Her own caption still wins where she wrote one —
+`p.caption` first, this string only as the fallback.
+
+**The hero's label is deleted, not moved.** *Open this photograph from Dev Roy
+Photography* named an anchor that has been removed by the same ruling. The hero
+is now inert — no link, no label, nothing to tap — and the same photographs are
+named and selectable in the strip below, the hero's own among them.
+
 ## 10 · WHAT IS NOT HERE
 
 - **Persona names.** Victor, Donna, Harvey, Mira appear nowhere in product

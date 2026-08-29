@@ -50,6 +50,7 @@
 // is the failure mode of fetching twice, not a performance note.
 
 import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/components/shared/VendorProfileContent';
+import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
 
 /** Five minutes. See the header. */
 export const revalidate = 300;
@@ -291,7 +292,22 @@ export default async function PublicVendorPage(
   }
 
   const hero = heroOf(card);
-  const rest = (card.photos || []).filter((p) => p !== hero);
+  // ── ONE ORDERED SET, AND `rest` RETIRES WITH ITS READER — F-19.p2, arm (a) ──
+  // This was `rest = photos.filter(p => p !== hero)`: the strip showed every
+  // photograph EXCEPT the hero, which was correct while a thumbnail was a link
+  // to its own file and the hero was already open in front of you.
+  //
+  // Under F-19.44 a thumbnail SELECTS the hero, and that made the exclusion a
+  // trap: tap thumbnail 2 and the first photograph has no control anywhere on
+  // the page that brings it back. CE-39 ruled arm (a) — the strip renders ALL
+  // of them, the hero's own thumbnail among them, checked by default.
+  //
+  // ONE array feeds three things — the radios, the hero stack and the strip —
+  // so `i` means the same photograph in all three and the generated CSS can
+  // address it. Two arrays would be two orderings the first time one is edited.
+  const gallery = hero
+    ? [hero, ...(card.photos || []).filter((p) => p !== hero)]
+    : [];
   const wa = card.enquire_link;
 
   return (
@@ -330,34 +346,88 @@ export default async function PublicVendorPage(
           component that renders the card below — `parts="identity"` on
           `HERO_PALETTE`. Not a second heading hand-written over the image: that
           would be the second profile design arriving by the back door. */}
-      {/* ── W4-1 · EVERY PHOTOGRAPH IS A LINK, AND NO JAVASCRIPT RUNS ────────────
-          "tapping the pictures does nothing." A page whose entire subject is her
-          work, on which the work could not be looked at.
+      {/* ── F-19.44 · A PHOTOGRAPH DISPLACES THE HERO, AND NO JAVASCRIPT RUNS ────
+          The founder's ruling, 2026-08-29, verbatim: *"clicking any picture
+          should displace the hero picture at the top."*
 
-          THE OBVIOUS CURE WAS REFUSED FOR A REASON THAT OUTRANKED IT. A lightbox
-          needs state, state needs a client component, and this route's refusal of
-          client JS is load-bearing: `/v/` is served to strangers on mobile data
-          from a WhatsApp forward, and S5-b's registrar move was justified partly
-          on making it genuinely hydration-free. Reversing that inside a fix would
-          have traded a ruled property for a viewer, quietly.
+          THIS SUPERSEDES CE-38's SHAPE (1), AND THE SHAPE IT SUPERSEDES IS WORTH
+          KEEPING ON THE RECORD, because it was not wrong for bad reasons. Each
+          photograph used to be an anchor to its own Cloudinary file, and the
+          BROWSER's own viewer did the zooming — pinch, rotate, save, share, on
+          every device, for zero bytes. CE-38 chose it over a CSS `:target`
+          lightbox because back-button weirdness on a stranger's phone is a worse
+          product than an honest link. **That capability is deleted here**, named
+          so the loss is on the record and not discovered on a later walk: the
+          browser viewer goes, and §7d P2-B's swipe viewer is its successor,
+          `lib/frost/photoPager.ts` still named as the reuse.
 
-          So each photograph is an anchor to its own source and the BROWSER's own
-          image viewer does the zooming — pinch, rotate, save, share, all of it,
-          on every device, for zero bytes. CE-38 ruled shape (1) and refused the
-          CSS-only `:target` lightbox on its own merits: back-button weirdness on
-          a stranger's phone is a worse product than an honest link.
+          WHAT REPLACES IT NEEDS NO CLIENT COMPONENT, which is why the ruled
+          refusal survives intact. One hidden radio per photograph, the hero
+          stacking all of them, and `#pv-h<i>:checked ~ .pv-hero
+          .pv-hero-img[data-i="<i>"]` doing the selection in the cascade. A
+          `<label>` in the strip is what a thumb actually lands on. No state, no
+          hydration, no `onClick`, and the URL never changes — which is the whole
+          objection to `:target`, answered rather than argued with.
 
-          A real swipe viewer is chartered into §7d P2-B's first sitting, where
-          the route's client-surface question is re-ruled properly and
-          `lib/frost/photoPager.ts` is named as the reuse. */}
+          ⚠ THE RADIOS ARE SIBLINGS OF `.pv-hero` AND `.pv-strip`, DELIBERATELY.
+          `~` reaches only LATER siblings, so they must sit here — before the
+          hero, inside `main.pv-card`, above everything they address. Moving them
+          inside `.pv-hero` for tidiness would break the strip's ring and moving
+          them below would break both. Derived at 70dd458: `main.pv-card`'s
+          children are flat (`header.pv-top`, `.pv-hero`, `.pv-body`, `.pv-rule`,
+          `.pv-strip`, `footer.pv-close`), and `VendorProfileContent` mounts
+          INSIDE `.pv-hero` and `.pv-body`, never between these and their targets.
+
+          ⚠ VISUALLY HIDDEN, NOT `display:none`. A `display:none` radio is not
+          keyboard-reachable and this would become a gallery only a mouse could
+          use. `.pv-radio` is the clip-rect pattern: one pixel, off-screen, still
+          focusable — and it is the INPUT that takes focus while the LABEL paints
+          the ring (`heroSelectRules.mjs`, `:focus-visible` arm). */}
+      {gallery.map((p, i) => (
+        <input
+          key={`pv-h${i}`}
+          type="radio"
+          name="pv-hero"
+          id={`pv-h${i}`}
+          className="pv-radio"
+          defaultChecked={i === 0}
+          aria-label={p.caption || `Show photograph ${i + 1}`}
+        />
+      ))}
+
       {hero && (
         <div className="pv-hero">
           <div className="pv-shimmer" />
-          <a className="pv-heroLink" href={hero.url} target="_blank" rel="noopener noreferrer"
-             aria-label={`Open this photograph from ${card.business_name || 'this vendor'}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={hero.url} alt={hero.caption || card.business_name || ''} loading="eager" />
-          </a>
+          {/* ── THE STACK ────────────────────────────────────────────────────
+              Every photograph is here, absolutely positioned in the same box,
+              all at `opacity:0` until a radio picks one. The box was already
+              sized by `clamp()` before any image existed (see the rule), so
+              stacking N images changes nothing about CLS.
+
+              ⚠ NO NEW BYTES. These are the SAME URLs the strip renders, so a
+              browser fetches each photograph once and paints it twice. Only the
+              first is `eager` — it is the page's first paint; the rest are
+              `lazy` and arrive while the couple is reading.
+
+              ⚠ `aria-hidden` AND `alt=""` ARE THE HONEST CHOICE HERE, not an
+              oversight. All N images are in the DOM at once and a screen reader
+              would otherwise announce the whole set as the hero. The same N
+              photographs ARE announced, once each and by name, on the radios in
+              the strip — which is also where they can be selected. The hero is a
+              viewport onto the chosen one, and it is inert: no link, no label,
+              nothing to tap. */}
+          {gallery.map((p, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={`pv-hero-img-${i}`}
+              className="pv-hero-img"
+              data-i={i}
+              src={p.url}
+              alt=""
+              aria-hidden="true"
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+          ))}
           <div className="pv-scrim" />
           <div className="pv-identity">
             <VendorProfileContent
@@ -427,7 +497,11 @@ export default async function PublicVendorPage(
         {card.is_demo && <p className="pv-demo">{COPY.demoNote}</p>}
       </div>
 
-      {/* THE REST OF THE APPROVED SET, in `position` order, hero excluded.
+      {/* THE WHOLE APPROVED SET, in `position` order, HERO INCLUDED — F-19.p2.
+          It used to be hero-excluded, which was right while a thumbnail opened a
+          file and wrong the moment a thumbnail started selecting the hero: the
+          first photograph would have had no way back. CE-39 ruled arm (a).
+
           A strip and not a carousel: a carousel needs state, state needs a client
           component, and a client component drags a hydration bundle onto a route
           whose whole virtue is arriving instantly for a stranger. Scrolling is a
@@ -435,19 +509,34 @@ export default async function PublicVendorPage(
       {/* The gold rule — the studio's section break, brightest beside the
           diamond and dying at the margin. It is what gives the page a rhythm
           instead of a stack, and it tells a reader that what follows is a
-          different movement rather than more of the same. */}
-      {rest.length > 0 && (
+          different movement rather than more of the same.
+
+          ⚠ THE THRESHOLD IS TWO, NOT ONE. With a single approved photograph the
+          strip would be one thumbnail of the picture already filling the hero —
+          a control with nothing to switch to, under a section break announcing
+          a movement that does not exist. */}
+      {gallery.length > 1 && (
         <div className="pv-rule"><span className="pv-rule-line" /><span className="pv-diamond">◆</span><span className="pv-rule-line" /></div>
       )}
 
-      {rest.length > 0 && (
+      {gallery.length > 1 && (
         <div className="pv-strip">
-          {rest.map((p) => (
-            <a key={`${p.position}-${p.url}`} href={p.url} target="_blank" rel="noopener noreferrer"
-               aria-label={p.caption || `Open photograph ${p.position + 1}`}>
+          {/* ⚠ A `<label>`, NOT AN `<a>` — and the accessible name is NOT here.
+              The name lives on the radio this label points at (see the radio
+              block above), because the radio is the control: it is what receives
+              focus, what a screen reader announces, and what reports selected.
+              A second name on the label would be the same photograph announced
+              twice. `alt=""` for the same reason — the thumbnail is the label's
+              visible face, not an independent image.
+
+              `htmlFor` is what makes the whole thumbnail a tap target without
+              nesting the input, and it is why the radios can live where `~`
+              needs them rather than where a thumb needs them. */}
+          {gallery.map((p, i) => (
+            <label key={`pv-h${i}-label`} htmlFor={`pv-h${i}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.caption || ''} loading="lazy" />
-            </a>
+              <img src={p.url} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
+            </label>
           ))}
         </div>
       )}
@@ -474,7 +563,11 @@ export default async function PublicVendorPage(
         </span>
       </footer>
 
-      <PublicStyles />
+      {/* The count is what the generated index rules are built from. It travels
+          as a parameter and not as a module-level constant because it is a
+          property of THIS card, and the miss branch below renders the same
+          stylesheet with no photographs at all. */}
+      <PublicStyles heroCount={gallery.length} />
     </main>
   );
 }
@@ -495,7 +588,7 @@ export default async function PublicVendorPage(
  * phone, in a thread, and designing for the other case would cost the case it
  * was built for.
  */
-function PublicStyles() {
+function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
   return (
     <style>{`
 /* ⚠ color-scheme IS A CSS PROPERTY, AND THE META ALONE DID NOT SETTLE IT.
@@ -588,15 +681,24 @@ function PublicStyles() {
    animation on a replaced element animates the PICTURE. It sits above the
    shimmer and covers it on decode, which is the only "on load" signal CSS
    actually has -- opacity, not a listener. */
-/* W4-1. The anchor is the frame, so the link's box IS the photograph and a
-   thumb-sized tap target is the picture itself, not a hairline around it. */
-.pv-heroLink{position:absolute;inset:0;z-index:1;display:block}
-.pv-heroLink:focus-visible{outline:2px solid #C9A84C;outline-offset:-3px}
-.pv-strip a{flex:0 0 104px;min-width:0;display:block;line-height:0}
-.pv-strip a:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
-.pv-hero img{position:relative;z-index:1;width:100%;height:100%;
+/* ⚠ THE RADIO IS HIDDEN FROM THE EYE, NOT FROM THE KEYBOARD — F-19.44.
+   The clip-rect pattern, not "display:none" and not "visibility:hidden": both of
+   those remove the element from the focus order, and the gallery would become a
+   thing only a pointing device could operate. One pixel, clipped to nothing,
+   still focusable — and it is this element that takes focus while its label in
+   the strip paints the ring. */
+.pv-radio{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+  clip:rect(0 0 0 0);clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+/* ⚠ THE HERO IS A STACK NOW, AND IT IS INERT. Every approved photograph sits in
+   the same pre-sized box at opacity 0; the generated index rules below reveal
+   exactly one. No anchor, no label, nothing to tap — the selection lives in the
+   strip, where a thumb is already going.
+
+   "pointer-events:none" is belt to that braces: it guarantees the hero cannot
+   become a control by accident if a later seat adds a wrapper. */
+.pv-hero-img{position:absolute;inset:0;z-index:1;width:100%;height:100%;
   object-fit:cover;object-position:center top;display:block;
-  animation:pvFade 1200ms cubic-bezier(0.22,1,0.36,1) both}
+  opacity:0;pointer-events:none}
 /* The scrim. One gradient, bottom only -- the studio's :333 shape, tuned to the
    ruled stop. It exists so HER NAME is legible, which is a different job from
    the one S4's scrim was doing (making TDW's wordmark legible over her work),
@@ -607,17 +709,35 @@ function PublicStyles() {
   animation:pvRise 900ms cubic-bezier(0.22,1,0.36,1) 500ms both}
 
 .pv-body{padding:22px 24px 0;animation:pvRise 900ms cubic-bezier(0.22,1,0.36,1) 750ms both}
-.pv-line{font:400 14px/1.45 inherit;color:#403B36;margin:8px 0 0;max-width:34ch}
+/* ⚠ LONGHANDS, AND inherit IS WHY — F-19.43, THE THREE-SITTING BUG.
+   These four rules were written font:400 14px/1.45 inherit, meaning "keep the
+   inherited family and set the rest". **The font shorthand does not work that
+   way.** A CSS-wide keyword (inherit, initial, unset) is only legal as the
+   ENTIRE value of a shorthand; inside one it is a parse error and the browser
+   drops the WHOLE declaration — family, size, weight and line-height together.
+   Every one of these elements was silently inheriting 14px/400 from .pv while
+   the source said otherwise, and three sittings tuned a number the browser had
+   already thrown away.
+
+   THE WITNESS THAT SETTLES IT IS THE CTA, NOT THE SIZE. .pv-cta declared
+   weight 500 and computed 400. A dropped size can be argued about; a dropped
+   weight cannot be anything but a discarded declaration.
+
+   The family was never at risk: nothing here re-declares it, so omitting it from
+   the longhands inherits it exactly as intended. bs_audit C40 now refuses any
+   font: shorthand carrying a CSS-wide keyword on either public route, so the
+   class announces itself instead of shipping a fourth time. */
+.pv-line{font-weight:400;font-size:14px;line-height:1.45;color:#403B36;margin:8px 0 0;max-width:34ch}
 .pv:not(.pv-card) .pv-line{margin:0;max-width:34ch}
 /* D-19.1 section 2: the gold moves off 4.48:1. #7A621C computes 6.03:1 on cream
    -- proven by the cell, not chosen by eye, which is the whole lesson of W2-4. */
 .pv-cta{margin-top:22px;display:inline-flex;align-items:center;min-height:44px;
   padding:12px 22px;border:.5px solid #C9A84C;border-radius:2px;color:#7A621C;
-  text-decoration:none;font:500 12px/1.4 inherit;letter-spacing:.04em;
+  text-decoration:none;font-weight:500;font-size:12px;line-height:1.4;letter-spacing:.04em;
   touch-action:manipulation}
 .pv-cta:active{background:#F2EFE9}
 .pv-cta:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
-.pv-demo{font:400 11px/1.4 inherit;color:#6B6560;margin:18px 0 0;max-width:36ch}
+.pv-demo{font-weight:400;font-size:11px;line-height:1.4;color:#6B6560;margin:18px 0 0;max-width:36ch}
 
 /* The section break. Brightest beside the diamond, dying at the margin -- the
    studio's own reversal, after its first cut faded to nothing at the centre and
@@ -655,12 +775,25 @@ function PublicStyles() {
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
   scrollbar-width:none}
 .pv-strip::-webkit-scrollbar{display:none}
-/* ⚠ THE ANCHOR IS NOW THE FLEX ITEM, so F-19.38's cure moves ONTO IT — the
-   image inside is no longer a flex child and its min-width is irrelevant there.
-   Both carry the width: the anchor because it is what flexes, the image because
-   it must fill the anchor and must not re-inherit an intrinsic floor if a later
-   seat unwraps it. Getting this wrong would have reintroduced the four-sitting
-   bug through the door the cure for W4-1 opened. */
+/* ⚠ THE LABEL IS NOW THE FLEX ITEM, so F-19.38's cure moves ONTO IT — F-19.p3.
+   This comment has moved twice with the element that carries it, and that is the
+   point of it. It was on the img; W4-1 wrapped the img in an anchor and the
+   anchor became the flex child, so the cure moved there; F-19.44 replaces the
+   anchor with a label and the cure moves again. **The rule belongs to whatever
+   is the direct child of .pv-strip, never to a tag name** — which is why
+   bs_audit C37 now derives that child from the markup instead of asserting
+   against img, and would have caught this migration going wrong.
+
+   Both carry the width: the label because it is what flexes, the image because
+   it must fill the label and must not re-inherit an intrinsic floor if a later
+   seat unwraps it. Getting this wrong reintroduces the four-sitting bug — a
+   1080px photograph flooring a 104px basis — and this container cannot see it,
+   because egress denies Cloudinary and naturalWidth is 0 here (F-19.39).
+
+   cursor:pointer is not decoration. The tap target stopped being a link, so
+   nothing else tells a desktop reader that the thumbnail is a control. */
+.pv-strip label{flex:0 0 104px;min-width:0;width:104px;display:block;
+  line-height:0;cursor:pointer}
 .pv-strip img{width:104px;min-width:0;aspect-ratio:4/5;
   object-fit:cover;display:block;background:#EDEAE4;scroll-snap-align:start}
 
@@ -671,7 +804,16 @@ function PublicStyles() {
 /* W3-4: "should be smaller -- not a semi hero sizze -- and should have
    thedreamwedding.in adress with it." One line, 11px, sentence case rather than
    tracked-out caps, which is what made 9px read larger than it measured. */
-.pv-colophon{font:400 9px/1.4 inherit;letter-spacing:0;color:#6B6560;white-space:nowrap}
+/* ⚠ white-space:nowrap IS STRUCK — F-19.p1, CE-39 ruling 1, and it is the half
+   of this defect that actually shifted the page. At the dropped 14px the line's
+   ink measured 484px inside a 326px column and the whole document scrolled
+   sideways by 134px. Longhanding the size to 9px is most of the cure, but not
+   all of it: measured in a real browser at 9px, the line is 326px in a 326px box
+   at 374 wide — exactly flush, no slack — and at 320 wide it is 311px of ink in
+   a 272px box and the page STILL scrolls sideways. A credit line that must not
+   wrap is a credit line one longer word away from moving the page again.
+   It wraps. */
+.pv-colophon{font-weight:400;font-size:9px;line-height:1.4;letter-spacing:0;color:#6B6560}
 .pv-colophon-link{color:#6B6560;text-decoration:underline;text-underline-offset:2px}
 
 /* ⚠ MOTION IS AN ENHANCEMENT, NEVER A GATE. Everything above animates from
@@ -681,11 +823,24 @@ function PublicStyles() {
    a pulse that never resolves is the same defect wearing a slower coat. */
 @media (prefers-reduced-motion: reduce){
   .pv-identity,.pv-body,.pv-shimmer{animation:none}
-  .pv-hero img{animation:none}
   /* The shimmer must not merely stop animating -- held at opacity 1 it would
      sit as a flat panel over nothing. It goes. */
   .pv-shimmer{display:none}
 }
+/* ── F-19.44 · THE INDEX RULES, GENERATED ──────────────────────────────────
+   One set per photograph, and the set is unbounded because the door's portfolio
+   query carries no limit. They are built by lib/public/heroSelectRules.mjs
+   rather than written here, so that tools/bs_audit.mjs can import the SAME
+   function and assert against the SAME bytes -- a generated string interpolated
+   into this literal would be invisible to every source-reading cell in that file,
+   which is the hollow-green shape this block has already paid for twice.
+
+   ⚠ THEY COME AFTER the reduced-motion block above, on purpose. Their own
+   reduced-motion escape is generated with them, at the same id-carrying
+   specificity, because a media query adds no specificity and a static
+   .pv-hero-img{animation:none} up there would simply lose. See the module.
+*/
+${heroSelectRules(heroCount)}
     `}</style>
   );
 }

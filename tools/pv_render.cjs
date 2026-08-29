@@ -225,13 +225,61 @@ async function measure(page) {
       colorScheme: getComputedStyle(document.documentElement).colorScheme,
       themeColor:  (document.querySelector('meta[name="theme-color"]') || {}).content || null,
     };
-    // W4-1: anchored photographs, and every _blank carrying noopener.
-    const links = [...document.querySelectorAll('.pv-heroLink, .pv-strip a')];
-    out.photoLinks = links.map((a) => ({
+    // ⚠ RETIRED WITH ITS READER (F-19.44). This collected `.pv-heroLink, .pv-strip
+    // a` — the anchors CE-38 put on every photograph so the browser's own viewer
+    // could open them. The founder's 2026-08-29 ruling replaced that mechanism
+    // with radio-driven displacement and there are no photograph anchors left to
+    // collect. Kept as a note rather than deleted silently: a reader looking for
+    // W4-1's cell should find out where it went, not find nothing.
+    //
+    // What survives of its question — every `_blank` carries `noopener` — moved
+    // to the surviving links, which are Enquire and the colophon address.
+    out.blankLinks = [...document.querySelectorAll('a[target="_blank"]')].map((a) => ({
       href: a.getAttribute('href'),
-      blank: a.getAttribute('target') === '_blank',
       noopener: /noopener/.test(a.getAttribute('rel') || ''),
-      tap: Math.round(a.getBoundingClientRect().width) + 'x' + Math.round(a.getBoundingClientRect().height),
+    }));
+
+    // ── F-19.43 · THE COMPUTED COLOPHON, AND THE PAGE'S OWN WIDTH ──────────
+    // The whole finding in two numbers. A declaration said 9px; the browser
+    // dropped the declaration and rendered 14px; `nowrap` at 14px pushed the
+    // line 158px past its column and the document scrolled sideways. Both are
+    // computed values, which is the only kind of value that could have caught it.
+    const col = document.querySelector('.pv-colophon');
+    out.colophon = col ? {
+      fontSize: getComputedStyle(col).fontSize,
+      fontWeight: getComputedStyle(col).fontWeight,
+      whiteSpace: getComputedStyle(col).whiteSpace,
+      inkWidth: col.scrollWidth,
+      boxWidth: Math.round(col.getBoundingClientRect().width),
+    } : null;
+    out.doc = {
+      scrollWidth: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth,
+    };
+
+    // ── F-19.44 · THE HERO STACK AND THE STRIP'S LABELS ────────────────────
+    // Identity of the mechanism, before any verdict about its behaviour: how
+    // many layers, how many radios, how many labels, and which layer is showing.
+    const layers = [...document.querySelectorAll('.pv-hero-img')];
+    out.gallery = {
+      layers: layers.length,
+      radios: document.querySelectorAll('.pv-radio').length,
+      labels: document.querySelectorAll('.pv-strip label').length,
+      checked: [...document.querySelectorAll('.pv-radio')].findIndex((r) => r.checked),
+      // ⚠ F-19.39 EXTENDED TO THE STACK. An unloaded <img> has no intrinsic
+      // size and no decoded pixels, so a geometry or paint claim about it is a
+      // claim about a different page. Reported beside every opacity below.
+      shown: layers.map((el) => ({
+        i: el.getAttribute('data-i'),
+        opacity: getComputedStyle(el).opacity,
+        naturalWidth: el.naturalWidth,
+        src: el.getAttribute('src'),
+      })),
+    };
+    out.thumbs = [...document.querySelectorAll('.pv-strip label')].map((l) => ({
+      htmlFor: l.getAttribute('for'),
+      src: (l.querySelector('img') || {}).src || null,
+      tap: Math.round(l.getBoundingClientRect().width) + 'x' + Math.round(l.getBoundingClientRect().height),
     }));
 
     // ── CONTRAST, sampled where type actually sits ────────────────────────
@@ -496,12 +544,109 @@ async function open(browser, url, label, opts = {}) {
         chk(g.main === 'rgb(248, 247, 245)',
             '§1.8c the painted ground is the declared one', String(g.main));
       }
-      // ── §1.9 · W4-1 · the photographs open ───────────────────────────────
-      if (m.photoLinks) {
-        const bad = m.photoLinks.filter((l) => !l.href || (l.blank && !l.noopener));
-        chk(m.photoLinks.length >= 2 && bad.length === 0,
-            '§1.9 every photograph is an anchor, and every _blank carries noopener',
-            `${m.photoLinks.length} link(s), taps ${m.photoLinks.map((l) => l.tap).join(' ')}`);
+      // ── §1.9 · every _blank still carries noopener ────────────────────────
+      // W4-1's cell is retired with the anchors it watched (see the collector).
+      // Its surviving half applies to the links that remain: Enquire, and the
+      // colophon address. A `_blank` without `noopener` hands the opened page a
+      // handle on this one, and on a public route that is a hole, not a nit.
+      if (m.blankLinks) {
+        const bad = m.blankLinks.filter((l) => !l.href || !l.noopener);
+        chk(m.blankLinks.length >= 1 && bad.length === 0,
+            '§1.9 every _blank link carries noopener',
+            `${m.blankLinks.length} link(s), ${bad.length} without noopener`);
+      }
+
+      // ── §1.10 · R-a · F-19.43, OBSERVED ──────────────────────────────────
+      // The defect the founder photographed, in the only terms that could have
+      // caught it: a COMPUTED font size and the document's own width. Thirty-nine
+      // source cells were green while this page rendered its 9px credit line at
+      // 14px, because a declaration is not a computed value — D-38.1, and the
+      // most expensive proof of it this block has produced.
+      //
+      // ⚠ BOTH HALVES ARE ASSERTED. Size alone would pass a page that still
+      // scrolled; width alone would pass a page that had wrapped its way out of
+      // trouble at the wrong size. `bs_audit` C41 asserts the same pair on a
+      // fixture at 320 and 374 and needs no network; this one asserts it on the
+      // DEPLOY at the founder's own 374, which is the thing a fixture cannot be.
+      if (m.colophon) {
+        console.log(`      colophon ${m.colophon.fontSize}/${m.colophon.fontWeight} · ${m.colophon.whiteSpace} · ink ${m.colophon.inkWidth}px in ${m.colophon.boxWidth}px`);
+        chk(m.colophon.fontSize === '9px',
+            '§1.10 R-a the colophon computes the size it declares (F-19.43)',
+            `computed ${m.colophon.fontSize} — the source says 9px`);
+      } else {
+        F('§1.10 R-a the colophon computes the size it declares (F-19.43)', 'no .pv-colophon on the page');
+      }
+      if (m.doc) {
+        chk(m.doc.scrollWidth <= m.doc.innerWidth,
+            '§1.10b R-a the page does not scroll sideways at 374',
+            `documentElement.scrollWidth ${m.doc.scrollWidth} vs innerWidth ${m.doc.innerWidth}`);
+      }
+
+      // ── §1.11 · R-b · F-19.44, OBSERVED AT THE MOMENT OF THE TAP ─────────
+      // The founder's ruling: *clicking any picture should displace the hero
+      // picture at the top.* This clicks the SECOND thumbnail's label and then
+      // asks what is actually on screen — not whether a radio exists, not
+      // whether a rule is present, but which photograph the hero is showing and
+      // whether anything else moved.
+      //
+      // ⚠ IDENTITY BEFORE GEOMETRY, TWICE OVER (F-19.37, F-19.39). The gallery
+      // block is printed first: layers, radios, labels and which is checked. And
+      // the src comparison is gated on `naturalWidth > 0` — an image that never
+      // decoded has no pixels, and asserting that the hero "shows" it would be
+      // the exact shape of the five runs that reported 104px thumbnails at 1080.
+      if (m.gallery) {
+        const g = m.gallery;
+        console.log(`      gallery  ${g.layers} layer(s) \u00b7 ${g.radios} radio(s) \u00b7 ${g.labels} label(s) \u00b7 checked #${g.checked}`);
+        chk(g.layers > 0 && g.layers === g.radios && g.radios === g.labels,
+            '§1.11 one radio and one label per photograph, one layer each',
+            `${g.layers} layers, ${g.radios} radios, ${g.labels} labels`);
+        chk(g.checked === 0,
+            '§1.11b the page arrives on the hero photograph',
+            `radio #${g.checked} is checked`);
+      }
+      if (m.gallery && m.gallery.labels >= 2) {
+        const before = { href: cold.page.url(), layers: m.gallery.shown };
+        const pagesBefore = (await browser.pages()).length;
+        await cold.page.click('.pv-strip label[for="pv-h1"]').catch(() => {});
+        // The crossfade is `both`-filled: a read at t=0 sees opacity 0 on every
+        // layer, including the winning one. Sampled after it lands, because the
+        // moment a couple would call the hero "changed" is when the fade ends.
+        await cold.page.evaluate(() => new Promise((r) => setTimeout(r, 1400)));
+        const after = await cold.page.evaluate(() => {
+          const layers = [...document.querySelectorAll('.pv-hero-img')];
+          const visible = layers.find((el) => getComputedStyle(el).opacity === '1');
+          return {
+            visibleIndex: visible ? visible.getAttribute('data-i') : null,
+            visibleSrc: visible ? visible.src : null,
+            visibleNatural: visible ? visible.naturalWidth : 0,
+            thumbSrc: (document.querySelector('.pv-strip label[for="pv-h1"] img') || {}).src || null,
+            checked: [...document.querySelectorAll('.pv-radio')].findIndex((r) => r.checked),
+            href: location.href,
+          };
+        });
+        const pagesAfter = (await browser.pages()).length;
+        console.log(`      tap#2    visible layer ${after.visibleIndex} \u00b7 checked #${after.checked} \u00b7 natural ${after.visibleNatural}px \u00b7 pages ${pagesBefore}\u2192${pagesAfter}`);
+        chk(after.checked === 1 && after.visibleIndex === '1',
+            '§1.11c tapping the second thumbnail displaces the hero',
+            `checked #${after.checked}, visible layer ${after.visibleIndex}`);
+        // F-19.39's gate. Without a decoded image the src equality is still
+        // meaningful (both are attributes), but a PASS is declared INCONCLUSIVE
+        // when nothing loaded, because "the hero shows that photograph" is a
+        // claim about a picture and there is no picture.
+        if (after.visibleNatural > 0) {
+          chk(after.visibleSrc === after.thumbSrc,
+              '§1.11d the hero shows THAT thumbnail\u2019s photograph',
+              `hero ${String(after.visibleSrc).slice(-28)} vs thumb ${String(after.thumbSrc).slice(-28)}`);
+        } else {
+          I('§1.11d the hero shows THAT thumbnail\u2019s photograph',
+            'the hero image never decoded (naturalWidth 0) — F-19.39 forbids a paint claim over an image that does not exist');
+        }
+        chk(after.href === before.href,
+            '§1.11e the URL never changes',
+            `${before.href} \u2192 ${after.href}`);
+        chk(pagesAfter === pagesBefore,
+            '§1.11f no new tab is opened',
+            `${pagesBefore} \u2192 ${pagesAfter} page(s)`);
       }
       chk(!!m.build, '§1.7 the page names its own build', m.build || 'NO meta[name="tdw-build"] — a walk cannot identify what it opened');
       await cold.page.close().catch(() => {});

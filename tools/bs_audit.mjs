@@ -42,6 +42,15 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+// ⚠ THE SAME FUNCTION THE PAGE CALLS, NOT A TRANSCRIPTION OF IT (F-19.44).
+// `app/v/[code]/page.tsx` interpolates this generator's output into its one
+// <style> element, so the per-photograph index rules exist only at render. Every
+// other cell in this file reads the page as TEXT and would see the characters
+// `${heroSelectRules(heroCount)}` and no CSS at all. Importing the module is what
+// keeps C34, C40, C41 and C42 asserting the bytes that ship rather than a string
+// they cannot parse — the INDEPENDENT-METHOD LAW's first clause, obeyed by using
+// the subject itself instead of a second copy of it that could drift.
+import { heroSelectRules, PV_HERO_FADE } from '../lib/public/heroSelectRules.mjs';
 
 const ROOT      = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TYPES     = join(ROOT, 'lib/solutions/types.ts');
@@ -50,9 +59,19 @@ const SELF      = fileURLToPath(import.meta.url);
 
 const PRINT_DIGEST = process.argv.includes('--print-digest');
 
-let pass = 0, fail = 0;
+let pass = 0, fail = 0, inco = 0;
 const P = (n, why) => { console.log('PASS  ' + n + (why ? '  — ' + why : '')); pass++; };
 const F = (n, why) => { console.log('FAIL  ' + n + '  — ' + why); fail++; };
+// ⚠ INCONCLUSIVE IS A THIRD VERDICT AND IT IS NOT A PASS (F-19.37's shape).
+// C41 and C42 drive a real browser over a fixture. If the browser cannot launch
+// at all — no chromium in the environment — the honest answer is that nothing
+// was looked at. Calling that FAIL would red the gate over a missing binary and
+// teach a founder to push through a red; calling it PASS is the hollow green
+// this estate has paid for repeatedly. So it is named, counted separately, and
+// printed in the tally, and the delivery's verify line refuses a non-zero count.
+// It does NOT move the exit code: the exit code answers "is anything broken",
+// and an instrument that did not run has not answered that question either way.
+const I = (n, why) => { console.log('INCO  ' + n + '  — ' + why); inco++; };
 
 const unsound = (why) => {
   console.error('GATE-UNSOUND  — ' + why);
@@ -846,9 +865,30 @@ try {
     // guard caught its own subject moving out from under it, which is the whole
     // reason it was written against the rule rather than against a screenshot.
     // It now reads whichever element actually flexes.
-    const stripA = (pv.match(/\.pv-strip a\{[^}]*\}/) || [''])[0];
+    //
+    // ⚠ AND IT MOVED AGAIN (F-19.44, F-19.p3). The anchor became a `<label>`.
+    // The comment above already says the right thing — *read whichever element
+    // actually flexes* — but the code under it did not: it named two tag
+    // spellings and picked between them, so the third spelling fell through to
+    // `.pv-strip img`, which no longer carries `flex:` at all, and the cell
+    // reported "no fixed thumbnail width" against a page that had one.
+    // A roster of the tags a seat happened to think of, twice.
+    //
+    // Now the tag is DERIVED FROM THE MARKUP, the same way C37 derives it: the
+    // direct child of `.pv-strip` is the flex item, whatever it is called. This
+    // cell and C37 ask different questions of that element — this one about the
+    // fold, that one about F-19.38's minimum — and neither has to be edited the
+    // next time the wrapper changes.
+    const stripChild = (() => {
+      const mk = strip(pv).split('function PublicStyles')[0];
+      const blk = mk.match(/className="pv-strip"[\s\S]{0,1200}/);
+      return blk ? (blk[0].match(/<([a-z]+)[\s>]/) || [])[1] : null;
+    })();
+    const stripItem = stripChild
+      ? (pv.match(new RegExp('\\.pv-strip\\s+' + stripChild + '\\{[^}]*\\}')) || [''])[0]
+      : '';
     const stripImg = (pv.match(/\.pv-strip img\{[^}]*\}/) || [''])[0];
-    const strip = /flex:/.test(stripA) ? stripA : stripImg;
+    const strip_ = /flex:/.test(stripItem) ? stripItem : stripImg;
     const bad = [];
     if (!hero)  bad.push('no .pv-hero rule');
     else {
@@ -873,18 +913,18 @@ try {
       if (!cl)                             bad.push('the clamp is not floor/viewport/ceiling in px,vh,px');
       else if (Number(cl[3]) > 520)        bad.push(`ceiling ${cl[3]}px fills a phone with one photograph`);
     }
-    if (!strip) bad.push('no .pv-strip img rule');
+    if (!strip_) bad.push('no rule carries the strip flex item — nothing bounds the thumbnail');
     else {
       // A percentage basis is what made the strip a second slideshow.
-      if (/flex:\s*0\s+0\s+\d+%/.test(strip)) bad.push('the strip is sized as a percentage of the viewport');
-      const px = (strip.match(/flex:\s*0\s+0\s+(\d+)px/) || [])[1];
+      if (/flex:\s*0\s+0\s+\d+%/.test(strip_)) bad.push('the strip is sized as a percentage of the viewport');
+      const px = (strip_.match(/flex:\s*0\s+0\s+(\d+)px/) || [])[1];
       if (!px)                    bad.push('the strip has no fixed thumbnail width');
       else if (Number(px) > 140)  bad.push(`thumbnails at ${px}px read as a gallery, not a glance`);
       // F-19.38 must survive the wrapper. Whatever flexes needs its automatic
       // minimum defused, and the image needs it too in case a later seat unwraps
       // the anchor — the four-sitting bug would otherwise return through the
       // door W4-1's cure opened.
-      if (!/min-width:\s*0/.test(strip))    bad.push('the flex item does not defuse min-width (F-19.38)');
+      if (!/min-width:\s*0/.test(strip_))   bad.push('the flex item does not defuse min-width (F-19.38)');
       if (stripImg && !/min-width:\s*0/.test(stripImg))
         bad.push('the thumbnail image does not defuse min-width');
     }
@@ -952,9 +992,30 @@ try {
     // The escape must cover exactly what MOVES — no less, and a roster of
     // classes that no longer animate is a cell asserting yesterday's page.
     // Derived: every selector carrying an `animation:` in the sheet.
+    // ⚠ LABELLED AMENDMENT (F-19.44). Two things moved under the hero-selection
+    // cure and this cell had to move with them.
+    //
+    // 1 · THE SHEET IS NO LONGER ENTIRELY IN THE FILE. The per-photograph index
+    //     rules are generated at render by `lib/public/heroSelectRules.mjs`, and
+    //     the fade that reveals the selected hero lives in one of them. Reading
+    //     the file alone, this cell would have seen no hero animation, found
+    //     nothing to cover, and gone green over an escape that does not exist.
+    //     So the subject is the static sheet PLUS the real generated output. The
+    //     count is arbitrary and does not matter: the rules are uniform per
+    //     index, so three proves the shape N would have.
+    //
+    // 2 · THE SELECTOR ENDS IN AN ATTRIBUTE NOW. `.pv-hero-img[data-i="0"]{` did
+    //     not match a pattern that expected `{` straight after the class, so the
+    //     animating element was invisible to the roster. Same class of miss as
+    //     the one the comment above describes, one layer deeper.
     const sheet = (pv.match(/<style>\{`[\s\S]*?`\}<\/style>/) || [''])[0];
-    const movers = [...sheet.matchAll(/\.([a-z-]+)(?:\s+\w+)?\s*\{[^}]*animation:\s*pv/g)].map((m) => m[1]);
-    const rm = (sheet.match(/@media \(prefers-reduced-motion: reduce\)\{[\s\S]*?\n\}/) || [''])[0];
+    const sheetAll = sheet + '\n' + heroSelectRules(3);
+    const movers = [...sheetAll.matchAll(/\.([a-z-]+)(?:\[[^\]]*\])?(?:\s+\w+)?\s*\{[^}]*animation:\s*pv/g)].map((m) => m[1]);
+    // Every reduced-motion block, not the first one. The generated escape is a
+    // second block on purpose — it needs id-level specificity to beat the rule
+    // it is escaping — and a regex that stopped at the first would have reported
+    // the hero fade uncovered while the cure sat two lines below.
+    const rm = [...sheetAll.matchAll(/@media \(prefers-reduced-motion: reduce\)\{[\s\S]*?\n\}/g)].map((m) => m[0]).join('\n');
     if (!movers.length) bad.push('no element carries an animation');
     for (const cls of new Set(movers)) {
       if (!rm.includes(cls)) bad.push(`reduced-motion does not cover .${cls}, which animates`);
@@ -1140,6 +1201,41 @@ try {
           bad.push(`.${parent} img has no min-width:0 — its intrinsic width will floor the flex basis`);
         }
       }
+
+      // ── LABELLED AMENDMENT · F-19.p3 · THE CURE IS ASSERTED ON WHATEVER
+      //    CARRIES IT, NEVER ON A TAG NAME (CE-39 ruling 3) ───────────────────
+      // The clause above asks about `img`, and that was right exactly once. The
+      // flex item under `.pv-strip` has now been the img (P0-B), then an anchor
+      // (W4-1), and is now a `<label>` (F-19.44) — and at each move the whole
+      // four-sitting bug rides on `flex:0 0 104px; min-width:0` travelling with
+      // it. An `img` that is no longer a flex child can carry `min-width:0`
+      // forever while the element that actually flexes is floored at 1080px, and
+      // this cell would have said nothing, twice.
+      //
+      // So the flex item is DERIVED FROM THE MARKUP: whatever tag the page
+      // renders as the direct child of `.pv-strip` is the element the rule must
+      // land on. Source of the failure and source of the check are different —
+      // one is JSX, the other is CSS — which is the independent-method property
+      // a same-file grep would not have.
+      const stripMarkup = strip(pv).split('function PublicStyles')[0];
+      const stripBlock = stripMarkup.match(/className="pv-strip"[\s\S]{0,1200}/);
+      if (!stripBlock) {
+        // Not a failure: a page with no strip has no flex item to protect.
+        // Silence here would be the roster mistake in reverse, so it is stated.
+        if (/className="pv-strip"/.test(stripMarkup)) bad.push('the strip renders but its markup could not be read');
+      } else {
+        const child = (stripBlock[0].match(/<([a-z]+)[\s>]/) || [])[1];
+        if (!child) bad.push('the strip renders no element — its flex item could not be derived');
+        else {
+          const itemRe = new RegExp('\\.pv-strip\\s+' + child + '\\s*\\{([^}]*)\\}');
+          const item = sheet.match(itemRe);
+          if (!item) bad.push(`.pv-strip renders <${child}> and the sheet has no .pv-strip ${child} rule — nothing defuses its automatic minimum`);
+          else {
+            if (!/min-width:\s*0/.test(item[1])) bad.push(`.pv-strip ${child} is the flex item and has no min-width:0 — F-19.38 returns`);
+            if (!/flex:/.test(item[1]))         bad.push(`.pv-strip ${child} is the flex item and declares no flex basis`);
+          }
+        }
+      }
     }
     bad.length === 0
       ? P('C37 the stylesheet carries none of its three known traps', 'no stray backtick; no content element loops; every flex image defuses min-width')
@@ -1238,27 +1334,303 @@ try {
 {
   let pv = null;
   try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { /* reported */ }
-  if (!pv) F('C39 every photograph opens, and no JavaScript ships', 'the public page not found');
+  if (!pv) F('C39 every photograph displaces the hero, and no JavaScript ships', 'the public page not found');
   else {
     const code = strip(pv);
     const markup = code.split('function PublicStyles')[0];
     const bad = [];
-    if (!/className="pv-heroLink"/.test(markup))    bad.push('the hero is not tappable');
-    const stripAnchor = /<a[^>]*href=\{p\.url\}/.test(markup);
-    if (!stripAnchor)                               bad.push('the strip thumbnails are not tappable');
-    // An anchor that opens a new tab without `noopener` hands the opened page a
-    // handle on this one. On a public route that is a real hole, not a lint nit.
+
+    // 1 · NO ANCHOR WRAPS A PHOTOGRAPH. The literal inversion of what this cell
+    //     used to demand. Both retired spellings are named so a revert reddens
+    //     here rather than passing as "not the current shape".
+    if (/className="pv-heroLink"/.test(markup))  bad.push('the hero is an anchor again — F-19.44 reversed');
+    if (/<a[^>]*href=\{p\.url\}/.test(markup))   bad.push('a strip thumbnail is an anchor again — F-19.44 reversed');
+    // Structural, not spelling-based: any <a> with an <img> inside it, however
+    // the href is written. A later seat re-wrapping a photograph in a link with
+    // a different attribute order would not escape this.
+    if (/<a\b[^>]*>[\s\S]{0,400}?<img\b/.test(markup)) bad.push('an anchor wraps an image on the page');
+
+    // 2 · ONE RADIO PER PHOTOGRAPH, ONE LABEL PER RADIO — and the proof is that
+    //     BOTH MAP THE SAME ARRAY. Counting tags in source cannot work: the page
+    //     renders N of each from a loop and N is only known at request time. So
+    //     the cell asserts the property that makes the counts equal by
+    //     construction — same collection, same index expression, same id.
+    const radioArr = (markup.match(/\{\s*([A-Za-z_$][\w$]*)\.map\(\([^)]*\)\s*=>\s*\(?\s*<input\s+[\s\S]{0,200}?type="radio"/) || [])[1];
+    const labelArr = (markup.match(/\{\s*([A-Za-z_$][\w$]*)\.map\(\([^)]*\)\s*=>\s*\(?\s*<label\b/) || [])[1];
+    const heroArr  = (markup.match(/\{\s*([A-Za-z_$][\w$]*)\.map\(\([^)]*\)\s*=>\s*\(?\s*(?:\/\/[^\n]*\n\s*)?<img\s+[\s\S]{0,200}?className="pv-hero-img"/) || [])[1];
+    if (!radioArr) bad.push('no radio is rendered per photograph — nothing can select a hero');
+    if (!labelArr) bad.push('the strip renders no label — a photograph cannot be tapped');
+    if (!heroArr)  bad.push('the hero renders no .pv-hero-img stack — there is nothing to displace');
+    if (radioArr && labelArr && radioArr !== labelArr) {
+      bad.push(`radios map ${radioArr} and labels map ${labelArr} — two collections cannot guarantee one label per radio`);
+    }
+    if (radioArr && heroArr && radioArr !== heroArr) {
+      bad.push(`radios map ${radioArr} and the hero stack maps ${heroArr} — the index would address a different photograph`);
+    }
+    // 3 · THE ID AND THE `htmlFor` ARE THE SAME EXPRESSION. A label pointing at
+    //     an id that is never minted is a control wired to nothing, and it looks
+    //     identical in a screenshot.
+    if (!/id=\{`pv-h\$\{i\}`\}/.test(markup))      bad.push('the radios do not mint id="pv-h<i>" — the generated rules address nothing');
+    if (!/htmlFor=\{`pv-h\$\{i\}`\}/.test(markup)) bad.push('the labels do not point at pv-h<i>');
+    if (!/data-i=\{i\}/.test(markup))              bad.push('the hero stack carries no data-i — the index rules cannot reach a layer');
+    // 4 · THE COUNT THE RULES ARE BUILT FROM IS THE COUNT THAT IS RENDERED.
+    //     `heroSelectRules(k)` emits rules for indices 0..k-1; if k were derived
+    //     from anything but the same array's length, the last photographs would
+    //     be unselectable and nothing on the page would look wrong.
+    if (radioArr && !new RegExp('heroCount=\\{' + radioArr + '\\.length\\}').test(markup)) {
+      bad.push(`the stylesheet's index-rule count is not ${radioArr}.length — some photographs would be unselectable`);
+    }
+
+    // 5 · THE RULED REFUSAL OF CLIENT JS, UNCHANGED. This is the clause that
+    //     protects the ruling: a later seat reaching for a viewer reaches for
+    //     'use client', and the whole mechanism above exists to avoid it.
+    if (/'use client'/.test(code))               bad.push('the public route became a client component — the ruled refusal is reversed');
+    if (/onClick|useState|useEffect/.test(code)) bad.push('client-side interactivity reached the public route');
+    // Surviving _blank links (Enquire, the colophon address) still carry noopener.
     const targets = (markup.match(/target="_blank"/g) || []).length;
     const noopener = (markup.match(/rel="noopener[^"]*"/g) || []).length;
-    if (targets > noopener)                         bad.push(`${targets} _blank links, only ${noopener} with rel=noopener`);
-    if (/'use client'/.test(code))                  bad.push('the public route became a client component — the ruled refusal is reversed');
-    if (/onClick|useState|useEffect/.test(code))    bad.push('client-side interactivity reached the public route');
+    if (targets > noopener) bad.push(`${targets} _blank links, only ${noopener} with rel=noopener`);
+
     bad.length === 0
-      ? P('C39 every photograph opens, and no JavaScript ships', `hero + strip anchored, ${targets} _blank links all noopener, no client runtime`)
-      : F('C39 every photograph opens, and no JavaScript ships', bad.join('; '));
+      ? P('C39 every photograph displaces the hero, and no JavaScript ships',
+          `no anchor wraps an image; radios, labels and hero layers all map ${radioArr}; ${targets} _blank links all noopener; no client runtime`)
+      : F('C39 every photograph displaces the hero, and no JavaScript ships', bad.join('; '));
+  }
+}
+
+// ── C40 · NO `font:` SHORTHAND CARRIES A CSS-WIDE KEYWORD (F-19.43) ─────────
+// The three-sitting bug, refused permanently. `font:400 9px/1.4 inherit` reads
+// as "keep the family, set the rest" and is a PARSE ERROR: a CSS-wide keyword is
+// legal only as the entire value of a shorthand, so the browser discarded the
+// whole declaration and four elements silently inherited 14px/400 from `.pv`.
+// Three sittings tuned a size that never applied, and the founder's page shifted
+// sideways by 134px because a 9px credit line was rendering at 14px `nowrap`.
+//
+// ⚠ BOTH PUBLIC ROUTES (CE-39 ruling 4). `/r/` carries its own inline
+// stylesheet, written by the same hand under the same instinct, and C38 already
+// reads that file — a cell that guarded one of two identical surfaces would be
+// waiting to be surprised by the other.
+{
+  const SITES = ['app/v/[code]/page.tsx', 'app/r/[code]/route.ts'];
+  const bad = [];
+  let scanned = 0;
+  for (const rel of SITES) {
+    let src = null;
+    try { src = readFileSync(join(ROOT, rel), 'utf8'); } catch { bad.push(`${rel} not found`); continue; }
+    scanned++;
+    // Comments are stripped first: this file's own prose quotes the broken
+    // declaration to explain it, and a cell that read its own documentation as
+    // a defect would be unfixable. Comment-blindness law.
+    const code = strip(src);
+    for (const m of code.matchAll(/font:\s*([^;}\n]*)/g)) {
+      const kw = m[1].match(/\b(inherit|initial|unset|revert|revert-layer)\b/);
+      if (kw) bad.push(`${rel} — "font:${m[1].trim()}" carries ${kw[1]}; the whole declaration is dropped`);
+    }
+  }
+  // The generated rules are scanned too, because they are part of the sheet that
+  // ships and are not in any file this loop opened.
+  for (const m of heroSelectRules(3).matchAll(/font:\s*([^;}\n]*)/g)) {
+    if (/\b(inherit|initial|unset|revert|revert-layer)\b/.test(m[1])) bad.push(`heroSelectRules — "font:${m[1].trim()}"`);
+  }
+  if (scanned < SITES.length) bad.push(`only ${scanned} of ${SITES.length} public routes were read`);
+  bad.length === 0
+    ? P('C40 no font shorthand on a public route carries a CSS-wide keyword', `${scanned} public routes scanned, plus the generated rules`)
+    : F('C40 no font shorthand on a public route carries a CSS-wide keyword', bad.join('; '));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// THE FIXTURE RENDER — C41, C42
+// ═══════════════════════════════════════════════════════════════════════════
+// Every cell above this line reads source. D-38.1 is the standing objection to
+// stopping there: *a rule present in a stylesheet is not a rule that applies.*
+// F-19.43 is that objection's most expensive proof — thirty-nine source cells
+// were green over a page whose colophon was rendering at 14px, because nothing
+// in this estate had ever asked a browser what a declaration COMPUTED to.
+//
+// `pv_render.cjs` is where computed values normally live, and it needs a
+// deployment. This container's egress refuses the deployment (host_not_allowed),
+// so those cells cannot run at all this sitting. CE-39 ruled the substitute, and
+// the reason it works is that **this defect needs no network**: the disease is
+// in the cascade, the fixture is the page's own stylesheet, and no photograph
+// has to load for a font size to compute or for a label to check a radio.
+//
+// ⚠ IT IS A FIXTURE, NOT THE DEPLOY, AND IT IS NAMED THAT WAY EVERYWHERE.
+// It proves what the CSS does. It proves nothing about images, arrival, the
+// service worker, or what the founder's glass shows — F-19.37 stands, and those
+// remain the founder's card and `pv_render`'s job for the day egress opens.
+{
+  const REAL = 'app/v/[code]/page.tsx';
+  let pv = null;
+  try { pv = readFileSync(join(ROOT, REAL), 'utf8'); } catch { /* reported below */ }
+
+  if (!pv) {
+    F('C41 the colophon computes 9px and the page does not scroll sideways', `${REAL} not found`);
+    F('C42 tapping a thumbnail displaces the hero photograph', `${REAL} not found`);
+  } else {
+    let chromium = null, puppeteer = null;
+    try {
+      chromium = (await import('@sparticuz/chromium')).default;
+      puppeteer = (await import('puppeteer-core')).default;
+    } catch (e) {
+      const why = 'no browser in this environment (' + String(e && e.message || e).slice(0, 90) + ')';
+      I('C41 the colophon computes 9px and the page does not scroll sideways', why);
+      I('C42 tapping a thumbnail displaces the hero photograph', why);
+    }
+
+    if (chromium && puppeteer) {
+      // The page's OWN stylesheet, verbatim, plus the real generated rules for
+      // the fixture's photograph count. Nothing is retyped: a transcription of
+      // the CSS would be a second copy that agrees with itself.
+      const sheetLit = pv.slice(pv.indexOf('<style>{`') + 9, pv.indexOf('`}</style>'));
+      const N = 3;
+      const css = sheetLit.replace(/\$\{heroSelectRules\(heroCount\)\}/, heroSelectRules(N));
+      // The real colophon byte, read from the file rather than remembered — the
+      // overflow is a property of THIS string's length and a shorter stand-in
+      // would have measured a page that does not exist.
+      const lead = (pv.match(/colophonLead:\s*'([^']*)'/) || [, ''])[1].replace(/\\u00b7/g, '\u00b7');
+
+      const thumbs = Array.from({ length: N }, (_, i) =>
+        `<label for="pv-h${i}"><img data-t="${i}" alt=""></label>`).join('');
+      const layers = Array.from({ length: N }, (_, i) =>
+        `<img class="pv-hero-img" data-i="${i}" alt="" aria-hidden="true">`).join('');
+      const radios = Array.from({ length: N }, (_, i) =>
+        `<input type="radio" name="pv-hero" id="pv-h${i}" class="pv-radio"${i === 0 ? ' checked' : ''} aria-label="Show photograph ${i + 1}">`).join('');
+
+      const html = `<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0}</style><style>${css}</style></head><body>
+<main class="pv pv-card">
+<header class="pv-top"><span class="pv-top-name">Dev Roy Photography</span></header>
+${radios}
+<div class="pv-hero"><div class="pv-shimmer"></div>${layers}<div class="pv-scrim"></div>
+  <div class="pv-identity"><h1>Dev Roy Photography</h1></div></div>
+<div class="pv-body"><p class="pv-line">Takes enquiries through The Dream Wedding.</p>
+  <a class="pv-cta" href="#">Enquire on WhatsApp</a>
+  <p class="pv-demo">This is a demonstration page, built from work published publicly.</p></div>
+<div class="pv-rule"><span class="pv-rule-line"></span><span class="pv-diamond">\u25c6</span><span class="pv-rule-line"></span></div>
+<div class="pv-strip">${thumbs}</div>
+<footer class="pv-close"><span class="pv-close-mark">Dev Roy Photography</span>
+  <span class="pv-colophon">${lead} <a class="pv-colophon-link" href="#">thedreamwedding.in</a></span>
+</footer></main></body></html>`;
+
+      let browser = null;
+      try {
+        browser = await puppeteer.launch({
+          args: chromium.args,
+          executablePath: await chromium.executablePath(),
+          headless: true,
+          protocolTimeout: 60000,
+        });
+
+        // ── C41 · TWO VIEWPORTS, AND 320 IS THE ONE THAT MATTERS ────────────
+        // CE-39 ruling 1 names both. 374 is the founder's own walk width, so a
+        // number here and a capture he takes describe the same screen. 320 is
+        // the narrowest phone still in the wild, and it is where the 9px line
+        // STILL overflowed while `nowrap` stood — the reason `nowrap` was
+        // struck rather than merely resized. A single-viewport cell would have
+        // gone green over a page that shifts on an SE.
+        const bad41 = [];
+        const seen = [];
+        for (const width of [320, 374]) {
+          const page = await browser.newPage();
+          await page.setViewport({ width, height: 900, deviceScaleFactor: 2 });
+          await page.setContent(html, { waitUntil: 'load' });
+          const m = await page.evaluate(() => {
+            const col = document.querySelector('.pv-colophon');
+            const cta = document.querySelector('.pv-cta');
+            const demo = document.querySelector('.pv-demo');
+            return {
+              colophon: col ? getComputedStyle(col).fontSize : null,
+              cta: cta ? getComputedStyle(cta).fontSize : null,
+              ctaWeight: cta ? getComputedStyle(cta).fontWeight : null,
+              demo: demo ? getComputedStyle(demo).fontSize : null,
+              scrollWidth: document.documentElement.scrollWidth,
+              innerWidth: window.innerWidth,
+            };
+          });
+          await page.close();
+          seen.push(`${width}: colophon ${m.colophon}, doc ${m.scrollWidth}/${m.innerWidth}`);
+          if (m.colophon !== '9px') bad41.push(`at ${width} the colophon computes ${m.colophon}, not 9px`);
+          // The CTA is the decisive witness of the shorthand class: it declared
+          // weight 500 and computed 400 while `inherit` stood. Asserted here so
+          // a partial revert of the longhands cannot pass on the colophon alone.
+          if (m.cta !== '12px' || m.ctaWeight !== '500') bad41.push(`at ${width} the CTA computes ${m.cta}/${m.ctaWeight}, not 12px/500`);
+          if (m.demo !== '11px') bad41.push(`at ${width} the demo note computes ${m.demo}, not 11px`);
+          if (m.scrollWidth > m.innerWidth) bad41.push(`at ${width} the page scrolls sideways (${m.scrollWidth} > ${m.innerWidth})`);
+        }
+        bad41.length === 0
+          ? P('C41 the colophon computes 9px and the page does not scroll sideways', `FIXTURE-RENDER \u00b7 ${seen.join(' \u00b7 ')}`)
+          : F('C41 the colophon computes 9px and the page does not scroll sideways', 'FIXTURE-RENDER \u00b7 ' + bad41.join('; '));
+
+        // ── C42 · THE PROVABLE EQUIVALENT OF THE FOUNDER'S TAP (CE-115) ──────
+        // `pv_render`'s R-b is the real witness and it is REFUSED this sitting.
+        // This is the deterministic equivalent: a real browser, a real click on
+        // the second thumbnail's label, and the observation taken AT THE
+        // DEFECT'S MOMENT — which layer is visible afterwards, and whether the
+        // location moved. It cannot see a photograph (no network) so it asserts
+        // opacity and identity, never pixels.
+        const bad42 = [];
+        const page = await browser.newPage();
+        await page.setViewport({ width: 374, height: 900, deviceScaleFactor: 2 });
+        await page.setContent(html, { waitUntil: 'load' });
+        // ⚠ THE CROSSFADE IS 1200ms AND `both`-FILLED, SO A READ AT t=0 SEES
+        // OPACITY 0 ON EVERY LAYER — INCLUDING THE ONE THAT IS WINNING. The
+        // first cut of this cell sampled immediately and reported all three
+        // hidden, which was true and meant nothing: it observed the animation's
+        // backwards fill, not the selection. D-38.1 says observe at the defect's
+        // moment, and the moment a couple would call the hero "changed" is after
+        // the fade lands. `settle` is that wait, one frame longer than the
+        // animation, derived from PV_HERO_FADE rather than typed twice.
+        const FADE_MS = Number((PV_HERO_FADE.match(/(\d+)ms/) || [, 1200])[1]);
+        const settle = () => page.evaluate((ms) => new Promise((r) => setTimeout(r, ms)), FADE_MS + 200);
+
+        await settle();
+        const before = await page.evaluate(() => ({
+          shown: [...document.querySelectorAll('.pv-hero-img')].map((el) => getComputedStyle(el).opacity),
+          href: location.href,
+          history: history.length,
+        }));
+        if (before.shown[0] !== '1') bad42.push(`the first photograph is not shown on arrival (opacity ${before.shown[0]})`);
+        if (before.shown.slice(1).some((o) => o !== '0')) bad42.push(`more than one hero layer is visible on arrival (${before.shown.join(',')})`);
+
+        await page.click('label[for="pv-h1"]');
+        await settle();
+        const after = await page.evaluate(() => ({
+          shown: [...document.querySelectorAll('.pv-hero-img')].map((el) => getComputedStyle(el).opacity),
+          checked: [...document.querySelectorAll('.pv-radio')].findIndex((r) => r.checked),
+          ring: getComputedStyle(document.querySelector('label[for="pv-h1"]')).outlineWidth,
+          href: location.href,
+          history: history.length,
+        }));
+        if (after.checked !== 1) bad42.push(`tapping thumbnail 2 selected radio ${after.checked}`);
+        if (after.shown[1] !== '1') bad42.push(`the second photograph did not become visible (opacity ${after.shown[1]})`);
+        if (after.shown[0] !== '0') bad42.push('the first photograph is still visible — the hero stacked instead of displacing');
+        if (after.ring === '0px') bad42.push('the selected thumbnail carries no ring — the strip does not say which photograph is showing');
+        // The whole objection to a `:target` lightbox was the URL and the back
+        // button. Asserted, not assumed.
+        if (after.href !== before.href) bad42.push('the URL changed — the back button now unwinds a gallery');
+        if (after.history !== before.history) bad42.push('a history entry was pushed');
+
+        // And back again — F-19.p2's arm (a) exists so the hero is RETURNABLE.
+        await page.click('label[for="pv-h0"]');
+        await settle();
+        const back = await page.evaluate(() => [...document.querySelectorAll('.pv-hero-img')].map((el) => getComputedStyle(el).opacity));
+        if (back[0] !== '1') bad42.push('tapping thumbnail 1 did not bring the hero photograph back');
+        await page.close();
+
+        bad42.length === 0
+          ? P('C42 tapping a thumbnail displaces the hero photograph', 'FIXTURE-RENDER \u00b7 layer 2 shown, layer 1 hidden, ring on the selected thumb, URL and history unchanged, hero returnable')
+          : F('C42 tapping a thumbnail displaces the hero photograph', 'FIXTURE-RENDER \u00b7 ' + bad42.join('; '));
+      } catch (e) {
+        const why = 'the fixture browser could not run: ' + String(e && e.message || e).slice(0, 120);
+        I('C41 the colophon computes 9px and the page does not scroll sideways', why);
+        I('C42 tapping a thumbnail displaces the hero photograph', why);
+      } finally {
+        if (browser) await browser.close().catch(() => {});
+      }
+    }
   }
 }
 
 console.log('');
-console.log(`${pass} PASS \u00b7 ${fail} FAIL`);
+console.log(`${pass} PASS \u00b7 ${fail} FAIL \u00b7 ${inco} INCO`);
 process.exit(fail === 0 ? 0 : 1);
