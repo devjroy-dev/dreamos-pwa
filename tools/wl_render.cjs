@@ -751,12 +751,32 @@ async function seat(browser, mode) {
           prefilled: !!(input && input.value && input.value.trim().length),
           // PREFILL-NOT-FIRE: the thread must hold no user turn yet.
           notSent: !document.querySelector('.wl-askbody [data-role="user"]'),
+          // ── CE-39 S2/9 · F-39.7 · THE SHEET MUST BE THE THING ON SCREEN ──────
+          // The founder tapped a door and saw nothing: the chat had opened, prefilled and
+          // correct, UNDERNEATH the sheet he was looking at (wishbone panel z61 over ask
+          // z40). 「Opened」 and 「visible」 are two claims and this cell had only ever made
+          // the first. `elementFromPoint` at the panel's own centre answers the second the
+          // only way a screen can: by asking what the vendor's thumb would actually hit.
+          topmost: (() => {
+            const panel = document.querySelector('.wl-askpanel');
+            if (!panel) return false;
+            const r = panel.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.left + r.width / 2, r.top + 24);
+            return !!hit && !!hit.closest('.wl-asksheet');
+          })(),
+          // AND THE SOURCE SHEET IS GONE, not merely covered. A door that hands the
+          // conversation over and leaves its own surface mounted returns the vendor to a
+          // stale sheet when she closes the chat.
+          sourceGone: !document.querySelector('[data-wl-notesheet]'),
         };
       });
       // A note surface with no notes on it cannot answer this, and must not print a pass.
       if (!prim.reachable) F(CR19, 'no note reachable on /w/notes for the fixture — this cell saw nothing and must not report a pass');
-      else if (prim.sheetUp && prim.shellStillMounted && prim.urlUnchanged && prim.prefilled && prim.notSent)
-        P(CR19, 'the sheet opened in place with the note as its prefill; masthead and nav still mounted, URL unchanged, nothing sent');
+      else if (prim.sheetUp && prim.shellStillMounted && prim.urlUnchanged && prim.prefilled
+               && prim.notSent && prim.topmost && prim.sourceGone)
+        P(CR19, 'the sheet opened in place with the note as its prefill, ON TOP and hit-testable, the note sheet dismissed; masthead and nav still mounted, URL unchanged, nothing sent');
+      else if (prim.sheetUp && !prim.topmost)
+        F(CR19, 'the ask sheet opened but is NOT the topmost surface at its own centre — this is F-39.7: the chat is under the sheet that opened it, and the vendor sees nothing happen: ' + JSON.stringify(prim));
       else F(CR19, JSON.stringify(prim));
     }
 

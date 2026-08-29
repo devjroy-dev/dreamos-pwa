@@ -212,7 +212,12 @@ export function NotesBody() {
 
       {/* Detail sheet */}
       {selected && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setSelected(null)}>
+        /* `data-wl-notesheet` is an INSTRUMENT HANDLE, not chrome: wl_render's C-R19 asserts
+           this sheet is GONE after Send to Chat (F-39.7), and an absence cell needs a name to
+           look for. The seat's first cut asserted a selector that did not exist anywhere —
+           vacuously true, and the hollow-green shape in miniature. Added rather than dropped,
+           because the claim is worth making. */
+        <div data-wl-notesheet style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setSelected(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             width: '100%', background: 'var(--atelier-sheet-top)',
             borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: '0.5px solid var(--atelier-card-border)',
@@ -229,8 +234,17 @@ export function NotesBody() {
                   memory — this is the door that refused arm (b), a URL param, because a
                   note in a URL is a note in the history and the referrer. The ask door
                   (lib/worklist/askContext.tsx) opens the sheet in place inside the shell
-                  and makes today's push on the /vendor tree. */}
-              <button type="button" onClick={() => openAsk(selected.body)} style={{
+                  and makes today's push on the /vendor tree.
+
+                  ── CE-39 S2/9 · F-39.7 · AND IT DISMISSES ITSELF NOW ──────────────
+                  This detail sheet is z-index 20 and the ask sheet is 40, so this door
+                  LOOKED correct on the walk while carrying the identical defect to the
+                  wishbone's: it left its own surface mounted underneath, and closing the
+                  chat returned the vendor to a stale sheet about a note she had just
+                  finished discussing. **The z-index was hiding it, not curing it** — which
+                  is why the cell added this sitting asserts the DISMISSAL and not the
+                  stacking. Same edit, same reason, same one-line shape as Calendar's. */}
+              <button type="button" onClick={() => { setSelected(null); openAsk(selected.body); }} style={{
                 width: '100%', padding: '13px 0', background: 'var(--atelier-accent-text)', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
                 color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',

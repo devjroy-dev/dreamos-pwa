@@ -164,6 +164,22 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
     // the sheet in place inside the shell and makes today's `?draft=` push on the hub —
     // where this card is mounted on the hub page itself, so nothing that worked there
     // stops working. The push that stood here unmounted the shell from Clients.
+    //
+    // ── CE-39 S2/9 · F-39.7 · THIS DOOR CLOSES TOO, AND HERE IS WHY IT MUST ──────
+    // C51 reddened on this file and the seat's first instinct was 「false positive: the
+    // swipe fires from the ROW, and the row is behind the wishbone's own scrim when that
+    // sheet is up, so this handler cannot run while an overlay is mounted」. **That
+    // reasoning is probably true and it was NOT derived, which is exactly the move this
+    // arc convicted at C49** — a cell reporting, a human overruling it from the shape of
+    // the match, and a real defect living two more sittings behind the narrowing.
+    //
+    // SO THE CELL IS NOT NARROWED AND THE ARGUMENT IS NOT RELIED ON. This card owns
+    // `wishboneOpen` (:139) and a hide-confirm besides; closing on the way out is TRUE
+    // whether or not the sheet was up, costs one no-op setState when it was not, and
+    // removes the need for anybody to re-derive a stacking argument later. The cheap
+    // honest line beats the clever correct one when the clever one has to be re-proved by
+    // every future reader.
+    setWishboneOpen(false);
     openAsk(primer);
   }
 

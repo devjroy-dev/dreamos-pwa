@@ -1641,6 +1641,91 @@ cell('C50 no real person is named in a vendor-facing byte (F-39.6)', () => {
   return null;
 });
 
+// ── C51 · A DOOR THAT HANDS OVER THE CONVERSATION CLOSES ITSELF  [F-39.7] ──────
+//    THE FOUNDER TAPPED 「Ask in chat instead」 AND NOTHING APPEARED TO HAPPEN. It had:
+//    WishboneSheet's scrim is z-index 60 and its panel 61, the ask sheet is 40, so the chat
+//    opened prefilled and correct twenty layers underneath the panel he was looking at. It
+//    took three taps to see a door that had worked on the first.
+//
+//    THE CAUSE WAS THE CURE. Every one of these doors used to be
+//    `router.push('/vendor?draft=…')`, and NAVIGATING AWAY TORE THE SOURCE SHEET DOWN — so
+//    no one ever wrote a dismissal, because the push was the dismissal. F-38.47 replaced the
+//    push with a door that correctly keeps the shell mounted, and removed a teardown two
+//    surfaces had been relying on since they were written. **A side effect nobody named is
+//    a dependency nobody can see.** F-38.20's family, with the loud authority deleted.
+//
+//    ⚠ AND THE CELL ASSERTS THE DISMISSAL, NOT THE STACKING, DELIBERATELY. Raising the ask
+//    sheet above every room sheet would have made the founder's symptom vanish while leaving
+//    both surfaces mounted underneath — the vendor closes the chat and lands back on a stale
+//    sheet about the thing she just finished discussing. Notes is the proof that stacking
+//    hides this: at z20 under z40 that door LOOKED correct on the walk and carried the
+//    identical defect. A cure that removes the symptom and leaves the mechanism is the
+//    hollow-green shape this floor exists to refuse.
+//
+//    WHAT IT ASSERTS: every openAsk call site that lives in a component rendering a fixed
+//    overlay of its own must dismiss that overlay in the SAME handler. Derived from the
+//    graph, never a typed list — four doors were believed to exist when the FAB taught this
+//    sitting that a hand-written corpus is how the fifth hides.
+cell('C51 a primer door dismisses its own sheet when it hands over to the chat (F-39.7)', () => {
+  const resolveSpec = (spec, from) => {
+    let base = null;
+    if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
+    else if (spec.startsWith('.')) base = path.resolve(path.dirname(from), spec);
+    else return null;
+    for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts', '']) {
+      const p = base + ext;
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
+    }
+    return null;
+  };
+  const reach = new Set();
+  const collect = (abs) => {
+    if (reach.has(abs)) return;
+    reach.add(abs);
+    for (const m of strip(fs.readFileSync(abs, 'utf8')).matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+      const r = resolveSpec(m[1], abs);
+      if (r && !r.includes('node_modules')) collect(r);
+    }
+  };
+  const walkRoutes = (rel) => {
+    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
+      const r = rel + '/' + e.name;
+      if (e.isDirectory()) { walkRoutes(r); continue; }
+      if (e.name === 'page.tsx') collect(path.join(ROOT, r));
+    }
+  };
+  walkRoutes('app/w');
+  const doors = [...reach].map((a) => path.relative(ROOT, a))
+    .filter((rel) => /openAsk\s*\(/.test(strip(read(rel))))
+    .sort();
+  // NON-VACUITY: the doors are the subject. Zero doors means the walk found nothing and
+  // this cell must not report a pass over an empty set.
+  if (doors.length < 3) return 'only ' + doors.length + ' openAsk call sites reachable from app/w — this cell would pass over a corpus it never walked';
+  const offenders = [];
+  for (const rel of doors) {
+    const src = strip(read(rel));
+    // Does this component render a fixed overlay of its own? If not, there is nothing to
+    // dismiss and the door is lawful as it stands (BinderCard's swipe fires from a row).
+    if (!/position:\s*'fixed'[^}]*?(inset:\s*0|left:\s*0)/.test(src)) continue;
+    // Then every openAsk handler in it must also close that overlay. The closers are the
+    // component's own — read from the file rather than assumed, so a fifth door with a
+    // differently-named dismissal joins by naming it here in one edit.
+    const CLOSERS = /onDone\s*\(\)|onClose\s*\(\)|set[A-Z]\w*\(\s*(null|false)\s*\)/;
+    for (const m of src.matchAll(/openAsk\s*\(/g)) {
+      // The handler is the statement list around the call: read from the nearest arrow or
+      // function opening to the call, plus the rest of that block.
+      const from = Math.max(0, src.lastIndexOf('{', m.index) - 240);
+      const window = src.slice(from, m.index + 160);
+      if (!CLOSERS.test(window))
+        offenders.push(rel + ' opens the chat without dismissing its own sheet');
+    }
+  }
+  return offenders.length
+    ? [...new Set(offenders)].join(' | ') + ' \u2014 the ask sheet then opens UNDER it (the founder\'s '
+      + 'three taps, F-39.7); CalendarDaySheet is the model: close, then openAsk'
+    : null;
+});
+
 // ── C40 · COLLAB'S TAB ORDER AND ITS LANDING TAB  [F-38.62] ─────────────────────
 //    The founder ruled My Posts first, Opportunities second, and the room OPENING on My
 //    Posts. Nothing asserted the tab order before this cut, so the reorder would have landed

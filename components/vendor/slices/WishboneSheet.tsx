@@ -68,7 +68,27 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
     // and pushes nothing — inside the shell the ask sheet opens in place with the stem;
     // on the /vendor tree the provider makes today's `?draft=` push. The push that stood
     // here unmounted the shell from six crossed rooms.
+    //
+    // ── CE-39 S2/9 · F-39.7 · THE DISMISSAL WAS THE PUSH'S SIDE EFFECT ────────
+    // ⚠ THE FOUNDER TAPPED THIS AND NOTHING APPEARED TO HAPPEN. It happened: this sheet's
+    // scrim is z-index 60 and its panel 61 (:95, :97), the ask sheet is z-index 40, so the
+    // chat opened PREFILLED AND CORRECT, twenty layers underneath the panel he was looking
+    // at. His third tap hit this scrim, `onDone` fired, and the ask sheet was revealed
+    // already open — which is exactly the three-tap sequence he reported.
+    //
+    // THE CAUSE IS THE CURE ITSELF, AND THAT IS THE PART WORTH WRITING DOWN. The old door
+    // was `router.push('/vendor?draft=…')`. NAVIGATING AWAY TORE THIS SHEET DOWN, so no
+    // one ever wrote a dismissal — the push WAS the dismissal, and nobody knew, because a
+    // side effect nobody named is a dependency nobody can see. Replacing the push with a
+    // door that correctly keeps the shell mounted removed a teardown this surface had been
+    // relying on since it was written. F-38.20's family: two authorities over one
+    // dismissal, and this time the loud one was deleted.
+    //
+    // `CalendarDaySheet` is the one door of the four that already did this, and it is the
+    // model rather than the exception: a surface that hands the conversation to the chat
+    // closes itself, because 「ask in chat INSTEAD」 means instead.
     const primer = `About ${personLabel}: the ${chipLabel(cell).toLowerCase()} is `;
+    onDone();
     openAsk(primer);
   }
 
