@@ -84,8 +84,29 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
     "the meter's inputs are the profile page's own reads, byte-for-byte");
   cell('3.4', raw.includes('How couples see you'), 'the bio row carries the drawer\u2019s vetoed subtitle');
   cell('3.5', raw.includes('/vendor/discover/profile'), 'the block LINKS the bio route — byte-identical path');
-  cell('3.6', src.includes('open_leads_count') && src.includes('photos live'),
-    'live counts (founder 「 ok 」) from the standing endpoints');
+  // ── AMENDED AT CE-39 2c · RETIRE-WITH-THE-READER  [F-39.34] ────────────────
+  // IT READ:
+  //     cell('3.6', src.includes('open_leads_count') && src.includes('photos live'),
+  //       'live counts (founder 「 ok 」) from the standing endpoints');
+  //
+  // F-39.10 RETIRED THE STOREFRONT LEADS FIGURE at Phase 4 (`f915b55`) —
+  // 「storefront's engine-plane leads figure retired; Today is the one leads
+  // number」. `open_leads_count` survives in `screen.tsx` ONLY at :192, inside
+  // the comment explaining its own retirement, so `strip()` removes it and this
+  // cell has reddened at ORIGIN ever since. Bisected on `screen.tsx` alone:
+  // GREEN at 79fc1db, RED at f915b55 · 08a6dfe · d1f2c80 · bb4a9ad.
+  //
+  // The cure is not to loosen the assertion but to INVERT the half whose
+  // subject moved. The figure is gone from the rendered surface BY RULING, so
+  // the cell asserts its ABSENCE — which is the stronger guard, because a
+  // storefront that grows the leads figure back is the defect F-39.10 cured.
+  // The `photos live` half is untouched: that count was never retired.
+  //
+  // ONE CELL BEFORE, ONE CELL AFTER. Read RAW for the absence half so a
+  // re-introduction inside a comment cannot pass as a cure, and STRIPPED for
+  // the presence half so prose cannot stand in for a rendered byte.
+  cell('3.6', !/\{[^}]*open_leads_count/.test(strip(raw)) && src.includes('photos live'),
+    'the retired leads figure does not render; the photo count does (F-39.10)');
   // ── AMENDED AT R-35.36, RETIRE-WITH-THE-READER ──────────────────────────────
   // This cell pinned TWO founder-vetoed tile descriptions. One of the two tiles
   // no longer exists: the Leads tile ('couples who enquired') was retired when

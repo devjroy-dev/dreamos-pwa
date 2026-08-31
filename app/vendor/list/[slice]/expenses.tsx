@@ -15,11 +15,24 @@ function toRows(expenses: Expense[]): Row[] {
 
 export default function ExpensesSlice({ vendorId }: { vendorId: string }) {
   // TDW_03 (B), CE-ruled: expenses are money-OUT binders (6-B) — the typed
-  // DELETE can't know binder ids (F4). Delete = the binder /hide door: the
-  // same soft-delete covenant, reversible via unarchive.
+  // ── CROSSED AT 2c · THE ELEVENTH SITE ──────────────────────────────────
+  // The seat's own call-site table named TEN and this was not one of them: it
+  // builds its URL inline instead of calling `vendor.ts`, so a sweep of that
+  // file's exports could not see it. Found by parity — `invoices.tsx` gained
+  // the vendorId closure this file already had, and the two doors were then
+  // read side by side.
+  //
+  // WHAT IT SAID: 「DELETE can't know binder ids (F4). Delete = the binder
+  // /hide door」. Both halves retire together — the row id is
+  // `public.expenses.id` now, and the typed door soft-deletes by stamping
+  // `deleted_at`, which every typed read filters. The row leaves the room
+  // without leaving the database, exactly as `/hide` meant to.
   const deleteRequest = (sel: Row) => ({
-    url: `${API_BASE}/api/v2/vendor/binders/${vendorId}/${sel.id}/hide`,
-    method: 'POST',
+    url: `${API_BASE}/api/v2/vendor/money/expenses/${vendorId}/${sel.id}`,
+    method: 'DELETE',
+    // The byte survives the crossing untouched. A plane change is not a copy
+    // change, and the first cut of this edit dropped it — caught by reading the
+    // diff rather than the result.
     successMessage: 'Expense removed.',
   });
   return <SliceScreen slice="expenses" vendorId={vendorId} useData={useExpensesData} toRows={toRows} deleteRequest={deleteRequest} />;

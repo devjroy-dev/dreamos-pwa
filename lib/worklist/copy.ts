@@ -489,12 +489,20 @@ export const COPY = {
   // 'Received' is money that arrived, 'Outstanding' is money still owed on live
   // invoices. Neither is a verdict on her business, which is the register the
   // billing chips were recut into at R-38.8.
-  booksReceived:    'Received',
-  booksOutstanding: 'Outstanding',
+  // ── D-1/c4, RULED 2026-09-01 (founder delegation) ────────────────────────
+  // `Received` appeared TWICE on this surface at two scopes — the lifetime head
+  // figure and the per-row credit column. One word doing two jobs on the
+  // surface where it costs most. The head pair takes the explicit word; the
+  // column heads keep the picked ones.
+  booksReceived:    'Total received',   // vetoed 2026-09-01 by founder delegation
+  booksOutstanding: 'Outstanding',      // vetoed 2026-08-29 by founder delegation
   // The four column heads. Nouns of one word; the tabular register R-38.10 ruled.
   booksColDate:    'Date',
-  booksColCredit:  'Credit',
-  booksColDebit:   'Debit',
+  // D-1 B4/B5/B7, RULED: Dr/Cr struck — 「no convention left to misread」.
+  // Column order is Received | Paid out | Balance: money in, money out, then
+  // the running figure.
+  booksColCredit:  'Received',          // vetoed 2026-08-29 by founder delegation
+  booksColDebit:   'Paid out',          // vetoed 2026-08-29 by founder delegation
   booksColBalance: 'Balance',
   booksEmpty: 'No money movements yet.',
   // ⚠ THIS BYTE RENDERS TWICE ON DROY550 AND THAT IS THE POINT, NOT AN EDGE CASE.
@@ -506,6 +514,9 @@ export const COPY = {
   // asserting a fact the estate does not hold, which is the class Block 06 spent
   // itself removing. The byte is small and lowercase because it is a caveat on a
   // figure, not a warning about her money.
+  // D-1 B9/B10 · the period head, per month group in the picked B2 shape.
+  booksOpening: 'Opening',              // vetoed 2026-08-29 by founder delegation
+  booksClosing: 'Closing',              // vetoed 2026-08-29 by founder delegation
   booksUndated: 'no date on file',
   // THE ELEVENTH BYTE, vetoed after the seat WITHHELD it. It was withheld because
   // ten had been vetoed and an executor-invented eleventh on a money surface is

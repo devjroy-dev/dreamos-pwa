@@ -469,8 +469,11 @@ export interface ExpensesResponse {
 // happens to the second one.
 export interface BooksMovement {
   /** Composite and DELIBERATELY NOT A ROW ID — `invoice:<uuid>`, `expense:<uuid>`,
-      `schedule:<invoice_id>:<ordinal>`. A React key, never an address: nothing
-      in this room acts on a row, so nothing may be able to. */
+      `schedule:<invoice_id>:<ordinal>`. A React key, never an address.
+      ⚠ AMENDED AT 2c. It used to end 「nothing in this room acts on a row, so
+      nothing may be able to」 — the second clause stopped being true when the
+      typed write doors landed beside this one. The ids are unchanged; what
+      changed is that read-only is enforced by CELL now, not by the id space. */
   id: string;
   /** YYYY-MM-DD. */
   date: string;
@@ -480,13 +483,39 @@ export interface BooksMovement {
   undated: boolean;
   credit: number | null;
   debit: number | null;
+  /** D-1 B13 · the particular the founder's verdict asked for: 「no info about
+      who paid, out of how much」. Credits carry client_name · invoice_number ·
+      paid-of-total, plus milestone_label on a schedule row; debits carry
+      category · description. `invoices.description` is absent BY RULING —
+      F-39.23: Victor's money-edit writes a rupee-glyph audit log into that
+      column, so it is unrenderable rather than merely unrendered. */
+  particular: BooksParticular | null;
   balance: number;
+}
+
+export interface BooksParticular {
+  /** Credit side. */
+  client_name?:     string | null;
+  invoice_number?:  string | null;
+  milestone_label?: string | null;
+  amount_paid?:     number | null;
+  amount_total?:    number | null;
+  /** Debit side. The row's own word, verbatim — the door never validates it
+      against the writer's list (F-2c.p1: the two are not the same twelve, and a
+      door that filtered would hide money the vendor logged). */
+  category?:        string | null;
+  description?:     string | null;
 }
 
 export interface BooksResponse {
   ok: boolean;
   received: number;
   outstanding: number;
+  /** READ, never summed. Opening is zero by the register's own construction —
+      the balance runs from zero at the first movement. Closing is the last
+      row's own `balance` cell, read back. This surface sums nothing (F-04.13). */
+  opening: number;
+  closing: number;
   movements: BooksMovement[];
   total: number;
   error?: string;

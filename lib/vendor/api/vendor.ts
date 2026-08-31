@@ -116,39 +116,15 @@ function binderToClient(b: CabinetBinder): ClientsResponse['clients'][number] {
 // binderToLead RETIRED (TDW_03 (A), CE-ruled): the leads adapter crossed LD-1.
 // Clients/invoices/expenses adapters stay — records own binders and money.
 
-function invoiceState(b: CabinetBinder): string {
-  const owed = pendingOf(b); // F-04.13: the ruled rule — the pill can't contradict the masthead
-  const paid = b.amount_received ?? 0;
-  // Derive from the real figures so the pill never contradicts the paid/owed shown.
-  if (paid > 0 || owed > 0) {
-    if (owed <= 0) return 'paid';        // nothing left to collect
-    if (paid > 0) return 'advance_paid'; // money in, balance still owed
-    return 'unpaid';                     // nothing received yet
-  }
-  // No received/pending breakdown on this binder — fall back to stored status.
-  return b.payment_status ?? 'unpaid';
-}
-function binderToInvoice(b: CabinetBinder): InvoicesResponse['invoices'][number] {
-  const paid = b.amount_received ?? 0;
-  const owed = pendingOf(b); // F-04.13: the ruled rule
-  const total = (paid + owed) || (b.amount ?? 0);
-  return {
-    id: b.id, invoice_number: '', client_name: b.client ?? '',
-    // TDW_04 A3 (L-3): the binder's phone rides through — the cross-chip needs a
-    // key to match the typed enquiry on. Same class as A2.2's defect (a mapper
-    // silently dropping a field the surface depends on); caught by the pass this
-    // time, not the founder's phone.
-    client_phone: b.phone ?? undefined,
-    amount_total: total, amount_paid: paid, amount_owed: owed,
-    state: invoiceState(b), due_date: b.date ?? null, created_at: b.created_at ?? '',
-  };
-}
-function binderToExpense(b: CabinetBinder): ExpensesResponse['expenses'][number] {
-  return {
-    id: b.id, description: b.note ?? null, amount: b.amount ?? 0,
-    category: null, expense_date: b.date ?? null, client_name: b.client ?? null, created_at: b.created_at ?? '',
-  };
-}
+// ── invoiceState RETIRED AT 2c  [§8.9, retire-with-the-reader] ────────────
+// It derived a state word from a binder's received/pending figures so the room
+// pill could not contradict the masthead (F-04.13). Its only caller was
+// `binderToInvoice`, which retired above; the typed door emits `state` from the
+// column, and the home's positive-list transition is the one place a state is
+// decided. `pendingOf` left with it — this was its last caller here. Both stay
+// live in `lib/vendor/derive.ts` for the hub and Cabinet, which still read the
+// binder plane.
+
 
 // ── Binder write helpers (Piece 4-B) ────────────────────────────
 // Form writes go free-form through Kriya via /binders/* — the SAME hands the chat
@@ -169,7 +145,33 @@ function rupeeLine(min?: number | null, max?: number | null): string | null {
   if (max != null) return `Budget: ${f(max)}`;
   return null;
 }
+// ── binderToInvoice / binderToExpense RETIRED AT 2c  [§8.9] ───────────────
+// Both adapters existed to manufacture a typed shape from a free-form binder,
+// because no typed door spoke it. `GET /money/invoices/:v` and
+// `/money/expenses/:v` now answer in `InvoicesResponse` / `ExpensesResponse`
+// field for field, so there is nothing left to adapt. Retired WITH their
+// readers, in the same delivery that removed the last one — a converter kept
+// past its last caller is the shape that grows a second reader by accident.
+// `binderToClient` STAYS: the Clients room still reads the binder plane.
+
 function binderBase(v: string) { return `/api/v2/vendor/binders/${v}`; }
+
+// ── THE TYPED MONEY DOOR · ROAD STEP 2c  [F-39.3 CLOSED] ─────────────────
+// One base for eleven routes, derived from the live router at dream-os
+// 4918275 and not from a handover — three documents had said "eight" because
+// `books` and `pdf` were never counted (c-2c.5 / c-39.36).
+//
+// EVERY MONEY VERB IN THIS FILE NOW ADDRESSES THIS BASE. What retires with
+// them is below: `binderToInvoice`, `binderToExpense`, `moneyBinders`, and the
+// client-side arithmetic that used to compute `status`, `amount_owed` and the
+// summary totals. The server states each of those once.
+function moneyBase(v: string) { return `/api/v2/vendor/money`; }
+
+// ONE HOME FOR THE MONEY BLOCK'S FALLBACK SENTENCE. Vetoed by delegation
+// 2026-09-01; the founder may re-word it, and when he does there is one line to
+// change rather than five.
+const MONEY_FALLBACK = 'Could not save that — nothing was changed. Try again in a moment.';
+
 
 // TDW_03 P2 — the binder edit door (POST, the door's real verb; SCHEMA.md
 // appendix corrected the spec literal's PATCH). Field names are the handler's
@@ -267,26 +269,27 @@ export async function fetchClientDetail(vendorId: string, clientId: string): Pro
 
 // ── Invoices ──────────────────────────────────────────────────────────────
 export async function fetchInvoices(vendorId: string, state = 'all'): Promise<InvoicesResponse> {
-  const cab = await fetchCabinet(vendorId);
-  // TDW_04 A3 (ST-4/L-4): the row set comes from lib/vendor/derive.ts — the SAME
-  // function the hub Ledger and every masthead read. The hub used to total
-  // public.invoices while this page totalled binders; two derivations cannot
-  // agree by luck. One function, two renderers.
-  let invoices = moneyBinders(cab).map(binderToInvoice);
-  if (state !== 'all') invoices = invoices.filter((i) => i.state.toLowerCase() === state.toLowerCase());
-  const summary = {
-    total_outstanding: invoices.reduce((s, i) => s + i.amount_owed, 0),
-    total_collected: invoices.reduce((s, i) => s + i.amount_paid, 0),
-  };
-  return { ok: cab.ok, invoices, summary, total: invoices.length };
+  // ── CROSSED AT 2c. THE ADAPTER AND BOTH REDUCES RETIRED WITH IT ─────────
+  // It read `fetchCabinet`, reshaped binders through `binderToInvoice`, and
+  // then summed `total_outstanding` and `total_collected` here. The typed door
+  // answers in this exact shape and states both figures itself — one home for
+  // the arithmetic, which is the rule the running balance has always obeyed
+  // (F-04.13). A `reduce` here would be the second derivation.
+  //
+  // `state` FILTERING STAYS CLIENT-SIDE, deliberately: the door answers the
+  // whole set and mints no filter vocabulary, because a second vocabulary for
+  // one column is how `invoices_state_check` grows a rival.
+  const r = await getJson<InvoicesResponse>(`${moneyBase(vendorId)}/invoices/${vendorId}`);
+  if (!r.ok || state === 'all') return r;
+  const invoices = r.invoices.filter((i) => i.state.toLowerCase() === state.toLowerCase());
+  return { ...r, invoices, total: invoices.length };
 }
 
 // ── Expenses ──────────────────────────────────────────────────────────────
 export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse> {
-  const led = await fetchLedger(vendorId);
-  const expenses = (led.binders ?? []).filter((b) => b.direction === 'out').map(binderToExpense);
-  const total_spent = expenses.reduce((s, e) => s + e.amount, 0);
-  return { ok: led.ok, expenses, total_spent, total: expenses.length };
+  // Crossed at 2c with `fetchInvoices`. `total_spent` is the server's, for the
+  // same reason.
+  return getJson<ExpensesResponse>(`${moneyBase(vendorId)}/expenses/${vendorId}`);
 }
 
 // ── Books (ROAD STEP 2b — the typed money plane) ──────────────────────────
@@ -297,10 +300,10 @@ export async function fetchExpenses(vendorId: string): Promise<ExpensesResponse>
 // speaks the shape, so there is nothing to adapt and no second place for the
 // arithmetic to live.
 //
-// THE TWO ABOVE ARE NOT RETIRED AND THAT IS RULED, NOT AN OVERSIGHT (arm (c)).
-// They cross at step 2c together with the five write controls keyed on their
-// binder ids — cancel, PDF, mark-paid, expense delete, and both Add paths. F-39.3
-// stays OPEN until then.
+// THE TWO ABOVE HAVE NOW CROSSED (2c). The paragraph that stood here said they
+// had not, and named arm (c) as the reason — true at 2b, false the moment this
+// delivery landed. Retire-with-the-reader applies to a comment stating a state
+// of the world exactly as it applies to code. F-39.3 is CLOSED.
 export function fetchBooks(vendorId: string): Promise<BooksResponse> {
   return getJson<BooksResponse>(`/api/v2/vendor/money/books/${vendorId}`);
 }
@@ -569,7 +572,9 @@ export async function setPinWithToken(
 // ════════════════════════════════════════════════════════════════════
 
 import { deleteJson } from './_base';
-import { moneyBinders, pendingOf } from '@/lib/vendor/derive'; // TDW_04 A3: one derivation · A3.3: one money rule
+// `moneyBinders` / `pendingOf` no longer imported here: their last money
+// readers crossed at 2c. `lib/vendor/derive.ts` keeps both — the hub and
+// Cabinet.tsx:297 still read the binder plane, and this file no longer does.
 import type {
   // Common
   ApiErr,
@@ -687,134 +692,125 @@ export async function deleteClient(clientId: string): Promise<{ ok: true; delete
 export async function createInvoice(body: CreateInvoiceRequest): Promise<CreateInvoiceResponse | ApiErr> {
   const v = currentVendorId();
   if (!v) return noVendor();
-  const total = body.amount_total ?? 0;
-  const received = Math.min(body.amount_advance ?? 0, total);
-  const pending = Math.max(0, total - received);
-  const status = pending <= 0 ? 'paid' : received > 0 ? 'advance_paid' : 'unpaid';
-  // 1. Resolve the binder: an existing client/lead, else open a fresh one.
-  let binderId = body.client_id || body.lead_id || null;
-  if (!binderId) {
-    const note = foldNote(body.description, body.due_date ? `Due: ${body.due_date}` : null, body.notes);
-    const opened = await postJson<BinderWriteResponse>(binderBase(v), {
-      client: body.client_name, phone: body.client_phone, date: body.due_date, note, stage: 'client',
-    });
-    if (!opened.ok || !opened.binder) return { ok: false, error: opened.error || 'Could not open invoice binder.' };
-    binderId = opened.binder.id;
-  }
-  // 2. Set owed vs received through the witnessed money door.
-  const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/money-edit`, {
-    amount_received: String(received), amount_pending: String(pending), payment_status: status,
-  });
-  if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not set invoice amount.' };
-  return { ok: true, invoice: binderToInvoice(m.binder), pdf_pending: true };
+  // ── CROSSED AT 2c · FIELD-FOR-FIELD ONTO REAL COLUMNS ───────────────────
+  // It opened a binder, folded `description`/`due_date`/`notes` into a free-text
+  // NOTE, and then computed `payment_status` here from `amount_advance`. Three
+  // defects in one call, all cured by the address change:
+  //   · the fold is F-39.23's disease from the pwa side — prose written into a
+  //     column another surface must later render. Each field now lands in its
+  //     own witnessed column: description(7) · due_date(11) · notes(14).
+  //   · `status` was a SECOND state machine. The home's positive-list
+  //     transition is the one home (b47 2.2); nothing here derives state again.
+  //   · two round-trips became one.
+  const r = await postJson<{ ok: true; invoice: Invoice } | ApiErr>(
+    `${moneyBase(v)}/invoices/${v}`, body as unknown as Record<string, unknown>,
+  );
+  // ── THE MONEY BLOCK'S FALLBACK  [CE-39, ruled 2026-09-01] ───────────────
+  // Its predecessors named the binder plane — 「Could not open invoice binder.」,
+  // 「Could not set invoice amount.」 — and retired with it: a fallback naming a
+  // thing that no longer exists is false copy, and copy law protects TRUE bytes
+  // rather than old ones. This byte replaces them for the create and record
+  // paths. It also keeps `_base.ts`'s 「Invalid JSON from server.」 (F-2c.p7,
+  // developer prose) off a money surface, because every failure here lands on a
+  // written sentence before it can surface.
+  if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  return { ok: true, invoice: r.invoice, pdf_pending: true };
 }
 
 export async function updateInvoice(invoiceId: string, body: UpdateInvoiceRequest): Promise<UpdateInvoiceResponse | ApiErr> {
   const v = currentVendorId();
   if (!v) return noVendor();
-  // 1. Non-money cells through /edit (note grows).
-  const note = foldNote(body.description, body.notes);
-  if (body.client_name != null || body.client_phone != null || body.due_date != null || note) {
-    const e = await postJson<BinderWriteResponse>(`${binderBase(v)}/${invoiceId}/edit`, {
-      client: body.client_name, phone: body.client_phone, date: body.due_date, note,
-    });
-    if (!e.ok) return { ok: false, error: e.error || 'Could not update invoice.' };
-  }
-  // 2. Money cells (total/advance) through the witnessed door, recomputed against ground truth.
-  let binder = null as CabinetBinder | null;
-  if (body.amount_total != null || body.amount_advance != null) {
-    const led = await fetchLedger(v);
-    const cur = (led.binders ?? []).find((x) => x.id === invoiceId);
-    const curReceived = cur?.amount_received ?? 0;
-    const total = body.amount_total ?? curReceived + (cur?.amount_pending ?? 0);
-    const received = body.amount_advance != null ? Math.min(body.amount_advance, total) : curReceived;
-    const pending = Math.max(0, total - received);
-    const status = pending <= 0 ? 'paid' : received > 0 ? 'advance_paid' : 'unpaid';
-    const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${invoiceId}/money-edit`, {
-      amount_received: String(received), amount_pending: String(pending), payment_status: status,
-    });
-    if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not update invoice amount.' };
-    binder = m.binder;
-  }
-  // 3. If only non-money changed, re-read for fresh truth.
-  if (!binder) {
-    const led = await fetchLedger(v);
-    binder = (led.binders ?? []).find((x) => x.id === invoiceId) ?? null;
-  }
-  if (!binder) return { ok: false, error: 'Invoice not found.' };
-  return { ok: true, invoice: binderToInvoice(binder) };
+  // Crossed at 2c. It was THREE round-trips — `/edit`, then `fetchLedger` for
+  // ground truth, then `money-edit` — with the same client-side status
+  // arithmetic. The home holds the edit LOCK (`amount_paid > 0` ->
+  // INVOICE_LOCKED) and this door adds nothing to it.
+  const r = await patchJson<{ ok: true; invoice: Invoice } | ApiErr>(
+    `${moneyBase(v)}/invoices/${v}/${invoiceId}`, body as unknown as Record<string, unknown>,
+  );
+  // STILL TRUE, SO IT KEEPS ITS SEAT. The update path survives the crossing and
+  // so does its byte.
+  if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || 'Could not update invoice.' };
+  return { ok: true, invoice: r.invoice };
 }
 
 export async function recordPayment(invoiceId: string, body: RecordPaymentRequest): Promise<RecordPaymentResponse | ApiErr> {
   const v = currentVendorId();
   if (!v) return noVendor();
-  // Ground-truth before mutation: read the real figures, never the screen's copy.
-  const led = await fetchLedger(v);
-  const b = (led.binders ?? []).find((x) => x.id === invoiceId);
-  if (!b) return { ok: false, error: 'Invoice not found.' };
-  const pay = body.amount ?? 0;
-  const newReceived = (b.amount_received ?? 0) + pay;
-  const newPending = Math.max(0, (b.amount_pending ?? 0) - pay);
-  const status = newPending <= 0 ? 'paid' : 'advance_paid';
-  const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${invoiceId}/money-edit`, {
-    amount_received: String(newReceived), amount_pending: String(newPending), payment_status: status,
-  });
-  if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not record payment.' };
-  return { ok: true, invoice: binderToInvoice(m.binder), payment_recorded: pay, new_state: status };
+  // ── CROSSED AT 2c · THE GROUND-TRUTH READ IS THE SERVER'S NOW ───────────
+  // It read the whole ledger to find one row's figures, added the payment here,
+  // and posted the result — read-modify-write across the network, with the
+  // screen's arithmetic deciding the new state. The door takes the AMOUNT and
+  // the home does the rest, including stamping `last_payment_at` (F-39.8) that
+  // no prior writer set.
+  const r = await postJson<{ ok: true; invoice: Invoice; transitioned: boolean; balance: number } | ApiErr>(
+    `${moneyBase(v)}/invoices/${v}/${invoiceId}/payments`, { amount: body.amount },
+  );
+  if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  return {
+    ok: true,
+    invoice: r.invoice,
+    payment_recorded: body.amount,
+    new_state: r.invoice.state as RecordPaymentResponse['new_state'],
+  };
 }
 
 export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse | ApiErr> {
-  return getJson<InvoicePdfResponse | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/pdf`);
+  const v = currentVendorId();
+  if (!v) return Promise.resolve(noVendor() as ApiErr);
+  // Crossed at 2c. TWO call sites read this — SliceShell.tsx:429 and :921 — and
+  // the charter named one. A re-point that cured only the visible button would
+  // have left the other on the binder plane.
+  return getJson<InvoicePdfResponse | ApiErr>(`${moneyBase(v)}/invoices/${v}/${invoiceId}/pdf`)
+    .then((r) => (('ok' in r) && r.ok ? r
+      : { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr));
 }
 
-/** Cancel invoice — sets state to 'cancelled'. Alias: "delete" / "remove" per standing rule. */
-export { patchInvoiceCancel as cancelInvoice };
-function patchInvoiceCancel(invoiceId: string): Promise<{ ok: true; invoice: { id: string; state: string } } | ApiErr> {
-  return patchJson<{ ok: true; invoice: { id: string; state: string } } | ApiErr>(`/api/v2/vendor/invoices/${invoiceId}/cancel`, {});
+export function cancelInvoice(invoiceId: string) {
+  const v = currentVendorId();
+  if (!v) return Promise.resolve(noVendor() as ApiErr);
+  // 'Invoice not found.' KEEPS ITS SEAT on both paths that can 404 — cancel and
+  // pdf. It was true before the crossing and it is true after; the SECOND
+  // instance of it retired with `updateInvoice`'s ledger re-read, whose 404
+  // path no longer exists.
+  return patchJson<{ ok: true; invoice: { id: string; state: string } } | ApiErr>(
+    `${moneyBase(v)}/invoices/${v}/${invoiceId}/cancel`, {},
+  ).then((r) => (('ok' in r) && r.ok ? r
+    : { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr));
 }
-
-// ── Expenses ──────────────────────────────────────────────────────────────
 
 export async function createExpense(body: CreateExpenseRequest): Promise<CreateExpenseResponse | ApiErr> {
   const v = currentVendorId();
   if (!v) return noVendor();
-  const note = foldNote(body.description, body.category ? `Category: ${body.category}` : null, body.notes);
-  const r = await postJson<BinderWriteResponse>(binderBase(v), {
-    client: body.client_name || body.description || 'Expense',
-    amount: body.amount, direction: 'out', date: body.expense_date, note, stage: 'expense',
-  });
-  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not record expense.' };
-  return { ok: true, expense: binderToExpense(r.binder) };
+  // Crossed at 2c. The category rides to the home verbatim and the home
+  // validates it — F-2c.p1 is OPEN on that list and is not this door's to cure.
+  const r = await postJson<{ ok: true; expense: Expense } | ApiErr>(
+    `${moneyBase(v)}/expenses/${v}`, body as unknown as Record<string, unknown>,
+  );
+  if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  return { ok: true, expense: r.expense };
 }
 
 export async function updateExpense(expenseId: string, body: UpdateExpenseRequest): Promise<UpdateExpenseResponse | ApiErr> {
   const v = currentVendorId();
   if (!v) return noVendor();
-  // Non-money cells through /edit.
-  const note = foldNote(body.description, body.category ? `Category: ${body.category}` : null, body.notes);
-  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/edit`, {
-    client: body.client_name, date: body.expense_date, note,
-  });
-  if (!r.ok || !r.binder) return { ok: false, error: r.error || 'Could not update expense.' };
-  // Amount, if changed, through the witnessed money door (single figure, direction out).
-  let binder = r.binder;
-  if (body.amount != null) {
-    const m = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/money-edit`, {
-      amount: String(body.amount), direction: 'out',
-    });
-    if (!m.ok || !m.binder) return { ok: false, error: m.error || 'Could not update expense amount.' };
-    binder = m.binder;
-  }
-  return { ok: true, expense: binderToExpense(binder) };
+  const r = await patchJson<{ ok: true; expense: Expense } | ApiErr>(
+    `${moneyBase(v)}/expenses/${v}/${expenseId}`, body as unknown as Record<string, unknown>,
+  );
+  if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  return { ok: true, expense: r.expense };
 }
 
 export async function deleteExpense(expenseId: string): Promise<{ ok: true; deleted: true } | ApiErr> {
   const v = currentVendorId();
   if (!v) return noVendor();
-  const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${expenseId}/hide`, {});
-  if (!r.ok) return { ok: false, error: r.error || 'Could not remove.' };
+  // SOFT delete, as the home has always done it — `deleted_at` stamped, and
+  // every typed read filters it. The row leaves the room without leaving the
+  // database. Its predecessor was `binders/:id/hide` on the engine plane.
+  const r = await deleteJson<{ ok: true } | ApiErr>(`${moneyBase(v)}/expenses/${v}/${expenseId}`);
+  if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
   return { ok: true, deleted: true };
 }
+
 
 // ── Events ────────────────────────────────────────────────────────────────
 

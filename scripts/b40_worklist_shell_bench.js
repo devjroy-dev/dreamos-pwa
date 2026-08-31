@@ -2540,6 +2540,124 @@ cell('C75 the build id is read per request in the server layer, not inlined at b
   return bad.length ? bad.join(' | ') : null;
 });
 
+// ── lineStrip · FOR `lib/vendor/api/vendor.ts` ONLY, AND BOTH HALVES ARE EARNED ──
+// The shared `strip()` removes BLOCK comments, and `vendor.ts` holds 3 `/*`
+// openers against 2 `*/` closers — so it pairs an opener with a closer hundreds
+// of lines away and SWALLOWS LIVE CODE. That is F-39.13, filed when three
+// absence cells went vacuously green on this exact file; C65 reads raw for it.
+//
+// But RAW is not the answer either: the first cut of C77 read raw and reddened
+// on its own COMMENT, which describes the `payment_status` arithmetic the
+// crossing removed. A cell that reads its subject's prose as evidence is the
+// mirror F-39.25 names.
+//
+// So: strip LINE comments and leave block comments alone. The corruption comes
+// from the block-comment pass; the false positive comes from line comments.
+// Neither the shared helper nor raw text can be right here, and saying which
+// half of the problem each solves is the only way this stays fixed.
+const lineStrip = (t) => t.split('\n').map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+
+// ── C-MONEY · THE CROSSING  [ROAD STEP 2c · F-39.3] ──────────────────────────────
+//    Four facts, asked separately because any one alone is a hollow green. The rooms
+//    changed PLANE this sitting; a cell that only checked the new address would pass
+//    over a file that still holds the old one beside it.
+cell('C76 no engine money reader or writer is reachable from the rooms (F-39.3)', () => {
+  // THE MONEY SURFACES AND EVERYTHING THEY IMPORT. `fetchCabinet` / `fetchLedger` /
+  // `binderBase` SURVIVE — the Clients room and Cabinet.tsx:297 still read the binder
+  // plane, and retiring the door with the room would take Clients down with it. What
+  // must be gone is a MONEY caller of them.
+  const bad = [];
+  // ⚠ RAW, NOT STRIPPED — F-39.13, AND C65 ALREADY CARRIES THIS REASONING.
+  // `vendor.ts` holds unbalanced `/*` sequences, so the shared `strip()` pairs
+  // an opener with a closer hundreds of lines later and SWALLOWS LIVE CODE.
+  // The first cut of this cell stripped and reported 「fetchInvoices is gone
+  // from vendor.ts」 — the function was there; the instrument had eaten it.
+  // That is the exact shape F-39.13 filed, walked into again one arc later.
+  const src = lineStrip(read('lib/vendor/api/vendor.ts'));
+  const moneyFns = ['fetchInvoices', 'fetchExpenses', 'createInvoice', 'updateInvoice',
+                    'recordPayment', 'fetchInvoicePdf', 'cancelInvoice',
+                    'createExpense', 'updateExpense', 'deleteExpense'];
+  for (const fn of moneyFns) {
+    const i2 = src.indexOf(`function ${fn}(`);
+    if (i2 < 0) { bad.push(`${fn} is gone from vendor.ts`); continue; }
+    const end = src.indexOf('\nexport ', i2 + 10);
+    const body = src.slice(i2, end < 0 ? src.length : end);
+    if (/fetchCabinet\(|fetchLedger\(|binderBase\(/.test(body)) {
+      bad.push(`${fn} still reaches the engine binder plane`);
+    }
+    if (!/moneyBase\(/.test(body)) bad.push(`${fn} does not address the typed money door`);
+  }
+  // The two adapters retired with their readers (§8.9).
+  if (/function binderToInvoice\(|function binderToExpense\(/.test(src)) {
+    bad.push('binderToInvoice/binderToExpense survive their last reader');
+  }
+  // The eleventh site: expenses.tsx built its URL inline and no export sweep could see it.
+  for (const f of ['app/vendor/list/[slice]/expenses.tsx', 'app/vendor/list/[slice]/invoices.tsx']) {
+    if (/api\/v2\/vendor\/binders\//.test(strip(read(f)))) bad.push(f + ' still addresses the binder plane');
+  }
+  return bad.length ? bad.join(' | ') : null;
+  // RED MUTATION: re-point `fetchExpenses` at `fetchLedger` → red.
+});
+
+cell('C77 no state is derived client-side in the money block (F-2c.p6)', () => {
+  // Three writers each computed `payment_status` from amounts before posting —
+  // three state machines for one column, none of them the home's. The home's
+  // positive-list transition is the one place a state is decided (b47 2.2), and
+  // `payment_type: 'balance'` no longer closes an invoice regardless of arithmetic.
+  const src = lineStrip(read('lib/vendor/api/vendor.ts')); // see lineStrip above
+  const bad = [];
+  for (const fn of ['createInvoice', 'updateInvoice', 'recordPayment']) {
+    const i2 = src.indexOf(`function ${fn}(`);
+    if (i2 < 0) continue;
+    const end = src.indexOf('\nexport ', i2 + 10);
+    const body = src.slice(i2, end < 0 ? src.length : end);
+    if (/payment_status|=\s*['"](paid|advance_paid|unpaid)['"]/.test(body)) {
+      bad.push(`${fn} derives an invoice state client-side`);
+    }
+  }
+  return bad.length ? bad.join(' | ') : null;
+  // RED MUTATION: restore `const status = pending <= 0 ? 'paid' : ...` in createInvoice → red.
+});
+
+cell('C78 Books mounts zero verbs — the id space no longer enforces it', () => {
+  // AT 2b THIS HELD BY CONSTRUCTION. The movement ids are composites and the rooms
+  // keyed their controls on engine binder ids, so a control here had nothing to key
+  // on. The rooms are typed now and the money door mounts eleven routes. The ids are
+  // unchanged; THIS CELL is the only thing keeping the room read-only.
+  const src = strip(read('components/worklist/BooksBody.tsx'));
+  const verbs = src.match(/<button|<a\s|onClick=|<form|<input|onTrigger|useSwipe/g) || [];
+  // b40's contract is NULL for pass, a STRING for fail. The first cut returned
+  // `true`, which the runner read as a failure message reading 「true」.
+  return verbs.length === 0 ? null
+    : `BooksBody mounts ${verbs.length} control(s): ${verbs.join(' ')}`;
+  // RED MUTATION: add an onClick to a movement row → red.
+});
+
+cell('C79 the register renders D-1 B13\u2019s particular and sums nothing (F-39.21)', () => {
+  const src = strip(read('components/worklist/BooksBody.tsx'));
+  const bad = [];
+  // The particular reaches the glass, per side.
+  for (const k of ['client_name', 'invoice_number', 'milestone_label', 'category', 'description']) {
+    if (!new RegExp(`p\\.${k}`).test(src)) bad.push(`the particular drops ${k}`);
+  }
+  if (!/amount_paid.*amount_total|of \$\{formatRs/.test(src)) bad.push('「Rs X of Rs Y」 is not rendered');
+  // invoices.description is STRUCK at the door (F-39.23) and must not be reached for here.
+  if (/invoice[_.]description/.test(src)) bad.push('BooksBody reaches for invoices.description — F-39.23');
+  // THE SURFACE SUMS NOTHING. Opening/closing are read off the chain's own cells.
+  if (/\.reduce\(/.test(src)) bad.push('BooksBody sums — opening/closing are READ, never derived (F-04.13)');
+  // The ruled heads, from copy.ts and never spelled here.
+  const copy = strip(read('lib/worklist/copy.ts'));
+  for (const [k, v] of [['booksReceived', 'Total received'], ['booksColCredit', 'Received'],
+                        ['booksColDebit', 'Paid out'], ['booksOpening', 'Opening'],
+                        ['booksClosing', 'Closing']]) {
+    if (!new RegExp(`${k}:\\s*'${v}'`).test(copy)) bad.push(`copy.ts ${k} is not '${v}' (D-1)`);
+    if (!new RegExp(`COPY\\.${k}`).test(src)) bad.push(`BooksBody does not read COPY.${k}`);
+  }
+  return bad.length ? bad.join(' | ') : null;
+  // RED MUTATION: drop `p.category` from particularOf → red.
+});
+
+
 
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
