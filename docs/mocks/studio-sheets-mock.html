@@ -99,7 +99,11 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 .wl-sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--role-sheet);
           border-top:.5px solid var(--atelier-sheet-border);border-radius:3px 3px 0 0;
           padding:20px var(--wl-gutter) 28px;display:flex;flex-direction:column;gap:14px}
+.wl-shhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .wl-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
+.wl-shx{width:44px;height:44px;margin:-10px calc(var(--wl-gutter) * -1 + 8px) -10px 0;flex:none;
+        display:flex;align-items:center;justify-content:center;border-radius:3px;
+        font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
 .wl-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);
        display:block;margin-bottom:6px}
 .wl-fi{width:100%;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);
@@ -142,7 +146,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 
 <!-- ═══ E1 · MEMBER SHEET ═══════════════════════════════════════════════════ -->
 <div class="framewrap" data-frame="E1-member">
-  <div class="cap"><b>E1 — MEMBER SHEET · /w/team, Team tab</b> · the <b>+</b> opens this in place; no navigation — the <b>masthead and the three tabs stay visible behind the scrim</b>, and the sheet covers the nav until it is dismissed (a modal owns the screen; what it may not do is unmount the room) · this is the EDIT state, the superset; ADD is the same sheet without Assignments, Crew page and Remove · rows behind carry <b>role only</b> — F-2b2.1's struck state word does not return, and there is deliberately NO active toggle (the door filters <code>active=true</code>, so the off state would be unreachable) · <b>SPECIMEN</b> names · 374×844</div>
+  <div class="cap"><b>E1 — MEMBER SHEET · /w/team, Team tab</b> · the <b>+</b> opens this in place; no navigation — the <b>masthead and the three tabs stay visible behind the scrim</b>, and the sheet covers the nav until it is dismissed · <b>AMENDED 2026-09-02 (F-2c.w1):</b> this caption used to say the scrim behind stays reachable — on glass it does not, because this sheet reaches the masthead. The dismiss now sits in the HEAD, on every sheet, away from <b>Remove</b> · this is the EDIT state, the superset; ADD is the same sheet without Assignments, Crew page and Remove · rows behind carry <b>role only</b> — F-2b2.1's struck state word does not return, and there is deliberately NO active toggle (the door filters <code>active=true</code>, so the off state would be unreachable) · <b>SPECIMEN</b> names · 374×844</div>
   <div class="wl" data-wl-mode="dark">
     <header class="wl-hdr">
       <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Team</span></div>
@@ -159,7 +163,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
     <div class="wl-scrim"></div>
     <div class="wl-sheet">
-      <div class="wl-shtitle">Edit member</div>
+      <div class="wl-shhead"><div class="wl-shtitle">Edit member</div><span class="wl-shx">×</span></div>
       <div><span class="wl-fl">Name</span><span class="wl-fi">Rohit Mehra</span></div>
       <div><span class="wl-fl">Role</span><span class="wl-fi sel">Second shooter</span></div>
       <div><span class="wl-fl">Phone</span><span class="wl-fi">+91 98110 22331</span></div>
@@ -196,7 +200,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
     <div class="wl-scrim"></div>
     <div class="wl-sheet">
-      <div class="wl-shtitle">New task</div>
+      <div class="wl-shhead"><div class="wl-shtitle">New task</div><span class="wl-shx">×</span></div>
       <div><span class="wl-fl">Title</span><span class="wl-fi ph">Edit the highlight reel</span></div>
       <div><span class="wl-fl">Description</span><span class="wl-fi ph">Optional</span></div>
       <div><span class="wl-fl">Assign to</span><span class="wl-fi sel">Unassigned</span></div>
@@ -226,7 +230,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
     <div class="wl-scrim"></div>
     <div class="wl-sheet">
-      <div class="wl-shtitle">Log payment</div>
+      <div class="wl-shhead"><div class="wl-shtitle">Log payment</div><span class="wl-shx">×</span></div>
       <div><span class="wl-fl">Team member</span><span class="wl-fi sel">Rohit Mehra</span></div>
       <div><span class="wl-fl">Which function</span><span class="wl-fi sel">Haldi · 7 Mar 2027 · Priya &amp; Arjun</span></div>
       <div><span class="wl-fl">Amount</span><span class="wl-fi">12000</span></div>
@@ -255,7 +259,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
     <div class="wl-scrim"></div>
     <div class="wl-sheet">
-      <div class="wl-shtitle">Mark as paid</div>
+      <div class="wl-shhead"><div class="wl-shtitle">Mark as paid</div><span class="wl-shx">×</span></div>
       <div class="wl-shsum"><span class="wl-rprimary">Rohit Mehra · Two-day shoot</span><span class="f">Rs 12,000</span></div>
       <div><span class="wl-fl">Paid via</span><span class="wl-fi sel">UPI</span></div>
       <div><span class="wl-fl">Notes</span><span class="wl-fi ph">Optional</span></div>
@@ -313,7 +317,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
     <div class="wl-scrim"></div>
     <div class="wl-sheet">
-      <div class="wl-shtitle">Cancel this payment?</div>
+      <div class="wl-shhead"><div class="wl-shtitle">Cancel this payment?</div><span class="wl-shx">×</span></div>
       <span class="wl-shnote">It stays on file, marked cancelled. Nothing is deleted.</span>
       <div class="wl-brow"><span class="wl-btn gho">Keep it</span><span class="wl-btn dan">Cancel payment</span></div>
     </div>

@@ -2959,6 +2959,79 @@ cell('C85 the studio sheets open inside the room, and the room reports its write
   return bad.length ? bad.join(' | ') : null;
 });
 
+// ── C89 · EVERY SHEET HAS A WAY OUT THAT IS NOT A VERB  [F-2c.w1] ───────────
+//    THE DEFECT IT EXISTS FOR, found by the founder on glass and by no
+//    instrument: `MemberSheet`'s foot was `Remove | Save` with no Cancel. The
+//    four short sheets each had one, so the absence read as normal — and the
+//    member sheet is the only FULL-HEIGHT one, whose top edge reaches the
+//    masthead, leaving no scrim to tap. A vendor who opened a crew member to
+//    read his assignments could leave only by WRITING or by DESTROYING.
+//
+//    ⚠ THE MOCK CARRIED THE DEFECT AND RATIFIED IT. Frame E1 drew REMOVE + SAVE
+//    and its caption claimed the scrim behind stayed reachable — a sentence true
+//    of the short sheets and written over the tall one. Mock-first proves what a
+//    surface LOOKS like; an exit is something you go looking for. c-2c.s5.
+//
+//    ⚠ IT ASSERTS THE EXIT IS ON `Sheet`, NOT ON A CALLER. Arm (b), founder-
+//    ruled: one head control, inherited by all five, so the next tall sheet
+//    cannot rediscover this. And it asserts the dismiss is NOT in the foot row
+//    beside `Remove` — an escape hatch a thumb's width from a destructive verb
+//    is how a crew member gets deleted at 1am.
+//
+//    THE NAME IS ASSERTED TOO. The glyph is aria-hidden and the control's name
+//    is the vetoed byte, because a control announced as 「multiplication sign」
+//    is a control a screen reader cannot describe.
+//    RED MUTATION: delete the wl-shx button from Sheet, or move it inside the
+//    foot's wl-brow → red.
+cell('C89 every studio sheet carries a head dismiss, and it is not beside Remove (F-2c.w1)', () => {
+  const src = strip(read('components/worklist/StudioSheets.tsx'));
+  const bad = [];
+  // The exit lives on the shared shape. `Sheet` is declared once; the dismiss
+  // must be inside IT, so counting call sites would not prove inheritance.
+  // THE SLICE RUNS TO THE NEXT DECLARATION, NOT TO THE NEXT `\n}`. This is the
+  // SECOND time in one sitting a lazy `[\s\S]*?\n}` ended at a props object's
+  // closing brace instead of the function's — C86's signature read did the same
+  // and was caught the same way. A cell that reads only a signature's opening
+  // lines can go green on the very body it exists to inspect, and the reflex to
+  // 「loosen the assertion」 when it reddens is exactly how that lands.
+  const at   = src.indexOf('function Sheet({');
+  const next = src.indexOf('\nfunction ', at + 10);
+  const shape = at < 0 ? '' : src.slice(at, next < 0 ? undefined : next);
+  if (!/className="wl-shx"/.test(shape))
+    bad.push('Sheet has no head dismiss — a sheet whose only exits are its own verbs is F-2c.w1 returning');
+  if (!/aria-label=\{COPY\.studioCancel\}[^>]*onClick=\{onClose\}|onClick=\{onClose\}[^>]*aria-label=\{COPY\.studioCancel\}/.test(shape))
+    bad.push('the head dismiss is unnamed or does not close — the glyph is aria-hidden, so the label is the only name it has');
+  if (!/\.wl-shx\{[^}]*width:44px[^}]*height:44px/.test(src))
+    bad.push('the dismiss is under the 44px tap floor');
+  // And it is NOT in the foot beside the destructive verb.
+  const feet = src.match(/<div className="wl-brow">[\s\S]*?<\/div>/g) || [];
+  for (const f of feet) if (/wl-shx/.test(f)) bad.push('the dismiss sits in a foot row beside Remove — arm (a), which was refused');
+  // All five sheets go through the shape. A caller drawing its own panel would
+  // escape the inheritance this cell exists to prove.
+  const panels = (src.match(/className="wl-sheet"/g) || []).length;
+  if (panels !== 1) bad.push('there are ' + panels + ' sheet panels — the shape is no longer shared, so the exit is not inherited');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C90 · A HALF-LOADED PAYMENTS TAB IS A FAILED ONE  [F-2c.w2] ─────────────
+//    The tab makes TWO reads: `/by-wedding` for the eye (it alone carries the
+//    event date and the member's name) and the flat GET for the verbs (the raw
+//    row is what `markPaymentPaid` and `cancelPayment` take). The first cut
+//    settled READY whenever by-wedding succeeded, even with the raw read failed
+//    — so the list would render and every row would silently lose `Mark paid`
+//    and `Cancel payment`, with no word anywhere saying why. A vendor looking at
+//    money he cannot act on, on a surface with no complaint on it.
+//    RED MUTATION: settle('payments', true) unconditionally → red.
+cell('C90 the payments tab fails when either of its two reads fails (F-2c.w2)', () => {
+  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const bad = [];
+  if (!/if \(!\('payments' in raw\) \|\| !raw\.ok\) \{ settle\('payments', false\); return; \}/.test(src))
+    bad.push('the raw-row read can fail without failing the tab — the rows would render with no verbs and no explanation');
+  if (!/rawOf\(p\.id\)/.test(src))
+    bad.push('the row no longer resolves its raw row — the verbs would fire at an id the surface cannot vouch for');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 // ── C86 · MARK-PAID'S TWO ARMS REACH THE GLASS  [ruling 3, F-39.26's class] ──
 //    The route has answered with `expense_logged` since the hygiene sitting and
 //    said so in its own words — 「FAILURE IS DECLARED, NOT SWALLOWED... The

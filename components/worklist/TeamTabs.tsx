@@ -171,7 +171,21 @@ export function TeamTabs({ vendorName }: { vendorName: string | null }) {
         ...(bw.weddings ?? []).flatMap((w) => w.payments ?? []),
         ...(bw.loose?.payments ?? []),
       ]);
-      if ('payments' in raw && raw.ok) setRawPayments(raw.payments ?? []);
+      // ── F-2c.w2 · BOTH READS ARE REQUIRED, SO EITHER ONE FAILING IS A FAIL ──
+      // WHAT STOOD HERE: `settle('payments', true)` fired whenever by-wedding
+      // succeeded, EVEN IF the raw-row read had failed. The list would render
+      // and every row would silently lose its verbs — `rawOf` returns null, the
+      // `foot` renders nothing, and `Mark paid` and `Cancel payment` are simply
+      // absent with no word anywhere saying why. A vendor would be looking at
+      // money he cannot act on and at a surface with no complaint on it.
+      //
+      // The tab needs BOTH: by-wedding for the eye (it carries the event date
+      // and the member's name), the raw rows for the verbs. So a half-answer is
+      // a failed answer, and `Could not load this list.` is the honest word for
+      // it — F-2c.w2, found while deriving where the payments were, not
+      // reported by an instrument.
+      if (!('payments' in raw) || !raw.ok) { settle('payments', false); return; }
+      setRawPayments(raw.payments ?? []);
       settle('payments', true);
     } else settle('payments', false);
   }).catch(() => settle('payments', false)), [settle]);

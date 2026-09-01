@@ -92,18 +92,61 @@ const PAID_VIA: readonly Opt[] = [
   { v: 'other', l: 'Other' },
 ];
 
-/** The scrim and the panel. One shape, five callers, so a sheet cannot acquire
-    a different corner or a different scrim by being written later. */
+/** The scrim, the head and the panel. One shape, five callers, so a sheet cannot
+    acquire a different corner, a different scrim or a different way out by being
+    written later.
+
+    ── F-2c.w1 · THE SHEET YOU COULD NOT LEAVE  [founder's walk, 2026-09-02] ──
+    THE DEFECT, AND IT SHIPPED: `MemberSheet`'s foot is `Remove | Save` and it
+    carried no Cancel. The other four sheets have one, so nobody noticed the
+    member sheet did not — and the member sheet is the ONLY full-height one. A
+    vendor who opened a crew member just to read his assignments could leave only
+    by WRITING (Save) or DESTROYING (Remove).
+
+    ⚠ THE SCRIM DID NOT RESCUE IT, AND THE MOCK'S CAPTION SAID IT WOULD. E1's
+    caption claimed the masthead and the tabs stay reachable behind the scrim. On
+    glass the member sheet's top edge sits directly under the masthead, so there
+    is no scrim left to hit. The claim described the SHORT sheets and was written
+    over the tall one.
+
+    ⚠ AND MOCK-FIRST DID NOT CATCH IT, BECAUSE THE MOCK CARRIED IT. Frame E1 drew
+    REMOVE + SAVE and no Cancel, was ratified, and was built to faithfully. A
+    ratified frame proves what a surface LOOKS like; an exit is not something you
+    see, it is something you go looking for. c-2c.s5 is the executor's.
+
+    THE CURE IS ARM (b), FOUNDER-RULED: the dismiss lives in the HEAD, not the
+    foot. Not beside `Remove` — an escape hatch one thumb-width from a
+    destructive verb on a full-height sheet is how a crew member gets deleted at
+    1am.
+
+    ⚠ IT LIVES ON `Sheet`, SO ALL FIVE GET IT, and that is deliberate rather than
+    tidy. The member sheet is the acute case but the class is 「a sheet whose only
+    exits are its own verbs」, and putting the fix on one caller would leave the
+    next tall sheet to rediscover it. The four short sheets keep their foot
+    `Cancel` as well: two ways out of a form is not a defect, and removing a byte
+    the founder already vetoed to buy symmetry would be trading his ruling for
+    tidiness. */
 function Sheet({ title, onClose, children }: {
   title: string; onClose: () => void; children: React.ReactNode;
 }) {
   return (
     <>
       {/* The scrim is a BUTTON, not a div with a click handler: a dismissal a
-          keyboard cannot reach is a sheet a keyboard cannot leave. */}
+          keyboard cannot reach is a sheet a keyboard cannot leave. It stays —
+          it is the right gesture on the short sheets — but it is no longer the
+          ONLY way out, because on the tall one it is not reachable at all. */}
       <button type="button" className="wl-shscrim" aria-label={COPY.studioCancel} onClick={onClose} />
       <div className="wl-sheet" role="dialog" aria-modal="true" aria-label={title}>
-        <div className="wl-shtitle">{title}</div>
+        <div className="wl-shhead">
+          <div className="wl-shtitle">{title}</div>
+          {/* THE GLYPH IS HIDDEN FROM THE ACCESSIBLE TREE AND THE NAME IS THE
+              VETOED BYTE. A control announced as 「times」 or 「multiplication
+              sign」 is a control a screen reader cannot describe, and inventing
+              a word here would be a sixth home for 「Cancel」. */}
+          <button type="button" className="wl-shx" aria-label={COPY.studioCancel} onClick={onClose}>
+            <span aria-hidden>&times;</span>
+          </button>
+        </div>
         {children}
       </div>
     </>
@@ -391,7 +434,14 @@ export const SHEET_CSS = `
           border-top:.5px solid var(--atelier-sheet-border);border-radius:3px 3px 0 0;
           padding:20px var(--wl-gutter) 28px;display:flex;flex-direction:column;gap:14px;
           max-height:100%;overflow-y:auto}
+.wl-shhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .wl-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
+/* 44px is the tap floor, and the negative offsets pull the GLYPH back to the
+   sheet's optical edge without shrinking the target underneath it. */
+.wl-shx{width:44px;height:44px;margin:-10px calc(var(--wl-gutter) * -1 + 8px) -10px 0;flex:none;
+        display:flex;align-items:center;justify-content:center;background:transparent;border:none;
+        border-radius:3px;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
+.wl-shx:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 .wl-fld{display:block}
 .wl-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);
        display:block;margin-bottom:6px}

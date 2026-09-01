@@ -1,6 +1,7 @@
 # 2c-STUDIO · COPY INVENTORY & VETO SHEET
 
-**Packet** `docs/mocks/studio-sheets-mock.html` · sha256 `665b4f3496b8a4bed73d1bbba8f9f85b6aa8a1e082f812952ec53ffd99d865a4`
+**Packet** `docs/mocks/studio-sheets-mock.html` · sha256 `c5eb9059b7c32f02f5a0e822c3dd6b9f468f4e4a75aa4e8ef7b473df1af375e3`
+**AMENDED 2026-09-02 · F-2c.w1.** The packet ratified at `665b4f3496b8` drew every sheet with no head control, and E1's caption claimed the scrim behind it stayed reachable. On glass the member sheet reaches the masthead and nothing behind it is tappable, so `Remove` and `Save` were the only ways out of it. All five sheets now carry a head dismiss, named `Cancel` (§B, byte unchanged) with the glyph hidden from the accessible tree. Founder-ruled arm (b): the head, never the foot beside `Remove`. E1's caption is corrected in place rather than dropped.
 **Frames** E1-member · E2-task · E3-pay · E4-settle · E5-invoice · E6-cancel · E7-settled — 7 frames, 374 and 390, both modes, 28 shots.
 **Tips** dreamos-pwa `60e439b` (worklist) · dream-os `f5e1933` (main), both re-derived at the cut.
 **Authored against** the chair's four rulings (CE-39 → 2c-Studio seat) and c-39.46's TEN verbs.
@@ -101,6 +102,10 @@ The body says what the estate actually does. `team_payments` has thirteen column
 
 ---
 
-## D · ONE THING THE MOCK CANNOT SETTLE
+## D · ONE THING THE MOCK CANNOT SETTLE — AND IT DID NOT
+
+**Read this before the next packet.** §D below asked whether the nav should stay lit under a tall sheet. It was the right question about the wrong thing: what mattered was not what the sheet COVERED but whether anything under it could be TAPPED. The frame was ratified, built to faithfully, and shipped a member sheet with no exit. A ratified frame proves what a surface looks like; an exit is not something you see. Every future packet states, per frame, how the surface is LEFT.
+
+## D-old · THE NAV QUESTION, AS ORIGINALLY ASKED
 
 E1 is drawn as the EDIT sheet because it is the superset. On a 374×844 frame it stands 790px tall and **covers the nav**; the masthead and the three tabs stay visible, which is the property the crossing exists for. If you would rather the nav stayed lit under a modal, say so and the sheet takes a max-height and scrolls instead — it is a one-rule change and it is cheaper to make now than after the build.
