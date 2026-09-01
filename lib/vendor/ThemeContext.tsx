@@ -154,7 +154,37 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
   // The pinned path needs the written-property list back out of `applyTheme`, and the
   // unpinned path does not care. One function returning it to both is cheaper than two
   // that can disagree about what a theme application is.
-  function applyThemePinned(theme: 'dark' | 'light'): string[] { return applyTheme(theme); }
+  // ── E-1 · A PINNED PROVIDER NEVER TOUCHES THE DOCUMENT  [CE-39 2c, F-39.32] ──
+  // IT READ: `return applyTheme(theme);` — the unpinned path, whole. So a pinned
+  // mount toggled `html.theme-light` and wrote twenty-five CSS custom properties
+  // onto `documentElement`, then snapshot-and-restored them on unmount.
+  //
+  // THAT TEARDOWN WAS NOT ENOUGH, and the founder's walk is why: `/w/billing`
+  // rendered LIGHT, he visited `/vendor/billing`, and `/w/billing` then rendered
+  // DARK — same route, same session, same commit. Two writers of one class on an
+  // `<html>` Next never remounts. Restoring on unmount does not help while the
+  // pinned tree is MOUNTED, which on a shell route is the whole time.
+  //
+  // WHAT A PINNED PROVIDER IS FOR, DERIVED RATHER THAN ASSUMED: `ChatThread`
+  // (12 reads) and `InputBar` (13 reads) call `useT()`. That is CONTEXT, not
+  // document. `setTokens` and `setCurrentTheme` below still run, so those
+  // twenty-five reads are byte-identical and F-38.50 stays exactly where it was,
+  // chartered separately and untouched by this cure.
+  //
+  // AND THE SHEET LOSES NOTHING BY THIS. `AiDock` renders `AskSheet` INLINE —
+  // no portal — inside `WorklistShell`'s `<div className="wl" data-wl-mode>`
+  // (shell :91, dock :134, close :155). Its CSS vars already resolve from the
+  // shell's own `scopeCss`; the pin was writing a second copy of them onto
+  // `<html>`, where the other lane could read them.
+  //
+  // The teardown is now a no-op by construction, and THAT is the cell: the
+  // pinned arm performs ZERO documentElement mutations across mount and unmount.
+  function applyThemePinned(theme: 'dark' | 'light'): string[] {
+    const t = theme === 'light' ? LIGHT : DARK;
+    setTokens(t);
+    setCurrentTheme(theme);
+    return [];
+  }
 
   function applyTheme(theme: 'dark' | 'light'): string[] {
     const t = theme === 'light' ? LIGHT : DARK;

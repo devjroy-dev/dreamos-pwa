@@ -170,6 +170,18 @@ function moneyBase(v: string) { return `/api/v2/vendor/money`; }
 // ONE HOME FOR THE MONEY BLOCK'S FALLBACK SENTENCE. Vetoed by delegation
 // 2026-09-01; the founder may re-word it, and when he does there is one line to
 // change rather than five.
+// ── F-39.26 · THE MONEY VERBS' HALF OF THE INVALIDATION DOOR  [CE-39 2c] ──
+// `WorklistShell` drops the memoised Today reading on navigation and on focus.
+// That covers a vendor who writes here and walks to Today. It does NOT cover a
+// write and a read on ONE route — Add an invoice from the Invoices FAB and the
+// masthead count behind it is the reading taken before the write.
+//
+// So every money write calls the SAME function the shell calls. Not a
+// verb-specific patch of the cached body: that would be a second derivation of
+// one reading, which is the disease the memo exists to cure. One door, two
+// callers, and `refreshToday()` is the only way in.
+import { refreshToday } from '@/lib/worklist/feed';
+
 const MONEY_FALLBACK = 'Could not save that — nothing was changed. Try again in a moment.';
 
 
@@ -684,6 +696,7 @@ export async function deleteClient(clientId: string): Promise<{ ok: true; delete
   if (!v) return noVendor();
   const r = await postJson<BinderWriteResponse>(`${binderBase(v)}/${clientId}/hide`, {});
   if (!r.ok) return { ok: false, error: r.error || 'Could not remove.' };
+  refreshToday();
   return { ok: true, deleted: true };
 }
 
@@ -714,6 +727,7 @@ export async function createInvoice(body: CreateInvoiceRequest): Promise<CreateI
   // developer prose) off a money surface, because every failure here lands on a
   // written sentence before it can surface.
   if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  refreshToday();
   return { ok: true, invoice: r.invoice, pdf_pending: true };
 }
 
@@ -730,6 +744,7 @@ export async function updateInvoice(invoiceId: string, body: UpdateInvoiceReques
   // STILL TRUE, SO IT KEEPS ITS SEAT. The update path survives the crossing and
   // so does its byte.
   if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || 'Could not update invoice.' };
+  refreshToday();
   return { ok: true, invoice: r.invoice };
 }
 
@@ -746,6 +761,7 @@ export async function recordPayment(invoiceId: string, body: RecordPaymentReques
     `${moneyBase(v)}/invoices/${v}/${invoiceId}/payments`, { amount: body.amount },
   );
   if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  refreshToday();
   return {
     ok: true,
     invoice: r.invoice,
@@ -774,8 +790,8 @@ export function cancelInvoice(invoiceId: string) {
   // path no longer exists.
   return patchJson<{ ok: true; invoice: { id: string; state: string } } | ApiErr>(
     `${moneyBase(v)}/invoices/${v}/${invoiceId}/cancel`, {},
-  ).then((r) => (('ok' in r) && r.ok ? r
-    : { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr));
+  ).then((r) => { if (('ok' in r) && r.ok) { refreshToday(); return r; }
+    return { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr; });
 }
 
 export async function createExpense(body: CreateExpenseRequest): Promise<CreateExpenseResponse | ApiErr> {
@@ -787,6 +803,7 @@ export async function createExpense(body: CreateExpenseRequest): Promise<CreateE
     `${moneyBase(v)}/expenses/${v}`, body as unknown as Record<string, unknown>,
   );
   if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  refreshToday();
   return { ok: true, expense: r.expense };
 }
 
@@ -797,6 +814,7 @@ export async function updateExpense(expenseId: string, body: UpdateExpenseReques
     `${moneyBase(v)}/expenses/${v}/${expenseId}`, body as unknown as Record<string, unknown>,
   );
   if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
+  refreshToday();
   return { ok: true, expense: r.expense };
 }
 

@@ -296,6 +296,18 @@ export const INTERIM_VENDOR_LINKS: readonly string[] = [
   '/vendor/studio/tasks',
   //   lib/vendor/studioShared.tsx — `STUDIO_ITEMS`, the Team Payments row
   '/vendor/studio/team-payments',
+  // ── ADDED AT CE-39 2c · arm E-2 ────────────────────────────────────────────
+  // `app/w/WorklistBoot.tsx:77` — `router.replace('/vendor/onboarding')` when the
+  // session reports onboarding incomplete. A LIVE EXIT from the shell into the
+  // old tree that no interim set counted and no audit could see, which is the
+  // class this set exists to end. Found by sweeping every `/vendor/` string
+  // reachable from the shell rather than by reading the sets themselves; it was
+  // in none of them.
+  //
+  // NOT STUBBED THIS SITTING, by ruling — billing stubs alone. Its Phase 7 fate
+  // is arm (a)'s path swap: the boot's `replace()` re-points at the new tree's
+  // onboarding home and this row leaves with the target, not before.
+  '/vendor/onboarding',
 ] as const;
 
 /**
@@ -330,7 +342,13 @@ export const INTERIM_VENDOR_LINKS: readonly string[] = [
  * crosses without deleting its line here does not get to call itself crossed.
  */
 export const INTERIM_VENDOR_MOUNTS: readonly (readonly [string, number])[] = [
-  ['app/vendor/billing/page.tsx', 1],
+  // `app/vendor/billing/page.tsx` LEFT THIS CENSUS at CE-39 2c, arm E-2. It is a
+  // D-8 redirect stub now and mounts no chrome at all, so a row claiming one
+  // mount would be the census asserting a surface that no longer renders. `C26`
+  // caught it in the same run that added the stub and named the cure — 「declared
+  // but mounts nothing — shrink the census」 — which is this set doing exactly
+  // the job it was built for. The row is REMOVED rather than zeroed: a zero is a
+  // claim about chrome, and there is none.
   ['app/vendor/calendar/page.tsx', 1],
   // ── \u00a74-4 BATCH \u2462 \u00b7 TWO PATHS MOVE HERE AND BOTH HOLD AT 1 ─────────────────
   // The census does not fall for collab, and R-38.11 as amended is satisfied by the

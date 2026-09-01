@@ -21,9 +21,10 @@
 // `touch-action:manipulation` so the browser stops holding taps for the double-tap-zoom
 // gesture. Neither is decoration: without them a fast route still reads as a dead control,
 // and the honest response to a dead control is to tap it again.
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { refreshToday } from '@/lib/worklist/feed';
 import { COPY } from '@/lib/worklist/copy';
 import { useVendorInitials } from '@/hooks/vendor/useVendorHandle';
 import { scopeCss, typeCss } from '@/lib/worklist/theme';
@@ -82,6 +83,33 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   // to Graphite by this deploy. `pick` is now just the toggle's name for `setMode`; the
   // provider owns the write.
   const pick = setMode;
+
+  // ── F-39.26 · THE INVALIDATION DOOR, WIRED AT ITS ONE HOME  [CE-39 2c] ────
+  // `lib/worklist/feed.ts` memoises the Today reading at MODULE SCOPE so the
+  // masthead and the Rooms tiles await one response and cannot disagree across
+  // a write (R-37.63 ①). The memo is correct; nothing was dropping it.
+  // `refreshToday()` existed, was documented as 「the verbs call this」, and had
+  // zero callers in either repo — so a vendor who wrote and then walked back to
+  // Today read the state she had just changed.
+  //
+  // THE SHELL IS THE RIGHT HOME because every `/w` surface is inside it and it
+  // already knows when the route moves. A per-room hook would be one home per
+  // room for one rule. The money verbs call the SAME function after a write
+  // commits — that covers a write and a read on one route, which navigation
+  // cannot see. Two callers, one door.
+  //
+  // FOCUS AS WELL AS NAVIGATION: a vendor who answers WhatsApp and comes back
+  // has navigated nowhere, and the reading behind her is as stale as if she had.
+  useEffect(() => { refreshToday(); }, [pathname]);
+  useEffect(() => {
+    const onFocus = () => { if (!document.hidden) refreshToday(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, []);
 
   const onToday = pathname.startsWith('/w/today');
   const onRooms = !onToday;

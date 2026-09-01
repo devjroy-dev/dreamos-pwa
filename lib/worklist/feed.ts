@@ -106,7 +106,30 @@ export function readToday(): Promise<TodayFeed> {
   return pending;
 }
 
-/** Drop the memoised reading. The verbs call this after a write commits. */
+/**
+ * Drop the memoised reading. THE ONE DOOR, and until CE-39 2c it had no callers.
+ *
+ * ── F-39.26 · THE DOOR WAS BUILT AND NEVER WIRED ────────────────────────────
+ * Its previous line read 「The verbs call this after a write commits」 — in the
+ * present tense, about something no verb did. A sweep of both repos found ZERO
+ * callers. `pending` is module-scope, so a fresh mount of `useTodayFeed` awaits
+ * the SAME settled promise and the vendor sees the state she just changed.
+ *
+ * A doc comment in the present tense about behaviour that does not exist is the
+ * hardest kind of stale ink to catch, because it reads as a description and
+ * functions as a promise. Recorded rather than quietly corrected.
+ *
+ * ── THE TWO CALLERS IT HAS NOW, AND WHY THEY ARE THE SAME DOOR ──────────────
+ *   · `components/worklist/WorklistShell.tsx` — on every shell navigation and
+ *     on return-to-focus. Covers the whole surface without any verb knowing the
+ *     feed exists.
+ *   · the money verbs in `lib/vendor/api/vendor.ts`, after a write commits.
+ *     Covers the case navigation does not: a write and a read on ONE route.
+ *
+ * NO VERB-SPECIFIC HACK. Both call THIS function; the memo has one way in and
+ * one way out. The alternative — each verb patching the cached body — is two
+ * derivations of one reading, which is the disease this memo was built to cure.
+ */
 export function refreshToday(): void { pending = null; }
 
 /**
