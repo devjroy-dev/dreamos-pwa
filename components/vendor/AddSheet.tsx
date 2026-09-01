@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { selectStyle } from '@/lib/vendor/controls';
+import { EXPENSE_CATEGORIES } from '@/lib/vendor/types/common';
 import { useRouter } from 'next/navigation';
 import { roomHref } from '@/lib/worklist/rooms';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
@@ -36,14 +37,17 @@ interface FieldDef {
   placeholder?: string;
 }
 
-const EXPENSE_CATEGORIES: { label: string; value: string }[] = [
-  { label: 'Travel', value: 'travel' }, { label: 'Equipment', value: 'equipment' },
-  { label: 'Assistant', value: 'assistant' }, { label: 'Studio', value: 'studio' },
-  { label: 'Marketing', value: 'marketing' }, { label: 'Software', value: 'software' },
-  { label: 'Supplies', value: 'supplies' }, { label: 'Printing', value: 'printing' },
-  { label: 'Commission', value: 'commission' }, { label: 'Food', value: 'food' },
-  { label: 'Other', value: 'other' },
-];
+// THE PICKER READS THE MIRROR (CE-39 writer-hygiene, ruling 1). It used to carry
+// its own twelfth list, which offered `Supplies` — a token the database has never
+// accepted and the server has never accepted — and omitted `commission`, `shoot`
+// and `inventory`, three the database always has. Options are DERIVED from
+// EXPENSE_CATEGORIES now, in the CHECK's own order, and the labels are
+// title-cased from the tokens rather than written beside them: a label typed by
+// hand is a fifth home waiting to happen (F-04.36's class).
+const CATEGORY_OPTIONS: { label: string; value: string }[] = EXPENSE_CATEGORIES.map((value) => ({
+  value,
+  label: value.charAt(0).toUpperCase() + value.slice(1),
+}));
 
 const EVENT_KINDS: { label: string; value: string }[] = [
   { label: 'Shoot', value: 'shoot' }, { label: 'Call', value: 'call' },
@@ -95,7 +99,7 @@ const SCHEMAS: Record<ListSlice, { title: string; editTitle: string; fields: Fie
     title: 'Log expense', editTitle: 'Edit expense',
     fields: [
       { key: 'amount',       label: 'Amount',       type: 'currency', required: true },
-      { key: 'category',     label: 'Category',     type: 'select',   required: true, options: EXPENSE_CATEGORIES },
+      { key: 'category',     label: 'Category',     type: 'select',   required: true, options: CATEGORY_OPTIONS },
       { key: 'description',  label: 'Description',  type: 'text' },
       { key: 'expense_date', label: 'Date',         type: 'date' },
       { key: 'client_name',  label: 'Client',       type: 'text' },

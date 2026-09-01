@@ -1,0 +1,32 @@
+# scripts/floor-manifest-ce39-hygiene-pwa.txt
+# BASE 926c342 (worklist; re-derived fetch-first at the cut — the guard decides).
+# Sibling dream-os 238074f (main). THE dream-os ZIP APPLIES FIRST: C84 below
+# reads `../dream-os/src/lib/vendor/expenses.js` and compares this mirror to it,
+# so running this floor before that side is on disk measures the OLD home.
+#
+# CE-39 · THE WRITER-HYGIENE SITTING — the pwa twin.
+#
+# ⚠ THE CELL NUMBER MOVED, AND THE REASON BELONGS HERE. This sitting's mirror
+#   cell was authored as C76 against tip bb4a9ad. 2b-2 landed C76 through C83 in
+#   between, so it is seated as C84. Found by re-deriving at the new tip, not by
+#   remembering — the same class of catch as b48 -> b49 on the dream-os side.
+#
+#   common.ts stops calling itself the "single source of truth" and becomes a
+#   declared MIRROR of the dream-os writer home, which is itself a mirror of
+#   `expenses_category_check`. It carried `supplies` — a token NO layer of the
+#   estate has ever accepted — and offered it in the vendor's picker, while
+#   omitting `commission`, `shoot` and `inventory`, three the database always
+#   took. AddSheet now DERIVES its options from the mirror and title-cases the
+#   labels from the tokens, so a hand-typed label cannot become a fifth home.
+#
+#   C84 REFUSES rather than passes when the sibling is absent — the base_guard
+#   equality shape. A cross-repo cell that silently skips goes green in exactly
+#   the situation it exists to catch.
+#
+# ZERO migrations. The twelve are the database's own CHECK, unchanged.
+#
+# FILES
+lib/vendor/types/common.ts
+components/vendor/AddSheet.tsx
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce39-hygiene-pwa.txt

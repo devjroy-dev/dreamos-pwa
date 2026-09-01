@@ -2833,5 +2833,79 @@ cell('C81 tools/base_guard.sh is byte-identical in both repos (R-38.20)', () => 
 
 
 
+// ── C84 · THE EXPENSE CATEGORY MIRROR, HELD TO THE dream-os HOME ────────────────
+//    CE-39 writer-hygiene, ruling 1. THE DEFECT IT EXISTS FOR (F-2c.p1): four lists
+//    for one vocabulary across two repos, and no cell anywhere had ever compared them.
+//    `common.ts` called itself the single source of truth while offering `supplies` —
+//    a token neither the server nor the database has ever accepted — in the vendor's
+//    own picker, and while refusing `commission`, which the database always took.
+//
+//    ⚠ REFUSED, NEVER PASSED, WHEN THE SIBLING IS ABSENT. This is the base_guard
+//    equality cell's shape and the reason for it: a cross-repo cell that silently
+//    skips when it cannot see the other tree is a cell that goes green in exactly
+//    the situation it was written to catch. Absence is reported as a RED with a
+//    REFUSED reason — the run is told it could not check, not told it passed.
+//
+//    THE COMPARISON IS THREE-WAY and each leg is a different failure:
+//      home == mirror   — the two repos agree
+//      mirror == picker — the type and the runtime array agree (a TS union does not
+//                         survive to runtime, so both exist and both can drift)
+//      home == CHECK    — asserted in dream-os `b48` §1.2, NOT duplicated here. This
+//                         cell trusts the sibling's own floor for that leg and says so.
+//    RED MUTATION: add a token to either list, or re-order one of them.
+cell('C84 the expense category mirror equals the dream-os home, in order', () => {
+  const sibling = path.resolve(ROOT, '..', 'dream-os', 'src/lib/vendor/expenses.js');
+  if (!fs.existsSync(sibling)) {
+    return 'REFUSED — the dream-os sibling is not beside this tree at ../dream-os, so the '
+         + 'mirror cannot be compared to its home. Clone both and re-run; this cell does '
+         + 'not pass on absence.';
+  }
+  const homeSrc = fs.readFileSync(sibling, 'utf8');
+  const m = homeSrc.match(/const ALLOWED_CATEGORIES = \[([\s\S]*?)\];/);
+  if (!m) return 'REFUSED — ALLOWED_CATEGORIES could not be read out of the dream-os home';
+  const home = (m[1].match(/'([a-z_]+)'/g) || []).map((t) => t.replace(/'/g, ''));
+  if (home.length < 2) return 'REFUSED — the home parsed to ' + home.length + ' token(s)';
+
+  const common = strip(read('lib/vendor/types/common.ts'));
+  const arr = common.match(/EXPENSE_CATEGORIES: readonly ExpenseCategory\[\] = \[([\s\S]*?)\]/);
+  if (!arr) return 'the runtime mirror EXPENSE_CATEGORIES is gone from common.ts';
+  const mirror = (arr[1].match(/'([a-z_]+)'/g) || []).map((t) => t.replace(/'/g, ''));
+
+  const uni = common.match(/export type ExpenseCategory =([\s\S]*?);/);
+  if (!uni) return 'the ExpenseCategory union is gone from common.ts';
+  const union = (uni[1].match(/'([a-z_]+)'/g) || []).map((t) => t.replace(/'/g, ''));
+
+  const bad = [];
+  if (mirror.join('|') !== home.join('|')) {
+    bad.push('mirror != home\n        home:   ' + home.join(', ') + '\n        mirror: ' + mirror.join(', '));
+  }
+  if (union.join('|') !== mirror.join('|')) {
+    bad.push('the union and the runtime array disagree\n        union:  ' + union.join(', ')
+           + '\n        array:  ' + mirror.join(', '));
+  }
+  //    ⚠ THIS LEG'S FIRST CUT ASSERTED `/EXPENSE_CATEGORIES/.test(sheet)` AND WENT
+  //    GREEN WHEN THE PICKER STOPPED USING IT — the surviving `import` line alone
+  //    satisfied the match. Caught by mutation, not by reading (F-39.25: the
+  //    instrument's report is evidence about the instrument first). The question is
+  //    whether the options are DERIVED from the mirror, so the match is anchored on
+  //    the derivation itself, which is the only shape that can carry the tokens.
+  const sheet = strip(read('components/vendor/AddSheet.tsx'));
+  if (!/CATEGORY_OPTIONS[^\n]*=\s*EXPENSE_CATEGORIES\.map\(/.test(sheet)) {
+    bad.push('the picker options are not derived from the mirror');
+  }
+  if (!/options:\s*CATEGORY_OPTIONS/.test(sheet)) bad.push('the category field does not use the derived options');
+  if (/'supplies'/.test(sheet)) bad.push('the picker still offers `supplies`, which nothing accepts');
+  //    A SECOND FALSE LEG, ALSO CAUGHT BY MUTATION AND RECORDED RATHER THAN QUIETLY
+  //    DROPPED. It read `label: '` inside a window after CATEGORY_OPTIONS to catch a
+  //    hand-written label — and matched `label: 'Category'`, the FIELD's own display
+  //    name, on the clean tree. A cell that reds on cured code and on the defect
+  //    alike distinguishes nothing. Replaced with the positive assertion: the label
+  //    must be COMPUTED from the token.
+  if (!/label:\s*value\.charAt\(0\)\.toUpperCase\(\) \+ value\.slice\(1\)/.test(sheet)) {
+    bad.push('category labels are not title-cased from the tokens — a hand-written label is a fifth home');
+  }
+  return bad.length ? bad.join(' | ') : null;
+});
+
 console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
 process.exit(fails === 0 ? 0 : 1);
