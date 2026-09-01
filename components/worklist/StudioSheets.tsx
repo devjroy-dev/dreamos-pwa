@@ -367,8 +367,18 @@ export function PaySheet({ draft, setDraft, members, functions, suggestion, savi
 }
 
 // ── E4 · MARK PAID ──────────────────────────────────────────────────────────
-export function SettleSheet({ payment, paidVia, setPaidVia, notes, setNotes, saving, onConfirm, onClose }: {
-  payment: TeamPayment; paidVia: string; setPaidVia: (v: string) => void;
+export function SettleSheet({ payment, who, paidVia, setPaidVia, notes, setNotes, saving, onConfirm, onClose }: {
+  payment: TeamPayment;
+  /** WHO IS BEING PAID — passed in, because the raw row's joined member name is
+      not on this type and a sheet may not go fetching one. F-2c.w6: the summary
+      used to read `payment.description || 'Log payment'`, so a payment logged
+      without a description confirmed itself as 「Log payment · Rs 5,000」 — the
+      sheet's own title, standing in for the thing being settled. A fallback that
+      names the FORM instead of the SUBJECT tells the vendor nothing about what
+      his money is about to do. The name is the thing he recognises; the
+      description is the extra, so absence just drops the second line. */
+  who: string;
+  paidVia: string; setPaidVia: (v: string) => void;
   notes: string; setNotes: (v: string) => void;
   saving: boolean; onConfirm: () => void; onClose: () => void;
 }) {
@@ -378,7 +388,7 @@ export function SettleSheet({ payment, paidVia, setPaidVia, notes, setNotes, sav
           a figure rather than a row id. `formatRs` is the estate's one money
           formatter — this surface composes no currency string of its own. */}
       <div className="wl-shsum">
-        <span className="wl-rprimary">{payment.description || COPY.studioSheetLogPayment}</span>
+        <span className="wl-rprimary">{[who, payment.description].filter(Boolean).join(' · ')}</span>
         <span className="wl-shfig">{formatRs(payment.amount_inr)}</span>
       </div>
       <Field label={COPY.studioFieldPaidVia}>

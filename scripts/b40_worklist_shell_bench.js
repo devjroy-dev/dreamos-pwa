@@ -3067,6 +3067,57 @@ cell('C91 the role picker shows words, not tokens, and cannot drop a value it do
   return bad.length ? bad.join(' | ') : null;
 });
 
+// ── C92 · A TIMESTAMP'S DAY IS THE VENDOR'S DAY  [F-2c.w5] ─────────────────
+//    WITNESSED ON THE WALK at 03:25 IST: a task completed seconds earlier landed
+//    under the heading `Done today` reading 「Completed 1 Sep 2026」. Section and
+//    label disagreed by a day, on one row, at one instant — and both were right
+//    about different clocks. `formatLongDate` REGEX-SLICES the leading
+//    `YYYY-MM-DD`, which for a `timestamptz` is the UTC date; `isToday` builds a
+//    `Date` and compares `getDate()`, which is local.
+//
+//    ⚠ IT ASSERTS THE SPLIT, NOT A BLANKET CONVERSION. `due_date` is a plain
+//    `date` column carrying no zone, and localising it would drag a wedding
+//    across midnight for anyone west of UTC. So the cell asserts that the
+//    TIMESTAMP is converted and the DATE is not — a cure that localised both
+//    would be a second defect wearing the first one's cure.
+//    RED MUTATION: drop localDateIso from the completed row, or wrap due_date
+//    in it → red, one arm each.
+cell('C92 the done row takes its day in the vendor\'s zone, and the due row does not (F-2c.w5)', () => {
+  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const fmt = strip(read('lib/vendor/format.ts'));
+  const bad = [];
+  if (!/export function localDateIso/.test(fmt))
+    bad.push('lib/vendor/format.ts has no localDateIso — the timestamp/date split has no home');
+  if (!/formatLongDate\(localDateIso\(t\.completed_at\)\)/.test(src))
+    bad.push('completed_at is formatted from its raw UTC slice — the Done today row would read yesterday west of the date line');
+  if (/localDateIso\(t\.due_date\)/.test(src))
+    bad.push('due_date is being localised — it is a plain date column and this would move a wedding across midnight');
+  if (!/formatLongDate\(t\.due_date\)/.test(src))
+    bad.push('the due row no longer formats due_date directly');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C93 · THE SETTLE SHEET NAMES WHO IS PAID, NOT THE FORM  [F-2c.w6] ──────
+//    The summary read `payment.description || COPY.studioSheetLogPayment`, so a
+//    payment logged without a description confirmed itself as 「Log payment ·
+//    Rs 5,000」 — the sheet's own TITLE standing in for the thing being settled.
+//    Witnessed on the walk. A fallback that names the FORM instead of the
+//    SUBJECT tells the vendor nothing about what his money is about to do, and
+//    it does it on the one screen where he is committing it.
+//    RED MUTATION: restore the title as the fallback → red.
+cell('C93 the mark-paid summary names the person, never the sheet (F-2c.w6)', () => {
+  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
+  const tabs  = strip(read('components/worklist/TeamTabs.tsx'));
+  const bad = [];
+  if (/payment\.description \|\| COPY\.studioSheetLogPayment/.test(sheet))
+    bad.push("the summary falls back to the sheet's own title — a form naming itself where a person belongs");
+  if (!/\[who, payment\.description\]\.filter\(Boolean\)/.test(sheet))
+    bad.push('the summary no longer leads with who is being paid');
+  if (!/onSettle\(raw, p\.member_name \?\? COPY\.teamUnassigned\)/.test(tabs))
+    bad.push('the row does not pass the member name to the sheet — the sheet cannot fetch one and must be told');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 // ── C90 · A HALF-LOADED PAYMENTS TAB IS A FAILED ONE  [F-2c.w2] ─────────────
 //    The tab makes TWO reads: `/by-wedding` for the eye (it alone carries the
 //    event date and the member's name) and the flat GET for the verbs (the raw

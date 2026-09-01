@@ -65,7 +65,7 @@ import { COPY } from '@/lib/worklist/copy';
 import { Fab } from '@/components/worklist/Fab';
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
-import { formatRs, formatLongDate } from '@/lib/vendor/format';
+import { formatRs, formatLongDate, localDateIso } from '@/lib/vendor/format';
 import {
   fetchTeam, fetchTasks, fetchTeamPayments,
   addTeamMember, updateTeamMember, deleteTeamMember, rotateTeamMemberToken,
@@ -105,7 +105,7 @@ type SheetKind =
   | { k: 'member'; editing: TeamMember | null }
   | { k: 'task' }
   | { k: 'pay' }
-  | { k: 'settle'; payment: TeamPayment }
+  | { k: 'settle'; payment: TeamPayment; who: string }
   | { k: 'cancel'; payment: TeamPayment };
 
 export function TeamTabs({ vendorName }: { vendorName: string | null }) {
@@ -456,7 +456,7 @@ export function TeamTabs({ vendorName }: { vendorName: string | null }) {
         )}
         {tab === 'payments' && (
           <PaymentList rows={payments} state={state.payments} saving={saving} rawOf={rawOf}
-                       onSettle={(p) => { setSheet({ k: 'settle', payment: p }); setPaidVia('upi'); setPaidNotes(''); }}
+                       onSettle={(p, who) => { setSheet({ k: 'settle', payment: p, who }); setPaidVia('upi'); setPaidNotes(''); }}
                        onCancel={(p) => setSheet({ k: 'cancel', payment: p })} />
         )}
       </div>
@@ -484,7 +484,7 @@ export function TeamTabs({ vendorName }: { vendorName: string | null }) {
                   onLog={logThePayment} onClose={() => setSheet(null)} />
       )}
       {sheet && sheet.k === 'settle' && (
-        <SettleSheet payment={sheet.payment} paidVia={paidVia} setPaidVia={setPaidVia}
+        <SettleSheet payment={sheet.payment} who={sheet.who} paidVia={paidVia} setPaidVia={setPaidVia}
                      notes={paidNotes} setNotes={setPaidNotes} saving={saving}
                      onConfirm={confirmPaid} onClose={() => setSheet(null)} />
       )}
@@ -593,7 +593,12 @@ function TaskList({ rows, state, saving, onComplete, onDelete }: {
           <Section label={COPY.todayDoneHead} count={done.length} />
           {done.map((t) => (
             <Row key={t.id} primary={t.title}
-                 detail={COPY.teamCompletedPrefix + ' ' + formatLongDate(t.completed_at)}
+                 // `completed_at` is a TIMESTAMP, so its day is taken in the
+                 // vendor's own zone before the word is built — otherwise a task
+                 // finished at 03:25 IST reads 「Completed 1 Sep」 under a heading
+                 // that says `Done today` (F-2c.w5). `due_date` above is a plain
+                 // `date` and is deliberately NOT converted.
+                 detail={COPY.teamCompletedPrefix + ' ' + formatLongDate(localDateIso(t.completed_at))}
                  foot={
                    <button type="button" className="wl-rbtn dan" disabled={saving}
                            onClick={() => onDelete(t)}>{COPY.studioRemove}</button>
@@ -622,7 +627,7 @@ function TaskList({ rows, state, saving, onComplete, onDelete }: {
 function PaymentList({ rows, state, saving, rawOf, onSettle, onCancel }: {
   rows: WeddingPayment[]; state: LoadState; saving: boolean;
   rawOf: (id: string) => TeamPayment | null;
-  onSettle: (p: TeamPayment) => void; onCancel: (p: TeamPayment) => void;
+  onSettle: (p: TeamPayment, who: string) => void; onCancel: (p: TeamPayment) => void;
 }) {
   const unpaid = rows.filter((p) => p.state === 'owed');
   const paid   = rows.filter((p) => p.state === 'paid');
@@ -642,7 +647,7 @@ function PaymentList({ rows, state, saving, rawOf, onSettle, onCancel }: {
                    foot={raw ? (
                      <>
                        <button type="button" className="wl-rbtn" disabled={saving}
-                               onClick={() => onSettle(raw)}>{COPY.studioMarkPaid}</button>
+                               onClick={() => onSettle(raw, p.member_name ?? COPY.teamUnassigned)}>{COPY.studioMarkPaid}</button>
                        <button type="button" className="wl-rbtn dan" disabled={saving}
                                onClick={() => onCancel(raw)}>{COPY.studioCancelPayment}</button>
                      </>
