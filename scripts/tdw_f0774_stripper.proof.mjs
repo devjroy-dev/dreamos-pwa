@@ -172,11 +172,37 @@ sec('§4 · THE DECLARED HOLE — regex literals, canaried at named fixtures');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-sec('§5 · ONE DEFINITION, TWO REPOS — the cross-repo identity cell');
+sec('§5 · ONE DEFINITION, THREE MEMBERS — the identity cell');
 // F-07.52 tried one-home-by-verbatim-port INSIDE one repo and the port was never
 // wired (F-07.99). The class lives on both repos, so the definition is pinned on
 // both. Sibling absent ⇒ LOUD NAMED SKIP, never a silent pass.
+//
+// ── THE MEMBERSHIP GREW TO THREE  [CE-39 · 2c-Studio · arm (ii), founder-ruled] ──
+// WHAT STOOD: two members — this repo's `.mjs` and dream-os
+// `scripts/lib/stripComments.js`. WHAT IS ADDED: this repo's
+// `scripts/lib/stripComments.cjs`, minted so `b40_worklist_shell_bench.js` could
+// stop carrying `NAIVE_RETIRED`'s own shape (F-39.39). The bench is CommonJS and
+// its cells are synchronous, so it cannot `require` the `.mjs`; THE FORK IS THE
+// MODULE SYSTEM AND NEVER THE RULE, and the mirror's header says so at its head.
+//
+// COUNT PRESERVED: this section still asserts ONE property with ONE cell —
+// 「every member carries the same scan」 — and the cell now folds over a set of
+// members instead of comparing a pair. The scoped grant was the membership line;
+// nothing else in this proof is opened.
+//
+// A MIRROR THAT IS NEVER CALLED IS THE FAILURE THIS REGIME EXISTS TO CATCH
+// (F-07.52, F-07.99), so §5.2 asserts b40 actually requires it. A pinned
+// definition with no caller fooled the estate for a whole block once already.
 {
+  const norm = (s) => (s.match(/while \(i < src\.length\)[\s\S]*?\n  return out;/) || [''])[0]
+    .replace(/\s+/g, ' ').trim();
+  const HOME = norm(raw('scripts/lib/stripComments.mjs'));
+
+  // IN-REPO MEMBER — always readable, never skippable.
+  ok('§5.0 the in-repo CJS mirror carries the home\'s scan, byte-identical in mechanism',
+    HOME.length > 200 && norm(raw('scripts/lib/stripComments.cjs')) === HOME,
+    'scripts/lib/stripComments.cjs has drifted from the .mjs it declares as its source — two definitions of "code" inside ONE repo, which is F-07.52 exactly');
+
   const SIB = ['../dream-os/scripts/lib/stripComments.js',
                '../../dream-os/scripts/lib/stripComments.js'];
   const found = SIB.map(p => path.resolve(ROOT, p)).find(p => fs.existsSync(p));
@@ -184,14 +210,16 @@ sec('§5 · ONE DEFINITION, TWO REPOS — the cross-repo identity cell');
     named_skip('§5.1 cross-repo identity — dream-os sibling clone not present',
       'the twin definition could not be read from this container; the identity is UNPROVEN here and is proven in dream-os by scripts/b07_f0774_stripper_bench.js §5. A skip, counted and named — never a pass.');
   } else {
-    const norm = (s) => (s.match(/while \(i < src\.length\)[\s\S]*?\n  return out;/) || [''])[0]
-      .replace(/\s+/g, ' ').trim();
-    const mine = norm(raw('scripts/lib/stripComments.mjs'));
-    const theirs = norm(fs.readFileSync(found, 'utf8'));
     ok('§5.1 the two repos carry ONE definition, byte-identical in mechanism',
-      mine.length > 200 && mine === theirs,
+      HOME.length > 200 && norm(fs.readFileSync(found, 'utf8')) === HOME,
       'the estate has drifted into two definitions of "code" again — F-07.52\'s exact failure, one repo over');
   }
+
+  // F-07.99's law, applied to the new member the day it is minted.
+  ok('§5.2 INVOCATION — b40 really requires the mirror, and no longer carries the retired rule',
+    /require\('\.\/lib\/stripComments\.cjs'\)/.test(raw('scripts/b40_worklist_shell_bench.js'))
+    && !/replace\(\/\\\/\\\*\[\\s\\S\]\*\?\\\*\\\/\/g/.test(raw('scripts/b40_worklist_shell_bench.js')),
+    'b40 either does not call the mirror or still carries NAIVE_RETIRED\'s shape — a pinned definition with no caller is F-07.52\'s failure wearing the cure\'s name');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════

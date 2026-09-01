@@ -118,7 +118,9 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {/* THE FIRST OF THE TWO MOUNTS THAT LEFT. The ineligible gate carried its own
-            <Header/> because on /vendor it is the whole surface a non-couture vendor ever
+            Header (named without its angle brackets on purpose — C26's census counts
+            JSX mounts by that token, and a sentence saying a mount LEFT must not read
+            as one that stayed) because on /vendor it is the whole surface a non-couture vendor ever
             sees, and a screen with no masthead there has no way out. It is mounted at the
             fallback ROUTE now, which covers both arms with one, and inside the shell the
             chrome is WorklistShell's. */}

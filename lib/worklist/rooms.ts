@@ -391,10 +391,26 @@ export const INTERIM_VENDOR_MOUNTS: readonly (readonly [string, number])[] = [
   // ── CE-39 step 2a · R-39.7 · THREE GATES LEFT, AND THEIR MOUNTS WITH THEM ────
   // Each studio page carried a second `<Header/>` inside its `session.tier !== 'prestige'`
   // return arm; the arm is DELETED (Studio Suite is open to every tier), so the mount it
-  // carried is gone, not moved. tasks 2 → 1, team-payments 2 → 1, team 1 → 0 (its only
-  // counted mount was the gate's; the line leaves). Estate-wide: 25 → 22 across 21 files (derived by count at the cut, not arithmetic).
+  // carried is gone, not moved. tasks 2 → 1, team-payments 2 → 1.
+  //
+  // ⚠ THE `team` LINE WAS STRUCK FROM THIS SET ON A FALSE READING — F-39.39.
+  // What stood here said 「team 1 → 0 (its only counted mount was the gate's; the
+  // line leaves)」 and it was WRONG. `app/vendor/studio/team/page.tsx:194` carries
+  // a live `<Header vendorName={vendorName} />` and always did. The census could
+  // not see it because b40's own stripper read `/crew/*` inside a `//` comment at
+  // that file's line 152 as a block-comment opener and swallowed seventy-four
+  // lines, the mount among them. The line is RESTORED here at the number the
+  // repaired scanner derives.
+  //
+  // THE SUMMARY SENTENCE WAS RIGHT AND THE LIST WAS ONE ROW SHORT, which is the
+  // detail worth keeping. That sentence said 「25 → 22 across 21 files」 while the
+  // rows themselves summed to 21 mounts across 20 files — a set disagreeing with
+  // its own total by exactly the hidden mount, and no instrument could say so
+  // because the instrument was the thing hiding it. Re-derived by count at this
+  // cut, not by arithmetic: 22 mounts across 21 files, and the rows now sum to it.
   ['app/vendor/studio/tasks/page.tsx', 1],
   ['app/vendor/studio/team-payments/page.tsx', 1],
+  ['app/vendor/studio/team/page.tsx', 1],
   ['app/vendor/tds/page.tsx', 1],
   ['app/vendor/team-hub/page.tsx', 1],
 ] as const;

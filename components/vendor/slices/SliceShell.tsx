@@ -40,6 +40,11 @@ import { Toast } from '@/components/vendor/Toast';
 // one fact about which tree we are in and one place it is read.
 import { WlToast } from '@/components/worklist/WlToast';
 import { roomHref } from '@/lib/worklist/rooms';
+// THE TWO PDF SENTENCES AND THE INVOICE ROW'S VERB LIVE IN THE REGISTER, NOT
+// HERE (CE-39 2c-Studio, ruling 4). Both PDF bytes were spelled inline in this
+// file, at the two call sites below; `Mark paid` was spelled twice more, once
+// for the swipe and once for the bulk bar. One home, four readers.
+import { COPY } from '@/lib/worklist/copy';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -430,7 +435,17 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       if (res.ok && (res as { pdf_url?: string }).pdf_url) {
         window.open((res as { pdf_url: string }).pdf_url, '_blank', 'noopener');
       } else {
-        showToast((res as { error?: string }).error ?? 'PDF not ready yet — try again in a moment.', 'error');
+        // ── F-2c.p10's CURE ────────────────────────────────────────────
+        // WHAT THIS SAID: 「PDF not ready yet — try again in a moment.」 That
+        // described WAITING when what happened was FAILING, and it invented a
+        // state this door cannot report: `GET /:invoiceId/pdf` is SYNCHRONOUS
+        // (`src/api/vendor/invoices.js:398`) — it generates and returns a URL or
+        // it errors. `pdf_pending` exists only on `POST /` at :249 and no reader
+        // in this repo consumes it. So the sentence was the `??` fallback for an
+        // ok-false carrying no error, telling the vendor to wait for something
+        // that was never in flight. The founder's walk hit this door and the
+        // retry succeeded: the door works, and only the sentence lied.
+        showToast((res as { error?: string }).error ?? COPY.studioPdfFailed, 'error');
       }
     } catch {
       showToast('Could not fetch the PDF. Try again.', 'error');
@@ -710,7 +725,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
     };
     if (slice === 'invoices') return {
-      right: { label: 'Mark paid', onTrigger: () => {
+      right: { label: COPY.studioMarkPaid, onTrigger: () => {
         const owed = row.payAmount ?? 0;
         if (owed <= 0) { showToast('Already settled.', 'success'); return; }
         undoableMutation({
@@ -818,6 +833,28 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     return null;
   }, [slice, cabForMoney.data, rawRows]);
 
+  // ── F-2c.p9 · MONEY'S PRIMARY VERB IS NOT GESTURE-ONLY ────────────────────
+  // The founder's 2c walk: an invoice could only be settled by SWIPING it. A
+  // gesture has no affordance — nothing on the row says it exists, nothing tells
+  // a new vendor it is there, and a screen reader reaches none of it. So the
+  // BUTTON IS ADDED AND THE SWIPE STAYS: both call the SAME handler, so there is
+  // one write path and two ways to reach it, and neither can drift from the
+  // other by being edited alone.
+  //
+  // ⚠ OUTSTANDING ROWS ONLY (card ⑥, founder-ruled at the mock). A settled row
+  // carries no button. The swipe still reaches every row and still answers
+  // 「Already settled.」 there — that byte survives as the GESTURE's answer,
+  // because a gesture that lands on a settled row has to say something, while a
+  // button that would say it does not need to exist. The veto sheet's §B6 note
+  // said the opposite and the frame said this; the frame won (c-2c.s2, the
+  // executor's, struck by his own hand).
+  //
+  // ⚠ NOT INSIDE `SwipeRow`. The button sits BELOW the swiping element, so a
+  // press on it is never eaten by a horizontal drag and a drag never fires it.
+  // It also renders outside select mode only: a bulk selection already offers
+  // `Mark paid` on the bar and two live paths to one write on one screen is how
+  // a vendor pays an invoice twice.
+  const markPaidFor = (row: Row) => swipeSidesFor(row).right;
   const renderRow = (row: Row) => (
     <div {...rowPressHandlers(row)} style={{ position: 'relative' }}>
       {selectMode && (
@@ -831,6 +868,27 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
           <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row) : (setSel(row), setConfirmDel(false))} />
         </SwipeRow>
+        {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && (
+          <div style={{ padding: '0 var(--slice-inset, 22px) 12px' }}>
+            {/* ⚠ INLINE, NOT A `wl-` CLASS, AND THAT IS THE WHOLE REASON THIS
+                LOOKS UNLIKE `TeamTabs`' row button. `SliceShell` is mounted in
+                BOTH trees — inside the shell at `/w/list/[slice]` and on
+                `/vendor/list/[slice]` — and every `wl-` rule is emitted by
+                `WorklistShell`'s SHELL_CSS, which the /vendor tree never mounts.
+                A shell class here would paint an unstyled button on half its
+                sites: the wl-plink disease, with money's primary verb on it.
+                The `--atelier-*` roles below are global in both trees. */}
+            <button type="button" onClick={() => markPaidFor(row)?.onTrigger()}
+              style={{
+                minHeight: 32, padding: '0 14px', borderRadius: 3, background: 'transparent',
+                border: `0.5px solid ${A.interactive}`, color: A.interactive,
+                fontFamily: F.label, fontWeight: 300, fontSize: 10,
+                letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>
+              {COPY.studioMarkPaid}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -841,7 +899,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   //    mutations carry the undo window.
   const bulkActions: BulkAction[] =
     slice === 'leads'    ? [{ key: 'contacted', label: 'Mark contacted' }, { key: 'lose', label: 'Lose', destructive: true }]
-    : slice === 'invoices' ? [{ key: 'paid', label: 'Mark paid' }]
+    : slice === 'invoices' ? [{ key: 'paid', label: COPY.studioMarkPaid }]
     : slice === 'expenses' ? [{ key: 'delete', label: 'Delete', destructive: true }]
     : slice === 'events'   ? [{ key: 'done', label: 'Mark done' }] // TDW_04 A3: the door landed (F-04.8)
     : [];
@@ -925,7 +983,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     const message = encodeURIComponent(`Hi ${sel.primary}, please find your booking confirmation for ${sel.secondary ?? 'your invoice'} here: ${pdfRes.pdf_url}`);
                     window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener');
                   } else {
-                    showToast(pdfRes.error ?? 'PDF not ready yet — record the advance first.', 'error');
+                    // UNCHANGED WORDING, REHOMED. A real precondition is not
+                    // the same defect as an invented state — this sentence names
+                    // something the vendor can actually do. It moves to the
+                    // register for the one-home law alone.
+                    showToast(pdfRes.error ?? COPY.studioPdfNoAdvance, 'error');
                   }
                 } catch {
                   showToast('Could not fetch the PDF. Try again.', 'error');

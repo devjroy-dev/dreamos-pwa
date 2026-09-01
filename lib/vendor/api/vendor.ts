@@ -1186,10 +1186,54 @@ export function logPayment(body: {
 }): Promise<{ ok: boolean; payment: TeamPayment } | ApiErr> {
   return postJson('/api/v2/vendor/studio/team-payments', body);
 }
+// ── MARK-PAID CARRIES ITS EXPENSE OUTCOME  [CE-39 · 2c-Studio · ruling 3] ────
+// THE DEFECT, IN A TYPE. `PATCH /:id/mark-paid` has answered with
+// `{ payment, expense_logged, expense_error }` since the CE-39 hygiene sitting,
+// which put those two fields there on purpose — its own comment reads 「FAILURE
+// IS DECLARED, NOT SWALLOWED... the response carries `expense_logged`, and when
+// it is false it carries WHY. The caller is told」.
+//
+// This signature declared `{ ok, payment }`. TypeScript does not merely omit an
+// undeclared field, it makes reading one an ERROR — so the caller could not have
+// read the failure even if it had thought to, and the surface said 「Marked as
+// paid」 whether the ledger gained the expense row or not. The money row commits
+// either way (reversing it because a derived bookkeeping row failed would be the
+// worse lie), so the vendor's ONLY signal is this field, and the type erased it.
+//
+// That is F-39.26's class one layer over: a truth the wire carries, dropped by
+// the layer above it. 2b-2 cured the same shape on `CabinetResponse`. Card ⑤
+// asserts the expense row lands; without these two fields the card cannot be
+// walked honestly, only optimistically.
+//
+// BOTH FIELDS ARE OPTIONAL, and that is not hedging — it is the truth about a
+// wire this repo deploys separately from the one that fills it. A pwa build can
+// meet a dream-os that predates the hygiene sitting; `expense_logged === false`
+// and `expense_logged === undefined` are different facts and the caller reads
+// them differently (see `TeamTabs`' settle path — undefined takes the plain
+// byte, false takes the named one).
 export function markPaymentPaid(paymentId: string, body: {
   paid_via?: string; notes?: string;
-}): Promise<{ ok: boolean; payment: TeamPayment } | ApiErr> {
+}): Promise<{ ok: boolean; payment: TeamPayment; expense_logged?: boolean; expense_error?: string | null } | ApiErr> {
   return patchJson('/api/v2/vendor/studio/team-payments/' + paymentId + '/mark-paid', body);
+}
+
+// ── THE TENTH VERB  [c-39.46 — the charter said nine, and nine was short] ────
+// `PATCH /:id/cancel` has been live in `src/api/vendor/studio/payments.js:368`
+// the whole time and had NO typed door. Its only caller was
+// `app/vendor/studio/team-payments/page.tsx:116`, which built the request by
+// hand: a bare `fetch`, the path spelled inline, and the bearer token dug out of
+// `JSON.parse(localStorage.getItem('vendor_session'))` — one surface reaching
+// past every convention this file exists to hold.
+//
+// The 2b-2 read-first's verb table listed the SHEET verbs and missed the ROW
+// action, which is how a live control nearly retired with the page that held it.
+// It crosses with the other nine and it crosses through here.
+//
+// ⚠ `cancel`, NEVER `delete`. The route sets `state='cancelled'` and
+// `public.team_payments` carries no `deleted_at` column at all. The name of the
+// function is the first place that truth is either told or lost.
+export function cancelPayment(paymentId: string): Promise<{ ok: boolean; payment: TeamPayment } | ApiErr> {
+  return patchJson('/api/v2/vendor/studio/team-payments/' + paymentId + '/cancel', {});
 }
 
 // ── Block 7: Schedules / Contracts / TDS ─────────────────────────────────

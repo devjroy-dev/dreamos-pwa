@@ -61,6 +61,34 @@ export function suggestionLine(amountInr: number, functions: number, rateInr: nu
   return `Rs ${fmt(amountInr)} suggested — ${functions} ${unit} at Rs ${fmt(rateInr)} each`;
 }
 
+// ── THE JOINED SENTENCE  [CE-39 · 2c-Studio · veto sheet §B3, ratified] ─────
+// The shell's Log payment sheet renders ONE sentence where the /vendor stub
+// renders two paragraphs. Founder, 2026-09-01: 「the pair read as two thoughts
+// about the same number」.
+//
+// ⚠ COMPOSED HERE, NEVER AT THE CALL SITE. This file's own header is the rule —
+// 「nothing is assembled at the call site」 — and joining two vetoed bytes with a
+// space in a component is assembly. The two bytes are unchanged; only the seam
+// is new, and the seam lives with the words.
+//
+// ⚠ c-2c.s3, THE EXECUTOR'S, DECLARED RATHER THAN SHIPPED QUIETLY. The veto
+// sheet's §B3 sample read 「Rs 12,000 — one function at Rs 12,000 each. Edit it
+// before saving if that isn't right.」 and was ratified as authored. It differs
+// from the STANDING bytes in two ways, and both differences are refused here:
+//   · the noun. The founder ruled the word is 「event」, not 「function」 and not
+//     the column's 「day」 — recorded above with his reasoning (an MUA doing
+//     three functions in one day bills three makeups). A later ratification of
+//     a sample sentence does not silently overturn an earlier word-level ruling
+//     the estate wrote down; it goes back to him as a question.
+//   · the tail. `EDIT_BEFORE_SAVING` carries his YES verbatim; the sample's
+//     longer paraphrase does not.
+// So the JOIN ships, as ruled, over the bytes that already carry his YES. If he
+// wants the sample's wording it is a one-line change to the two constants and
+// every reader follows.
+export function suggestionSentence(amountInr: number, functions: number, rateInr: number): string {
+  return `${suggestionLine(amountInr, functions, rateInr)}. ${EDIT_BEFORE_SAVING}`;
+}
+
 /** Indian digit grouping, the estate's one presentation of a rupee figure. */
 export function fmt(n: number): string {
   return Number(n).toLocaleString('en-IN');

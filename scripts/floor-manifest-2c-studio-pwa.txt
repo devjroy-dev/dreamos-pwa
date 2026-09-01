@@ -1,0 +1,165 @@
+# scripts/floor-manifest-2c-studio-pwa.txt
+# BASE 60e439b (worklist; re-derived fetch-first at the cut — the guard decides).
+# Sibling dream-os f5e1933 (main), CLEAN — this sitting ships NO dream-os ZIP.
+#
+# CE-39 · ROAD STEP 2c-STUDIO — THE TEN VERBS CROSS, AND THE SECOND MONEY SURFACE.
+#
+# ⚠ THE SIBLING IS REQUIRED TO RUN THIS FLOOR EVEN THOUGH IT IS UNTOUCHED.
+#   C80 reads `../dream-os/src/api/vendor/studio/team.js` for the door filter
+#   that is F-2b2.1's premise; C81 and C84 REFUSE rather than pass when the
+#   sibling is absent; §5.1 of the stripper proof names a SKIP without it. A
+#   floor run solo is a floor that did not run the way the law says to run it.
+#
+# ── WHAT THIS SITTING IS ───────────────────────────────────────────────────
+# 2b-2 landed the three tabs as LISTS in the shell and left every WRITE outside
+# it — F-39.30, OPEN-AS-NARROWED. Phase 7 arm (a) retires `/vendor/*` at the
+# flip, so those exits were about to dangle and the verbs behind them were about
+# to retire with a tree nobody meant to take them. A FLIP PREREQUISITE.
+#
+# TEN VERBS, NOT NINE (c-39.46). `cancelPayment` was live at
+# `src/api/vendor/studio/payments.js:368` with no typed door, reached by a bare
+# `fetch` with the path inline and the bearer token dug out of `localStorage`.
+# The 2b-2 verb table listed the SHEET verbs and missed the ROW action.
+#
+# ── THE STRIP REPAIR RIDES FIRST, AND IT IS NOT A CONVENIENCE ─────────────
+# F-39.39. `app/vendor/studio/team/page.tsx:152` is a `//` line comment
+# containing `/crew/*`. b40's own stripper — `NAIVE_RETIRED`'s exact shape, the
+# rule `scripts/lib/stripComments.mjs` publishes in order to CONDEMN — read that
+# as a block-comment opener, paired it with `{/* FAB */}`'s closer at :226, and
+# deleted seventy-four lines from every cell that read the file.
+#
+# C58 IS THE COST: the pwa half of R-39.7, a FOUNDER ruling, went GREEN over a
+# restored Prestige gate placed inside that window. Proven both ways at the
+# uncured tree (:196 green, :65 red) and RE-RUN AT THE CURED TREE, where :196 is
+# now RED. That is the non-vacuous proof; a cell cannot be amended while it is
+# vacuous over its own subject, so the repair precedes C58's amendment.
+#
+# ARM (ii), FOUNDER-RULED. `scripts/lib/stripComments.cjs` is a DECLARED MIRROR
+# of the `.mjs` — the fork is the module system (b40 is CJS with synchronous
+# cells), never the rule. §SIB of the stripper proof grows from two members to
+# three and gains an INVOCATION cell (F-07.99), because a ported-but-uncalled
+# mirror is the failure that regime exists to catch and it fooled this estate
+# for a block once already.
+#
+# c-39.49 (chair, on the record): b41's `lineStrip` was first named as the cure
+# while this home already existed and already cured the specimen. `lineStrip` is
+# itself the second hand-rolled stripper; it is UNTOUCHED here and leaves the
+# nineteen-reader debt class on its own sitting.
+#
+# ── WHAT THE REPAIR REVEALED, WHICH IS NOT WHAT IT INTRODUCED ─────────────
+# Turning the real scanner on reddened two cells on files this charter never
+# opened. NEITHER WAS A DEFECT. Both files are on the compiler-adjudicated
+# divergence list (`tdw_stripper_census.mjs`, 33 files at this tip):
+#
+#   · `app/vendor/couture/screen.tsx:121` — `<Header/>` inside a `{/* … */}`
+#     comment explaining that THE MOUNT LEFT. C26 counted a sentence about an
+#     absence as a presence. Retire-with-the-reader was WORKING; the census was
+#     reading the prose.
+#   · `components/vendor/MessageBubble.tsx:71` — `Victor's serif` inside a `//`
+#     line recording a FOUNDER RULING about italic register. Not chrome, not a
+#     surface, not a scrub.
+#
+# CURED AT THE ROOT, arm (a) as ruled, one edit each. `MessageBubble.tsx:64`'s
+# regex carried two BARE BACKTICKS; the scanner does not know a regex literal
+# from code, so a phantom template string opened there and TWELVE comments below
+# it survived stripping. `\x60` is the backtick escape and the match behaviour
+# is identical — proven across nine inputs, including the empty and
+# adjacent-delimiter cases, BEFORE a chat surface was touched. Fixing line 71
+# would have treated a symptom eight lines downstream of its cause.
+#
+# ⚠ A LATER SEAT MUST NOT READ EITHER EDIT AS A SCRUB. Nothing was hidden and no
+#   behaviour changed. The comment prose still says what it said.
+#
+# F-39.41 and F-39.42 are FILED and are NOT this ZIP: §2.2 of the readers proof
+# tests the PRESENCE of stripping, not the IDENTITY of the stripper, so it
+# passed b40 — the file where the class was doing damage — and the nineteen-
+# reader debt list never held the reader that mattered; and no cell anywhere
+# reads the census's 33-file divergence list, whose captured `out.txt` is stale
+# at 5535e24 (10 files). Both join one pre-beta bench sitting. b40 leaves the
+# debt class here by JOINING THE HOME, not by exemption.
+#
+# ── THE MOUNTS CENSUS WAS WRONG, AND SO WAS ITS OWN SUMMARY ──────────────
+# `INTERIM_VENDOR_MOUNTS` had struck the `team` line on the false reading. The
+# SUMMARY SENTENCE was right (22 mounts across 21 files) while the ROWS summed
+# to 21 across 20 — a set disagreeing with its own total by exactly the hidden
+# mount, and no instrument could say so because the instrument was the thing
+# hiding it. Re-derived by count at this cut; the rows now sum to the sentence.
+#
+# ── COPY ─────────────────────────────────────────────────────────────────
+# Every vendor-facing byte carries the founder's YES by delegation, 2026-09-01,
+# off `docs/mocks/studio-sheets-mock.html` (sha256 665b4f3496b8, frames E1–E7)
+# and `docs/mocks/S2C_VETO_SHEET.md` §A/§B, ratified whole.
+#
+# c-2c.s2 (executor's, struck by his own hand): the veto sheet's §B6 said the
+# Mark-paid button stays on settled rows; frame E5 drew none. THE FRAME WON, and
+# card ⑥ says so — button on Outstanding rows only, `Already settled.` survives
+# as the SWIPE's answer, since the gesture still lands on every row.
+#
+# c-2c.s3 (executor's, OPEN, needs the founder): §B3's ratified sample reads
+# 「one function at Rs 12,000 each」. `lib/vendor/settleWords.ts` records an
+# EARLIER explicit founder ruling that the word is 「event」, not 「function」 and
+# not the column's 「day」, with his reasoning attached. The JOIN ruled at B3
+# shipped, over the bytes that already carry his YES. A ratified sample sentence
+# does not silently overturn a word-level ruling the estate wrote down; it goes
+# back as a question. One line in two constants if he wants the sample's wording.
+#
+# ── ZERO MIGRATIONS. Zero dream-os bytes. The endpoints did not move: this is a
+#   UI crossing, and C82 (3) is the tripwire that keeps it one.
+#
+# ── CELLS ────────────────────────────────────────────────────────────────
+# C82  RETIRED-WITH-THE-READER AND INVERTED. Its own header said a verb here
+#      would be 「2c-Studio's work arriving early and unruled」; it is neither.
+#      Ten verbs as a NAMED SET (never a count), each imported from the typed
+#      door AND called; no `/vendor/studio` href anywhere in the room; no `/api/`
+#      path in the room (the plane-crossing tripwire); the Fab clause carried
+#      across unchanged; INTERIM_VENDOR_LINKS still at seven.
+# C85  NEW. The sheets open INSIDE the room — `.wl-tm{position:relative}` is the
+#      sheet's positioning context, and losing that one word would resolve the
+#      sheet against the viewport, still look right, and silently end the
+#      property the whole crossing exists for. Plus: the room mounts its own
+#      toast (CE-209).
+# C86  NEW. Mark-paid's two arms reach the glass, and `undefined` is not `false`
+#      — the repos deploy separately and an older backend must not read as a
+#      failed expense on every settlement.
+# C87  NEW. F-2c.p9: the button and the swipe share ONE handler, gated to
+#      outstanding rows, and the swipe keeps `Already settled.`
+# C88  NEW. Both PDF sentences in the register; the retired one cannot be
+#      spelled inline again.
+# C58  AMENDED, assertion quoted first, six sites → seven (the sheets). It could
+#      not lawfully be amended before the repair above.
+# C26  the mounts census now counts a page it could not see.
+#
+# ── RUN THE SET, BY NAME, SIBLING-FULL ───────────────────────────────────
+#   npx tsc --noEmit                        exit 0
+#   node scripts/b40_worklist_shell_bench.js   FLOOR GREEN
+#   node scripts/b41_theme_bleed_fixture.js    exit 0
+#   node scripts/tdw_f0774_stripper.proof.mjs  RED 28/37  ← CARRIED, see below
+#   node scripts/tdw_f0774_readers.proof.mjs   RED        ← CARRIED, see below
+#
+# ⚠ TWO CARRIED REDS, PRE-EXISTING, NOT INTRODUCED — declared so a green
+#   evening is not run against a floor whose colour nobody explained.
+#   tdw_f0774_stripper was RED 26/35 AT BASE and is RED 28/37 here: the SAME
+#   NINE FAILS, plus two new green cells (§5.0 the in-repo mirror, §5.2 the
+#   invocation). Not one red moved. tdw_f0774_readers carries its named
+#   nineteen-reader debt in run-floor.sh's base by labelled amendment and comes
+#   out of it the day the F-39.41/.42 sitting lands. A red with a name is not
+#   noise.
+#
+# FILES
+scripts/lib/stripComments.cjs
+scripts/b40_worklist_shell_bench.js
+scripts/tdw_f0774_stripper.proof.mjs
+components/worklist/StudioSheets.tsx
+components/worklist/TeamTabs.tsx
+components/vendor/slices/SliceShell.tsx
+components/vendor/MessageBubble.tsx
+app/vendor/couture/screen.tsx
+app/w/team/page.tsx
+lib/vendor/api/vendor.ts
+lib/vendor/settleWords.ts
+lib/worklist/copy.ts
+lib/worklist/rooms.ts
+docs/mocks/studio-sheets-mock.html
+docs/mocks/S2C_VETO_SHEET.md
+docs/mocks/studio-sheets-mock__*.png   (28 frames)
+scripts/floor-manifest-2c-studio-pwa.txt

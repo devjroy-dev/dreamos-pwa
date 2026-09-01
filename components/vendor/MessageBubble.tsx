@@ -61,7 +61,17 @@ function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
 // the runs between them — so * inside ** is never mis-paired.
 function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /\*\*(.+?)\*\*|`([^`]+?)`/g;
+  // `\x60` IS THE BACKTICK, and the escape is the whole edit — the pattern this
+  // regex matches is byte-for-byte what it always matched (proven both ways at
+  // the cut, nine inputs including the empty and adjacent-delimiter cases).
+  // WHY: the estate's one comment scanner does not know a regex literal from
+  // code, so the two bare backticks here opened a phantom template string and
+  // every comment BELOW this line survived stripping — twelve of them. C32 then
+  // convicted this file of putting a persona name on a shell surface, when line
+  // 71 is prose about a founder ruling on italic register. Cause, not symptom:
+  // the escape re-syncs the scanner and the eleven other comments go quiet too.
+  // F-39.42 owns the general case (33 lexer divergences, no cell reads the list).
+  const re = /\*\*(.+?)\*\*|\x60([^\x60]+?)\x60/g;
   let last = 0; let m: RegExpExecArray | null; let k = 0;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last, m.index), T, `${salt}${k}`)}</span>);

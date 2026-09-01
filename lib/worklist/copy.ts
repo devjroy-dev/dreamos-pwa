@@ -506,6 +506,114 @@ export const COPY = {
   teamEmptyTasks:    'No tasks yet.',
   teamEmptyPayments: 'No team payments yet.',
   teamFailed:        'Could not load this list.',
+  // ═══ CE-39 · 2c-STUDIO · THE SHEETS AND THE TEN VERBS ═════════════════════
+  // Every byte below is founder-vetoed by delegation on 2026-09-01, off
+  // `docs/mocks/studio-sheets-mock.html` (sha256 665b4f3496b8, frames E1–E7)
+  // and `docs/mocks/S2C_VETO_SHEET.md` §A/§B. Nothing here was invented after
+  // the pick; where the frame and the sheet disagreed, the FRAME won and the
+  // correction is c-2c.s2, owned by the executor.
+  //
+  // ⚠ THE ROOM'S FAILURE BYTE CHANGED MEANING WITHOUT CHANGING SHAPE.
+  // `teamFailed` above used to carry the sentence 「this room mounts no verbs,
+  // so it has nothing to retry」 in its own comment. That is now false — the
+  // room mounts ten. The byte is unchanged and still offers no retry, which is
+  // a smaller claim and still a true one: a LIST that could not load is not a
+  // WRITE that failed, and the writes below each report their own outcome.
+  //
+  // SENTENCE CASE THROUGHOUT (R-38.6). The /vendor tree spells `Add Member`,
+  // `Create Task`, `Bank Transfer`; the shell does not shout at the vendor.
+  // `Rs` LEAVES THE LABEL AND LIVES WITH THE FIGURE — 「Rate per event」, not
+  // 「Rate per event (Rs)」 — because the money register owns the unit.
+  studioSheetAddMember:   'Add member',
+  studioSheetEditMember:  'Edit member',
+  studioSheetNewTask:     'New task',
+  studioSheetLogPayment:  'Log payment',
+  studioSheetMarkPaid:    'Mark as paid',
+  studioFieldName:        'Name',
+  studioFieldRole:        'Role',
+  studioFieldPhone:       'Phone',
+  studioFieldRate:        'Rate per event',
+  studioFieldNotes:       'Notes',
+  studioFieldTitle:       'Title',
+  studioFieldDescription: 'Description',
+  studioFieldAssignTo:    'Assign to',
+  studioFieldDueDate:     'Due date',
+  studioFieldPriority:    'Priority',
+  studioFieldMember:      'Team member',
+  studioFieldAmount:      'Amount',
+  studioFieldPaidVia:     'Paid via',
+  studioBlockAssignments: 'Assignments',
+  studioBlockCrewPage:    'Crew page',
+  studioNoAssignments:    'No assignments yet.',
+  studioSendPage:         'Send page',
+  studioRotateLink:       'Rotate link',
+  studioRotateWarning:    'The old link stops working.',
+  // THE GATES SAY WHAT TO DO, NOT WHAT IS WRONG. 「Name is required to save」
+  // names a rule; 「Give the member a name to save them」 names the next move.
+  studioGateMember:       'Give the member a name to save them.',
+  studioGateTask:         'Give the task a title to save it.',
+  studioGatePayment:      'Pick a member and enter an amount to save.',
+  studioCancel:           'Cancel',
+  studioSave:             'Save',
+  studioRemove:           'Remove',
+  studioCreateTask:       'Create task',
+  studioLogPayment:       'Log payment',
+  studioConfirmPayment:   'Confirm payment',
+  studioNoRole:           'No role',
+  studioToastMemberAdded:   'Member added.',
+  studioToastMemberUpdated: 'Member updated.',
+  studioToastMemberRemoved: 'Member removed.',
+  studioToastLinkRotated:   'New link created.',
+  studioToastTaskCreated:   'Task created.',
+  studioToastTaskUpdated:   'Task updated.',
+  // `Task deleted.` KEEPS ITS WORD and the reason is the schema, not the habit:
+  // `team_tasks` carries `deleted_at` and the route writes it. The word matches
+  // the write. That is the whole argument for why the payment pair below had to
+  // change and this one did not.
+  studioToastTaskDeleted:   'Task deleted.',
+  studioToastPaymentLogged: 'Payment logged.',
+  // ── THE TWO ARMS OF MARK-PAID (ruling 3, CE-39 2c-Studio seat) ────────────
+  // `PATCH /:id/mark-paid` has always answered with `expense_logged`, and the
+  // hygiene sitting wrote it there deliberately: 「FAILURE IS DECLARED, NOT
+  // SWALLOWED... The caller is told」. The typed door then declared only
+  // `{ ok, payment }`, so the field was erased at the type boundary and the
+  // surface said 「Marked as paid」 whether the ledger gained the row or not.
+  // F-39.26's class in a type, and card ⑤ asserts the row lands — so the arm
+  // that could not be seen now has a byte of its own.
+  studioToastPaidLogged:    'Marked as paid.',
+  studioToastPaidNoExpense: "Marked as paid — the expense wasn't logged.",
+  // ── CANCEL, NOT DELETE — THE WORDS FOLLOW THE WRITE ───────────────────────
+  // `public.team_payments` has THIRTEEN columns and none of them is
+  // `deleted_at` (PUBLIC_SCHEMA.md, witnessed by ordinal); `PATCH /:id/cancel`
+  // sets `state='cancelled'` and the row survives. The old pair — button
+  // 「Delete」, toast 「Payment removed」 — told the vendor a thing had been
+  // destroyed that had not been.
+  studioCancelPaymentTitle: 'Cancel this payment?',
+  studioCancelPaymentBody:  'It stays on file, marked cancelled. Nothing is deleted.',
+  studioCancelPaymentKeep:  'Keep it',
+  studioCancelPayment:      'Cancel payment',
+  studioToastPaymentCancelled: 'Payment cancelled.',
+  // ── THE INVOICE ROW'S BUTTON (F-2c.p9) ───────────────────────────────────
+  // ONE BYTE, TWO AFFORDANCES, deliberately: the swipe already reveals this
+  // word, and money's primary verb reading one way under the thumb and another
+  // to the eye is how a vendor learns to distrust both.
+  studioMarkPaid:         'Mark paid',
+  // ── THE TWO PDF SENTENCES, REHOMED (ruling 4) ────────────────────────────
+  // Both lived inline in `components/vendor/slices/SliceShell.tsx`, at :433 and
+  // :928. They move here together — one home — and only ONE of them changes.
+  //
+  // `studioPdfFailed` REPLACES 「PDF not ready yet — try again in a moment.」
+  // That sentence invented a state the door cannot report: `GET /:invoiceId/pdf`
+  // is SYNCHRONOUS — it generates or it errors, and `pdf_pending` exists only on
+  // `POST /` where no pwa reader consumes it. The byte was the `??` fallback for
+  // an ok-false carrying no error, so it described waiting when what happened
+  // was failing. The founder's walk hit this door and the retry succeeded; the
+  // door works and only the sentence lied.
+  //
+  // `studioPdfNoAdvance` is UNCHANGED wording. A real precondition is not the
+  // same defect as an invented state — it moves for the one-home law alone.
+  studioPdfFailed:      "Couldn't prepare the PDF just now. Try again in a moment.",
+  studioPdfNoAdvance:   'PDF not ready yet — record the advance first.',
   contractsTitle:  'Contracts',
   tdsTitle:        'TDS',
   // §4-4 batch ③. The tile has read 「Collab」 since the registry was written and the masthead

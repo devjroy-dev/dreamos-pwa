@@ -49,7 +49,7 @@ export default function ShellTeamPage() {
 
   return (
     <WorklistShell title={COPY.teamTitle}>
-      <RoomBody><TeamTabs /></RoomBody>
+      <RoomBody><TeamTabs vendorName={session.name ?? null} /></RoomBody>
     </WorklistShell>
   );
 }

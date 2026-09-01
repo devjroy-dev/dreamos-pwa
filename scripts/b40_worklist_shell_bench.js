@@ -6,8 +6,41 @@ const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
+// ── THE STRIPPER IS THE ESTATE'S, NOT THIS BENCH'S  [F-39.39 · arm (ii)] ────
+// WHAT STOOD HERE, AND WHAT IT COST. This line read
+//
+//     .replace(SLASH-STAR ... STAR-SLASH /g, '')
+//
+// which is `NAIVE_RETIRED` — the rule `scripts/lib/stripComments.mjs` publishes
+// for VACUITY TWINS and explicitly forbids using to strip anything. It treats
+// any `/*` as a comment opener, including one inside a `//` line comment. At
+// `60e439b`, `app/vendor/studio/team/page.tsx:152` says `/crew/*` inside such a
+// comment; that false opener paired with `{/* FAB */}`'s closer seventy-four
+// lines down, and every cell reading that file read a page with no `<Header/>`,
+// no loading arm, no empty arm and no member list.
+//
+// C58 IS THE COST. It is the pwa half of R-39.7 — a FOUNDER ruling that the
+// Studio Suite is open to every tier — and it went GREEN over a restored
+// `session.tier !== 'prestige'` gate placed inside that window. The same gate
+// eight lines higher reddened the floor. A cell cannot be amended while it is
+// vacuous over its own subject, so this repair rides ahead of C58's amendment
+// rather than beside it.
+//
+// THE CURE IS NOT A NEW RULE. F-07.74 already ruled this class has ONE home and
+// that home already cured this specimen; b40 simply never joined it. The `.cjs`
+// beside the `.mjs` is a DECLARED MIRROR and the fork is the module system —
+// this bench is CommonJS and its cells are synchronous. c-39.49 records that the
+// chair first named b41's `lineStrip`, which is itself the second hand-rolled
+// stripper; it is untouched here and leaves the debt class on its own sitting.
+//
+// b40 LEAVES THE UN-STRIPPED-READER DEBT BY JOINING THE HOME, not by exemption.
+// F-39.41: `tdw_f0774_readers.proof.mjs` §2.2 tests the PRESENCE of stripping and
+// not the IDENTITY of the stripper, so it passed this file throughout — the
+// nineteen-reader list never held the reader where the class was doing damage.
+// That cell grows an identity test pre-beta, in its own sitting; nothing here.
+const { stripComments } = require('./lib/stripComments.cjs');
 /** Comment-blindness law: strip comments before any textual assertion against source. */
-const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+const strip = stripComments;
 
 /**
  * THE BANNED NAMES, ONE HOME (R-37.70 as amended at R-38.17).
@@ -2055,6 +2088,42 @@ cell('C48 the Settings signposts render words and go somewhere (F-38.p10, F-39.4
 //    any one of the three studio pages → red.
 cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (R-39.7)', () => {
   const bad = [];
+  // ── AMENDED AGAIN AT CE-39 2c-STUDIO · AND THE CELL WAS VACUOUS UNTIL NOW ──
+  // ⚠ READ THIS BEFORE TRUSTING ANY EARLIER GREEN FROM THIS CELL. THE ASSERTION
+  // IS UNCHANGED AND IS QUOTED HERE BEFORE THE LIST GROWS:
+  //
+  //   「C58 no tier gates the Studio Suite — pages, screen, and the shared row
+  //    (R-39.7)」
+  //
+  // F-39.39: for the whole of 2b-2 this cell could not see seventy-four lines of
+  // `app/vendor/studio/team/page.tsx`. b40's own stripper read `/crew/*` inside
+  // a `//` comment at that file's line 152 as a block-comment opener, paired it
+  // with `{/* FAB */}`'s closer at 226, and deleted everything between. Proven
+  // both ways by production mutation at the 2c-Studio cut: a restored
+  // `session.tier !== 'prestige'` gate at :196 — INSIDE the window — left this
+  // cell GREEN and the floor GREEN; the same gate at :65 reddened it. So the pwa
+  // half of a FOUNDER RULING was guarded by a cell with a blind spot exactly
+  // where the deleted gate used to live.
+  //
+  // A VACUOUS CELL IS NOT AMENDED, IT IS REPAIRED FIRST. The stripper was
+  // rehomed onto `scripts/lib/stripComments.cjs` — the estate's F-07.74 home,
+  // reached through a declared CJS mirror — ahead of this edit and in the same
+  // ZIP. THE LIST BELOW GROWS ONLY AFTER `strip` CAN READ ITS SITES.
+  //
+  // THE LIST GROWS BY ONE, from six sites to seven: the sheets. 2c-Studio moved
+  // every studio VERB into `components/worklist/StudioSheets.tsx`, so a gate
+  // restored around the add/edit surfaces — the most natural place to put one
+  // back — would sit outside every site this cell reads. The three
+  // `app/vendor/studio/*` pages STAY: they keep their bodies until Phase 7
+  // sweeps the /vendor tree, `/vendor/more` and `/vendor/studio` still route
+  // into team-hub, and dropping a live fallback from this list on the sitting
+  // that stopped looking at it is precisely the mistake the 2b-2 amendment
+  // refused to make about `team-hub/screen.tsx`.
+  //
+  // COUNT PRESERVED 1:1 IS NOT CLAIMED — the movement is stated rather than a
+  // number made to hold (R-38.11 as amended). RETIRE-WITH-THE-READER does not
+  // fire: nothing left.
+  //
   // ── AMENDED AT CE-39 2b-2 · THE SITE LIST MOVES WITH THE BODY ─────────────
   // `app/w/team/page.tsx` stopped mounting `TeamHubScreen` at arm D (a) and now
   // mounts `components/worklist/TeamTabs.tsx`. The ROUTE stays on this list —
@@ -2078,6 +2147,7 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
     'app/vendor/studio/team-payments/page.tsx',
     'app/w/team/page.tsx',
     'components/worklist/TeamTabs.tsx',
+    'components/worklist/StudioSheets.tsx',
   ];
   for (const f of sites) {
     const src = strip(read(f));
@@ -2771,37 +2841,217 @@ cell('C80 the Team tab renders no membership state word (F-2b2.1)', () => {
   return bad.length ? bad.join(' | ') : null;
 });
 
-// ── C82 · THE THREE TABS ARE A READ, AND THE + IS THE SHELL'S SEAT ──────────
-//    F-39.30 OPEN-AS-NARROWED. The room's structure and body are both in the
-//    shell now; every WRITE still leaves it, declared rather than cured. Three
-//    things are asserted and each catches a different way the declaration rots:
-//      (1) the three destinations are the three ALREADY in INTERIM_VENDOR_LINKS
-//          — the set does not grow at this crossing, only who points at it;
-//      (2) the body mounts `Fab` and draws no seat of its own (C49 walks the
-//          graph for the geometry; this asserts the IMPORT, so a seat added
-//          without geometry — a plain button in the corner — is caught here);
-//      (3) the body mounts no write door: no POST/PATCH/DELETE client and no
-//          form. A verb appearing here is 2c-Studio's work arriving early and
-//          unruled.
-//    RED MUTATION: import `createTask` into TeamTabs.tsx and call it → red.
-cell('C82 the Team tabs read only, and the + rides the one FAB seat (F-39.30)', () => {
-  const src = strip(read('components/worklist/TeamTabs.tsx'));
-  const bad = [];
+// ── C82 · THE THREE TABS WRITE, IN THE SHELL, AND THE + IS STILL THE SHELL'S SEAT
+//    RETIRED-WITH-THE-READER at CE-39 road step 2c-Studio. THE ASSERTION THAT
+//    STOOD HERE, QUOTED BEFORE IT IS REPLACED:
+//
+//      「C82 the Team tabs read only, and the + rides the one FAB seat (F-39.30)」
+//
+//    and its own header said why it would not last:
+//
+//      「the body mounts no write door: no POST/PATCH/DELETE client and no form.
+//       A verb appearing here is 2c-Studio's work arriving early and unruled.」
+//
+//    2c-Studio is neither early nor unruled. So the cell is not loosened, not
+//    amended and not deleted: it is INVERTED. Every clause that asserted the
+//    read now asserts the write, and the clause that guarded the FAB seat is
+//    carried across UNCHANGED, because that one never depended on the room being
+//    read-only. A cell that had to be re-ruled the day its declaration closed is
+//    a cell that did its job; one that quietly went green would have been the
+//    F-39.30 declaration rotting where nobody looked.
+//
+//    ⚠ IT ASSERTS TEN VERBS, NOT NINE  [c-39.46]. The 2b-2 verb table listed the
+//    SHEET verbs and missed the ROW action, so `cancelPayment` — live at
+//    `src/api/vendor/studio/payments.js:368` the whole time, with no typed door
+//    and its only caller building a bare `fetch` — was about to retire with the
+//    /vendor tree at the flip. THE COUNT IS ASSERTED AS A NAMED SET, never as a
+//    number: a cell that says 「ten」 goes green when a verb is swapped for
+//    another, which is the arithmetic-over-artifact failure this floor forbids.
+//
+//    FIVE THINGS, each catching a different way the crossing rots:
+//      (1) all ten verbs are IMPORTED FROM THE TYPED DOOR. Not merely present —
+//          `lib/vendor/api/vendor.ts`. A room that re-grew the raw `fetch` +
+//          `localStorage` shape the tenth verb arrived with would satisfy a
+//          weaker cell and would have crossed nothing.
+//      (2) NO `/vendor/studio` HREF SURVIVES IN THE SHELL, and the sweep is the
+//          whole room — TeamTabs AND the sheets it mounts, because a destination
+//          moved one file sideways is not a destination removed.
+//      (3) THE ENDPOINTS DID NOT MOVE. The room reaches no `/api/` path of its
+//          own. This is the plane-crossing tripwire: 2c-Studio was ruled a UI
+//          crossing, and a route spelled in this room would be a second address
+//          space nobody chartered.
+//      (4) the body still mounts `Fab` and draws no seat of its own (C49 walks
+//          the graph for the geometry; this asserts the IMPORT, so a seat added
+//          without geometry — a plain button in a corner — is caught here).
+//      (5) INTERIM_VENDOR_LINKS DID NOT SHRINK. Founder-ruled at this sitting:
+//          `/vendor/more:84` and `/vendor/studio/page.tsx:28` still route into
+//          `/vendor/team-hub`, whose STUDIO_ITEMS points at all three studio
+//          pages. They keep their bodies until Phase 7 sweeps the tree at once.
+//          A crossing that deleted its own fallback would be an outage.
+//    RED MUTATION: re-point any one verb's import at '/vendor/studio/team' or
+//    delete it from the room → red on that verb's name.
+cell('C82 the Team tabs mount all ten verbs through the typed door, in the shell (F-39.30 CLOSED)', () => {
+  const src   = strip(read('components/worklist/TeamTabs.tsx'));
+  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
+  const room  = src + '\n' + sheet;
   const rooms = strip(read('lib/worklist/rooms.ts'));
+  const bad = [];
+
+  // (1) THE TEN, BY NAME, EACH FROM THE TYPED DOOR.
+  const DOOR = /import\s*\{([\s\S]*?)\}\s*from\s*'@\/lib\/vendor\/api\/vendor'/;
+  const imported = (src.match(DOOR) || [, ''])[1];
+  for (const verb of ['addTeamMember', 'updateTeamMember', 'deleteTeamMember', 'rotateTeamMemberToken',
+                      'createTask', 'updateTask', 'deleteTask',
+                      'logPayment', 'markPaymentPaid', 'cancelPayment']) {
+    if (!new RegExp('\\b' + verb + '\\b').test(imported))
+      bad.push('the room does not import ' + verb + ' from the typed door');
+    if (!new RegExp('\\b' + verb + '\\s*\\(').test(src))
+      bad.push('the room imports ' + verb + ' but never calls it');
+  }
+
+  // (2) NO EXIT SURVIVES ANYWHERE IN THE ROOM.
+  for (const m of room.matchAll(/'(\/vendor\/[^']*)'/g))
+    bad.push('the room still points at ' + m[1] + ' — the shell may not exit into a tree that retires at the flip');
+
+  // (3) A UI CROSSING, NOT A PLANE CROSSING.
+  for (const m of room.matchAll(/'(\/api\/[^']*)'/g))
+    bad.push('the room spells the endpoint ' + m[1] + ' — the door owns paths, not the surface');
+
+  // (4) THE SEAT IS STILL THE SHELL'S. Carried across unchanged.
+  if (!/from '@\/components\/worklist\/Fab'/.test(src))
+    bad.push('the tabs do not mount the shell FAB — C49 owns the seat');
+
+  // (5) THE FALLBACK TREE KEEPS ITS ADDRESSES UNTIL PHASE 7.
   for (const href of ['/vendor/studio/team', '/vendor/studio/tasks', '/vendor/studio/team-payments']) {
-    if (!src.includes("'" + href + "'")) bad.push('the tabs no longer route ' + href);
-    if (!rooms.includes("'" + href + "'")) bad.push(href + ' left INTERIM_VENDOR_LINKS while the tabs still push it');
+    if (!rooms.includes("'" + href + "'"))
+      bad.push(href + ' left INTERIM_VENDOR_LINKS — /vendor/more and /vendor/studio still route into team-hub, which points at it');
   }
-  // Any OTHER /vendor destination would be a fourth declared door nobody ruled.
-  for (const m of src.matchAll(/'(\/vendor\/[^']*)'/g)) {
-    if (!['/vendor/studio/team', '/vendor/studio/tasks', '/vendor/studio/team-payments'].includes(m[1]))
-      bad.push('the tabs push an undeclared exit ' + m[1]);
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C85 · THE SHEETS OPEN INSIDE THE ROOM  [2c-Studio, the crossing's point] ─
+//    The reason the verbs crossed at all is that the vendor stops LEAVING to use
+//    them. That property is not 「a sheet exists」; it is that the sheet's
+//    positioning context is the ROOM. `.wl-tm` carries `position:relative` and
+//    the sheet carries `position:absolute`, so the masthead and the three tabs
+//    stay lit behind the scrim. Delete the one word `relative` and the sheet
+//    resolves against the viewport instead — it would still look right on most
+//    screens and the room would silently stop being visible behind it, which is
+//    exactly the class of loss that survives a screenshot.
+//
+//    ⚠ IT ALSO ASSERTS THE ROOM MOUNTS ITS OWN TOAST. Every one of the ten
+//    verbs reports through `show` and nothing else (honest controls, CE-209); a
+//    room that wrote without a toast on screen would make a failed write look
+//    exactly like a successful one.
+//    RED MUTATION: drop `position:relative` from `.wl-tm` → red.
+cell('C85 the studio sheets open inside the room, and the room reports its writes', () => {
+  const src   = strip(read('components/worklist/TeamTabs.tsx'));
+  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
+  const bad = [];
+  if (!/\.wl-tm\{[^}]*position:relative/.test(src))
+    bad.push('.wl-tm lost position:relative — the sheet would resolve against the viewport and the room behind it would go dark');
+  if (!/\.wl-sheet\{[^}]*position:absolute/.test(sheet))
+    bad.push('.wl-sheet is no longer absolute inside the room');
+  if (!/from '@\/components\/worklist\/WlToast'/.test(src))
+    bad.push('the room mounts no toast — a failed write would look exactly like a successful one (CE-209)');
+  if (!/from '@\/hooks\/vendor\/useToast'/.test(src))
+    bad.push('the room has no toast state to report into');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C86 · MARK-PAID'S TWO ARMS REACH THE GLASS  [ruling 3, F-39.26's class] ──
+//    The route has answered with `expense_logged` since the hygiene sitting and
+//    said so in its own words — 「FAILURE IS DECLARED, NOT SWALLOWED... The
+//    caller is told」. The typed door then declared `{ ok, payment }`, and
+//    TypeScript does not merely omit an undeclared field: it makes READING one
+//    an error. So the truth reached the wire and died at the type, and the
+//    surface said 「Marked as paid」 whether Books gained the row or not.
+//
+//    ⚠ THREE STATES, AND THE CELL ASSERTS THE THIRD. `undefined` is not `false`.
+//    This pwa deploys separately from dream-os and can meet a backend older than
+//    the hygiene sitting; a MISSING field is not a FAILED expense. A cell that
+//    only checked for two arms would pass a room that reddened every settlement
+//    against an older server.
+//    RED MUTATION: change `logged === false` to `!logged` in confirmPaid → red.
+cell('C86 mark-paid reports the expense leg, and undefined is not false', () => {
+  const door = strip(read('lib/vendor/api/vendor.ts'));
+  const src  = strip(read('components/worklist/TeamTabs.tsx'));
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const bad = [];
+  // THE SLICE RUNS TO THE NEXT DECLARATION, NOT TO THE NEXT `\n}`. The body's
+  // own object literal closes on a `\n}` two lines in, so a lazy match ends
+  // BEFORE the return type — and a cell that reads a signature without its
+  // return type would have gone green on the very erasure it exists to catch.
+  const at  = door.indexOf('export function markPaymentPaid');
+  const nxt = door.indexOf('export function', at + 10);
+  const sig = at < 0 ? '' : door.slice(at, nxt < 0 ? undefined : nxt);
+  if (!/expense_logged\?:\s*boolean/.test(sig)) bad.push('the typed door still erases expense_logged');
+  if (!/expense_error\?:/.test(sig)) bad.push('the typed door drops expense_error — the WHY the route sends with the false');
+  if (!/logged === false/.test(src))
+    bad.push('the surface does not distinguish false from undefined — an older backend would read as a failed expense on every settlement');
+  for (const [k, v] of [['studioToastPaidLogged', 'Marked as paid.'],
+                        ['studioToastPaidNoExpense', "Marked as paid — the expense wasn't logged."]]) {
+    if (!copy.includes(v)) bad.push('copy.ts no longer carries the ruled byte 「' + v + '」');
+    if (!new RegExp('COPY\\.' + k).test(src)) bad.push('the surface does not read COPY.' + k);
   }
-  if (!/from '@\/components\/worklist\/Fab'/.test(src)) bad.push('the tabs do not mount the shell FAB — C49 owns the seat');
-  for (const verb of ['createTask', 'updateTask', 'addTeamMember', 'updateTeamMember', 'deleteTeamMember', 'logPayment']) {
-    if (new RegExp('\\b' + verb + '\\b').test(src)) bad.push('the tabs mount the write door ' + verb + ' — this room is a read');
-  }
-  if (/<form|<input|<textarea/.test(src)) bad.push('the tabs mount a form — this room is a read');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C87 · MONEY'S PRIMARY VERB IS NOT GESTURE-ONLY  [F-2c.p9, founder's walk] ─
+//    An invoice could only be settled by SWIPING it. A gesture has no affordance:
+//    nothing on the row says it is there, and no screen reader reaches it. The
+//    BUTTON IS ADDED AND THE SWIPE STAYS, and the cell's real subject is that
+//    both call ONE handler — `markPaidFor` returns `swipeSidesFor(row).right`, so
+//    a later edit cannot give the button its own write path that drifts from the
+//    gesture's.
+//
+//    ⚠ THE GATE IS ASSERTED TOO. Card ⑥ as ruled: the button renders only where
+//    `payAmount > 0`. `Already settled.` survives as the SWIPE's answer, because
+//    a gesture landing on a settled row must say something while a button that
+//    would say it need not exist.
+//    RED MUTATION: drop the `payAmount` gate, or point the button at
+//    `recordPayment` directly → red.
+cell('C87 the invoice row carries a visible Mark paid, on one handler with the swipe (F-2c.p9)', () => {
+  const src = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const bad = [];
+  if (!/const markPaidFor = \(row: Row\) => swipeSidesFor\(row\)\.right/.test(src))
+    bad.push('the button no longer shares the swipe handler — two write paths to one settlement');
+  if (!/slice === 'invoices' && !selectMode && \(row\.payAmount \?\? 0\) > 0/.test(src))
+    bad.push('the button is not gated to outstanding rows (card ⑥) or leaks into select mode beside the bulk bar');
+  if (!/showToast\('Already settled\.'/.test(src))
+    bad.push("the swipe lost 「Already settled.」 — the gesture still lands on settled rows and must answer");
+  if (!/COPY\.studioMarkPaid/.test(src))
+    bad.push('the row spells its own Mark paid byte instead of reading the register');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C88 · THE TWO PDF SENTENCES HAVE ONE HOME, AND ONE OF THEM STOPPED LYING ─
+//    F-2c.p10 as re-derived: `GET /:invoiceId/pdf` is SYNCHRONOUS — it generates
+//    and returns a URL or it errors. `pdf_pending` exists only on `POST /` and no
+//    reader in this repo consumes it. So 「PDF not ready yet — try again in a
+//    moment」 was the `??` fallback for an ok-false with no error, describing
+//    WAITING when what happened was FAILING, and inventing a state the door
+//    cannot report. The founder's walk hit this door and the retry succeeded.
+//
+//    ⚠ THE SECOND SENTENCE MOVED AND DID NOT CHANGE, and the cell asserts BOTH
+//    halves of that. 「PDF not ready yet — record the advance first」 names a real
+//    precondition; a precondition is not the same defect as an invented state,
+//    and a later seat reading this diff must not take the pair as one scrub.
+//    RED MUTATION: spell either sentence inline at its call site again → red.
+cell('C88 the PDF sentences live in the register, and neither is spelled at a call site', () => {
+  const src  = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const bad = [];
+  if (!copy.includes("Couldn't prepare the PDF just now. Try again in a moment."))
+    bad.push('the register lost the ruled fallback byte');
+  if (!copy.includes('PDF not ready yet — record the advance first.'))
+    bad.push('the register lost the unchanged precondition byte');
+  if (/'PDF not ready yet — try again in a moment\.'/.test(src))
+    bad.push('the retired sentence is spelled inline again — it invents a state the door cannot report');
+  if (src.includes("'PDF not ready yet"))
+    bad.push('a PDF sentence is spelled at its call site — one home, four readers');
+  for (const k of ['studioPdfFailed', 'studioPdfNoAdvance'])
+    if (!new RegExp('COPY\\.' + k).test(src)) bad.push('SliceShell does not read COPY.' + k);
   return bad.length ? bad.join(' | ') : null;
 });
 
