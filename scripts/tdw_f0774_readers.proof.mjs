@@ -155,6 +155,129 @@ const STRIP_SHAPES = [
   ['jsx-comment',   (s) => /replace\(\s*\/\\\{\\s\*\\\/\\\*/.test(s)],
 ];
 
+// ── SHAPE TABLE 3b · WHAT COUNTS AS STRIPPING *THROUGH THE HOME* [F-39.41] ──
+// ═══════════════════════════════════════════════════════════════════════════
+// TABLE 2 ABOVE TESTS PRESENCE. THIS ONE TESTS IDENTITY, AND THE REASON IT HAD
+// TO BE ADDED IS THAT TABLE 2'S FIRST ROW TESTS A **NAME**.
+//
+//     ['one-home', (s) => /stripComments/.test(s)]
+//
+// That row is satisfied by any occurrence of the eleven characters, so §2.2
+// passed `b40_worklist_shell_bench.js` — which was stripping with
+// `NAIVE_RETIRED`, THE VERY EXPORT THE HOME PUBLISHES IN ORDER TO CONDEMN,
+// imported from a path containing the word. F-39.39 was doing live damage there
+// and this bench read it as compliant, and `b40` never joined the debt list.
+//
+// AND IT IS FOUR SITES WIDER THAN b40, which is the part that made this a table
+// and not a patch. Four readers in this repo define a PRIVATE FUNCTION NAMED
+// `stripComments` whose body is the retired naive rule:
+//
+//     tdw09_p2_doors.proof.mjs      const stripComments = (s) => s.replace(…)
+//     tdw15_p3_moments.proof.mjs    same, + a line pass
+//     tdw15_p3_pulse.proof.mjs      same
+//     tdw15_p3_daystogo.proof.ts    same, + the F-07.100 GUARDLESS line pass
+//
+// That is strictly worse than b40's case: b40 at least imported a real mirror,
+// while these four SHADOW THE HOME'S OWN NAME WITH THE RULE IT RETIRED. Six more
+// stand in dream-os. All ten are REPORTED by §2.3 and cured by their own
+// sittings; none is cured here.
+//
+// `daystogo` has a second escape worth its own line: `tdw_f0774_stripper.proof.mjs`
+// §6.3 and §6.5 both glob `*.proof.(mjs|js)` and it is `.proof.ts`, so the two
+// cells that exist to find a regrown naive rule and a guardless line pass cannot
+// see the one file carrying both. A GUARD WHOSE GLOB MISSES A FILE CLASS.
+//
+// ── "THROUGH THE HOME" MEANS THE HOME'S CODE RUNS  [chair ruling, B-1] ──────
+// Four shapes were priced and all four COUNT, because an identity test that
+// convicts honesty is a worse instrument than the one it replaces:
+//
+//   MODULE SYSTEM   a DECLARED MIRROR counts. `b40` is CommonJS with synchronous
+//                   cells and cannot import the `.mjs`; the `.cjs` was minted for
+//                   it. THE FORK IS THE MODULE SYSTEM AND NEVER THE RULE, which
+//                   is why the members below are pinned by MECHANISM in §2.3a
+//                   rather than trusted by filename.
+//   OUT-OF-PROCESS  `execSync`-ing the home counts. `modeBridge.proof.ts` shells
+//                   out once per file so the definition stays in one place and is
+//                   genuinely called; convicting it would punish the careful form.
+//   ALIASING        counts, and the test resolves the BINDING rather than the
+//                   call-site spelling. `b40` writes `const strip = stripComments`
+//                   and calls `strip(…)`. The B-1 read-first's own harness got
+//                   this wrong on its first pass and reported twelve dream-os
+//                   home-importers as hand-rolled — which is the proof that a
+//                   name-match cannot do this job, filed one level up from the
+//                   defect it was written to find.
+//   REASONED
+//   DEVIATION       counts as a DECLARED EXCEPTION, named at its site with its
+//                   reason and enumerated in ONE place (`IDENTITY_EXCEPTIONS`).
+//                   Never a silent pass.
+//
+// WHY `NAIVE_RETIRED` IS NOT A BINDING. It is exported for VACUITY TWINS only —
+// a §0.Y cell proving the naive rule WOULD swallow the specimen §0.X proves
+// survives. A file that imports it and calls only it has imported the home in
+// order to strip with the condemned rule, which is exactly F-39.41. So the
+// binding walk below accepts `stripComments` and refuses `NAIVE_RETIRED` by name.
+const HOME_SPEC = /['"][^'"]*lib\/stripComments(?:\.(?:mjs|cjs|js))?['"]/;
+
+// THE MEMBERS. Declared here and PROVEN in §2.3a — a "mirror" that has drifted
+// from the home is not a mirror, and letting one launder an offender is the
+// exemption disease (§2.1's shape) one level up.
+const HOME_MEMBERS = [
+  { file: 'scripts/lib/stripComments.mjs',
+    why: 'THE HOME (F-07.74). ESM; every .mjs proof in this repo imports it directly.' },
+  { file: 'scripts/lib/stripComments.cjs',
+    why: 'DECLARED MIRROR, CE-39 2c-Studio arm (ii), founder-ruled. Minted so b40 — CommonJS, synchronous cells — could stop carrying NAIVE_RETIRED\'s own shape (F-39.39).' },
+];
+
+// BINDINGS, NOT SPELLINGS. Named, default and namespace forms, in both module
+// systems, with ONE alias hop — which is the depth the tree actually uses and
+// the depth a reader can check by eye. A second hop would be a data-flow
+// analysis, and this estate has already ruled once (F-39.42) that the moment an
+// instrument needs a compiler it says so instead of pretending.
+const bindingsOf = (s) => {
+  const names = new Set();
+  const SPEC = `['"][^'"]*lib/stripComments(?:\\.(?:mjs|cjs|js))?['"]`;
+  // `import { stripComments as strip } from '…'` · `const { stripComments } = require('…')`
+  // ── AND THE MIXED FORM, WHICH THIS WALK MISSED ON ITS FIRST CUT ──────────
+  // `import stripComments, { NAIVE_RETIRED } from './lib/stripComments.mjs'` is
+  // what `tdw09_p2c` and `tdw13_d3_choreography` write, and both read as
+  // HAND-ROLLED until the optional default binding was allowed for. THIRD TIME in
+  // this one sitting that a pattern-matcher was wrong about the tree before the
+  // tree was wrong about anything — which is F-39.25 with no ambiguity left in
+  // it. §2.3k below is the specimen that keeps this arm honest from here.
+  for (const m of s.matchAll(new RegExp(`(?:import\\s+(?:[A-Za-z_$][\\w$]*\\s*,\\s*)?|const|let|var)\\s*\\{([^}]*)\\}\\s*(?:from|=\\s*require\\s*\\()\\s*${SPEC}`, 'g'))) {
+    for (const part of m[1].split(',')) {
+      const t = part.trim();
+      if (!t) continue;
+      const [lhs, rhs] = t.split(/\s+as\s+|\s*:\s*/).map((x) => (x || '').trim());
+      if (lhs !== 'stripComments') continue;      // NAIVE_RETIRED is not a stripper
+      names.add(rhs || lhs);
+    }
+  }
+  // `import strip from '…'` · `import * as m from '…'` · `const m = require('…')`
+  for (const m of s.matchAll(new RegExp(`import\\s+(?:\\*\\s+as\\s+)?([A-Za-z_$][\\w$]*)\\s*(?:,\\s*\\{[^}]*\\})?\\s+from\\s*${SPEC}`, 'g'))) names.add(m[1]);
+  for (const m of s.matchAll(new RegExp(`(?:const|let|var)\\s+([A-Za-z_$][\\w$]*)\\s*=\\s*require\\s*\\(\\s*${SPEC}\\s*\\)`, 'g'))) names.add(m[1]);
+  // ONE ALIAS HOP: `const strip = stripComments` and `const strip = mod.stripComments`
+  for (const n of [...names]) {
+    const N = n.replace(/\$/g, '\\$');
+    for (const m of s.matchAll(new RegExp(`(?:const|let|var)\\s+([A-Za-z_$][\\w$]*)\\s*=\\s*${N}(?:\\.stripComments)?\\s*[;\\n]`, 'g'))) names.add(m[1]);
+  }
+  return names;
+};
+
+// F-07.99 APPLIED PER READER. A held definition with no call site fooled this
+// estate for a whole block, and the mirror was minted with §5.2 of the stripper
+// proof asserting exactly this for b40. Here it is asked of every reader.
+const invokesAny = (s, names) =>
+  [...names].some((n) => new RegExp(`\\b${n.replace(/\$/g, '\\$')}\\s*\\(`).test(s));
+
+// OUT-OF-PROCESS, declared as a conjunction rather than a proximity window: the
+// file spawns a child, names a home member, and calls `stripComments` inside what
+// it spawns. Three facts a reader can check by eye. A window measured in
+// characters would be an instrument nobody could reason about, which is the
+// thing this sitting exists to stop shipping.
+const outOfProcess = (s) =>
+  /child_process/.test(s) && /lib\/stripComments\.(?:mjs|cjs|js)/.test(s) && /\bstripComments\s*\(/.test(s);
+
 // ── SHAPE TABLE 3 · WHAT MAKES A SUBJECT CODE ─────────────────────────────
 // A reader whose only subjects are JSON, markdown, text or its own captured
 // output is not this bench's business: JSON has no comments to be fooled by,
@@ -185,7 +308,48 @@ for (const rel of corpus) {
   const parses = PARSE_SHAPES.filter(([, f]) => f(src)).map(([n]) => n);
   if (!reads.length || !parses.length) continue;
   const strips = STRIP_SHAPES.filter(([, f]) => f(src)).map(([n]) => n);
-  readers.push({ rel, reads, parses, strips, codeSubject: CODE_SUBJECT.test(src) });
+  // IDENTITY, derived in the SAME walk as presence — two questions, one corpus
+  // read. A second walk would be a second corpus to keep in step, which is the
+  // hand-written-enumeration disease this file's own §F-38.p5 header already
+  // filed once against itself.
+  const binds = HOME_SPEC.test(src) ? bindingsOf(src) : new Set();
+  const viaHome = (binds.size > 0 && invokesAny(src, binds)) || outOfProcess(src);
+  // the rules it runs that are NOT the home — `one-home` and `out-of-process` are
+  // name-shaped rows and are discounted here on purpose (that is F-39.41).
+  //
+  // ── `named-blanker` IS A NAME-SHAPED ROW TOO, AND IT COST TWO FALSE REPORTS ──
+  // It fires on `blankComments|CODE_OF|codeOf`, which is the NAME a file gives the
+  // helper that wraps its stripper — and the estate's most careful readers wrap
+  // the HOME under exactly that name: `modeBridge.proof.ts`'s `codeOf` is the
+  // out-of-process call to the home, and dream-os `b07_p3`/`p4a_ig`/`p4b_body`
+  // all spell their home wrapper `codeOf` too. Worse, THIS FILE matched the row
+  // by DECLARING it: the literal `blankComments|CODE_OF|codeOf` in SHAPE TABLE 2
+  // survives stripping, so the bench reported itself as carrying a hand-rolled
+  // blanker it does not have.
+  //
+  // A FIRST CUT HERE TRIED "counts if the file DEFINES the helper", and
+  // `modeBridge` walked straight through it: it DOES define `codeOf`, and the
+  // body of that definition is the out-of-process call to the home. Distinguishing
+  // the two would mean reading the definition's body within some window of
+  // characters, and a window measured in characters is an instrument nobody can
+  // reason about.
+  //
+  // SO THE ROW IS DROPPED FROM THIS QUESTION ENTIRELY, which is the lesson of
+  // this whole finding rather than a concession to it: A NAME-SHAPED ROW CANNOT
+  // ANSWER AN IDENTITY QUESTION. `one-home`, `out-of-process` and `named-blanker`
+  // are all names. What evidences a hand-rolled strip is a MECHANISM — a regex
+  // over comment syntax — and those are the four rows below.
+  //
+  // Nothing is lost by it: a reader whose ONLY shape is `named-blanker` still
+  // reaches §2.3c as an offender (it strips, it does not reach the home), and it
+  // is printed with its rule named as what it is — a name-shaped row and nothing
+  // else — rather than as a mechanism this table cannot actually see.
+  const MECHANISM_ROWS = new Set(['block-replace', 'line-replace', 'line-filter', 'jsx-comment']);
+  const ownRules = strips.filter((n) => MECHANISM_ROWS.has(n));
+  // the F-39.41 shape at its sharpest: a private function wearing the home's name
+  const shadow = !viaHome && /(?:const|let|var|function)\s+stripComments\s*[=(]/.test(src);
+  readers.push({ rel, reads, parses, strips, codeSubject: CODE_SUBJECT.test(src),
+                 binds: [...binds], viaHome, ownRules, shadow });
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -275,6 +439,113 @@ ok(`§2.2 every code-subject reader strips before it parses (${offenders.length}
     : undefined);
 
 // ═════════════════════════════════════════════════════════════════════════════
+sec('§2.3 · AND A READER THAT STRIPS, STRIPS THROUGH THE ONE HOME  [F-39.41]');
+
+// ── THE DECLARED IDENTITY EXCEPTIONS ───────────────────────────────────────
+// The chair's ruling: exceptions are a NAMED LIST here, never a silent pass, and
+// every one is ALSO written down at its own site. `witness` is that written
+// reason, and it is read from RAW because a reason lives in a comment — the same
+// declared-prose read `EXEMPT_SITES` above makes, for the same reason. If a seat
+// deletes the reason from the file, the exception dies with it and the file
+// becomes an offender. An exception that outlives its argument is a licence.
+const IDENTITY_EXCEPTIONS = [
+  { file: 'scripts/tdw15_p2_envelopes.proof.mjs',
+    witness: 'The shared stripper leaks on this very file',
+    why: 'REASONED DEVIATION, ruled to count (B-1). It strips by line-filter DELIBERATELY, not by neglect: the shared stripper leaks on `expenses.tsx` and reads 25 controls where the sealed instrument reads 24, so a bench reaching for the home would inherit the phantom. This is the most careful seat in the set, and the widening note on STRIP_SHAPES\' line-filter row already declined to convict it once. An identity test that convicts it is a worse instrument than the one it replaces.' },
+  { file: 'scripts/tdw_f0774_vacuity_probe.mjs',
+    witness: 'mutates PRODUCTION source, runs, then restores byte-identical',
+    why: 'PLANT-AND-RERUN. Its reads are sha-restoration comparisons of whole files — it holds ORIGINALS, writes, re-runs other benches, writes back and verifies. The subject of its reads is BYTES TO RESTORE, not tokens to match, so there is nothing for a stripper to do. It derives as a reader only because the shape tables see a read and a match; the match is over other benches\' output.' },
+];
+
+// NON-VACUITY OF THE EXCEPTION SET ITSELF, exactly as §2.1 does for the other
+// list: an exception naming a dead file, or one whose written reason has gone,
+// is an exception laundering an offender.
+const badIdentityExempt = IDENTITY_EXCEPTIONS.filter((e) =>
+  !fs.existsSync(path.join(ROOT, e.file)) || !raw(e.file).includes(e.witness));
+ok(`§2.3a every declared identity exception is live and still argued AT ITS SITE (${IDENTITY_EXCEPTIONS.length} declared)`,
+  badIdentityExempt.length === 0,
+  `exceptions whose file or whose written reason has gone: ${badIdentityExempt.map((e) => e.file).join(', ')}`);
+
+// THE MEMBERS ARE PROVEN, NOT TRUSTED BY FILENAME. A `.cjs` beside the home that
+// had drifted from it would be two definitions of "code" inside ONE repo — the
+// F-07.52 failure the mirror was minted under an explicit ruling to avoid — and
+// every reader importing the drifted copy would read as compliant here.
+const normScan = (s) => (s.match(/while \(i < src\.length\)[\s\S]*?\n  return out;/) || [''])[0].replace(/\s+/g, ' ').trim();
+const HOME_SCAN = normScan(raw(HOME_MEMBERS[0].file));
+const driftedMembers = HOME_MEMBERS.filter((m) =>
+  !fs.existsSync(path.join(ROOT, m.file)) || normScan(raw(m.file)) !== HOME_SCAN);
+ok(`§2.3b every declared home member carries the home's scan (${HOME_MEMBERS.length} members)`,
+  HOME_SCAN.length > 200 && driftedMembers.length === 0,
+  `members that are not the home: ${driftedMembers.map((m) => m.file).join(', ') || '(the home\'s own scan did not parse — this cell is reading the wrong region)'}`);
+
+// ── THE CELL. Tiered, because the tiers are different diseases and a chair
+//    sequencing cures needs to see which is which. The UNIT IS THE FILE'S
+//    STRIPPING IDENTITY and not the read site: read-site granularity is not
+//    derivable without the compiler F-39.42 says we do not have, and claiming it
+//    would be this bench asserting a precision it cannot deliver. So a reader
+//    that strips through the home AND ALSO hand-rolls beside it is REPORTED as
+//    its own tier rather than convicted — named for the chair, not counted here.
+const idExemptFiles = new Set(IDENTITY_EXCEPTIONS.map((e) => e.file));
+const idCandidates = readers.filter((r) =>
+  r.codeSubject && r.strips.length && !idExemptFiles.has(r.rel));
+
+const shadows = idCandidates.filter((r) => r.shadow);
+const handRolled = idCandidates.filter((r) => !r.shadow && !r.viaHome);
+const mixed = idCandidates.filter((r) => r.viaHome && r.ownRules.length);
+const offenders2 = [...shadows, ...handRolled];
+
+const line = (r) => `${r.rel}  [rule: ${r.ownRules.join('+') || 'none derived — it satisfies a NAME-shaped row and nothing else'}]`;
+
+ok(`§2.3c every stripping code-subject reader strips through the one home (${offenders2.length} do not)`,
+  offenders2.length === 0,
+  offenders2.length
+    ? 'THE UN-HOMED-STRIP CLASS, named with its rule. Each JOINS the debt list.\n'
+      + `\n       TIER 1 — THE NAME LIE (${shadows.length}). A private function called\n`
+      + '       `stripComments` whose body is the rule the home retired. §2.2 above\n'
+      + '       reads these as compliant, which is F-39.41 itself:\n       - '
+      + (shadows.map(line).join('\n       - ') || '(none)')
+      + `\n\n       TIER 2 — HAND-ROLLED, NO HOME (${handRolled.length}). Own rule, honestly named,\n`
+      + '       no import. Cure is mechanical: import the home, delete the rule.\n       - '
+      + (handRolled.map(line).join('\n       - ') || '(none)')
+      + '\n\n       NOT CURED HERE. Each is its own sitting\'s work and the chair sequences\n'
+      + '       them; this cell REPORTS, and a red with a name is not noise.'
+    : undefined);
+
+// REPORTED, NEVER CONVICTED — see the unit note above.
+if (mixed.length) {
+  console.log(`  NOTE §2.3d — ${mixed.length} reader(s) reach the home AND carry a second rule beside it.`);
+  console.log('       Not convicted: the unit here is the file and the offence would be a READ SITE.');
+  for (const r of mixed) console.log(`       - ${r.rel}  [second rule: ${r.ownRules.join('+')}]`);
+}
+
+// BOTH WAYS, ON SPECIMENS, so the cell is provably able to go red AND to go green
+// without touching the tree — and so that every shape the chair ruled IN is
+// demonstrated to actually be recognised rather than merely described above.
+const READ_PARSE = `const s = read('app/x/page.tsx'); if (s.match(/Victor/)) {}`;
+const idOf = (src) => {
+  const b = HOME_SPEC.test(src) ? bindingsOf(src) : new Set();
+  return (b.size > 0 && invokesAny(src, b)) || outOfProcess(src);
+};
+ok('§2.3e RED ARM — a private fn named `stripComments` running the retired rule is CAUGHT',
+  !idOf(`const stripComments = (s) => s.replace(RETIRED, '');\n${READ_PARSE}`));
+ok('§2.3f RED ARM — importing the home but calling only NAIVE_RETIRED is CAUGHT',
+  !idOf(`import { NAIVE_RETIRED } from './lib/stripComments.mjs';\nconst s = NAIVE_RETIRED(x);\n${READ_PARSE}`),
+  'the binding walk accepted NAIVE_RETIRED as a stripper — this is F-39.41 rebuilt inside its own cure');
+ok('§2.3g GREEN ARM — a plain named import that is called is NOT caught',
+  idOf(`import { stripComments } from './lib/stripComments.mjs';\nconst s = stripComments(x);\n${READ_PARSE}`));
+ok('§2.3h GREEN ARM — an ALIASED home binding is NOT caught (b40\'s shape)',
+  idOf(`const { stripComments } = require('./lib/stripComments.cjs');\nconst strip = stripComments;\nconst s = strip(x);\n${READ_PARSE}`),
+  'the walk resolves spellings, not bindings — the mistake the B-1 harness made on its first pass');
+ok('§2.3i GREEN ARM — an OUT-OF-PROCESS invocation is NOT caught (modeBridge\'s shape)',
+  idOf(`import { execSync } from 'child_process';\nconst c = execSync("node -e \\"import {stripComments} from './scripts/lib/stripComments.mjs'; stripComments(x)\\"");\n${READ_PARSE}`));
+ok('§2.3k GREEN ARM — the MIXED default+named import is NOT caught (tdw09_p2c\'s shape)',
+  idOf(`import stripComments, { NAIVE_RETIRED } from './lib/stripComments.mjs';\nconst c = stripComments(x);\n${READ_PARSE}`),
+  'the walk lost the default binding to the named clause beside it — the first cut of this walk did exactly that and convicted two correct readers');
+ok('§2.3j THE SELF-CHECK — this bench strips through the home by its own test',
+  readers.some((r) => r.rel === SELF && r.viaHome),
+  'the file that declares the identity tables does not satisfy them');
+
+// ═════════════════════════════════════════════════════════════════════════════
 sec('§3 · THE INSTRUMENT IS NOT VACUOUS');
 
 // The stripper this bench holds is genuinely CALLED (F-07.99: a definition with
@@ -300,9 +571,15 @@ ok('§3.2 the same reader with a strip is NOT caught — the cell is not a blank
 
 // ═════════════════════════════════════════════════════════════════════════════
 console.log(`\n${fail ? 'RED' : 'GREEN'} — tdw_f0774_readers ${pass}/${pass + fail}`);
-if (offenders.length) {
-  console.log(`\nDEBT, NAMED: ${offenders.length} un-stripped code-subject readers. This bench is`);
-  console.log('carried in run-floor.sh\'s named base by LABELLED amendment and comes out of it');
-  console.log('the day the cure sitting lands. A red with a name is not noise.');
+if (offenders.length || offenders2.length) {
+  console.log('\nDEBT, NAMED — TWO CLASSES, ONE BENCH:');
+  console.log(`  §2.2  ${offenders.length} code-subject readers that STRIP NOT AT ALL.`);
+  console.log(`  §2.3  ${offenders2.length} that strip, but NOT THROUGH THE HOME`);
+  console.log(`        (${shadows.length} of them under the home's own NAME — F-39.41's §2).`);
+  console.log('This bench is carried in run-floor.sh\'s named base by LABELLED amendment and');
+  console.log('comes out of it the day BOTH cure sittings land. A red with a name is not noise.');
+  console.log('THE FLOOR GAINS NO LINE FROM §2.3 — this bench was already base, and the floor\'s');
+  console.log('unit is the bench. A reader who expects a line per name has mistaken a report');
+  console.log('for a set.');
 }
 process.exit(fail ? 1 : 0);

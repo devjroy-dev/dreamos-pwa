@@ -405,6 +405,40 @@ if [ "$CHECK" = "yes" ]; then
   # which is why this one carries its number, its ruling and its exit condition. If
   # this bench reds for any reason OTHER than the eighteen it names, that is a
   # finding and not this line.
+  #
+  # ── LABEL AMENDED — BENCH SITTING B-1 · THE INSTRUMENT AUDIT (CE-39, 2026-09-02) ──
+  # NO LINE JOINS OR LEAVES. This paragraph exists because the sentence directly
+  # above is a standing obligation and the bench now reds for a SECOND reason,
+  # which that sentence would otherwise class as a finding against this entry.
+  #
+  # WHAT CHANGED, first: the eighteen are NINETEEN. Re-derived at `c3b4f51` on a
+  # clean clone, `tdw_f0774_readers` §2.2 finds 19 un-stripped code-subject readers
+  # over 91 readers in a 105-file corpus, where the label above recorded 18 over
+  # 88. The set grew with the corpus; it is not a regression and nothing in it was
+  # cured. The count is stated here so the next seat diffs against a number that
+  # was actually measured rather than one inherited from a different tip.
+  #
+  # WHAT CHANGED, second, and this is the amendment's substance: §2.3 IS NEW, AND
+  # IT REDS. F-39.41 — §2.2 tests the PRESENCE of stripping, and its `one-home`
+  # shape tests a NAME (`/stripComments/`), so a reader stripping with
+  # `NAIVE_RETIRED` imported from a path containing the word read as compliant.
+  # `b40_worklist_shell_bench.js` did exactly that while F-39.39 was doing live
+  # damage there, and never joined the debt list. §2.3 asks the identity question
+  # the name-match could not: A READER THAT STRIPS, STRIPS THROUGH THE ONE HOME.
+  #
+  # It names THIRTY-SEVEN, in two tiers, and the first tier is why this could not
+  # wait: FOUR readers define a PRIVATE FUNCTION NAMED `stripComments` whose body
+  # is the retired naive rule — tdw09_p2_doors, tdw15_p3_moments, tdw15_p3_pulse,
+  # tdw15_p3_daystogo. The remaining thirty-three hand-roll without an import.
+  # Two declared exceptions stand, each argued at its own site and asserted live
+  # by §2.3a. Ten dream-os shadows are FILED (F-39.45), not carried here.
+  #
+  # THE FLOOR GAINS NOTHING BY IT — this bench was already base, the floor's unit
+  # is the bench, and thirty-seven findings are a REPORT and not a set. The exit
+  # condition is unchanged in kind and now has two halves: this label comes out
+  # when BOTH cure sittings land, the §2.2 one chartered at CE-38 relay #2 and the
+  # §2.3 one owed by F-39.41. Until then, a red from §2.2 or §2.3 is THIS LINE; a
+  # red from §1, §2.1, §2.3a, §2.3b, §2.3e-k or §3 is a finding and is not.
   printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
   if diff /tmp/base.txt /tmp/floor.txt; then
     echo "FLOOR = NAMED BASE, no delta"
