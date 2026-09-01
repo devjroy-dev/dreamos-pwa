@@ -1,37 +1,45 @@
 "use client";
-// app/w/team/page.tsx — TEAM, INSIDE THE SHELL. §4-4, batch ② of the seven.
+// app/w/team/page.tsx — TEAM, INSIDE THE SHELL. §4-4 batch ②; BODY CROSSED AT 2b-2.
 //
-// ── WHAT CROSSED ────────────────────────────────────────────────────────────
-// THE STRUCTURE. This route is a child of `app/w/layout.tsx`, so tapping the Team tile
-// mounts no second layout, no second masthead, no second medallion, no second nav and no
-// second session resolve. That is the whole of F-38.1 for this surface.
+// ── WHAT CROSSED, AND WHEN ──────────────────────────────────────────────────
+// THE STRUCTURE crossed at §4-4: this route is a child of `app/w/layout.tsx`, so
+// tapping the Team tile mounts no second layout, no second masthead, no second
+// medallion, no second nav and no second session resolve.
 //
-// THE BODY DID NOT, AND THAT IS R-38.12 RATHER THAN AN OMISSION. `TeamHubScreen` is the
-// SAME module the /vendor fallback renders — imported, never copied — and it reads the same
-// `STUDIO_ITEMS` the Studio page reads, so the founder's three rows still exist once.
+// THE BODY CROSSED AT CE-39 2b-2, arm D (a). It did not at §4-4, and the
+// paragraph that stood here explained why — `TeamHubScreen` was the SAME module
+// the /vendor fallback rendered, imported and never copied, so the founder's
+// three rows existed once. That was true and it is now the past tense: the room
+// rendered a MENU whose every item unmounted the shell, and `TeamTabs` renders
+// the three lists here instead.
 //
-// ── ⚠ WHAT THIS ROOM IS, STATED PLAINLY BECAUSE IT IS UNUSUAL ─────────────
-// Every one of its three rows leaves the shell. `/vendor/studio/team`, `/vendor/studio/
-// tasks` and `/vendor/studio/team-payments` are carried Studio surfaces with no registry
-// entry and no crossing chartered this block, so this is a ROOM OF DECLARED DOORS: the
-// structure crosses, the destinations do not, and the vendor who taps one gets the old
-// shell back until those surfaces cross at their own block or die at Phase 7.
+// ⚠ `TeamHubScreen` DID NOT DIE AND IS NOT ORPHANED. `app/vendor/team-hub/
+// page.tsx` still mounts it and is byte-untouched by ruling; the /vendor
+// fallback keeps the row menu until 2c-Studio takes the question up with its
+// verbs. `C58` reads BOTH readers for exactly this reason.
 //
-// That is not a defect hidden inside a crossing — it is the ledger doing its job. All three
-// are named in `INTERIM_VENDOR_LINKS` with their source line, ruled in advance at the
-// survey rather than declared afterwards, and the count in `wl_audit`'s R-38.1 line is what
-// tells the chair when they retire.
+// ── ⚠ WHAT THIS ROOM STILL IS ──────────────────────────────────────────────
+// A READ. Every write still leaves the shell: the `+` on each tab and every edit
+// path route to `/vendor/studio/{team,tasks,team-payments}` — the same three
+// hrefs `INTERIM_VENDOR_LINKS` has counted since §4-4, with their source lines.
+// The set does not grow at this crossing; only who points at the three entries
+// changes. F-39.30 is OPEN-AS-NARROWED and card ⑥ carries the sentence.
 //
-// ── THE DECLARED GAP ───────────────────────────────────────────────────────
-// The body carries the rooms' older type register and F-38.22's colour literals. Excluded
-// from the render arm's tuple cell by construction; priced, not swept.
+// ── THE DECLARED GAP THAT CLOSED ───────────────────────────────────────────
+// The line here used to read 「the body carries the rooms' older type register
+// and F-38.22's colour literals — priced, not swept」. That was a statement
+// about `TeamHubScreen`, which this route no longer renders. `TeamTabs` reads
+// `lib/worklist/theme.ts` through the shell's scope and states no colour and no
+// type size of its own, so the gap does not travel with the crossing. The
+// sentence retires with the body it described (retire-with-the-reader, applied
+// to a comment exactly as to code).
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { RoomBody } from '@/components/worklist/RoomBody';
 import { COPY } from '@/lib/worklist/copy';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { TeamHubScreen } from '@/app/vendor/team-hub/screen';
+import { TeamTabs } from '@/components/worklist/TeamTabs';
 
 export default function ShellTeamPage() {
   const router = useRouter();
@@ -41,7 +49,7 @@ export default function ShellTeamPage() {
 
   return (
     <WorklistShell title={COPY.teamTitle}>
-      <RoomBody><TeamHubScreen /></RoomBody>
+      <RoomBody><TeamTabs /></RoomBody>
     </WorklistShell>
   );
 }

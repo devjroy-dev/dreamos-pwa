@@ -463,6 +463,49 @@ export const COPY = {
   // retires inside the shell for exactly that reason — two names for one room, stacked.
   // The /vendor fallback keeps 「Team Hub」, because there nothing else names the surface.
   teamTitle:       'Team',
+  // ── CE-39 · 2b-2 · arm D (a) · THE TEAM ROOM'S THREE TABS ────────────────
+  // Six new bytes, shipped AS AUTHORED under founder delegation; all six were
+  // picked at the D-1 studio-rooms mock on 2026-08-29 and are the frames' own
+  // words, transcribed rather than invented (docs/mocks/studio-rooms-mock.html,
+  // frames C2-team / C2-tasks / C2-pay).
+  //
+  // ⚠ TWO WORDS THIS ROOM NEEDS ARE NOT MINTED HERE, AND THAT IS THE POINT.
+  // `Due` is `todayDuePrefix` and `Done today` is `todayDoneHead`, both already
+  // in this register for the Today cards. The vendor reads Today and Team in the
+  // same minute; two homes for one word is how the two surfaces start
+  // disagreeing about a word neither of them owns.
+  teamTabTeam:     'Team',
+  teamTabTasks:    'Tasks',
+  teamTabPayments: 'Payments',
+  teamSecMembers:  'Members',
+  teamSecOpen:     'Open',
+  teamSecUnpaid:   'Unpaid',
+  teamSecPaid:     'Paid',
+  // ── THE THREE BYTES THE FRAMES CARRY THAT THE RULING'S SIX DID NOT NAME ───
+  // `Unassigned` and `Completed` are in the C2-tasks frame VERBATIM and ship on
+  // its ratification, not on an executor's judgement — the BooksBody eleventh-
+  // byte precedent cuts the other way here: that one was INVENTED by the seat
+  // and was rightly withheld; these two were picked with the frame.
+  //
+  // `Unassigned` also appears at app/vendor/studio/tasks/page.tsx:214 as a
+  // <select> option in the OLD tree. That is a DIFFERENT byte on a different
+  // surface with a different job (a form's null choice, not a row's detail), it
+  // is untouched by ruling, and it retires with app/vendor/layout.tsx at
+  // Phase 7. Named here so the next reader does not read one word in two trees
+  // as one byte in two homes.
+  teamUnassigned:      'Unassigned',
+  teamCompletedPrefix: 'Completed',
+  // The `+`'s accessible name is composed: the tab's label, then this. A
+  // floating control named 「add」 tells a screen reader nothing about which of
+  // three lists it is about to leave the shell for.
+  teamAddSuffix:   'add',
+  // The three empty states and the one failure state. Each says what is absent
+  // rather than what went wrong, except the failure, which says neither and
+  // offers no retry — this room mounts no verbs, so it has nothing to retry.
+  teamEmptyMembers:  'No team members yet.',
+  teamEmptyTasks:    'No tasks yet.',
+  teamEmptyPayments: 'No team payments yet.',
+  teamFailed:        'Could not load this list.',
   contractsTitle:  'Contracts',
   tdsTitle:        'TDS',
   // §4-4 batch ③. The tile has read 「Collab」 since the registry was written and the masthead

@@ -1,0 +1,33 @@
+# scripts/floor-manifest-ce39-2b2.txt
+# BASE bd60ac2 (worklist; re-derived fetch-first at the cut — the guard decides).
+# Sibling dream-os 4918275 (band 4).
+#
+# CE-39 ROAD STEP 2b · 2b-2 · THE TEAM ROOM'S BODY CROSSES.
+#   arm D (a)  /w/team hosts Team · Tasks · Payments as lists, to the D-1 C2
+#              frames. One Fab per tab, navigating to the three /vendor/studio/*
+#              hrefs already declared in INTERIM_VENDOR_LINKS (the set does not
+#              grow; only who points at it). F-39.30 OPEN-AS-NARROWED.
+#   F-2b2.1    the Team row carries NO membership state word. The door filters
+#              .eq('active', true) unconditionally, so Active/Inactive would be a
+#              two-valued render over a one-valued wire. Founder arm (a).
+#   C58        site list 5 -> 6 for the body swap; the isPrestige full-tree sweep
+#              and the person-name scrub survive verbatim; both TeamHubScreen
+#              readers kept.
+#   C83        F-39.26's OWED both-ways cell — the door 2b-1 wired and did not
+#              prove. 2b seals here.
+#   C80/C82    the state-word absence; the tabs are a read and the + rides the
+#              one FAB seat.
+#   C81        tools/base_guard.sh byte-identical across the pair (REFUSED, not
+#              FAIL, on an absent sibling).
+#   stale ink  app/w/expenses/page.tsx's plane paragraph named fetchLedger for six
+#              days after fetchExpenses crossed at 2c. Found by the F-2b2.2 sweep
+#              looking for something else.
+#
+# FILES
+components/worklist/TeamTabs.tsx
+app/w/team/page.tsx
+app/w/expenses/page.tsx
+lib/worklist/copy.ts
+scripts/b40_worklist_shell_bench.js
+tools/base_guard.sh
+scripts/floor-manifest-ce39-2b2.txt

@@ -2055,12 +2055,29 @@ cell('C48 the Settings signposts render words and go somewhere (F-38.p10, F-39.4
 //    any one of the three studio pages → red.
 cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (R-39.7)', () => {
   const bad = [];
+  // ── AMENDED AT CE-39 2b-2 · THE SITE LIST MOVES WITH THE BODY ─────────────
+  // `app/w/team/page.tsx` stopped mounting `TeamHubScreen` at arm D (a) and now
+  // mounts `components/worklist/TeamTabs.tsx`. The ROUTE stays on this list —
+  // it is still a Studio surface and could still grow a gate — and the new BODY
+  // joins it, because a gate restored in the body would otherwise sit outside
+  // every site this cell reads.
+  //
+  // ⚠ `app/vendor/team-hub/screen.tsx` STAYS, and that is the amendment's whole
+  // point. `TeamHubScreen` keeps BOTH readers: the /vendor fallback still mounts
+  // it and is byte-untouched until 2c-Studio. Dropping it here because the shell
+  // stopped reading it would leave the fallback's gate unwatched on the exact
+  // sitting that stopped looking at it.
+  //
+  // COUNT PRESERVED 1:1 IS NOT CLAIMED — the list GROWS by one, from five sites
+  // to six, and the movement is stated rather than a number made to hold
+  // (R-38.11 as amended). RETIRE-WITH-THE-READER does not fire: nothing left.
   const sites = [
     'app/vendor/team-hub/screen.tsx',
     'app/vendor/studio/team/page.tsx',
     'app/vendor/studio/tasks/page.tsx',
     'app/vendor/studio/team-payments/page.tsx',
     'app/w/team/page.tsx',
+    'components/worklist/TeamTabs.tsx',
   ];
   for (const f of sites) {
     const src = strip(read(f));
@@ -2655,6 +2672,163 @@ cell('C79 the register renders D-1 B13\u2019s particular and sums nothing (F-39.
   }
   return bad.length ? bad.join(' | ') : null;
   // RED MUTATION: drop `p.category` from particularOf → red.
+});
+
+
+// ══ CE-39 · ROAD STEP 2b · 2b-2 ══════════════════════════════════════════════
+// Four cells. C80 and C82 are the arm's own; C81 crosses the repo boundary and
+// says so; C83 is F-39.26's OWED BOTH-WAYS CELL, which 2b-1 shipped the wiring
+// for and deferred the proof of — 「the wiring ships now; the seal does not」.
+
+// ── C83 · THE TODAY DOOR HAS CALLERS, AND THE ABSENCE IS PROVEN BOTH WAYS ────
+//    F-39.26: `refreshToday()` existed, was exported, and its doc read IN THE
+//    PRESENT TENSE 「the verbs call this after a write commits」 — with ZERO
+//    callers in either repo. `pending` is module-scope, so a fresh mount of
+//    `useTodayFeed` awaited the same settled promise and the vendor read the
+//    state she had just changed.
+//
+//    THE CELL COUNTS CALLERS AT BOTH DOORS, because the two arms catch
+//    different diseases and either alone passes over the other:
+//      · NAVIGATION + FOCUS in WorklistShell. Focus is the half navigation
+//        cannot see — a vendor who answers WhatsApp and comes back has
+//        navigated nowhere and her reading is as stale as if she had.
+//      · THE MONEY WRITES in vendor.ts, after commit. That covers a write and a
+//        read on ONE route, which navigation cannot see either.
+//
+//    ⚠ IT ASSERTS A FLOOR, NEVER AN EXACT COUNT. 「Assert the artifact, never a
+//    predicted count」: a seventh money write arriving next sitting must not red
+//    a cell about staleness. The floor is what the arc PROVED it needs, and the
+//    named sites are what a reader checks against.
+//    RED MUTATION (production code, not setup): delete
+//    `useEffect(() => { refreshToday(); }, [pathname]);` from WorklistShell, or
+//    drop the `refreshToday()` line from any single money write in vendor.ts.
+cell('C83 the Today memo is dropped on navigation, on focus, and after every money write (F-39.26)', () => {
+  const bad = [];
+  const feed = strip(read('lib/worklist/feed.ts'));
+  if (!/export function refreshToday\(\): void \{ pending = null; \}/.test(feed))
+    bad.push('refreshToday no longer drops the module-scope memo — the door is the cure, not the export');
+
+  // ── THE DOC, WHICH WAS THE DEFECT ────────────────────────────────────────
+  // The sentence that shipped for a whole arc was a PROMISE wearing a
+  // DESCRIPTION. A doc claiming callers is asserted against the callers.
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const nav = /useEffect\(\(\)\s*=>\s*\{\s*refreshToday\(\);\s*\}\s*,\s*\[pathname\]\)/.test(shell);
+  if (!nav) bad.push('WorklistShell does not drop the memo on navigation');
+  const focus = /addEventListener\(\s*['"]focus['"]/.test(shell) && /document\.hidden/.test(shell)
+    && /refreshToday\(\)/.test(shell);
+  if (!focus) bad.push('WorklistShell does not drop the memo on return-to-focus — the half navigation cannot see');
+
+  const api = strip(read('lib/vendor/api/vendor.ts'));
+  const writes = (api.match(/refreshToday\(\)/g) || []).length;
+  if (writes < 7) bad.push('only ' + writes + ' money writes drop the memo; seven were wired at 2b-1 '
+    + '(create/update invoice, record payment, cancel, create/update/delete expense)');
+
+  // NO VERB-SPECIFIC HACK. One door in, one door out: a verb patching the cached
+  // body would be a SECOND derivation of one reading, which is the disease the
+  // memo was built to cure.
+  if (/pending\s*=\s*(?!null)/.test(api))
+    bad.push('vendor.ts writes the memo directly instead of dropping it through the one door');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C80 · THE TEAM ROW CARRIES NO STATE WORD  [F-2b2.1, founder arm (a)] ────
+//    The charter's contract read `name · role · active → Active/Inactive`,
+//    derived from the COLUMN: `team_members.active` is `boolean NOT NULL`,
+//    two-valued, no CHECK enumerating a third state. The column is two-valued.
+//    THE DOOR IS NOT — `src/api/vendor/studio/team.js:48` filters
+//    `.eq('active', true)` unconditionally, reads no `req.query`, and accepts no
+//    parameter that would widen it. Every row this body can receive has
+//    `active === true`, so a two-valued render is a distinction the estate
+//    cannot make, rendering one value forever.
+//
+//    c-39.39 is the chair's: arm (i) was ruled at the column, not at the door.
+//    It is c-2c.2 one layer up — that swept the TABLE and not the CALLER; this
+//    swept the COLUMN and not the DOOR.
+//
+//    ⚠ IT ASSERTS THE ABSENCE OF THE WORD, NOT THE ABSENCE OF THE FIELD, and
+//    the difference is the cell's whole value. A later seat re-deriving
+//    `active` for a filter, a sort or a count is doing something this ruling
+//    never forbade; a seat PRINTING a state word on the row is undoing it.
+//    RED MUTATION: add `{m.active ? 'Active' : 'Inactive'}` to the Team row in
+//    components/worklist/TeamTabs.tsx → red.
+cell('C80 the Team tab renders no membership state word (F-2b2.1)', () => {
+  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const bad = [];
+  for (const w of ['Active', 'Inactive', 'Invited']) {
+    if (new RegExp("['\"]" + w + "['\"]").test(src)) bad.push('TeamTabs spells the state word 「' + w + '」');
+  }
+  const copy = strip(read('lib/worklist/copy.ts'));
+  for (const w of ['Active', 'Inactive', 'Invited']) {
+    if (new RegExp("team[A-Za-z]*:\\s*'" + w + "'").test(copy))
+      bad.push('the register mints a team state byte 「' + w + '」');
+  }
+  // The door's own filter is the REASON, so the reason is asserted too: if a
+  // later sitting widens the door, this cell should be RE-RULED rather than
+  // silently continuing to forbid a word that has become honest.
+  const door = strip(read('../dream-os/src/api/vendor/studio/team.js'));
+  if (!/\.eq\('active',\s*true\)/.test(door))
+    bad.push("the team door no longer filters .eq('active', true) — F-2b2.1's premise moved; re-rule C80 rather than loosen it");
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C82 · THE THREE TABS ARE A READ, AND THE + IS THE SHELL'S SEAT ──────────
+//    F-39.30 OPEN-AS-NARROWED. The room's structure and body are both in the
+//    shell now; every WRITE still leaves it, declared rather than cured. Three
+//    things are asserted and each catches a different way the declaration rots:
+//      (1) the three destinations are the three ALREADY in INTERIM_VENDOR_LINKS
+//          — the set does not grow at this crossing, only who points at it;
+//      (2) the body mounts `Fab` and draws no seat of its own (C49 walks the
+//          graph for the geometry; this asserts the IMPORT, so a seat added
+//          without geometry — a plain button in the corner — is caught here);
+//      (3) the body mounts no write door: no POST/PATCH/DELETE client and no
+//          form. A verb appearing here is 2c-Studio's work arriving early and
+//          unruled.
+//    RED MUTATION: import `createTask` into TeamTabs.tsx and call it → red.
+cell('C82 the Team tabs read only, and the + rides the one FAB seat (F-39.30)', () => {
+  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const bad = [];
+  const rooms = strip(read('lib/worklist/rooms.ts'));
+  for (const href of ['/vendor/studio/team', '/vendor/studio/tasks', '/vendor/studio/team-payments']) {
+    if (!src.includes("'" + href + "'")) bad.push('the tabs no longer route ' + href);
+    if (!rooms.includes("'" + href + "'")) bad.push(href + ' left INTERIM_VENDOR_LINKS while the tabs still push it');
+  }
+  // Any OTHER /vendor destination would be a fourth declared door nobody ruled.
+  for (const m of src.matchAll(/'(\/vendor\/[^']*)'/g)) {
+    if (!['/vendor/studio/team', '/vendor/studio/tasks', '/vendor/studio/team-payments'].includes(m[1]))
+      bad.push('the tabs push an undeclared exit ' + m[1]);
+  }
+  if (!/from '@\/components\/worklist\/Fab'/.test(src)) bad.push('the tabs do not mount the shell FAB — C49 owns the seat');
+  for (const verb of ['createTask', 'updateTask', 'addTeamMember', 'updateTeamMember', 'deleteTeamMember', 'logPayment']) {
+    if (new RegExp('\\b' + verb + '\\b').test(src)) bad.push('the tabs mount the write door ' + verb + ' — this room is a read');
+  }
+  if (/<form|<input|<textarea/.test(src)) bad.push('the tabs mount a form — this room is a read');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+// ── C81 · base_guard.sh IS BYTE-IDENTICAL ACROSS THE PAIR  [R-38.20] ────────
+//    The file's own paragraph says the two copies are byte-identical because a
+//    guard that differs between the repos it guards has two behaviours and one
+//    name. At bd60ac2/4918275 that paragraph was FALSE, and it was false BY
+//    ITSELF: the dream-os copy carried the claim and the pwa copy did not, so
+//    the sentence asserting the equality was the only thing breaking it.
+//
+//    ⚠ IT NEEDS THE SIBLING, AND IT REFUSES RATHER THAN FAILS WITHOUT IT.
+//    R-38.20b: a missing sibling has faked findings in both directions in this
+//    estate. A cell that reds on an absent tree teaches the reader that reds are
+//    negotiable; a cell that says REFUSED names the precondition instead. The
+//    floor is run sibling-full, so a REFUSED here is a floor that was not run
+//    the way the law says to run it.
+cell('C81 tools/base_guard.sh is byte-identical in both repos (R-38.20)', () => {
+  const here = path.join(ROOT, 'tools/base_guard.sh');
+  const there = path.join(ROOT, '../dream-os/tools/base_guard.sh');
+  if (!fs.existsSync(there))
+    return 'REFUSED — the dream-os sibling is absent, so equality cannot be read. '
+         + 'Clone it beside this repo and re-run (R-38.20b); this is not a FAIL.';
+  const a = fs.readFileSync(here);
+  const b = fs.readFileSync(there);
+  if (a.equals(b)) return null;
+  return 'base_guard.sh differs across the pair — ' + a.length + ' bytes here, ' + b.length
+       + ' there. A guard with two behaviours and one name is the thing this file forbids in its own header.';
 });
 
 
