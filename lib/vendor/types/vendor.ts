@@ -435,10 +435,33 @@ export interface RecordPaymentResponse {
 }
 
 // ── GET /api/v2/vendor/invoices/:invoiceId/pdf ────────────────────────────
+// ── F-2c.w7 · THE DOOR SAYS `url`, THIS TYPE SAID `pdf_url` ────────────────
+// The PDF was never broken. `src/api/vendor/money.js:584` generated it, uploaded
+// it, signed it and stamped `pdf_url` on the invoice — then answered
+// `okRes(res, { url, invoice_number })`. The caller read `res.pdf_url`, got
+// `undefined`, and fell through to an error toast on every single tap. The
+// founder's Network tab is what settled it: 200, 0.5 kB — a JSON envelope, not a
+// failure and not a PDF.
+//
+// ⚠ `url` IS THE WIRE'S NAME AND IS REQUIRED; `pdf_url` IS THE FALLBACK AND IS
+// OPTIONAL. That asymmetry is the fix's whole shape — the type now describes the
+// door that exists, and keeps room for the one the estate wants.
+//
+// ⚠ RETIREMENT CONDITION, STATED (conditional-withheld law): the fallback
+// retires when the door returns `pdf_url`. That is the dream-os rename sitting's
+// closing step — delete `pdf_url` from this interface and the `??` at
+// `fetchInvoicePdf`, in the same commit that ships the server rename, never
+// before it. An old pwa meeting a new server is why they may not be split.
+//
+// `expires_in` is OPTIONAL because this door does not send it. The money-plane
+// route returns `{ url, invoice_number }` and nothing else; declaring it
+// required was the same class of error one field over, and nothing reads it.
 export interface InvoicePdfResponse {
   ok: true;
-  pdf_url:    string;
-  expires_in: number;
+  url:             string;
+  pdf_url?:        string;
+  invoice_number?: string;
+  expires_in?:     number;
 }
 
 // ── GET /api/v2/vendor/expenses/:vendorId ─────────────────────────────────

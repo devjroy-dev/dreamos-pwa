@@ -3118,6 +3118,49 @@ cell('C93 the mark-paid summary names the person, never the sheet (F-2c.w6)', ()
   return bad.length ? bad.join(' | ') : null;
 });
 
+// ── C94 · THE PDF LINK IS NORMALISED AT THE DOOR  [F-2c.w7] ────────────────
+//    THE DEFECT, AND IT MADE A WORKING FEATURE LOOK BROKEN FOR THE WHOLE ARC:
+//    `src/api/vendor/money.js:584` generates the PDF, uploads it, signs it and
+//    stamps `pdf_url` on the invoice — then answers `{ url, invoice_number }`.
+//    The client read `res.pdf_url`, got `undefined`, skipped the ok-true branch,
+//    found no `error` either, and reported a failure on every tap. The founder's
+//    Network tab settled it: 200, 0.5 kB — a JSON envelope, not a failure and
+//    not a PDF.
+//
+//    ⚠ THE CELL GUARDS THE RETIREMENT AS WELL AS THE CURE. `pdf_url` is a
+//    FALLBACK with a stated condition — it retires in the same commit that ships
+//    the dream-os rename, never before, because an old pwa meeting a new server
+//    is the gap the `??` exists to survive. So this cell asserts BOTH names are
+//    read; when the server is renamed, this cell is amended in that sitting.
+//
+//    ⚠ AND IT ASSERTS THE OK-WITH-NO-LINK ARM, which is F-2c.w7's mechanism
+//    rather than its symptom: a surface that cannot tell a missing FIELD from a
+//    failed GENERATION will always report the wrong one.
+//    RED MUTATION: drop `.url` from the coalesce, or let an ok-with-no-link
+//    through as ok → red, one arm each.
+cell('C94 the PDF door normalises url/pdf_url, and an ok with no link is a failure (F-2c.w7)', () => {
+  const door = strip(read('lib/vendor/api/vendor.ts'));
+  const ty   = strip(read('lib/vendor/types/vendor.ts'));
+  const bad = [];
+  const at   = door.indexOf('export function fetchInvoicePdf');
+  const next = door.indexOf('export function', at + 10);
+  const sig  = at < 0 ? '' : door.slice(at, next < 0 ? undefined : next);
+  if (!/\.url \?\? \(r as InvoicePdfResponse\)\.pdf_url/.test(sig))
+    bad.push("the door no longer reads the wire's own `url` — every PDF tap would report a failure the server never sent");
+  if (!/if \(!link\) return \{ ok: false \}/.test(sig))
+    bad.push('an ok-true with no link passes through as success — the caller would open an undefined href');
+  if (!/pdf_url: link/.test(sig))
+    bad.push('the link is not republished under one name — the two SliceShell call sites would each pick a spelling');
+  if (!/url:\s+string;/.test(ty)) bad.push("InvoicePdfResponse no longer declares the wire's `url`");
+  if (!/pdf_url\?:/.test(ty)) bad.push('the pdf_url fallback left the type before the dream-os rename shipped');
+  // THE CITED PATH. c-2c.s7: three durable comments named a route the caller
+  // never calls. A wrong path in a comment outlives the seat that wrote it.
+  for (const f of ['lib/worklist/copy.ts', 'components/vendor/slices/SliceShell.tsx'])
+    if (!read(f).includes('src/api/vendor/money.js:584'))
+      bad.push(f + ' does not name the real PDF door — c-2c.s7');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 // ── C90 · A HALF-LOADED PAYMENTS TAB IS A FAILED ONE  [F-2c.w2] ─────────────
 //    The tab makes TWO reads: `/by-wedding` for the eye (it alone carries the
 //    event date and the member's name) and the flat GET for the verbs (the raw
@@ -3205,6 +3248,16 @@ cell('C87 the invoice row carries a visible Mark paid, on one handler with the s
 
 // ── C88 · THE TWO PDF SENTENCES HAVE ONE HOME, AND ONE OF THEM STOPPED LYING ─
 //    F-2c.p10 as re-derived: `GET /:invoiceId/pdf` is SYNCHRONOUS — it generates
+//
+// ⚠ c-2c.s7 — THE ROUTE CITED HERE WAS WRONG, AND THE LESSON OUTLIVES IT.
+// This paragraph named `src/api/vendor/invoices.js:398`. THE CALLER NEVER
+// CALLS IT. `fetchInvoicePdf` composes `${moneyBase(v)}/invoices/${v}/${id}/pdf`
+// — the MONEY plane — so the door is `src/api/vendor/money.js:584`. The
+// conclusions above happened to hold of the real door too, which is luck and
+// not method: the actual defect (F-2c.w7, the door answering `url` where the
+// client read `pdf_url`) sat one field-name away and stayed invisible because
+// the reading was against the wrong file.
+// THE LAW: trace the URL the caller composes, never the route that looks right.
 //    and returns a URL or it errors. `pdf_pending` exists only on `POST /` and no
 //    reader in this repo consumes it. So 「PDF not ready yet — try again in a
 //    moment」 was the `??` fallback for an ok-false with no error, describing

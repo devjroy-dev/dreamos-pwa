@@ -776,9 +776,31 @@ export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse |
   // Crossed at 2c. TWO call sites read this — SliceShell.tsx:429 and :921 — and
   // the charter named one. A re-point that cured only the visible button would
   // have left the other on the binder plane.
+  // ── F-2c.w7 · THE LINK IS NORMALISED HERE, ONCE ──────────────────────────
+  // THE REAL DOOR IS `src/api/vendor/money.js:584` — the money plane — and it
+  // answers `{ url, invoice_number }`. Its `url` becomes `pdf_url` at this
+  // boundary so the two call sites in `SliceShell` read one name; a component
+  // asking 「url or pdf_url?」 is how a third spelling gets invented later.
+  //
+  // ⚠ THE FALLBACK RETIRES WHEN THE DOOR RETURNS `pdf_url`. Delete the `??`
+  // below and `pdf_url` from `InvoicePdfResponse`, in the same commit that ships
+  // the dream-os rename — never before it, because an old pwa meeting a new
+  // server is exactly the gap this shape exists to survive.
   return getJson<InvoicePdfResponse | ApiErr>(`${moneyBase(v)}/invoices/${v}/${invoiceId}/pdf`)
-    .then((r) => (('ok' in r) && r.ok ? r
-      : { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr));
+    .then((r) => {
+      if (!('ok' in r) || !r.ok) {
+        return { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr;
+      }
+      const link = (r as InvoicePdfResponse).url ?? (r as InvoicePdfResponse).pdf_url;
+      // AN OK WITH NO LINK IS A FAILURE, AND IT IS RETURNED AS ONE — carrying NO
+      // sentence. Falling through with an undefined href was F-2c.w7's whole
+      // mechanism: the surface could not tell a missing field from a failed
+      // generation. This module is read by BOTH trees and must not reach into
+      // the shell's register, so the caller's own `?? COPY.studioPdfFailed`
+      // supplies the words, exactly as it does for every other ok-false here.
+      if (!link) return { ok: false } as ApiErr;
+      return { ...(r as InvoicePdfResponse), pdf_url: link };
+    });
 }
 
 export function cancelInvoice(invoiceId: string) {

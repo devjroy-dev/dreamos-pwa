@@ -439,7 +439,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         // WHAT THIS SAID: 「PDF not ready yet — try again in a moment.」 That
         // described WAITING when what happened was FAILING, and it invented a
         // state this door cannot report: `GET /:invoiceId/pdf` is SYNCHRONOUS
-        // (`src/api/vendor/invoices.js:398`) — it generates and returns a URL or
+        // (`src/api/vendor/money.js:584` — the MONEY plane, which is the door
+        // `fetchInvoicePdf` actually composes; this comment named
+        // `src/api/vendor/invoices.js:398` and that route is never called from
+        // here, c-2c.s7) — it generates and returns a URL or
         // it errors. `pdf_pending` exists only on `POST /` at :249 and no reader
         // in this repo consumes it. So the sentence was the `??` fallback for an
         // ok-false carrying no error, telling the vendor to wait for something

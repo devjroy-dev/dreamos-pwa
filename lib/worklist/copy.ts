@@ -605,6 +605,16 @@ export const COPY = {
   // `studioPdfFailed` REPLACES 「PDF not ready yet — try again in a moment.」
   // That sentence invented a state the door cannot report: `GET /:invoiceId/pdf`
   // is SYNCHRONOUS — it generates or it errors, and `pdf_pending` exists only on
+  //
+  // ⚠ c-2c.s7 — THE ROUTE CITED HERE WAS WRONG, AND THE LESSON OUTLIVES IT.
+  // This paragraph named `src/api/vendor/invoices.js:398`. THE CALLER NEVER
+  // CALLS IT. `fetchInvoicePdf` composes `${moneyBase(v)}/invoices/${v}/${id}/pdf`
+  // — the MONEY plane — so the door is `src/api/vendor/money.js:584`. The
+  // conclusions above happened to hold of the real door too, which is luck and
+  // not method: the actual defect (F-2c.w7, the door answering `url` where the
+  // client read `pdf_url`) sat one field-name away and stayed invisible because
+  // the reading was against the wrong file.
+  // THE LAW: trace the URL the caller composes, never the route that looks right.
   // `POST /` where no pwa reader consumes it. The byte was the `??` fallback for
   // an ok-false carrying no error, so it described waiting when what happened
   // was failing. The founder's walk hit this door and the retry succeeded; the
