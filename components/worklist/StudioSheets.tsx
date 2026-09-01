@@ -46,6 +46,9 @@ import { confirmationWord, ASSIGNMENTS_ERROR_MSG } from '@/lib/vendor/assignment
 // them in `copy.ts` would be two homes for one word, mid-crossing.
 import { FUNCTION_LABEL, NO_WEDDING_OPTION } from '@/lib/vendor/settleWords';
 import { slotWord, hhmm } from '@/lib/vendor/slotWords';
+// F-2c.w4: the crew role's ONE HOME. What is stored is what is shown, and a
+// value this picker does not offer is carried rather than dropped.
+import { roleOptionsFor } from '@/lib/vendor/roleWords';
 
 // ── THE ENUMERATIONS ARE THE DOOR'S, TRANSCRIBED ONCE ──────────────────────
 // `ROLES` mirrors the option set the /vendor team page has always offered; the
@@ -68,17 +71,14 @@ import { slotWord, hhmm } from '@/lib/vendor/slotWords';
     TYPE, and the roster rows appended after it then do not fit. */
 export type Opt = { v: string; l: string };
 
-const ROLES: readonly Opt[] = [
-  { v: '',                l: COPY.studioNoRole },
-  { v: 'second_shooter',  l: 'Second shooter' },
-  { v: 'assistant',       l: 'Assistant' },
-  { v: 'editor',          l: 'Editor' },
-  { v: 'runner',          l: 'Runner' },
-  { v: 'videographer',    l: 'Videographer' },
-  { v: 'makeup_artist',   l: 'Makeup artist' },
-  { v: 'coordinator',     l: 'Coordinator' },
-  { v: 'other',           l: 'Other' },
-];
+// ⚠ THE LOCAL `ROLES` LIST IS RETIRED — F-2c.w4. It stored MACHINE TOKENS
+// (`second_shooter`) into a free-text column and offered no option for values it
+// did not know, so a member whose role was `Decor` opened as 「No role」 and lost
+// `Decor` on the next Save. Witnessed on the founder's walk, on a real row.
+// The vocabulary lives at `lib/vendor/roleWords.ts` and the options are built
+// PER MEMBER, because carrying the member's own value is the half that stops the
+// picker deleting it.
+
 const PRIORITIES: readonly Opt[] = [
   { v: 'low',    l: 'Low' },
   { v: 'normal', l: 'Normal' },
@@ -199,7 +199,7 @@ export function MemberSheet({
         <input className="wl-fi" value={draft.name} onChange={(e) => set('name')(e.target.value)} />
       </Field>
       <Field label={COPY.studioFieldRole}>
-        <Select value={draft.role} onChange={set('role')} options={ROLES} />
+        <Select value={draft.role} onChange={set('role')} options={roleOptionsFor(draft.role)} />
       </Field>
       <Field label={COPY.studioFieldPhone}>
         <input className="wl-fi" value={draft.phone} onChange={(e) => set('phone')(e.target.value)} />

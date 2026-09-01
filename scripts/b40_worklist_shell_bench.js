@@ -3013,6 +3013,60 @@ cell('C89 every studio sheet carries a head dismiss, and it is not beside Remove
   return bad.length ? bad.join(' | ') : null;
 });
 
+// ── C91 · THE ROLE PICKER CANNOT DELETE A ROLE  [F-2c.w4] ──────────────────
+//    THE DEFECT, WITNESSED ON A REAL ROW ON THE FOUNDER'S WALK, and the loss was
+//    actual rather than predicted: Rahul's role read `Decor`; the sheet's picker
+//    did not offer `Decor`, so the `<select>` fell through to the empty option
+//    and showed 「No role」; Save was pressed and `Decor` became `second_shooter`.
+//    A picker that silently drops a value it does not recognise deletes data on
+//    the next Save, quietly, under a success toast.
+//
+//    `public.team_members.role` is `text` with NO CHECK and the door passes it
+//    through untouched, so nothing below the surface ever agreed on a
+//    vocabulary — and two grew. THE RULE IS NOW ONE SENTENCE: what is stored is
+//    what is shown. The option's value IS its label.
+//
+//    THREE THINGS, and the third is the one that would have saved Rahul:
+//      (1) NO MACHINE TOKEN IS OFFERED. An option whose value carries an
+//          underscore is the retired vocabulary coming back.
+//      (2) NEITHER READER SPELLS THE VOCABULARY. The row and the sheet both go
+//          through `lib/vendor/roleWords.ts`; a local list is how the estate got
+//          two in the first place.
+//      (3) THE MEMBER'S OWN VALUE IS CARRIED. `roleOptionsFor` appends an
+//          unrecognised value as its own option. Without this the other two are
+//          cosmetic — the row would read correctly and the sheet would still eat
+//          the role on Save.
+//    RED MUTATION: point the sheet at `ROLE_OPTIONS` instead of
+//    `roleOptionsFor(draft.role)` → red on (3).
+cell('C91 the role picker shows words, not tokens, and cannot drop a value it does not know (F-2c.w4)', () => {
+  const home  = strip(read('lib/vendor/roleWords.ts'));
+  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
+  const tabs  = strip(read('components/worklist/TeamTabs.tsx'));
+  const bad = [];
+  // (1) every OFFERED value is a word. The legacy map is read-only and is
+  //     asserted separately, so its tokens do not trip this.
+  const offered = (home.match(/export const ROLE_OPTIONS[\s\S]*?\] as const;/) || [''])[0];
+  for (const m of offered.matchAll(/\{ v: '([^']*)'/g))
+    if (/_/.test(m[1])) bad.push('ROLE_OPTIONS offers the machine token ' + m[1] + ' — the retired vocabulary is back');
+  for (const m of offered.matchAll(/\{ v: '([^']*)',\s*l: '([^']*)' \}/g))
+    if (m[1] && m[1] !== m[2]) bad.push('the option ' + m[1] + ' stores something other than what it shows');
+  // (2) one home, both readers.
+  for (const [f, src, sym] of [['StudioSheets', sheet, 'roleOptionsFor'], ['TeamTabs', tabs, 'roleLabel']]) {
+    if (!new RegExp(sym + "[\\s\\S]*?from '@/lib/vendor/roleWords'").test(src))
+      bad.push(f + ' does not read ' + sym + ' from the role home');
+    if (/second_shooter|makeup_artist/.test(src))
+      bad.push(f + ' spells a machine token — the vocabulary belongs to roleWords.ts alone');
+  }
+  // (3) THE ONE THAT MATTERS. An unrecognised value must be carried.
+  if (!/roleOptionsFor\(draft\.role\)/.test(sheet))
+    bad.push("the picker is not built per member — a role it does not offer would be dropped on Save, which is exactly how `Decor` was lost");
+  if (!/return \[\.\.\.ROLE_OPTIONS, \{ v: current, l: current \}\];/.test(home))
+    bad.push('roleOptionsFor no longer appends the member\'s own value');
+  if (!/LEGACY_TOKENS\[raw\] \?\? raw/.test(home))
+    bad.push('roleLabel no longer passes an unknown value through — free text would be blanked on the row');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 // ── C90 · A HALF-LOADED PAYMENTS TAB IS A FAILED ONE  [F-2c.w2] ─────────────
 //    The tab makes TWO reads: `/by-wedding` for the eye (it alone carries the
 //    event date and the member's name) and the flat GET for the verbs (the raw

@@ -78,6 +78,7 @@ import {
 } from '@/lib/vendor/api/payments';
 import { fetchMemberAssignments, type MemberAssignment } from '@/lib/vendor/api/roster';
 import { NO_WEDDING_OPTION, suggestionSentence, NO_RATE_ON_FILE } from '@/lib/vendor/settleWords';
+import { roleLabel } from '@/lib/vendor/roleWords';
 import type { TeamMember, TeamTask, TeamPayment } from '@/lib/vendor/types/vendor';
 import {
   MemberSheet, TaskSheet, PaySheet, SettleSheet, CancelPaymentConfirm, SHEET_CSS,
@@ -366,7 +367,11 @@ export function TeamTabs({ vendorName }: { vendorName: string | null }) {
   function openMember(m: TeamMember | null) {
     setSheet({ k: 'member', editing: m });
     setMemberDraft(m
-      ? { name: m.name, role: m.role ?? '', phone: m.phone ?? '',
+      // NORMALISED ON THE WAY IN (F-2c.w4). A legacy token opens as its word, so
+      // saving an untouched sheet UPGRADES the row rather than rewriting the
+      // token — and the member's own free text arrives intact, because
+      // `roleLabel` passes through anything it does not recognise.
+      ? { name: m.name, role: roleLabel(m.role), phone: m.phone ?? '',
           rate: m.daily_rate_inr?.toString() ?? '', notes: m.notes ?? '' }
       : EMPTY_MEMBER);
     if (!m) { setAssignments([]); setAssignState('ready'); return; }
@@ -536,7 +541,10 @@ function TeamList({ rows, state, onOpen }: {
   return (
     <>
       <Section label={COPY.teamSecMembers} count={rows.length} />
-      {rows.map((m) => <Row key={m.id} primary={m.name} detail={m.role ?? ''} onClick={() => onOpen(m)} />)}
+      {/* THE ROW PRINTS THE WORD, NEVER THE TOKEN. `second_shooter` on a
+          vendor-facing row was F-2c.w4's visible half; the destructive half was
+          the picker beneath it. */}
+      {rows.map((m) => <Row key={m.id} primary={m.name} detail={roleLabel(m.role)} onClick={() => onOpen(m)} />)}
     </>
   );
 }
