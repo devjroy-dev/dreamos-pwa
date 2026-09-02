@@ -776,22 +776,28 @@ export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse |
   // Crossed at 2c. TWO call sites read this — SliceShell.tsx:429 and :921 — and
   // the charter named one. A re-point that cured only the visible button would
   // have left the other on the binder plane.
-  // ── F-2c.w7 · THE LINK IS NORMALISED HERE, ONCE ──────────────────────────
-  // THE REAL DOOR IS `src/api/vendor/money.js:584` — the money plane — and it
-  // answers `{ url, invoice_number }`. Its `url` becomes `pdf_url` at this
-  // boundary so the two call sites in `SliceShell` read one name; a component
-  // asking 「url or pdf_url?」 is how a third spelling gets invented later.
+  // ── F-2c.w7 · CLOSED · THE DOOR AND THE CLIENT SPELL IT ONCE ─────────────
+  // THE REAL DOOR IS `src/api/vendor/money.js` (symbol: the PDF arm) — the money
+  // plane — and it answers `{ pdf_url, invoice_number }`. It used to answer
+  // `url`, alone in the whole estate, and this boundary carried a
+  // `url ?? pdf_url` normaliser so the two `SliceShell` call sites could read
+  // one name.
   //
-  // ⚠ THE FALLBACK RETIRES WHEN THE DOOR RETURNS `pdf_url`. Delete the `??`
-  // below and `pdf_url` from `InvoicePdfResponse`, in the same commit that ships
-  // the dream-os rename — never before it, because an old pwa meeting a new
-  // server is exactly the gap this shape exists to survive.
+  // THE NORMALISER IS GONE BECAUSE THERE IS NOTHING LEFT TO NORMALISE. Its own
+  // retirement condition was 「when the door returns `pdf_url`」; the door does,
+  // shipped ahead of this half in the same pair. Keeping a `??` against a
+  // spelling no server sends is how a retired name stays alive in a reader's
+  // head and gets re-invented as a third one later.
+  //
+  // WHAT DOES NOT GO IS THE GUARD BELOW. An ok carrying no link is still a
+  // failure and is still returned as one — that was never about the field's
+  // name.
   return getJson<InvoicePdfResponse | ApiErr>(`${moneyBase(v)}/invoices/${v}/${invoiceId}/pdf`)
     .then((r) => {
       if (!('ok' in r) || !r.ok) {
         return { ok: false, error: (r as ApiErr).error || 'Invoice not found.' } as ApiErr;
       }
-      const link = (r as InvoicePdfResponse).url ?? (r as InvoicePdfResponse).pdf_url;
+      const link = (r as InvoicePdfResponse).pdf_url;
       // AN OK WITH NO LINK IS A FAILURE, AND IT IS RETURNED AS ONE — carrying NO
       // sentence. Falling through with an undefined href was F-2c.w7's whole
       // mechanism: the surface could not tell a missing field from a failed
@@ -799,7 +805,11 @@ export function fetchInvoicePdf(invoiceId: string): Promise<InvoicePdfResponse |
       // the shell's register, so the caller's own `?? COPY.studioPdfFailed`
       // supplies the words, exactly as it does for every other ok-false here.
       if (!link) return { ok: false } as ApiErr;
-      return { ...(r as InvoicePdfResponse), pdf_url: link };
+      // THE RESPONSE GOES BACK AS IT CAME. `{ ...r, pdf_url: link }` was the
+      // normaliser writing the resolved name onto the body; with one spelling
+      // on the wire that line assigns the field to itself, and a no-op that
+      // looks like a transformation is the next reader's wasted minute.
+      return r as InvoicePdfResponse;
     });
 }
 

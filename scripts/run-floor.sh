@@ -144,6 +144,43 @@ if [ -n "$MANIFEST" ]; then
   export TDW_FLOOR_DELIVERY_MANIFEST
 fi
 
+# ── F-39.48 · THE UNINSTALLED-DEVDEPENDENCY REFUSAL ──────────────────────────
+# PORTED FROM THE dream-os RUNNER'S BUILD-ARTIFACT REFUSAL (symbol: the
+# `src/engine/dist` STOP), because it is the same disease with a different
+# missing thing.
+#
+# THE DEFECT. `scripts/b41_theme_bleed_fixture.js` requires `puppeteer-core` and
+# `@sparticuz/chromium` at MODULE TOP LEVEL — before any handler, before any of
+# its own REFUSED paths can be reached. On a tree where those devDependencies are
+# not installed, node throws MODULE_NOT_FOUND, the process exits non-zero, and
+# the loop below records `RED: b41_theme_bleed_fixture` — a line the reader
+# cannot tell from a real theme bleed.
+#
+# ⚠ THE BENCH CANNOT CURE THIS ITSELF, which is why the refusal is here. Its own
+# REFUSED strings are unreachable when the require that precedes them is what
+# throws. A guard inside the file would have to run before its own imports.
+#
+# WITNESSED, NOT SUPPOSED: this is the pwa twin of F-39.p2's shape in dream-os,
+# where a fresh clone read 27 too many REDs and every one looked like a defect.
+# The tell is the same — a one-directional delta of pure additions.
+#
+# NAMED, NON-ZERO, AND BEFORE THE FLOOR. Non-zero because a floor that could not
+# be measured must not be reported as measured; before, because the point is to
+# refuse rather than to explain 24 reds afterwards.
+MISSING_DEV=""
+for m in puppeteer-core @sparticuz/chromium; do
+  [ -d "node_modules/${m}" ] || MISSING_DEV="${MISSING_DEV} ${m}"
+done
+if [ -n "$MISSING_DEV" ]; then
+  echo "REFUSED — devDependency not installed:${MISSING_DEV}"
+  echo ""
+  echo "b41_theme_bleed_fixture requires these at module top level, so it throws"
+  echo "MODULE_NOT_FOUND and lands as an ordinary RED indistinguishable from a"
+  echo "defect [F-39.48]. The floor was NOT run."
+  echo "Run: npm ci"
+  exit 1
+fi
+
 # All three extensions, de-duplicated — *.mjs already contains *.proof.mjs, and
 # without `sort -u` every proof bench would run twice and double its runtime.
 ALL=$(ls scripts/*.proof.mjs scripts/*.mjs scripts/*.js 2>/dev/null | sort -u)
@@ -225,7 +262,30 @@ fi
 NEEDS_CLEAN=$(grep -l 'git status --porcelain' $ALL 2>/dev/null | sort -u)
 REST=$(comm -23 <(echo "$ALL" | tr ' ' '\n' | sort -u) <(echo "$NEEDS_CLEAN" | sort -u))
 
+# ── F-39.47 · EXIT 3 IS A REFUSAL AND GETS ITS OWN COLUMN ────────────────────
+# A bench that could not READ its subject is not a bench that FAILED it. C81 and
+# C84 in `b40_worklist_shell_bench.js` both printed `REFUSED — this is not a
+# FAIL` when the dream-os sibling was absent, and then exited 1 exactly as a
+# defect does, so the sentence went to a reader while the floor recorded a RED.
+#
+# THE CLASSIFICATION HERE WAS — AND REMAINS — THE EXIT CODE, never a grep. The
+# header's own rule is that only the exit code is shared by this estate's three
+# report formats, and greping for the word `REFUSED` in output would classify a
+# bench by a string that any comment could contain. What changed is that the
+# bench now HAS a third code to give: 0 green, 1 red, 3 refused.
+#
+# ⚠ CURED AT THE RUNNER *AND* AT THE CHANNEL, because a runner cannot read a
+# distinction that was never emitted. This is not a cell weakened: a refused
+# bench is still not green, still non-zero, still named below.
+#
+# ⚠ RED WINS. A bench with a genuine fail beside a refusal exits 1, and lands in
+# the RED set. Under-provisioning never masks a defect.
+#
+# ⚠ REFUSALS ARE NAMED IN THE SET, not merely counted, so `--check`'s diff can
+# see one appear or vanish. A refusal that quietly became permanent would read as
+# steady state, which is how a bench stops looking without anyone noticing.
 RED=""
+REFUSED_SET=""
 for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   [ -f "$b" ] || continue
   n=$(basename "$b" | sed 's/\.proof\.mjs$//; s/\.mjs$//; s/\.js$//; s/\.sh$//')
@@ -233,9 +293,15 @@ for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   # compile first — so their wrappers run through bash. Two invocations, one
   # verdict rule: the exit code, exactly as the header states.
   case "$b" in
-    *.sh) bash "$b" >/dev/null 2>&1 || RED="${RED}RED: ${n}\n" ;;
-    *)    node "$b" >/dev/null 2>&1 || RED="${RED}RED: ${n}\n" ;;
+    *.sh) bash "$b" >/dev/null 2>&1 ;;
+    *)    node "$b" >/dev/null 2>&1 ;;
   esac
+  rc=$?
+  if [ "$rc" -eq 3 ]; then
+    REFUSED_SET="${REFUSED_SET}REFUSED: ${n}\n"
+  elif [ "$rc" -ne 0 ]; then
+    RED="${RED}RED: ${n}\n"
+  fi
 done
 
 # ── THE FLOOR MUST NOT LEAVE FOOTPRINTS ──────────────────────────────────────
@@ -281,7 +347,10 @@ else
   fi
   echo "[F-19.16] declared files unmoved — set and contents both verified." >&2
 fi
-printf "%b" "$RED" | sort > /tmp/floor.txt
+# THE SET CARRIES BOTH KINDS, SORTED TOGETHER. `REFUSED:` sorts above `RED:`, so
+# the unmeasurable is read before the broken — which is the order a reader needs
+# them in, because a refusal can be the CAUSE of what follows it.
+printf "%b%b" "$REFUSED_SET" "$RED" | sort > /tmp/floor.txt
 cat /tmp/floor.txt
 
 if [ "$CHECK" = "yes" ]; then
@@ -296,6 +365,30 @@ if [ "$CHECK" = "yes" ]; then
   # file exists to end. It is GREEN standalone, GREEN in floor order, and GREEN
   # in every run since; the one red has not reproduced and has no derived cause.
   # It is NOT base. If it ever reds again, that is a finding, not a baseline.
+  # ── BASE AMENDED, LABELLED — CE-39 PRE-BETA SMALLS · S3  [F-39.46] ─────────
+  # ONE LINE JOINS: `REFUSED: b50_fetch_loop_bench`. Nothing leaves, nothing
+  # reclassifies, and no existing bench changed.
+  #
+  # ⚠ A NEW CLASS, NAMED HERE BECAUSE IT WILL RECUR: AN ENVIRONMENT-DEPENDENT
+  # BENCH. b50 stands up a production build and drives it in a real Chromium, so
+  # it needs `next build` to succeed. In the LE container that build fails —
+  # `next/font` reaches `fonts.googleapis.com`, which the egress proxy answers
+  # `403 x-deny-reason: host_not_allowed`. There it refuses with exit 3 and lands
+  # in this set. On the founder's Codespace and on T-1's CI runners, which have
+  # egress, the same bench builds and runs GREEN and does NOT appear here.
+  #
+  # SO THIS BASE IS TRUE FOR THE LE CONTAINER AND CARRIES A KNOWN ONE-LINE DELTA
+  # ELSEWHERE. That is honest ONLY because the refusal names its own environment
+  # in its output — a reader who sees this line and a green CI is not looking at a
+  # contradiction, they are looking at two environments truthfully reported.
+  #
+  # ⚠ THE ALTERNATIVE WAS REFUSED: a base split per environment would be a second
+  # home for the floor's truth, and the two would drift with nothing to notice.
+  # One base, one known delta, stated.
+  #
+  # THE GATE ENFORCES WHAT THE CONTAINER CANNOT — CI runs b50 for real, so the
+  # loop assertion is not merely declared here.
+  #
   # ── BASE AMENDED, LABELLED — TDW_15 · P1 (CE-34, 2026-08-15) ───────────────
   # ONE LINE JOINS, AND IT IS NOT THIS DELIVERY'S RED. `run-assign-words-proof`
   # fails its "declined is terracotta" cell at the UNTOUCHED tip 6107ff3 —
@@ -439,7 +532,7 @@ if [ "$CHECK" = "yes" ]; then
   # when BOTH cure sittings land, the §2.2 one chartered at CE-38 relay #2 and the
   # §2.3 one owed by F-39.41. Until then, a red from §2.2 or §2.3 is THIS LINE; a
   # red from §1, §2.1, §2.3a, §2.3b, §2.3e-k or §3 is a finding and is not.
-  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  printf 'REFUSED: b50_fetch_loop_bench\nRED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
   if diff /tmp/base.txt /tmp/floor.txt; then
     echo "FLOOR = NAMED BASE, no delta"
   else

@@ -443,23 +443,30 @@ export interface RecordPaymentResponse {
 // founder's Network tab is what settled it: 200, 0.5 kB — a JSON envelope, not a
 // failure and not a PDF.
 //
-// ⚠ `url` IS THE WIRE'S NAME AND IS REQUIRED; `pdf_url` IS THE FALLBACK AND IS
-// OPTIONAL. That asymmetry is the fix's whole shape — the type now describes the
-// door that exists, and keeps room for the one the estate wants.
+// ── THE CONDITION ARRIVED · THE FALLBACK IS RETIRED  [smalls S1] ───────────
+// WHAT THIS SAID: 「`url` IS THE WIRE'S NAME AND IS REQUIRED; `pdf_url` IS THE
+// FALLBACK AND IS OPTIONAL」, with the retirement condition written beside it —
+// delete `pdf_url` from this interface and the `??` at `fetchInvoicePdf` in the
+// same commit that ships the server rename, never before it.
 //
-// ⚠ RETIREMENT CONDITION, STATED (conditional-withheld law): the fallback
-// retires when the door returns `pdf_url`. That is the dream-os rename sitting's
-// closing step — delete `pdf_url` from this interface and the `??` at
-// `fetchInvoicePdf`, in the same commit that ships the server rename, never
-// before it. An old pwa meeting a new server is why they may not be split.
+// THE SERVER RENAME SHIPPED IN THIS PAIR. `src/api/vendor/money.js` (symbol: the
+// PDF arm's success `okRes`) now answers `pdf_url`, which is what the column,
+// the writer home, the create route, the binder door, the admin view and the
+// agent have all spelled it all along. So the asymmetry inverts and the optional
+// half goes: `pdf_url` is the wire's name and is REQUIRED, and there is no
+// second spelling left for a reader to choose between.
+//
+// THE ORDER WAS THE POINT AND IS RECORDED RATHER THAN ASSUMED: dream-os deploys
+// first. An old pwa meeting a new server reads `pdf_url` off a body that carries
+// it — the fallback's whole job. A new pwa meeting an OLD server would read
+// `undefined`, which is why this half may not lead.
 //
 // `expires_in` is OPTIONAL because this door does not send it. The money-plane
-// route returns `{ url, invoice_number }` and nothing else; declaring it
+// route returns `{ pdf_url, invoice_number }` and nothing else; declaring it
 // required was the same class of error one field over, and nothing reads it.
 export interface InvoicePdfResponse {
   ok: true;
-  url:             string;
-  pdf_url?:        string;
+  pdf_url:         string;
   invoice_number?: string;
   expires_in?:     number;
 }

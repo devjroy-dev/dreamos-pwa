@@ -68,10 +68,53 @@ const PERSONAS = '\\bDreamAi\\b|\\bVictor\\b|\\bDonna\\b|\\bHarvey\\b|\\bMira\\b
  */
 const REAL_NAMES = ['Swati'];
 
+// ── F-39.47 · A REFUSAL IS NOT A FAIL, AND UNTIL NOW IT HAD NO WAY TO SAY SO ──
+//
+// THE DEFECT. Several cells here name a PRECONDITION instead of failing when the
+// precondition is absent — C81 and C84 both return a string beginning `REFUSED`
+// when the dream-os sibling is not beside this tree, and both say, in the string
+// itself, 「this is not a FAIL」. The reader was told. Nothing else was.
+// `cell()` treated ANY non-null return as a fail, incremented `fails`, and the
+// process exited 1; `scripts/run-floor.sh` classifies purely by exit code
+// (`node "$b" ... || RED=...`), so a refusal reached the floor as `RED: b40` —
+// indistinguishable from a real defect.
+//
+// ⚠ THE CURE COULD NOT LIVE AT THE RUNNER ALONE, and that was reported before a
+// byte was written. The runner was not withholding a distinction it possessed —
+// it had none to withhold, because the bench emitted one exit code for two
+// different verdicts. A channel had to exist before anything could read it.
+//
+// ⚠ THIS DOES NOT PASS ON ABSENCE, which was the chair's condition. A refused
+// cell is NOT green: it prints as REFUSED, it is counted, it is named in the
+// verdict line, and the exit code is non-zero (3). The floor is run sibling-full
+// by law, so a refusal here still means the floor was not run the way the law
+// says to run it — the difference is that now it says which thing went wrong.
+//
+// ⚠ A REAL FAIL BESIDE A REFUSAL IS A FAIL. Exit 1 wins over exit 3, always. A
+// run that refused one cell and broke another is a broken run; reporting it as
+// merely under-provisioned would be the hollow green this estate refuses.
 let fails = 0;
+let refusals = 0;
+const refusedNames = [];
 function cell(name, fn) {
-  try { const why = fn(); if (why) { console.log('RED   ' + name + ' — ' + why); fails++; }
-        else console.log('GREEN ' + name); }
+  try {
+    const why = fn();
+    if (!why) { console.log('GREEN ' + name); return; }
+    // THE SIGNAL IS THE RETURNED STRING'S OWN OPENING WORD, not a second
+    // argument or a wrapper — because the cells that already refuse ALREADY
+    // write it, verbatim, and a channel that required them to be rewritten
+    // would be a channel their authors could forget to use.
+    if (/^REFUSED\b/.test(why)) {
+      console.log('REFUSED ' + name + ' — ' + why.replace(/^REFUSED\s*—?\s*/, ''));
+      refusals++; refusedNames.push(name.split(' ')[0]);
+      return;
+    }
+    console.log('RED   ' + name + ' — ' + why); fails++;
+  }
+  // A THROW IS NEVER A REFUSAL. A cell that refuses does so deliberately, by
+  // returning; a cell that throws met something it did not anticipate, and that
+  // is exactly the case where guessing 「probably just a missing sibling」 is how
+  // a defect gets absorbed.
   catch (e) { console.log('RED   ' + name + ' — threw: ' + e.message); fails++; }
 }
 
@@ -2835,7 +2878,25 @@ cell('C80 the Team tab renders no membership state word (F-2b2.1)', () => {
   // The door's own filter is the REASON, so the reason is asserted too: if a
   // later sitting widens the door, this cell should be RE-RULED rather than
   // silently continuing to forbid a word that has become honest.
-  const door = strip(read('../dream-os/src/api/vendor/studio/team.js'));
+  //
+  // ⚠ IT REFUSES RATHER THAN THROWS WHEN THE SIBLING IS ABSENT  [F-39.47].
+  // This read was unguarded, so on a tree without `../dream-os` it raised ENOENT,
+  // `cell()`'s catch turned it into 「RED — threw」, and the floor recorded a
+  // defect in the TEAM TAB because a repo was not cloned. C81 and C84 already
+  // named this precondition; C80 crossed the same boundary and said nothing,
+  // which is why the chair's ruling reads 「C81, C84, and any sibling-absent
+  // cell」 rather than naming two.
+  //
+  // The FIRST HALF of this cell — the pwa-only word census above — is not
+  // conditional on the sibling and has already run. Refusing here reports that
+  // the REASON could not be checked, not that the assertion could not be made.
+  const doorRel = '../dream-os/src/api/vendor/studio/team.js';
+  if (!fs.existsSync(path.join(ROOT, doorRel))) {
+    return 'REFUSED — the dream-os sibling is absent, so the team door\'s '
+         + '.eq(\'active\', true) filter — this cell\'s stated REASON — cannot be read. '
+         + 'Clone it beside this repo and re-run; this is not a FAIL.';
+  }
+  const door = strip(read(doorRel));
   if (!/\.eq\('active',\s*true\)/.test(door))
     bad.push("the team door no longer filters .eq('active', true) — F-2b2.1's premise moved; re-rule C80 rather than loosen it");
   return bad.length ? bad.join(' | ') : null;
@@ -3127,32 +3188,45 @@ cell('C93 the mark-paid summary names the person, never the sheet (F-2c.w6)', ()
 //    Network tab settled it: 200, 0.5 kB — a JSON envelope, not a failure and
 //    not a PDF.
 //
-//    ⚠ THE CELL GUARDS THE RETIREMENT AS WELL AS THE CURE. `pdf_url` is a
-//    FALLBACK with a stated condition — it retires in the same commit that ships
-//    the dream-os rename, never before, because an old pwa meeting a new server
-//    is the gap the `??` exists to survive. So this cell asserts BOTH names are
-//    read; when the server is renamed, this cell is amended in that sitting.
+//    ⚠ AMENDED IN THE SITTING ITS OWN PREVIOUS TEXT NAMED  [smalls S1].
+//    WHAT IT SAID: 「`pdf_url` is a FALLBACK with a stated condition — it retires
+//    in the same commit that ships the dream-os rename, never before... So this
+//    cell asserts BOTH names are read; when the server is renamed, this cell is
+//    amended in that sitting.」 The rename shipped in this pair. This is that
+//    amendment, and it INVERTS every arm rather than deleting them: the cell used
+//    to guard that the coalesce was PRESENT, and now guards that it is GONE.
 //
-//    ⚠ AND IT ASSERTS THE OK-WITH-NO-LINK ARM, which is F-2c.w7's mechanism
+//    THAT INVERSION IS THE POINT AND NOT A WEAKENING. A retired fallback that
+//    nothing asserts the absence of comes back — a later reader sees `pdf_url`
+//    arriving and adds a `?? url` for safety, and the two spellings are alive
+//    again with no cell to notice. The negative arm is the only thing that makes
+//    a retirement stick.
+//
+//    ⚠ AND IT STILL ASSERTS THE OK-WITH-NO-LINK ARM, which is F-2c.w7's mechanism
 //    rather than its symptom: a surface that cannot tell a missing FIELD from a
-//    failed GENERATION will always report the wrong one.
-//    RED MUTATION: drop `.url` from the coalesce, or let an ok-with-no-link
-//    through as ok → red, one arm each.
-cell('C94 the PDF door normalises url/pdf_url, and an ok with no link is a failure (F-2c.w7)', () => {
+//    failed GENERATION will always report the wrong one. That arm was never about
+//    the field's name and does not move.
+//    RED MUTATION: restore `.url ?? (r as InvoicePdfResponse).pdf_url` and the
+//    optional `pdf_url?:` on the type → red, one arm each.
+cell('C94 the PDF door reads ONE name and the fallback is retired (F-2c.w7)', () => {
   const door = strip(read('lib/vendor/api/vendor.ts'));
   const ty   = strip(read('lib/vendor/types/vendor.ts'));
   const bad = [];
   const at   = door.indexOf('export function fetchInvoicePdf');
   const next = door.indexOf('export function', at + 10);
   const sig  = at < 0 ? '' : door.slice(at, next < 0 ? undefined : next);
-  if (!/\.url \?\? \(r as InvoicePdfResponse\)\.pdf_url/.test(sig))
-    bad.push("the door no longer reads the wire's own `url` — every PDF tap would report a failure the server never sent");
+  if (!/const link = \(r as InvoicePdfResponse\)\.pdf_url;/.test(sig))
+    bad.push('the door does not read `pdf_url` off the wire as its one name');
+  if (/\?\?\s*\(r as InvoicePdfResponse\)\.url/.test(sig) || /\.url \?\?/.test(sig))
+    bad.push('the retired `url` fallback is back at the door — two spellings for one link');
   if (!/if \(!link\) return \{ ok: false \}/.test(sig))
     bad.push('an ok-true with no link passes through as success — the caller would open an undefined href');
-  if (!/pdf_url: link/.test(sig))
-    bad.push('the link is not republished under one name — the two SliceShell call sites would each pick a spelling');
-  if (!/url:\s+string;/.test(ty)) bad.push("InvoicePdfResponse no longer declares the wire's `url`");
-  if (!/pdf_url\?:/.test(ty)) bad.push('the pdf_url fallback left the type before the dream-os rename shipped');
+  if (!/pdf_url:\s+string;/.test(ty))
+    bad.push('InvoicePdfResponse does not declare `pdf_url` as the required wire name');
+  if (/\burl:\s+string;/.test(ty))
+    bad.push("the retired `url` is back on InvoicePdfResponse — the type would license a second reader");
+  if (/pdf_url\?:/.test(ty))
+    bad.push('`pdf_url` is optional again — the door\'s own field may not be optional on the type that describes it');
   // THE CITED PATH. c-2c.s7: three durable comments named a route the caller
   // never calls. A wrong path in a comment outlives the seat that wrote it.
   for (const f of ['lib/worklist/copy.ts', 'components/vendor/slices/SliceShell.tsx'])
@@ -3388,5 +3462,25 @@ cell('C84 the expense category mirror equals the dream-os home, in order', () =>
   return bad.length ? bad.join(' | ') : null;
 });
 
-console.log(fails === 0 ? '\nFLOOR GREEN' : '\nFLOOR RED — ' + fails + ' cell(s)');
-process.exit(fails === 0 ? 0 : 1);
+// ── THE VERDICT · THREE STATES, AND THE EXIT CODE CARRIES ALL THREE  [F-39.47] ─
+// 0 = GREEN · 1 = RED (any fail, refusals or not) · 3 = REFUSED (no fails, at
+// least one precondition unmet). The runner reads the CODE, never this text —
+// two report formats live in this estate and only the code is shared.
+//
+// THE NAMES RIDE THE LINE deliberately. `run-floor.sh --check` compares SETS, so
+// a refusal that ought to have been a run must be visible by name in the
+// output; a bare count would let a cell quietly start refusing forever and read
+// as steady state.
+if (fails > 0) {
+  console.log('\nFLOOR RED — ' + fails + ' cell(s)'
+    + (refusals ? ' · ' + refusals + ' also REFUSED: ' + refusedNames.join(', ') : ''));
+  process.exit(1);
+}
+if (refusals > 0) {
+  console.log('\nFLOOR REFUSED — ' + refusals + ' cell(s) could not be read: '
+    + refusedNames.join(', ') + '\nThis is NOT a pass and NOT a fail. A precondition '
+    + 'is absent — the floor is run sibling-full by law.');
+  process.exit(3);
+}
+console.log('\nFLOOR GREEN');
+process.exit(0);
