@@ -70,9 +70,15 @@ cd "$(dirname "$0")/.." || exit 1
 # argument and would have swallowed `--delivery` without a word.
 CHECK=""
 MANIFEST=""
+REFUSALS_FATAL=""
+# The single accumulated verdict. Declared here rather than at first use because
+# `set -u` is on above and an undefined expansion would abort the run at the one
+# moment the run is trying to report.
+VERDICT=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    --check)    CHECK="yes"; shift ;;
+    --check)           CHECK="yes"; shift ;;
+    --refusals-fatal)  REFUSALS_FATAL="yes"; shift ;;
     --delivery) MANIFEST="${2:-}"; shift 2 || { echo "STOP — --delivery needs a manifest path."; exit 1; } ;;
     *)          echo "STOP — unknown argument: $1"; exit 1 ;;
   esac
@@ -281,6 +287,28 @@ REST=$(comm -23 <(echo "$ALL" | tr ' ' '\n' | sort -u) <(echo "$NEEDS_CLEAN" | s
 # ⚠ RED WINS. A bench with a genuine fail beside a refusal exits 1, and lands in
 # the RED set. Under-provisioning never masks a defect.
 #
+# ── AMENDED — TRANSPORT SITTING T-1  [c-39.57], 2026-09-03 ──────────────────
+# THE BASE HOLDS FAILURES ONLY. Everything above stands; what follows it does
+# not. Refusals are still measured, still non-zero, still named — but they are
+# named in THEIR OWN LIST and they are NOT part of `--check`'s compare, and
+# `REFUSED: b50_fetch_loop_bench` has left the base printf below.
+#
+# THE GROUND IS THIS FILE'S OWN S3 NOTE, WHICH SAID IT PLAINLY AND IN ADVANCE:
+# b50 needs egress for `next build`, so it refuses in the LE container and runs
+# GREEN on a CI runner. That note called the per-environment base a second home
+# for the floor's truth and refused it — correctly — but left the line in a base
+# that only one environment could satisfy. At the T-1 read-first the arithmetic
+# came due: the first `--check` on a runner would have failed a docs-only pull
+# request over a bench that had done nothing wrong. A REFUSAL IS A FACT ABOUT
+# THE ENVIRONMENT; A FAILURE IS A FACT ABOUT THE TREE; ONE BASE CANNOT HOLD BOTH.
+#
+# ⚠ WHAT THE OLD LINE BOUGHT IS REALLY LOST, and it is stated rather than
+# glossed: the base used to catch a refusal appearing or vanishing. It no longer
+# does. The named list is what a reader diffs by eye; `--refusals-fatal` is what
+# a runner diffs by exit code, and CI passes it — a run that declares every
+# precondition supplied and still refuses has a CONFIG defect, not a tree defect.
+#
+# ⚠ THE SENTENCE BELOW IS RETIRED, KEPT BECAUSE A REMOVED LINE TEACHES NOTHING:
 # ⚠ REFUSALS ARE NAMED IN THE SET, not merely counted, so `--check`'s diff can
 # see one appear or vanish. A refusal that quietly became permanent would read as
 # steady state, which is how a bench stops looking without anyone noticing.
@@ -347,10 +375,29 @@ else
   fi
   echo "[F-19.16] declared files unmoved — set and contents both verified." >&2
 fi
-# THE SET CARRIES BOTH KINDS, SORTED TOGETHER. `REFUSED:` sorts above `RED:`, so
-# the unmeasurable is read before the broken — which is the order a reader needs
-# them in, because a refusal can be the CAUSE of what follows it.
-printf "%b%b" "$REFUSED_SET" "$RED" | sort > /tmp/floor.txt
+# ── TWO KINDS, TWO FILES, ONE READING ORDER  [c-39.57] ───────────────────────
+# The retired line here said 「THE SET CARRIES BOTH KINDS, SORTED TOGETHER」, and
+# its reason was sound and survives: the unmeasurable is read before the broken,
+# because a refusal can be the CAUSE of what follows it. So the REFUSALS ARE
+# STILL PRINTED FIRST TO THE READER. What changed is that only the RED file is
+# handed to `--check`. Reading order is a fact about a human; the compare set is
+# a fact about a base, and conflating them is what c-39.57 corrects.
+printf "%b" "$RED"         | sort > /tmp/floor.txt
+printf "%b" "$REFUSED_SET" | sort > /tmp/floor_refused.txt
+
+# PRINTED EVEN WHEN EMPTY. Silence would be ambiguous between "none refused" and
+# "this runner no longer looks", and an unexamined steady state is precisely how
+# a bench stops being read.
+if [ -s /tmp/floor_refused.txt ]; then
+  echo "REFUSED — measured, named, and NOT part of the base compare [c-39.57]:"
+  sed 's/^/  /' /tmp/floor_refused.txt
+  echo "Each names a missing precondition of THIS environment — a key, egress, the"
+  echo "sibling clone. Provision it and the line goes; it is not a claim about the tree."
+  echo ""
+else
+  echo "REFUSED — none."
+  echo ""
+fi
 cat /tmp/floor.txt
 
 if [ "$CHECK" = "yes" ]; then
@@ -365,7 +412,21 @@ if [ "$CHECK" = "yes" ]; then
   # file exists to end. It is GREEN standalone, GREEN in floor order, and GREEN
   # in every run since; the one red has not reproduced and has no derived cause.
   # It is NOT base. If it ever reds again, that is a finding, not a baseline.
+  # ── BASE AMENDED, LABELLED — TRANSPORT SITTING T-1  [c-39.57], 2026-09-03 ──
+  # ONE LINE LEAVES AND NOTHING JOINS: `REFUSED: b50_fetch_loop_bench`. NO BENCH
+  # CHANGED and b50's verdict did not move — it still exits 3 here and is still
+  # printed, in the named refusal list above rather than in this literal.
+  #
+  # THE COUNT MOVEMENT, DISCLOSED: 24 lines → 23. The S3 block immediately below
+  # put that line here one sitting ago and this one takes it out; that is the
+  # chair correcting his own ruling in the open, not churn. S3's own reasoning is
+  # what condemned it — read it below and then read c-39.57 in the amendment near
+  # the top of this file. After this, EVERY line in this literal begins `RED:`,
+  # and that is now an invariant rather than an observation.
+  #
   # ── BASE AMENDED, LABELLED — CE-39 PRE-BETA SMALLS · S3  [F-39.46] ─────────
+  # ⚠ SUPERSEDED BY c-39.57 ABOVE. Kept whole because it is the reasoning that
+  # earned its own reversal, and a removed line teaches nothing.
   # ONE LINE JOINS: `REFUSED: b50_fetch_loop_bench`. Nothing leaves, nothing
   # reclassifies, and no existing bench changed.
   #
@@ -532,11 +593,38 @@ if [ "$CHECK" = "yes" ]; then
   # when BOTH cure sittings land, the §2.2 one chartered at CE-38 relay #2 and the
   # §2.3 one owed by F-39.41. Until then, a red from §2.2 or §2.3 is THIS LINE; a
   # red from §1, §2.1, §2.3a, §2.3b, §2.3e-k or §3 is a finding and is not.
-  printf 'REFUSED: b50_fetch_loop_bench\nRED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
   if diff /tmp/base.txt /tmp/floor.txt; then
     echo "FLOOR = NAMED BASE, no delta"
   else
     echo "FLOOR DELTA — the diff above is this delivery's to explain"
-    exit 1
+    VERDICT=1
   fi
 fi
+
+# ── `--refusals-fatal` · THE GATE'S OWN QUESTION  [c-39.57] ──────────────────
+# Asked AFTER the base compare and reported ALONGSIDE it, never instead of it. A
+# run with both a delta and a refusal has two things wrong with it, and an early
+# `exit` on the first would hide the second behind a green-looking silence.
+#
+# EVERY REFUSAL IN THIS ESTATE NAMES A MISSING PRECONDITION — a key, egress, the
+# sibling clone. A run that declares all of them supplied and still refuses has a
+# CONFIG defect in the runner, not a fact about the tree. CI is exactly that run,
+# so CI passes this flag; the founder's Codespace and the LE containers do not,
+# because a floor that refused to be measured without a live provider key would
+# simply stop being run.
+#
+# THE ANSWER IS AN EXIT CODE AND NOT A GREP OF THE OUTPUT ABOVE. A grep's failure
+# mode is a silent zero; that is why this question is asked here, inside the one
+# instrument that knows the codes, rather than in a workflow file downstream.
+if [ "$REFUSALS_FATAL" = "yes" ] && [ -s /tmp/floor_refused.txt ]; then
+  echo ""
+  echo "STOP — refusals in a run that declared itself fully provisioned:"
+  sed 's/^/  /' /tmp/floor_refused.txt
+  echo "--refusals-fatal says every precondition was supplied, so a refusal here is a"
+  echo "CONFIG defect in the runner and not a fact about the tree. Fix the provisioning"
+  echo "or take the flag off; do not put the line back in the base."
+  VERDICT=1
+fi
+
+exit "$VERDICT"

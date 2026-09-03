@@ -1,0 +1,113 @@
+# .github/workflows/gate.yml — THE ESTATE'S OWN GATES, RUN BY GITHUB.
+#
+# TRANSPORT SITTING T-1 (CE-39, 2026-09-03). The twin of `dream-os`'s file. It
+# runs the same instruments in the same order and hands the merge button their
+# exit codes. No `|| true`, no `continue-on-error`, ever: a gate that cannot fail
+# is not a gate.
+#
+# ── THE NUMBERED RULINGS ARE THE SAME AND ARE NOT REPEATED IN FULL ──────────
+# `dream-os/.github/workflows/gate.yml` carries the derivations for the nested
+# checkout [F-T1.2], the load-bearing directory names, `fetch-depth: 0` [F-T1.4],
+# the job-level timeout [F-T1.7] and `--refusals-fatal` [c-39.57]. They hold here
+# unchanged. THE FOUR PLACES THIS FILE LEGITIMATELY DIFFERS ARE STATED BELOW,
+# because a reader comparing the two must be able to tell a deliberate asymmetry
+# from a drift.
+#
+# A · THE PROTECTED BRANCH IS `worklist`, not `main`. This repo has both, and
+#     they have DIVERGED — at the T-1 tips, worklist was 80 commits ahead of main
+#     and main 2 ahead of worklist. `main` carries the public marketing surfaces;
+#     `worklist` is where the shell is built. The gate guards `worklist`.
+#
+# B · THE SIBLING IS `dream-os` @ `main`, which IS that repo's default branch —
+#     so unlike its twin, this checkout could have said nothing and been right.
+#     The ref is named anyway. An implicit default that happens to be correct is
+#     a fact nobody can check, and F-38.34 is the estate's receipt for that.
+#
+# C · NO `npm ci` IN THE SIBLING, AND THIS IS NOT AN OVERSIGHT. Its twin runs one
+#     because `tools/preflight.sh` demands the PWA's `node_modules` [F-T1.5]. The
+#     demand is one-directional: this repo's preflight copy asks nothing of
+#     dream-os's `node_modules`, and every cross-repo cell here READS SOURCE from
+#     the sibling — `brideTools.js`, a migration, `stripComments.js`,
+#     `preflight.sh`, `base_guard.sh` — and compiles none of it. Adding an install
+#     nothing reads would be ~26s of pretending to be careful.
+#
+# D · THE COMPILE GATE IS `npx tsc --noEmit`, NOT `next build`. There is no
+#     `typecheck` script in `package.json`, so this is the only spelling
+#     available; measured 25s and green at the T-1 tip.
+#
+#     ⚠ AND `next build` RUNS ANYWAY, ONE LAYER DOWN, which a reader of this file
+#     would otherwise conclude the opposite of. `scripts/b50_fetch_loop_bench.js`
+#     stands up a real production build and drives it in a real Chromium as part
+#     of the floor. So the estate's declared compile gate is `tsc`, and the build
+#     happens regardless, inside the floor step below.
+#
+# ── THE ONE THING IN THIS FILE THAT IS NOT YET WITNESSED ────────────────────
+# b50 IS THE ESTATE'S FIRST ENVIRONMENT-DEPENDENT BENCH AND CI IS THE ENVIRONMENT
+# IT HAS NEVER RUN IN. In the LE container it refuses (exit 3): `next/font`
+# reaches `fonts.googleapis.com`, the egress proxy answers 403, the build fails,
+# and the bench correctly declines to invent a verdict. On a runner with egress
+# it should build and go GREEN — should, derived from its own S3 note and not
+# from a run anybody has seen.
+#
+# c-39.57 IS WHAT MAKES EITHER OUTCOME SURVIVABLE: refusals no longer live in the
+# base, so b50 going green does not produce a delta and the compare is now
+# environment-invariant. But `--refusals-fatal` means that if b50 refuses HERE —
+# a Chromium that will not launch on `ubuntu-latest`, a port already held — this
+# gate goes red on its first run. THAT IS THE INTENDED BEHAVIOUR and it is the
+# sharpest instance of the declared gap in `docs/TDW_PR_FLOW.md` §6: the first
+# real run is the witness, and a red there is a finding about this file to be
+# cured in this file, never a line put back into a base. [F-T1.6 · F-T1.9]
+
+name: gate
+
+on:
+  pull_request:
+    branches: [worklist]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: check out this pull request — dreamos-pwa
+        uses: actions/checkout@v4
+        with:
+          path: dreamos-pwa
+          fetch-depth: 0
+
+      - name: check out the sibling — dream-os @ main
+        uses: actions/checkout@v4
+        with:
+          repository: devjroy-dev/dream-os
+          ref: main
+          path: dream-os
+          fetch-depth: 0
+
+      - name: node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: npm ci — dreamos-pwa
+        working-directory: dreamos-pwa
+        run: npm ci
+
+      - name: typecheck — the estate's compile gate is tsc
+        working-directory: dreamos-pwa
+        run: npx tsc --noEmit
+
+      - name: preflight — both tips named, exit code is the verdict [F-39.44]
+        working-directory: dreamos-pwa
+        run: bash tools/preflight.sh
+
+      - name: floor — FLOOR = NAMED BASE, and a refusal here is a config defect
+        working-directory: dreamos-pwa
+        run: bash scripts/run-floor.sh --check --refusals-fatal
