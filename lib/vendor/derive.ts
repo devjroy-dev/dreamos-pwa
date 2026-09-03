@@ -26,6 +26,7 @@
 
 import type { CabinetResponse, CabinetBinder } from '@/lib/vendor/api/vendor';
 
+import { istTodayISO, istPlusDaysISO } from './istDay';
 // ── F-04.13 (CE-RATIFIED 2026-07-15) — THE money rule, and its only home ──
 //
 //   pending = amount_pending ?? max(amount - amount_received, 0)   [direction 'in' only]
@@ -78,44 +79,13 @@ export function pendingOf(b: MoneyCells): number {
   return Math.max((Number(b.amount) || 0) - (Number(b.amount_received) || 0), 0);
 }
 
-export type MoneyDerivation = {
-  /** Σ amount_pending across binders that owe — the vendor's outstanding. */
-  outstanding: number;
-  /** Σ amount_received across the same money binders — what's landed. */
-  received: number;
-  /** How many binders carry an unsettled balance (the "invoices" a vendor means). */
-  owedCount: number;
-  /** Of those, how many have taken an advance (part-paid) vs nothing at all. */
-  advanceCount: number;
-  unpaidCount: number;
-  /** Every money binder, newest first — the rows a list renders. */
-  rows: CabinetBinder[];
-};
-
-/** Money binders = the cabinet's paid + owed columns, deduped by id (a binder
-    can legitimately appear in both when partly settled). Mirrors fetchInvoices'
-    own composition exactly — same source, same de-dupe, same order. */
-export function moneyBinders(cab: CabinetResponse | null | undefined): CabinetBinder[] {
-  const byId = new Map<string, CabinetBinder>();
-  for (const b of [...(cab?.paid ?? []), ...(cab?.owed ?? [])]) byId.set(b.id, b);
-  return [...byId.values()];
-}
-
-export function deriveMoney(cab: CabinetResponse | null | undefined): MoneyDerivation {
-  const rows = moneyBinders(cab);
-  let outstanding = 0, received = 0, owedCount = 0, advanceCount = 0, unpaidCount = 0;
-  for (const b of rows) {
-    const owed = pendingOf(b); // F-04.13: the ruled rule, never the raw cell
-    const recv = Number(b.amount_received) || 0;
-    received += recv;
-    if (owed > 0) {
-      outstanding += owed;
-      owedCount += 1;
-      if (recv > 0) advanceCount += 1; else unpaidCount += 1;
-    }
-  }
-  return { outstanding, received, owedCount, advanceCount, unpaidCount, rows };
-}
+// P7.2 (CE-39, 2026-09-04) — `MoneyDerivation`, `moneyBinders` and `deriveMoney` RETIRED.
+// They read the engine cabinet's `paid`/`owed` slices; FORK 4 dropped those from
+// `CabinetResponse` (their readers were the shell's leads/events bodies and the invoices
+// masthead, cured at the shell), and `tsc` at this tip named `moneyBinders` as the last
+// reader of the two columns. The invoices figure now comes from the typed read's
+// `summary.total_outstanding` (money.js, OUTSTANDING_STATES — the one rule). `pendingOf`
+// STAYS: CalendarBands reads it (F-04.13's rule), unchanged.
 
 /** Clients masthead: active engagements = non-hidden client-stage binders.
     The stage vocabulary mirrors the backend's CLIENT_STAGE_WORDS (cabinet.js /
@@ -149,10 +119,9 @@ export function deriveExpensesThisMonth(expenses: Array<{ amount?: number | null
 /** Events masthead: how many events fall inside the next 7 days (inclusive of
     today), counted off the rows the slice already holds. */
 export function deriveEventsThisWeek(events: Array<{ event_date?: string | null; state?: string | null }> | null | undefined): { count: number } {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const end = new Date(today.getTime() + 7 * 86_400_000);
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
-  const t = iso(today), e = iso(end);
+  // P7.2 (FORK 6): the week's two edges are IST days from the one home; the old form
+  // zeroed the local clock and then sliced the UTC string, which is a third answer.
+  const t = istTodayISO(), e = istPlusDaysISO(7);
   const rows = (events ?? []).filter(ev => {
     const d = ev.event_date ?? '';
     return d >= t && d <= e && (ev.state ?? 'upcoming') === 'upcoming';

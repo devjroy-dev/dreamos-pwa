@@ -118,12 +118,29 @@ export function useLeadsData(vendorId: string | null): LoadState<Lead[]> {
   );
 }
 
-export function useInvoicesData(vendorId: string | null): LoadState<Invoice[]> {
-  return useLoader<Invoice[]>(
+/** The typed invoices read, whole: rows AND the server's summary, ONE cache row, ONE request.
+ *  P7.2 (FORK 4): the invoices masthead used to take its figure from the engine cabinet's
+ *  `paid`/`owed` slices via `deriveMoney`; those slices retire (F-2b2.3, corrected — their
+ *  readers were the shell's, not the old pages'), and the figure now comes from
+ *  `summary.total_outstanding`, which money.js computes under OUTSTANDING_STATES — the ONE
+ *  rule, server-side (F-39.8). A second hook on a second key would be a second request
+ *  (F-39.46's class), so the summary rides the same load state as the rows. */
+export type InvoicesSummary = { total_outstanding: number; total_collected: number };
+type InvoicesRead = { invoices: Invoice[]; summary: InvoicesSummary | null };
+export function useInvoicesData(vendorId: string | null): LoadState<Invoice[]> & { summary: InvoicesSummary | null } {
+  const read = useLoader<InvoicesRead>(
     vendorId, 'invoices',
     (id) => fetchInvoices(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
-    (raw) => Array.isArray(raw.invoices) ? (raw.invoices as Invoice[]) : null,
+    (raw) => Array.isArray(raw.invoices)
+      ? { invoices: raw.invoices as Invoice[],
+          summary: raw.summary && typeof raw.summary === 'object' ? (raw.summary as InvoicesSummary) : null }
+      : null,
   );
+  return {
+    data: read.data ? read.data.invoices : null,
+    summary: read.data ? read.data.summary : null,
+    loading: read.loading, error: read.error, refresh: read.refresh,
+  };
 }
 
 export function useExpensesData(vendorId: string | null): LoadState<Expense[]> {

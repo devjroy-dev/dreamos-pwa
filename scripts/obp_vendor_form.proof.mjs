@@ -34,7 +34,7 @@ function strip(raw) {
 }
 const read = (p) => strip(fs.readFileSync(p, 'utf8'));
 
-const FORM   = read('app/vendor/onboarding/page.tsx');
+const FORM   = read('app/vendor/(legacy)/onboarding/page.tsx');
 /* ── ADDED, LABELLED — TDW_15 · P2 (R-34.52, CE-35, 2026-08-18) ─────────────
    `CAT_LABEL` and `labelFor` MOVED to `lib/frost/categoryLabels.ts` (R-34.33) so
    the bride's envelope picker could read the same founder-signed eleven without

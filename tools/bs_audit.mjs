@@ -409,12 +409,12 @@ const SURFACES = ['google', 'website', 'seo', 'marketing', 'proof', 'benchmarks'
 const surfaceSrc = {};
 let surfacesReadable = true;
 for (const s of SURFACES) {
-  try { surfaceSrc[s] = readFileSync(join(ROOT, `app/w/support/${s}/page.tsx`), 'utf8'); }
+  try { surfaceSrc[s] = readFileSync(join(ROOT, `app/vendor/(shell)/support/${s}/page.tsx`), 'utf8'); }
   catch { surfacesReadable = false; surfaceSrc[s] = null; }
 }
 let indexSrc = null, piecesSrc = null, routesSrc = null, clientSrc = null;
 try {
-  indexSrc  = readFileSync(join(ROOT, 'app/w/support/page.tsx'), 'utf8');
+  indexSrc  = readFileSync(join(ROOT, 'app/vendor/(shell)/support/page.tsx'), 'utf8');
   piecesSrc = readFileSync(join(ROOT, 'components/solutions/SolutionsPieces.tsx'), 'utf8');
   routesSrc = readFileSync(join(ROOT, 'lib/solutions/routes.ts'), 'utf8');
   clientSrc = readFileSync(join(ROOT, 'lib/solutions/client.ts'), 'utf8');
@@ -434,13 +434,13 @@ try {
 // six scattered literals would grow exactly where R-38.1 just finished deleting
 // four. The one home is `lib/solutions/routes.ts`.
 {
-  const files = { ...surfaceSrc, 'app/w/support/page.tsx': indexSrc, 'components/solutions/SolutionsPieces.tsx': piecesSrc, 'lib/solutions/client.ts': clientSrc };
+  const files = { ...surfaceSrc, 'app/vendor/(shell)/support/page.tsx': indexSrc, 'components/solutions/SolutionsPieces.tsx': piecesSrc, 'lib/solutions/client.ts': clientSrc };
   const offenders = [];
   for (const [name, src] of Object.entries(files)) {
     if (!src) continue;
-    if (/['"`]\/w\/support/.test(strip(src))) offenders.push(name);
+    if (/['"`]\/vendor\/support/.test(strip(src))) offenders.push(name);
   }
-  const declared = routesSrc && /SOLUTIONS_INDEX_HREF = '\/w\/support'/.test(strip(routesSrc));
+  const declared = routesSrc && /SOLUTIONS_INDEX_HREF = '\/vendor\/support'/.test(strip(routesSrc));
   if (!declared) F('C16 no /w/support literal outside surfaceHref', 'routes.ts does not declare the base');
   else if (offenders.length) F('C16 no /w/support literal outside surfaceHref', 'literals in: ' + offenders.join(', '));
   else P('C16 no /w/support literal outside surfaceHref', 'one home: lib/solutions/routes.ts');
@@ -1113,7 +1113,7 @@ try {
 
   // Derived, not rostered: every authenticated shell layout must carry a mount.
   // A shell added tomorrow that forgets one loses its worker silently.
-  const SHELLS = ['app/vendor/layout.tsx', 'app/w/layout.tsx', 'app/coplanner/layout.tsx', 'app/(frost)/layout.tsx'];
+  const SHELLS = ['app/vendor/layout.tsx', 'app/vendor/(shell)/layout.tsx', 'app/coplanner/layout.tsx', 'app/(frost)/layout.tsx'];
   for (const f of SHELLS) {
     let src = null;
     try { src = readFileSync(join(ROOT, f), 'utf8'); } catch { bad.push(`${f} not found`); continue; }

@@ -126,10 +126,11 @@ const registryVendorHrefs = () =>
 /** The declared outbound exceptions. R-38.11's amended standing binds the two CROSSING
  *  ledgers; this set grows by named entry at a crossing and shrinks only at Phase 7 (C-2,
  *  §4-3), so reading it is the only way the cell tracks it rather than restating a snapshot. */
-const registryVendorLinks = () => registryDeclaredSet('INTERIM_VENDOR_LINKS');
+// P7.2 (CE-39, 2026-09-04): the INTERIM_* censuses retired with the old tree; the one
+// declared set left is LEGACY_VENDOR_LINKS — the doors out of the shell into app/vendor/(legacy).
+const registryVendorLinks = () => registryDeclaredSet('LEGACY_VENDOR_LINKS');
 /** The declared hub primers — F-38.47's seven doors, product cure chartered to their own
  *  design sitting (AskSheet grows a `draft` parameter), not to any crossing batch. */
-const registryHubPrimers = () => registryDeclaredSet('INTERIM_HUB_PRIMERS');
 /**
  * EVERY /w SURFACE THE REGISTRY DECLARES \u2014 DERIVED, BECAUSE A CROSSING MUST NOT NEED
  * THIS FILE TO BE REMEMBERED.
@@ -144,13 +145,9 @@ const registryHubPrimers = () => registryDeclaredSet('INTERIM_HUB_PRIMERS');
  * href. Nothing to remember, and nothing to forget.
  */
 const registryShellRooms = () =>
-  [...REGISTRY.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/w\/([a-z]+)'/g)].map((m) => '/w/' + m[2]);
+  [...REGISTRY.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/vendor\/([a-z]+)'/g)].map((m) => '/vendor/' + m[2]);
 
 /** The Slice Door's fallback prefix \u2014 declared in the registry, read here, never retyped. */
-const registryFallbackBase = () => {
-  const m = REGISTRY.match(/FALLBACK_SLICE_BASE\s*=\s*'([^']+)'/);
-  return m ? m[1] : null;
-};
 
 let pass = 0, fail = 0, incon = 0;
 const P = (n, why) => { console.log('PASS         ' + n + (why ? '  — ' + why : '')); pass++; };
@@ -272,7 +269,7 @@ async function getChunk(url) {
 // intention: a cell that reads a page nobody fetched cannot get an empty string out of it,
 // only a named refusal. That is the assertion this defect actually needed \u2014 not "is the
 // list I wrote the list I wrote", but "did every cell read bytes this run actually has".
-const PAGES = [...new Set(['/w', '/w/rooms', '/w/today', ...registryShellRooms(), '/vendor/list/leads'])];
+const PAGES = [...new Set(['/vendor', '/vendor/rooms', '/vendor/today', ...registryShellRooms()])];  // P7.2: the carried /vendor/list/leads is deleted
 const pageCorpus = new Map();
 /**
  * READ A PAGE'S CORPUS, OR REFUSE BY NAME.
@@ -357,7 +354,7 @@ async function coverage() {
     // stale twice, because an `env` entry is inlined at build into modules the cache
     // restores unchanged. The id is read per request in app/w/layout.tsx now, so a missing
     // stamp means the /w layout did not render or lost its dynamic opt-out.
-    console.log('  The stamp is rendered per request by app/w/layout.tsx (F-39.16). A missing one means\\n  the /w layout did not render, or its cookies() dynamic opt-out was removed.\\n');
+    console.log('  The stamp is rendered per request by app/vendor/(shell)/layout.tsx (F-39.16). A missing one means\\n  the /w layout did not render, or its cookies() dynamic opt-out was removed.\\n');
   } else if (local && stamp !== local && !ANY_COMMIT) {
     console.log('REFUSED — the deploy is commit ' + stamp + '; this tree is ' + local + '.');
     console.log('  No assertions were run. A gate that reports on a build the operator did not');
@@ -374,24 +371,28 @@ async function coverage() {
   console.log('wl_audit · ' + BASE + '\n');
 
   try {
-    const r = await get('/w');
+    const r = await get('/vendor');
     if (r.status !== 200) { F('reachable', '/w returned ' + r.status); return summary(); }
   } catch (e) { F('reachable', e.message); return summary(); }
 
   await coverage();
 
-  const shell = corpus('/w/rooms');
-  const room  = corpus('/vendor/list/leads');
-  const settings = corpus('/w/settings');
-  const billing  = corpus('/w/billing');
-  const today    = corpus('/w/today');
+  const shell = corpus('/vendor/rooms');
+  // P7.2: the carried specimen (/vendor/list/leads) is deleted with the tree. The R-37.84
+  // cells below compared the shell against that carried room; they now compare Rooms against
+  // the Leads room — the SAME body, in the shell — so each assertion (one medallion, no italic
+  // serif, drawer overlays) still has two surfaces to disagree between. Labeled amendment.
+  const room  = corpus('/vendor/leads');
+  const settings = corpus('/vendor/settings');
+  const billing  = corpus('/vendor/billing');
+  const today    = corpus('/vendor/today');
 
   // ── 0 · the deploy is the one we think it is ─────────────────────────────
   // /w redirects CLIENT-SIDE in a useEffect. A fetch never runs JS, so no request
   // can observe the hop — the original assertion was unprovable by its own method
   // and printed FAIL on a working build. What IS provable from served bytes is
   // that the entry ships the redirect target; the behaviour is source-proved by C17.
-  if (/\/w\/rooms/.test(corpus('/w'))) P('R-37.75 rooms-first', 'the /w entry ships the redirect target');
+  if (/\/vendor\/rooms/.test(corpus('/vendor'))) P('R-37.75 rooms-first', 'the /w entry ships the redirect target');
   else F('R-37.75 rooms-first', 'the /w entry carries no /w/rooms redirect at all');
 
   // ── ① one medallion ──────────────────────────────────────────────────────
@@ -552,7 +553,7 @@ async function coverage() {
   else if (missCarried.length) F('R-37.79 one drawer, both trees', 'the carried room is missing rows: ' + missCarried.join(' \u00b7 ') + ' \u2014 two drawers behind one medallion');
   else if (aliveShell.length)   F('R-37.79 one drawer, both trees', 'retired rows still on the shell: ' + aliveShell.join(' \u00b7 '));
   else if (aliveCarried.length) F('R-37.79 one drawer, both trees', 'retired rows still on the carried room: ' + aliveCarried.join(' \u00b7 '));
-  else P('R-37.79 one drawer, both trees', 'the same ' + rows.length + ' rows on /w and on a carried room; ' + RETIRED_ROWS.length + ' retired rows absent from both');
+  else P('R-37.79 one drawer, both trees', 'the same ' + rows.length + ' rows on Rooms and on the Leads room (P7.2: both shell); ' + RETIRED_ROWS.length + ' retired rows absent from both');
 
   // ── R-38.1 · NO /vendor HREF REACHABLE FROM A SHELL CONTROL ────────────────
   // THE ASSERTION IS A SET, NOT AN ABSENCE, and that is the whole of its honesty. Fourteen
@@ -564,73 +565,25 @@ async function coverage() {
   // A room that crosses without leaving the list reddens too.
   // DERIVED FROM THE REGISTRY AT RUN TIME (M-FINISH S2). It was fourteen literals here and
   // eight now; nobody edits this line to make that true. See the note at the top of the file.
-  const INTERIM_ROOM_HREFS = registryVendorHrefs();
-  // DERIVED, NOT ASSUMED, AND MY OWN DECLARATION WAS WRONG BY ONE. R-38.7 anticipated a
-  // single outbound link from a crossed shell surface — 「Profile layout」. The gate found
-  // three, and the three had three different dispositions, which is why they are listed
-  // separately rather than waved through as "Settings links out":
-  //   /vendor/discover/preview — R-38.7's row. Genuinely uncrossed. INTERIM.
-  //   /vendor/discover/profile — SettingsScreen's own edit-profile control. Uncrossed.
-  //                              INTERIM, and it was never declared because nobody had
-  //                              read the body's links before crossing it.
-  //   /vendor/billing          — NOT interim. A SECOND MONEY SURFACE with a live door: the
-  //                              signpost pointed at the AtelierForm card while the tile
-  //                              went to the rebuilt page. CURED at the site, repointed to
-  //                              /w/billing, and therefore absent from this list.
-  // Also derived. R-38.11's amended standing (CE-38 relay #1 item 3) permits exactly the
-  // declared set and says it MAY ONLY SHRINK, so reading it is the only way this cell can
-  // enforce that direction rather than merely restate today's contents.
-  const INTERIM_LINKS = registryVendorLinks();
-  // The declared hub primers ride the allow-set the same way the interim links do: counted
-  // in the registry, read here, never retyped. A bare `/vendor` is a type or a predicate
-  // (`tell_victor: { path: '/vendor' }`, `href.startsWith('/vendor')`) and never a
-  // destination — derived by reading all three sites.
-  const HUB_PRIMERS = registryHubPrimers();
-  const ALLOWED = new Set([...INTERIM_ROOM_HREFS, ...INTERIM_LINKS, ...HUB_PRIMERS, '/vendor', '/vendor/onboarding']);
-  // Same set minus the entry redirect, which serves no chrome of its own.
-  const shellSurfaces = [...new Set(['/w/rooms', '/w/today', ...registryShellRooms()])];
+  // P7.2 — R-38.1 INVERTED WITH THE FLIP. Every shell href is a /vendor href now, so
+  // "no undeclared /vendor href" would forbid the registry itself. The question that
+  // survives: a shell control may reach a shell room, the entry redirect, or one of the
+  // declared LEGACY doors — and NOTHING that the delete removed. A stray is a door onto a
+  // 404 the old tree used to answer.
+  const SHELL_ROOM_HREFS = registryVendorHrefs();
+  const LEGACY_LINKS = registryVendorLinks();
+  const ALLOWED = new Set([...SHELL_ROOM_HREFS, ...LEGACY_LINKS, '/vendor', '/vendor/onboarding']);
+  const shellSurfaces = [...new Set(['/vendor/rooms', '/vendor/today', ...registryShellRooms()])];
   const strays = new Set();
-  // ── THE PRIMER PAIRS ARE COUNTED, NOT WAVED THROUGH  [CE-38, §4-3] ────────
-  // A set has two entries and the shell carries SEVEN doors through them — six 「Send to
-  // Chat」 and calendar's 「Ask … about this date」. Reporting the set's SIZE would say 「2
-  // declared hub primers」 while seven surfaces each hold one, and the number the chair
-  // needs to watch is the number of DOORS, because that is what the F-38.47 design sitting
-  // has to re-point. A pair that vanishes is progress; a pair that appears on a newly
-  // crossed room is the thing this count exists to surface.
-  const primerPairs = new Set();
   for (const path of shellSurfaces) {
     const body = corpus(path) || '';
-    // ── THE MATCHER, WIDENED AT THE S2 ZIP BOUNCE ──────────────────────────
-    // It read DOUBLE-QUOTED attributes only. Two holes, and the second is the dangerous one:
-    //   \u00b7 minifiers emit single quotes as readily as double, so half the estate's own
-    //     hrefs could sit in a chunk unread
-    //   \u00b7 a template literal compiles to concatenation, so `router.push(\u2026${d})` leaves a
-    //     bare prefix in the bytes and the old class stopped at the first non-word character
-    // `components/vendor/AddSheet.tsx:486` is the live specimen: reachable from all six
-    // crossed rooms and INVISIBLE to this cell until now. It resolves to /vendor/calendar,
-    // which is declared, so it passes today \u2014 AND IT MUST RED WHEN CALENDAR CROSSES AT
-    // \u00a74-2. A cell that goes on passing while its link rots is this instrument committing
-    // D-38.1 against itself, which is the whole reason the widening is not deferred.
-    const FALLBACK = registryFallbackBase();
-    // ── F-38.41 · THE TRAILING SLASH WAS A HOLE FOUR DOORS FIT THROUGH ────────
-    // `/vendor?draft=` and `/vendor?aiPrimer=` are the OLD HUB ROOT with a query and no path
-    // segment, and a shell surface that pushes one UNMOUNTS THE SHELL — second layout,
-    // second Splash, second medallion, second session resolve, which is F-38.1 entire. This
-    // expression required `\/vendor\/`, so it reported 「0 strays」 across eight rooms that
-    // were carrying one. Second sighting of this family after the S2 bounce's
-    // double-quote-only matcher; the lesson is the same and it is now written in two files.
-    for (const m of body.matchAll(/['"`](\/vendor(?:\/[A-Za-z0-9\/_-]*|[?#][A-Za-z0-9_=-]*)?)/g)) {
-      if (HUB_PRIMERS.includes(m[1])) { primerPairs.add(path + ' \u2192 ' + m[1]); continue; }
+    for (const m of body.matchAll(/['"`](\/vendor(?:\/[A-Za-z0-9\/_-]*)?)(?:[?#][^'"`]*)?['"`]/g)) {
       if (ALLOWED.has(m[1])) continue;
-      // The Slice Door's fallback prefix, declared at lib/worklist/rooms.ts. A PREFIX match
-      // and nothing looser: '/vendor/list/' passes, '/vendor/list/leads' does not, because
-      // a full carried href would mean a room slid back out of the shell.
-      if (FALLBACK && m[1] === FALLBACK) continue;
       strays.add(path + ' \u2192 ' + m[1]);
     }
   }
-  if (strays.size) F('R-38.1 no undeclared /vendor href', [...strays].join(' \u00b7 '));
-  else P('R-38.1 no undeclared /vendor href', INTERIM_ROOM_HREFS.length + ' declared interim rooms, ' + INTERIM_LINKS.length + ' declared interim links, ' + primerPairs.size + ' declared primers (F-38.47) through ' + HUB_PRIMERS.length + ' registry entries, 0 strays across ' + shellSurfaces.length + ' shell surfaces');
+  if (strays.size) F('R-38.1 no door onto the deleted tree', [...strays].join(' \u00b7 '));
+  else P('R-38.1 no door onto the deleted tree', SHELL_ROOM_HREFS.length + ' shell rooms, ' + LEGACY_LINKS.length + ' declared legacy doors, no stray');
 
   // ── R-38.2 · TILES AND SEATS ARE ANCHORS ──────────────────────────────────
   // A <button> tells Next nothing, so its chunk and its RSC payload are both fetched ON
@@ -717,7 +670,7 @@ async function coverage() {
   // and belongs to the render arm (C-R17). Three instruments, three claims, none of them
   // pretending to hold another's.
   const t0Sites = shellSurfaces.filter((p) => /--wl-t0/.test(corpus(p) || ''));
-  if (t0Sites.length === 1 && t0Sites[0] === '/w/today')
+  if (t0Sites.length === 1 && t0Sites[0] === '/vendor/today')
     P('R-38.4 t0 is one element', 'the masthead numeral is the rung\'s one consumer, and it is Today\'s');
   else
     F('R-38.4 t0 is one element', 't0 consumers: ' + (t0Sites.join(' ') || 'none') + ' — the rung is one element per app and that element is /w/today\'s numeral');
@@ -789,7 +742,7 @@ async function coverage() {
   else P('R-38.6 retired strings absent', RETIRED.length + ' retired bytes, none on any shell surface');
 
   // ── R-38.7 · THE TWO ROWS LEFT THE ROOMS BODY ─────────────────────────────
-  const rooms = corpus('/w/rooms') || '';
+  const rooms = corpus('/vendor/rooms') || '';
   const panelGone = !/wl-panel|wl-prow|wl-pointer/.test(rooms);
   const waInDrawer = shell.includes('TDW on WhatsApp');
   const profileInSettings = (settings || '').includes('Profile layout');
@@ -799,7 +752,7 @@ async function coverage() {
          'panelGone=' + panelGone + ' waInDrawer=' + waInDrawer + ' profileInSettings=' + profileInSettings);
 
   // ── R-38.9 · THE ADVISOR ROOM, AND NO PERSONA NAME IN CHROME ──────────────
-  const advisor = corpus('/w/advisor') || '';
+  const advisor = corpus('/vendor/advisor') || '';
   if (/Advisor/.test(advisor) && /vendor-e\/mode/.test(advisor))
     P('R-38.9 the advisor room', 'the room ships and reaches the mode door');
   else F('R-38.9 the advisor room', 'header word or the mode door is missing from /w/advisor');
@@ -830,7 +783,7 @@ async function coverage() {
   // grandfathered exception (F-38.3, OPEN) and it lives behind the dock on every surface,
   // so this reads the BILLING and SETTINGS bundles' own toast instead: WlToast ships and
   // main's Toast does not.
-  const toastOk = ['/w/billing', '/w/settings'].every((p) => (corpus(p) || '').includes('wl-toast'));
+  const toastOk = ['/vendor/billing', '/vendor/settings'].every((p) => (corpus(p) || '').includes('wl-toast'));
   if (toastOk) P('arm (c) the shell toast', 'wl-toast ships on both crossing surfaces');
   else F('arm (c) the shell toast', 'a crossing surface does not carry wl-toast');
 

@@ -50,9 +50,9 @@ type AddRow =
 
 const ROWS: readonly AddRow[] = [
   // ── CALENDAR CROSSED AT §4-2 AND THIS LINE DID NOT CHANGE ─────────────────
-  // It said, at R-38.18: 「it is a declared interim address, and it becomes a `/w/` route in
+  // It said, at R-38.18: 「it is a declared interim address, and it becomes a `/vendor/` route in
   // the same edit that crosses the room, with nothing here to remember.」 That is exactly
-  // what happened — `roomHref('calendar')` returns `/w/calendar` now because the registry
+  // what happened — `roomHref('calendar')` returns `/vendor/calendar` now because the registry
   // says so, and this file was not touched by the crossing.
   //
   // THE COMMENT IS UPDATED THOUGH, AND THAT IS THE HALF THAT IS EASY TO SKIP. The old note
@@ -69,7 +69,7 @@ const ROWS: readonly AddRow[] = [
   { id: 'event',    label: COPY.addEvent,    glyph: '\u25c8', slice: 'events' },
   // Notes has no AddSheet leg — its composer is NotesBody's own `addOpen`, and building a
   // second one here would be a second home for the one surface that writes a note.
-  { id: 'note',     label: COPY.addNote,     glyph: '\u25a1', href: '/w/notes?add=1' },
+  { id: 'note',     label: COPY.addNote,     glyph: '\u25a1', href: '/vendor/notes?add=1' },
 ];
 
 export function AddFab() {

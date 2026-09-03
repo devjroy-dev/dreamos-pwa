@@ -43,7 +43,7 @@ const CODE = (p) => strip(RAW(p));
 
 const SHELL_P = 'components/vendor/slices/SliceShell.tsx';
 const ROW_P   = 'components/vendor/slices/SliceRow.tsx';
-const LEADS_P = 'app/vendor/list/[slice]/leads.tsx';
+const LEADS_P = 'app/vendor/(shell)/leads/body.tsx';
 const SHEET_P = 'components/frost/EnquirySheet.tsx';
 const BANDS_P = 'lib/frost/budgetBands.ts';
 

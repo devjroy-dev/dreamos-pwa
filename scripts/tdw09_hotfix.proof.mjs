@@ -111,12 +111,12 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   // changed is which file holds it. A cell renamed to follow its subject is not a loosened
   // cell; a cell left pointing at the old path would have gone red on a correct tree and
   // taught the next seat that this bench may be argued with.
-  const CAL_BODY = 'app/vendor/calendar/screen.tsx';
+  const CAL_BODY = 'app/vendor/(shell)/calendar/screen.tsx';
   // \u00a74-3: STOREFRONT CROSSED THE SAME WAY, AND THE SAME SENTENCE APPLIES. Its body split
   // out of its route file for the identical reason, so the adopter of the Reserve primitive
   // is `screen.tsx`. Second firing of the paragraph above; the constant is named rather than
   // the path being retyped, so the third crossing that reaches this cell has one edit.
-  const SF_BODY = 'app/vendor/storefront/screen.tsx';
+  const SF_BODY = 'app/vendor/(shell)/storefront/screen.tsx';
   const adopters = [SF_BODY, 'app/vendor/page.tsx', CAL_BODY];
   cell('2.6', adopters.every(f => /from '@\/components\/vendor\/Reserve'/.test(R(f))),
     'all THREE named adopters import the one primitive (no fourth shape)');
@@ -179,7 +179,7 @@ sec('§3 · F-09.114 — THE CALENDAR + OPENS THE ADD-EVENT SHEET');
   // reason, same sitting \u2014 and the constant is declared here too rather than in one shared
   // place, because these two sections read the file for different claims and a single
   // top-level constant would invite a third reader to assume they check the same thing.
-  const CAL_BODY = 'app/vendor/calendar/screen.tsx';
+  const CAL_BODY = 'app/vendor/(shell)/calendar/screen.tsx';
   const raw = R(CAL_BODY);
   const src = strip(raw);
 

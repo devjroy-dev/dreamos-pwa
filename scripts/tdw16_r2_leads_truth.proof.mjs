@@ -53,7 +53,7 @@ const ok = (id, cond, why = '') => {
 };
 const H = (t) => console.log(`\n── ${t} ──`);
 
-const LEADS_RAW = R('app/vendor/list/[slice]/leads.tsx');
+const LEADS_RAW = R('app/vendor/(shell)/leads/body.tsx');
 const LEADS = strip(LEADS_RAW);
 const ROW_RAW = R('components/vendor/slices/SliceRow.tsx');
 const ROW = strip(ROW_RAW);

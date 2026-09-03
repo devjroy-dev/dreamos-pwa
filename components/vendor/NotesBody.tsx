@@ -13,7 +13,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAsk } from '@/lib/worklist/askContext';
-import { useInShell } from '@/hooks/vendor/useInShell';
 import { Fab } from '@/components/worklist/Fab';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -54,7 +53,6 @@ function fmtDate(iso: string): string {
 export function NotesBody() {
   const { toast, show } = useToast();
   const { openAsk } = useAsk();
-  const inShell = useInShell();
   const [notes, setNotes]     = useState<OwnerNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery]     = useState('');
@@ -197,18 +195,7 @@ export function NotesBody() {
           at Phase 7, and deleting the button there would take the only way to write a note
           with it. Disclosed as s-39.8: the ruling named SliceShell's carve-out and this
           component has the identical dual-tree property. */}
-      {inShell
-        ? <Fab label="New note" onClick={() => setAddOpen(true)} />
-        : (
-          <button type="button" onClick={() => setAddOpen(true)} aria-label="New note" data-tree="vendor" style={{
-            position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', right: 24, width: 52, height: 52,
-            borderRadius: '50%', backgroundColor: 'var(--atelier-accent-text)', border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
-            boxShadow: '0 4px 20px var(--atelier-overlay-bg)',
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          </button>
-        )}
+      {<Fab label="New note" onClick={() => setAddOpen(true)} />}
 
       {/* Detail sheet */}
       {selected && (

@@ -86,11 +86,9 @@ export type CabinetResponse = {
   vendor?: { name: string | null; category: string | null; city: string | null; handle: string | null };
   clients: CabinetBinder[];
   leads: CabinetBinder[];
-  paid: CabinetBinder[];
-  owed: CabinetBinder[];
   booked: CabinetEvent[];
   reminders: CabinetReminder[];
-  counts?: { clients: number; leads: number; paid: number; owed: number; booked: number; reminders: number };
+  counts?: { clients: number; leads: number; booked: number; reminders: number };
   error?: string;
 };
 export function fetchCabinet(vendorId: string): Promise<CabinetResponse> {

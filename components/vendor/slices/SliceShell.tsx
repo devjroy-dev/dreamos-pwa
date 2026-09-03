@@ -23,12 +23,10 @@ import { useRouter } from 'next/navigation';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { useInShell } from '@/hooks/vendor/useInShell';
 import { Fab } from '@/components/worklist/Fab';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
-import { Toast } from '@/components/vendor/Toast';
 // ── M-FINISH S2 · CE-38 relay #2 arm (c), REACHING THE LIST FAMILY ──────────
 // `Toast` reads five values off `useT()` as JAVASCRIPT, not as CSS variables, so inside the
 // shell — where no ThemeProvider mounts and none may (F-38.3) — it falls to
@@ -52,7 +50,7 @@ import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gest
 import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
 import { FilterRail, type FilterChip } from './FilterRail'; // TDW_04 A4: P4's rail
 import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth for money mastheads
-import { deriveMoney, deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
+import { deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
 import { queueUndoable, flushAllPending, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure · A4: F-04.14 ruled
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
@@ -85,6 +83,7 @@ const LANE_LINE: Record<ListSlice, string> = {
 };
 import { DetailSheet } from './DetailSheet';
 
+import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // Payment schedule endpoint lands with Step 10 (artifact hands). Off until then,
 // so opening an invoice doesn't fire a 404 against a route that isn't built yet.
 const SCHEDULE_ENABLED: boolean = false;
@@ -111,7 +110,6 @@ const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'ev
 
 export function SliceDoor({ active }: { active: DoorSlice }) {
   const router = useRouter();
-  const inShell = useInShell();
   const [, setSlice] = useLastSlice();
   const rowRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLButtonElement | null>(null);
@@ -135,7 +133,7 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
             ref={isActive ? activeRef : undefined}
             type="button"
             aria-current={isActive ? 'page' : undefined}
-            onClick={() => { if (!isActive) { setSlice(s); router.push(inShell ? `/w/${s}` : `/vendor/list/${s}`); } }}
+            onClick={() => { if (!isActive) { setSlice(s); router.push(`/vendor/${s}`); } }}
             style={{
               flexShrink: 0,
               background: 'transparent', border: 'none', cursor: 'pointer',
@@ -182,7 +180,6 @@ interface SliceShellProps {
   slice: ListSlice;
   /** THE BACK/LABEL ROW ONLY. Inside the shell the row does not render, so this is never
       called there — the shell's two nav seats are the way out and there is no chevron. */
-  onBack: () => void;
   query: string;
   setQuery: (q: string) => void;
   loading: boolean;
@@ -225,8 +222,7 @@ interface SliceShellProps {
 // than silent ones, and both are named in the handover and excluded from the render arm's
 // tuple cell by name: the slice tree's thirty colour LITERALS (F-38.22) and its old type
 // register. Neither is swept inside a structural crossing.
-export function SliceShell({ slice, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
-  const inShell = useInShell();
+export function SliceShell({ slice, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
       {/* ── THE BACK/LABEL ROW IS THE OLD LAYOUT'S CHROME ────────────────────
@@ -235,12 +231,7 @@ export function SliceShell({ slice, onBack, query, setQuery, loading, error, row
           already owns the way out. There is no chevron in the shell by construction — the
           two nav seats are the way back, which is the same contract Billing and Settings
           crossed under at S1. On the /vendor fallback the row renders exactly as before. */}
-      {!inShell && (
-        <div style={{ padding: '12px var(--slice-inset, 22px) 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
-          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
-        </div>
-      )}
+      
       {/* TDW_04 A1 (L-1, ST-1): the lane declaration — one provenance line under
           every record-surface title, house voice. No surface claims totality it
           doesn't have. */}
@@ -327,20 +318,7 @@ export function SliceShell({ slice, onBack, query, setQuery, loading, error, row
           BottomNav, `.wl-fab` does not exist outside the shell scope, and that tree dies
           whole at Phase 7. Two implementations, each with its reason at its site — the
           same shape the ask door took two hours ago. */}
-      {inShell
-        ? <Fab label={`Add ${LABELS[slice].toLowerCase()}`} onClick={onAdd} />
-        : (
-          <button type="button" onClick={onAdd} aria-label={`Add ${LABELS[slice].toLowerCase()}`}
-            className="atelier-fab" data-tree="vendor"
-            style={{
-              // The old shell's BottomNav is 82 tall, which is where the 82 came from.
-              position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
-              width: 46, height: 46, borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
-              cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-            }}>+</button>
-        )}
+      {<Fab label={`Add ${LABELS[slice].toLowerCase()}`} onClick={onAdd} />}
 
       {children}
     </div>
@@ -355,6 +333,10 @@ export interface SliceDataState<T> {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  /** P7.2 (FORK 4): the typed invoices read carries the server's summary on the same load
+      state; the invoices masthead reads it here instead of the engine cabinet. Optional so
+      the five other slices' loaders are untouched. */
+  summary?: { total_outstanding: number; total_collected: number } | null;
 }
 
 export interface SliceScreenProps<T extends { id: string }> {
@@ -370,12 +352,10 @@ export interface SliceScreenProps<T extends { id: string }> {
 }
 
 export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest }: SliceScreenProps<T>) {
-  const router = useRouter();
   // ONE DERIVATION, TWO READERS. `useInShell` was called inline for the toast alone; the
   // F-39.11 focus arm below needs the same fact, and calling the hook twice in one
   // component is two statements of one thing that a later edit can let disagree.
-  const screenInShell = useInShell();
-  const ToastView = screenInShell ? WlToast : Toast;
+  const ToastView = WlToast;
   const { session } = useVendorSession();
   const d = useData(vendorId);
 
@@ -508,8 +488,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       return keys.map(k => ({ key: k, label: monthLabel(k), count: count(r => monthKey(r.sortDate) === k) }));
     }
     if (slice === 'events') {
-      const today = new Date().toISOString().slice(0, 10);
-      const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const today = istTodayISO();
+      const week = istPlusDaysISO(7);
       return [
         { key: 'week', label: 'this week', count: count(r => (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming') },
         { key: 'later', label: 'later', count: count(r => (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming') },
@@ -525,8 +505,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (slice === 'invoices') return filterKey === 'overdue' ? !!r.badgeAlert : (r.badge ?? '').toLowerCase().replace(' ', '_') === filterKey;
     if (slice === 'expenses') return monthKey(r.sortDate) === filterKey;
     if (slice === 'events') {
-      const today = new Date().toISOString().slice(0, 10);
-      const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const today = istTodayISO();
+      const week = istPlusDaysISO(7);
       if (filterKey === 'week') return (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming';
       if (filterKey === 'later') return (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming';
       return (r.badge ?? '') === 'done';
@@ -589,7 +569,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // before the list paints, and a one-shot on mount would silently miss every time.
   const focusedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!screenInShell || slice !== 'leads') return;
+    if (slice !== 'leads') return;
     const want = new URLSearchParams(window.location.search).get('lead');
     if (!want || focusedRef.current === want) return;
     if (!rows.some((r) => r.id === want)) return;
@@ -599,7 +579,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     el.scrollIntoView({ block: 'center' });
     const row = rows.find((r) => r.id === want);
     if (row) setSel(row);
-  }, [screenInShell, slice, rows]);
+  }, [slice, rows]);
 
   // Fetch lead detail when a lead row is selected
   useEffect(() => {
@@ -806,12 +786,18 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // Every figure rides lib/vendor/derive.ts — the same function the hub Ledger
   // reads, over the same rows. Invoices' "outstanding" here IS the hub's "Owed":
   // one derivation, two renderers, agreement by construction.
-  const cabForMoney = useCabinetData(slice === 'invoices' || slice === 'clients' ? vendorId : null);
+  const cabForMoney = useCabinetData(slice === 'clients' ? vendorId : null);
   const masthead = useMemo(() => {
     if (slice === 'invoices') {
-      const m = deriveMoney(cabForMoney.data);
-      return <Masthead eyebrow="Outstanding" value={m.outstanding} isMoney
-        sub={m.owedCount === 0 ? 'from your binders · settled' : `from your binders · across ${m.owedCount} open`} />;
+      // P7.2 (FORK 4): the figure is the server's `summary.total_outstanding` (money.js,
+      // OUTSTANDING_STATES — the one rule); the open count is the rows still owed, which is
+      // `amount_owed > 0` on server-computed rows, not a second rule. Gated on a reading:
+      // no summary, no figure (F-38.31).
+      const outstanding = d.summary ? d.summary.total_outstanding : null;
+      const openCount = rawRows.filter(r => (r.payAmount ?? 0) > 0).length;
+      if (outstanding === null) return null;
+      return <Masthead eyebrow="Outstanding" value={outstanding} isMoney
+        sub={openCount === 0 ? 'from your binders · settled' : `from your binders · across ${openCount} open`} />;
     }
     if (slice === 'clients') {
       const c = deriveClients(cabForMoney.data);
@@ -834,7 +820,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         sub={w.count === 0 ? 'your calendar · nothing booked' : w.count === 1 ? 'your calendar · 1 event' : 'your calendar · events ahead'} />;
     }
     return null;
-  }, [slice, cabForMoney.data, rawRows]);
+  }, [slice, cabForMoney.data, rawRows, d.summary]);
 
   // ── F-2c.p9 · MONEY'S PRIMARY VERB IS NOT GESTURE-ONLY ────────────────────
   // The founder's 2c walk: an invoice could only be settled by SWIPING it. A
@@ -1208,7 +1194,6 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   return (
     <SliceShell
       slice={slice}
-      onBack={() => router.back()}
       query={query}
       setQuery={setQuery}
       loading={loading}

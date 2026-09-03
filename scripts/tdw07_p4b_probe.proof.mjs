@@ -51,7 +51,7 @@ const code = (rel) => stripComments(raw(rel));
 // bench may be argued with. The constant is declared HERE, at this reading section,
 // rather than once at the top: the sections below read this file for different claims,
 // and a shared constant invites a third reader to assume they check the same thing.
-const MANAGER = 'app/vendor/portfolio/screen.tsx';
+const MANAGER = 'app/vendor/(shell)/portfolio/screen.tsx';
 const C = code(MANAGER);
 const R = raw(MANAGER);
 

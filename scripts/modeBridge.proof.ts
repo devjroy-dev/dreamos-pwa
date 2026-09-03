@@ -50,7 +50,7 @@
 // reason. The alias config still earns its place: it keeps `lib/worklist/mode.ts`'s own
 // internal imports resolvable.
 import { writeMode, MODE_COOKIE, MODE_LEGACY_KEY, VENDOR_LANE_KEY } from '../lib/worklist/mode';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 // The repo root, hoisted here because `codeOf` below runs with it as cwd. It was declared
@@ -162,7 +162,7 @@ const EXPECTED = new Map<string, string>([
   // DECLARES the key (three live readers import nothing else) and still names it in the
   // label recording the retirement — but it no longer writes it.
   ['lib/worklist/mode.ts',              'the key\'s one declaration, plus the label recording the bridge\'s retirement — writes it nowhere'],
-  ['app/vendor/layout.tsx',             'reader'],
+  // 'app/vendor/layout.tsx' — RETIRED at P7.2: the old layout (the lane's reader) was deleted with the tree; the demo tree's provider is the last reader (FORK 3: the mirror stays, named, until P7.3)
   ['hooks/vendor/useTheme.ts',          'reader'],
   ['lib/vendor/ThemeContext.tsx',       'reader'],
   ['app/layout.tsx',                    'anti-flash boot script: reads before React, plus R-U19\'s one-time flair->dark migration'],
@@ -226,12 +226,18 @@ console.log('\n§3 · THE RETIREMENT WAS DERIVABLE, AND IT FIRED');
 // STRIPPED, for the reason F-38.60 filed one sitting ago: the registry is a prose-carrying
 // source file, its comments quote the very hrefs they retired, and the reader that did not
 // strip is the one that convicted a correct tree.
-const registry = codeOf('lib/worklist/rooms.ts');
-const remaining = (registry.match(/href:\s*'\/vendor\/[^']+'/g) || []).length;
-ok('§3.1 the retirement condition holds — no room reads the /vendor lane',
-   remaining === 0, 'rooms still on the /vendor lane: ' + remaining);
-console.log('       ' + remaining + ' room(s) on the /vendor lane — the bridge stays retired at 0');
-
+// P7.2 AMENDMENT (labeled): the flip put EVERY room on a `/vendor/…` href (arm (a)), so
+// "no room reads the /vendor lane" can no longer be measured by href prefix — the prefix is
+// the shell now. The retirement condition that survives: no shell surface READS the lane
+// key, and the old tree's reader is gone. Measured on the same key, not on an address.
+const shellHits = execSync(
+  `git grep -ln "${VENDOR_LANE_KEY}" -- "app/vendor/(shell)" components/worklist lib/worklist hooks || true`,
+  { cwd: ROOT, encoding: 'utf8' },
+).split('\n').filter(Boolean).filter((h) => h !== 'lib/worklist/mode.ts' && h !== 'hooks/vendor/useTheme.ts');
+ok('3.1 the retirement condition holds  no shell surface reads the /vendor lane key',
+   shellHits.length === 0, 'shell readers of the lane key: ' + (shellHits.join(', ') || 'none'));
+ok('3.2 the old tree\'s reader is gone with the tree (P7.2)',
+   !existsSync(ROOT + '/app/vendor/layout.tsx'), 'app/vendor/layout.tsx is back');
 console.log('');
 const total = pass + fail;
 console.log(fail === 0 ? `GREEN — modeBridge ${pass}/${total}` : `RED — modeBridge ${pass}/${total}`);

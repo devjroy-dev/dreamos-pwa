@@ -20,8 +20,8 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const R = (p) => readFileSync(join(__dirname, '..', p), 'utf8');
 const SRC = {
-  pinlogin: R('app/vendor/pin-login/page.tsx'),
-  pinreset: R('app/vendor/pin-reset/page.tsx'),
+  pinlogin: R('app/vendor/(legacy)/pin-login/page.tsx'),
+  pinreset: R('app/vendor/(legacy)/pin-reset/page.tsx'),
   landing:  R('app/(landing)/page.tsx'),
 };
 
@@ -30,7 +30,7 @@ const ok  = (m) => console.log(`  \u2713 ${m}`);
 const bad = (m) => { console.log(`  \u2717 ${m}`); fail++; };
 const guard = (label, src, re) => re.test(src) ? ok(`guard: ${label}`) : bad(`guard MISSING: ${label}`);
 
-// ── RAIL 1 — pin-login merge (mirrors app/vendor/pin-login/page.tsx) ────────────────
+// ── RAIL 1 — pin-login merge (mirrors app/vendor/(legacy)/pin-login/page.tsx) ────────────────
 function pinLoginSession({ d, existing }) {
   return {
     ...existing,
@@ -55,7 +55,7 @@ guard('pin-login OLD false comment gone', SRC.pinlogin, /^(?!.*but NOT name\/tie
   old.tier === 'essential' ? ok('RAIL 1 both-ways: tier-less response \u2192 essential (teeth)') : bad(`RAIL 1 both-ways tier=${old.tier}`);
 }
 
-// ── RAIL 2 — pin-reset merge (mirrors app/vendor/pin-reset/page.tsx; already cured) ──
+// ── RAIL 2 — pin-reset merge (mirrors app/vendor/(legacy)/pin-reset/page.tsx; already cured) ──
 function pinResetSession({ res, existing }) {
   const tier = res.tier || '', vName = res.name || '', category = res.category || '';
   return {

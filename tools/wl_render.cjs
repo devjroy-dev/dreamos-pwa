@@ -220,7 +220,7 @@ async function settle(p, path, landmark, cells) {
   // founder is being asked to judge. Those surfaces have no `.wl-main` and never will, so
   // the arm skipped them and shipped 20 frames where 24 were ruled. Waiting for the wrong
   // landmark and waiting for no landmark fail the same way.
-  const root = path.startsWith('/w') ? '.wl-main' : 'header';
+  const root = path.startsWith('/vendor') ? '.wl-main' : 'header';
   try {
     await p.goto(BASE + path, { waitUntil: 'domcontentloaded' });
     await p.waitForSelector(root, { timeout: 15000 });
@@ -273,7 +273,7 @@ async function seat(browser, mode) {
   // whole arm, which is how a run that had printed nine green dark cells still exited 3.
   // Same class as F-38.9 and F-38.11, found in the same file three edits later. It returns
   // null now, and the caller reports that mode's cells rather than losing them.
-  if (!await settle(p, '/w/rooms', '.wl-coin')) { await p.close(); return null; }
+  if (!await settle(p, '/vendor/rooms', '.wl-coin')) { await p.close(); return null; }
   return p;
 }
 
@@ -295,7 +295,7 @@ async function seat(browser, mode) {
   try {
     const { execSync } = require('child_process');
     const local = execSync('git rev-parse --short=7 HEAD', { encoding: 'utf8' }).trim();
-    const html = await (await fetch(BASE + '/w/today')).text();
+    const html = await (await fetch(BASE + '/vendor/today')).text();
     const refs = [...new Set([...html.matchAll(/\/_next\/static\/[^"'\\ )]+?\.js/g)].map((m) => m[0]))];
     let stamp = null;
     for (const r of refs.slice(0, 40)) {
@@ -388,7 +388,7 @@ async function seat(browser, mode) {
     // C-R10's first paint, C-R16's in-app walk. A fifth added outside both is a regression
     // and there is now nothing subtle about spotting it.
     const CR23 = [tag + 'C-R2 the gutter APPLIES', tag + "C-R3 the registry's room count is what paints"];
-    if (!await settle(p, '/w/rooms', '.wl-tile', CR23)) { await p.close(); continue; }
+    if (!await settle(p, '/vendor/rooms', '.wl-tile', CR23)) { await p.close(); continue; }
     const g = await p.evaluate(() => {
       const tiles = [...document.querySelectorAll('.wl-tile')];
       const first = tiles[0].getBoundingClientRect();
@@ -462,7 +462,7 @@ async function seat(browser, mode) {
     // densest label surface in the shell, and 「the scale holds by construction」 was always
     // going to be decided here rather than on a page of three cards. The MUTATION named in
     // the ruling is one restored 9px label → this cell must red.
-    const SCALE_SURFACES = ['/w/rooms', '/w/today', '/w/billing', '/w/advisor', '/w/settings'];
+    const SCALE_SURFACES = ['/vendor/rooms', '/vendor/today', '/vendor/billing', '/vendor/advisor', '/vendor/settings'];
     const RUNGS = [
       { n: 't0', px: 46, w: 500, fam: 'Cormorant' }, { n: 't1', px: 24, w: 500, fam: 'Cormorant' },
       { n: 't2', px: 17, w: 500, fam: 'DM Sans' },   { n: 't3', px: 14, w: 400, fam: 'DM Sans' },
@@ -523,13 +523,13 @@ async function seat(browser, mode) {
     // it now, so the two cells are named ONCE, at the step that can lose them, and a third
     // surface added to this measurement cannot forget to report itself.
     const CR7 = [tag + 'C-R7a the text edge is one x', tag + 'C-R7a first-run interiors are one x', tag + 'C-R7b the container edge agrees'];
-    const billingUp = await settle(p, '/w/billing', '.wl-billcard', CR7);
+    const billingUp = await settle(p, '/vendor/billing', '.wl-billcard', CR7);
     const eB = !billingUp ? null : await p.evaluate(() => {
       const l = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
       return { house: l('.wl-house'), card: l('.wl-billcard'), dock: l('.wl-dockfield'),
                nav: l('.wl-nav'), main: l('.wl-main') };
     });
-    const roomsUp = billingUp && await settle(p, '/w/rooms', '.wl-tile', CR7);
+    const roomsUp = billingUp && await settle(p, '/vendor/rooms', '.wl-tile', CR7);
     const eR = !roomsUp ? null : await p.evaluate(() => {
       const t = document.querySelector('.wl-tile');
       return { tile: t ? Math.round(t.getBoundingClientRect().left * 10) / 10 : null };
@@ -549,7 +549,7 @@ async function seat(browser, mode) {
     // THE DEFECT THIS WAS BUILT OVER: `.wl-card-lead` swapped a .5px border for 2px
     // without compensating the padding, so card 1's interior painted 1.5px right of cards
     // 2 and 3. Three titles, three x values. Nothing measured it because nothing looked.
-    const todayUp = billingUp && roomsUp && await settle(p, '/w/today', '.wl-fr', CR7);
+    const todayUp = billingUp && roomsUp && await settle(p, '/vendor/today', '.wl-fr', CR7);
     const eT = !todayUp ? null : await p.evaluate(() => {
       const l = (e) => (e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null);
       const q = (s) => [...document.querySelectorAll(s)].map(l);
@@ -590,7 +590,7 @@ async function seat(browser, mode) {
     // the arm THREW. It never reached light mode and it wrote none of the 24 captures. A
     // bench that crashes instead of reporting is worse than one that reds: the red names
     // the cell, the crash costs every cell after it.
-    if (!await settle(p, '/w/rooms', '.wl-tile', [tag + 'C-R8 eighteen rooms at rest'])) {
+    if (!await settle(p, '/vendor/rooms', '.wl-tile', [tag + 'C-R8 eighteen rooms at rest'])) {
       await p.close();
       continue;
     }
@@ -618,7 +618,7 @@ async function seat(browser, mode) {
     // tree that measured green. It releases the pointer immediately, then looks 60ms LATER,
     // when the active pseudo-class is long over. A row still lit at that moment is a row
     // holding its own state; a row that is not was only ever lit while the finger was down.
-    if (await settle(p, '/w/rooms', '.wl-coin', [tag + 'C-R11 the press survives the gesture'])) {
+    if (await settle(p, '/vendor/rooms', '.wl-coin', [tag + 'C-R11 the press survives the gesture'])) {
       await p.click('.wl-coin');
       await new Promise((r) => setTimeout(r, 350));
       const beat = await p.evaluate(async () => {
@@ -671,8 +671,8 @@ async function seat(browser, mode) {
     const CR13 = tag + 'C-R13 every sign-out door opens the one confirm sheet';
     const DOORS = [
       // [surface, landmark, how the door is reached]
-      ['/w/rooms',    '.wl-coin',   'coin drawer'],
-      ['/w/settings', '.wl-set',    'settings button'],
+      ['/vendor/rooms',    '.wl-coin',   'coin drawer'],
+      ['/vendor/settings', '.wl-set',    'settings button'],
     ];
     const doorResults = [];
     for (const [path, landmark, how] of DOORS) {
@@ -730,7 +730,7 @@ async function seat(browser, mode) {
     // ARRIVE IN THE INPUT. Prefill-not-fire is asserted too — a door that SENT the stem
     // would satisfy 「the sheet opened」 while spending the vendor's message on a fragment.
     const CR19 = tag + 'C-R19 a hub primer opens the ask sheet in place, prefilled';
-    if (await settle(p, '/w/notes', '.wl-main', [CR19])) {
+    if (await settle(p, '/vendor/notes', '.wl-main', [CR19])) {
       const prim = await p.evaluate(async () => {
         const note = document.querySelector('[data-wl-note]') || document.querySelector('.wl-main button');
         if (!note) return { reachable: false };
@@ -797,8 +797,8 @@ async function seat(browser, mode) {
     // TDS — that neither the founder's walk nor the hotfix had reached, so both join here:
     // a cell that measures the rooms somebody happened to check is the same defect as a
     // cure applied where somebody happened to be looking.
-    const FAB_ROOMS = ['/w/rooms', '/w/leads', '/w/invoices', '/w/notes', '/w/calendar',
-                       '/w/contracts', '/w/tds'];
+    const FAB_ROOMS = ['/vendor/rooms', '/vendor/leads', '/vendor/invoices', '/vendor/notes', '/vendor/calendar',
+                       '/vendor/contracts', '/vendor/tds'];
     const seats = [];
     for (const room of FAB_ROOMS) {
       if (!await settle(p, room, '.wl-main', [CR20])) { seats.push({ room, mounted: false }); break; }
@@ -890,7 +890,7 @@ async function seat(browser, mode) {
           } catch { /* the request may already be handled on teardown */ }
         };
         p.on('request', hold);
-        await p.goto(BASE + '/w/today', { waitUntil: 'domcontentloaded' });
+        await p.goto(BASE + '/vendor/today', { waitUntil: 'domcontentloaded' });
         // The masthead does not wait on the wire, so it is the landmark that proves the
         // surface is up while the feed is still legitimately empty.
         await p.waitForSelector('.wl-masthead', { timeout: 15000 });
@@ -965,7 +965,7 @@ async function seat(browser, mode) {
       // below throws past this cell exactly as C-R2's did. Same sweep, same sitting.
       let firstPaint = null;
       try {
-        await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+        await p.goto(BASE + '/vendor/rooms', { waitUntil: 'domcontentloaded' });
         await p.waitForSelector('.wl-coin', { timeout: 15000 });
         firstPaint = await p.evaluate(() => (document.querySelector('.wl-coin')?.textContent || '').trim());
       } catch { /* reported below */ }
@@ -1025,7 +1025,7 @@ async function seat(browser, mode) {
         if (r.url().includes('/api/v2/vendor/me')) { meStatus = r.status(); seenMe.push(r.status()); }
       };
       p.on('response', catchMe);
-      const up = await settle(p, '/w/today', '.wl-masthead', [CR15]);
+      const up = await settle(p, '/vendor/today', '.wl-masthead', [CR15]);
       if (up) await p.waitForNetworkIdle({ idleTime: 700, timeout: 15000 }).catch(() => {});
       p.off('response', catchMe);
       const after = !up ? null : await p.evaluate(() => ({
@@ -1035,7 +1035,7 @@ async function seat(browser, mode) {
       if (up && !after) F(CR15, 'the page was gone before it could be read — a hard redirect is the only thing that does that');
       else if (up && meStatus === null)
         F(CR15, 'no GET /me was observed while ' + after.path + ' mounted, so this cell saw nothing and must not report a pass');
-      else if (up && meStatus === 200 && after.session && after.path.startsWith('/w'))
+      else if (up && meStatus === 200 && after.session && after.path.startsWith('/vendor'))
         P(CR15, 'GET /me answered 200 (' + seenMe.length + ' seen); the session is intact and the shell is still mounted at ' + after.path);
       else if (up)
         F(CR15, 'GET /me answered ' + JSON.stringify(seenMe) + '; session=' + after.session + ' path=' + after.path +
@@ -1071,7 +1071,7 @@ async function seat(browser, mode) {
     // derive the same number from the same body by two different routes — which is the
     // only arrangement in which agreement means anything.
     const CR17 = tag + 'C-R17 the masthead paints exactly the reading the feed returned';
-    if (await settle(p, '/w/today', '.wl-masthead', [CR17])) {
+    if (await settle(p, '/vendor/today', '.wl-masthead', [CR17])) {
       let body = null;
       const catchFeed = async (r) => {
         if (!/\/api\/v2\/vendor\/worklist\/today/.test(r.url())) return;
@@ -1127,7 +1127,7 @@ async function seat(browser, mode) {
     // It also asserts the control is NOT on Today — R-38.18's scope, on glass rather than
     // in an import graph. A mount is easy to add in a hurry and hard to notice.
     const CR18 = tag + 'C-R18 the Add control clears the dock and lives only on Rooms';
-    if (await settle(p, '/w/rooms', '.wl-fab', [CR18])) {
+    if (await settle(p, '/vendor/rooms', '.wl-fab', [CR18])) {
       const geo = await p.evaluate(() => {
         const fab = document.querySelector('.wl-fab');
         const dock = document.querySelector('.wl-dock');
@@ -1153,7 +1153,7 @@ async function seat(browser, mode) {
         const seated = geo.gap >= 15 && geo.gap <= 17 && geo.rightInset === geo.gutter;
         const plus = geo.label === '+';
         if (sized && seated && plus) {
-          const onToday = await settle(p, '/w/today', '.wl-masthead')
+          const onToday = await settle(p, '/vendor/today', '.wl-masthead')
             ? await p.evaluate(() => !!document.querySelector('.wl-fab')) : null;
           if (onToday === true) F(CR18, 'the Add control also paints on Today — R-38.18 scopes it to Rooms');
           else if (onToday === null) F(CR18, 'Today never mounted, so the scope half of this cell was not measured');
@@ -1189,15 +1189,15 @@ async function seat(browser, mode) {
       p.on('response', countMe);
       let walked = false;
       try {
-        await p.goto(BASE + '/w/rooms', { waitUntil: 'domcontentloaded' });
+        await p.goto(BASE + '/vendor/rooms', { waitUntil: 'domcontentloaded' });
         await p.waitForSelector('.wl-tile[data-room="leads"]', { timeout: 15000 });
         await p.click('.wl-tile[data-room="leads"]');
         // The leads room, not merely a route change: the shell's masthead label is what
         // says the new tree actually mounted.
-        await p.waitForFunction(() => location.pathname === '/w/leads', { timeout: 15000 });
+        await p.waitForFunction(() => location.pathname === '/vendor/leads', { timeout: 15000 });
         await p.waitForSelector('.wl-coin', { timeout: 15000 });
         await p.click('.wl-nav .wl-seat');
-        await p.waitForFunction(() => location.pathname === '/w/rooms', { timeout: 15000 });
+        await p.waitForFunction(() => location.pathname === '/vendor/rooms', { timeout: 15000 });
         await p.waitForSelector('.wl-tile', { timeout: 15000 });
         // A LATE READ IS STILL A READ. Counting the instant the last click settles would
         // miss a fetch that has been issued and not answered, which is precisely the shape
@@ -1239,7 +1239,7 @@ async function seat(browser, mode) {
     // hit-testing only the fallback would have kept saying yes about a surface the vendor
     // had stopped visiting — the same shape as the AddSheet literal that would have gone on
     // passing after calendar crossed. The subject follows the room.
-    const LEADS_ROOM = '/w/leads';
+    const LEADS_ROOM = '/vendor/leads';
     const CR9 = tag + 'C-R9 the coin is tappable in the crossed leads room';
     if (await settle(p, LEADS_ROOM, '.wl-coin', [CR9])) {
       const rest = await p.evaluate(() => {
@@ -1286,52 +1286,10 @@ async function seat(browser, mode) {
     // before. That is written here rather than in a handover because the seat that deletes
     // the layout will be reading this file to find out what depended on it, and a
     // retirement date that lives only in prose is a retirement nobody performs.
-    const CARRIED = '/vendor/list/leads';
-    const CR9B = tag + 'C-R9b the coin is tappable in the carried fallback (retires at Phase 7)';
-    if (await settle(p, CARRIED, 'header', [CR9B])) {
-      // ⚠ WAIT OUT `Splash` BEFORE HIT-TESTING, AND THE FIRST CUT DID NOT. `Splash` is a
-      // fixed z-10000 cold-open hero (`components/vendor/Splash.tsx:47`) that unmounts on a
-      // timer — MIN_MS 2200 + 600 + 450, once per session via `sessionStorage`. The cell
-      // hit-tested at ~1500ms, found the coin under a fixed z-10000 div, and reported the
-      // coin uncovered-by-nothing as covered. THAT WOULD HAVE BEEN A FALSE CONVICTION OF A
-      // CURED TREE — and it is the exact mirror of F-38.7, which passed on an empty page:
-      // an instrument reporting on a moment rather than on a state.
-      //
-      // IT WAITS FOR THE TRANSIENT AND NEVER ASSUMES IT. If the cover is still there after
-      // the bound, the hit-test below runs anyway and names what it found, so a PERMANENT
-      // z-10000 cover is still convicted rather than waited out forever.
-      await p.waitForFunction(() => ![...document.querySelectorAll('div')].some((e) => {
-        const c = getComputedStyle(e);
-        return c.position === 'fixed' && Number(c.zIndex) >= 10000;
-      }), { timeout: 9000 }).catch(() => {});
-      const rest = await p.evaluate(() => {
-        const coin = document.querySelector('[data-tour="profile-coin"]');
-        if (!coin) return { found: false };
-        const r = coin.getBoundingClientRect();
-        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-        return {
-          found: true,
-          scrimAtRest: !!document.querySelector('button[aria-label="Close menu"]'),
-          coinReceivesTap: !!hit && (hit === coin || coin.contains(hit)),
-          covering: hit ? (hit.getAttribute('aria-label') || hit.tagName.toLowerCase()) : null,
-        };
-      });
-      if (!rest.found) F(CR9B, 'no profile coin on ' + CARRIED);
-      else if (rest.scrimAtRest) F(CR9B, 'F-38.13: the scrim is in the document AT REST');
-      else if (!rest.coinReceivesTap) F(CR9B, 'the coin does not receive its own tap — covered by: ' + rest.covering);
-      else {
-        await p.click('[data-tour="profile-coin"]');
-        await new Promise((r) => setTimeout(r, 450));
-        const open = await p.evaluate(() => ({
-          scrimOpen: !!document.querySelector('button[aria-label="Close menu"]'),
-          rowsReachable: [...document.querySelectorAll('button, a')]
-            .some((el) => /Sign Out|Sign out/.test(el.textContent || '')),
-        }));
-        if (open.scrimOpen && open.rowsReachable)
-          P(CR9B, 'no scrim at rest, coin wins its own hit-test, drawer opens with its scrim');
-        else F(CR9B, 'the tap landed but the drawer did not open: ' + JSON.stringify(open));
-      }
-    }
+    // C-R9b RETIRED AT PHASE 7 (P7.2, CE-39 2026-09-04), as this file said it would: the
+    // carried fallback `/vendor/list/leads`, `app/vendor/layout.tsx`, its Header and its
+    // Splash are deleted; there is no second tree for the coin to be tappable in. One cell
+    // leaves the base by name; count disclosed in the P7.2 handover.
 
     // ── C-R4 / C-R5 RUN LAST, AND THE ORDER IS LOAD-BEARING  [F-38.8] ───────
     // These two open the chat, and opening the chat fires an AUTHENTICATED call
@@ -1352,7 +1310,7 @@ async function seat(browser, mode) {
     // as they found it, so the arm threw `No element found for selector: .wl-dock` the
     // moment a cell was inserted above them. A cell that depends on the previous cell's
     // leftover page is a cell with an invisible argument; it settles its own surface now.
-    if (!await settle(p, '/w/rooms', '.wl-dockfield',
+    if (!await settle(p, '/vendor/rooms', '.wl-dockfield',
                       [tag + 'C-R4 chat input in branch tokens',
                        tag + 'C-R5 chat opens at work-surface height'])) {
       await p.close();
@@ -1467,10 +1425,10 @@ async function seat(browser, mode) {
       // one, which is the only one worth looking at. Every later crossing joins these
       // frames in the edit that changes its href.
       const shellFrames = [...new Set([...
-        (fs.readFileSync('lib/worklist/rooms.ts', 'utf8').matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/w\/([a-z]+)'/g))]
-        .map((m) => ['w-' + m[2], '/w/' + m[2]]).map((p) => p.join('\u0000')))]
+        (fs.readFileSync('lib/worklist/rooms.ts', 'utf8').matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/vendor\/([a-z]+)'/g))]
+        .map((m) => ['w-' + m[2], '/vendor/' + m[2]]).map((p) => p.join('\u0000')))]
         .map((k) => k.split('\u0000'));
-      for (const [name, path] of [['w-rooms', '/w/rooms'], ['w-today', '/w/today'],
+      for (const [name, path] of [['w-rooms', '/vendor/rooms'], ['w-today', '/vendor/today'],
         ...shellFrames,
         // ── §4-4 BATCH ③ · THE SECOND FRAME'S COMMENT WAS TRUE UNTIL COLLAB CROSSED ──
         // It read 「a room that has NOT crossed」, which is F-38.29's exact shape the moment
@@ -1485,27 +1443,29 @@ async function seat(browser, mode) {
         // `room-collab` filed next to `w-collab` is two names for one room in the founder's
         // capture directory.
         //
-        // IT RETIRES AT PHASE 7, with `app/vendor/layout.tsx` and the fallback routes.
-        ['fallback-leads', '/vendor/list/leads'], ['fallback-collab', '/vendor/collab']]) {
+        // RETIRED AT PHASE 7 (P7.2, CE-39 2026-09-04): `fallback-leads` and `fallback-collab`
+        // photographed the carried /vendor tree; the tree is deleted and every path below is
+        // the shell. Two frames leave the capture set; count disclosed in the P7.2 handover.
+        ]) {
         // A FRAME OF A HALF-MOUNTED PAGE IS EVIDENCE OF NOTHING and would be handed to the
         // founder looking like a broken surface. The capture waits on the shell too, and a
         // surface that never mounts is named in the log rather than photographed.
         if (!await settle(p, path, null)) { console.log('  capture skipped, never mounted: ' + path); continue; }
         await shot(name);
       }
-      if (await settle(p, '/w/rooms', '.wl-coin')) {
+      if (await settle(p, '/vendor/rooms', '.wl-coin')) {
         await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
         await shot('tapped-drawer-on-rooms');
       }
       // §5 asks for the drawer open on BILLING as well as on Rooms: the drawer anchors to
       // the header, and a header on a surface with different content beneath it is where a
       // stacking or clipping fault would show. F-16.37 was exactly that fault.
-      if (await settle(p, '/w/billing', '.wl-coin')) {
+      if (await settle(p, '/vendor/billing', '.wl-coin')) {
         await p.click('.wl-coin'); await new Promise((r) => setTimeout(r, 400));
         await shot('tapped-drawer-on-billing');
       }
       // The tapped tile: the :active state R-38.2 requires within 16ms of touch.
-      if (await settle(p, '/w/rooms', '.wl-tile')) {
+      if (await settle(p, '/vendor/rooms', '.wl-tile')) {
         await p.evaluate(() => {
           const t = document.querySelector('.wl-tile');
           if (t) t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
@@ -1513,7 +1473,7 @@ async function seat(browser, mode) {
         await new Promise((r) => setTimeout(r, 120));
         await shot('tapped-tile');
       }
-      if (await settle(p, '/w/rooms', '.wl-dockfield')) {
+      if (await settle(p, '/vendor/rooms', '.wl-dockfield')) {
         await p.click('.wl-dockfield'); await new Promise((r) => setTimeout(r, 800));
         await shot('tapped-chat');
       }
@@ -1567,7 +1527,7 @@ async function seat(browser, mode) {
     // stops being one. Rooms and Today, every /w room the registry declares, the two
     // /vendor seam frames, and six tapped states — twice, once per mode.
     const RULED = (2 + [...new Set([...(fs.readFileSync('lib/worklist/rooms.ts', 'utf8')
-      .matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/w\/([a-z]+)'/g))].map((m) => m[2]))].length + 2 + 6) * 2;
+      .matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'\/vendor\/([a-z]+)'/g))].map((m) => m[2]))].length + 2 + 6) * 2;
     if (n < RULED) console.log('  \u26a0 EVIDENCE INCOMPLETE — ' + RULED + ' frames were ruled, ' + n + ' were written. The cells above stand; the walk card does not go to the founder on a short set.');
   }
   console.log(fail === 0 ? 'RENDER ARM GREEN.' : 'RENDER ARM RED — the ZIP bounces.');

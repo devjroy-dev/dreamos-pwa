@@ -188,11 +188,11 @@ cell('C2 nineteen rooms in frozen order, 8 + 11 (R-37.75; R-37.87; R-38.9; R-38.
 cell('C3 no inline wa number in the shell', () => {
   const files = ['components/worklist/FirstRun.tsx','components/worklist/AiDock.tsx',
     'components/worklist/WorklistShell.tsx','components/worklist/RoomsGrid.tsx',
-    'app/w/page.tsx','app/w/rooms/page.tsx','app/w/support/page.tsx',
-    'app/w/layout.tsx','lib/worklist/copy.ts'];
+    'app/vendor/(shell)/page.tsx','app/vendor/(shell)/rooms/page.tsx','app/vendor/(shell)/support/page.tsx',
+    'app/vendor/(shell)/layout.tsx','lib/worklist/copy.ts'];
   const bad = files.filter((f) => /\b9\d{11}\b/.test(strip(read(f))));
   if (bad.length) return 'number literal in ' + bad.join(', ') + ' — must resolve through lib/waNumbers.ts';
-  if (!strip(read('app/w/support/page.tsx')).includes('supportWaNumber()')) return 'support page does not call supportWaNumber()';
+  if (!strip(read('app/vendor/(shell)/support/page.tsx')).includes('supportWaNumber()')) return 'support page does not call supportWaNumber()';
   return null;
 });
 
@@ -260,7 +260,7 @@ cell('C7 chrome pinned, body scrolls', () => {
 //    300ms zoom delay reads as dead, and a dead control gets tapped again.
 cell('C8 touch answers', () => {
   const files = ['components/worklist/WorklistShell.tsx','components/worklist/RoomsGrid.tsx',
-                 'components/worklist/AiDock.tsx','components/worklist/FirstRun.tsx','app/w/support/page.tsx'];
+                 'components/worklist/AiDock.tsx','components/worklist/FirstRun.tsx','app/vendor/(shell)/support/page.tsx'];
   // FirstRun's own pressed states moved with the shared chrome; the shell answers for them.
   const missing = files.filter((f) => !/:active\{/.test(read(f) + read('components/worklist/WorklistShell.tsx')));
   if (missing.length) return 'no pressed state in ' + missing.join(', ');
@@ -281,7 +281,7 @@ cell('C9 the handle is read once, from the wire, in one home', () => {
   const hook = strip(read('hooks/vendor/useVendorHandle.ts'));
   if (/vendor\?\.routing_handle/.test(hook)) return 'reads vendor.routing_handle — the wire field is `handle` (dream-os me.js:76)';
   if (!/vendor\?\.handle/.test(hook)) return 'the hook does not read vendor.handle';
-  for (const f of ['components/worklist/FirstRun.tsx', 'app/w/rooms/page.tsx']) {
+  for (const f of ['components/worklist/FirstRun.tsx', 'app/vendor/(shell)/rooms/page.tsx']) {
     const src = strip(read(f));
     if (/\/api\/v2\/vendor\/me/.test(src)) return f + ' fetches /me itself — a second home for one fact';
   }
@@ -306,7 +306,7 @@ cell('C10 every tap target >= 44px', () => {
     'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // Arm A: the costume is back and honest; .wl-dock is the padding wrapper
     'components/worklist/FirstRun.tsx':      ['wl-chip'],
     'components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
-    'app/w/support/page.tsx':                ['wl-supportaction'],
+    'app/vendor/(shell)/support/page.tsx':                ['wl-supportaction'],
   };
   const under = [];
   for (const [f, classes] of Object.entries(files)) {
@@ -394,8 +394,10 @@ cell('C12 the branch vendor tree carries Graphite at all three homes', () => {
   const css = read('app/globals.css');
   if (!/M-WORKLIST ZIP 3/.test(css)) return 'globals.css carries no override layer — every var() consumer stays brown';
   if (!/--atelier-page-bg: #141516 !important/.test(css)) return 'the override layer does not set the dark page ground';
-  const lay = read('app/vendor/layout.tsx');
-  if (/#F5F2EE|#1A0F08|122,56,40/.test(lay)) return 'LIGHT_VARS still pins Editorial Paper inline — inline beats every stylesheet';
+  // P7.2 AMENDMENT (labeled): the third home, app/vendor/layout.tsx's inline LIGHT_VARS,
+  // is DELETED with the old tree (F-38.3 closed for this lane). The cell keeps its two
+  // surviving homes and asserts the third is gone, so a resurrected inline pin reds here.
+  if (fs.existsSync(path.join(ROOT, 'app/vendor/layout.tsx'))) return 'app/vendor/layout.tsx is back: the inline LIGHT_VARS home was retired at P7.2';
   return null;
 });
 
@@ -426,7 +428,7 @@ cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word
   if (!/todayNotLive:/.test(copy)) return 'Today has no not-reading status byte in copy.ts';
   if (!/^\s*todayNothingYet:\s*'Nothing needs you yet\.'/m.test(copy))
     return 'the true-empty byte is withheld while the feed answers — it has a state to render now';
-  if (!/COPY\.todayNotLive/.test(strip(read('app/w/today/page.tsx'))))
+  if (!/COPY\.todayNotLive/.test(strip(read('app/vendor/(shell)/today/page.tsx'))))
     return 'the not-reading status is never rendered on Today';
 
   // AMENDED, LABELLED — M-FINISH S1 (R-38.6). FIVE CARDS BECOME THREE. `cardRoomsTitle`
@@ -580,18 +582,18 @@ cell('C16 the brass split holds across every token map', () => {
 //    decision. Any cell that checked only one would go green while the app argued with itself.
 cell('C17 rooms-first agrees on every surface', () => {
   const man = JSON.parse(read('public/worklist-manifest.json'));
-  if (man.start_url !== '/w/rooms') return 'manifest start_url is ' + man.start_url + ', expected /w/rooms';
+  if (man.start_url !== '/vendor/rooms') return 'manifest start_url is ' + man.start_url + ', expected /vendor/rooms';
 
-  const idx = strip(read('app/w/page.tsx'));
-  if (!/replace\('\/w\/rooms'\)/.test(idx)) return 'the bare /w shell does not resolve to Rooms';
+  const idx = strip(read('app/vendor/(shell)/page.tsx'));
+  if (!/replace\('\/vendor\/rooms'\)/.test(idx)) return 'the bare /w shell does not resolve to Rooms';
 
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
   const seats = [...shell.matchAll(/COPY\.(navRooms|navToday)/g)].map((m) => m[1]);
   if (seats.join(',') !== 'navRooms,navToday') return 'seat order is ' + seats.join(',') + ', expected Rooms then Today';
 
-  const nav = strip(read('components/vendor/BottomNav.tsx'));
-  const doors = [...nav.matchAll(/label:\s*'(\w+)'/g)].map((m) => m[1]);
-  if (doors.join(',') !== 'Rooms,Today') return 'the carried nav still reads ' + doors.join(',') + ' — one app, one nav';
+  // P7.2 AMENDMENT (labeled): the carried nav (components/vendor/BottomNav.tsx) is RETIRED
+  // with the old tree. "One app, one nav" is now asserted as its absence.
+  if (fs.existsSync(path.join(ROOT, 'components/vendor/BottomNav.tsx'))) return 'BottomNav is back: the old tree had one nav and it was retired at P7.2';
 
   // AMENDED, LABELLED — M-FINISH S1 (R-38.6/R-38.7). THE POINTER RETIRES WITH ITS SUBJECT.
   // It existed because Rooms-first meant a new vendor might never tap the second seat and
@@ -613,8 +615,8 @@ cell('C17 rooms-first agrees on every surface', () => {
   // nav seat is that door, and a second door to Today from inside Rooms is the two-homes
   // shape R-38.7 removed from this surface. The assertion moves to where the guarantee now
   // lives: Today is still one tap away, from the seat, on every shell surface.
-  if (/\/w\/today/.test(grid)) return 'the grid links to Today again — the seat is that door';
-  if (!/href="\/w\/today"/.test(shell)) return 'the Today seat is not an anchor in the shell';
+  if (/\/vendor\/today/.test(grid)) return 'the grid links to Today again — the seat is that door';
+  if (!/href="\/vendor\/today"/.test(shell)) return 'the Today seat is not an anchor in the shell';
   return null;
 });
 
@@ -679,7 +681,7 @@ cell('C19 one vocabulary across shell and rooms', () => {
 cell('C20 the profile row opens the couple view', () => {
   const grid = strip(read('components/worklist/RoomsGrid.tsx'));
   if (/roomsProfileTitle/.test(grid)) return 'the vetoed profile row is back in the Rooms grid';
-  const set = strip(read('app/w/settings/page.tsx'));
+  const set = strip(read('app/vendor/(shell)/settings/page.tsx'));
   if (!/roomsProfileTitle/.test(set)) return 'no profile row in Settings — the byte lost its home in the move';
   if (/discover\/profile/.test(set)) return 'the row opens the EDITOR (/discover/profile); the couple view is /discover/preview';
   if (!/discover\/preview/.test(set)) return 'the row does not open /vendor/discover/preview';
@@ -699,8 +701,8 @@ cell('C21 every wl- class a component uses is defined somewhere the shell mounts
   const surfaces = {
     'components/worklist/RoomsGrid.tsx': [],
     'components/worklist/FirstRun.tsx': [],
-    'app/w/today/page.tsx': [],
-    'app/w/support/page.tsx': [],
+    'app/vendor/(shell)/today/page.tsx': [],
+    'app/vendor/(shell)/support/page.tsx': [],
   };
   const orphans = [];
   for (const f of Object.keys(surfaces)) {
@@ -725,7 +727,7 @@ cell('C22 no component takes back the gutter', () => {
   if (!/--wl-gutter/.test(shell)) return 'the column declares no gutter token';
   if (!/\.wl-main > \*\{[^}]*padding-left:var\(--wl-gutter\)/.test(shell)) return 'the column does not apply its own gutter';
   const offenders = [];
-  for (const f of ['components/worklist/RoomsGrid.tsx', 'components/worklist/FirstRun.tsx', 'app/w/today/page.tsx']) {
+  for (const f of ['components/worklist/RoomsGrid.tsx', 'components/worklist/FirstRun.tsx', 'app/vendor/(shell)/today/page.tsx']) {
     const css = read(f);
     for (const m of css.matchAll(/\.(wl-[a-z-]+)\{([^}]*)\}/g)) {
       const [, cls, decl] = m;
@@ -833,8 +835,8 @@ function mountCensus(tag) {
 function shellRooms() {
   const reg = strip(read('lib/worklist/rooms.ts'));
   const ids = [];
-  for (const m of reg.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'(\/w\/[a-z]+)'/g)) {
-    if (fs.existsSync(path.join(ROOT, 'app/w/' + m[1] + '/page.tsx'))) ids.push(m[1]);
+  for (const m of reg.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'(\/vendor\/[a-z]+)'/g)) {
+    if (fs.existsSync(path.join(ROOT, 'app/vendor/(shell)/' + m[1] + '/page.tsx'))) ids.push(m[1]);
   }
   return ids;
 }
@@ -842,7 +844,7 @@ function shellRooms() {
 /** A room whose BODY came from the /vendor tree — the ones §4-1 and §4-2 move. */
 function crossedRooms() {
   return shellRooms().filter((id) =>
-    /from '@\/app\/vendor\//.test(strip(read('app/w/' + id + '/page.tsx'))));
+    /from '@\/app\/vendor\//.test(strip(read('app/vendor/(shell)/' + id + '/page.tsx'))));
 }
 
 cell('C24 the six list rooms crossed in the registry, as a set', () => {
@@ -851,26 +853,24 @@ cell('C24 the six list rooms crossed in the registry, as a set', () => {
   for (const id of FAMILY) {
     const m = src.match(new RegExp("\\{\\s*id:\\s*'" + id + "'[^}]*href:\\s*'([^']+)'"));
     if (!m) return 'room ' + id + ' vanished from the registry';
-    if (m[1] !== '/w/' + id) return id + ' still points at ' + m[1] + ' — the tile did not cross';
+    if (m[1] !== '/vendor/' + id) return id + ' still points at ' + m[1] + ' — the tile did not cross';
   }
   // THE SET, NOT A COUNT. A room that crosses without leaving the interim list is a registry
   // saying two different things about the same room.
-  const ib = src.match(/INTERIM_VENDOR_ROOMS[^=]*=\s*\[([\s\S]*?)\] as const;/);
-  if (!ib) return 'INTERIM_VENDOR_ROOMS not found';
-  const interim = (ib[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
-  for (const id of FAMILY) {
-    if (interim.includes(id)) return id + ' crossed but is still declared an interim /vendor room';
-  }
-  const stillVendor = (src.match(/href:\s*'\/vendor\/[^']*'/g) || []).length;
-  if (stillVendor !== interim.length)
-    return 'the registry carries ' + stillVendor + ' /vendor hrefs but declares ' + interim.length + ' interim rooms';
+  // P7.2 AMENDMENT (labeled, INVERTED): the INTERIM_VENDOR_ROOMS half retired with the old
+  // tree. The set the cell asserts is now the whole registry: every href is /vendor/<id>,
+  // the declaration is gone, and a /vendor/list/ address anywhere in the registry reds.
+  if (/INTERIM_VENDOR_ROOMS/.test(src)) return 'INTERIM_VENDOR_ROOMS is declared again: the interim census was retired at P7.2';
+  if (/\/vendor\/list\//.test(src)) return 'the registry names the deleted /vendor/list/ tree';
+  const all = [...src.matchAll(/\{\s*id:\s*'([a-z]+)'[^}]*href:\s*'([^']+)'/g)];
+  for (const m of all) if (m[2] !== '/vendor/' + m[1]) return m[1] + ' points at ' + m[2] + ', expected /vendor/' + m[1];
   return null;
 });
 
 cell('C25 each crossed room mounts the shell and no second masthead', () => {
   const bad = [];
   for (const id of crossedRooms()) {
-    const f = 'app/w/' + id + '/page.tsx';
+    const f = 'app/vendor/(shell)/' + id + '/page.tsx';
     if (!fs.existsSync(path.join(ROOT, f))) { bad.push(f + ' does not exist'); continue; }
     const src = strip(read(f));
     if (!/<WorklistShell/.test(src)) bad.push(id + ' does not mount WorklistShell');
@@ -889,22 +889,18 @@ cell('C26 the old chrome mounts equal their declared census, exactly', () => {
     if (!m) throw new Error(name + ' not found');
     return m[1];
   };
-  const declared = new Map();
-  for (const m of parse('INTERIM_VENDOR_MOUNTS').matchAll(/\['([^']+)',\s*(\d+)\]/g)) declared.set(m[1], Number(m[2]));
+  // P7.2 AMENDMENT (labeled, RETIRED-WITH-THE-READER): INTERIM_VENDOR_MOUNTS and
+  // INTERIM_BOTTOMNAV_MOUNTS retired with the old tree. The census that survives is the
+  // Header's: it mounts ONLY in app/vendor/(legacy) (FORK 1 arm (a): hub and submit) and
+  // nowhere the shell reaches; BottomNav mounts nowhere because the file is gone.
+  void parse;
   const actual = mountCensus('Header');
   const problems = [];
   for (const [f, n] of actual) {
-    if (!declared.has(f)) problems.push('UNDECLARED mount in ' + f + ' (' + n + ')');
-    else if (declared.get(f) !== n) problems.push(f + ' has ' + n + ' mounts, census says ' + declared.get(f));
+    if (!f.startsWith('app/vendor/(legacy)/')) problems.push('Header mounted outside (legacy): ' + f + ' (' + n + ')');
   }
-  // A REMOVAL REDDENS UNTIL THE CENSUS SHRINKS. That direction is what keeps the list honest
-  // as rooms cross: crossing a room without deleting its line here leaves a census nobody
-  // re-derived, which is the F-04.67 class.
-  for (const f of declared.keys()) if (!actual.has(f)) problems.push(f + ' is declared but mounts nothing — shrink the census');
-  const nav = mountCensus('BottomNav');
-  const navDeclared = (parse('INTERIM_BOTTOMNAV_MOUNTS').match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1));
-  for (const [f] of nav) if (!navDeclared.includes(f)) problems.push('UNDECLARED BottomNav mount in ' + f);
-  for (const f of navDeclared) if (!nav.has(f)) problems.push(f + ' declared for BottomNav but mounts none');
+  if (actual.size === 0) problems.push('Header mounts nowhere: the (legacy) hub/submit pages lost their chrome, or the census reader broke');
+  if (fs.existsSync(path.join(ROOT, 'components/vendor/BottomNav.tsx'))) problems.push('BottomNav.tsx is back: retired at P7.2');
   return problems.length ? problems.join(' | ') : null;
 });
 
@@ -923,7 +919,7 @@ cell('C27 the shell tree imports neither piece of the old chrome', () => {
       }
     }
   };
-  walk('app/w'); walk('components/worklist');
+  walk('app/vendor/(shell)'); walk('components/worklist');
   return offenders.length ? offenders.join(' | ') : null;
 });
 
@@ -934,8 +930,10 @@ cell('C28 the Slice Door goes where it is mounted, and its inactive chip is legi
   // BEHAVIOUR: the destination is a function of the tree, not a constant. A door that always
   // pushes /vendor is a /vendor href reachable from a shell control, which the standing
   // ruling forbids; a door that always pushes /w breaks the surviving fallback.
-  if (!/inShell \? `\/w\/\$\{s\}` : `\/vendor\/list\/\$\{s\}`/.test(door))
-    return 'the door does not choose its destination from the tree it is mounted in';
+  // P7.2 AMENDMENT (labeled): one tree, one destination. The old assertion read the
+  // inShell ternary; the ternary collapsed with useInShell. The door goes to the room.
+  if (!/router\.push\(`\/vendor\/\$\{s\}`\)/.test(door)) return 'the door does not go to the room at /vendor/<slice>';
+  if (/\/vendor\/list\//.test(door)) return 'the door still knows the deleted /vendor/list/ tree';
   // theme.ts:28-31 shipped the contrast obligation UNDER BAR and named this very line as the
   // cause. The cure is the removal of the opacity, so the cell asserts its absence at the
   // chip and the presence of two measured tokens in its place.
@@ -1005,11 +1003,11 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
   // refactor that changed nothing it cares about — a line-shape assertion, the F-15.12
   // family. What must hold is that SliceScreen derives the tree ONCE and picks its toast
   // from that derivation, however the binding is spelled.
-  const tv = shell.match(/const ToastView = ([A-Za-z0-9_]+)\s*\?\s*WlToast\s*:\s*Toast/);
-  if (!tv) bad.push('SliceScreen does not pair its toast to the tree');
-  else if (!new RegExp('const ' + tv[1] + ' = useInShell\\(\\)').test(shell) && tv[1] !== 'useInShell()')
-    bad.push('SliceScreen\'s toast is picked from something other than useInShell');
-  const cl = strip(read('app/vendor/list/[slice]/clients.tsx'));
+  // P7.2 AMENDMENT (labeled): the toast followed the tree; there is one tree. The pairing
+  // ternary collapsed with useInShell; the cell now asserts the shell toast, outright.
+  if (!/const ToastView = WlToast;/.test(shell)) bad.push('SliceScreen does not mount the shell toast (WlToast)');
+  if (/useInShell/.test(shell)) bad.push('SliceShell still reads useInShell: the hook was retired at P7.2');
+  const cl = strip(read('app/vendor/(shell)/clients/body.tsx'));
   if (/<Toast\s/.test(cl)) bad.push('the clients module mounts Toast directly');
   return bad.length ? bad.join(' | ') : null;
 });
@@ -1037,13 +1035,12 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
 // per-line strip and reported THIS SITTING'S OWN CURE NOTES as live literals, because a
 // multi-line {/* */} comment is invisible to a reader that only ever sees one line. The
 // blanker below preserves line counts so the address it reports is the address you open.
-function blankComments(src) {
-  return src
-    .replace(/\/\*[\s\S]*?\*\/|\{\/\*[\s\S]*?\*\/\}/g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/.*$/gm, (m, p) => p + ' '.repeat(Math.max(0, m.length - p.length)));
-}
+// F-39.79 (P7.2): a naive local stripper in the file B-1 exempted as the shared mirror's
+// consumer. It now IS a consumer: the shared home keeps line count (blanks to newlines), so
+// the `at:` line numbers below are unchanged.
+function blankComments(src) { return stripComments(src); }
 
-cell('C31 no undeclared /vendor literal is reachable from any crossed room', () => {
+cell('C31 no /w literal and no door onto the deleted tree is reachable from any shell page (P7.2, inverted)', () => {
   const resolveSpec = (spec, from) => {
     let base = null;
     if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
@@ -1069,6 +1066,9 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
       for (const m of line.matchAll(/['"`](\/vendor(?:\/[A-Za-z0-9\/_-]*|[?#][A-Za-z0-9_=-]*)?)/g)) {
         hits.push({ at: path.relative(ROOT, entry) + ':' + (i + 1), href: m[1] });
       }
+      for (const m of line.matchAll(/['"`](\/w(?:\/[A-Za-z0-9\/_?=&#-]*)?)['"`]/g)) {
+        hits.push({ at: path.relative(ROOT, entry) + ':' + (i + 1), href: m[1] });
+      }
     });
     for (const m of src.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
       const r = resolveSpec(m[1], entry);
@@ -1086,8 +1086,21 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // been safe because it strips first — that is why b40 was GREEN on the tree wl_audit
   // called red — but "safe because of what the other line does" is not a property to leave
   // two readers relying on. The anchor makes it safe on its own terms.
-  const lm = reg.match(/export const INTERIM_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
-  if (lm) for (const x of lm[1].match(/'(\/vendor\/[^']+)'/g) || []) declared.add(x.slice(1, -1));
+  // P7.2 AMENDMENT (labeled, INVERTED WITH THE FLIP). Every shell href is a /vendor href
+  // now, so "no undeclared /vendor literal" changes shape: a crossed room may reach a shell
+  // room, the entry redirect, onboarding, or a door declared in LEGACY_VENDOR_LINKS
+  // (app/vendor/(legacy), FORK 1 arm (a)) and NOTHING the delete removed. The charter's
+  // ZERO-/w/ cell rides in the same walk: any `/w` literal reachable from a room is a stray
+  // by construction. The INTERIM_*/FALLBACK reads retired with their constants.
+  const lm = reg.match(/export const LEGACY_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
+  if (!lm) return 'LEGACY_VENDOR_LINKS is not declared: the doors out of the shell have no home in the registry';
+  for (const x of lm[1].match(/'(\/vendor\/[^']+)'/g) || []) declared.add(x.slice(1, -1));
+  // The two nav seats and the index redirect are shell addresses that are not registry
+  // rooms; a template prefix (`/vendor/${s}`, `/vendor/collab/` + id) is a shell address
+  // when a declared href starts with it.
+  for (const seat of ['/vendor/rooms', '/vendor/today', '/vendor']) declared.add(seat);
+  const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
+  if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT
   // MATTERS. The first cut returned on a missing FALLBACK_SLICE_BASE, so at the bounced
   // tree it reddened on the ABSENT CONSTANT and never walked the graph — it reported the
@@ -1102,42 +1115,45 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // filed on this arc already. The match is still EXACT, member by member: a BASE passes and
   // a whole carried href does not, which is the property that catches a room sliding back out
   // of the shell. What changed is the arity, not the strictness.
-  const fbm = reg.match(/export const FALLBACK_TREE_BASES[^=]*=\s*\[([\s\S]*?)\] as const;/);
-  const fallbacks = fbm ? (fbm[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
-  const pm = reg.match(/INTERIM_HUB_PRIMERS[^=]*=\s*\[([\s\S]*?)\] as const;/);
-  const primers = pm ? (pm[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1)) : [];
 
   const strays = new Map();
   // EVERY shell room, crossed or native: a /vendor literal reachable from Billing is as
   // wrong as one reachable from Leads, and the S2 bounce found its worst specimen in a tier
   // gate nobody thought of as a door. Verified at this cut: zero strays across all eleven.
-  for (const room of shellRooms()) {
-    const entry = path.join(ROOT, 'app/w/' + room + '/page.tsx');
-    if (!fs.existsSync(entry)) return 'app/w/' + room + '/page.tsx does not exist';
+  // The walk starts from every shell page: the nineteen registry rooms AND the three that
+  // are not rooms (the index, Rooms, Today) — the P7.2 mutation on RoomsGrid proved the
+  // registry-only walk blind to the grid.
+  for (const room of [...shellRooms(), '', 'rooms', 'today']) {
+    const entry = path.join(ROOT, 'app/vendor/(shell)/' + (room ? room + '/' : '') + 'page.tsx');
+    if (!fs.existsSync(entry)) return 'app/vendor/(shell)/' + room + '/page.tsx does not exist';
     const hits = [];
     walk(entry, new Set(), hits);
     for (const h of hits) {
       if (declared.has(h.href)) continue;
+      if (isPrefixOfDeclared(h.href)) continue;
       // EXACT, not prefix. '/vendor/list/' is the Door's tree-aware fallback and passes;
       // '/vendor/list/leads' is a full carried href and does not, because a whole address
       // in the bytes means a room slid back out of the shell.
-      if (fallbacks.includes(h.href)) continue;
       // The declared hub primers (F-38.41). EXACT, not prefix, for the same reason as the
       // fallback base: `/vendor?draft=` passes, `/vendor?draft=x/y` does not.
-      if (primers.includes(h.href)) continue;
       // A bare `/vendor` with no query is a TYPE or a predicate, never a destination —
       // `tell_victor: { path: '/vendor' }` in the wire contract, `href.startsWith('/vendor')`
       // in RoomsGrid. Derived by reading all three sites, not assumed from the shape.
       if (h.href === '/vendor') continue;
       const key = h.at + ' ' + h.href;
-      if (!strays.has(key)) strays.set(key, h.href + ' <- ' + h.at + ' (reachable from /w/' + room + ')');
+      if (!strays.has(key)) strays.set(key, h.href + ' <- ' + h.at + ' (reachable from /vendor/' + room + ')');
     }
   }
   const problems = [...strays.values()];
+  // P7.2: the census that excluded public/ was the finding (worklist-manifest.json carried
+  // start_url /w/rooms past every code grep). Served assets are shell bytes too.
+  for (const rel of fs.readdirSync(path.join(ROOT, 'public')).filter((n) => /\.(json|js|webmanifest)$/.test(n))) {
+    const txt = fs.readFileSync(path.join(ROOT, 'public', rel), 'utf8');
+    for (const m of txt.matchAll(/["'](\/w(?:\/[^"']*)?)["']/g)) problems.push(m[1] + ' <- public/' + rel);
+  }
   // AN EMPTY SET IS THE MISSING DECLARATION, and it is collected as one more problem rather
   // than returned on, for the reason written above: a cell that reddens on its own
   // scaffolding never walks the graph it exists to walk.
-  if (!fallbacks.length) problems.push('FALLBACK_TREE_BASES is not declared or is empty — the tree-aware fallback bases have no home in the registry');
   // ── AMENDED, LABELLED — CE-39 S2/6 · THE CELL IS INVERTED BY LABEL ────────
   // It read: an EMPTY set is the missing declaration, and pushed a problem. That was right
   // while four doors were live and undeclared. R-39.3 cured them — the doors are tree-blind
@@ -1145,10 +1161,6 @@ cell('C31 no undeclared /vendor literal is reachable from any crossed room', () 
   // CURED state and a NON-EMPTY one is the regression: a primer back in this registry is a
   // shell door that pushes out of the shell again. The declaration itself must survive, or
   // this cell has nothing to read; `[] as const` is what it asserts.
-  if (!/export const INTERIM_HUB_PRIMERS/.test(reg))
-    problems.push('INTERIM_HUB_PRIMERS is not declared at all — the inverted cell has nothing to read (CE-39 S2/6)');
-  else if (primers.length)
-    problems.push('INTERIM_HUB_PRIMERS is non-empty (' + primers.join(' · ') + ') — R-39.3 emptied it; a primer back in the registry is a shell door pushing out of the shell again (F-38.47)');
   return problems.length ? problems.join(' | ') : null;
 });
 
@@ -1226,7 +1238,7 @@ cell('C32 no persona name reachable from any shell surface, DreamAi included (R-
   };
   // EVERY SHELL SURFACE, derived from the routes on disk rather than listed — a room that
   // crosses joins this sweep in the same edit that creates its page.
-  const wDir = path.join(ROOT, 'app/w');
+  const wDir = path.join(ROOT, 'app/vendor/(shell)');
   const entries = fs.readdirSync(wDir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => path.join(wDir, d.name, 'page.tsx'))
@@ -1268,7 +1280,7 @@ cell('C33 the ask affordance spells one byte in three homes', () => {
 //    because a surface that prints the right sentence for the wrong reason will print the
 //    wrong one the moment the reason changes.
 cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)', () => {
-  const today = strip(read('app/w/today/page.tsx'));
+  const today = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/from '@\/lib\/worklist\/feed'/.test(today)) return 'Today does not read the feed module';
   const feed = strip(read('lib/worklist/feed.ts'));
   if (!/responded:\s*false/.test(feed)) return 'the feed module does not report that nothing has read anything';
@@ -1325,13 +1337,11 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   // touched by the crossing — the registry answered differently and the leg followed. That
   // is the address book's whole warrant and it is asserted, not admired.
   if (!/roomHref\('calendar'\)/.test(fab)) return 'the calendar leg spells an address instead of asking the registry';
-  const interim = strip(read('lib/worklist/rooms.ts')).match(/INTERIM_VENDOR_ROOMS[^=]*=\s*\[([\s\S]*?)\]/);
-  if (!interim) return 'INTERIM_VENDOR_ROOMS is not declared';
-  if (/'calendar'/.test(interim[1]))
-    return 'calendar crossed but is still declared an interim /vendor room';
-  if (!fs.existsSync(path.join(ROOT, 'app/w/calendar/page.tsx')))
+  // P7.2 AMENDMENT (labeled): the interim-room read retired with INTERIM_VENDOR_ROOMS; the
+  // leg is proven by the page existing in the shell tree (the next line), nothing else.
+  if (!fs.existsSync(path.join(ROOT, 'app/vendor/(shell)/calendar/page.tsx')))
     return 'the calendar leg resolves to a /w/ route that does not exist — never-404';
-  if (!/'\/w\/notes\?add=1'/.test(fab)) return 'the note leg does not open the notes composer';
+  if (!/'\/vendor\/notes\?add=1'/.test(fab)) return 'the note leg does not open the notes composer';
   const slices = (fab.match(/slice:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (slices.join(',') !== 'leads,clients,invoices,expenses,events')
     return 'the AddSheet legs are ' + slices.join(' ') + ', expected the five list slices in row order';
@@ -1339,8 +1349,8 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   if (/CreateLeadRequest|createInvoice|createExpense/.test(fab)) return 'the Add sheet builds its own create call — a second home for create';
   // SCOPE IS A MOUNT, not a pathname test inside the component.
   if (/usePathname/.test(fab)) return 'the control decides for itself where it exists — a second copy of R-38.18';
-  const mounted = ['app/w/rooms/page.tsx'];
-  const others = ['app/w/today/page.tsx', 'components/worklist/WorklistShell.tsx'];
+  const mounted = ['app/vendor/(shell)/rooms/page.tsx'];
+  const others = ['app/vendor/(shell)/today/page.tsx', 'components/worklist/WorklistShell.tsx'];
   for (const f of mounted) if (!/<AddFab/.test(strip(read(f)))) return 'the Add control is not mounted on Rooms';
   for (const f of others) if (/<AddFab/.test(strip(read(f)))) return 'the Add control is mounted outside Rooms: ' + f;
   // c-38.11: the accent TOKEN, never a literal. The ZIP 4 gold-FAB finding was this
@@ -1406,7 +1416,7 @@ cell('C37 the t0 rung survives while its consumer is withheld', () => {
   // per app, and that element is Today's numeral. A rung declared with no consumer is a
   // variable somebody re-invents at a new value; a rung with two is the five-rung scale's
   // exception quietly becoming a rule.
-  const today = strip(read('app/w/today/page.tsx'));
+  const today = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/var\(--wl-t0\)/.test(today)) return 'the masthead numeral does not consume t0 — the rung has no home';
   if (!/wl-mnum\{font:var\(--wl-t0\)/.test(today)) return 'something other than the numeral consumes t0 on Today';
   return null;
@@ -1535,7 +1545,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
     const rel = path.relative(ROOT, abs);
     // The shell's OWN components are not "crossed bodies" — they are the chrome this cell
     // measures clearance AGAINST, and they carry the ruled seat rather than a bare offset.
-    if (!rel.startsWith('components/worklist/') && !rel.startsWith('app/w/')) bodies.add(rel);
+    if (!rel.startsWith('components/worklist/') && !rel.startsWith('app/vendor/(shell)/')) bodies.add(rel);
     for (const m of strip(fs.readFileSync(abs, 'utf8')).matchAll(/from\s+['"]([^'"]+)['"]/g)) {
       const r = resolveSpec(m[1], abs);
       if (r && !r.includes('node_modules')) collect(r, seen);
@@ -1549,7 +1559,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
       collect(path.join(ROOT, r), new Set());
     }
   };
-  walkRoutes('app/w');
+  walkRoutes('app/vendor/(shell)');
   if (!bodies.size) return 'no crossed bodies found from app/w — this cell would pass vacuously';
   const offenders = [];
   for (const b of [...bodies].sort()) {
@@ -1669,7 +1679,7 @@ cell('C49 one FAB seat, read from GRID, and no room draws its own (F-39.4)', () 
       if (e.name === 'page.tsx') collect(path.join(ROOT, r));
     }
   };
-  walkRoutes('app/w');
+  walkRoutes('app/vendor/(shell)');
   if (reach.size < 10) return 'only ' + reach.size + ' files reachable from app/w — this cell would pass over a graph it never walked';
 
   const offenders = [];
@@ -1819,7 +1829,7 @@ cell('C51 a primer door dismisses its own sheet when it hands over to the chat (
       if (e.name === 'page.tsx') collect(path.join(ROOT, r));
     }
   };
-  walkRoutes('app/w');
+  walkRoutes('app/vendor/(shell)');
   const doors = [...reach].map((a) => path.relative(ROOT, a))
     .filter((rel) => /openAsk\s*\(/.test(strip(read(rel))))
     .sort();
@@ -1862,7 +1872,7 @@ cell('C51 a primer door dismisses its own sheet when it hands over to the chat (
 //    on a screen that hardcoded it beside a reordered array — asserting the LINK is what
 //    makes a reorder safe, and asserting the ORDER is what makes it the founder's.
 cell('C40 collab opens on the first pill, and the pills are in the ruled order (F-38.62)', () => {
-  const src = strip(read('app/vendor/collab/screen.tsx'));
+  const src = strip(read('app/vendor/(shell)/collab/screen.tsx'));
   const m = src.match(/TAB_ORDER:\s*readonly Tab\[\]\s*=\s*\[([^\]]*)\]/);
   if (!m) return 'TAB_ORDER is not declared — the render order has no home';
   const order = (m[1].match(/'([a-z_]+)'/g) || []).map((x) => x.slice(1, -1));
@@ -2005,14 +2015,13 @@ cell('C44 the four hub primer doors are tree-blind, and both trees mount a provi
   }
   if (bad.length !== 0 && DOORS.length !== 4) bad.push('the door set is no longer four — this cell was written against four');
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
-  const main  = strip(read('app/vendor/layout.tsx'));
-  if (!/<AskProvider/.test(shell)) bad.push('the shell mounts no AskProvider — every door under /w would throw at render');
-  if (!/<AskProvider/.test(main))  bad.push('app/vendor/layout.tsx mounts no AskProvider — every door on the carried tree would throw at render');
-  // The /vendor tree's implementation is TODAY'S PUSH, kept byte-identical. If it stops
-  // pushing, the hub's own 「Send to Chat」 has silently died and nothing else would say so.
-  if (!/\/vendor\?draft=/.test(main)) bad.push('the /vendor tree provider no longer makes the hub push — a live control on the old hub regressed');
-  // AND THE SHELL'S IMPLEMENTATION MUST NOT BE A PUSH. One provider making the other's
-  // choice is the defect wearing the cure's name.
+  // P7.2 AMENDMENT (labeled): "both trees mount a provider" had two trees; the carried
+  // tree and its /vendor?draft= hub push are DELETED. One tree, one provider, in the shell.
+  // app/vendor/(legacy)/layout.tsx mounts NONE by derivation (zero useAsk callers there).
+  if (!/<AskProvider/.test(shell)) bad.push('the shell mounts no AskProvider: every door under /vendor would throw at render');
+  if (fs.existsSync(path.join(ROOT, 'app/vendor/layout.tsx'))) bad.push('app/vendor/layout.tsx is back: the carried tree was retired at P7.2');
+  const legacy = strip(read('app/vendor/(legacy)/layout.tsx'));
+  if (/<AskProvider/.test(legacy)) bad.push('(legacy) mounts an AskProvider: it has no useAsk caller and no ask door (P7.2 derivation)');
   if (/\/vendor\?/.test(shell)) bad.push('the shell provider carries a /vendor? address — arm (a) opens the sheet in place, it does not navigate');
   return bad.length ? bad.join(' | ') : null;
 });
@@ -2184,11 +2193,10 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
   // to six, and the movement is stated rather than a number made to hold
   // (R-38.11 as amended). RETIRE-WITH-THE-READER does not fire: nothing left.
   const sites = [
-    'app/vendor/team-hub/screen.tsx',
-    'app/vendor/studio/team/page.tsx',
-    'app/vendor/studio/tasks/page.tsx',
-    'app/vendor/studio/team-payments/page.tsx',
-    'app/w/team/page.tsx',
+    // P7.2 AMENDMENT (labeled): the four old-tree sites (team-hub screen, studio/team,
+    // studio/tasks, studio/team-payments) are DELETED with the tree; the Studio Suite is
+    // the shell's Team room, its tabs and its sheets: the three sites below.
+    'app/vendor/(shell)/team/page.tsx',
     'components/worklist/TeamTabs.tsx',
     'components/worklist/StudioSheets.tsx',
   ];
@@ -2238,7 +2246,7 @@ cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing t
   }
   if (!want.coutureGateSentence.includes(want.coutureGateLinkWord))
     bad.push('the link word is not inside the sentence it must be split from');
-  const src = strip(read('app/vendor/couture/screen.tsx'));
+  const src = strip(read('app/vendor/(shell)/couture/screen.tsx'));
   for (const k of Object.keys(want)) if (!new RegExp('COPY\\.' + k + '\\b').test(src)) bad.push('screen.tsx does not read COPY.' + k);
   if (!/roomHref\('billing'\)/.test(src)) bad.push('the Billing door does not resolve through roomHref (F-38.27)');
   if (/Invite Only|reserved for invited/.test(src)) bad.push('the retired invite-only bytes are still on the screen');
@@ -2269,11 +2277,11 @@ cell('C60 the masthead numeral is the sum of all five counts, computed in one ho
   for (const k of KINDS) if (!m[0].includes(k)) bad.push('sumCounts does not read counts.' + k);
   // ONE HOME: nothing else in the shell may reduce over `counts`, or the numeral and the
   // tiles could be built by two recipes for one figure.
-  for (const f of ['app/w/today/page.tsx', 'components/worklist/RoomsGrid.tsx', 'components/worklist/TodayCards.tsx']) {
+  for (const f of ['app/vendor/(shell)/today/page.tsx', 'components/worklist/RoomsGrid.tsx', 'components/worklist/TodayCards.tsx']) {
     const src = strip(read(f));
     if (/counts\s*\)?\s*\.\s*reduce|Object\.values\([^)]*counts/.test(src)) bad.push(f + ' sums counts itself — second home for the numeral');
   }
-  const page = strip(read('app/w/today/page.tsx'));
+  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/const working\s*=\s*feed\.responded/.test(page)) bad.push('the working state is not derived from a reading (F-38.31)');
   if (!/\{working && feed\.openItems !== null/.test(page)) bad.push('the numeral is not gated on the working state');
   return bad.length ? bad.join(' | ') : null;
@@ -2324,7 +2332,7 @@ cell('C62 a tile figure is the wire\'s count, not a list length, and it is never
 //    RED MUTATION: change `today.has_any === false` to `=== true` in app/w/today/page.tsx.
 cell('C63 FirstRun rides has_any false and the resting state rides an empty reading', () => {
   const bad = [];
-  const src = strip(read('app/w/today/page.tsx'));
+  const src = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/const firstRun = [^\n]*has_any === false/.test(src)) bad.push('FirstRun is not gated on has_any === false (property 6)');
   if (!/const resting\s*=\s*[^\n]*has_any === true[^\n]*openItems === 0/.test(src)) bad.push('the resting state is not gated on a reading that came back empty');
   if (!/const working\s*=\s*[^\n]*openItems !== null[^\n]*openItems > 0/.test(src)) bad.push('the working state is not gated on a reading with work in it');
@@ -2367,8 +2375,8 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
   const bad = [];
   // (a) the symbol is gone from every render path the shell can reach.
   const PATHS = [
-    'app/w/today/page.tsx', 'components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx',
-    'lib/worklist/feed.ts', 'lib/worklist/rooms.ts', 'app/vendor/storefront/screen.tsx',
+    'app/vendor/(shell)/today/page.tsx', 'components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx',
+    'lib/worklist/feed.ts', 'lib/worklist/rooms.ts', 'app/vendor/(shell)/storefront/screen.tsx',
   ];
   for (const f of PATHS) if (/open_leads_count/.test(strip(read(f)))) bad.push(f + ' still displays or compares open_leads_count (R-P3.5.6 (1))');
   // (b) the old door and its remaining reader are RULED UNTOUCHED — their absence would be
@@ -2385,13 +2393,13 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
   // (c) all five dated uncomments fired in this one commit; a partial firing is the defect.
   const copy = strip(read('lib/worklist/copy.ts'));
   if (!/todayNothingYet:\s*'Nothing needs you yet\.'/.test(copy)) bad.push('COPY.todayNothingYet is still withheld');
-  const page = strip(read('app/w/today/page.tsx'));
+  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/\.wl-mnum\{font:var\(--wl-t0\)/.test(page)) bad.push('the wl-mnum rules were not restored to the style block');
   if (!/font-variant-numeric/.test(page)) bad.push('the numeral is not tabular — the font shorthand reset it');
   if (!/todayNothingYet/.test(page)) bad.push('the true-empty byte has no consumer');
   const audit = strip(read('tools/wl_audit.mjs'));
   if (/'Nothing needs you yet\.',/.test(audit)) bad.push('the byte is live in copy.ts and still on the audit RETIRED set');
-  if (!/t0Sites\.length === 1 && t0Sites\[0\] === '\/w\/today'/.test(audit)) bad.push('the R-38.4 t0 predicate was not flipped back');
+  if (!/t0Sites\.length === 1 && t0Sites\[0\] === '\/vendor\/today'/.test(audit)) bad.push('the R-38.4 t0 predicate was not flipped back');
   const feed = strip(read('lib/worklist/feed.ts'));
   if (/responded: false, openItems: null \}[\s;]*$/m.test(feed) && !/fetchWorklistToday/.test(feed)) bad.push('lib/worklist/feed.ts still returns the no-reading constant');
   if (!/fetchWorklistToday/.test(feed)) bad.push('the feed does not call the worklist door');
@@ -2419,7 +2427,7 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
 cell('C66 every figure site declares lining figures, not only the rung that broke (F-39.15)', () => {
   const bad = [];
   const SITES = [
-    ['app/w/today/page.tsx', 'wl-mnum'],
+    ['app/vendor/(shell)/today/page.tsx', 'wl-mnum'],
     ['components/worklist/RoomsGrid.tsx', 'wl-tcount'],
     ['components/worklist/TodayCards.tsx', 'wl-tseccount'],
     // RENAMED AT S4/3 to the ratified frames' own class names: the figure became a
@@ -2430,7 +2438,7 @@ cell('C66 every figure site declares lining figures, not only the rung that brok
     ['components/worklist/TodayCards.tsx', 'wl-tmorecount'],
     ['components/worklist/TodayCards.tsx', 'wl-tfoldbtn'],
     ['components/worklist/TodayCards.tsx', 'wl-trestpart'],
-    ['app/w/today/page.tsx', 'wl-mkind'],
+    ['app/vendor/(shell)/today/page.tsx', 'wl-mkind'],
     ['components/worklist/TodayCards.tsx', 'wl-trestn'],
   ];
   for (const [f, cls] of SITES) {
@@ -2462,11 +2470,12 @@ cell('C66 every figure site declares lining figures, not only the rung that brok
 cell('C67 ?lead opens the record inside the shell, and never enters select-mode (F-39.17)', () => {
   const bad = [];
   const src = strip(read('components/vendor/slices/SliceShell.tsx'));
-  const arm = src.match(/const want = new URLSearchParams[\s\S]{0,700}?\n  \}, \[screenInShell/);
+  // P7.2 AMENDMENT (labeled): the arm's dependency list lost `screenInShell` with the hook.
+  const arm = src.match(/const want = new URLSearchParams[\s\S]{0,700}?\n  \}, \[slice, rows\]/);
   if (!arm) { bad.push('the ?lead arm is gone from SliceShell'); return bad.join(' | '); }
   if (!/setSel\(row\)/.test(arm[0])) bad.push('the ?lead arm does not open the record — the founder called that a double tap');
   if (/setSelected/.test(arm[0])) bad.push('the ?lead arm touches the bulk-select set — a URL must never tick a row');
-  if (!/screenInShell/.test(arm[0])) bad.push('the ?lead arm is not gated on the shell — the /vendor fallback must ignore it');
+  if (/screenInShell|useInShell/.test(arm[0])) bad.push('the ?lead arm still reads the retired shell gate');
   if (!/scrollIntoView/.test(arm[0])) bad.push('the row is not scrolled to — closing the sheet would land at the top of the list');
   return bad.length ? bad.join(' | ') : null;
 });
@@ -2489,7 +2498,7 @@ cell('C68 done_today renders in both states, and only the resting arm carries a 
   if (!/todayRestingHead/.test(resting)) bad.push('the resting state lost its status byte');
   if (/todayRestingHead/.test(done)) bad.push('the working state carries a status byte over its cards (R-39.13)');
   for (const f of [resting, done]) if (f && !/DoneSummary/.test(f)) bad.push('a state builds its own summary instead of reading the one home');
-  const page = strip(read('app/w/today/page.tsx'));
+  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/\{working && today && <TodayDone/.test(page)) bad.push('the working state does not render done_today');
   if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state does not render its summary');
   // ZERO NEW BYTES: the three row labels are the registry's, not the executor's (s-39.6).
@@ -2636,7 +2645,7 @@ cell('C74 the done ledger carries its particular; the status byte is the resting
   if (/todayRestingHead/.test(done)) bad.push('the working ledger carries a status byte over its cards (R-39.13)');
   if (!/todayDoneHead/.test(done)) bad.push('the working ledger has no eyebrow');
   if (/'Invoices paid'|'Contracts signed'|'Tasks done'/.test(src)) bad.push('the ledger spells its own row labels (s-39.6)');
-  const page = strip(read('app/w/today/page.tsx'));
+  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/\{working && today && <TodayDone/.test(page)) bad.push('the working state renders no ledger');
   if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state renders no ledger');
   // D-1/c5: the resting masthead carries no numeral. A 0 beside "All clear." twice-tells.
@@ -2658,7 +2667,7 @@ cell('C75 the build id is read per request in the server layer, not inlined at b
   const bad = [];
   const cfg = strip(read('next.config.ts'));
   if (/NEXT_PUBLIC_TDW_COMMIT/.test(cfg)) bad.push('the inlined constant is back in next.config.ts — a compile-time value cannot know its deployment');
-  const layout = strip(read('app/w/layout.tsx'));
+  const layout = strip(read('app/vendor/(shell)/layout.tsx'));
   if (/'use client'|"use client"/.test(layout)) bad.push('the identity layer is a client component — it cannot read a request-time env');
   if (!/cookies\(\)/.test(layout)) bad.push('the /w subtree is no longer dynamic, so the id can be baked at build again');
   if (!/process\.env\.VERCEL_GIT_COMMIT_SHA/.test(layout)) bad.push('the id is not read from the deployment\'s own env');
@@ -2722,7 +2731,7 @@ cell('C76 no engine money reader or writer is reachable from the rooms (F-39.3)'
     bad.push('binderToInvoice/binderToExpense survive their last reader');
   }
   // The eleventh site: expenses.tsx built its URL inline and no export sweep could see it.
-  for (const f of ['app/vendor/list/[slice]/expenses.tsx', 'app/vendor/list/[slice]/invoices.tsx']) {
+  for (const f of ['app/vendor/(shell)/expenses/body.tsx', 'app/vendor/(shell)/invoices/body.tsx']) {
     if (/api\/v2\/vendor\/binders\//.test(strip(read(f)))) bad.push(f + ' still addresses the binder plane');
   }
   return bad.length ? bad.join(' | ') : null;
@@ -3025,9 +3034,11 @@ cell('C82 the Team tabs mount all ten verbs through the typed door, in the shell
     bad.push('the tabs do not mount the shell FAB — C49 owns the seat');
 
   // (5) THE FALLBACK TREE KEEPS ITS ADDRESSES UNTIL PHASE 7.
+  // P7.2 AMENDMENT (labeled, INVERTED): the three /vendor/studio pages are DELETED with
+  // the old tree, and the reason the registry declared them (team-hub routed into them) is
+  // gone with team-hub. A studio address anywhere in the registry now reds.
   for (const href of ['/vendor/studio/team', '/vendor/studio/tasks', '/vendor/studio/team-payments']) {
-    if (!rooms.includes("'" + href + "'"))
-      bad.push(href + ' left INTERIM_VENDOR_LINKS — /vendor/more and /vendor/studio still route into team-hub, which points at it');
+    if (rooms.includes("'" + href + "'")) bad.push(href + ' is declared in the registry: the studio pages were deleted at P7.2');
   }
   return bad.length ? bad.join(' | ') : null;
 });

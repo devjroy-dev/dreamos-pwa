@@ -106,7 +106,7 @@ const DECLARED_MANIFEST = process.env.TDW_FLOOR_DELIVERY_MANIFEST || '';
 // first run of the escape, not reasoned about.
 // ── §4-3 · `-uall`, AND THE ENUMERATION HAS TWO HOMES ─────────────────────
 // Bare `--porcelain` COLLAPSES an untracked directory to a single trailing-slash entry, so
-// a delivery adding `app/w/storefront/page.tsx` reads as `app/w/storefront/`. A manifest is
+// a delivery adding `app/vendor/(shell)/storefront/page.tsx` reads as `app/vendor/(shell)/storefront/`. A manifest is
 // a FILE table by its own header, so the two can never match and this probe refused a
 // correct delivery — naming three directories that contain nothing but declared files. It
 // is `run-floor.sh`'s identical defect, found in the same run.

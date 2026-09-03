@@ -47,13 +47,13 @@ const KIND_FOR_ROOM: Record<string, AttentionKind> = Object.fromEntries(
 );
 
 function Tile({ room, count, truncated }: { room: Room; count: number | null; truncated: boolean }) {
-  // `data-interim` marks a room that has NOT crossed into the shell yet. It is read by the
-  // render arm and by the audit, and it is derived from the href rather than hand-listed,
-  // so a room that crosses stops being marked in the same edit that moves it.
-  const interim = room.href.startsWith('/vendor');
+  // `data-interim` used to mark a room that had NOT crossed into the shell, derived from a
+  // `/vendor` href. P7.2 flipped the shell ONTO the /vendor tree (arm (a)), so every href now
+  // begins that way and the mark would have said "interim" on all nineteen: a true byte
+  // gone false by the flip. Retired with the tree; nothing reads it (wl_audit's R-38.1
+  // arm re-keyed, b40 C24 inverted).
   return (
-    <Link href={room.href} className="wl-tile" data-room={room.id}
-          data-interim={interim ? 'true' : undefined}>
+    <Link href={room.href} className="wl-tile" data-room={room.id}>
       <span className="wl-tname">{room.label}</span>
       {/* GATED ON A READING, LIKE THE MASTHEAD. No reading and no figure — never a `0`
           standing in for a count nothing took (F-38.31). A REAL zero does not render

@@ -7,7 +7,7 @@
 // so hard to check?」 — and the answer is that it was never a checking problem. It was two
 // definitions.
 //
-// `/w/*` rendered the shell's drawer, written to R-38.6's register. The fourteen carried
+// the /vendor tree rendered the shell's drawer, written to R-38.6's register. The fourteen carried
 // rooms render `app/vendor/layout.tsx` → `Header.tsx`, which hardcoded a SECOND drawer with
 // its own rows, its own destinations, its own glyphs and subtitles, and its own register.
 // Two menus behind one medallion in one app. This seat reported that as 「the interim's
@@ -40,7 +40,7 @@
 //
 // ══ THE CARRIED MOUNT IS A DOOR INTO THE SHELL ═════════════════════════════
 //
-// Settings and Billing point at `/w/settings` and `/w/billing`, not at the `/vendor` routes
+// Settings and Billing point at `/vendor/settings` and `/vendor/billing`, not at the `/vendor` routes
 // they used to. So a vendor who opens the coin in a carried room lands in the NEW chrome,
 // and the drawer stops being a way to stay in the old one.
 import { useEffect, useRef, useState } from 'react';
@@ -149,8 +149,8 @@ export function AccountDrawer({ mode, onPickMode, onClose }: {
     <div className={DRAWER_SCOPE + (leaving ? ' is-leaving' : '')} role="menu" ref={anchorRef}>
       <style>{typeCss('.' + DRAWER_SCOPE) + DRAWER_CSS}</style>
       <div className="wl-dsec">{COPY.drawerAccount}</div>
-      {row('settings', { label: COPY.settingsTitle, href: '/w/settings', onAct: () => {} })}
-      {row('billing',  { label: COPY.billingTitle,  href: '/w/billing',  onAct: () => {} })}
+      {row('settings', { label: COPY.settingsTitle, href: '/vendor/settings', onAct: () => {} })}
+      {row('billing',  { label: COPY.billingTitle,  href: '/vendor/billing',  onAct: () => {} })}
       <div className="wl-dsec">{COPY.drawerReachUs}</div>
       {row('wa', { label: COPY.roomsAskTitle, onAct: () => {
         window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');

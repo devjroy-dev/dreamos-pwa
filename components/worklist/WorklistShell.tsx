@@ -40,7 +40,7 @@ const SCOPE = '.wl';
 // consolidation removed — leaving them behind as unused helpers would have been the
 // wl-plink disease in TypeScript.
 export function WorklistShell({ title, children }: { title: string; children: React.ReactNode }) {
-  const pathname = usePathname() ?? '/w';
+  const pathname = usePathname() ?? '/vendor';
   // ── F-38.41 · THE MODE IS READ, NOT HELD ──────────────────────────────────
   // It used to be `useState('dark')` here with a localStorage read in an effect, and that
   // is why the founder's walk lost Chalk: every /w route mounts its own shell, so the
@@ -92,7 +92,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   // zero callers in either repo — so a vendor who wrote and then walked back to
   // Today read the state she had just changed.
   //
-  // THE SHELL IS THE RIGHT HOME because every `/w` surface is inside it and it
+  // THE SHELL IS THE RIGHT HOME because every `/vendor` surface is inside it and it
   // already knows when the route moves. A per-room hook would be one home per
   // room for one rule. The money verbs call the SAME function after a write
   // commits — that covers a write and a read on one route, which navigation
@@ -118,7 +118,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
     };
   }, []);
 
-  const onToday = pathname.startsWith('/w/today');
+  const onToday = pathname.startsWith('/vendor/today');
   const onRooms = !onToday;
 
   return (
@@ -182,9 +182,9 @@ export function WorklistShell({ title, children }: { title: string; children: Re
           estate's build id will look here first. */}
 
       <nav className="wl-nav" aria-label="Sections">
-        <Link href="/w/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}
+        <Link href="/vendor/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}
               aria-current={onRooms ? 'page' : undefined}>{COPY.navRooms}</Link>
-        <Link href="/w/today" className={'wl-seat' + (onToday ? ' on' : '')}
+        <Link href="/vendor/today" className={'wl-seat' + (onToday ? ' on' : '')}
               aria-current={onToday ? 'page' : undefined}>{COPY.navToday}</Link>
       </nav>
     </div>

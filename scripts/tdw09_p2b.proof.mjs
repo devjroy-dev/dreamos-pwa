@@ -36,7 +36,7 @@ const HONESTY = "Your own words are shown on your profile, but couples can&rsquo
 
 console.log('\n── §1 · the wizard (F-4(a) + F-5(a) + F-7) ──');
 {
-  const raw = R('app/vendor/discover/submit/page.tsx');
+  const raw = R('app/vendor/(legacy)/discover/submit/page.tsx');
   const src = strip(raw);
   cell('1.1', !src.includes('AESTHETIC_OPTIONS'), 'the local hard-coded ten is retired from code');
   cell('1.2', src.includes("vocabularyFor(me?.category ?? null)"), 'chips come from the category\u2019s vetoed list');
@@ -54,7 +54,7 @@ console.log('\n── §1 · the wizard (F-4(a) + F-5(a) + F-7) ──');
 
 console.log('\n── §2 · the profile editor (the second free-text field, cured) ──');
 {
-  const raw = R('app/vendor/discover/profile/page.tsx');
+  const raw = R('app/vendor/(legacy)/discover/profile/page.tsx');
   const src = strip(raw);
   cell('2.1', !src.includes('Tags (comma-separated)'), 'the comma free-text field is retired');
   cell('2.2', src.includes('TagEditor') && src.includes('vocabularyFor(category)'), 'chips + the shared vocabulary');
@@ -74,7 +74,7 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
   // is `screen.tsx` now. A cell left pointing at the old path would have reddened a correct
   // tree. Declared at this reading section, not at the top: \u00a72 above reads other files for
   // other claims and must not appear to share a subject with this one.
-  const SF_BODY = 'app/vendor/storefront/screen.tsx';
+  const SF_BODY = 'app/vendor/(shell)/storefront/screen.tsx';
   const raw = R(SF_BODY);
   const src = strip(raw);
   cell('3.1', raw.includes('label="Complete your bio"'), 'the FOUNDER-VETOED heading seats as §1');
@@ -146,7 +146,7 @@ console.log('\n── §5 · one home, no strays ──');
   const vocab = R('lib/shared/tagVocabulary.ts');
   cell('5.1', vocab.includes('scripts/tdw09_p2b_vocab.proof.mjs'), 'the home names its arbiter');
   const meterLib = R('lib/vendor/profileMeter.ts');
-  cell('5.2', meterLib.includes('MOVED from app/vendor/discover/profile/page.tsx'), 'the meter model names its origin (moved, not rewritten)');
+  cell('5.2', meterLib.includes('MOVED from app/vendor/(legacy)/discover/profile/page.tsx'), 'the meter model names its origin (moved, not rewritten)');
 }
 
 console.log(`\n════ tdw09_p2b: ${pass} passed, ${fail} failed (total ${pass + fail}) ════`);

@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const RESET_SRC = join(__dirname, '..', 'app', 'vendor', 'pin-reset', 'page.tsx');
+const RESET_SRC = join(__dirname, '..', 'app', 'vendor', '(legacy)', 'pin-reset', 'page.tsx');  // P7.2: the auth screens live in the (legacy) route group
 
 let failures = 0;
 const ok   = (m) => console.log(`  \u2713 ${m}`);

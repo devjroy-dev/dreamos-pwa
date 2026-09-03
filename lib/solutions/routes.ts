@@ -11,11 +11,11 @@
 // So without this file the six addresses would be six scattered string
 // literals in exactly the shape R-38.1 has just finished deleting — and C31
 // would not catch them, because its matcher is keyed on `/vendor` and these
-// live under `/w/support`. The doctrine would have a hole precisely where the
+// live under `/vendor/support`. The doctrine would have a hole precisely where the
 // newest code is.
 //
 // `bs_audit.mjs` carries C31's shape in this seat's own gate: **no
-// `/w/support/` literal may appear anywhere outside this file.**
+// `/vendor/support/` literal may appear anywhere outside this file.**
 //
 // ── A MISS RETURNS THE INDEX RATHER THAN THROWING ──────────────────────────
 // Same reasoning `roomHref` states at rooms.ts:254 and for the same reason:
@@ -39,7 +39,7 @@ export const SURFACE_SLUGS = [
 export type SurfaceSlug = SolutionsRow['slug'];
 
 /** The room index — where the six rows live, and the fallback for an unknown slug. */
-export const SOLUTIONS_INDEX_HREF = '/w/support';
+export const SOLUTIONS_INDEX_HREF = '/vendor/support';
 
 export function surfaceHref(slug: string): string {
   return (SURFACE_SLUGS as readonly string[]).includes(slug)

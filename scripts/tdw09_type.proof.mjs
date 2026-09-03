@@ -148,7 +148,7 @@ async function okMutate(name, rel, from, to, check, guards) {
 // A real surface, mutated in production source: one body site pushed back under
 // the floor. The specimen is the sheet the founder walked twice.
 await okMutate('§M.1 §A.1 reds when one body site is put back under the floor',
-  'app/vendor/studio/team/page.tsx',
+  // 'app/vendor/studio/team/page.tsx' — RETIRED from this read set at P7.2: the page was deleted with the old tree (the Studio Suite is the shell's Team room; StudioSheets.tsx is already in the set where it belongs)
   "fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',",
   "fontFamily: F.body, fontWeight: 300, fontSize: 13, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',",
   async () => { const { m, c } = await read(); assert.strictEqual(c.body.filter(b => b.size < m.BODY_FLOOR).length, 0); },
@@ -172,7 +172,7 @@ await okMutate('§M.2 §B.2 reds when a surface\'s whole register is swept into 
   '§B.2');
 
 await okMutate('§M.3 §C.2 reds when an ad-hoc size re-enters the tree',
-  'app/vendor/studio/team/page.tsx',
+  // 'app/vendor/studio/team/page.tsx' — RETIRED from this read set at P7.2: the page was deleted with the old tree (the Studio Suite is the shell's Team room; StudioSheets.tsx is already in the set where it belongs)
   "fontSize: 20, lineHeight: 1.5, color: D.cream, marginBottom: 4",
   "fontSize: 23, lineHeight: 1.5, color: D.cream, marginBottom: 4",
   async () => {
@@ -183,7 +183,7 @@ await okMutate('§M.3 §C.2 reds when an ad-hoc size re-enters the tree',
   '§C.2');
 
 await okMutate('§M.4 §B.3 reds if the register drops below its own floor again',
-  'app/vendor/studio/team/page.tsx',
+  // 'app/vendor/studio/team/page.tsx' — RETIRED from this read set at P7.2: the page was deleted with the old tree (the Studio Suite is the shell's Team room; StudioSheets.tsx is already in the set where it belongs)
   "fontSize: 9,\n  color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,",
   "fontSize: 7,\n  color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,",
   async () => { const { m, c } = await read(); assert.strictEqual(c.engraved.filter(e => e.size < m.REGISTER_FLOOR).length, 0); },

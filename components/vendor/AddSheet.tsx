@@ -23,6 +23,7 @@ import type {
 } from '@/lib/vendor/types/vendor';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
+import { istTodayISO } from '@/lib/vendor/istDay';
 const D = { bg: '#111111', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)' };
 const F = { display: 'var(--font-cormorant), Georgia, serif', label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
@@ -228,7 +229,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
     } else {
       // New record or fallback — set defaults only
       const defaults: Record<string, string> = {};
-      if (slice === 'expenses') defaults.expense_date = new Date().toISOString().split('T')[0];
+      if (slice === 'expenses') defaults.expense_date = istTodayISO();
       // B6-S1 (R-B6-18): create-mode seeds ride on top of the defaults.
       if (initialValues) Object.assign(defaults, initialValues);
       setValues(defaults);

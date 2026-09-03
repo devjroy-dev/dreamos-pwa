@@ -12,7 +12,7 @@ function sec(t) { console.log('\n' + t); }
 function read(p) { return fs.readFileSync(p, 'utf8'); }
 function strip(s) { return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/[^\n]*/g, '$1'); }
 
-const DISC = read('app/vendor/discover/page.tsx');
+const DISC = read('app/vendor/(legacy)/discover/page.tsx');
 const LEADS = read('app/vendor/discover/leads/page.tsx');
 const MAST = read('components/vendor/slices/Masthead.tsx');
 const ROW = read('components/vendor/slices/SliceRow.tsx');

@@ -84,7 +84,7 @@ const PORT = process.env.B50_PORT || 3947;
 // The route under test. Both `/w/invoices` (where the walk counted) and
 // `/w/today` (where `useTodayFeed` actually mounts) are worth asking, and the
 // focus arm lives in the shell that wraps BOTH.
-const ROUTE = process.env.B50_ROUTE || '/w/invoices';
+const ROUTE = process.env.B50_ROUTE || '/vendor/invoices';
 // N returns to the tab. 20 is enough that an unthrottled refetch is unmistakable
 // and small enough that a threshold-based cure still reads as 1.
 const FOCUS_EVENTS = Number(process.env.B50_FOCUS_EVENTS || 20);
