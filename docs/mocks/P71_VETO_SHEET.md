@@ -4,7 +4,7 @@
 **File** `docs/mocks/flip-beta-mock.html` — one self-contained file, fonts embedded, the theme token line carried **byte-identical** from the D-1 file and re-checked against `lib/worklist/theme.ts` at `28fd649` (`--atelier-accent-text` #68C9B4 / #0D6A5A). Mocks pin nothing.
 **Frames** `L1-landing` `L1-chooser` `P7-badge` `P7-report` · **captures 6** (see §3 for why not 8). A build charter's §2 names *`docs/mocks/flip-beta-mock.html@<hash>`, frames …* — never the file alone.
 
-**How to read this.** One YES/NO per string. Strings ship by delegation unless struck (charter P7.1(c)). Unanswered rows are HELD, not shipped — silence is not a yes on a contested string.
+**RULED — founder 2026-09-04.** S5 and S17 STRUCK; S1–S4, S6–S16, S18 ship AS PROPOSED. The frames below are re-shot without the two struck lines. This file is the sheet of record; no row is open.
 
 ---
 
@@ -18,7 +18,7 @@
 | S2 | door 2 | `I'm a wedding vendor` | **unchanged** | becomes the vendor **sign-in** door (`signin_phone`, role Maker preset → `/vendor/pin-login` when pin set) |
 | S3 | the small line | `Already a member? Sign in` | **`New here? Sign up`** | the verb carries the gold, as today |
 | S4 | chooser heading | — (new surface) | **`New here?`** | Cormorant italic, the landing's own face |
-| S5 | chooser sub-line | — (new) | **`Tell us which side of the wedding you're on.`** | strike to ship the heading alone |
+| S5 | chooser sub-line | — (new) | ~~`Tell us which side of the wedding you're on.`~~ | **STRUCK — founder 2026-09-04.** The chooser ships heading + two doors + Back. |
 | S6 | chooser door 1 | — | `I'm getting married` | byte-identical to S1; lands on **the feed** (today's couple sign-up, F-P71.3 accepted as-is; F-39.75 filed) |
 | S7 | chooser door 2 | — | `I'm a wedding vendor` | byte-identical to S2; lands on `join_phone` (name + phone) |
 | S8 | chooser back | — | **`‹ Back`** | the ONE way home; a second `Already a member? Sign in` on the chooser was drawn, then struck in this seat — two homes for one path, and the very line F-P71.1 retired |
@@ -42,7 +42,7 @@ The two teal annotations under the chooser's buttons (`→ the feed (today's flo
 | S14 | placeholder | — | **`Tell us what you expected and what you saw instead.`** | |
 | S15 | send | — | **`Send on WhatsApp`** | honest verb: the tap opens WhatsApp with the text prefilled; WhatsApp's send is the send |
 | S16 | cancel | — | `Cancel` | reused byte |
-| S17 | sheet note | — | **`Opens WhatsApp with the room, build and your note filled in. Nothing is sent until you press send there.`** | strike if S15 says enough |
+| S17 | sheet note | — | ~~`Opens WhatsApp with the room, build and your note filled in. Nothing is sent until you press send there.`~~ | **STRUCK — founder 2026-09-04.** S15's verb carries it. |
 | S18 | the composed message (vendor never edits it; it lands on `+919888294440`) | — | **`Issue · <Room> · <build>`** newline **`<the vendor's text>`** | founder's choice of prefix; the build hash rides so the reply thread is greppable |
 
 **Register check:** no `Bride`, no money glyph, no persona name in any row. Copy law holds.
