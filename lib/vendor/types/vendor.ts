@@ -22,6 +22,13 @@ export interface MeResponse {
     handle: string;
     upi_id: string | null;
     gstin: string | null;
+    // ── S2 · HER RAILS · migration 0130, door at dream-os e947570 (R-39.20) ──
+    // Printed on her invoice document: `address` in the header beside city and
+    // GSTIN, the three bank fields under Payment beside the UPI QR.
+    address: string | null;
+    account_name: string | null;
+    account_number: string | null;
+    ifsc: string | null;
     open_to_travel: boolean;
     // F-10.81 — this union was ALREADY FALSE before the rename: 0114's tier flip
     // wrote 'free' on every halt and cancel, a value this type called impossible,
@@ -96,6 +103,13 @@ export interface UpdateMeRequest {
   instagram_handle?: string;
   upi_id?:           string;
   gstin?:            string;
+  // S2 · the four are on dream-os's ALLOWED_FIELDS at e947570. Optional, like
+  // every other field here — the PATCH is a partial and the handler's loop
+  // copies only the keys present.
+  address?:          string;
+  account_name?:     string;
+  account_number?:   string;
+  ifsc?:             string;
   briefing_enabled?: boolean;
   aesthetic_tags?:   string[];
   rate_min?:         number;
@@ -120,6 +134,11 @@ export interface UpdateMeResponse {
     open_to_travel:   boolean;
     upi_id:           string | null;
     gstin:            string | null;
+    // S2 · the four come BACK as well as go in, so a save can be verified.
+    address:          string | null;
+    account_name:     string | null;
+    account_number:   string | null;
+    ifsc:             string | null;
     aesthetic_tags:   string[];
     rate_min:         number | null;
     rate_max:         number | null;
@@ -436,7 +455,7 @@ export interface RecordPaymentResponse {
 
 // ── GET /api/v2/vendor/invoices/:invoiceId/pdf ────────────────────────────
 // ── F-2c.w7 · THE DOOR SAYS `url`, THIS TYPE SAID `pdf_url` ────────────────
-// The PDF was never broken. `src/api/vendor/money.js:584` generated it, uploaded
+// The PDF was never broken. `src/api/vendor/money.js` · the `GET /invoices/:vendorId/:invoiceId/pdf` arm's `okRes` generated it, uploaded
 // it, signed it and stamped `pdf_url` on the invoice — then answered
 // `okRes(res, { url, invoice_number })`. The caller read `res.pdf_url`, got
 // `undefined`, and fell through to an error toast on every single tap. The

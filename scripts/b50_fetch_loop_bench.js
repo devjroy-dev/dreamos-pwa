@@ -357,8 +357,46 @@ function waitForServer(port, timeoutMs) {
     //
     // BOTH EVENTS, because a real tab-return fires both — counting only one would
     // halve a real finding.
+    // ⚠ THIS SCENARIO SHIPPED UNWITNESSED IN THE AUTHORING CONTAINER, AND THAT IS
+    // DECLARED RATHER THAN GLOSSED. `next build` cannot complete there — `next/font`
+    // fetches Jost from Google Fonts and that host is outside the container's network
+    // allowlist — so b50 REFUSES for want of a BUILD_ID, exactly as it does on every
+    // floor run in the named base. The seat that wrote the arm below could not run it.
+    // CI CAN, and the floor's own base note says so: 「the gate enforces what the
+    // container cannot — CI runs b50 for real」. Until a CI run or the founder's own
+    // machine reports on it, the counts asserted here are a PREDICTION written down
+    // before the run, which is the honest shape for a measurement nobody has taken:
+    //   20 returns past the threshold → 20 Today refetches, every other door 0.
+    // If it comes back otherwise, this comment is the evidence about the instrument.
+    //
+    // ── F-39.56 · THE CLOCK IS MOVED, NOT WAITED OUT ─────────────────────────
+    // The ruled cure refetches on focus only when the reading is older than 30s, so
+    // a scenario that fires twenty returns in two seconds proves the THRESHOLD and
+    // nothing about the refetch. Sitting out 30s per return would put ten minutes of
+    // sleep on a floor that already runs Chromium twice.
+    // `Date.now` is therefore advanced by a page-side offset. This is honest: the
+    // cure reads `Date.now()` and nothing else about time, so an advanced clock is
+    // indistinguishable from an elapsed one FROM THE CODE UNDER TEST'S POINT OF
+    // VIEW — which is the only point of view a measurement is entitled to.
+    // Installed AFTER the mount, so the reading's own `readAt` is stamped on the
+    // real clock and the offset only ever moves the page forward.
+    const advanceClock = async (ms) => {
+      await page.evaluate((delta) => {
+        const w = window;
+        w.__tdwClockSkew = (w.__tdwClockSkew || 0) + delta;
+        if (!w.__tdwClockPatched) {
+          const realNow = Date.now.bind(Date);
+          Date.now = () => realNow() + (w.__tdwClockSkew || 0);
+          w.__tdwClockPatched = true;
+        }
+      }, ms);
+    };
+
     const before = new Map(counts);
     for (let i = 0; i < FOCUS_EVENTS; i++) {
+      // Past the 30s threshold before EVERY return, so N returns are N eligible
+      // refetches and the expected count is N, not «somewhere between 0 and N».
+      await advanceClock(31_000);
       await page.evaluate(() => {
         Object.defineProperty(document, 'hidden', { value: true, configurable: true });
         document.dispatchEvent(new Event('visibilitychange'));
@@ -389,7 +427,21 @@ function waitForServer(port, timeoutMs) {
   if (!rows.length) console.log('  (no API traffic observed)');
 
   const over = rows.filter(([d, n]) => (n - (focusDelta.get(d) || 0)) > 1);
-  const leaks = [...focusDelta.entries()].filter(([, f]) => f > 0);
+  // ── F-39.56 · THE VERDICT INVERTS FOR THE TODAY DOOR, AND ONLY FOR IT ──────
+  // This bench used to call ANY focus-driven request a leak, and at smalls A that
+  // was the right question: nobody knew whether the focus arm ran away. The answer
+  // was that it did not run at all — twenty returns, zero fetches — and the CURE for
+  // that is refetching. So a Today request on focus is now the EXPECTED reading and
+  // its ABSENCE is the finding, while every other door must still add nothing.
+  //
+  // The count is asserted as EXACTLY N. Fewer means the threshold is eating eligible
+  // returns; more means one return is costing several requests, which is the runaway
+  // this bench was built for and is still watching for.
+  const TODAY_DOOR = /worklist\/today/;
+  const todayFocus = [...focusDelta.entries()].filter(([d]) => TODAY_DOOR.test(d))
+    .reduce((a, [, f]) => a + f, 0);
+  const todayMounted = rows.some(([d]) => TODAY_DOOR.test(d));
+  const leaks = [...focusDelta.entries()].filter(([d, f]) => f > 0 && !TODAY_DOOR.test(d));
   const total = rows.reduce((a, [, n]) => a + n, 0);
   console.log(`\n  ${rows.length} door(s) · ${total} request(s) total`);
 
@@ -427,7 +479,27 @@ function waitForServer(port, timeoutMs) {
     console.log('   threshold. N returns cost N readings.');
     return done(1);
   }
-  console.log('\nGREEN — one mount, one fetch per door, and focus adds none');
+  // F-39.56's both-ways cell. On the uncured tree — the subscription removed —
+  // `todayFocus` is 0 and this reddens, which is the mutation the ruling names.
+  if (todayMounted && todayFocus !== FOCUS_EVENTS) {
+    console.log(`\nRED — the Today feed refetched ${todayFocus}× across ${FOCUS_EVENTS} ` +
+      'returns past the 30s threshold; exactly one per return was owed [F-39.56]:');
+    if (todayFocus === 0) {
+      console.log('\n   ZERO is the shape of the ORIGINAL defect: `refreshToday()` drops the');
+      console.log('   module-scope memo, but `useTodayFeed` reads it in an effect with an empty');
+      console.log('   dependency array, so nothing mounted ever asks again. Check that');
+      console.log('   `subscribeToday` is wired in `lib/worklist/feed.ts` (symbol: useTodayFeed).');
+    } else if (todayFocus < FOCUS_EVENTS) {
+      console.log('\n   FEWER than one per return — the staleness gate is eating eligible');
+      console.log('   returns. Check that the clock advance exceeds `ifOlderThan`.');
+    } else {
+      console.log('\n   MORE than one per return — a single return is costing several requests.');
+    }
+    try { process.kill(-server.pid, 'SIGKILL'); } catch {}
+    process.exit(1);
+  }
+  console.log(`\nGREEN — one mount, one fetch per door; the Today feed refetched ` +
+    `${todayFocus}/${FOCUS_EVENTS} on focus past the threshold, every other door added none`);
   return done(0);
   // MUTATION: restore the unstable identity at the cure site (see the handover)
   // and re-run — the door counts climb and this reds. Both-ways in the ledger.

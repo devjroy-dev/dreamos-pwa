@@ -102,7 +102,14 @@ export function WorklistShell({ title, children }: { title: string; children: Re
   // has navigated nowhere, and the reading behind her is as stale as if she had.
   useEffect(() => { refreshToday(); }, [pathname]);
   useEffect(() => {
-    const onFocus = () => { if (!document.hidden) refreshToday(); };
+    // ── F-39.56 · THE THRESHOLD RIDES THE CALL, NOT THIS FILE ────────────────
+    // Until this sitting the invalidation never reached a mounted `useTodayFeed`, so
+    // an ungated focus arm cost nothing — twenty returns, zero fetches, measured. It
+    // reaches now, so an ungated arm would bill a request for every alt-tab.
+    // 30s, ruled. The NUMBER is here because focus is the only caller that wants a
+    // threshold; the COMPARISON is in `refreshToday`, beside the `readAt` it reads,
+    // so the staleness rule has one home even though its trigger has one caller.
+    const onFocus = () => { if (!document.hidden) refreshToday({ ifOlderThan: 30_000 }); };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onFocus);
     return () => {

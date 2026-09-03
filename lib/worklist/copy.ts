@@ -609,12 +609,27 @@ export const COPY = {
   // ⚠ c-2c.s7 — THE ROUTE CITED HERE WAS WRONG, AND THE LESSON OUTLIVES IT.
   // This paragraph named `src/api/vendor/invoices.js:398`. THE CALLER NEVER
   // CALLS IT. `fetchInvoicePdf` composes `${moneyBase(v)}/invoices/${v}/${id}/pdf`
-  // — the MONEY plane — so the door is `src/api/vendor/money.js:584`. The
+  // — the MONEY plane — so the door is `src/api/vendor/money.js` · the `GET /invoices/:vendorId/:invoiceId/pdf` arm's `okRes`. The
   // conclusions above happened to hold of the real door too, which is luck and
   // not method: the actual defect (F-2c.w7, the door answering `url` where the
   // client read `pdf_url`) sat one field-name away and stayed invisible because
   // the reading was against the wrong file.
   // THE LAW: trace the URL the caller composes, never the route that looks right.
+  //
+  // ── F-39.50 · AND THE CITE ITSELF LEARNED THE SAME LESSON ─────────────────
+  // This paragraph cited that door BY LINE NUMBER — in a comment, in another
+  // repository, about a file that this very arc then edited three times. At
+  // dream-os 2fc20eb S2 added a schedule argument to that door and every line below
+  // it moved; the number went on reading 584 and went on being wrong silently,
+  // because a stale line number does not error, it just points somewhere else.
+  // A path and a SYMBOL survive an edit above them. Corrected at all THREE sites
+  // that carried the number — this file, `components/vendor/slices/SliceShell.tsx`
+  // and `lib/vendor/types/vendor.ts`; the ruling named two, and the third is
+  // disclosed rather than quietly fixed.
+  // (The number it used to carry now lands on the `router.get` header itself, one
+  // line of coincidence away from still looking right — which is the whole hazard.
+  // The digits are deliberately not reprinted here: C94 forbids the shape in this
+  // file, and a paragraph that quotes what it condemns reddens the cell guarding it.)
   // `POST /` where no pwa reader consumes it. The byte was the `??` fallback for
   // an ok-false carrying no error, so it described waiting when what happened
   // was failing. The founder's walk hit this door and the retry succeeded; the

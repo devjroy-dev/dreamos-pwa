@@ -15,6 +15,17 @@ export interface SettingsState {
   instagram_handle:  string;
   upi_id:            string;
   gstin:             string;
+  // ── S2 · HER RAILS · 0130's four, door at dream-os e947570 ────────────────
+  // ⚠ THIS DECLARATION IS THE SMALLER HALF. F-07.9's tuition is forty lines
+  // below and it is exactly this file's: five fields were TYPED here, arrived
+  // on the wire, rendered — and were dropped at the mapping seam, one of them
+  // mis-rendering every opted-out vendor for a block. TYPING A FIELD IS NOT
+  // CARRYING IT, and tsc cannot tell the difference because the value arrives
+  // at runtime. All four are seeded in EMPTY and assigned in the mapping below.
+  address:           string;
+  account_name:      string;
+  account_number:    string;
+  ifsc:              string;
   rate_min:          string;
   rate_max:          string;
   aesthetic_tags:    string;  // comma-separated
@@ -61,6 +72,7 @@ const EMPTY: SettingsState = {
   name: '', business_name: '', style_notes: '', city: '',
   open_to_travel: false, travel_notes: '', instagram_handle: '',
   upi_id: '', gstin: '', rate_min: '', rate_max: '',
+  address: '', account_name: '', account_number: '', ifsc: '',
   aesthetic_tags: '', briefing_enabled: true,
   about: '', rate_display: true, discover_paused: false,
   invoice_prefix: '', routing_handle: '',
@@ -104,6 +116,11 @@ export function useSettings() {
         instagram_handle: v.instagram_handle ?? '',
         upi_id:           v.upi_id ?? '',
         gstin:            v.gstin ?? '',
+        // S2 · MAPPED, not merely declared. See the interface note above.
+        address:          v.address ?? '',
+        account_name:     v.account_name ?? '',
+        account_number:   v.account_number ?? '',
+        ifsc:             v.ifsc ?? '',
         rate_min:         v.rate_min != null ? String(v.rate_min) : '',
         rate_max:         v.rate_max != null ? String(v.rate_max) : '',
         aesthetic_tags:   (v.aesthetic_tags ?? []).join(', '),

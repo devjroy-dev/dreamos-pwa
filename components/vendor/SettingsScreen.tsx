@@ -271,15 +271,56 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
           }}>{COPY.settingsEditProfile}</button>
         </SCard>
 
+        {/* ── S2 · HER RAILS ON THE PAYMENTS CARD · F-39.63 · R-39.20 ────────
+            0130's four columns, doored at dream-os e947570. They are printed on her
+            invoice document — `address` in the header beside city and GSTIN, the three
+            bank fields under Payment beside the UPI QR — so before this sitting a
+            vendor could offer a couple a QR and nothing else, and no way to give her
+            postal identity on a commercial record.
+
+            WHY THEY ARE HERE AND NOT ON DISCOVER PROFILE. TDW_07 P2's criterion is
+            mechanical, not aesthetic: a field Discover RENDERS or profileScore SCORES
+            moved; a field serving operations stayed. Discover renders `city`. It does
+            not render `address`, and it renders nothing of a bank account. So all four
+            stay, and they sit on THIS card because `upi_id` and `gstin` — the other two
+            things printed under Payment on the same document — are already here.
+
+            ONE HOME, THREE CALLERS. This component renders at /w/settings,
+            /vendor/settings and the demo studio, so the four fields cross all three in
+            one edit, and `register` gives each the right type world without a second
+            expression.
+
+            THE PLACEHOLDERS ARE FORMAT EXAMPLES, NOT DEFAULTS — the same shape
+            `name@bank` and `22AAAAA0000A1Z5` already use two rows up. IFSC is eleven
+            characters, fourth always `0`; the example is a real bank's real prefix
+            shape so a vendor can see what she is being asked for.
+
+            ⚠ ALL SIX NEW BYTES BELOW ARE ON THE FOUNDER'S VETO LIST and are listed in
+            this sitting's delivery for his pass: the four labels and the two
+            placeholders. Silence is not a yes. */}
         <SCard register={register} title="Payments">
           <SField register={register} label="UPI ID" value={current.upi_id} onChange={v => update({ upi_id: v })} placeholder="name@bank" />
           <SField register={register} label="GSTIN" value={current.gstin} onChange={v => update({ gstin: v })} placeholder="22AAAAA0000A1Z5" />
+          <SField register={register} label="Account name" value={current.account_name} onChange={v => update({ account_name: v })} />
+          <SField register={register} label="Account number" value={current.account_number} onChange={v => update({ account_number: v })} />
+          <SField register={register} label="IFSC" value={current.ifsc} onChange={v => update({ ifsc: v })} placeholder="HDFC0000123" />
+          <SField register={register} label="Business address" value={current.address} onChange={v => update({ address: v })} multiline />
           <SaveBtn register={register}
-            dirty={isDirty(['upi_id', 'gstin'])}
+            dirty={isDirty(['upi_id', 'gstin', 'account_name', 'account_number', 'ifsc', 'address'])}
             loading={saving === 'payments'}
-            onSave={() => saveMe('payments', ['upi_id', 'gstin'], {
+            onSave={() => saveMe('payments',
+              ['upi_id', 'gstin', 'account_name', 'account_number', 'ifsc', 'address'], {
               upi_id: current.upi_id || undefined,
               gstin: current.gstin || undefined,
+              // `|| undefined` matches the two rows above and is deliberate: an empty
+              // string would be WRITTEN as '' where the vendor meant "leave it unset",
+              // and the document's bank block gates on `account_number` being truthy —
+              // so '' and null behave the same on the page but only one of them is
+              // honest in the row.
+              account_name: current.account_name || undefined,
+              account_number: current.account_number || undefined,
+              ifsc: current.ifsc || undefined,
+              address: current.address || undefined,
             })}
           />
         </SCard>

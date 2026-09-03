@@ -439,7 +439,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         // WHAT THIS SAID: 「PDF not ready yet — try again in a moment.」 That
         // described WAITING when what happened was FAILING, and it invented a
         // state this door cannot report: `GET /:invoiceId/pdf` is SYNCHRONOUS
-        // (`src/api/vendor/money.js:584` — the MONEY plane, which is the door
+        // (`src/api/vendor/money.js` · the `GET /invoices/:vendorId/:invoiceId/pdf` arm's `okRes` — the MONEY plane, which is the door
         // `fetchInvoicePdf` actually composes; this comment named
         // `src/api/vendor/invoices.js:398` and that route is never called from
         // here, c-2c.s7) — it generates and returns a URL or

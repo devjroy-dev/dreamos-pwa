@@ -2818,8 +2818,43 @@ cell('C79 the register renders D-1 B13\u2019s particular and sums nothing (F-39.
 cell('C83 the Today memo is dropped on navigation, on focus, and after every money write (F-39.26)', () => {
   const bad = [];
   const feed = strip(read('lib/worklist/feed.ts'));
-  if (!/export function refreshToday\(\): void \{ pending = null; \}/.test(feed))
+  // ── F-39.56 · AMENDED · RETIRE-WITH-THE-READER ────────────────────────────
+  // This assertion was the ONE-LINE BODY, verbatim:
+  //   `export function refreshToday(): void { pending = null; }`
+  // It was right for what it guarded — that the door drops the MEMO and does not
+  // merely exist — and it went red the moment F-39.56 gave the function a body.
+  // A cell keyed to a whole function's text cannot survive that function gaining a
+  // reason, so it is re-keyed to the PROPERTY it was always about: `refreshToday`
+  // sets `pending` to null. The staleness gate and the notify loop are new
+  // behaviour with their own cells below; they are not this one's business.
+  if (!/export function refreshToday\(/.test(feed) || !/pending = null;/.test(feed))
     bad.push('refreshToday no longer drops the module-scope memo — the door is the cure, not the export');
+
+  // ── F-39.56 · THE INVALIDATION MUST REACH A MOUNTED SURFACE ───────────────
+  // C83 proved the door was WIRED. It could not prove anyone was LISTENING, and
+  // nobody was: `useTodayFeed` read the memo in an effect with an empty dependency
+  // array, so twenty tab-returns to /w/today produced ZERO fetches — measured on
+  // real Chromium at smalls A. Dropping a memo under a hook that will never look
+  // again is a door opening onto a surface that stopped listening.
+  if (!/subscribeToday\(/.test(feed))
+    bad.push('feed.ts has no subscription door — refreshToday cannot reach a mounted useTodayFeed (F-39.56)');
+  if (!/const off = subscribeToday\(read\)/.test(feed))
+    bad.push('useTodayFeed does not subscribe — it still reads once per mount and never again (F-39.56)');
+  if (!/listeners\.add|listeners\.delete/.test(feed))
+    bad.push('the listener set is not maintained — a subscription that never unsubscribes leaks a surface');
+  // NO RE-PRIME: the listener must go back through readToday(), not hold its own
+  // copy of the reading. Two derivations of one reading is the disease the memo cures.
+  if (/setFeed\(\s*\{/.test(feed))
+    bad.push('useTodayFeed builds a reading of its own — one home, and it is readToday()');
+
+  // ── F-39.56 · THE 30s GATE, AND WHO MAY NOT HAVE IT ───────────────────────
+  // The threshold is for FOCUS alone. A money verb passing `ifOlderThan` would be
+  // a write silently declining to invalidate the reading it just falsified, which
+  // is worse than the defect this whole door exists to cure.
+  if (!/ifOlderThan/.test(feed))
+    bad.push('refreshToday has no staleness gate — every alt-tab would now bill a request (F-39.56)');
+  if (!/readAt > 0 && Date\.now\(\) - readAt < opts\.ifOlderThan/.test(feed))
+    bad.push('the staleness comparison is not keyed to when the reading SETTLED');
 
   // ── THE DOC, WHICH WAS THE DEFECT ────────────────────────────────────────
   // The sentence that shipped for a whole arc was a PROMISE wearing a
@@ -2827,12 +2862,19 @@ cell('C83 the Today memo is dropped on navigation, on focus, and after every mon
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
   const nav = /useEffect\(\(\)\s*=>\s*\{\s*refreshToday\(\);\s*\}\s*,\s*\[pathname\]\)/.test(shell);
   if (!nav) bad.push('WorklistShell does not drop the memo on navigation');
+  // F-39.56 · the focus arm now PASSES the gate, so the old `refreshToday()`
+  // literal no longer appears on it. Keyed to the call with its 30s option.
   const focus = /addEventListener\(\s*['"]focus['"]/.test(shell) && /document\.hidden/.test(shell)
-    && /refreshToday\(\)/.test(shell);
+    && /refreshToday\(\s*\{\s*ifOlderThan:\s*30_000\s*\}\s*\)/.test(shell);
   if (!focus) bad.push('WorklistShell does not drop the memo on return-to-focus — the half navigation cannot see');
 
   const api = strip(read('lib/vendor/api/vendor.ts'));
   const writes = (api.match(/refreshToday\(\)/g) || []).length;
+  // F-39.56 · the money verbs must call the UNGATED door. `refreshToday()` with no
+  // argument is unconditional by design, so a verb that grew an option would be
+  // declining to invalidate a reading its own write just made false.
+  if (/refreshToday\(\s*\{/.test(api))
+    bad.push('a money verb passes a staleness option — a write may never decline to invalidate (F-39.56)');
   if (writes < 7) bad.push('only ' + writes + ' money writes drop the memo; seven were wired at 2b-1 '
     + '(create/update invoice, record payment, cancel, create/update/delete expense)');
 
@@ -3181,7 +3223,7 @@ cell('C93 the mark-paid summary names the person, never the sheet (F-2c.w6)', ()
 
 // ── C94 · THE PDF LINK IS NORMALISED AT THE DOOR  [F-2c.w7] ────────────────
 //    THE DEFECT, AND IT MADE A WORKING FEATURE LOOK BROKEN FOR THE WHOLE ARC:
-//    `src/api/vendor/money.js:584` generates the PDF, uploads it, signs it and
+//    `src/api/vendor/money.js` · the pdf arm's `okRes` generates the PDF, uploads it, signs it and
 //    stamps `pdf_url` on the invoice — then answers `{ url, invoice_number }`.
 //    The client read `res.pdf_url`, got `undefined`, skipped the ok-true branch,
 //    found no `error` either, and reported a failure on every tap. The founder's
@@ -3229,9 +3271,27 @@ cell('C94 the PDF door reads ONE name and the fallback is retired (F-2c.w7)', ()
     bad.push('`pdf_url` is optional again — the door\'s own field may not be optional on the type that describes it');
   // THE CITED PATH. c-2c.s7: three durable comments named a route the caller
   // never calls. A wrong path in a comment outlives the seat that wrote it.
-  for (const f of ['lib/worklist/copy.ts', 'components/vendor/slices/SliceShell.tsx'])
-    if (!read(f).includes('src/api/vendor/money.js:584'))
+  //
+  // ── F-39.50 · AND THIS CELL WAS GUARDING THE WRONG HALF OF THE CITE ───────
+  // It asserted the literal `src/api/vendor/money.js:584` — the LINE NUMBER. So it
+  // guarded a fact that dream-os could invalidate without touching this repo, and
+  // S2 duly did: adding a schedule argument to that door moved every line below it,
+  // and 584 now lands on the `router.get` header, one line of coincidence away from
+  // still looking right. A cell keyed to a line number cannot tell a correct cite
+  // from a stale one; it only knows whether the digits match.
+  // F-38.27's family, and the cure is the same: assert the PATH and the SYMBOL,
+  // which survive any edit above them. THE THIRD SITE JOINS THE LOOP —
+  // `lib/vendor/types/vendor.ts` carried the same cite and no cell watched it.
+  for (const f of ['lib/worklist/copy.ts', 'components/vendor/slices/SliceShell.tsx',
+                   'lib/vendor/types/vendor.ts']) {
+    const t = read(f);
+    if (!t.includes('src/api/vendor/money.js'))
       bad.push(f + ' does not name the real PDF door — c-2c.s7');
+    else if (!/money\.js`?\s*(·|\u00b7)[^\n]*okRes/.test(t))
+      bad.push(f + ' cites the PDF door without naming its symbol — F-39.50');
+    if (/money\.js:\d+/.test(t))
+      bad.push(f + ' is back to a line-number cite — F-39.50');
+  }
   return bad.length ? bad.join(' | ') : null;
 });
 
@@ -3326,7 +3386,10 @@ cell('C87 the invoice row carries a visible Mark paid, on one handler with the s
 // ⚠ c-2c.s7 — THE ROUTE CITED HERE WAS WRONG, AND THE LESSON OUTLIVES IT.
 // This paragraph named `src/api/vendor/invoices.js:398`. THE CALLER NEVER
 // CALLS IT. `fetchInvoicePdf` composes `${moneyBase(v)}/invoices/${v}/${id}/pdf`
-// — the MONEY plane — so the door is `src/api/vendor/money.js:584`. The
+// — the MONEY plane — so the door is `src/api/vendor/money.js` · the pdf arm's
+// `okRes`. (F-39.50: this bench carried a verbatim copy of copy.ts's paragraph and
+// so carried its line number too. A cell that forbids a spelling while printing it
+// is arguing with itself.) The
 // conclusions above happened to hold of the real door too, which is luck and
 // not method: the actual defect (F-2c.w7, the door answering `url` where the
 // client read `pdf_url`) sat one field-name away and stayed invisible because
