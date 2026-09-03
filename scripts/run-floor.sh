@@ -299,6 +299,13 @@ for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   rc=$?
   if [ "$rc" -eq 3 ]; then
     REFUSED_SET="${REFUSED_SET}REFUSED: ${n}\n"
+  # ── E-1 · F-39.67 · EXIT 2 IS AN ERROR, AND IT GETS ITS OWN LINE ───────────
+  # The estate's table is 0 pass · 1 fail · 2 error · 3 refused, and until this
+  # sitting this runner read 2 as RED — an unexpected throw and a failed cell were
+  # one line. An ERROR is still non-green and still enters the base; it is named
+  # so a bench that stops asserting and starts crashing is a visible move.
+  elif [ "$rc" -eq 2 ]; then
+    RED="${RED}ERROR: ${n}\n"
   elif [ "$rc" -ne 0 ]; then
     RED="${RED}RED: ${n}\n"
   fi
@@ -532,9 +539,23 @@ if [ "$CHECK" = "yes" ]; then
   # when BOTH cure sittings land, the §2.2 one chartered at CE-38 relay #2 and the
   # §2.3 one owed by F-39.41. Until then, a red from §2.2 or §2.3 is THIS LINE; a
   # red from §1, §2.1, §2.3a, §2.3b, §2.3e-k or §3 is a finding and is not.
-  printf 'REFUSED: b50_fetch_loop_bench\nRED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
-  if diff /tmp/base.txt /tmp/floor.txt; then
-    echo "FLOOR = NAMED BASE, no delta"
+  # ── BASE AMENDED, LABELLED — E-1 · THE EXIT-CODE CENSUS (CE-39, 2026-09-03) ──
+  # BY MEASUREMENT, BY SET, cured tree vs `d57cada`: nothing joins, nothing leaves,
+  # nothing reclassifies. ONE LINE LEAVES THE FILE: `REFUSED: b50_fetch_loop_bench`
+  # — a base holds FAILURES ONLY (c-39.57); refusals are measured, printed above the
+  # diff, and excluded from it. b50's environment note above still stands: it
+  # refuses in the LE container and runs green where there is egress.
+  # Nineteen one-line exit-site cures rode this ZIP (fourteen refusals 1→3, one 2→3,
+  # five throws → 2 under F-39.67, tdw09_p2b_vocab's superseded refuse-as-RED
+  # doctrine); none moved a line.
+  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  grep -v '^REFUSED: ' /tmp/floor.txt > /tmp/floor_fail.txt
+  if grep -q '^REFUSED: ' /tmp/base.txt; then
+    echo "STOP — the named base carries a REFUSED line. Bases hold failures only (c-39.57)."
+    exit 1
+  fi
+  if diff /tmp/base.txt /tmp/floor_fail.txt; then
+    echo "FLOOR = NAMED BASE, no delta  (refusals, not in base: $(grep -c '^REFUSED: ' /tmp/floor.txt))"
   else
     echo "FLOOR DELTA — the diff above is this delivery's to explain"
     exit 1

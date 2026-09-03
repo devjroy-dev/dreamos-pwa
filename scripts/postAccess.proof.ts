@@ -100,4 +100,4 @@ function main() {
   process.exit(fail ? 1 : 0);
 }
 
-main();
+try { main(); } catch (e) { console.error('BENCH THREW (unexpected):', e && (e as Error).stack || e); process.exit(2); } // F-39.67: an unexpected throw is an ERROR (2), never a FAIL (1) — main() is synchronous, so this is try/catch, not .catch

@@ -128,7 +128,7 @@ try {
   dirty = execSync('git status --porcelain -uall', { cwd: ROOT, encoding: 'utf8' }).replace(/\n+$/, '');
 } catch {
   console.log('STOP — could not run `git status` to prove the tree is clean. Nothing was touched.');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
 }
 {
   if (dirty) {
@@ -154,7 +154,7 @@ try {
         console.log('`bash scripts/run-floor.sh --delivery <manifest>` [F-19.16].');
         console.log(dirty);
       }
-      process.exit(1);
+      process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
     }
     console.log(`[F-19.16] ${dirtyPaths.length} dirty path(s), all declared in ${DECLARED_MANIFEST} — proceeding.`);
   }

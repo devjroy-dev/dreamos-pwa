@@ -39,7 +39,7 @@ export const ROOT = process.env.TDW_PWA || path.resolve(HERE, '..');
 for (const probe of ['package.json', 'lib/vendor/theme.ts']) {
   if (!fs.existsSync(path.join(ROOT, probe))) {
     console.error(`REFUSED — ${ROOT} is not a dreamos-pwa clone: ${probe} absent.`);
-    process.exit(1);
+    process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
   }
 }
 

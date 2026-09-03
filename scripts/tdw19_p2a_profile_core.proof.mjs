@@ -83,7 +83,7 @@ if (!existsSync(TSC)) {
   console.error('STOP — node_modules/.bin/tsc is absent. Run `npm ci` first.');
   console.error('This bench compiles TypeScript; without the compiler it can only');
   console.error('report a red it did not earn.');
-  process.exit(2);
+  process.exit(3); // F-39.47: a missing compiler is a REFUSAL (3), not an error
 }
 
 const TMP = mkdtempSync(path.join(tmpdir(), 'p2a-core-'));

@@ -46,7 +46,7 @@ ok('0b. SIBLING-FULL — dream-os is beside this repo and carries brideTools.js'
 if (!haveDoc || !haveSib) {
   console.log('\n  BENCH ABORTED — a matrix bench without its capability axis proves nothing.');
   console.log('  Clone dream-os as a sibling of dreamos-pwa and re-run.\n');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
 }
 
 const doc = fs.readFileSync(DOC, 'utf8');

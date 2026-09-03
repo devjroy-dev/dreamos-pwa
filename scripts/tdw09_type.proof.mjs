@@ -26,6 +26,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+process.on('uncaughtException', (e) => { console.error('BENCH THREW (unexpected):', e && e.stack || e); process.exit(2); }); // F-39.67: top-level await has no .catch and its rejection surfaces as an uncaught exception (measured, not unhandledRejection); a throw is an ERROR (2), never node's 1
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
@@ -34,7 +35,7 @@ const CENSUS_PATH = path.join(HERE, 'tdw09_type_census.mjs');
 if (!fs.existsSync(CENSUS_PATH)) {
   console.error('REFUSED — scripts/tdw09_type_census.mjs is absent. This bench asserts that');
   console.error('instrument\'s output and has nothing to say without it.');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
 }
 
 let pass = 0, fail = 0;

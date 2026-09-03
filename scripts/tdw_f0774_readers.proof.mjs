@@ -364,7 +364,7 @@ if (!readers.length) {
   console.log('  REFUSED — the reader derivation returned ZERO files.');
   console.log('            Every cell below would pass vacuously. The shape tables above');
   console.log('            no longer match this corpus; fix the tables, do not read a green.');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
 }
 ok(`§1.1 the derivation returns a non-empty reader set (${readers.length} readers over ${corpus.length} files)`,
   readers.length > 0);

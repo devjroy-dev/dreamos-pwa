@@ -150,7 +150,7 @@ function shellScopeCss() {
 
 (async () => {
   const scope = shellScopeCss();
-  if (!scope) { console.log('b41 REFUSED — could not read GRAPHITE/CHALK from theme.ts'); process.exit(1); }
+  if (!scope) { console.log('b41 REFUSED — could not read GRAPHITE/CHALK from theme.ts'); process.exit(3); /* F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base */ }
   const globals = read('app/globals.css');
 
   const browser = await puppeteer.launch({
@@ -268,4 +268,4 @@ function shellScopeCss() {
   console.log('  OPEN-AS-NARROWED and the founder\'s eye is the verdict on the card:');
   console.log('  light /w/billing -> /vendor/discover/preview -> /w/billing still light.');
   process.exit(fail === 0 ? 0 : 1);
-})().catch((e) => { console.log('b41 REFUSED — ' + e.message); process.exit(1); });
+})().catch((e) => { console.error('b41 ERROR — unexpected throw: ' + (e && e.stack || e)); process.exit(2); /* F-39.67: a throw is an ERROR (2); the named refusals above exit 3 before this line */ });

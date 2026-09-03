@@ -39,14 +39,14 @@ for (const probe of ['package.json', 'lib/vendor/theme.ts', 'app/globals.css']) 
   if (!fs.existsSync(path.join(ROOT, probe))) {
     console.error(`REFUSED — ${ROOT} is not a dreamos-pwa clone: ${probe} is absent.`);
     console.error('Set TDW_PWA to a clone root, or run from inside one.');
-    process.exit(1);
+    process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
   }
 }
 {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   if (pkg.name !== 'web') {
     console.error(`REFUSED — package.json name is "${pkg.name}", expected "web" (the witnessed dreamos-pwa name, CE-65).`);
-    process.exit(1);
+    process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
   }
 }
 

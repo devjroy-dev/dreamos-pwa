@@ -68,4 +68,4 @@ function mk(resp: CrewCommitResponse) {
 
   console.log(`\n════════  ${pass} passed, ${fail} failed  ════════`);
   process.exit(fail ? 1 : 0);
-})();
+})().catch((e) => { console.error('BENCH THREW (unexpected):', e && e.stack || e); process.exit(2); }); // F-39.67: an unexpected throw is an ERROR (2), never a FAIL (1)

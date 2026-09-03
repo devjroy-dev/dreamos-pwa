@@ -4,7 +4,9 @@
 // pwa home AND the dream-os mirror side-by-side and asserts the ten lists equal
 // term-for-term, order included. RED-at-uncured is provable by reverting either
 // file alone. When the sibling repo is absent (CI without the pair), the cross
-// cells REFUSE WITH A NAMED REASON and exit RED — an unreachable arbiter must
+// cells REFUSE WITH A NAMED REASON and exit 3 (REFUSED — F-39.47/F-39.55; this header
+// said 「exit RED」 until E-1, and the code said the same: SUPERSEDED, a refusal is named
+// in the floor's verdict and never enters a base) — an unreachable arbiter must
 // never read as parity (F-09.30's refuse-never-crash + the independent-method
 // law: a check whose failure mode is a silent green is not a check).
 //
@@ -16,7 +18,8 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OS_ROOT = process.env.TDW_DREAMOS ?? join(ROOT, '..', 'dream-os');
 let pass = 0, fail = 0;
-const cell = (id, ok, msg) => { if (ok) { pass++; console.log(`  PASS ${id} ${msg}`); } else { fail++; console.log(`  FAIL ${id} ${msg}`); } };
+let refused = 0;
+const cell = (id, ok, msg) => { if (ok) { pass++; console.log(`  PASS ${id} ${msg}`); } else { fail++; if (/^REFUSED:/.test(msg)) refused++; console.log(`  FAIL ${id} ${msg}`); } };
 
 // Parse a vocabulary object out of source bytes: category → [terms], order kept.
 function parseLists(src) {
@@ -69,4 +72,4 @@ if (!existsSync(osPath)) {
 }
 
 console.log(`\n════ tdw09_p2b_vocab: ${pass} passed, ${fail} failed (total ${pass + fail}) ════`);
-process.exit(fail === 0 ? 0 : 1);
+process.exit(fail === 0 ? 0 : (refused && fail === refused ? 3 : 1)); // F-39.47: refusals-only → 3; a real fail beside a refusal still → 1 (RED wins)

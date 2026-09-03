@@ -31,12 +31,12 @@ const ROOT = process.env.TDW_PWA || path.resolve(path.dirname(fileURLToPath(impo
 for (const probe of ['lib/vendor/theme.ts', 'app/globals.css']) {
   if (!fs.existsSync(path.join(ROOT, probe))) {
     console.error(`REFUSED — ${ROOT} is not a dreamos-pwa clone: ${probe} absent.`);
-    process.exit(1);
+    process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
   }
 }
 const read = (rel) => {
   const abs = path.join(ROOT, rel);
-  if (!fs.existsSync(abs)) { console.error(`REFUSED — stale read set: ${rel} absent.`); process.exit(1); }
+  if (!fs.existsSync(abs)) { console.error(`REFUSED — stale read set: ${rel} absent.`); process.exit(3); /* F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base */ }
   return fs.readFileSync(abs, 'utf8');
 };
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');

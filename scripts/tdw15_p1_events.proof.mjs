@@ -172,7 +172,7 @@ const eventsApi = path.join(SIBLING, 'src/api/couple/events.js');
 if (!fs.existsSync(eventsApi)) {
   console.log('\n  BENCH ABORTED — dream-os must be a sibling; the kind list is pinned to');
   console.log('  the server\'s own allowlist and cannot be checked against memory.\n');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
 }
 const serverKinds = [...fs.readFileSync(eventsApi, 'utf8')
   .match(/const ALLOWED_KINDS = new Set\(\[([\s\S]*?)\]\)/)[1]

@@ -45,7 +45,7 @@ const read = (rel) => {
     console.error(`\nHARNESS REFUSED — read set is stale: ${rel} does not exist at ${ROOT}.`);
     console.error('A surface this bench guards has been retired. Amend the read set and the cells that stood on it,');
     console.error('with the count movement labelled — do not delete the cell silently.\n');
-    process.exit(1);
+    process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
   }
   return fs.readFileSync(abs, 'utf8');
 };
