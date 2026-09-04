@@ -200,7 +200,7 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
 
   return (
     <Sheet title={WP.createTitle} onClose={onClose}>
-      <span className="wp-fl">{WP.fieldEvent}</span>
+      <span className="wp-fl">{WP.fieldEvent}<Req /></span>
       <select className="wp-fi wp-pick" value={eventId} onChange={(e) => setEventId(e.target.value)}>
         {/* An EMPTY label, not a placeholder sentence. 「Choose an event」 was
             written and removed: it is not in the ratified mock. */}
@@ -216,7 +216,7 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
         ))}
       </select>
 
-      <span className="wp-fl">{WP.fieldTitle}</span>
+      <span className="wp-fl">{WP.fieldTitle}<Req /></span>
       <input className="wp-fi" value={title} onChange={(e) => setTitle(e.target.value)} />
 
       {/* ⚠ THE ADDRESS IS SHOWN, NEVER AUTHORED — and it is NOT derived here.
@@ -286,7 +286,7 @@ function CreditsSheet(
       <select className="wp-fi wp-pick" value={role} onChange={(e) => setRole(e.target.value)}>
         {ROLE_OPTIONS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
       </select>
-      <span className="wp-fl">{WP.fieldHandleOrNumber}</span>
+      <span className="wp-fl">{WP.fieldHandleOrNumber}<Req /></span>
       <input className="wp-fi" value={handle} onChange={(e) => setHandle(e.target.value)} />
       <span className="wp-fl">{WP.fieldName}</span>
       <input className="wp-fi" value={name} onChange={(e) => setName(e.target.value)} />
@@ -323,6 +323,25 @@ function CreditsSheet(
     </Sheet>
   );
 }
+
+/**
+ * THE REQUIRED MARK — the estate's own idiom, not a new one.
+ * `components/vendor/AddSheet.tsx:451` renders `{f.label}{f.required && <span
+ * style={{color: D.gold}}> *</span>}` and validates with the word `Required`.
+ * The founder asked for the same language here, so this is that mark carried
+ * across, with one change that is not a change of language: the colour comes
+ * from `--role-metal`, the SHELL's own gold token, rather than the Espresso
+ * lane's `D.gold` literal. AddSheet lives in the old tree; a hex literal inside
+ * the shell's scope is F-38.22's class.
+ *
+ * The asterisk is punctuation in an existing pattern, not a new product byte,
+ * so it needs no veto. Which fields wear it is derived from the DOOR, never
+ * guessed: `POST /studio/weddings` refuses without `event_id` and `title`;
+ * `POST /:id/credits` refuses without a handle or a number. Venue, City and
+ * Name are genuinely optional and are left unmarked — marking everything is the
+ * same as marking nothing.
+ */
+function Req() { return <span className="wp-req"> *</span>; }
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
@@ -367,6 +386,8 @@ function WeddingPagesStyles() {
 .wp-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
 .wp-shx{font:var(--wl-t2);color:var(--atelier-ink-fade);line-height:1;background:none;border:none;cursor:pointer;min-width:44px;min-height:44px}
 .wp-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block;margin-bottom:5px}
+/* AddSheet's gold asterisk, in the shell's own token rather than a hex literal. */
+.wp-req{color:var(--role-metal)}
 .wp-fi{background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
        padding:10px 12px;font:var(--wl-t3);color:var(--atelier-ink);margin-bottom:12px;width:100%;min-height:44px;display:block}
 .wp-pick{border-color:var(--atelier-input-border)}

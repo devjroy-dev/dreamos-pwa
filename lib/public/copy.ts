@@ -51,3 +51,29 @@ export const PUBLIC_MISS = 'This page is no longer available.';
 export const PUBLIC_COLOPHON = 'Created and managed by The Dream Wedding \u00b7 thedreamwedding.in';
 export const PUBLIC_COLOPHON_LEAD = 'Created and managed by The Dream Wedding \u00b7';
 export const PUBLIC_COLOPHON_HREF = 'https://thedreamwedding.in';
+
+/**
+ * THE CLAIM PAGE'S FAILURE LINE — R-40.29, founder-vetoed 2026-09-05.
+ *
+ * BORN OF THE WALK. F-40.53: the claim page caught its error, re-enabled the
+ * button and rendered NOTHING. The founder tapped, a stale service worker
+ * returned 503, and the page looked exactly as it had before — he only learned
+ * the tap had not landed by querying the database. A vendor has no database.
+ *
+ * It satisfied never-a-false-done (it never claimed success) and that was the
+ * whole of what it got right. SILENCE IS NOT THE SAME AS HONESTY, and this is a
+ * stranger's single interaction with the estate.
+ *
+ * ⚠ SHOWN ONLY ON A NON-2xx, AND ONLY AFTER A VISIBLE PENDING STATE. The tap is
+ * acknowledged first; the line is what remains when the acknowledgement did not
+ * become a result. A line that appears without the pending state would read as
+ * a refusal rather than a failure.
+ *
+ * ⚠ THE APOSTROPHE IS TYPOGRAPHIC (U+2019), NOT ASCII — R-40.19. e-6 in this
+ * sitting was this exact class caught one character wide.
+ *
+ * It says what happened and what to do, and it does NOT apologise or say
+ * "something went wrong", which tells a person nothing they can act on — the
+ * same reasoning `COPY.indexUnavailable` carries in the solutions home.
+ */
+export const CLAIM_FAILED = 'That didn\u2019t go through. Try again in a moment.';

@@ -59,6 +59,20 @@ tools/bs_audit.mjs
 # is tracked. Guard green.
 scripts/tdw_stripper_census.out.txt
 
+# ── MICRO-2 · THE WALK'S REMAINING FINDINGS  [base a66c7df] ────────────────
+# R-40.29 · the claim page's failure line + the pending state (F-40.53). The
+# HTTP STATUS is the verdict: a 503 carries no JSON, and a check keyed only on
+# j.ok reads it as silence — which is exactly how the defect survived review.
+lib/public/copy.ts
+app/credits/[token]/page.tsx
+
+# F-40.52 · /credits/ joins the boot script's public-lane branch. It was the
+# THIRD instance of F-19.41 under a comment promising C38 refuses a third.
+# C38's census is now a declared list asserted in a loop, not three hand-named
+# routes. THE SERVICE WORKER IS THE THIRD KEEPER AND IS STILL UNAWARE — that is
+# the 503 the founder walked, filed and NOT cured here.
+app/layout.tsx
+
 # ── THE HANDOVER, AMENDED IN PLACE ──────────────────────────────────────────
 docs/TDW_19_G11_BUILD_HANDOVER.md
 

@@ -1213,8 +1213,22 @@ try {
     const branched = /else\s+if\s*\(\s*isPublicStorefront\s*\)\s*\{\s*bg\s*=/.test(code);
     if (!declared)  bad.push('the root layout declares no public-storefront predicate');
     if (!branched)  bad.push('the public-storefront predicate is declared but nothing branches on it — /v/ and /r/ still fall through to an app lane');
-    if (declared && !/indexOf\('\/v\/'\)===0/.test(code)) bad.push('the public predicate does not name /v/');
-    if (declared && !/indexOf\('\/r\/'\)===0/.test(code)) bad.push('the public predicate does not name /r/');
+    // ── AMENDED, LABELLED — F-40.52 (Block 19 G1.1, 2026-09-05) ────────────
+    // THE CENSUS IS THE DEFECT THIS CELL HAD. Its header says C38 "refuses a
+    // third instance", and a third instance shipped anyway: `/credits/<token>`
+    // is a public capability page reached from WhatsApp, and it fell through to
+    // the app lane wearing #1E0A0E above a cream page. The cell passed because
+    // it asked about /v/ and /r/ BY NAME and had never heard of the new route.
+    //
+    // A NAMED LIST CANNOT SEE A LANE NOBODY ADDED TO IT. So the list is declared
+    // here, once, and every member is asserted in a loop — a fourth lane joins
+    // by one line rather than by someone remembering this cell exists.
+    const PUBLIC_LANES = ['/v/', '/r/', '/credits/'];
+    for (const lane of PUBLIC_LANES) {
+      if (declared && !code.includes(`indexOf('${lane}')===0`)) {
+        bad.push(`the public predicate does not name ${lane}`);
+      }
+    }
   }
 
   let pv = null, rr = null;

@@ -150,7 +150,20 @@ export function SolutionsStyles() {
    token — was the one that lost. min-width:0 lets the text column actually
    shrink (a flex item's default min-width is auto, so it refuses to), and
    flex:0 0 auto takes the chip out of the negotiation entirely. */
-.sol-row:last-of-type{border-bottom:none}
+/* ── F-40.42 · last-of-type COUNTS PER TAG NAME, AND THE ROWS ARE TWO TAGS ──
+   This read last-of-type and the founder walked the consequence: no divider
+   under Wedding pages, while every other pair had one.
+   The mechanism, exactly: eight rows are div elements and the live row is an
+   anchor (RoomRow renders a Link only when there is a destination).
+   last-of-type matches the last sibling OF EACH ELEMENT TYPE, so the single
+   anchor is both the first AND the last of its type and lost its border. The
+   rule was correct for as long as all nine were Links; the div/Link split that
+   made the eight non-tappable broke it silently, and no bench could see it
+   because the CSS was still present and still valid.
+   last-child asks the question actually intended: is this the last row.
+   (No backticks in this comment: it lives inside a JS template literal. Third
+   time this seat has made that mistake — e-5 owns the first.) */
+.sol-row:last-child{border-bottom:none}
 .sol-row:active{background:var(--atelier-row-hover)}
 .sol-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}

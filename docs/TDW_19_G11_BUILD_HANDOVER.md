@@ -130,7 +130,7 @@ tiles render full-width at the head of their bands, work falls 3·3·2 and busin
 retired row survives. Three findings came off the glass that no bench could have
 produced:
 
-- **F-40.41 · `GET /api/v2/vendor/events` 404s.** The door is `/events/:vendorId`
+- **F-40.50 · `GET /api/v2/vendor/events` 404s.** The door is `/events/:vendorId`
   and always was, and `lib/vendor/api/vendor.ts` already held a typed helper. The
   protocol's §6 requires reading the handler before writing any frontend call;
   this seat had read that file and then did the thing it forbids. **e-8, owned.**
@@ -138,7 +138,7 @@ produced:
   dead code twice over — the door already carries `.is('deleted_at', null)` and
   does not project the column, so the predicate tested a field that never
   arrives. F-40.33's real protection is in the create door, where it belongs.
-- **ARM C · the live hub row now carries `Open`.** `W5-hub` drew it bare and the
+- **R-40.28 · ARM C — the live hub row now carries `Open`.** `W5-hub` drew it bare and the
   reasoning was sound on a screenshot — a chip that says nothing is chrome. On
   glass it failed: beside eight `Coming` rows, the one **working** row was the
   only one with nothing on its right and read as a heading. **R-39.15 — the
@@ -156,6 +156,52 @@ registers them **by value**, so the exception is exactly two strings wide and is
 pinned **both ways**: revert either to the mock's own byte and the carve-out reds
 as stale. Every other string is still a BOUNCE if it is not in the mock.
 
+- **F-40.51 · the hub's divider vanished under the one working row.** The rule
+  was `.sol-row:last-of-type`, and `:last-of-type` counts PER TAG NAME. Eight
+  rows are `<div>`; the live row is an `<a>`, because `RoomRow` renders a Link
+  only when there is a destination — so the single `<a>` was both the first AND
+  the last of its type and lost its border. **The rule was correct until the
+  div/Link split made the eight non-tappable**; that change broke it silently and
+  no cell could see it, because the CSS was still present and still valid. Now
+  `:last-child`, with a both-ways mutation.
+- **F-40.52 · `/credits/` was a third public lane and nothing knew it.** The root
+  layout's boot script paints a background per lane; `/credits/<token>` matched
+  no branch and inherited the app's near-black above a cream page — F-19.41's
+  defect, third instance, under a comment promising *"C38 refuses a third
+  instance."* C38 passed only because its census named `/v/` and `/r/` by hand.
+  **A named list cannot see a lane nobody added to it**, so the list is now
+  declared once and asserted in a loop; a fourth lane joins by one line.
+  **The service worker is the third keeper of public lanes and is still
+  unaware** — that is the 503 the founder walked, and it is NOT cured here.
+- **F-40.53 · the claim page failed silently, and R-40.29 is its cure.** A stale
+  service worker returned 503; the page caught it, re-enabled the button and
+  rendered nothing. The founder learned the tap had not landed by querying the
+  database — a vendor has no database. It satisfied never-a-false-done and that
+  was the whole of what it got right. **Silence is not the same as honesty.**
+  Cured both ways the founder ruled: the tap is acknowledged (`aria-busy` +
+  disabled on BOTH controls) and a non-2xx renders `That didn't go through. Try
+  again in a moment.` under the buttons, from `lib/public/copy.ts`. The HTTP
+  STATUS is the verdict — a 503 carries no JSON, and a check keyed only on
+  `j.ok` reads it as silence, which is exactly how the defect survived review.
+- **F-40.54 · no door in G1.1 can produce a linkable credit**, and the walk
+  measured it rather than guessing. `publicRoll` links on `claimed && vendor &&
+  active && !paused`. The MUA's credit reached `vendor_id` (added by handle) but
+  cannot reach `claimed`; the typed credit reached `claimed` through the real
+  path but has `vendor_id NULL`, because the claim page is sessionless by ruling
+  (R-G11.14) and takes no `vendorId`. **The two live credits sit in opposite
+  halves of the predicate and neither is linkable.** The state was witnessed once
+  by a founder-run row the product cannot reach, and reverted immediately: the
+  roll rendered `Make Up by Swati Roy` — her REGISTERED name, not the `Swati` the
+  vendor typed, so a hurried credit cannot mislabel another business — linked
+  through to her storefront. That is the acquisition loop, and G1.2's onboarding
+  arm is the only thing standing between it and a real vendor.
+- **e-13 · finding numbers minted without a chair range (R-M3).** This seat
+  minted F-40.41 through F-40.44 itself. The parallel-mint law allows numbers
+  only from a chair-issued disjoint range; the chair reissued them as F-40.50–.54
+  and this document uses those. **The chair's relay refers to this as `e-9`,
+  which collides with e-9 already recorded above (the interrupted seat).** Named
+  here as e-13 and flagged rather than silently renumbered — two errors sharing
+  one number is how a disclosure stops being a record.
 - **e-9 · an interrupted seat cannot tell its own unbanked work from found
   code.** The transcript is its only memory. This sitting was stopped mid-edit;
   on resuming, three files carried Arm C in this seat's voice with citations it

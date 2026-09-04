@@ -153,6 +153,23 @@ sec('C4 \u00b7 the eight are not links');
     /<StateChip state=\{href \? 'open' : 'coming'\} \/>/.test(pieces));
   ok('a row with no destination can never wear Open',
     !/state="open"/.test(pieces) && !/state=\{'open'\}/.test(pieces));
+  // ── F-40.42 · THE DIVIDER SURVIVES A MIXED-TAG ROW LIST ──────────────────
+  // The eight rows are div elements and the live row is an anchor, so a rule
+  // keyed on last-of-type silently drops the border under the ONE row that has
+  // a destination. The founder walked it; no cell could see it because the CSS
+  // was present and valid. This asserts the question the rule means to ask.
+  ok('the last-row rule is keyed on position, not on tag name',
+    /\.sol-row:last-child\{border-bottom:none\}/.test(read(PIECES)));
+  ok('no last-of-type rule survives on the row', !/\.sol-row:last-of-type/.test(read(PIECES)));
+
+  // ── THE REQUIRED MARK IS THE ESTATE'S OWN, ON THE DOOR'S OWN FIELDS ───────
+  const room = read(ROOM);
+  ok('the required mark uses the shell token, never a hex literal (F-38.22)',
+    /\.wp-req\{color:var\(--role-metal\)\}/.test(room));
+  ok('exactly the three door-required fields are marked',
+    (room.match(/<Req \/>/g) || []).length === 3,
+    String((room.match(/<Req \/>/g) || []).length));
+
   const hub = strip(read(HUB));
   ok('only wedding_pages receives an href',
     /r\.key === 'wedding_pages' \? WEDDING_PAGES_HREF : undefined/.test(hub));
@@ -312,6 +329,46 @@ sec('C10 \u00b7 the claim page (the crew posture)');
     /r\.status === 404/.test(s) && !/!r\.ok[\s\S]{0,40}setDead/.test(s));
   ok('the terminal state REPLACES the controls rather than greying them',
     /settled \?/.test(s));
+
+  // ── R-40.29 · THE TAP IS ACKNOWLEDGED, AND A FAILURE SAYS SO (F-40.53) ────
+  // The founder walked a 503 that left the button live and rendered nothing; he
+  // learned it had failed by querying the database. Silence is not honesty.
+  ok('the HTTP status is the verdict, not the body shape',
+    /if \(!r\.ok\) \{ setFailed\(true\)/.test(s),
+    'a 503 carries no JSON — a check keyed only on j.ok reads it as silence');
+  ok('a dropped connection is reported, not swallowed', /catch \{[\s\S]{0,200}setFailed\(true\)/.test(s));
+  // BOTH controls, counted. The first cut tested for ONE occurrence and the
+  // mutation that stripped it from the claim button left the decline button's
+  // copy standing — so the cell passed while the primary action went silent.
+  // A cell that a partial mutation survives is testing presence, not the rule.
+  ok('BOTH controls acknowledge the tap before the request (b)',
+    (s.match(/aria-busy=\{busy\}/g) || []).length === 2,
+    String((s.match(/aria-busy=\{busy\}/g) || []).length) + ' of 2');
+  ok('both controls are also disabled in flight',
+    (s.match(/disabled=\{busy\}/g) || []).length === 2);
+  ok('the failure line renders only when the request failed (a)',
+    /\{failed \? <p className="cl-failed"[\s\S]{0,80}CLAIM_FAILED\}<\/p> : null\}/.test(s));
+  ok('the failure line is cleared on retry, never argued with by a stale sentence',
+    /setBusy\(true\);\s*\n\s*setFailed\(false\);/.test(s));
+  const pub = read(PUBCOPY);
+  ok('CLAIM_FAILED lives in the public copy home, not at the call site',
+    /CLAIM_FAILED = 'That didn\\u2019t go through\. Try again in a moment\.'/.test(pub));
+  ok('and its apostrophe is TYPOGRAPHIC (R-40.19)', !/didn't go through/.test(pub));
+}
+
+// ── C11 · EVERY PUBLIC LANE IS KNOWN TO THE BOOT SCRIPT (F-40.52) ───────────
+// The root layout paints a background per lane. A lane it does not name falls
+// through to the app's near-black above a cream page — F-19.41's defect, and
+// `/credits/` was its third instance despite C38's header promising to refuse
+// one. This asserts the lanes THIS SITTING created are named.
+sec('C11 \u00b7 the public lanes the boot script knows');
+{
+  const root = strip(read('app/layout.tsx'));
+  for (const lane of ['/v/', '/r/', '/credits/']) {
+    ok('the boot script names ' + lane, root.includes(`indexOf('${lane}')===0`));
+  }
+  ok('and something actually branches on the predicate (presence is not behaviour)',
+    /else\s+if\s*\(\s*isPublicStorefront\s*\)\s*\{\s*bg\s*=/.test(root));
 }
 
 if (process.argv.includes('--cells-only')) process.exit(fail === 0 ? 0 : 1);
@@ -337,6 +394,8 @@ if (process.argv.includes('--mutate')) {
       "{ key: 'decor',     label: 'D\\u00e9cor' },", "{ key: 'decor',     label: 'Decor' },"],
     [SOLCOPY, 'R-40.26 is reverted \u2014 row three loses & SEO',
       "{ key: 'website',       label: 'Your website & SEO' },", "{ key: 'website',       label: 'Your website' },"],
+    [PIECES, 'the divider rule goes back to last-of-type (F-40.42)',
+      '.sol-row:last-child{border-bottom:none}', '.sol-row:last-of-type{border-bottom:none}'],
     [PIECES, 'the live row loses its chip \u2014 the walk finding returns',
       "<StateChip state={href ? 'open' : 'coming'} />", "{href ? null : <StateChip state=\"coming\" />}"],
     [WPCOPY, 'a room byte is re-voiced away from the mock',
@@ -347,6 +406,13 @@ if (process.argv.includes('--mutate')) {
     [LEAF, 'the miss starts leaking through the link preview',
       'return { title: PUBLIC_MISS, robots: { index: false, follow: false } };',
       'return { title: PUBLIC_MISS };'],
+    [CLAIM, 'the pending state is dropped \u2014 the tap goes unacknowledged',
+      'aria-busy={busy}\n                    onClick={() => settle(\'claim\')}',
+      'onClick={() => settle(\'claim\')}'],
+    [CLAIM, 'a failure is swallowed again (F-40.53 returns)',
+      'if (!r.ok) { setFailed(true); setBusy(false); return; }', ''],
+    ['app/layout.tsx', 'a public lane leaves the boot script (F-40.52)',
+      "||path.indexOf('/credits/')===0", ''],
     [CLAIM, 'the claim page starts remembering the token',
       "  const [busy, setBusy] = useState(false);",
       "  const [busy, setBusy] = useState(false);\n  if (typeof window !== 'undefined') localStorage.setItem('t', token);"],

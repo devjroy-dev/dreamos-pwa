@@ -100,7 +100,14 @@ export default function RootLayout({
   // This is F-19.36's shape a second time and the cure is the same in kind: the
   // root layout is TOLD which of its children are not the app, rather than
   // assuming they all are. C38 refuses a third instance.
-  var isPublicStorefront=path.indexOf('/v/')===0||path.indexOf('/r/')===0;
+  // F-40.52 (Block 19 G1.1, 2026-09-05). THE THIRD PUBLIC LANE, and the comment
+  // above says C38 refuses a third instance — it did not, because C38's census
+  // named /v/ and /r/ and had never heard of /credits/. A claim page reached by
+  // WhatsApp is exactly the arrival this branch exists for: cream page, app's
+  // near-black in the browser chrome, from a link a stranger was sent.
+  // The name stays isPublicStorefront rather than growing a second flag: one
+  // predicate, one question — is this path outside the app.
+  var isPublicStorefront=path.indexOf('/v/')===0||path.indexOf('/r/')===0||path.indexOf('/credits/')===0;
   var bg=null;
   if(isFrost){
     var stored=null, manual=null;
