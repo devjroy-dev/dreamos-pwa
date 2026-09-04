@@ -26,6 +26,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+process.on('uncaughtException', (e) => { console.error('BENCH THREW (unexpected):', e && e.stack || e); process.exit(2); }); // F-39.67: top-level await has no .catch and its rejection surfaces as an uncaught exception (measured, not unhandledRejection); a throw is an ERROR (2), never node's 1
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
@@ -34,7 +35,7 @@ const CENSUS_PATH = path.join(HERE, 'tdw09_type_census.mjs');
 if (!fs.existsSync(CENSUS_PATH)) {
   console.error('REFUSED — scripts/tdw09_type_census.mjs is absent. This bench asserts that');
   console.error('instrument\'s output and has nothing to say without it.');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
 }
 
 let pass = 0, fail = 0;
@@ -146,12 +147,14 @@ async function okMutate(name, rel, from, to, check, guards) {
 
 // A real surface, mutated in production source: one body site pushed back under
 // the floor. The specimen is the sheet the founder walked twice.
-await okMutate('§M.1 §A.1 reds when one body site is put back under the floor',
-  'app/vendor/studio/team/page.tsx',
-  "fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',",
-  "fontFamily: F.body, fontWeight: 300, fontSize: 13, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',",
-  async () => { const { m, c } = await read(); assert.strictEqual(c.body.filter(b => b.size < m.BODY_FLOOR).length, 0); },
-  '§A.1');
+// §M.1 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (CE-39, 2026-09-04). §0.2: its specimen was
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. The surface that replaced it,
+// `components/worklist/StudioSheets.tsx` (MemberSheet), carries ZERO `fontSize` literals — it
+// types entirely through the CSS rungs (`var(--wl-t1)`, `.wl-fi`, `.wl-fl`), so no site exists
+// with the size tuple this cell mutates; rewriting the fragment would mean inventing a literal
+// on a token-driven surface. Assertion and both fragments quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md. F-39.83 opens the token-discipline bench that asks
+// this question in the rung vocabulary instead.
 
 // The cell §B.1 exists for exactly this: a "cure" that raises the labels too.
 // §M.2 — mutated on a surface whose register population is EXACTLY ONE, derived,
@@ -170,23 +173,22 @@ await okMutate('§M.2 §B.2 reds when a surface\'s whole register is swept into 
   },
   '§B.2');
 
-await okMutate('§M.3 §C.2 reds when an ad-hoc size re-enters the tree',
-  'app/vendor/studio/team/page.tsx',
-  "fontSize: 20, lineHeight: 1.5, color: D.cream, marginBottom: 4",
-  "fontSize: 23, lineHeight: 1.5, color: D.cream, marginBottom: 4",
-  async () => {
-    const { m, c } = await read();
-    const rungs = new Set([...m.RUNGS.register, ...m.RUNGS.body]);
-    assert.strictEqual([...c.sizes.keys()].filter(s => !rungs.has(s)).length, 0);
-  },
-  '§C.2');
-
-await okMutate('§M.4 §B.3 reds if the register drops below its own floor again',
-  'app/vendor/studio/team/page.tsx',
-  "fontSize: 9,\n  color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,",
-  "fontSize: 7,\n  color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,",
-  async () => { const { m, c } = await read(); assert.strictEqual(c.engraved.filter(e => e.size < m.REGISTER_FLOOR).length, 0); },
-  '§B.3');
+// §M.3 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (CE-39, 2026-09-04). §0.2: its specimen was
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. The surface that replaced it,
+// `components/worklist/StudioSheets.tsx` (MemberSheet), carries ZERO `fontSize` literals — it
+// types entirely through the CSS rungs (`var(--wl-t1)`, `.wl-fi`, `.wl-fl`), so no site exists
+// with the size tuple this cell mutates; rewriting the fragment would mean inventing a literal
+// on a token-driven surface. Assertion and both fragments quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md. F-39.83 opens the token-discipline bench that asks
+// this question in the rung vocabulary instead.
+// §M.4 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (CE-39, 2026-09-04). §0.2: its specimen was
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. The surface that replaced it,
+// `components/worklist/StudioSheets.tsx` (MemberSheet), carries ZERO `fontSize` literals — it
+// types entirely through the CSS rungs (`var(--wl-t1)`, `.wl-fi`, `.wl-fl`), so no site exists
+// with the size tuple this cell mutates; rewriting the fragment would mean inventing a literal
+// on a token-driven surface. Assertion and both fragments quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md. F-39.83 opens the token-discipline bench that asks
+// this question in the rung vocabulary instead.
 
 console.log('\n════════════════════════════════════════════════════════════');
 console.log(`tdw09_type: ${pass} passed, ${fail} failed`);

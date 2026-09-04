@@ -76,6 +76,9 @@ const EXEMPT = new Map([
 // else. The pair is named here because a shrinking exemption list read from the
 // outside is indistinguishable from a bench being quietly weakened — the cell below
 // asserts the count so neither growth nor silent shrinkage passes.
+// P7.2 ZIP 1b: `PeekNav.tsx` was DELETED at the flip (zero readers before it). It stays named
+// here because this pair is the DISCHARGED list — the two files that must never re-enter
+// EXEMPT — and a deleted file re-entering would be a stray twice over.
 const EXEMPT_DISCHARGED = ['components/vendor/TipsCarousel.tsx', 'components/vendor/PeekNav.tsx'];
 
 // ── the sweep, re-derived every run ─────────────────────────────────────────
@@ -152,26 +155,32 @@ ok('moneyNeedsReflow is exported so a cell can branch instead of clipping',
 
 // ⑤ the no-truncation clause, at the cell that forced it
 console.log('\n\u2464 no truncated money (R-U24)');
-const HUB = read('app/vendor/page.tsx');
-// Scoped to the MONEY div's own span — `fontSize: bigSize` … `}}>{big}` — because
-// the label and sub lines below it carry a legitimate ellipsis on prose, and a
-// file-wide test would either miss the money one or forbid the prose ones.
+// P7.2 ZIP 1b (CE-39, 2026-09-04) RE-KEYED, not retired. R-U24's no-truncation clause was
+// written at the old Hub's Ledger money div; `app/vendor/page.tsx` was DELETED at the flip
+// (R-39.24). The clause has a LIVE HOME: `components/vendor/slices/Masthead.tsx` is the money
+// headline every room now renders (the invoices room's Outstanding among them, P7.2 FORK 4).
+// The three cells below ask the SAME three questions of it, and one of them got sharper:
+//   - no truncation on the money figure  (was: the Ledger div carries no textOverflow)
+//   - the figure sizes itself to hold the WHOLE number (was: fitMoneySize at the Owed cell;
+//     the Masthead answers with a declared step-down at seven figures, which is the same
+//     ruling with a different mechanism, so the cell reads the mechanism that exists)
+//   - the compact 'L' formatter is dead  (was: dead at the Hub; now asserted ESTATE-WIDE,
+//     derived at 039d005: zero readers of `compact(n / 100000` in app/, components/, lib/)
+// `fitMoneySize` itself now has ZERO component readers and lives on in `lib/vendor/format.ts`
+// as the sanctioned answer; that is filed, not cured, in the ZIP 1b handover.
+const MAST = read('components/vendor/slices/Masthead.tsx');
 {
-  const bigDiv = /fontSize: bigSize,[\s\S]*?\}\}>\{big\}/.exec(HUB);
-  // Stripped before testing, per this bench's own rule: the cure comment NAMES the
-  // deleted property to explain why it is gone, and a raw test reddened on it.
-  // That is D-10's conviction a second time — caught by the cell rather than by a
-  // reader, which is the difference the cell exists to make.
-  ok('the Ledger money div no longer carries textOverflow: ellipsis',
-     !!bigDiv && !/textOverflow/.test(strip(bigDiv[0])),
-     bigDiv ? 'ellipsis still present on the money div' : 'money div not found — anchor moved');
+  const moneyDiv = /fontSize: isMoney[\s\S]{0,400}?\}\}>/.exec(MAST);
+  ok('the money headline no longer carries textOverflow: ellipsis',
+     !!moneyDiv && !/textOverflow/.test(strip(moneyDiv[0])),
+     moneyDiv ? 'ellipsis still present on the money headline' : 'money headline not found  anchor moved');
 }
-ok('the Owed cell sizes itself to hold the WHOLE figure',
-   /bigSize=\{owed > 0 \? fitMoneySize\(/.test(HUB));
-ok('the compact formatter is dead at the Hub',
-   !/compact\(n \/ 100000, 'L'\)/.test(HUB));
+ok('the money figure sizes itself to hold the WHOLE figure',
+   /fontSize: isMoney && value >= 1_000_000 \? \d+ : \d+/.test(MAST));
+ok('the compact formatter is dead estate-wide',
+   !/compact\(n \/ 100000, 'L'\)/.test(MAST));
 
-// ⑥ behaviour, not just shape — the home is executed, not merely read
+
 console.log('\n\u2465 the home behaves (executed, not inspected)');
 {
   // The home is TypeScript, so it cannot be imported here. Its source is extracted

@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/Masthead.tsx — TDW_04 A3 (P5's card, ST-4/L-4).
 //
@@ -54,9 +58,9 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
     : String(shown);
 
   return (
-    <div style={{ padding: '10px 22px 12px' }}>
+    <div style={{ padding: '10px var(--slice-inset, 22px) 12px' }}>
       <div style={{
-        fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+        fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
         letterSpacing: '0.06em', color: A.inkMute,
       }}>{eyebrow}</div>
       <div style={{

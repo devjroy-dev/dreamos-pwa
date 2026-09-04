@@ -1,0 +1,39 @@
+# scripts/floor-manifest-ce38-s24-batch1.txt
+#
+# CE-38 S2/4 · §4-3 BATCH ① — STOREFRONT · PORTFOLIO · COUTURE CROSS.
+#
+# [F-19.16] A delivery tree is dirty by definition and R-33.7 forbids the
+# executor the commit that would clean it. Every dirty path must be named here;
+# one byte outside and the runner refuses. The manifest's files are SHA-256'd
+# before the run and re-hashed after, so the SET is tolerated and the CONTENTS
+# are not.
+#
+# TWENTY-THREE PATHS. Three room bodies split out (new `screen.tsx` x3), three shell
+# routes (new), three fallback routes rewritten, the rehomed `useInShell` and
+# its two callers, the registry, the copy register, five benches following their
+# subject, and this manifest — a delivered file, which dirties the tree like any
+# other — and `run-floor.sh` itself, whose dirt enumeration had to learn to name
+# files rather than collapsed directories before this manifest could match it.
+app/vendor/couture/page.tsx
+app/vendor/couture/screen.tsx
+app/vendor/list/[slice]/clients.tsx
+app/vendor/portfolio/page.tsx
+app/vendor/portfolio/screen.tsx
+app/vendor/storefront/page.tsx
+app/vendor/storefront/screen.tsx
+app/w/couture/page.tsx
+app/w/portfolio/page.tsx
+app/w/storefront/page.tsx
+components/vendor/slices/SliceShell.tsx
+docs/TDW_09_M_FINISH_S24_BATCH1_HANDOVER.md
+hooks/vendor/useInShell.ts
+lib/worklist/copy.ts
+lib/worklist/rooms.ts
+scripts/floor-manifest-ce38-s24-batch1.txt
+scripts/run-floor.sh
+scripts/tdw07_p4a_ig.proof.mjs
+scripts/tdw07_p4b_probe.proof.mjs
+scripts/tdw07_p4b_slice1.proof.mjs
+scripts/tdw09_hotfix.proof.mjs
+scripts/tdw09_p2b.proof.mjs
+scripts/tdw_f0774_vacuity_probe.mjs

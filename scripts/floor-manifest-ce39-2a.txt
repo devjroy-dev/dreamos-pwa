@@ -1,0 +1,20 @@
+# scripts/floor-manifest-ce39-2a.txt
+# BASE c123926 (worklist; S2/9 tip, re-derived fetch-first at the cut — the guard decides).
+# CE-39 step 2a · pwa twin of the dream-os pre-cutover seat: R-39.6 Couture gate byte,
+# R-39.7 Studio Suite open to every tier, C50 held list → [], C58/C59.
+# [F-19.16] The delivery's own file table.
+
+app/vendor/couture/screen.tsx
+app/vendor/studio/tasks/page.tsx
+app/vendor/studio/team-payments/page.tsx
+app/vendor/studio/team/page.tsx
+app/vendor/team-hub/page.tsx
+app/vendor/team-hub/screen.tsx
+app/w/team/page.tsx
+docs/COPY_REGISTER_M-FINISH.md
+docs/TDW_CE39_2A_PWA_HANDOVER.md
+lib/vendor/studioShared.tsx
+lib/worklist/copy.ts
+lib/worklist/rooms.ts
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce39-2a.txt

@@ -1,0 +1,21 @@
+# scripts/floor-manifest-ce38-s3-h2-h1b.txt
+#
+# CE-38 S3 · H-2 (F-38.41, cookie arm) + H-1(b) (F-38.40b) + F-38.3 AMENDED
+#
+# [F-19.16] A delivery tree is dirty by definition and R-33.7 forbids the
+# executor the commit that would clean it. Every dirty path must be named here;
+# one byte outside and the runner refuses. The manifest's files are SHA-256'd
+# before the run and re-hashed after, so the SET is tolerated and the CONTENTS
+# are not.
+#
+# EIGHT PATHS. app/w/layout.tsx is REWRITTEN (server half) and
+# app/w/WorklistBoot.tsx is its client half — the R-38.1 split, amended by label.
+app/w/layout.tsx
+app/w/WorklistBoot.tsx
+lib/worklist/mode.ts
+lib/worklist/ModeContext.tsx
+components/worklist/WorklistShell.tsx
+components/worklist/AskSheet.tsx
+lib/vendor/ThemeContext.tsx
+tools/wl_render.cjs
+scripts/floor-manifest-ce38-s3-h2-h1b.txt

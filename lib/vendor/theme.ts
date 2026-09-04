@@ -1,3 +1,20 @@
+// ══ BRANCH-ONLY · M-WORKLIST ZIP 3 (R-37.73 ④) ═══════════════════════
+// THE VALUES BELOW ARE GRAPHITE & SIGNAL, NOT ADDENDUM A. Production `main` still carries
+// Espresso and Editorial Paper at this path; this file diverges on the `worklist` branch
+// ONLY, and the divergence is the point — a deep-linked room that stayed brown was the
+// founder’s strongest felt problem with ZIP 1.
+//
+// KEYS, STRUCTURE AND COMMENTS ARE UNTOUCHED. Values only. Nothing forks: every component
+// that reads useT() gets the new palette by reading the object it always read.
+//
+// ⚠ PHASE 7 IMPLICATION, STATED NOW SO IT IS NOT DISCOVERED AT CUTOVER: at merge this
+// divergence becomes the vendor shell’s real palette for ~22 paying vendors. That is a
+// house-visible change needing its own word at that seam — living on a branch does not
+// ratify it.
+//
+// F-09.28 BINDS. metal/brass stays theme-conditional: #C9A84C on Graphite, #8A6F2A on
+// Chalk, never one literal across both. The 7.78-vs-2.05 failure does not return wearing
+// a new palette.
 'use client';
 // lib/theme.ts — Atelier theme token sets
 // Dark: warm espresso. Light: Editorial Paper — high-contrast archival print.
@@ -5,6 +22,14 @@
 import { useTheme } from '@/hooks/vendor/useTheme';
 
 export interface ThemeTokens {
+  /** BRANCH-ONLY · the interactive half of the old `brass`.
+   *  `brass` was doing two jobs — the wordmark, section headers and hairlines that tell you
+   *  WHERE YOU ARE, and the buttons, chips, carets and active states that tell you WHAT YOU
+   *  CAN DO. One token cannot carry both, and that conflation is exactly what Graphite &
+   *  Signal was picked to end. 88 call sites moved here; 96 stayed on `brass`. */
+  interactive: string;
+  interactiveWarm: string;
+
   ink: string;
   inkSoft: string;
   inkMute: string;
@@ -104,38 +129,40 @@ export interface ThemeTokens {
 export const INK_DEEP = '#1A120E';
 
 export const DARK: ThemeTokens = {
-  ink:        '#F0E6D2',            // 14.35:1 on pageBg
-  inkSoft:    'rgba(240,230,210,0.65)', //  6.65:1
+  interactive: '#68C9B4',
+  interactiveWarm: '#8FE0CC',
+  ink:        '#EDEEEF',            // 14.35:1 on pageBg
+  inkSoft:    '#C8CACC', //  6.65:1
   // ── TDW_09 · R-U18 — THE LADDER (F-09.4's cure on the vendor lane) ──────────
   // WAS .45 (3.87:1) and .25 (2.05:1). Both under the 4.5 body bar; the .25 rung
   // carried the Ledger's explaining sentences ("enquiries · awaiting reply"),
   // i.e. the only lines that say what the big numerals COUNT. Raised to clear AA
   // while keeping FOUR DISTINCT RUNGS: R-U16's first pair put inkMute and inkDim
   // on one value and silently deleted a step — corrected at R-U18 before shipping.
-  inkMute:    'rgba(240,230,210,0.58)', //  5.57:1
-  inkDim:     'rgba(240,230,210,0.52)', //  4.71:1
-  inkFade:    'rgba(240,230,210,0.37)', //  3.02:1 — the 3:1 UI bar, not the body bar
+  inkMute:    '#888B8E', //  5.57:1
+  inkDim:     '#A3A6A9', //  4.71:1
+  inkFade:    '#585B5E', //  3.02:1 — the 3:1 UI bar, not the body bar
   // F-09.28 roles — Espresso keeps the values the estate already reads as these
   // meanings; it was never the failing side.
-  positive:   '#7FBE85',                //  8.13:1
-  caution:    '#E0A870',                //  8.47:1
-  critical:   '#E07B5C',                //  6.06:1
+  positive:   '#6FC98C',                //  8.13:1
+  caution:    '#DFAE6C',                //  8.47:1
+  critical:   '#E8836B',                //  6.06:1
   metal:      '#C9A84C',                //  7.78:1
-  scrim:      'rgba(0,0,0,0.7)',        // veiled page ink still reads 16.24:1
-  sheet:      'rgba(255,255,255,0.035)',// form ink on it 15.33:1
+  scrim:      'rgba(10,11,12,0.62)',        // veiled page ink still reads 16.24:1
+  sheet:      '#1D1E20',// form ink on it 15.33:1
   brass:      '#C9A84C',
-  brassWarm:  '#E0BC6E',
-  brassLine:  'rgba(201,168,76,0.18)',
-  brassSoft:  'rgba(201,168,76,0.28)',
-  accent:     '#E07B5C',
-  accentLine: 'rgba(224,123,92,0.4)',
-  cardBg:     'linear-gradient(180deg, rgba(245,235,212,0.06) 0%, rgba(245,235,212,0.03) 100%)',
-  cardBorder: 'rgba(201,168,76,0.3)',
-  headerBg:   'rgba(31,22,18,0.78)',
-  sheetTop:   'rgba(31,22,18,0.97)',
-  sheetBot:   'rgba(22,16,12,0.99)',
-  sheetBorder:'rgba(201,168,76,0.32)',
-  inputBg:    'rgba(245,235,212,0.04)',
+  brassWarm:  '#D8BC72',
+  brassLine:  'rgba(240,244,246,0.11)',
+  brassSoft:  'rgba(240,244,246,0.06)',
+  accent:     '#68C9B4',
+  accentLine: 'rgba(104,201,180,0.42)',
+  cardBg:     'linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%)',
+  cardBorder: 'rgba(240,244,246,0.11)',
+  headerBg:   '#1A1B1D',
+  sheetTop:   '#232527',
+  sheetBot:   '#191A1C',
+  sheetBorder:'rgba(240,244,246,0.14)',
+  inputBg:    'rgba(240,244,246,0.040)',
   // ── TDW_09 · R-S3 — THE FIELD BOUNDARY EARNS THE 3:1 UI BAR ────────────────
   // WAS .28, which composites to #453A1F on the sheet surface (#120F0E) and
   // measures 1.71:1 — under WCAG 1.4.11's 3:1 bar for "visual information
@@ -147,14 +174,14 @@ export const DARK: ThemeTokens = {
   // against the COMPOSITED sheet surface, not the page — see `sheet` above. If
   // `sheet` moves, this value is re-derived, and the bench that guards it
   // (scripts/tdw09_surface.proof.mjs) asserts the ratio, never the alpha.
-  inputBorder:'rgba(201,168,76,0.52)', //  3.06:1 on the sheet surface
-  rowHover:   'rgba(245,235,212,0.03)',
-  overlay:    'rgba(0,0,0,0.6)',
-  pageBg:     '#1F1612',
-  sectionBg:  'rgba(245,235,212,0.03)',
+  inputBorder:'rgba(104,201,180,0.58)', //  3.06:1 on the sheet surface
+  rowHover:   'rgba(240,244,246,0.042)',
+  overlay:    'rgba(10,11,12,0.74)',
+  pageBg:     '#141516',
+  sectionBg:  '#171819',
   isLight:    false,
-  label:      '#E0BC6E',
-  accentText: '#C9A84C',
+  label:      '#B9BCBF',
+  accentText: '#68C9B4',
 };
 
 // ── Editorial Paper — archival print on heavy cotton stock ──────
@@ -164,51 +191,53 @@ export const DARK: ThemeTokens = {
 // #C9A84C — brass, sparingly. FAB only.
 // ──────────────────────────────────────────────────────────────
 export const LIGHT: ThemeTokens = {
-  ink:        '#1A0F08',           // letterpress deep — 16.87:1 on pageBg
-  inkSoft:    'rgba(26,15,8,0.80)', // strong secondary — 9.60:1
+  interactive: '#0D6A5A',
+  interactiveWarm: '#128872',
+  ink:        '#0E1112',           // letterpress deep — 16.87:1 on pageBg
+  inkSoft:    '#272B2D', // strong secondary — 9.60:1
   // TDW_09 · R-U18 — the same ladder on the paper theme. WAS .58 (4.48:1, just
   // under the bar) and .38 (2.43:1). Four rungs, every one clear of AA.
-  inkMute:    'rgba(26,15,8,0.70)', //  6.72:1
-  inkDim:     'rgba(26,15,8,0.62)', //  5.12:1
-  inkFade:    'rgba(26,15,8,0.46)', //  3.06:1 — the 3:1 UI bar
+  inkMute:    '#52585B', //  6.72:1
+  inkDim:     '#3D4245', //  5.12:1
+  inkFade:    '#767C80', //  3.06:1 — the 3:1 UI bar
   // F-09.28 roles — the failing side, solved. Same hue as its Espresso twin,
   // darkened until it clears the body bar on paper.
-  positive:   '#3E7A44',                //  4.62:1  (was #7FBE85 -> 1.96:1)
-  caution:    '#9B5E22',                //  4.68:1  (was #E0A870 -> 1.88:1)
-  critical:   '#BA4723',                //  4.69:1  (was #E07B5C -> 2.63:1)
-  metal:      '#826A27',                //  4.66:1  (was #C9A84C -> 2.05:1)
+  positive:   '#2C7343',                //  4.62:1  (was #7FBE85 -> 1.96:1)
+  caution:    '#8A5A18',                //  4.68:1  (was #E0A870 -> 1.88:1)
+  critical:   '#AE3A22',                //  4.69:1  (was #E07B5C -> 2.63:1)
+  metal:      '#8A6F2A',                //  4.66:1  (was #C9A84C -> 2.05:1)
   // The veil LIGHTENS here rather than blackening. A black scrim on a cream page
   // is what made studio/team's Edit Member sheet unreadable: the page's own dark
   // ink fell to 2.09:1 behind it while the sheet's ink fell to 2.30:1 on it.
-  scrim:      'rgba(26,15,8,0.35)',     // veiled page ink still reads 7.53:1
+  scrim:      'rgba(23,25,26,0.38)',     // veiled page ink still reads 7.53:1
   sheet:      '#FFFFFF',                // form ink on it 18.82:1
-  brass:      '#C9A84C',
-  brassWarm:  '#9B6E1A',           // darker brass — legible on white
-  brassLine:  'rgba(122,56,40,0.22)',
-  brassSoft:  'rgba(122,56,40,0.30)',
-  accent:     '#7A3828',           // deep oxblood — confident, not pastel
-  accentLine: 'rgba(122,56,40,0.40)',
-  cardBg:     'rgba(255,255,255,0.90)',
-  cardBorder: 'rgba(122,56,40,0.18)',
-  headerBg:   'rgba(245,242,238,0.96)',
-  sheetTop:   '#F5F2EE',
-  sheetBot:   '#EDE8DF',
-  sheetBorder:'rgba(122,56,40,0.25)',
-  inputBg:    'rgba(26,15,8,0.04)',
+  brass:      '#8A6F2A',
+  brassWarm:  '#7A6224',           // darker brass — legible on white
+  brassLine:  'rgba(23,25,26,0.13)',
+  brassSoft:  'rgba(23,25,26,0.06)',
+  accent:     '#0D6A5A',           // deep oxblood — confident, not pastel
+  accentLine: 'rgba(13,106,90,0.45)',
+  cardBg:     'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%)',
+  cardBorder: 'rgba(23,25,26,0.13)',
+  headerBg:   '#FFFFFF',
+  sheetTop:   '#F8F9F9',
+  sheetBot:   '#EDEFEF',
+  sheetBorder:'rgba(23,25,26,0.16)',
+  inputBg:    'rgba(23,25,26,0.035)',
   // TDW_09 · R-S3 — the same bar on paper. WAS .28 -> #DAC7C3, 1.62:1. The fill
   // cannot carry the box here at all: inputBg over the white sheet is 1.09:1, so
   // on Editorial Paper the EDGE is the only thing that says "field". Raised to
   // .58 -> #B28C82, 3.03:1. See F-09.35: this value had a second, divergent home
   // in globals.css's light block (.22); that home is cured in the same commit or
   // the pre-mount frame keeps rendering a boundary this file does not hold.
-  inputBorder:'rgba(122,56,40,0.58)', //  3.03:1 on the sheet surface
-  rowHover:   'rgba(26,15,8,0.03)',
-  overlay:    'rgba(26,15,8,0.55)',
-  pageBg:     '#F5F2EE',
-  sectionBg:  'rgba(26,15,8,0.025)',
+  inputBorder:'rgba(13,106,90,0.68)', //  3.03:1 on the sheet surface
+  rowHover:   'rgba(23,25,26,0.038)',
+  overlay:    'rgba(23,25,26,0.44)',
+  pageBg:     '#F3F4F4',
+  sectionBg:  '#E7E9EA',
   isLight:    true,
-  label:      '#7A3828',
-  accentText: '#7A3828',
+  label:      '#3A3F42',
+  accentText: '#0D6A5A',
 };
 
 // ── TDW_09 · R-U16 / R-U19 — FLAIR IS RETIRED, NOT OVERRIDDEN ────────────────

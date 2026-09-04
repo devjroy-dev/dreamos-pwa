@@ -91,6 +91,35 @@ export function formatLongDate(iso: string | null | undefined): string {
   return `${formatShortDate(iso)} ${m[1]}`;
 }
 
+// ── F-2c.w5 · A TIMESTAMP IS NOT A DATE, AND `formatLongDate` KNOWS ONLY DATES ─
+// WITNESSED ON THE FOUNDER'S WALK, 2026-09-02 at 03:25 IST: he completed a task
+// and the row landed under the heading `Done today` reading
+// 「Completed 1 Sep 2026」. The section and the label disagreed by a day, on the
+// same row, at the same instant.
+//
+// BOTH WERE RIGHT ABOUT DIFFERENT CLOCKS. `formatLongDate` REGEX-SLICES the
+// leading `YYYY-MM-DD` off the raw string — for a `timestamptz` that is the UTC
+// date, and 03:25 IST is 21:55 UTC the day before. `TeamTabs`' `isToday` builds
+// a `Date` and compares `getDate()`, which is LOCAL. One surface, two zones.
+//
+// ⚠ `formatLongDate` IS NOT THE THING TO FIX. Its slice is exactly right for a
+// plain `date` column — `due_date`, `event_date` — which carries no zone at all,
+// and localising those would drag a wedding across midnight for anyone west of
+// UTC. The defect is handing it a TIMESTAMP. So the conversion happens first,
+// and the word shape keeps its one home below.
+/** A timestamp's calendar day IN THE USER'S OWN ZONE, as `YYYY-MM-DD`. Feed this
+    to `formatLongDate` whenever the value is a `timestamptz` rather than a
+    `date`. Returns '' on an unparseable value, never a wrong day. */
+export function localDateIso(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 // Today as YYYY-MM-DD in the user's local zone.
 export function todayIso(): string {
   const now = new Date();

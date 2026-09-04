@@ -1,4 +1,4 @@
-// The Dream Wedding — Service Worker v6
+// The Dream Wedding — Service Worker v7
 // Strategy: Cache images only. Never cache pages or API. Always network-first for HTML/JS.
 //
 // ── TDW_07 P4b-FINAL · F-07.33 — THE 503s IN THIS FILE ARE MANUFACTURED HERE. ──────────
@@ -35,6 +35,34 @@
 const CACHE_NAME = 'tdw-v6';
 const IMAGE_CACHE = 'tdw-images-v6';
 
+// ── TDW_19 P2-A · F-19.36 · THE PUBLIC ROUTES ARE NOT THIS WORKER'S ─────────
+// `/v/<code>` and `/r/<code>` are the estate's public per-vendor addresses. A
+// couple reaches them from a WhatsApp forward with no session and no reason to
+// have this app installed — and until now one visit to the landing page was
+// enough for this worker to claim them, because the registrar sat in the ROOT
+// layout and `register('/sw.js')` with no `scope` defaults to the whole origin.
+//
+// THE STRUCTURAL CURE IS THE REGISTRAR MOVE, not this list: the registrar now
+// mounts per authenticated shell (`/vendor`, `/w`, `/coplanner`, the frost
+// deck), so a browser that has only ever seen public pages never registers at
+// all. This list exists for the browsers ALREADY CLAIMED, who keep the
+// origin-wide registration until this file's bytes change.
+//
+// ⚠ IT IS A BYPASS AND NOT AN UNREGISTER, AND THE CHOICE IS RULED (c-38.40).
+// Calling `registration.unregister()` when a public route is opened would end
+// the worker for the WHOLE ORIGIN on that browser — killing push and the image
+// cache for a vendor whose only sin was tapping a friend's storefront link. The
+// cure must not outcost the disease. Returning without `respondWith` makes this
+// worker transparent on these paths: the browser fetches them natively, exactly
+// as it would with no worker installed.
+//
+// F-19.36 also records what this worker was CLEARED of. It cannot serve a stale
+// document by any path: navigations are network-first and no `cache.put` touches
+// a navigation anywhere below, and `activate` purges every cache. The chair's
+// hypothesis was that a cached pre-S4 page explained the founder's walk; reading
+// this file refuted it. The bypass is not that cure — it is the scope cure.
+const PUBLIC_PREFIXES = ['/v/', '/r/'];
+
 // ── Install: skip waiting immediately, no pre-caching of pages ───────────────
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -69,6 +97,14 @@ self.addEventListener('fetch', (event) => {
 
   const { request } = event;
   const url = new URL(request.url);
+
+  // Same-origin public routes: hands off, entirely. Checked before every other
+  // branch so no later rule can claim them back, and scoped to this origin so a
+  // third-party URL that happens to contain `/v/` is unaffected.
+  if (url.origin === self.location.origin &&
+      PUBLIC_PREFIXES.some((p) => url.pathname.startsWith(p))) {
+    return;
+  }
 
   // Always network-first, no caching: API, Railway backend, admin
   if (

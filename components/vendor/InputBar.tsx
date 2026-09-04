@@ -50,7 +50,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
   const canSend = !!value.trim() && !disabled;
 
   // Brass accents for the toggle + note-mode tint.
-  const brassGrad = 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
+  const brassGrad = 'linear-gradient(180deg, var(--atelier-accent-text) 0%, var(--atelier-accent-text) 100%)';
   const toggleOffBg = T.isLight ? 'rgba(139,75,55,0.08)' : 'rgba(201,168,76,0.10)';
   const noteBorder = inNote ? 'var(--atelier-label)' : T.inputBorder;
 
@@ -104,12 +104,19 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           background: T.inputBg,
           color: T.ink,
           padding: '12px 18px',
-          fontFamily: 'var(--font-cormorant), Georgia, serif',
-          fontStyle: value ? 'normal' : 'italic',
+          // ZIP 14 · F-16.38 CURE (R-37.83 / R-37.84 (7)). The old input chrome —
+          // Cormorant + a value-keyed italic — survived inside the risen chat and the
+          // founder read it as "the chat ai looks same". The render arm measured the
+          // COMPUTED style: font-style italic, family Cormorant Garamond. Both go to
+          // branch tokens; the italic goes entirely, since a placeholder's job is done
+          // by colour here and the leaning serif WAS the old voice. The
+          // «Ask anything...» BYTE is untouched — founder-era copy, flagged not moved.
+          fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
+          fontStyle: 'normal',
           fontWeight: 400, fontSize: 16,
           lineHeight: `${LINE_HEIGHT}px`,
           outline: 'none', overflowY: 'hidden',
-          caretColor: T.brass,
+          caretColor: T.interactive,
           letterSpacing: '0.005em',
           transition: 'border-color 220ms cubic-bezier(0.22,1,0.36,1)',
         }}

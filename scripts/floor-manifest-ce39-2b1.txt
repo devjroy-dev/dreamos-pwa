@@ -1,0 +1,27 @@
+# scripts/floor-manifest-ce39-2b1.txt
+# BASE d38d0ab (worklist; re-derived fetch-first at the cut — the guard decides).
+# Sibling dream-os 4918275 (band 4).
+#
+# CE-39 ROAD STEP 2b · 2b-1 · THE FOUR INDEPENDENT ARMS, BANKED AT A SEAM.
+#   E-1 (i)  a pinned ThemeProvider never touches documentElement (F-39.32)
+#   E-2      /vendor/billing -> /w/billing D-8 stub; the old-chrome census row
+#            REMOVED, as C26 named
+#   E-2      /vendor/onboarding joins INTERIM_VENDOR_LINKS (6 -> 7)
+#   F-39.26  refreshToday() wired — shell navigation + focus, and seven money
+#            writes, all through the ONE door
+#   b41      the theme-bleed fixture cell (NEW)
+#
+# ⚠ F-39.26's BOTH-WAYS CELL IS OWED IN 2b-2. The wiring ships; the seal does not.
+# 2b-2 carries: arm D (a) the three tabs · that cell · C58 amended · the seven
+# studio copy bytes · the dream-os companion. 2b SEALS ONLY WHEN 2b-2 LANDS.
+# [F-19.16 / F-39.31] The delivery's own file table.
+
+app/vendor/billing/page.tsx
+components/worklist/WorklistShell.tsx
+docs/TDW_CE39_2B1_PWA_HANDOVER.md
+lib/vendor/ThemeContext.tsx
+lib/vendor/api/vendor.ts
+lib/worklist/feed.ts
+lib/worklist/rooms.ts
+scripts/b41_theme_bleed_fixture.js
+scripts/floor-manifest-ce39-2b1.txt

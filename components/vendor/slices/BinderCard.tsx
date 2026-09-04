@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/BinderCard.tsx — TDW_03 P2 · the crown jewel
 // One client's story as a card: name, THE money story, stage + last touch,
@@ -10,9 +14,10 @@
 // Full-width, hairline-bounded, NO card chrome/shadows. Masthead-adjacent
 // numbers are ink — the received hairline is this screen's brass, within law.
 
+import { roomHref } from '@/lib/worklist/rooms';
 import { useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
-import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
 import type { CabinetBinder, BinderEditFields } from '@/lib/vendor/api/vendor';
 import { editBinder } from '@/lib/vendor/api/vendor';
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: the chips' tap target
@@ -66,7 +71,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
     background: 'var(--atelier-input-bg)',
     border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
     fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-    outline: 'none', caretColor: A.brass,
+    outline: 'none', caretColor: A.interactive,
   };
   const labelStyle: React.CSSProperties = {
     fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute,
@@ -89,7 +94,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
         </div>
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
         <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
-        <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
           Money is edited in chat — the witnessed door. Everything else lives here.
         </div>
 
@@ -128,7 +133,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       Reads, never writes; absence means "no phone match", never "no twin". */
   crossLead?: { state: string };
 }) {
-  const router = useRouter();
+  const { openAsk } = useAsk();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
@@ -155,7 +160,27 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
     // completable, NEVER a question. No primer ends in a question mark; a
     // question invites an answer, a stem invites the fact.
     const primer = `About ${binder.client ?? 'this binder'}: `;
-    router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
+    // CE-39 S2/6 · F-38.47: tree-blind. The ask door (lib/worklist/askContext.tsx) opens
+    // the sheet in place inside the shell and makes today's `?draft=` push on the hub —
+    // where this card is mounted on the hub page itself, so nothing that worked there
+    // stops working. The push that stood here unmounted the shell from Clients.
+    //
+    // ── CE-39 S2/9 · F-39.7 · THIS DOOR CLOSES TOO, AND HERE IS WHY IT MUST ──────
+    // C51 reddened on this file and the seat's first instinct was 「false positive: the
+    // swipe fires from the ROW, and the row is behind the wishbone's own scrim when that
+    // sheet is up, so this handler cannot run while an overlay is mounted」. **That
+    // reasoning is probably true and it was NOT derived, which is exactly the move this
+    // arc convicted at C49** — a cell reporting, a human overruling it from the shape of
+    // the match, and a real defect living two more sittings behind the narrowing.
+    //
+    // SO THE CELL IS NOT NARROWED AND THE ARGUMENT IS NOT RELIED ON. This card owns
+    // `wishboneOpen` (:139) and a hide-confirm besides; closing on the way out is TRUE
+    // whether or not the sheet was up, costs one no-op setState when it was not, and
+    // removes the need for anybody to re-derive a stacking argument later. The cheap
+    // honest line beats the clever correct one when the clever one has to be re-proved by
+    // every future reader.
+    setWishboneOpen(false);
+    openAsk(primer);
   }
 
   // TDW_04 A2 — the approved swipe table, clients row: right = Ask Victor
@@ -184,7 +209,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       <SwipeRow right={swipeRight} left={swipeLeft}>
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} style={{
         width: '100%', display: 'block', textAlign: 'left',
-        padding: '16px 22px 14px', background: 'transparent', border: 'none', cursor: 'pointer',
+        padding: '16px var(--slice-inset, 22px) 14px', background: 'transparent', border: 'none', cursor: 'pointer',
       }}>
         {/* Line 1 — the name */}
         <div style={{
@@ -227,10 +252,13 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           // TDW_04 A3 (L-3): the whisper becomes a door — tap jumps to the twin's
           // canonical slice. Still reads-only; nothing is linked or merged (16's
           // spine still owns the real join).
-          <a href="/vendor/list/leads" onClick={e => e.stopPropagation()} style={{
+          // R-38.1 CURE (S2 ZIP bounce). The destination is asked of the registry's
+          // address book rather than spelled here — same reasoning as the tier gate; a
+          // cross-plane whisper is still a door out of this room.
+          <a href={roomHref('leads')} onClick={e => e.stopPropagation()} style={{
             display: 'inline-block', textDecoration: 'none',
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: A.brassWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
             marginTop: 6,
           }}>Also a lead · {cap(crossLead.state)} ›</a>
         )}
@@ -244,7 +272,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             }}>{cap(binder.stage)}</span>
           )}
           {touched && (
-            <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               {touched}
             </span>
           )}
@@ -278,7 +306,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
 
       {/* Expand — the story timeline + actions */}
       {open && (
-        <div style={{ padding: '0 22px 16px' }}>
+        <div style={{ padding: '0 var(--slice-inset, 22px) 16px' }}>
           {timeline.length > 0 ? (
             <div style={{ borderLeft: '0.5px solid rgba(201,168,76,0.35)', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {timeline.map((line, i) => (
@@ -288,7 +316,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               ))}
             </div>
           ) : (
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               No story yet — it grows as you talk in chat.
             </div>
           )}
@@ -303,7 +331,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             <button type="button" onClick={() => setEditOpen(true)} style={{
               flex: 1, padding: '11px 14px', background: 'transparent',
               border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
               letterSpacing: '0.32em', textTransform: 'uppercase',
             }}>Edit</button>
             {!hideConfirm ? (

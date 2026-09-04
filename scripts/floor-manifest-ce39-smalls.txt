@@ -1,0 +1,16 @@
+# scripts/floor-manifest-ce39-smalls.txt
+# CE-39 · PRE-BETA SMALLS · dreamos-pwa half — the declared dirt of S1 + S4.
+# F-39.51(b): a dirty file outside this list is a STOP until accounted for.
+
+# ── S1 · THE PDF FIELD RENAME  [F-2c.w7's pwa half] ─────────────────────────
+# The door answers `pdf_url`, so the `??` and the optional field retire together.
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+
+# ── S4 · THE RUNNER REFUSALS  [F-39.47 · F-39.48] ───────────────────────────
+# b40 carries BOTH halves: C94 inverted for S1, and the REFUSED channel in
+# cell() plus the C80 sibling guard for S4.
+scripts/b40_worklist_shell_bench.js
+scripts/run-floor.sh
+scripts/floor-manifest-ce39-smalls.txt
+scripts/b50_fetch_loop_bench.js

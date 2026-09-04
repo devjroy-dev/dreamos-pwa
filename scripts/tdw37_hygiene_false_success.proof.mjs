@@ -143,16 +143,59 @@ t('leads LEFT still carries R-37.22\'s suppression, keyed on `redacted`', () =>
     ? true : 'the R-37.22 precedent this cure reuses was disturbed by it');
 t('leads LEFT still offers Call and Mark lost on their own row shapes', () =>
   /label: 'Call'/.test(S()) && /label: 'Mark lost', destructive: true/.test(S()));
+// ── AMENDED AT CE-39 2c-STUDIO  [F-39.43, chair-ruled; B-1 found it] ────────
+// THE ASSERTION IS UNCHANGED AND IS QUOTED BEFORE THE PREDICATE MOVES:
+//
+//   「invoices RIGHT is still Mark paid, and still a real write (recordPayment)」
+//
+// WHAT BROKE IT: 2c-Studio moved `Mark paid` into `lib/worklist/copy.ts`, because
+// F-2c.p9 added a VISIBLE button beside the swipe and one verb spelled twice —
+// once for the gesture, once for the button — is how the two start disagreeing.
+// The write did not move. The label did. This cell went red on a byte that had
+// been rehomed, which is a report about the CELL and not about the shell.
+//
+// ⚠ THIRD SIGHTING OF F-38.27'S FAMILY IN THIS FILE: a cell that pins a
+// LITERAL'S SPELLING where its subject is a BEHAVIOUR. The subject here has
+// always been 「the right swipe on an invoice performs a real write」 — the
+// spelling of its label is the copy register's business and is guarded there.
+// A cell like this reddens on every lawful rehoming and teaches the next seat
+// that reds are negotiable, which is the one lesson this floor cannot afford.
+//
+// SO IT ASSERTS THE REHOMING, NOT THE STRING. Three things, none of them a
+// vendor-facing byte: the swipe's label READS THE REGISTER; the register is
+// actually imported here (a `COPY.` reference in a file that never imported
+// `COPY` would be a runtime error this proof should not be able to miss); and
+// the write behind it is byte-unmoved.
+//
+// COUNT PRESERVED: one cell before, one cell after. The file's total is
+// unchanged and its 20 is still 20.
 t('invoices RIGHT is still Mark paid, and still a real write (recordPayment)', () =>
-  /right: \{ label: 'Mark paid'/.test(S()) && /await recordPayment\(row\.id, \{ amount: owed \}\)/.test(S()));
+  /right: \{ label: COPY\.studioMarkPaid/.test(S())
+  && /import \{ COPY \} from '@\/lib\/worklist\/copy'/.test(S())
+  && /await recordPayment\(row\.id, \{ amount: owed \}\)/.test(S())
+    ? true : 'the invoice swipe no longer reads COPY.studioMarkPaid from the register, or its write moved');
 t('events RIGHT is still Done, and still a real write (updateEvent)', () =>
   /right: \{ label: 'Done'/.test(S()) && /await updateEvent\(row\.id, \{ state: 'done' \}\)/.test(S()));
 t('invoices and events LEFT are both still Cancel, both still confirm-gated', () =>
   (S().match(/left: \{ label: 'Cancel', destructive: true, onTrigger: \(\) => \{ setSel\(row\); setConfirmDel\(true\); \} \}/g) || []).length === 2
     ? true : 'one of the two Cancel gestures moved');
-t('clients (BinderCard) RIGHT is still Ask in chat, and still navigates rather than toasts', () =>
+// ── AMENDED, LABELLED — CE-39 S2/6 (F-38.27's family, and this is the second sighting) ──
+// This cell asserted the SPELLING of the mechanism: `router.push('/vendor?draft=`. R-39.3
+// cured F-38.47 — that push UNMOUNTED THE SHELL from every crossed room — and the door now
+// calls `openAsk(primer)` through lib/worklist/askContext.tsx, which opens the ask sheet in
+// place inside the shell and makes the identical push on the /vendor tree. So the bench
+// went red WITH the cure, exactly as F-38.27's did, and for the identical reason: it named
+// an address instead of asserting a property.
+//
+// THE PROPERTY IS UNCHANGED AND IS WHAT IS ASSERTED NOW: the clients RIGHT gesture is still
+// 「Ask in chat」, it still runs a real verb that OPENS THE CHAT, and it is still not a toast
+// reporting a success nobody performed — which is this whole bench's subject. The mechanism
+// is read at the door's own site rather than by its old spelling, so the next sitting that
+// moves it again is told what the cell wanted rather than which string it missed.
+t('clients (BinderCard) RIGHT is still Ask in chat, and still opens the chat rather than toasting', () =>
   /const swipeRight = \{ label: 'Ask in chat', onTrigger: askVictor \}/.test(CODE(BINDER_P))
-  && /router\.push\(`\/vendor\?draft=/.test(CODE(BINDER_P))
+  && /function askVictor\(\)/.test(CODE(BINDER_P))
+  && /openAsk\(primer\)/.test(CODE(BINDER_P))
     ? true : 'the clients gesture moved, or became a toast');
 t('clients LEFT is still Call-or-nothing, never a substituted verb', () =>
   /const swipeLeft = binder\.phone \? \{ label: 'Call'/.test(CODE(BINDER_P))

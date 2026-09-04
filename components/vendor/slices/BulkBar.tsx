@@ -29,7 +29,7 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
       padding: '12px 18px calc(14px + env(safe-area-inset-bottom))',
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <span style={{ fontFamily: F.label, fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-brass, var(--role-metal))' }}>
+      <span style={{ fontFamily: F.label, fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-accent-text)' }}>
         {selectedCount} selected
       </span>
       <div style={{ flex: 1, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

@@ -67,8 +67,33 @@
 import React from 'react';
 import { MessageCircle, Lock, Users } from 'lucide-react';
 import { openInstagram, normalizeIgHandle } from '@/lib/frost/igLink';
-import { formatRs } from '@/lib/vendor/format';
 import type { DiscoverVendor } from '@/lib/types/discover';
+
+// ── TDW_19 P2-A §3-2 · THE CONTENT CAME OUT; THE CONTROLS STAYED ──────────────────────
+// `/v/<code>` — the estate's first public per-vendor address — must render the couple's
+// card, and could not mount this file: it is 'use client', it pulls lucide and the frost
+// graph onto a route serving strangers, every ink in it is written for dark glass, and
+// three of its four controls have no business on a public page.
+//
+// So the TEXT BLOCK moved to components/shared/VendorProfileContent.tsx and this component
+// composes it. **THIS FILE'S RENDERED OUTPUT DID NOT CHANGE — not one byte**, across every
+// prop shape its three mounts pass. scripts/tdw19_p2a_profile_core.proof.mjs renders this
+// component to static markup before and after the extraction and diffs the strings.
+// §2.2 there is that assertion; §0.2 is the cell that refuses to let it pass
+// vacuously by comparing a file with itself, and §2.3 refuses to let it pass on
+// two empty strings. The sentence above is written only because that file is in
+// the tree and green — it was struck on entry to this read, and F-19.23 is why:
+// a claim may not predate its witness, even for one commit.
+//
+// WHAT STAYED, AND WHY EACH: the wrapper div (a fragment cannot carry padding, and the
+// mount owns its container) · the IG chip (a <button> with an onClick, and openInstagram is
+// frost-graph) · FeaturedEyebrow's composition (it is content, but discover.tsx:838 imports
+// it from here directly, and moving it would edit a mount) · all four controls.
+//
+// The `formatRs` import left with the price line it served. It is not re-imported here,
+// because a money donor imported by a file that emits no money is how a second money
+// register gets started.
+import VendorProfileContent, { PROFILE_PALETTE } from '@/components/shared/VendorProfileContent';
 
 // ── TDW_07 P4b · F-07.16 — THE MONEY REGISTER ─────────────────────────────────────────
 // `formatRs` is the estate's ONE money donor and it renders the locked register:
@@ -173,41 +198,30 @@ export default function VendorProfileView({
 
   return (
     <div style={{ padding: '0 24px' }}>
-      {/* TDW_07 P1 · D-5 — the eyebrow on detail, above the category line */}
-      {vendor.featured && (
-        <div style={{ margin: '0 0 6px' }}>
-          <FeaturedEyebrow featured={vendor.featured} />
-        </div>
-      )}
-      <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.5)', margin: '0 0 8px' }}>
-        {vendor.category}&nbsp;·&nbsp;{vendor.city}
-      </p>
-      {!isBlind && (
-        <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color: '#F8F7F5', margin: '0 0 4px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
-          {vendor.name}
-        </h2>
-      )}
-      {vendor.about && (
-        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, fontStyle: 'italic', color: 'rgba(248,247,245,0.7)', margin: '0 0 12px', lineHeight: 1.5 }}>
-          {vendor.about}
-        </p>
-      )}
-      {/* F-07.16 — the register. This replaced an inline L/K ternary that rendered
-          "Rs 1.5L onwards". The vendor is promised "Rs 1,50,000" on his own Discover
-          Profile; the couple now reads the same number in the same register.
-          The GUARD is unchanged: `starting_price` is null when the vendor hid his rate
-          (D-1), and null renders nothing at all — the suppressed-price parity the fixture
-          ledger names Swati Roy as the witness for. */}
-      {!isBlind && vendor.starting_price != null && (
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'rgba(248,247,245,0.55)', margin: '0 0 20px' }}>
-          Starting at {formatRs(vendor.starting_price)}
-        </p>
-      )}
-      {isBlind && vendor.vibe_tags.length > 0 && (
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: '0.15em', color: 'rgba(248,247,245,0.55)', margin: '0 0 20px' }}>
-          {vendor.vibe_tags.join(' · ')}
-        </p>
-      )}
+      {/* ── THE CONTENT CORE ────────────────────────────────────────────────────
+          Six blocks moved out verbatim; the fragment it returns emits no DOM node,
+          so this div's children are the same nodes in the same order as before.
+          `onGlass` carries the exact inks this file used to hold as literals. The
+          eyebrow is composed HERE and passed down — TDW_07 P1 · D-5, above the
+          category line — because discover.tsx imports FeaturedEyebrow from this
+          file and moving it would edit a mount. */}
+      <VendorProfileContent
+        palette={PROFILE_PALETTE.onGlass}
+        isBlind={isBlind}
+        eyebrow={vendor.featured ? (
+          <div style={{ margin: '0 0 6px' }}>
+            <FeaturedEyebrow featured={vendor.featured} />
+          </div>
+        ) : null}
+        fields={{
+          name:          vendor.name,
+          category:      vendor.category,
+          city:          vendor.city,
+          about:         vendor.about,
+          startingPrice: vendor.starting_price,
+          vibeTags:      vendor.vibe_tags,
+        }}
+      />
 
       {/* TDW_07 P1 · D-3 — the chip on detail. Blind mode hides identity, so the
           handle (which IS the identity) is withheld there, exactly as the name is. */}

@@ -67,7 +67,7 @@ const BLOOM  = 'components/frost/blooms/expenses.tsx';
 const CLIENT = 'lib/frost/journey.ts';
 const COPY   = 'lib/frost/envelopeCopy.ts';
 const LABELS = 'lib/frost/categoryLabels.ts';
-const FORM   = 'app/vendor/onboarding/page.tsx';
+const FORM   = 'app/vendor/(legacy)/onboarding/page.tsx';
 
 let pass = 0, fail = 0;
 const failed = [];

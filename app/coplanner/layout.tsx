@@ -7,6 +7,7 @@ import {
   setCircleToken, circleAuthHeaders, circleRefused, CIRCLE_REFUSAL_EVENT,
   brideName } from './CircleSessionContext';
 import TabBar from './TabBar';
+import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
 const SESSION_KEY = 'circle_session';
 const LAST_PATH_KEY = 'circle_last_path';
@@ -211,6 +212,11 @@ export default function CoplannerLayout({ children }: { children: React.ReactNod
       color: CREAM,
       fontFamily: FONT_BODY,
     }}>
+      {/* F-19.36: the SW registrar mounts PER AUTHENTICATED SHELL. It used to sit
+          in the root layout registering an origin-wide scope, so one visit to the
+          public landing claimed /v/ and /r/ for that browser. This shell installs
+          as its own app, so it needs the worker as much as the vendor's does. */}
+      <ServiceWorkerRegistrar />
       {/* Per-scope manifest, mirroring `app/admin/layout.tsx`'s shape — the
           coplanner installs as its own app, named for her wedding. */}
       <head>

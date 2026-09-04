@@ -37,135 +37,23 @@ import type { SettingsState } from '@/hooks/vendor/useSettings';
 // THE BLOCK MOVED WHOLE, and had to: its whole warrant is that the vetoed bytes
 // sit in one readable place. Splitting it across two files to save an import
 // would have destroyed the property the block exists for. Zero bytes changed.
-const PLAN_LABEL: Record<string, string> = {
-  basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige',
-};
-const PLAN_PRICE: Record<string, string> = {
-  essential: 'Rs 999 / month',
-  signature: 'Rs 1,999 / month',
-  prestige:  'Rs 2,999 / month',
-};
-// ── `BILLING_STATUS` RETIRED HERE · F-10.110 (R-26.18, Fork 1 arm B) ────────
-// The map stood here, `Record<string, string>` keyed on `billing_status` ALONE.
-// That key was the defect: it told a vendor at `tier: 'signature'`,
-// `billing_status: 'cancelled'` that she was 「 on Basic 」 while dream-os
-// `chat.js:buildLlmForTurn` was serving her Signature AI on both lanes.
+// ── M-FINISH S1 · THE VETOED BLOCK MOVED OUT, WHOLE ────────────────────────
+// `PLAN_LABEL`, `PLAN_PRICE` and the `V2` set now live at `lib/vendor/billing/plans.ts`.
+// Byte-unchanged, same order, same comments — a pure move, the same shape as the move that
+// brought them here from `app/vendor/settings/page.tsx` under R-26.4 Fork D.
 //
-// ITS FIVE SENTENCES ARE NOT LOST AND FOUR OF THEM ARE NOT CHANGED. They moved
-// WHOLE into `lib/vendor/billing/statusLine.ts`, which keys on the PAIR and
-// returns the explanation with it. Read the warrant there before touching either.
+// WHY THEY LEFT, and the reason is a gate verdict rather than a preference: the shell's
+// rebuilt money surface (`components/worklist/BillingRoom.tsx`, R-38.8) must read these
+// bytes rather than restate them, and importing them FROM A COMPONENT MODULE dragged this
+// whole file — and its `statusLine` import — into the shell's Billing chunk. The four
+// sentences R-38.8 retires by name were therefore shipping to the browser on the exact
+// surface built to retire them. The audit's R-38.6 cell reddened on it. Read that file's
+// header before touching either.
 //
-// THE COPY BLOCK BELOW IS NARROWER BY ONE SET, DELIBERATELY. Its property is
-// that vetoed bytes sit in one readable place — the status sentences now sit in
-// the resolver's own such block, beside the pair logic they depend on, because a
-// sentence whose truth is conditioned on a mechanism belongs next to the
-// mechanism (F-06.85). `PLAN_LABEL` and `PLAN_PRICE` stay: this file still
-// renders them.
-
-// ── TDW_10 BILLING v2 · THE NEW STRING SET — FOUNDER-VETOED ─────────────────
-// Hoisted into the SAME block as the v1 set above, for the reason that block
-// gives: copy under veto lives in one readable place so it can be diffed
-// against the veto record without reading JSX.
-//
-// RETIRED WITH THE ERA: 「 Dev will send you a payment link. 」 That sentence
-// described the founder minting links by hand, which is the mechanism this
-// delivery removes. A sentence must not outlive the mechanism it describes.
-//
-// MONEY REGISTER: `Rs X,XXX`, zero rupee glyphs, zero k/L/Cr shorthand. Prices
-// are read from PLAN_PRICE above rather than retyped, so the canon has one home
-// on this surface too.
-//
-// TYPE SCALE: body copy at 16 (the ruled floor), action words at 10 in the
-// engraved register — both named rungs. No new size enters this file.
-const V2 = {
-  pickerHeading: 'Choose a plan',
-  // ── F-10.108 · SITE 1 · FOUNDER-RULED 「 the free trial stays. no Rs. 2. i
-  //    know indian mindset 」 (R-26.16 §A) ─────────────────────────────────────
-  //
-  // ⚠ READ THIS BEFORE YOU FILE 「 free 」 AS A DEFECT. IT IS A DECISION.
-  //
-  // THE FIRST CYCLE IS NOT ZERO. It is Rs 2 — and WHERE that Rs 2 lives was
-  // stated wrongly here until F-10.121, so the correction carries its own
-  // reasoning with it.
-  //
-  // ── CORRECTED AT F-10.121 (CE-224's dashboard witness) ────────────────────
-  // WHAT THIS PARAGRAPH SAID: "configured at the plan level in the Razorpay
-  // dashboard — which is why dream-os `createSubscription` passes no `start_at`,
-  // no trial and no `offer_id`, and why grepping the tree for a free period
-  // finds nothing."
-  //
-  // THE TRUTH: the Rs 2 lives in a METHOD-SCOPED RAZORPAY OFFER —
-  // `offer_TMeh1p2GXaMtqt`, UPI-ONLY, witnessed on the dashboard at CE-224. Not
-  // the plan. The distinction is the whole finding: a plan-level price applies
-  // to every method, an offer scoped to UPI does not.
-  //
-  // AND THE REASONING IS CORRECTED WITH THE SENTENCE, because leaving it would
-  // rebuild the hiding place. The old paragraph read the tree's silence as
-  // CONFIRMING a plan-level price. It confirms nothing of the kind: an absent
-  // `offer_id` is equally consistent with a dashboard offer nobody had looked
-  // for, which is exactly what was there. That inference is HOW F-10.121 stayed
-  // invisible — a corrected sentence standing on uncorrected reasoning is how
-  // the next one hides.
-  //
-  // The authority still lives outside the tree. It is now named.
-  //
-  // AND THAT Rs 2 IS KEPT, not refunded. dream-os `src/lib/billing/razorpay.js`,
-  // `countsAsRevenue`, fires on `subscription.charged` + `captured` + amount > 0,
-  // so the first cycle is BOOKED AS REVENUE — it is the estate's own first
-  // rupees (CE-204's Bridge reading Rs 2). The payment Razorpay refunds is the
-  // authentication token on `subscription.authenticated`, a DIFFERENT event
-  // excluded from revenue by name. So a future reader who finds Rs 2 in the
-  // ledger and this word on the screen has found exactly what the executor found
-  // and reported: 「 free 」 is false by two rupees.
-  //
-  // THE FOUNDER RULED IT ANYWAY, KNOWING ALL OF THE ABOVE — it was carried to
-  // him twice — on a market-register judgment about how the offer reads to an
-  // Indian vendor. That judgment is his and not the estate's to relitigate. This
-  // comment exists so the next session inherits the DECISION rather than
-  // rediscovering the derivation and filing a defect against a ruling.
-  //
-  // WHAT IS SAFE HERE AND WHAT IS NOT: the first cycle genuinely GRANTS HER TIER
-  // — `tierFromPlan` resolves off `plan_id` FIRST and never consults
-  // `TIER_PAISE`, so a 200-paise charge maps to her real plan rather than
-  // writing `tier: null` with `billing_status: 'active'`. That was checked, not
-  // assumed. If anyone ever makes the amount table the primary resolver, this
-  // sentence and that cure die together.
-  //
-  // SCOPE: this line speaks for the SUBSCRIBE path only. Whether the free cycle
-  // applies on an UPGRADE between tiers is F-10.109, flagged and NOT chartered
-  // (founder: 「 this is for a much later build 」), which is why
-  // `upgradeExplain` below is byte-untouched and says nothing about it.
-  offer: 'First month free. Full price from the second month. Offer applies to UPI payments only.',
-  pickerAction:  'Choose',
-  // BYTE-UNCHANGED, AND THAT IS A RULING (R-26.16 §B). A first draft proposed
-  // naming the offer here too; the founder has not seen that byte, so adding it
-  // would ship unvetoed copy on the estate's money surface. The conservative arm
-  // and the ruled arm coincide. Her last read before the mandate screen is the
-  // ongoing price with no mention of the free month — flagged to the founder,
-  // his to reopen.
-  confirm: (label: string, price: string) =>
-    `This opens a Razorpay page to approve ${label} — ${price}. You approve once; it renews every month until you cancel.`,
-  cancelWarn: (label: string) =>
-    `Cancel ${label}? Your plan stops and you move to Basic. This can't be undone — starting again means setting up a new monthly payment.`,
-  cancelYes: 'Cancel my plan',
-  cancelNo:  'Keep my plan',
-  upgradeExplain: (label: string, price: string) =>
-    `Moving to ${label} stops your current plan first, then opens a new page to approve ${price}. Until you approve it, you're on Basic.`,
-  // The failure set. Never a false done — and never a false "nothing happened",
-  // which is the harder half. `mintFailedAfterCancel` is Fork U(a)'s priced seam
-  // speaking in her own words: without it she would read a generic error, assume
-  // her old plan survived, and be wrong about whether she is currently paying.
-  //
-  // EVERY SENTENCE HERE REACHES HER THROUGH `show()`. A caller that renders this
-  // card without mounting <Toast> silently swallows all five — a failed cancel
-  // that looks like nothing happened. HONEST CONTROLS (CE-209): the mount is
-  // asserted by cell at every caller, not trusted.
-  mintFailed:   "Couldn't reach Razorpay just now. Nothing has changed — try again in a moment.",
-  cancelFailed: "Couldn't cancel just now. Your plan is unchanged — try again in a moment.",
-  mintFailedAfterCancel: (label: string) =>
-    `Your old plan is already stopped and the new one didn't open. You're on Basic for now — tap ${label} again to finish.`,
-  notOpenYet: 'Plan changes are not open yet.',
-};
+// THE COPY BLOCK'S OWN WARRANT IS BETTER SERVED THERE THAN IT WAS HERE: vetoed bytes in
+// one readable place, diffable against the veto record without reading JSX. That file
+// contains no JSX at all.
+import { PLAN_LABEL, PLAN_PRICE, V2 } from '@/lib/vendor/billing/plans';
 
 // The fields this surface reads, and only those. Named off `SettingsState` so
 // the field names cannot drift into a second vocabulary between the hook and
@@ -254,8 +142,8 @@ export function SubscriptionCard({ current, show }: {
                 rel="noopener noreferrer"
                 style={{
                   display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
-                  border: `0.5px solid ${A.brass}`, borderRadius: 2, textDecoration: 'none',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+                  border: `0.5px solid ${A.interactive}`, borderRadius: 2, textDecoration: 'none',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactive,
                   letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}
               >Set up monthly payment</a>
@@ -429,7 +317,7 @@ function TierPicker({ currentTier, isUpgrade, onDone, show }: {
             style={{
               display: 'flex', width: '100%', alignItems: 'baseline', justifyContent: 'space-between',
               padding: '13px 14px', background: 'transparent', cursor: busy ? 'default' : 'pointer',
-              border: `0.5px solid ${picked === t ? A.brass : 'rgba(0,0,0,0.12)'}`, borderRadius: 2,
+              border: `0.5px solid ${picked === t ? A.interactive : 'rgba(0,0,0,0.12)'}`, borderRadius: 2,
             }}
           >
             <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.ink }}>
@@ -457,8 +345,8 @@ function TierPicker({ currentTier, isUpgrade, onDone, show }: {
                 style={{
                   display: 'block', width: '100%', padding: '13px 0', textAlign: 'center',
                   background: 'transparent', cursor: busy ? 'default' : 'pointer',
-                  border: `0.5px solid ${A.brass}`, borderRadius: 2,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+                  border: `0.5px solid ${A.interactive}`, borderRadius: 2,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactive,
                   letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}
               >{busy ? '…' : V2.pickerAction}</button>
@@ -528,9 +416,9 @@ function CancelBlock({ label, onDone, show }: {
         }}>{busy ? '…' : V2.cancelYes}</button>
         <button type="button" disabled={busy} onClick={() => setAsking(false)} style={{
           flex: 1, padding: '13px 0', background: 'transparent',
-          border: `0.5px solid ${A.brass}`, borderRadius: 2,
+          border: `0.5px solid ${A.interactive}`, borderRadius: 2,
           cursor: busy ? 'default' : 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.brass,
+          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactive,
           letterSpacing: '0.42em', textTransform: 'uppercase',
         }}>{V2.cancelNo}</button>
       </div>

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Italiana, Cormorant_Garamond, DM_Sans, Jost } from 'next/font/google';
 import './globals.css';
 import './globals-v2.css';
-import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
 
 // ── Atelier typography stack ─────────────────────────────────────────────────
 //   Italiana           — display: numerals, month names, glyphs (C L I ◐ ×)
@@ -69,7 +68,11 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,300;1,9..144,400&family=Italianno&family=JetBrains+Mono:wght@300;400&display=swap"
           rel="stylesheet"
         />
-        <link rel="manifest" href="/manifest.json" />
+        {/* M-WORKLIST branch only — R-37.42: the branch PWA installs as its own app beside
+            the real one, so it advertises its own manifest. Production main keeps
+            /manifest.json; this line is one of exactly two edits this arc makes to a
+            pre-existing file, and it never travels to main. */}
+        <link rel="manifest" href="/worklist-manifest.json" />
         <meta name="theme-color" content="#1E0A0E" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -84,10 +87,20 @@ export default function RootLayout({
   var FROST_DARK='#1E0A0E', FROST_LIGHT='#F0EEE8';
   var VENDOR_LIGHT='#F5F2EE';
   var LANDING_BG='#0C0A09';
+  var PUBLIC_BG='#F8F7F5';
   var isFrost=path.indexOf('/frost')===0||path.indexOf('/coplanner')===0||path.indexOf('/circle')===0;
   var isVendor=path.indexOf('/vendor')===0;
   var isAdmin=path.indexOf('/admin')===0;
   var isLanding=path==='/'||path.indexOf('/discover')===0||path.indexOf('/about')===0;
+  // F-19.41. THE PUBLIC STOREFRONT LANE, and its absence was the leak. Every
+  // branch below names an app surface; /v/ and /r/ matched none, so a couple
+  // arriving from a WhatsApp forward inherited the static theme-color three
+  // lines up - the app's near-black - painted above a cream page.
+  //
+  // This is F-19.36's shape a second time and the cure is the same in kind: the
+  // root layout is TOLD which of its children are not the app, rather than
+  // assuming they all are. C38 refuses a third instance.
+  var isPublicStorefront=path.indexOf('/v/')===0||path.indexOf('/r/')===0;
   var bg=null;
   if(isFrost){
     var stored=null, manual=null;
@@ -112,6 +125,8 @@ export default function RootLayout({
     }
   } else if(isAdmin){
     bg='#18293E';
+  } else if(isPublicStorefront){
+    bg=PUBLIC_BG;
   } else if(isLanding){
     // TDW_09 O-1 - R-O7 (F-09.39(b), R-T6). The public landing stands on #0C0A09 and
     // wore Frost's Wine Night in the browser chrome, because none of the three branches
@@ -140,7 +155,6 @@ export default function RootLayout({
         />
       </head>
       <body style={{ margin: 0, padding: 0 }}>
-        <ServiceWorkerRegistrar />
         {children}
       </body>
     </html>

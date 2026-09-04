@@ -21,7 +21,7 @@
 
 import { useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
-import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
 import { A, F, cap } from './SliceRow';
 
 // One vocabulary, both planes (leads: draftContracts LEAD_EXPECTED; binders:
@@ -55,7 +55,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
   /** Called after the last cell completes, or on explicit close. */
   onDone: () => void;
 }) {
-  const router = useRouter();
+  const { openAsk } = useAsk();
   const [remaining, setRemaining] = useState<string[]>(missing);
   const [active, setActive] = useState<string | null>(missing[0] ?? null);
   const [value, setValue] = useState('');
@@ -63,11 +63,33 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
   const [error, setError] = useState<string | null>(null);
 
   function tellVictor(cell: string) {
-    // Prefill-not-fire: the Hub's prefill param is `draft` (composer
-    // initialValue) — `primer` without autoSend=1 is a no-op. Verified code
-    // truth (TDW_03 drift log); the grammar mirrors the wire's tell_victor.
+    // Prefill-not-fire: the grammar mirrors the wire's tell_victor (TDW_03 drift log).
+    // CE-39 S2/6 · F-38.47: this door is tree-blind. It asks lib/worklist/askContext.tsx
+    // and pushes nothing — inside the shell the ask sheet opens in place with the stem;
+    // on the /vendor tree the provider makes today's `?draft=` push. The push that stood
+    // here unmounted the shell from six crossed rooms.
+    //
+    // ── CE-39 S2/9 · F-39.7 · THE DISMISSAL WAS THE PUSH'S SIDE EFFECT ────────
+    // ⚠ THE FOUNDER TAPPED THIS AND NOTHING APPEARED TO HAPPEN. It happened: this sheet's
+    // scrim is z-index 60 and its panel 61 (:95, :97), the ask sheet is z-index 40, so the
+    // chat opened PREFILLED AND CORRECT, twenty layers underneath the panel he was looking
+    // at. His third tap hit this scrim, `onDone` fired, and the ask sheet was revealed
+    // already open — which is exactly the three-tap sequence he reported.
+    //
+    // THE CAUSE IS THE CURE ITSELF, AND THAT IS THE PART WORTH WRITING DOWN. The old door
+    // was `router.push('/vendor?draft=…')`. NAVIGATING AWAY TORE THIS SHEET DOWN, so no
+    // one ever wrote a dismissal — the push WAS the dismissal, and nobody knew, because a
+    // side effect nobody named is a dependency nobody can see. Replacing the push with a
+    // door that correctly keeps the shell mounted removed a teardown this surface had been
+    // relying on since it was written. F-38.20's family: two authorities over one
+    // dismissal, and this time the loud one was deleted.
+    //
+    // `CalendarDaySheet` is the one door of the four that already did this, and it is the
+    // model rather than the exception: a surface that hands the conversation to the chat
+    // closes itself, because 「ask in chat INSTEAD」 means instead.
     const primer = `About ${personLabel}: the ${chipLabel(cell).toLowerCase()} is `;
-    router.push(`/vendor?draft=${encodeURIComponent(primer)}`);
+    onDone();
+    openAsk(primer);
   }
 
   async function save() {
@@ -99,7 +121,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>
           Complete the file
         </div>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300,  fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
           {personLabel} — {remaining.length} detail{remaining.length === 1 ? '' : 's'} missing
         </div>
 
@@ -152,7 +174,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
               <button type="button" onClick={() => tellVictor(active)} style={{
                 flex: 1, padding: '11px 14px', background: 'transparent',
                 border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
+                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>{victorOnly ? 'Send to chat' : 'Ask in chat instead'}</button> {/* A4 copy law: persona-free chrome */}
             </div>

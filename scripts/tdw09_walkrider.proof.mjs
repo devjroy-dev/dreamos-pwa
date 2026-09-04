@@ -12,8 +12,11 @@ function sec(t) { console.log('\n' + t); }
 function read(p) { return fs.readFileSync(p, 'utf8'); }
 function strip(s) { return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/[^\n]*/g, '$1'); }
 
-const DISC = read('app/vendor/discover/page.tsx');
-const LEADS = read('app/vendor/discover/leads/page.tsx');
+const DISC = read('app/vendor/(legacy)/discover/page.tsx');
+// P7.2 ZIP 1b: `app/vendor/discover/leads/page.tsx` was DELETED at the flip (founder: the
+// page 404s; its rows already show in the Leads room). Cells that can re-key onto the shell's
+// Leads room do; the one whose subject was the stub itself retires below.
+const LEADS = read('app/vendor/(shell)/leads/body.tsx');
 const MAST = read('components/vendor/slices/Masthead.tsx');
 const ROW = read('components/vendor/slices/SliceRow.tsx');
 
@@ -70,9 +73,13 @@ sec('§4 · F-09.87 — the leads page\u2019s gold inks themed; the \u25c6 plug 
 // structurally guaranteed on this page, since a stub has no colour declarations
 // at all. §4.5 below asserts the page is still a stub, so the guarantee cannot
 // lapse by someone rebuilding the dashboard here.
-  ok('§4.5 the retired page is still a STUB, so §4.1 zero-gold-ink holds by construction',
-    /router\.replace/.test(LEADS) && !/rgba\(201,168,76,/.test(strip(LEADS)),
-    'the Leads dashboard has regrown a body here; the retired cells assumed it never would');
+  // §4.5 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (2026-09-04). Assertion quoted: '§4.5 the
+  //     retired page is still a STUB, so §4.1 zero-gold-ink holds by construction' — it
+  //     asserted `router.replace` present and no gold ink. Its subject WAS the stub, and the
+  //     founder ruled that page 404 at the flip; it is deleted, so "still a stub" has no
+  //     surface to be true of. §4.1 above now asks the same question of the shell's Leads
+  //     room, a real body (derived at 039d005: zero `rgba(201,168,76,` hits), so the guarantee
+  //     is measured rather than assumed. Count: 1 cell retired.
 }
 
 sec('§5 · THE DISCLOSED EXTENSION — the insight line, ratify-or-revert');
@@ -97,8 +104,24 @@ ok('\u00a76.3 the per-site law holds through the growth \u2014 the hero\u2019s s
   (strip(DISC).match(/rgba\(240,230,210,0\.78\)/g) || []).length === 1);
 ok('\u00a76.4 the founder\u2019s byte verbatim \u2014 \u300c As couples will see it, curated. \u300d, the brides line dead in code',
   /As couples will see it, curated\./.test(DISC) && !/As brides will see it/.test(strip(DISC)));
-ok('\u00a76.5 the Swati string at the review card is SIGHTED-NOT-TOUCHED (F-09.9\u2019s queued family) \u2014 this cell reddens if a later hand deletes it outside that finding\u2019s own sitting',
-  /reviewed by Swati/.test(DISC));
+// \u00a76.5 \u2014 AMENDED, LABELLED. CE-39 S2/8, F-39.6. THE TRIPWIRE FIRED AND IT WAS RIGHT.
+// It read: the Swati string at the review card is SIGHTED-NOT-TOUCHED (F-09.9's queued
+// family), and it reddened if a later hand deleted it OUTSIDE THAT FINDING'S OWN SITTING.
+// This is that sitting's superseding ruling rather than a later hand: the founder met
+// \u300cContact Swati to be considered.\u300d on the Couture screen, a census found eight sites, and
+// CE-39 ruled F-39.6 with three bytes vetoed verbatim. The condition the cell guarded has
+// been MET, not violated \u2014 and it caught the edit on the way past, which is the whole
+// reason a sighted-not-touched pin is worth writing down.
+//
+// THE PIN DOES NOT SIMPLY GO. What it protected was that the sentence not vanish without a
+// ruling, so the cell now asserts the RULED END STATE: the person's name is gone from this
+// page AND the sentence still exists, in the founder's bytes, read from the one home. A
+// deletion with nothing in its place would still red here, which is what the pin was for.
+ok('\u00a76.5 the review card speaks as the product \u2014 the real name gone, the founder\u2019s byte in its place from the one home (F-39.6, supersedes the F-09.9 pin)',
+  !/reviewed by Swati/.test(strip(DISC))
+  && /COPY\.discoverApplicationPending/.test(DISC)
+  && /discoverApplicationPending:\s*'Your application is with TDW\./.test(
+       read('lib/worklist/copy.ts')));
 
 console.log(`\n──────── tdw09_walkrider: ${pass}/${pass + fail} ────────`);
 process.exit(fail === 0 ? 0 : 1);

@@ -6,13 +6,14 @@
 // fetchNotes), same render, so the two doors can never diverge. No Header here: each caller
 // supplies its own chrome (the tab bar on the business screen; the studio hub's own frame).
 //
-// TAP-TO-VICTOR is the 128f882 signpost, unchanged: "Send to Chat" -> router.push('/vendor?draft='
+// TAP-TO-CHAT is the 128f882 signpost: "Send to Chat" -> openAsk(body) since CE-39 S2/6 (was a /vendor?draft= push
 // + encodeURIComponent(body)). The chat screen feeds ?draft= into InputBar initialValue (composer
 // prefill, visible text, NO hidden injection) and clears the param. It lands in the CURRENT room
 // at the CURRENT mode — this component neither knows nor changes victor_mode.
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAsk } from '@/lib/worklist/askContext';
+import { Fab } from '@/components/worklist/Fab';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/lib/vendor/api/vendor';
@@ -51,7 +52,7 @@ function fmtDate(iso: string): string {
 
 export function NotesBody() {
   const { toast, show } = useToast();
-  const router = useRouter();
+  const { openAsk } = useAsk();
   const [notes, setNotes]     = useState<OwnerNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery]     = useState('');
@@ -59,6 +60,36 @@ export function NotesBody() {
   const [addOpen, setAddOpen] = useState(false);
   const [draft, setDraft]     = useState('');
   const [saving, setSaving]   = useState(false);
+
+  // ── R-38.17 item 5 · THE ADD SHEET OPENS FROM THE ADDRESS ──────────────────
+  //
+  // The shell's Add control (components/worklist/AddFab.tsx) has a Note leg, and Notes is
+  // the one room in the family with no `AddSheet` of its own — its composer is this
+  // component's own `addOpen`. So the leg navigates to /w/notes?add=1 and this reads it.
+  // It calls the EXISTING setter and adds no second way to open the composer; a parameter
+  // that opened its own copy of the sheet would be two homes for one surface.
+  //
+  // ⚠ DEVIATION FROM THE RULED SHAPE, DISCLOSED AND RATIFY-OR-REVERT. The ruling says one
+  // useEffect over `useSearchParams`. This reads `window.location.search` instead, and the
+  // reason is the estate's own precedent on this exact parameter class:
+  // app/vendor/calendar/page.tsx:280-282 reads its `?block=` leg the same way and states
+  // why — 「no useSearchParams: keeps the page free of a Suspense boundary」. Under Next 16
+  // `useSearchParams` in a client component forces a Suspense boundary at every caller or
+  // the statically-prerendered route deopts, and THIS COMPONENT HAS THREE CALLERS, two of
+  // them outside this seat's contention grant (app/vendor/list/[slice]/notes.tsx and
+  // app/vendor/studio/notes/page.tsx). Choosing the hook would have meant editing two
+  // out-of-scope files to add boundaries, to read one integer.
+  // The revert is five lines if the chair prefers the hook.
+  //
+  // IT RUNS ONCE, ON MOUNT. The parameter is an instruction to open, not a state to keep
+  // in sync — re-running it on every navigation would re-open the composer behind a vendor
+  // who had just dismissed it.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get('add') === '1') setAddOpen(true);
+    } catch { /* no-op: an unreadable address is not a reason to fail a page */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchNotes().then(r => {
@@ -152,19 +183,28 @@ export function NotesBody() {
         </div>
       )}
 
-      {/* FAB */}
-      <button type="button" onClick={() => setAddOpen(true)} aria-label="New note" style={{
-        position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', right: 24, width: 52, height: 52,
-        borderRadius: '50%', backgroundColor: 'var(--atelier-accent-text)', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
-        boxShadow: '0 4px 20px var(--atelier-overlay-bg)',
-      }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
+{/* ── CE-39 S2/6 · F-39.4 · THIS IS THE ONE THE FOUNDER SAW ─────────────────
+          52px at right 24, bottom 80, and NO TREE AWARENESS AT ALL — so inside the shell
+          it painted ON the ask dock. That is F-38.59 exactly: the finding SliceShell was
+          cured for at §4-4, live in a third file, through the whole of that sitting and
+          this one. It survived because b40's C39 stops at the first file a /w route
+          imports and this component is one hop further out; the handover's §6 carries the
+          lesson and the cell now walks the graph.
+          The shell arm draws the one seat and names no number. The /vendor arm keeps its
+          80 — Notes is mounted by the old list tree and by the studio, both of which die
+          at Phase 7, and deleting the button there would take the only way to write a note
+          with it. Disclosed as s-39.8: the ruling named SliceShell's carve-out and this
+          component has the identical dual-tree property. */}
+      {<Fab label="New note" onClick={() => setAddOpen(true)} />}
 
       {/* Detail sheet */}
       {selected && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setSelected(null)}>
+        /* `data-wl-notesheet` is an INSTRUMENT HANDLE, not chrome: wl_render's C-R19 asserts
+           this sheet is GONE after Send to Chat (F-39.7), and an absence cell needs a name to
+           look for. The seat's first cut asserted a selector that did not exist anywhere —
+           vacuously true, and the hollow-green shape in miniature. Added rather than dropped,
+           because the claim is worth making. */
+        <div data-wl-notesheet style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setSelected(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             width: '100%', background: 'var(--atelier-sheet-top)',
             borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: '0.5px solid var(--atelier-card-border)',
@@ -177,7 +217,21 @@ export function NotesBody() {
             <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
               <span style={{ fontFamily: F.label, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
-              <button type="button" onClick={() => router.push('/vendor?draft=' + encodeURIComponent(selected.body))} style={{
+              {/* CE-39 S2/6 · F-38.47: the note BODY is the prefill, and it never leaves
+                  memory — this is the door that refused arm (b), a URL param, because a
+                  note in a URL is a note in the history and the referrer. The ask door
+                  (lib/worklist/askContext.tsx) opens the sheet in place inside the shell
+                  and makes today's push on the /vendor tree.
+
+                  ── CE-39 S2/9 · F-39.7 · AND IT DISMISSES ITSELF NOW ──────────────
+                  This detail sheet is z-index 20 and the ask sheet is 40, so this door
+                  LOOKED correct on the walk while carrying the identical defect to the
+                  wishbone's: it left its own surface mounted underneath, and closing the
+                  chat returned the vendor to a stale sheet about a note she had just
+                  finished discussing. **The z-index was hiding it, not curing it** — which
+                  is why the cell added this sitting asserts the DISMISSAL and not the
+                  stacking. Same edit, same reason, same one-line shape as Calendar's. */}
+              <button type="button" onClick={() => { setSelected(null); openAsk(selected.body); }} style={{
                 width: '100%', padding: '13px 0', background: 'var(--atelier-accent-text)', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
                 color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',

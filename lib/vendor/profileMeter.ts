@@ -1,6 +1,6 @@
 // lib/vendor/profileMeter.ts — THE COMPLETENESS MODEL, ONE HOME (client side).
 //
-// TDW_09 PHASE B — MOVED from app/vendor/discover/profile/page.tsx (not
+// TDW_09 PHASE B — MOVED from app/vendor/(legacy)/discover/profile/page.tsx (not
 // rewritten; the F11(c) studioShared precedent) so the Storefront door's §1
 // (F-3(a), founder-vetoed heading 「 Complete your bio 」) renders THE SAME
 // score the profile screen shows — never a second authority on one number

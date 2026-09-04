@@ -348,9 +348,17 @@ export function TipsCarousel({ onClose }: Props) {
             }}>{safeIdx + 1} / {filtered.length}</span>
           </div>
 
-          {/* Title */}
+          {/* Title — R-37.84 ③, cured ZIP 13 per CE ruling F-3.
+              `fontStyle: 'italic'` is gone from this line. This file's F.display
+              (:11) is Cormorant, not Italiana, so ZIP 12's "F.display + italic is
+              the display family, not the script role" exemption never applied
+              here — that reasoning was derived on OnboardingOverlay and AddSheet
+              and generalized to a file it had not enumerated. Cormorant UPRIGHT
+              survives as this surface's one deliberate display line; the mock's
+              type law holds without a new exception, which is why the assertion
+              in tools/wl_audit.mjs still carries no exception list. */}
           <h3 style={{
-            fontFamily: F.display, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.display, fontWeight: 300,
             fontSize: 25, lineHeight: 1.22, color: headColor,
             marginBottom: 10,
           }}>{tip.title}</h3>

@@ -1,0 +1,38 @@
+# scripts/floor-manifest-ce39-2c-2a-pwa.txt
+# BASE bb4a9ad (worklist; re-derived fetch-first at the cut — the guard decides).
+# Sibling dream-os 4918275 (band 4), whose money door mounts the ELEVEN routes
+# this delivery addresses.
+#
+# CE-39 ROAD STEP 2c · 2a-pwa · THE MONEY CROSSING, pwa half.
+#   F-39.3  ELEVEN call sites cross to the typed money door (the charter said
+#           five, the export table said ten; expenses.tsx built its URL inline)
+#   F-39.21 the Books register renders D-1 B13's particular, B2-months shape
+#   D-1/c4  the head pair becomes Total received · Outstanding; mock re-shot
+#   F-39.34 tdw09_p2b 3.6 amended — RED at origin since f915b55 (Phase 4
+#           retired the leads figure and left its reader)
+#   §8.9    binderToInvoice · binderToExpense · invoiceState · the derive
+#           import retire with their readers
+# NOT here: the Clients plane (fetchCabinet/fetchLedger/binderBase/binderToClient
+# and Cabinet.tsx:297) is byte-untouched, and the dream-os engine GET arms retire
+# in 2b's companion once no reader calls them.
+# [F-19.16 / F-39.31] The delivery's own file table.
+
+app/vendor/list/[slice]/expenses.tsx
+app/vendor/list/[slice]/invoices.tsx
+components/worklist/BooksBody.tsx
+docs/TDW_CE39_2C_2A_PWA_HANDOVER.md
+docs/mocks/books-register-mock.html
+docs/mocks/books-register-mock__B1-register__dark__374.png
+docs/mocks/books-register-mock__B1-register__dark__390.png
+docs/mocks/books-register-mock__B1-register__light__374.png
+docs/mocks/books-register-mock__B1-register__light__390.png
+docs/mocks/books-register-mock__B2-months__dark__374.png
+docs/mocks/books-register-mock__B2-months__dark__390.png
+docs/mocks/books-register-mock__B2-months__light__374.png
+docs/mocks/books-register-mock__B2-months__light__390.png
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+lib/worklist/copy.ts
+scripts/b40_worklist_shell_bench.js
+scripts/tdw09_p2b.proof.mjs
+scripts/floor-manifest-ce39-2c-2a-pwa.txt

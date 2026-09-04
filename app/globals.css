@@ -1,3 +1,12 @@
+/* ══ BRANCH-ONLY · ZIP 12 (R-37.84 ④ — THE ESPRESSO FLASH, STRUCTURAL HALF) ════════
+ * The values below WERE Espresso and Editorial Paper, with a Graphite override appended at
+ * the foot of this file to beat them. That is a layer that must WIN — fragile by parse
+ * order and by anything later out-specifying it — and while it wins it also means the
+ * FIRST PARSED VALUE of every ground is still Espresso.
+ * A value that is simply CORRECT cannot lose. So the literals are rewritten in place: the
+ * first parsed value is Graphite, the first painted frame is Graphite, and the appended
+ * block at the foot is now belt-and-braces rather than load-bearing.
+ * 112 literals rewritten. `main` keeps Espresso at this path. */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
 @tailwind base;
@@ -14,8 +23,8 @@
   /* ── Brand (preserved for mobile app / couple PWA) ── */
   --gold: #C9A84C;
   --gold-hover: #B8963A;
-  --gold-muted: rgba(201,168,76,0.08);
-  --gold-border: rgba(201,168,76,0.2);
+  --gold-muted: rgba(240,244,246,0.08);
+  --gold-border: rgba(240,244,246,0.2);
   --cream: #F8FAFC;
   --cream-dark: #F1F5F9;
   --light-gold: #F8FAFC;
@@ -64,7 +73,7 @@
   --sidebar-text: #94A3B8;
   --sidebar-text-bright: #CBD5E1;
   --sidebar-hover: #1E293B;
-  --sidebar-active-bg: rgba(201,168,76,0.1);
+  --sidebar-active-bg: rgba(240,244,246,0.1);
   --sidebar-active-text: #C9A84C;
   --sidebar-active-border: #C9A84C;
   --sidebar-section: #64748B;
@@ -82,7 +91,7 @@
   --input-bg: var(--surface);
   --input-border: var(--border-primary);
   --input-focus-border: var(--gold);
-  --input-focus-ring: rgba(201,168,76,0.15);
+  --input-focus-ring: rgba(240,244,246,0.15);
   --input-text: var(--text-primary);
   --input-placeholder: var(--text-muted);
 
@@ -224,7 +233,7 @@ body {
 .frost-scroll { scrollbar-width: none; -ms-overflow-style: none; }
 .frost-scroll::-webkit-scrollbar { display: none; }
 
-::selection { background: rgba(201,168,76,0.2); color: var(--text-primary); }
+::selection { background: rgba(240,244,246,0.2); color: var(--text-primary); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    TYPOGRAPHY
@@ -673,24 +682,24 @@ body {
    --font-italiana / --font-cormorant / --font-dm-sans / --font-jost
    are all available as CSS vars without redeclaring here.            */
 :root {
-  --color-bg-warm:    #1F1612;
-  --color-bg-deep:    #16100C;
+  --color-bg-warm:    #141516;
+  --color-bg-deep:    #0F1011;
   --color-bg-discov:  #0C0907;
   --color-ink:        #F0E6D2;
   --color-ink-soft:   rgba(240,230,210,0.65);
   --color-ink-mute:   rgba(240,230,210,0.45);
   --color-brass:      #C9A84C;
-  --color-brass-warm: #E0BC6E;
+  --color-brass-warm: #B9BCBF;
   --color-brass-deep: #B59548;
-  --color-brass-soft: rgba(201,168,76,0.22);
-  --color-brass-line: rgba(201,168,76,0.18);
-  --color-brass-faint:rgba(201,168,76,0.10);
+  --color-brass-soft: rgba(240,244,246,0.22);
+  --color-brass-line: rgba(240,244,246,0.18);
+  --color-brass-faint:rgba(240,244,246,0.10);
   --color-terracotta: #E07B5C;
   --color-gold:       #C9A84C;
   --color-cream:      #F0E6D2;
   --color-warm:       #F4F1EC;
   --color-muted:      #8C8480;
-  --color-border:     rgba(201,168,76,0.18);
+  --color-border:     rgba(240,244,246,0.18);
   --ease-luxury:      cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -726,7 +735,7 @@ body {
      their literal fallback forever. Its owner is theme.ts's `pageBg`, the same
      value ThemeContext publishes as --atelier-page-bg. Splash deliberately does
      NOT read it — see that file's invariance note. */
-  --atelier-bg:          #1F1612;
+  --atelier-bg:          #141516;
   /* The six F-09.28 roles get their pre-mount home. They had ZERO: published only
      by ThemeContext post-mount, so any surface reading one rendered no colour at
      all on the first frame. Shipping ink→roles onto roles with no pre-mount home
@@ -750,50 +759,50 @@ body {
      6.47:1 on the coin's 70% stop #B59548. */
   --role-today-coin-ink: #1A120E;
   /* TDW_09 P2C · F-09.102 — INK ON A GROUND THAT THEMES.
-     --role-metal darkened #C9A84C -> #826A27 on Editorial Paper (F-09.28, so brass
+     --role-metal darkened #C9A84C -> #8A6F2A on Editorial Paper (F-09.28, so brass
      as TEXT would clear AA). Nothing re-derived the ink sitting ON brass as GROUND:
      #1A120E fell 8.08:1 -> 3.55:1, under the 4.5 body bar. Four specimens carry it.
      ALSO SERVES --role-critical grounds (DetailSheet's Confirm): #1A120E on #BA4723
      is 3.53:1, same failure. The name under-describes its roster and is the chair's
      ratified name; flagged rather than silently widened.
      THIS ROLE MUST STAY THEME-CONDITIONAL. The cream is CATASTROPHIC on Espresso —
-     #F5F2EE on #C9A84C is 2.05:1. Flattening this role the way --role-ink-deep is
+     #F3F4F4 on #C9A84C is 2.05:1. Flattening this role the way --role-ink-deep is
      lawfully flat would destroy the dark theme. The bench pins BOTH arms and reddens
      on a flattening (CITATION-NEEDS-A-CELL, both arms). */
   --role-ink-on-metal:   #1A120E;
-  --atelier-card-bg:     linear-gradient(180deg, rgba(245,235,212,0.06) 0%, rgba(245,235,212,0.03) 100%);
-  --atelier-card-border: rgba(201,168,76,0.3);
+  --atelier-card-bg:     linear-gradient(180deg, rgba(240,244,246,0.06) 0%, rgba(240,244,246,0.03) 100%);
+  --atelier-card-border: rgba(240,244,246,0.3);
   --atelier-card-shadow: 0 12px 32px -16px rgba(0,0,0,0.5);
   --atelier-header-bg:   rgba(31,22,18,0.78);
   --atelier-sheet-bg:    linear-gradient(180deg, rgba(31,22,18,0.97) 0%, rgba(22,16,12,0.99) 100%);
   --atelier-sheet-top:   rgba(31,22,18,0.97);
   --atelier-sheet-bot:   rgba(22,16,12,0.99);
-  --atelier-sheet-border:rgba(201,168,76,0.32);
-  --atelier-input-bg:    rgba(245,235,212,0.04);
+  --atelier-sheet-border:rgba(240,244,246,0.32);
+  --atelier-input-bg:    rgba(240,244,246,0.04);
   /* TDW_09 R-S3 + F-09.35 — the field boundary at the 3:1 UI bar. This block is
      the PRE-MOUNT home; lib/vendor/theme.ts is the token owner and ThemeContext
      repaints it inline post-mount. Both homes move together or the first frame
      renders an edge the owner does not hold — which is exactly what F-09.35 is. */
-  --atelier-input-border:rgba(201,168,76,0.52);
+  --atelier-input-border:rgba(240,244,246,0.52);
   --atelier-overlay:     rgba(0,0,0,0.6);
   --atelier-overlay-bg:  rgba(0,0,0,0.6);
-  --atelier-row-hover:   rgba(245,235,212,0.03);
+  --atelier-row-hover:   rgba(240,244,246,0.03);
   /* TDW_09 P1 · B-1 — R-M5 COMPLETED: --atelier-page-bg and --atelier-section-bg
      were PUBLISHED post-mount (ThemeContext) and read live (the demo layout reads
      page-bg with no fallback) while declared in NEITHER pre-mount home — the
      F-09.35 class: the first frame rendered inherited/transparent where the owner
      holds a value. Declared here at the theme.ts DARK owner's bytes; the
      comparator cell guards owner-equality permanently. */
-  --atelier-page-bg:     #1F1612;
-  --atelier-section-bg:  rgba(245,235,212,0.03);
+  --atelier-page-bg:     #141516;
+  --atelier-section-bg:  rgba(240,244,246,0.03);
   --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(245,240,232,0.012) 1px, transparent 0);
-  --atelier-label:       #E0BC6E;
+  --atelier-label:       #B9BCBF;
   --atelier-accent-text: #C9A84C;
 }
 
 /* ── EDITORIAL PAPER — light mode
    Exact palette from the Atelier Masterpiece vision:
-   #F5F2EE  bone white base — no yellow, no cream
+   #F3F4F4  bone white base — no yellow, no cream
    #2A1A10  deep oxblood ink — legible, warm, not black
    #8B4B37  Sabyasachi monogram accent — deep red-brown
    #C9A84C  brass — same as always, used sparingly
@@ -809,40 +818,40 @@ body {
    AT THE OWNER'S VALUES, because deleting them did not remove the second home — it
    removed the first FRAME, which then rendered cream ink on a cream ground. */
 html.theme-light {
-  --atelier-ink:         #1A0F08;
-  --atelier-ink-soft:    rgba(26,15,8,0.80);
-  --atelier-ink-mute:    rgba(26,15,8,0.70);
-  --atelier-ink-dim:     rgba(26,15,8,0.62);
-  --atelier-ink-fade:    rgba(26,15,8,0.46);
-  --atelier-bg:          #F5F2EE;
+  --atelier-ink:         #0E1112;
+  --atelier-ink-soft:    rgba(23,25,26,0.80);
+  --atelier-ink-mute:    rgba(23,25,26,0.70);
+  --atelier-ink-dim:     rgba(23,25,26,0.62);
+  --atelier-ink-fade:    rgba(23,25,26,0.46);
+  --atelier-bg:          #F3F4F4;
   --role-positive:       #3E7A44;
   --role-caution:        #9B5E22;
   --role-critical:       #BA4723;
-  --role-metal:          #826A27;
-  --role-scrim:          rgba(26,15,8,0.35);
+  --role-metal:          #8A6F2A;
+  --role-scrim:          rgba(23,25,26,0.35);
   --role-sheet:          #FFFFFF;
   /* IDENTICAL to the dark block by law, not by omission — see the note there.
      Brass does not theme, so the ink on it does not theme. */
   --role-ink-deep:       #1A120E;
   /* TDW_09 P2C · F-09.100's RULED CURE — THE TODAY NUMERAL WAS DARK-ON-DARK HERE.
      The numeral was #1A120E over the light coin's oxblood gradient: 2.13:1 at the
-     70% stop #7A3828 — under the 3:1 UI bar AND the 4.5 body bar, at a 20px display
+     70% stop #0D6A5A — under the 3:1 UI bar AND the 4.5 body bar, at a 20px display
      numeral, in exactly one theme. No walk on Espresso could ever have found it.
      THE CURE FOLLOWS THE COIN'S OWN DECLARED CREAM: `html.theme-light
-     .atelier-today-coin` already sets `color: #F5F2EE` for the coin itself — the
+     .atelier-today-coin` already sets `color: #F3F4F4` for the coin itself — the
      numeral is the BUTTON's text, a different element, so it never inherited that
      cure. The-product-is-the-spec: the reference value was already in the file.
      DERIVED across every stop of the gradient, not just the one the finding
-     measured: #F5F2EE reads 5.31:1 at #9B4E38, 7.76:1 at #7A3828, 10.81:1 at
+     measured: #F3F4F4 reads 5.31:1 at #128872, 7.76:1 at #0D6A5A, 10.81:1 at
      #5E2418. The WORST stop clears the body bar, so the cure holds across the
      whole coin rather than at its midpoint. */
-  --role-today-coin-ink: #F5F2EE;
-  /* F-09.102's light arm — the cream, 4.66:1 on #826A27 and 4.69:1 on #BA4723.
+  --role-today-coin-ink: #F3F4F4;
+  /* F-09.102's light arm — the cream, 4.66:1 on #8A6F2A and 4.69:1 on #BA4723.
      Both clear the body bar. It is the SAME cream the fab class (globals.css
      .atelier-fab, light) and the today coin already carry, both founder-walked:
      the-product-is-the-spec, so three surfaces now agree on one rule instead of
      holding three literals. See the dark block for why this must never flatten. */
-  --role-ink-on-metal:   #F5F2EE;
+  --role-ink-on-metal:   #F3F4F4;
   --atelier-card-bg:     linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(245,242,238,0.65) 100%);
   /* TDW_09 P1 · B-1 — THE BOTH-HOMES SWEEP (F-09.35's law: both homes move
      together or the first frame renders a boundary the owner does not hold).
@@ -854,27 +863,27 @@ html.theme-light {
      theme.ts LIGHT owner's, byte-equal; the comparator cell in
      scripts/tdw09_p1_canon.proof.mjs asserts owner-equality for EVERY
      published token, both homes, so this class dies as a class. */
-  --atelier-card-border: rgba(122,56,40,0.18);
+  --atelier-card-border: rgba(23,25,26,0.18);
   --atelier-card-shadow: 0 2px 12px -4px rgba(42,26,16,0.08);
   --atelier-header-bg:   rgba(245,242,238,0.96);
-  --atelier-sheet-bg:    linear-gradient(180deg, #F5F2EE 0%, #EDE8DF 100%);
-  --atelier-sheet-top:   #F5F2EE;
-  --atelier-sheet-bot:   #EDE8DF;
-  --atelier-sheet-border:rgba(122,56,40,0.25);
-  --atelier-input-bg:    rgba(26,15,8,0.04);
+  --atelier-sheet-bg:    linear-gradient(180deg, #F3F4F4 0%, #EDEEEF 100%);
+  --atelier-sheet-top:   #F3F4F4;
+  --atelier-sheet-bot:   #EDEEEF;
+  --atelier-sheet-border:rgba(23,25,26,0.25);
+  --atelier-input-bg:    rgba(23,25,26,0.04);
   /* TDW_09 R-S3 + F-09.35 — WAS 0.22 here while theme.ts:151 held 0.28: two homes,
      two values, on the theme the founder's walk convicted. Both now 0.58 (3.03:1). */
-  --atelier-input-border:rgba(122,56,40,0.58);
-  --atelier-overlay-bg:  rgba(26,15,8,0.55);
-  --atelier-overlay:     rgba(26,15,8,0.55);
-  --atelier-row-hover:   rgba(26,15,8,0.03);
+  --atelier-input-border:rgba(23,25,26,0.58);
+  --atelier-overlay-bg:  rgba(23,25,26,0.55);
+  --atelier-overlay:     rgba(23,25,26,0.55);
+  --atelier-row-hover:   rgba(23,25,26,0.03);
   /* TDW_09 P1 · B-1 — the light half of the same R-M5 completion; theme.ts LIGHT
      owner's bytes. Both homes move together (F-09.35). */
-  --atelier-page-bg:     #F5F2EE;
-  --atelier-section-bg:  rgba(26,15,8,0.025);
-  --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(26,15,8,0.018) 1px, transparent 0);
-  --atelier-label:       #7A3828;
-  --atelier-accent-text: #7A3828;
+  --atelier-page-bg:     #F3F4F4;
+  --atelier-section-bg:  rgba(23,25,26,0.025);
+  --atelier-grain:       radial-gradient(circle at 1px 1px, rgba(23,25,26,0.018) 1px, transparent 0);
+  --atelier-label:       #0D6A5A;
+  --atelier-accent-text: #0D6A5A;
 }
 
 /* ── Flair — the dreamai navy/bone/ember room (content-surface vars) ──
@@ -887,9 +896,9 @@ html.theme-light {
 /* ── Hub atmosphere — dark espresso / bone paper ─────────────── */
 html, body {
   background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(201,168,76,0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(122,56,40,0.06) 0%, transparent 60%),
-    linear-gradient(180deg, #1F1612 0%, #16100C 100%) !important;
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(240,244,246,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(23,25,26,0.06) 0%, transparent 60%),
+    linear-gradient(180deg, #141516 0%, #0F1011 100%) !important;
   color: #F0E6D2 !important;
   background-attachment: fixed !important;
 }
@@ -899,7 +908,7 @@ html.theme-light body {
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"),
     linear-gradient(160deg, #F7F4EF 0%, #F3EFE8 40%, #F5F1EB 70%, #F2EDE6 100%) !important;
-  color: #1A0F08 !important;
+  color: #0E1112 !important;
   background-attachment: fixed !important;
 }
 
@@ -921,15 +930,15 @@ body.room-studio {
 html.theme-light.room-studio,
 html.theme-light body.room-studio {
   /* Slightly cooler bone — daylight through tall windows */
-  background: #F5F2EE !important;
-  color: #1A0F08 !important;
+  background: #F3F4F4 !important;
+  color: #0E1112 !important;
 }
 
 /* ── Discover room — near-black gallery ──────────────────────── */
 html.room-discover,
 body.room-discover {
   background:
-    radial-gradient(ellipse 50% 25% at 50% 0%, rgba(201,168,76,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 25% at 50% 0%, rgba(240,244,246,0.05) 0%, transparent 70%),
     linear-gradient(180deg, #0A0907 0%, #060503 100%) !important;
 }
 
@@ -957,7 +966,7 @@ body > * { position: relative; z-index: 1; }
   background: var(--atelier-card-bg);
   border: 0.5px solid var(--atelier-card-border);
   border-radius: 4px;
-  box-shadow: var(--atelier-card-shadow), inset 0 1px 0 rgba(245,235,212,0.06);
+  box-shadow: var(--atelier-card-shadow), inset 0 1px 0 rgba(240,244,246,0.06);
   position: relative;
 }
 
@@ -980,48 +989,48 @@ html.theme-light .atelier-card {
 /* Brass-key FAB */
 .atelier-fab {
   background: linear-gradient(180deg, #D4B86A 0%, #B59548 100%);
-  border: 0.5px solid #E0BC6E;
+  border: 0.5px solid #B9BCBF;
   color: #1A120E;
   box-shadow:
     0 16px 36px -8px rgba(0,0,0,0.6),
-    0 4px 12px -2px rgba(201,168,76,0.4),
+    0 4px 12px -2px rgba(240,244,246,0.4),
     inset 0 1px 1px rgba(255,235,200,0.6);
 }
 
 html.theme-light .atelier-fab {
-  background: linear-gradient(180deg, #9B4E38 0%, #7A3828 100%) !important;
-  border-color: #9B4E38 !important;
-  color: #F5F2EE !important;
+  background: linear-gradient(180deg, #128872 0%, #0D6A5A 100%) !important;
+  border-color: #128872 !important;
+  color: #F3F4F4 !important;
   box-shadow:
-    0 8px 24px -6px rgba(122,56,40,0.50),
-    0 2px 6px -1px rgba(122,56,40,0.30),
+    0 8px 24px -6px rgba(23,25,26,0.50),
+    0 2px 6px -1px rgba(23,25,26,0.30),
     inset 0 1px 1px rgba(255,200,180,0.25) !important;
 }
 
 html.theme-light .atelier-today-coin {
-  background: radial-gradient(circle at 40% 30%, #9B4E38 0%, #7A3828 70%, #5E2418 100%) !important;
-  color: #F5F2EE !important;
-  box-shadow: 0 2px 8px -2px rgba(122,56,40,0.45), inset 0 0.5px 1px rgba(255,200,180,0.25) !important;
+  background: radial-gradient(circle at 40% 30%, #128872 0%, #0D6A5A 70%, #5E2418 100%) !important;
+  color: #F3F4F4 !important;
+  box-shadow: 0 2px 8px -2px rgba(23,25,26,0.45), inset 0 0.5px 1px rgba(255,200,180,0.25) !important;
 }
 
 /* Today coin */
 .atelier-today-coin {
-  background: radial-gradient(circle at 40% 30%, #E0BC6E 0%, #B59548 70%, #9F8038 100%);
+  background: radial-gradient(circle at 40% 30%, #B9BCBF 0%, #B59548 70%, #8A6F2A 100%);
   color: #1A120E;
-  box-shadow: 0 2px 6px -1px rgba(201,168,76,0.4), inset 0 0.5px 1px rgba(255,235,200,0.4);
+  box-shadow: 0 2px 6px -1px rgba(240,244,246,0.4), inset 0 0.5px 1px rgba(255,235,200,0.4);
 }
 
 /* Hot dates ribbon */
 .atelier-hot-ribbon {
-  background: linear-gradient(90deg, rgba(122,56,40,0.06) 0%, rgba(201,168,76,0.09) 50%, rgba(122,56,40,0.06) 100%);
-  border-top: 0.5px solid rgba(201,168,76,0.28);
-  border-bottom: 0.5px solid rgba(201,168,76,0.28);
+  background: linear-gradient(90deg, rgba(23,25,26,0.06) 0%, rgba(240,244,246,0.09) 50%, rgba(23,25,26,0.06) 100%);
+  border-top: 0.5px solid rgba(240,244,246,0.28);
+  border-bottom: 0.5px solid rgba(240,244,246,0.28);
 }
 
 html.theme-light .atelier-hot-ribbon {
-  background: linear-gradient(90deg, rgba(122,56,40,0.06) 0%, rgba(122,56,40,0.10) 50%, rgba(122,56,40,0.06) 100%);
-  border-top: 0.5px solid rgba(122,56,40,0.22);
-  border-bottom: 0.5px solid rgba(122,56,40,0.22);
+  background: linear-gradient(90deg, rgba(23,25,26,0.06) 0%, rgba(23,25,26,0.10) 50%, rgba(23,25,26,0.06) 100%);
+  border-top: 0.5px solid rgba(23,25,26,0.22);
+  border-bottom: 0.5px solid rgba(23,25,26,0.22);
 }
 
 /* Flair — the hot-dates ribbon in navy/ember (was falling back to the warm
@@ -1091,7 +1100,7 @@ html.theme-light span,
 html.theme-light p,
 html.theme-light h1, html.theme-light h2, html.theme-light h3,
 html.theme-light a {
-  color: #1A0F08;
+  color: #0E1112;
 }
 
 
@@ -1104,37 +1113,37 @@ html.theme-light a {
    light-mode text override. Fonts reuse the app's loaded families. */
 
 .dd-cab{
-  --cab-bg:          #1F1612;
-  --cab-bg-deep:     #16100C;
-  --cab-surface:     linear-gradient(180deg, rgba(245,235,212,0.06) 0%, rgba(245,235,212,0.03) 100%);
+  --cab-bg:          #141516;
+  --cab-bg-deep:     #0F1011;
+  --cab-surface:     linear-gradient(180deg, rgba(240,244,246,0.06) 0%, rgba(240,244,246,0.03) 100%);
   --cab-ink:         #F0E6D2;
   --cab-ink-soft:    rgba(240,230,210,0.65);
   --cab-ink-mute:    rgba(240,230,210,0.45);
   --cab-accent:      #C9A84C;
-  --cab-accent-warm: #E0BC6E;
-  --cab-accent-soft: rgba(201,168,76,0.28);
-  --cab-accent-faint:rgba(201,168,76,0.10);
-  --cab-line:        rgba(201,168,76,0.18);
+  --cab-accent-warm: #B9BCBF;
+  --cab-accent-soft: rgba(240,244,246,0.28);
+  --cab-accent-faint:rgba(240,244,246,0.10);
+  --cab-line:        rgba(240,244,246,0.18);
   --cab-toolbar-bg:  #0C0907;
   --cab-out:         #E07B5C;
   --cab-on-accent:   #1B1407;
   --cab-ease:        cubic-bezier(0.22, 1, 0.36, 1);
 }
 html.theme-light .dd-cab{
-  --cab-bg:          #F5F2EE;
-  --cab-bg-deep:     #EDE8DF;
+  --cab-bg:          #F3F4F4;
+  --cab-bg-deep:     #EDEEEF;
   --cab-surface:     rgba(255,255,255,0.90);
-  --cab-ink:         #1A0F08;
-  --cab-ink-soft:    rgba(26,15,8,0.80);
-  --cab-ink-mute:    rgba(26,15,8,0.55);
-  --cab-accent:      #7A3828;
+  --cab-ink:         #0E1112;
+  --cab-ink-soft:    rgba(23,25,26,0.80);
+  --cab-ink-mute:    rgba(23,25,26,0.55);
+  --cab-accent:      #0D6A5A;
   --cab-accent-warm: #9B6E1A;
-  --cab-accent-soft: rgba(122,56,40,0.30);
-  --cab-accent-faint:rgba(122,56,40,0.10);
-  --cab-line:        rgba(122,56,40,0.20);
-  --cab-toolbar-bg:  rgba(26,15,8,0.05);
+  --cab-accent-soft: rgba(23,25,26,0.30);
+  --cab-accent-faint:rgba(23,25,26,0.10);
+  --cab-line:        rgba(23,25,26,0.20);
+  --cab-toolbar-bg:  rgba(23,25,26,0.05);
   --cab-out:         #B0573E;
-  --cab-on-accent:   #F5F2EE;
+  --cab-on-accent:   #F3F4F4;
 }
 /* TDW_09 R-U19 — the cabinet override deleted with the retired theme. */
 
@@ -1262,3 +1271,158 @@ html.theme-light .dd-cab{
    risen sheet breaches it. Mechanism comment law (F-06.85): if either the
    className or the body class moves, this selector moves with it. */
 body.chat-risen .tdw-bottom-nav { display: none; }
+
+
+/* ══ BRANCH-ONLY · M-WORKLIST ZIP 3 (R-37.73 ④) — THE GRAPHITE OVERRIDE LAYER ══════════
+   Production `main` carries Espresso and Editorial Paper above; this block exists only on
+   the `worklist` branch and only so a deep-linked room stops falling back into the brown.
+
+   WHY IT IS APPENDED AND NOT EDITED IN PLACE. Every declaration above stays byte-untouched
+   and readable in a diff. An in-place rewrite of a hundred lines of ruled colour would have
+   buried the change and made the eventual merge unreviewable.
+
+   WHY !important, DELIBERATELY AND NARROWLY. Three things outrank a plain appended :root
+   here: the room atmospheres (`body.room-studio` = 0,1,1 against :root's 0,1,0), their own
+   existing !important page paints, and app/vendor/layout.tsx's inline pre-paint pin. This
+   layer overrides variables ONLY — never a layout property, never a component rule — so it
+   cannot change a single position, size or spacing. It is a palette, forced.
+
+   THE ATMOSPHERES KEEP THEIR SHAPE (§8.13): the same two gradients, the same geometry, the
+   same stop positions, re-keyed to Graphite grounds. Zero structural delta; only the ink of
+   the room changes, which is what the founder asked for. */
+:root {
+  --atelier-bg: #0F1011 !important;
+  --atelier-page-bg: #141516 !important;
+  --atelier-header-bg: #1A1B1D !important;
+  --atelier-section-bg: #171819 !important;
+  --atelier-sheet-bg: #1D1E20 !important;
+  --atelier-overlay-bg: #0A0B0C !important;
+  --atelier-card-bg: linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%) !important;
+  --atelier-card-border: rgba(240,244,246,0.11) !important;
+  --atelier-card-shadow: rgba(0,0,0,0.50) !important;
+  --atelier-row-hover: rgba(240,244,246,0.042) !important;
+  --atelier-grain: rgba(255,255,255,0.012) !important;
+  --atelier-input-bg: rgba(240,244,246,0.040) !important;
+  --atelier-input-border: rgba(104,201,180,0.58) !important;
+  --atelier-sheet-top: #232527 !important;
+  --atelier-sheet-bot: #191A1C !important;
+  --atelier-sheet-border: rgba(240,244,246,0.14) !important;
+  --atelier-overlay: rgba(10,11,12,0.74) !important;
+  --atelier-ink: #EDEEEF !important;
+  --atelier-ink-soft: #C8CACC !important;
+  --atelier-ink-dim: #A3A6A9 !important;
+  --atelier-ink-mute: #888B8E !important;
+  --atelier-ink-fade: #585B5E !important;
+  --atelier-label: #B9BCBF !important;
+  --atelier-accent-text: #68C9B4 !important;
+  --role-metal: #C9A84C !important;
+  --role-ink-on-metal: #141516 !important;
+  --role-ink-deep: #0F1011 !important;
+  --role-positive: #6FC98C !important;
+  --role-caution: #DFAE6C !important;
+  --role-critical: #E8836B !important;
+  --role-scrim: rgba(10,11,12,0.62) !important;
+  --role-sheet: #1D1E20 !important;
+  --role-today-coin-ink: #141516 !important;
+}
+
+html.theme-light {
+  --atelier-bg: #EDEEEF !important;
+  --atelier-page-bg: #F3F4F4 !important;
+  --atelier-header-bg: #FFFFFF !important;
+  --atelier-section-bg: #E7E9EA !important;
+  --atelier-sheet-bg: #FFFFFF !important;
+  --atelier-overlay-bg: #17191A !important;
+  --atelier-card-bg: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%) !important;
+  --atelier-card-border: rgba(23,25,26,0.13) !important;
+  --atelier-card-shadow: rgba(23,25,26,0.09) !important;
+  --atelier-row-hover: rgba(23,25,26,0.038) !important;
+  --atelier-grain: rgba(23,25,26,0.012) !important;
+  --atelier-input-bg: rgba(23,25,26,0.035) !important;
+  --atelier-input-border: rgba(13,106,90,0.68) !important;
+  --atelier-sheet-top: #F8F9F9 !important;
+  --atelier-sheet-bot: #EDEFEF !important;
+  --atelier-sheet-border: rgba(23,25,26,0.16) !important;
+  --atelier-overlay: rgba(23,25,26,0.44) !important;
+  --atelier-ink: #0E1112 !important;
+  --atelier-ink-soft: #272B2D !important;
+  --atelier-ink-dim: #3D4245 !important;
+  --atelier-ink-mute: #52585B !important;
+  --atelier-ink-fade: #767C80 !important;
+  --atelier-label: #3A3F42 !important;
+  --atelier-accent-text: #0D6A5A !important;
+  --role-metal: #8A6F2A !important;
+  --role-ink-on-metal: #FFFFFF !important;
+  --role-ink-deep: #17191A !important;
+  --role-positive: #2C7343 !important;
+  --role-caution: #8A5A18 !important;
+  --role-critical: #AE3A22 !important;
+  --role-scrim: rgba(23,25,26,0.38) !important;
+  --role-sheet: #FFFFFF !important;
+  --role-today-coin-ink: #FFFFFF !important;
+}
+
+html.room-studio,
+body.room-studio {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(240,244,246,0.045) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 10% 100%, rgba(28,30,32,0.55) 0%, transparent 65%),
+    linear-gradient(180deg, #16181A 0%, #111213 100%) !important;
+}
+
+html.theme-light.room-studio,
+html.theme-light body.room-studio {
+  background: #F3F4F4 !important;
+  color: #0E1112 !important;
+}
+
+html.room-discover,
+body.room-discover {
+  background:
+    radial-gradient(ellipse 50% 25% at 50% 0%, rgba(104,201,180,0.05) 0%, transparent 70%),
+    linear-gradient(180deg, #0C0D0E 0%, #08090A 100%) !important;
+}
+
+
+/* ── THE UNCONVERTED LITERALS (founder walk, 2026-08-27) ───────────────────────────────
+   The variable layer above moved every token and changed nothing the founder's eye landed
+   on, because the estate's loudest controls are NOT tokens — they are hard-coded hex in the
+   component rules at :981-:1024. The FAB, the today coin and the hot ribbon carried Espresso
+   gold onto a graphite ground and Editorial oxblood onto chalk. Warm gold on warm brown was
+   coherent; warm gold on cold graphite is the discord the founder named.
+
+   THIS IS COMPLETING THE CARRY, NOT A NEW DECISION. R-37.43 ruled that gold retreats to the
+   metal and the signal takes every interactive role. A floating action button is the single
+   most interactive control in the estate; leaving it gold is the exact conflation the
+   direction was picked to end.
+
+   PROPERTIES, NOT VARIABLES — so this block is a scope widening on the layer above, stated
+   rather than slipped in. It still touches only colour: no position, size or spacing moves. */
+.atelier-fab {
+  background: linear-gradient(180deg, #6FD0BA 0%, #4EA694 100%) !important;
+  border: 0.5px solid #8FE0CC !important;
+  color: #0F1011 !important;
+  box-shadow:
+    0 16px 36px -8px rgba(0,0,0,0.55),
+    0 4px 12px -2px rgba(104,201,180,0.30),
+    inset 0 1px 1px rgba(220,255,246,0.45) !important;
+}
+
+html.theme-light .atelier-fab {
+  background: linear-gradient(180deg, #128872 0%, #0D6A5A 100%) !important;
+  border-color: #0D6A5A !important;
+  color: #FFFFFF !important;
+}
+
+.atelier-today-coin {
+  background: linear-gradient(180deg, #D8BC72 0%, #B59548 100%) !important;
+  color: #141516 !important;
+}
+
+html.theme-light .atelier-today-coin {
+  background: linear-gradient(180deg, #9A7C2F 0%, #8A6F2A 100%) !important;
+  color: #FFFFFF !important;
+}
+
+.atelier-hot-ribbon { color: #0F1011 !important; }
+html.theme-light .atelier-hot-ribbon { color: #FFFFFF !important; }

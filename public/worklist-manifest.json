@@ -1,0 +1,39 @@
+{
+  "name": "TDW Worklist \u03b2",
+  "short_name": "Worklist",
+  "description": "The Dream Wedding \u2014 vendor worklist",
+  "start_url": "/vendor/rooms",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#141516",
+  "theme_color": "#141516",
+  "orientation": "portrait",
+  "id": "in.thedreamwedding.worklist",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "prefer_related_applications": false
+}

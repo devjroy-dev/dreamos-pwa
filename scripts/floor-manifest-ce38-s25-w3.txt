@@ -1,0 +1,18 @@
+# scripts/floor-manifest-ce38-s25-w3.txt
+# BASE a33d70d superseded — CUT ON pwa 6eaf108 / dream-os a14a436.
+# F-38.61 · the collab leg takes one home, the event's own action row.
+# F-38.62 · collab's tab order and its landing tab.
+# [F-19.16] The delivery's own file table, which the handover carries anyway.
+
+# F-38.61 — the leg moves out of the crew sheet, whole
+components/vendor/CalendarCrewSheet.tsx
+components/vendor/CalendarDaySheet.tsx
+app/vendor/calendar/screen.tsx
+
+# F-38.62 — the tab order and the landing tab derived from it
+app/vendor/collab/screen.tsx
+
+# the freeze cells: C40, C41, C42
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce38-s25-w3.txt
+docs/TDW_09_M_FINISH_S25_W3_HANDOVER.md

@@ -19,12 +19,14 @@
     "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "149.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.41",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "puppeteer-core": "25.9.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

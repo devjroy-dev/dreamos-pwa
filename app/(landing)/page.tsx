@@ -126,6 +126,7 @@ function CountrySheet({ visible, onSelect, onClose }: {
 // internal and no rendered byte moves with them.
 type Screen =
   | 'entry'          // The two-door entry panel (L-B), opened
+  | 'chooser'        // L-1: the sign-up chooser  the same two doors, into the sign-up flows
   | 'exploring'      // The couple path's first screen — the feed, before any field
   | 'join_phone'     // Enter name + phone (was `invite_phone`)
   | 'join_otp'       // Enter OTP (was `invite_otp`)
@@ -644,10 +645,8 @@ export default function Home() {
   // THE REAL CURE IS NOT HERE: a returning member should not be asked at all. That needs
   // `/auth/pin-status` to answer for both roles in one call — a dream-os byte, and
   // dream-os is zero-byte this sitting. Chartered separately, not faked client-side.
-  const SIGNIN_ROLES: { role: Role; label: string }[] = [
-    { role: 'Dreamer', label: "I'm getting married" },
-    { role: 'Maker',   label: "I'm a wedding vendor" },
-  ];
+  // L-1: `SIGNIN_ROLES` RETIRED WITH ITS CHIPS. The pair it declared is the pair the two
+  // entry doors already carry (S1, S2); with the chips gone it had one reader and no purpose.
 
   const VENDOR_FIELDS = [
     { label: 'Makeup',        value: 'makeup' },
@@ -761,8 +760,17 @@ export default function Home() {
 
               {/* The two doors */}
               <div style={{ paddingTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* L-1 (R-39.17, founder 2026-08-29). THE TWO DOORS ARE SIGN-IN DOORS NOW.
+                    Most people who land here already have an account; the panel was asking
+                    them to declare themselves and then sending them to a sign-UP flow, with
+                    the sign-in path a 13px line underneath. The bytes do not move (S1, S2 —
+                    vetoed); the DESTINATION does, and each door presets the role it names.
+                    Why through `signin_phone` and not straight to the PIN screen: the vendor
+                    PIN page bounces any visitor without a stored session
+                    (app/vendor/(legacy)/pin-login/page.tsx), so the phone step is what earns
+                    the session. That bounce is load-bearing, not an inconvenience. */}
                 <button
-                  onClick={() => { setRole('Dreamer'); startExploring(); }}
+                  onClick={() => { setRole('Dreamer'); setScreen('signin_phone'); }}
                   style={{
                     width: '100%', height: 48, background: 'transparent',
                     border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
@@ -773,7 +781,7 @@ export default function Home() {
                 >I&apos;m getting married</button>
 
                 <button
-                  onClick={() => { setRole('Maker'); setScreen('join_phone'); }}
+                  onClick={() => { setRole('Maker'); setScreen('signin_phone'); }}
                   style={{
                     width: '100%', height: 48, background: '#C9A84C', border: 'none',
                     borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
@@ -782,34 +790,29 @@ export default function Home() {
                   }}
                 >I&apos;m a wedding vendor</button>
 
-                {/* F-09.46 · FOUNDER'S WALK — 「 a lot of people will be landing here
-                    already signed up 」. Two cures were needed and the first shipped only
-                    one of them. F-09.42 fixed CONTRAST — it got this byte off the
-                    photograph and onto the panel's backdrop, and that held. It did not
-                    fix PROMINENCE: a 9px grey text link in the far corner is findable,
-                    not expected, and at desktop width it sat a thousand pixels from
-                    anything a returning member was reading.
-                    Beneath the doors is where a returning user's eye already goes. This
-                    is NOT a fourth peer door and does not ask anyone to classify
-                    themselves — L-B's ruling was against the classification, not against
-                    a member row at lower weight. One home only: the brand-row link is
-                    gone, because two homes for one path is how the old entry panel got
-                    to five decisions deep. */}
+                {/* L-1: THE LINE CHANGED SIDES. F-09.46's walk put a sign-IN line under the
+                    doors because the doors were sign-up doors. Now the doors sign you in, so
+                    the line is the sign-UP door — and it keeps the prominence F-09.46 won
+                    (13px on the panel's backdrop, the verb in gold), because that argument was
+                    never about which path it named: a person who is in the wrong place needs
+                    to see the way out. S3 vetoed. The R-O3 role toggle retired with the OLD
+                    line, which entered `signin_phone` with `setRole(null)`; after L-1 no entry
+                    leaves the role unset, so the toggle has nothing to choose. */}
                 <p style={{
                   fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 13,
                   color: 'rgba(248,247,245,0.5)', textAlign: 'center',
                   margin: '16px 0 0', lineHeight: 1.5,
                 }}>
-                  Already a member?{' '}
+                  New here?{' '}
                   <button
-                    onClick={() => { setRole(null); setScreen('signin_phone'); }}
+                    onClick={() => setScreen('chooser')}
                     style={{
                       background: 'none', border: 'none', padding: 0,
                       cursor: 'pointer', touchAction: 'manipulation',
                       fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: 13,
                       lineHeight: 1.5, color: '#C9A84C', textDecoration: 'none',
                     }}
-                  >Sign in</button>
+                  >Sign up</button>
                 </p>
               </div>
               </div>
@@ -944,27 +947,58 @@ export default function Home() {
               </>
             )}
 
+            {/* ── L-1 · THE SIGN-UP CHOOSER ──────────────────────────────────
+                The doors became sign-in doors, so the sign-up path needs a home. It is the
+                SAME QUESTION with the same two bytes (S6, S7 — byte-identical to the doors
+                above, deliberately: a person who taps `Sign up` is answering the question he
+                was already asked, not a new one) leading into today's sign-up flows,
+                unchanged: the couple's is `startExploring()`, the vendor's is `join_phone`.
+                Mock frame `L1-chooser`. The sub-line the frame first carried was STRUCK by
+                the founder (S5) — the heading asks the question and the labels answer it.
+                ‹ Back returns to `entry`, the one host this screen is drawn for; a vendor
+                arriving on the `vendor.` subdomain has no entry to return to, which is
+                F-39.84 — pre-existing, filed, not guessed at here. */}
+            {screen === 'chooser' && (
+              <>
+                <BackBtn onClick={() => setScreen('entry')} />
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 16px' }}>New here?</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    onClick={() => { setRole('Dreamer'); startExploring(); }}
+                    style={{
+                      width: '100%', height: 48, background: 'transparent',
+                      border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
+                      cursor: 'pointer', touchAction: 'manipulation',
+                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+                      letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F8F7F5',
+                    }}
+                  >I&apos;m getting married</button>
+                  <button
+                    onClick={() => { setRole('Maker'); setScreen('join_phone'); }}
+                    style={{
+                      width: '100%', height: 48, background: '#C9A84C', border: 'none',
+                      borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
+                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
+                      letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
+                    }}
+                  >I&apos;m a wedding vendor</button>
+                </div>
+              </>
+            )}
+
             {/* ── SIGN IN: PHONE ────────────────────────────────────────────── */}
             {screen === 'signin_phone' && (
               <>
                 <BackBtn onClick={() => setScreen('entry')} />
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome back.</p>
-                {/* `Are you a:` is deleted — the labels carry the question now. The two
-                    chips STACK rather than sit side by side: the plain-speech bytes are
-                    ~2.5x the width of the words they replace, and a two-across row would
-                    have them at the edge of overflow on a 360px handset. Stacked, they
-                    also echo the door pair they now quote, which is the point. */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-                  {SIGNIN_ROLES.map(r => (
-                    <button key={r.role} onClick={() => setRole(r.role)} style={{
-                      width: '100%', height: 40, border: 'none', borderRadius: 100, cursor: 'pointer',
-                      background: role === r.role ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                      color: role === r.role ? '#0C0A09' : 'rgba(248,247,245,0.6)',
-                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                      letterSpacing: '0.15em', textTransform: 'uppercase',
-                    }}>{r.label}</button>
-                  ))}
-                </div>
+                {/* L-1: THE ROLE CHIPS ARE RETIRED (R-O3 discharged). They existed because the
+                    old `Already a member?` line entered this screen with `setRole(null)`, so a
+                    returning VENDOR could otherwise be signed in against the couple endpoints.
+                    That line is gone: every entry to `signin_phone` now presets the role — the
+                    two doors above (Dreamer / Maker) and the `vendor.` subdomain effect. With
+                    nothing left to choose, the control asked a question already answered, which
+                    is the F-09.47 disease the founder walked. `handleSignIn`'s
+                    `isVendor = role === 'Maker'` is UNCHANGED and now always has an answer. */}
                 <Label text="Phone number" />
                 {/* R-O5 · R-X24 ACCEPTANCE SHOT ② — the same rule, second surface. */}
                 <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
@@ -974,13 +1008,11 @@ export default function Home() {
                   </button>
                   <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
                 </div>
-                {/* R-O3, RULED WITH FORK 1: THE ROLE TOGGLE STAYS. `handleSignIn` computes
-                    `isVendor = role === 'Maker'`, and the chrome `Sign in` link is reachable
-                    with role null — without this control (or this guard) a returning VENDOR
-                    would be signed in as a couple, silently, against the couple endpoints.
-                    The `!role` guard below is asserted as a bench cell for exactly that
-                    reason. Do not remove either half without replacing the other. */}
-                <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits || !role} />
+                {/* L-1: the `!role` half of this guard retired WITH the toggle it protected.
+                    R-O3's warning was "do not remove either half without replacing the other" —
+                    the replacement is upstream: no entry to this screen leaves `role` null, so
+                    the guard had nothing to catch. The phone-length half stands. */}
+                <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits} />
               </>
             )}
 

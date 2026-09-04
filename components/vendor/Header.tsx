@@ -1,15 +1,30 @@
+// ══ BRANCH-ONLY · M-WORKLIST ZIP 11 (R-37.84 (1) and (6)) ══════════════════
+// (1) ONE MEDALLION. The shell’s coin and this avatar were two identities for one person.
+//     This one adopts the shell’s chrome exactly: --role-metal ring, 44px, the label family.
+// (6) THE DRAWER IS AN OVERLAY, NOT A SHOVE. It rendered inline and pushed the grid down.
+//     It is now anchored under the header’s right edge on a scrim, with the page unmoved
+//     beneath it and a scrim-tap to dismiss. A drawer that displaces the page is a drawer
+//     that costs the reader his place.
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/Header.tsx — Atelier rebuild · Calling-card dropdown + theme toggle
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { AccountDrawer } from '@/components/worklist/AccountDrawer';
+import { SIGNOUT_SCOPE } from '@/components/worklist/SignOutSheet';
 import { TipsCarousel } from '@/components/vendor/TipsCarousel';
 import { useVendorMe } from '@/hooks/vendor/useVendorMe';
 import { useTheme } from '@/hooks/vendor/useTheme';
 import { useT } from '@/lib/vendor/ThemeContext';
-import { clearVendorSession } from '@/lib/vendor/session';
 
 const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -20,7 +35,7 @@ const A = {
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-cormorant), Georgia, serif',
+  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
   body:    'var(--font-dm-sans), system-ui, sans-serif',
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
@@ -37,7 +52,6 @@ function titleCase(s: string | null | undefined): string {
 }
 
 export function Header({ vendorName }: { vendorName: string | null }) {
-  const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [tipsOpen, setTipsOpen]       = useState(false);
   const [theme, , setThemeMode] = useTheme();
@@ -112,17 +126,24 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   useEffect(() => {
     if (!profileOpen) return;
     function h(e: MouseEvent) {
+      // The sign-out sheet PORTALS out of this menu (SignOutSheet.tsx says why: this box
+      // carries a transform). A press on its buttons is a press outside profileRef, and
+      // without this clause the menu would unmount — taking the sheet with it — on the
+      // mousedown before the button's click could fire.
+      const t = e.target as Element | null;
+      if (t && t.closest && t.closest('.' + SIGNOUT_SCOPE)) return;
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
     }
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [profileOpen]);
 
-  function signOut() {
-    setProfileOpen(false);
-    clearVendorSession();
-    router.replace('/');
-  }
+  // ── CE-39 S2/6 §3 · `signOut()` LEFT WITH THE DRAWER ROW THAT CALLED IT ──
+  // It stood here: setProfileOpen(false); clearVendorSession(); router.replace('/') — a
+  // THIRD spelling of the verb, and the only one that never dropped the remembered /me
+  // (F-38.p14's class). The drawer now opens the estate's one sign-out sheet and the verb
+  // fires from there (components/worklist/SignOutSheet.tsx). This tree inherits it through
+  // the drawer's one definition; nothing here spells it.
 
   // TDW_09 MICRO-2 · F-09.75 — `requestInvite()` stood here and died with the drawer
   // row that was its only caller. See the tombstone at the Actions section below.
@@ -160,14 +181,16 @@ export function Header({ vendorName }: { vendorName: string | null }) {
       <div ref={profileRef} style={{ position: 'relative', flexShrink: 0 }}>
         <button data-tour="profile-coin" type="button" onClick={() => setProfileOpen(o => !o)} aria-label="Profile menu"
           style={{
-            width: 34, height: 34, borderRadius: '50%',
-            border: `1.5px solid ${A.brass}`,
-            background: 'rgba(201,168,76,0.14)',
+            // R-37.84 (1): identical to the shell's .wl-coin — same ring token, same 44px,
+            // same face. Two identities for one person is one identity too many. The teal
+            // ring and the gold wash both go: the medallion is metal, like the shell's.
+            width: 44, height: 44, borderRadius: '50%',
+            border: '1px solid var(--role-metal)',
+            background: 'transparent',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0,
-            boxShadow: '0 0 0 3px rgba(201,168,76,0.06), inset 0 1px 2px rgba(255,235,200,0.15)',
-            fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
-            color: A.brassWarm, letterSpacing: '0.04em',
+            cursor: 'pointer', flexShrink: 0, touchAction: 'manipulation',
+            fontFamily: F.label, fontWeight: 500, fontSize: 12, lineHeight: 1,
+            color: 'var(--role-metal)', letterSpacing: '0.06em',
           }}>
           {initials(displayName)}
         </button>
@@ -199,6 +222,35 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             so the element's own overflow cannot clip it. Zero horizontal delta from
             origin. R-M1's substance — viewport-bounded maxHeight, its own scroll,
             momentum on, the card's chrome intact — is fully served. */}
+        <>
+        {/* R-37.84 (6): the scrim. Fixed, so the page beneath keeps its scroll position, and
+            tapping it dismisses. Without this the drawer rendered in flow and shoved the grid
+            down — a drawer that displaces the page costs the reader his place.
+
+            ── F-38.13 · IT IS MOUNTED ONLY WHEN THE DRAWER IS OPEN. CE-38 relay #3, arm (a).
+            IT WAS NOT, AND THAT KILLED THE AVATAR ON EVERY CARRIED ROOM. The panel below is
+            hidden by `opacity` and `pointerEvents`; this scrim had no such guard and no
+            conditional mount, so a full-viewport `position:fixed` button sat permanently at
+            `zIndex:199` inside this header's own stacking context (`:152-153`,
+            position:sticky + zIndex:20). The coin at `:176` carries no `position` and no
+            `zIndex`, so it painted BELOW the scrim and could not be tapped. Founder-witnessed
+            on `/vendor/team-hub`, `/vendor/list/leads` and `/vendor/list/invoices`; `/w/*`
+            renders no Header, which is exactly why Billing — the surface that crossed — was
+            the only place the avatar answered.
+
+            MINE, AND BRANCH-ONLY: introduced at `66dd7dc` (ZIP 11) by the very ruling this
+            comment cites. `git merge-base --is-ancestor 66dd7dc origin/main` → not an
+            ancestor. No paying vendor has met it.
+
+            A CONDITIONAL MOUNT HERE AND STYLE-HIDING BELOW IS NOT AN INCONSISTENCY. The
+            panel must stay mounted to animate from — its transition needs a node to move —
+            and the scrim has no motion to preserve. Gating both would cost the open/close
+            animation, which is why arm (b) was refused. */}
+        {profileOpen && (
+          <button type="button" aria-label="Close menu" onClick={() => setProfileOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 199, background: 'var(--role-scrim)',
+                     border: 'none', cursor: 'pointer' }} />
+        )}
         <div style={{
           position: 'absolute', top: 'calc(100% + 12px)', right: 0,
           minWidth: 260, zIndex: 200,
@@ -246,92 +298,48 @@ export function Header({ vendorName }: { vendorName: string | null }) {
               }}>{displayName}</div>
               {subtitle && (
                 <div style={{
-                  fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+                  fontFamily: F.script, fontWeight: 300,
                   fontSize: 16, lineHeight: 1.5, color: inkMuteColor, marginTop: 5,
                   letterSpacing: '0.01em',
                 }}>{subtitle}</div>
               )}
             </div>
 
-            {/* ATELIER section */}
-            <SectionLabel isLight={isLight}>Atelier</SectionLabel>
-            {/* TDW_07 P2: this entry has said "Discover Profile" since long before the screen
-                existed, and pointed at /vendor/settings for want of anywhere better. The
-                screen exists now, in DISCOVER mode where it belongs. The label was always
-                this feature's name arriving early; only the destination changes. */}
-            <DItem glyph="◈" label="Discover Profile"    subtitle="How couples see you" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/discover/profile'); }} />
-            {/* ── TDW_09 · F-09.118 · C2 · FORK 2(a), FOUNDER-APPROVED 「 yes 」 ──
-                THE SETTINGS DOOR, REACHABLE FROM THE COIN. Founder verbatim:
-                「 The settings is not accessible through the avatar in the top
-                right 」 — /vendor/settings existed and was reachable ONLY through
-                More → Account, so the surface a vendor reaches for by instinct
-                (her own initials) had no route to her own settings.
-                Seated in ATELIER beneath Discover Profile, which is the row it
-                belongs beside: both are "your own particulars", and the section
-                above already carries the identity register.
-                The glyph ⚙ and the subtitle's three nouns are BORROWED from the
-                More row (app/vendor/more/page.tsx, ACCOUNT_ITEMS) so one door
-                does not learn a second vocabulary — the subtitle's leading
-                capital is the founder's approved byte, not the donor's.
-                THE MORE → ACCOUNT → SETTINGS DOOR IS KEPT, by ruling. Two doors
-                to one destination is the intent here, not a duplicate: the
-                overflow list is the exhaustive index, the coin is the reflex. */}
-            {/* SUBTITLE AMENDED, TDW_10 THE BILLING TAB: it read 「 Profile,
-                billing, preferences 」 until this sitting and that middle noun
-                stopped being true the moment billing left this door. A subtitle
-                that promises a thing the screen no longer holds is a lying
-                control with a smaller font. The donor row in
-                `app/vendor/more/page.tsx` (ACCOUNT_ITEMS) carries the same three
-                nouns and is amended in the SAME delivery — the comment above
-                says outright they were borrowed so one door does not learn a
-                second vocabulary, and curing one without the other would break
-                the stated reason they were shared. */}
-            <DItem glyph="⚙" label="Settings"             subtitle="Profile and preferences" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/settings'); }} />
-            {/* ── TDW_10 THE BILLING TAB · R-26.4 FORK C ─────────────────────
-                FOUNDER-RULED 「 Lets put it in avatar under Billing 」. Billing
-                is the estate's only revenue surface and it sat ninth on the
-                settings page, behind seven cards about something else.
+            {/* ── ONE DRAWER, ONE DEFINITION · founder's second walk ──────────────
+                「why is setting not uniform across all in the avatar?」
 
-                SEATED IN ATELIER, DIRECTLY AFTER SETTINGS, and the adjacency is
-                the point, not tidiness: the vendor who goes hunting for billing
-                in Settings — because its subtitle promised it until this same
-                delivery — meets the new door in her eyeline at the exact moment
-                that promise is withdrawn. Atelier is also the right section on
-                its own merits: it runs particulars-first (Discover Profile,
-                Settings) then outward (the site, the manual), and her plan is
-                the third particular.
+                A SECOND, HARDCODED DRAWER STOOD HERE. Its own rows, its own destinations,
+                its own glyphs and subtitles, its own register — behind the same medallion
+                as the shell's. Every ruling that landed on the shell's drawer missed this
+                one, because this one was somewhere nobody was looking, and it was still
+                shipping three bytes the estate had retired or banned:
+                  the persona name in chrome (R-37.70/.78/.83)
+                  the Tips row, pointing at a route R-38.1 forbids from a shell control
+                  the marketing-site row, retired at CE-38 relay #3 ITEM 3
 
-                GLYPH ◇, founder-vetoed: the same geometric family as Discover
-                Profile's ◈, which is itself already doubled on Tips, so family
-                reuse is the set's own precedent rather than a new vocabulary. */}
-            <DItem glyph="◇" label="Billing"              subtitle="Plan and payment" isLight={isLight} onClick={() => { setProfileOpen(false); router.push('/vendor/billing'); }} />
-            <DItem glyph="★" label="The Dream Wedding"   isLight={isLight} onClick={() => { setProfileOpen(false); window.open('https://thedreamwedding.in', '_blank'); }} />
-            <DItem glyph="◈" label="Tips &amp; Features" subtitle="Mini manual" isLight={isLight} onClick={() => { setProfileOpen(false); setTipsOpen(true); }} accent />
+                It is REPLACED, not patched. `AccountDrawer` is the one definition and both
+                trees mount it, so the row set, the destinations, the section names and the
+                order exist exactly once. Its Settings and Billing rows point INTO the
+                shell, so opening the coin in a carried room lands the vendor in the new
+                chrome rather than keeping him in the old one.
 
-            {/* THEME TOGGLE — between sections */}
-            <SectionLabel isLight={isLight}>Display</SectionLabel>
-            <DItem glyph="●" label="Dark"  subtitle="Espresso"            isLight={isLight} accent={theme === 'dark'}  onClick={() => { setThemeMode('dark'); }} />
-            <DItem glyph="○" label="Light" subtitle="Parchment"           isLight={isLight} accent={theme === 'light'} onClick={() => { setThemeMode('light'); }} />
-            {/* TDW_09 R-U19: the third theme row is DELETED with its theme. Two rows
-                remain — Dark (Espresso) and Light (Editorial Paper), Addendum A's two. */}
-
-            {/* ACTIONS section */}
-            <SectionLabel isLight={isLight}>Actions</SectionLabel>
-            {/* ── TDW_09 MICRO-2 · F-09.75 · FORK 5 = (a), FOUNDER-RULED — THE ROW IS DEAD ──
-                A `Request Invite · For a client` row stood here. It opened
-                wa.me/917982159047 with an invite prefill — THE SAME NUMBER the row
-                below opens with "Hi". A duplicate door, and its noun was the
-                vocabulary of the invite/waitlist ceremony that dream-os retired whole
-                (`src/api/waitlist.js` deleted; see docs/TDW_09_MICRO_HANDOVER.md, L1).
-                Removed by ruling, not by cleanup: accounted REMOVED-BY-RULING in this
-                sitting's control inventory. Its handler `requestInvite()` went
-                caller-zero in the same edit and was deleted with it — an orphaned
-                handler is an orphaned require, only quieter.
-                THE ROW BELOW IS THE SURVIVING DOOR and is byte-untouched. */}
-            <DItem glyph="◎" label="DreamAi on WhatsApp" subtitle="Chat with us" isLight={isLight} onClick={() => window.open('https://wa.me/917982159047?text=Hi', '_blank')} accent />
-            <DItem glyph="→" label="Sign Out" isLight={isLight} onClick={signOut} danger last />
+                THE MODE PAIR REACHES THIS TREE'S OWN AUTHORITY. `setThemeMode` is the old
+                ThemeContext's setter and it stays the setter here; the shell passes its
+                own. Same rows, different authority, which is the caller's business and
+                not the drawer's. */}
+            {/* P7.2: the drawer's Report door prefills the ROOM, and this tree has no masthead
+                title to give it — these are the (legacy) Discover pages (FORK 1 arm (a)), which
+                the shell has no twin for. They report as 'Discover', the surface a vendor would
+                name if asked, rather than borrowing a shell room's label they are not in. */}
+            <AccountDrawer
+              mode={theme === 'light' ? 'light' : 'dark'}
+              onPickMode={(m) => setThemeMode(m)}
+              onClose={() => setProfileOpen(false)}
+              room="Discover"
+            />
           </div>
         </div>
+        </>
       </div>
 
       {/* Brass under-rule */}
@@ -402,7 +410,7 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight 
         }}>{label}</span>
         {subtitle && (
           <span style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300,
+            fontFamily: F.script, fontWeight: 300,
             fontSize: 16, lineHeight: 1.5, color: subtitleColor, marginTop: 1,
             letterSpacing: '0.01em',
           }}>{subtitle}</span>

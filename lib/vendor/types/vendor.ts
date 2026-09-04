@@ -22,6 +22,13 @@ export interface MeResponse {
     handle: string;
     upi_id: string | null;
     gstin: string | null;
+    // ── S2 · HER RAILS · migration 0130, door at dream-os e947570 (R-39.20) ──
+    // Printed on her invoice document: `address` in the header beside city and
+    // GSTIN, the three bank fields under Payment beside the UPI QR.
+    address: string | null;
+    account_name: string | null;
+    account_number: string | null;
+    ifsc: string | null;
     open_to_travel: boolean;
     // F-10.81 — this union was ALREADY FALSE before the rename: 0114's tier flip
     // wrote 'free' on every halt and cancel, a value this type called impossible,
@@ -96,6 +103,13 @@ export interface UpdateMeRequest {
   instagram_handle?: string;
   upi_id?:           string;
   gstin?:            string;
+  // S2 · the four are on dream-os's ALLOWED_FIELDS at e947570. Optional, like
+  // every other field here — the PATCH is a partial and the handler's loop
+  // copies only the keys present.
+  address?:          string;
+  account_name?:     string;
+  account_number?:   string;
+  ifsc?:             string;
   briefing_enabled?: boolean;
   aesthetic_tags?:   string[];
   rate_min?:         number;
@@ -120,6 +134,11 @@ export interface UpdateMeResponse {
     open_to_travel:   boolean;
     upi_id:           string | null;
     gstin:            string | null;
+    // S2 · the four come BACK as well as go in, so a save can be verified.
+    address:          string | null;
+    account_name:     string | null;
+    account_number:   string | null;
+    ifsc:             string | null;
     aesthetic_tags:   string[];
     rate_min:         number | null;
     rate_max:         number | null;
@@ -160,7 +179,84 @@ export interface VendorContextResponse {
   recent_notes: Array<{ content: string; }>;
 }
 
+// ── GET /api/v2/vendor/worklist/today ─────────────────────────────────────
+// THE FROZEN PHASE 4 CONTRACT, MIRRORED KEY-FOR-KEY.
+// Source of authority: dream-os `docs/TDW_09_WORKLIST_P3_HANDOVER.md` §3, read at
+// `7a03699`. This type is built against THAT SECTION and never against the handler.
+// Any divergence is a labelled contract amendment, not an edit here.
+//
+// ⚠ IT IS NOT `TodayResponse`, AND THE TWO MUST NOT BE MERGED. `TodayResponse` below
+// describes `/api/v2/vendor/today/:vendorId` — a route F-P3.9 records as deleted since
+// `f47c732`, still read by `hooks/vendor/useVendorData.ts` and, until this delivery, by
+// the storefront meter. Three attention kinds against five, no `has_any`, no `counts`,
+// no `truncated`, no `done_today`, and a `:vendorId` this contract forbids. Two doors,
+// two shapes, both named — F-39.9.
+export type AttentionKind =
+  | 'lead_unanswered' | 'invoice_due' | 'events_today' | 'contract_unsigned' | 'team_tasks';
+
+/**
+ * D-4's RANK ORDER, and the one place it is written down on this side of the wire.
+ * §3 property 4: key order in `needs_attention` IS the ranking and JSON preserves it.
+ * This array exists so a surface can iterate the kinds WITHOUT calling `Object.keys`
+ * on a parsed body — but it is never used to re-sort, and the render reads the body's
+ * own key order. It is the set, not the sequence authority.
+ */
+export const ATTENTION_KINDS: readonly AttentionKind[] = [
+  'lead_unanswered', 'invoice_due', 'events_today', 'contract_unsigned', 'team_tasks',
+] as const;
+
+export interface AttentionLead {
+  id: string; name: string | null;
+  wedding_date: string | null; wedding_city: string | null;
+  budget_min: number | null; budget_max: number | null;
+  state: string; created_at: string;
+  /** §3 property 7 · the wire's POSITIVE statement, never inferred from a missing field. */
+  redacted: boolean;
+}
+export interface AttentionInvoice {
+  id: string; invoice_number: string; client_name: string | null;
+  amount_total: number; amount_paid: number; amount_owed: number;
+  due_date: string | null; state: string;
+}
+export interface AttentionEvent {
+  id: string; title: string | null; event_date: string;
+  event_time: string | null; kind: string; slot: string | null; state: string;
+}
+export interface AttentionContract {
+  id: string; title: string | null; state: string;
+  sent_at: string | null; created_at: string;
+}
+export interface AttentionTask {
+  id: string; title: string | null; due_date: string | null;
+  priority: string | null; state: string; created_at: string;
+}
+
+export interface WorklistTodayResponse {
+  ok: boolean;
+  /** The IST calendar date the feed was cut for. */
+  today: string;
+  /** §3 property 6 · "has this vendor EVER had anything", not "is today busy". */
+  has_any: boolean;
+  needs_attention: {
+    lead_unanswered: AttentionLead[];
+    invoice_due: AttentionInvoice[];
+    events_today: AttentionEvent[];
+    contract_unsigned: AttentionContract[];
+    team_tasks: AttentionTask[];
+  };
+  /** §3 property 8 · EXACTLY THREE KEYS. Leads and events carry no completion stamp. */
+  done_today: {
+    invoice_paid: Array<{ id: string; invoice_number: string; client_name: string | null; amount_total: number; last_payment_at: string | null }>;
+    contract_signed: Array<{ id: string; title: string | null; signed_at: string | null }>;
+    team_task_done: Array<{ id: string; title: string | null; completed_at: string | null }>;
+  };
+  counts: Record<AttentionKind, number>;
+  truncated: Record<AttentionKind, boolean>;
+}
+
 // ── GET /api/v2/vendor/today/:vendorId ────────────────────────────────────
+// ⚠ THE OLD DOOR. F-39.9: left untouched with its two readers
+// (`hooks/vendor/useVendorData.ts:216`) so no one tidies it into the new one.
 export interface TodayResponse {
   ok: boolean;
   vendor: { name: string; category: string; city: string; };
@@ -358,10 +454,40 @@ export interface RecordPaymentResponse {
 }
 
 // ── GET /api/v2/vendor/invoices/:invoiceId/pdf ────────────────────────────
+// ── F-2c.w7 · THE DOOR SAYS `url`, THIS TYPE SAID `pdf_url` ────────────────
+// The PDF was never broken. `src/api/vendor/money.js` · the `GET /invoices/:vendorId/:invoiceId/pdf` arm's `okRes` generated it, uploaded
+// it, signed it and stamped `pdf_url` on the invoice — then answered
+// `okRes(res, { url, invoice_number })`. The caller read `res.pdf_url`, got
+// `undefined`, and fell through to an error toast on every single tap. The
+// founder's Network tab is what settled it: 200, 0.5 kB — a JSON envelope, not a
+// failure and not a PDF.
+//
+// ── THE CONDITION ARRIVED · THE FALLBACK IS RETIRED  [smalls S1] ───────────
+// WHAT THIS SAID: 「`url` IS THE WIRE'S NAME AND IS REQUIRED; `pdf_url` IS THE
+// FALLBACK AND IS OPTIONAL」, with the retirement condition written beside it —
+// delete `pdf_url` from this interface and the `??` at `fetchInvoicePdf` in the
+// same commit that ships the server rename, never before it.
+//
+// THE SERVER RENAME SHIPPED IN THIS PAIR. `src/api/vendor/money.js` (symbol: the
+// PDF arm's success `okRes`) now answers `pdf_url`, which is what the column,
+// the writer home, the create route, the binder door, the admin view and the
+// agent have all spelled it all along. So the asymmetry inverts and the optional
+// half goes: `pdf_url` is the wire's name and is REQUIRED, and there is no
+// second spelling left for a reader to choose between.
+//
+// THE ORDER WAS THE POINT AND IS RECORDED RATHER THAN ASSUMED: dream-os deploys
+// first. An old pwa meeting a new server reads `pdf_url` off a body that carries
+// it — the fallback's whole job. A new pwa meeting an OLD server would read
+// `undefined`, which is why this half may not lead.
+//
+// `expires_in` is OPTIONAL because this door does not send it. The money-plane
+// route returns `{ pdf_url, invoice_number }` and nothing else; declaring it
+// required was the same class of error one field over, and nothing reads it.
 export interface InvoicePdfResponse {
   ok: true;
-  pdf_url:    string;
-  expires_in: number;
+  pdf_url:         string;
+  invoice_number?: string;
+  expires_in?:     number;
 }
 
 // ── GET /api/v2/vendor/expenses/:vendorId ─────────────────────────────────
@@ -374,6 +500,74 @@ export interface ExpensesResponse {
   }>;
   total_spent: number;
   total: number;
+}
+
+// ── GET /api/v2/vendor/money/books/:vendorId ──────────────────────────────
+// ROAD STEP 2b. THE ONLY TYPED-PLANE MONEY CONTRACT ON THIS BRANCH.
+//
+// `InvoicesResponse` and `ExpensesResponse` above still describe the ENGINE
+// plane (`engine.records`, through `fetchCabinet` / `fetchLedger`) and they are
+// untouched this sitting by ruling — arm (c). They cross at step 2c, reads and
+// writes in one motion, because their row ids are binder ids that five live
+// controls are keyed on. This shape shares nothing with them and exposes no id
+// any control could use.
+//
+// EVERY FIGURE IS AN INTEGER OF RUPEES AND THE BALANCE IS SERVER-COMPUTED.
+// The client never derives the chain: two renderers computing one running
+// balance is two homes for it, and F-04.13 is the estate's record of what
+// happens to the second one.
+export interface BooksMovement {
+  /** Composite and DELIBERATELY NOT A ROW ID — `invoice:<uuid>`, `expense:<uuid>`,
+      `schedule:<invoice_id>:<ordinal>`. A React key, never an address.
+      ⚠ AMENDED AT 2c. It used to end 「nothing in this room acts on a row, so
+      nothing may be able to」 — the second clause stopped being true when the
+      typed write doors landed beside this one. The ids are unchanged; what
+      changed is that read-only is enforced by CELL now, not by the id space. */
+  id: string;
+  /** YYYY-MM-DD. */
+  date: string;
+  /** True when the estate holds no payment clock for this credit and the date
+      shown is the invoice's `created_at` instead (F-39.8). The surface renders
+      `booksUndated` beside it rather than passing the substitution off silently. */
+  undated: boolean;
+  credit: number | null;
+  debit: number | null;
+  /** D-1 B13 · the particular the founder's verdict asked for: 「no info about
+      who paid, out of how much」. Credits carry client_name · invoice_number ·
+      paid-of-total, plus milestone_label on a schedule row; debits carry
+      category · description. `invoices.description` is absent BY RULING —
+      F-39.23: Victor's money-edit writes a rupee-glyph audit log into that
+      column, so it is unrenderable rather than merely unrendered. */
+  particular: BooksParticular | null;
+  balance: number;
+}
+
+export interface BooksParticular {
+  /** Credit side. */
+  client_name?:     string | null;
+  invoice_number?:  string | null;
+  milestone_label?: string | null;
+  amount_paid?:     number | null;
+  amount_total?:    number | null;
+  /** Debit side. The row's own word, verbatim — the door never validates it
+      against the writer's list (F-2c.p1: the two are not the same twelve, and a
+      door that filtered would hide money the vendor logged). */
+  category?:        string | null;
+  description?:     string | null;
+}
+
+export interface BooksResponse {
+  ok: boolean;
+  received: number;
+  outstanding: number;
+  /** READ, never summed. Opening is zero by the register's own construction —
+      the balance runs from zero at the first movement. Closing is the last
+      row's own `balance` cell, read back. This surface sums nothing (F-04.13). */
+  opening: number;
+  closing: number;
+  movements: BooksMovement[];
+  total: number;
+  error?: string;
 }
 
 // ── POST /api/v2/vendor/expenses ─────────────────────────────────────────

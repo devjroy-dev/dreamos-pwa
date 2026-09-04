@@ -7,7 +7,7 @@ import { TypingDots } from './TypingDots';
 const A = { brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)' } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-cormorant), Georgia, serif',
+  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
   body:    'var(--font-dm-sans), system-ui, sans-serif',
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
@@ -61,7 +61,17 @@ function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
 // the runs between them — so * inside ** is never mis-paired.
 function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /\*\*(.+?)\*\*|`([^`]+?)`/g;
+  // `\x60` IS THE BACKTICK, and the escape is the whole edit — the pattern this
+  // regex matches is byte-for-byte what it always matched (proven both ways at
+  // the cut, nine inputs including the empty and adjacent-delimiter cases).
+  // WHY: the estate's one comment scanner does not know a regex literal from
+  // code, so the two bare backticks here opened a phantom template string and
+  // every comment BELOW this line survived stripping — twelve of them. C32 then
+  // convicted this file of putting a persona name on a shell surface, when line
+  // 71 is prose about a founder ruling on italic register. Cause, not symptom:
+  // the escape re-syncs the scanner and the eleven other comments go quiet too.
+  // F-39.42 owns the general case (33 lexer divergences, no cell reads the list).
+  const re = /\*\*(.+?)\*\*|\x60([^\x60]+?)\x60/g;
   let last = 0; let m: RegExpExecArray | null; let k = 0;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
@@ -87,7 +97,7 @@ const NUMBERED = /^\s*\d+[.)]\s+/;
 const HEADING = /^\s*#{1,3}\s+/;
 function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode[] {
   const pStyle = {
-    fontFamily: F.script, fontStyle: 'italic' as const, fontWeight: 400,
+    fontFamily: F.script, fontWeight: 400,
     fontSize: 16, color: T.ink, lineHeight: 1.42, letterSpacing: '0.005em',
     margin: 0, whiteSpace: 'pre-wrap' as const,
   };
@@ -230,7 +240,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             fontFamily: F.label, fontWeight: 300, fontSize: 8,
             letterSpacing: '0.5em', textTransform: 'uppercase',
             color: T.isLight ? T.accent : 'rgba(201,168,76,0.65)', marginBottom: 6,
-          }}>DreamAi</div>
+          }}>TDW</div>
           <AiMessageText text={message.text} streaming={message.streaming} T={T} F={F} />
         </div>
         {contact?.phone && (

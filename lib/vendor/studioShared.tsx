@@ -33,7 +33,7 @@ export const F = {
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
 
-export interface Item { href: string; label: string; desc: string; glyph: string; locked?: boolean; }
+export interface Item { href: string; label: string; desc: string; glyph: string; }
 
 // THE FOUNDER'S VERBATIM THREE. This array is the reason the module exists.
 export const STUDIO_ITEMS: Item[] = [
@@ -48,7 +48,7 @@ export function Chevron() {
 
 export function SectionLabel({ label, first }: { label: string; first?: boolean }) {
   return (
-    <div style={{ padding: first ? '24px 24px 14px' : '32px 24px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ padding: first ? '24px var(--slice-inset, 24px) 14px' : '32px var(--slice-inset, 24px) 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
       <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass }}>{label}</span>
       <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
     </div>
@@ -56,15 +56,20 @@ export function SectionLabel({ label, first }: { label: string; first?: boolean 
 }
 
 export function Row({ item }: { item: Item }) {
-  const isLocked = item.locked;
+  // R-39.7 (2026-08-29): the `locked` arm — opacity 0.55, a 「Prestige」 pill, no link —
+  // RETIRED with `isPrestige`, its only reader. Every row is a door now. Nothing here
+  // decides what a tier means because no tier gates this surface any more.
   const rowStyle: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 18,
+    // \u00a74-4: the gutter is DECLARED, not swept. `RoomBody` sets --slice-inset to 0 inside
+    // the shell so this row inherits the column's 16; the fallback in the var is this row's
+    // own 24, which is what /vendor renders and has always rendered. A MOVE, not a fork.
+    display: 'flex', alignItems: 'center', padding: '16px var(--slice-inset, 24px)', gap: 18,
     textDecoration: 'none',
     borderBottom: '0.5px solid var(--atelier-card-border)',
-    cursor: isLocked ? 'default' : 'pointer', opacity: isLocked ? 0.55 : 1,
+    cursor: 'pointer',
   };
-  const inner = (
-    <>
+  return (
+    <Link href={item.href} style={rowStyle}>
       <span style={{
         flexShrink: 0, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: F.display, fontWeight: 400, fontSize: 26, color: A.brassWarm, lineHeight: 1,
@@ -73,21 +78,8 @@ export function Row({ item }: { item: Item }) {
         <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 19, color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15 }}>{item.label}</div>
         <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 12, color: A.inkMute, marginTop: 2, letterSpacing: '0.01em' }}>{item.desc}</div>
       </div>
-      {isLocked ? (
-        <span style={{
-          fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.brass,
-          letterSpacing: '0.32em', textTransform: 'uppercase',
-          border: `0.5px solid rgba(201,168,76,0.5)`, borderRadius: 2, padding: '4px 9px', flexShrink: 0,
-        }}>Prestige</span>
-      ) : <Chevron />}
-    </>
+      <Chevron />
+    </Link>
   );
-  if (isLocked) return <div style={rowStyle}>{inner}</div>;
-  return <Link href={item.href} style={rowStyle}>{inner}</Link>;
 }
 
-// THE ONE PRESTIGE GATE (F11(c)). Both entry points ask this function; neither
-// decides for itself what Prestige means.
-export function isPrestige(tier: string | null | undefined): boolean {
-  return tier === 'prestige';
-}

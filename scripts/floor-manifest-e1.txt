@@ -1,0 +1,19 @@
+# E-1 exit-code census (CE-39, 2026-09-03) — the delivery's own file table, for run-floor.sh --delivery
+scripts/b41_theme_bleed_fixture.js
+scripts/crewCommit.proof.ts
+scripts/postAccess.proof.ts
+scripts/rosterMint.proof.ts
+scripts/run-floor.sh
+scripts/settleWords.proof.ts
+scripts/tdw08_console.proof.mjs
+scripts/tdw09_p2b_vocab.proof.mjs
+scripts/tdw09_surface.proof.mjs
+scripts/tdw09_surface_census.mjs
+scripts/tdw09_type.proof.mjs
+scripts/tdw09_type_census.mjs
+scripts/tdw13_d6_parity_matrix.proof.mjs
+scripts/tdw15_p1_events.proof.mjs
+scripts/tdw19_p2a_profile_core.proof.mjs
+scripts/tdw_f0774_readers.proof.mjs
+scripts/tdw_f0774_vacuity_probe.mjs
+scripts/floor-manifest-e1.txt

@@ -98,7 +98,7 @@ export function SwipeRow({ children, right, left, disabled }: {
       {reveal && dx !== 0 && (
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-          justifyContent: dx > 0 ? 'flex-start' : 'flex-end', padding: '0 22px',
+          justifyContent: dx > 0 ? 'flex-start' : 'flex-end', padding: '0 var(--slice-inset, 22px)',
           fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 400,
           fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase',
           color: reveal.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',

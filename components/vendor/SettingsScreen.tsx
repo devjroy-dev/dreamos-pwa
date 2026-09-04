@@ -1,0 +1,559 @@
+'use client';
+// components/vendor/SettingsScreen.tsx
+// ────────────────────────────────────────────────────────────────────────────
+// M-FINISH S1 · R-38.1 — PURE MOVE, no rewrite. Same shape as TDW_10's SubscriptionCard
+// extraction (R-26.4 Fork D) and TDW_07 P2's AtelierForm move, cited by name.
+//
+// ══ WHY IT HAD TO MOVE, AND THE REASON IS NOT TIDINESS ══════════════════════
+// This component was `function SettingsScreen` inside `app/vendor/settings/page.tsx`.
+// `/w/settings` needs the SAME component — copying it would give the estate two settings
+// screens, two homes for every field, every save handler and every vetoed byte on the
+// surface, drifting apart without either one erroring. F-09.128 is the live specimen of
+// what that costs.
+//
+// SO THE FIRST CUT SIMPLY EXPORTED IT FROM THE PAGE FILE, AND NEXT 16 REFUSED THE BUILD:
+//
+//   app/vendor/settings/page.tsx
+//   Type error: Page "app/vendor/settings/page.tsx" does not match the required types of
+//   a Next.js Page.  "SettingsScreen" is not a valid Page export field.
+//
+// A page file may export the page contract and nothing else. That is a real constraint of
+// the framework, not a style preference, and it is recorded here because the next seat
+// tempted to export a helper from a route file will meet it at build time rather than at
+// review time. The tsc floor does NOT catch it — only `next build` does.
+//
+// ══ TWO PROPS, AND BOTH EXIST BECAUSE THE SHELL ALREADY OWNS WHAT THEY GATE ══
+//   `chrome`    — false inside the shell. The back-chevron bar is the OLD layout's chrome;
+//                 the shell has its own header, its own coin and its own gutter, so
+//                 rendering it would reproduce the two-mastheads defect one level down
+//                 from where R-38.1 just removed it.
+//
+//                 ⚠ THE MASTHEAD IS NOT GATED HERE — IT IS NOT IMPORTED HERE AT ALL, AND
+//                 THE DIFFERENCE IS THE WHOLE FINDING. The first cut kept
+//                 `import { Header }` and wrote `{chrome && <Header …/>}`, which renders
+//                 correctly and SHIPS THE OLD MASTHEAD INTO THE SHELL'S SETTINGS CHUNK
+//                 anyway — with its drawer, its /vendor/settings and /vendor/billing rows,
+//                 and 「DreamAi on WhatsApp」 (Header.tsx:355, banned by R-37.70/.78/.83).
+//                 The audit's R-38.1 cell reddened on those two hrefs and that is how it
+//                 was found. A conditional does not remove a module from a bundle; only
+//                 not importing it does. `Header` now mounts at the fallback ROUTE, which
+//                 is the only place it is wanted.
+//   `ToastView` — the toast COMPONENT, injected. The default is `Toast`, which reads
+//                 `useT()` and therefore needs a ThemeProvider; the shell passes
+//                 `WlToast`, which reads CSS variables only (CE-38 relay #2, arm (c)).
+//                 The state, the timing and the vocabulary are NOT injected — `useToast()`
+//                 is the single home for all three and is untouched.
+//
+// ── CE-39 S2/6 · THE BODY CROSSES TYPOGRAPHICALLY, AND ONLY INSIDE THE SHELL ──
+// This block used to declare a gap: AtelierForm set its labels in Jost at 9px with
+// .42em–.5em tracking, R-38.4 retires that from the shell, and Settings was NAMED as
+// excluded from the render arm's tuple cell rather than captured and quietly passed over.
+// That gap closes here. It closes as a VARIANT and not a sweep (bank §2, chair-accepted):
+// AtelierForm's five primitives take a `register` prop defaulting to the engraved bytes,
+// so the four other importers are byte-unchanged, and this component passes the rungs
+// variant WHEN AND ONLY WHEN it renders inside the shell.
+//
+// `register` IS DERIVED FROM `chrome`, NOT TAKEN AS A SECOND PROP, and the reason is that
+// two props saying one thing is two things that can disagree: `chrome={false}` already
+// MEANS 「the shell owns the frame」, and a caller who set one without the other would get a
+// surface half in each register with nothing to catch it. One prop, one truth.
+// ⚠ AND THE RUNGS ONLY EXIST INSIDE `.wl`. `--wl-t*` is emitted onto the shell scope by
+// `typeCss`; on the /vendor tree those variables are undefined, and a `font:` shorthand
+// reading an undefined variable falls through to the user agent default — 14px Arial, which
+// is C-R6's exact finding on the dock's send glyph. So the engraved register is not a
+// courtesy to the old tree, it is the only correct answer there.
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useSettings } from '@/hooks/vendor/useSettings';
+import { useToast } from '@/hooks/vendor/useToast';
+import type { ToastState } from '@/hooks/vendor/useToast';
+import { Toast } from '@/components/vendor/Toast';
+import { updateMe, updateRoutingHandle, updateInvoicePrefix } from '@/lib/vendor/api/vendor';
+import { forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
+import { getVendorSession, setVendorSession } from '@/lib/vendor/session';
+import { COPY } from '@/lib/worklist/copy';
+import { roomHref } from '@/lib/worklist/rooms';
+import { useSignOut } from '@/components/worklist/SignOutSheet';
+import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F, type Register } from '@/components/vendor/AtelierForm';
+
+// ── M-FINISH S1 · R-38.1 · EXPORTED AND CHROME-OPTIONAL. TWO CALLERS, ONE HOME. ────
+// `/w/settings` renders this same component inside WorklistShell. It is EXPORTED rather
+// than copied, and copied would have been the easy thing: two settings screens is two
+// homes for every field, every save handler and every vetoed byte on the surface, drifting
+// apart without either one erroring. F-09.128 is the live specimen of what that costs.
+//
+// TWO PROPS, AND BOTH EXIST BECAUSE THE SHELL ALREADY OWNS WHAT THEY GATE:
+//   `chrome`    — false inside the shell. The masthead and the back-chevron bar are the
+//                 old layout's chrome; the shell has its own header, its own coin and its
+//                 own gutter, so rendering these would be the two-mastheads defect
+//                 reproduced one level down.
+//   `ToastView` — the toast COMPONENT, injected. Default is main's `Toast`, which reads
+//                 useT() and therefore needs a ThemeProvider; the shell passes `WlToast`,
+//                 which reads CSS variables only. CE-38 relay #2 arm (c). The state, the
+//                 timing and the vocabulary are NOT injected — `useToast()` below is the
+//                 single home for all three and is untouched.
+// `vendorName` LEFT WITH THE MASTHEAD. It existed to feed <Header>, and a prop that no
+// longer feeds anything is a prop the next reader will wire something to. Both callers
+// still hold the session; neither needs to hand it here.
+export function SettingsScreen({ chrome = true, ToastView = Toast }: {
+  chrome?: boolean;
+  ToastView?: (p: { toast: ToastState | null }) => React.ReactElement | null;
+}) {
+  const router = useRouter();
+  const { current, loading, error, update, isDirty, markSaved } = useSettings();
+  const { toast, show } = useToast();
+  const [saving, setSaving] = useState<string | null>(null);
+  const [handleSaved, setHandleSaved] = useState<string | null>(null);
+  const [prefixCounter, setPrefixCounter] = useState<number | null>(null);
+
+  async function saveMe(section: string, fields: (keyof typeof current)[], patch: Record<string, unknown>) {
+    setSaving(section);
+    try {
+      const res = await updateMe(patch);
+      if (!res.ok) { show((res as { error?: string }).error ?? 'Save failed.', 'error'); return; }
+      markSaved(Object.fromEntries(fields.map(f => [f, current[f]])) as Parameters<typeof markSaved>[0]);
+      // F-38.28 · THE SHELL'S REMEMBERED /me MUST NOT OUTLIVE A WRITE TO ITS SUBJECT.
+      // hooks/vendor/useVendorHandle.ts memoises GET /me for the session (F-38.26), so
+      // without this line a name saved here would keep showing the old initials in the
+      // shell's medallion until a full reload. Scope widened for this one line and the
+      // twin in saveHandle() by CE-38 S2/2 relay #2; nothing else in this file moves.
+      forgetVendorMe();
+      // If name was saved, update the session so the Header reflects it immediately
+      if (patch.name && typeof patch.name === 'string') {
+        const existing = getVendorSession();
+        if (existing) setVendorSession({ ...existing, name: patch.name });
+      }
+      show('Saved', 'success');
+    } catch { show('Network error.', 'error'); }
+    finally { setSaving(null); }
+  }
+
+  async function saveHandle() {
+    setSaving('tdwlink');
+    try {
+      const h = current.routing_handle.trim().toUpperCase();
+      const res = await updateRoutingHandle({ routing_handle: h });
+      if (!res.ok) { show((res as { error?: string }).error ?? 'Save failed.', 'error'); return; }
+      setHandleSaved(res.routing_handle);
+      // F-38.28, the twin of the line in saveMe(). The link card reads the handle off the
+      // memoised /me; a handle changed here and not invalidated leaves the vendor sharing
+      // her PREVIOUS address for the rest of the session, which is the never-404 failure
+      // with a stale memo behind it.
+      forgetVendorMe();
+      markSaved({ routing_handle: res.routing_handle });
+      show('Handle updated', 'success');
+    } catch { show('Network error.', 'error'); }
+    finally { setSaving(null); }
+  }
+
+  async function savePrefix() {
+    setSaving('invoiceprefix');
+    try {
+      const res = await updateInvoicePrefix({ prefix: current.invoice_prefix.trim() });
+      if (!res.ok) { show((res as { error?: string }).error ?? 'Save failed.', 'error'); return; }
+      setPrefixCounter(res.current_counter);
+      markSaved({ invoice_prefix: res.prefix });
+      show('Prefix updated', 'success');
+    } catch { show('Network error.', 'error'); }
+    finally { setSaving(null); }
+  }
+
+  // ── CE-39 S2/6 §3 · F-38.p14 CURED · THE VERB LEFT THIS FILE ──────────────
+  // It read `clearVendorSession(); router.replace('/')` — TWO of the three calls the
+  // shell's door made, missing `forgetVendorMe()` (F-38.26). Two homes for one verb, and
+  // they had already drifted: the more careful spelling was on the door the founder uses
+  // less. There is one verb now (`signOutVendor`, components/worklist/SignOutSheet.tsx),
+  // it is reachable only THROUGH the confirm sheet, and this button opens the sheet.
+  const { ask: askSignOut, sheet: signOutSheet, anchorRef: signOutAnchor } = useSignOut();
+
+  // ONE TRUTH, TWO NAMES. See the header block: `chrome` already means 「the old layout
+  // owns the frame」, so it is also the answer to 「which register is legible here」.
+  const register: Register = chrome ? 'engraved' : 'rungs';
+
+  // ── THE TEXT THIS FILE STYLES ITSELF ──────────────────────────────────────
+  // The AtelierForm primitives carry most of the surface, but this component hand-styles
+  // eight more painted strings — the capacity block, the link line and its Copy button,
+  // the next-invoice line, the two full-screen states. R-38.4's claim is that the scale
+  // holds by construction, and a surface that recut its FIELDS and left its own prose in
+  // Jost would make that claim false on the first surface tested. One local map, four
+  // rungs, so a ninth string cannot be authored in a seventh tuple by accident.
+  //   t2  the capacity −/+ glyphs. NOT a Cormorant rung: F-09.121 convicted exactly that
+  //       pairing, twice — the display serif has no drawn glyph for either character.
+  //   t1  the capacity numeral. NOT t0: 「ONE ELEMENT PER APP」 and it is Today's.
+  const T = {
+    body:    register === 'rungs' ? { font: 'var(--wl-t3)' } : { fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5 },
+    caption: register === 'rungs' ? { font: 'var(--wl-t5)' } : { fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase' as const },
+    button:  register === 'rungs' ? { font: 'var(--wl-t4)' } : { fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.28em', textTransform: 'uppercase' as const },
+    numeral: register === 'rungs' ? { font: 'var(--wl-t1)' } : { fontFamily: F.display, fontSize: 31, lineHeight: 1 },
+    glyph:   register === 'rungs' ? { font: 'var(--wl-t2)' } : { fontFamily: F.body, fontSize: 20, lineHeight: 1 },
+  };
+
+  if (loading) return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ ...T.body, color: A.inkMute }}>Loading…</div>
+    </div>
+  );
+  if (error) return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ ...T.body, color: A.red }}>{error}</div>
+    </div>
+  );
+
+
+  const handle = handleSaved ?? current.routing_handle;
+  const waLink = `https://wa.me/917982159047?text=TDW-${handle.toUpperCase()}`;
+
+  return (
+    <div ref={signOutAnchor} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <ToastView toast={toast} />
+      {chrome && (
+        <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+          <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Settings</span>
+        </div>
+      )}
+
+      {/* R-38.5: inside the shell the COLUMN owns the gutter, so this container must not
+          take one back. Outside it, the old layout supplies nothing and the 22px inset is
+          load-bearing. One expression, both truths, rather than a second container. */}
+      <div style={{ flex: 1, overflowY: chrome ? 'auto' : 'visible', overflowX: 'hidden', padding: chrome ? '8px 22px calc(40px + env(safe-area-inset-bottom))' : '8px 0 24px' }}>
+
+        {/* TDW_07 P2 · CE ruling §C — ONE EDITOR PER FIELD, and the criterion is
+            mechanical: a field Discover RENDERS or profileScore SCORES moved to Discover
+            Profile; a field serving operations or the engine stayed here. So business_name
+            and city left (card headline + filter), aesthetic_tags left (vibe chips + the
+            tags term), the rate pair left (starting_price + the rate term), the Instagram
+            handle left (the chip + the ig term) and the travel pair left (the travel term,
+            new this sitting). `name` and `style_notes` STAYED: users.name is the engine's
+            greeting, and style_notes is written by WhatsApp onboarding and read by the
+            admin detail view — neither is rendered or scored by Discover.
+            Deep links hold: this route persists, with its remaining fields. */}
+        <SCard register={register} title="Business">
+          <SField register={register} label="Your Name" value={current.name} onChange={v => update({ name: v })} placeholder="Dev Roy" />
+          <SField register={register} label="Style notes" value={current.style_notes} onChange={v => update({ style_notes: v })} multiline />
+          <SaveBtn register={register}
+            dirty={isDirty(['name', 'style_notes'])}
+            loading={saving === 'business'}
+            onSave={() => saveMe('business', ['name', 'style_notes'], {
+              name: current.name || undefined,
+              style_notes: current.style_notes || undefined,
+            })}
+          />
+        </SCard>
+
+        {/* FOUNDER-VETOED 2026-07-29 (copy slot 7, 「 go 」). One line where five sections
+            used to be — a vendor who looks for a field that moved is told where it went,
+            in the interface's own voice, with the route one tap away. */}
+        {/* ── CE-39 S2/6 · F-39.4 · F-38.p10's TWIN, AND IT IS THE SAME DEFECT ─
+            R-37.84 (4) emptied this button's body 「branch-only」 — but a component has no
+            branch, it has CALLERS, and this one renders on BOTH trees. So main lost its
+            pointer too: an empty <button>, no text, no aria-label, a 4px-tall unlabelled
+            control on a live surface. That is F-38.p10 exactly, one card apart, and curing
+            only the one the placeholder happened to name is the class-walks-away shape
+            this arc has now filed four times. Filed as F-39.4 and cured in the same edit.
+
+            IT KEEPS ITS ROW ON BOTH TREES (control inventory §7: KEPT, and its destination
+            is declared in INTERIM_VENDOR_LINKS). Gating it on the shell would have DELETED
+            a live door to cure a silence, which is the wrong direction and unruled.
+
+            THE WORDS ARE NOT 「Profile layout」, DELIBERATELY. That founder byte already has
+            a home one screen up (app/w/settings' row) and it points at the PREVIEW — how
+            couples see you. This button opens the EDITOR. One byte on two rows with two
+            destinations is the drift this file exists to refuse. New byte, in the copy
+            register's one home, listed in the seat's inventory for the founder's veto. */}
+        <SCard register={register} title="Discover Profile">
+          <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
+            background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
+            minHeight: 44, color: A.interactiveWarm,
+            ...(register === 'rungs'
+              ? { font: 'var(--wl-t3)' }
+              : { fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5 }),
+          }}>{COPY.settingsEditProfile}</button>
+        </SCard>
+
+        {/* ── S2 · HER RAILS ON THE PAYMENTS CARD · F-39.63 · R-39.20 ────────
+            0130's four columns, doored at dream-os e947570. They are printed on her
+            invoice document — `address` in the header beside city and GSTIN, the three
+            bank fields under Payment beside the UPI QR — so before this sitting a
+            vendor could offer a couple a QR and nothing else, and no way to give her
+            postal identity on a commercial record.
+
+            WHY THEY ARE HERE AND NOT ON DISCOVER PROFILE. TDW_07 P2's criterion is
+            mechanical, not aesthetic: a field Discover RENDERS or profileScore SCORES
+            moved; a field serving operations stayed. Discover renders `city`. It does
+            not render `address`, and it renders nothing of a bank account. So all four
+            stay, and they sit on THIS card because `upi_id` and `gstin` — the other two
+            things printed under Payment on the same document — are already here.
+
+            ONE HOME, THREE CALLERS. This component renders at /w/settings,
+            /vendor/settings and the demo studio, so the four fields cross all three in
+            one edit, and `register` gives each the right type world without a second
+            expression.
+
+            THE PLACEHOLDERS ARE FORMAT EXAMPLES, NOT DEFAULTS — the same shape
+            `name@bank` and `22AAAAA0000A1Z5` already use two rows up. IFSC is eleven
+            characters, fourth always `0`; the example is a real bank's real prefix
+            shape so a vendor can see what she is being asked for.
+
+            ⚠ ALL SIX NEW BYTES BELOW ARE ON THE FOUNDER'S VETO LIST and are listed in
+            this sitting's delivery for his pass: the four labels and the two
+            placeholders. Silence is not a yes. */}
+        <SCard register={register} title="Payments">
+          <SField register={register} label="UPI ID" value={current.upi_id} onChange={v => update({ upi_id: v })} placeholder="name@bank" />
+          <SField register={register} label="GSTIN" value={current.gstin} onChange={v => update({ gstin: v })} placeholder="22AAAAA0000A1Z5" />
+          <SField register={register} label="Account name" value={current.account_name} onChange={v => update({ account_name: v })} />
+          <SField register={register} label="Account number" value={current.account_number} onChange={v => update({ account_number: v })} />
+          <SField register={register} label="IFSC" value={current.ifsc} onChange={v => update({ ifsc: v })} placeholder="HDFC0000123" />
+          <SField register={register} label="Business address" value={current.address} onChange={v => update({ address: v })} multiline />
+          <SaveBtn register={register}
+            dirty={isDirty(['upi_id', 'gstin', 'account_name', 'account_number', 'ifsc', 'address'])}
+            loading={saving === 'payments'}
+            onSave={() => saveMe('payments',
+              ['upi_id', 'gstin', 'account_name', 'account_number', 'ifsc', 'address'], {
+              upi_id: current.upi_id || undefined,
+              gstin: current.gstin || undefined,
+              // `|| undefined` matches the two rows above and is deliberate: an empty
+              // string would be WRITTEN as '' where the vendor meant "leave it unset",
+              // and the document's bank block gates on `account_number` being truthy —
+              // so '' and null behave the same on the page but only one of them is
+              // honest in the row.
+              account_name: current.account_name || undefined,
+              account_number: current.account_number || undefined,
+              ifsc: current.ifsc || undefined,
+              address: current.address || undefined,
+            })}
+          />
+        </SCard>
+
+        
+
+        {/* TDW_04 B6-S1 — surfaces item 2 (F-04.64's first half, spec P3's ruled row).
+            Rendered for function artists only: capacity_applicable is computed
+            BACKEND-SIDE from occupancy's one-home map — this surface holds no copy
+            of the category table (F-04.36's law). '' = NULL = category default;
+            0 is a lawful posture and saves as 0, never coerced (Q-SP-1).
+            All strings below are on the founder's veto-on-sight list. */}
+        {current.capacity_applicable && (
+          <SCard register={register} title="Working Capacity">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <button type="button" aria-label="Fewer" onClick={() => {
+                const base = current.slot_capacity === '' ? (current.capacity_default ?? 0) : Number(current.slot_capacity);
+                update({ slot_capacity: String(Math.max(0, base - 1)) });
+              }} style={{
+                width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+                background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
+                /* F-09.121 CURED — see F-09.119 (app/vendor/tds/page.tsx FAB).
+                   Same disease: −/+ set in the display serif, which has no drawn
+                   glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
+                   leaving the other is two faces on one control. F.body 20. */
+                color: A.interactiveWarm, ...T.glyph,
+              }}>−</button>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ ...T.numeral, color: A.ink }}>
+                  {current.slot_capacity === ''
+                    ? (current.capacity_default != null ? String(current.capacity_default) : '—')
+                    : current.slot_capacity}
+                </div>
+                <div style={{ ...T.caption, color: A.brassWarm, marginTop: 5 }}>
+                  {current.slot_capacity === ''
+                    ? (current.capacity_default != null ? 'Category default' : 'Not counting yet')
+                    : 'Bookings per slot'}
+                </div>
+              </div>
+              <button type="button" aria-label="More" onClick={() => {
+                const base = current.slot_capacity === '' ? (current.capacity_default ?? 0) : Number(current.slot_capacity);
+                update({ slot_capacity: String(base + 1) });
+              }} style={{
+                width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+                background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
+                /* F-09.121 CURED — see F-09.119 (app/vendor/tds/page.tsx FAB).
+                   Same disease: −/+ set in the display serif, which has no drawn
+                   glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
+                   leaving the other is two faces on one control. F.body 20. */
+                color: A.interactiveWarm, ...T.glyph,
+              }}>+</button>
+            </div>
+            <div style={{ ...T.body, color: A.inkMute, marginTop: 8 }}>
+              How many bookings each slot of a day can hold. The calendar refuses the one after.
+            </div>
+            {current.slot_capacity !== '' && (
+              <button type="button" onClick={() => update({ slot_capacity: '' })} style={{
+                marginTop: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                ...T.button, color: A.interactiveWarm,
+              }}>Use category default{current.capacity_default != null ? ` (${current.capacity_default})` : ''}</button>
+            )}
+            <SaveBtn register={register}
+              dirty={isDirty(['slot_capacity'])}
+              loading={saving === 'capacity'}
+              onSave={() => saveMe('capacity', ['slot_capacity'], {
+                // null is MEANINGFUL: it resets to the category default. '0' saves as 0.
+                slot_capacity: current.slot_capacity === '' ? null : Number(current.slot_capacity),
+              })}
+            />
+          </SCard>
+        )}
+
+        
+
+        <SCard register={register} title="TDW Enquiry Link">
+          <SField register={register} label="Handle" value={current.routing_handle} onChange={v => update({ routing_handle: v.toUpperCase().replace(/[^A-Z0-9]/g, '') })} placeholder="YOURHANDLE" />
+          {handle && (
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ ...T.body, color: A.inkMute, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{waLink}</div>
+              <button type="button" onClick={() => navigator.clipboard.writeText(waLink).then(() => show('Link copied', 'success'))}
+                style={{
+                  background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
+                  padding: '5px 10px', cursor: 'pointer',
+                  ...T.button, color: A.interactiveWarm, flexShrink: 0,
+                }}>Copy</button>
+            </div>
+          )}
+          <SaveBtn register={register} dirty={isDirty(['routing_handle'])} loading={saving === 'tdwlink'} onSave={saveHandle} />
+        </SCard>
+
+        <SCard register={register} title="Invoice Settings">
+          <SField register={register} label="Invoice prefix" value={current.invoice_prefix} onChange={v => update({ invoice_prefix: v })} placeholder="TDW/DEV550" />
+          {prefixCounter != null && (
+            <div style={{ ...T.body, color: A.inkMute, marginTop: 4 }}>
+              Next invoice: {current.invoice_prefix}/{String(prefixCounter + 1).padStart(2, '0')}
+            </div>
+          )}
+          <SaveBtn register={register}
+            dirty={isDirty(['invoice_prefix']) && !!current.invoice_prefix.trim()}
+            loading={saving === 'invoiceprefix'}
+            onSave={savePrefix}
+          />
+        </SCard>
+
+        <SCard register={register} title="Morning Briefing">
+          <SToggle register={register} label="Enable WhatsApp briefing" value={current.briefing_enabled} onChange={v => update({ briefing_enabled: v })} />
+          <SaveBtn register={register}
+            dirty={isDirty(['briefing_enabled'])}
+            loading={saving === 'briefing'}
+            onSave={() => saveMe('briefing', ['briefing_enabled'], { briefing_enabled: current.briefing_enabled })}
+          />
+        </SCard>
+
+        {/* ── TDW_10 THE BILLING TAB · THE SIGNPOST (R-26.4, Fork B) ─────────
+            The Subscription card stood here and has moved to /vendor/billing,
+            reachable from the profile coin. What stays is a line telling a
+            vendor who looks for billing in Settings where it went — in the
+            interface's own voice, with the route one tap away. That shape is
+            NOT invented here: it is the `<SCard register={register} title="Discover Profile">`
+            precedent earlier in this same file, which did exactly this when its
+            fields left.
+
+            THE SIGNPOST IS PERMANENT. Ruled. A vendor who reaches for billing
+            in the place it used to live should always find the way out, not
+            only during a migration window.
+
+            ── `id="tier"` · F-38.p11 · CONDITION (1) HAS FIRED ────────────────
+            (mechanism-comment law, F-06.85 — the sentence below WAS false when
+            this sitting opened, which is what the placeholder convicted.)
+
+            THE COMMENT SAID chat.js sends `/vendor/settings#tier`. IT DOES NOT.
+            Derived by command at dream-os cfbe834: `src/api/vendor-engine/chat.js`
+            line 2804 sends `upgrade: { label: 'Upgrade', href: '/vendor/billing' }`,
+            and `src/` holds ZERO `#tier` references and ZERO `/vendor/settings`
+            links. Condition (1) fired in a sitting that never came back to this
+            comment, so a mechanism note went on describing a wire that had moved —
+            which is the exact defect F-06.85 exists to prevent, sitting inside the
+            block that cites F-06.85. Corrected rather than deleted, because the
+            anchor's SECOND condition is still open:
+
+              (2) Railway must have redeployed dream-os so the new href is actually
+                  SERVED. A source read cannot witness that, and the PWA hardcodes
+                  nothing — `components/vendor/TierMeter.tsx` renders whatever href
+                  arrives on the wire — so a capped vendor on a stale deploy is
+                  still being sent to `#tier` on this page.
+            The `id` therefore STAYS this sitting. It goes on the first sitting that
+            can witness the served bytes (R-38.22's own instrument), and nothing
+            else is owed for it.
+
+            F-10.101 RIDES THIS BLOCK: on a cold load the anchor may never have
+            scrolled at all — `id="tier"` mounts only after the /me fetch
+            resolves (see the `Loading…` return above), and the browser resolves
+            a fragment at load. Whether it scrolls is a RACE against the load
+            event. The signpost is honest under either outcome: it is visible
+            wherever the page lands. */}
+        <div id="tier">
+          <SCard register={register} title="Subscription">
+            {/* ── M-FINISH S1 · THE SIGNPOST FOLLOWS THE SURFACE ──────────────────
+                R-38.8 rebuilt Billing at /w/billing and this row pointed at the OLD
+                one. That is not an interim link, it is a SECOND MONEY SURFACE with a
+                live door: a vendor tapping here would have landed on the AtelierForm
+                card while her tile took her to the rebuilt page, and the two would
+                have drifted the moment either was edited. Repointed.
+                The signpost itself is still permanent, ruled at R-26.4 Fork B — and
+                the `id="tier"` retirement condition above is untouched, because it
+                turns on dream-os re-pointing chat.js and Railway redeploying, neither
+                of which this sitting did. */}
+            {/* ── CE-39 S2/6 · F-38.p10 CURED · A SIGNPOST WITH NO WORDS ──────
+                R-37.84 (4) emptied this button's body 「branch-only — Billing has a
+                tile」. A component has no branch: this one renders on the /vendor tree
+                too, where there is no tile, so main's permanent signpost (R-26.4 Fork B,
+                「THE SIGNPOST IS PERMANENT」 three lines up) has been rendering NOTHING —
+                an empty 4px button with no text and no aria-label — since that ruling.
+                A card titled Subscription over emptiness is `app/vendor/more`'s own
+                convicted class: chrome pretending to be structure.
+                THE WORDS ARE THE FOUNDER'S (vetoed 2026-08-29) and the address is
+                DERIVED: `roomHref('billing')`, never the literal — F-38.27's family is a
+                bench asserting a spelling that a cure had already moved. */}
+            <button type="button" onClick={() => router.push(roomHref('billing'))} style={{
+              background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
+              minHeight: 44, color: A.interactiveWarm,
+              ...(register === 'rungs'
+                ? { font: 'var(--wl-t3)' }
+                : { fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5 }),
+            }}>{COPY.settingsManageSubscription}</button>
+          </SCard>
+        </div>
+
+        {/* ── F-10.106 CURED (R-26.18, Fork 4) · THE FRAME TAKES THE GATE ────
+            The condition stood on the ROW while the CARD stood unconditional,
+            so every vendor outside the founding cohort read a brass ACCOUNT
+            label over emptiness — `app/vendor/more/page.tsx`'s own warrant
+            names the class: chrome pretending to be structure. Pre-existing,
+            and made conspicuous the moment the Subscription card left from
+            above it.
+
+            WRAPPED, NOT RETIRED, and that is ruled. Wire-or-delete-at-birth
+            governs controls born UNWIRED; this row is wired and true — it
+            renders a real value from `vendors.founding_cohort` for the cohort
+            it was built for. Retiring the card would delete a live surface from
+            those vendors in order to cure a frame. The defect was never the
+            card; it was a frame that was unconditional while its only content
+            was conditional. The condition moves up one level. Zero copy bytes.
+
+            IF A SECOND ROW EVER JOINS THIS CARD, this gate is wrong and must
+            move back down to the row — the card would then hold content that is
+            true of every vendor. Named here so that sitting is forced to read
+            this sentence (F-06.85). */}
+        {current.founding_cohort && (
+          <SCard register={register} title="Account">
+            <SReadRow register={register} label="Status" value="Founding cohort" />
+          </SCard>
+        )}
+
+        {/* ── CE-39 S2/6 §3 · THE SECOND DOOR OPENS THE ONE SHEET ────────────
+            This button ended the session on a single tap while the drawer's row — the
+            more reachable of the two — had confirmed since CE-38. D-38.1 clause 3: a cure
+            applied where somebody was looking, and the class left to find its own way to
+            the other door. Both doors now open the SAME sheet, which is why the sheet is
+            a component and not markup inside either of them.
+            THE BYTE IS THE FOUNDER'S, from the copy register: 「Sign out」, sentence case,
+            the same key the drawer row carries. 「Sign Out」 in Title Case went with the
+            engraved register that carried it. */}
+        <button type="button" onClick={askSignOut} style={{
+          width: '100%', minHeight: 44, padding: '14px 0', marginTop: 24,
+          background: 'transparent', border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2,
+          cursor: 'pointer', color: A.red,
+          ...(register === 'rungs'
+            ? { font: 'var(--wl-t4)' }
+            : { fontFamily: F.label, fontWeight: 300, fontSize: 10, letterSpacing: '0.42em', textTransform: 'uppercase' }),
+        }}>{COPY.drawerSignOut}</button>
+      </div>
+      {signOutSheet}
+    </div>
+  );
+}

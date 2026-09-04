@@ -84,7 +84,7 @@ function surfaceFiles() {
 }
 const SANCT   = 'app/(frost)/frost/canvas/sanctuary/page.tsx';
 const DEAD    = 'app/(frost)/frost/canvas/discover/page.tsx';
-const PREVIEW = 'app/vendor/discover/preview/page.tsx';
+const PREVIEW = 'app/vendor/(legacy)/discover/preview/page.tsx';
 const DOTS    = 'components/shared/ImageDots.tsx';
 const PAGER   = 'lib/frost/photoPager.ts';
 const IGLINK  = 'lib/frost/igLink.ts';

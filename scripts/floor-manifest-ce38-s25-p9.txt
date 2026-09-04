@@ -1,0 +1,8 @@
+# scripts/floor-manifest-ce38-s25-p9.txt
+# BASE 4a2d40b (founder's commit of F-38.61/.62; unpushed at authoring — the guard decides).
+# F-38.p9 · the event card's actions take a full-width row of their own.
+# [F-19.16] The delivery's own file table.
+
+components/vendor/CalendarDaySheet.tsx
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce38-s25-p9.txt

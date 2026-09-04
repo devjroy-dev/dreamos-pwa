@@ -43,7 +43,7 @@ const CODE = (p) => strip(RAW(p));
 
 const SHELL_P = 'components/vendor/slices/SliceShell.tsx';
 const ROW_P   = 'components/vendor/slices/SliceRow.tsx';
-const LEADS_P = 'app/vendor/list/[slice]/leads.tsx';
+const LEADS_P = 'app/vendor/(shell)/leads/body.tsx';
 const SHEET_P = 'components/frost/EnquirySheet.tsx';
 const BANDS_P = 'lib/frost/budgetBands.ts';
 
@@ -119,8 +119,31 @@ t('the slot is gated on `sel?.redacted` (payload-keyed)', () =>
 t('the slot is NOT gated on an absent phone', () =>
   !/slice === 'leads' && !sel\?\.phone/.test(CODE(SHELL_P))
     ? true : 'a lead that never had a number would be told to upgrade — a lie');
-t('the slot routes at Billing, the CE-210 home', () =>
-  /href="\/vendor\/billing"/.test(CODE(SHELL_P)));
+// ── AMENDED IN PLACE · F-38.27 · CE-38 S2/2 RELAY #1 ITEM 3 · COUNT-PRESERVED ──
+// This cell used to read /href="\/vendor\/billing"/ against SliceShell. That
+// literal is GONE: f542795's R-38.1 cure (the S2 ZIP bounce, nine reachable
+// pairs from four source sites) replaced it with roomHref('billing'), because
+// notes.tsx imports SliceDoor from SliceShell and so a tier gate three hundred
+// lines away sits in all six crossed rooms' chunks. One literal, six failing
+// pairs. The cure shipped and THIS BENCH WENT RED WITH IT and was not noticed,
+// because S2 section 9's remedy re-derived the cells and never re-ran the floor
+// (R-38.19 now forbids that: the floor is re-derived at the cut, never quoted).
+//
+// THE CELL'S SUBJECT NEVER CHANGED — the slot must route at Billing, the CE-210
+// home. What changed is that Billing's address is now the registry's to answer,
+// so asserting a SPELLING would pin this bench to a string the estate has
+// deliberately stopped writing. It asserts the DESTINATION in two halves,
+// because either alone would pass on a defect: the CTA asks the address book,
+// and the address book still answers with a real Billing route. A registry that
+// lost its billing row would reddens here even while the call site looked right.
+t('the slot routes at Billing, the CE-210 home', () => {
+  const asks = /href=\{roomHref\('billing'\)\}/.test(CODE(SHELL_P));
+  if (!asks) return 'the slot does not ask roomHref for billing';
+  const row = CODE('lib/worklist/rooms.ts')
+    .split('\n').find((l) => /id:\s*'billing'/.test(l)) || '';
+  const href = (row.match(/href:\s*'([^']+)'/) || [])[1];
+  return href ? true : 'the registry has no billing href for roomHref to return';
+});
 t('the PAYING footer (WhatsApp + Call) is byte-unmoved beside it', () =>
   /slice === 'leads' && sel\?\.phone && !confirmDel/.test(CODE(SHELL_P))
   && /wa\.me\/\$\{sel\.phone/.test(CODE(SHELL_P)) && /tel:\$\{sel\.phone\}/.test(CODE(SHELL_P)));

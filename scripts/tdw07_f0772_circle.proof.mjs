@@ -25,6 +25,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { stripComments, NAIVE_RETIRED } from './lib/stripComments.mjs';
+import { createShadow, assertUntouched } from './lib/mutateCopy.mjs';
 
 const SELF = fileURLToPath(import.meta.url);
 const ROOT = path.join(path.dirname(SELF), '..');
@@ -813,7 +814,34 @@ ok('§15.6 THE CENSUS IS CLOSED — exactly TWO role maps in this repo, and they
 // Skipped when this process IS a mutation run, or recursion never terminates.
 // ═══════════════════════════════════════════════════════════════════════════
 if (!CELLS_ONLY) {
-  sec('§7 · MUTATION — production source broken, fresh process per run, cmp-restored');
+  sec('§7 · MUTATION — a SHADOW of production broken, fresh process per run, production untouched');
+  // ── F-19.18 · THIS LEG NO LONGER WRITES TO PRODUCTION SOURCE ───────────────
+  //
+  // It used to, and the estate paid for it. `app/coplanner/CircleSessionContext.tsx`
+  // was left holding M-22b's `permissions: { can_see_budget: boolean };` after a
+  // command hit its execution limit and was killed mid-run. The restore was in the
+  // right place; a `finally` GUARDS A THROW AND NOT A SIGNAL, so it never ran. This
+  // bench then reddened ITSELF on the vocabulary it had planted, and withdrawing the
+  // delivery did not clear it — the contamination survived the withdrawal, so the red
+  // read as somebody else's for a sitting.
+  //
+  // `scripts/lib/mutateCopy.mjs` is the one home for the cure in this repo. The
+  // mutation is written into a SHADOW of the tree — a symlink farm in `tmpdir` where
+  // only the path down to a mutated file is materialised — and the child bench runs
+  // inside it. Production source is never opened for writing, so however this process
+  // dies it cannot leave a mutation behind. A missed cleanup now costs an orphaned
+  // temp directory that no `git status` will ever show.
+  //
+  // THE PROOF DID NOT WEAKEN, AND §7.0 IS WHERE THAT IS ASSERTED RATHER THAN CLAIMED:
+  // every mutated path is re-read from PRODUCTION at the end of the leg and must be
+  // byte-identical to what it was before the leg started. The old code proved a
+  // successful restore; this proves there was nothing to restore.
+  //
+  // ⚠ THE CHILD IS SPAWNED THROUGH `shadow.exec` AND NEVER THROUGH `spawnSync`
+  // DIRECTLY — see F-38.42 at the helper. Node canonicalises the main module's path,
+  // so without `--preserve-symlinks --preserve-symlinks-main` the child reads the REAL
+  // repository while standing in the shadow and every mutation below reports GREEN over
+  // a tree nobody read. That was witnessed on this exact leg: 102/102 with M-22b live.
 
   const MUTATIONS = [
     [CTX_P,
@@ -920,6 +948,18 @@ if (!CELLS_ONLY) {
       'M-28 the type reverts to the impossible value-space        ⇒ §15.4 RED'],
   ];
 
+  // PRISTINE is read ONCE, from production, before anything is written anywhere.
+  // It is both the source of every mutation's base bytes and §7.0's witness, and
+  // one home for the two is deliberate: a leg that captured its "before" from a
+  // different read than the one it mutates could compare a file against itself
+  // after both had moved.
+  const SELF_REL = path.relative(ROOT, SELF);
+  const PRISTINE = new Map(
+    [...new Set(MUTATIONS.map(([rel]) => rel))].map((rel) => [rel, fs.readFileSync(path.join(ROOT, rel), 'utf8')]),
+  );
+
+  const shadow = createShadow(ROOT);
+  try {
   let mutPass = 0, mutRun = 0;
   for (const [rel, from, to, label] of MUTATIONS) {
     if (/\(control\)/.test(label)) {
@@ -930,24 +970,38 @@ if (!CELLS_ONLY) {
       continue;
     }
     mutRun++;
-    const abs = path.join(ROOT, rel);
-    const original = fs.readFileSync(abs, 'utf8');
+    const original = PRISTINE.get(rel);
     if (!original.includes(from)) {
       fail++; console.log(`  FAIL ${label}  → mutation anchor absent (uncured tree?)`);
       continue;
     }
-    fs.writeFileSync(abs, original.replace(from, to));
-    const r = spawnSync(process.execPath, [SELF, '--cells-only'], { encoding: 'utf8' });
-    fs.writeFileSync(abs, original);
-    const restored = fs.readFileSync(abs, 'utf8') === original;
-    if (r.status !== 0 && restored) { pass++; mutPass++; console.log('  ok   ' + label); }
+    shadow.write(rel, original.replace(from, to));
+    const r = shadow.exec(SELF_REL, ['--cells-only']);
+    // The shadow copy goes back to pristine bytes between mutations. Not for
+    // production's sake — production was never touched — but so that mutation N+1
+    // is proved ALONE. Left mutated, the shadow would accumulate and a later cell's
+    // red could be an earlier mutation's, which is a proof that cannot say what it
+    // proved.
+    shadow.write(rel, original);
+    if (r.status !== 0) { pass++; mutPass++; console.log('  ok   ' + label); }
     else {
       fail++;
-      console.log(`  FAIL ${label}  → ` +
-        (r.status === 0 ? 'the cells PASSED over broken production code — vacuous' : 'not restored byte-identical'));
+      console.log(`  FAIL ${label}  → the cells PASSED over broken source — vacuous`);
     }
   }
-  console.log(`       ${mutPass}/${mutRun} mutations RED across process boundaries, all restored byte-identical`);
+  console.log(`       ${mutPass}/${mutRun} mutations RED across process boundaries, production never written`);
+
+  // §7.0 · THE PROPERTY, ASSERTED AND NOT ASSUMED. Every path this leg mutated is
+  // re-read from the REAL tree and compared to the bytes captured before the leg
+  // began. Under the old shape this cell could only say "the restore worked"; it
+  // now says the stronger thing, which is that nothing was ever there to restore.
+  try {
+    assertUntouched(ROOT, [...PRISTINE.keys()], PRISTINE);
+    pass++; console.log('  ok   §7.0 production source untouched by the whole mutation leg');
+  } catch (e) {
+    fail++; console.log('  FAIL §7.0 ' + e.message);
+  }
+  } finally { shadow.dispose(); }
 }
 
 console.log('');

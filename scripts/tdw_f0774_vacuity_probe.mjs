@@ -60,17 +60,104 @@ const BITE_FILES = [
 const BENCHES = ['tdw07_p6_fold', 'tdw07_p4b_body'];
 
 // ── the guard. A dirty tree means the probe cannot prove it restored anything.
+//
+// ── F-19.16 · THE DECLARED-DIRT ESCAPE ──────────────────────────────────────
+//
+// This refusal is correct and it stays. It is also, on its own, the reason the
+// whole pwa floor could not gate a delivery tree: A DELIVERY TREE IS DIRTY BY
+// DEFINITION, R-33.7 forbids the executor the commit that would clean it, and
+// this bench is the one file in `scripts/` that stops on dirt — so its red was
+// unavoidable on the one tree the floor exists to measure, and every pwa
+// delivery since has had to state a hand-rolled measurement method instead.
+//
+// `scripts/run-floor.sh --delivery <manifest>` exports the manifest's absolute
+// path as `TDW_FLOOR_DELIVERY_MANIFEST`. Read here, and ONLY here, because the
+// runner is the one manifest home and this is the one bench that refuses.
+//
+// WHAT THE ESCAPE DOES NOT DO. It does not weaken the restore proof by one
+// byte. The probe already reads every bite file's ORIGINAL bytes into
+// `ORIGINALS` before it plants anything, and `restore()` writes those bytes back
+// and re-reads to confirm byte-identity — that check never depended on `git`
+// and does not depend on it now. What `git status` was standing in for was a
+// different question: *can this probe tell its own plant from your unbanked
+// work?* Under a manifest the answer is yes, by name, which is a stronger
+// answer than a clean tree ever gave — a clean tree proves only that nothing
+// was there, while a manifest proves that what is there was declared.
+//
+// THE ESCAPE IS NARROW AND LOUD. Dirt outside the manifest still STOPS, exactly
+// as before. The runner has already refused the same set before reaching this
+// bench, so this is the second of two independent checks and not a substitute
+// for one — and running the probe standalone on a dirty tree, with no manifest
+// in the environment, behaves precisely as it always has.
+const DECLARED_MANIFEST = process.env.TDW_FLOOR_DELIVERY_MANIFEST || '';
+// The `git` call gets its own try and NOTHING ELSE SHARES IT. When the manifest
+// parse lived inside the same block, any throw from it printed the git STOP text
+// — a wrong reason for a real refusal, which is the failure mode this estate
+// calls laundering an assumption into a verdict.
+//
+// ⚠ TRAILING NEWLINES ONLY — NEVER `.trim()`. Porcelain's first two columns are
+// the status field and an unmodified-in-index file's line begins with a SPACE
+// (` M path`). A whole-string `.trim()` eats that space on the FIRST LINE ONLY,
+// so `slice(3)` then removes one character too many and the path arrives as
+// `cripts/run-floor.sh` — which is in no manifest, so the escape refused a
+// delivery it had been handed correctly. The old code trimmed too, and it was
+// harmless there because `dirty` was only ever PRINTED. The moment it became
+// something the code reasons about, the trim became a defect. Witnessed on the
+// first run of the escape, not reasoned about.
+// ── §4-3 · `-uall`, AND THE ENUMERATION HAS TWO HOMES ─────────────────────
+// Bare `--porcelain` COLLAPSES an untracked directory to a single trailing-slash entry, so
+// a delivery adding `app/vendor/(shell)/storefront/page.tsx` reads as `app/vendor/(shell)/storefront/`. A manifest is
+// a FILE table by its own header, so the two can never match and this probe refused a
+// correct delivery — naming three directories that contain nothing but declared files. It
+// is `run-floor.sh`'s identical defect, found in the same run.
+//
+// ⚠ AND THAT IS THE ENTRY, NOT THE FLAG. F-19.16's own header promises "ONE MANIFEST HOME,
+// ONE ENV NAME, one bench that reads it" — and the MANIFEST does have one home. THE DIRT
+// ENUMERATION HAS TWO: this file and `scripts/run-floor.sh`, in two languages, each with
+// its own `git status --porcelain` and its own parsing of the three-character prefix. They
+// agreed for as long as nobody handed them a case they read differently, and an untracked
+// DIRECTORY was that case. Cured identically in both, which is a cure applied twice rather
+// than a duplication removed; unifying them means a shared helper across bash and node and
+// is priced, not attempted inside a crossing.
+//
+// `-uall` cannot loosen the check: it only ever expands a directory into the files it
+// holds, so a path outside the manifest stays outside it — and an UNDECLARED file inside a
+// declared directory, which the collapsed form hid, is now caught.
+let dirty = null;
 try {
-  const dirty = execSync('git status --porcelain', { cwd: ROOT, encoding: 'utf8' }).trim();
-  if (dirty) {
-    console.log('STOP — the tree is dirty. This probe writes to production source and');
-    console.log('restores it; on a dirty tree it cannot prove the restore was clean.');
-    console.log('Commit or stash first. Nothing was touched.\n' + dirty);
-    process.exit(1);
-  }
+  dirty = execSync('git status --porcelain -uall', { cwd: ROOT, encoding: 'utf8' }).replace(/\n+$/, '');
 } catch {
   console.log('STOP — could not run `git status` to prove the tree is clean. Nothing was touched.');
-  process.exit(1);
+  process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
+}
+{
+  if (dirty) {
+    // Rename entries carry `old -> new` and BOTH sides are dirt a manifest must
+    // account for — the same parse the runner uses, for the same reason.
+    const dirtyPaths = dirty.split('\n').map((l) => l.slice(3).replace(/^"|"$/g, ''))
+      .flatMap((p) => (p.includes(' -> ') ? p.split(' -> ') : [p]))
+      .map((p) => p.trim()).filter(Boolean);
+    let declared = null;
+    if (DECLARED_MANIFEST && fs.existsSync(DECLARED_MANIFEST)) {
+      declared = new Set(fs.readFileSync(DECLARED_MANIFEST, 'utf8')
+        .split('\n').map((l) => l.replace(/#.*/, '').trim()).filter(Boolean));
+    }
+    const undeclared = declared ? dirtyPaths.filter((p) => !declared.has(p)) : dirtyPaths;
+    if (undeclared.length) {
+      console.log('STOP — the tree is dirty. This probe writes to production source and');
+      console.log('restores it; on a dirty tree it cannot prove the restore was clean.');
+      if (declared) {
+        console.log('These paths are NOT in ' + DECLARED_MANIFEST + ':');
+        console.log(undeclared.map((p) => '  ' + p).join('\n'));
+      } else {
+        console.log('Commit or stash first, or declare the dirt with');
+        console.log('`bash scripts/run-floor.sh --delivery <manifest>` [F-19.16].');
+        console.log(dirty);
+      }
+      process.exit(3); // F-39.47/F-39.55: a refusal exits 3 — named, never a FAIL, never in a base
+    }
+    console.log(`[F-19.16] ${dirtyPaths.length} dirty path(s), all declared in ${DECLARED_MANIFEST} — proceeding.`);
+  }
 }
 
 const ORIGINALS = new Map(BITE_FILES.map((f) => [f, fs.readFileSync(f, 'utf8')]));

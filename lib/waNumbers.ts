@@ -45,6 +45,33 @@
 export const VENDOR_WA_NUMBER = '917982159047';
 export const BRIDE_WA_NUMBER  = '917011788380';
 
+// ── THE SUPPORT NUMBER · M-WORKLIST Phase 1, R-37.67 ────────────────────────
+//
+// DELIBERATELY NOT A `WaLane`, AND DELIBERATELY UNTWINNED. Two derivations, both stated so
+// a later reader does not "fix" this into the union:
+//
+//   (a) IT IS NOT A LANE. `WaLane` names the two Meta Cloud API lanes — each with its own
+//       PNID, its own agent and its own WABA routing. Support is a person's handset: no
+//       PNID, no template, no engine. Folding it into the lane union is the category mix
+//       \u00a78.5 refused when it declined to fold a money fact into a team kind.
+//
+//   (b) THE TWIN WOULD HAVE TO LIE. dream-os/src/lib/waNumbers.js ends its switch with
+//       `default: throw new RangeError(...'expected vendor | bride')`. Widening the union
+//       means either loosening that guard on a live backend for a lane the server will
+//       never send on, or leaving the twins asymmetric on their most load-bearing type.
+//
+// SO: A DECLARED PWA-ONLY CONSTANT, WITH NO TWIN AND SAYING SO. This file's own header
+// records that the failure it exists to prevent is not divergence but SILENT divergence —
+// a declared asymmetry carrying its reason is what that header calls the cure.
+//
+// ENV-FIRST WITH A FLOOR, the pattern above: an unset var must still yield a number that
+// ANSWERS. The founder's "we wire that later" is therefore a dashboard change and no deploy.
+export const SUPPORT_WA_NUMBER = '919888294440';
+
+export function supportWaNumber(): string {
+  return process.env.NEXT_PUBLIC_TDW_SUPPORT_WA_NUMBER || SUPPORT_WA_NUMBER;
+}
+
 export type WaLane = 'vendor' | 'bride';
 
 export function waNumberFor(lane: WaLane): string {

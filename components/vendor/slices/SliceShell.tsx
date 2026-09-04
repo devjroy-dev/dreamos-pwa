@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/SliceShell.tsx — TDW_03 P1
 // Two exports:
@@ -11,15 +15,34 @@
 // P2/P4/P5 will migrate them into their modules as those phases rebuild them.
 // Zero behavior change is the P1 contract.
 
+// `usePathname` LEFT WITH THE HOOK. It was read by exactly one thing — `useInShell`'s body
+// — and once that moved, the specifier was dead. Derived, not assumed: zero call sites
+// remain in this file. An unused import is not tidiness debt; it is a named binding the
+// next reader wires something to (the `vendorName` finding at §4-2, same shape).
 import { useRouter } from 'next/navigation';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { Fab } from '@/components/worklist/Fab';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
-import { Header } from '@/components/vendor/Header';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { AddSheet } from '@/components/vendor/AddSheet';
-import { Toast } from '@/components/vendor/Toast';
+// ── M-FINISH S2 · CE-38 relay #2 arm (c), REACHING THE LIST FAMILY ──────────
+// `Toast` reads five values off `useT()` as JAVASCRIPT, not as CSS variables, so inside the
+// shell — where no ThemeProvider mounts and none may (F-38.3) — it falls to
+// createContext(DARK)'s default and paints Espresso-dark on a Chalk page, in both modes,
+// forever. It does not throw, which is exactly why it would have shipped: the room renders,
+// the toast is simply the wrong colour, and only a capture with a toast ON SCREEN would
+// have caught it. D-38.1 is the doctrine — observe at the moment the defect is visible.
+// The pair is chosen by the SAME derivation that chooses everything else here, so there is
+// one fact about which tree we are in and one place it is read.
+import { WlToast } from '@/components/worklist/WlToast';
+import { roomHref } from '@/lib/worklist/rooms';
+// THE TWO PDF SENTENCES AND THE INVOICE ROW'S VERB LIVE IN THE REGISTER, NOT
+// HERE (CE-39 2c-Studio, ruling 4). Both PDF bytes were spelled inline in this
+// file, at the two call sites below; `Mark paid` was spelled twice more, once
+// for the swipe and once for the bulk bar. One home, four readers.
+import { COPY } from '@/lib/worklist/copy';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -27,7 +50,7 @@ import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gest
 import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
 import { FilterRail, type FilterChip } from './FilterRail'; // TDW_04 A4: P4's rail
 import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth for money mastheads
-import { deriveMoney, deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
+import { deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
 import { queueUndoable, flushAllPending, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure · A4: F-04.14 ruled
 import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
@@ -60,6 +83,7 @@ const LANE_LINE: Record<ListSlice, string> = {
 };
 import { DetailSheet } from './DetailSheet';
 
+import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // Payment schedule endpoint lands with Step 10 (artifact hands). Off until then,
 // so opening an invoice doesn't fire a 404 against a route that isn't built yet.
 const SCHEDULE_ENABLED: boolean = false;
@@ -71,6 +95,18 @@ const SCHEDULE_ENABLED: boolean = false;
 // a real route change (the P1 remount nuance is a live path now; P4 judges it
 // per the standing ruling). Counts slot reserved — TDW_09 may add.
 const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
+
+// ── M-FINISH S2 · §4-3 · `useInShell` MOVED OUT OF THIS FILE, AND ONLY MOVED ──
+// It was DEFINED here at §4-1 because the list family was the only caller. Storefront,
+// Portfolio and Couture cross at §4-3 and each needs the same predicate; none of them is in
+// this family, and a named import from this module reaches `SliceShell`, `SliceDoor` and
+// `DetailSheet` behind it. Its one home is `hooks/vendor/useInShell.ts` now — main-side, so
+// both trees may read it and neither inverts D-2 — and this file IMPORTS it like every
+// other caller rather than keeping a re-export beside it. A re-export would be a second
+// name for one thing, which is the disease one directory over.
+//
+// The reasoning that used to sit here travelled WITH the code and is not summarised: a
+// comment that paraphrases a decision living elsewhere is the next stale comment (F-38.29).
 
 export function SliceDoor({ active }: { active: DoorSlice }) {
   const router = useRouter();
@@ -85,7 +121,7 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
 
   return (
     <div ref={rowRef} style={{
-      display: 'flex', gap: 4, padding: '0 22px 6px',
+      display: 'flex', gap: 4, padding: '0 var(--slice-inset, 22px) 6px',
       overflowX: 'auto', scrollbarWidth: 'none',
       borderBottom: '0.5px solid var(--atelier-card-border)',
     }}>
@@ -97,18 +133,30 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
             ref={isActive ? activeRef : undefined}
             type="button"
             aria-current={isActive ? 'page' : undefined}
-            onClick={() => { if (!isActive) { setSlice(s); router.push(`/vendor/list/${s}`); } }}
+            onClick={() => { if (!isActive) { setSlice(s); router.push(`/vendor/${s}`); } }}
             style={{
               flexShrink: 0,
               background: 'transparent', border: 'none', cursor: 'pointer',
               minHeight: 24, padding: '8px 10px', // pads the 24px line to a 40px touch target
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
             }}>
+            {/* ── THE OBLIGATION theme.ts SHIPPED UNDER BAR, DISCHARGED AT ITS NAMED SITTING ──
+                lib/worklist/theme.ts:28-31 recorded the inactive chip at 4.02:1 dark and
+                3.01:1 light against a 4.5 bar, named THIS line as the cause (a hard-coded
+                opacity 0.45, which no ink value can climb out of) and bound the cure BY
+                LABEL to "the Phase 2 SliceDoor sitting". The list family crossing is that
+                sitting, so it is discharged here rather than carried a third time.
+                THE OPACITY IS GONE, NOT TUNED. Two ink tokens carry the two states, and
+                both are MEASURED in theme.ts against the ground they sit on: ink-mute is
+                4.98:1 dark and 6.79:1 light, ink is 15.74:1 and 17.82:1. An opacity over a
+                token is a colour nobody measured; a token is a colour somebody did.
+                It reads correctly on the /vendor fallback too, because both trees define
+                these two variables — this is the one-home move, not a branch fork (D-2). */}
             <span style={{
               fontFamily: F.label, fontWeight: isActive ? 400 : 300, fontSize: 10,
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: 'var(--atelier-ink)', opacity: isActive ? 0.9 : 0.45,
-              transition: 'opacity 200ms ease',
+              color: isActive ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
+              transition: 'color 200ms ease',
             }}>
               {LABELS[s]}
               {/* counts slot reserved — TDW_09 may add */}
@@ -130,8 +178,8 @@ export function SliceDoor({ active }: { active: DoorSlice }) {
 // Sheets/overlays/toast are passed through as children by SliceScreen.
 interface SliceShellProps {
   slice: ListSlice;
-  vendorName: string | null;
-  onBack: () => void;
+  /** THE BACK/LABEL ROW ONLY. Inside the shell the row does not render, so this is never
+      called there — the shell's two nav seats are the way out and there is no chevron. */
   query: string;
   setQuery: (q: string) => void;
   loading: boolean;
@@ -154,37 +202,55 @@ interface SliceShellProps {
   children?: ReactNode;
 }
 
-export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
+// ══ M-FINISH S2 · R-38.11 · WHAT CROSSED HERE, AND WHAT DELIBERATELY DID NOT ══
+//
+// `vendorName` LEFT WITH THE MASTHEAD, exactly as it left SettingsScreen at S1
+// (components/vendor/SettingsScreen.tsx:78). It existed to feed <Header>, and a prop that
+// no longer feeds anything is a prop the next reader will wire something to. Both callers
+// still hold the session; neither needs to hand it here.
+//
+// ⚠ `Header` IS NOT IMPORTED BY THIS FILE ANY MORE, AND THE DIFFERENCE FROM A CONDITIONAL
+// IS THE WHOLE FINDING — S1 paid for it once already. Keeping `import { Header }` and
+// writing `{chrome && <Header …/>}` renders correctly and STILL SHIPS the old masthead into
+// every shell room's chunk, with its drawer, its /vendor rows and 「DreamAi on WhatsApp」
+// (Header.tsx:355, banned by R-37.70/.78/.83). A conditional does not remove a module from
+// a bundle; only not importing it does. `Header` mounts at the fallback ROUTE now
+// (app/vendor/list/[slice]/page.tsx), which is the only place it is wanted.
+//
+// THE BODY DID NOT CROSS AND IS NOT REDESIGNED (R-38.12). Rows, sheets, mastheads and the
+// filter rail keep their current layout. Two things about them are DECLARED GAPS rather
+// than silent ones, and both are named in the handover and excluded from the render arm's
+// tuple cell by name: the slice tree's thirty colour LITERALS (F-38.22) and its old type
+// register. Neither is swept inside a structural crossing.
+export function SliceShell({ slice, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
-      <Header vendorName={vendorName} />
-
-      {/* Sub-header: back + brass label. TDW_04 A3: the P5 masthead now sits
-          beneath the lane line — the back/label row stays (navigation), the
-          masthead carries THE number. */}
-      <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="button" onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.brassWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
-        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{LABELS[slice]}</span>
-      </div>
+      {/* ── THE BACK/LABEL ROW IS THE OLD LAYOUT'S CHROME ────────────────────
+          Inside the shell it would be the two-mastheads defect one level down from where
+          R-38.1 removed it: WorklistShell already prints the room's word in its header and
+          already owns the way out. There is no chevron in the shell by construction — the
+          two nav seats are the way back, which is the same contract Billing and Settings
+          crossed under at S1. On the /vendor fallback the row renders exactly as before. */}
+      
       {/* TDW_04 A1 (L-1, ST-1): the lane declaration — one provenance line under
           every record-surface title, house voice. No surface claims totality it
           doesn't have. */}
-      <div style={{ padding: '0 22px 2px', marginTop: -4 }}>
-        <span style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
+      <div style={{ padding: '0 var(--slice-inset, 22px) 2px', marginTop: -4 }}>
+        <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
       </div>
 
       {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
           the same function the hub Ledger reads. */}
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 0 }}>{masthead}</div>
-        {sortControl && <div style={{ padding: '14px 22px 0 0' }}>{sortControl}</div>}
+        {sortControl && <div style={{ padding: '14px var(--slice-inset, 22px) 0 0' }}>{sortControl}</div>}
       </div>
 
       {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
       <SliceDoor active={slice} />
 
       {/* Search */}
-      <div style={{ padding: '12px 22px 6px' }}>
+      <div style={{ padding: '12px var(--slice-inset, 22px) 6px' }}>
         <div style={{ position: 'relative' }}>
           <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: F.display, fontSize: 16, color: A.inkMute, lineHeight: 1, pointerEvents: 'none' }}>⌕</span>
           <input
@@ -198,7 +264,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
               border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 2,
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-              outline: 'none', caretColor: A.brass,
+              outline: 'none', caretColor: A.interactive,
             }}
           />
         </div>
@@ -214,7 +280,7 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
             {!loading && !error && rows.length === 0 && (
               <div style={{
                 padding: '40px 24px', textAlign: 'center',
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+                fontFamily: F.script, fontWeight: 300, fontSize: 16,
                 color: A.inkMute, lineHeight: 1.5,
               }}>
                 {query
@@ -229,8 +295,8 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
                 Said plainly, at the foot of the list, in the house voice. */}
             {!loading && !error && rows.length > 0 && CHIP_BLINDNESS[slice] && (
               <div style={{
-                padding: '14px 22px 20px',
-                fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+                padding: '14px var(--slice-inset, 22px) 20px',
+                fontFamily: F.script, fontWeight: 300, fontSize: 16,
                 color: A.inkMute, lineHeight: 1.5,
               }}>{CHIP_BLINDNESS[slice]}</div>
             )}
@@ -238,16 +304,21 @@ export function SliceShell({ slice, vendorName, onBack, query, setQuery, loading
         )}
       </div>
 
-      {/* Brass-key FAB */}
-      <button type="button" onClick={onAdd} aria-label={`Add ${LABELS[slice].toLowerCase()}`}
-        className="atelier-fab"
-        style={{
-          position: 'fixed', bottom: 'calc(82px + env(safe-area-inset-bottom))', right: 20, zIndex: 30,
-          width: 46, height: 46, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: F.body, fontSize: 20, fontWeight: 400, lineHeight: 1,
-          cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-        }}>+</button>
+{/* ── CE-39 S2/6 · F-39.4 · THE SHELL ARM STOPPED DRAWING ITS OWN SEAT ──────
+          This button carried its own geometry — 46px at right 20, bottom 120 inside the
+          shell — and the 120 was DERIVED CORRECTLY (the dock's 8+44+8 over the nav's 52 =
+          112.5, plus one step) and was still wrong, because Rooms' FAB had been MEASURED
+          at 136 against the painted dock and the two numbers were never compared. A
+          derivation and a measurement of the same thing, in two files, disagreeing by
+          16px — which the founder read as the button jumping when he changed rooms.
+          Ruled: Rooms is the reference and its seat is the only seat. The shell arm now
+          draws through components/worklist/Fab.tsx and names no number at all.
+
+          THE /vendor ARM IS UNTOUCHED, AND THAT IS THE RULING TOO. Its 82 clears the old
+          BottomNav, `.wl-fab` does not exist outside the shell scope, and that tree dies
+          whole at Phase 7. Two implementations, each with its reason at its site — the
+          same shape the ask door took two hours ago. */}
+      {<Fab label={`Add ${LABELS[slice].toLowerCase()}`} onClick={onAdd} />}
 
       {children}
     </div>
@@ -262,6 +333,10 @@ export interface SliceDataState<T> {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  /** P7.2 (FORK 4): the typed invoices read carries the server's summary on the same load
+      state; the invoices masthead reads it here instead of the engine cabinet. Optional so
+      the five other slices' loaders are untouched. */
+  summary?: { total_outstanding: number; total_collected: number } | null;
 }
 
 export interface SliceScreenProps<T extends { id: string }> {
@@ -277,7 +352,10 @@ export interface SliceScreenProps<T extends { id: string }> {
 }
 
 export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest }: SliceScreenProps<T>) {
-  const router = useRouter();
+  // ONE DERIVATION, TWO READERS. `useInShell` was called inline for the toast alone; the
+  // F-39.11 focus arm below needs the same fact, and calling the hook twice in one
+  // component is two statements of one thing that a later edit can let disagree.
+  const ToastView = WlToast;
   const { session } = useVendorSession();
   const d = useData(vendorId);
 
@@ -337,7 +415,20 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       if (res.ok && (res as { pdf_url?: string }).pdf_url) {
         window.open((res as { pdf_url: string }).pdf_url, '_blank', 'noopener');
       } else {
-        showToast((res as { error?: string }).error ?? 'PDF not ready yet — try again in a moment.', 'error');
+        // ── F-2c.p10's CURE ────────────────────────────────────────────
+        // WHAT THIS SAID: 「PDF not ready yet — try again in a moment.」 That
+        // described WAITING when what happened was FAILING, and it invented a
+        // state this door cannot report: `GET /:invoiceId/pdf` is SYNCHRONOUS
+        // (`src/api/vendor/money.js` · the `GET /invoices/:vendorId/:invoiceId/pdf` arm's `okRes` — the MONEY plane, which is the door
+        // `fetchInvoicePdf` actually composes; this comment named
+        // `src/api/vendor/invoices.js:398` and that route is never called from
+        // here, c-2c.s7) — it generates and returns a URL or
+        // it errors. `pdf_pending` exists only on `POST /` at :249 and no reader
+        // in this repo consumes it. So the sentence was the `??` fallback for an
+        // ok-false carrying no error, telling the vendor to wait for something
+        // that was never in flight. The founder's walk hit this door and the
+        // retry succeeded: the door works, and only the sentence lied.
+        showToast((res as { error?: string }).error ?? COPY.studioPdfFailed, 'error');
       }
     } catch {
       showToast('Could not fetch the PDF. Try again.', 'error');
@@ -397,8 +488,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       return keys.map(k => ({ key: k, label: monthLabel(k), count: count(r => monthKey(r.sortDate) === k) }));
     }
     if (slice === 'events') {
-      const today = new Date().toISOString().slice(0, 10);
-      const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const today = istTodayISO();
+      const week = istPlusDaysISO(7);
       return [
         { key: 'week', label: 'this week', count: count(r => (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming') },
         { key: 'later', label: 'later', count: count(r => (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming') },
@@ -414,8 +505,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (slice === 'invoices') return filterKey === 'overdue' ? !!r.badgeAlert : (r.badge ?? '').toLowerCase().replace(' ', '_') === filterKey;
     if (slice === 'expenses') return monthKey(r.sortDate) === filterKey;
     if (slice === 'events') {
-      const today = new Date().toISOString().slice(0, 10);
-      const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const today = istTodayISO();
+      const week = istPlusDaysISO(7);
       if (filterKey === 'week') return (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming';
       if (filterKey === 'later') return (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming';
       return (r.badge ?? '') === 'done';
@@ -445,8 +536,71 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // for the moment you're looking at the row, not a vote to discard the write.
   useEffect(() => () => { flushAllPending(); }, []);
 
+  // ── F-39.11 · `?lead=<id>` FOCUSES ONE ROW, INSIDE THE SHELL ONLY ──────────
+  //
+  // A Today card names a record; the room it lands in has to be able to show WHICH. There
+  // was no way for a route to say that — this module reads no search param anywhere — so
+  // the param is the smallest thing that closes it.
+  //
+  // ⚠ GATED ON `inShell`, AND THE FALLBACK IGNORES IT BY CONSTRUCTION. `/vendor/list/leads
+  // ?lead=…` does nothing at all: the effect returns before it reads the param. That is
+  // the ruling's shape and it is also the safe one — the /vendor tree is being retired at
+  // Phase 7 and must not grow a behaviour that has to be retired with it.
+  //
+  // ⚠ IT OPENS THE SHEET — AND THE ARM IT REPLACES WAS THIS SEAT'S OWN ARGUMENT.
+  //
+  // The first cut focused and scrolled the row and stopped there, on the reasoning that a
+  // sheet opening itself from an address is a surface the vendor did not ask for. THE
+  // FOUNDER'S WALK CONVICTED IT IN ONE SENTENCE: 「essentially its a double tap to reach
+  // whats alredy there」. She DID ask — she tapped a card carrying one lead's name. Landing
+  // her in a list with that lead outlined answers a question she did not put and then asks
+  // her to put it again. Against W-1 the card removed nothing: Rooms→Leads→row was three
+  // taps and Today→card→row is three. Chair's F-39.11 arm withdrawn at c-39.25.
+  //
+  // ⚠ THE OTHER REFUSAL SURVIVES INTACT, AND IT IS THE ONE THAT MATTERS. `selected` is the
+  // long-press BULK set; a URL must NEVER enter select-mode with a row ticked, because that
+  // is a gesture's state entered without the gesture. `setSel` opens the record. The two
+  // were refused together and only one of them was wrong.
+  //
+  // THE SCROLL STAYS. When the vendor closes the sheet she lands on the row she came for,
+  // in view, rather than at the top of a list of eleven.
+  //
+  // IT RUNS WHEN THE ROWS DO. `rows` is the dependency because the element cannot be found
+  // before the list paints, and a one-shot on mount would silently miss every time.
+  // ── ARM D · EVERY TODAY CARD OPENS ITS RECORD (F-39.68) ──────────────────────────────
+  // The leads card has carried `?lead=<id>` since F-39.17; the other kinds landed on a room
+  // root and left the vendor to find the row he had just tapped. The arm below is the SAME
+  // arm, generalised by one map: each slice names the query key its Today card writes, and
+  // the room the registry gives that kind (ROOM_FOR_KIND) is the room the key is read in.
+  // Uniform on purpose — one reader, one gate, one behaviour to walk.
+  //
+  // `contracts` is absent from the map DELIBERATELY: the contracts room has no record sheet,
+  // so its Today card lands on the room root. That is stated rather than faked with a scroll
+  // (F-39.76 opens the sheet in Block 09).
+  //
+  // `events` reads `?event=` HERE, in the events slice — not CalendarDaySheet, which belongs
+  // to the calendar room. The registry says events_today lives in `events`, and a card may not
+  // send a kind to a room the registry does not name for it (c-P72.19 / c-39.64).
+  const focusedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const KEY_FOR_SLICE: Record<string, string> = { leads: 'lead', invoices: 'invoice', events: 'event' };
+    const key = KEY_FOR_SLICE[slice];
+    if (!key) return;
+    const want = new URLSearchParams(window.location.search).get(key);
+    if (!want || focusedRef.current === want) return;
+    if (!rows.some((r) => r.id === want)) return;
+    const el = document.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(want)}"]`);
+    if (!el) return;
+    focusedRef.current = want;
+    el.scrollIntoView({ block: 'center' });
+    const row = rows.find((r) => r.id === want);
+    if (row) setSel(row);
+  }, [slice, rows]);
+
   // Fetch lead detail when a lead row is selected
   useEffect(() => {
+    // The lead DETAIL fetch stays leads-only: it reads the lead conversation endpoint, which
+    // the other slices have no twin for. Opening their record is the sheet; enriching it is not.
     if (slice !== 'leads' || !sel) { setLeadDetail(null); return; }
     setLoadingDetail(true);
     fetchLeadDetail(sel.id).then(res => {
@@ -572,7 +726,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
     };
     if (slice === 'invoices') return {
-      right: { label: 'Mark paid', onTrigger: () => {
+      right: { label: COPY.studioMarkPaid, onTrigger: () => {
         const owed = row.payAmount ?? 0;
         if (owed <= 0) { showToast('Already settled.', 'success'); return; }
         undoableMutation({
@@ -650,12 +804,18 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // Every figure rides lib/vendor/derive.ts — the same function the hub Ledger
   // reads, over the same rows. Invoices' "outstanding" here IS the hub's "Owed":
   // one derivation, two renderers, agreement by construction.
-  const cabForMoney = useCabinetData(slice === 'invoices' || slice === 'clients' ? vendorId : null);
+  const cabForMoney = useCabinetData(slice === 'clients' ? vendorId : null);
   const masthead = useMemo(() => {
     if (slice === 'invoices') {
-      const m = deriveMoney(cabForMoney.data);
-      return <Masthead eyebrow="Outstanding" value={m.outstanding} isMoney
-        sub={m.owedCount === 0 ? 'from your binders · settled' : `from your binders · across ${m.owedCount} open`} />;
+      // P7.2 (FORK 4): the figure is the server's `summary.total_outstanding` (money.js,
+      // OUTSTANDING_STATES — the one rule); the open count is the rows still owed, which is
+      // `amount_owed > 0` on server-computed rows, not a second rule. Gated on a reading:
+      // no summary, no figure (F-38.31).
+      const outstanding = d.summary ? d.summary.total_outstanding : null;
+      const openCount = rawRows.filter(r => (r.payAmount ?? 0) > 0).length;
+      if (outstanding === null) return null;
+      return <Masthead eyebrow="Outstanding" value={outstanding} isMoney
+        sub={openCount === 0 ? 'from your binders · settled' : `from your binders · across ${openCount} open`} />;
     }
     if (slice === 'clients') {
       const c = deriveClients(cabForMoney.data);
@@ -678,21 +838,64 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         sub={w.count === 0 ? 'your calendar · nothing booked' : w.count === 1 ? 'your calendar · 1 event' : 'your calendar · events ahead'} />;
     }
     return null;
-  }, [slice, cabForMoney.data, rawRows]);
+  }, [slice, cabForMoney.data, rawRows, d.summary]);
 
+  // ── F-2c.p9 · MONEY'S PRIMARY VERB IS NOT GESTURE-ONLY ────────────────────
+  // The founder's 2c walk: an invoice could only be settled by SWIPING it. A
+  // gesture has no affordance — nothing on the row says it exists, nothing tells
+  // a new vendor it is there, and a screen reader reaches none of it. So the
+  // BUTTON IS ADDED AND THE SWIPE STAYS: both call the SAME handler, so there is
+  // one write path and two ways to reach it, and neither can drift from the
+  // other by being edited alone.
+  //
+  // ⚠ OUTSTANDING ROWS ONLY (card ⑥, founder-ruled at the mock). A settled row
+  // carries no button. The swipe still reaches every row and still answers
+  // 「Already settled.」 there — that byte survives as the GESTURE's answer,
+  // because a gesture that lands on a settled row has to say something, while a
+  // button that would say it does not need to exist. The veto sheet's §B6 note
+  // said the opposite and the frame said this; the frame won (c-2c.s2, the
+  // executor's, struck by his own hand).
+  //
+  // ⚠ NOT INSIDE `SwipeRow`. The button sits BELOW the swiping element, so a
+  // press on it is never eaten by a horizontal drag and a drag never fires it.
+  // It also renders outside select mode only: a bulk selection already offers
+  // `Mark paid` on the bar and two live paths to one write on one screen is how
+  // a vendor pays an invoice twice.
+  const markPaidFor = (row: Row) => swipeSidesFor(row).right;
   const renderRow = (row: Row) => (
     <div {...rowPressHandlers(row)} style={{ position: 'relative' }}>
       {selectMode && (
         <span aria-hidden style={{
           position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
-          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-brass, var(--role-metal))',
-          background: selected.has(row.id) ? 'var(--atelier-brass, var(--role-metal))' : 'transparent',
+          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-accent-text)',
+          background: selected.has(row.id) ? 'var(--atelier-accent-text)' : 'transparent',
         }} />
       )}
       <div style={selectMode ? { paddingLeft: 18 } : undefined}>
         <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
           <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row) : (setSel(row), setConfirmDel(false))} />
         </SwipeRow>
+        {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && (
+          <div style={{ padding: '0 var(--slice-inset, 22px) 12px' }}>
+            {/* ⚠ INLINE, NOT A `wl-` CLASS, AND THAT IS THE WHOLE REASON THIS
+                LOOKS UNLIKE `TeamTabs`' row button. `SliceShell` is mounted in
+                BOTH trees — inside the shell at `/w/list/[slice]` and on
+                `/vendor/list/[slice]` — and every `wl-` rule is emitted by
+                `WorklistShell`'s SHELL_CSS, which the /vendor tree never mounts.
+                A shell class here would paint an unstyled button on half its
+                sites: the wl-plink disease, with money's primary verb on it.
+                The `--atelier-*` roles below are global in both trees. */}
+            <button type="button" onClick={() => markPaidFor(row)?.onTrigger()}
+              style={{
+                minHeight: 32, padding: '0 14px', borderRadius: 3, background: 'transparent',
+                border: `0.5px solid ${A.interactive}`, color: A.interactive,
+                fontFamily: F.label, fontWeight: 300, fontSize: 10,
+                letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>
+              {COPY.studioMarkPaid}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -703,7 +906,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   //    mutations carry the undo window.
   const bulkActions: BulkAction[] =
     slice === 'leads'    ? [{ key: 'contacted', label: 'Mark contacted' }, { key: 'lose', label: 'Lose', destructive: true }]
-    : slice === 'invoices' ? [{ key: 'paid', label: 'Mark paid' }]
+    : slice === 'invoices' ? [{ key: 'paid', label: COPY.studioMarkPaid }]
     : slice === 'expenses' ? [{ key: 'delete', label: 'Delete', destructive: true }]
     : slice === 'events'   ? [{ key: 'done', label: 'Mark done' }] // TDW_04 A3: the door landed (F-04.8)
     : [];
@@ -741,7 +944,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           missing set); tap opens the WishboneSheet. */}
       {slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 && (
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 8 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 8 }}>
             Still missing — tap to complete:
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -787,7 +990,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     const message = encodeURIComponent(`Hi ${sel.primary}, please find your booking confirmation for ${sel.secondary ?? 'your invoice'} here: ${pdfRes.pdf_url}`);
                     window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener');
                   } else {
-                    showToast(pdfRes.error ?? 'PDF not ready yet — record the advance first.', 'error');
+                    // UNCHANGED WORDING, REHOMED. A real precondition is not
+                    // the same defect as an invented state — this sentence names
+                    // something the vendor can actually do. It moves to the
+                    // register for the one-home law alone.
+                    showToast(pdfRes.error ?? COPY.studioPdfNoAdvance, 'error');
                   }
                 } catch {
                   showToast('Could not fetch the PDF. Try again.', 'error');
@@ -812,12 +1019,12 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               <button type="button" onClick={() => setScheduleOpen(true)} style={{
                 padding: '5px 10px', background: 'transparent',
                 border: '0.5px solid rgba(201,168,76,0.5)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
                 letterSpacing: '0.28em', textTransform: 'uppercase',
               }}>Add</button>
             )}
           </div>
-          {scheduleLoading && <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
+          {scheduleLoading && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
           {schedule && schedule.map(ms => (
             <div key={ms.id} style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
@@ -825,7 +1032,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{ms.milestone_label}</div>
-                <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
                   Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${ms.due_date}` : ''}
                 </div>
               </div>
@@ -858,7 +1065,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       {slice === 'leads' && (leadDetail || loadingDetail) && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
           {loadingDetail && !leadDetail
-            ? <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>
+            ? <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>
             : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} />
           }
         </div>
@@ -882,7 +1089,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           {/* F-04.12's confession — one line, only when the leap is backwards-unusual */}
           {isBackwardUnusual(sel?.badge) && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5, marginBottom: 8 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5, marginBottom: 8 }}>
                 This one&rsquo;s further along — marking lost will keep the record, state the reason?
               </div>
               <input
@@ -948,10 +1155,18 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             // first cut of this block shipped 15 and `tdw09_type` named it at
             // the byte — a tenth declared size against nine rungs, below the
             // floor. The census caught a sentence nobody would have squinted at.
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16,
+            fontFamily: F.script, fontWeight: 300, fontSize: 16,
             lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em', textAlign: 'center',
           }}>Upgrade to Essential tier or above to connect with your lead.</div>
-          <a href="/vendor/billing" style={{
+          {/* ── R-38.1 CURE (S2 ZIP bounce) · THE TIER GATE WAS THE SIXTH OF NINE ──
+              This CTA was a hardcoded `/vendor/billing`, and because `notes.tsx` imports
+              `SliceDoor` from this very file, the whole module \u2014 tier gate included \u2014 is in
+              all six crossed rooms' chunks. One literal, six failing pairs.
+              It is not a door, which is exactly why R-38.11's SliceDoor re-point walked
+              past it. Reachable is reachable (R-38.11 amended by label). `roomHref` asks
+              the registry instead of spelling the answer, so when Billing moves again this
+              link moves with it. */}
+          <a href={roomHref('billing')} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '11px 0',
             background: 'var(--atelier-input-bg)',
@@ -997,8 +1212,6 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   return (
     <SliceShell
       slice={slice}
-      vendorName={session?.name ?? null}
-      onBack={() => router.back()}
       query={query}
       setQuery={setQuery}
       loading={loading}
@@ -1019,7 +1232,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       ) : undefined}
       onAdd={onAdd}
     >
-      <Toast toast={toast} />
+      <ToastView toast={toast} />
       <AddSheet
         open={addOpen}
         slice={slice}
@@ -1046,7 +1259,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             </div>
             <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Payment Schedule</div>
             <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 4 }}>Add Milestones</div>
-            <div style={{ fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
               Must sum to 100%. Amounts computed from invoice total.
             </div>
 
@@ -1068,7 +1281,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                       fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-                      outline: 'none', caretColor: A.brass,
+                      outline: 'none', caretColor: A.interactive,
                     }}
                   />
                   <input
@@ -1081,7 +1294,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                       fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-                      outline: 'none', textAlign: 'right', caretColor: A.brass,
+                      outline: 'none', textAlign: 'right', caretColor: A.interactive,
                     }}
                   />
                   <span style={{ fontFamily: F.label, fontSize: 16, lineHeight: 1.5, color: A.inkMute, flexShrink: 0 }}>%</span>
@@ -1099,7 +1312,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                     fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft,
-                    outline: 'none', caretColor: A.brass,
+                    outline: 'none', caretColor: A.interactive,
                   }}
                 />
               </div>
@@ -1110,7 +1323,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 style={{
                   padding: '6px 12px', background: 'transparent',
                   border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                 }}>+ Add Row</button>
               <span style={{
@@ -1126,7 +1339,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               return (
                 <>
                   {!canSave && (
-                    <div style={{ fontFamily: F.script, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>
+                    <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>
                       {Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
                     </div>
                   )}

@@ -1,0 +1,167 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>R-37.76 ⑧ — the mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b0d;color:#e8e6e3;font-family:'DM Sans',system-ui,sans-serif;font-weight:300;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:52px 26px 90px}
+.eyebrow{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8a86}
+h1{font-family:'Italiana',serif;font-weight:400;font-size:clamp(32px,5vw,50px);margin:.24em 0 .12em;letter-spacing:.01em}
+.sub{color:#a5a29e;max-width:70ch;font-size:15px}
+.note{margin-top:22px;padding:15px 17px;border:1px solid #26262a;border-radius:3px;background:#101013;font-size:13.5px;color:#a5a29e;max-width:82ch}
+.note b{color:#c9c6c2;font-weight:400}
+h3.sec{font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8d8a86;font-weight:400;margin:52px 0 6px}
+.seccap{font-size:13.5px;color:#8d8a86;max-width:78ch;margin:0 0 18px}
+.stage{padding:32px 18px;border-radius:4px;border:1px solid #26262a;background:var(--atelier-page-bg)}
+.strip{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.toggle{display:flex;gap:8px;margin:16px 0 0}
+.toggle button{background:#141416;border:1px solid #2f2f34;color:#c9c6c2;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 18px;min-height:44px;border-radius:2px;cursor:pointer}
+.toggle button[aria-pressed="true"]{border-color:#68C9B4;color:#68C9B4}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#75726e;font-weight:400;text-align:left;padding:0 10px 8px 0;border-bottom:1px solid #2a2a2e}
+td{padding:8px 10px 8px 0;border-bottom:1px solid #1e1e22}
+td.n{font-family:ui-monospace,monospace;color:#e8e6e3;white-space:nowrap}
+.ok{color:#7FBE85;font-family:'Jost',sans-serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:#1a1a1e;padding:1px 5px;border-radius:2px;color:#d8d5d1}
+
+/* ══ THE MOCK ITSELF ══ */
+.phone{width:300px;flex-shrink:0;background:var(--atelier-page-bg);border:1px solid var(--atelier-card-border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:660px}
+.hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:15px 18px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--role-metal)}
+.lbl{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-label)}
+.coin{width:34px;height:34px;border-radius:50%;border:1px solid var(--role-metal);background:transparent;color:var(--role-metal);font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.06em;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.body{flex:1;overflow-y:auto;padding:0 0 14px}
+.masthead{padding:22px 18px 0}
+.mdate{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.mcount{display:flex;align-items:baseline;gap:9px;margin-top:9px}
+.mnum{font-family:'Italiana',serif;font-size:46px;line-height:.95;color:var(--atelier-ink)}
+.mcap{font-family:'DM Sans',sans-serif;font-weight:400;font-size:14px;color:var(--atelier-ink-dim)}
+.mcap2{font-family:'DM Sans',sans-serif;font-weight:400;font-size:13px;color:var(--atelier-ink-dim);margin-top:3px}
+.mrule{height:.5px;background:var(--role-metal);opacity:.55;margin:16px 0 0}
+.hero{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:24px;line-height:1.34;color:var(--atelier-ink);margin:20px 18px 0;letter-spacing:-.005em}
+.stillbuilt{font-family:'DM Sans',sans-serif;font-weight:400;font-size:13px;color:var(--atelier-ink-mute);margin:10px 18px 0}
+.frhead{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:26px 18px 12px;text-align:center}
+.card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:17px;margin:0 16px 10px;box-shadow:0 1px 0 var(--atelier-card-shadow)}
+.card.lead{border-left:2px solid var(--atelier-accent-text)}
+.ct{font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-accent-text);margin:0 0 9px}
+.cb{font-family:'DM Sans',sans-serif;font-weight:400;font-size:14.5px;line-height:1.65;color:var(--atelier-ink-soft);margin:0}
+.cb.wide{max-width:44ch}
+.ca{margin-top:14px;min-height:46px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;padding:12px 18px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text);cursor:pointer}
+.linkrow{display:flex;align-items:center;gap:9px;margin-top:12px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:2px;padding:11px 12px;min-height:46px}
+.linkcode{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--atelier-accent-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.copy{font-family:'Jost',sans-serif;font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--atelier-ink-mute);flex-shrink:0}
+.copy.copied{color:var(--atelier-accent-text)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:2px;padding:10px 13px;font-size:13px;font-weight:400;color:var(--atelier-ink-dim)}
+.band{padding:16px 14px 0}
+.bl{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--atelier-ink-mute);text-align:center;margin:0 0 11px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;min-height:74px;display:flex;align-items:center;justify-content:center;padding:8px 6px;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-soft);text-align:center;line-height:1.3}
+.warow{display:flex;align-items:center;gap:11px;width:100%;min-height:64px;margin:20px 0 12px;padding:14px 18px;background:var(--atelier-section-bg);border:none;border-top:.5px solid var(--atelier-card-border);border-bottom:.5px solid var(--atelier-card-border);cursor:pointer;text-align:left}
+.waglyph{color:var(--atelier-accent-text);font-size:13px}
+.watext{font-family:'DM Sans',sans-serif;font-weight:400;font-size:14.5px;color:var(--atelier-ink-soft);display:flex;flex-direction:column;gap:2px;flex:1}
+.wasub{font-family:'Jost',sans-serif;font-weight:500;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wachev{color:var(--atelier-ink-mute);font-size:18px}
+.linkcard{margin-top:0}
+.sheetbody{padding:26px 18px 0}
+.sheethead{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:24px;line-height:1.3;color:var(--atelier-ink);margin:0 0 14px}
+.doorrow{display:flex;gap:5px;padding:14px 16px 0;overflow:hidden}
+.door{font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:8px 5px 6px;border-bottom:2px solid transparent;white-space:nowrap}
+.door.on{color:var(--atelier-ink);border-bottom-color:var(--atelier-accent-text)}
+.search{margin:12px 16px 0;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:2px;padding:12px;min-height:46px;font-size:13px;font-weight:400;color:var(--atelier-ink-mute);display:flex;gap:8px;align-items:center}
+.filters{display:flex;gap:6px;padding:11px 16px 4px;flex-wrap:wrap}
+.filt{min-height:36px;display:flex;align-items:center;border:.5px solid var(--atelier-card-border);border-radius:999px;padding:7px 12px;font-family:'Jost',sans-serif;font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.filt.on{border-color:var(--atelier-accent-text);color:var(--atelier-accent-text)}
+.row{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
+.rn{font-family:'DM Sans',sans-serif;font-weight:400;font-size:14px;color:var(--atelier-ink)}
+.rs{font-family:'DM Sans',sans-serif;font-weight:400;font-size:12px;color:var(--atelier-ink-dim);margin-top:2px}
+.rst{font-family:'Jost',sans-serif;font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--role-metal)}
+.dock{flex-shrink:0;padding:9px 12px;background:var(--atelier-header-bg);border-top:.5px solid var(--atelier-card-border)}
+.dockfield{display:flex;align-items:center;gap:9px;min-height:46px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:999px;padding:11px 8px 11px 16px}
+.dockph{flex:1;font-family:'DM Sans',sans-serif;font-weight:400;font-size:13.5px;color:var(--atelier-ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.docksend{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav{flex-shrink:0;display:flex;background:var(--atelier-header-bg);border-top:.5px solid var(--atelier-card-border)}
+.seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.seat.on{color:var(--atelier-accent-text)}
+</style></head><body><div class="wrap">
+<div class="eyebrow">M-WORKLIST · Phase 1 · R-37.76 ⑧ · the mock is the contract</div>
+<h1>Today gets its stature</h1>
+<p class="sub">The whole visual cluster in one picture, in the shipped Graphite and Chalk tokens — not approximations. Veto this, and the build matches it; the parity pass proves the match. Phase 4's live feed inherits the treatment as its spec.</p>
+
+<div class="toggle"><button id="bd" aria-pressed="true">Graphite</button><button id="bl" aria-pressed="false">Chalk</button></div>
+
+<div class="note"><b>What changed, and why.</b>
+① The dock is now an input, not a logo row: a rounded field, muted placeholder carrying one real ask, send-glyph at the right. <b>② Today has a masthead</b> — date, then a numeral in Italiana, then a metal hairline — so the page opens on a moment instead of on body copy. <b>③ The promise line is the hero</b>, set in Cormorant at 24px, and 「Today is still being built」 drops to a quiet line beneath it: the honest statement stays, but it stops being the headline. <b>④ Signal is used sparingly</b> — one card carries a 2px signal edge, the send glyph is filled, everything else stays ink. <b>⑤ The DR medallion is the coin everywhere.</b> <b>⑥ The wa.me link renders as itself</b>, monospace, tap-to-copy.</div>
+
+<div class="note"><b>Type, unified — the proposal inside item ③+⑦.</b> Four families exist and each gets exactly one job, everywhere:
+<b>Italiana</b> — numerals and the masthead moment only. <b>DM Sans</b> — <em>all</em> prose, in rooms as well as the shell. <b>Jost</b> — every micro-label. <b>Cormorant</b> — retired from prose and kept for <em>one</em> deliberate line per surface: Today's hero and the sheet header. That last is the actual cure: the rooms currently set body copy in Cormorant italic while the shell sets it in DM Sans, and that — not size — is why they read as two font worlds. The fourth screen below shows Leads under the unified rules.</div>
+
+<h3 class="sec">Today</h3><p class="seccap">The masthead, the hero, the elevated cards, and the new dock.</p>
+<div class="stage" id="s1"><div class="strip"><div class="phone">
+  <header class="hdr"><span class="lbl">Today</span><button class="coin" aria-label="Your profile"><span>DR</span></button></header>
+  <div class="body">
+    <section class="masthead">
+      <div class="mdate">Thursday, 27 August</div>
+      <div class="mcount"><span class="mnum">0</span><span class="mcap">needing you today</span></div>
+      <div class="mrule"></div>
+    </section>
+    <p class="hero">Once your work starts flowing, Today becomes your morning brief &mdash; what needs attention, what&rsquo;s due, what got done.</p>
+    <div class="stillbuilt">Today is still being built. Nothing is being read yet.</div>
+    <h2 class="frhead">What TDW does for you</h2>
+    <article class="card lead"><h3 class="ct">Your 24/7 enquiry desk</h3>
+      <p class="cb">DreamAi answers every enquiry on WhatsApp, at any hour, in your name. It asks what you&rsquo;d ask &mdash; date, city, budget &mdash; and hands the conversation over once it&rsquo;s worth your time.</p>
+      <button class="ca">Message DreamAi</button></article>
+    <article class="card"><h3 class="ct">Your TDW link</h3>
+      <p class="cb">One link that routes every enquiry straight to you.</p>
+      <div class="linkrow"><code class="linkcode">wa.me/917982159047?text=TDW-DEV440</code><span class="copy">Copy</span></div></article>
+    <article class="card"><h3 class="ct">Run it all from WhatsApp</h3>
+      <div class="chips"><span class="chip">Am I free on 14 February?</span><span class="chip">How many open leads do I have?</span><span class="chip">Raise an invoice for Meghna</span><span class="chip">Log a studio hire expense</span><span class="chip">Tell Priya the date works</span></div></article>
+  </div><div class="dock"><div class="dockfield"><span class="dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="docksend">&#8593;</span></div></div><nav class="nav"><span class="seat">Rooms</span><span class="seat on">Today</span></nav></div><div class="phone">
+  <header class="hdr"><span class="lbl">Rooms</span><button class="coin" aria-label="Your profile"><span>DR</span></button></header>
+  <div class="body">
+    <div class="band"><div class="bl">&mdash; your work &mdash;</div><div class="tiles"><div class="tile">Leads</div><div class="tile">Clients</div><div class="tile">Invoices</div><div class="tile">Expenses</div><div class="tile">Events</div><div class="tile">Notes</div><div class="tile">Calendar</div></div></div>
+    <div class="band"><div class="bl">&mdash; your business &mdash;</div><div class="tiles"><div class="tile">Storefront</div><div class="tile">Portfolio</div><div class="tile">Couture</div><div class="tile">Team</div><div class="tile">Contracts</div><div class="tile">TDS</div><div class="tile">Billing</div><div class="tile">Business Solutions</div></div></div>
+    <button class="warow"><span class="waglyph">&#9670;</span><span class="watext">DreamAi on WhatsApp<span class="wasub">your 24/7 enquiry desk</span></span><span class="wachev">&rsaquo;</span></button>
+    <div class="card linkcard"><h3 class="ct">Your TDW link</h3>
+      <div class="linkrow"><code class="linkcode">wa.me/917982159047?text=TDW-DEV440</code><span class="copy copied">Copied &#10003;</span></div></div>
+    <div class="card"><p class="cb">New here? Today has a short guide to what TDW does for you.</p><button class="ca">Read it</button></div>
+  </div><div class="dock"><div class="dockfield"><span class="dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="docksend">&#8593;</span></div></div><nav class="nav"><span class="seat on">Rooms</span><span class="seat">Today</span></nav></div></div></div>
+
+<h3 class="sec">Business Solutions, and a room under unified type</h3>
+<p class="seccap">The tile renames; the sheet leads with growth and closes with support. The Leads screen shows what the type rules do to a carried room — the pipeline value in Italiana, the caption in DM Sans, no italic serif body copy anywhere.</p>
+<div class="stage" id="s2"><div class="strip"><div class="phone">
+  <header class="hdr"><span class="lbl">Business Solutions</span><button class="coin" aria-label="Your profile"><span>DR</span></button></header>
+  <div class="body sheetbody">
+    <h2 class="sheethead">Customised solutions for your business</h2>
+    <p class="cb wide">SEO, marketing automation, ads, campaign pages, a feature built for how you work &mdash; tell us what would grow your business and we build it with you. Something broken? That reaches us here too.</p>
+    <button class="ca">Message us on WhatsApp</button>
+  </div><div class="dock"><div class="dockfield"><span class="dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="docksend">&#8593;</span></div></div><nav class="nav"><span class="seat on">Rooms</span><span class="seat">Today</span></nav></div><div class="phone">
+  <header class="hdr"><span class="lbl">Leads</span><button class="coin" aria-label="Your profile"><span>DR</span></button></header>
+  <div class="body">
+    <section class="masthead"><div class="mdate">Enquiries pipeline</div>
+      <div class="mcount"><span class="mnum">Rs 13,00,000</span></div>
+      <div class="mcap2">across 11 open</div><div class="mrule"></div></section>
+    <div class="doorrow"><span class="door on">Leads</span><span class="door">Clients</span><span class="door">Invoices</span><span class="door">Expenses</span><span class="door">Events</span><span class="door">Notes</span></div>
+    <div class="search"><span class="mag">&#9906;</span>Search leads&hellip;</div>
+    <div class="filters"><span class="filt on">New · 11</span><span class="filt">Contacted · 0</span><span class="filt">Quoted · 0</span></div>
+    <div class="row"><div><div class="rn">Sarah</div><div class="rs">Delhi · 22 Dec 2026</div></div><span class="rst">New</span></div><div class="row"><div><div class="rn">Dream Wedding enquiry</div><div class="rs">Delhi · 4 Dec 2026</div></div><span class="rst">New</span></div><div class="row"><div><div class="rn">Dream Wedding enquiry</div><div class="rs">Delhi · 3 Dec 2026</div></div><span class="rst">New</span></div>
+  </div><div class="dock"><div class="dockfield"><span class="dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="docksend">&#8593;</span></div></div><nav class="nav"><span class="seat on">Rooms</span><span class="seat">Today</span></nav></div></div></div>
+
+<h3 class="sec">Measured, not asserted</h3>
+<p class="seccap">Every new pairing this mock introduces, composited over the surface it actually sits on, computed at generation time.</p>
+<table><thead><tr><th>new pairing</th><th>Graphite</th><th>Chalk</th><th>bar</th><th></th></tr></thead><tbody>
+<tr><td>the Ask TDW placeholder</td><td class="n">4.98:1</td><td class="n">6.79:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr><tr><td>the send glyph</td><td class="n">8.62:1</td><td class="n">6.12:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr><tr><td>the wa.me link, monospace</td><td class="n">8.62:1</td><td class="n">6.12:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr><tr><td>the hero promise line</td><td class="n">15.74:1</td><td class="n">17.21:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr><tr><td>the masthead count caption</td><td class="n">7.47:1</td><td class="n">9.23:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr><tr><td>DR on the medallion</td><td class="n">8.00:1</td><td class="n">4.79:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr><tr><td>the WhatsApp row label</td><td class="n">10.38:1</td><td class="n">13.43:1</td><td class="n">4.5</td><td><span class="ok">meets</span></td></tr>
+</tbody></table>
+
+<div class="note" style="margin-top:34px"><b>Three things I could not decide for you, flagged rather than drawn.</b>
+<br>· <b>The coin's drawer.</b> ④ merges two identities, but the rooms' medallion drawer carries rows the shell has never had — Discover Profile, Tips &amp; Features, The Dream Wedding, Sign Out — plus the DISPLAY section whose two entries still read <code>Espresso</code> and <code>Parchment</code>. Adopting the medallion means adopting that drawer. The mock draws the coin, not the drawer; the drawer's contents want their own pass.
+<br>· <b>The filter chips.</b> Shown in signal here, which is the correct end state — but they are part of the 42-site raw-CSS-var class ZIP 5's split was blind to, so this is a promise the code does not yet keep.
+<br>· <b>「Ask TDW」 versus DreamAi.</b> The dock says Ask TDW; the Rooms row and the manual say DreamAi. That is two names for one thing on one screen. The ruling names both, so I have drawn both — but it wants one word from you before it ships.</div>
+</div>
+<script>
+const D="--atelier-bg:#0F1011;--atelier-page-bg:#141516;--atelier-header-bg:#1A1B1D;--atelier-section-bg:#171819;--atelier-sheet-bg:#1D1E20;--atelier-overlay-bg:#0A0B0C;--atelier-card-bg:linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%);--atelier-card-border:rgba(240,244,246,0.11);--atelier-card-shadow:rgba(0,0,0,0.50);--atelier-row-hover:rgba(240,244,246,0.042);--atelier-grain:rgba(255,255,255,0.012);--atelier-input-bg:rgba(240,244,246,0.040);--atelier-input-border:rgba(104,201,180,0.58);--atelier-sheet-top:#232527;--atelier-sheet-bot:#191A1C;--atelier-sheet-border:rgba(240,244,246,0.14);--atelier-overlay:rgba(10,11,12,0.74);--atelier-ink:#EDEEEF;--atelier-ink-soft:#C8CACC;--atelier-ink-dim:#A3A6A9;--atelier-ink-mute:#888B8E;--atelier-ink-fade:#585B5E;--atelier-label:#B9BCBF;--atelier-accent-text:#68C9B4;--role-metal:#C9A84C;--role-ink-on-metal:#141516;--role-ink-deep:#0F1011;--role-positive:#6FC98C;--role-caution:#DFAE6C;--role-critical:#E8836B;--role-scrim:rgba(10,11,12,0.62);--role-sheet:#1D1E20;--role-today-coin-ink:#141516;",L="--atelier-bg:#EDEEEF;--atelier-page-bg:#F3F4F4;--atelier-header-bg:#FFFFFF;--atelier-section-bg:#E7E9EA;--atelier-sheet-bg:#FFFFFF;--atelier-overlay-bg:#17191A;--atelier-card-bg:linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%);--atelier-card-border:rgba(23,25,26,0.13);--atelier-card-shadow:rgba(23,25,26,0.09);--atelier-row-hover:rgba(23,25,26,0.038);--atelier-grain:rgba(23,25,26,0.012);--atelier-input-bg:rgba(23,25,26,0.035);--atelier-input-border:rgba(13,106,90,0.68);--atelier-sheet-top:#F8F9F9;--atelier-sheet-bot:#EDEFEF;--atelier-sheet-border:rgba(23,25,26,0.16);--atelier-overlay:rgba(23,25,26,0.44);--atelier-ink:#0E1112;--atelier-ink-soft:#272B2D;--atelier-ink-dim:#3D4245;--atelier-ink-mute:#52585B;--atelier-ink-fade:#767C80;--atelier-label:#3A3F42;--atelier-accent-text:#0D6A5A;--role-metal:#8A6F2A;--role-ink-on-metal:#FFFFFF;--role-ink-deep:#17191A;--role-positive:#2C7343;--role-caution:#8A5A18;--role-critical:#AE3A22;--role-scrim:rgba(23,25,26,0.38);--role-sheet:#FFFFFF;--role-today-coin-ink:#FFFFFF;";
+function set(m){document.querySelectorAll('.stage').forEach(s=>s.setAttribute('style',m==='d'?D:L));
+ document.getElementById('bd').setAttribute('aria-pressed',m==='d');
+ document.getElementById('bl').setAttribute('aria-pressed',m!=='d');}
+document.getElementById('bd').onclick=()=>set('d');document.getElementById('bl').onclick=()=>set('l');set('d');
+</script></body></html>

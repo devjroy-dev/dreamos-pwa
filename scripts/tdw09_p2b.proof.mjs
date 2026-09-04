@@ -36,7 +36,7 @@ const HONESTY = "Your own words are shown on your profile, but couples can&rsquo
 
 console.log('\n── §1 · the wizard (F-4(a) + F-5(a) + F-7) ──');
 {
-  const raw = R('app/vendor/discover/submit/page.tsx');
+  const raw = R('app/vendor/(legacy)/discover/submit/page.tsx');
   const src = strip(raw);
   cell('1.1', !src.includes('AESTHETIC_OPTIONS'), 'the local hard-coded ten is retired from code');
   cell('1.2', src.includes("vocabularyFor(me?.category ?? null)"), 'chips come from the category\u2019s vetoed list');
@@ -54,7 +54,7 @@ console.log('\n── §1 · the wizard (F-4(a) + F-5(a) + F-7) ──');
 
 console.log('\n── §2 · the profile editor (the second free-text field, cured) ──');
 {
-  const raw = R('app/vendor/discover/profile/page.tsx');
+  const raw = R('app/vendor/(legacy)/discover/profile/page.tsx');
   const src = strip(raw);
   cell('2.1', !src.includes('Tags (comma-separated)'), 'the comma free-text field is retired');
   cell('2.2', src.includes('TagEditor') && src.includes('vocabularyFor(category)'), 'chips + the shared vocabulary');
@@ -67,7 +67,15 @@ console.log('\n── §2 · the profile editor (the second free-text field, cur
 
 console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
 {
-  const raw = R('app/vendor/storefront/page.tsx');
+  // ── \u00a74-3 \u00b7 F-38.43 \u00b7 THE SUBJECT MOVED; THIS SECTION FOLLOWS IT ────────────────
+  // Storefront crossed into the shell and its body split out of the route file so the
+  // `<Header/>` import could leave the shell's bundle. Every claim in this section is about
+  // the BODY \u2014 the vetoed heading, the meter, the bio row, the live counts \u2014 and the body
+  // is `screen.tsx` now. A cell left pointing at the old path would have reddened a correct
+  // tree. Declared at this reading section, not at the top: \u00a72 above reads other files for
+  // other claims and must not appear to share a subject with this one.
+  const SF_BODY = 'app/vendor/(shell)/storefront/screen.tsx';
+  const raw = R(SF_BODY);
   const src = strip(raw);
   cell('3.1', raw.includes('label="Complete your bio"'), 'the FOUNDER-VETOED heading seats as §1');
   cell('3.2', src.includes('scoreOf(gaps)') && src.includes('<Meter score={score} />'),
@@ -76,8 +84,29 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
     "the meter's inputs are the profile page's own reads, byte-for-byte");
   cell('3.4', raw.includes('How couples see you'), 'the bio row carries the drawer\u2019s vetoed subtitle');
   cell('3.5', raw.includes('/vendor/discover/profile'), 'the block LINKS the bio route — byte-identical path');
-  cell('3.6', src.includes('open_leads_count') && src.includes('photos live'),
-    'live counts (founder 「 ok 」) from the standing endpoints');
+  // ── AMENDED AT CE-39 2c · RETIRE-WITH-THE-READER  [F-39.34] ────────────────
+  // IT READ:
+  //     cell('3.6', src.includes('open_leads_count') && src.includes('photos live'),
+  //       'live counts (founder 「 ok 」) from the standing endpoints');
+  //
+  // F-39.10 RETIRED THE STOREFRONT LEADS FIGURE at Phase 4 (`f915b55`) —
+  // 「storefront's engine-plane leads figure retired; Today is the one leads
+  // number」. `open_leads_count` survives in `screen.tsx` ONLY at :192, inside
+  // the comment explaining its own retirement, so `strip()` removes it and this
+  // cell has reddened at ORIGIN ever since. Bisected on `screen.tsx` alone:
+  // GREEN at 79fc1db, RED at f915b55 · 08a6dfe · d1f2c80 · bb4a9ad.
+  //
+  // The cure is not to loosen the assertion but to INVERT the half whose
+  // subject moved. The figure is gone from the rendered surface BY RULING, so
+  // the cell asserts its ABSENCE — which is the stronger guard, because a
+  // storefront that grows the leads figure back is the defect F-39.10 cured.
+  // The `photos live` half is untouched: that count was never retired.
+  //
+  // ONE CELL BEFORE, ONE CELL AFTER. Read RAW for the absence half so a
+  // re-introduction inside a comment cannot pass as a cure, and STRIPPED for
+  // the presence half so prose cannot stand in for a rendered byte.
+  cell('3.6', !/\{[^}]*open_leads_count/.test(strip(raw)) && src.includes('photos live'),
+    'the retired leads figure does not render; the photo count does (F-39.10)');
   // ── AMENDED AT R-35.36, RETIRE-WITH-THE-READER ──────────────────────────────
   // This cell pinned TWO founder-vetoed tile descriptions. One of the two tiles
   // no longer exists: the Leads tile ('couples who enquired') was retired when
@@ -88,8 +117,16 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
   // and not deleted in silence: pinning copy that no surface renders is a green
   // cell about nothing, and deleting the line without its reason teaches the
   // next reader that vetoed copy may quietly lapse.
-  cell('3.7', raw.includes("description: 'shared weddings with other vendors'"),
-    "V2's vetoed description lands (V1's Leads tile retired at R-35.36 — its byte went with it)");
+  // AMENDED, LABELLED — ZIP 14 (R-37.87, founder word 2026-08-27). This cell pinned the
+  // Collab row's vetoed description INSIDE Storefront's pill list. Collab now holds its own
+  // tile in the shell's bottom band, and the pill row dropped it in the same delivery — one
+  // home, or it is two. So the cell's SUBJECT was retired by ruling, exactly as its own
+  // paragraph above describes happening to V1's Leads tile: the byte goes with the surface.
+  // RETIRE-WITH-THE-READER — the assertion inverts rather than vanishing, so the next reader
+  // meets the reasoning instead of an absence, and a silent RE-ADD of the second door reddens.
+  // Cell count unchanged; `main` is untouched and keeps the row.
+  cell('3.7', !raw.includes("description: 'shared weddings with other vendors'"),
+    "Collab's pill row is GONE from Storefront — R-37.87 gave it a tile; two doors to one room reddens");
 }
 
 console.log('\n── §4 · the Frost honest line (F-6(a)) ──');
@@ -109,7 +146,7 @@ console.log('\n── §5 · one home, no strays ──');
   const vocab = R('lib/shared/tagVocabulary.ts');
   cell('5.1', vocab.includes('scripts/tdw09_p2b_vocab.proof.mjs'), 'the home names its arbiter');
   const meterLib = R('lib/vendor/profileMeter.ts');
-  cell('5.2', meterLib.includes('MOVED from app/vendor/discover/profile/page.tsx'), 'the meter model names its origin (moved, not rewritten)');
+  cell('5.2', meterLib.includes('MOVED from app/vendor/(legacy)/discover/profile/page.tsx'), 'the meter model names its origin (moved, not rewritten)');
 }
 
 console.log(`\n════ tdw09_p2b: ${pass} passed, ${fail} failed (total ${pass + fail}) ════`);

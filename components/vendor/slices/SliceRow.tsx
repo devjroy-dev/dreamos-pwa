@@ -1,3 +1,7 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 // components/vendor/slices/SliceRow.tsx — TDW_03 P1
 // Row grammar + the shared atelier tokens/helpers for the five slices.
@@ -10,6 +14,10 @@ import { istDayKey } from '@/lib/frost/tokens'; // R-35.23's IST home — one se
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 export const A = {
+  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
+  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
+  interactive:     'var(--atelier-accent-text)',
+  interactiveWarm: 'var(--atelier-accent-text)',
   ink:       'var(--atelier-ink)',
   inkSoft:   'var(--atelier-ink-soft)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -22,7 +30,7 @@ export const A = {
 } as const;
 export const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-cormorant), Georgia, serif',
+  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
   body:    'var(--font-dm-sans), system-ui, sans-serif',
   label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
@@ -187,6 +195,11 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
   const A = {
     ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
     brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', green: 'var(--role-positive)', red: 'var(--role-critical)',
+    // R-37.74 arm (iii): the interactive half of the old `brass`. This local map SHADOWS the
+    // module-level A above, so the split has to land in both — a shadowed const is exactly
+    // where a token split goes quietly wrong.
+    interactive:     'var(--atelier-accent-text)',
+    interactiveWarm: 'var(--atelier-accent-text)',
   };
 
   // Build detail line — always has content, never blank
@@ -196,14 +209,18 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
   const pillColor = stateColor(slice, row.badge);
 
   return (
-    <div style={{
+    // `data-row-id` is a DOM HOOK AND NOTHING ELSE — no behaviour, no styling, no prop
+    // threaded down. F-39.11's focus arm needs to find one row in the list without the
+    // list knowing anything about the URL, and an attribute is the smallest thing that
+    // does that. It ships in both trees because it is inert in both.
+    <div data-row-id={row.id} style={{
       display: 'flex', alignItems: 'center',
       borderBottom: '0.5px solid var(--atelier-card-border)',
     }}>
       <button type="button" onClick={onSelect} style={{
         flex: 1, minWidth: 0,
         display: 'flex', alignItems: 'center', gap: 16,
-        padding: '15px 16px 15px 22px',
+        padding: '15px 16px 15px var(--slice-inset, 22px)',
         background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
       }}>
         {/* Monogram glyph — always present, anchors left edge */}
@@ -254,7 +271,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             )}
           </div>
           <div style={{
-            fontFamily: F.script, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+            fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
             color: A.inkMute, letterSpacing: '0.01em', marginTop: 3,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{detailLine}</div>
@@ -267,7 +284,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
               <a href={row.crossChipHref} onClick={e => e.stopPropagation()} style={{
                 display: 'inline-block', textDecoration: 'none',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                color: A.brassWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
                 marginTop: 4, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>{row.crossChip} ›</a>
             ) : (
@@ -316,7 +333,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-sheet-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-              fontFamily: F.display, fontSize: 16, color: A.brassWarm, lineHeight: 1,
+              fontFamily: F.display, fontSize: 16, color: A.interactiveWarm, lineHeight: 1,
             }}>☎</a>
         </div>
       )}

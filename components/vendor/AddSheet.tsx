@@ -5,7 +5,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { selectStyle } from '@/lib/vendor/controls';
+import { EXPENSE_CATEGORIES } from '@/lib/vendor/types/common';
 import { useRouter } from 'next/navigation';
+import { roomHref } from '@/lib/worklist/rooms';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import {
@@ -21,6 +23,7 @@ import type {
 } from '@/lib/vendor/types/vendor';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
+import { istTodayISO } from '@/lib/vendor/istDay';
 const D = { bg: '#111111', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)' };
 const F = { display: 'var(--font-cormorant), Georgia, serif', label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
@@ -35,14 +38,17 @@ interface FieldDef {
   placeholder?: string;
 }
 
-const EXPENSE_CATEGORIES: { label: string; value: string }[] = [
-  { label: 'Travel', value: 'travel' }, { label: 'Equipment', value: 'equipment' },
-  { label: 'Assistant', value: 'assistant' }, { label: 'Studio', value: 'studio' },
-  { label: 'Marketing', value: 'marketing' }, { label: 'Software', value: 'software' },
-  { label: 'Supplies', value: 'supplies' }, { label: 'Printing', value: 'printing' },
-  { label: 'Commission', value: 'commission' }, { label: 'Food', value: 'food' },
-  { label: 'Other', value: 'other' },
-];
+// THE PICKER READS THE MIRROR (CE-39 writer-hygiene, ruling 1). It used to carry
+// its own twelfth list, which offered `Supplies` — a token the database has never
+// accepted and the server has never accepted — and omitted `commission`, `shoot`
+// and `inventory`, three the database always has. Options are DERIVED from
+// EXPENSE_CATEGORIES now, in the CHECK's own order, and the labels are
+// title-cased from the tokens rather than written beside them: a label typed by
+// hand is a fifth home waiting to happen (F-04.36's class).
+const CATEGORY_OPTIONS: { label: string; value: string }[] = EXPENSE_CATEGORIES.map((value) => ({
+  value,
+  label: value.charAt(0).toUpperCase() + value.slice(1),
+}));
 
 const EVENT_KINDS: { label: string; value: string }[] = [
   { label: 'Shoot', value: 'shoot' }, { label: 'Call', value: 'call' },
@@ -94,7 +100,7 @@ const SCHEMAS: Record<ListSlice, { title: string; editTitle: string; fields: Fie
     title: 'Log expense', editTitle: 'Edit expense',
     fields: [
       { key: 'amount',       label: 'Amount',       type: 'currency', required: true },
-      { key: 'category',     label: 'Category',     type: 'select',   required: true, options: EXPENSE_CATEGORIES },
+      { key: 'category',     label: 'Category',     type: 'select',   required: true, options: CATEGORY_OPTIONS },
       { key: 'description',  label: 'Description',  type: 'text' },
       { key: 'expense_date', label: 'Date',         type: 'date' },
       { key: 'client_name',  label: 'Client',       type: 'text' },
@@ -223,7 +229,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
     } else {
       // New record or fallback — set defaults only
       const defaults: Record<string, string> = {};
-      if (slice === 'expenses') defaults.expense_date = new Date().toISOString().split('T')[0];
+      if (slice === 'expenses') defaults.expense_date = istTodayISO();
       // B6-S1 (R-B6-18): create-mode seeds ride on top of the defaults.
       if (initialValues) Object.assign(defaults, initialValues);
       setValues(defaults);
@@ -419,7 +425,11 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
           </h2>
           {!isEdit && (
             <button type="button" onClick={goToChat} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.15em', textTransform: 'uppercase', flexShrink: 0 }}>
-              Talk to DreamAi →
+              {/* R-37.70 as amended at R-38.17: the persona name is banned outright, in
+                  prose as well as in labels. This control is reachable from all six crossed
+                  rooms (SliceShell imports AddSheet) and from the shell's own Add control,
+                  so the shell's ban reaches it. The affordance keeps its verb. */}
+              Ask TDW →
             </button>
           )}
         </div>
@@ -483,7 +493,12 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               const d = values.event_date.trim();
               onClose();
               if (onBlockInstead) onBlockInstead(d);
-              else router.push(`/vendor/calendar?block=${d}`);
+              // \u00a74-2: the address book, not a spelling. This literal was the TENTH one the
+              // S2 ZIP bounce found and it was left DECLARED-AND-ALLOWED on purpose, with a
+              // note saying it would re-point when calendar crossed. This is that edit. It
+              // would have gone on resolving and gone on being wrong the moment the room
+              // moved, which is the shape a cell cannot catch by reading a string.
+              else router.push(`${roomHref('calendar')}?block=${d}`);
             }} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
               fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,

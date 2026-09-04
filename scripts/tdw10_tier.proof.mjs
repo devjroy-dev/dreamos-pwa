@@ -74,7 +74,11 @@ const CONFIG = read('app/admin/config/page.tsx');
 const CTRL   = read('app/admin/control-room/page.tsx');
 const VTYPES = read('lib/vendor/types/vendor.ts');
 const USET   = read('hooks/vendor/useSettings.ts');
-const SETT   = read('app/vendor/settings/page.tsx');
+// P7.2 ZIP 1b (CE-39, 2026-09-04) RE-KEYED: the settings ROUTE survives the flip at
+// `app/vendor/(shell)/settings/page.tsx` (arm (a) moved the shell onto /vendor/*), and it
+// still mounts `SettingsScreen`, which still carries the `id="tier"` signpost. Not one
+// asserted property changed; only the route's file address did.
+const SETT   = read('app/vendor/(shell)/settings/page.tsx');
 // ── LABELLED RE-AIM · TDW_10 THE BILLING TAB (R-26.4) ────────────────────────
 // The Subscription surface this bench asserts LEFT app/vendor/settings/page.tsx
 // and now lives at components/vendor/SubscriptionCard.tsx, rendered by
@@ -267,7 +271,22 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // searched only the old file would go RED on correct code, and a cell narrowed
   // to green itself would stop guarding the bytes. Three of the nine are
   // FURTHER amended below where the ruling genuinely changed what is true.
-  const ss = strip(CARD) + '\n' + strip(read('lib/vendor/billing/statusLine.ts'));
+  // ── LABELLED AMENDMENT · M-FINISH S1 — THE CORPUS FOLLOWS THE FILES ─────────
+  // Two pure moves this sitting changed WHERE these bytes live and nothing about WHAT they
+  // say: `SettingsScreen` left `app/vendor/settings/page.tsx` for its own component file
+  // (Next 16 refuses a non-page export from a route file, by name, at build time), and the
+  // vetoed money block left `SubscriptionCard.tsx` for `lib/vendor/billing/plans.ts`
+  // (importing it from a COMPONENT module dragged that component and its statusLine
+  // dependency onto the shell's Billing chunk, shipping four retired sentences to the
+  // browser — the wl_audit R-38.6 cell reddened on it).
+  //
+  // SO THE READS ARE RE-POINTED, NOT LOOSENED. Every predicate below is byte-identical;
+  // only the handles moved. A cell that had been RE-AIMED to a weaker file would be the
+  // thing this amendment must not be, so the two additions are the exact new homes of the
+  // exact old bytes, and the old handles stay in the corpus so a partial move reddens.
+  const SCREEN = read('components/vendor/SettingsScreen.tsx');
+  const PLANS  = read('lib/vendor/billing/plans.ts');
+  const ss = strip(CARD) + '\n' + strip(PLANS) + '\n' + strip(read('lib/vendor/billing/statusLine.ts'));
   ok('the subscription surface exists', /SCard title="Subscription"/.test(ss));
   ok('the Tier read-row is REPLACED, not duplicated — one home for the plan word',
      !/SReadRow label="Tier"/.test(ss) && /SReadRow label="Plan"/.test(ss));
@@ -308,12 +327,30 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   // therefore still load-bearing, and the signpost it proves reachable is the
   // only thing standing between a capped vendor and a dead end. A cell, because
   // an anchor is exactly the kind of thing a later refactor silently drops.
+  //
+  // ⚠ AND THE ANCHOR MOVED FILES THIS SITTING WITHOUT MOVING ADDRESS. `SettingsScreen` is
+  // now `components/vendor/SettingsScreen.tsx`; `app/vendor/settings/page.tsx` is the
+  // ROUTE that renders it. The wire address /vendor/settings#tier resolves exactly as
+  // before — the route is untouched and still mounts the screen that carries the id. The
+  // cell reads BOTH files, so it cannot go green on a route that renders nothing, nor on
+  // a screen no route mounts. That is stricter than reading either one.
   ok('the #tier anchor exists — the wire address still resolves to a page carrying the signpost',
-     /id="tier"/.test(strip(SETT)));
+     /id="tier"/.test(strip(SCREEN)) && /SettingsScreen/.test(strip(SETT)));
 
   // Money register law: Rs X,XXX, zero glyphs, zero shorthand.
-  ok('canon prices render in the money register, verbatim',
-     /'Rs 999 \/ month'/.test(ss) && /'Rs 1,999 \/ month'/.test(ss) && /'Rs 2,999 \/ month'/.test(ss));
+  // AMENDED, LABELLED — M-FINISH S1. THE PREDICATE IS STRENGTHENED, NOT RE-AIMED, AND THE
+  // CELL COUNT IS UNCHANGED. It still asserts the three canon prices render verbatim in
+  // the money register; it now also asserts they are DECLARED EXACTLY ONCE, and not in a
+  // component. `lib/vendor/billing/plans.ts` is that one home. If a later seat copies them
+  // back beside the JSX for convenience, the estate has two price tables again — F-10.63's
+  // family, and the reason TIER_PAISE pins them as integers upstream. A component may
+  // RENDER the canon and must not DECLARE it. Folded into this cell rather than added as a
+  // new one, because the ruled amendment is count-preserved.
+  ok('canon prices render in the money register, verbatim, from exactly one home',
+     /'Rs 999 \/ month'/.test(ss) && /'Rs 1,999 \/ month'/.test(ss) && /'Rs 2,999 \/ month'/.test(ss)
+     && /Rs 999 \/ month/.test(PLANS)
+     && !/'Rs 999 \/ month'/.test(strip(CARD))
+     && !/'Rs 999 \/ month'/.test(strip(read('components/worklist/BillingRoom.tsx'))));
   // Read STRIPPED, not raw. These three cells forbid words that this file's own
   // warrants legitimately DISCUSS — the persona cell first reddened on a comment
   // explaining what the flip-reason line spares the vendor from, which is a bench
@@ -441,7 +478,16 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
 // cells count the seats ACROSS the states, by evaluating the two shipped
 // predicates rather than by reading either one.
 {
-  const PAGE  = read('app/vendor/page.tsx');
+  // F-39.82 CURED at P7.2 Arm C, and this section is the reason it was ever found. The estate
+  // carries TWO seats for the path out of a cap: TierMeter (which hides on a falsy cap) and a
+  // second seat gated on the EXACT COMPLEMENT. That second seat lived on the old chat page and
+  // died at the flip, stranding a vendor at state 'capped' with turns_cap 0 — refused at turn
+  // zero. It is re-homed onto the ask sheet's cap refusal (components/worklist/AskSheet.tsx),
+  // hung on the TYPED state useChat returns ('ok' | 'nearing' | 'capped', useChat.ts:39) rather
+  // than on the refusal's prose, and carrying the byte the founder vetoed on 2026-08-29.
+  // THE COUNT BELOW IS UNCHANGED AT 1: the inventory still says every capped state has exactly
+  // one anchor, which is what §9.4 exists to say.
+  const PAGE  = read('components/worklist/AskSheet.tsx');
   const METER = read('components/vendor/TierMeter.tsx');
 
   // The two guards are LIFTED FROM SOURCE, never retyped — a bench holding its
@@ -449,8 +495,8 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
   const meterGuard = strip(METER).match(/if \(!meta \|\| !meta\.turns_cap\) return null;/);
   ok('§9.1 TierMeter still hides itself on a falsy cap — the guard the seat complements',
      !!meterGuard);
-  const pageGuard = strip(PAGE).match(/\{meta && meta\.state === 'capped' && !meta\.turns_cap && meta\.upgrade && \(/);
-  ok('§9.2 the page-level seat is gated on the EXACT COMPLEMENT of that guard',
+  const pageGuard = strip(PAGE).match(/\{meta\?\.state === 'capped' && !meta\.turns_cap && \(/);
+  ok('§9.2 the second seat is gated on the EXACT COMPLEMENT of that guard (P7.2: re-homed to the ask sheet)',
      !!pageGuard);
 
   // Evaluate both, per state, and COUNT. This is the inventory the first one
@@ -494,7 +540,7 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
     return meterAnchor(m, nearingOf(m), cappedOf(m));
   };
   // The page-level seat: its whole JSX condition, lifted and executed.
-  const pageShows = lift(strip(PAGE), /\{(meta && meta\.state === 'capped'[^\n]*?meta\.upgrade) && \(/, 'the page-level seat condition');
+  const pageShows = lift(strip(PAGE), /\{(meta\?\.state === 'capped' && !meta\.turns_cap) && \(/, 'the sheet-level seat condition');
   const up = { label: 'Upgrade', href: '/vendor/billing' };
   const states = [
     ['zero cap, refused at turn zero', { state: 'capped',  turns_used: 0,  turns_cap: 0,   upgrade: up }, 1],

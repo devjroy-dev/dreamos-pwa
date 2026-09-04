@@ -101,13 +101,34 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   cell('2.5', /visibility: 'hidden'/.test(psrc) && /aria-hidden/.test(psrc),
     'GHOST mode reserves the exact box by invisible render — no executor arithmetic under the reservation');
 
-  const adopters = ['app/vendor/storefront/page.tsx', 'app/vendor/page.tsx', 'app/vendor/calendar/page.tsx'];
+  // ── AMENDED, LABELLED — \u00a74-2 · THE SUBJECT MOVED, THE CLAIM DID NOT ──────────
+  // Calendar crossed into the shell, and its body split out of the route file so the
+  // `<Header/>` import could leave the shell's bundle (S2's lesson: a conditional does not
+  // remove a module from a bundle; only not importing it does). Every cell in this file
+  // that reads the calendar reads its BODY, and the body is `screen.tsx` now.
+  //
+  // THE ADOPTER IS STILL THE CALENDAR — one surface, one primitive, no fourth shape. What
+  // changed is which file holds it. A cell renamed to follow its subject is not a loosened
+  // cell; a cell left pointing at the old path would have gone red on a correct tree and
+  // taught the next seat that this bench may be argued with.
+  const CAL_BODY = 'app/vendor/(shell)/calendar/screen.tsx';
+  // \u00a74-3: STOREFRONT CROSSED THE SAME WAY, AND THE SAME SENTENCE APPLIES. Its body split
+  // out of its route file for the identical reason, so the adopter of the Reserve primitive
+  // is `screen.tsx`. Second firing of the paragraph above; the constant is named rather than
+  // the path being retyped, so the third crossing that reaches this cell has one edit.
+  const SF_BODY = 'app/vendor/(shell)/storefront/screen.tsx';
+  // P7.2 ZIP 1b (2026-09-04) RETIRED-WITH-THE-READER: the third adopter was the old chat
+  // page (app/vendor/page.tsx), DELETED at the flip (R-39.24). TWO named adopters remain and
+  // the assertion is unchanged in kind: every adopter imports the one primitive, no fourth shape.
+  const adopters = [SF_BODY, CAL_BODY];
   cell('2.6', adopters.every(f => /from '@\/components\/vendor\/Reserve'/.test(R(f))),
-    'all THREE named adopters import the one primitive (no fourth shape)');
+    'all TWO named adopters import the one primitive (no fourth shape) [P7.2: the old chat page adopter retired with the tree]');
 
   // ── F-09.111 · the storefront ──
   {
-    const raw = R('app/vendor/storefront/page.tsx');
+    // The same subject as the adopter cell above, read for a different claim \u2014 so it names
+    // the constant rather than re-spelling the path, and cannot drift away from 2.6.
+    const raw = R(SF_BODY);
     const src = strip(raw);
     cell('2.7', !/if \(loading\) return null;/.test(src),
       'F-09.111 — the null-return is GONE (this is the mutation cell: restoring it reddens)');
@@ -123,24 +144,22 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   }
 
   // ── F-09.112 · the home greeting ──
-  {
-    const src = strip(R('app/vendor/page.tsx'));
-    cell('2.12', !/line = `Welcome back\.`;/.test(src),
-      'F-09.112 — the provisional sentence is GONE (mutation cell: restoring it reddens)');
-    cell('2.13', /const pending = !context;/.test(src) && /\{pending \? \(/.test(src),
-      'F-09.112 — the pending window renders a reserved skeleton, not words');
-    cell('2.14', (src.match(/<Reserve h=\{28\}/g) || []).length === 2,
-      'F-09.112 — TWO 28px boxes reserved: the loaded sentence\u2019s own 20px/1.4 line box, taller outcome');
-    // [GUARD] the sentence construction is untouched — R-O12/R-O15 and R-O17.
-    cell('2.15', /letters await you this \$\{timeOfDay\}/.test(src) && /today\?\.open_leads_count \?\? 0/.test(src),
-      '[GUARD] the ruled sentence construction and its one-derivation source are untouched');
-    cell('2.16', /\}\}>\{greeting\}<\/div>/.test(src),
-      '[GUARD] the greeting WORD stays outside the skeleton — it reads the clock, not the network');
-  }
+  // §2.12-2.16 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (2026-09-04). Five cells, all reading
+  // `app/vendor/page.tsx` — the old Victor chat page and its greeting card, DELETED at the
+  // flip. The assertions, quoted for the record:
+  //   2.12 'F-09.112  the provisional sentence is GONE (mutation cell: restoring it reddens)'
+  //   2.13 'F-09.112  the pending window renders a reserved skeleton, not words'
+  //   2.14 'F-09.112  TWO 28px boxes reserved: the loaded sentence's own 20px/1.4 line box'
+  //   2.15 '[GUARD] the ruled sentence construction and its one-derivation source are untouched'
+  //   2.16 '[GUARD] the greeting WORD stays outside the skeleton  it reads the clock, not the network'
+  // The shell has NO twin of that sentence (grep at 039d005: zero hits for the construction or
+  // `open_leads_count` under app/vendor/(shell) and components/worklist), so there is nothing to
+  // re-key onto: F-09.112's subject left the estate with its page. Count: 5 cells retired.
+
 
   // ── F-09.113 · the calendar's false empty ──
   {
-    const src = strip(R('app/vendor/calendar/page.tsx'));
+    const src = strip(R(CAL_BODY));
     cell('2.17', /loading: eventsLoading/.test(src),
       'F-09.113 — the loader\u2019s loading flag is picked up (it was destructured away)');
     cell('2.18', /\{eventsLoading \? \(/.test(src),
@@ -157,7 +176,12 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§3 · F-09.114 — THE CALENDAR + OPENS THE ADD-EVENT SHEET');
 {
-  const raw = R('app/vendor/calendar/page.tsx');
+  // \u00a74-2: the calendar's body is `screen.tsx`. Re-pointed with \u00a72's adopter list, same
+  // reason, same sitting \u2014 and the constant is declared here too rather than in one shared
+  // place, because these two sections read the file for different claims and a single
+  // top-level constant would invite a third reader to assume they check the same thing.
+  const CAL_BODY = 'app/vendor/(shell)/calendar/screen.tsx';
+  const raw = R(CAL_BODY);
   const src = strip(raw);
 
   const onAdd = src.split('function onAdd()')[1]?.split('function refreshAll')[0] ?? '';
