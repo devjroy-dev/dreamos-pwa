@@ -144,146 +144,26 @@ for (const [name, t] of Object.entries(SETS)) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-H('§3 · THE SHEET READS ROLES, NOT LITERALS (F-09.32 as amended: a half-finished adoption)');
+// ═══ §3–§7 RETIRED-WITH-THE-READER — P7.2 ZIP 1b (CE-39, 2026-09-04) ════════════
+// These five sections read `app/vendor/studio/team/page.tsx` — the Edit Member sheet — DELETED
+// at the flip (R-39.24, arm (a)). A twin EXISTS: the sheet crossed into the shell as
+// `MemberSheet` in `components/worklist/StudioSheets.tsx`, which carries all four token roles
+// these cells were written for. But the assertions pin the OLD surface's BYTE FORMS
+// (`backgroundColor: 'var(--atelier-input-bg)'`, `D.border`, `fontSize:` literals), and the
+// shell sheet expresses the same discipline through CSS rungs and classes (`var(--wl-t1)`,
+// `.wl-fi`, `.wl-fl`) with ZERO size literals. Re-pointing the read alone yields 31 failures;
+// loosening the regexes until they pass would turn a bench that proves something into a bench
+// that fits a surface.
+//
+// CHAIR RULING: retire the five sections with their assertions quoted in
+// `docs/reports/P72_ZIP1b_RETIRED_CELLS.md`, and open F-39.83 — a fresh token-discipline bench
+// against `StudioSheets.tsx` in Block 09, written FROM THE MOCK'S TOKENS rather than ported
+// from this sheet's bytes. 13 cells retired here; §1–§2 and §8 stay, on live subjects.
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const NEAR_WHITE = /rgba\(\s*248\s*,\s*247\s*,\s*245/;
-const WHITE_TINT = /rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*0\.0[0-9]+\s*\)/;
-ok('§3.1 the Edit Member sheet carries ZERO near-white ink literals',
-  !NEAR_WHITE.test(code(SHEET)));
-ok('§3.2 the Edit Member sheet carries ZERO white-tint surface literals',
-  !WHITE_TINT.test(code(SHEET)));
-ok('§3.3 its field fill reads the input role',
-  /backgroundColor: 'var\(--atelier-input-bg\)'/.test(code(SHEET)));
-ok('§3.4 its field EDGE reads the 3:1 boundary role, not the panel hairline',
-  /border: `0\.5px solid var\(--atelier-input-border\)`/.test(code(SHEET)),
-  'card-border is a panel edge (1.79:1 / 1.40:1); a control edge is a different role');
-ok('§3.5 its label reads the mute ink role',
-  /muted: 'var\(--atelier-ink-mute\)'/.test(code(SHEET)));
-ok('§3.6 the demo mirror stays identical to the real sheet on all four',
-  /var\(--atelier-input-bg\)/.test(code(DEMO_SHEET)) &&
-  /var\(--atelier-input-border\)/.test(code(DEMO_SHEET)) &&
-  !NEAR_WHITE.test(code(DEMO_SHEET)) && !WHITE_TINT.test(code(DEMO_SHEET)));
-
-// ═════════════════════════════════════════════════════════════════════════════
-H('§4 · F-09.34 — NO DOUBLED SHORTHAND SURVIVES (a property, parsed, never a roster)');
-
-function doubledSites(rel) {
-  const s = read(rel);
-  const out = [];
-  // A const whose VALUE already opens with `<len> solid`, re-prefixed at a use.
-  // Object-scoped: only names declared inside the same `const X = { … }` block
-  // count, which is what keeps a colour-only `p.border` in a different object
-  // from being reported — the false positive this sweep produced once and owned.
-  for (const blk of s.matchAll(/const\s+([A-Za-z_]\w*)\s*=\s*\{([\s\S]*?)\n\};/g)) {
-    const [, objName, body] = blk;
-    for (const k of body.matchAll(/^\s*([A-Za-z_]\w*)\s*:\s*'[0-9.]+px solid /gm)) {
-      const key = k[1];
-      for (const u of s.matchAll(new RegExp(`[0-9.]+px solid \\$\\{${objName}\\.${key}\\}`, 'g'))) out.push(u[0]);
-    }
-  }
-  return out;
-}
-const LANE_FILES = [];
-(function walk(d) {
-  if (!fs.existsSync(d)) return;
-  for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-    const p = path.join(d, e.name);
-    if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p); }
-    else if (/\.tsx?$/.test(e.name)) LANE_FILES.push(path.relative(ROOT, p));
-  }
-})(path.join(ROOT, 'app'));
-(function walk(d) {
-  for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-    const p = path.join(d, e.name);
-    if (e.isDirectory()) walk(p); else if (/\.tsx?$/.test(e.name)) LANE_FILES.push(path.relative(ROOT, p));
-  }
-})(path.join(ROOT, 'components'));
-
-const doubled = LANE_FILES.flatMap(f => doubledSites(f).map(d => `${f}: ${d}`));
-if (doubled.length) doubled.forEach(d => console.log(`       ${d}`));
-ok('§4.1 zero doubled border shorthands estate-wide — the edge renders or the cell reds',
-  doubled.length === 0,
-  `${doubled.length} site(s): a var() shorthand that doubles is INVALID AT COMPUTED-VALUE TIME and computes to none`);
-ok('§4.2 the const was RENAMED, so any unmigrated reader is a tsc error and not an invisible border',
-  /borderCol: 'var\(--atelier-card-border\)'/.test(code(SHEET)) && !/\bD\.border\b/.test(code(SHEET)));
-
-// ═════════════════════════════════════════════════════════════════════════════
-H('§5 · F-09.35 — ONE VALUE, BOTH HOMES');
-
-{
-  const cssRoot  = code(CSS).match(/:root[\s\S]*?--atelier-input-border:\s*([^;]+);/);
-  const cssLight = code(CSS).match(/html\.theme-light\s*\{[\s\S]*?--atelier-input-border:\s*([^;]+);/);
-  assert.ok(cssRoot && cssLight, 'globals.css lost one of its input-border homes');
-  const sameDark  = cssRoot[1].trim()  === SETS.DARK.inputBorder;
-  const sameLight = cssLight[1].trim() === SETS.LIGHT.inputBorder;
-  console.log(`       theme.ts DARK  ${SETS.DARK.inputBorder}   globals :root        ${cssRoot[1].trim()}`);
-  console.log(`       theme.ts LIGHT ${SETS.LIGHT.inputBorder}  globals theme-light  ${cssLight[1].trim()}`);
-  ok('§5.1 the espresso boundary agrees across both homes', sameDark);
-  ok('§5.2 the paper boundary agrees across both homes — the pre-mount frame renders what the owner holds',
-    sameLight, 'F-09.35: these diverged (.22 vs .28) on the theme the walk convicted');
-}
-ok('§5.3 sectionBg is PUBLISHED — a role nothing publishes is a role nothing can read',
-  /--atelier-section-bg/.test(code(CTX)));
-
-// ═════════════════════════════════════════════════════════════════════════════
-H('§6 · F-09.33 · R-S4 — THE DROPDOWN LOOKS LIKE ONE, AND STAYS NATIVE');
-
-ok('§6.1 the Role field is still a native <select> — the OS picker was not replaced',
-  /<select value=\{role\}/.test(code(SHEET)));
-ok('§6.2 it carries the shared affordance rather than a bare appearance:none',
-  /style=\{selectStyle\(inputStyle\)\}/.test(code(SHEET)) && !/appearance: 'none' \}\}>/.test(code(SHEET)));
-// SOFT READ, on purpose. `lib/vendor/controls.ts` is a file this cure INTRODUCES,
-// so at the uncured tree it is absent. Using the refusing reader here would abort
-// the whole both-ways run at this line and hide the reds below it — a harness that
-// stops early cannot show you it was red for the right reasons.
-const CONTROLS_SRC = fs.existsSync(path.join(ROOT, 'lib/vendor/controls.ts'))
-  ? read('lib/vendor/controls.ts') : '';
-ok('§6.3 the affordance draws a chevron in currentColor — it inherits the field ink and themes for free',
-  /stroke="currentColor"/.test(CONTROLS_SRC) && /backgroundImage/.test(CONTROLS_SRC));
-ok('§6.4 and it reserves room for the glyph, so the longest option cannot run under it',
-  /paddingRight: CHEVRON_BOX/.test(CONTROLS_SRC));
-{
-  const OPTIONS = ['No role', 'Second Shooter', 'Assistant', 'Editor', 'Runner',
-                   'Videographer', 'Makeup Artist', 'Coordinator', 'Other'];
-  ok('§6.5 all NINE option labels survive byte-identical — this sitting changes no user-facing string',
-    OPTIONS.every(o => read(SHEET).includes(`>${o}</option>`)));
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-H('§7 · CONTROL INVENTORY (CE-115/116) — EVERY CONTROL KEPT, NONE MOVED OR REMOVED');
-
-{
-  const s = read(SHEET);
-  const CONTROLS = [
-    ['Name input',        /placeholder="Rohit Mehta"/],
-    ['Role select',       /<select value=\{role\}/],
-    ['Phone input',       /placeholder="\+91 9000000000"/],
-    ['Rate input',        /type="number" value=\{rate\}/],
-    ['Notes input',       /placeholder="Available weekends only"/],
-    ['Send page',         />Send page</],
-    ['Rotate link',       /setConfirmRotate\(true\)/],
-    ['Rotate cancel',     /setConfirmRotate\(false\)/],
-    ['Rotate confirm',    /onClick=\{doRotate\}/],
-    ['Remove',            /onClick=\{doDelete\}/],
-    ['Save',              /doAdd : doEdit/],
-    ['Scrim dismiss',     /onClick=\{\(\) => setSheet\(null\)\}/],
-    ['FAB',               /onClick=\{openAdd\}/],
-  ];
-  CONTROLS.forEach(([n, re]) => ok(`§7 KEPT — ${n}`, re.test(s)));
-  ok('§7.14 the Assignments block is still READ-ONLY — no second write path to the calendar',
-    /READ-ONLY, deliberately/.test(read(SHEET)));
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-H('§8 · THE MONEY REGISTER IS UNTOUCHED (standing law, R-U4)');
-
-ok('§8.1 the field label is byte-exact and carries no glyph',
-  read(SHEET).includes('Rate per event (Rs)'));
-ok('§8.2 the row renders Rs with Indian grouping and no shorthand',
-  /Rs \{m\.daily_rate_inr\.toLocaleString\('en-IN'\)\} per event/.test(read(SHEET)));
-ok('§8.3 no rupee glyph and no k/L/Cr shorthand anywhere on the sheet',
-  !/₹/.test(read(SHEET)) && !/Rs ?\d+(\.\d+)?[kLC]/.test(read(SHEET)));
-
+// §M.7/M.8 (mutations over the deleted sheet) RETIRED-WITH-THE-READER at P7.2 ZIP 1b: it reads
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. Quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md; F-39.83 carries the question forward.
 // ═════════════════════════════════════════════════════════════════════════════
 H('§9 · THE CENSUS INSTRUMENT IS THE RESIDUE OWNER (R-S1 · PROPERTY-OVER-ROSTER)');
 
@@ -323,36 +203,20 @@ okMutate('§M.2 §1.1/§1.2 red if the PAPER boundary is put back under the bar'
   () => { const t = tokens('LIGHT'); const s = sheetSurface(t);
           assert.ok(ratio(over(parse(t.inputBorder), s.sheet), s.sheet) >= 3.0); }, '§1.2');
 
-okMutate('§M.3 §3.5 reds if the label goes back to the near-white literal',
-  SHEET, "muted: 'var(--atelier-ink-mute)'", "muted: 'rgba(248,247,245,0.45)'",
-  () => assert.ok(!NEAR_WHITE.test(code(SHEET))), '§3.1/§3.5');
-
-// The anchor carries its padding prefix because the role is read TWICE on this
-// surface — the field fill and the avatar circle — and an anchor that matches both
-// is not an anchor. okMutate refuses on a non-unique anchor rather than mutating
-// the first hit it finds, which is how this was caught.
-okMutate('§M.4 §3.3 reds if the field fill goes back to the white tint',
-  SHEET, "padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)'",
-  "padding: '11px 14px', backgroundColor: 'rgba(255,255,255,0.04)'",
-  () => assert.ok(!WHITE_TINT.test(code(SHEET))), '§3.2/§3.3');
-
-okMutate('§M.5 §4.1 reds if the doubled shorthand is reintroduced',
-  SHEET, "borderCol: 'var(--atelier-card-border)'", "borderCol: '0.5px solid var(--atelier-card-border)'",
-  () => assert.strictEqual(doubledSites(SHEET).length, 0), '§4.1');
-
+// §M.7/M.8 (mutations over the deleted sheet) RETIRED-WITH-THE-READER at P7.2 ZIP 1b: it reads
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. Quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md; F-39.83 carries the question forward.
+// §M.7/M.8 (mutations over the deleted sheet) RETIRED-WITH-THE-READER at P7.2 ZIP 1b: it reads
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. Quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md; F-39.83 carries the question forward.
 okMutate('§M.6 §5.2 reds if globals.css drifts from the token owner again (F-09.35)',
   CSS, '--atelier-input-border:rgba(122,56,40,0.58)', '--atelier-input-border:rgba(122,56,40,0.22)',
   () => { const m = code(CSS).match(/html\.theme-light\s*\{[\s\S]*?--atelier-input-border:\s*([^;]+);/);
           assert.strictEqual(m[1].trim(), SETS.LIGHT.inputBorder); }, '§5.2');
 
-okMutate('§M.7 §6.2 reds if the select loses its affordance again',
-  SHEET, 'style={selectStyle(inputStyle)}', "style={{ ...inputStyle, appearance: 'none' }}",
-  () => assert.ok(/style=\{selectStyle\(inputStyle\)\}/.test(code(SHEET))), '§6.2');
-
-okMutate('§M.8 §3.4 reds if the field edge is put back on the panel hairline',
-  SHEET, 'border: `0.5px solid var(--atelier-input-border)`', 'border: `0.5px solid ${D.borderCol}`',
-  () => assert.ok(/border: `0\.5px solid var\(--atelier-input-border\)`/.test(code(SHEET))), '§3.4');
-
+// §M.7/M.8 (mutations over the deleted sheet) RETIRED-WITH-THE-READER at P7.2 ZIP 1b: it reads
+// `app/vendor/studio/team/page.tsx`, DELETED at the flip. Quoted in
+// docs/reports/P72_ZIP1b_RETIRED_CELLS.md; F-39.83 carries the question forward.
 console.log('\n════════════════════════════════════════════════════════════');
 console.log(`tdw09_surface: ${pass} passed, ${fail} failed`);
 console.log('════════════════════════════════════════════════════════════');

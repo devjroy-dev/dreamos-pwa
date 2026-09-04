@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: ca0516fdf8fa44ce85cfc11e3e024d670874f015
-files scanned: 385
+repo tip: 039d0058c01f169e5ac4b7b545fc3e83da69031c
+files scanned: 353
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -109,12 +109,12 @@ app/v/[code]/page.tsx
    BITE 22: chars 45367-45493  lines 826-827  span 126  LIVE 126
    BITE 23: chars 45524-46371  lines 830-842  span 847  LIVE 847
 
-app/w/support/page.tsx
+app/vendor/(shell)/support/page.tsx
    FALSE OPEN  :125   …ionsStyles />\n      <style>{`\n/* Car
    FALSE CLOSE :126   …al only, no horizontal inset. */\n.wl
    BITE 1: chars 6312-6471  lines 125-126  span 159  LIVE 159
 
-app/w/today/page.tsx
+app/vendor/(shell)/today/page.tsx
    FALSE OPEN  :100   …y={today} />}\n      <style>{`\n/* R-3
    FALSE OPEN  :103   …olor:var(--atelier-ink-mute)}\n/* THE
    FALSE OPEN  :109   …is comment, caught by tsc. */\n/* ✔ T
@@ -153,16 +153,16 @@ components/worklist/AccountDrawer.tsx
    FALSE OPEN  :205   …ition:background 90ms linear}\n/* The
    FALSE CLOSE :203   …wledgement it exists to give. */\n.td
    FALSE CLOSE :207   …es instead of cutting it off. */\n.td
-   BITE 1: chars 12029-12302  lines 201-203  span 273  LIVE 273
-   BITE 2: chars 12359-12606  lines 205-207  span 247  LIVE 247
+   BITE 1: chars 12059-12332  lines 201-203  span 273  LIVE 273
+   BITE 2: chars 12389-12636  lines 205-207  span 247  LIVE 247
 
 components/worklist/AddFab.tsx
    FALSE OPEN  :148   …env(safe-area-inset-bottom))}\n/* A s
    FALSE OPEN  :150   …ink-mute);padding:12px 0 8px}\n/* 52p
    FALSE CLOSE :148   … for letter-spaced uppercase. */\n.wl
    FALSE CLOSE :152   …onvicted as illegible chrome. */\n.wl
-   BITE 1: chars 8792-8883  lines 148-148  span 91  LIVE 91
-   BITE 2: chars 9010-9226  lines 150-152  span 216  LIVE 216
+   BITE 1: chars 8807-8898  lines 148-148  span 91  LIVE 91
+   BITE 2: chars 9025-9241  lines 150-152  span 216  LIVE 216
 
 components/worklist/AiDock.tsx
    FALSE OPEN  :84   …instance.)\nconst DOCK_CSS = `\n/* R-3
@@ -223,12 +223,12 @@ components/worklist/RoomsGrid.tsx
    FALSE CLOSE :126   …otiated by a number arriving. */\n.wl
    FALSE CLOSE :129   …cks anywhere in this literal. */\n.wl
    FALSE CLOSE :137   …el is simply the room's name. */\n.wl
-   BITE 1: chars 5111-5473  lines 96-100  span 362  LIVE 362
-   BITE 2: chars 5564-5804  lines 103-105  span 240  LIVE 240
-   BITE 3: chars 6008-6623  lines 108-114  span 615  LIVE 615
-   BITE 4: chars 6624-7665  lines 115-126  span 1041  LIVE 1041
-   BITE 5: chars 7765-7899  lines 128-129  span 134  LIVE 134
-   BITE 6: chars 8208-8722  lines 132-137  span 514  LIVE 514
+   BITE 1: chars 5146-5508  lines 96-100  span 362  LIVE 362
+   BITE 2: chars 5599-5839  lines 103-105  span 240  LIVE 240
+   BITE 3: chars 6043-6658  lines 108-114  span 615  LIVE 615
+   BITE 4: chars 6659-7700  lines 115-126  span 1041  LIVE 1041
+   BITE 5: chars 7800-7934  lines 128-129  span 134  LIVE 134
+   BITE 6: chars 8243-8757  lines 132-137  span 514  LIVE 514
 
 components/worklist/StudioSheets.tsx
    FALSE OPEN  :449   …t1);color:var(--atelier-ink)}\n/* 44p
@@ -252,30 +252,30 @@ components/worklist/WlToast.tsx
    BITE 1: chars 5727-5990  lines 104-106  span 263  LIVE 263
 
 components/worklist/WorklistShell.tsx
-   FALSE OPEN  :197   …:var(--wl-gutter);z-index:20}\n/* R-3
-   FALSE OPEN  :211   …dding-right:var(--wl-gutter)}\n/* SHA
-   FALSE OPEN  :215   …;padding:16px;margin:0 0 8px}\n/* ── 
-   FALSE OPEN  :227   …ent-text);outline-offset:2px}\n/* ── 
-   FALSE OPEN  :257   …8);touch-action:manipulation}\n/* ── 
-   FALSE OPEN  :270   …ent-text);outline-offset:3px}\n/* TOU
-   FALSE OPEN  :275   … a{touch-action:manipulation}\n/* R-3
-   FALSE OPEN  :285   …;overscroll-behavior:contain}\n/* R-3
-   FALSE CLOSE :209   … block below is hand-written. */\n.wl
-   FALSE CLOSE :213   …what every surface is inside. */\n.wl
-   FALSE CLOSE :220   …ithout being able to name it. */\n.wl
-   FALSE CLOSE :255   … FAB size or a bottom offset. */\n.wl
-   FALSE CLOSE :267   …s the point of the paragraph. */\n.wl
-   FALSE CLOSE :272   …before dispatching the click. */\n.wl
-   FALSE CLOSE :278   …eeing and no cell could name. */\n.wl
-   FALSE CLOSE :287   …and this one reads the boxes. */\n.wl
-   BITE 1: chars 12063-13086  lines 197-209  span 1023  LIVE 1023
-   BITE 2: chars 13162-13430  lines 211-213  span 268  LIVE 268
-   BITE 3: chars 13566-14048  lines 215-220  span 482  LIVE 482
-   BITE 4: chars 14683-16713  lines 227-255  span 2030  LIVE 2030
-   BITE 5: chars 17138-18036  lines 257-267  span 898  LIVE 898
-   BITE 6: chars 18198-18462  lines 270-272  span 264  LIVE 264
-   BITE 7: chars 18607-18926  lines 275-278  span 319  LIVE 319
-   BITE 8: chars 19762-20023  lines 285-287  span 261  LIVE 261
+   FALSE OPEN  :204   …:var(--wl-gutter);z-index:20}\n/* R-3
+   FALSE OPEN  :218   …dding-right:var(--wl-gutter)}\n/* SHA
+   FALSE OPEN  :222   …;padding:16px;margin:0 0 8px}\n/* ── 
+   FALSE OPEN  :234   …ent-text);outline-offset:2px}\n/* ── 
+   FALSE OPEN  :264   …8);touch-action:manipulation}\n/* ── 
+   FALSE OPEN  :277   …ent-text);outline-offset:3px}\n/* TOU
+   FALSE OPEN  :282   … a{touch-action:manipulation}\n/* R-3
+   FALSE OPEN  :292   …;overscroll-behavior:contain}\n/* R-3
+   FALSE CLOSE :216   … block below is hand-written. */\n.wl
+   FALSE CLOSE :220   …what every surface is inside. */\n.wl
+   FALSE CLOSE :227   …ithout being able to name it. */\n.wl
+   FALSE CLOSE :262   … FAB size or a bottom offset. */\n.wl
+   FALSE CLOSE :274   …s the point of the paragraph. */\n.wl
+   FALSE CLOSE :279   …before dispatching the click. */\n.wl
+   FALSE CLOSE :285   …eeing and no cell could name. */\n.wl
+   FALSE CLOSE :294   …and this one reads the boxes. */\n.wl
+   BITE 1: chars 12693-13716  lines 204-216  span 1023  LIVE 1023
+   BITE 2: chars 13792-14060  lines 218-220  span 268  LIVE 268
+   BITE 3: chars 14196-14678  lines 222-227  span 482  LIVE 482
+   BITE 4: chars 15313-17343  lines 234-262  span 2030  LIVE 2030
+   BITE 5: chars 17768-18666  lines 264-274  span 898  LIVE 898
+   BITE 6: chars 18828-19092  lines 277-279  span 264  LIVE 264
+   BITE 7: chars 19237-19556  lines 282-285  span 319  LIVE 319
+   BITE 8: chars 20392-20653  lines 292-294  span 261  LIVE 261
 
 eslint.config.mjs
    FALSE OPEN  :11   …eslint-config-next:\n    ".next/**",\n
@@ -304,18 +304,15 @@ false bites the RETIRED rule would take: 75 · span 35336 · LIVE CODE 35242
    DIVERGES from the lexer: app/admin/dashboard/page.tsx
    DIVERGES from the lexer: app/circle/join/[token]/page.tsx
    DIVERGES from the lexer: app/demo/vendor/[handle]/discover/page.tsx
-   DIVERGES from the lexer: app/vendor/calendar/screen.tsx
-   DIVERGES from the lexer: app/vendor/collab/screen.tsx
-   DIVERGES from the lexer: app/vendor/contracts/screen.tsx
-   DIVERGES from the lexer: app/vendor/couture/screen.tsx
-   DIVERGES from the lexer: app/vendor/discover/page.tsx
-   DIVERGES from the lexer: app/vendor/discover/submit/page.tsx
-   DIVERGES from the lexer: app/vendor/featured/page.tsx
-   DIVERGES from the lexer: app/vendor/more/page.tsx
-   DIVERGES from the lexer: app/vendor/page.tsx
-   DIVERGES from the lexer: app/vendor/portfolio/screen.tsx
-   DIVERGES from the lexer: app/vendor/storefront/screen.tsx
-   DIVERGES from the lexer: app/vendor/tds/screen.tsx
+   DIVERGES from the lexer: app/vendor/(legacy)/discover/page.tsx
+   DIVERGES from the lexer: app/vendor/(legacy)/discover/submit/page.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/calendar/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/collab/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/contracts/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/couture/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/portfolio/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/storefront/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/tds/screen.tsx
    DIVERGES from the lexer: components/frost/blooms/expenses.tsx
    DIVERGES from the lexer: components/frost/blooms/pages.tsx
    DIVERGES from the lexer: components/frost/blooms/people.tsx
@@ -324,7 +321,6 @@ false bites the RETIRED rule would take: 75 · span 35336 · LIVE CODE 35242
    DIVERGES from the lexer: components/vendor/ChatThread.tsx
    DIVERGES from the lexer: components/vendor/Header.tsx
    DIVERGES from the lexer: components/vendor/MessageBubble.tsx
-   DIVERGES from the lexer: components/vendor/PeekNav.tsx
    DIVERGES from the lexer: components/vendor/slices/SliceRow.tsx
    DIVERGES from the lexer: lib/frost/igLink.ts
    DIVERGES from the lexer: tools/bs_audit.mjs
@@ -332,7 +328,7 @@ false bites the RETIRED rule would take: 75 · span 35336 · LIVE CODE 35242
    DIVERGES from the lexer: tools/tdw09_vendor_census.mjs
    DIVERGES from the lexer: tools/wl_audit.mjs
    DIVERGES from the lexer: tools/wl_render.cjs
-   33 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
+   29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 220 file(s).
+   the retired naive rule disagrees with the compiler on 211 file(s).

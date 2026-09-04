@@ -13,7 +13,10 @@ function read(p) { return fs.readFileSync(p, 'utf8'); }
 function strip(s) { return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/[^\n]*/g, '$1'); }
 
 const DISC = read('app/vendor/(legacy)/discover/page.tsx');
-const LEADS = read('app/vendor/discover/leads/page.tsx');
+// P7.2 ZIP 1b: `app/vendor/discover/leads/page.tsx` was DELETED at the flip (founder: the
+// page 404s; its rows already show in the Leads room). Cells that can re-key onto the shell's
+// Leads room do; the one whose subject was the stub itself retires below.
+const LEADS = read('app/vendor/(shell)/leads/body.tsx');
 const MAST = read('components/vendor/slices/Masthead.tsx');
 const ROW = read('components/vendor/slices/SliceRow.tsx');
 
@@ -70,9 +73,13 @@ sec('§4 · F-09.87 — the leads page\u2019s gold inks themed; the \u25c6 plug 
 // structurally guaranteed on this page, since a stub has no colour declarations
 // at all. §4.5 below asserts the page is still a stub, so the guarantee cannot
 // lapse by someone rebuilding the dashboard here.
-  ok('§4.5 the retired page is still a STUB, so §4.1 zero-gold-ink holds by construction',
-    /router\.replace/.test(LEADS) && !/rgba\(201,168,76,/.test(strip(LEADS)),
-    'the Leads dashboard has regrown a body here; the retired cells assumed it never would');
+  // §4.5 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (2026-09-04). Assertion quoted: '§4.5 the
+  //     retired page is still a STUB, so §4.1 zero-gold-ink holds by construction' — it
+  //     asserted `router.replace` present and no gold ink. Its subject WAS the stub, and the
+  //     founder ruled that page 404 at the flip; it is deleted, so "still a stub" has no
+  //     surface to be true of. §4.1 above now asks the same question of the shell's Leads
+  //     room, a real body (derived at 039d005: zero `rgba(201,168,76,` hits), so the guarantee
+  //     is measured rather than assumed. Count: 1 cell retired.
 }
 
 sec('§5 · THE DISCLOSED EXTENSION — the insight line, ratify-or-revert');

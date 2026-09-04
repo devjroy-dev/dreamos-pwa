@@ -117,9 +117,12 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   // is `screen.tsx`. Second firing of the paragraph above; the constant is named rather than
   // the path being retyped, so the third crossing that reaches this cell has one edit.
   const SF_BODY = 'app/vendor/(shell)/storefront/screen.tsx';
-  const adopters = [SF_BODY, 'app/vendor/page.tsx', CAL_BODY];
+  // P7.2 ZIP 1b (2026-09-04) RETIRED-WITH-THE-READER: the third adopter was the old chat
+  // page (app/vendor/page.tsx), DELETED at the flip (R-39.24). TWO named adopters remain and
+  // the assertion is unchanged in kind: every adopter imports the one primitive, no fourth shape.
+  const adopters = [SF_BODY, CAL_BODY];
   cell('2.6', adopters.every(f => /from '@\/components\/vendor\/Reserve'/.test(R(f))),
-    'all THREE named adopters import the one primitive (no fourth shape)');
+    'all TWO named adopters import the one primitive (no fourth shape) [P7.2: the old chat page adopter retired with the tree]');
 
   // ── F-09.111 · the storefront ──
   {
@@ -141,20 +144,18 @@ sec('§2 · THE FLASH CLASS — ONE PRIMITIVE, THREE ADOPTERS');
   }
 
   // ── F-09.112 · the home greeting ──
-  {
-    const src = strip(R('app/vendor/page.tsx'));
-    cell('2.12', !/line = `Welcome back\.`;/.test(src),
-      'F-09.112 — the provisional sentence is GONE (mutation cell: restoring it reddens)');
-    cell('2.13', /const pending = !context;/.test(src) && /\{pending \? \(/.test(src),
-      'F-09.112 — the pending window renders a reserved skeleton, not words');
-    cell('2.14', (src.match(/<Reserve h=\{28\}/g) || []).length === 2,
-      'F-09.112 — TWO 28px boxes reserved: the loaded sentence\u2019s own 20px/1.4 line box, taller outcome');
-    // [GUARD] the sentence construction is untouched — R-O12/R-O15 and R-O17.
-    cell('2.15', /letters await you this \$\{timeOfDay\}/.test(src) && /today\?\.open_leads_count \?\? 0/.test(src),
-      '[GUARD] the ruled sentence construction and its one-derivation source are untouched');
-    cell('2.16', /\}\}>\{greeting\}<\/div>/.test(src),
-      '[GUARD] the greeting WORD stays outside the skeleton — it reads the clock, not the network');
-  }
+  // §2.12-2.16 RETIRED-WITH-THE-READER at P7.2 ZIP 1b (2026-09-04). Five cells, all reading
+  // `app/vendor/page.tsx` — the old Victor chat page and its greeting card, DELETED at the
+  // flip. The assertions, quoted for the record:
+  //   2.12 'F-09.112  the provisional sentence is GONE (mutation cell: restoring it reddens)'
+  //   2.13 'F-09.112  the pending window renders a reserved skeleton, not words'
+  //   2.14 'F-09.112  TWO 28px boxes reserved: the loaded sentence's own 20px/1.4 line box'
+  //   2.15 '[GUARD] the ruled sentence construction and its one-derivation source are untouched'
+  //   2.16 '[GUARD] the greeting WORD stays outside the skeleton  it reads the clock, not the network'
+  // The shell has NO twin of that sentence (grep at 039d005: zero hits for the construction or
+  // `open_leads_count` under app/vendor/(shell) and components/worklist), so there is nothing to
+  // re-key onto: F-09.112's subject left the estate with its page. Count: 5 cells retired.
+
 
   // ── F-09.113 · the calendar's false empty ──
   {

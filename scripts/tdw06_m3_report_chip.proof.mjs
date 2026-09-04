@@ -52,7 +52,12 @@ const SRC = {
   api:      R('lib/vendor/api/vendor.ts'),
   useChat:  R('hooks/vendor/useChat.ts'),
   thread:   R('components/vendor/ChatThread.tsx'),
-  page:     R('app/vendor/page.tsx'),
+  // P7.2 ZIP 1b (2026-09-04) RE-KEYED, not retired: the chip's mount point had a LIVE TWIN.
+  // The old chat page (`app/vendor/page.tsx`) was DELETED at the flip (R-39.24); the shell's
+  // ask surface mounts the same ChatThread with the same two wires, derived at 039d005:
+  // `AskSheet.tsx:90` onChipTap={send} and `:95` onReportGlitch={async () => { await reportGlitch(); }}.
+  // Same assertions, same bytes, at the surface that now carries them.
+  page:     R('components/worklist/AskSheet.tsx'),
   demoApi:  R('lib/demo/api.ts'),
   demoHook: R('hooks/demo/useDemoChat.ts'),
   demoPage: R('app/demo/vendor/[handle]/studio/page.tsx'),

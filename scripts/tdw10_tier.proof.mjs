@@ -74,7 +74,11 @@ const CONFIG = read('app/admin/config/page.tsx');
 const CTRL   = read('app/admin/control-room/page.tsx');
 const VTYPES = read('lib/vendor/types/vendor.ts');
 const USET   = read('hooks/vendor/useSettings.ts');
-const SETT   = read('app/vendor/settings/page.tsx');
+// P7.2 ZIP 1b (CE-39, 2026-09-04) RE-KEYED: the settings ROUTE survives the flip at
+// `app/vendor/(shell)/settings/page.tsx` (arm (a) moved the shell onto /vendor/*), and it
+// still mounts `SettingsScreen`, which still carries the `id="tier"` signpost. Not one
+// asserted property changed; only the route's file address did.
+const SETT   = read('app/vendor/(shell)/settings/page.tsx');
 // ── LABELLED RE-AIM · TDW_10 THE BILLING TAB (R-26.4) ────────────────────────
 // The Subscription surface this bench asserts LEFT app/vendor/settings/page.tsx
 // and now lives at components/vendor/SubscriptionCard.tsx, rendered by
@@ -474,6 +478,19 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
 // cells count the seats ACROSS the states, by evaluating the two shipped
 // predicates rather than by reading either one.
 {
+  // ⚠ F-39.82 — THE ZERO-CAP UPGRADE SEAT HAS NO SHELL HOME. This section proves a
+  // TWO-SEAT inventory: `TierMeter` (which hides on a falsy cap: `if (!meta || !meta.turns_cap)
+  // return null;`) and a page-level seat gated on the EXACT COMPLEMENT, which lived on
+  // `app/vendor/page.tsx` — DELETED at the flip (R-39.24). A vendor at
+  // `state:'capped', turns_cap:0` — refused at turn zero — therefore has no Upgrade anchor
+  // anywhere in the shell: TierMeter hides, and BillingRoom's plans sit behind
+  // `selfserve_enabled`/`billing_status === 'active'`, not behind a refusal.
+  //
+  // CHAIR RULING, P7.2 ZIP 1b: these cells STAY RED and 9.3's expectation STAYS AT 1. Re-keying
+  // the count to 0 would turn the bench that caught the gap into the bench that certifies it.
+  // The cure is ZIP 2's (Arm C): the seat re-homes onto the ask sheet's cap refusal, carrying
+  // the already-vetoed byte “Upgrade in Billing.” → roomHref('billing'). These cells re-key to
+  // that surface then, with the count intact.
   const PAGE  = read('app/vendor/page.tsx');
   const METER = read('components/vendor/TierMeter.tsx');
 

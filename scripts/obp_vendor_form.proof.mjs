@@ -54,8 +54,12 @@ const FORM   = read('app/vendor/(legacy)/onboarding/page.tsx');
    all. That weakening is real and is a later sitting's ruled edit, not this
    delivery's to take. */
 const LABELS = read('lib/frost/categoryLabels.ts');
-const LAYOUT = read('app/vendor/layout.tsx');
-const PAGE   = read('app/vendor/page.tsx');
+// P7.2 ZIP 1b (2026-09-04) RE-KEYED, not retired: 6's subject  the onboarding guard  has a
+// LIVE TWIN. The old vendor layout and the old chat page were DELETED at the flip (R-39.24);
+// the guard crossed into `app/vendor/(shell)/WorklistBoot.tsx`, which the shell layout mounts
+// once for every room (derived at 039d005: `d.vendor?.onboarding?.complete === false` ->
+// `router.replace('/vendor/onboarding')`, gated on `getVendorSession()?.access_token`).
+const GUARD  = read('app/vendor/(shell)/WorklistBoot.tsx');
 
 console.log('\n── 1 · the picker is SERVER-SOURCED, never a local list ──');
 ok(/allowed\.map\(/.test(FORM) || 'the picker does not iterate allowed[]',
@@ -163,21 +167,32 @@ ok((FORM.match(/background: BRASS,/g) || []).length >= 1
 ok(/color: ATTN/.test(FORM), '5b.4 the marker and the refusal both read from the attention token');
 
 console.log('\n── 6 · the guard: MOVED, verdict-reading, loop-safe ──');
-ok(/useOnboardingGuard/.test(LAYOUT) || 'no guard in the layout',
-   '6.1 the guard lives in the vendor LAYOUT (covers every studio door)');
-ok(!/onboarding_state/.test(PAGE) || 'the page still branches on the marker',
-   '6.2 MOVED NOT DUPLICATED — app/vendor/page.tsx no longer reads onboarding_state');
-ok(!/onboarding_state/.test(LAYOUT) || 'the layout guard reads the MARKER',
+ok(/onboarding\?\.complete === false/.test(GUARD) && /router\.replace\('\/vendor\/onboarding'\)/.test(GUARD)
+   || 'no guard in the shell boot',
+   '6.1 the guard lives in the shell BOOT, mounted once for every room [P7.2: was the vendor LAYOUT, deleted]');
+// 6.2 RETIRED-WITH-THE-READER at P7.2 ZIP 1b. Assertion quoted: '6.2 MOVED NOT DUPLICATED
+//     app/vendor/page.tsx no longer reads onboarding_state'. Its subject, the old chat page,
+//     was DELETED at the flip, and "not duplicated" is now guaranteed by there being one file.
+//     No live twin to re-key onto: grep at 039d005 finds zero `onboarding_state` readers in
+//     the vendor lane. Count: 1 cell retired.
+ok(!/onboarding_state/.test(GUARD) || 'the shell guard reads the MARKER',
    '6.3 R-OB.8 — the guard never reads the marker');
-ok(/onboarding\?\.complete === false/.test(LAYOUT)
+ok(/onboarding\?\.complete === false/.test(GUARD)
    || 'the guard does not branch on an explicit false',
    '6.4 an ABSENT verdict does not redirect — only an explicit false does (fail open)');
-ok(/startsWith\('\/vendor\/onboarding'\)/.test(LAYOUT) || 'no self-exemption',
-   '6.5 the form itself is exempt from its own guard — no redirect loop');
-ok(/getVendorSession\(\)\?\.access_token/.test(LAYOUT) || 'the guard fires without a session',
+// 6.5's SHAPE CHANGED at P7.2 and the guarantee got STRONGER. The old cell asserted a string
+// check inside the layout (`startsWith('/vendor/onboarding')`) because ONE layout wrapped both
+// the guard and the form. After the flip the form lives in `app/vendor/(legacy)/onboarding`,
+// OUTSIDE the shell's route group, so the boot never mounts on it: the exemption is structural,
+// not a branch that can be edited away. The cell asserts the structure.
+ok((fs.existsSync('app/vendor/(legacy)/onboarding/page.tsx')
+    && !fs.existsSync('app/vendor/(shell)/onboarding/page.tsx'))
+   || 'the form is inside the shell group  the guard would loop on it',
+   '6.5 the form itself is exempt from its own guard  no redirect loop [P7.2: structural]');
+ok(/getVendorSession\(\)\?\.access_token/.test(GUARD) || 'the guard fires without a session',
    '6.6 a signed-out visitor is not probed');
-ok(!/circle|coplanner/.test(LAYOUT) || 'a circle branch was built where no shared path exists',
-   '6.7 circle exemption stays STRUCTURAL — no role branch in this layout');
+ok(!/circle|coplanner/.test(GUARD) || 'a circle branch was built where no shared path exists',
+   '6.7 circle exemption stays STRUCTURAL  no role branch in this guard');
 
 console.log('\n── 7 · the mount probe is safe by the endpoint\'s own ruling ──');
 ok(/onboarding\?\.complete\) \{ router\.replace\('\/vendor'\)/.test(FORM)
