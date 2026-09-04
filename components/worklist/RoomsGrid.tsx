@@ -53,7 +53,16 @@ function Tile({ room, count, truncated }: { room: Room; count: number | null; tr
   // gone false by the flip. Retired with the tree; nothing reads it (wl_audit's R-38.1
   // arm re-keyed, b40 C24 inverted).
   return (
-    <Link href={room.href} className="wl-tile" data-room={room.id}>
+    <Link
+      href={room.href}
+      /* R-40.22 · the wide shape comes from the REGISTRY, never from an index.
+         `wl-tilewide` spans `.wl-tiles`' three columns; the tile's height is
+         unchanged at 64 and the label rises one rung to t2. A tile is wide
+         because the founder named it, so the class is read off `room.wide`. */
+      className={room.wide ? 'wl-tile wl-tilewide' : 'wl-tile'}
+      data-room={room.id}
+      data-wide={room.wide ? 'true' : undefined}
+    >
       <span className="wl-tname">{room.label}</span>
       {/* GATED ON A READING, LIKE THE MASTHEAD. No reading and no figure — never a `0`
           standing in for a count nothing took (F-38.31). A REAL zero does not render
@@ -98,13 +107,35 @@ const GRID_CSS = `
    ".wl-main > *" supplies — flush to both screen edges for twelve ZIPs, in the founder's
    own screenshots, passed every time by a gate that asserted the rule was PRESENT and
    never that it APPLIED. */
-.wl-bands{padding-top:16px;padding-bottom:24px;flex:1}
+/* ── R-G11.11 · THE GRID EARNS ITS OWN CLEARANCE  [F-40.27] ──────────────────
+   The two-wide arm (R-40.22) fills YOUR BUSINESS to 3·3·3 clean, and that is
+   what put a live tile under the FAB: today's grid and the one-wide arm both
+   ended that band on a single left-hand tile, so the FAB had always floated
+   over empty space. Removing the orphan is what created the collision — the
+   clearance was an accident of the ragged row, never a decision.
+   THE FAB DOES NOT MOVE (founder, 2026-08-29: 「the FAB sits right on Rooms and
+   nowhere else」). The GRID makes room instead, and it does so for ANY tile
+   count rather than for this one: bottom padding = the FAB's own seat plus one
+   tile height, so no band's last row can sit beneath it however the registry is
+   reordered later.
+   BOTH NUMBERS ARE READ THROUGH THE VARIABLES typeCss EMITS FROM GRID
+   (lib/worklist/theme.ts). Neither 136 nor 64 is retyped here — a second copy of
+   the FAB's seat is the exact three-homes defect F-39.4 cured.
+   (No backticks in this comment: it lives inside a JS template literal, as the
+   block's own header warns. The first cut used them and tsc caught it.)
+   LONGHAND, per F-16.39's standing cure: a shorthand's horizontal 0 would
+   override the gutter that .wl-main > * supplies. */
+.wl-bands{padding-top:16px;padding-bottom:calc(var(--wl-fab-bottom) + var(--wl-tile));flex:1}
 .wl-band+.wl-band{margin-top:24px}
 /* R-38.4: a section eyebrow — the second of the two places letter-spaced uppercase is
    permitted, at .08em. The em-dash bracketing retired with the engraved register; a label
    that needs decoration to read as a label is not a label. */
 .wl-bandlabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
 .wl-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--wl-step)}
+/* R-40.22 · one line, no sub-line, height unchanged. The label takes t2 because
+   a full-width tile at t4 reads as a stretched small tile rather than a head. */
+.wl-tilewide{grid-column:1/-1}
+.wl-tilewide .wl-tname{font:var(--wl-t2);color:var(--atelier-ink)}
 /* ── F-38.4 · FIXED HEIGHT, NOT ASPECT (CE-38 relay #2) ───────────────────────
    R-38.5 first ruled 1:1. At three-up on a 390px viewport with a 16px gutter and 8px gaps
    a tile is 114px wide, so 1:1 makes it 114 tall — and eighteen rooms then measure ~946px

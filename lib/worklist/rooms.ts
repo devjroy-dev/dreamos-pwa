@@ -34,6 +34,21 @@ export interface Room {
   href: string;
   /** R-37.62: pinnable rooms may be pinned by the vendor; none but the defaults start pinned. */
   pinnable: boolean;
+  /**
+   * R-40.21/.22 \u00b7 THE FULL-WIDTH TILE. One line, no sub-line, tile height
+   * unchanged at 64 \u2014 the shape spans `.wl-tiles`' three columns via
+   * `grid-column:1/-1`.
+   *
+   * ⚠ IT IS A REGISTRY FIELD, NOT A DERIVED RULE, AND THAT WAS THE FORK. A rule
+   * like 「index 0 of a band is wide」 would be one fewer byte and would silently
+   * re-decide itself the next time the founder reorders a band. The founder
+   * ruled TWO tiles wide by name; a name is what the registry stores.
+   *
+   * Optional so the seventeen tiles that are not wide say nothing at all rather
+   * than each carrying `wide: false` \u2014 seventeen falses is a column of noise
+   * that hides the two that matter.
+   */
+  wide?: boolean;
 }
 
 /** \u00a78.2: Calendar and Storefront are the two default pins. Nothing else pre-pins. */
@@ -51,7 +66,20 @@ export const DEFAULT_PINS: readonly string[] = ['calendar', 'storefront'] as con
 // five rendering headless under the OLD layout until they caught up \u2014 five broken
 // surfaces as a deliberate intermediate state, for no gain.
 export const ROOMS: readonly Room[] = [
-  // ── TOP BAND \u00b7 seven ───────────────────────────────────────
+  // ── TOP BAND \u00b7 NINE ───────────────────────────────────────
+  // ── R-40.20 \u00b7 BUSINESS SOLUTIONS TAKES INDEX 0 OF YOUR WORK ──────────────
+  // FOUNDER-RULED 2026-09-04. It leaves the BUSINESS band, where it had sat since
+  // R-37.66, and heads YOUR WORK before Leads. The bands move 8\u21929 and 11\u219210;
+  // ROOM_COUNT_EXPECTED does not move, because nothing was added \u2014 a room
+  // changed bands, which is a reorder the founder worded (R-37.22 forbids tiles
+  // SORTING THEMSELVES, never the founder placing one).
+  //
+  // ⚠ THE ID STAYS `support`. That was the build seat's read-first fork and the
+  // cheap answer is the right one: the id is stable and never rendered (see the
+  // interface), the label is the byte, and `/vendor/support` is an address five
+  // other files and two benches already spell. Renaming it would buy a tidier
+  // symbol and cost a route, a redirect and every reader of both.
+  { id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, wide: true },
   { id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true  },
   { id: 'clients',   label: 'Clients',   band: 'work', href: '/vendor/clients',   pinnable: true  },
   { id: 'invoices',  label: 'Invoices',  band: 'work', href: '/vendor/invoices',  pinnable: true  },
@@ -88,7 +116,11 @@ export const ROOMS: readonly Room[] = [
   // here; what it buys is that Storefront's own Portfolio row crosses in the SAME cut as
   // Portfolio, so the address book answers correctly at every instant rather than pointing
   // a crossed surface at an uncrossed one for the length of a sitting.
-  { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',       pinnable: true  },
+  // R-40.22's second wide tile. ⚠ STOREFRONT DOES NOT MOVE \u2014 it has been the head
+  // of this band since \u00a74-3 and is already FROZEN_ORDER's first business id. The
+  // charter's phrase 「storefront to the head of business」 describes a motion that
+  // does not exist; only the flag is new (c-40.10, third limb).
+  { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',       pinnable: true, wide: true },
   { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/vendor/portfolio',        pinnable: true  },
   { id: 'couture',   label: 'Couture',   band: 'business', href: '/vendor/couture',          pinnable: true  },
   // \u00a74-4 \u00b7 BATCH \u2461. Three bodies with nothing shared \u2014 a hub of Studio rows, a document
@@ -107,7 +139,6 @@ export const ROOMS: readonly Room[] = [
   // in the shell links to them.
   { id: 'billing',   label: 'Billing',   band: 'business', href: '/vendor/billing',          pinnable: true  },
   { id: 'settings',  label: 'Settings',  band: 'business', href: '/vendor/settings',         pinnable: true  },
-  { id: 'support',   label: 'Business Solutions', band: 'business', href: '/vendor/support', pinnable: false },
   // R-37.87, and CROSSED AT §4-4 BATCH ③ — THE LAST ROOM. The tile deep-linked the carried
   // collab surface for four sittings; it points into the shell now, and its own interior
   // (the responses thread) crossed in the SAME cut, because a room whose interior stayed
@@ -165,13 +196,23 @@ export const ROOM_FOR_KIND: Readonly<Record<AttentionKind, string>> = {
 } as const;
 
 export const ROOM_COUNT_EXPECTED = 19;
-export const TOP_BAND_EXPECTED = 8;
-export const BOTTOM_BAND_EXPECTED = 11;
+// R-40.20: Business Solutions crosses from business to work. 8\u21929 and 11\u219210;
+// the total is unmoved because nothing joined or left the estate.
+export const TOP_BAND_EXPECTED = 9;
+export const BOTTOM_BAND_EXPECTED = 10;
+
+/**
+ * R-40.22 \u00b7 THE WIDE TILES, DECLARED SO A BENCH READS THE RULING AND NOT A COUNT.
+ * Two, by founder word: the head of each band. A cell asserting 「two tiles are
+ * wide」 would pass on the wrong two.
+ */
+export const WIDE_TILES_EXPECTED: readonly string[] = ['support', 'storefront'] as const;
 
 /** The frozen order, by id. The cell compares against this and nothing else. */
 export const FROZEN_ORDER: readonly string[] = [
+  'support',
   'leads', 'clients', 'invoices', 'expenses', 'books', 'events', 'notes', 'calendar',
-  'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'billing', 'settings', 'support',
+  'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'billing', 'settings',
   'collab', 'advisor',
 ] as const;
 

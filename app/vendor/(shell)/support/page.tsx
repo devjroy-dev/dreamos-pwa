@@ -34,11 +34,9 @@ import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { COPY, ROWS, ROW_EYEBROWS } from '@/lib/solutions/copy';
-import { SURFACE_SLUGS, surfaceHref } from '@/lib/solutions/routes';
-import { fetchIndex } from '@/lib/solutions/client';
-import type { SolutionsRow } from '@/lib/solutions/types';
-import { SurfaceRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
+import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
+import { WEDDING_PAGES_HREF } from '@/lib/solutions/routes';
+import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
   const router = useRouter();
@@ -49,35 +47,35 @@ export default function SolutionsIndexPage() {
 }
 
 function SolutionsIndexScreen() {
-  // `null` means "not answered yet", and the rows render `coming` meanwhile —
-  // which is also the truthful answer while every gate is closed, so the first
-  // paint is never a lie that the fetch later corrects.
-  const [rows, setRows] = useState<SolutionsRow[] | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    fetchIndex()
-      .then((ix) => { if (alive) setRows(ix.rows as SolutionsRow[]); })
-      .catch(() => { if (alive) setErr(COPY.indexUnavailable); });
-    return () => { alive = false; };
-  }, []);
-
-  const stateFor = (slug: string): SolutionsRow['state'] =>
-    rows?.find((r) => r.slug === slug)?.state ?? 'coming';
-
+  // ── R-40.23 · THE NINE REPLACE THE SIX, AND THE FETCH RETIRES WITH THEM ────
+  // This screen used to hold `rows`, `err` and a `fetchIndex()` effect, because
+  // six surfaces each had a live status behind `GET /solutions`. Exactly one of
+  // the nine is built, and its row has no status to report — it either opens or
+  // the app is broken. So there is no state, no effect and no error branch here:
+  // R-38.2's lesson (the frame renders first, never a spinner where her rooms
+  // should be) is honoured by having nothing to wait for at all.
+  //
+  // `fetchIndex` retires with this, its only caller (R-G11.18). The dream-os
+  // door `GET /api/v2/vendor/solutions` is NOT deleted — F-40.28: eight routes,
+  // three files, one GREEN bench reader and one comment reference, so
+  // R-G11.18's removal condition fails. It has zero product readers now, and
+  // that is filed rather than acted on.
+  //
+  // `COPY.indexUnavailable` is KEPT in its home and consumed by nothing here —
+  // there is no fetch to fail. It is not deleted because it is the S2 seat's
+  // string and other surfaces still read the file.
   return (
     <WorklistShell title={WL.supportTitle}>
       <p className="sol-eyebrow" style={{ paddingTop: 14 }}>{COPY.indexEyebrow}</p>
-      {err ? <p className="sol-err">{err}</p> : null}
       <nav className="sol-rows">
-        {SURFACE_SLUGS.map((slug) => (
-          <SurfaceRow
-            key={slug}
-            href={surfaceHref(slug)}
-            label={ROWS[slug]}
-            eyebrow={ROW_EYEBROWS[slug]}
-            state={stateFor(slug)}
+        {ROOM_ROWS.map((r) => (
+          <RoomRow
+            key={r.key}
+            label={r.label}
+            // Only Wedding pages has a destination. The other eight pass no
+            // href and render as rows with a `Coming` chip — drawn, never
+            // disabled (see RoomRow).
+            href={r.key === 'wedding_pages' ? WEDDING_PAGES_HREF : undefined}
           />
         ))}
       </nav>

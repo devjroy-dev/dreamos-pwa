@@ -1,0 +1,87 @@
+# scripts/floor-manifest-g11-pwa.txt
+# BLOCK 19 · G1.1 · WEDDING PAGES — the declared dirt of the pwa half.
+#
+# F-39.51(b): a dirty path outside this list is a STOP until accounted for.
+# Every path below was authored by THIS seat in THIS sitting. `git status
+# --porcelain` was empty at seating and preflight printed CLEAR at ae30180,
+# with the sibling re-derived at dream-os 3a35567 — the pwa floor's cross-repo
+# benches read that sibling, so a base carried from seating would have been a
+# number about a tree that no longer existed. SET unchanged at 24 by that move,
+# but only known because it was checked.
+
+# ── THE REGISTRY AND THE GRID  [R-40.20 · R-40.22 · R-G11.11 · F-40.27] ─────
+# `support` crosses to the work band at index 0 and goes wide; `storefront`
+# takes the second wide flag WITHOUT MOVING — it has headed that band since
+# §4-3, so the charter's "storefront to the head of business" describes a
+# motion that does not exist (c-40.10, third limb). Bands 8->9 and 11->10;
+# ROOM_COUNT_EXPECTED unmoved at 19, because nothing joined or left.
+# The grid's bottom padding now reads GRID's own two variables, so no band's
+# last row can sit under the FAB at ANY tile count. The FAB does not move.
+lib/worklist/rooms.ts
+components/worklist/RoomsGrid.tsx
+
+# ── THE HUB, AND THE SIX RETIRED WITH THEIR READERS  [R-40.23] ──────────────
+# Deleted, never disabled: six routes, SURFACE_SLUGS, surfaceHref, ROWS,
+# ROW_EYEBROWS, RowKey, SurfaceRow, six per-surface API members, and
+# lib/solutions/client.ts whole (every fetcher served the six or the index).
+# lib/solutions/types.ts is UNTOUCHED — F-38.49's home for a vendor's address.
+app/vendor/(shell)/support/page.tsx
+lib/solutions/copy.ts
+lib/solutions/routes.ts
+components/solutions/SolutionsPieces.tsx
+app/vendor/(shell)/support/google/page.tsx
+app/vendor/(shell)/support/website/page.tsx
+app/vendor/(shell)/support/seo/page.tsx
+app/vendor/(shell)/support/marketing/page.tsx
+app/vendor/(shell)/support/proof/page.tsx
+app/vendor/(shell)/support/benchmarks/page.tsx
+lib/solutions/client.ts
+
+# ── THE ROOM AND ITS TWO SHEETS ─────────────────────────────────────────────
+# Every byte transcribed from the ratified mock; this lane authors none.
+app/vendor/(shell)/wedding-pages/page.tsx
+lib/worklist/weddingPages.ts
+
+# ── THE PUBLIC LANE  [R-G11.15 · R-G11.5] ───────────────────────────────────
+# The hoist is a hoist, not a copy: both bytes proven unchanged since ae30180
+# by `git show`, not by memory.
+lib/public/copy.ts
+app/v/[code]/page.tsx
+app/v/[code]/w/[slug]/page.tsx
+app/credits/[token]/page.tsx
+
+# ── THE INSTRUMENTS, AMENDED BY LABEL ───────────────────────────────────────
+# b40 C2: the three-number guard reads literals DELIBERATELY, so a ruled
+# amendment moves both homes in one edit; C31: cured by READING the address
+# home rather than widening the matcher, so it tightens with the room.
+# bs_audit: seven cells keyed to the six retire with their subject (F-40.39 /
+# R-G11.25 — C6's length rule yields to a ruling about labels). C36 was
+# ALREADY RED at ae30180 (F-40.38) and is untouched.
+scripts/b40_worklist_shell_bench.js
+tools/bs_audit.mjs
+
+# ── THE BENCH  [both-ways: 64 cells + 11 production-code mutations] ─────────
+# Numbered b42, not b41: b41_theme_bleed_fixture.js holds that number, derived
+# by `ls` rather than taken on the charter's word.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THE STRIPPER CENSUS'S COMMITTED OUTPUT  [regenerated, not hand-edited] ──
+# `scripts/tdw_stripper_census.mjs` scans `git ls-files` and keeps its result as
+# a committed artefact; `tdw_f3942_census_guard.proof.mjs` compares the two and
+# reds when they disagree. Deleting seven files moved the totals (213 -> 208
+# retired), so the artefact was refreshed by the census's OWN declared step —
+# `node scripts/tdw_stripper_census.mjs --write` — never by hand.
+#
+# THIS IS ALSO WHY THE DELIVERY CARRIES AN EXPLICIT `git rm`. The apply chain
+# copies; it cannot delete. And the deletions must be STAGED, not merely made:
+# the census reads the INDEX, so an unstaged deletion leaves a tracked path with
+# no file behind it and the census throws ENOENT at verify time — before the git
+# line ever runs. `git rm -f` removes from both, so the verify block is green on
+# the founder's machine for the same reason it is green here.
+scripts/tdw_stripper_census.out.txt
+
+# ── THE HANDOVER, AMENDED IN PLACE ──────────────────────────────────────────
+docs/TDW_19_G11_BUILD_HANDOVER.md
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g11-pwa.txt

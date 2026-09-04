@@ -49,19 +49,41 @@ export function StateChip({ state }: { state: ChipKey }) {
   );
 }
 
-/** One row of the room index. The whole row is the target, not just the label. */
-export function SurfaceRow({
-  href, label, eyebrow, state,
-}: { href: string; label: string; eyebrow: string; state: ChipKey }) {
-  return (
-    <Link href={href} className="sol-row">
+// ── SurfaceRow · RETIRED WITH ITS READERS (R-40.23) ────────────────────────
+// It took an `eyebrow` and a `state` and was always a Link. The nine R-40.1
+// rows carry no eyebrow, and eight of them have nowhere to go — so a component
+// whose every prop was mandatory could not describe them without lying.
+// `RoomRow` below replaces it. Retire with the reader; no commented corpse.
+
+/**
+ * One row of the Business Solutions index (R-40.1's nine).
+ *
+ * ⚠ A ROW WITH NO DESTINATION RENDERS AS A ROW, NEVER AS A DISABLED LINK.
+ * Eight of the nine are not built yet. A `<Link>` to nowhere, or an `<a>` with
+ * `aria-disabled`, both put a control under the thumb that answers nothing —
+ * the s-G11.2 correction in the mock sitting made exactly this call about the
+ * publish button, and the ruling was ABSENT, NOT GREYED. The ratified `W5-hub`
+ * frame draws these eight as plain rows with a `Coming` chip, so a `<div>` is
+ * what they are.
+ *
+ * The chip is omitted entirely for a live row rather than set to some 'open'
+ * state: the mock draws `Wedding pages` with NO chip, and a chip that says
+ * nothing is chrome (F-38.31's class — never a `0` standing in for a count).
+ */
+export function RoomRow({
+  href, label,
+}: { href?: string; label: string }) {
+  const body = (
+    <>
       <span className="sol-rowtext">
         <span className="sol-rowlabel">{label}</span>
-        <span className="sol-roweyebrow">{eyebrow}</span>
       </span>
-      <StateChip state={state} />
-    </Link>
+      {href ? null : <StateChip state="coming" />}
+    </>
   );
+  return href
+    ? <Link href={href} className="sol-row">{body}</Link>
+    : <div className="sol-row">{body}</div>;
 }
 
 /**

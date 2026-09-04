@@ -51,6 +51,9 @@
 
 import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/components/shared/VendorProfileContent';
 import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
+// R-G11.15 · the two bytes this leaf shares with the wedding page now live in
+// one home. Nothing is re-voiced; these read exactly as they read before.
+import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD } from '@/lib/public/copy';
 
 /** Five minutes. See the header. */
 export const revalidate = 300;
@@ -111,16 +114,17 @@ export const viewport = {
 const COPY = {
   line:     'Takes enquiries through The Dream Wedding.',
   enquire:  'Enquire on WhatsApp',
-  unknown:  'This page is no longer available.',
+  /** R-G11.15: hoisted to `lib/public/copy.ts`; both public leaves read it. */
+  unknown:  PUBLIC_MISS,
   demoNote: 'This is a demonstration page, built from work published publicly.',
   /** D-19.1 §2, founder-amended. TDW appears on this page EXACTLY ONCE, as a
    *  credit line at the foot — no logo, no gold, no rule of its own. The page
    *  opens on her name and closes on it; this sits under the close, smaller.
    *  PROPOSED, on the register, awaiting the founder's pass. */
-  colophon: 'Created and managed by The Dream Wedding \u00b7 thedreamwedding.in',
+  colophon: PUBLIC_COLOPHON,
   /** The same byte, split at the address so it can be a link. The register
    *  carries the whole line; if the two ever disagree, the register wins. */
-  colophonLead: 'Created and managed by The Dream Wedding \u00b7',
+  colophonLead: PUBLIC_COLOPHON_LEAD,
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';

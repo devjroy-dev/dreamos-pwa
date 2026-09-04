@@ -245,21 +245,36 @@ console.log('');
     : F('C5  no persona names in copy', 'found: ' + hits.join(', '));
 }
 
-// ── C6 · row labels are nouns of ≤2 words (R-19.6) ────────────────────────
-{
-  const block = copyCode.match(/export const ROWS = \{([\s\S]*?)\} as const;/);
-  if (!block) F('C6  row labels \u22642 words', 'ROWS block not found');
-  else {
-    const labels = [...block[1].matchAll(/:\s*'([^']*)'/g)].map((m) => m[1]);
-    if (labels.length !== 6) F('C6  row labels \u22642 words', `expected 6 rows, found ${labels.length}`);
-    else {
-      const over = labels.filter((l) => l.trim().split(/\s+/).length > 2);
-      over.length === 0
-        ? P('C6  row labels \u22642 words', labels.join(' \u00b7 '))
-        : F('C6  row labels \u22642 words', 'over: ' + over.join(', '));
-    }
-  }
-}
+// ── RETIRED WITH THEIR SUBJECT — R-40.23 / R-G11.18, founder-ruled 2026-09-04 ──
+// SEVEN CELLS RETIRE HERE: C6 (row labels ≤2 words), C13 (the six slugs in
+// delivery order, both homes), C15 (six surfaces + the index exist), C19 (every
+// surface is session-guarded), C22 (no surface raw-fetches), C26 (a withheld
+// door looks withheld), C27 (no surface implies an address that resolves).
+//
+// EVERY ONE OF THEM WAS KEYED TO THE SIX R-19.2 SURFACES — by slug list, by file
+// path, or by both — and the six retired with their reader in this delivery:
+// `app/vendor/(shell)/support/{google,website,seo,marketing,proof,benchmarks}`,
+// `SURFACE_SLUGS`, `surfaceHref`, `ROWS`, `ROW_EYEBROWS`, `SurfaceRow` and
+// `lib/solutions/client.ts` (whose every fetcher served exactly those six and
+// the index, leaving it with zero product readers).
+//
+// THEY ARE DELETED, NOT LOOSENED, AND THE DIFFERENCE IS THE WHOLE NOTE. A cell
+// rewritten to "pass when the file is absent" is a green that means nothing;
+// a cell whose subject no longer exists has no honest assertion left to make.
+// Retire with the reader — the estate's standing law, and the same motion the
+// six pages themselves took.
+//
+// ⚠ C6 IS THE ONE THAT YIELDED A RULE, NOT JUST A SUBJECT, AND IT IS SAID OUT
+// LOUD. It pinned R-19.6's "row labels are nouns of ≤2 words". Four of R-40.1's
+// nine break it — `Contracts & deposits`, `Referrals & partners`, `Open dates &
+// rates`, `Your own number`. The founder ruled those names BY NAME, so the rule
+// yields to the ruling rather than the ruling being trimmed to fit the rule.
+// Nothing replaces C6 in this sitting: a length cell over nine founder-vetoed
+// bytes would assert taste the founder has already exercised.
+//
+// WHAT DID NOT RETIRE: every cell not keyed to the six stands untouched —
+// C1–C5, C7–C12, C14, C16–C18, C20, C21, C23–C25, C28–C42. The public-lane
+// cells (C25, C28–C42) never read a surface slug and are unaffected.
 
 // ── C7 · buttons are spec §9's set exactly, each ≤2 words ─────────────────
 {
@@ -374,19 +389,6 @@ function copyOfFixture(src) {
     : F('C12 SeoReport carries no score field', 'found: ' + scoreish.join(', '));
 }
 
-// ── C13 · the six slugs, in spec §0's delivery order, in both homes ───────
-{
-  const ORDER = ['google', 'website', 'seo', 'marketing', 'proof', 'benchmarks'];
-  const rowsBlock = copyCode.match(/export const ROWS = \{([\s\S]*?)\} as const;/);
-  const eyeBlock  = copyCode.match(/export const ROW_EYEBROWS = \{([\s\S]*?)\} as const;/);
-  const keysOf = (b) => (b ? [...b[1].matchAll(/^\s*([a-z]+):/gm)].map((m) => m[1]) : null);
-  const rk = keysOf(rowsBlock), ek = keysOf(eyeBlock);
-  if (!rk || !ek) F('C13 six slugs in delivery order, both homes', 'a block was not found');
-  else if (JSON.stringify(rk) !== JSON.stringify(ORDER)) F('C13 six slugs in delivery order, both homes', 'ROWS order: ' + rk.join(','));
-  else if (JSON.stringify(ek) !== JSON.stringify(ORDER)) F('C13 six slugs in delivery order, both homes', 'ROW_EYEBROWS order: ' + ek.join(','));
-  else P('C13 six slugs in delivery order, both homes', ORDER.join(' \u2192 '));
-}
-
 // ── C14 · every row has an empty state, because R-19.2 makes it the product ─
 {
   const ORDER = ['google', 'website', 'seo', 'marketing', 'proof', 'benchmarks'];
@@ -419,14 +421,6 @@ try {
   routesSrc = readFileSync(join(ROOT, 'lib/solutions/routes.ts'), 'utf8');
   clientSrc = readFileSync(join(ROOT, 'lib/solutions/client.ts'), 'utf8');
 } catch { surfacesReadable = false; }
-
-// ── C15 · all seven surfaces exist ────────────────────────────────────────
-{
-  const missing = SURFACES.filter((s) => !surfaceSrc[s]);
-  (surfacesReadable && missing.length === 0)
-    ? P('C15 six surfaces + the index exist', SURFACES.join(', '))
-    : F('C15 six surfaces + the index exist', missing.length ? 'missing: ' + missing.join(', ') : 'a shared file was unreadable');
-}
 
 // ── C16 · THE ADDRESS BOOK (R-38.1's shape, ratified by CE-38) ────────────
 // C31's shape in this seat's own gate. `/w/support` cannot go through
@@ -466,20 +460,6 @@ try {
     : F('C18 no surface declares its own t1', 'found in: ' + offenders.join(', '));
 }
 
-// ── C19 · EVERY SURFACE IS SESSION-GUARDED ────────────────────────────────
-// A surface that skipped it would render chrome to a signed-out visitor and then
-// fail its fetch — which is also how a public route gets created by accident.
-{
-  const bad = SURFACES.filter((s) => {
-    const src = surfaceSrc[s];
-    return !src || !/useVendorSession/.test(src) || !/router\.replace\('\/'\)/.test(src);
-  });
-  const idxOk = indexSrc && /useVendorSession/.test(indexSrc) && /router\.replace\('\/'\)/.test(indexSrc);
-  (bad.length === 0 && idxOk)
-    ? P('C19 every surface + the index is session-guarded', '7/7 redirect to / without a session')
-    : F('C19 every surface + the index is session-guarded', bad.concat(idxOk ? [] : ['index']).join(', '));
-}
-
 // ── C20 · NO MONEY STRING, NO PERSONA NAME ───────────────────────────────
 // Not a total ban on JSX text — row labels are structural and argued at their
 // sites. This refuses the two classes that actually leak.
@@ -517,20 +497,6 @@ try {
         [!usesBody && 'supportBody unused', !usesAction && 'supportAction unused',
          !usesNumber && 'supportWaNumber() not called', inlineNum && 'NUMBER INLINE (F-09.190)',
          !keepsClass && 'wl-supportaction renamed — b40 C10 census breaks'].filter(Boolean).join('; '));
-}
-
-// ── C22 · NO SURFACE RAW-FETCHES ─────────────────────────────────────────
-// `lib/vendor/api/vendor.ts:3` — *screen components import from here, never raw
-// fetch*. A `fetch()` in a surface is a second auth path that works until the
-// refresh logic changes underneath it.
-{
-  const offenders = Object.entries({ ...surfaceSrc, index: indexSrc })
-    .filter(([, src]) => src && /\bfetch\s*\(/.test(strip(src))).map(([n]) => n);
-  const clientUsesBase = clientSrc && /from '@\/lib\/vendor\/api\/_base'/.test(clientSrc);
-  (offenders.length === 0 && clientUsesBase)
-    ? P('C22 no surface raw-fetches; the client rides _base', 'one auth home')
-    : F('C22 no surface raw-fetches; the client rides _base',
-        offenders.length ? 'raw fetch in: ' + offenders.join(', ') : 'client.ts does not import _base');
 }
 
 // ── C23 · EVERY CHIP RENDERED COMES FROM THE COPY HOME ───────────────────
@@ -631,54 +597,6 @@ try {
       ? P('C25 /v/ renders a designed page for a miss', 'body + metadata branches, shared ground, no status code')
       : F('C25 /v/ renders a designed page for a miss', bad.join('; '));
   }
-}
-
-// ── C26 · F-19.20 · A WITHHELD DOOR LOOKS WITHHELD ────────────────────────
-// The founder pressed `Connect` and nothing happened. The button WAS disabled —
-// but hardcoded, which is right today only by accident: it would still be dead
-// the day the key is set, and R-19.5's whole point is that turning a row on is
-// setting a key, not shipping a build. `disabled` must come from `gates()`.
-{
-  const WITH_BUTTONS = ['google', 'website', 'marketing', 'proof'];
-  const bad = [];
-  for (const s of WITH_BUTTONS) {
-    const src = surfaceSrc[s];
-    if (!src) { bad.push(`${s}: unreadable`); continue; }
-    const code = strip(src);
-    if (/disabled>/.test(code))                    bad.push(`${s}: a hardcoded 'disabled' survives`);
-    if (!/disabled=\{!live\}/.test(code))          bad.push(`${s}: button not driven by the gate`);
-    if (!/fetchGateLive\('/.test(code))            bad.push(`${s}: never reads gates()`);
-    if (!/useState\(false\)/.test(code))           bad.push(`${s}: gate does not default closed`);
-    if (!/COPY\.withheldNote/.test(code))          bad.push(`${s}: no note beside the withheld control`);
-  }
-  bad.length === 0
-    ? P('C26 every withheld button is gate-driven and says so', `${WITH_BUTTONS.length} surfaces, default closed`)
-    : F('C26 every withheld button is gate-driven and says so', bad.join('; '));
-}
-
-// ── C27 · F-19.21 · NO SURFACE IMPLIES AN ADDRESS THAT RESOLVES ───────────
-// The Website surface printed `<handle>.thedreamwedding.in` in body type as
-// though it were live. The founder opened one: DEPLOYMENT_NOT_FOUND. No
-// wildcard DNS exists — P2 infrastructure and a founder-side Vercel action.
-{
-  const src = surfaceSrc.website;
-  const bad = [];
-  if (!src) bad.push('website surface unreadable');
-  else {
-    const code = strip(src);
-    if (/className="sol-addr"/.test(code))          bad.push('the address still uses the live-address class');
-    if (!/className="sol-reserved"/.test(code))     bad.push('the reserved-name class is not used');
-    if (!/COPY\.websiteAddressPending/.test(code))  bad.push('the row does not state when the address arrives');
-    if (!/COPY\.websiteAddressNote/.test(code))     bad.push('no sentence disclaiming that it resolves');
-    if (/<a [^>]*sol-reserved/.test(code))          bad.push('the reserved name is a link');
-  }
-  // And the muted colour is the affordance — a reserved name must not read as ink.
-  if (piecesSrc && !/\.sol-reserved\{[^}]*--atelier-ink-mute/.test(piecesSrc)) {
-    bad.push('the reserved name is not muted');
-  }
-  bad.length === 0
-    ? P('C27 the web address is shown as reserved, never as live', 'muted, unlinked, with its arrival stated')
-    : F('C27 the web address is shown as reserved, never as live', bad.join('; '));
 }
 
 // ── C28 · THE MISS DOES NOT LEAK THROUGH THE LINK PREVIEW ────────────────────

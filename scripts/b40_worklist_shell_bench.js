@@ -162,12 +162,29 @@ cell('C1 token completeness, both modes', () => {
 // away from the RULING by editing its own constants. So a ruled amendment has to move both
 // homes in one edit, and moving only rooms.ts would have reddened this cell on a correct
 // registry. Derived by reading the cell, not by running it and reacting.
-cell('C2 nineteen rooms in frozen order, 8 + 11 (R-37.75; R-37.87; R-38.9; R-38.10)', () => {
+// AMENDED, LABELLED — BLOCK 19 G1.1 (R-40.20/.22, founder-ruled 2026-09-04).
+// BUSINESS SOLUTIONS CROSSES FROM `business` TO `work` AND TAKES INDEX 0. The bands
+// move 8 -> 9 and 11 -> 10; the TOTAL is unmoved at nineteen, because nothing joined
+// or left the estate — a room changed bands. That is a reorder the FOUNDER WORDED,
+// which R-37.22 has always permitted; what it forbids is tiles sorting themselves.
+//
+// THE THREE LITERALS BELOW MOVED WITH THE RULING, AND THAT IS THE WHOLE POINT OF
+// THEM. The comment above records why they are literals: they are what stops the
+// registry drifting from the ruling by editing its own constants. So a ruled
+// amendment moves BOTH homes in one edit — `rooms.ts` and this line — and moving
+// only one reddens a correct tree in either direction. Derived at this cut by
+// reading the registry, not by running the cell and reacting: 19 total, 9 work,
+// 10 business.
+//
+// AND THE PLACEMENT IS ASSERTED SEPARATELY FROM THE ORDER, exactly as R-38.10's
+// `books` clause is. Two files agreeing proves they match EACH OTHER; it does not
+// prove they match the founder's word, which was index 0 of the work band.
+cell('C2 nineteen rooms in frozen order, 9 + 10 (R-37.75; R-37.87; R-38.9; R-38.10; R-40.20/.22)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
   const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
-  if (EXP_ALL !== 19 || EXP_TOP !== 8 || EXP_BOT !== 11)
-    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 19/8/11';
+  if (EXP_ALL !== 19 || EXP_TOP !== 9 || EXP_BOT !== 10)
+    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 19/9/10';
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
@@ -177,7 +194,22 @@ cell('C2 nineteen rooms in frozen order, 8 + 11 (R-37.75; R-37.87; R-38.9; R-38.
   // R-38.10's PLACEMENT, asserted separately from the order. FROZEN_ORDER and the registry
   // agreeing proves they match each other; it does not prove they match the FOUNDER'S WORD,
   // which was index 4, beside Invoices and Expenses. Two files can drift together.
-  if (ids[4] !== 'books') return 'Books is at index ' + ids.indexOf('books') + ', ruled index 4 (beside Invoices/Expenses)';
+  if (ids[0] !== 'support') return 'Business Solutions is at index ' + ids.indexOf('support') + ', ruled index 0 of the work band (R-40.20)';
+  // R-38.10's placement clause still stands; Books shifts one right behind the
+  // insertion at index 0, which is what an insertion does and what the founder
+  // worded when he placed it BESIDE Invoices and Expenses rather than at an index.
+  if (ids[5] !== 'books') return 'Books is at index ' + ids.indexOf('books') + ', ruled beside Invoices/Expenses';
+  // R-40.22 · THE WIDE TILES, READ FROM THE REGISTRY'S OWN DECLARATION rather than
+  // counted. A cell asserting "two tiles are wide" passes on the wrong two.
+  const wm = src.match(/WIDE_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
+  if (!wm) return 'WIDE_TILES_EXPECTED is not declared: the wide ruling has no home in the registry';
+  const wideDeclared = (wm[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
+  if (wideDeclared.join(',') !== 'support,storefront')
+    return 'WIDE_TILES_EXPECTED drifted from R-40.22: [' + wideDeclared.join(',') + '], ruled [support,storefront]';
+  const wideActual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*wide:\s*true/g) || [])
+    .map((x) => x.match(/'([a-z]+)'/)[1]);
+  if (wideActual.join(',') !== wideDeclared.join(','))
+    return 'the wide flags [' + wideActual.join(',') + '] do not match WIDE_TILES_EXPECTED [' + wideDeclared.join(',') + ']';
   const work = (src.match(/band:\s*'work'/g) || []).length;
   const biz  = (src.match(/band:\s*'business'/g) || []).length;
   if (work !== EXP_TOP) return 'top band has ' + work + ', expected ' + EXP_TOP;
@@ -1099,6 +1131,26 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // rooms; a template prefix (`/vendor/${s}`, `/vendor/collab/` + id) is a shell address
   // when a declared href starts with it.
   for (const seat of ['/vendor/rooms', '/vendor/today', '/vendor']) declared.add(seat);
+  // ── AMENDED, LABELLED — BLOCK 19 G1.1 (R-G11.12, founder-ruled 2026-09-04) ──
+  // F-40.25: `/vendor/wedding-pages` is a shell address that is NOT a registry
+  // room. `ROOM_COUNT_EXPECTED` stays 19 and the tile grid gains nothing — the
+  // room is reached from the Business Solutions hub, not from a tile. So this
+  // cell's declared set, built from `rooms.ts` alone, could not see it and an
+  // otherwise correct build reddened here.
+  //
+  // THE CURE IS TO READ ITS ONE HOME, NOT TO WIDEN THE MATCHER. The address
+  // lives in `lib/solutions/routes.ts` on the not-a-room precedent that file was
+  // written for, and this cell now reads THAT DECLARATION — exactly as it reads
+  // `rooms.ts` and `LEGACY_VENDOR_LINKS` rather than retyping either. Two homes
+  // for one set is how this cell's own audit went stale once already, and adding
+  // a literal here would have been that disease with a new spelling.
+  //
+  // IT TIGHTENS WITH THE ROOM: delete the constant and this cell reddens on the
+  // missing declaration rather than passing quietly.
+  const solRoutes = strip(read('lib/solutions/routes.ts'));
+  const wm = solRoutes.match(/export const WEDDING_PAGES_HREF\s*=\s*'([^']+)'/);
+  if (!wm) return 'WEDDING_PAGES_HREF is not declared: the wedding-pages room has no address home (R-G11.12)';
+  declared.add(wm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

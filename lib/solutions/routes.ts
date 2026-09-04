@@ -24,28 +24,34 @@
 // slug passed here resolves, so the fallback is a net that is never reached
 // rather than a silent wrong answer.
 
-import type { SolutionsRow } from './types';
+// ── RETIRED WITH THEIR READERS — R-40.23, founder-ruled 2026-09-04 ──────────
+// `SURFACE_SLUGS`, `SurfaceSlug` and `surfaceHref` are GONE, together with the
+// six pages under `app/vendor/(shell)/support/` they addressed. The nine R-40.1
+// rows replace the six R-19.2 ones. Each retired address carries its named
+// successor in `docs/TDW_19_G11_BUILD_HANDOVER.md`; four distinct successors
+// absorb the six, and five of the nine inherit no predecessor at all.
+//
+// Retire WITH the reader, never a commented corpse: nothing here is left
+// disabled or behind a flag. The audit cells keyed to the six retire in the
+// same edit (tools/bs_audit.mjs, amended by label).
 
-/** The six, in spec §0's delivery order. Mirrors `ROWS` in copy.ts; the audit pins both. */
-export const SURFACE_SLUGS = [
-  'google',
-  'website',
-  'seo',
-  'marketing',
-  'proof',
-  'benchmarks',
-] as const;
-
-export type SurfaceSlug = SolutionsRow['slug'];
-
-/** The room index — where the six rows live, and the fallback for an unknown slug. */
+/** The room index. Still the one home for this address. */
 export const SOLUTIONS_INDEX_HREF = '/vendor/support';
 
-export function surfaceHref(slug: string): string {
-  return (SURFACE_SLUGS as readonly string[]).includes(slug)
-    ? `${SOLUTIONS_INDEX_HREF}/${slug}`
-    : SOLUTIONS_INDEX_HREF;
-}
+// ── R-G11.12 · THE WEDDING-PAGES ROOM'S ADDRESS ─────────────────────────────
+// FOUNDER-RULED (a): the room lives here, on the NOT-A-ROOM precedent this file
+// was written for, and NOT in `lib/worklist/rooms.ts` — `ROOM_COUNT_EXPECTED`
+// stays 19 and the tile grid gains nothing.
+//
+// ⚠ WHY IT NEEDS A HOME AT ALL, DERIVED RATHER THAN ASSUMED (F-40.35's sibling,
+// F-40.34's discipline): `b40` C31 walks the import graph from every shell page
+// and matches any `/vendor…` string literal, then compares EXACTLY against a
+// declared set built from `rooms.ts` hrefs plus `LEGACY_VENDOR_LINKS` plus three
+// nav seats. `/vendor/wedding-pages` is in none of them, so a bare literal in
+// the hub would be a stray and C31 would redden on a correct build. C31 is
+// amended by label to read this constant into its declared set — one home, and
+// the cell tightens with it rather than being loosened.
+export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';
 
 /**
  * The backend's own addresses. Held here rather than in `client.ts` so that the
@@ -62,13 +68,23 @@ export function surfaceHref(slug: string): string {
  */
 export const SOLUTIONS_API_PATH = '/api/v2/vendor/solutions';
 
+// ── THE WEDDING-PAGES DOORS (Block 19 G1.1, dream-os 3a35567) ───────────────
+// The studio doors are Studio Suite doors, so they do NOT hang off
+// SOLUTIONS_API_PATH — a second prefix here would be a second spelling of an
+// address that already has one owner.
+export const WEDDINGS_API_PATH = '/api/v2/vendor/studio/weddings';
+
 export const API = {
-  index:        () => SOLUTIONS_API_PATH,
-  google:       () => `${SOLUTIONS_API_PATH}/google`,
-  domain:       () => `${SOLUTIONS_API_PATH}/domain`,
-  domainSearch: (q: string) => `${SOLUTIONS_API_PATH}/domain/search?q=${encodeURIComponent(q)}`,
-  seo:          () => `${SOLUTIONS_API_PATH}/seo`,
-  marketing:    () => `${SOLUTIONS_API_PATH}/marketing`,
-  proof:        () => `${SOLUTIONS_API_PATH}/proof`,
-  benchmarks:   () => `${SOLUTIONS_API_PATH}/benchmarks`,
+  // ── RETIRED WITH THEIR READERS (R-40.23) ─────────────────────────────────
+  // The six per-surface members and `index` are gone. `GET /api/v2/vendor/
+  // solutions` still EXISTS in dream-os and is not deleted — F-40.28: eight
+  // routes, three files, one GREEN bench reader (`b43`) and one comment
+  // reference, so R-G11.18's removal condition fails. It simply has no reader
+  // on this side any more.
+  weddings:        () => WEDDINGS_API_PATH,
+  wedding:         (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}`,
+  weddingCredits:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/credits`,
+  weddingPublish:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/publish`,
+  weddingUploadUrl:(id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/upload-url`,
+  weddingPhotos:   (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos`,
 } as const;

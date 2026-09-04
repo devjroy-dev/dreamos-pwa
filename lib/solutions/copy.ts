@@ -58,37 +58,46 @@ export const BUTTONS = {
   share:      'Share',
 } as const;
 
-/** Spec §0's six rows, in delivery order. Labels are nouns, ≤2 words. */
-export const ROWS = {
-  google:     'Google page',
-  website:    'Website',
-  seo:        'SEO',
-  marketing:  'Marketing',
-  proof:      'Proof',
-  benchmarks: 'Benchmarks',
-} as const;
+// ── THE NINE ROOMS — R-40.1, FOUNDER-RULED 2026-09-04 ──────────────────────
+// These replace spec §0's six (R-40.23). Every byte is the founder's own from
+// the ruling and is BYTE-FROZEN; the ratified `W5-hub` frame draws exactly this
+// list in exactly this order.
+//
+// ⚠ THE NINE CARRY NO EYEBROWS, AND THAT IS THE RULING'S SHAPE RATHER THAN AN
+// OMISSION. The retired six each had one (`ROW_EYEBROWS`); nine replacements
+// were never authored and sit outside the ratified forty, so writing them here
+// would be nine strings the founder's pass never saw. The mock draws the rows
+// bare and this ships them bare. `ROW_EYEBROWS` retires with its readers.
+//
+// ⚠ AND THE LABELS ARE NOT ALL ≤2 WORDS. `Contracts & deposits`, `Referrals &
+// partners`, `Open dates & rates` and `Your own number` break the old row rule
+// that `bs_audit` C6 pinned against `ROWS`. The founder ruled these names by
+// name (R-40.1), so the RULE yields to the RULING and the cell retires with the
+// list it was written for — said out loud here rather than quietly loosened.
+export const ROOM_ROWS = [
+  { key: 'wedding_pages', label: 'Wedding pages' },
+  { key: 'google',        label: 'Google reviews' },
+  { key: 'website',       label: 'Your website' },
+  { key: 'contracts',     label: 'Contracts & deposits' },
+  { key: 'reminders',     label: 'Payment reminders' },
+  { key: 'posts',         label: 'Posts & ads' },
+  { key: 'referrals',     label: 'Referrals & partners' },
+  { key: 'dates',         label: 'Open dates & rates' },
+  { key: 'number',        label: 'Your own number' },
+] as const;
 
-/**
- * The eyebrow under each row on the index: what the row DOES, in the functional
- * register. Not brochure — spec §0's doctrine is that we sell nothing a generic
- * tool does as well, and a row that oversells is the first place that slips.
- */
-export const ROW_EYEBROWS = {
-  google:     'Your Google listing, kept current',
-  website:    'Your own address on the web',
-  seo:        'Found when couples search',
-  marketing:  'Posts and ads from your own work',
-  proof:      'Rate card, profile, answers',
-  benchmarks: 'How you compare in your city',
-} as const;
+// ── ROW_EYEBROWS · RETIRED WITH ITS READERS (R-40.23) ──────────────────────
+// The six functional-register eyebrows retired with the six rows they sat
+// under. The nine carry none — see ROOM_ROWS above for why that is the ruling's
+// shape and not an omission.
 
 export const COPY = {
   // ── THE INDEX ────────────────────────────────────────────────────────────
   indexEyebrow: 'For your business',
 
   /**
-   * When `GET /solutions` fails. It says what is missing and what still works —
-   * the six rows are still on screen beneath it, and the WhatsApp footer still
+   * When a status read fails. It says what is missing and what still works —
+   * the rows are still on screen beneath it, and the WhatsApp footer still
    * reaches a person. R-38.2: the chrome is a fact about the product, the states
    * are a fact about the fetch, and only the second one failed. It does not
    * apologise, and it does not say "something went wrong", which tells a vendor
@@ -213,4 +222,6 @@ export const COPY = {
 
 export type ChipKey   = keyof typeof CHIPS;
 export type ButtonKey = keyof typeof BUTTONS;
-export type RowKey    = keyof typeof ROWS;
+// `RowKey` retired with `ROWS` (R-40.23). The nine are an ordered array, not a
+// keyed record, because their ORDER is the ruling and a record's key order is
+// not a contract.
