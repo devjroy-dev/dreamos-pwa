@@ -3127,6 +3127,20 @@ cell('C89 every studio sheet carries a head dismiss, and it is not beside Remove
   return bad.length ? bad.join(' | ') : null;
 });
 
+cell('C95 the (legacy) pages follow the shell\'s mode  one reader, no writer of the lane key (F-P72.A)', () => {
+  // F-P72.A (P7.2 walk, 2026-09-04): Storefront -> profile rendered Graphite under Chalk.
+  // The (legacy) group is reached only from the shell, so it must READ the shell's mode
+  // (readModeClient, cookie-backed) and set the one signal ThemeProvider already observes,
+  // html.theme-light. It must NOT write the old lane's key (modeBridge owns that assertion).
+  const lay = strip(read('app/vendor/(legacy)/layout.tsx'));
+  const bad = [];
+  if (!/readModeClient\(\)/.test(lay)) bad.push('(legacy) layout does not read the shell\'s mode');
+  if (!/classList\.toggle\('theme-light', readModeClient\(\) === 'light'\)/.test(lay)) bad.push('(legacy) layout does not set html.theme-light from the shell\'s mode');
+  if (!/<ThemeProvider>/.test(lay)) bad.push('(legacy) layout does not mount the provider the eight pages read');
+  if (/localStorage\.setItem/.test(lay)) bad.push('(legacy) layout writes storage: the lane key has no writer by ruling');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 // ── C91 · THE ROLE PICKER CANNOT DELETE A ROLE  [F-2c.w4] ──────────────────
 //    THE DEFECT, WITNESSED ON A REAL ROW ON THE FOUNDER'S WALK, and the loss was
 //    actual rather than predicted: Rahul's role read `Decor`; the sheet's picker

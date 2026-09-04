@@ -17,10 +17,30 @@
 // import calls `useAsk()` (grep at 659df90: zero callers), so a provider would be a door
 // onto a route that does not exist. NOT here, by ruling: Splash, BottomNav, the onboarding
 // guard (`WorklistBoot` owns it in the shell), `useThemeInit`/`applyLightVars`.
+//
+// F-P72.A (walk finding, 2026-09-04): Chalk did not reach these pages. The provider below
+// initialises from the OLD lane's storage key, and nothing writes that key any
+// more: the shell never did (R-38, modeBridge 1.2/1.6) and the old Settings toggle was
+// deleted with the tree. The only door into these pages is now the shell, so the shell's
+// mode is the truth. This layout READS it (`readModeClient()`, cookie-backed) and sets the
+// one signal the provider already follows, `html.theme-light` (its MutationObserver flips
+// tokens and the CSS vars). One reader, no writer of the lane key: modeBridge stays green.
+import { useEffect } from 'react';
 import { ThemeProvider } from '@/lib/vendor/ThemeContext';
 import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
+import { readModeClient } from '@/lib/worklist/mode';
+
+function useShellModeOnLegacy(): void {
+  useEffect(() => {
+    const html = document.documentElement;
+    const had = html.classList.contains('theme-light');
+    html.classList.toggle('theme-light', readModeClient() === 'light');
+    return () => { html.classList.toggle('theme-light', had); };
+  }, []);
+}
 
 export default function LegacyLayout({ children }: { children: React.ReactNode }) {
+  useShellModeOnLegacy();
   return (
     <ThemeProvider>
       <ServiceWorkerRegistrar />
