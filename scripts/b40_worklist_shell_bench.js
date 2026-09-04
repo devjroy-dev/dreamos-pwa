@@ -3151,6 +3151,93 @@ cell('C95 the (legacy) pages follow the shell\'s mode  one reader, no writer of 
   return bad.length ? bad.join(' | ') : null;
 });
 
+cell('C96 the masthead wears the beta mark: one rung, one token, on the label row (S9)', () => {
+  // P7.2 Arm C. The estate ships as BETA and says so on every room. The mark sits on the LABEL
+  // row after the room name so the house name and the numeral below do not move; it reads the
+  // label rung (t5) and the accent token, which has a Chalk twin, so no new colour enters.
+  const sh = strip(read('components/worklist/WorklistShell.tsx'));
+  const bad = [];
+  if (!/<span className="wl-beta">\{COPY\.beta\}<\/span>/.test(sh)) bad.push('the masthead does not render the beta mark from the copy home');
+  if (!/wl-lblrow[\s\S]{0,200}wl-lbl[\s\S]{0,200}wl-beta/.test(sh)) bad.push('the mark is not on the label row beside the room name');
+  if (!/\.wl-beta\{[^}]*var\(--atelier-accent-text\)/.test(sh)) bad.push('the mark does not read --atelier-accent-text (the token with a Chalk twin)');
+  if (/\.wl-beta\{[^}]*(#|rgb)/.test(sh)) bad.push('the mark pins a raw colour: the token is the one home');
+  if (/\.wl-beta\{[^}]*border/.test(sh)) bad.push('the mark grew a border: the frame ruled no pill, no border');
+  const copy = strip(read('lib/worklist/copy.ts'));
+  if (!/^\s*beta: 'Beta',$/m.test(copy)) bad.push("COPY.beta is not 'Beta' in the copy home");
+  return bad.length ? bad.join(' | ') : null;
+});
+
+cell('C97 the Storefront bio row is a CALL, and it is the only one on that screen (F-P72.C, S19)', () => {
+  // P7.2 Arm C. The founder walked it: title-hint-chevron read as a row, but this row is the ASK
+  // that gets a profile finished. It becomes the shell's primary button; Portfolio and Discover
+  // KEEP the row grammar, because one call per screen is what makes a call read as one.
+  const sf = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const bad = [];
+  if (!/\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the bio call does not render its byte from the copy home');
+  // P7.2 AMENDMENT (labeled): the register was HOISTED into the shell's one home, so the call
+  // READS the class rather than copying its values. The cell follows the register.
+  if (!/className="wl-btn pri"/.test(sf)) bad.push('the call does not wear the shell primary register (wl-btn pri)');
+  if (/background: 'var\(--atelier-accent-text\)'/.test(sf)) bad.push('the call copies the register inline: the class is the one home');
+  if (!/href="\/vendor\/discover\/profile"[\s\S]{0,600}\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the call does not open the profile');
+  // The contrast the ruling rests on: exactly ONE primary control on this screen.
+  const fills = (sf.match(/wl-btn pri/g) || []).length;
+  if (fills !== 1) return 'the screen carries ' + fills + ' primary controls; the ruling is ONE call per screen (Discover becomes a call when Block 09 ports it)';
+  const copy = strip(read('lib/worklist/copy.ts'));
+  if (!/storefrontBioCta: 'See your profile',/.test(copy)) bad.push("COPY.storefrontBioCta is not the vetoed byte 'See your profile'");
+  return bad.length ? bad.join(' | ') : null;
+});
+
+cell('C98 the button register has ONE home, in the shell scope, any room (P7.2 Arm C)', () => {
+  // The register was written inside StudioSheets' SHEET_CSS and mounted only by TeamTabs: a
+  // shell-wide vocabulary scoped to one room. When Storefront needed it, the two wrong answers
+  // were to import the Team room's stylesheet or to copy the values; the ruling hoisted the
+  // rules into the shell's own scoped CSS, beside .wl-tile and .wl-fab (the F-39.4 FAB shape).
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const bad = [];
+  if (!/\.wl-btn\{[\s\S]{0,200}min-height:44px/.test(shell)) bad.push('the shell scope does not declare .wl-btn');
+  if (!/\.wl-btn\.pri\{background:var\(--atelier-accent-text\);color:var\(--role-ink-deep\)\}/.test(shell)) bad.push('the shell scope does not declare .wl-btn.pri with the accent fill and deep ink');
+  // ...and NOWHERE else. A second declaration is the disease the hoist cured.
+  for (const f of ['components/worklist/StudioSheets.tsx', 'components/worklist/TeamTabs.tsx',
+                   'components/worklist/SignOutSheet.tsx', 'app/vendor/(shell)/storefront/screen.tsx']) {
+    if (/\.wl-btn(\.pri)?\{/.test(strip(read(f)))) bad.push(f + ' declares the button register again: one home');
+  }
+  return bad.length ? bad.join(' | ') : null;
+});
+
+cell('C99 the Report door composes room + build and hands them to the support lane (S10-S18)', () => {
+  // P7.2 Arm C, F-P71.2 arm (i). The estate ships as beta; this is the door beta implies. The
+  // two prefills are the two facts a vendor cannot be expected to know: which room he was in,
+  // and which build was serving. Both are READ from the live document, never retyped, because a
+  // report naming the wrong build is worse than one naming none.
+  const sheet = strip(read('components/worklist/ReportIssueSheet.tsx'));
+  const drawer = strip(read('components/worklist/AccountDrawer.tsx'));
+  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const bad = [];
+  // The door
+  if (!/row\('report', \{ label: COPY\.reportRowTitle, onAct: askReport \}\)/.test(drawer)) bad.push('the drawer has no Report row wired to the sheet');
+  if (!/room=\{title\}/.test(shell)) bad.push('the shell does not pass its masthead title as the room');
+  // The prefills, read not retyped
+  if (!/querySelector\('\[data-tdw-commit\]'\)/.test(sheet)) bad.push('the build is not read from the live stamp');
+  if (!/build \?\? '\\u2014'/.test(sheet)) bad.push('an absent build is not rendered as an em dash: a guessed build is worse than none');
+  // The composition, one home
+  if (!/COPY\.reportPrefix \+ ' \\u00b7 ' \+ room \+ ' \\u00b7 ' \+ \(build \?\? '\\u2014'\)/.test(sheet)) bad.push('the message is not composed as prefix + room + build');
+  if (!/supportWaNumber\(\)/.test(sheet)) bad.push('the send does not go to the support lane');
+  if (/wa\.me\/\$\{waNumberFor/.test(sheet)) bad.push('the send uses a lane number instead of the support number');
+  // The bytes, from the one home
+  for (const k of ['reportRowTitle', 'reportTitle', 'reportRoomKey', 'reportBuildKey',
+                   'reportFieldLabel', 'reportPlaceholder', 'reportSend', 'reportPrefix']) {
+    if (!new RegExp('\\b' + k + ':').test(copy)) bad.push('COPY.' + k + ' is not in the copy home');
+    if (!new RegExp('COPY\\.' + k + '\\b').test(sheet + drawer)) bad.push('COPY.' + k + ' is declared but never rendered');
+  }
+  if (!/reportSend: +'Send on WhatsApp',/.test(copy)) bad.push("the send verb is not the vetoed byte 'Send on WhatsApp'");
+  // S17 was STRUCK by the founder: the verb tells the truth, the note was belt-and-braces.
+  if (/Nothing is sent until you press send there/.test(sheet)) bad.push('S17 is back: the founder struck it');
+  // The register is the shell's one home (C98), not a copy.
+  if (!/className="wl-btn pri tdw-rpsend"/.test(sheet)) bad.push('the send does not wear the shell primary register');
+  return bad.length ? bad.join(' | ') : null;
+});
+
 // ── C91 · THE ROLE PICKER CANNOT DELETE A ROLE  [F-2c.w4] ──────────────────
 //    THE DEFECT, WITNESSED ON A REAL ROW ON THE FOUNDER'S WALK, and the loss was
 //    actual rather than predicted: Rahul's role read `Decor`; the sheet's picker

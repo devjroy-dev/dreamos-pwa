@@ -327,10 +327,15 @@ export function Header({ vendorName }: { vendorName: string | null }) {
                 ThemeContext's setter and it stays the setter here; the shell passes its
                 own. Same rows, different authority, which is the caller's business and
                 not the drawer's. */}
+            {/* P7.2: the drawer's Report door prefills the ROOM, and this tree has no masthead
+                title to give it — these are the (legacy) Discover pages (FORK 1 arm (a)), which
+                the shell has no twin for. They report as 'Discover', the surface a vendor would
+                name if asked, rather than borrowing a shell room's label they are not in. */}
             <AccountDrawer
               mode={theme === 'light' ? 'light' : 'dark'}
               onPickMode={(m) => setThemeMode(m)}
               onClose={() => setProfileOpen(false)}
+              room="Discover"
             />
           </div>
         </div>

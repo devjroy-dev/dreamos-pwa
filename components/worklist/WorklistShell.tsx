@@ -139,7 +139,15 @@ export function WorklistShell({ title, children }: { title: string; children: Re
             Cormorant survives at t0 and t1: the numeral and the page title. */}
         <div className="wl-hstack">
           <span className="wl-house">The Dream Wedding</span>
-          <span className="wl-lbl">{title}</span>
+          {/* P7.2 · THE BETA MARK (S9, mock frame `P7-badge`). It sits on the LABEL row, after
+              the room name, so neither the house name nor the numeral below moves. One rung
+              (t5, the label role's own), one token (`--atelier-accent-text`: #68C9B4 Graphite,
+              #0D6A5A Chalk) — no pill, no border, no new colour. The estate is in beta on every
+              room, so this is chrome, not a per-room flag. */}
+          <span className="wl-lblrow">
+            <span className="wl-lbl">{title}</span>
+            <span className="wl-beta">{COPY.beta}</span>
+          </span>
         </div>
         {/* R-37.79: ONE IDENTITY EVERYWHERE. Initials are derived, never a fixture; a
             vendor with no name yet gets the glyph rather than an empty circle.
@@ -158,7 +166,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
               {/* ONE DEFINITION, TWO MOUNTS. See components/worklist/AccountDrawer.tsx —
                   the carried rooms mount the same component through Header.tsx, so the
                   founder meets one menu behind one medallion everywhere in the estate. */}
-              <AccountDrawer mode={mode} onPickMode={pick} onClose={close} />
+              <AccountDrawer mode={mode} onPickMode={pick} onClose={close} room={title} />
             </div>
           </>
         )}
@@ -231,6 +239,23 @@ const SHELL_CSS = `
 .wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+/* ── THE BUTTON REGISTER, ONE HOME, ANY ROOM (P7.2 Arm C, chair ruling 2026-09-04) ──────
+   These four rules were written inside StudioSheets.tsx's SHEET_CSS and mounted only by
+   TeamTabs — a SHELL-WIDE register scoped to one room. Storefront's bio call (F-P72.C, S19)
+   needed the same register and there were exactly two wrong ways to have it: import the Team
+   room's stylesheet into an unrelated room, or copy the values inline. The first build did the
+   second, which is a second home for the same bytes; the ruling hoists the rules here instead,
+   where .wl-tile and .wl-fab already live, and both rooms read the class. This is what the
+   F-39.4 FAB ruling did for the seat: one register, one home, any room.
+   The values are byte-identical to the ones TeamTabs shipped. */
+.wl-btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;
+        font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
+        background:transparent}
+.wl-btn2{flex:2}
+.wl-btn:disabled{opacity:.5;cursor:not-allowed}
+.wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
+.wl-btn.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+
 /* ── THE FAB'S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
    ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
    The first cut computed the bottom chrome from its parts: nav min-height 52, plus a dock
@@ -287,6 +312,8 @@ const SHELL_CSS = `
 .wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
 .wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
 .wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
+.wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 /* R-38.5: the nav's content box shares the main column's left edge, which is the container

@@ -86,6 +86,30 @@ export const COPY = {
   manifestShortName: 'Worklist',
 
   // ── 3 · 4 — the two nav seats. There is no third; R-37.64 holds. ─────────
+  /** P7.2 (S9, founder-vetoed 2026-09-04): the masthead's beta mark. Caps are the label
+   *  role's, not the string's — the byte is written as a word so a reader of this file
+   *  sees what a vendor sees. */
+  beta: 'Beta',
+  /** P7.2 (S19, founder-vetoed 2026-09-04, F-P72.C): the Storefront bio row became a CALL.
+   *  It says what the tap does — it opens the profile the couples see. */
+  storefrontBioCta: 'See your profile',
+  /* P7.2 · THE REPORT DOOR (S10–S16, S18; founder-vetoed 2026-09-04, mock frame `P7-report`).
+     The estate ships as beta and this is the door beta implies. S17 — a note under the send
+     explaining that WhatsApp does the sending — was STRUCK: the verb already says it. */
+  reportRowTitle:    'Report an issue',
+  reportTitle:       'Report an issue',
+  reportRoomKey:     'Room',
+  reportBuildKey:    'Build',
+  reportFieldLabel:  'What went wrong?',
+  reportPlaceholder: 'Tell us what you expected and what you saw instead.',
+  reportSend:        'Send on WhatsApp',
+  /** The composed message's first word. The room and the build follow it, then the vendor's
+   *  own words — so a reply thread can be grepped against a commit. */
+  reportPrefix:      'Issue',
+  /** F-39.82 (P7.2 Arm C): the path out of a cap refusal. The BYTE IS NOT NEW — it is the one
+   *  the founder vetoed on 2026-08-29 for the redacted-lead line, reused here rather than a
+   *  second sentence saying the same thing. */
+  capUpgradeCta:     'Upgrade in Billing.',
   navToday: 'Today',
   navRooms: 'Rooms',
 

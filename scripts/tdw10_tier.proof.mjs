@@ -478,20 +478,16 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
 // cells count the seats ACROSS the states, by evaluating the two shipped
 // predicates rather than by reading either one.
 {
-  // ⚠ F-39.82 — THE ZERO-CAP UPGRADE SEAT HAS NO SHELL HOME. This section proves a
-  // TWO-SEAT inventory: `TierMeter` (which hides on a falsy cap: `if (!meta || !meta.turns_cap)
-  // return null;`) and a page-level seat gated on the EXACT COMPLEMENT, which lived on
-  // `app/vendor/page.tsx` — DELETED at the flip (R-39.24). A vendor at
-  // `state:'capped', turns_cap:0` — refused at turn zero — therefore has no Upgrade anchor
-  // anywhere in the shell: TierMeter hides, and BillingRoom's plans sit behind
-  // `selfserve_enabled`/`billing_status === 'active'`, not behind a refusal.
-  //
-  // CHAIR RULING, P7.2 ZIP 1b: these cells STAY RED and 9.3's expectation STAYS AT 1. Re-keying
-  // the count to 0 would turn the bench that caught the gap into the bench that certifies it.
-  // The cure is ZIP 2's (Arm C): the seat re-homes onto the ask sheet's cap refusal, carrying
-  // the already-vetoed byte “Upgrade in Billing.” → roomHref('billing'). These cells re-key to
-  // that surface then, with the count intact.
-  const PAGE  = read('app/vendor/page.tsx');
+  // F-39.82 CURED at P7.2 Arm C, and this section is the reason it was ever found. The estate
+  // carries TWO seats for the path out of a cap: TierMeter (which hides on a falsy cap) and a
+  // second seat gated on the EXACT COMPLEMENT. That second seat lived on the old chat page and
+  // died at the flip, stranding a vendor at state 'capped' with turns_cap 0 — refused at turn
+  // zero. It is re-homed onto the ask sheet's cap refusal (components/worklist/AskSheet.tsx),
+  // hung on the TYPED state useChat returns ('ok' | 'nearing' | 'capped', useChat.ts:39) rather
+  // than on the refusal's prose, and carrying the byte the founder vetoed on 2026-08-29.
+  // THE COUNT BELOW IS UNCHANGED AT 1: the inventory still says every capped state has exactly
+  // one anchor, which is what §9.4 exists to say.
+  const PAGE  = read('components/worklist/AskSheet.tsx');
   const METER = read('components/vendor/TierMeter.tsx');
 
   // The two guards are LIFTED FROM SOURCE, never retyped — a bench holding its
@@ -499,8 +495,8 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
   const meterGuard = strip(METER).match(/if \(!meta \|\| !meta\.turns_cap\) return null;/);
   ok('§9.1 TierMeter still hides itself on a falsy cap — the guard the seat complements',
      !!meterGuard);
-  const pageGuard = strip(PAGE).match(/\{meta && meta\.state === 'capped' && !meta\.turns_cap && meta\.upgrade && \(/);
-  ok('§9.2 the page-level seat is gated on the EXACT COMPLEMENT of that guard',
+  const pageGuard = strip(PAGE).match(/\{meta\?\.state === 'capped' && !meta\.turns_cap && \(/);
+  ok('§9.2 the second seat is gated on the EXACT COMPLEMENT of that guard (P7.2: re-homed to the ask sheet)',
      !!pageGuard);
 
   // Evaluate both, per state, and COUNT. This is the inventory the first one
@@ -544,7 +540,7 @@ section('§9  F-10.100 — THE UPGRADE SEATS PARTITION, THEY DO NOT OVERLAP');
     return meterAnchor(m, nearingOf(m), cappedOf(m));
   };
   // The page-level seat: its whole JSX condition, lifted and executed.
-  const pageShows = lift(strip(PAGE), /\{(meta && meta\.state === 'capped'[^\n]*?meta\.upgrade) && \(/, 'the page-level seat condition');
+  const pageShows = lift(strip(PAGE), /\{(meta\?\.state === 'capped' && !meta\.turns_cap) && \(/, 'the sheet-level seat condition');
   const up = { label: 'Upgrade', href: '/vendor/billing' };
   const states = [
     ['zero cap, refused at turn zero', { state: 'capped',  turns_used: 0,  turns_cap: 0,   upgrade: up }, 1],

@@ -461,13 +461,10 @@ export const SHEET_CSS = `
 .wl-fi:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-fnum{font-variant-numeric:lining-nums tabular-nums}
 .wl-brow{display:flex;gap:8px}
-.wl-btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;
-        font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
-        background:transparent}
-.wl-btn2{flex:2}
-.wl-btn:disabled{opacity:.5;cursor:not-allowed}
-.wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
-.wl-btn.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+/* .wl-btn / .wl-btn2 / :disabled / :focus-visible / .pri HOISTED at P7.2 Arm C into the shell's
+   own scoped CSS (WorklistShell's SHELL_CSS), where .wl-tile and .wl-fab live. They were a
+   shell-wide register scoped to one room; Storefront's bio call reads the same class now.
+   Nothing else moved out of this sheet. */
 .wl-btn.gho{border:.5px solid var(--atelier-card-border);color:var(--atelier-ink-soft)}
 .wl-btn.dan{border:.5px solid var(--role-critical);color:var(--role-critical)}
 .wl-shrule{border-top:.5px solid var(--atelier-card-border);padding-top:14px;

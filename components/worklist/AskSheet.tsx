@@ -27,6 +27,8 @@ import { InputBar } from '@/components/vendor/InputBar';
 import { useChat } from '@/hooks/vendor/useChat';
 import { reportGlitch } from '@/lib/vendor/api/vendor';
 
+import Link from 'next/link';
+import { roomHref } from '@/lib/worklist/rooms';
 // ── CE-39 S2/6 · F-38.47 · ONE PREFILL PARAMETER, ONE HOME ─────────────────
 // `prefill` is the text the input opens with — the four hub primers' payload, arriving
 // through lib/worklist/askContext.tsx rather than through a URL. It reaches `InputBar` as
@@ -38,7 +40,7 @@ import { reportGlitch } from '@/lib/vendor/api/vendor';
 export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
   vendorId: string; mode: 'dark' | 'light'; prefill?: string; onClose: () => void;
 }) {
-  const { messages, loading, send } = useChat({ vendorId });
+  const { messages, loading, send, meta } = useChat({ vendorId });
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragFrom = useRef<number | null>(null);
 
@@ -96,6 +98,26 @@ export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
               onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user');
                                    if (last?.text) send(last.text); }} />
           </div>
+          {/* F-39.82 · THE PATH OUT OF A CAP REFUSAL. The old chat home carried a page-level
+              upgrade seat gated on the EXACT COMPLEMENT of TierMeter's guard: TierMeter hides
+              on a falsy cap, so a vendor at state 'capped' with turns_cap 0 — refused at turn
+              zero — was left with no anchor when that page died at the flip. b40's tier bench
+              caught it (tdw10_tier §9.4, "neither seat leaves a refused vendor stranded").
+              It hangs on the TYPED state `meta.state`, never on the refusal's prose: useChat
+              returns a discriminated 'ok' | 'nearing' | 'capped' from the server's own response
+              (useChat.ts:39), which is what makes this a door and not a guess at a sentence.
+              The BYTE is the one vetoed on 2026-08-29 for the redacted-lead line; the address
+              is the registry's, not a literal. */}
+          {/* THE GATE IS THE EXACT COMPLEMENT OF TierMeter's, not merely 'capped'. TierMeter
+              hides on a falsy cap and shows otherwise, so gating this door on 'capped' alone
+              put TWO anchors in front of a vendor with a spent nonzero cap — the duplicate
+              tdw10_tier §9.5 exists to forbid, and it reddened on the first build of this cure.
+              One state, one seat. */}
+          {meta?.state === 'capped' && !meta.turns_cap && (
+            <Link href={roomHref('billing')} className="wl-askcap" onClick={onClose}>
+              {COPY.capUpgradeCta}
+            </Link>
+          )}
           <InputBar onSend={send} initialValue={prefill || undefined} />
         </div>
       </div>
@@ -123,6 +145,8 @@ export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
 // ChatThread and InputBar, carried components with their own type, and bringing them onto
 // the scale is the same sitting that drops this file's ThemeProvider (F-38.3).
 const ASK_CSS = `
+.wl-askcap{display:flex;align-items:center;justify-content:center;min-height:44px;margin:0 var(--wl-gutter, 22px) 8px;border-radius:3px;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+.wl-askcap:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 .wl-asksheet{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end}
 .wl-askscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
 /* R-37.89 · THE CHAT IS A WORK SURFACE, NOT A PEEK.

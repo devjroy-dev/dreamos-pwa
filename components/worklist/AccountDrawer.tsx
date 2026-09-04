@@ -50,6 +50,7 @@ import { waNumberFor } from '@/lib/waNumbers';
 import { typeCss } from '@/lib/worklist/theme';
 import { useSignOut } from '@/components/worklist/SignOutSheet';
 
+import { useReportIssue } from '@/components/worklist/ReportIssueSheet';
 export const DRAWER_SCOPE = 'tdw-drawer';
 
 // ── F-38.20 · THE ACKNOWLEDGEMENT NEEDS A FRAME TO EXIST IN ─────────────────
@@ -107,10 +108,13 @@ function Row({ label, href, onAct, current, danger, mode, pressed, onPress }: {
  * `data-wl-mode`. The ROWS are the same either way — what differs is only which authority
  * the tap reaches, and that is the caller's business rather than this file's.
  */
-export function AccountDrawer({ mode, onPickMode, onClose }: {
+export function AccountDrawer({ mode, onPickMode, onClose, room }: {
   mode: 'dark' | 'light';
   onPickMode: (m: 'dark' | 'light') => void;
   onClose: () => void;
+  /** The masthead's own title. Passed in rather than re-derived here, because the shell already
+   *  holds it and a second derivation is a second answer (P7.2, the Report door's prefill). */
+  room: string;
 }) {
   const [held, setHeld] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -121,6 +125,7 @@ export function AccountDrawer({ mode, onPickMode, onClose }: {
   // called it: a prop no caller's verb needs is a prop the next reader wires something to
   // (wire-or-delete-at-birth). Both mounts stop passing it in the same edit.
   const { ask, sheet, anchorRef } = useSignOut();
+  const { ask: askReport, sheet: reportSheet } = useReportIssue(room);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
@@ -155,6 +160,12 @@ export function AccountDrawer({ mode, onPickMode, onClose }: {
       {row('wa', { label: COPY.roomsAskTitle, onAct: () => {
         window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
       } })}
+      {/* P7.2 · THE REPORT DOOR (S10). It sits under REACH US beside the WhatsApp row because
+          both end in the same place — but this one arrives with the room and the build already
+          written, which is the whole difference between a report and a message. The sheet is
+          opened the way the sign-out sheet is: a hook that portals into this drawer's own mode
+          host, so it inherits Graphite or Chalk from the tree it was opened in. */}
+      {row('report', { label: COPY.reportRowTitle, onAct: askReport })}
       <div className="wl-dsec">{COPY.drawerDisplay}</div>
       {row('dark',  { label: COPY.themeDarkName,  onAct: () => onPickMode('dark'),  current: mode === 'dark',  mode: true })}
       {row('light', { label: COPY.themeLightName, onAct: () => onPickMode('light'), current: mode === 'light', mode: true })}
@@ -172,6 +183,7 @@ export function AccountDrawer({ mode, onPickMode, onClose }: {
       <Row label={COPY.drawerSignOut} onAct={ask} danger
            pressed={held === 'signout'} onPress={() => press('signout', false)} />
       {sheet}
+      {reportSheet}
     </div>
   );
 }

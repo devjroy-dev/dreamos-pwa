@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: 039d0058c01f169e5ac4b7b545fc3e83da69031c
-files scanned: 353
+repo tip: 228f32b2ee079a0eee6ff6ec3299e43b6ef0802b
+files scanned: 354
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -149,12 +149,12 @@ components/solutions/SolutionsPieces.tsx
    BITE 4: chars 8738-8896  lines 176-177  span 158  LIVE 158
 
 components/worklist/AccountDrawer.tsx
-   FALSE OPEN  :201   …und:var(--atelier-row-hover)}\n/* F-3
-   FALSE OPEN  :205   …ition:background 90ms linear}\n/* The
-   FALSE CLOSE :203   …wledgement it exists to give. */\n.td
-   FALSE CLOSE :207   …es instead of cutting it off. */\n.td
-   BITE 1: chars 12059-12332  lines 201-203  span 273  LIVE 273
-   BITE 2: chars 12389-12636  lines 205-207  span 247  LIVE 247
+   FALSE OPEN  :213   …und:var(--atelier-row-hover)}\n/* F-3
+   FALSE OPEN  :217   …ition:background 90ms linear}\n/* The
+   FALSE CLOSE :215   …wledgement it exists to give. */\n.td
+   FALSE CLOSE :219   …es instead of cutting it off. */\n.td
+   BITE 1: chars 12976-13249  lines 213-215  span 273  LIVE 273
+   BITE 2: chars 13306-13553  lines 217-219  span 247  LIVE 247
 
 components/worklist/AddFab.tsx
    FALSE OPEN  :148   …env(safe-area-inset-bottom))}\n/* A s
@@ -170,15 +170,15 @@ components/worklist/AiDock.tsx
    BITE 1: chars 4761-5074  lines 84-87  span 313  LIVE 313
 
 components/worklist/AskSheet.tsx
-   FALSE OPEN  :128   …);border:none;cursor:pointer}\n/* R-3
-   FALSE OPEN  :135   …:env(safe-area-inset-bottom)}\n/* R-3
-   FALSE OPEN  :140   …r:var(--atelier-accent-text)}\n/* R-3
-   FALSE CLOSE :133   … as the safety it always was. */\n.wl
-   FALSE CLOSE :135   …ll column and owns its inset. */\n.wl
-   FALSE CLOSE :142   …y still starts at the thread. */\n.wl
-   BITE 1: chars 8322-8815  lines 128-133  span 493  LIVE 493
-   BITE 2: chars 9100-9197  lines 135-135  span 97  LIVE 97
-   BITE 3: chars 9695-9921  lines 140-142  span 226  LIVE 226
+   FALSE OPEN  :152   …);border:none;cursor:pointer}\n/* R-3
+   FALSE OPEN  :159   …:env(safe-area-inset-bottom)}\n/* R-3
+   FALSE OPEN  :164   …r:var(--atelier-accent-text)}\n/* R-3
+   FALSE CLOSE :157   … as the safety it always was. */\n.wl
+   FALSE CLOSE :159   …ll column and owns its inset. */\n.wl
+   FALSE CLOSE :166   …y still starts at the thread. */\n.wl
+   BITE 1: chars 10317-10810  lines 152-157  span 493  LIVE 493
+   BITE 2: chars 11095-11192  lines 159-159  span 97  LIVE 97
+   BITE 3: chars 11690-11916  lines 164-166  span 226  LIVE 226
 
 components/worklist/BillingRoom.tsx
    FALSE OPEN  :259   …ex-direction:column;gap:16px}\n/* R-3
@@ -232,8 +232,11 @@ components/worklist/RoomsGrid.tsx
 
 components/worklist/StudioSheets.tsx
    FALSE OPEN  :449   …t1);color:var(--atelier-ink)}\n/* 44p
+   FALSE OPEN  :464   …wl-brow{display:flex;gap:8px}\n/* .wl
    FALSE CLOSE :450   …ing the target underneath it. */\n.wl
+   FALSE CLOSE :467   …else moved out of this sheet. */\n.wl
    BITE 1: chars 24188-24336  lines 449-450  span 148  LIVE 148
+   BITE 2: chars 25347-25670  lines 464-467  span 323  LIVE 323
 
 components/worklist/TodayCards.tsx
    FALSE OPEN  :353   …ric:lining-nums tabular-nums}\n/* ONE
@@ -252,30 +255,33 @@ components/worklist/WlToast.tsx
    BITE 1: chars 5727-5990  lines 104-106  span 263  LIVE 263
 
 components/worklist/WorklistShell.tsx
-   FALSE OPEN  :204   …:var(--wl-gutter);z-index:20}\n/* R-3
-   FALSE OPEN  :218   …dding-right:var(--wl-gutter)}\n/* SHA
-   FALSE OPEN  :222   …;padding:16px;margin:0 0 8px}\n/* ── 
-   FALSE OPEN  :234   …ent-text);outline-offset:2px}\n/* ── 
-   FALSE OPEN  :264   …8);touch-action:manipulation}\n/* ── 
-   FALSE OPEN  :277   …ent-text);outline-offset:3px}\n/* TOU
-   FALSE OPEN  :282   … a{touch-action:manipulation}\n/* R-3
-   FALSE OPEN  :292   …;overscroll-behavior:contain}\n/* R-3
-   FALSE CLOSE :216   … block below is hand-written. */\n.wl
-   FALSE CLOSE :220   …what every surface is inside. */\n.wl
-   FALSE CLOSE :227   …ithout being able to name it. */\n.wl
-   FALSE CLOSE :262   … FAB size or a bottom offset. */\n.wl
-   FALSE CLOSE :274   …s the point of the paragraph. */\n.wl
-   FALSE CLOSE :279   …before dispatching the click. */\n.wl
-   FALSE CLOSE :285   …eeing and no cell could name. */\n.wl
-   FALSE CLOSE :294   …and this one reads the boxes. */\n.wl
-   BITE 1: chars 12693-13716  lines 204-216  span 1023  LIVE 1023
-   BITE 2: chars 13792-14060  lines 218-220  span 268  LIVE 268
-   BITE 3: chars 14196-14678  lines 222-227  span 482  LIVE 482
-   BITE 4: chars 15313-17343  lines 234-262  span 2030  LIVE 2030
-   BITE 5: chars 17768-18666  lines 264-274  span 898  LIVE 898
-   BITE 6: chars 18828-19092  lines 277-279  span 264  LIVE 264
-   BITE 7: chars 19237-19556  lines 282-285  span 319  LIVE 319
-   BITE 8: chars 20392-20653  lines 292-294  span 261  LIVE 261
+   FALSE OPEN  :212   …:var(--wl-gutter);z-index:20}\n/* R-3
+   FALSE OPEN  :226   …dding-right:var(--wl-gutter)}\n/* SHA
+   FALSE OPEN  :230   …;padding:16px;margin:0 0 8px}\n/* ── 
+   FALSE OPEN  :242   …ent-text);outline-offset:2px}\n/* ── 
+   FALSE OPEN  :259   …;color:var(--role-ink-deep)}\n\n/* ── 
+   FALSE OPEN  :289   …8);touch-action:manipulation}\n/* ── 
+   FALSE OPEN  :302   …ent-text);outline-offset:3px}\n/* TOU
+   FALSE OPEN  :307   … a{touch-action:manipulation}\n/* R-3
+   FALSE OPEN  :319   …;overscroll-behavior:contain}\n/* R-3
+   FALSE CLOSE :224   … block below is hand-written. */\n.wl
+   FALSE CLOSE :228   …what every surface is inside. */\n.wl
+   FALSE CLOSE :235   …ithout being able to name it. */\n.wl
+   FALSE CLOSE :250   …to the ones TeamTabs shipped. */\n.wl
+   FALSE CLOSE :287   … FAB size or a bottom offset. */\n.wl
+   FALSE CLOSE :299   …s the point of the paragraph. */\n.wl
+   FALSE CLOSE :304   …before dispatching the click. */\n.wl
+   FALSE CLOSE :310   …eeing and no cell could name. */\n.wl
+   FALSE CLOSE :321   …and this one reads the boxes. */\n.wl
+   BITE 1: chars 13268-14291  lines 212-224  span 1023  LIVE 1023
+   BITE 2: chars 14367-14635  lines 226-228  span 268  LIVE 268
+   BITE 3: chars 14771-15253  lines 230-235  span 482  LIVE 482
+   BITE 4: chars 15888-16677  lines 242-250  span 789  LIVE 789
+   BITE 5: chars 17146-19176  lines 259-287  span 2030  LIVE 2030
+   BITE 6: chars 19601-20499  lines 289-299  span 898  LIVE 898
+   BITE 7: chars 20661-20925  lines 302-304  span 264  LIVE 264
+   BITE 8: chars 21070-21389  lines 307-310  span 319  LIVE 319
+   BITE 9: chars 22412-22673  lines 319-321  span 261  LIVE 261
 
 eslint.config.mjs
    FALSE OPEN  :11   …eslint-config-next:\n    ".next/**",\n
@@ -295,8 +301,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 81 · false closes: 74
-false bites the RETIRED rule would take: 75 · span 35336 · LIVE CODE 35242
+false opens: 83 · false closes: 76
+false bites the RETIRED rule would take: 77 · span 36448 · LIVE CODE 36354
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
@@ -331,4 +337,4 @@ false bites the RETIRED rule would take: 75 · span 35336 · LIVE CODE 35242
    29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 211 file(s).
+   the retired naive rule disagrees with the compiler on 213 file(s).

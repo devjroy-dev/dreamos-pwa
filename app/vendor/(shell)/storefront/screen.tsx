@@ -61,6 +61,7 @@ import { Meter } from '@/components/vendor/ProfileMeter';
 // ── WALK HOTFIX MICRO · F-09.111 — the late-load flash, this screen's limb ──
 import { Reserve } from '@/components/vendor/Reserve';
 
+import { COPY } from '@/lib/worklist/copy';
 const A = {
   ink:       'var(--atelier-ink)',
   inkMute:   'var(--atelier-ink-mute)',
@@ -284,17 +285,26 @@ function BioBlock({ vendorId }: { vendorId: string }) {
       <SectionLabel label="Complete your bio" first />
       <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 var(--slice-inset, 24px)' }}>
         <Meter score={score} />
+        {/* F-P72.C (founder walk, 2026-09-04): this row read as a ROW — title, hint, chevron —
+            the same grammar as Portfolio and Discover below. But those two are DOORS and this
+            one is the ASK: it is the surface that gets a profile finished. The title and the
+            drawer's vetoed line stay; the chevron-link becomes the shell's primary button
+            beneath the meter. Mock frame `P72C-bio-call`; S19 vetoed. Portfolio and Discover
+            KEEP the row grammar on purpose — one call per screen, or the contrast that makes a
+            call read as one is gone (founder: Discover becomes a call when Block 09 ports it). */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <Link href="/vendor/discover/profile" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink, lineHeight: 1.15 }}>Your bio</div>
-              {/* The drawer's own vetoed byte, carried. */}
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>How couples see you</div>
-            </div>
-            <Chevron />
-          </Link>
+          <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink, lineHeight: 1.15 }}>Your bio</div>
+          {/* The drawer's own vetoed byte, carried. */}
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>How couples see you</div>
         </div>
       </div>
+      {/* The shell's button register, read from its one home (WorklistShell's SHELL_CSS, hoisted
+          at P7.2 Arm C). The two properties below are this SITE's, not the register's: the
+          margin that seats the call under the meter, and the link's own text-decoration. */}
+      <Link href="/vendor/discover/profile" className="wl-btn pri"
+            style={{ textDecoration: 'none', margin: '12px var(--slice-inset, 24px) 0' }}>
+        {COPY.storefrontBioCta}
+      </Link>
       {/* Live counts under the same roof (readouts, not copy): */}
       <div style={{ display: 'flex', gap: 18, padding: '10px var(--slice-inset, 24px) 4px' }}>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
