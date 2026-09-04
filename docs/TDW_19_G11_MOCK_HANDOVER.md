@@ -1,9 +1,9 @@
 # TDW_19 · G1.1 — WEDDING PAGES · THE MOCK SITTING · HANDOVER
 
 **Seat:** LE, code-capable, one sitting, zero product bytes.
-**Base:** `dreamos-pwa` @ `49e5828`, re-derived at origin at the moment of cutting (R-38.16) — unmoved from charter.
-**Sibling:** `dream-os` @ `2ad4637`, read-only, docs only.
-**Governing:** kickoff v2 (CE-40, 2026-09-04) · R-40.7–.15 · R-40.17–.21 · R-G11.1–.9 · R-40.1 room names.
+**Base:** `dreamos-pwa` @ `3d4ff62`, re-derived at origin at the moment of cutting (R-38.16). The sitting opened at `49e5828`; the founder's own apply of this mock is the intervening commit, verified byte-identical on a fresh clone — mock, handover and all 31 captures matched the cut with zero drift.
+**Sibling:** `dream-os` @ `d58648e`, read-only, docs only.
+**Governing:** kickoff v2 (CE-40, 2026-09-04) · R-40.7–.15 · R-40.17–.23 · R-G11.1–.9 · R-40.1 room names.
 **Workspace:** `/home/claude/g11mock/` — one sitting, one clone, `git status` clean at seating.
 
 ---
@@ -12,8 +12,8 @@
 
 | Path | What |
 |---|---|
-| `docs/mocks/wedding-pages-mock.html` | the mock — 13 frames, 5 embedded faces, 148 KB |
-| `docs/mocks/wedding-pages-mock__*.png` | 31 captures |
+| `docs/mocks/wedding-pages-mock.html` | the mock — 14 frames, 5 embedded faces, 152 KB |
+| `docs/mocks/wedding-pages-mock__*.png` | 33 captures (31 banked at `3d4ff62`, 2 new in this rider) |
 | `docs/TDW_19_G11_MOCK_HANDOVER.md` | this file |
 
 **Zero product bytes.** No file outside `docs/` is touched. `git status --porcelain` filtered to tracked paths returns nothing: every path in this ZIP is new.
@@ -27,8 +27,9 @@
 | `W1-a4` | the same page on paper | 794×1123 | paper | 1 |
 | `W2-room` | the Wedding pages room | 374, 390 | dark, light | 4 |
 | `W2-empty` | nothing published yet | 374 | dark, light | 2 |
-| `W2-grid` | the grid with R-40.20 applied, 3-up | 374 | dark, light | 2 |
-| `W2-grid-wide` | R-40.21's trial, first tile full-width | 374 | dark, light | 2 |
+| `W2-grid` | the 3-up fallback — **superseded by R-40.22**, kept as the record of the A/B | 374 | dark, light | 2 |
+| `W2-grid-wide` | **R-40.22 — the ratified shape**, first tile full-width | 374 | dark, light | 2 |
+| `W2-grid-wide-2` | the rider trial, both bands headed by a wide tile | 374 | dark, light | 2 |
 | `W5-hub` | Business Solutions, the nine rows | 374, 390 | dark, light | 4 |
 | `W5-hub-today` | `/vendor/support` as it stands at `49e5828` | 374 | dark, light | 2 |
 | `W3-create` | the create sheet | 374, 390 | dark, light | 4 |
@@ -61,17 +62,28 @@ Read whole, READ-ONLY, at `49e5828`: `app/vendor/(shell)/support/page.tsx` (133 
 | Control | Verdict | Note |
 |---|---|---|
 | eyebrow `For your business` (`COPY.indexEyebrow`) | **KEPT** | drawn on `W5-hub` |
-| six `SurfaceRow`s — label + eyebrow + state chip | **KEPT** | drawn on `W5-hub-today`; **not removed by this sitting's word** |
-| six child routes under `/vendor/support/*` | **KEPT** | untouched, unreferenced by this mock |
+| six `SurfaceRow`s — label + eyebrow + state chip | **REMOVED-BY-RULING (R-40.23)** | the nine replace them; drawn on `W5-hub-today` as the record of what they were |
+| six child routes under `/vendor/support/*` | **REMOVED-BY-RULING (R-40.23)** | retired with the reader in the build sitting, each old address carrying its named successor |
 | error line `COPY.indexUnavailable` | **KEPT** | not drawn — no frame pictures the failed-fetch state |
 | footer body `Something broken?` (`COPY.footerLine`) | **KEPT** | drawn on both hub frames |
 | WhatsApp button `Message us on WhatsApp` (`WL.supportAction`, class `wl-supportaction`) | **KEPT** | drawn, class carried byte-for-byte — `b40` C10's tap-target census at `scripts/b40_worklist_shell_bench.js:162` maps this file to this class, and a rename reddens it. The mock must not picture one. |
 | `supportWaNumber()` as the number's declared home | **KEPT** | no seventh home; the mock renders no number |
 | nine R-40.1 rows | **NEW** | `W5-hub` |
 
-**REMOVED-BY-RULING: none.** Nothing on this surface is removed by this sitting.
+**REMOVED-BY-RULING (R-40.23):** the six rows and their six child routes. The eyebrow, the error line and the WhatsApp door stay KEPT.
 
-**The fork this inventory produced, unruled, not picked:** three of the nine plainly overlap three of the six — `Google page`→`Google reviews`, `Website`→`Your website`, `Marketing`→`Posts & ads` — and three do not map at all (`SEO`, which master §4 G3.1 calls a *property* of the website's pages rather than a room; `Proof`; `Benchmarks`, which is master G7's arc). Whether the nine absorb, replace or sit beside the six is architecture nobody has ruled, and the unruled-arm law says the seat names it and stops. `W5-hub` and `W5-hub-today` are drawn as two pictures of two states, never merged into an invented third.
+**The fork this inventory produced is RULED — R-40.23, the founder, 2026-09-04.** The nine replace the six. The succession, nothing listed twice:
+
+| Retired row | Retired route | Successor |
+|---|---|---|
+| `Google page` | `/vendor/support/google` | **Google reviews** |
+| `Website` | `/vendor/support/website` | **Your website** |
+| `SEO` | `/vendor/support/seo` | **Your website** |
+| `Marketing` | `/vendor/support/marketing` | **Posts & ads** |
+| `Proof` | `/vendor/support/proof` | **Your website** |
+| `Benchmarks` | `/vendor/support/benchmarks` | **Open dates & rates** |
+
+Four distinct successors absorb the six, so **five of the nine take no predecessor and inherit no address**: Wedding pages, Contracts & deposits, Payment reminders, Referrals & partners, Your own number. The `SEO`→`Your website` line matches master §4 G3.1, which already calls SEO a *property* of those pages rather than a room of its own. Retirement is the build sitting's: retire with the reader, each old address carrying its named successor, never a commented corpse. `W5-hub` and `W5-hub-today` stay in the file as two pictures of two states — the second is now the record of a retired surface, not a live one.
 
 ---
 
@@ -87,10 +99,10 @@ All three were disclosed in-sitting and accepted by the chair.
 
 ## H4 · WHAT THE FOUNDER'S EYE IS OWED, DRAWN OR NAMED
 
-1. **`W2-grid` vs `W2-grid-wide` is his A/B (R-40.21).** Nothing is ruled by the pair. **Measured, not argued:** 3-up leaves the work band exactly three rows of three and one ragged row in the estate (Advisor alone at the foot). Full-width leaves the eight remaining work tiles at 3·3·2, so the grid carries **two** ragged rows. The full-width tile is a shape the shell has never had; **the build seat reads no ratified tile shape off a comparison frame.**
-2. **`Business Solutions` is the grid's only two-line tile label** at 3-up — 18 characters against `Storefront`'s 10 — and it is now the first thing on the first screen.
+1. **The tile shape is RULED — R-40.22: full-width, one line, no sub-line.** `W2-grid-wide` is the ratified shape; `W2-grid` stays in the file only as the record of the A/B, and the two-line label question dies with it.
+2. **`W2-grid-wide` vs `W2-grid-wide-2` is the open A/B — one wide tile or two.** Nothing is ruled by the pair. **Measured off the shots:** one wide tile leaves work at 3·3·2 and business at 3·3·3·1 — **two** ragged rows. Two wide tiles leave work at 3·3·2 and business at **3·3·3 clean** — one ragged row, and the orphan that has followed the grid since R-37.87 is gone. **The clean row has a cost, visible in the shot:** with business filling three whole rows, the last row's third tile sits under the FAB (`--wl-fab-bottom:136px`) and *Advisor* is occluded. Today's grid and `W2-grid-wide` both end that band on a single left-hand tile, so the FAB has always floated over empty space; removing the orphan is what puts a live tile beneath it. **Needs a finding number and a chair ruling if he answers "two".**
 3. **Eight of nine hub rows read `Coming`.** `support/page.tsx:11–13` records the founder's own reasoning against exactly this shape: displacing the WhatsApp line would have traded *"the one row on this page that reaches a person for six rows that all read `Coming`."* It is now eight of nine. Drawn truthfully so he decides rather than discovers.
-4. **The nine rows carry no eyebrows.** The live idiom has one per row (`ROW_EYEBROWS`); nine are unauthored and are not in the ratified forty. The build charter's.
+4. **The nine rows carry no eyebrows.** The retired idiom had one per row (`ROW_EYEBROWS`); nine are unauthored and outside the ratified forty. The build charter's.
 5. **Tone blocks stand in for photographs (R-G11.8).** The gallery's composition is vetoed on the build's walk against DEV440's real frames (CE-116 clause 3). No frame here is evidence about a photograph.
 6. **Fixture names are mock placeholders.** `Priya & Arjun`, `Dev Roy Photography`, `Makeup by Swati Roy`, `Neha Sharma`, `Rangoli Events`, `Taj Chandigarh`, `14 Feb 2027` are drawn, not derived — this container has no database reach. The build sitting derives the real bytes by founder-run SELECT before authoring them (fixture-state law).
 
@@ -98,7 +110,7 @@ All three were disclosed in-sitting and accepted by the chair.
 
 ## H5 · COPY, AS RATIFIED
 
-All forty strings stand as R-40.18 ratified them, with **#22 `On the page` → `Claimed`** (F-40.23 disposed; #21 `Invited` and #23 `Declined` stand), and **R-40.19 typographic apostrophes** applied across the set. Swept by command: zero straight apostrophes remain in a product string, zero occurrences of `On the page` remain in the file.
+All five surfaces are ratified as drawn (founder, 2026-09-04). All forty strings stand as R-40.18 ratified them, with **#22 `On the page` → `Claimed`** (F-40.23 disposed; #21 `Invited` and #23 `Declined` stand), and **R-40.19 typographic apostrophes** applied across the set. Swept by command: zero straight apostrophes remain in a product string, zero occurrences of `On the page` remain in the file.
 
 Three strings are **reused, never re-authored** — one home each:
 
@@ -113,12 +125,15 @@ Three strings are **reused, never re-authored** — one home each:
 ## H6 · FOR THE BUILD CHARTER — recorded so it is not re-derived
 
 - **R-40.20 moves two homes in one edit.** `lib/worklist/rooms.ts`: `FROZEN_ORDER` index 0 = `support`, band `work`; `TOP_BAND_EXPECTED` 8→9; `BOTTOM_BAND_EXPECTED` 11→10; `ROOM_COUNT_EXPECTED` unmoved at 19. **And** `scripts/b40_worklist_shell_bench.js` C2, whose three-number guard reads **literals deliberately** — its own comment says so, precisely to stop the registry drifting from the ruling by editing its own constants. Moving only `rooms.ts` reddens a correct registry. Cell title amended by label citing R-40.20 — a reorder the founder worded. Arithmetic derived from the registry, not carried: 19 total, 8 work, 11 business at `49e5828`.
-- **Whether the tile keeps the id `support`** is the build seat's read-first fork.
+- **Whether the tile keeps the id `support`** is the build seat's read-first fork. R-40.22 also makes the first tile a **full-width shape the shell has never had**: `.wl-tiles` is a three-column grid and the wide tile spans it (`grid-column:1/-1`). `b40`'s tile census does not know that shape today.
+- **R-40.23's retirement** touches `lib/solutions/routes.ts` (`SURFACE_SLUGS`), `lib/solutions/copy.ts` (`ROWS`, `ROW_EYEBROWS`), `components/solutions/SolutionsPieces.tsx` and six page files under `app/vendor/(shell)/support/`. Retire with the reader; each old address carries its named successor.
+- **The nine rows still carry no eyebrows.** The retired six each had one (`ROW_EYEBROWS`); nine are unauthored and outside the ratified forty.
 - **The address needs a new route:** `app/v/[code]/page.tsx` is a leaf file, so `/v/<code>/w/<slug>` lands at a new `app/v/[code]/w/[slug]/`. No collision; `app/w` does not exist at this tip.
 - **`/credits/<token>` inherits `app/crew/[token]`'s posture** — public capability token, no session, no cookie, no storage, one gold, terracotta decline, and the never-existed ≡ rotated law on a dead token.
 - **The public page loads no webfont in production.** `app/v/[code]/page.tsx`'s stylesheet is deliberately system-stack for a stranger on mobile data. The mock embeds faces so the capture is not a picture of DejaVu; **the shipped page is not obliged to**, and that delta is a decision the build charter owes an answer to.
 - **F-40.21's template** is a fifth the master §6 gate table does not carry, absent on both WABAs, and a Marketing-reclassification candidate on F-19.07's precedent.
-- **F-40.20** — `mock_shot.cjs:64–68`'s census reads 26 frames / 5 files / 78 captures; the tree at `49e5828` holds 37 / 7 / 92, and now 50 / 8 / 123. The proof cell is scoped to a hard-coded `LEGACY` list and does not redden. Post-beta small.
+- **F-40.20** — `mock_shot.cjs:64–68`'s census reads 26 frames / 5 files / 78 captures; the tree now holds 51 / 8 / 125. The proof cell is scoped to a hard-coded `LEGACY` list and does not redden. Post-beta small.
+- **The arm is deterministic**, derived not assumed: a full re-shoot of this file at `3d4ff62` left all 31 banked captures byte-identical (`git status` clean on every one). A rider may re-shoot the whole file without churning committed PNGs.
 
 ---
 
