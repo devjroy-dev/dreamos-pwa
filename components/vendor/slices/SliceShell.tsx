@@ -567,10 +567,26 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   //
   // IT RUNS WHEN THE ROWS DO. `rows` is the dependency because the element cannot be found
   // before the list paints, and a one-shot on mount would silently miss every time.
+  // ── ARM D · EVERY TODAY CARD OPENS ITS RECORD (F-39.68) ──────────────────────────────
+  // The leads card has carried `?lead=<id>` since F-39.17; the other kinds landed on a room
+  // root and left the vendor to find the row he had just tapped. The arm below is the SAME
+  // arm, generalised by one map: each slice names the query key its Today card writes, and
+  // the room the registry gives that kind (ROOM_FOR_KIND) is the room the key is read in.
+  // Uniform on purpose — one reader, one gate, one behaviour to walk.
+  //
+  // `contracts` is absent from the map DELIBERATELY: the contracts room has no record sheet,
+  // so its Today card lands on the room root. That is stated rather than faked with a scroll
+  // (F-39.76 opens the sheet in Block 09).
+  //
+  // `events` reads `?event=` HERE, in the events slice — not CalendarDaySheet, which belongs
+  // to the calendar room. The registry says events_today lives in `events`, and a card may not
+  // send a kind to a room the registry does not name for it (c-P72.19 / c-39.64).
   const focusedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (slice !== 'leads') return;
-    const want = new URLSearchParams(window.location.search).get('lead');
+    const KEY_FOR_SLICE: Record<string, string> = { leads: 'lead', invoices: 'invoice', events: 'event' };
+    const key = KEY_FOR_SLICE[slice];
+    if (!key) return;
+    const want = new URLSearchParams(window.location.search).get(key);
     if (!want || focusedRef.current === want) return;
     if (!rows.some((r) => r.id === want)) return;
     const el = document.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(want)}"]`);
@@ -583,6 +599,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
 
   // Fetch lead detail when a lead row is selected
   useEffect(() => {
+    // The lead DETAIL fetch stays leads-only: it reads the lead conversation endpoint, which
+    // the other slices have no twin for. Opening their record is the sheet; enriching it is not.
     if (slice !== 'leads' || !sel) { setLeadDetail(null); return; }
     setLoadingDetail(true);
     fetchLeadDetail(sel.id).then(res => {

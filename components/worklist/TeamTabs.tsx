@@ -110,6 +110,20 @@ type SheetKind =
 
 export function TeamTabs({ vendorName }: { vendorName: string | null }) {
   const [tab, setTab] = useState<TabId>('team');
+  // ── ARM D · THE TASK CARD LANDS ON ITS TAB (F-39.68) ─────────────────────────────────
+  // Today's task card writes `?task=<id>`. It does NOT open a sheet: `TaskSheet` is the
+  // CREATE sheet (draft + onCreate, opened with EMPTY_TASK), and sending a vendor who tapped
+  // a real task into an empty form is worse than sending him to the room (c-P72.20). What the
+  // room does have is the tab the task lives on, and that is what the key selects — the
+  // record's home, to the depth this room supports today.
+  //
+  // ROW-LEVEL FOCUS IS NOT FAKED: the Team rows carry no per-row anchor, so there is nothing
+  // to scroll to. F-39.85 opens the task record sheet and its anchor in Block 09; until then
+  // this is the honest half, and the founder card says so.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (new URLSearchParams(window.location.search).get('task')) setTab('tasks');
+  }, []);
   const { toast, show } = useToast();
 
   const [members,  setMembers]  = useState<TeamMember[]>([]);

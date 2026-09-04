@@ -1303,8 +1303,15 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // F-38.31 with the sign flipped.
   if (!/COPY\.todayNotLive/.test(today)) return 'the surface does not print the not-reading status';
   if (!/COPY\.todayNothingYet/.test(today)) return 'the true-empty byte has no consumer while the feed answers';
-  if (!/!feed\.responded && <h1[^\n]*todayNotLive/.test(today))
-    return 'the not-reading line is not gated on the absence of a reading';
+  // F-39.72 AMENDMENT (labeled): the gate GREW a second condition. `responded: false` answered
+  // two questions at once — the read failed, and the read has not answered yet — so this line,
+  // which is a claim about the FIRST, rendered during the SECOND on every load. It now waits
+  // for a SETTLED failure. Both halves are asserted: the byte may not render while pending, and
+  // the feed must still distinguish the two states.
+  if (!/!feed\.responded && !feed\.pending && <h1[^\n]*todayNotLive/.test(today))
+    return 'the not-reading line is not gated on a SETTLED absence of a reading (F-39.72)';
+  if (!/pending: boolean/.test(feed)) return 'the feed does not distinguish a pending read from a failed one';
+  if (!/pending: true/.test(feed) || !/pending: false/.test(feed)) return 'the feed declares pending but never sets both states';
   // ⚠ S4/3 · THE BYTE MOVED STATES (D-1/c5) AND THE ASSERTION MOVES WITH IT.
   // 「Nothing needs you yet.」 is the FIRST-RUN status line now, not the resting one. The
   // F-38.31 guard stands in its new place and is the thing this arm holds: `has_any ===
@@ -3250,6 +3257,33 @@ cell('C99 the Report door composes room + build and hands them to the support la
   if (/Nothing is sent until you press send there/.test(sheet)) bad.push('S17 is back: the founder struck it');
   // The register is the shell's one home (C98), not a copy.
   if (!/className="wl-btn pri tdw-rpsend"/.test(sheet)) bad.push('the send does not wear the shell primary register');
+  return bad.length ? bad.join(' | ') : null;
+});
+
+cell('C100 every Today card opens its record, by a key its room reads (Arm D, F-39.68)', () => {
+  // The leads card has carried ?lead= since F-39.17; the others landed on a room root and left
+  // the vendor to find the row he had just tapped. One map on the card side, one map on the
+  // room side, and the registry (ROOM_FOR_KIND) decides which room reads which key.
+  const cards = strip(read('components/worklist/TodayCards.tsx'));
+  const slice = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const team  = strip(read('components/worklist/TeamTabs.tsx'));
+  const bad = [];
+  for (const [kind, key] of [['lead_unanswered', 'lead'], ['invoice_due', 'invoice'],
+                             ['events_today', 'event'], ['team_tasks', 'task']]) {
+    if (!new RegExp(kind + ":\\s*'" + key + "'").test(cards)) bad.push(kind + ' does not write ?' + key + '=');
+  }
+  // contract_unsigned is ABSENT on purpose: the contracts room has no record sheet (F-39.76),
+  // so its card lands on the room root. A key for it would promise a sheet that does not exist.
+  if (/contract_unsigned:\s*'/.test(cards)) bad.push('contract_unsigned writes a key, but the contracts room has no record sheet (F-39.76)');
+  if (!/\?\$\{key\}=\$\{encodeURIComponent\(id\)\}/.test(cards)) bad.push('the card does not encode the id it opens');
+  // The room side: three slices read their key through the ONE arm, same gate as ?lead=.
+  if (!/KEY_FOR_SLICE[\s\S]{0,200}leads: 'lead', invoices: 'invoice', events: 'event'/.test(slice)) bad.push('the slice arm does not declare a key per slice');
+  if (!/const want = new URLSearchParams\(window\.location\.search\)\.get\(key\)/.test(slice)) bad.push('the slice arm does not read the declared key');
+  if (!/if \(row\) setSel\(row\)/.test(slice)) bad.push('the arm does not open the record (it must not enter select-mode)');
+  if (/setSelectMode|setBulk/.test(slice.split('const want = new URLSearchParams')[1]?.slice(0, 400) || '')) bad.push('the arm enters select-mode');
+  // Tasks: the tab, not a sheet \u2014 TaskSheet is the CREATE sheet (c-P72.20, F-39.85).
+  if (!/get\('task'\)\) setTab\('tasks'\)/.test(team)) bad.push('the task key does not select the Tasks tab');
+  if (/get\('task'\)[\s\S]{0,120}setSheet\(/.test(team)) bad.push('the task key opens a sheet: TaskSheet creates tasks, it does not show one (c-P72.20)');
   return bad.length ? bad.join(' | ') : null;
 });
 

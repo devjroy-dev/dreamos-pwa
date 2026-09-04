@@ -143,8 +143,19 @@ function Card({ kind, row, wireToday }: { kind: AttentionKind; row: Record<strin
   // ONE TAP TO THE RECORD (F-39.17). Leads carry the id so the room can open it; the other
   // four land in the room, because none of them has an existing per-record address and
   // inventing one here would be a new door by the back way.
-  const href = kind === 'lead_unanswered'
-    ? `${roomHref(ROOM_FOR_KIND[kind])}?lead=${encodeURIComponent(id)}`
+  // ARM D (F-39.68): every card opens its RECORD, not its room. The key each kind writes is
+  // declared once, beside the kind→room map it travels with; a kind with no key lands on the
+  // room root, which today is `contract_unsigned` (the contracts room has no record sheet —
+  // F-39.76) and is the one case the founder card states rather than demonstrates.
+  const KEY_FOR_KIND: Partial<Record<string, string>> = {
+    lead_unanswered: 'lead',
+    invoice_due:     'invoice',
+    events_today:    'event',
+    team_tasks:      'task',
+  };
+  const key = KEY_FOR_KIND[kind];
+  const href = key
+    ? `${roomHref(ROOM_FOR_KIND[kind])}?${key}=${encodeURIComponent(id)}`
     : roomHref(ROOM_FOR_KIND[kind]);
 
   const redacted = kind === 'lead_unanswered' && row.redacted === true;

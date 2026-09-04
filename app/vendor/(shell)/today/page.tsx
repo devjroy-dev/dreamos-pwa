@@ -82,7 +82,14 @@ export default function TodayPage() {
             day the t1 is `All clear.` inside TodayResting. The WORKING state has none —
             R-39.13: the numeral is the status, and a heading over the cards would be a
             third claim about a fact they already make. */}
-        {!feed.responded && <h1 className="wl-status">{COPY.todayNotLive}</h1>}
+        {/* F-39.72 (founder walk): this line renders on `!responded`, and `responded` was false
+            during the LOAD as well as after a failure — so every visit to Today flashed "isn't
+            reading your work yet" half a second before it read the vendor's work. The claim is
+            about a SETTLED failure, so it now waits for one: `pending` is true from mount until
+            the first reading settles either way. While it is true this surface says NOTHING —
+            the numeral and the cards are absent, which is honest, and a skeleton would be a
+            second claim about a fact not yet in hand (R-38.4: one t1 per surface). */}
+        {!feed.responded && !feed.pending && <h1 className="wl-status">{COPY.todayNotLive}</h1>}
         {firstRun && <h1 className="wl-status">{COPY.todayNothingYet}</h1>}
         <div className="wl-mrule" />
       </section>

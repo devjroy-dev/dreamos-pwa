@@ -52,13 +52,26 @@ import type { AttentionKind, WorklistTodayResponse } from '@/lib/vendor/types/ve
 export interface TodayFeed {
   /** True only when a reading actually came back. Never true by default, ever. */
   responded: boolean;
+  /** F-39.72: `responded: false` answered TWO questions with one flag — "the read failed" and
+   *  "the read has not answered yet" — so the not-live byte, which is a claim about the FIRST,
+   *  rendered during the SECOND. Every load flashed a sentence saying the instrument was not
+   *  reading the vendor's work, half a second before it read it. `pending` is true from mount
+   *  until the first reading settles either way; a surface may say nothing while it is true,
+   *  but it may not say the read failed. */
+  pending: boolean;
   /** The sum of `counts`' five values. `null` whenever `responded` is false — never coerced to 0. */
   openItems: number | null;
   /** The body, for the cards and the tile counts. `null` whenever `responded` is false. */
   today: WorklistTodayResponse | null;
 }
 
-const NO_READING: TodayFeed = { responded: false, openItems: null, today: null };
+// The mount state: not responded, and NOT YET FAILED. Anything that reads `responded` alone
+// still behaves as before; only a surface that asks "has it settled?" sees the difference.
+const NO_READING: TodayFeed = { responded: false, pending: true, openItems: null, today: null };
+// The SETTLED failure: the read came back and it did not answer. This is the only state in
+// which a surface may say the instrument is not reading — and `readToday` must return THIS on
+// every failure path, or `pending` would say "still trying" forever (F-39.72).
+const READ_FAILED: TodayFeed = { responded: false, pending: false, openItems: null, today: null };
 
 /**
  * THE MASTHEAD NUMERAL, DERIVED — §3 property 2.
@@ -133,11 +146,11 @@ export function readToday(): Promise<TodayFeed> {
   if (!pending) {
     pending = fetchWorklistToday()
       .then((body) => (isReading(body)
-        ? { responded: true, openItems: sumCounts(body.counts), today: body }
-        : NO_READING))
+        ? { responded: true, pending: false, openItems: sumCounts(body.counts), today: body }
+        : READ_FAILED))
       // FAIL CLOSED. Every failure mode collapses to 「no reading」, which is the state
       // `todayNotLive` exists for. A caught error must never become a zero.
-      .catch(() => NO_READING);
+      .catch(() => READ_FAILED);
     // F-39.56 · stamped on SETTLE, not on request — an in-flight read is not a fresh
     // one, and a focus arriving mid-flight must not be told the reading is young.
     // Stamped on the failure path too: a fail-closed reading is still a reading that
