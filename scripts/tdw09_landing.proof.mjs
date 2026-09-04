@@ -89,8 +89,8 @@ H('§1 · L-B · TWO DOORS, AND THE CEREMONY IS GONE (R-O3 · R-X10 arm (a))');
 
 const SCREEN_UNION = L.slice(L.indexOf('type Screen ='), L.indexOf('type Role'));
 
-ok('§1.1 the screen union declares EXACTLY SIX screens',
-  (SCREEN_UNION.match(/\|\s*'[a-z_]+'/g) || []).length === 6,
+ok('§1.1 the screen union declares EXACTLY SEVEN screens (L-1 AMENDMENT: + chooser)',
+  (SCREEN_UNION.match(/\|\s*'[a-z_]+'/g) || []).length === 7 && /\|\s*'chooser'/.test(SCREEN_UNION),
   `union declares ${(SCREEN_UNION.match(/\|\s*'[a-z_]+'/g) || []).length}: ${SCREEN_UNION.match(/'[a-z_]+'/g)}`);
 
 for (const dead of ['request_who', 'request_dreamer', 'request_maker', 'request_done', 'invite_code']) {
@@ -101,10 +101,14 @@ for (const dead of ['request_who', 'request_dreamer', 'request_maker', 'request_
 ok('§1.3 the two doors are present, byte-exact, founder-ratified (R-O11 #3)',
   /I&apos;m getting married/.test(read(LANDING)) && /I&apos;m a wedding vendor/.test(read(LANDING)));
 
-ok('§1.4 the VENDOR door wears the gold fill and the couple door does not (R-O11 #3)',
-  /background: '#C9A84C', border: 'none',[\s\S]{0,400}I&apos;m a wedding vendor/.test(read(LANDING)) &&
-  /background: 'transparent',[\s\S]{0,400}I&apos;m getting married/.test(read(LANDING)),
-  'the gold moved off the vendor door, or onto both');
+// L-1 AMENDMENT (labeled): there are TWO door pairs now — the entry panel's (sign-in) and the
+// chooser's (sign-up) — and the rule is the same on both. The old form matched EITHER pair,
+// so mutating one door left it green (§M.2 caught exactly that). The cell now counts: two gold
+// vendor doors, two transparent couple doors, and nothing else wearing the gold fill.
+ok('§1.4 BOTH vendor doors wear the gold fill and neither couple door does (R-O11 #3; L-1: two pairs)',
+  (read(LANDING).match(/background: '#C9A84C', border: 'none',[\s\S]{0,400}I&apos;m a wedding vendor/g) || []).length === 2 &&
+  (read(LANDING).match(/background: 'transparent',[\s\S]{0,400}I&apos;m getting married/g) || []).length === 2,
+  'the gold moved off a vendor door, or onto a couple door');
 
 ok('§1.5 the couple door leads with the PRODUCT — it starts the fold, it does not ask for a phone',
   /setRole\('Dreamer'\); startExploring\(\);/.test(L),
@@ -160,13 +164,20 @@ ok('§3.3 ZERO RENDERED BYTES MOVED WITH THE RENAME — greppable, per R-O4',
 // ═════════════════════════════════════════════════════════════════════════════
 H('§4 · THE SIGN-IN ROLE TRAP IS STILL SHUT (R-O3, ruled with Fork 1)');
 
-ok('§4.1 the role toggle SURVIVES on the sign-in screen',
-  /SIGNIN_ROLES\.map/.test(L) && /onClick=\{\(\) => setRole\(r\.role\)\}/.test(L),
-  'the toggle was removed — chrome Sign in reaches this screen with role null');
+// §4.1/§4.2 INVERTED at L-1 (R-O3 discharged). The toggle and the `!role` guard existed
+// because the old `Already a member?` line entered signin_phone with `setRole(null)`. That
+// line is gone; the two doors preset the role and the `vendor.` subdomain effect presets it
+// too, so NO entry leaves the role unset. The cells now assert the condition that makes the
+// control unnecessary \u2014 which is stricter than asserting the control, because it catches a
+// future entry that forgets the preset.
+ok('§4.1 no entry to signin_phone leaves the role unset (L-1: R-O3 discharged)',
+  !/SIGNIN_ROLES/.test(L) && !/setRole\(null\)/.test(L),
+  'a null-role entry to the sign-in screen is back  handleSignIn would treat a vendor as a couple');
 
-ok('§4.2 the `!role` guard survives on the sign-in submit',
-  /onClick=\{handleSignIn\} disabled=\{phone\.length < country\.maxDigits \|\| !role\}/.test(L),
-  'a null-role sign-in can now be submitted, and handleSignIn would treat it as a couple');
+ok('§4.2 every setScreen(signin_phone) is preceded by a setRole (L-1)',
+  (L.match(/setScreen\('signin_phone'\)/g) || []).length ===
+  (L.match(/setRole\('(?:Dreamer|Maker)'\);\s*setScreen\('signin_phone'\)/g) || []).length,
+  'an entry to the sign-in screen does not preset the role');
 
 ok('§4.3 the trap this guards is real — handleSignIn still derives vendor-ness from role',
   /const isVendor = role === 'Maker';[\s\S]{0,600}auth\/pin-status/.test(L),
@@ -412,14 +423,17 @@ ok('§12.1 the Sign in link is NOT absolutely positioned over the hero',
 // founder's second walk convicted it as a corner nobody reads. These two cells asserted
 // the corner. They now assert the member row, which is the same two facts about the same
 // control: it stands on the panel's backdrop, and it is not a door.
+// L-1 AMENDMENT (labeled): the row changed sides. F-09.46 won this byte its prominence
+// (13px, on the panel's backdrop, verb in gold) and that is unchanged; only the path it names
+// flipped, because the doors above it became sign-in doors.
 ok('§12.2 it stands on the panel\'s own dark backdrop, inside the entry card',
-  /Already a member\?\{' '\}[\s\S]{0,600}>Sign in<\/button>/.test(L),
-  'the member row is gone; whatever Sign in stands on now is unmeasured');
+  /New here\?\{' '\}[\s\S]{0,600}>Sign up<\/button>/.test(L),
+  'the member row is gone; whatever Sign up stands on now is unmeasured');
 
-ok('§12.3 it is still NOT a door — lower weight, beneath the stack, and ONE home only',
-  L.indexOf('>Sign in</button>') > L.indexOf('I&apos;m a wedding vendor') &&
-  (L.match(/>Sign in<\/button>/g) || []).length === 1,
-  'Sign in became a third door, or grew a second home — two homes is how the old panel reached five decisions');
+ok('§12.3 it is still NOT a door  lower weight, beneath the stack, and ONE home only',
+  L.indexOf('>Sign up</button>') > L.indexOf('I&apos;m a wedding vendor') &&
+  (L.match(/>Sign up<\/button>/g) || []).length === 1,
+  'Sign up became a third door, or grew a second home  two homes is how the old panel reached five decisions');
 
 // F-09.43 — the couple door's first paint.
 ok('§12.4 the fold is WARMED AT MOUNT — the door tap does not start the fetch',
@@ -455,9 +469,14 @@ ok('§12.9 the internal Role union is NO LONGER RENDERED as copy',
   !/\}\}>\{r\}<\/button>/.test(L),
   'the type is being printed to users again');
 
-ok('§12.10 the sign-in chips quote THE DOORS, byte-for-byte',
-  /label: "I'm getting married"/.test(L) && /label: "I'm a wedding vendor"/.test(L),
-  'the sign-in vocabulary drifted from the door vocabulary again');
+// §12.10 RETIRED-WITH-THE-READER at L-1. Assertion quoted: '§12.10 the sign-in chips quote THE
+//     DOORS, byte-for-byte'. The chips and their SIGNIN_ROLES declaration retired with the
+//     toggle. The vocabulary it protected is now shared by CONSTRUCTION: the chooser's two
+//     buttons carry the entry doors' bytes verbatim, which §12.10b below asserts.
+ok('§12.10b the CHOOSER quotes the doors, byte-for-byte (L-1)',
+  (L.match(/I&apos;m getting married/g) || []).length === 2 &&
+  (L.match(/I&apos;m a wedding vendor/g) || []).length === 2,
+  'the sign-up vocabulary drifted from the door vocabulary');
 
 // COMMENT-STRIPPED — the THIRD time this sitting that a cell had to be told the
 // difference between a byte and the note recording its removal. The deletion note names
@@ -472,9 +491,13 @@ ok('§12.12 the Role union itself is UNCHANGED — this was a copy cure, not a t
 // ═════════════════════════════════════════════════════════════════════════════
 H('§13 · THE SECOND WALK — F-09.45 · F-09.46 · F-09.47');
 
-ok('§13.1 F-09.47 the fold\'s close MOVES FORWARD — it does not re-ask the door\'s question',
+// L-1 AMENDMENT (labeled): the couple's door byte now appears TWICE by construction \u2014 on the
+// entry panel (the sign-IN door) and on the chooser (the sign-UP door). That is the ruling: the
+// same question, once per path. What F-09.47 forbids is unchanged and still asserted \u2014 the
+// FOLD'S CLOSE must not re-ask it, and neither of the two is the close.
+ok('§13.1 F-09.47 the fold\'s close MOVES FORWARD  it does not re-ask the door\'s question',
   /\}\}>Continue →<\/button>/.test(L) &&
-  (L.match(/I&apos;m getting married/g) || []).length === 1,
+  (L.match(/I&apos;m getting married/g) || []).length === 2,
   'the closing CTA carries the door label again — she is asked twice what she answered once');
 
 ok('§13.2 F-09.47 minted NO new byte — the label is reused from the sign-in submit',
@@ -506,24 +529,24 @@ ok('§13.6 F-09.45 the HERO IS NOT CAPPED — photography stays full-bleed',
 // ═════════════════════════════════════════════════════════════════════════════
 H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS');
 
-okMutate('§M.1 §1.5 reds if the couple door asks for a phone instead of showing work',
-  LANDING, "setRole('Dreamer'); startExploring();", "setRole('Dreamer'); setScreen('join_phone');",
-  () => assert.ok(/setRole\('Dreamer'\); startExploring\(\);/.test(code(LANDING))), '§1.5');
-
+// L-1 AMENDMENT (labeled): the chooser carries the same vendor door, so the old anchor now
+// matches TWICE and okMutate refuses a non-unique anchor — that refusal is why this was
+// caught rather than silently weakened. Narrowed to the ENTRY panel's door by the sign-in
+// handler only it carries; the assertion is unchanged.
 okMutate('§M.2 §1.4 reds if the gold moves off the vendor door',
-  LANDING, "width: '100%', height: 48, background: '#C9A84C', border: 'none',",
-  "width: '100%', height: 48, background: 'transparent', border: 'none',",
-  () => assert.ok(/background: '#C9A84C', border: 'none',[\s\S]{0,400}I&apos;m a wedding vendor/.test(read(LANDING))), '§1.4');
+  LANDING, "setScreen('signin_phone'); }}\n                  style={{\n                    width: '100%', height: 48, background: '#C9A84C', border: 'none',",
+  "setScreen('signin_phone'); }}\n                  style={{\n                    width: '100%', height: 48, background: 'transparent', border: 'none',",
+  () => assert.ok((read(LANDING).match(/background: '#C9A84C', border: 'none',[\s\S]{0,400}I&apos;m a wedding vendor/g) || []).length === 2), '§1.4');
 
 okMutate('§M.3 §2.2 reds if the returning path turns an unknown number away again',
   LANDING, "if (!d.ok || !d.exists) { sendOtp(phone); return; }",
   "if (!d.ok || !d.exists) { return; }",
   () => assert.ok(/if \(!d\.ok \|\| !d\.exists\) \{ sendOtp\(phone\); return; \}/.test(code(LANDING))), '§2.2');
 
-okMutate('§M.4 §4.2 reds if the null-role sign-in guard is dropped',
-  LANDING, "onClick={handleSignIn} disabled={phone.length < country.maxDigits || !role}",
-  "onClick={handleSignIn} disabled={phone.length < country.maxDigits}",
-  () => assert.ok(/disabled=\{phone\.length < country\.maxDigits \|\| !role\}/.test(code(LANDING))), '§4.2');
+// §M.4 RETIRED-WITH-THE-READER at L-1. Assertion quoted: '§M.4 §4.2 reds if the null-role
+//     sign-in guard is dropped'. R-O3's warning was "do not remove either half without
+//     replacing the other"; the replacement is upstream \u2014 every entry to signin_phone now
+//     presets the role, so there is no null-role submit to guard against. Count: 1 retired.
 
 okMutate('§M.5 §5.3 reds if an unrecognised query value starts picking a role',
   LANDING, "else if (q === 'vendor') { setRole('Maker'); setScreen('join_phone'); }",
@@ -590,18 +613,22 @@ okMutate('§M.16 §12.7 reds if the cover blanks on the state flip again',
   "opacity: (screen === 'exploring') ? 0 :",
   () => assert.ok(/opacity: \(screen === 'exploring' && exploringPhotos\.length > 0\) \? 0 :/.test(code(LANDING))), '§12.7');
 
-okMutate('§M.17 §12.9 reds if the Role union is printed to users again',
-  LANDING, '}}>{r.label}</button>', '}}>{r.role}</button>',
-  () => assert.ok(!/\}\}>\{r\.role\}<\/button>/.test(code(LANDING))), '§12.9');
+// §M.17 RETIRED-WITH-THE-READER at L-1. Assertion quoted: '§M.17 §12.9 reds if the Role union
+//     is printed to users again'. It mutated the sign-in CHIPS' label expression
+//     (`}}>{r.label}</button>`), and the chips retired with the toggle (R-O3 discharged: no
+//     entry to signin_phone leaves the role null). The union is no longer printed anywhere,
+//     which is stronger than a mutation proving it is printed correctly. Count: 1 retired.
 
 okMutate('§M.18 §13.1 reds if the close goes back to re-asking the door\'s question',
   LANDING, '}}>Continue →</button>', '}}>I&apos;m getting married</button>',
   () => assert.ok((code(LANDING).match(/I&apos;m getting married/g) || []).length === 1), '§13.1');
 
-okMutate('§M.19 §12.3 reds if Sign in grows a second home',
-  LANDING, '>I&apos;m a wedding vendor</button>',
-  '>I&apos;m a wedding vendor</button><button>Sign in</button>',
-  () => assert.ok((code(LANDING).match(/>Sign in<\/button>/g) || []).length === 1), '§12.3');
+// L-1 AMENDMENT (labeled): re-aimed at the byte that now stands in that row. The assertion is
+// unchanged in kind \u2014 the sign-up door must have exactly ONE home.
+okMutate('§M.19 §12.3 reds if Sign up grows a second home',
+  LANDING, '>I&apos;m a wedding vendor</button>\n                </div>',
+  '>I&apos;m a wedding vendor</button><button>Sign up</button>\n                </div>',
+  () => assert.ok((code(LANDING).match(/>Sign up<\/button>/g) || []).length === 1), '\u00a712.3');
 
 okMutate('§M.20 §13.5 reds if a panel loses the measure',
   LANDING, "{/* F-09.45: the bar spans the viewport, its CONTENTS take the measure. */}\n              <div style={{ maxWidth: COLUMN, margin: '0 auto' }}>",
