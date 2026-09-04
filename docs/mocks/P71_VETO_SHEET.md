@@ -118,3 +118,22 @@ says it and two homes for one number is F-07.15's disease. No count in the label
 **Open question for the founder, not ruled here:** if S19 ships, the same argument applies to the
 Discover row on this screen — it is also an ask, not just a door. This frame deliberately changes
 ONE row so the contrast is visible; a second call on the same screen would flatten it again.
+
+
+### Correction — the dock, c-P72.12 (2026-09-04)
+
+The founder caught a **drawing error** in this frame's bottom chrome: it showed a four-seat dock
+(Today · Books · Studio · Rooms). The shell's dock is **Rooms · Today**, two seats, above the ask
+field (`WorklistShell.tsx:185–188`, `AiDock.tsx`; C23 owns the dock's shape). Nothing in Phase 7
+touches it and nothing was built from the wrong drawing.
+
+**The error was not confined to the new frame.** `P7-badge` and `P7-report` — two of P7.1's FOUR
+RATIFIED frames — carried the same false dock, and it went through the veto pass unremarked.
+All three frames are re-shot here with the derived chrome (the `.wl-dock` ask field and the two
+seats, CSS carried byte-for-byte from `AiDock.tsx`), and the capture now asserts the shape:
+every frame is checked for `seats == ['Rooms','Today']` and a present dock field before the shot
+is written. **S1–S19 are unaffected** — no string moved; the badge sits where it sat, the Report
+sheet is unchanged, the bio call is unchanged above the fold.
+
+Recorded as **c-P72.12**: a mock is a claim about a surface, and a frame that draws chrome the
+surface does not have is a lie the veto pass cannot catch by reading strings alone.

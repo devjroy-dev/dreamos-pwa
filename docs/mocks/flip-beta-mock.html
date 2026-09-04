@@ -35,6 +35,10 @@ body.solo .wl,body.solo .ld{box-shadow:none;border-radius:0}
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
 .wl-main > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
+.wl-dock{flex-shrink:0;padding:8px var(--wl-gutter);background:var(--atelier-header-bg);border-top:.5px solid var(--atelier-card-border)}
+.wl-dockfield{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:999px;padding:10px 8px 10px 16px}
+.wl-dockph{flex:1;font:var(--wl-t3);color:var(--atelier-ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-docksend{width:28px;height:28px;flex-shrink:0;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);display:flex;align-items:center;justify-content:center;font:var(--wl-t4)}
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg)}
 .wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
@@ -162,8 +166,8 @@ body.solo .wl,body.solo .ld{box-shadow:none;border-radius:0}
   <div class="wl-kind"><span>Leads</span><span>Invoices</span><span>Events</span><span>Contracts</span><span>Team</span></div>
   <div class="wl-ghost">A1 body carries here unchanged (D-1, sealed). This frame pins only the masthead row above.</div>
  </div>
- <div class="wl-nav"><div class="wl-seat on">Today</div><div class="wl-seat">Books</div><div class="wl-seat">Studio</div><div class="wl-seat">Rooms</div></div>
-</div>
+ <div class="wl-dock"><div class="wl-dockfield"><span class="wl-dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="wl-docksend">&uarr;</span></div></div>
+ <div class="wl-nav"><div class="wl-seat">Rooms</div><div class="wl-seat on">Today</div></div></div>
 </div>
 
 <div class="framewrap" data-frame="P7-report">
@@ -177,8 +181,8 @@ body.solo .wl,body.solo .ld{box-shadow:none;border-radius:0}
   <div class="wl-mnum">4</div>
   <div class="wl-greet">Good morning, Dev. Four things want you.</div>
  </div>
- <div class="wl-nav"><div class="wl-seat on">Today</div><div class="wl-seat">Books</div><div class="wl-seat">Studio</div><div class="wl-seat">Rooms</div></div>
- <div class="wl-drawerscrim"></div>
+ <div class="wl-dock"><div class="wl-dockfield"><span class="wl-dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="wl-docksend">&uarr;</span></div></div>
+ <div class="wl-nav"><div class="wl-seat">Rooms</div><div class="wl-seat on">Today</div></div> <div class="wl-drawerscrim"></div>
  <div class="wl-drawer">
   <div class="wl-dsec">Account</div>
   <div class="wl-drow"><span class="wl-dlabel">Settings</span></div>
@@ -226,7 +230,8 @@ body.solo .wl,body.solo .ld{box-shadow:none;border-radius:0}
   <div class="sf-item"><span class="sf-gl">▣</span><div style="flex:1"><div class="sf-il">Portfolio</div><div class="sf-id">images and photo library</div></div><span class="sf-chev">›</span></div>
   <div class="sf-item"><span class="sf-gl">◈</span><div style="flex:1"><div class="sf-il">Discover</div><div class="sf-id">your profile on The Dream Wedding</div></div><span class="sf-chev">›</span></div>
  </div>
- <div class="wl-nav"><div class="wl-seat">Today</div><div class="wl-seat">Books</div><div class="wl-seat on">Studio</div><div class="wl-seat">Rooms</div></div>
+ <div class="wl-dock"><div class="wl-dockfield"><span class="wl-dockph">Ask TDW &mdash; &ldquo;Am I free on 14 Feb?&rdquo;</span><span class="wl-docksend">&uarr;</span></div></div>
+ <div class="wl-nav"><div class="wl-seat">Rooms</div><div class="wl-seat">Today</div></div>
 </div>
 </div>
 
