@@ -1,0 +1,66 @@
+# scripts/floor-manifest-g11-micro.txt
+# BLOCK 19 · G1.1 — THE WALK-FINDING MICRO. Declared dirt.
+#
+# BASE: dreamos-pwa 1961164 (NOT ae30180 — the pwa half is banked; this cuts
+# against the tip it created). dream-os sibling at 3a35567.
+#
+# Three changes, every one of them born on the founder's own walk rather than
+# in a charter:
+#   · ARM C — the live hub row carries `Open`. R-39.15: the walk outranks the
+#     frame. `W5-hub` drew it BARE and the reasoning was sound on a screenshot;
+#     on glass, beside eight `Coming` rows, the only WORKING row was the only
+#     one with nothing on its right and read as a heading.
+#   · R-40.26 — R3 becomes `Your website & SEO`. Four words, which costs nothing
+#     new: R-19.6's "≤2 words" and the bs_audit C6 cell that pinned it already
+#     retired under R-G11.25.
+#   · e-8's cure — the events read goes through the estate's typed helper.
+#
+# TWO BYTES NOW DEPART FROM THE RATIFIED MOCK BY RULING, and b42 registers them
+# BY VALUE so the exception is exactly two strings wide and pinned BOTH WAYS:
+# revert either to the mock's own byte and the carve-out reds as stale.
+
+# ── ARM C  [founder-vetoed 2026-09-05, from docs/mocks/g11-hub-row-rider.html] ──
+components/solutions/SolutionsPieces.tsx
+
+# ── ARM C's chip byte + R-40.26's label. One home for the nine, one for CHIPS. ──
+lib/solutions/copy.ts
+
+# ── e-8 · THE EVENTS READ  [the 404 the founder walked into] ────────────────
+# `GET /api/v2/vendor/events` 404s; the door is `/events/:vendorId` and always
+# was, and `lib/vendor/api/vendor.ts` already held a typed helper for it. The
+# protocol's §6 says to read the handler before writing any frontend call; I had
+# read that file and then did the thing it forbids.
+# The same read killed a second defect: the client-side `deleted_at` filter was
+# dead code twice over — the door already carries `.is('deleted_at', null)` AND
+# does not project the column, so the predicate tested a field that never
+# arrives. F-40.33's real protection is in the CREATE DOOR, where it belongs.
+app/vendor/(shell)/wedding-pages/page.tsx
+
+# ── THE INSTRUMENTS, AMENDED BY LABEL ───────────────────────────────────────
+# b42: C3's label list moves with R-40.26 (two homes, one edit); C4's chip cell
+# is RE-AIMED rather than deleted — it now pins that the chip TRACKS the
+# destination, so a row going nowhere can never wear `Open`; C7 registers the
+# two ruled departures and pins the carve-out both ways.
+# bs_audit C8: a chip beyond spec §9's six is now one of TWO things and the cell
+# says which — `Open` is VETOED, `coming` is still PROPOSED under R-19.5.
+# Printing both as "awaiting veto" is how a veto gets asked for twice.
+scripts/b42_g11_wedding_pages_bench.js
+tools/bs_audit.mjs
+
+# ── THE CENSUS ARTEFACT, REGENERATED — AND WHY IT WAS WRONG  [e-10] ─────────
+# `tdw_stripper_census.mjs` scans `git ls-files`, which lists the INDEX and NOT
+# untracked files. I regenerated it in the pwa half while my new files were
+# still untracked, so the committed artefact undercounted by exactly those
+# files: 208 against a live 213, and `tdw_f3942_census_guard` has been RED at
+# the banked tip ever since. THE LAW THIS EARNS: a census keyed on `git
+# ls-files` is regenerated AFTER staging, never before — otherwise it measures
+# the tree the author had, not the tree the estate gets.
+# Regenerated here by the census's own `--write` step, at a tip where every file
+# is tracked. Guard green.
+scripts/tdw_stripper_census.out.txt
+
+# ── THE HANDOVER, AMENDED IN PLACE ──────────────────────────────────────────
+docs/TDW_19_G11_BUILD_HANDOVER.md
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g11-micro.txt

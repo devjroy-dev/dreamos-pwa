@@ -66,9 +66,16 @@ export function StateChip({ state }: { state: ChipKey }) {
  * frame draws these eight as plain rows with a `Coming` chip, so a `<div>` is
  * what they are.
  *
- * The chip is omitted entirely for a live row rather than set to some 'open'
- * state: the mock draws `Wedding pages` with NO chip, and a chip that says
- * nothing is chrome (F-38.31's class — never a `0` standing in for a count).
+ * ⚠ THE LIVE ROW CARRIES `Open`, AND THAT REVERSES THE MOCK — founder-ruled on
+ * his walk, 2026-09-05. The frame drew it bare and the reasoning was sound on a
+ * screenshot: a chip that says nothing is chrome. On glass it failed, because
+ * beside eight `Coming` rows the one working row was the only one with nothing
+ * on its right and read as a heading. The walk outranks the frame (R-39.15).
+ *
+ * The two chips differ by INK as well as word — `Open` takes the accent, the
+ * ink every live control on this shell already wears; `Coming` stays dim. A
+ * reader scanning the column sees one bright chip among eight quiet ones before
+ * reading a single word.
  */
 export function RoomRow({
   href, label,
@@ -78,7 +85,7 @@ export function RoomRow({
       <span className="sol-rowtext">
         <span className="sol-rowlabel">{label}</span>
       </span>
-      {href ? null : <StateChip state="coming" />}
+      <StateChip state={href ? 'open' : 'coming'} />
     </>
   );
   return href
@@ -160,6 +167,9 @@ export function SolutionsStyles() {
 .sol-chip--expired{color:var(--role-critical);border-color:var(--role-critical)}
 /* The only chip that describes us rather than her — quietest of the seven. */
 .sol-chip--coming{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border)}
+/* Founder-vetoed 2026-09-05. The accent, because this is the one row that goes
+   somewhere; the dim chip beside it is the contrast that makes it read. */
+.sol-chip--open{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 
 .sol-surface{display:flex;flex-direction:column;padding-top:16px;padding-bottom:28px}
 .sol-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;

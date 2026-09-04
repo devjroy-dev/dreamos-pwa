@@ -122,6 +122,57 @@ Fixture derived by SELECT, never recalled: owner **DEV440** `Dev Roy Photography
 
 ---
 
+## H6b · THE WALK, AND THE THREE THINGS IT CHANGED (2026-09-05)
+
+The founder walked the estate on `1961164` and steps 1 and 2 held: both wide
+tiles render full-width at the head of their bands, work falls 3·3·2 and business
+3·3·3 clean, the nine rows stand with the WhatsApp door at the foot, and no
+retired row survives. Three findings came off the glass that no bench could have
+produced:
+
+- **F-40.41 · `GET /api/v2/vendor/events` 404s.** The door is `/events/:vendorId`
+  and always was, and `lib/vendor/api/vendor.ts` already held a typed helper. The
+  protocol's §6 requires reading the handler before writing any frontend call;
+  this seat had read that file and then did the thing it forbids. **e-8, owned.**
+  The same read killed a second defect: the client-side `deleted_at` filter was
+  dead code twice over — the door already carries `.is('deleted_at', null)` and
+  does not project the column, so the predicate tested a field that never
+  arrives. F-40.33's real protection is in the create door, where it belongs.
+- **ARM C · the live hub row now carries `Open`.** `W5-hub` drew it bare and the
+  reasoning was sound on a screenshot — a chip that says nothing is chrome. On
+  glass it failed: beside eight `Coming` rows, the one **working** row was the
+  only one with nothing on its right and read as a heading. **R-39.15 — the
+  rendered surface outranks the instrument reasoning about it, and that includes
+  a ratified frame.** Founder-vetoed 2026-09-05 from the four-arm rider
+  `docs/mocks/g11-hub-row-rider.html`; the arms he refused (a chevron, the label
+  in the accent, both together) are drawn there so the choice is on the record.
+- **R-40.26 · R3 becomes `Your website & SEO`**, amending R-40.1 for that room
+  alone. Four words, which costs nothing new: R-19.6's "≤2 words" and the
+  `bs_audit` C6 cell that pinned it retired under R-G11.25.
+
+**TWO BYTES NOW DEPART FROM THE RATIFIED MOCK BY RULING** — `Open` and
+`Your website & SEO`. No re-shoot is owed on either (founder's word). `b42`
+registers them **by value**, so the exception is exactly two strings wide and is
+pinned **both ways**: revert either to the mock's own byte and the carve-out reds
+as stale. Every other string is still a BOUNCE if it is not in the mock.
+
+- **e-9 · an interrupted seat cannot tell its own unbanked work from found
+  code.** The transcript is its only memory. This sitting was stopped mid-edit;
+  on resuming, three files carried Arm C in this seat's voice with citations it
+  could not account for, and it held the tree under CE-50/Ruling №6 rather than
+  adopt them. The founder accounted for it in one line. Holding was right — the
+  cost is asymmetric — but the honest framing was *"I believe these are mine and
+  cannot prove it"*, not *"I have no record"*. The cheap standing cure is a
+  `git stash` before any pause, or simply telling a stopped seat that it was
+  stopped.
+- **e-10 · a census keyed on `git ls-files` must be regenerated AFTER staging.**
+  `tdw_stripper_census.out.txt` was regenerated in the pwa half while this
+  seat's new files were still untracked, so the committed artefact undercounted
+  by exactly those files — 208 against a live 213 — and
+  `tdw_f3942_census_guard` has been RED at the banked tip ever since. It
+  measured the tree the author had, not the tree the estate got. Regenerated
+  here by the census's own `--write` step at a tip where every file is tracked.
+
 ## H7 · OPEN, HANDED FORWARD
 
 - **F-40.28** — `GET /api/v2/vendor/solutions` has zero product readers after the pwa half, but **eight routes, three files, one green bench (`b43`) and one comment reference**. R-G11.18's condition fails; nothing deleted; post-beta.

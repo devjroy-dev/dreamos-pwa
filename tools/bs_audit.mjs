@@ -309,9 +309,19 @@ console.log('');
     const vals = [...block[1].matchAll(/:\s*'([^']*)'/g)].map((m) => m[1]);
     const missing = SPEC9.filter((v) => !vals.includes(v));
     const beyond  = vals.filter((v) => !SPEC9.includes(v));
+    // AMENDED, LABELLED — 2026-09-05. A chip beyond spec §9's six is now one of
+    // TWO things and the cell says which: `Open` was vetoed by the founder on
+    // his G1.1 walk, `coming` is still a proposal under R-19.5. Printing both as
+    // "awaiting veto" would have been false about one of them, and a line that
+    // is false about a byte the founder already ruled is how a veto gets asked
+    // for twice.
+    const VETOED_BEYOND = ['Open'];
+    const vetoed   = beyond.filter((v) => VETOED_BEYOND.includes(v));
+    const proposed = beyond.filter((v) => !VETOED_BEYOND.includes(v));
     if (missing.length) F('C8  chips cover spec \u00a79', 'missing: ' + missing.join(', '));
     else P('C8  chips cover spec \u00a79',
-           `all six present${beyond.length ? ' \u00b7 PROPOSED BEYOND THE APPROVED SET, awaiting veto: ' + beyond.join(', ') : ''}`);
+           `all six present${vetoed.length ? ' \u00b7 VETOED beyond the set: ' + vetoed.join(', ') : ''}` +
+           `${proposed.length ? ' \u00b7 PROPOSED, awaiting veto: ' + proposed.join(', ') : ''}`);
   }
 }
 

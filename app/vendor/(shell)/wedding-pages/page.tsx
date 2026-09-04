@@ -30,6 +30,13 @@ import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
+// ⚠ THE EVENTS READ GOES THROUGH THE ESTATE'S TYPED HELPER, NOT A HAND-WRITTEN
+// PATH. `lib/vendor/api/vendor.ts:3` states the rule in its own header: screen
+// components import from here, never raw fetch. e-8 in this sitting is what
+// ignoring it costs — a hand-written `/api/v2/vendor/events` 404'd on the
+// founder's walk, because the door is `GET /events/:vendorId` and always has
+// been. The helper knew that; my path did not.
+import { fetchEvents } from '@/lib/vendor/api/vendor';
 import { API } from '@/lib/solutions/routes';
 import { WP, ROLE_OPTIONS } from '@/lib/worklist/weddingPages';
 
@@ -41,17 +48,17 @@ type Credit = {
   id: string; role: string; name: string | null; phone: string | null;
   status: string; claim_url: string;
 };
-type EventRow = { id: string; title: string; event_date: string };
+type EventRow = { id: string; title: string; event_date: string; state: string };
 
 export default function WeddingPagesPage() {
   const router = useRouter();
   const { session, loading } = useVendorSession();
   useEffect(() => { if (!loading && !session) router.replace('/'); }, [loading, session, router]);
   if (loading || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
-  return <WeddingPagesScreen />;
+  return <WeddingPagesScreen session={session} />;
 }
 
-function WeddingPagesScreen() {
+function WeddingPagesScreen({ session }: { session: { id: string } }) {
   const [rows, setRows] = useState<Wedding[] | null>(null);
   const [sheet, setSheet] = useState<'none' | 'create' | 'credits'>('none');
   const [active, setActive] = useState<Wedding | null>(null);
@@ -102,7 +109,7 @@ function WeddingPagesScreen() {
       <button type="button" className="wl-fab" aria-label={WP.fabLabel} onClick={() => setSheet('create')}>+</button>
 
       {sheet === 'create' ? (
-        <CreateSheet onClose={() => setSheet('none')} onSaved={() => { setSheet('none'); void load(); }} />
+        <CreateSheet vendorId={session.id} onClose={() => setSheet('none')} onSaved={() => { setSheet('none'); void load(); }} />
       ) : null}
       {sheet === 'credits' && active ? (
         <CreditsSheet wedding={active} onClose={() => setSheet('none')} onChanged={() => { void load(); }} />
@@ -140,7 +147,7 @@ function Row({ w, onOpen }: { w: Wedding; onOpen: () => void }) {
   );
 }
 
-function CreateSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose: () => void; onSaved: () => void }) {
   const [events, setEvents] = useState<EventRow[] | null>(null);
   const [eventId, setEventId] = useState('');
   const [title, setTitle] = useState('');
@@ -152,17 +159,25 @@ function CreateSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
   useEffect(() => {
     (async () => {
       try {
-        const r = await getJson<{ ok: boolean; events: EventRow[] }>('/api/v2/vendor/events');
-        // ── F-40.33 · SOFT-DELETED EVENTS NEVER REACH THE PICKER ─────────────
-        // Derived from the fixture, not imagined: DEV440's `Blocked` event is
-        // soft-deleted and STILL reads state='upcoming'. The door refuses one
-        // too (belt and braces, both keyed on `deleted_at` rather than state) —
-        // but a picker that OFFERS a deleted day and then 404s is a worse
-        // surface than one that never offers it.
-        setEvents((r.events || []).filter((e) => !(e as unknown as { deleted_at?: string }).deleted_at));
+        // ── F-40.33, CORRECTED AT THE WALK ───────────────────────────────────
+        // The first cut filtered `deleted_at` HERE. That was dead code twice
+        // over: the door's read already carries `.is('deleted_at', null)`
+        // (src/api/vendor/events.js:262) AND it does not project the column at
+        // all, so the predicate tested a field that never arrives. Derived by
+        // reading the handler, which is what the protocol asks for before any
+        // frontend call is written. F-40.33's real protection lives where it
+        // belongs — in the CREATE DOOR, which re-checks `deleted_at` on the id
+        // it is handed and cannot be talked out of it by a stale picker.
+        //
+        // `state='all'` because a wedding page is finished work and a delivered
+        // event may be `done`, while every DEV440 fixture row is `upcoming`;
+        // one call covers both. CANCELLED is dropped — a cancelled event cannot
+        // be a wedding, and offering one is a door that 404s on tap.
+        const r = await fetchEvents(vendorId, 'all');
+        setEvents((r.events || []).filter((e) => e.state !== 'cancelled') as EventRow[]);
       } catch { setEvents([]); }
     })();
-  }, []);
+  }, [vendorId]);
 
   async function save() {
     if (busy || !eventId || !title.trim()) return;

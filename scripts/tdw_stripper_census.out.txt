@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: ae3018088d66b711c455806491308d0fdaf5a1b3
-files scanned: 348
+repo tip: 1961164daf6b69db11edac6a266bc2abc8e87178
+files scanned: 353
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -135,18 +135,21 @@ components/frost/blooms/muse.tsx
    FALSE OPEN  :294   …Ref} type="file" accept="image/*" mu
 
 components/solutions/SolutionsPieces.tsx
-   FALSE OPEN  :140   …r);touch-action:manipulation}\n/* Fou
-   FALSE OPEN  :161   …r-color:var(--role-critical)}\n/* The
-   FALSE OPEN  :189   …nt-text);outline-offset:2px}\n /* F-1
-   FALSE OPEN  :198   …6px 0 0;word-break:break-all}\n/* F-1
-   FALSE CLOSE :145   … of the negotiation entirely. */\n.so
-   FALSE CLOSE :161   … her — quietest of the seven. */\n.so
-   FALSE CLOSE :192   …, not merely behave that way. */\n.so
-   FALSE CLOSE :199   …land on DEPLOYMENT_NOT_FOUND. */\n.so
-   BITE 1: chars 6077-6530  lines 140-145  span 453  LIVE 453
-   BITE 2: chars 7559-7637  lines 161-161  span 78  LIVE 78
-   BITE 3: chars 9289-9562  lines 189-192  span 273  LIVE 273
-   BITE 4: chars 9828-9986  lines 198-199  span 158  LIVE 158
+   FALSE OPEN  :147   …r);touch-action:manipulation}\n/* Fou
+   FALSE OPEN  :168   …r-color:var(--role-critical)}\n/* The
+   FALSE OPEN  :170   …r:var(--atelier-card-border)}\n/* Fou
+   FALSE OPEN  :199   …nt-text);outline-offset:2px}\n /* F-1
+   FALSE OPEN  :208   …6px 0 0;word-break:break-all}\n/* F-1
+   FALSE CLOSE :152   … of the negotiation entirely. */\n.so
+   FALSE CLOSE :168   … her — quietest of the seven. */\n.so
+   FALSE CLOSE :171   … contrast that makes it read. */\n.so
+   FALSE CLOSE :202   …, not merely behave that way. */\n.so
+   FALSE CLOSE :209   …land on DEPLOYMENT_NOT_FOUND. */\n.so
+   BITE 1: chars 6510-6963  lines 147-152  span 453  LIVE 453
+   BITE 2: chars 7992-8070  lines 168-168  span 78  LIVE 78
+   BITE 3: chars 8159-8314  lines 170-171  span 155  LIVE 155
+   BITE 4: chars 9968-10241  lines 199-202  span 273  LIVE 273
+   BITE 5: chars 10507-10665  lines 208-209  span 158  LIVE 158
 
 components/worklist/AccountDrawer.tsx
    FALSE OPEN  :220   …und:var(--atelier-row-hover)}\n/* F-3
@@ -307,8 +310,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 85 · false closes: 78
-false bites the RETIRED rule would take: 79 · span 37901 · LIVE CODE 37807
+false opens: 86 · false closes: 79
+false bites the RETIRED rule would take: 80 · span 38056 · LIVE CODE 37962
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
@@ -343,4 +346,4 @@ false bites the RETIRED rule would take: 79 · span 37901 · LIVE CODE 37807
    29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 208 file(s).
+   the retired naive rule disagrees with the compiler on 213 file(s).

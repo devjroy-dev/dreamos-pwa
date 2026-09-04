@@ -46,6 +46,20 @@ export const CHIPS = {
   live:            'Live',
   expired:         'Expired',
   coming:          'Coming',
+  /**
+   * ⚠ `Open` IS A NEW BYTE AND IT IS FOUNDER-VETOED — 2026-09-05, on his walk,
+   * from the four-arm rider `docs/mocks/g11-hub-row-rider.html`. It is NOT a
+   * proposal awaiting a pass like `coming` is, and `bs_audit` C8 is amended by
+   * label to say which of the two each extra chip is.
+   *
+   * BORN OF THE WALK, NOT THE MOCK. `W5-hub` drew the live row with NO chip, on
+   * the reasoning that a chip saying nothing is chrome. That read correctly on a
+   * screenshot and failed on glass: beside eight `Coming` rows, the one WORKING
+   * row was the only one with nothing on its right, so it read as a heading
+   * rather than a door. R-39.15 — the rendered surface outranks the instrument
+   * reasoning about it, and that includes a ratified frame.
+   */
+  open:            'Open',
 } as const;
 
 /** Spec §9's buttons, verbatim. Verbs, ≤2 words. */
@@ -77,7 +91,22 @@ export const BUTTONS = {
 export const ROOM_ROWS = [
   { key: 'wedding_pages', label: 'Wedding pages' },
   { key: 'google',        label: 'Google reviews' },
-  { key: 'website',       label: 'Your website' },
+  // ⚠ R-40.26 — FOUNDER-RULED 2026-09-05, AMENDING R-40.1 FOR R3 ALONE.
+  // `Your website` becomes `Your website & SEO`. The other eight stand, and
+  // R-40.23's mapping is unchanged: Website -> here, SEO -> here, Proof -> here.
+  // Three retired rows land on this one successor, and the name now says so.
+  //
+  // THIS BYTE DEPARTS FROM THE RATIFIED MOCK BY RULING. `W5-hub` draws
+  // `Your website`; the founder's word of 2026-09-05 supersedes the frame on
+  // this one string and NO RE-SHOOT IS OWED (his ruling). `b42` C3's list is
+  // amended in the same edit and its C7 pin excludes it BY NAME, so the mock
+  // stays the authority for every byte except the two that were ruled past it.
+  //
+  // FOUR WORDS, AND THAT COSTS NOTHING NEW: R-19.6's "≤2 words" rule and the
+  // `bs_audit` C6 cell that pinned it already retired under R-G11.25, because
+  // four of R-40.1's nine broke it by the founder's word. This lands in the
+  // space that ruling cleared.
+  { key: 'website',       label: 'Your website & SEO' },
   { key: 'contracts',     label: 'Contracts & deposits' },
   { key: 'reminders',     label: 'Payment reminders' },
   { key: 'posts',         label: 'Posts & ads' },

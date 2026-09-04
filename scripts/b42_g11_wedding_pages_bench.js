@@ -96,11 +96,18 @@ sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
 sec('C3 \u00b7 the hub (R-40.23)');
 {
   const copy = read(SOLCOPY);
+  // R-40.26 lands in ROOM_ROWS; the chip lands in CHIPS. Both are read here so
+  // the two ruled departures have one register between them.
+  ok('the Open chip is declared (Arm C, founder-vetoed 2026-09-05)', /open:\s*'Open'/.test(copy));
   const rm = copy.match(/ROOM_ROWS = \[([\s\S]*?)\] as const;/);
   const labels = rm ? [...rm[1].matchAll(/label: '([^']+)'/g)].map((x) => x[1]) : [];
   ok('nine rows', labels.length === 9, String(labels.length));
   ok('the nine are R-40.1\'s, in order',
-    labels.join('|') === "Wedding pages|Google reviews|Your website|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Open dates & rates|Your own number",
+    // AMENDED, LABELLED — R-40.26 (founder, 2026-09-05): R3 alone becomes
+    // `Your website & SEO`; the other eight stand. Both homes move in one edit,
+    // exactly as C2 does for the registry's three numbers — a list retyped here
+    // and a list in the copy home are two places to spell one ruling.
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Open dates & rates|Your own number",
     labels.join('|'));
   ok('ROWS is gone', !/export const ROWS\b/.test(copy));
   ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));
@@ -133,8 +140,19 @@ sec('C4 \u00b7 the eight are not links');
   // own comment EXPLAINING why aria-disabled is refused — the prohibition
   // reported as the breach. Third sighting of that class in this arc.
   ok('no aria-disabled anywhere in the row', !/aria-disabled/.test(strip(pieces)));
-  ok('the chip is drawn ONLY for a row with no destination',
-    /\{href \? null : <StateChip state="coming" \/>\}/.test(pieces));
+  // ── AMENDED, LABELLED — ARM C (founder, 2026-09-05) ──────────────────────
+  // This cell read: the chip is drawn ONLY for a row with no destination. That
+  // was the mock's shape and the founder's walk REVERSED it — bare, the one
+  // working row read as a heading beside eight `Coming` rows. Every row now
+  // carries a chip and the two differ by WORD AND INK.
+  //
+  // The assertion is not weakened, it is re-aimed: it now pins that the chip
+  // TRACKS the destination, so a row that goes nowhere can never wear `Open`.
+  // That is the property worth guarding; "exactly one chip exists" never was.
+  ok('every row carries a chip, and its word tracks the destination',
+    /<StateChip state=\{href \? 'open' : 'coming'\} \/>/.test(pieces));
+  ok('a row with no destination can never wear Open',
+    !/state="open"/.test(pieces) && !/state=\{'open'\}/.test(pieces));
   const hub = strip(read(HUB));
   ok('only wedding_pages receives an href',
     /r\.key === 'wedding_pages' \? WEDDING_PAGES_HREF : undefined/.test(hub));
@@ -205,8 +223,35 @@ sec('C7 \u00b7 the copy is pinned against the mock');
   const mockPlain = mock.replace(/&amp;/g, '&').replace(/&middot;/g, '\u00b7')
                         .replace(/&rsquo;/g, '\u2019').replace(/&eacute;/g, '\u00e9')
                         .replace(/&times;/g, '\u00d7');
-  const missing = strings.map(decode).filter((s) => !mockPlain.includes(s));
-  ok('every room string appears verbatim in the ratified mock', missing.length === 0, missing.join(' | '));
+  // ── THE TWO RULED DEPARTURES, NAMED — NOT A LOOSENED PIN ──────────────────
+  // The mock is the authority for every byte EXCEPT two the founder ruled past
+  // it on his walk of 2026-09-05. They are listed BY VALUE so the exception is
+  // exactly two strings wide and cannot quietly become a general amnesty:
+  //   · `Open`              — Arm C. `W5-hub` drew the live row BARE; on glass,
+  //                           beside eight `Coming` rows, the one working row
+  //                           read as a heading. R-39.15: the walk outranks the
+  //                           frame. (It lives in CHIPS, not in this file, and
+  //                           is listed here so the register is in one place.)
+  //   · `Your website & SEO` — R-40.26, amending R-40.1 for R3 alone.
+  // NO RE-SHOOT IS OWED on either (his ruling). Anything else absent from the
+  // mock is still a BOUNCE, and this cell still reds on it.
+  const RULED_PAST_THE_MOCK = ['Open', 'Your website & SEO'];
+  const missing = strings.map(decode)
+    .filter((s) => !RULED_PAST_THE_MOCK.includes(s))
+    .filter((s) => !mockPlain.includes(s));
+  ok('every room string appears verbatim in the ratified mock, bar the two ruled past it',
+    missing.length === 0, missing.join(' | '));
+  // The exception is PINNED BOTH WAYS: if a ruled departure is ever reverted to
+  // the mock's own byte, this reds — so the list cannot rot into a stale carve-out
+  // that excuses strings nobody ruled.
+  // ⚠ AS A WHOLE TEXT NODE, NOT AS A SUBSTRING. The first cut asked
+  // `mockPlain.includes('Open')` and reddened — because `Open` sits inside the
+  // mock's own row label `Open dates & rates`. A containment test cannot tell a
+  // string from a fragment of a different string, and the question this cell
+  // actually asks is "does the mock RENDER this byte" — which is a text node.
+  const stale = RULED_PAST_THE_MOCK.filter((s) => mockPlain.includes('>' + s + '<'));
+  ok('the ruled departures really do depart (the carve-out is not stale)',
+    stale.length === 0, stale.join(' | '));
   ok('the waiting line carries a TYPOGRAPHIC apostrophe (R-40.19)',
     /waitingOnCouple:\s+'Waiting on the couple\\u2019s permission\.'/.test(wp));
   ok('zero straight apostrophes in a product string',
@@ -290,6 +335,10 @@ if (process.argv.includes('--mutate')) {
       "  return <Link href={href ?? '#'} className=\"sol-row\">{body}</Link>;"],
     [WPCOPY, 'a role label drifts from the dream-os home',
       "{ key: 'decor',     label: 'D\\u00e9cor' },", "{ key: 'decor',     label: 'Decor' },"],
+    [SOLCOPY, 'R-40.26 is reverted \u2014 row three loses & SEO',
+      "{ key: 'website',       label: 'Your website & SEO' },", "{ key: 'website',       label: 'Your website' },"],
+    [PIECES, 'the live row loses its chip \u2014 the walk finding returns',
+      "<StateChip state={href ? 'open' : 'coming'} />", "{href ? null : <StateChip state=\"coming\" />}"],
     [WPCOPY, 'a room byte is re-voiced away from the mock',
       "emptyHead:         'No wedding pages yet.',", "emptyHead:         'Nothing here yet.',"],
     [WPCOPY, 'the waiting line loses its typographic apostrophe (R-40.19)',
