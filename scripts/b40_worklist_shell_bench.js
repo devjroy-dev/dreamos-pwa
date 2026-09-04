@@ -3138,6 +3138,16 @@ cell('C95 the (legacy) pages follow the shell\'s mode  one reader, no writer of 
   if (!/classList\.toggle\('theme-light', readModeClient\(\) === 'light'\)/.test(lay)) bad.push('(legacy) layout does not set html.theme-light from the shell\'s mode');
   if (!/<ThemeProvider>/.test(lay)) bad.push('(legacy) layout does not mount the provider the eight pages read');
   if (/localStorage\.setItem/.test(lay)) bad.push('(legacy) layout writes storage: the lane key has no writer by ruling');
+  // The walk's second reading: Header mounts after the page's data and its useTheme() re-read
+  // the lane key, undoing the layout's class. Both late readers now let the shell's cookie
+  // outrank the key. A writer of the cookie or the key in either file is a stray.
+  for (const [file, label] of [['hooks/vendor/useTheme.ts', 'useTheme'], ['lib/vendor/ThemeContext.tsx', 'ThemeProvider']]) {
+    const src = strip(read(file));
+    if (!/readShellModeCookie\(\) \?\? /.test(src)) bad.push(label + ' does not let the shell\'s cookie outrank the lane key on mount');
+    if (/document\.cookie\s*=/.test(src)) bad.push(label + ' writes the shell\'s cookie: writeMode is the one writer');
+  }
+  const mode = strip(read('lib/worklist/mode.ts'));
+  if (!/export function readShellModeCookie\(\): WlMode \| null/.test(mode)) bad.push('mode.ts has no cookie-only reader that can say absent');
   return bad.length ? bad.join(' | ') : null;
 });
 

@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { DARK, LIGHT, type ThemeTokens } from './theme';
 
+import { readShellModeCookie } from '@/lib/worklist/mode';
 const ThemeCtx = createContext<ThemeTokens>(DARK);
 const KEY = 'dreamai_theme';
 
@@ -224,8 +225,9 @@ export function ThemeProvider({ children, pinned }: { children: ReactNode; pinne
       // TDW_09 R-U19: the retired theme migrates to its honest neighbour and the
       // stored value is rewritten, so this branch fires once per device, not forever.
       if (stored === 'flair') { try { localStorage.setItem(KEY, 'dark'); } catch {} }
-      applyTheme(stored === 'light' ? 'light' : 'dark');
-    } catch { applyTheme('dark'); }
+      // F-P72.A (P7.2): the shell's cookie, when it exists, outranks the lane key (read-only).
+      applyTheme(readShellModeCookie() ?? (stored === 'light' ? 'light' : 'dark'));
+    } catch { applyTheme(readShellModeCookie() ?? 'dark'); }
 
     // Cross-tab sync
     const storageHandler = (e: StorageEvent) => {

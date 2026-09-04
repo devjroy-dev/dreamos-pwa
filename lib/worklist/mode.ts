@@ -50,6 +50,15 @@ export function asMode(v: string | null | undefined): WlMode {
  * `useState` initialiser so a client-side navigation paints the right mode on its FIRST
  * frame, without waiting for an effect.
  */
+/** The shell's cookie alone, or null when the shell has never written one. F-P72.A: the
+ *  (legacy) pages and their Header read the OLD lane's key, which nothing writes since the
+ *  flip; when this cookie exists it is the truth and outranks that key. Read-only. */
+export function readShellModeCookie(): WlMode | null {
+  if (typeof document === 'undefined') return null;
+  const hit = document.cookie.split('; ').find((c) => c.startsWith(MODE_COOKIE + '='));
+  return hit ? asMode(decodeURIComponent(hit.slice(MODE_COOKIE.length + 1))) : null;
+}
+
 export function readModeClient(): WlMode {
   if (typeof document === 'undefined') return 'dark';
   const hit = document.cookie.split('; ').find((c) => c.startsWith(MODE_COOKIE + '='));

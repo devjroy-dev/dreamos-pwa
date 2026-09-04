@@ -6,6 +6,7 @@
 // --atelier-* vars, so this hook only owns the class + persistence.
 
 import { useCallback, useEffect, useState } from 'react';
+import { readShellModeCookie } from '@/lib/worklist/mode';
 
 const KEY = 'dreamai_theme';
 
@@ -30,7 +31,10 @@ export function useTheme(): [Theme, () => void, (t: Theme) => void] {
       // value is REWRITTEN here so the fallback fires once rather than on every
       // launch for the rest of that device's life.
       if (stored === 'flair') { try { localStorage.setItem(KEY, 'dark'); } catch {} }
-      const initial: Theme = stored === 'light' ? 'light' : 'dark';
+      // F-P72.A (P7.2): the shell's cookie, when it exists, outranks the lane key. Header
+      // mounts after the page's data loads, so this effect used to run AFTER the (legacy)
+      // layout had set the class from the shell's mode, and undid it. Read-only.
+      const initial: Theme = readShellModeCookie() ?? (stored === 'light' ? 'light' : 'dark');
       setThemeState(initial);
       applyClasses(initial);
     } catch { /* localStorage blocked (private mode) — stay dark */ }
