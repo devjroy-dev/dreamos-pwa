@@ -39,19 +39,26 @@ function liveBuild(): string | null {
 
 export function useReportIssue(room: string) {
   const [open, setOpen] = useState(false);
-  const [host, setHost] = useState<Element | null>(null);
-  // The same anchoring the sign-out sheet uses: portal into the nearest mode host so the sheet
-  // inherits Graphite or Chalk from the tree it was opened in, never from the body.
-  const anchorRef = useCallback((el: HTMLDivElement | null) => {
-    setHost(el ? (el.closest('[data-wl-mode]') ?? document.body) : null);
-  }, []);
+  // F-P72.F (founder walk, 2026-09-04): this hook first asked for its OWN `anchorRef`, the way
+  // `useSignOut` does. The drawer has ONE root and one ref slot, `useSignOut` already holds it,
+  // and the caller took only { ask, sheet } — so `host` stayed null, the sheet's
+  // `open && host` render never fired, and the row pressed and did nothing. A second ref slot
+  // would be a second answer to "which element are we anchored to"; the host is DERIVED at open
+  // time instead, from the same question the ref was asking. Nothing to wire, nothing to forget.
   const ask = useCallback(() => setOpen(true), []);
   const close = useCallback(() => setOpen(false), []);
-  const sheet = open && host ? <ReportIssueSheet host={host} room={room} onClose={close} /> : null;
-  return { ask, sheet, anchorRef, open };
+  const sheet = open ? <ReportIssueSheet room={room} onClose={close} /> : null;
+  return { ask, sheet, open };
 }
 
-function ReportIssueSheet({ host, room, onClose }: { host: Element; room: string; onClose: () => void }) {
+/** The tree's mode host, or the body when there is none (the (legacy) pages have no
+ *  `[data-wl-mode]`). Read at open time so the sheet inherits Graphite or Chalk from the
+ *  document it is opened in. */
+function modeHost(): Element {
+  return document.querySelector('[data-wl-mode]') ?? document.body;
+}
+
+function ReportIssueSheet({ room, onClose }: { room: string; onClose: () => void }) {
   const [text, setText] = useState('');
   const build = liveBuild();
 
@@ -101,7 +108,7 @@ function ReportIssueSheet({ host, room, onClose }: { host: Element; room: string
         <button type="button" className="tdw-rpcancel" onClick={onClose}>{COPY.drawerCancel}</button>
       </div>
     </div>,
-    host,
+    modeHost(),
   );
 }
 

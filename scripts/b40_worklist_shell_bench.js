@@ -3216,6 +3216,12 @@ cell('C99 the Report door composes room + build and hands them to the support la
   const bad = [];
   // The door
   if (!/onAct=\{askReport\}/.test(drawer)) bad.push('the drawer has no Report row wired to the sheet');
+  // F-P72.F: the hook must not ask the caller for a ref it cannot be given. The drawer has ONE
+  // root and one ref slot, and useSignOut holds it; a second anchorRef went unattached, host
+  // stayed null, and the sheet's `open && host` render never fired \u2014 the row pressed and did
+  // nothing. The host is derived at open time now, so there is nothing to wire or forget.
+  if (/anchorRef/.test(strip(read('components/worklist/ReportIssueSheet.tsx')))) bad.push('the report hook asks for an anchorRef again: the drawer has one ref slot and useSignOut holds it (F-P72.F)');
+  if (!/const sheet = open \? </.test(strip(read('components/worklist/ReportIssueSheet.tsx')))) bad.push('the sheet renders behind a host gate that nothing sets');
   // F-P72.E: a row that opens a sheet must press WITHOUT dismissing. The sheet's state lives in
   // the drawer, so a dismissing press unmounts the host and destroys the sheet a beat after it
   // opens \u2014 which is what the founder walked: the drawer vanished and the tap fell through to
