@@ -165,7 +165,14 @@ export function AccountDrawer({ mode, onPickMode, onClose, room }: {
           written, which is the whole difference between a report and a message. The sheet is
           opened the way the sign-out sheet is: a hook that portals into this drawer's own mode
           host, so it inherits Graphite or Chalk from the tree it was opened in. */}
-      {row('report', { label: COPY.reportRowTitle, onAct: askReport })}
+      {/* THE PRESS DOES NOT DISMISS, and that is load-bearing (F-P72.E, founder walk 2026-09-04).
+          The sheet's state lives in this component, so a dismissing press unmounts the drawer
+          BEAT_MS later and takes the sheet with it: the founder saw the drawer vanish and his
+          tap land on the page underneath. The sign-out row has always pressed with
+          `dismiss=false` for the same reason (see its Row below); a row that opens a sheet
+          must keep its host alive. */}
+      <Row label={COPY.reportRowTitle} onAct={askReport}
+           pressed={held === 'report'} onPress={() => press('report', false)} />
       <div className="wl-dsec">{COPY.drawerDisplay}</div>
       {row('dark',  { label: COPY.themeDarkName,  onAct: () => onPickMode('dark'),  current: mode === 'dark',  mode: true })}
       {row('light', { label: COPY.themeLightName, onAct: () => onPickMode('light'), current: mode === 'light', mode: true })}

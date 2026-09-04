@@ -3215,7 +3215,16 @@ cell('C99 the Report door composes room + build and hands them to the support la
   const copy = strip(read('lib/worklist/copy.ts'));
   const bad = [];
   // The door
-  if (!/row\('report', \{ label: COPY\.reportRowTitle, onAct: askReport \}\)/.test(drawer)) bad.push('the drawer has no Report row wired to the sheet');
+  if (!/onAct=\{askReport\}/.test(drawer)) bad.push('the drawer has no Report row wired to the sheet');
+  // F-P72.E: a row that opens a sheet must press WITHOUT dismissing. The sheet's state lives in
+  // the drawer, so a dismissing press unmounts the host and destroys the sheet a beat after it
+  // opens \u2014 which is what the founder walked: the drawer vanished and the tap fell through to
+  // the page beneath. The sign-out row has pressed with dismiss=false since CE-38 for the same
+  // reason. This cell reads the press MODE, not just the wiring: a lifetime, not a call site.
+  if (!/onPress=\{\(\) => press\('report', false\)\}/.test(drawer)) bad.push('the Report row presses with dismiss: the drawer unmounts and takes the sheet with it (F-P72.E)');
+  for (const m of drawer.matchAll(/onAct=\{(ask|askReport)\}[\s\S]{0,160}?press\('(\w+)', (true|false)\)/g)) {
+    if (m[3] !== 'false') bad.push('the ' + m[2] + ' row opens a sheet but presses with dismiss=' + m[3]);
+  }
   if (!/room=\{title\}/.test(shell)) bad.push('the shell does not pass its masthead title as the room');
   // The prefills, read not retyped
   if (!/querySelector\('\[data-tdw-commit\]'\)/.test(sheet)) bad.push('the build is not read from the live stamp');
