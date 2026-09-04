@@ -66,6 +66,29 @@ body.solo .wl,body.solo .ld{box-shadow:none;border-radius:0}
 .wl-input .ph{color:var(--atelier-ink-fade)}
 .wl-send{height:48px;border:none;border-radius:3px;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:center}
 .wl-cancel{height:44px;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+
+/* ── F-P72.C · THE BIO CALL. Existing register only: `.wl-btn.pri` (StudioSheets:470 —
+   accent fill, deep ink, t4 caps, 44px min) and the Storefront's own SectionLabel/Meter.
+   The frame changes ONE thing: the row that was a title+hint+chevron becomes a title, a
+   plain-language line, and the shell's primary button. No new token, no new colour. ── */
+.sf{padding:0}
+.sf-lab{font:var(--wl-t5);letter-spacing:.28em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:18px var(--wl-gutter) 10px}
+.sf-rule{border-bottom:.5px solid var(--atelier-card-border);padding-bottom:14px}
+.sf-row{display:flex;align-items:center;gap:18px;padding:0 var(--wl-gutter)}
+.sf-meter{width:64px;height:44px;flex-shrink:0;position:relative}
+.sf-arc{position:absolute;inset:0;border:2px solid var(--role-metal);border-bottom-color:transparent;border-left-color:transparent;border-right-color:transparent;border-radius:50% 50% 0 0/100% 100% 0 0}
+.sf-score{position:absolute;left:0;right:0;top:16px;text-align:center;font:var(--wl-t2);color:var(--atelier-ink)}
+.sf-metlab{font:var(--wl-t5);letter-spacing:.24em;text-transform:uppercase;color:var(--atelier-ink-fade);text-align:center;margin-top:2px}
+.sf-body{flex:1;min-width:0}
+.sf-title{font:var(--wl-t2);color:var(--atelier-ink);line-height:1.15}
+.sf-sub{font:var(--wl-t3);color:var(--atelier-ink-mute);margin-top:2px}
+.sf-cta{margin:12px var(--wl-gutter) 0;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+.sf-count{font:var(--wl-t5);letter-spacing:.28em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:10px var(--wl-gutter) 4px}
+.sf-item{display:flex;align-items:center;gap:14px;padding:16px var(--wl-gutter);border-bottom:.5px solid var(--atelier-card-border)}
+.sf-gl{width:18px;text-align:center;color:var(--atelier-ink-mute);font:var(--wl-t4)}
+.sf-il{font:var(--wl-t2);color:var(--atelier-ink)}
+.sf-id{font:var(--wl-t3);color:var(--atelier-ink-mute);margin-top:2px}
+.sf-chev{color:var(--atelier-ink-fade);font:var(--wl-t3)}
 /* ── THE LANDING, carried from app/(landing)/page.tsx. One face: the photograph over #0C0A09. It owns no Chalk mode; none is invented here. Jost is not embedded in this file — the caps rows fall to DM Sans and are flagged in the veto sheet. ── */
 .ld{width:374px;height:844px;position:relative;overflow:hidden;background:#0C0A09;color:#F8F7F5;font-family:"DM Sans",system-ui,sans-serif}
 .ld-slide{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#4A3A2E 0%,#241A14 45%,#0C0A09 100%)}
@@ -179,6 +202,34 @@ body.solo .wl,body.solo .ld{box-shadow:none;border-radius:0}
  </div>
 </div>
 </div>
+
+<div class="framewrap" data-frame="P72C-bio-call">
+<div class="cap"><b>P72C-bio-call · F-P72.C</b>the bio row becomes a CALL: same title, same vetoed line, the shell's own primary button<i>register: .wl-btn.pri (StudioSheets:470) — accent fill, deep ink, t4 caps, 44px. Portfolio and Discover stay rows: they are doors, not calls.</i></div>
+<div class="wl" data-wl-mode="dark">
+ <div class="wl-hdr">
+  <div class="wl-hstack"><div class="wl-house">Dev Roy Photography</div><div class="wl-lblrow"><span class="wl-lbl">Storefront</span><span class="wl-beta">Beta</span></div></div>
+  <div class="wl-coin">DR</div>
+ </div>
+ <div class="wl-main sf">
+  <div class="sf-rule">
+   <div class="sf-lab">Complete your bio</div>
+   <div class="sf-row">
+    <div class="sf-meter"><div class="sf-arc"></div><div class="sf-score">78</div></div>
+    <div class="sf-body">
+     <div class="sf-title">Your bio</div>
+     <div class="sf-sub">How couples see you</div>
+    </div>
+   </div>
+   <div class="sf-cta">See your profile</div>
+   <div class="sf-count">6 photos live</div>
+  </div>
+  <div class="sf-item"><span class="sf-gl">▣</span><div style="flex:1"><div class="sf-il">Portfolio</div><div class="sf-id">images and photo library</div></div><span class="sf-chev">›</span></div>
+  <div class="sf-item"><span class="sf-gl">◈</span><div style="flex:1"><div class="sf-il">Discover</div><div class="sf-id">your profile on The Dream Wedding</div></div><span class="sf-chev">›</span></div>
+ </div>
+ <div class="wl-nav"><div class="wl-seat">Today</div><div class="wl-seat">Books</div><div class="wl-seat on">Studio</div><div class="wl-seat">Rooms</div></div>
+</div>
+</div>
+
 
 </div>
 <script>

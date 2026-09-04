@@ -86,3 +86,35 @@ Two further gaps, stated not papered: the landing's `Jost` face is **not embedde
 | mutation fixtures :510 / :529 | the door `onClick` bytes | re-pointed to the new targets |
 
 Ten cells, two fixtures. Both-ways at P7.2's cut: the cured tree green, the uncured tree failing on exactly these.
+
+
+---
+
+## 6 · F-P72.C — THE BIO CALL (added at ZIP 2, base `e89e467`)
+
+**The finding, from the founder's own walk (2026-09-04):** on Storefront, "Your bio · How couples
+see you" reads as a row, not a call. It shares the list-row grammar (title · hint · chevron) with
+Portfolio and Discover — but those two are *doors*, and this one is the *ask*: it is the surface
+that gets a vendor's profile finished.
+
+**The frame:** `P72C-bio-call`, both modes, in `docs/mocks/flip-beta-mock.html@<this commit>`.
+One change: the row's chevron-link becomes the shell's own primary button, full width under the
+meter. Portfolio and Discover keep the row grammar, so the contrast does the work.
+
+**Register, existing only** — `.wl-btn.pri` (`StudioSheets.tsx:470`): `--atelier-accent-text`
+fill, `--role-ink-deep` label, `--wl-t4` caps, 44px min. No new token, no new colour. The meter,
+the vetoed heading "Complete your bio", the title "Your bio", the line "How couples see you" and
+the "N photos live" readout are all byte-unchanged.
+
+### The one new string
+
+| # | Where | Current | Proposed | Note |
+|---|---|---|---|---|
+| S19 | the bio call's button | — (was a chevron, no words) | **`See your profile`** | it is what the tap does: opens `/vendor/discover/profile`. Alternatives if struck: `Finish your bio` (names the goal, but the profile is also editable when complete) · `Edit your bio` (accurate, colder) · `See what couples see` (the drawer's register, but longer than the button holds at 374) |
+
+**Not proposed, and why:** no percentage in the button ("Finish — 78%"), because the meter already
+says it and two homes for one number is F-07.15's disease. No count in the label.
+
+**Open question for the founder, not ruled here:** if S19 ships, the same argument applies to the
+Discover row on this screen — it is also an ask, not just a door. This frame deliberately changes
+ONE row so the contrast is visible; a second call on the same screen would flatten it again.
