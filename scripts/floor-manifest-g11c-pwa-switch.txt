@@ -1,0 +1,57 @@
+# scripts/floor-manifest-g11c-pwa-switch.txt
+# TDW_19 · BLOCK 19 · G1.1c — THE COUPLE'S SWITCH, THE PWA HALF: declared dirt.
+#
+# F-19.16 / F-39.51(b): a dirty file outside this list is a STOP until accounted
+# for. Every file below was authored by THIS seat in THIS sitting; nothing is
+# inherited. `git status --porcelain` was empty at seating (preflight CLEAR at
+# acb68f9) and empty again after the bench's mutation pass, which sha256-verifies
+# its own restore on every path including the throw path.
+
+# ── THE COPY HOME  [R-40.30, five bytes, hash-carried, closed set] ──────────
+# NEW. `settings.tsx` has never had a copy home — every string it renders today
+# is an inline literal — so the switch's bytes get the first one rather than
+# being scattered into the room beside them. Pattern adopted from
+# `lib/frost/eventCopy.ts`, whose header rules one home per SUBJECT.
+lib/frost/coupleSwitch.ts
+
+# ── THE ROOM  [the switch itself] ──────────────────────────────────────────
+# One row between Total budget and the DreamAi card, transcribed from the
+# ratified mock's frames. No local state for her answer, no optimistic paint,
+# no press key, no `disabled`, no dimming. The sub-line keys to
+# `has_wedding_page`, never to the switch's own state.
+components/frost/blooms/settings.tsx
+
+# ── THE CLIENT  [three homes, one change each] ─────────────────────────────
+# `CoupleProfile` gains `publish_weddings` and `has_wedding_page` as REQUIRED
+# booleans; `MOCK_PROFILE` gains both as false; `saveProfile`'s patch type gains
+# `publish_weddings?: boolean` and nothing wider. `SaveProfileResult` is
+# deliberately untouched — the room re-reads, per the chair's ruling.
+lib/frost/journey.ts
+
+# ── THE BENCH  [this room's first cells of any kind] ───────────────────────
+# NEW. 36 cells, 6 production-code mutations, sibling-full REQUIRED and
+# sibling-FRESHNESS required: §7 derives the sibling's HEAD and refuses (exit 3,
+# never a FAIL) unless 286cdb4 is an ancestor of it. Born of the founder's own
+# verify, where four cells reddened against correct code because his container's
+# dream-os clone predates this arc (F-40.65).
+scripts/g11c_couple_switch.proof.mjs
+
+# ── A SEALED CENSUS, AMENDED AND ITEMISED  [ratify or revert] ──────────────
+# `tdw09_frost_parity` was GREEN at acb68f9 and this delivery moved its control
+# census by exactly one: 201 -> 202, tapdiv 42 -> 43, the switch's own row.
+# Derived by command (`git stash`, re-run, restore), not assumed. Amended in the
+# same delivery as the code that moved it, itemised control-by-control in the
+# file's own five-amendment pattern, and both-ways shown: the amended cells go
+# RED on the uncured tree (84/86) and GREEN on the cured one (86/86).
+#
+# IT IS ALSO THIS SITTING'S CORRECTION ON THE RECORD. The read-first said no
+# bench asserted a control in this room; this one reaches settings.tsx through a
+# directory walk that no filename grep can see. The floor caught it, not the seat.
+scripts/tdw09_frost_parity.proof.mjs
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g11c-pwa-switch.txt
+
+# ── THE HANDOVER ────────────────────────────────────────────────────────────
+# NEW, not amended — the file did not exist at acb68f9 (d-1, chair-ratified).
+docs/TDW_19_G11C_PWA_HANDOVER.md

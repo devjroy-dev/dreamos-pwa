@@ -266,6 +266,19 @@ export interface CoupleProfile {
   events_planned: string[];
   planning_state: string | null;
   onboarding_state: string | null;
+  // ── G1.1c · THE COUPLE'S SWITCH ────────────────────────────────────────────
+  // Both keys are served by dream-os `src/api/couple/me.js` GET /:coupleId and
+  // NEITHER is optional here, deliberately. An optional boolean invites
+  // `profile?.publish_weddings ?? false` at the render site, which is the room
+  // holding its own idea of her answer — the exact thing R-G11c.8 forbids. The
+  // door always sends both (`=== true` and a length check, never undefined), so
+  // the type says so and a response missing one is a defect the compiler sees.
+  /** Her standing answer, off `couples.publish_weddings`. Written ONLY by
+   *  `couple_set_publish()` through PATCH — never by this client. */
+  publish_weddings: boolean;
+  /** R-G11c.10 — does any wedding page carry her couple_id. The sub-line's
+   *  discriminator. Read-only, and the client never infers it. */
+  has_wedding_page: boolean;
 }
 
 // ─── MOCKS ────────────────────────────────────────────────────────────────────
@@ -325,6 +338,13 @@ const MOCK_PROFILE: CoupleProfile = {
   events_planned: ['haldi','mehndi','sangeet','wedding','reception'],
   planning_state: 'shortlisting',
   onboarding_state: 'complete',
+  // G1.1c. The mock couple has NOT answered and has NO page — the two defaults
+  // the estate ships with (`0132` DEFAULT false; no vendor has made her a page).
+  // A fixture that answered yes would paint a bride who consented to something
+  // in a screenshot, and F-09.166's whole tuition is that a fixture rendered as
+  // fact is a stranger's life on her masthead.
+  publish_weddings: false,
+  has_wedding_page: false,
 };
 
 // ─── API FUNCTIONS — EVENTS ────────────────────────────────────────────────
@@ -879,6 +899,17 @@ export async function saveProfile(patch: {
    *  for that one write. It never skips a refusal: confirming a typo is not
    *  consent, and the server enforces that ordering, not this comment. */
   budget_confirmed?: boolean;
+  // ── G1.1c · THE SWITCH ─────────────────────────────────────────────────────
+  // `boolean` and nothing wider. The door refuses a non-boolean with a 400 and
+  // a named reason (`publish_weddings must be true or false.`) rather than
+  // coercing an answer she did not give, and this type is that refusal moved
+  // forward to compile time so the client cannot be the one to send the string
+  // 'false'. THE CALLER DOES NOT READ THE ECHO: `SaveProfileResult` is
+  // deliberately unextended and the room re-reads through `fetchProfile()`
+  // after the write, which is what `commitProfile` already does for the date
+  // and the budget, for its own stated reason — the server owns the stored
+  // shape. One pattern in the room, not two.
+  publish_weddings?: boolean;
 }): Promise<SaveProfileResult> {
   if (shouldUseMocks()) return delay({ ok: true }, 600);
   try {

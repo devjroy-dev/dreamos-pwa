@@ -10,6 +10,12 @@
 import React, { useState, useEffect } from 'react';
 import { FT, FS, FI } from '@/lib/frost/tokens';
 import { fetchProfile, saveProfile, type CoupleProfile } from '@/lib/frost/journey';
+// G1.1c · R-40.30's five bytes, frozen at the character, one home, hash-carried.
+// The room speaks no word of this subject that is not one of these five.
+import {
+  SWITCH_LABEL, SWITCH_VALUE_OFF, SWITCH_VALUE_ON,
+  SWITCH_SUB_HAS_PAGE, SWITCH_SUB_NO_PAGE,
+} from '@/lib/frost/coupleSwitch';
 import { formatRs } from '@/lib/vendor/format';
 import { waNumberFor } from '@/lib/waNumbers';
 import { usePress } from '@/components/frost/_shared/usePress';
@@ -35,6 +41,13 @@ export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
   const rowBdr  = dark ? 'rgba(196,133,106,.12)'  : 'rgba(42,95,130,.12)';
   const ac      = dark ? '#C4856A'                : '#2A5F82';
   const sig     = dark ? '#6B9E8F'                : '#8B6E52';
+  // G1.1c. The mock's `--knob-on` (couple-switch-mock.html, both mode blocks):
+  // the ink that sits ON the accent, used by the switch's knob when the answer
+  // is yes. NOT hoisted from the Save button's `color` at the edit sheet below,
+  // which happens to be the same two bytes on a different property: same VALUE
+  // is not the same FACT, and reaching into a control this mock does not cover
+  // to share a constant would be a byte nobody ratified.
+  const knobOn  = dark ? '#1A0810'                : '#FFFFFF';
 
   const [profile, setProfile] = React.useState<CoupleProfile|null>(null);
 
@@ -129,6 +142,47 @@ export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
     return new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
   }
 
+  // ── G1.1c · THE COUPLE'S SWITCH (R-40.9 · R-G11c.8 · R-G11c.10) ────────────
+  // THERE IS NO `const [publish, setPublish]` IN THIS FILE, AND THAT ABSENCE IS
+  // THE FEATURE. The track is drawn from `profile.publish_weddings` — the byte
+  // the door read off her row — on every render, including the one after this
+  // handler runs. A local mirror would be a second opinion about her consent,
+  // and a second opinion is exactly what she cannot be given here: the estate's
+  // sole writer is `couple_set_publish()` and the only honest thing this surface
+  // can do is show what that writer stored.
+  //
+  // NO OPTIMISTIC PAINT, for the same reason. A switch that moves before the
+  // write lands is telling her the answer is recorded when it is not — the
+  // never-a-false-done law at a control instead of at a sentence. It moves when
+  // the re-read comes back, and if the write failed it does not move at all.
+  //
+  // THE RE-READ, NOT THE ECHO. `commitProfile` above already re-reads for the
+  // date and the budget, with its own reason on the record: the server owns the
+  // stored shape. Two patterns in one room for one job is how they drift, so
+  // this takes the room's existing one.
+  const [savingSwitch, setSavingSwitch] = React.useState(false);
+
+  async function togglePublish(){
+    // NOT `disabled`, NOT greyed, NOT dimmed — R-G11c.8 forbids all three, and
+    // the mock draws a live track in every frame. This is only a guard against
+    // a second write racing the first while one is in flight; nothing about the
+    // control's appearance changes, and a tap during the flight is dropped
+    // rather than queued. A queued second tap would send an answer she had
+    // already reversed.
+    if(savingSwitch||!profile) return;
+    setSavingSwitch(true);
+    const r = await saveProfile({ publish_weddings: !profile.publish_weddings });
+    // RE-READ ON BOTH PATHS, and that is deliberate rather than lazy. On success
+    // it is how the switch learns what was stored; on failure it is how the room
+    // proves it is still showing the truth rather than a stale optimism. If the
+    // write failed the row is unchanged, so the track does not move — which is
+    // the honest report, and it is an UNLABELLED one. That gap is filed rather
+    // than papered over with a sixth string this file has no veto for.
+    try { const p = await fetchProfile(); setProfile(p); } catch {}
+    void r;
+    setSavingSwitch(false);
+  }
+
   const Row = ({label,value,onTap,isLink,arrow}:{label:string;value?:string;onTap?:()=>void;isLink?:boolean;arrow?:boolean}) => (
     <div onClick={onTap} style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,display:'flex',alignItems:'center',cursor:onTap?'pointer':'default',WebkitTapHighlightColor:'transparent',background:onTap?undefined:rowBg}}>
       <div style={{flex:1}}>
@@ -163,6 +217,55 @@ export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
             It also shipped without passing the founder's copy veto. Both owned.
             The row is simply editable now. */}
         <Row label="Total budget" value={profile?.budget_total?formatRs(profile.budget_total):'Not set yet'} onTap={openEditBudget} arrow/>
+
+        {/* ── THE COUPLE'S SWITCH · the ratified mock's C1–C4, made real ──────
+            Geometry, type and colour are TRANSCRIBED from
+            docs/mocks/couple-switch-mock.html (.fr-sw / .fr-track / .fr-knob /
+            .fr-sub), which itself transcribed them out of this file. Nothing
+            here is renegotiated: 46x27 track, 21px knob at 2.5/22, the sub-line
+            on FT.body in Fraunces because it is a SENTENCE and the engraved rung
+            is for labels.
+
+            IT RENDERS ONLY ONCE THE ROW IS IN HAND. Before `fetchProfile`
+            resolves there is no answer to draw, and a track painted OFF for an
+            unknown answer is a lying control — the same defect as a greyed one,
+            wearing the opposite costume. The rows above legitimately show
+            fallbacks ('—', 'Not set yet') because a missing date IS "not set";
+            a missing consent answer is not "no". So this row waits, and the
+            wait is one network round trip on a room she has just opened.
+
+            NO PRESS KEY. The mock draws a track and a knob and nothing else;
+            adding a press acknowledgment would be an affordance no frame
+            carries, and this room's Row has never had one (F-09.107's hold on
+            the sibling component is the same question, ruled the same way). */}
+        {profile&&(
+          <div onClick={togglePublish} style={{padding:'14px 20px',borderBottom:`0.5px solid ${line}`,
+            display:'flex',alignItems:'flex-start',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <div style={{flex:1,minWidth:0,paddingRight:14}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,marginBottom:3}}>
+                {SWITCH_LABEL}
+              </div>
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.35,color:ink,fontFeatureSettings:'"opsz" 9'}}>
+                {profile.publish_weddings?SWITCH_VALUE_ON:SWITCH_VALUE_OFF}
+              </div>
+              {/* THE SUB-LINE IS KEYED TO THE PAGE, NEVER TO THE SWITCH.
+                  `has_wedding_page`, not `publish_weddings` — C1/C2 both draw
+                  string 4, C3/C4 both draw string 5. Keying it to the track
+                  would tell a couple with no page that turning it off removes
+                  one, and tell a couple looking at hers that none exists. */}
+              <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,lineHeight:1.5,color:inkSoft,fontFeatureSettings:'"opsz" 9',marginTop:8}}>
+                {profile.has_wedding_page?SWITCH_SUB_HAS_PAGE:SWITCH_SUB_NO_PAGE}
+              </div>
+            </div>
+            <div style={{width:46,minWidth:46,height:27,borderRadius:100,position:'relative',marginTop:2,
+              background:profile.publish_weddings?ac:rowBg,
+              border:`0.5px solid ${profile.publish_weddings?ac:rowBdr}`}}>
+              <div style={{position:'absolute',top:2.5,width:21,height:21,borderRadius:'50%',
+                left:profile.publish_weddings?22:2.5,
+                background:profile.publish_weddings?knobOn:inkMute}}/>
+            </div>
+          </div>
+        )}
 
         {/* Mode toggle — REMOVED BY FOUNDER RULING (2026-08-07, the chair's own
             hand): SINGLE THEME, Wine Night always. The Appearance control and its

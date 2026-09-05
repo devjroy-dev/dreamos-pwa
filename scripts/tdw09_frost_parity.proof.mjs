@@ -478,11 +478,49 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
 
    Both-ways is automatic and was shown: these amended cells go RED at c6e631d,
    where the counts are 186 and 98/8/34/4/3/39. */
-ok('3.1', 'the Sanctuary surface carries 201 controls (186 + TDW_15 P2: 15, itemised above)', total === 201,
+/* ── CENSUS AMENDED, LABELLED — TDW_19 · G1.1c (R-40.9, R-G11c.8, 2026-09-05) ─
+   201 -> 202. ONE control, and it is itemised for the same reason all five
+   amendments above it are: a sealed count that moves by a number nobody can
+   decompose has been SILENCED rather than amended.
+
+     settings.tsx  +1 tapdiv   the couple's publish switch — ONE `<div onClick=
+                              {togglePublish}>` wrapping the whole row, label,
+                              value, sub-line and track together, exactly as the
+                              ratified mock draws it (docs/mocks/couple-switch-
+                              mock.html, frames C1-C4).
+
+   ── WHY IT IS ONE CONTROL AND NOT TWO. The track and knob are `<div>`s with no
+   handler of their own; the row is the affordance and the track is its state
+   made visible. A second handler on the track would give one answer two doors
+   and let a tap land on the row's padding with no effect — the class F-09.107
+   holds open on the sibling Row component, ruled the same way here.
+
+   ── NOTHING WAS REMOVED OR MOVED. All 201 prior controls are KEPT; the
+   inventory law's columns for this delivery read 201 KEPT, 1 ADDED, 0 MOVED,
+   0 REMOVED-BY-RULING. The room's own nine — the two editable rows, the sheet's
+   scrim and ✕, its two inputs and Save, the WhatsApp link and Sign out — are
+   every one of them untouched.
+
+   ── AND NO `button`. The switch is a tapdiv rather than a `<button>` because
+   the row it must match is `Row` (settings.tsx), which is a tapdiv, and a
+   control that looks identical to its neighbours while answering to a different
+   element is how a surface grows two grammars for one gesture.
+
+   ── THIS AMENDMENT IS THE FLOOR'S CATCH, NOT THE SEAT'S FORESIGHT, and that is
+   on the record. The sitting's read-first stated that no bench asserted a
+   control in this room, derived by grepping scripts/ for `settings.tsx` and
+   `blooms/settings`. This bench reaches the file through `dirFiles(BLOOM_DIR)`
+   — a directory walk no filename grep can see — so the check's failure mode was
+   a silent zero, which protocol §9's INDEPENDENT-METHOD LAW names as no check
+   at all. The census caught what the inventory missed.
+
+   Both-ways is automatic and was shown: these amended cells go RED at acb68f9,
+   where the counts are 201 and 108/8/36/4/3/42. */
+ok('3.1', 'the Sanctuary surface carries 202 controls (201 + TDW_19 G1.1c: 1, itemised above)', total === 202,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
    counts.button === 108 && counts.anchor === 8 && counts.input === 36 &&
-   counts.textarea === 4 && counts.select === 3 && counts.tapdiv === 42,
+   counts.textarea === 4 && counts.select === 3 && counts.tapdiv === 43,
    JSON.stringify(counts));
 
 /* the exit. Losing this strands her in a room — Package 4's second death. */
