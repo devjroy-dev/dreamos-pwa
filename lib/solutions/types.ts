@@ -344,6 +344,66 @@ export type GoogleReviewsRoom = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// G5.1 · THE OVERFLOW EXCHANGE
+// ═══════════════════════════════════════════════════════════════════════════
+// Shapes derived from the doors themselves at dream-os `ccdc70e`
+// (`src/api/vendor/referrals.js`, `src/lib/vendor/referrals.js`), never from the
+// charter's prose.
+
+/** A peer on the vendor's roster, linked only — `member_vendor_id NOT NULL`. */
+export type ReferralPeer = {
+  id: string;
+  business_name: string | null;
+  category: string | null;
+  city: string | null;
+};
+
+/**
+ * One peer's two directions, as the room renders them.
+ *
+ * ⚠ THE UNIT IS FORWARDS. Not weddings — the plane holds a lead, and a field
+ * called `weddings` here would be a claim `lead_referrals` cannot answer. Not
+ * money, ever, on this plane (master §7). There is no figure type in this block
+ * and there is not meant to be one.
+ */
+export type ReferralPeerBalance = {
+  vendor_id: string;
+  name: string | null;
+  category: string | null;
+  sent: number;
+  received: number;
+  last_at: string | null;
+};
+
+export type ReferralsRoom = {
+  sent_count: number;
+  received_count: number;
+  peers: ReferralPeerBalance[];
+};
+
+/**
+ * What the forward door returns on refusal.
+ *
+ * ⚠ THE DOOR RETURNS A CODE AND THIS SIDE OWNS THE SENTENCE. dream-os returns
+ * `code` plus an `error` written for logs; the vendor-facing words are the
+ * founder's, vetoed at `G51_VETO_SHEET` §C1, and they live in
+ * `lib/worklist/referrals.ts`. Rendering the door's `error` would put an
+ * unvetoed byte on a vendor's screen.
+ */
+export type ForwardRefusalCode =
+  | 'referral_self'
+  | 'referral_not_a_peer'
+  | 'referral_peer_already_has_lead'
+  | 'referral_lead_has_no_phone';
+
+/** The stamp each lead record carries, when it carries one (R-G51.5). */
+export type ReferralStamp = {
+  peer_name: string | null;
+  note: string | null;
+  at: string | null;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // THE DIGEST
 // ═══════════════════════════════════════════════════════════════════════════
 // Derived, never typed from memory:

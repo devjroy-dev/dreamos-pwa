@@ -72,6 +72,24 @@ export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';
 // grid gains nothing.
 export const GOOGLE_REVIEWS_HREF = '/vendor/google-reviews';
 
+// ── G5.1 · THE REFERRALS & PARTNERS ROOM'S ADDRESS ──────────────────────────
+// R-40.1's R7, and the third of the nine to open. Same home, same reason the two
+// blocks above give, and stated once more rather than by cross-reference because
+// the next seat to open one of the remaining six will read whichever block sits
+// nearest their edit: `b40` C31 walks the import graph from every shell page and
+// matches any `/vendor…` literal against a declared set. `/vendor/referrals` is
+// in `rooms.ts` nowhere, in `LEGACY_VENDOR_LINKS` nowhere, and is not a nav
+// seat, so a bare literal in the hub would be a stray and C31 would redden on a
+// correct build.
+//
+// ⚠ C31 IS AMENDED BY LABEL IN THE SAME DELIVERY to read this constant, exactly
+// as it already reads the other two. The cell TIGHTENS: delete this constant and
+// C31 reddens on the missing declaration rather than passing quietly.
+//
+// Not a registry room (R-G11.12): `ROOM_COUNT_EXPECTED` stays 19 and the tile
+// grid gains nothing. Reached from the Business Solutions hub.
+export const REFERRALS_HREF = '/vendor/referrals';
+
 /**
  * The backend's own addresses. Held here rather than in `client.ts` so that the
  * two kinds of address — where the vendor goes, and where the data comes from —
@@ -93,6 +111,14 @@ export const SOLUTIONS_API_PATH = '/api/v2/vendor/solutions';
 // address that already has one owner.
 export const WEDDINGS_API_PATH = '/api/v2/vendor/studio/weddings';
 
+// ── THE G5.1 DOORS (Block 19 G5.1, dream-os ccdc70e) ────────────────────────
+// The room's reads hang off their own prefix; the forward hangs off the LEADS
+// prefix, which already exists in this codebase's api layer but had no constant
+// here because nothing in `lib/solutions` addressed a lead before. One home each,
+// and neither is spelled at a call site.
+export const REFERRALS_API_PATH = '/api/v2/vendor/referrals';
+export const LEADS_API_PATH     = '/api/v2/vendor/leads';
+
 export const API = {
   // ── RETIRED WITH THEIR READERS (R-40.23) ─────────────────────────────────
   // The six per-surface members and `index` are gone. `GET /api/v2/vendor/
@@ -106,6 +132,17 @@ export const API = {
   weddingPublish:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/publish`,
   weddingUploadUrl:(id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/upload-url`,
   weddingPhotos:   (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos`,
+  // ── G5.1 · THE OVERFLOW EXCHANGE ────────────────────────────────────────────
+  // Three addresses, and the FORWARD is not under the referrals prefix — it is a
+  // thing done TO A LEAD, so dream-os mounts it on the leads router where
+  // `resolveVendor({ via: 'leads' })` proves the lead is hers. Spelling it
+  // `/referrals/forward` here would be this file inventing an address the
+  // backend does not serve, which is the 404 the wedding-pages seat's e-8
+  // records. Derived from `src/api/vendor/core.js` and `src/api/vendor/leads.js`
+  // at dream-os `ccdc70e`, not from the charter's prose.
+  referrals:      () => `${REFERRALS_API_PATH}`,
+  referralPeers:  () => `${REFERRALS_API_PATH}/peers`,
+  leadForward:    (leadId: string) => `${LEADS_API_PATH}/${encodeURIComponent(leadId)}/forward`,
   // ── G1.2 · two doors, one address home ─────────────────────────────────────
   // No reorder member: R-G12.12 was narrowed after the seat flagged that
   // `POST /:id/photos/order` would ship with no caller — the F-40.28 shape, a

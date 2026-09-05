@@ -1,0 +1,33 @@
+# scripts/floor-manifest-g51-pwa.txt
+# TDW_19 · BLOCK 19 · G5.1 — THE pwa HALF. The record's one control, the forward
+# sheet with its refusal state, the two stamps on the record, the room, the live
+# hub row, C31 by label, and the R5-hub re-shoot.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for. Every
+# file below was authored or amended by THIS seat in THIS sitting. The tree was
+# clean at 02b1b75 before a byte moved and carried to cb724b6 mid-build (five
+# files, G1.2's tap arc, disjoint — proven by `git diff --name-only` against this
+# list before the carry, and all six held paths byte-identical after).
+#
+# THE MOCK RE-SHOOT IS NOT THIS SITTING'S CHANGE. G2's a48fa9b made the Google
+# reviews hub row live while this seat was in the dream-os half, so the ratified
+# R5-hub frame drew a hub that no longer exists. Four captures move; the other
+# twenty-four are byte-identical, and the html's other eight frames are untouched.
+
+app/vendor/(shell)/leads/body.tsx
+app/vendor/(shell)/referrals/page.tsx
+app/vendor/(shell)/support/page.tsx
+components/vendor/slices/ForwardSheet.tsx
+components/vendor/slices/SliceRow.tsx
+components/vendor/slices/SliceShell.tsx
+docs/mocks/referrals-mock.html
+docs/mocks/referrals-mock__R5-hub__dark__374.png
+docs/mocks/referrals-mock__R5-hub__dark__390.png
+docs/mocks/referrals-mock__R5-hub__light__374.png
+docs/mocks/referrals-mock__R5-hub__light__390.png
+lib/solutions/routes.ts
+lib/solutions/types.ts
+lib/vendor/types/vendor.ts
+lib/worklist/referrals.ts
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-g51-pwa.txt

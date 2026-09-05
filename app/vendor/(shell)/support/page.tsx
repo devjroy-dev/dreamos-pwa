@@ -35,7 +35,7 @@ import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -55,6 +55,11 @@ export default function SolutionsIndexPage() {
 const ROOM_HREFS: Partial<Record<string, string>> = {
   wedding_pages: WEDDING_PAGES_HREF,
   google:        GOOGLE_REVIEWS_HREF,
+  // G5.1 · R-G51.10 — the third of the nine opens. `RoomRow` renders a
+  // `StateChip` on EVERY row (`href ? 'open' : 'coming'`), so this one entry is
+  // the whole change: the row gains a destination and its chip flips to `Open`.
+  // The key is `ROOM_ROWS`' own, not a new string.
+  referrals:     REFERRALS_HREF,
 };
 
 function SolutionsIndexScreen() {

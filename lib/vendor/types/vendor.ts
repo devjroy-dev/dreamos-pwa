@@ -7,6 +7,12 @@
 import type { LeadState, InvoiceState, EventKind, EventState, ExpenseCategory } from './common';
 
 // ── Common ────────────────────────────────────────────────────────────────
+// BLOCK 19 G5.1 — the referral stamp's one home is `lib/solutions/types.ts`,
+// beside the room's own shapes. Imported rather than re-declared: two spellings
+// of one wire object is how a field ends up meaning different things in the room
+// and on the record.
+import type { ReferralStamp } from '@/lib/solutions/types';
+
 export interface ApiOk { ok: true; }
 export interface ApiErr { ok: false; error: string; }
 
@@ -871,6 +877,23 @@ export interface Lead {
       set (F-16.21). DECLARED GAP: pre-P1 engagements carry a NULL lead_id and do
       not badge until their next enquiry refreshes them. */
   tdw?:                    boolean;
+  /** BLOCK 19 G5.1 (R-G51.5, R-G51.11 / F-40.109 / dream-os `3efa47c`): the two
+      referral stamps. `forwarded_to` on the SENDER'S own lead, `forwarded_by` on
+      the PEER'S copy — never both on one row, because a lead is the landing
+      place of at most one forward (0135's UNIQUE on `new_lead_id`) and the
+      original is a different row from the copy.
+
+      NOT tier-gated, by ruling: these pass through `serializeLeadRows`
+      untouched. A peer's business name and her sentence about a lead she chose
+      to hand over are ANOTHER VENDOR'S WORDS, not the couple's contact detail.
+
+      F-04.10 binds these two exactly as it binds `tdw_enquired_at` above, and
+      F-40.109 is what happens when the other half is missing entirely: the lib
+      that builds these shipped mounted on no door, so a surface reading them
+      would have rendered nothing on every lead, silently. Null where absent —
+      the surface gates on presence. */
+  forwarded_to?:           ReferralStamp | null;
+  forwarded_by?:           ReferralStamp | null;
   /** R2 (R-35.38): WHEN the Discover enquiry came, from the spine's
       `engagements.updated_at` — NOT `created_at`, which is the LEAD's birthday.
       On the founder's own row those are 21 Aug and 5 Aug: the lead was born from

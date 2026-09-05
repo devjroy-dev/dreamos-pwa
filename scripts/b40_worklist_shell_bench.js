@@ -1160,6 +1160,20 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const gm = solRoutes.match(/export const GOOGLE_REVIEWS_HREF\s*=\s*'([^']+)'/);
   if (!gm) return 'GOOGLE_REVIEWS_HREF is not declared: the Google reviews room has no address home';
   declared.add(gm[1]);
+  // ── AMENDED BY LABEL — G5.1. THE THIRD OF THE NINE OPENS, SAME SHAPE, AND
+  // THE PROPERTY THE TWO BLOCKS ABOVE SPELL OUT NOW HOLDS FOR THREE ROOMS.
+  // Read from the same one home by the same matcher, so the declared set grows
+  // by exactly one MEMBER and an undeclared `/vendor/…` literal is still a
+  // stray. Delete `REFERRALS_HREF` and this reddens on the missing declaration
+  // rather than passing quietly.
+  //
+  // ⚠ THE FORWARD DOOR IS NOT AN ADDRESS AND TAKES NO ENTRY HERE. It is an API
+  // path (`/api/v2/vendor/leads/:id/forward`), and this cell matches `/vendor…`
+  // — which `/api/v2/vendor/...` does not begin with. Adding it to the declared
+  // set would have loosened the cell for a literal it never sees.
+  const rm = solRoutes.match(/export const REFERRALS_HREF\s*=\s*'([^']+)'/);
+  if (!rm) return 'REFERRALS_HREF is not declared: the referrals room has no address home (R-G51.10)';
+  declared.add(rm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

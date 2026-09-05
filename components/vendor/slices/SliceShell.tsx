@@ -26,6 +26,9 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Fab } from '@/components/worklist/Fab';
 import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
+// BLOCK 19 G5.1 — the control's label comes from the copy home, never spelled here.
+import { RF } from '@/lib/worklist/referrals';
+import { ForwardSheet } from './ForwardSheet';
 import { AddSheet } from '@/components/vendor/AddSheet';
 // ── M-FINISH S2 · CE-38 relay #2 arm (c), REACHING THE LIST FAMILY ──────────
 // `Toast` reads five values off `useT()` as JAVASCRIPT, not as CSS variables, so inside the
@@ -614,6 +617,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // the wire's complete_inline door, "one door, both callers" — and refetches
   // via the invalidation bus (the F2 lesson).
   const [wishboneRow, setWishboneRow] = useState<Row | null>(null);
+  // BLOCK 19 G5.1 — the forward sheet's own row, a sibling of the wishbone's.
+  const [forwardRow, setForwardRow] = useState<Row | null>(null);
 
 
   function onEditHere(row: Row) {
@@ -1123,8 +1128,36 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     </div>
   ) : null;
 
+  // ── BLOCK 19 G5.1 · THE ONE CONTROL THIS SITTING ADDS (R-G51.5) ───────────
+  // It sits ABOVE `Mark lost` because forwarding is a live act on a live enquiry
+  // and marking lost is the end of one; a destructive verb never sits between a
+  // vendor and a constructive one.
+  //
+  // ⚠ NOT OFFERED WHEN THE LEAD IS ALREADY FORWARDED, WHEN IT IS LOST, OR WHEN
+  // IT HAS NO PHONE. Each is a state where the door would refuse, and offering a
+  // control that cannot succeed is the lying-control class this estate has filed
+  // twice. The phone guard matters most: the couple's number IS the enquiry, and
+  // the dedupe the whole ruling turns on is keyed on it.
+  //
+  // ⚠ NOT TIER-GATED (R-G51.8). A basic vendor cannot ring this couple — her
+  // record withholds the number — so this is the ONLY thing she can do with an
+  // enquiry she cannot serve. Gating it would take her last move and give the
+  // work to nobody.
+  const forwardBlock = slice === 'leads' && sel && sel.badge !== 'lost'
+    && !sel.forwarded && !!sel.phone ? (
+    <div style={{ marginBottom: 8 }}>
+      <button type="button" onClick={() => { setForwardRow(sel); setSel(null); }} style={{
+        width: '100%', padding: '11px 14px', background: 'transparent',
+        border: '0.5px solid var(--atelier-accent-text)', borderRadius: 2, cursor: 'pointer',
+        fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)',
+        letterSpacing: '0.32em', textTransform: 'uppercase',
+      }}>{RF.forwardControl}</button>
+    </div>
+  ) : null;
+
   const footerExtra = (
     <>
+      {!confirmDel && forwardBlock}
       {!confirmDel && markLostBlock}
       {/* ── R-37.24 · THE CONNECT SLOT ────────────────────────────────────────
           Where the WhatsApp and Call buttons would sit, a basic vendor gets ONE
@@ -1380,6 +1413,28 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         detailExtra={detailExtra}
         footerExtra={footerExtra}
       />
+
+      {/* ── BLOCK 19 G5.1 — THE FORWARD SHEET ─────────────────────────────
+          A SIBLING of the record sheet, not a nest: the record closes when this
+          opens, which is what the ratified frame draws — the leads list behind
+          the scrim and ONE sheet in front of it.
+
+          On success the slice is invalidated so the row comes back carrying its
+          `forwarded_to` stamp and the control retires with its act. F2's lesson,
+          inherited: a raw fetch that does not refetch through the bus leaves the
+          surface lying about what just happened. */}
+      {forwardRow && (
+        <ForwardSheet
+          leadId={forwardRow.id}
+          personLabel={forwardRow.primary}
+          onDone={() => setForwardRow(null)}
+          onForwarded={() => {
+            setForwardRow(null);
+            invalidateSlice('leads');
+            showToast('Forwarded.', 'success');
+          }}
+        />
+      )}
 
       {/* TDW_04 A1 — the wishbone, leads plane. */}
       {wishboneRow && (

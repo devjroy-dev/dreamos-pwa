@@ -36,6 +36,9 @@ function leadBudget(l: Lead): string {
 import { amountWordsAdjacent, phoneKey } from '@/lib/vendor/cabinet';
 import { API_BASE } from '@/lib/vendor/api/_base';
 import type { Lead } from '@/lib/vendor/types/vendor';
+// BLOCK 19 G5.1 — the two row labels come from the copy home, never spelled here.
+import type { ReferralStamp } from '@/lib/solutions/types';
+import { RF } from '@/lib/worklist/referrals';
 import type { CabinetBinder } from '@/lib/vendor/api/vendor';
 
 // F-04.9 (founder-ruled 2026-07-15): every primer is a completable STEM in the
@@ -74,8 +77,46 @@ function leadMeta(l: Lead): string | undefined {
 //
 // DISPLAY-ONLY. F-04.7's fence holds: this is a read-row and no editor grows on
 // it. The sheet's actions are untouched.
+// ── BLOCK 19 G5.1 · THE REFERRAL STAMPS ON THE RECORD (R-G51.5 / F-40.85) ──
+// `Forwarded to …` on the sender's own lead; `Forwarded by …` on the peer's
+// copy, with the note beneath. THE CURE FOR A FIELD THAT WAS WRITTEN BY THREE
+// WRITERS AND RENDERED NOWHERE — `referrer_name` has been on the wire since
+// TDW_04 and no surface has ever drawn it.
+//
+// ⚠ AT MOST ONE OF THE TWO EVER APPEARS. A lead is the landing place of at most
+// one forward (0135's UNIQUE on `new_lead_id`), and the sender's original is a
+// different ROW from the peer's copy — so the pair is mutually exclusive by the
+// schema, not by this function's ordering. Written as two independent guards
+// anyway: a surface that relies on a database invariant it does not restate is a
+// surface that breaks quietly when the invariant moves.
+//
+// ⚠ THE NOTE RIDES INSIDE THE VALUE, NOT AS A ROW OF ITS OWN. It is not a second
+// fact about the lead; it is the referrer's sentence about this one. A `Their
+// note` label above it would put a word between the vendor and what her peer
+// actually wrote. `SliceShell` renders `value` as a string, so the note joins on
+// a newline and the sheet's own line-height carries it.
+//
+// ⚠ POSITIONED AFTER `Source` DELIBERATELY. `Source` reads `peer_referral` on a
+// forwarded lead (F-40.86 — the bare token, filed to Block 09 and NOT cured
+// here), and the row directly beneath it is what makes that token legible
+// without this sitting touching the Leads room's source rendering.
+function referralStamp(s: ReferralStamp | null | undefined): string | null {
+  if (!s) return null;
+  const who = s.peer_name || '\u2014';
+  return s.note ? `${who}\n${s.note}` : who;
+}
+
+function referralRows(l: Lead): { label: string; value: string }[] {
+  const out: { label: string; value: string }[] = [];
+  const to = referralStamp(l.forwarded_to);
+  if (to) out.push({ label: RF.rowForwardedTo, value: to });
+  const by = referralStamp(l.forwarded_by);
+  if (by) out.push({ label: RF.rowForwardedBy, value: by });
+  return out;
+}
+
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
+  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, forwarded: !!(l.forwarded_to || l.forwarded_by), detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},...referralRows(l),{label:'Notes',value:l.notes??'—'}] })); // Notes: F-04.7 read-row (display-only, CE fence)
 }
 
 // TDW_04 A2 (L-2, F-04.2's ratified cure): DELETE means the REAL soft-delete

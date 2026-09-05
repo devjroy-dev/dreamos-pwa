@@ -89,6 +89,13 @@ export interface Row {
       mark beside the state pill. Display-only — F-04.7's fence holds, no editor
       grows on this row. */
   tdw?: boolean;
+  /** BLOCK 19 G5.1 (R-G51.5): this lead has already been forwarded to a peer, or
+      IS the peer's copy of someone else's forward. Either way the control is not
+      offered again — a lead is the landing place of at most one forward, and a
+      button that cannot succeed is the lying-control class filed twice here.
+      The fact rides the ROW rather than being re-derived in the shell from a
+      Lead the shell does not hold. */
+  forwarded?: boolean;
   /** M-LEADGATE-RECUT (R-37.23): the wire's POSITIVE statement that this row's
       mode-to-connect was withheld for tier. Read from the payload, never
       inferred from an absent phone — page-trusts-the-wire, and an inference
