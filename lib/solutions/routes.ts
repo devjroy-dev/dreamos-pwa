@@ -114,6 +114,7 @@ export const API = {
   weddingPhoto:    (id: string, photoId: string) =>
     `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos/${encodeURIComponent(photoId)}`,
   weddingConsent:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/consent`,
+  weddingConsentResend: (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/consent/resend`,
 
   // ── G2 · THE ROOM'S ONE READ ─────────────────────────────────────────────
   // This one DOES hang off `SOLUTIONS_API_PATH`, where the wedding-pages doors

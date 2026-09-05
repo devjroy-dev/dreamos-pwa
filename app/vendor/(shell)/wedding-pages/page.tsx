@@ -331,8 +331,12 @@ function CreditsSheet(
   // The consent ask's own state. Separate from `busy`'s subjects because the link
   // must survive on screen after the request settles — it is the thing she pastes.
   const [consentPhone, setConsentPhone] = useState('');
-  const [consentUrl, setConsentUrl] = useState<string | null>(null);
-  const [consentSent, setConsentSent] = useState(false);
+  // ── F-40.105 · THE LINK IS GONE FROM THIS ROOM ────────────────────────────
+  // It was `consentUrl` and it was printed, so the VENDOR held the couple's
+  // consent token and could answer as her. What she holds now is the last four
+  // digits of the number SHE TYPED — enough to know it went and where, and
+  // nothing she can act on.
+  const [consentLast4, setConsentLast4] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -442,15 +446,37 @@ function CreditsSheet(
     if (busy || !consentPhone.trim()) return;
     setBusy(true); setErr(null);
     try {
-      const r = await postJson<{ ok: boolean; consent_url: string; invite: { sent: boolean; reason?: string } }>(
+      const r = await postJson<{ ok: boolean; sent_to_last4: string; invite: { sent: boolean } }>(
         API.weddingConsent(wedding.id), { phone: consentPhone.trim() },
       );
-      // NEVER A FALSE DONE. The link is shown whether or not the send went, and
-      // the send's own answer is reported rather than assumed — `sendConsentInvite`
-      // returns `{sent, skipped, reason}` and the room says which.
-      setConsentUrl(r.consent_url || null);
-      setConsentSent(Boolean(r.invite && r.invite.sent));
-      setConsentPhone('');
+      // NEVER A FALSE DONE. A send that did not go is a failure and says so —
+      // the dark fallback retired with its reason (R-G12.18.3), because both
+      // templates are Approved Utility and there is nothing left to work around.
+      if (r.invite && r.invite.sent) { setConsentLast4(r.sent_to_last4 || null); setConsentPhone(''); }
+      else setErr(WP.consentFailed);
+    } catch (e) {
+      setErr(e instanceof Error && e.message ? e.message : WP.consentFailed);
+    }
+    setBusy(false);
+  }
+
+  /**
+   * R-G12.18.2 · SEND AGAIN — and it takes no number.
+   *
+   * A resend that accepted one would silently redirect a LIVE token to whoever
+   * asked last, which is F-40.105 wearing a different sleeve. The door re-sends
+   * to the number already recorded; a different number is a NEW ASK, re-minted
+   * and re-recorded, and the old token dies with the overwrite.
+   */
+  async function resendConsent() {
+    if (busy) return;
+    setBusy(true); setErr(null);
+    try {
+      const r = await postJson<{ ok: boolean; sent_to_last4: string; invite: { sent: boolean } }>(
+        API.weddingConsentResend(wedding.id), {},
+      );
+      if (r.invite && r.invite.sent) setConsentLast4(r.sent_to_last4 || null);
+      else setErr(WP.consentFailed);
     } catch (e) {
       setErr(e instanceof Error && e.message ? e.message : WP.consentFailed);
     }
@@ -556,10 +582,14 @@ function CreditsSheet(
               she pastes while the send is dark, and it is the honest artefact
               either way. `consentSent` reports the door's own answer, never an
               assumption about it. */}
-          {consentUrl ? (
+          {/* The masked confirmation, and a resend that needs no input. NO LINK:
+              F-40.105's whole cure is that this surface holds nothing the vendor
+              can answer with. */}
+          {consentLast4 ? (
             <>
-              <p className="wp-consentnote">{consentSent ? WP.consentSentLine : WP.consentDarkLine}</p>
-              <p className="wp-consenturl">{consentUrl}</p>
+              <p className="wp-consentnote">{WP.consentSentLine(consentLast4)}</p>
+              <button type="button" className="wp-btn" disabled={busy}
+                      onClick={() => void resendConsent()}>{WP.consentResend}</button>
             </>
           ) : null}
         </div>

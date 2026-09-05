@@ -39,6 +39,7 @@ const CLAIM   = 'app/credits/[token]/page.tsx';
 const CONSENT = 'app/consent/[token]/page.tsx';
 const CREW    = 'app/crew/[token]/page.tsx';
 const TOKEN   = 'lib/public/token.ts';
+const CONSENTCOPY = 'lib/public/consentCopy.ts';
 const PUBCOPY = 'lib/public/copy.ts';
 const MOCK    = 'docs/mocks/wedding-pages-mock.html';
 const MOCK2   = 'docs/mocks/wedding-guests-mock.html';
@@ -325,8 +326,9 @@ sec('C7 \u00b7 the copy is pinned against the mock');
     // byte is exactly the stale pin this list exists not to become.
     'The couple\u2019s number',
     'Ask the couple',
-    'Sent. The link is below if you need it again.',
-    'Not sent yet \u2014 send this link to the couple yourself.',
+    // R-40.48.1/.2, replacing the two the hole needed. `consentSentLine` is now
+    // a FUNCTION of the last four digits, so it never appears as a literal here.
+    'Send again',
     'That didn\u2019t send. Try again.',
   ];
   const missing = strings.map(decode)
@@ -678,9 +680,77 @@ sec('C17 \u00b7 the upload control, the no-event create, the failure lines');
   // governed by her switch, and a second door onto one decision is the disease.
   ok('and it is ABSENT, not disabled, when the couple is on TDW',
     /w\.couple_id \? null :/.test(room));
-  // The link shows whether or not the send went — it is the artefact she pastes.
-  ok('the link is shown even when the send is dark',
-    /consentUrl \?/.test(room) && /WP\.consentDarkLine/.test(room));
+  // ── CELL RETIRED WITH ITS SUBJECT — F-40.105 / R-G12.18.1 ─────────────────
+  // WAS: "the link is shown even when the send is dark", asserting the room
+  // printed `consentUrl` beside `consentDarkLine`. THAT WAS THE HOLE. The
+  // founder found on glass that a vendor holding the couple's consent link can
+  // answer as her, and the fallback it served — paste it by hand while the send
+  // is dark — died when Meta approved both templates on 2026-09-05.
+  // A CELL ASSERTING A DEFECT IS WORSE THAN NO CELL: it turns RED on the cure,
+  // which is exactly what it did. Replaced by C20, which asserts the opposite
+  // and is mutated for. Retirement lands with the code that moved it (R-G11c.9);
+  // ratify or revert.
+}
+
+// ── C20 · F-40.105 · THE CONSENT LINK IS NOT IN THIS ROOM ──────────────────
+// THE FOUNDER FOUND THIS ON GLASS. The room printed the couple's consent link,
+// so the VENDOR could answer as her — master §2.4's "neither does the
+// counterparty", defeated by the surface that mints the token. It arrived as a
+// dark-send fallback and outlived the approval that retired its reason.
+//
+// ⚠ THE CELL THAT WOULD HAVE CAUGHT IT: no vendor-facing file may render a
+// consent URL or token at all. Written now so the fallback cannot return.
+sec('C20 \u00b7 the consent token is not vendor-facing (F-40.105 / R-G12.18)');
+{
+  const room = strip(read(ROOM));
+  ok('the room renders NO consent url', !/consentUrl/.test(room) && !/consent_url/.test(room));
+  ok('nor any token', !/consent_token/.test(room));
+  // What she gets is four digits she typed herself.
+  ok('she sees the last four of the number SHE typed, and nothing more',
+    /WP\.consentSentLine\(consentLast4\)/.test(room));
+  // R-G12.18.2: a resend taking a number is the same hole in a different sleeve.
+  ok('Send again takes NO number \u2014 the stored one, or nothing',
+    /API\.weddingConsentResend\(wedding\.id\), \{\}/.test(room));
+  // R-G12.18.3: the dark fallback retires WITH ITS REASON.
+  ok('the dark fallback is gone \u2014 a failed send says so',
+    !/consentDarkLine/.test(room) && !/consentDarkLine/.test(read(WPCOPY))
+    && /WP\.consentFailed/.test(room));
+  // THE WHOLE-LANE SWEEP.
+  for (const rel of [ROOM, ROUTES, WPCOPY]) {
+    ok(`${rel} carries no consent link byte`,
+      !/\/consent\/\$\{/.test(strip(read(rel))) && !/consentUrl/.test(strip(read(rel))));
+  }
+}
+
+// ── C21 · THE LAST-FOUR CHECK STANDS IN FRONT OF THE SWITCH ────────────────
+sec('C21 \u00b7 the consent leaf checks before it offers (R-G12.18.4 / R-40.48)');
+{
+  const leaf = strip(read(CONSENT));
+  ok('there is NO control until the check passes',
+    /\{!pass \?/.test(leaf));
+  // Not a greyed one: s-G11.2's ruling, a fourth time in this arc.
+  ok('and the switch is ABSENT, not disabled, before it',
+    !/disabled=\{!pass\}/.test(leaf));
+  // R-G12.18.4: the pass is the SERVER's word, not a boolean this leaf keeps.
+  ok('the writing doors are sent a signed pass, not a local flag',
+    /\{ pass \}/.test(leaf) && !/verified/.test(leaf));
+  ok('the pass comes from the verify door', /\/verify/.test(leaf) && /setPass\(/.test(leaf));
+  ok('nothing is persisted \u2014 the pass lives in the tab',
+    !/localStorage|sessionStorage/.test(leaf));
+  // R-40.48.5: beneath the switch, never above it.
+  ok('the disclaimer renders', /CONSENT_COPY\.disclaimer/.test(leaf));
+  // ⚠ STRIPPED. The copy home's COMMENT records that the founder said
+  // "plagiarism" and the chair corrected it to "misrepresentation" — so an
+  // unstripped cell convicts the explanation of the very correction it is
+  // checking. This bench's own recurring class; the helper has been here since
+  // G1.1 and I reached past it again.
+  ok('and it names MISREPRESENTATION, the act this link can be misused for',
+    /misrepresentation/.test(strip(read(CONSENTCOPY)))
+    && !/plagiarism/i.test(strip(read(CONSENTCOPY))));
+  // The founder's ask.
+  ok('a yes shows her the page she just published',
+    /CONSENT_COPY\.seePage/.test(leaf) && /data\.page_url/.test(leaf));
+  ok('and only after a yes', /pass && data\.published && data\.page_url/.test(leaf));
 }
 
 // ── C19 · EVERY API ADDRESS HAS A CALLER — F-40.103, ratified mechanism ────
@@ -808,6 +878,17 @@ if (process.argv.includes('--mutate')) {
     [ROOM, 'a reorder caller appears for a door that was never built (F-40.83)',
       "  async function removePhoto(photoId: string) {",
       "  async function reorder() { await postJson(WEDDINGS_API_PATH + '/x/photos/order', {}); }\n  async function removePhoto(photoId: string) {"],
+
+    // ── F-40.105 · THE FOUNDER'S FIND, PROVEN ABLE TO RED ─────────────────────
+    [ROOM, 'the consent link returns to the room \u2014 the vendor can answer as the couple',
+      "          {consentLast4 ? (",
+      "          {consentLast4 ? (\n            <p className=\"wp-consenturl\">{`/consent/${consentLast4}`}</p>"],
+    [CONSENT, 'the check stops gating the switch \u2014 a forwarded link answers for her',
+      "        {!pass ? (",
+      "        {false ? ("],
+    [CONSENT, 'the pass becomes a local flag \u2014 the check is theatre',
+      "      { pass },",
+      "      { pass: 'x' },"],
 
     // ── F-40.101 · the live FileList, the founder's own walk ──────────────────
     [ROOM, 'the picked files stop being snapshot \u2014 four chosen, one saved, three gone silently',

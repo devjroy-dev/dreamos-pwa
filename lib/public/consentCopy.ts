@@ -64,4 +64,41 @@ export const CONSENT_COPY = {
    * reader looks for what this page can say, and `b42` pins the two equal.
    */
   failed: 'That didn\u2019t go through. Try again in a moment.',
+
+  // ── R-40.48 · THE LAST-FOUR CHECK AND THE DISCLAIMER ──────────────────────
+  // Founder-vetoed 2026-09-05, curing F-40.105 — the founder's own find on
+  // glass: the vendor was handed this link by design and could answer as the
+  // couple. These two bytes are the second half, for a link forwarded on by
+  // someone who did receive it.
+
+  /**
+   * R-40.48.4 · the check, shown BEFORE the switch. It names the number without
+   * printing it: she knows which one, we say nothing a forwarded reader could
+   * use. A FRICTION CHECK, NOT AN OTP — nothing is sent and nothing is stored.
+   */
+  checkAsk: 'Enter the last four digits of the number this link was sent to.',
+
+  /**
+   * R-40.48.5 · the disclaimer, BENEATH the switch and not above it. Above, it
+   * would read as a warning she must clear before she may answer; beneath, it is
+   * what she is agreeing to as she answers.
+   *
+   * ⚠ THE WORD IS MISREPRESENTATION, NOT PLAGIARISM. The founder said
+   * "plagiarism"; the chair corrected it and he took the correction. The act
+   * here is answering as someone you are not, which is a different wrong from
+   * passing off someone's work as your own — and a disclaimer that names the
+   * wrong wrong is one nobody can rely on.
+   */
+  disclaimer:
+    'By continuing you confirm you are the couple named on this page. '
+    + 'Answering on someone else\u2019s behalf is a misuse of this link. '
+    + 'The Dream Wedding takes privacy and misrepresentation seriously.',
+
+  /**
+   * The page's own address, shown after a yes — the founder's ask, 2026-09-05.
+   * She has just consented to something being published; she should be able to
+   * look at it. Not a secret: once consent is true this URL serves to anyone,
+   * which is precisely the thing she agreed to.
+   */
+  seePage: 'See your wedding page',
 } as const;

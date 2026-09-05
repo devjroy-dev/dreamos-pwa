@@ -96,9 +96,17 @@ export async function readToken<T>(url: string): Promise<TokenRead<T>> {
  * "not settled" and rendered NOTHING. It satisfied never-a-false-done and that
  * was the whole of what it got right — silence is not the same as honesty.
  */
-export async function actToken(url: string): Promise<TokenAct> {
+export async function actToken(url: string, body?: Record<string, unknown>): Promise<TokenAct> {
   try {
-    const r = await fetch(url, { method: 'POST' });
+    // ⚠ THE BODY IS OPTIONAL AND THE HEADER RIDES WITH IT. G1.2's consent lane
+    // sends a signed pass on every write (R-G12.18.4): the last-four check is
+    // enforced by the SERVER, never by a leaf that remembers it answered, and a
+    // client-side "verified" boolean is a suggestion anyone with a console can
+    // set. The credits leaf still calls this with no body and is unaffected —
+    // the parameter is additive and the request is byte-identical without it.
+    const r = await fetch(url, body
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+      : { method: 'POST' });
     if (r.status === 404) return { kind: 'dead' };
     if (!r.ok) return { kind: 'failed' };
     const j = await r.json().catch(() => null);

@@ -36,7 +36,7 @@ import { TOKEN_DEAD_LINK, readToken, actToken } from '@/lib/public/token';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 
-type Consent = { wedding: string; owner: string | null; published: boolean };
+type Consent = { wedding: string; owner: string | null; published: boolean; page_url: string | null };
 
 export default function ConsentPage() {
   const params = useParams<{ token: string }>();
@@ -47,6 +47,15 @@ export default function ConsentPage() {
   // R-40.29's law, carried across: the failure is HELD, not swallowed, and
   // cleared on the next tap so a retry does not argue with a stale sentence.
   const [failed, setFailed] = useState(false);
+  // ── R-G12.18.4 · THE PASS, NOT A BOOLEAN ──────────────────────────────────
+  // The check is enforced by the SERVER: `verify` returns a signed pass bound to
+  // this wedding and both writing doors refuse without it. Holding a `verified`
+  // flag here instead would be theatre — anyone who opens a console sets it.
+  // The pass lives in memory for the life of the tab and is never persisted,
+  // exactly like everything else in this lane.
+  const [pass, setPass] = useState<string | null>(null);
+  const [last4, setLast4] = useState('');
+  const [checkFailed, setCheckFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -63,8 +72,26 @@ export default function ConsentPage() {
     return () => { alive = false; };
   }, [token]);
 
+  /**
+   * THE CHECK. One answer for every failure — a wrong guess, a spent token and
+   * an absent page all return the same 404, so this leaf cannot tell her how
+   * close she was or how many tries remain. It does not need to.
+   */
+  async function verify() {
+    if (busy || last4.trim().length < 4) return;
+    setBusy(true);
+    setCheckFailed(false);
+    const r = await actToken(
+      `${API_BASE}/api/v2/consent/${encodeURIComponent(token)}/verify`,
+      { last4: last4.trim() },
+    );
+    if (r.kind === 'ok' && typeof r.json.pass === 'string') setPass(r.json.pass);
+    else setCheckFailed(true);
+    setBusy(false);
+  }
+
   async function settle(next: boolean) {
-    if (busy) return;
+    if (busy || !pass) return;
     // The tap is acknowledged BEFORE anything else: both controls dim and carry
     // aria-busy, so a person on a slow line sees the tap register rather than
     // tapping again into silence.
@@ -72,12 +99,19 @@ export default function ConsentPage() {
     setFailed(false);
     const r = await actToken(
       `${API_BASE}/api/v2/consent/${encodeURIComponent(token)}/${next ? 'publish' : 'withdraw'}`,
+      { pass },
     );
     if (r.kind === 'dead')  { setDead(true); setBusy(false); return; }
     if (r.kind === 'failed') { setFailed(true); setBusy(false); return; }
     // NEVER A FALSE DONE. The state moves only on a result in hand, and it moves
     // to what the SERVER said, not to what was asked for.
-    setData((c) => (c ? { ...c, published: r.json.published === true } : c));
+    setData((c) => (c ? {
+      ...c,
+      published: r.json.published === true,
+      // The door returns the page's own address on every settle, so the link she
+      // is shown after a yes is the server's answer and not this leaf's guess.
+      page_url: typeof r.json.page_url === 'string' ? r.json.page_url : c.page_url,
+    } : c));
     setBusy(false);
   }
 
@@ -95,7 +129,23 @@ export default function ConsentPage() {
         <h1 className="cs-h">{CONSENT_COPY.head}</h1>
         <p className="cs-l">{CONSENT_COPY.lead(data.owner)}</p>
 
-        {data.published ? (
+        {/* ── THE CHECK STANDS IN FRONT OF THE SWITCH — R-G12.18.4 ──────────
+            Until it passes there is no control on this page at all. Not a
+            greyed one: a refusal drawn as something tappable is worse than no
+            control, and s-G11.2 has ruled that four times in this arc. */}
+        {!pass ? (
+          <>
+            <p className="cs-l cs-ask">{CONSENT_COPY.checkAsk}</p>
+            <input className="cs-fi" value={last4} inputMode="numeric" maxLength={4}
+                   autoComplete="off" onChange={(e) => setLast4(e.target.value.replace(/\D/g, ''))} />
+            <button type="button" className="cs-cta" disabled={busy || last4.length < 4}
+                    aria-busy={busy} onClick={() => void verify()}>{CONSENT_COPY.publish}</button>
+            {/* The check's own failure. It says nothing about WHY — a wrong
+                guess, a spent token and a dead link read alike here because they
+                read alike at the door. */}
+            {checkFailed ? <p className="cs-failed" role="status">{CONSENT_COPY.failed}</p> : null}
+          </>
+        ) : data.published ? (
           <>
             <p className="cs-state">{CONSENT_COPY.stateLive}</p>
             {/* THE WITHDRAWAL IS A CONTROL, NOT A GREYED ONE. s-G11.2's shape for
@@ -116,6 +166,20 @@ export default function ConsentPage() {
             state above. A line that appeared without it would read as a refusal
             rather than a failure. */}
         {failed ? <p className="cs-failed" role="status">{CONSENT_COPY.failed}</p> : null}
+
+        {/* ── THE PAGE SHE JUST PUBLISHED — the founder's ask ────────────────
+            Only after a yes, and only if the door gave us an address. She has
+            agreed to something being published; she should be able to see it. */}
+        {pass && data.published && data.page_url ? (
+          <a className="cs-see" href={data.page_url} rel="noopener noreferrer">{CONSENT_COPY.seePage}</a>
+        ) : null}
+
+        {/* ── THE DISCLAIMER, BENEATH THE SWITCH — R-40.48.5 ─────────────────
+            Beneath and not above: above, it reads as a warning she must clear
+            before she may answer; beneath, it is what she is agreeing to as she
+            answers. Shown from the check onward, because the check is where the
+            answering begins. */}
+        <p className="cs-fine">{CONSENT_COPY.disclaimer}</p>
       </div>
       <ConsentStyles />
     </main>
@@ -148,6 +212,16 @@ function ConsentStyles() {
 /* Terracotta, the estate's own refusal ink — the value the decline button
    carries and the one CalendarBands paints a declined ring in. Not red. */
 .cs-failed{margin-top:14px;font-size:14px;line-height:1.5;color:#B4573A}
+/* ── THE CHECK AND THE DISCLAIMER (R-40.48) ────────────────────────────────
+   NO BACKTICKS IN THIS BLOCK — it lives inside a template literal (e-7/e-8). */
+.cs-ask{margin-top:30px}
+.cs-fi{width:100%;min-height:48px;margin-top:10px;padding:0 14px;border:.5px solid rgba(12,10,9,.26);
+       border-radius:2px;background:#FFFDFB;font-size:20px;letter-spacing:.32em;color:#0C0A09;
+       font-family:inherit}
+.cs-see{margin-top:22px;display:inline-block;font-size:14px;color:#0C0A09;
+        border-bottom:.5px solid rgba(12,10,9,.30);padding-bottom:1px;text-decoration:none}
+/* Quiet, and it does not shout: it is a condition of answering, not a threat. */
+.cs-fine{margin-top:34px;font-size:11px;line-height:1.55;color:rgba(12,10,9,.50)}
     `}</style>
   );
 }

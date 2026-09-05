@@ -1,0 +1,71 @@
+# scripts/floor-manifest-g12-consent-pwa.txt
+# TDW_19 · BLOCK 19 · G1.2 — F-40.105's pwa HALF. R-G12.18 · R-40.48.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for.
+# Sibling at the run: dream-os `95c8f4f` (the doors, `0136` applied).
+#
+# ⚠ THE FOUNDER FOUND THIS ON GLASS AND IT WAS THE SEAT'S. The room printed the
+# couple's consent link, so THE VENDOR COULD ANSWER AS HER. Master §2.4 is that
+# silence never means yes and NEITHER DOES THE COUNTERPARTY — and this room
+# handed the counterparty the switch. It arrived as a dark-send fallback
+# inherited from the claim path; Meta approved both templates on 2026-09-05 and
+# that window closed. The fallback outlived its reason and became the hole.
+
+# ── THE ROOM  [R-G12.18.1/.2/.3] ───────────────────────────────────────────
+# The link is gone. She sees the LAST FOUR of the number SHE TYPED — enough to
+# know it went and where, and nothing she can act on.
+# `Send again` TAKES NO INPUT: a resend accepting a number would silently
+# redirect a LIVE token to whoever asked last, which is the same hole in a
+# different sleeve. A different number is a new ask, re-minted and re-recorded.
+# The dark fallback RETIRES WITH ITS REASON — a failed send says so.
+app/vendor/(shell)/wedding-pages/page.tsx
+lib/worklist/weddingPages.ts
+lib/solutions/routes.ts
+
+# ── THE CONSENT LEAF  [R-G12.18.4 · R-40.48] ──────────────────────────────
+# THE CHECK STANDS IN FRONT OF THE SWITCH. Until it passes there is no control
+# on the page at all — ABSENT, not greyed: a refusal drawn as something tappable
+# is worse than no control, which s-G11.2 has now ruled four times in this arc.
+# THE PASS IS THE SERVER'S WORD. `verify` returns a signed token bound to the
+# wedding and both writing doors refuse without it; a `verified` boolean here
+# would be theatre, since anyone who opens a console sets one. Nothing is
+# persisted — the pass lives in the tab, like everything else in this lane.
+# THE DISCLAIMER SITS BENEATH THE SWITCH, never above: above it reads as a
+# warning she must clear before she may answer; beneath, it is what she is
+# agreeing to as she answers. It names MISREPRESENTATION — the founder said
+# "plagiarism", the chair corrected it, and a disclaimer that names the wrong
+# wrong is one nobody can rely on.
+# AND THE FOUNDER'S ASK: a yes shows her the page she just published. Not a
+# secret — once consent is true that URL serves to anyone, which is precisely
+# the thing she agreed to.
+app/consent/[token]/page.tsx
+lib/public/consentCopy.ts
+
+# ── THE SHARED TOKEN HOME  [additive] ─────────────────────────────────────
+# `actToken` gains an OPTIONAL body so the consent lane can carry its pass. The
+# credits leaf still calls it with none and its request is byte-identical.
+lib/public/token.ts
+
+# ── THE BENCH  [C20-C21, 18 cells, 3 production mutations] ────────────────
+# ⚠ A CELL WAS RETIRED WITH ITS SUBJECT, and it is worth reading why. It asserted
+# "the link is shown even when the send is dark" — IT ASSERTED THE HOLE. It went
+# RED on the cure, which is what a cell defending a defect does. Replaced by C20,
+# which asserts the opposite and is mutated for.
+# And a third time this sitting, one of my own cells convicted its own comment:
+# the copy home RECORDS that the founder said "plagiarism" and the chair
+# corrected it, so an unstripped check for that word failed on the explanation of
+# the correction it was verifying. The strip helper has been in this bench since
+# G1.1 and I reached past it again.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g12-consent-pwa.txt
+
+# ── THE CENSUS CAPTURE — F-40.69 FIRING A SECOND TIME ──────────────────────
+# Same mechanism as the last pwa ZIP and worth naming twice, because it will
+# recur on every delivery that adds a file: the census walks `git ls-files`, so
+# in `--delivery` mode a delivery's NEW files are UNTRACKED and invisible to it.
+# The capture reads correct at the cut and becomes false the instant the delivery
+# is committed. Regenerated with the census's own documented step, not hand-
+# edited — the file is generator-managed and the bench prints its own cure.
+scripts/tdw_stripper_census.out.txt

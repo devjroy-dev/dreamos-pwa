@@ -118,11 +118,27 @@ export const WP = {
   consentLabel:      'The couple\u2019s number',
   /** 32 · the action. */
   consentSend:       'Ask the couple',
-  /** 33 · after a real send. */
-  consentSentLine:   'Sent. The link is below if you need it again.',
-  /** 34 · when the flag is shut — the honest state, and the link still works. */
-  consentDarkLine:   'Not sent yet \u2014 send this link to the couple yourself.',
-  /** 35 · the failure. */
+  /**
+   * R-40.48.1 · after a send. THE LAST FOUR AND NOTHING ELSE.
+   *
+   * ⚠ WHAT THIS REPLACED WAS THE HOLE. It read "Sent. The link is below if you
+   * need it again." and the link WAS below — so the vendor held the couple's
+   * consent token and could answer as her. The founder found it on glass
+   * (F-40.105); master §2.4 is that silence never means yes and NEITHER DOES
+   * THE COUNTERPARTY. It arrived as a dark-send fallback and outlived the
+   * approval that retired its reason.
+   *
+   * The digits are hers already — she typed the number. They tell her it went
+   * and where, and give her nothing to act on.
+   */
+  consentSentLine:   (last4: string) => `Sent to \u2022\u2022\u2022\u2022\u2022 ${last4}`,
+  /** R-40.48.2 · the resend. It takes no input: the stored number, or nothing. */
+  consentResend:     'Send again',
+  /**
+   * R-40.48.3 · the failure. The dark fallback RETIRED WITH ITS REASON — both
+   * templates are Approved Utility, so a send that fails is a failure and says
+   * so, rather than offering the link as a workaround.
+   */
   consentFailed:     'That didn\u2019t send. Try again.',
 
   /** 28 · the create sheet's failure line — F-40.56. */
