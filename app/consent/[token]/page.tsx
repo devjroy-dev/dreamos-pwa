@@ -56,6 +56,9 @@ export default function ConsentPage() {
   const [pass, setPass] = useState<string | null>(null);
   const [last4, setLast4] = useState('');
   const [checkFailed, setCheckFailed] = useState(false);
+  // Only set when the device had no share sheet and the address went to the
+  // clipboard instead. A different outcome gets a different sentence.
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -88,6 +91,32 @@ export default function ConsentPage() {
     if (r.kind === 'ok' && typeof r.json.pass === 'string') setPass(r.json.pass);
     else setCheckFailed(true);
     setBusy(false);
+  }
+
+  /**
+   * SHARE — the founder's ask, 2026-09-05.
+   *
+   * ⚠ THE NATIVE SHEET FIRST, AND A CLIPBOARD ONLY AS FALLBACK. On the phone
+   * this page is opened on, `navigator.share` gives her WhatsApp, Messages and
+   * everything else she already uses; anything we built instead would be a worse
+   * copy of a thing her device does better.
+   *
+   * A CANCELLED SHARE IS NOT A FAILURE. Dismissing the sheet rejects the promise,
+   * and treating that as an error would tell her something went wrong when she
+   * simply changed her mind — so the catch says nothing unless we actually fell
+   * back to the clipboard.
+   */
+  async function share() {
+    const url = data && data.page_url;
+    if (!url) return;
+    const nav = navigator as Navigator & { share?: (d: { url: string; title?: string }) => Promise<void> };
+    if (typeof nav.share === 'function') {
+      try { await nav.share({ url, title: data.wedding }); return; } catch { return; }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+    } catch { /* no sheet and no clipboard: the address is on screen to select */ }
   }
 
   async function settle(next: boolean) {
@@ -171,7 +200,21 @@ export default function ConsentPage() {
             Only after a yes, and only if the door gave us an address. She has
             agreed to something being published; she should be able to see it. */}
         {pass && data.published && data.page_url ? (
-          <a className="cs-see" href={data.page_url} rel="noopener noreferrer">{CONSENT_COPY.seePage}</a>
+          <>
+            {/* Both are CONTROLS, not a link and a hint — the founder's ask. They
+                take the outline shape `Take it down` already uses on this page,
+                so the three things she can do here look like three things she
+                can do. The gold stays spent on the one affirmative above. */}
+            <a className="cs-alt" href={data.page_url} rel="noopener noreferrer">
+              {CONSENT_COPY.seePage}
+            </a>
+            <button type="button" className="cs-alt" onClick={() => void share()}>
+              {CONSENT_COPY.share}
+            </button>
+            {/* Only after a clipboard fallback. A native share says nothing,
+                because her own share sheet already told her what it did. */}
+            {copied ? <p className="cs-copied" role="status">{CONSENT_COPY.shared}</p> : null}
+          </>
         ) : null}
 
         {/* ── THE DISCLAIMER, BENEATH THE SWITCH — R-40.48.5 ─────────────────
@@ -218,8 +261,11 @@ function ConsentStyles() {
 .cs-fi{width:100%;min-height:48px;margin-top:10px;padding:0 14px;border:.5px solid rgba(12,10,9,.26);
        border-radius:2px;background:#FFFDFB;font-size:20px;letter-spacing:.32em;color:#0C0A09;
        font-family:inherit}
-.cs-see{margin-top:22px;display:inline-block;font-size:14px;color:#0C0A09;
-        border-bottom:.5px solid rgba(12,10,9,.30);padding-bottom:1px;text-decoration:none}
+.cs-alt{margin-top:12px;display:block;width:100%;min-height:48px;padding:14px 0;background:transparent;
+        border:.5px solid rgba(12,10,9,.26);color:#0C0A09;border-radius:2px;
+        font-weight:300;font-size:11px;letter-spacing:.20em;text-transform:uppercase;
+        text-align:center;text-decoration:none;cursor:pointer;font-family:inherit}
+.cs-copied{margin-top:10px;font-size:13px;color:rgba(12,10,9,.62);text-align:center}
 /* Quiet, and it does not shout: it is a condition of answering, not a threat. */
 .cs-fine{margin-top:34px;font-size:11px;line-height:1.55;color:rgba(12,10,9,.50)}
     `}</style>

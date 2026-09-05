@@ -101,4 +101,17 @@ export const CONSENT_COPY = {
    * which is precisely the thing she agreed to.
    */
   seePage: 'See your wedding page',
+
+  /**
+   * ⚠ TWO BYTES NOT YET VETOED — raised in the handover, not smuggled.
+   * The founder asked for a share control beside the page link (2026-09-05);
+   * the WORDS are the seat's proposal and his to change.
+   *
+   * `share` is the control. `shared` is what it says when the device has no
+   * share sheet and the address went to the clipboard instead — a different
+   * outcome deserves a different sentence, because "Shared" would be a claim
+   * about something that did not happen.
+   */
+  share:  'Share',
+  shared: 'Link copied.',
 } as const;

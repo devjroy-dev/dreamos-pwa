@@ -751,6 +751,29 @@ sec('C21 \u00b7 the consent leaf checks before it offers (R-G12.18.4 / R-40.48)'
   ok('a yes shows her the page she just published',
     /CONSENT_COPY\.seePage/.test(leaf) && /data\.page_url/.test(leaf));
   ok('and only after a yes', /pass && data\.published && data\.page_url/.test(leaf));
+  // ── THE FOUNDER'S SECOND ASK · both are CONTROLS, and there is a share ────
+  ok('the page link is drawn as a control, not a text link',
+    /className="cs-alt" href=\{data\.page_url\}/.test(leaf));
+  ok('share sits beside it', /CONSENT_COPY\.share/.test(leaf) && /void share\(\)/.test(leaf));
+  // The device's own sheet first: anything we built would be a worse copy of a
+  // thing her phone already does better.
+  // ⚠ WEAK ON ITS FIRST CUT AND THE MUTATION PASS SAID SO. It compared textual
+  // POSITIONS — and `nav.share` also appears INSIDE the branch, so killing the
+  // guard left the order intact and the mutation stayed GREEN. The property is
+  // that the native path is reached by a real CAPABILITY CHECK, not merely that
+  // a string sits earlier in the file.
+  ok('the native sheet is behind a real capability check',
+    /if \(typeof nav\.share === 'function'\)/.test(leaf));
+  ok('and the clipboard is only reached after it',
+    leaf.indexOf("typeof nav.share === 'function'") < leaf.indexOf('clipboard.writeText'));
+  // A dismissed sheet is not a failure — saying so would report an error for a
+  // change of mind.
+  ok('a cancelled share reports nothing',
+    /catch \{ return; \}/.test(leaf));
+  ok('and only a clipboard fallback says anything',
+    /clipboard\.writeText\(url\);\s*\n\s*setCopied\(true\)/.test(leaf));
+  // The one gold stays spent on the affirmative above.
+  ok('neither new control takes the gold', !/cs-alt\{[^}]*C9A84C/.test(read(CONSENT)));
 }
 
 // ── C19 · EVERY API ADDRESS HAS A CALLER — F-40.103, ratified mechanism ────
@@ -878,6 +901,13 @@ if (process.argv.includes('--mutate')) {
     [ROOM, 'a reorder caller appears for a door that was never built (F-40.83)',
       "  async function removePhoto(photoId: string) {",
       "  async function reorder() { await postJson(WEDDINGS_API_PATH + '/x/photos/order', {}); }\n  async function removePhoto(photoId: string) {"],
+
+    // ── THE SHARE ORDER, PROVEN ABLE TO RED ───────────────────────────────────
+    // Clipboard-first would silently replace her own share sheet with a worse
+    // copy of it on every phone that has one.
+    [CONSENT, 'the clipboard is tried before the native sheet \u2014 her own share sheet is bypassed',
+      "    if (typeof nav.share === 'function') {",
+      "    if (false) {"],
 
     // ── F-40.105 · THE FOUNDER'S FIND, PROVEN ABLE TO RED ─────────────────────
     [ROOM, 'the consent link returns to the room \u2014 the vendor can answer as the couple',

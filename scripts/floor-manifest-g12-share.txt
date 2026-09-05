@@ -1,0 +1,48 @@
+# scripts/floor-manifest-g12-share.txt
+# TDW_19 · BLOCK 19 · G1.2 — THE CONSENT PAGE'S TWO CONTROLS (founder, 2026-09-05,
+# on glass after the walk: "make the see your wedding page like a button. like
+# take it down. also give option to share").
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for.
+# Sibling at the run: dream-os `85fb480`.
+
+# ── BOTH ARE CONTROLS NOW ──────────────────────────────────────────────────
+# `See your wedding page` was an underlined text link beside two full-width
+# buttons — so of the three things she can do on this page, two looked like
+# controls and one looked like prose. It takes the OUTLINE shape `Take it down`
+# already uses, and `Share` joins it in the same shape.
+# THE GOLD STAYS SPENT on the one affirmative above; neither new control takes it.
+#
+# ── THE SHARE ─────────────────────────────────────────────────────────────
+# ⚠ THE DEVICE'S OWN SHEET FIRST, CLIPBOARD ONLY AS FALLBACK. On the phone this
+# page is opened on, `navigator.share` gives her WhatsApp and everything else she
+# already uses; anything built here instead would be a worse copy of a thing her
+# phone does better.
+# A CANCELLED SHARE IS NOT A FAILURE — dismissing the sheet rejects the promise,
+# and reporting that as an error would tell her something went wrong when she
+# changed her mind. Only the clipboard fallback says anything, because only it
+# did something her own sheet did not already announce.
+app/consent/[token]/page.tsx
+
+# ── TWO BYTES NOT YET VETOED — RAISED, NOT SMUGGLED ────────────────────────
+# `Share` and `Link copied.` are the seat's proposal; the founder asked for the
+# control, not for these words. They are named in the handover for his veto and
+# carved out in the bench with that stated, rather than hidden behind the
+# carve-out list.
+lib/public/consentCopy.ts
+
+# ── THE BENCH  [7 cells, 1 production mutation] ───────────────────────────
+# ⚠ THE MUTATION CAUGHT A WEAK CELL, a third time this sitting. "The native sheet
+# is tried first" compared textual POSITIONS — and `nav.share` also appears
+# INSIDE the branch, so killing the capability guard left the order intact and
+# the mutation stayed GREEN. A mutation that does not bite is a cell that is not
+# testing what its name claims. It now asserts the capability CHECK itself.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THE CENSUS CAPTURE — F-40.69, THIRD FIRING ────────────────────────────
+# The census walks `git ls-files`, so a delivery's new files are untracked and
+# invisible to it in `--delivery` mode. Regenerated with its own documented step.
+scripts/tdw_stripper_census.out.txt
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g12-share.txt
