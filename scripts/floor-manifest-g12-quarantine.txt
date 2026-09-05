@@ -1,0 +1,92 @@
+# scripts/floor-manifest-g12-quarantine.txt
+# TDW_19 · BLOCK 19 · G1.2 — R-40.33 / R-40.34: THE b50 QUARANTINE AND THE
+# CONSENT CACHE. Cut before the build ZIP so the build's floor is clean by
+# construction rather than by anyone remembering to ignore a red.
+#
+# F-19.16 / F-39.51(b): a dirty file outside this list is a STOP until accounted
+# for. Every file below was authored by THIS seat in THIS sitting; nothing
+# inherited. The tree was clean at the banked tip 6eea5bf before a byte moved,
+# and clean again after b42's mutation pass restored all ten sites.
+
+# ── THE CONSENT CACHE  [R-40.33 / F-40.80 — TWO sites, not one] ─────────────
+# The leaf carried `export const revalidate = 300` AND a retyped
+# `{ next: { revalidate: 300 } }` at the call site, under a comment claiming
+# consent was "enforced at the DOOR on every revalidation". Both halves were
+# true and together they were wrong: the door re-checked consent once every five
+# minutes, so a couple who turned her switch OFF stayed published to every
+# visitor for up to five more minutes. A consent gate with a cache in front of
+# it is a cache, not a gate.
+#
+# THE CARD LEAF KEEPS ITS 300 AND IS NOT IN THIS MANIFEST. `app/v/[code]/page.tsx`
+# is a vendor's own storefront: she owns its switches and a stale minute can only
+# hurt her. This page is governed by a THIRD PARTY's consent and a stale minute
+# hurts the person who just withdrew it. Same shape, different owner, different
+# answer — and C13 pins the asymmetry BOTH ways so a zealous sweep cannot
+# "finish the job" on the card leaf in silence.
+#
+# DERIVED, NOT ASSUMED: deleting the export is sufficient only because
+# `package.json` reads `next: 16.2.3` and fetch is uncached by default from 15
+# onward. On Next 14 the same deletion would have made the fetch `force-cache`
+# and cached it FOREVER — the opposite cure, and the reason the version is read
+# rather than remembered.
+app/v/[code]/w/[slug]/page.tsx
+
+# ── THE QUARANTINE  [R-40.34 / F-40.70 / F-40.71] ───────────────────────────
+# NOT A DELETION AND NOT A DISABLE. b50's subject is real and uncured —
+# `useLoader`'s own header describes the race, and F-39.46 stands. What is
+# quarantined is the bench's ability to answer "did this delivery break
+# something?", on two derived counts: it cannot tell which build it measured
+# (F-40.70), and it returns GREEN and RED on identical bytes (F-40.71, measured
+# 5 RED / 15 vs 0 RED / 14).
+#
+# WHY A DIRECTORY AND NOT A FLAG. R-G11c.11's seat declared b50 out of its gate
+# inside a floor manifest and recorded IN THAT FILE that the declaration was
+# INERT: `run-floor.sh:121` strips `#` before reading a manifest, so a manifest
+# carries a FILE LIST and nothing else, and the runner has no bench-exclusion
+# hook at all. The ruling could not execute as worded and was reported rather
+# than adapted (protocol §9). `run-floor.sh:186` globs `scripts/*.js` FLAT, so
+# one directory down is outside the floor BY CONSTRUCTION. C14 asserts the glob
+# is still flat, and a mutation teaching it to recurse turns C14 RED — because a
+# mechanism nobody checks is the same as a comment.
+scripts/quarantine/b50_fetch_loop_bench.js
+scripts/quarantine/README.md
+# ⚠ THE SOURCE SIDE OF THE RENAME IS DIRT TOO, AND THE GUARD CAUGHT THAT I HAD
+# NOT DECLARED IT. A `git mv` reports at BOTH paths — `RM old -> new` — so the
+# old path is a dirty file in this tree until the commit lands, and F-19.16's
+# check read it as contamination, correctly. My first cut of this manifest named
+# only the destination and the floor REFUSED to run. That refusal is the
+# instrument working; the reading was the defect (the G1.1 seat's e-2, same
+# class, one sitting later).
+#
+# DO NOT "CORRECT" THIS LINE THE WAY THE ce39-smalls LINE ABOVE WAS CORRECTED.
+# They look identical and they are opposites: that one was a PAST delivery's
+# manifest left pointing at a path the tree no longer holds, which is a guard
+# aimed at nothing. This one is a CURRENT delivery declaring the source half of
+# its own rename, which is dirt that genuinely exists right now. The entry stops
+# being true the moment this ZIP is committed, and that is correct for a
+# manifest whose whole subject is the working tree.
+scripts/b50_fetch_loop_bench.js
+
+# ── THE STALE MANIFEST PATH  [the seat's own catch, filed with the move] ────
+# `floor-manifest-ce39-smalls.txt:16` named `scripts/b50_fetch_loop_bench.js`,
+# which no longer exists after the move. A declared-dirt manifest naming a path
+# that is not there is a guard pointing at nothing: F-14.16's check reads the
+# declared SET against the dirty set, so a phantom entry never fires and never
+# announces itself. Corrected to the path that exists, and C14 asserts it.
+# b50's own two self-references (`:2`, `:216`) were corrected in the same move —
+# its printed help told the operator to run a path that had gone.
+scripts/floor-manifest-ce39-smalls.txt
+
+# ── THE BENCH  [C13 five cells, C14 five cells, three production mutations] ──
+# The cells assert the STRIPPED source, deliberately: the cure leaves three
+# occurrences of `revalidate` in COMMENTS explaining why it is gone, and a cell
+# that cannot tell a rule from its violation would convict the explanation
+# (b53's e-4, the same class, quoted in this file's own header).
+# TWO mutations restore the two revalidate sites INDEPENDENTLY, because
+# F-40.80's whole subject is that this cure has two sites and a one-line reading
+# undercounts it — a single mutation restoring both would leave a half-revert
+# invisible.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g12-quarantine.txt

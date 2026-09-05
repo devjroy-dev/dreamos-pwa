@@ -13,4 +13,4 @@ lib/vendor/types/vendor.ts
 scripts/b40_worklist_shell_bench.js
 scripts/run-floor.sh
 scripts/floor-manifest-ce39-smalls.txt
-scripts/b50_fetch_loop_bench.js
+scripts/quarantine/b50_fetch_loop_bench.js

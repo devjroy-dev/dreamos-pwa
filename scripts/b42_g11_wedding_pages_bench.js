@@ -419,6 +419,71 @@ sec('C12 \u00b7 the create picker\u2019s window (F-40.68 / R-G11c.11)');
     !/new Date\(\)\.toISOString\(\)/.test(room));
 }
 
+// ── C13 · R-40.33 · A CONSENT GATE MAY NOT SIT BEHIND A CACHE ───────────────
+// The leaf carried `export const revalidate = 300` AND a retyped `{ next:
+// { revalidate: 300 } }` at the call site, under a comment claiming consent was
+// "enforced at the DOOR on every revalidation". Both halves were true and
+// together they were wrong: the door re-checked consent once every five minutes,
+// so a couple who turned her switch OFF stayed published to every visitor for up
+// to five more minutes.
+//
+// ⚠ THE ASSERTION IS ON THE STRIPPED SOURCE, AND THAT IS THE POINT. The cure
+// leaves three occurrences of the word in COMMENTS explaining why it is gone;
+// a cell that cannot tell a rule from its violation would convict the
+// explanation (b53's e-4, same class, quoted in this file's own header).
+//
+// ⚠ AND THE CARD LEAF IS ASSERTED TO KEEP ITS 300. The asymmetry is a ruling,
+// not an oversight: `app/v/[code]/page.tsx` is a vendor's own storefront and a
+// stale minute can only hurt her, while this page is governed by a THIRD PARTY's
+// consent and a stale minute hurts the person who just withdrew it. Without this
+// second half a zealous sweep would "finish the job" on the card leaf and nothing
+// would object.
+sec('C13 \u00b7 consent is not cached (R-40.33 / F-40.80)');
+{
+  const leaf = strip(read(LEAF));
+  ok('the wedding leaf carries NO revalidate in live code',
+    !/revalidate/.test(leaf), leaf.match(/.{0,60}revalidate.{0,60}/)?.[0] || '');
+  // Named separately so a partial revert is legible: deleting one site and not
+  // the other is the exact half-cure F-40.80 recorded.
+  ok('no route-level export survives',
+    !/export\s+const\s+revalidate/.test(leaf));
+  ok('no cache option survives at the door fetch',
+    !/next\s*:\s*\{[^}]*revalidate/.test(leaf));
+  // NON-VACUITY: this cell must be reading a file that actually calls the door.
+  ok('C13 is not vacuous \u2014 the leaf still fetches the wedding door',
+    /\/api\/v2\/public\/wedding\//.test(leaf));
+  // THE ASYMMETRY, PINNED THE OTHER WAY.
+  ok('the CARD leaf keeps its revalidate \u2014 the asymmetry is ruled, not drift',
+    /revalidate/.test(strip(read('app/v/[code]/page.tsx'))));
+}
+
+// ── C14 · THE QUARANTINE IS A MECHANISM, NOT A COMMENT (R-40.34) ────────────
+// R-G11c.11's seat declared b50 out of its gate inside a floor manifest and
+// recorded in that same file that the declaration was INERT — `run-floor.sh:121`
+// strips `#`, so a manifest is a file list and the runner has no exclusion hook.
+// The directory is the arm that closes it: `run-floor.sh:186` globs
+// `scripts/*.js` FLAT, so one directory down is outside the floor by
+// construction rather than by anyone remembering.
+sec('C14 \u00b7 b50 is quarantined by mechanism (R-40.34 / F-40.70 / F-40.71)');
+{
+  ok('b50 no longer sits in the floor\u2019s glob path',
+    !has('scripts/b50_fetch_loop_bench.js'));
+  ok('b50 exists, quarantined \u2014 not deleted',
+    has('scripts/quarantine/b50_fetch_loop_bench.js'));
+  // The mechanism itself is asserted, because if the runner ever learns to
+  // recurse this whole quarantine silently stops working.
+  ok('the floor glob is still FLAT \u2014 the mechanism holds',
+    /ls scripts\/\*\.proof\.mjs scripts\/\*\.mjs scripts\/\*\.js/.test(read('scripts/run-floor.sh')));
+  ok('the README names both findings and the release conditions',
+    /F-40\.70/.test(read('scripts/quarantine/README.md'))
+    && /F-40\.71/.test(read('scripts/quarantine/README.md')));
+  // F-40.72's own subject: a manifest naming a path that no longer exists is a
+  // guard pointing at nothing, and F-14.16's declared-dirt check would pass it.
+  ok('the ce39-smalls manifest names the path that EXISTS',
+    /^scripts\/quarantine\/b50_fetch_loop_bench\.js$/m
+      .test(read('scripts/floor-manifest-ce39-smalls.txt')));
+}
+
 if (process.argv.includes('--cells-only')) process.exit(fail === 0 ? 0 : 1);
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -475,6 +540,27 @@ if (process.argv.includes('--mutate')) {
     [ROUTES, 'the address home is deleted \u2014 the second spelling returns',
       "export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';",
       "export const WEDDING_PAGES_HREF_RETIRED = '/vendor/wedding-pages';"],
+
+    // ── R-40.33 · EACH SITE RESTORED ON ITS OWN ───────────────────────────────
+    // TWO mutations and not one, because F-40.80's whole subject is that this
+    // cure has two sites and the "one line" reading undercounted it. A single
+    // mutation restoring both would leave a half-revert invisible — which is the
+    // exact failure the finding records.
+    [LEAF, 'the route-level revalidate comes back \u2014 consent caches for 5 minutes',
+      "export const viewport = {",
+      "export const revalidate = 300;\n\nexport const viewport = {"],
+
+    [LEAF, 'the door fetch caches again \u2014 the retyped 300 returns (F-40.80)',
+      "${encodeURIComponent(slug)}`,\n    );",
+      "${encodeURIComponent(slug)}`,\n      { next: { revalidate: 300 } },\n    );"],
+
+    // ── R-40.34 · THE QUARANTINE'S MECHANISM, NOT ITS CONTENTS ────────────────
+    // If the runner ever learns to recurse, every bench in `scripts/quarantine/`
+    // silently rejoins the floor and nothing in the tree objects. This is what
+    // makes C14's mechanism cell non-vacuous.
+    ['scripts/run-floor.sh', 'the floor glob learns to recurse \u2014 the quarantine dissolves in silence',
+      "ALL=$(ls scripts/*.proof.mjs scripts/*.mjs scripts/*.js 2>/dev/null | sort -u)",
+      "ALL=$(find scripts -name '*.proof.mjs' -o -name '*.mjs' -o -name '*.js' | sort -u)"],
   ];
   for (const [rel, name, from, to] of MUT) {
     const abs = P(rel);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/b50_fetch_loop_bench.js — F-39.46 · ONE MOUNT, ONE FETCH PER DOOR.
+// scripts/quarantine/b50_fetch_loop_bench.js — F-39.46 · ONE MOUNT, ONE FETCH PER DOOR.
 //
 // ── WHY THIS IS A BROWSER AND NOT A READER ──────────────────────────────────
 // THE WALK SAW ~900 REQUESTS on the invoices page, hundreds of them 304s against
@@ -213,7 +213,7 @@ function waitForServer(port, timeoutMs) {
          + `would be measuring ITS OWN server or a leftover one from an earlier run. `
          + `A stale server serves an older build and 500s on chunks the rebuild `
          + `replaced — a zero that looks like a finding. Free it, or re-run with a `
-         + `different port:  B50_PORT=4123 node scripts/b50_fetch_loop_bench.js`);
+         + `different port:  B50_PORT=4123 node scripts/quarantine/b50_fetch_loop_bench.js`);
   }
 
   // ⚠ `detached` SO THE WHOLE GROUP CAN BE KILLED. `npx` is the child; it spawns

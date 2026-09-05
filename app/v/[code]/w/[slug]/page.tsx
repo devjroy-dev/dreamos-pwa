@@ -40,9 +40,26 @@
 import type { Metadata } from 'next';
 import { PUBLIC_MISS, PUBLIC_COLOPHON_LEAD, PUBLIC_COLOPHON_HREF } from '@/lib/public/copy';
 
-/** Five minutes, matching the card leaf. Consent is enforced at the DOOR on
- *  every revalidation and never cached as a decision. */
-export const revalidate = 300;
+/* ── NO `revalidate` ON THIS ROUTE, AND THE ABSENCE IS THE RULING (R-40.33) ──
+ * It carried `export const revalidate = 300` and the comment above it claimed
+ * "consent is enforced at the DOOR on every revalidation". Both halves were
+ * true and together they were wrong: the door does re-check consent, but only
+ * once every five minutes, so a couple who turns her switch OFF stays published
+ * to every visitor for up to five more minutes. A consent gate with a cache in
+ * front of it is a cache, not a gate.
+ *
+ * ⚠ THE CARD LEAF KEEPS ITS 300 AND THAT ASYMMETRY IS DELIBERATE.
+ * `app/v/[code]/page.tsx:59` is a vendor's own storefront: she controls its
+ * switches and the only person a stale minute can hurt is her. This page is
+ * governed by a THIRD PARTY's consent — the couple's — and the person a stale
+ * minute hurts is the one who just withdrew it. Same shape, different owner,
+ * different answer.
+ *
+ * Deleting the export is sufficient on Next 16: `fetch` is uncached by default
+ * from 15 onward, so the door is called per request. Derived from
+ * `package.json` (`next: 16.2.3`), not assumed — on Next 14 this same deletion
+ * would have made the fetch `force-cache` and cached it FOREVER, which is the
+ * opposite cure. */
 
 export const viewport = {
   width: 'device-width',
@@ -68,9 +85,14 @@ type WeddingPayload = {
  */
 async function fetchWedding(code: string, slug: string): Promise<WeddingPayload | null> {
   try {
+    // ⚠ NO CACHE OPTION, BY RULING (R-40.33) — and F-40.80's second half.
+    // This retyped the literal `300` while the card leaf's own call reads its
+    // exported `revalidate` binding (`app/v/[code]/page.tsx:189`), so the two
+    // sites could drift by one edit and the "one line" reading of this cure
+    // undercounted it. Both are gone: the door is called per request and
+    // consent is answered fresh every time.
     const r = await fetch(
       `${API_BASE}/api/v2/public/wedding/${encodeURIComponent(code)}/${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } },
     );
     if (!r.ok) return null;
     const j = await r.json();
