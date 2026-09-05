@@ -10,7 +10,7 @@ import { API_BASE } from '@/lib/vendor/api/_base';
 import type { Expense } from '@/lib/vendor/types/vendor';
 
 function toRows(expenses: Expense[]): Row[] {
-  return expenses.map(exp => ({ id: exp.id, primary: exp.description??'Expense', secondary: exp.category??undefined, meta: exp.expense_date?fmtDate(exp.expense_date):undefined, badge: fmtRs(exp.amount), pipelineValue: exp.amount, sortDate: exp.expense_date, aiPrimer: `About the ${fmtRs(exp.amount)} expense: `, deletePrimer: `Delete expense "${exp.description??'this expense'}" — ${fmtRs(exp.amount)} (id: ${exp.id}).`, detail: [{label:'Amount',value:fmtRs(exp.amount)},{label:'Category',value:exp.category??'—'},{label:'Description',value:exp.description??'—'},{label:'Date',value:fmtDate(exp.expense_date)},{label:'Client',value:exp.client_name??'—'}] }));
+  return expenses.map(exp => ({ id: exp.id, primary: exp.description??'Expense', secondary: exp.category??undefined, meta: exp.expense_date?fmtDate(exp.expense_date):undefined, badge: fmtRs(exp.amount), pipelineValue: exp.amount, sortDate: exp.expense_date, aiPrimer: `About the ${fmtRs(exp.amount)} expense: `, deletePrimer: `Delete expense "${exp.description??'this expense'}" — ${fmtRs(exp.amount)} (id: ${exp.id}).`, detail: [{label:'Amount',value:fmtRs(exp.amount)},{label:'Category',value:exp.category??'—'},{label:'Description',value:exp.description??'—',verbatim:true},{label:'Date',value:fmtDate(exp.expense_date)},{label:'Client',value:exp.client_name??'—'}] }));
 }
 
 export default function ExpensesSlice({ vendorId }: { vendorId: string }) {

@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: 02b1b7527abb62259418828cd7de43e71f8ffe4e
-files scanned: 359
+repo tip: 6d014eafea6f8b79875e4a94abcb6d792de22de3
+files scanned: 362
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -153,10 +153,15 @@ app/vendor/(shell)/google-reviews/page.tsx
    FALSE CLOSE :194   …f which mentioned a backtick. */\n.gr
    BITE 1: chars 8995-9759  lines 185-194  span 764  LIVE 764
 
+app/vendor/(shell)/referrals/page.tsx
+   FALSE OPEN  :139   …   ) : null}\n\n      <style>{`\n/* THE
+   FALSE CLOSE :152   …f which mentioned a backtick. */\n.rf
+   BITE 1: chars 6450-7344  lines 139-152  span 894  LIVE 894
+
 app/vendor/(shell)/support/page.tsx
-   FALSE OPEN  :147   …ionsStyles />\n      <style>{`\n/* Car
-   FALSE CLOSE :148   …al only, no horizontal inset. */\n.wl
-   BITE 1: chars 8043-8202  lines 147-148  span 159  LIVE 159
+   FALSE OPEN  :152   …ionsStyles />\n      <style>{`\n/* Car
+   FALSE CLOSE :153   …al only, no horizontal inset. */\n.wl
+   BITE 1: chars 8378-8537  lines 152-153  span 159  LIVE 159
 
 app/vendor/(shell)/today/page.tsx
    FALSE OPEN  :107   …y={today} />}\n      <style>{`\n/* R-3
@@ -376,8 +381,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 105 · false closes: 97
-false bites the RETIRED rule would take: 99 · span 46047 · LIVE CODE 45814
+false opens: 106 · false closes: 98
+false bites the RETIRED rule would take: 100 · span 46941 · LIVE CODE 46708
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
@@ -412,4 +417,4 @@ false bites the RETIRED rule would take: 99 · span 46047 · LIVE CODE 45814
    29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 219 file(s).
+   the retired naive rule disagrees with the compiler on 222 file(s).

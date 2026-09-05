@@ -19,7 +19,7 @@ import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import type { CabinetBinder } from '@/lib/vendor/api/vendor';
 
 function baseRows(events: VendorEvent[]): Row[] {
-  return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date)+(ev.event_time?` · ${ev.event_time.slice(0,5)}`:''), badge: ev.state, sortDate: ev.event_date, twinBinderId: ev.linked_binder_id ?? undefined, aiPrimer: `About ${ev.title} on ${fmtDate(ev.event_date)}: `, deletePrimer: `Delete the event "${ev.title}" on ${fmtDate(ev.event_date)} (id: ${ev.id}).`, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?ev.event_time.slice(0,5):'—'},{label:'State',value:ev.state},{label:'Notes',value:ev.notes??'—'}] }));
+  return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date)+(ev.event_time?` · ${ev.event_time.slice(0,5)}`:''), badge: ev.state, sortDate: ev.event_date, twinBinderId: ev.linked_binder_id ?? undefined, aiPrimer: `About ${ev.title} on ${fmtDate(ev.event_date)}: `, deletePrimer: `Delete the event "${ev.title}" on ${fmtDate(ev.event_date)} (id: ${ev.id}).`, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?ev.event_time.slice(0,5):'—'},{label:'State',value:ev.state},{label:'Notes',value:ev.notes??'—',verbatim:true}] }));
 }
 
 function deleteRequest(sel: Row) {

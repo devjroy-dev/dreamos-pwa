@@ -70,7 +70,7 @@ export function DetailSheet({
               borderBottom: ii < (sel?.detail.length ?? 0) - 1 ? '0.5px solid var(--atelier-card-border)' : 'none',
             }}>
               <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{f.label}</span>
-              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em', textAlign: 'right' }}>{cap(f.value)}</span>
+              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em', textAlign: 'right', whiteSpace: 'pre-line' }}>{f.verbatim ? f.value : cap(f.value)}</span>
             </div>
           ))}
 

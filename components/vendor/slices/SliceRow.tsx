@@ -10,6 +10,8 @@
 // P4 adds swipe/bulk affordances; P3 adds draft chips. Not here.
 
 import type { ListSlice, DoorSlice } from '@/hooks/vendor/useLastSlice';
+// R-G51.16 — the chip's byte comes from the copy home, never spelled here.
+import { RF } from '@/lib/worklist/referrals';
 import { istDayKey } from '@/lib/frost/tokens'; // R-35.23's IST home — one semantic, one home
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
@@ -67,7 +69,24 @@ export interface Row {
   id: string; primary: string; secondary?: string; meta?: string;
   badge?: string; badgeAlert?: boolean; phone?: string; client_phone?: string;
   aiPrimer: string; deletePrimer: string;
-  detail: { label: string; value: string }[];
+  /** ── R-G51.13 / F-40.119 · `verbatim` — THE ROW DECLARES ITS VALUE IS A
+   *  SENTENCE, AND `cap()` SKIPS IT.
+   *
+   *  `cap()` title-cases every detail value, and that is RIGHT for the values
+   *  this array has always carried: `new` -> `New`, `peer_referral` ->
+   *  `Peer Referral`. It is WRONG the moment a value is a person's own words.
+   *  G5.1's referral note shipped reading "Booked That Weekend, She's Asking
+   *  About Feb." — the vendor's sentence, dressed as a headline.
+   *
+   *  ⚠ THE OPT-OUT LIVES ON THE ROW, NOT IN THE HELPER. Widening `cap()` to
+   *  guess at sentences (length? punctuation? spaces?) would change every slice
+   *  in the estate on a heuristic, and the first value it guessed wrong about
+   *  would be someone's name. The ROW knows what it holds; the helper cannot.
+   *  Default false, so every existing row is untouched by construction.
+   *
+   *  Found by the founder's walk and by nothing else: every cell asserted the
+   *  note reached the wire, none asserted what the glass did to it after. */
+  detail: { label: string; value: string; verbatim?: boolean }[];
   /** R1(b) cross-plane chip (CE-ruled): display-only whisper — "the other
       plane also knows this person". Reads, never writes. Absence means "no
       phone match", never "no twin". */
@@ -96,6 +115,12 @@ export interface Row {
       The fact rides the ROW rather than being re-derived in the shell from a
       Lead the shell does not hold. */
   forwarded?: boolean;
+  /** R-G51.16: this lead is the PEER'S COPY of someone else's forward — it
+      arrived from a peer. Distinct from `forwarded`, which is true on BOTH sides
+      and gates the control; this one gates the chip, and only the receiving side
+      wears it. Two facts, two fields: collapsing them would put a chip on the
+      sender's row that read as though the work had come TO her. */
+  referralIn?: boolean;
   /** M-LEADGATE-RECUT (R-37.23): the wire's POSITIVE statement that this row's
       mode-to-connect was withheld for tier. Read from the payload, never
       inferred from an absent phone — page-trusts-the-wire, and an inference
@@ -275,6 +300,30 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 border: '0.5px solid rgba(201,168,76,0.38)', borderRadius: 3,
                 padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
               }}>TDW</span>
+            )}
+            {/* ── R-G51.16 / R-40.52 · THE REFERRAL CHIP, PEER'S COPY ONLY ──
+                This lead ARRIVED from a peer. The sender's own row carries NO
+                chip: her record already says `Forwarded to`, and one word cannot
+                carry both directions — `TDW` means "this came through TDW", and
+                a chip meaning BOTH "sent to a peer" and "received from a peer"
+                would make the room ambiguous at a glance, which is the only
+                moment a chip is read.
+
+                Rides the SAME 9px grant cited above — same style object, same
+                three-leg engraved test (letterSpacing + uppercase) — so the
+                census is unchanged and an un-cited site below the floor still
+                reds. It reads the ACCENT rather than brass: brass is the TDW
+                badge's, and two chips in one ink would be one chip wearing two
+                meanings. */}
+            {row.referralIn && (
+              <span style={{
+                marginLeft: 8, verticalAlign: 'middle',
+                fontFamily: F.label, fontWeight: 500, fontSize: 9,
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: 'var(--atelier-accent-text)',
+                border: '0.5px solid var(--atelier-accent-text)', borderRadius: 3,
+                padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
+              }}>{RF.chipReferral}</span>
             )}
           </div>
           <div style={{

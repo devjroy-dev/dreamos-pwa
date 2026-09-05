@@ -28,6 +28,11 @@ export const RF = {
   // announcement.
   rowForwardedTo: 'Forwarded to',
   rowForwardedBy: 'Forwarded by',
+
+  // R-G51.16 / R-40.52, vetoed by the chair. On the PEER'S copy only — the
+  // sender's row stays unmarked because her record already says `Forwarded to`.
+  // One word, because a chip is read in the moment a thumb passes it.
+  chipReferral: 'Referral',
   // A4 has no byte: the note renders beneath A3's value with a rule at its left
   // and no label. A label above it would be a word between the vendor and the
   // sentence a peer actually wrote.

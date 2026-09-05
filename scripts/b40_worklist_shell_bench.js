@@ -3717,6 +3717,69 @@ cell('C81 tools/base_guard.sh is byte-identical in both repos (R-38.20)', () => 
 //      home == CHECK    — asserted in dream-os `b48` §1.2, NOT duplicated here. This
 //                         cell trusts the sibling's own floor for that leg and says so.
 //    RED MUTATION: add a token to either list, or re-order one of them.
+// ── C101 · NO VENDOR-AUTHORED SENTENCE IS TITLE-CASED ON A RECORD ───────────
+//
+// F-40.119, chair-ruled estate-wide 2026-09-06. `DetailSheet.tsx` runs `cap()`
+// on every detail value, which is RIGHT for the tokens this array was built for
+// (`new` -> `New`, `peer_referral` -> `Peer Referral`) and WRONG the moment the
+// value is a person's own words. Four rows across three slices carry free text
+// the vendor typed into `AddSheet`'s textarea, and all four rendered as
+// headlines: leads `Notes`, events `Notes`, expenses `Description`, and G5.1's
+// referral rows.
+//
+// ⚠ FOUND BY THE FOUNDER'S EYE ON A WALK, BY NO INSTRUMENT. Every cell in this
+// estate asserted a value REACHED the wire; none asserted what the glass did to
+// it afterwards. That gap is filed as F-40.123 for Block 09 with five specimens;
+// a render-assertion arm was REFUSED for now (a DOM cell per room is its own
+// maintenance disease). This cell is the cheap half of the answer: it does not
+// look at the DOM, it asserts that every prose row DECLARES itself.
+//
+// ⚠ IT WALKS THE ROWS, IT DOES NOT COUNT THEM. A cell asserting "four rows carry
+// verbatim" would pass on the wrong four. This finds every detail row whose
+// label names free text and requires the flag on each — so a fifth prose row
+// added tomorrow reds here rather than shipping title-cased.
+cell('C101 every vendor-authored prose row declares verbatim, so cap() cannot headline it (F-40.119)', () => {
+  // The labels whose values are free text the vendor typed. Derived from the
+  // AddSheet textarea fields, not guessed: `notes` is a textarea on five forms
+  // and `description` is the expense's own prose.
+  const PROSE = /label:\s*'(Notes|Description|Forwarded to|Forwarded by)'/;
+  const bodies = [
+    'app/vendor/(shell)/leads/body.tsx',
+    'app/vendor/(shell)/events/body.tsx',
+    'app/vendor/(shell)/expenses/body.tsx',
+  ];
+  const bare = [];
+  for (const f of bodies) {
+    const src = strip(read(f));
+    // Each detail entry is `{label:'X',value:...}` — split on the braces rather
+    // than on lines, because these arrays are written on one very long line.
+    for (const m of src.matchAll(/\{\s*label:\s*'[^']+'[^{}]*\}/g)) {
+      const entry = m[0];
+      if (!PROSE.test(entry)) continue;
+      if (!/verbatim\s*:\s*true/.test(entry)) {
+        bare.push(f + ' -> ' + (entry.match(/label:\s*'([^']+)'/) || [])[1]);
+      }
+    }
+  }
+  if (bare.length) {
+    return 'prose rows rendered through cap() without `verbatim` — the vendor\'s own '
+         + 'sentence will render as a headline: ' + bare.join(', ');
+  }
+
+  // And the flag must actually be honoured. A row that declares `verbatim` while
+  // the sheet ignores it is worse than no flag: it reads as cured.
+  const sheet = strip(read('components/vendor/slices/DetailSheet.tsx'));
+  if (!/f\.verbatim\s*\?\s*f\.value\s*:\s*cap\(f\.value\)/.test(sheet)) {
+    return 'DetailSheet does not honour `verbatim` — the flag is declared and ignored';
+  }
+  // The helper's DEFAULT must be untouched: every row that does not opt out is
+  // still title-cased, which is what keeps `Source: Peer Referral` reading well.
+  if (!/cap\(f\.value\)/.test(sheet)) {
+    return 'cap() no longer runs on un-flagged values — the opt-out became an opt-in';
+  }
+  return null;
+});
+
 cell('C84 the expense category mirror equals the dream-os home, in order', () => {
   const sibling = path.resolve(ROOT, '..', 'dream-os', 'src/lib/vendor/expenses.js');
   if (!fs.existsSync(sibling)) {
