@@ -204,6 +204,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
           color:var(--atelier-ink-soft);flex:0 0 auto;border:.5px solid var(--atelier-input-border);
           border-radius:2px;padding:3px 7px}
 .sol-chip--coming{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border)}
+.sol-chip--open{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .sol-footer{margin-top:28px;padding-top:20px;border-top:.5px solid var(--atelier-card-border);
             display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .sol-footerbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
@@ -443,7 +444,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 
 <!-- ═══ R5 · THE HUB ══════════════════════════════════════════════════════ -->
 <div class="framewrap" data-frame="R5-hub">
-  <div class="cap"><b>R5-hub &middot; THE ROW GOES LIVE &mdash; R-G51.10, THE ONE-BYTE DIFFERENCE</b> &middot; read this against <code>wedding-pages-mock.html</code>'s ratified <code>W5-hub</code>: <b>everything is identical but one chip</b> &mdash; <i>Referrals &amp; partners</i> loses its <i>Coming</i> and gains a destination &middot; the label itself is <b>KEPT byte-for-byte</b> from <code>lib/solutions/copy.ts:113</code>; this sitting proposes no new hub string &middot; the address follows the <code>WEDDING_PAGES_HREF</code> precedent in <code>lib/solutions/routes.ts</code>, so <code>ROOM_COUNT_EXPECTED</code> stays 19, the tile grid gains nothing, and <code>b40</code> C31's declared set is amended by label &middot; <b>seven still read <i>Coming</i></b> &mdash; the founder rejected six once (<code>support/page.tsx:11&ndash;13</code>); this is the second of nine to answer him</div>
+  <div class="cap"><b>R5-hub &middot; THE ROW GOES LIVE, AND CARRIES <i>Open</i> &mdash; RE-SHOT UNDER R-40.40 / F-40.93</b> &middot; <b>this frame reverses its own first cut, and the reversal is the point.</b> The cut of 5 Sep drew the live row BARE, and the reasoning read well on a screenshot: a chip that says nothing is chrome. <b>On the founder&rsquo;s glass it failed</b> &mdash; beside eight <i>Coming</i> rows the one working row was the only thing with nothing on its right, and it read as a <i>heading</i> rather than a door. R-39.15: the walk outranks the frame &middot; <b>two rows now carry <i>Open</i></b> &mdash; Wedding pages and Referrals &amp; partners &mdash; because <code>SolutionsPieces.tsx:88</code> renders a <code>StateChip</code> on EVERY row, <code>href ? open : coming</code>: the bare row was never a state this component could reach, and the first cut drew a surface the code cannot produce &middot; <b>the byte and both rules are transcribed, not authored</b> &mdash; <i>Open</i> from <code>lib/solutions/copy.ts:62</code>, <code>.sol-chip--open</code> from <code>SolutionsPieces.tsx:185</code> &middot; they differ by <b>ink as well as word</b>: <i>Open</i> takes the accent, <i>Coming</i> stays dim, so the column is scannable before a word is read &middot; seven still read <i>Coming</i></div>
   <div class="wl" data-wl-mode="dark">
     <header class="wl-hdr">
       <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Business Solutions</span></div>
@@ -452,13 +453,13 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     <div class="wl-main"><div style="padding-top:14px;padding-bottom:24px">
       <p class="sol-eyebrow">For your business</p>
       <div class="sol-rows">
-        <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Wedding pages</span></span></div>
+        <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Wedding pages</span></span><span class="sol-chip sol-chip--open">Open</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Google reviews</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Your website &amp; SEO</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Contracts &amp; deposits</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Payment reminders</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Posts &amp; ads</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
-        <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Referrals &amp; partners</span></span></div>
+        <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Referrals &amp; partners</span></span><span class="sol-chip sol-chip--open">Open</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Open dates &amp; rates</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
         <div class="sol-row"><span class="sol-rowtext"><span class="sol-rowlabel">Your own number</span></span><span class="sol-chip sol-chip--coming">Coming</span></div>
       </div>

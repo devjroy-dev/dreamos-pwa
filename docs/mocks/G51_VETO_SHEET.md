@@ -1,8 +1,8 @@
 # G5.1 · THE OVERFLOW EXCHANGE — COPY INVENTORY & VETO SHEET
 
-**Packet** `docs/mocks/referrals-mock.html` · sha256 `2fb4d0efa555c45a5cf12a7c914fb3ff29fe192dd5fea0f00f70cf324e9e9df5`
+**Packet** `docs/mocks/referrals-mock.html` · sha256 `d342658c005b58487e992a6b7999736bf2862a58137a020725592a0f73095593` (RIDER 1; the cut ratified at R-40.42 was `2fb4d0ef…9df5`)
 **Frames** R1-record · R1-forwarded · R2-sheet · R2-picker · R2-refused · R3-peer · R4-room · R4-empty · R5-hub — 9 frames, five shapes, 374 and 390 on the five primaries, both modes, **28 shots**.
-**Tips** dreamos-pwa `45be1aa` (main; re-cut after `6eea5bf..45be1aa` moved under the first cut — the guard refused it, the packet is byte-identical) · dream-os `d91ec6e` (main), both re-derived at the cut.
+**Tips** dreamos-pwa `af295a7` (main) · dream-os `d91ec6e` (main), re-derived at the rider's cut. The mock banked at `2bcd2bf` under base `45be1aa`; this rider amends one frame on top of it.
 **Authored against** CE-40's ten G5.1 rulings (R-G51.1–.10) and the five findings of the read-first (F-40.84–.88).
 
 **CURRENT is empty on every line below.** This room has no bytes in the tree: `lib/solutions/copy.ts:113`'s row label `Referrals & partners` is the only string that exists today, and this sitting proposes **no change to it**. Everything else here is new and every line is vendor-facing. Silence ships it as authored; strike anything and it is struck.
@@ -31,7 +31,7 @@
 | B5 | send verb | **`Forward`** | |
 | B6 | the standing line under the verb | **`They get it as a new enquiry, with your name and your note. Nothing is sent to the couple.`** | Two sentences doing two jobs: the first is what the peer sees, the second is R-G51.7 said out loud **before** she taps. She will otherwise assume TDW told the couple, and find out it didn't when the couple asks. |
 | B7 | picker title | **`Choose a peer`** | |
-| B8 | picker footer | **`Peers you've worked with appear here.`** | Deliberately does **not** say where to add one. The roster is written by accepting a Collab response and by a manual add, and naming a door this sheet cannot open is worse than naming none. **Flagged: if you want a way in from here, say so and it becomes a fork.** |
+| B8 | picker footer | **`Peers you've worked with appear here.`** | **RULED (relay 2): no way in from the picker this sitting; peers are added where the roster is written today.** ⚠ **THE SEAT READS ONE AMBIGUITY AND WILL NOT GUESS IT** — the ruling's words were *"the footer is absent"*, which reads either as *the way-in is absent* (this line stands, as A–F were ratified as proposed) or as *the line itself is struck*. The frame still draws it. One word settles it, and it is a second rider either way. |
 
 ---
 
@@ -67,9 +67,13 @@ Three deliberate choices, each of which could have gone the other way:
 
 ## E · THE HUB — no new bytes
 
-`R5-hub` proposes **one deletion and no additions**: the `Coming` chip leaves the `Referrals & partners` row and the row gains a destination. Read it against `wedding-pages-mock.html`'s ratified `W5-hub` — every other byte is identical, including the seven remaining `Coming` chips and the whole footer.
+**AMENDED BY LABEL · RIDER 1, R-40.40 / F-40.93, founder-ruled on his walk 2026-09-05. The paragraph below replaced one that read "one deletion and no additions". That sentence is now false and is not left standing.**
 
----
+`R5-hub` proposes **no new byte and one state correction**: the `Referrals & partners` row gains a destination and, with it, the `Open` chip that `SolutionsPieces.tsx:88` renders on *every* row with an `href`. Two rows carry it — Wedding pages and Referrals & partners — and seven still read `Coming`.
+
+**The first cut drew the live row bare, and that was wrong in a way a screenshot could not show.** The reasoning was that a chip saying nothing is chrome. On glass, beside eight `Coming` rows, the one working row was the only thing with nothing on its right and read as a **heading** rather than a door. R-39.15: the walk outranks the frame.
+
+**Nothing here needs a veto and none is asked for.** `Open` is already the founder's byte at `lib/solutions/copy.ts:62`; `.sol-chip--open` is transcribed from `SolutionsPieces.tsx:185`. The first cut's frame drew a state the component cannot produce — `href ? 'open' : 'coming'` has no bare branch — so this is the frame catching up to the code, not new copy.
 
 ## F · WHAT IS **NOT** CURED HERE, drawn so the leaving-alone is visible
 
