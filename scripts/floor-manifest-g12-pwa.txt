@@ -1,0 +1,96 @@
+# scripts/floor-manifest-g12-pwa.txt
+# TDW_19 · BLOCK 19 · G1.2 — THE pwa HALF. The guest gallery and its download,
+# the off-platform couple's consent leaf, the upload control, the three failure
+# lines, and the truncation tell.
+#
+# F-19.16 / F-39.51(b): a dirty file outside this list is a STOP until accounted
+# for. Every file below was authored by THIS seat in THIS sitting; nothing
+# inherited. Sibling at the run: dream-os `5e5c230` (G3.2's contract docs moved
+# under this seat mid-build; docs/specs only, outside this radius).
+
+# ── THE CAPABILITY-TOKEN CONSTITUTION  [R-G12.9 · F-40.40 CLOSED] ───────────
+# The dead-link byte had THREE occurrences across TWO files and no home: two
+# inline JSX literals on the crew leaf, and a private `const` on the credits
+# leaf whose own comment filed the duplication rather than fixing it, because
+# the crew page belonged to another arc. G1.2's `/consent/` would have made a
+# fourth, so the debt is paid here instead of grown.
+#
+# The file also hoists the FETCH POSTURE as two discriminated unions rather than
+# a nullable payload: `dead` is 404 and NOTHING ELSE; `offline`/`failed` is us.
+# That is F-40.53's lesson made a type — a 500 or a stale worker's 503 must
+# never read to a couple as her link having expired, or she chases a vendor over
+# our outage.
+lib/public/token.ts
+app/crew/[token]/page.tsx
+app/credits/[token]/page.tsx
+
+# ── THE CONSENT LEAF  [R-G12.4/.5 · F-40.49] ───────────────────────────────
+# Inherits the constitution whole with ONE declared departure, stated in its own
+# header: THIS TOKEN EXPIRES at 30 days, and `Take it down` stands after a yes.
+# A credit token claims one name on one page and is terminal; this one flips
+# consent on published material and can flip it back. One posture per power —
+# a couple who can say yes and never no has not been given a switch, she has
+# been given a trapdoor.
+app/consent/[token]/page.tsx
+lib/public/consentCopy.ts
+
+# ── THE PUBLIC LEAF  [R-G12.10 · R-G12.16] ─────────────────────────────────
+# The gallery is every photograph after the hero as plain anchors — no selected
+# state, nothing to swap, so the browser's own viewer beats a cascade trick.
+# The download is a `<details>`/`<summary>` sheet: the ratified frame, with the
+# open owned by the browser and ZERO bytes of script. The guest's number never
+# touches JavaScript. `use client`: 0. `useState`/`onClick`: 0 in live code.
+#
+# ⚠ THE FOUR-ITEM STRIP IS RETIRED WITH ITS READER, not commented out — it was
+# G1.1's stand-in for a gallery the page did not yet have.
+#
+# ⚠ ONE GOLD, and b42 caught me spending a second. My first cut accented the
+# contact checkbox `#C9A84C`; this page spends its one gold on the section rule
+# and nowhere else, stricter than the house 3x cap. The cell was right and the
+# byte was wrong; the box now takes the ink, which matches the button above it.
+app/v/[code]/w/[slug]/page.tsx
+lib/public/copy.ts
+
+# ── THE ROOM  [F-40.57 · F-40.56 · F-40.77 · F-40.78] ──────────────────────
+# The upload strip inside the credits sheet, which IS the wedding record — a
+# row's only action opens it and there is no second screen, so the photographs
+# join it above the roll rather than opening a third surface for one object.
+# Cell one is marked `Hero` because that is what the public leaf takes.
+#
+# ⚠ SEQUENTIAL, NEVER `Promise.all`. A wedding is a hundred photographs and a
+# phone on venue wifi; a parallel fan-out drops half of them and reports success,
+# and the counter — her only honest progress signal — cannot exist under one.
+#
+# Three swallows cured: the create sheet (F-40.56) and the credits sheet's `add`
+# and `publish` (F-40.77), which caught and rendered NOTHING. b42 asserts no
+# empty catch survives in this room.
+#
+# R-G12.8's tell finally has a surface: `truncated` has ridden the events door
+# since TDW_04 B6-S1 and `EventsResponse` has declared it since — the flag
+# existed, the surface didn't (F-40.78).
+app/vendor/(shell)/wedding-pages/page.tsx
+lib/worklist/weddingPages.ts
+lib/solutions/routes.ts
+
+# ── THE BENCH  [C15-C18, 27 new cells, 6 production mutations] ─────────────
+# TWO SEALED CELLS AMENDED, both labelled, ratify-or-revert, landing with the
+# code that moved them:
+#   · C10's dead-link assertion moved to the byte's new home and gained a second
+#     half proving the credits leaf no longer respells it.
+#   · The room-copy cell now reads BOTH ratified mocks. `wedding-pages-mock.html`
+#     is G1.1's; G1.2's surfaces were ratified from `wedding-guests-mock.html`
+#     @ 6eea5bf. A cell reading only the first would BOUNCE every byte of the
+#     second — a stale pin, not a strict one. Four strings join the carve-out,
+#     EACH WITH ITS PROVENANCE: `Remove` is an accessible name a picture cannot
+#     draw; R-G12.8's byte was chair-ratified with no frame ever cut for it;
+#     F-40.77's two were found by reading code after the mock was already shot.
+#
+# ⚠ C18 IS A MECHANISM, NOT A COMMENT. I closed a `<style>{...}` template literal
+# with backticks TWICE in one sitting — the second time inside the comment
+# warning about the first. tsc reports it as dozens of JSX errors nowhere near
+# the cause, which is why it survived a first fix. The cell scans every style
+# literal in four files. A comment cannot enforce this; a cell can.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g12-pwa.txt

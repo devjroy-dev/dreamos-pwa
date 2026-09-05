@@ -87,4 +87,12 @@ export const API = {
   weddingPublish:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/publish`,
   weddingUploadUrl:(id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/upload-url`,
   weddingPhotos:   (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos`,
+  // ── G1.2 · two doors, one address home ─────────────────────────────────────
+  // No reorder member: R-G12.12 was narrowed after the seat flagged that
+  // `POST /:id/photos/order` would ship with no caller — the F-40.28 shape, a
+  // door with no reader. F-40.83 holds the gesture; order changes by
+  // remove-and-re-add until one is ruled.
+  weddingPhoto:    (id: string, photoId: string) =>
+    `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos/${encodeURIComponent(photoId)}`,
+  weddingConsent:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/consent`,
 } as const;

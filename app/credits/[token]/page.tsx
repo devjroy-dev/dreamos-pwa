@@ -28,22 +28,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CLAIM_FAILED } from '@/lib/public/copy';
+import { TOKEN_DEAD_LINK } from '@/lib/public/token';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 
-/** The founder's 2026-07-22 byte, carried from `app/crew/[token]/page.tsx`.
- *  One home would be better and this is the second; it is NOT hoisted in this
- *  sitting because that file is another arc's and R-G11.15 hoisted exactly two
- *  named strings. Filed, not fixed — and named here so it is not mistaken for a
- *  fresh authoring. */
-// ⚠ THE APOSTROPHE IS TYPOGRAPHIC (U+2019), NOT ASCII, AND THAT IS THE BYTE.
-// The first cut of this line copied the crew page's COMMENT, which spells it
-// with an ascii quote, instead of the JSX it actually renders:
-// `This link isn&rsquo;t active.` (app/crew/[token]/page.tsx:107, :109).
-// R-40.19 put typographic apostrophes across the ratified set, and a reused byte
-// that differs by one character is a re-authoring nobody vetoed. READ PAST THE
-// CITE: a comment describing a string is not the string.
-const DEAD_LINK = 'This link isn\u2019t active.';
+/** F-40.40 CLOSED. This file's own comment said "one home would be better and
+ *  this is the second", filed rather than fixed because the crew page belonged
+ *  to another arc. G1.2's `/consent/` leaf would have made it a THIRD, so the
+ *  byte moved to `lib/public/token.ts` — the constitution all three leaves share
+ *  — and this line is now a reader of it rather than a second declaration.
+ *  The bytes are IDENTICAL; the hoist edits nothing it carries. */
+const DEAD_LINK = TOKEN_DEAD_LINK;
 
 type Credit = { role: string; label: string | null; status: string; wedding: string; owner: string | null };
 

@@ -29,7 +29,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { getJson, postJson } from '@/lib/vendor/api/_base';
+import { getJson, postJson, deleteJson } from '@/lib/vendor/api/_base';
 // ⚠ THE EVENTS READ GOES THROUGH THE ESTATE'S TYPED HELPER, NOT A HAND-WRITTEN
 // PATH. `lib/vendor/api/vendor.ts:3` states the rule in its own header: screen
 // components import from here, never raw fetch. e-8 in this sitting is what
@@ -60,6 +60,7 @@ type Credit = {
   status: string; claim_url: string;
 };
 type EventRow = { id: string; title: string; event_date: string; state: string };
+type Photo = { id: string; url: string; position: number };
 
 export default function WeddingPagesPage() {
   const router = useRouter();
@@ -160,7 +161,20 @@ function Row({ w, onOpen }: { w: Wedding; onOpen: () => void }) {
 
 function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose: () => void; onSaved: () => void }) {
   const [events, setEvents] = useState<EventRow[] | null>(null);
+  const [truncated, setTruncated] = useState(false);
   const [eventId, setEventId] = useState('');
+  // ⚠ THE NO-EVENT CREATE IS WITHHELD FROM THIS DELIVERY — F-40.99, raised here.
+  // R-G12.6 ruled it in ("title, date, venue, city typed by hand"), and it does
+  // not execute as worded: `public.weddings` carries THIRTEEN columns and not one
+  // of them holds a wedding date. The season a page prints is derived from
+  // `events.event_date` through the `event_id` join (`weddings.js:532`), so a
+  // page with no event has no date, no season, and nowhere to put a typed one.
+  // The banked create door also still refuses it outright
+  // (`studio/weddings.js`, "An event is required."), so the arm would have
+  // 400'd on its first tap.
+  // Reported, never quietly adapted (protocol §9). The arms are in the handover;
+  // whichever is ruled needs a dream-os change first, and 0134 belongs to the
+  // G2 seat by R-40.44.
   const [title, setTitle] = useState('');
   const [venue, setVenue] = useState('');
   const [city, setCity]   = useState('');
@@ -220,6 +234,14 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
         // BOTH bounds are present (`lib/vendor/api/vendor.ts:327`).
         const r = await fetchEvents(vendorId, 'all', WP_PICKER_FROM, istPlusDaysISO(400));
         setEvents((r.events || []).filter((e) => e.state !== 'cancelled') as EventRow[]);
+        // ── R-G12.8 / F-40.78 · THE TELL EXISTED; THE SURFACE DIDN'T ─────────
+        // `truncated` has ridden this door since TDW_04 B6-S1 (`events.js:324`,
+        // `(count||0) > events.length`) and `EventsResponse` has declared it
+        // since — the seat's read-first found the door needed NOTHING and the
+        // ruling for a new `has_more` key was withdrawn. What was missing was a
+        // vendor ever being told, so a studio past 200 events silently lost the
+        // oldest end of a 26-year window with no tell at all.
+        setTruncated(r.truncated === true);
       } catch { setEvents([]); }
     })();
   }, [vendorId]);
@@ -233,12 +255,11 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
     } catch (e) {
       // NEVER A FALSE DONE. The sheet stays open and says so; it does not close
       // on a write it cannot confirm.
-      // ⚠ ONLY THE DOOR'S OWN MESSAGE IS SHOWN. This sitting authored no failure
-      // line for this sheet, because one is not in the ratified mock. On a
-      // network error there is no message and none is invented — the sheet stays
-      // open with the button live, which is the honest state and never a false
-      // done. FILED: the create sheet has no authored failure line.
-      setErr(e instanceof Error && e.message ? e.message : null);
+      // F-40.56 CURED. This sheet authored no failure line because one was not
+      // in the ratified mock; on a network error there was no message and none
+      // was invented, so the sheet sat open with a live button and said nothing.
+      // The byte is now vetoed (string 28) and stands in when the door has none.
+      setErr(e instanceof Error && e.message ? e.message : WP.saveFailed);
       setBusy(false);
     }
   }
@@ -253,13 +274,14 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
         {/* ⚠ JSX TEXT IS NOT A JS STRING. A bare \u00b7 written as option text
             renders as six literal characters, and tsc cannot see it because it
             is perfectly valid text. The separator goes through an EXPRESSION so
-            the escape is evaluated. (The first cut had both defects: the bare
-            escape, and then this comment placed inside the arrow's return
-            parens rather than in JSX children.) */}
+            the escape is evaluated. */}
         {(events ?? []).map((e) => (
           <option key={e.id} value={e.id}>{e.title}{' \u00b7 '}{e.event_date}</option>
         ))}
       </select>
+      {/* The tell, under the control it describes. */}
+      {truncated ? <p className="wp-pickernote">{WP.pickerTruncated}</p> : null}
+
 
       <span className="wp-fl">{WP.fieldTitle}<Req /></span>
       <input className="wp-fi" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -288,17 +310,26 @@ function CreditsSheet(
   { wedding, onClose, onChanged }: { wedding: Wedding; onClose: () => void; onChanged: () => void },
 ) {
   const [credits, setCredits] = useState<Credit[] | null>(null);
+  const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [w, setW] = useState<Wedding>(wedding);
   const [role, setRole] = useState(ROLE_OPTIONS[0].key);
   const [handle, setHandle] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  // F-40.77: `add()` and `publish()` caught and rendered NOTHING — F-40.53's
+  // class one layer in. Silence is not the same as honesty.
+  const [err, setErr] = useState<string | null>(null);
+  // The upload's own state, separate from `busy`: a photograph uploading must
+  // not disable the credit form beside it, and a failed upload must not read as
+  // a failed credit.
+  const [upBusy, setUpBusy] = useState<{ done: number; total: number } | null>(null);
+  const [upErr, setUpErr] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const r = await getJson<{ ok: boolean; wedding: Wedding; credits: Credit[] }>(API.wedding(wedding.id));
-      setCredits(r.credits || []); setW(r.wedding);
-    } catch { setCredits([]); }
+      const r = await getJson<{ ok: boolean; wedding: Wedding; credits: Credit[]; photos: Photo[] }>(API.wedding(wedding.id));
+      setCredits(r.credits || []); setW(r.wedding); setPhotos(r.photos || []);
+    } catch { setCredits([]); setPhotos([]); }
   }, [wedding.id]);
   useEffect(() => { void load(); }, [load]);
 
@@ -310,16 +341,79 @@ function CreditsSheet(
         role, handle: handle.trim(), name: name.trim(),
         phone: /^[+0-9][0-9 ()-]{6,}$/.test(handle.trim()) ? handle.trim() : '',
       });
-      setHandle(''); setName(''); await load(); onChanged();
-    } catch { /* the row is not added; the fields keep what she typed */ }
+      setHandle(''); setName(''); setErr(null); await load(); onChanged();
+    } catch (e) {
+      // F-40.77 CURED. The first cut caught and rendered NOTHING: the row was
+      // not added, the fields kept what she typed, and the room said so
+      // nowhere. That satisfied never-a-false-done and was the whole of what it
+      // got right. The door's own message wins when it has one; the ratified
+      // line stands in when it does not.
+      setErr(e instanceof Error && e.message ? e.message : WP.addFailed);
+    }
     setBusy(false);
+  }
+
+  /**
+   * THE UPLOAD — two doors per photograph, and the ORDER is the contract.
+   * `POST /upload-url` signs a direct browser PUT to Cloudinary (the bytes never
+   * pass through Railway), then `POST /photos` records what came back. The door
+   * re-checks that the URL is an estate asset, so a browser cannot post a
+   * stranger's CDN link into a couple's page.
+   *
+   * ⚠ SEQUENTIAL, NOT `Promise.all`. A wedding is a hundred photographs and a
+   * phone on venue wifi; firing them at once is how a browser drops half of them
+   * and reports success. The counter is the vendor's only honest progress signal,
+   * and it cannot exist at all under a parallel fan-out.
+   */
+  async function upload(files: FileList | null) {
+    if (!files || !files.length || upBusy) return;
+    setUpErr(false);
+    setUpBusy({ done: 0, total: files.length });
+    let failed = false;
+    for (let i = 0; i < files.length; i += 1) {
+      const f = files[i];
+      try {
+        const sig = await postJson<{ ok: boolean; upload_url: string; params: Record<string, string> }>(
+          API.weddingUploadUrl(wedding.id), { filename: f.name },
+        );
+        const fd = new FormData();
+        Object.entries(sig.params).forEach(([k, v]) => fd.append(k, String(v)));
+        fd.append('file', f);
+        const up = await fetch(sig.upload_url, { method: 'POST', body: fd });
+        // THE STATUS IS THE VERDICT. Cloudinary answers a rejected signature with
+        // a 401 carrying JSON; a check keyed on the body alone reads it as a
+        // successful upload with odd fields (F-40.53's class, third instance).
+        if (!up.ok) { failed = true; break; }
+        const j = await up.json();
+        await postJson(API.weddingPhotos(wedding.id), { url: j.secure_url, public_id: j.public_id });
+        setUpBusy({ done: i + 1, total: files.length });
+      } catch { failed = true; break; }
+    }
+    setUpBusy(null);
+    if (failed) setUpErr(true);
+    await load(); onChanged();
+  }
+
+  /** REMOVE — the row goes, then the asset. The door owns that order and the
+   *  reason; this only reports what it answered. No confirm dialog: the estate
+   *  has no confirm idiom on this shell, and inventing one here would be a
+   *  second grammar for a destructive tap. */
+  async function removePhoto(photoId: string) {
+    if (upBusy) return;
+    setUpErr(false);
+    try { await deleteJson(API.weddingPhoto(wedding.id, photoId)); await load(); onChanged(); }
+    catch { setUpErr(true); }
   }
 
   async function publish() {
     if (busy) return;
     setBusy(true);
-    try { await postJson(API.weddingPublish(wedding.id), {}); await load(); onChanged(); }
-    catch { /* nothing is claimed that was not confirmed */ }
+    try { setErr(null); await postJson(API.weddingPublish(wedding.id), {}); await load(); onChanged(); }
+    catch (e) {
+      // F-40.77's second half. Nothing is claimed that was not confirmed AND the
+      // vendor is told — publishing is the act this whole room exists for.
+      setErr(e instanceof Error && e.message ? e.message : WP.publishFailed);
+    }
     setBusy(false);
   }
 
@@ -327,6 +421,47 @@ function CreditsSheet(
 
   return (
     <Sheet title={WP.creditsTitle} onClose={onClose}>
+      {/* ── PHOTOGRAPHS — F-40.57's cure ────────────────────────────────────
+          The room mounted no upload control though both doors existed. This
+          sheet IS the wedding record — a row's only action opens it, and there
+          is no second screen — so the strip joins it ABOVE the roll rather than
+          opening a third surface for one object.
+
+          ⚠ CELL ONE IS THE HERO AND THE ROOM SAYS SO. `photosFor` orders by
+          `position` then `created_at`, and the public leaf takes `photos[0]` as
+          its hero — so the first cell IS what a guest sees first, and leaving
+          the vendor to discover that on a walk would be the room withholding a
+          fact it holds.
+
+          ⚠ NO DRAG HANDLES, BY RULING. A drag inside a scrolling sheet fights
+          the scroll on a phone and the estate has no drag idiom to inherit;
+          R-G12.12 was narrowed so no order door ships without a caller. Order
+          changes by remove-and-re-add until a gesture is ruled (F-40.83). */}
+      <span className="wp-fl">{WP.photos}</span>
+      {photos !== null && photos.length === 0 && !upBusy
+        ? <div className="wp-upempty">{WP.photosEmpty}</div> : null}
+      <div className="wp-upgrid">
+        {(photos ?? []).map((p, i) => (
+          <div className="wp-upcell" key={p.id}>
+            <img className="wp-upimg" src={p.url} alt="" />
+            {i === 0 ? <span className="wp-uphero">{WP.photoHero}</span> : null}
+            <button type="button" className="wp-upx" aria-label={WP.photoRemove}
+                    disabled={Boolean(upBusy)} onClick={() => void removePhoto(p.id)}>&times;</button>
+          </div>
+        ))}
+        {/* The label IS the control — a hidden input plus a styled label is the
+            estate's own file idiom (components/vendor/AddSheet.tsx), and it keeps
+            the tap target the same size as a cell. */}
+        <label className="wp-upadd">
+          +
+          <input type="file" accept="image/*" multiple
+                 style={{ display: 'none' }}
+                 onChange={(e) => { void upload(e.target.files); e.target.value = ''; }} />
+        </label>
+      </div>
+      {upBusy ? <p className="wp-upbusy">{WP.photosAdding(upBusy.done + 1, upBusy.total)}</p> : null}
+      {upErr ? <p className="wp-uperr" role="status">{WP.photoFailed}</p> : null}
+
       <span className="wp-fl">{WP.fieldRole}</span>
       <select className="wp-fi wp-pick" value={role} onChange={(e) => setRole(e.target.value)}>
         {ROLE_OPTIONS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
@@ -352,6 +487,9 @@ function CreditsSheet(
           </div>
         ))}
       </div>
+
+      {/* F-40.77's byte, under the controls it belongs to. */}
+      {err ? <p className="wp-err" role="status">{err}</p> : null}
 
       <div className="wp-pubrow">
         {live ? <div className="wp-live">{WP.pageIsLive}</div> : null}
@@ -442,6 +580,32 @@ function WeddingPagesStyles() {
         font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .wp-btn[disabled]{opacity:.55}
 .wp-err{font:var(--wl-t5);color:var(--role-critical);margin-bottom:10px}
+/* ── G1.2 · THE PHOTOGRAPH STRIP ────────────────────────────────────────────
+   Four across, square, inside the sheet the vendor already has open. The remove
+   affordance is ON THE CELL and always present rather than a "manage" mode the
+   whole grid enters: a mode is a second state for the same objects and she would
+   have to learn which one she is in.
+   NO BACKTICKS IN THIS BLOCK — it lives inside a template literal, and a pair of
+   them closes it silently (e-7/e-8, twice in one sitting). */
+.wp-upgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px}
+.wp-upcell{position:relative;aspect-ratio:1;border-radius:2px;overflow:hidden}
+.wp-upimg{width:100%;height:100%;object-fit:cover;display:block}
+.wp-upx{position:absolute;top:3px;right:3px;width:22px;height:22px;border:none;border-radius:50%;
+        background:var(--atelier-overlay-bg);color:var(--atelier-ink);opacity:.88;
+        font:400 13px/1 "DM Sans",system-ui;cursor:pointer;padding:0}
+.wp-upx[disabled]{opacity:.4}
+.wp-uphero{position:absolute;left:3px;bottom:3px;padding:2px 5px;border-radius:1px;
+           background:var(--role-metal);color:var(--role-ink-on-metal);
+           font:500 8px/1.2 "DM Sans",system-ui;letter-spacing:.10em;text-transform:uppercase}
+.wp-upadd{aspect-ratio:1;border-radius:2px;border:.5px dashed var(--atelier-card-border);
+          display:flex;align-items:center;justify-content:center;cursor:pointer;
+          color:var(--atelier-ink-mute);font:400 20px/1 "DM Sans",system-ui}
+.wp-upempty{padding:14px 0;text-align:center;color:var(--atelier-ink-mute);font:var(--wl-t3)}
+.wp-upbusy{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-bottom:10px}
+.wp-uperr{font:var(--wl-t5);color:var(--role-critical);margin-bottom:10px}
+/* The picker's truncation tell (R-G12.8). Quiet: it is a fact about the list,
+   not a warning about her data. */
+.wp-pickernote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:-2px 0 12px;line-height:1.45}
 .wp-clist{margin-top:14px}
 .wp-crow{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;
          border-top:.5px solid var(--atelier-card-border);padding:9px 0}

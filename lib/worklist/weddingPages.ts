@@ -70,6 +70,54 @@ export const WP = {
   waitingOnCouple:   'Waiting on the couple\u2019s permission.',
   publish:           'Publish this page',
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // G1.2 — founder-vetoed 2026-09-05 ("veto all approved as proposed"), from
+  // `docs/mocks/wedding-guests-mock.html` @ `6eea5bf`, frames G1-upload,
+  // G1-manage and G4-create-noevent. Numbers are the veto table's.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /** 1 · the strip's label. */
+  photos:            'Photographs',
+  /** 2 · nothing uploaded yet. */
+  photosEmpty:       'No photographs yet.',
+  /**
+   * 3 · in flight. THE NUMBERS ARE LIVE and the first is 1-based: a vendor
+   * watching "Adding 0 of 3" would reasonably think nothing had started.
+   */
+  photosAdding:      (n: number, total: number) => `Adding ${n} of ${total}\u2026`,
+  /** 4 · the upload/remove failure. */
+  photoFailed:       'That didn\u2019t upload. Try again.',
+  /** 5 · the mark on cell one, which is the hero on the public leaf. */
+  photoHero:         'Hero',
+  /**
+   * 6 · the remove control's accessible name. NOT drawn — the control is a
+   * `×` glyph, and this is what a screen reader says. It is an accessible name
+   * and not product copy, the same class as the sheet's own `Close`.
+   */
+  photoRemove:       'Remove',
+
+  // ⚠ STRINGS 26 AND 27 ARE WITHHELD, NOT DROPPED — F-40.99. The founder vetoed
+  // 「It isn't on my calendar」 and 「Wedding date」, and they will ship the moment
+  // the no-event create has somewhere to put a date: `public.weddings` has
+  // thirteen columns and none is a date, so R-G12.6 cannot execute as worded.
+  // A vetoed byte with no surface is an unused export, and an unused export is
+  // dead code the next reader has to account for.
+
+  /**
+   * R-G12.8's ratified byte. `truncated` has ridden the events door since
+   * TDW_04 B6-S1 and `EventsResponse` has declared it since — the flag existed,
+   * the SURFACE didn't (F-40.78). Two sentences: what she is seeing, and that
+   * the rest is not lost, only not here.
+   */
+  pickerTruncated:   'Showing your latest 200 events. Older ones aren\u2019t listed here yet.',
+
+  /** 28 · the create sheet's failure line — F-40.56. */
+  saveFailed:        'That didn\u2019t save. Try again.',
+  /** 29 · adding a credit — F-40.77. */
+  addFailed:         'That didn\u2019t add. Try again.',
+  /** 30 · publishing — F-40.77. */
+  publishFailed:     'That didn\u2019t publish. Try again.',
+
 } as const;
 
 /**

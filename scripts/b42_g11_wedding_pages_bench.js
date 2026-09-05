@@ -35,8 +35,13 @@ const ROOM    = 'app/vendor/(shell)/wedding-pages/page.tsx';
 const WPCOPY  = 'lib/worklist/weddingPages.ts';
 const LEAF    = 'app/v/[code]/w/[slug]/page.tsx';
 const CLAIM   = 'app/credits/[token]/page.tsx';
+// ── G1.2's own subjects ─────────────────────────────────────────────────────
+const CONSENT = 'app/consent/[token]/page.tsx';
+const CREW    = 'app/crew/[token]/page.tsx';
+const TOKEN   = 'lib/public/token.ts';
 const PUBCOPY = 'lib/public/copy.ts';
 const MOCK    = 'docs/mocks/wedding-pages-mock.html';
+const MOCK2   = 'docs/mocks/wedding-guests-mock.html';
 
 for (const rel of [ROOMS, GRIDF, HUB, SOLCOPY, ROUTES, PIECES, ROOM, WPCOPY, LEAF, CLAIM, PUBCOPY, MOCK]) {
   if (!has(rel)) { console.log('REFUSED \u2014 ' + rel + ' is absent'); process.exit(3); }
@@ -233,7 +238,15 @@ sec('C6 \u00b7 ROLE_OPTIONS against the dream-os home');
 // own word is not.
 sec('C7 \u00b7 the copy is pinned against the mock');
 {
-  const mock = read(MOCK);
+  // ── AMENDED, LABELLED — G1.2: THE ROOM NOW DRAWS FROM TWO RATIFIED MOCKS ──
+  // `wedding-pages-mock.html` is G1.1's and remains the authority for every byte
+  // it drew. G1.2's surfaces — the upload strip, the failure lines, the picker's
+  // truncation tell — were ratified from `wedding-guests-mock.html` @ 6eea5bf
+  // (founder, 2026-09-05: "veto all approved as proposed"). A cell reading only
+  // the first mock would BOUNCE every byte of the second, which is a stale pin
+  // rather than a strict one. Both are read; a string in NEITHER is still a
+  // BOUNCE and this cell still reds on it.
+  const mock = read(MOCK) + '\n' + read(MOCK2);
   const wp = read(WPCOPY);
   const strings = [...wp.matchAll(/^\s{2}[a-zA-Z]+:\s+'([^']+)',/gm)].map((x) => x[1]);
   const decode = (s) => s.replace(/\\u2019/g, '\u2019').replace(/\\u00e9/g, '\u00e9');
@@ -252,7 +265,29 @@ sec('C7 \u00b7 the copy is pinned against the mock');
   //   · `Your website & SEO` — R-40.26, amending R-40.1 for R3 alone.
   // NO RE-SHOOT IS OWED on either (his ruling). Anything else absent from the
   // mock is still a BOUNCE, and this cell still reds on it.
-  const RULED_PAST_THE_MOCK = ['Open', 'Your website & SEO'];
+  const RULED_PAST_THE_MOCK = [
+    'Open', 'Your website & SEO',
+    // ── G1.2's FOUR, EACH WITH ITS PROVENANCE ────────────────────────────────
+    // Every one is RATIFIED; none is mock-DRAWN, which is a different thing and
+    // the reason this list exists rather than the cell being loosened.
+    //
+    // `Remove` is an ACCESSIBLE NAME, not product copy — it is what a screen
+    // reader says for the `\u00d7` glyph, the same class as the sheet's own
+    // `Close`, which this bench has never asked the mock to draw either. A mock
+    // is a picture; a picture cannot draw a label only a screen reader hears.
+    'Remove',
+    // R-G12.8's byte, ratified by the CHAIR under the founder's standing
+    // delegation (R-40.42), not transcribed from a frame. F-40.78's surface was
+    // missing, so no frame was ever drawn for it — the flag had ridden the door
+    // since TDW_04 B6-S1 with nothing rendering it.
+    'Showing your latest 200 events. Older ones aren\u2019t listed here yet.',
+    // F-40.77's two. `wedding-guests-mock.html` drew the CREATE sheet's failure
+    // line (F-40.56, string 28) on G4-create-noevent and did not draw these two,
+    // because the credits sheet's swallows were found by reading the code AFTER
+    // the mock was cut. The founder vetoed all three together as strings 28-30.
+    'That didn\u2019t add. Try again.',
+    'That didn\u2019t publish. Try again.',
+  ];
   const missing = strings.map(decode)
     .filter((s) => !RULED_PAST_THE_MOCK.includes(s))
     .filter((s) => !mockPlain.includes(s));
@@ -323,8 +358,18 @@ sec('C10 \u00b7 the claim page (the crew posture)');
   const raw = read(CLAIM);
   const s = strip(raw);
   ok('no browser storage anywhere', !/localStorage|sessionStorage/.test(s));
-  ok('the dead-link byte carries U+2019, matching what crew RENDERS',
-    /DEAD_LINK = 'This link isn\\u2019t active\.'/.test(raw));
+  // ── SEALED CELL AMENDED, LABELLED — G1.2 (R-G12.9 / F-40.40) ──────────────
+  // WAS: the literal `DEAD_LINK = 'This link isn\u2019t active.'` in THIS file.
+  // F-40.40 closed: the byte had three occurrences across two files and no home,
+  // and G1.2's /consent/ leaf would have made a fourth. It now lives once, in
+  // `lib/public/token.ts`, and this leaf READS it. The property the cell exists
+  // to hold is unchanged — the byte carries U+2019, not an ascii quote — so the
+  // assertion moves to where the byte is and gains a second half proving this
+  // leaf no longer respells it. C15 asserts the same for crew and consent.
+  // Ratify or revert; it lands with the code that moved it.
+  ok('the dead-link byte carries U+2019 at its ONE home, and this leaf reads it',
+    /export const TOKEN_DEAD_LINK = 'This link isn\\u2019t active\.'/.test(read(TOKEN))
+    && /DEAD_LINK = TOKEN_DEAD_LINK/.test(raw));
   ok('only a 404 is a dead link (a 500 is our failure, not her token)',
     /r\.status === 404/.test(s) && !/!r\.ok[\s\S]{0,40}setDead/.test(s));
   ok('the terminal state REPLACES the controls rather than greying them',
@@ -484,6 +529,121 @@ sec('C14 \u00b7 b50 is quarantined by mechanism (R-40.34 / F-40.70 / F-40.71)');
       .test(read('scripts/floor-manifest-ce39-smalls.txt')));
 }
 
+// ── C15 · F-40.40 · THE DEAD-LINK BYTE HAS ONE HOME ────────────────────────
+// It had THREE occurrences across TWO files and no home: two inline JSX
+// literals on the crew leaf and a private `const` on the credits leaf, whose own
+// comment filed the duplication rather than fixing it because the crew page
+// belonged to another arc. G1.2's `/consent/` would have made a fourth.
+sec('C15 \u00b7 the capability-token constitution (R-G12.9 / F-40.40)');
+{
+  const tok = read(TOKEN), crew = read(CREW), claim = read(CLAIM), cons = read(CONSENT);
+  ok('the byte is declared in exactly ONE place',
+    /export const TOKEN_DEAD_LINK/.test(tok));
+  // ⚠ STRIPPED. Each leaf's comments NAME the byte to explain the hoist; a cell
+  // that cannot tell a rule from its violation would convict the explanation
+  // (b53's e-4, and my own e-5 one arc later).
+  for (const [n, src] of [['crew', crew], ['credits', claim], ['consent', cons]]) {
+    ok(`the ${n} leaf reads the byte, never respells it`,
+      !/This link isn(&rsquo;|\u2019)t active\./.test(strip(src)));
+  }
+  ok('the apostrophe is typographic, not ascii (R-40.19)',
+    /isn\\u2019t active/.test(tok) && !/isn't active/.test(strip(tok)));
+  // F-40.53 MADE A TYPE: `dead` is 404 and nothing else; everything else is us.
+  ok('dead is 404 ALONE \u2014 an outage never reads as an expired token',
+    /if \(r\.status === 404\) return \{ kind: 'dead' \}/.test(tok)
+    && /kind: 'offline'/.test(tok) && /kind: 'failed'/.test(tok));
+  ok('the status is checked BEFORE the body is parsed (F-40.53)',
+    tok.indexOf("r.status === 404") < tok.indexOf('r.json()'));
+}
+
+// ── C16 · THE PUBLIC LEAF STAYS A SERVER COMPONENT ─────────────────────────
+// `app/v/[code]/w/[slug]/page.tsx:35-38` refuses a client bundle IN TERMS. G1.2
+// adds a gallery and a form to that page and the refusal must survive both —
+// which is the whole reason the sheet is `<details>` and not React state.
+sec('C16 \u00b7 the guest gallery ships no JavaScript (R-G12.10/.16)');
+{
+  const leaf = strip(read(LEAF));
+  ok('the leaf is NOT a client component', !/["']use client["']/.test(leaf));
+  ok('no React state, no handlers anywhere in live code',
+    !/useState|onClick|onChange|onSubmit/.test(leaf));
+  ok('the download is a real form POST to the door',
+    /<form[\s\S]{0,200}method="POST"/.test(leaf)
+    && /wedding-download\//.test(leaf));
+  // R-G12.16: the ratified frame kept, the browser owning the open.
+  ok('the sheet is a details/summary pair \u2014 a sheet without a script',
+    /<details/.test(leaf) && /<summary/.test(leaf));
+  ok('the summary loses its marker by the documented reset, not a hack',
+    /list-style:none/.test(read(LEAF)) && /-webkit-details-marker\{display:none\}/.test(read(LEAF)));
+  // THE ONE QUESTION, UNTICKED. A pre-ticked box is consent nobody gave.
+  ok('the contact checkbox ships UNCHECKED (master \u00a72.4)',
+    /name="may_contact"/.test(leaf) && !/name="may_contact"[^>]*\bdefaultChecked/.test(leaf)
+    && !/name="may_contact"[^>]*\bchecked/.test(leaf));
+  ok('the month field is optional \u2014 no required attribute on it',
+    !/name="wedding_month"[^>]*\brequired/.test(leaf));
+  // STRIPPED: the retirement is EXPLAINED in a CSS comment that names both
+  // retired classes, and an unstripped cell convicts its own explanation —
+  // e-5's class, caught again by my own cell.
+  ok('the four-item strip is RETIRED WITH ITS READER, not commented out',
+    !/pw-stripimg/.test(strip(read(LEAF))));
+}
+
+// ── C17 · THE ROOM'S G1.2 SURFACES ─────────────────────────────────────────
+sec('C17 \u00b7 the upload control, the no-event create, the failure lines');
+{
+  const room = strip(read(ROOM));
+  ok('the room mounts an upload control at last (F-40.57)',
+    /API\.weddingUploadUrl/.test(room) && /API\.weddingPhotos/.test(room));
+  ok('cell one is marked as the hero the public leaf will use',
+    /i === 0 \?[\s\S]{0,80}WP\.photoHero/.test(room));
+  ok('remove goes through the ruled door', /API\.weddingPhoto\(/.test(room));
+  // R-G12.12 was NARROWED: no order door shipped, so no caller may name one.
+  ok('no reorder caller \u2014 the door was never built (F-40.83)',
+    !/photos\/order/.test(room) && !/weddingOrder/.test(room));
+  // SEQUENTIAL, not a fan-out: a phone on venue wifi drops half of a parallel
+  // burst and reports success, and a counter cannot exist under one at all.
+  ok('the upload is sequential so the counter can be honest',
+    /for \(let i = 0; i < files\.length/.test(room) && !/Promise\.all\(files/.test(room));
+  // F-40.56 and F-40.77 — three swallows, all cured.
+  for (const [n, k] of [['create', 'saveFailed'], ['add', 'addFailed'], ['publish', 'publishFailed']]) {
+    ok(`the ${n} failure is SHOWN, not swallowed`, new RegExp(`WP\\.${k}`).test(room));
+  }
+  ok('no empty catch survives in this room',
+    !/catch \{\s*\}/.test(room) && !/catch \{ \/\*/.test(read(ROOM)));
+  // ── THE NO-EVENT CREATE'S THREE CELLS ARE WITHHELD WITH THE ARM — F-40.99 ──
+  // They were written, they passed, and they are held because the SURFACE is
+  // held: `public.weddings` has thirteen columns and none is a date, so a
+  // hand-typed one has nowhere to live and R-G12.6 cannot execute as worded.
+  // A green cell over a withheld surface is worse than no cell — it would read
+  // as proof the arm shipped. What IS asserted is the withholding itself, so
+  // the arm cannot creep back in unbenched.
+  ok('the no-event arm is withheld, not half-shipped (F-40.99)',
+    !/__none/.test(room) && !/WP\.eventNone/.test(room) && !/WP\.fieldDate/.test(room));
+  ok('and its two vetoed bytes are withheld from the copy home too',
+    !/eventNone:/.test(read(WPCOPY)) && !/fieldDate:/.test(read(WPCOPY)));
+  // R-G12.8 / F-40.78: the flag existed, the surface didn't.
+  ok('the truncation tell finally has a surface',
+    /r\.truncated === true/.test(room) && /WP\.pickerTruncated/.test(room));
+}
+
+// ── C18 · NO BACKTICK INSIDE A STYLE TEMPLATE LITERAL ──────────────────────
+// e-7 AND e-8: I closed a `<style>{`…`}</style>` literal twice in one sitting by
+// writing a code reference in backticks inside its CSS comments. tsc reports it
+// as dozens of JSX errors nowhere near the cause, which is why it survived a
+// first fix. The chair recorded it as the third instance of the week across two
+// seats. A comment cannot enforce this; a cell can.
+sec('C18 \u00b7 no backtick inside a style literal (e-7/e-8)');
+{
+  for (const rel of [LEAF, CLAIM, CONSENT, ROOM]) {
+    const parts = read(rel).split('<style>{`');
+    let found = 0;
+    for (let i = 1; i < parts.length; i += 1) {
+      const body = parts[i].split('`}</style>')[0];
+      found += (body.match(/`/g) || []).length;
+    }
+    ok(`${rel} carries no backtick inside a style literal`, found === 0, `${found} found`);
+  }
+}
+
 if (process.argv.includes('--cells-only')) process.exit(fail === 0 ? 0 : 1);
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -536,6 +696,33 @@ if (process.argv.includes('--mutate')) {
     [ROOM, 'the floor is quietly moved to today \u2014 the arity survives, the cure does not',
       "const WP_PICKER_FROM = '2000-01-01';",
       "const WP_PICKER_FROM = istPlusDaysISO(0);"],
+
+    // ── G1.2's SIX ────────────────────────────────────────────────────────────
+    // F-40.40: the byte's one home is the whole point; a leaf respelling it is
+    // the fourth occurrence returning.
+    [CLAIM, 'the credits leaf respells the dead-link byte \u2014 F-40.40 reopens',
+      "const DEAD_LINK = TOKEN_DEAD_LINK;",
+      "const DEAD_LINK = 'This link isn\\u2019t active.';"],
+    // F-40.53 made a type: a 500 must never read as an expired token.
+    [TOKEN, 'an outage starts reading as a dead token \u2014 she chases a vendor over our 500',
+      "    if (r.status === 404) return { kind: 'dead' };\n    if (!r.ok) return { kind: 'offline' };",
+      "    if (!r.ok) return { kind: 'dead' };"],
+    // R-G12.10/.16: the public lane's whole refusal.
+    [LEAF, 'the public leaf grows a client bundle \u2014 every stranger pays for hydration',
+      "import type { Metadata } from 'next';",
+      "\"use client\";\nimport type { Metadata } from 'next';"],
+    // master §2.4: silence never means yes, and neither does a pre-ticked box.
+    [LEAF, 'the contact box ships PRE-TICKED \u2014 consent nobody gave',
+      'type="checkbox" name="may_contact" value="true"',
+      'type="checkbox" name="may_contact" value="true" defaultChecked'],
+    // F-40.77: the swallow returning is the defect, not the message changing.
+    [ROOM, 'the credit failure is swallowed again \u2014 F-40.77 reopens',
+      "      setErr(e instanceof Error && e.message ? e.message : WP.addFailed);",
+      "      setErr(null);"],
+    // R-G12.12 was narrowed BECAUSE a door with no caller is the F-40.28 shape.
+    [ROOM, 'a reorder caller appears for a door that was never built (F-40.83)',
+      "  async function removePhoto(photoId: string) {",
+      "  async function reorder() { await postJson(WEDDINGS_API_PATH + '/x/photos/order', {}); }\n  async function removePhoto(photoId: string) {"],
 
     [ROUTES, 'the address home is deleted \u2014 the second spelling returns',
       "export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';",

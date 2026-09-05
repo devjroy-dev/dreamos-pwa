@@ -42,6 +42,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { API_BASE } from '@/lib/api';
+// F-40.40: the dead-link byte's ONE home, shared with /credits/ and /consent/.
+import { TOKEN_DEAD_LINK } from '@/lib/public/token';
 import { slotWord, hhmm } from '@/lib/vendor/slotWords';
 import type { CrewAssignment, CrewTask, CrewPageResponse } from '@/lib/vendor/types/vendor';
 
@@ -104,9 +106,14 @@ export default function CrewPage() {
   if (state === 'loading')   return <Shell><Centered><span style={labelStyle}>Loading</span></Centered></Shell>;
   // THE DEAD PAGE FAILS BLANK. No vendor name, no member name, no explanation of which
   // kind of dead it is — this is the client half of the backend's F2 law.
-  if (state === 'dead')      return <Shell><Centered><Quiet>This link isn&rsquo;t active.</Quiet></Centered></Shell>;
+  // F-40.40 CLOSED — the byte is `lib/public/token.ts`'s, read here rather than
+  // spelled. It had THREE occurrences across two files and no home; G1.2's
+  // `/consent/` leaf would have made a fourth. The rendered characters are
+  // unchanged: `&rsquo;` and U+2019 are the same glyph, and the hoisted string
+  // carries U+2019 — `b42` pins it so a future edit is a fresh veto.
+  if (state === 'dead')      return <Shell><Centered><Quiet>{TOKEN_DEAD_LINK}</Quiet></Centered></Shell>;
   if (state === 'throttled') return <Shell><Centered><Quiet>Too many tries. Wait a minute.</Quiet></Centered></Shell>;
-  if (!data)                 return <Shell><Centered><Quiet>This link isn&rsquo;t active.</Quiet></Centered></Shell>;
+  if (!data)                 return <Shell><Centered><Quiet>{TOKEN_DEAD_LINK}</Quiet></Centered></Shell>;
 
   return (
     <Shell>

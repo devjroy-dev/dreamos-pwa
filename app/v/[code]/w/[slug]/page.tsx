@@ -38,7 +38,8 @@
 // static and the photographs are anchors. Same refusal the card leaf makes.
 
 import type { Metadata } from 'next';
-import { PUBLIC_MISS, PUBLIC_COLOPHON_LEAD, PUBLIC_COLOPHON_HREF } from '@/lib/public/copy';
+import { PUBLIC_MISS, PUBLIC_COLOPHON_LEAD, PUBLIC_COLOPHON_HREF,
+         PUBLIC_GALLERY_LABEL, PUBLIC_DOWNLOAD } from '@/lib/public/copy';
 
 /* ── NO `revalidate` ON THIS ROUTE, AND THE ABSENCE IS THE RULING (R-40.33) ──
  * It carried `export const revalidate = 300` and the comment above it claimed
@@ -144,7 +145,9 @@ export default async function PublicWeddingPage(
 
   const { wedding, owner, roll, photos } = data;
   const hero = photos[0] ?? null;
-  const strip = photos.slice(1, 5);
+  // EVERY photograph after the hero. The four-item strip was G1.1's, when this
+  // page had no gallery to be; G1.2 is the gallery, so the slice goes.
+  const gallery = photos.slice(1);
 
   return (
     <main className="pw">
@@ -164,10 +167,82 @@ export default async function PublicWeddingPage(
         </div>
       </div>
 
-      {strip.length ? (
-        <div className="pw-strip">
-          {strip.map((p) => <img key={p.url} className="pw-stripimg" src={p.url} alt="" />)}
+      {/* ── THE GUEST GALLERY ────────────────────────────────────────────────
+          Every photograph after the hero, not a four-item strip. A guest who
+          scrolls the whole wedding has already been given the proof; the ask
+          comes AFTER it, which is this block's entire thesis ("the wedding is
+          the ad"). Still no client component: these are anchors and images.
+
+          ⚠ THE ANCHORS OPEN THE ASSET IN THE BROWSER'S OWN VIEWER, which is what
+          the card leaf's own ruling calls the zero-byte lightbox — pinch, rotate,
+          save and share on every device for nothing. The card leaf traded it for
+          a CSS radio gallery because it had a HERO to swap; this page's gallery
+          is a grid with no selected state, so there is nothing to swap and the
+          browser's viewer is strictly better than a cascade trick here. */}
+      {gallery.length ? (
+        <div className="pw-gwrap">
+          <p className="pw-lbl">{PUBLIC_GALLERY_LABEL}</p>
+          <div className="pw-grid">
+            {gallery.map((p) => (
+              <a key={p.url} className="pw-gcell" href={p.url} target="_blank" rel="noopener noreferrer">
+                <img className="pw-gimg" src={p.url} alt="" loading="lazy" />
+              </a>
+            ))}
+          </div>
         </div>
+      ) : null}
+
+      {/* ── THE DOWNLOAD ─────────────────────────────────────────────────────
+          A SHEET WITHOUT A SCRIPT: `<details>` / `<summary>` — R-G12.16.
+          The `<summary>` IS the download door; the form is its content, closed
+          until she taps. That keeps the frame the founder ratified (a door, then
+          a sheet) while honouring R-G12.10's refusal of a client bundle: the
+          open/close is the browser's own, not ours, and THE GUEST'S NUMBER NEVER
+          TOUCHES JAVASCRIPT.
+
+          My first cut shipped the form inline and declared the deviation. The
+          chair's amendment is better and it costs nothing: `<details>` needs only
+          `list-style:none` plus the `-webkit-details-marker` reset to lose its
+          triangle, which is the documented way to restyle a summary and not a
+          hack — no `appearance`, no absolute positioning, no height juggling. It
+          renders at 374 as drawn.
+
+          ⚠ THREE INPUTS, ONE QUESTION — R-G12.15. Master §7 refuses a form of
+          QUESTIONS. Her number and her month are fields she fills to get her
+          photographs; the one thing asked OF her is the checkbox, and it is
+          unticked — silence never means yes, and neither does a pre-ticked box.
+
+          ⚠ THE MONTH IS OPTIONAL AND SAYS SO. A guest who leaves it blank
+          downloads all the same and lands with `wedding_date` NULL. "A lead with
+          a date" is what this sheet makes possible, never what it forces. */}
+      {photos.length ? (
+        <details className="pw-dlwrap">
+          <summary className="pw-dlbtn">{PUBLIC_DOWNLOAD.door}</summary>
+          <form className="pw-dl" method="POST"
+                action={`${API_BASE}/api/v2/public/wedding-download/${encodeURIComponent(code)}/${encodeURIComponent(slug)}`}>
+            <p className="pw-dlh">{PUBLIC_DOWNLOAD.head(photos.length)}</p>
+            <p className="pw-dlsub">{PUBLIC_DOWNLOAD.sub}</p>
+
+            <label className="pw-fl" htmlFor="pw-phone">{PUBLIC_DOWNLOAD.phoneLabel}</label>
+            <input className="pw-fi" id="pw-phone" name="phone" type="tel"
+                   inputMode="tel" autoComplete="tel" required placeholder="+91" />
+
+            <label className="pw-fl" htmlFor="pw-month">{PUBLIC_DOWNLOAD.monthLabel}</label>
+            {/* `type="month"` gives a native picker on a phone and degrades to a
+                text box everywhere else; the door parses `YYYY-MM` either way and
+                refuses anything that is not. */}
+            <input className="pw-fi" id="pw-month" name="wedding_month" type="month"
+                   placeholder={PUBLIC_DOWNLOAD.monthPlaceholder} />
+
+            <label className="pw-ask">
+              <input className="pw-box" type="checkbox" name="may_contact" value="true" />
+              <span className="pw-askl">{PUBLIC_DOWNLOAD.mayContact(owner.business_name)}</span>
+            </label>
+
+            <button className="pw-shcta" type="submit">{PUBLIC_DOWNLOAD.cta}</button>
+            <p className="pw-shfine">{PUBLIC_DOWNLOAD.fine}</p>
+          </form>
+        </details>
       ) : null}
 
       {/* THE ONE GOLD ON THIS PAGE. */}
@@ -226,8 +301,50 @@ function WeddingStyles() {
 .pw-identity{position:absolute;left:20px;right:20px;bottom:18px}
 .pw-couple{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-style:italic;font-size:34px;line-height:1.05;color:#F8F7F5}
 .pw-meta{font-weight:300;font-size:9px;letter-spacing:.20em;text-transform:uppercase;color:rgba(248,247,245,.82);margin-top:8px}
-.pw-strip{display:flex;gap:6px;padding:6px 20px 0}
-.pw-stripimg{flex:1;min-width:0;height:56px;object-fit:cover;border-radius:2px;display:block}
+/* ── THE GALLERY ────────────────────────────────────────────────────────────
+   .pw-strip / .pw-stripimg RETIRED WITH THEIR READER (G1.2): the four-item
+   strip was G1.1's stand-in for a gallery this page did not yet have. A rule
+   whose only reader is deleted is a commented corpse if it stays. */
+.pw-gwrap{padding:14px 20px 0}
+.pw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px}
+.pw-gcell{display:block;aspect-ratio:1;border-radius:2px;overflow:hidden;position:relative}
+.pw-gimg{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ── THE DOWNLOAD: A SHEET WITHOUT A SCRIPT (R-G12.16) ──────────────────────
+   The details/summary pair gives the ratified frame — a door, then a sheet —
+   with the open/close owned by the browser. The two lines that lose the
+   disclosure triangle are the documented reset, not a hack: list-style:none
+   covers every modern engine and the -webkit-details-marker pseudo covers older
+   Safari, which is exactly the phone this page is opened on.
+
+   NO BACKTICKS IN THIS BLOCK: it lives inside a template literal, and a pair of
+   them closed it silently on an earlier cut — tsc caught it as forty JSX errors
+   nowhere near the cause. */
+.pw-dlwrap{margin:22px 20px 0}
+.pw-dlbtn{list-style:none;display:block;width:100%;min-height:48px;padding:15px 0;background:#0C0A09;color:#F8F7F5;
+          border-radius:2px;text-align:center;font-weight:300;font-size:11px;letter-spacing:.20em;
+          text-transform:uppercase;cursor:pointer}
+.pw-dlbtn::-webkit-details-marker{display:none}
+.pw-dl{margin-top:10px;padding:20px;background:#FFFDFB;border:.5px solid rgba(12,10,9,.13);border-radius:4px}
+.pw-dlh{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-style:italic;font-size:24px;line-height:1.14;color:#0C0A09}
+.pw-dlsub{font-size:13px;line-height:1.55;color:rgba(12,10,9,.66);margin-top:8px}
+.pw-fl{display:block;font-weight:300;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(12,10,9,.55);margin-top:18px}
+.pw-fi{width:100%;min-height:44px;border:.5px solid rgba(12,10,9,.26);border-radius:2px;background:#F8F7F5;
+       margin-top:7px;padding:0 12px;font-size:16px;color:#0C0A09;font-family:inherit}
+/* 16px on the inputs deliberately: iOS Safari zooms the viewport on focus for
+   anything smaller, and a stranger on a phone should not have the page jump. */
+.pw-ask{display:flex;gap:11px;align-items:flex-start;margin-top:20px;padding-top:16px;
+        border-top:.5px solid rgba(12,10,9,.12);cursor:pointer}
+.pw-box{flex-shrink:0;width:19px;height:19px;margin-top:1px;accent-color:#0C0A09}
+/* THE INK, NOT THE GOLD. My first cut accented this box gold and b42 reddened:
+   this page spends its one gold on the section rule and nowhere else, which is
+   the leaf's own ruling and stricter than the house 3x cap. The ink also matches
+   the submit button the box sits above. */
+.pw-askl{font-size:14px;line-height:1.5;color:#0C0A09}
+.pw-shcta{margin-top:22px;width:100%;min-height:48px;padding:14px 0;background:#0C0A09;color:#F8F7F5;border:none;
+          border-radius:2px;font-weight:300;font-size:11px;letter-spacing:.20em;text-transform:uppercase;
+          font-family:inherit;cursor:pointer}
+.pw-shfine{font-size:11px;line-height:1.5;color:rgba(12,10,9,.50);margin-top:12px;text-align:center}
 .pw-rule{display:flex;align-items:center;gap:10px;padding:22px 20px 18px}
 .pw-rule-line{flex:1;height:.5px;background:linear-gradient(90deg,rgba(201,168,76,0) 0%,rgba(201,168,76,.8) 50%,rgba(201,168,76,0) 100%)}
 .pw-diamond{color:#C9A84C;font-size:9px;line-height:1}

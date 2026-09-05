@@ -77,3 +77,68 @@ export const PUBLIC_COLOPHON_HREF = 'https://thedreamwedding.in';
  * same reasoning `COPY.indexUnavailable` carries in the solutions home.
  */
 export const CLAIM_FAILED = 'That didn\u2019t go through. Try again in a moment.';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// G1.2 — THE GUEST GALLERY AND THE DOWNLOAD. Founder-vetoed 2026-09-05,
+// strings 7-15 of the thirty ("veto all approved as proposed").
+// ═══════════════════════════════════════════════════════════════════════════
+// Source: `docs/mocks/wedding-guests-mock.html` @ `6eea5bf`, frames G2-gallery
+// and G2-sheet. A string not in that file is a BOUNCE.
+//
+// ⚠ EVERY BYTE HERE IS READ BY A STRANGER — a guest at a wedding, on mobile
+// data, who has never heard of this estate. No persona name, no house slang, no
+// money register (nothing on this surface is money).
+
+/** String 7's sibling — the gallery's own label. */
+export const PUBLIC_GALLERY_LABEL = 'The gallery';
+
+export const PUBLIC_DOWNLOAD = {
+  /**
+   * String 7 · the door. It is a `<summary>`, so it is the tap target AND the
+   * thing that opens the sheet — R-G12.16's whole point: the frame the founder
+   * ratified, with the browser owning the open and no script anywhere near it.
+   */
+  door: 'Download these photographs',
+
+  /**
+   * String 8. THE COUNT IS LIVE and it is the whole photograph set, hero
+   * included — she is downloading the wedding, not the wedding minus its first
+   * picture. Singular is handled because a page with one photograph is a real
+   * state and "All 1 photographs" is the kind of byte that makes a product look
+   * unattended.
+   */
+  head: (n: number) => (n === 1 ? 'The photograph' : `All ${n} photographs`),
+
+  /** String 9. */
+  sub: 'We\u2019ll text you the link.',
+
+  /** String 10. */
+  phoneLabel: 'Your number',
+
+  /**
+   * String 11, with R-G12.15's optional wording. The label ASKS and the
+   * placeholder says it may be skipped, because a required-looking field she
+   * cannot fill is a reason to abandon the form and lose the download too.
+   */
+  monthLabel: 'Getting married? Which month',
+  /** String 12. */
+  monthPlaceholder: 'Month and year \u2014 optional',
+
+  /**
+   * String 13 · THE ONE QUESTION (R-G12.3). Her vendor's REGISTERED business
+   * name, never one anybody typed — the roll's own rule, and F-40.54's lesson
+   * about a hurried credit mislabelling another business.
+   */
+  mayContact: (owner: string | null) => `${owner || 'This photographer'} may contact me.`,
+
+  /** String 14. */
+  cta: 'Send me the link',
+
+  /**
+   * String 15 · the promise the door actually keeps. `wedding_credits.phone` and
+   * `weddings.consent_phone` are both off every public wire by R-G11.6, and a
+   * guest's number is never on one either — `publicRoll` builds its shape field
+   * by field from an explicit list, with nothing spread.
+   */
+  fine: 'Your number is never shown on this page.',
+} as const;
