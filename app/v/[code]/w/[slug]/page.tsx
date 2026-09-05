@@ -128,16 +128,81 @@ export async function generateMetadata(
   };
 }
 
+/**
+ * THE ARCHIVE, RESOLVED SERVER-SIDE — R-G12.17.
+ *
+ * The download door 303s here with an OPAQUE token. This function trades it for
+ * the signed archive URL on the server, so that URL reaches the guest only as an
+ * href she follows once: never the address bar, never a history entry, never a
+ * screenshot. A Cloudinary archive URL carries its own signature, and one shared
+ * screenshot would hand out a couple's whole wedding.
+ *
+ * The door re-answers consent on every resolve, so a couple who withdraws between
+ * the form post and the tap gets a miss here — the token proves WHICH WEDDING,
+ * never that the wedding still serves.
+ */
+async function resolveArchive(code: string, slug: string, token: string): Promise<string | null> {
+  try {
+    const r = await fetch(
+      `${API_BASE}/api/v2/public/wedding-download/${encodeURIComponent(code)}/${encodeURIComponent(slug)}`
+      + `/archive/${encodeURIComponent(token)}`,
+      { cache: 'no-store' },
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j && j.ok && typeof j.url === 'string' ? j.url : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function PublicWeddingPage(
-  { params }: { params: Promise<{ code: string; slug: string }> },
+  { params, searchParams }: {
+    params: Promise<{ code: string; slug: string }>;
+    searchParams: Promise<{ sent?: string; dl?: string }>;
+  },
 ) {
   const { code, slug } = await params;
+  const q = await searchParams;
   const data = await fetchWedding(code, slug);
 
   if (!data) {
     return (
       <main className="pw">
         <p className="pw-miss">{PUBLIC_MISS}</p>
+        <WeddingStyles />
+      </main>
+    );
+  }
+
+  // ── THE ANSWER RENDER — R-G12.17 / R-40.47 ────────────────────────────────
+  // A SECOND RENDER OF THE SAME LEAF, on a state param. Not a new address: the
+  // guest stays where she was and the page she already trusts answers her.
+  //
+  // ⚠ STILL NO CLIENT BUNDLE. The archive is resolved on the server and the tap
+  // is a plain anchor — this page's refusal at :35-38 survives the whole of G1.2.
+  if (q.sent === '1' || q.sent === '0') {
+    const url = q.sent === '1' && q.dl ? await resolveArchive(code, slug, q.dl) : null;
+    return (
+      <main className="pw">
+        <header className="pw-top"><span className="pw-top-name">{data.owner.business_name}</span></header>
+        <div className="pw-done">
+          {url ? (
+            <>
+              <p className="pw-doneh">{PUBLIC_DOWNLOAD.readyHead}</p>
+              {/* `download` asks the browser to save rather than navigate, and
+                  `rel=noopener` because this leaves for another origin. */}
+              <a className="pw-donecta" href={url} download rel="noopener noreferrer">
+                {PUBLIC_DOWNLOAD.readyCta}
+              </a>
+            </>
+          ) : (
+            // ONE SENTENCE FOR EVERY FAILURE. A missing secret, a withdrawn
+            // consent and an expired token all read the same — a page that told
+            // them apart would tell a prober apart too.
+            <p className="pw-doneh">{PUBLIC_DOWNLOAD.readyFailed}</p>
+          )}
+        </div>
         <WeddingStyles />
       </main>
     );
@@ -345,6 +410,15 @@ function WeddingStyles() {
           border-radius:2px;font-weight:300;font-size:11px;letter-spacing:.20em;text-transform:uppercase;
           font-family:inherit;cursor:pointer}
 .pw-shfine{font-size:11px;line-height:1.5;color:rgba(12,10,9,.50);margin-top:12px;text-align:center}
+/* ── THE ANSWER RENDER (R-40.47) ────────────────────────────────────────────
+   Centred on the same cream ground as the page she came from, because it IS
+   that page. NO BACKTICKS IN THIS BLOCK (e-7/e-8). */
+.pw-done{flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px 26px}
+.pw-doneh{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-style:italic;
+          font-size:26px;line-height:1.16;color:#0C0A09}
+.pw-donecta{margin-top:26px;display:block;width:100%;padding:15px 0;background:#0C0A09;color:#F8F7F5;
+            border-radius:2px;text-align:center;font-weight:300;font-size:11px;letter-spacing:.20em;
+            text-transform:uppercase;text-decoration:none}
 .pw-rule{display:flex;align-items:center;gap:10px;padding:22px 20px 18px}
 .pw-rule-line{flex:1;height:.5px;background:linear-gradient(90deg,rgba(201,168,76,0) 0%,rgba(201,168,76,.8) 50%,rgba(201,168,76,0) 100%)}
 .pw-diamond{color:#C9A84C;font-size:9px;line-height:1}

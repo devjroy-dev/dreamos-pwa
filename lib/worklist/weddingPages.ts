@@ -111,6 +111,20 @@ export const WP = {
    */
   pickerTruncated:   'Showing your latest 200 events. Older ones aren\u2019t listed here yet.',
 
+  // ── THE CONSENT ASK  [F-40.49 · F-40.103] ────────────────────────────────
+  // The door shipped with no caller and the card asked the founder to use a
+  // button that did not exist. These are the bytes that button speaks.
+  /** 31 · the field's label. Her number, not the vendor's. */
+  consentLabel:      'The couple\u2019s number',
+  /** 32 · the action. */
+  consentSend:       'Ask the couple',
+  /** 33 · after a real send. */
+  consentSentLine:   'Sent. The link is below if you need it again.',
+  /** 34 · when the flag is shut — the honest state, and the link still works. */
+  consentDarkLine:   'Not sent yet \u2014 send this link to the couple yourself.',
+  /** 35 · the failure. */
+  consentFailed:     'That didn\u2019t send. Try again.',
+
   /** 28 · the create sheet's failure line — F-40.56. */
   saveFailed:        'That didn\u2019t save. Try again.',
   /** 29 · adding a credit — F-40.77. */

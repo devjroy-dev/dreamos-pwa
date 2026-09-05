@@ -109,8 +109,19 @@ export const PUBLIC_DOWNLOAD = {
    */
   head: (n: number) => (n === 1 ? 'The photograph' : `All ${n} photographs`),
 
-  /** String 9. */
-  sub: 'We\u2019ll text you the link.',
+  /**
+   * String 9 · RE-VETOED — R-40.47, founder 2026-09-05.
+   *
+   * WAS 「We'll text you the link.」 and it was a promise the estate could not
+   * keep: nothing in the download door texts anything. R-G12.17 ruled the fork
+   * to (c) — the link is carried on the ANSWER PAGE, on screen, behind one tap —
+   * so the sub-line now says what actually happens.
+   *
+   * ⚠ THE OLD BYTE IS RETIRED WITH ITS READER, not commented out. It returns in
+   * G1.3 beside the button when F-40.104's texted link exists, and it comes back
+   * as its own fresh veto rather than as a string someone un-commented.
+   */
+  sub: 'We\u2019ll have them ready in a moment.',
 
   /** String 10. */
   phoneLabel: 'Your number',
@@ -133,6 +144,18 @@ export const PUBLIC_DOWNLOAD = {
 
   /** String 14. */
   cta: 'Send me the link',
+
+  // ── THE ANSWER RENDER — R-40.47's bytes, founder-vetoed 2026-09-05 ────────
+  /** The confirmation line the guest reads after her form POST lands. */
+  readyHead: 'Your photographs are ready. Tap below to download.',
+  /** The one tap. The archive URL sits behind it and never in the address bar. */
+  readyCta:  'Download',
+  /**
+   * The `?sent=0` arm: the door could not mint a token (its signing secret is
+   * absent) and said so rather than redirecting her to a link that cannot work.
+   * Never-a-false-done at the one control this whole lane exists for.
+   */
+  readyFailed: 'That didn\u2019t go through. Try again in a moment.',
 
   /**
    * String 15 · the promise the door actually keeps. `wedding_credits.phone` and

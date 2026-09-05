@@ -249,7 +249,13 @@ sec('C7 \u00b7 the copy is pinned against the mock');
   const mock = read(MOCK) + '\n' + read(MOCK2);
   const wp = read(WPCOPY);
   const strings = [...wp.matchAll(/^\s{2}[a-zA-Z]+:\s+'([^']+)',/gm)].map((x) => x[1]);
-  const decode = (s) => s.replace(/\\u2019/g, '\u2019').replace(/\\u00e9/g, '\u00e9');
+  // ⚠ THE DECODER MUST KNOW EVERY ESCAPE THE COPY HOME USES, or a correctly
+  // ratified byte reads as a BOUNCE. It handled \u2019 and \u00e9 and not
+  // \u2014, so the first string carrying an em dash failed this cell while
+  // being perfectly correct. Found by that exact failure.
+  const decode = (s) => s.replace(/\\u2019/g, '\u2019')
+                         .replace(/\\u00e9/g, '\u00e9')
+                         .replace(/\\u2014/g, '\u2014');
   const mockPlain = mock.replace(/&amp;/g, '&').replace(/&middot;/g, '\u00b7')
                         .replace(/&rsquo;/g, '\u2019').replace(/&eacute;/g, '\u00e9')
                         .replace(/&times;/g, '\u00d7');
@@ -287,6 +293,20 @@ sec('C7 \u00b7 the copy is pinned against the mock');
     // the mock was cut. The founder vetoed all three together as strings 28-30.
     'That didn\u2019t add. Try again.',
     'That didn\u2019t publish. Try again.',
+    // ── THE CONSENT ASK'S FIVE — CARVED OUT AND *NOT YET VETOED* ─────────────
+    // ⚠ THESE ARE THE ONLY STRINGS IN THIS ROOM THE FOUNDER HAS NOT SEEN.
+    // `wedding-guests-mock.html` drew the CONSENT LEAF (G3-consent, G3-terminal)
+    // and never drew the vendor-side ask that mints its token — because the door
+    // was built with NO CALLER (F-40.103) and no frame was cut for a surface
+    // nobody had noticed was missing. They ship so the founder's card can be
+    // performed at all, and they are RAISED for his veto in the handover rather
+    // than smuggled through this carve-out. A carve-out that hides an unvetoed
+    // byte is exactly the stale pin this list exists not to become.
+    'The couple\u2019s number',
+    'Ask the couple',
+    'Sent. The link is below if you need it again.',
+    'Not sent yet \u2014 send this link to the couple yourself.',
+    'That didn\u2019t send. Try again.',
   ];
   const missing = strings.map(decode)
     .filter((s) => !RULED_PAST_THE_MOCK.includes(s))
@@ -623,6 +643,50 @@ sec('C17 \u00b7 the upload control, the no-event create, the failure lines');
   // R-G12.8 / F-40.78: the flag existed, the surface didn't.
   ok('the truncation tell finally has a surface',
     /r\.truncated === true/.test(room) && /WP\.pickerTruncated/.test(room));
+  // ── F-40.101 · A FileList IS LIVE, NOT A COPY ─────────────────────────────
+  // The call site resets the input so the same file can be picked twice, and that
+  // reset runs the moment `upload` first awaits — emptying the list the loop is
+  // walking. Four picked, ONE saved, three gone with no error. The snapshot must
+  // be taken before any await, and this cell is what keeps it there.
+  ok('the picked files are SNAPSHOT before any await (F-40.101)',
+    /Array\.from\(picked\)/.test(room)
+    && !/for \(let i = 0; i < files\.length[\s\S]{0,400}FileList/.test(room));
+  // ── F-40.103 · the consent ask has a surface at last ──────────────────────
+  ok('the consent door has a caller', /API\.weddingConsent/.test(room));
+  // It is offered ONLY where it is lawful: a page whose couple is on TDW is
+  // governed by her switch, and a second door onto one decision is the disease.
+  ok('and it is ABSENT, not disabled, when the couple is on TDW',
+    /w\.couple_id \? null :/.test(room));
+  // The link shows whether or not the send went — it is the artefact she pastes.
+  ok('the link is shown even when the send is dark',
+    /consentUrl \?/.test(room) && /WP\.consentDarkLine/.test(room));
+}
+
+// ── C19 · EVERY API ADDRESS HAS A CALLER — F-40.103, ratified mechanism ────
+// I shipped TWO doors with no callers in one delivery — `POST /:id/consent` and
+// the answer render — in the SAME sitting where I flagged the chair that a
+// reorder door with no caller was the F-40.28 shape and had it narrowed out. I
+// applied the rule to the door I was told to build and to neither of the two I
+// chose. The founder found it by trying to perform step 5 of my own card.
+//
+// A COMMENT CANNOT ENFORCE THIS AND A CELL CAN. Every member of `API` must be
+// named by something that is not its own definition. An address nobody calls is
+// either dead weight or, worse, a promise a card will make on its behalf.
+sec('C19 \u00b7 every API address has a caller (F-40.103)');
+{
+  const routes = read(ROUTES);
+  const members = [...routes.matchAll(/^  ([a-zA-Z]+):\s*\(/gm)].map((m) => m[1]);
+  ok('C19 is not vacuous \u2014 the address home was parsed', members.length >= 6,
+    `found ${members.length}`);
+  // The callers are the whole app, not a list someone wrote down — the same
+  // reasoning b16 §2.2 uses when it walks the source tree instead of a census.
+  const callers = ['app', 'lib', 'components', 'hooks']
+    .map((d) => { try { return execSync(`grep -rho "API\\.[a-zA-Z]*" ${d} 2>/dev/null || true`,
+      { cwd: ROOT, encoding: 'utf8' }); } catch { return ''; } })
+    .join('\n');
+  const orphans = members.filter((m) => !new RegExp(`API\\.${m}\\b`).test(callers));
+  ok('no address in API is without a caller', orphans.length === 0,
+    orphans.length ? `orphaned: ${orphans.join(', ')}` : '');
 }
 
 // ── C18 · NO BACKTICK INSIDE A STYLE TEMPLATE LITERAL ──────────────────────
@@ -723,6 +787,18 @@ if (process.argv.includes('--mutate')) {
     [ROOM, 'a reorder caller appears for a door that was never built (F-40.83)',
       "  async function removePhoto(photoId: string) {",
       "  async function reorder() { await postJson(WEDDINGS_API_PATH + '/x/photos/order', {}); }\n  async function removePhoto(photoId: string) {"],
+
+    // ── F-40.101 · the live FileList, the founder's own walk ──────────────────
+    [ROOM, 'the picked files stop being snapshot \u2014 four chosen, one saved, three gone silently',
+      "    const files = picked ? Array.from(picked) : [];",
+      "    const files = picked as unknown as File[];"],
+    // ── F-40.103 · the mechanism, proven able to red ──────────────────────────
+    [ROOM, 'the consent ask loses its caller \u2014 a door with no button again',
+      "        API.weddingConsent(wedding.id), { phone: consentPhone.trim() },",
+      "        '/api/v2/vendor/studio/weddings/x/consent', { phone: consentPhone.trim() },"],
+    [ROOM, 'the consent ask is offered on a page whose couple is on TDW \u2014 two doors, one decision',
+      "      {w.couple_id ? null : (",
+      "      {false ? null : ("],
 
     [ROUTES, 'the address home is deleted \u2014 the second spelling returns',
       "export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';",

@@ -54,6 +54,10 @@ const WP_PICKER_FROM = '2000-01-01';
 type Wedding = {
   id: string; slug: string; title: string; venue: string | null; city: string | null;
   delivered_at: string | null; couple_consent: boolean; visibility: string;
+  // Projected by `WEDDING_COLS` since G1.1c and never declared here — the room
+  // had no use for it until the consent ask needed to know whether this page's
+  // couple is on TDW. Read from the door, never inferred.
+  couple_id: string | null;
 };
 type Credit = {
   id: string; role: string; name: string | null; phone: string | null;
@@ -324,6 +328,11 @@ function CreditsSheet(
   // a failed credit.
   const [upBusy, setUpBusy] = useState<{ done: number; total: number } | null>(null);
   const [upErr, setUpErr] = useState(false);
+  // The consent ask's own state. Separate from `busy`'s subjects because the link
+  // must survive on screen after the request settles — it is the thing she pastes.
+  const [consentPhone, setConsentPhone] = useState('');
+  const [consentUrl, setConsentUrl] = useState<string | null>(null);
+  const [consentSent, setConsentSent] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -365,8 +374,20 @@ function CreditsSheet(
    * and reports success. The counter is the vendor's only honest progress signal,
    * and it cannot exist at all under a parallel fan-out.
    */
-  async function upload(files: FileList | null) {
-    if (!files || !files.length || upBusy) return;
+  async function upload(picked: FileList | null) {
+    // ── A FileList IS LIVE, NOT A COPY — F-40.101, owned ──────────────────────
+    // The call site resets the input (`e.target.value = ''`) so the same file can
+    // be chosen twice. That reset runs the MOMENT this function first awaits, and
+    // it EMPTIES the FileList this loop is still walking: iteration two read
+    // `files.length === 0`, the loop exited, and exactly one photograph landed
+    // with no error and no complaint. The founder walked it — four picked, one
+    // saved, three gone silently — and it is the worst shape a bug can take,
+    // because the surface reported success.
+    //
+    // The snapshot is taken BEFORE any await. `Array.from` copies the entries out
+    // of the live list, so resetting the input afterwards cannot reach them.
+    const files = picked ? Array.from(picked) : [];
+    if (!files.length || upBusy) return;
     setUpErr(false);
     setUpBusy({ done: 0, total: files.length });
     let failed = false;
@@ -403,6 +424,37 @@ function CreditsSheet(
     setUpErr(false);
     try { await deleteJson(API.weddingPhoto(wedding.id, photoId)); await load(); onChanged(); }
     catch { setUpErr(true); }
+  }
+
+  /**
+   * THE CONSENT ASK — F-40.103's cure, and the door has had no caller since it
+   * shipped. `POST /:id/consent` mints a token, records the number, and sends one
+   * Utility template (Approved 2026-09-05) behind its own flag. Until the flag is
+   * set the send is REPORTED as skipped and the link is shown so it can be pasted
+   * by hand — exactly how the claim path is walked today.
+   *
+   * ⚠ IT IS ONLY OFFERED WHEN THE PAGE HAS NO COUPLE ON TDW. A page whose couple
+   * has an account is governed by HER SWITCH; minting a token beside it would give
+   * one decision two doors. The door refuses with a 409 and this room does not
+   * even show the field — the refusal is the ruling, not a fallback.
+   */
+  async function askConsent() {
+    if (busy || !consentPhone.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const r = await postJson<{ ok: boolean; consent_url: string; invite: { sent: boolean; reason?: string } }>(
+        API.weddingConsent(wedding.id), { phone: consentPhone.trim() },
+      );
+      // NEVER A FALSE DONE. The link is shown whether or not the send went, and
+      // the send's own answer is reported rather than assumed — `sendConsentInvite`
+      // returns `{sent, skipped, reason}` and the room says which.
+      setConsentUrl(r.consent_url || null);
+      setConsentSent(Boolean(r.invite && r.invite.sent));
+      setConsentPhone('');
+    } catch (e) {
+      setErr(e instanceof Error && e.message ? e.message : WP.consentFailed);
+    }
+    setBusy(false);
   }
 
   async function publish() {
@@ -487,6 +539,31 @@ function CreditsSheet(
           </div>
         ))}
       </div>
+
+      {/* ── THE CONSENT ASK — F-40.49's whole reason, F-40.103's cure ──────
+          Offered ONLY when this page has no couple on TDW. A page whose couple
+          has an account is governed by her switch in her own Settings room, and
+          a second door onto one decision is the disease the writer-set census
+          exists to prevent — so the field is ABSENT, not disabled. */}
+      {w.couple_id ? null : (
+        <div className="wp-consent">
+          <span className="wp-fl">{WP.consentLabel}</span>
+          <input className="wp-fi" value={consentPhone} inputMode="tel"
+                 onChange={(e) => setConsentPhone(e.target.value)} />
+          <button type="button" className="wp-btn" disabled={busy || !consentPhone.trim()}
+                  onClick={() => void askConsent()}>{WP.consentSend}</button>
+          {/* The link is shown whether or not the message went — it is the thing
+              she pastes while the send is dark, and it is the honest artefact
+              either way. `consentSent` reports the door's own answer, never an
+              assumption about it. */}
+          {consentUrl ? (
+            <>
+              <p className="wp-consentnote">{consentSent ? WP.consentSentLine : WP.consentDarkLine}</p>
+              <p className="wp-consenturl">{consentUrl}</p>
+            </>
+          ) : null}
+        </div>
+      )}
 
       {/* F-40.77's byte, under the controls it belongs to. */}
       {err ? <p className="wp-err" role="status">{err}</p> : null}
@@ -603,6 +680,16 @@ function WeddingPagesStyles() {
 .wp-upempty{padding:14px 0;text-align:center;color:var(--atelier-ink-mute);font:var(--wl-t3)}
 .wp-upbusy{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-bottom:10px}
 .wp-uperr{font:var(--wl-t5);color:var(--role-critical);margin-bottom:10px}
+/* ── THE CONSENT ASK ────────────────────────────────────────────────────────
+   Set off from the credit form above it by a rule, because it addresses a
+   different person: the credits reach vendors, this reaches the couple.
+   NO BACKTICKS IN THIS BLOCK — it lives inside a template literal (e-7/e-8). */
+.wp-consent{margin-top:18px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.wp-consentnote{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-top:10px}
+/* The link is long and must be selectable whole — a truncated address a vendor
+   cannot copy is worse than no link at all. */
+.wp-consenturl{font:var(--wl-t5);color:var(--atelier-accent-text);margin-top:6px;
+               word-break:break-all;user-select:all}
 /* The picker's truncation tell (R-G12.8). Quiet: it is a fact about the list,
    not a warning about her data. */
 .wp-pickernote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:-2px 0 12px;line-height:1.45}

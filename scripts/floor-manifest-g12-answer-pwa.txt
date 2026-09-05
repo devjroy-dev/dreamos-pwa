@@ -1,0 +1,91 @@
+# scripts/floor-manifest-g12-answer-pwa.txt
+# TDW_19 · BLOCK 19 · G1.2 — THE pwa HALF OF F-40.101/.102/.103, AND R-40.47.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for.
+# Sibling at the run: dream-os `06c9c7e` (the 303 and the archive resolve door).
+
+# ── F-40.101 · A FileList IS LIVE, NOT A COPY ──────────────────────────────
+# THE FOUNDER WALKED THIS. Four photographs picked, ONE saved, three gone with
+# no error and no complaint — the worst shape a defect can take, because the
+# surface reported success.
+# The call site resets the input so the same file can be picked twice, and that
+# reset runs THE MOMENT `upload` first awaits, emptying the list the loop is
+# still walking: iteration two read `files.length === 0` and the loop exited.
+# `Array.from` snapshots before any await. The cell keeps it there and the
+# mutation proves it can red.
+#
+# ── F-40.103 · TWO DOORS SHIPPED WITH NO CALLERS ───────────────────────────
+# `POST /:id/consent` and the answer render, both in the sitting where I flagged
+# the chair that a reorder door with no caller was the F-40.28 shape and had it
+# narrowed out. I applied the rule to the door I was TOLD to build and to
+# neither of the two I chose. The founder found it trying to perform step 5 of
+# my own card.
+# The consent ask now has a surface, offered ONLY where it is lawful: a page
+# whose couple is on TDW is governed by her switch, so the field is ABSENT, not
+# disabled — a second door onto one decision is the disease the writer-set
+# census exists to prevent.
+app/vendor/(shell)/wedding-pages/page.tsx
+
+# ── F-40.102's pwa HALF · THE ANSWER RENDER  [R-G12.17 · R-40.47] ──────────
+# A SECOND RENDER OF THE SAME LEAF on a state param — not a new address. The
+# guest stays where she was and the page she already trusts answers her.
+# The archive is resolved SERVER-SIDE from the opaque token, so the signed URL
+# reaches her only as an href she follows once: never the address bar, never a
+# history entry, never a screenshot. One shared screenshot of a signed archive
+# URL hands out a couple's whole wedding.
+# ⚠ STILL NO CLIENT BUNDLE. `use client` 0, handlers 0 in live code — this
+# page's refusal at :35-38 survives the whole of G1.2.
+app/v/[code]/w/[slug]/page.tsx
+
+# ── R-40.47 · STRING 9 RE-VETOED, RETIRED WITH ITS READER ──────────────────
+# WAS 「We'll text you the link.」 — a promise the estate could not keep, because
+# nothing in the download door texts anything. R-G12.17 ruled the fork to (c),
+# so the sub-line now says what actually happens and the answer page carries
+# 「Your photographs are ready. Tap below to download.」 with 「Download」.
+# The old byte is RETIRED, not commented out; it returns in G1.3 beside the
+# button when F-40.104's texted link exists, as its own fresh veto.
+lib/public/copy.ts
+
+# ── THE ROOM'S BYTES  [⚠ FIVE ARE NOT YET VETOED — RAISED IN THE HANDOVER] ─
+# The consent ask's five strings are the ONLY ones in this room the founder has
+# not seen. `wedding-guests-mock.html` drew the consent LEAF and never drew the
+# vendor-side ask that mints its token, because the door had no caller and no
+# frame was cut for a surface nobody had noticed was missing. They ship so the
+# card can be performed at all, and they are RAISED rather than smuggled through
+# the bench's carve-out — a carve-out that hides an unvetoed byte is the stale
+# pin that list exists not to become.
+lib/worklist/weddingPages.ts
+
+# ── THE BENCH  [C19 + 8 cells, 3 production mutations] ────────────────────
+# ⚠ C19 IS THE MECHANISM F-40.103 EARNED: every member of `API` must be named by
+# something that is not its own definition. The callers are found by walking the
+# source tree, not by reading a list someone wrote down — b16 §2.2's reasoning,
+# borrowed. An address nobody calls is dead weight, or worse, a promise a card
+# will make on its behalf.
+#
+# AND THE DECODER WAS WRONG. `decode` knew \u2019 and \u00e9 and not \u2014, so
+# the first correctly-ratified byte carrying an em dash read as a BOUNCE. Found
+# by that exact failure; a decoder that does not know every escape its copy home
+# uses convicts correct bytes.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g12-answer-pwa.txt
+
+# ── THE CENSUS CAPTURE, REGENERATED — F-40.69 FIRING AS PREDICTED ──────────
+# `tdw_f3942_census_guard` reads a CAPTURED total and the live tree said 217
+# against a captured 214. NOT another seat's: my OWN previous pwa ZIP (`4e4daad`)
+# added exactly three files — `lib/public/token.ts`, `lib/public/consentCopy.ts`
+# and `app/consent/[token]/page.tsx` — and three is the gap.
+#
+# THIS IS F-40.69's MECHANISM, EXACTLY AS IT WAS FILED. The census walks
+# `git ls-files`, so in `--delivery` mode a delivery's NEW files are UNTRACKED and
+# invisible to it: the capture reads correct at the cut and becomes false the
+# instant the delivery is committed. My floor and the founder's both printed
+# `FLOOR = NAMED BASE` truthfully over a tree the instrument could not enumerate.
+# The finding predicted this and the prediction held.
+#
+# Regenerated by the census's OWN documented step (`node scripts/
+# tdw_stripper_census.mjs --write`), not hand-edited — the file is
+# generator-managed and the bench prints its own cure. 10/10 after.
+scripts/tdw_stripper_census.out.txt

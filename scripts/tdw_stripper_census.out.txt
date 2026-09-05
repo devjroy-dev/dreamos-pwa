@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: 250d420f9a55ba23a10cdd6c1bc29ffe4db5a4d3
-files scanned: 354
+repo tip: 4e4daad02a49a7ff0771673988a3058b29e0ac14
+files scanned: 357
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -30,13 +30,18 @@ app/admin/layout.tsx
    FALSE CLOSE :105   …console.proof.mjs, section 1. */\n  @
    BITE 1: chars 3657-5721  lines 71-105  span 2064  LIVE 2064
 
+app/consent/[token]/page.tsx
+   FALSE OPEN  :148   …ecline[disabled]{opacity:.55}\n/* Ter
+   FALSE CLOSE :149   … a declined ring in. Not red. */\n.cs
+   BITE 1: chars 7721-7871  lines 148-149  span 150  LIVE 150
+
 app/coplanner/muse/AddMuseSheet.tsx
    FALSE OPEN  :168   …ile"\n            accept="image/*"\n  
 
 app/credits/[token]/page.tsx
-   FALSE OPEN  :165   …ecline[disabled]{opacity:.55}\n/* Ter
-   FALSE CLOSE :166   … a declined ring in. Not red. */\n.cl
-   BITE 1: chars 8579-8734  lines 165-166  span 155  LIVE 155
+   FALSE OPEN  :160   …ecline[disabled]{opacity:.55}\n/* Ter
+   FALSE CLOSE :161   … a declined ring in. Not red. */\n.cl
+   BITE 1: chars 8227-8382  lines 160-161  span 155  LIVE 155
 
 app/demo/vendor/[handle]/page.tsx
    FALSE OPEN  :302   …form:translateY(0)} }\n        /* F-0
@@ -114,6 +119,23 @@ app/v/[code]/page.tsx
    BITE 22: chars 45583-45709  lines 830-831  span 126  LIVE 126
    BITE 23: chars 45740-46587  lines 834-846  span 847  LIVE 847
 
+app/v/[code]/w/[slug]/page.tsx
+   FALSE OPEN  :369   …,247,245,.82);margin-top:8px}\n/* ── 
+   FALSE OPEN  :378   …ect-fit:cover;display:block}\n\n/* ── 
+   FALSE OPEN  :399   …:#0C0A09;font-family:inherit}\n/* 16p
+   FALSE OPEN  :404   …top:1px;accent-color:#0C0A09}\n/* THE
+   FALSE OPEN  :413   …n-top:12px;text-align:center}\n/* ── 
+   FALSE CLOSE :372   …commented corpse if it stays. */\n.pw
+   FALSE CLOSE :387   …rs\n   nowhere near the cause. */\n.pw
+   FALSE CLOSE :400   …hould not have the page jump. */\n.pw
+   FALSE CLOSE :407   …it button the box sits above. */\n.pw
+   FALSE CLOSE :415   …ICKS IN THIS BLOCK (e-7/e-8). */\n.pw
+   BITE 1: chars 18305-18607  lines 369-372  span 302  LIVE 302
+   BITE 2: chars 18879-19521  lines 378-387  span 642  LIVE 642
+   BITE 3: chars 20525-20684  lines 399-400  span 159  LIVE 159
+   BITE 4: chars 20918-21203  lines 404-407  span 285  LIVE 285
+   BITE 5: chars 21626-21836  lines 413-415  span 210  LIVE 210
+
 app/vendor/(shell)/support/page.tsx
    FALSE OPEN  :123   …ionsStyles />\n      <style>{`\n/* Car
    FALSE CLOSE :124   …al only, no horizontal inset. */\n.wl
@@ -134,9 +156,23 @@ app/vendor/(shell)/today/page.tsx
    BITE 4: chars 9760-9932  lines 142-143  span 172  LIVE 172
 
 app/vendor/(shell)/wedding-pages/page.tsx
-   FALSE OPEN  :434   …play:block;margin-bottom:5px}\n/* Add
-   FALSE CLOSE :434   …en rather than a hex literal. */\n.wp
-   BITE 1: chars 22466-22549  lines 434-434  span 83  LIVE 83
+   FALSE OPEN  :509   …nput type="file" accept="image/*" mu
+   FALSE OPEN  :649   …play:block;margin-bottom:5px}\n/* Add
+   FALSE OPEN  :660   …critical);margin-bottom:10px}\n/* ── 
+   FALSE OPEN  :683   …critical);margin-bottom:10px}\n/* ── 
+   FALSE OPEN  :689   …ier-ink-dim);margin-top:10px}\n/* The
+   FALSE OPEN  :693   …ak:break-all;user-select:all}\n/* The
+   FALSE CLOSE :649   …en rather than a hex literal. */\n.wp
+   FALSE CLOSE :666   …7/e-8, twice in one sitting). */\n.wp
+   FALSE CLOSE :686   …a template literal (e-7/e-8). */\n.wp
+   FALSE CLOSE :690   …is worse than no link at all. */\n.wp
+   FALSE CLOSE :694   …not a warning about her data. */\n.wp
+   BITE 1: chars 26407-27899  lines 509-535  span 1492  LIVE 1353
+   BITE 2: chars 34442-34525  lines 649-649  span 83  LIVE 83
+   BITE 3: chars 35275-35779  lines 660-666  span 504  LIVE 504
+   BITE 4: chars 37039-37346  lines 683-686  span 307  LIVE 307
+   BITE 5: chars 37522-37649  lines 689-690  span 127  LIVE 127
+   BITE 6: chars 37785-37899  lines 693-694  span 114  LIVE 114
 
 components/frost/blooms/moments.tsx
    FALSE OPEN  :313   …Ref} type="file" accept="image/*" mu
@@ -323,8 +359,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 89 · false closes: 82
-false bites the RETIRED rule would take: 83 · span 39235 · LIVE CODE 39141
+false opens: 100 · false closes: 92
+false bites the RETIRED rule would take: 94 · span 43527 · LIVE CODE 43294
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
@@ -359,4 +395,4 @@ false bites the RETIRED rule would take: 83 · span 39235 · LIVE CODE 39141
    29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 214 file(s).
+   the retired naive rule disagrees with the compiler on 217 file(s).
