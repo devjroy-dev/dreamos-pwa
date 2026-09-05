@@ -185,6 +185,7 @@ do not.
 | H3 | *(n/a)* | **`<business_name>`** | **CANCELLED ONLY.** The celebration line is **struck**. The rule and the footer's position do not move, so the page keeps its shape; the line reads the business name alone | **RULED 2026-09-03** |
 
 | H4 | `Due <date>` on every state | **`Due` on `unpaid` and `advance_paid` only** | **RULED 2026-09-03.** It was the same falsehood E5 retired, one row higher: nothing is due on a settled or released invoice. `paid` and `cancelled` print `Issued` alone. **Not yet built — rides the next dream-os ZIP** | **RULED** |
+| H5 | *(absent)* | **`TDW-verified`** + **`<N> weddings · delivers in <D> days`** | **NEW — G2, R-G2.8.** Added by a labelled amendment 2026-09-05, nothing above this line edited. Frame **`S3-seal`**, which is `S2-addr` verbatim plus this one element. **Above the foot rule, inside the same foot block**, so the page adds no height below it — the 40pt clearance is what stopped pdfkit opening a second page. **Grey, not gold:** the accent is spent on the state stamp and the stamp must stay the first word read. **No rating segment** (R-G2.2 — no source exists until GBP). **No `Rs` on the seal, ever.** Prints only at three or more delivered weddings; under three the block does not render at all | |
 
 ---
 

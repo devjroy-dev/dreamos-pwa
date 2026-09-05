@@ -129,10 +129,30 @@ body.solo .pg{box-shadow:none}
 
 .foot{margin-top:auto}
 .ft{font-size:9pt;color:#999999;text-align:center}
+
+/* ── G2 · THE SEAL ON PAPER (R-G2.8) ──────────────────────────────────
+   ONE ROW ON THE S2 VETO SHEET, ONE ELEMENT HERE, AND IT SITS IN THE FOOT.
+   The renderer's footer is pinned at `page.height - margins.bottom - 40`
+   (src/lib/invoicePdf.js) — 40pt and not 24pt, because at 24 the 9pt line's
+   descent crossed the content boundary and pdfkit opened a SECOND PAGE on every
+   state. The seal therefore rides ABOVE the existing rule, inside the same foot
+   block, and adds no height below it: a mark that paginates the document is a
+   mark that has broken the thing it was meant to dignify.
+
+   IT IS GREY, NOT GOLD. `COLOUR_ACCENT` #B08D6A is the document's one accent and
+   it is already spent on the state stamp. A second accent would put the seal in
+   competition with `Unpaid`, which is the one word on this page a couple must
+   read first.
+
+   NO RATING SEGMENT (R-G2.2), NO Rs ON THE SEAL, EVER. The money on this sheet
+   is the invoice's own and the seal never carries a figure. */
+.seal{text-align:center;padding-bottom:9pt}
+.sealmark{font-size:7.5pt;letter-spacing:.20em;text-transform:uppercase;color:#777777;display:block}
+.sealfacts{font-size:8.5pt;color:#555555;display:block;margin-top:3pt}
 </style>
 </head><body>
 <div class="pagehead"><h1>S2 &middot; The invoice document &mdash; PICKED: shape (ii)</h1>
-  <span class="sub">A4 &middot; 595.28 &times; 841.89 pt &middot; six frames &middot; one mode (paper)</span></div>
+  <span class="sub">A4 &middot; 595.28 &times; 841.89 pt &middot; seven frames &middot; one mode (paper)</span></div>
 <div class="gallery">
 <div class="framewrap" data-frame="S1-city" data-shot-width="794" data-shot-height="1123" data-shot-modes="paper">
   <div class="cap"><b>NOT PICKED · Shape (i) — milestones inline</b> · header: city only · Unpaid, Rs 45,000 outstanding, three milestones · A4 · DEV440</div>
@@ -659,6 +679,111 @@ body.solo .pg{box-shadow:none}
     <div class="nt"><div class="eyebrow">Notes</div><div class="ntv">Album delivery six weeks after the final event. Travel within Delhi NCR included.</div></div>
     
     <div class="foot">
+      <div class="rule"></div>
+      <div class="ft">Thank you — we look forward to being part of your celebration.</div>
+    </div>
+  </div>
+</div>
+
+<div class="framewrap" data-frame="S3-seal" data-shot-width="794" data-shot-height="1123" data-shot-modes="paper">
+  <div class="cap"><b>S3-seal &middot; THE SEAL ON THE INVOICE (R-G2.8)</b> &middot; <b>S2-addr verbatim, plus one element</b> &mdash; every other byte on this sheet is the ratified document and none of it moves &middot; the seal rides ABOVE the existing foot rule so the page keeps its height (the 40pt clearance is what stopped pdfkit opening a second page) &middot; <b>grey, not gold</b>: the accent is spent on the state stamp and the stamp must stay the first word read &middot; <b>no rating</b> (R-G2.2), <b>no Rs on the seal</b> &middot; one row joins the S2 veto sheet</div>
+  <div class="pg">
+    
+    <div class="hd">
+      <div class="hdl">
+        <div class="biz">Dev Roy Photography</div>
+        <div class="idl">Delhi · GSTIN 07ABKPR1234F1Z5</div>
+        <div class="adr">2nd Floor, 14 Hauz Khas Village, New Delhi 110016</div>
+      </div>
+      <div class="mark">TDW</div>
+    </div>
+    <div class="rule metal"></div>
+    
+    <div class="meta">
+      <div class="metaL">
+        
+        <div class="ttl">Invoice</div>
+        <div class="num">TDW/2026/0041</div>
+      </div>
+      <div class="metaR">
+        <div class="mrow"><span>Issued</span><b>3 Sep 2026</b></div>
+        <div class="mrow"><span>Due</span><b>30 Sep 2026</b></div>
+      </div>
+      <div class="stampcell"><div class="stamp">Unpaid</div></div>
+    </div>
+    
+    <div class="rule"></div>
+    <div class="cols">
+      <div class="col">
+        <div class="eyebrow">Billed to</div>
+        <div class="pv">Ananya Sharma</div>
+        <div class="ps">+91 98765 43210</div>
+      </div>
+      <div class="col">
+        <div class="eyebrow">For</div>
+        <div class="pv">Wedding photography — two days, Delhi</div>
+      </div>
+    </div>
+    
+    <div class="rule"></div>
+    <div class="amts">
+      <div class="arow"><span>Total amount</span><b>Rs 45,000</b></div>
+      <div class="arow"><span>Paid</span><b>Rs 0</b></div>
+      <div class="arow big"><span>Balance due</span><b>Rs 45,000</b></div>
+    </div>
+    
+    <div class="rule"></div>
+    <div class="sch">
+      <div class="eyebrow">Payment schedule</div>
+      <table class="mt">
+        <colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup>
+        <thead><tr>
+          <th class="l">Milestone</th><th class="r">Share</th>
+          <th class="l">Due</th><th class="r">Amount</th><th class="r">Status</th>
+        </tr></thead>
+        <tbody>
+        <tr>
+          <td class="l">Booking</td><td class="r">40%</td>
+          <td class="l">30 Sep 2026</td><td class="r">Rs 18,000</td><td class="r">Pending</td>
+        </tr><tr>
+          <td class="l">Shoot day</td><td class="r">40%</td>
+          <td class="l">12 Dec 2026</td><td class="r">Rs 18,000</td><td class="r">Pending</td>
+        </tr><tr>
+          <td class="l">Delivery</td><td class="r">20%</td>
+          <td class="l">10 Jan 2027</td><td class="r">Rs 9,000</td><td class="r">Pending</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="rule"></div>
+    <div class="pay">
+      <div class="eyebrow">Payment</div>
+      <div class="payrow">
+        <div class="qrwrap">
+          <img class="qr" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAAAklEQVR4AewaftIAAAZmSURBVO3B0Y0by5YAwVSDXqT/pqUdWv0cgBBq1CQ1T3tRqIgfP3/h2NbFsbWLY2sXx9Ye/Eblu1X8DZVPVQyVUTFURsVQeUXFUBkVQ2VUDJXvVjEujq1dHFt78AcVn1J5h8qoeFYxVO5U3FEZFUNlVKyoPFNZURkVdyo+pbJycWzt4tjagxep3Km4ozIqRsW7KobKp1T+RsWKyqdU7lTcuTi2dnFs7cF/hMpXKlZURsWKyqgYKisVQ2VUfEVlpWKojIp/5eLY2sWxtQf/QRXPVFYqVlRGxVC5ozIqhsqoeKbyX3VxbO3i2NqDF1V8N5UVlWcVQ+U7VKyorFR8pWJF5VMV3+Hi2NrFsbUHf6Dyv1QxVEbFM5VRMVRGxadURsVQGRVD5VnFUBkVQ+WOyne7OLZ2cWztx89f+IdURsWKyrOKoTIqPqVyp2KofKViqNyp+Fcujq1dHFv78fMXnqiMiqHyqYoVlVHxLpVRcUdlVLxDZVQ8UxkVQ2VUrKh8quLOxbG1i2NrD/5A5R0Vd1RWVEbFu1TuVNxRGRUrKs8qViqGykrFUBkVQ+VTF8fWLo6tPfiDiqEyKobKUPlUxStUVipWVD6lMiqGyjOVUTFURsU7VEbFispKxbg4tnZxbO3BH6isqIyKoTIq7qgMlVHxTGWlYkVlVAyVlYqVildUvEPlHSqjYlQMlZWLY2sXx9Yujq09+IOKFZWViqEyKlYq3lXxDpWVipWKoTIqvqLyjoqh8g6VUXHn4tjaxbG1Hz9/4U0qo+KOykrFu1RWKlZURsVQGRVDZVQMlVHxLpWViqEyKobKnYqVi2NrF8fWHvxGZVQMlTsqdyqGyisqRsWKyqi4UzFURsVQGRVfUblTMVSGyp2KFZWhMirGxbG1i2NrD35TMVRWKobKqLijslIxVL6islJxR2WlYqiMiqEyKp5VrKgMlVExVEbFisqoWKlYuTi2dnFs7cFvVEbFUBkqo2Ko3KkYKt9FZaViRWWojIqh8gqVd6jcURkVQ+UdF8fWLo6t/fj5C39BZaViqIyKd6mMiqGyUjFUViqGykrFUHlFxYrKqFhRGRV3VEbFysWxtYtjaz9+/sILVFYqVlRGxVD5lyo+pTIqvqLyqYpPqaxUjItjaxfH1h78RmVUjIoVlZWKlYqhMiqGyisqhsqouKNyp+IVFUNlpWKo3FFZqXjHxbG1i2NrD35T8amKoTIq3lHxTGVUDJUVlVFxp2JFZVQMle+iMipWKobKOy6OrV0cW/vx8xeeqKxU3FEZFUNlpWKo/I2KOyrvqBgqo+IrKqNiqKxUDJVRMVRWKu5cHFu7OLb24+cvfEFlpWKovKPijsp3qRgqo+JTKs8qVlTuVNxReUfFuDi2dnFs7cFfqhgqo+K7VAyVUTFU7lQMlXdUvELlf6niHRfH1i6Orf34+QsvUPkOFSsqr6gYKisVKyorFSsqo+IrKisVKyorFUPlTsVQGRXj4tjaxbG1i2NrD36jMipWKlZURsVQeUfFM5V3qIyKUbGickflFRUrKqNiRWVUDJVRMVRGxcrFsbWLY2sPXlQxVEbFisqoeIfKs4qViu9WcUflWcWKyqhYURkVd1RWVEbFuDi2dnFs7cGLVFZURsWKyqgYKisVr1AZFUNlVAyVUTEqhspKxaj4isqo+G4VQ2VUrFwcW7s4tvbgAxVDZaisVAyVUTFUhsqzindUDJVRMVRGxagYKq9QGRVD5R0qKxVDZVTcuTi2dnFs7cfPX/iHVEbFK1RGxTtUPlUxVF5RsaIyKu6ojIqhcqdiXBxbuzi29uA3Kt+tYlQMlZWKd6mMipWKFZUVlVExVJ5VDJVRcUdlVHy3i2NrF8fWHvxBxadUVlRWKr5ScadiqKyojIpRMVTuVLxC5U7FHZVRsaKycnFs7eLY2oMXqdypeEfFisqziqHyjop3VLxLZVQMlRWVT6mMijsXx9Yujq09+H+kMipGxTOVUbGiMipWVEbFUPkbFUNlVKyofKriHRfH1i6OrT3YkMqoGBV3Kr6LyqgYFSsqo2KorKjcuTi2dnFs7cGLKr5DxVAZKqPiFSorFZ9SGRV/o2KovENlVKxUDJWVi2NrF8fWHvyByndTuaPyrGKlYqgMlZWKoTIqVlRWKp6pjIqViqEyKobKO1TuXBxbuzi29uPnLxzbuji2dnFs7f8AI0bhH12l7UgAAAAASUVORK5CYII=" alt="">
+          <div class="qcap">Scan to pay</div>
+        </div>
+        <div class="rails">
+          <div class="rail"><span>UPI</span><b>devroy@okhdfcbank</b></div>
+          <div class="rail"><span>Amount</span><b>Rs 45,000</b></div>
+          <div class="railgap"></div>
+          <div class="eyebrow sm">Bank transfer</div>
+          <div class="rail"><span>Account name</span><b>Dev Roy Photography</b></div>
+          <div class="rail"><span>Account no.</span><b>50100234567890</b></div>
+          <div class="rail"><span>IFSC</span><b>HDFC0000123</b></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="rule"></div>
+    <div class="nt"><div class="eyebrow">Notes</div><div class="ntv">Album delivery six weeks after the final event. Travel within Delhi NCR included.</div></div>
+    
+    <div class="foot">
+      <div class="seal">
+        <span class="sealmark">TDW-verified</span>
+        <span class="sealfacts">4 weddings · delivers in 34 days</span>
+      </div>
       <div class="rule"></div>
       <div class="ft">Thank you — we look forward to being part of your celebration.</div>
     </div>
