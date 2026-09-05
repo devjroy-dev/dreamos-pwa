@@ -112,6 +112,12 @@ not an ancestor` · fresh sibling with `has_wedding_page` reverted to a literal 
 FAIL on `7.2` alone. A refusal that cannot become a failure is an excuse; this
 one becomes a failure on demand.
 
+**e-6 · I handed the founder a conditional command beside its primary and he ran it.** The `git clone` alternative shipped in the same message as the sibling refresh; the conditional-withheld rule says it should have been commented-out with its uncomment step stated, or held for a later message. It was harmless only because **git's own guard refused it** — `destination path already exists` — which is luck standing in for discipline.
+
+**e-7 · I designed a probe whose comfortable answer was unfalsifiable.** To test b50's determinism I chained `npm run build` INSIDE a `git stash` block and put the three measurement runs OUTSIDE it, so all three measured the `250d420` build while the tree looked micro-applied. Read at face value it said 3/3 GREEN — which I would have taken as "nondeterministic, the finding is against the instrument", **falsely exonerating my own byte**. It is F-40.70's disease in my own hand, one message after I had quoted the source-versus-artifact gap at myself.
+
+**e-8 · I asserted a result before running it.** *"I expect 3/3 RED."* It came back GREEN, GREEN, RED — neither of the two outcomes I had named. One message after e-7, and the same habit both times: reaching a verdict ahead of the measurement. The catch that matters from that exchange was not mine either way — it was that the earlier n=2-per-side comparison was two samples of a distribution read as two states.
+
 **No orphaned mutation.** Every mutation path sha256-verifies its restore, including the throw path, and `git status` was read after every run (R-40.32).
 
 ---
@@ -168,6 +174,18 @@ SELECT w.slug,
 ---
 
 ## H8 · OPEN, HANDED FORWARD
+
+- **F-40.69 (number owed) — the delivery floor is structurally blind to the files a delivery ADDS.** `tdw_f3942_census_guard` walks `git ls-files`. In `--delivery` mode a delivery's new files are *untracked*, so the instrument cannot enumerate them: this seat's floor and the founder's both read `retired 213` and both printed `FLOOR = NAMED BASE` — **truthfully, over a tree whose new files the instrument could not see** — and the number became false the instant the delivery was committed (`lib/frost/coupleSwitch.ts` crossed 213→214). Derived three ways: the census is byte-identical with the follow-on micro applied and stashed, and a `git worktree` at `acb68f9` reads 213. R-38.19 says the floor is re-derived at the cut; the cut is pre-commit by construction, and that is the hole.
+- **F-40.70 (number owed) — `b50_fetch_loop_bench` cannot tell which build it is measuring.** It guards on `.next/BUILD_ID` *existing* (`:195`) and never on it *matching the tree on disk*. R-38.22 exists for exactly this — a deployed surface a gate reads must stamp its commit, and the gate must refuse a build that is not the tree — and this gate does not implement it. Its own header records the estate being burned by a stale build beside a live source; the cure was never fitted. **Witnessed live this sitting:** three runs read GREEN against a `.next` built inside a `git stash` block while the working tree looked micro-applied.
+- **F-40.71 (number owed) — `b50_fetch_loop_bench` is nondeterministic, so its GREEN is not evidence.** GREEN and RED on identical bytes, one build, one machine, minutes apart, with the count itself moving (2× then 3× on `money/invoices`). A varying count is a race, not a code path — a static defect returns a stable number. **Measured baseline, the first the estate has:**
+
+| Build | Chair-ruled samples | Pooled, every correctly-built run this sitting |
+|---|---|---|
+| this micro | **2 RED / 10** | **5 RED / 15** |
+| `250d420` | **0 RED / 10** | **0 RED / 14** |
+
+  Fisher one-tailed: **p = 0.237** on the ruled 10-vs-10, **p = 0.025** pooled. The pooled figure crosses 0.05 and is **not** treated as attribution — pooling across sessions with different machine load and browser-launch counts is precisely how a significance figure gets manufactured, and R-G11c.12 ruled reach first for this reason. What it does suggest is worth stating plainly: **a race's firing rate is timing-sensitive, and timing depends on the whole bundle.** Any byte that changes chunk layout can shift the rate of a pre-existing race without being on its path — which is a different claim from causing it, and a reason the repair needs a rate baseline rather than a pass/fail.
+  What it catches when it reds is real and uncured: `useLoader`'s own header describes `run` re-identifying every render and one effect issuing `fetcher(vendorId)` **before** its own `tick` abort check, so a superseded fetch has already left the tab. F-39.46 at small amplitude.
 
 - **F-40.65 (number owed) — the founder's `dreamos-pwa` container carries a `dream-os` sibling from before `edb3362`, and no instrument in that container says so.** `tools/preflight.sh` exists precisely to name both tips (R-38.20b) and was run this sitting **only in the LE container**; his own layout was never derived, which is the witness-path gap the law was written for. The sibling-full benches in this repo therefore read a tree from another month. `g11c_couple_switch` now refuses and names the tip; **every other sibling-full bench in this repo still guards on presence alone** and would fail silently-wrong the same way. A sweep of that class is unruled and not this sitting's.
 

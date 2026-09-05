@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: 1961164daf6b69db11edac6a266bc2abc8e87178
-files scanned: 353
+repo tip: 250d420f9a55ba23a10cdd6c1bc29ffe4db5a4d3
+files scanned: 354
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -32,6 +32,11 @@ app/admin/layout.tsx
 
 app/coplanner/muse/AddMuseSheet.tsx
    FALSE OPEN  :168   …ile"\n            accept="image/*"\n  
+
+app/credits/[token]/page.tsx
+   FALSE OPEN  :165   …ecline[disabled]{opacity:.55}\n/* Ter
+   FALSE CLOSE :166   … a declined ring in. Not red. */\n.cl
+   BITE 1: chars 8579-8734  lines 165-166  span 155  LIVE 155
 
 app/demo/vendor/[handle]/page.tsx
    FALSE OPEN  :302   …form:translateY(0)} }\n        /* F-0
@@ -128,6 +133,11 @@ app/vendor/(shell)/today/page.tsx
    BITE 3: chars 7853-9581  lines 116-138  span 1728  LIVE 1728
    BITE 4: chars 9760-9932  lines 142-143  span 172  LIVE 172
 
+app/vendor/(shell)/wedding-pages/page.tsx
+   FALSE OPEN  :434   …play:block;margin-bottom:5px}\n/* Add
+   FALSE CLOSE :434   …en rather than a hex literal. */\n.wp
+   BITE 1: chars 22466-22549  lines 434-434  span 83  LIVE 83
+
 components/frost/blooms/moments.tsx
    FALSE OPEN  :313   …Ref} type="file" accept="image/*" mu
 
@@ -136,20 +146,23 @@ components/frost/blooms/muse.tsx
 
 components/solutions/SolutionsPieces.tsx
    FALSE OPEN  :147   …r);touch-action:manipulation}\n/* Fou
-   FALSE OPEN  :168   …r-color:var(--role-critical)}\n/* The
-   FALSE OPEN  :170   …r:var(--atelier-card-border)}\n/* Fou
-   FALSE OPEN  :199   …nt-text);outline-offset:2px}\n /* F-1
-   FALSE OPEN  :208   …6px 0 0;word-break:break-all}\n/* F-1
-   FALSE CLOSE :152   … of the negotiation entirely. */\n.so
-   FALSE CLOSE :168   … her — quietest of the seven. */\n.so
-   FALSE CLOSE :171   … contrast that makes it read. */\n.so
-   FALSE CLOSE :202   …, not merely behave that way. */\n.so
-   FALSE CLOSE :209   …land on DEPLOYMENT_NOT_FOUND. */\n.so
+   FALSE OPEN  :153   … the negotiation entirely. */\n/* ── 
+   FALSE OPEN  :181   …r-color:var(--role-critical)}\n/* The
+   FALSE OPEN  :183   …r:var(--atelier-card-border)}\n/* Fou
+   FALSE OPEN  :212   …nt-text);outline-offset:2px}\n /* F-1
+   FALSE OPEN  :221   …6px 0 0;word-break:break-all}\n/* F-1
+   FALSE CLOSE :152   … of the negotiation entirely. */\n/* 
+   FALSE CLOSE :165   …istake — e-5 owns the first.) */\n.so
+   FALSE CLOSE :181   … her — quietest of the seven. */\n.so
+   FALSE CLOSE :184   … contrast that makes it read. */\n.so
+   FALSE CLOSE :215   …, not merely behave that way. */\n.so
+   FALSE CLOSE :222   …land on DEPLOYMENT_NOT_FOUND. */\n.so
    BITE 1: chars 6510-6963  lines 147-152  span 453  LIVE 453
-   BITE 2: chars 7992-8070  lines 168-168  span 78  LIVE 78
-   BITE 3: chars 8159-8314  lines 170-171  span 155  LIVE 155
-   BITE 4: chars 9968-10241  lines 199-202  span 273  LIVE 273
-   BITE 5: chars 10507-10665  lines 208-209  span 158  LIVE 158
+   BITE 2: chars 6964-7905  lines 153-165  span 941  LIVE 941
+   BITE 3: chars 8932-9010  lines 181-181  span 78  LIVE 78
+   BITE 4: chars 9099-9254  lines 183-184  span 155  LIVE 155
+   BITE 5: chars 10908-11181  lines 212-215  span 273  LIVE 273
+   BITE 6: chars 11447-11605  lines 221-222  span 158  LIVE 158
 
 components/worklist/AccountDrawer.tsx
    FALSE OPEN  :220   …und:var(--atelier-row-hover)}\n/* F-3
@@ -310,8 +323,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 86 · false closes: 79
-false bites the RETIRED rule would take: 80 · span 38056 · LIVE CODE 37962
+false opens: 89 · false closes: 82
+false bites the RETIRED rule would take: 83 · span 39235 · LIVE CODE 39141
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
@@ -346,4 +359,4 @@ false bites the RETIRED rule would take: 80 · span 38056 · LIVE CODE 37962
    29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 213 file(s).
+   the retired naive rule disagrees with the compiler on 214 file(s).

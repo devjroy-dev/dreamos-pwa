@@ -37,8 +37,19 @@ import { getJson, postJson } from '@/lib/vendor/api/_base';
 // founder's walk, because the door is `GET /events/:vendorId` and always has
 // been. The helper knew that; my path did not.
 import { fetchEvents } from '@/lib/vendor/api/vendor';
+// F-40.68 / R-G11c.11 — the estate's ONE IST day home. Imported rather than
+// re-derived: `new Date().toISOString().slice(0,10)` is the UTC day and is
+// wrong from midnight to 05:30 IST, which is the class this file exists on the
+// right side of (see istDay.ts's own header).
+import { istPlusDaysISO } from '@/lib/vendor/istDay';
 import { API } from '@/lib/solutions/routes';
 import { WP, ROLE_OPTIONS } from '@/lib/worklist/weddingPages';
+
+// F-40.68 / R-G11c.11 · THE PICKER'S PAST FLOOR, one home, one reader.
+// A constant rather than a literal at the call site because a bare `2000-01-01`
+// inside an argument list is a number the next reader has to reverse-engineer,
+// and this one carries a ruling. See the call site for why it is not computed.
+const WP_PICKER_FROM = '2000-01-01';
 
 type Wedding = {
   id: string; slug: string; title: string; venue: string | null; city: string | null;
@@ -173,7 +184,41 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
         // event may be `done`, while every DEV440 fixture row is `upcoming`;
         // one call covers both. CANCELLED is dropped — a cancelled event cannot
         // be a wedding, and offering one is a door that 404s on tap.
-        const r = await fetchEvents(vendorId, 'all');
+        //
+        // ── F-40.68 · R-G11c.11 · THE WINDOW, WHICH `state='all'` NEVER TOUCHED
+        // This call passed no `from`/`to` and inherited the door's default
+        // window: `src/api/vendor/events.js:210-212` sets `from = istTodayISO()`
+        // and `to = from + 400`, and `:258-263` applies `.gte`/`.lte` to BOTH
+        // queries. `state='all'` drops the STATE filter and does nothing to the
+        // DATE one, so the picker could only ever offer events dated today or
+        // later — **the feature's own premise inverted**, a wedding page being
+        // work that has already happened.
+        //
+        // Not hypothetical and not found by reading: on the founder's glass the
+        // dropdown held ONE option out of DEV440's seven live events — the only
+        // future-dated one — and it was the leadless one, so the only page it
+        // could build was another `couple_id`-NULL page (F-40.66's shape). The
+        // fixture the walk needs, `Verma - reception` (2026-07-31), was
+        // structurally invisible. R-39.15: the rendered surface outranked two
+        // seats' readings of the code, both of which had opened the POST create
+        // door and the client and never the GET the picker actually calls.
+        //
+        // `from` is a floor, not a guess. `2000-01-01` predates every wedding
+        // any Indian vendor on this estate could have shot and is deliberately
+        // NOT computed — a back catalogue has no natural start, and a
+        // subtracted number would be a second arithmetic nobody could account
+        // for. Whether the picker should bound its past at all, and whether it
+        // should PREFER past events, is F-40.68's remainder, chartered to G1.2.
+        //
+        // `to` uses `istPlusDaysISO`, the estate's one IST day home
+        // (`lib/vendor/istDay.ts`), so no date arithmetic is authored here.
+        // THE 400 IS A DECLARED MIRROR of the door's own `DEFAULT_WINDOW_DAYS`
+        // (`events.js:81`) — it cannot be imported across the repo boundary, so
+        // it is named here the way `waNumbers.ts` names its own drift pair,
+        // rather than left as a bare number a reader would have to guess at.
+        // Passing `to` is not optional: the helper sends the window only when
+        // BOTH bounds are present (`lib/vendor/api/vendor.ts:327`).
+        const r = await fetchEvents(vendorId, 'all', WP_PICKER_FROM, istPlusDaysISO(400));
         setEvents((r.events || []).filter((e) => e.state !== 'cancelled') as EventRow[]);
       } catch { setEvents([]); }
     })();

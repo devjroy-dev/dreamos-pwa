@@ -371,6 +371,54 @@ sec('C11 \u00b7 the public lanes the boot script knows');
     /else\s+if\s*\(\s*isPublicStorefront\s*\)\s*\{\s*bg\s*=/.test(root));
 }
 
+// ── C12 · F-40.68 / R-G11c.11 · THE PICKER SPANS THE BACK CATALOGUE ─────────
+// A wedding page is finished work. Before this cure the create sheet's events
+// read passed no window and inherited the door's default — `from = today`
+// (src/api/vendor/events.js:210-212, applied by `.gte` at :258-263) — so it
+// could only ever offer FUTURE events, which is the feature's premise inverted.
+//
+// FOUND ON THE FOUNDER'S GLASS, NOT BY READING (R-39.15). The dropdown held ONE
+// option out of DEV440's seven live events: the only future-dated one, which was
+// also the only leadless one. Two seats had read the POST create door and this
+// file's own client code and neither had opened the GET the picker calls.
+sec('C12 \u00b7 the create picker\u2019s window (F-40.68 / R-G11c.11)');
+{
+  const room = strip(read(ROOM));
+  // BALANCED, NOT `[^)]*`. The first cut used `fetchEvents\([^)]*\)`, which
+  // stops at the first `)` — and that `)` belongs to `istPlusDaysISO(400)`, so
+  // the extracted call was truncated mid-argument and the forward-bound cell
+  // convicted a correct call. A cell that mis-reads its own subject is the same
+  // defect as one that reads the wrong subject.
+  const call = (() => {
+    const at = room.indexOf('fetchEvents(');
+    if (at === -1) return '';
+    let depth = 0;
+    for (let i = room.indexOf('(', at); i < room.length; i++) {
+      if (room[i] === '(') depth++;
+      else if (room[i] === ')' && --depth === 0) return room.slice(at, i + 1);
+    }
+    return '';
+  })();
+  ok('the create picker was FOUND (C12 is not vacuous)', call.length > 0, 'no fetchEvents call');
+  // THE CELL IS THE `from`, NOT THE ARGUMENT COUNT. A four-argument call whose
+  // third argument were `istTodayISO()` would satisfy any arity check and leave
+  // the defect exactly where it was.
+  ok('the picker passes an explicit PAST floor \u2014 the back catalogue is reachable',
+    /fetchEvents\([^)]*,\s*WP_PICKER_FROM\s*,/.test(call), call);
+  ok('and the floor really is in the past (not today, not computed forward)',
+    /const WP_PICKER_FROM\s*=\s*'(\d{4})-\d{2}-\d{2}'/.test(room) &&
+    Number(room.match(/const WP_PICKER_FROM\s*=\s*'(\d{4})/)[1]) <= 2000,
+    'the floor is not a pre-2001 literal');
+  // `to` must be sent too: the helper ships the window only when BOTH bounds are
+  // present (lib/vendor/api/vendor.ts), so a `from` alone is silently dropped.
+  ok('a forward bound rides with it \u2014 a lone `from` is dropped by the helper',
+    /fetchEvents\([^)]*WP_PICKER_FROM\s*,\s*istPlusDaysISO\(\s*400\s*\)\s*\)/.test(call), call);
+  // No second answer to "what is today" is authored here.
+  ok('no UTC-day arithmetic is authored at this site \u2014 the IST home is imported',
+    /from '@\/lib\/vendor\/istDay'/.test(read(ROOM)) &&
+    !/new Date\(\)\.toISOString\(\)/.test(room));
+}
+
 if (process.argv.includes('--cells-only')) process.exit(fail === 0 ? 0 : 1);
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -416,6 +464,14 @@ if (process.argv.includes('--mutate')) {
     [CLAIM, 'the claim page starts remembering the token',
       "  const [busy, setBusy] = useState(false);",
       "  const [busy, setBusy] = useState(false);\n  if (typeof window !== 'undefined') localStorage.setItem('t', token);"],
+    [ROOM, 'the picker drops its past floor \u2014 the back catalogue vanishes again (F-40.68)',
+      "const r = await fetchEvents(vendorId, 'all', WP_PICKER_FROM, istPlusDaysISO(400));",
+      "const r = await fetchEvents(vendorId, 'all');"],
+
+    [ROOM, 'the floor is quietly moved to today \u2014 the arity survives, the cure does not',
+      "const WP_PICKER_FROM = '2000-01-01';",
+      "const WP_PICKER_FROM = istPlusDaysISO(0);"],
+
     [ROUTES, 'the address home is deleted \u2014 the second spelling returns',
       "export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';",
       "export const WEDDING_PAGES_HREF_RETIRED = '/vendor/wedding-pages';"],
