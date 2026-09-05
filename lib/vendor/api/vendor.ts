@@ -1284,10 +1284,20 @@ export function deleteSchedule(invoiceId: string): Promise<{ ok: boolean; delete
 }
 
 // Contracts
-export function fetchContracts(params?: { client_id?: string; state?: string }): Promise<{ ok: boolean; contracts: Contract[]; total: number } | ApiErr> {
-  const qs = params ? '?' + new URLSearchParams(params as Record<string,string>).toString() : '';
-  return getJson(`/api/v2/vendor/contracts${qs}`);
-}
+// ── `fetchContracts` RETIRED WITH ITS READER — b57 §1, 2026-09-06 ──────────
+// It read the door's DEFAULT list, which hides cancelled contracts. The room now
+// draws all four states and reads `fetchAllContracts`, so this had exactly ZERO
+// callers the moment part 1 landed — a client function nothing calls is the
+// F-40.109 class in the pwa's own half: a shipped address mounted on nothing.
+//
+// ⚠ THE DOOR IS NOT DELETED AND ITS DEFAULT IS NOT WIDENED. `GET
+// /api/v2/vendor/contracts` still hides cancelled rows for every caller that does
+// not ask, which is exactly what `include_cancelled=1` exists to leave alone.
+// Retiring the CLIENT function is not retiring the behaviour; it is removing a
+// name with no reader — retire-with-the-reader, never a commented corpse.
+//
+// FOUND BY THE CELL THE CHAIR ASKED THIS DELIVERY TO WRITE, ON ITS FIRST RUN.
+
 export function requestContractUpload(title: string, filename: string, clientId?: string): Promise<{ ok: boolean; contract_id: string; upload_url: string; expires_in: number } | ApiErr> {
   return postJson('/api/v2/vendor/contracts/upload-url', { title, filename, client_id: clientId });
 }
@@ -1313,6 +1323,25 @@ export function fetchContractDownload(contractId: string): Promise<{ ok: boolean
 export function fetchAllContracts(): Promise<{ ok: boolean; contracts: Contract[]; total: number } | ApiErr> {
   return getJson('/api/v2/vendor/contracts?include_cancelled=1');
 }
+/**
+ * ⚠ THE TYPED CLIENT ROSTER, AND IT IS **NOT** `fetchClients` ABOVE.
+ *
+ * `fetchClients` goes through `fetchCabinet` and `binderToClient`, which maps
+ * `b.id` — a BINDER id out of `engine.records`. `POST /compose` looks the id up
+ * in `public.clients` and would 404 on every single one of them.
+ *
+ * Two planes, two id spaces, one word. Derived by READING `binderToClient`
+ * (vendor.ts:111) and `src/api/vendor/clients.js:47` rather than by trusting a
+ * function whose name says what this composer wants — which is exactly the shape
+ * F-40.109 named on the other side of the wire.
+ *
+ * `GET /api/v2/vendor/clients/:vendorId` is `resolveVendor` mode B: the path id
+ * must match the JWT's, so it is not a second authority, only a second address.
+ */
+export function fetchTypedClients(vendorId: string, limit = 100): Promise<{ ok: boolean; clients: Client[]; total: number } | ApiErr> {
+  return getJson(`/api/v2/vendor/clients/${vendorId}?limit=${limit}`);
+}
+
 export function composeContract(body: { client_id: string; event_id?: string; invoice_id?: string; deposit_pct?: number }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return postJson('/api/v2/vendor/contracts/compose', body);
 }
@@ -1331,17 +1360,25 @@ export function sendContractToCouple(contractId: string, signerPhone?: string): 
 export function markContractDeposit(contractId: string, received: boolean): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return postJson(`/api/v2/vendor/contracts/${contractId}/deposit`, { received });
 }
-export function fetchContractProfile(): Promise<{ ok: boolean; fields: Record<string, unknown> } | ApiErr> {
-  return getJson('/api/v2/vendor/contracts/profile/fields');
-}
-/** ⚠ POST, NOT PUT, AND THE DOOR MOVED TO MATCH — not the client.
- *  `lib/vendor/api/_base.ts` exports getJson/postJson/patchJson and NO putJson.
- *  Adding one for a single caller would be a fourth verb in the estate's client
- *  for one door's sake; the door is upsert-shaped either way, and POST is what
- *  every other upsert here uses. Derived by reading `_base.ts`, not assumed. */
-export function saveContractProfile(fields: Record<string, unknown>): Promise<{ ok: boolean; fields: Record<string, unknown> } | ApiErr> {
-  return postJson('/api/v2/vendor/contracts/profile/fields', { fields });
-}
+// ── THE PROFILE DOORS HAVE NO SURFACE, AND NO CLIENT FUNCTION EITHER ───────
+// ⚠ THIS IS A HELD FORK, NOT AN OVERSIGHT, AND IT IS THE ONE THING PART 2 DOES
+// NOT BUILD. Veto rows 30-31 mint the CARD — `Set your policies once` and its
+// sentence — and the ratified frame `R4-record-blank` draws it. But the sheet
+// BEHIND that button has no frame and no minted bytes: every PROFILE label would
+// be a string the founder's pass never saw, and mock-first (c-39.26) says a byte
+// this build discovers it needs is a raised fork, not an authored string.
+//
+// So the card is NOT drawn either. A card whose button went nowhere would be a
+// dead control, which s-G11.2 has ruled against four times in this arc, and one
+// drawn with an invented sheet behind it would be worse.
+//
+// `GET`/`POST /api/v2/vendor/contracts/profile/fields` therefore ship in dream-os
+// with no pwa caller. That is a SERVER-side orphan, named here rather than
+// papered: it is the one address in this arc that b57 §1 cannot police, because
+// §1 reads the client and there is deliberately nothing in the client to read.
+// The fork rides the handover for the founder's frame.
+//
+// `fetchContractProfile` and `saveContractProfile` are NOT SHIPPED.
 
 export function cancelContract(contractId: string): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return deleteJson(`/api/v2/vendor/contracts/${contractId}`);

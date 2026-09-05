@@ -38,13 +38,34 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Fab } from '@/components/worklist/Fab';
 import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
-import { fetchContracts, fetchAllContracts, requestContractUpload, finalizeContract,
+import { fetchAllContracts, requestContractUpload, finalizeContract,
          updateContract, sendContract, fetchContractDownload, cancelContract,
-         contractPreviewUrl, sendContractToCouple, markContractDeposit } from '@/lib/vendor/api/vendor';
+         contractPreviewUrl, sendContractToCouple, markContractDeposit,
+         fetchTypedClients, composeContract, fillContract } from '@/lib/vendor/api/vendor';
 // TDW_09 R-U25: the ONE money home. A second formatter here would be a second
 // way to write Rs 18,000, and the estate has spent a finding on that already.
 import { formatRs } from '@/lib/vendor/format';
-import type { Contract } from '@/lib/vendor/types/vendor';
+import type { Contract, Client } from '@/lib/vendor/types/vendor';
+
+// ── THE ANNEXES, KEYED BY LETTER — v3's own set ────────────────────────────
+// ⚠ THE NAMES ARE THE INSTRUMENT'S, NOT THIS FILE'S. Each is the annex heading
+// out of `docs/specs/TDW_19_CONTRACT_GENERIC_v3.md`, which is lawyer-passed and
+// frozen (R-40.46). The renderer keys on the same letters, so a name typed twice
+// would be two homes for one heading.
+//
+// ⚠ AND THE MAP FROM CATEGORY TO ANNEX IS NOT DATABASE-ENFORCED — R-G32.13.
+// `vendors.category` carries NO CHECK, so this is a suggestion the room offers
+// and never a rule it applies. She may attach any of them, and Annex G exists
+// for a trade A–F does not name.
+const ANNEXES: { key: string; label: string }[] = [
+  { key: 'a', label: 'Photography and film' },
+  { key: 'b', label: 'Makeup and hair' },
+  { key: 'c', label: 'D\u00e9cor and production' },
+  { key: 'd', label: 'Planning and coordination' },
+  { key: 'e', label: 'Mehendi' },
+  { key: 'f', label: 'Venue' },
+  { key: 'g', label: 'Other services' },
+];
 
 const A = {
   // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
@@ -113,8 +134,77 @@ const labelStyle: React.CSSProperties = {
 };
 
 
+const SCRIM: React.CSSProperties = {
+  position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20,
+  display: 'flex', alignItems: 'flex-end',
+};
+const SHEET: React.CSSProperties = {
+  width: '100%', background: 'var(--atelier-sheet-bg)',
+  borderTop: '0.5px solid var(--atelier-sheet-border)',
+  padding: '20px 24px calc(24px + env(safe-area-inset-bottom))',
+  display: 'flex', flexDirection: 'column', gap: 12,
+};
+const GRAB: React.CSSProperties = { display: 'flex', justifyContent: 'center', marginBottom: 4 };
+const GRABBAR: React.CSSProperties = { width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' };
+const OPT: React.CSSProperties = {
+  padding: '15px 0', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer',
+  borderBottom: '0.5px solid var(--atelier-card-border)',
+  fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16,
+  lineHeight: 1.5, color: 'var(--atelier-ink)',
+};
+const GROUP: React.CSSProperties = {
+  fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 8,
+  letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)',
+  paddingTop: 14, marginBottom: 2, borderTop: '0.5px solid var(--atelier-card-border)',
+};
+const NOTE: React.CSSProperties = {
+  fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16,
+  lineHeight: 1.5, color: 'var(--atelier-ink-mute)',
+};
+const BTN: React.CSSProperties = {
+  padding: '13px 0', borderRadius: 2, cursor: 'pointer', marginTop: 4,
+  fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 9,
+  letterSpacing: '0.32em', textTransform: 'uppercase',
+};
+const CTA: React.CSSProperties   = { ...BTN, background: 'var(--atelier-accent-text)', border: 'none', color: 'var(--role-ink-deep)', fontWeight: 400 };
+const GHOST: React.CSSProperties = { ...BTN, background: 'transparent', border: '0.5px solid var(--atelier-accent-text)', color: 'var(--atelier-accent-text)' };
+const QUIET: React.CSSProperties = { ...BTN, background: 'transparent', border: '0.5px solid var(--atelier-card-border)', color: 'var(--atelier-ink-mute)' };
+
+/** ⚠ THE PLACEHOLDER IS THE BLANK'S OWN WORDS, NOT A GREY DASH.
+ *  `Not filled` / `Not set` / `Venue not filled` are veto rows 20, 22 and 27 —
+ *  a field that named itself as empty rather than an em dash a vendor has to
+ *  interpret. `readOnly` is for a value the ROW already holds: it is shown
+ *  because the agreement prints it, and not editable because editing it here
+ *  would be a second home for a fact the client record owns. */
+function Field({ label, value, placeholder, onChange, readOnly }: {
+  label: string; value: string; placeholder?: string;
+  onChange?: (v: string) => void; readOnly?: boolean;
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 14, padding: '7px 0' }}>
+      <div style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-mute)', flexShrink: 0 }}>{label}</div>
+      {readOnly ? (
+        <div style={{ fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)', textAlign: 'right' }}>{value}</div>
+      ) : (
+        <input value={value} placeholder={placeholder} onChange={e => onChange?.(e.target.value)}
+               style={{
+                 flex: 1, minWidth: 0, textAlign: 'right', background: 'transparent', border: 'none', outline: 'none',
+                 fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16,
+                 color: 'var(--atelier-ink)', caretColor: 'var(--atelier-accent-text)',
+               }} />
+      )}
+    </div>
+  );
+}
+
 export function ContractsScreen() {
   const { toast, show } = useToast();
+  // ⚠ THE SESSION IS READ HERE AND NOT PASSED IN. This body's own header records
+  // that every prop left with the shell mount — it reads its own data through the
+  // API client and needs nothing from either route. The clients roster is the
+  // first read here that needs a vendor id, and `resolveVendor` mode B means the
+  // path id must match the JWT's: it is a second ADDRESS, never a second authority.
+  const { session } = useVendorSession();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Contract | null>(null);
@@ -125,6 +215,14 @@ export function ContractsScreen() {
   const [title, setTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // ── G3.2 part 2 · the fork and the record ─────────────────────────────────
+  const [startOpen, setStartOpen] = useState(false);
+  const [pickOpen, setPickOpen]   = useState(false);
+  const [clients, setClients]     = useState<Client[]>([]);
+  const [record, setRecord]       = useState<Contract | null>(null);
+  const [terms, setTerms]         = useState<Record<string, string>>({});
+  const [annexes, setAnnexes]     = useState<Record<string, boolean>>({});
+  const [depositPct, setDepositPct] = useState<string>('');
 
   useEffect(() => {
     // ── ALL FOUR STATES — F-40.115, R-G32.15 ──────────────────────────────
@@ -182,6 +280,52 @@ export function ContractsScreen() {
    *  where a vendor could assert a signature she has no witness for. */
   function isComposed(c: Contract) {
     return c.deposit_pct !== null && c.deposit_pct !== undefined;
+  }
+
+  /** The record opens on a contract and reads its blanks OUT OF THE ROW.
+   *  Nothing is retyped that the row already holds — the whole point of the
+   *  composer, and the sentence at veto row 33 says so to the vendor. */
+  function openRecord(c: Contract) {
+    setRecord(c);
+    setTerms((c.terms as Record<string, string>) ?? {});
+    setAnnexes(c.annexes ?? {});
+    setDepositPct(c.deposit_pct === null || c.deposit_pct === undefined ? '' : String(c.deposit_pct));
+    setSelected(null);
+  }
+
+  async function openPicker() {
+    setStartOpen(false);
+    setPickOpen(true);
+    if (!session?.id || clients.length) return;
+    const r = await fetchTypedClients(session.id);
+    if (r.ok) setClients((r as { clients: Client[] }).clients);
+  }
+
+  async function doCompose(client: Client) {
+    setSaving(true);
+    const res = await composeContract({ client_id: client.id });
+    setSaving(false);
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); return; }
+    const c = (res as { contract: Contract }).contract;
+    setContracts(prev => [c, ...prev]);
+    setPickOpen(false);
+    openRecord(c);
+  }
+
+  /** THE ONLY WRITER of the blanks from this surface. `PATCH /fill` refuses on a
+   *  signed contract at the door, and the record does not offer the controls
+   *  either — two refusals for one rule, and the door's is the one that counts. */
+  async function doSaveFill(close: boolean) {
+    if (!record) return;
+    setSaving(true);
+    const pct = depositPct.trim() === '' ? null : Number(depositPct);
+    const res = await fillContract(record.id, { terms, annexes, deposit_pct: pct });
+    setSaving(false);
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); return; }
+    const c = (res as { contract: Contract }).contract;
+    setContracts(prev => prev.map(x => (x.id === c.id ? c : x)));
+    setRecord(close ? null : c);
+    if (close) show('Saved', 'success');
   }
 
   async function doSendToCouple(contract: Contract) {
@@ -247,7 +391,7 @@ export function ContractsScreen() {
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
           {contracts.map(c => (
-            <div key={c.id} onClick={() => setSelected(c)} style={{
+            <div key={c.id} onClick={() => (isComposed(c) && c.state !== 'signed' && c.state !== 'cancelled' ? openRecord(c) : setSelected(c))} style={{
               padding: '16px var(--slice-inset, 24px)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 16,
               borderBottom: '0.5px solid var(--atelier-card-border)',
@@ -282,7 +426,13 @@ export function ContractsScreen() {
           exemption. The founder saw Calendar; the cell then named these two.
           The /vendor arm keeps its 82 and DECLARES itself, so the exemption is claimed in
           the markup rather than inferred from proximity. */}
-      {<Fab label="Upload contract" onClick={() => { setUploadOpen(true); setTitle(''); setFile(null); }} />}
+      {/* ⚠ THE FAB NOW OPENS A FORK, AND THE UPLOAD SHEET IS ONE ARM OF IT.
+          `Upload contract` was the whole of `+` when a contract WAS a PDF. It is
+          still a door — clause 12's last line is that a couple who would rather
+          sign on paper can — but it is no longer the only one, and a `+` that
+          went straight to an upload would hide the composer entirely. Veto rows
+          11-15, frame `R4-start`. */}
+      {<Fab label="New contract" onClick={() => setStartOpen(true)} />}
 
       {uploadOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => !uploading && setUploadOpen(false)}>
@@ -327,6 +477,102 @@ export function ContractsScreen() {
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (canUpload && !uploading) ? 1 : 0.5, marginTop: 6,
             }}>{uploading ? uploadProgress || 'Uploading…' : 'Upload'}</button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ THE FORK — veto rows 11-15, frame `R4-start` ══════════════════ */}
+      {startOpen && (
+        <div style={SCRIM} onClick={() => setStartOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={SHEET}>
+            <div style={GRAB}><div style={GRABBAR} /></div>
+            <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>New</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Start a contract</div>
+            <button type="button" onClick={() => void openPicker()} style={OPT}>Fill the standard agreement</button>
+            <button type="button" onClick={() => { setStartOpen(false); setUploadOpen(true); setTitle(''); setFile(null); }} style={OPT}>Upload my own PDF</button>
+            {/* R-40.51, founder-ruled 2026-09-06. The proposed byte said `the one
+                your lawyer passed`; the lawyer was TDW's, not hers, and `passed`
+                is a claim she never made. */}
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
+              The standard wedding-services agreement. You fill your prices and policies once.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ THE CLIENT PICKER ═══════════════════════════════════════════════
+          ⚠ THROUGH `fetchTypedClients`, NEVER `fetchClients`. The latter maps
+          BINDER ids out of `engine.records`, and `POST /compose` looks its id up
+          in `public.clients` — every row would 404. Two planes, two id spaces,
+          one word. Derived by reading `binderToClient`, not by trusting a name. */}
+      {pickOpen && (
+        <div style={SCRIM} onClick={() => setPickOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ ...SHEET, maxHeight: '70vh', overflowY: 'auto' }}>
+            <div style={GRAB}><div style={GRABBAR} /></div>
+            <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>New</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Your client</div>
+            {clients.length === 0 ? (
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading&#8230;</div>
+            ) : clients.map(c => (
+              <button key={c.id} type="button" disabled={saving} onClick={() => void doCompose(c)} style={OPT}>{c.name}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ══ THE RECORD — veto rows 16-41, frames `R4-record-blank` / `-filled` ══
+          ⚠ EVERY BLANK PRINTS AS A BLANK AND NEVER AS `N/A` OR A ZERO. The field
+          register's §4 rule 3, said to the vendor at row 23 and obeyed by the
+          renderer at `contractPdf.js`'s `BLANK`. A greyed `0%` in the deposit
+          field would be a figure nobody entered. */}
+      {record && (
+        <div style={{ ...SCRIM, alignItems: 'stretch' }} onClick={() => setRecord(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-bg)',
+            borderTop: '0.5px solid var(--atelier-sheet-border)',
+            padding: '20px 24px calc(24px + env(safe-area-inset-bottom))',
+            display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto',
+          }}>
+            <div style={GRAB}><div style={GRABBAR} /></div>
+            <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>{stateWord(record.state)}</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>The agreement</div>
+
+            <div style={GROUP}>Who this is between</div>
+            <Field label="Your client" value={record.title.split(' \u2014 ')[0]} readOnly />
+            <Field label="Second partner&#8217;s name" value={terms.partner_2_name ?? ''} placeholder="Not filled"
+                   onChange={v => setTerms({ ...terms, partner_2_name: v })} />
+            <div style={NOTE}>Filled from your client&#8217;s record. Nothing here was typed twice.</div>
+
+            <div style={GROUP}>The dates</div>
+            <Field label="Venue" value={terms.venue ?? ''} placeholder="Venue not filled"
+                   onChange={v => setTerms({ ...terms, venue: v })} />
+            <Field label="City" value={terms.city ?? ''} placeholder="Not filled"
+                   onChange={v => setTerms({ ...terms, city: v })} />
+            <div style={NOTE}>Blank fields print as blanks. Fill what applies.</div>
+
+            <div style={GROUP}>Money</div>
+            <Field label="Fee" value={terms.fee_total ?? ''} placeholder="Not filled"
+                   onChange={v => setTerms({ ...terms, fee_total: v.replace(/[^0-9]/g, '') })} />
+            <Field label="Deposit" value={depositPct} placeholder="Not set"
+                   onChange={v => setDepositPct(v.replace(/[^0-9.]/g, ''))} />
+            <div style={NOTE}>30% holds the dates. Change it if you want.</div>
+            <div style={NOTE}>Add your GSTIN to print the tax block.</div>
+
+            <div style={GROUP}>Annexes</div>
+            {ANNEXES.map(a => (
+              <button key={a.key} type="button" onClick={() => setAnnexes({ ...annexes, [a.key]: !annexes[a.key] })}
+                      style={{ ...OPT, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span>{a.label}</span>
+                <span style={{ ...labelStyle, marginBottom: 0, color: annexes[a.key] ? A.green : A.inkMute }}>
+                  {annexes[a.key] ? 'Attached' : 'Not attached'}
+                </span>
+              </button>
+            ))}
+            <div style={NOTE}>From your profile &#8212; change it here for this couple only.</div>
+
+            <button type="button" onClick={() => window.open(contractPreviewUrl(record.id), '_blank')} style={GHOST}>Preview the PDF</button>
+            <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>
+            <button type="button" disabled={saving} onClick={() => void doSaveFill(true)} style={QUIET}>Save and finish later</button>
           </div>
         </div>
       )}

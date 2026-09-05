@@ -1,0 +1,59 @@
+# scripts/floor-manifest-g32-pwa-part2.txt
+# TDW_19 · BLOCK 19 · G3.2 — THE pwa HALF, PART 2. The `New contract` fork, the
+# client picker, the record, and the cell the chair asked for.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for. The tree
+# was clean at 364bd0a before a byte moved — `git status --porcelain | wc -l`
+# returned 0 after `git checkout -q origin/main`.
+#
+# ⚠ G1.3's pwa half did NOT land under this seat. The tip was 364bd0a at the read
+# and 364bd0a at the cut. Had it landed it would have been outside this radius.
+
+app/vendor/(shell)/contracts/screen.tsx
+lib/vendor/api/vendor.ts
+scripts/b57_contracts_wiring_bench.js
+scripts/floor-manifest-g32-pwa-part2.txt
+docs/TDW_19_G32_PWA_HANDOVER.md
+
+# ── THE FLOOR ───────────────────────────────────────────────────────────────
+#   tsc --noEmit                    CLEAN, exit 0
+#   b57_contracts_wiring_bench      26/26 — NEW
+#   b40_worklist_shell_bench        GREEN
+#   b42_g11_wedding_pages_bench     GREEN
+#   b05_f0589_pwa_name_wire_bench   GREEN
+#   tools/bs_audit.mjs              RED · 2 cells — IDENTICAL at 364bd0a
+#   tools/wl_audit.mjs              RED · exit only — IDENTICAL at 364bd0a
+#   DELTA                           ZERO
+#
+# ⚠ `next build` OWED ON THE FOUNDER'S MACHINE, same shape as part 1: this
+# container cannot reach fonts.googleapis.com and four `next/font` fetches fail.
+# NOT ONE application error is reported. The gate is not claimed green here.
+#
+# ── b57, BOTH WAYS ──────────────────────────────────────────────────────────
+# FIVE production mutations driven and reverted:
+#   §1  delete the composeContract call        → 1 red (orphans: composeContract)
+#   §2  point the picker at the binder plane   → 2 red
+#   §4  drop include_cancelled from the client → 1 red
+#   §5  Mark Signed on a composed contract     → 1 red
+#   §6  a tenth byte in SIGN_COPY              → 1 red
+#
+# ⚠ ONE MUTATION WAS BADLY CHOSEN AND IS RECORDED RATHER THAN REPLACED QUIETLY.
+# §4's first attempt renamed ONE `fetchAllContracts` call site and reddened
+# nothing, because the room has TWO and the survivor satisfied the cell. The
+# mutation that removes the BEHAVIOUR is the query param.
+#
+# ⚠ AND ONE CELL REDDENED ON ITS OWN REGEX. §5 matched `Mark Signed` within 400
+# characters of its gate; the gate sits 600 away. Widening the window would have
+# been tuning a cell to a tree, so the cell was rewritten to assert the BRANCH —
+# the last `isComposed(selected)` before the label is negated. A window is a guess
+# about formatting; that is a statement about the code.
+#
+# ── WHAT §1 FOUND ON ITS FIRST RUN ──────────────────────────────────────────
+# THREE ORPHANS, all real, all this arc's own:
+#   fetchContracts        — the room reads `fetchAllContracts` since part 1, so
+#                           this had ZERO callers. RETIRED WITH ITS READER. The
+#                           DOOR is not deleted and its default is not widened.
+#   fetchContractProfile  — NOT SHIPPED. See below.
+#   saveContractProfile   — NOT SHIPPED. See below.
+# The cell the chair asked for closed F-40.109's class by finding three instances
+# of it inside this seat's own delivery, on its first run.
