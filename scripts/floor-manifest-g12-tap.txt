@@ -1,0 +1,55 @@
+# scripts/floor-manifest-g12-tap.txt
+# TDW_19 · BLOCK 19 · G1.2 — R-G12.19 / R-40.50: THE TAP THE FOUNDER COULD NOT FEEL.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for.
+# Sibling at the run: dream-os `38e52fc`.
+#
+# ⚠ THE DOWNLOAD WORKED AND NOTHING TOLD HIM SO. Founder on a phone: "on phone
+# dont even feel like im clicking." The zip landed in Downloads; the page sat
+# unchanged, because this leaf ships NO JAVASCRIPT by ruling (R-G12.10) and
+# cannot know a tap happened — the anchor hands off to Cloudinary and the browser
+# saves in the background.
+#
+# WHAT THIS DOES: CSS carries the press, and copy carries the expectation SET
+# BEFORE THE TAP rather than confirmed after it — which is the better answer even
+# where script is allowed, because it answers the question before she asks it.
+# WHAT IT DOES NOT DO: F-40.108. The answer render still cannot acknowledge the
+# tap. The chair refused a client component here — `?sent=1` is a param on the
+# SAME route, so a hydration bundle there is paid for by every stranger's first
+# load whether or not she ever reaches the answer. That needs a separate route
+# and G1.3's own ruling.
+
+# ── THE PRESS STATE AND THE LINE ───────────────────────────────────────────
+# iOS's own grey tap-highlight is suppressed, or the two fight and the result
+# reads as a bug rather than a control.
+#
+# ⚠ AND A FALSE COMMENT IS RETRACTED. This file claimed `download` "asks the
+# browser to save". IT DOES NOT: the attribute is IGNORED on a cross-origin URL
+# by every browser, and what actually saves the file is Cloudinary's own
+# `Content-Disposition: attachment`, which `mode=download` sets. The attribute is
+# KEPT (it costs nothing and is correct if the asset ever becomes same-origin);
+# the claim about it was simply wrong and would have sent the next reader hunting
+# the wrong thing when a download failed.
+app/v/[code]/w/[slug]/page.tsx
+
+# ── R-40.50's BYTE  [founder-vetoed 2026-09-06] ───────────────────────────
+# 「Saves to your phone's downloads.」 — "YOUR PHONE'S", not "your": a guest
+# arrives from WhatsApp's in-app browser, where "downloads" means nothing until
+# the word PHONE tells her the file is on the device in her hand. The chair
+# amended it and the founder took the amendment.
+lib/public/copy.ts
+
+# ── THE BENCH  [4 cells, 2 production mutations] ──────────────────────────
+# ⚠ A CELL MUST TEST THE PROPERTY, NOT THE PHRASE. My first cut grepped for the
+# false sentence about `download` — and the CORRECTION QUOTES IT in order to
+# retract it, so the cell convicted the retraction. Third instance of this exact
+# shape in one sitting (e-5, the "plagiarism" cell, and this). A rule that cannot
+# tell a claim from its withdrawal is not a stricter rule.
+# It now asserts the correction is PRESENT and names the real mechanism.
+scripts/b42_g11_wedding_pages_bench.js
+
+# ── THE CENSUS CAPTURE — F-40.69, FOURTH FIRING ───────────────────────────
+scripts/tdw_stripper_census.out.txt
+
+# ── THIS MANIFEST ───────────────────────────────────────────────────────────
+scripts/floor-manifest-g12-tap.txt

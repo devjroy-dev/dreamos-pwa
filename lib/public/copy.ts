@@ -150,6 +150,28 @@ export const PUBLIC_DOWNLOAD = {
   readyHead: 'Your photographs are ready. Tap below to download.',
   /** The one tap. The archive URL sits behind it and never in the address bar. */
   readyCta:  'Download',
+
+  /**
+   * R-40.50 · founder-vetoed 2026-09-06, curing the tap's silence.
+   *
+   * THE FOUNDER FELT THIS ON A PHONE: the download worked, the zip landed, and
+   * NOTHING TOLD HIM SO. This leaf ships no JavaScript by ruling (R-G12.10), so
+   * it cannot know the tap happened — the anchor hands off to Cloudinary and the
+   * browser saves in the background while the page sits unchanged.
+   *
+   * SO THE EXPECTATION IS SET BEFORE THE TAP RATHER THAN CONFIRMED AFTER IT,
+   * which is the better answer even where script is allowed: it answers the
+   * question before she has to ask it.
+   *
+   * ⚠ "YOUR PHONE'S", NOT "YOUR". The chair's amendment and the founder took it:
+   * a guest arrives from WhatsApp's in-app browser, where "downloads" means
+   * nothing until the word PHONE tells her the file is on the device in her
+   * hand. R-G12.10 forbids the script that would say more; this says enough.
+   *
+   * F-40.108 holds what this does NOT do — the answer render still cannot
+   * acknowledge the tap. That needs a separate route and G1.3's own ruling.
+   */
+  readyFine: 'Saves to your phone\u2019s downloads.',
   /**
    * The `?sent=0` arm: the door could not mint a token (its signing secret is
    * absent) and said so rather than redirecting her to a link that cannot work.

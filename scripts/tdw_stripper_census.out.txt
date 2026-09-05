@@ -1,5 +1,5 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: 68cb7f02182a6088654b83920515e2fb53d23a42
+repo tip: 02b1b7527abb62259418828cd7de43e71f8ffe4e
 files scanned: 359
 
 app/(frost)/frost/canvas/muse/page.tsx
@@ -129,21 +129,24 @@ app/v/[code]/page.tsx
    BITE 24: chars 49924-50771  lines 908-920  span 847  LIVE 847
 
 app/v/[code]/w/[slug]/page.tsx
-   FALSE OPEN  :369   …,247,245,.82);margin-top:8px}\n/* ── 
-   FALSE OPEN  :378   …ect-fit:cover;display:block}\n\n/* ── 
-   FALSE OPEN  :399   …:#0C0A09;font-family:inherit}\n/* 16p
-   FALSE OPEN  :404   …top:1px;accent-color:#0C0A09}\n/* THE
-   FALSE OPEN  :413   …n-top:12px;text-align:center}\n/* ── 
-   FALSE CLOSE :372   …commented corpse if it stays. */\n.pw
-   FALSE CLOSE :387   …rs\n   nowhere near the cause. */\n.pw
-   FALSE CLOSE :400   …hould not have the page jump. */\n.pw
-   FALSE CLOSE :407   …it button the box sits above. */\n.pw
-   FALSE CLOSE :415   …ICKS IN THIS BLOCK (e-7/e-8). */\n.pw
-   BITE 1: chars 18305-18607  lines 369-372  span 302  LIVE 302
-   BITE 2: chars 18879-19521  lines 378-387  span 642  LIVE 642
-   BITE 3: chars 20525-20684  lines 399-400  span 159  LIVE 159
-   BITE 4: chars 20918-21203  lines 404-407  span 285  LIVE 285
-   BITE 5: chars 21626-21836  lines 413-415  span 210  LIVE 210
+   FALSE OPEN  :380   …,247,245,.82);margin-top:8px}\n/* ── 
+   FALSE OPEN  :389   …ect-fit:cover;display:block}\n\n/* ── 
+   FALSE OPEN  :410   …:#0C0A09;font-family:inherit}\n/* 16p
+   FALSE OPEN  :415   …top:1px;accent-color:#0C0A09}\n/* THE
+   FALSE OPEN  :424   …n-top:12px;text-align:center}\n/* ── 
+   FALSE OPEN  :433   …percase;text-decoration:none}\n/* ── 
+   FALSE CLOSE :383   …commented corpse if it stays. */\n.pw
+   FALSE CLOSE :398   …rs\n   nowhere near the cause. */\n.pw
+   FALSE CLOSE :411   …hould not have the page jump. */\n.pw
+   FALSE CLOSE :418   …it button the box sits above. */\n.pw
+   FALSE CLOSE :426   …ICKS IN THIS BLOCK (e-7/e-8). */\n.pw
+   FALSE CLOSE :443   …a template literal (e-7/e-8). */\n.pw
+   BITE 1: chars 19128-19430  lines 380-383  span 302  LIVE 302
+   BITE 2: chars 19702-20344  lines 389-398  span 642  LIVE 642
+   BITE 3: chars 21348-21507  lines 410-411  span 159  LIVE 159
+   BITE 4: chars 21741-22026  lines 415-418  span 285  LIVE 285
+   BITE 5: chars 22449-22659  lines 424-426  span 210  LIVE 210
+   BITE 6: chars 23161-23994  lines 433-443  span 833  LIVE 833
 
 app/vendor/(shell)/google-reviews/page.tsx
    FALSE OPEN  :185   …   ) : null}\n\n      <style>{`\n/* THE
@@ -373,8 +376,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 104 · false closes: 96
-false bites the RETIRED rule would take: 98 · span 45214 · LIVE CODE 44981
+false opens: 105 · false closes: 97
+false bites the RETIRED rule would take: 99 · span 46047 · LIVE CODE 45814
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx

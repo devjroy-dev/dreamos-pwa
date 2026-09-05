@@ -38,6 +38,7 @@ const CLAIM   = 'app/credits/[token]/page.tsx';
 // ── G1.2's own subjects ─────────────────────────────────────────────────────
 const CONSENT = 'app/consent/[token]/page.tsx';
 const CREW    = 'app/crew/[token]/page.tsx';
+const COPY    = 'lib/public/copy.ts';
 const TOKEN   = 'lib/public/token.ts';
 const CONSENTCOPY = 'lib/public/consentCopy.ts';
 const PUBCOPY = 'lib/public/copy.ts';
@@ -628,6 +629,31 @@ sec('C16 \u00b7 the guest gallery ships no JavaScript (R-G12.10/.16)');
   // e-5's class, caught again by my own cell.
   ok('the four-item strip is RETIRED WITH ITS READER, not commented out',
     !/pw-stripimg/.test(strip(read(LEAF))));
+  // ── R-G12.19 / R-40.50 · THE TAP THE FOUNDER COULD NOT FEEL ───────────────
+  // The download worked and NOTHING TOLD HIM SO. This leaf has no script to
+  // acknowledge a tap (F-40.108), so CSS carries the press and copy carries the
+  // expectation — set BEFORE the tap rather than confirmed after it.
+  ok('the download button has a press state', /\.pw-donecta:active\{/.test(read(LEAF)));
+  // iOS paints its own grey flash otherwise, which would fight this and read as
+  // a bug rather than a control.
+  ok('and iOS\u2019s own tap highlight is suppressed so the two do not fight',
+    /-webkit-tap-highlight-color:transparent/.test(read(LEAF)));
+  ok('the line says where the file goes (R-40.50)',
+    /PUBLIC_DOWNLOAD\.readyFine/.test(strip(read(LEAF)))
+    && /phone\\u2019s downloads/.test(read(COPY)));
+  // ⚠ AND THE ATTRIBUTE THAT NEVER DID ANYTHING IS NAMED AS SUCH. `download` is
+  // IGNORED cross-origin; what saves the file is Cloudinary's own
+  // Content-Disposition. The old comment claimed it "asks the browser to save",
+  // which was false and would have sent the next reader hunting the wrong thing.
+  // ⚠ AND THE CELL MUST TEST THE PROPERTY, NOT THE PHRASE. My first cut grepped
+  // for the false sentence — and the CORRECTION QUOTES IT in order to retract
+  // it, so the cell convicted the retraction. Same shape as e-5 and the
+  // "plagiarism" cell: a rule that cannot tell a claim from its withdrawal is
+  // not a stricter rule. What is asserted instead is that the correction is
+  // PRESENT and names the real mechanism.
+  ok('the leaf names Content-Disposition as what actually saves the file',
+    /IGNORED on a\s*\n?\s*(\/\/)?\s*cross-origin URL/.test(read(LEAF))
+    && /Content-Disposition/.test(read(LEAF)));
 }
 
 // ── C17 · THE ROOM'S G1.2 SURFACES ─────────────────────────────────────────
@@ -901,6 +927,14 @@ if (process.argv.includes('--mutate')) {
     [ROOM, 'a reorder caller appears for a door that was never built (F-40.83)',
       "  async function removePhoto(photoId: string) {",
       "  async function reorder() { await postJson(WEDDINGS_API_PATH + '/x/photos/order', {}); }\n  async function removePhoto(photoId: string) {"],
+
+    // ── R-G12.19 · THE TAP FEEDBACK, PROVEN ABLE TO RED ───────────────────────
+    [LEAF, 'the press state is dropped \u2014 the phone gives nothing between touch and result',
+      ".pw-donecta:active{background:#2A2523;transform:scale(.985)}",
+      "/* press state removed */"],
+    [LEAF, 'the line goes \u2014 the tap is silent again (R-40.50)',
+      '              <p className="pw-donefine">{PUBLIC_DOWNLOAD.readyFine}</p>',
+      "              {null}"],
 
     // ── THE SHARE ORDER, PROVEN ABLE TO RED ───────────────────────────────────
     // Clipboard-first would silently replace her own share sheet with a worse

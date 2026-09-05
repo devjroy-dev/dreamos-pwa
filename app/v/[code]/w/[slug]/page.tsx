@@ -192,9 +192,20 @@ export default async function PublicWeddingPage(
               <p className="pw-doneh">{PUBLIC_DOWNLOAD.readyHead}</p>
               {/* `download` asks the browser to save rather than navigate, and
                   `rel=noopener` because this leaves for another origin. */}
+              {/* ⚠ `download` IS DECORATIVE HERE AND THE COMMENT THAT CLAIMED
+                  OTHERWISE IS CORRECTED. The attribute is IGNORED on a
+                  cross-origin URL by every browser — what actually saves the
+                  file is Cloudinary's own `Content-Disposition: attachment`,
+                  which `mode=download` sets. It is kept because it costs nothing
+                  and is correct if the asset ever becomes same-origin; the claim
+                  that it "asks the browser to save" was simply wrong. */}
               <a className="pw-donecta" href={url} download rel="noopener noreferrer">
                 {PUBLIC_DOWNLOAD.readyCta}
               </a>
+              {/* R-40.50 · the expectation, set before the tap. The page cannot
+                  acknowledge the tap afterwards (F-40.108), so it says where the
+                  file goes instead. */}
+              <p className="pw-donefine">{PUBLIC_DOWNLOAD.readyFine}</p>
             </>
           ) : (
             // ONE SENTENCE FOR EVERY FAILURE. A missing secret, a withdrawn
@@ -419,6 +430,20 @@ function WeddingStyles() {
 .pw-donecta{margin-top:26px;display:block;width:100%;padding:15px 0;background:#0C0A09;color:#F8F7F5;
             border-radius:2px;text-align:center;font-weight:300;font-size:11px;letter-spacing:.20em;
             text-transform:uppercase;text-decoration:none}
+/* ── R-G12.19 · THE PRESS STATE ─────────────────────────────────────────────
+   THE FOUNDER'S WORDS: "on phone dont even feel like im clicking." A tap target
+   with no pressed state gives a phone nothing between touch and result, and this
+   leaf has no script to fill the gap. CSS can, for free.
+   The webkit tap-highlight is set to transparent because iOS paints its own grey
+   flash over the top otherwise, which would fight this and read as a bug.
+   (No backticks around that property name: this block is inside a template
+   literal and a pair of them closes it silently. Third time this sitting, and
+   twice inside the warning about it — which is why C18 is a CELL and not a
+   comment. The cell catches what the comment plainly does not.)
+   NO BACKTICKS IN THIS BLOCK — it lives inside a template literal (e-7/e-8). */
+.pw-donecta{-webkit-tap-highlight-color:transparent}
+.pw-donecta:active{background:#2A2523;transform:scale(.985)}
+.pw-donefine{margin-top:12px;font-size:11px;line-height:1.5;color:rgba(12,10,9,.50);text-align:center}
 .pw-rule{display:flex;align-items:center;gap:10px;padding:22px 20px 18px}
 .pw-rule-line{flex:1;height:.5px;background:linear-gradient(90deg,rgba(201,168,76,0) 0%,rgba(201,168,76,.8) 50%,rgba(201,168,76,0) 100%)}
 .pw-diamond{color:#C9A84C;font-size:9px;line-height:1}
