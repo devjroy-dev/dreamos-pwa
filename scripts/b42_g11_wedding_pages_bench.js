@@ -176,8 +176,29 @@ sec('C4 \u00b7 the eight are not links');
     String((room.match(/<Req \/>/g) || []).length));
 
   const hub = strip(read(HUB));
-  ok('only wedding_pages receives an href',
-    /r\.key === 'wedding_pages' \? WEDDING_PAGES_HREF : undefined/.test(hub));
+  // ── AMENDED BY LABEL — G2. THE TERNARY BECAME A MAP, AND THE CELL DID NOT ──
+  // ── LOOSEN. It read the exact ternary `r.key === 'wedding_pages' ? … : undefined`
+  // and reddened the moment a SECOND room lawfully opened — the same census-pinned-
+  // to-a-shape disease as b05_arc_m1's ack count, one repo over.
+  //
+  // THE PROPERTY IT EXISTS FOR IS THAT AN href COMES FROM A DECLARED ADDRESS AND
+  // NEVER FROM A LITERAL, and that is asserted harder here than before: every
+  // value in the map must be a `*_HREF` identifier, so a hub that hardcoded
+  // `'/vendor/anything'` still reddens. What retires is the ARITY, not the rule.
+  //
+  // `wedding_pages` is still named explicitly, so this bench still owns its own
+  // room's row: G2 opening a second door cannot silently close G1.1's.
+  const hrefMap = hub.match(/const ROOM_HREFS[^=]*=\s*\{([\s\S]*?)\}/);
+  ok('the hub addresses rooms through a declared map, not a ternary', !!hrefMap,
+    hrefMap ? 'ROOM_HREFS found' : 'no ROOM_HREFS declaration in the hub');
+  if (hrefMap) {
+    const entries = hrefMap[1].split(',').map((l) => l.trim()).filter(Boolean);
+    ok('wedding_pages still receives its declared address',
+      entries.some((e) => /^wedding_pages:\s*WEDDING_PAGES_HREF$/.test(e)));
+    ok('every open room addresses a *_HREF constant, never a literal',
+      entries.every((e) => /^[a-z_]+:\s*[A-Z_]+_HREF$/.test(e)),
+      entries.join(' | '));
+  }
 }
 
 // ── C5 · THE ADDRESS HOME (R-G11.12) ────────────────────────────────────────

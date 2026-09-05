@@ -53,6 +53,25 @@ export const SOLUTIONS_INDEX_HREF = '/vendor/support';
 // the cell tightens with it rather than being loosened.
 export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';
 
+// ── G2 · THE GOOGLE REVIEWS ROOM'S ADDRESS ──────────────────────────────────
+// The second of R-40.1's nine to open, and it takes the same home for the same
+// reason the block above states: `b40` C31 walks the import graph from every
+// shell page and matches any `/vendor…` string literal against a declared set
+// built from `rooms.ts`, `LEGACY_VENDOR_LINKS`, three nav seats and — since
+// G1.1 — this file. `/vendor/google-reviews` is in none of the others, so a
+// bare literal in the hub would be a stray and C31 would redden on a correct
+// build.
+//
+// ⚠ C31 IS AMENDED BY LABEL IN THE SAME DELIVERY to read this constant into
+// its declared set, exactly as it already reads `WEDDING_PAGES_HREF`. The cell
+// TIGHTENS with the room rather than loosening: delete this constant and C31
+// reddens on the missing declaration.
+//
+// It does NOT enter `lib/worklist/rooms.ts`: R-G11.12's not-a-room precedent
+// covers every one of the nine, `ROOM_COUNT_EXPECTED` stays 19, and the tile
+// grid gains nothing.
+export const GOOGLE_REVIEWS_HREF = '/vendor/google-reviews';
+
 /**
  * The backend's own addresses. Held here rather than in `client.ts` so that the
  * two kinds of address — where the vendor goes, and where the data comes from —
@@ -95,4 +114,11 @@ export const API = {
   weddingPhoto:    (id: string, photoId: string) =>
     `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos/${encodeURIComponent(photoId)}`,
   weddingConsent:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/consent`,
+
+  // ── G2 · THE ROOM'S ONE READ ─────────────────────────────────────────────
+  // This one DOES hang off `SOLUTIONS_API_PATH`, where the wedding-pages doors
+  // deliberately do not: those are Studio Suite doors with their own owner, and
+  // this is a Business Solutions door mounted in that router beside the eight
+  // that were already there. One prefix, its own owner, no second spelling.
+  googleReviews:   () => `${SOLUTIONS_API_PATH}/google-reviews`,
 } as const;

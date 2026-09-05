@@ -35,7 +35,7 @@ import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
-import { WEDDING_PAGES_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -45,6 +45,17 @@ export default function SolutionsIndexPage() {
   if (sl || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
   return <SolutionsIndexScreen />;
 }
+
+/**
+ * THE ONLY ROOMS WITH A DESTINATION, KEYED BY `ROOM_ROWS`' OWN KEYS.
+ * Every address is read from `lib/solutions/routes.ts`; not one is a literal
+ * here, because `b40` C31 matches any `/vendor…` literal reachable from a shell
+ * page against a declared set and this file is reachable from all of them.
+ */
+const ROOM_HREFS: Partial<Record<string, string>> = {
+  wedding_pages: WEDDING_PAGES_HREF,
+  google:        GOOGLE_REVIEWS_HREF,
+};
 
 function SolutionsIndexScreen() {
   // ── R-40.23 · THE NINE REPLACE THE SIX, AND THE FETCH RETIRES WITH THEM ────
@@ -72,10 +83,23 @@ function SolutionsIndexScreen() {
           <RoomRow
             key={r.key}
             label={r.label}
-            // Only Wedding pages has a destination. The other eight pass no
-            // href and render as rows with a `Coming` chip — drawn, never
-            // disabled (see RoomRow).
-            href={r.key === 'wedding_pages' ? WEDDING_PAGES_HREF : undefined}
+            // ── G2 · TWO OF THE NINE NOW OPEN ────────────────────────────
+            // The other seven pass no href and render as rows with a `Coming`
+            // chip — drawn, never disabled (see RoomRow). A row WITH an href
+            // takes `Open` in the accent ink, and that asymmetry is the
+            // founder's own ruling from his walk of 2026-09-05: `W5-hub` drew
+            // the live row with no chip at all, which read correctly on a
+            // screenshot and failed on glass — beside eight quiet rows the one
+            // WORKING row was the only one with nothing on its right, so it read
+            // as a heading rather than a door.
+            //
+            // ⚠ A MAP, NOT A GROWING TERNARY. The first cut of this was
+            // `r.key === 'wedding_pages' ? A : undefined`; a second room makes
+            // that a chain, and the third makes it unreadable. The map is
+            // exhaustive by construction — a key with no entry is `undefined`,
+            // which is exactly `Coming`, so a new room opens by adding one line
+            // here and nothing else changes.
+            href={ROOM_HREFS[r.key]}
           />
         ))}
       </nav>

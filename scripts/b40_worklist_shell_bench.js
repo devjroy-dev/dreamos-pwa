@@ -1151,6 +1151,15 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const wm = solRoutes.match(/export const WEDDING_PAGES_HREF\s*=\s*'([^']+)'/);
   if (!wm) return 'WEDDING_PAGES_HREF is not declared: the wedding-pages room has no address home (R-G11.12)';
   declared.add(wm[1]);
+  // ── AMENDED BY LABEL — G2. THE SECOND OF THE NINE OPENS, AND THE CELL DOES
+  // NOT LOOSEN. Read from the same one home by the same shape, so the set grows
+  // by exactly one DECLARED member and an undeclared `/vendor/…` literal is
+  // still a stray. Delete the constant and this reddens on the missing
+  // declaration rather than passing quietly — the property the block above
+  // spells out, now holding for two rooms instead of one.
+  const gm = solRoutes.match(/export const GOOGLE_REVIEWS_HREF\s*=\s*'([^']+)'/);
+  if (!gm) return 'GOOGLE_REVIEWS_HREF is not declared: the Google reviews room has no address home';
+  declared.add(gm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

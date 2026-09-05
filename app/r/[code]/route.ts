@@ -12,7 +12,7 @@
 // `vendor_integrations`.
 //
 // So this ships as the sentence, for everyone, until P1. CE-38 relay #3 ruled it
-// so, and the P0-A ledger already carries the consequence: `tdw_vendor_review_request`
+// so, and the P0-A ledger already carries the consequence: `tdw_review_request`
 // is APPROVED AT META with base `https://thedreamwedding.in/r/`, and until this
 // file existed it resolved to a framework 404.
 //

@@ -157,7 +157,17 @@ if (!fs.existsSync(PAPER)) {
 } else {
   const t = tuples(PAPER);
   const ids = [...new Set(t.map((x) => x.id))];
-  ok('six frames', ids.length === 6, 'saw ' + ids.length + ': ' + ids.join(' '));
+  // ── AMENDED BY LABEL — G2, COUNT MOVED · RATIFY-OR-REVERT ────────────────
+  // SIX BECAME SEVEN when `S3-seal` joined this mock (R-G2.8, the seal on the
+  // invoice). The G2 seat shipped that frame WITHOUT RUNNING THIS PROOF and so
+  // shipped this red undetected — e-8, owned here at the site of the damage.
+  //
+  // THE PROPERTY THIS SECTION EXISTS FOR IS THE PAPER OPT-IN: that a declared
+  // width overrides the primary rule, so N paper frames yield N captures and not
+  // 2N. That property is TRUE of all seven and is asserted below unchanged; only
+  // the arity moved. The count is kept rather than deleted because it catches a
+  // frame that VANISHES, which the per-capture cells cannot.
+  ok('seven frames', ids.length === 7, 'saw ' + ids.length + ': ' + ids.join(' '));
   ok('two headers x two shapes plus two state variants',
     ['S1-city', 'S1-addr', 'S1-paid', 'S1-cancelled', 'S2-city', 'S2-addr']
       .every((i) => ids.includes(i)), ids.join(' '));
@@ -168,10 +178,12 @@ if (!fs.existsSync(PAPER)) {
     JSON.stringify(t.find((x) => x.w !== 794 || x.height !== 1123) || {}));
   ok('every paper capture is one mode, "paper"',
     t.every((x) => x.mode === 'paper'), [...new Set(t.map((x) => x.mode))].join(','));
-  // THE GOVERNING CLAIM: six frames, six captures. Two of the six ids (S1-city, S2-city)
-  // are PRIMARY by the shape-prefix rule, so an arm that read the attribute but let the
-  // primary rule keep its say would emit eight.
-  ok('six frames yield six captures, not eight', t.length === 6, 'saw ' + t.length);
+  // THE GOVERNING CLAIM: N frames, N captures. THREE of the seven ids are PRIMARY
+  // by the shape-prefix rule — S1-city, S2-city and now S3-seal, which is the only
+  // `S3-` frame and therefore primary by construction — so an arm that read the
+  // attribute but let the primary rule keep its say would emit TEN, not seven.
+  // The margin this cell detects got WIDER with the new frame, not narrower.
+  ok('seven frames yield seven captures, not ten', t.length === 7, 'saw ' + t.length);
   ok('the declared width overrides the primary rule',
     /geom\.width \? \[geom\.width\]/.test(resolveLine()), resolveLine());
 }

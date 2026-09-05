@@ -291,6 +291,58 @@ export const SUBDOMAIN_FIXTURE: readonly (readonly [string | null, string | null
   [null, null],
 ] as const;
 
+/**
+ * `GET /api/v2/vendor/solutions/google-reviews` — G2 sitting 1.
+ *
+ * ⚠ THE FIRST SOLUTIONS SHAPE BACKED BY REAL ROWS. Every type above it is the
+ * contract's EMPTY SHAPE — the door answers honestly with nothing, because
+ * nothing is connected yet (R-19.2). This one reads `reviews_asked` and
+ * `vendor_seal`, both applied in production by `0134`.
+ *
+ * `landedCount` IS ALWAYS 0 TODAY AND THAT IS THE TRUTH, NOT A STUB. A review
+ * lands when Google returns it, and nothing can read Google before 2026-10-27
+ * plus a quota grant. The room's own line — `Reviews appear here once your
+ * Google listing is connected.` — is what stops the zero reading as broken.
+ *
+ * `seal` IS AN OBJECT OR `null`, NEVER A PARTIALLY-FILLED ONE. Under three
+ * delivered weddings there is no seal at all, and the absence IS the answer: a
+ * couple must not be able to tell an unverified studio from one whose seal has
+ * not been computed yet. NO `rating` FIELD EXISTS (R-G2.2) — no source for one
+ * exists, and a null rating on the wire is an invitation to render empty stars.
+ *
+ * `deliveryDays` MAY BE NULL: a studio whose delivered pages are all back
+ * catalogue has no wedding day to measure from, and null means *not measurable*,
+ * never zero — zero would read as same-day delivery.
+ */
+export type ReviewAsk = {
+  coupleName: string | null;
+  weddingTitle: string | null;
+  askedAt: string;
+};
+
+/**
+ * ⚠ ITS OWN NAMED TYPE, AND THE PARSER IS WHY — NOT TASTE.
+ * `bs_audit.mjs`'s parse contract refuses an inline nested object literal and
+ * says so as GATE-UNSOUND rather than digesting something it cannot see into.
+ * The first cut of this shape carried `seal` inline and the instrument refused
+ * to print a verdict at all — correctly, because a digest over a shape it parsed
+ * only half of is worse than no digest. So the nested shape is named on BOTH
+ * sides, and `contract.js` carries the twin entry in the same delivery.
+ */
+export type ReviewSeal = {
+  weddings: number;
+  deliveryDays: number | null;
+};
+
+export type GoogleReviewsRoom = {
+  asked: ReviewAsk[];
+  askedCount: number;
+  landedCount: number;
+  seal: ReviewSeal | null;
+  gbpAvailableFrom: string;
+  sendEnabled: boolean;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // THE DIGEST
 // ═══════════════════════════════════════════════════════════════════════════
@@ -299,4 +351,4 @@ export const SUBDOMAIN_FIXTURE: readonly (readonly [string | null, string | null
 // Paste the result here AND into `CONTRACT_DIGEST` in
 // `dream-os/src/api/vendor/solutions/contract.js`. The two must be identical
 // strings; that identity is the whole mechanism.
-export const CONTRACT_DIGEST = 'e31a1a2414ee3cb6e95a83c2fbb536cf80a20df4f4f614098e7e6b663b55f650';
+export const CONTRACT_DIGEST = 'a4ccb0a742fbbd87a4a9a63674922ac6d60f7576e7e9fd66696cf061267a607a';

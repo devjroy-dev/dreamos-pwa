@@ -127,6 +127,21 @@ const COPY = {
   colophonLead: PUBLIC_COLOPHON_LEAD,
 };
 
+/**
+ * G2 · THE SEAL'S MARK. Founder-ratified as proposed, R-40.42 row 15.
+ *
+ * A CONSTANT AND NOT A `COPY` MEMBER, for the same reason the block above gives
+ * for being literals at all: this is a server component on the public edge and
+ * the copy module would drag `types.ts` and its graph onto a route serving
+ * strangers. `lib/worklist/googleReviews.ts` carries `sealMark` as the vendor
+ * side's home; **if the two ever disagree, the veto sheet wins.**
+ *
+ * The facts line beside it is BUILT INLINE here rather than imported from
+ * `sealFacts` for that same edge reason — and the two are asserted identical by
+ * a cell rather than by this sentence.
+ */
+const SEAL_MARK = 'TDW-verified';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
 
@@ -181,6 +196,21 @@ type Card = {
    *  that declares a field nobody may read is an invitation; this one does not
    *  offer it. One contact field, one home, and `bs_audit` C32 keeps it so. */
   enquire_link: string | null;
+  /** ── G2 · R-G2.9 — THE SEAL, AN OBJECT OR NULL, NEVER A PARTIAL ─────────
+   *  Under three delivered weddings there is no seal at all, and the ABSENCE IS
+   *  THE ANSWER: a couple must not be able to tell an unverified studio from one
+   *  whose seal has not been computed yet, so the band does not render rather
+   *  than rendering greyed. The door has already applied that rule
+   *  (`sealIsVisible`, one home beside the computation); this page does not
+   *  re-decide it and does not know what three means.
+   *
+   *  `delivery_days` MAY BE NULL — an all-back-catalogue studio has no wedding
+   *  day to measure from, and null means NOT MEASURABLE, never zero. Zero would
+   *  read as same-day delivery.
+   *
+   *  NO `rating` FIELD (R-G2.2): no source for one exists until GBP, and a null
+   *  rating on the wire is an invitation to render an empty star row. */
+  seal: { weddings: number; delivery_days: number | null } | null;
 };
 
 async function fetchCard(code: string): Promise<Card | null> {
@@ -492,6 +522,35 @@ export default async function PublicVendorPage(
             tap in the Frost deck has used since TDW_07. Donna routes from there.
             A demo vendor keeps its own published contact. The asymmetry did not
             disappear; it narrowed to its honest remainder. */}
+        {/* ── THE SEAL — G2, R-G2.9 · PLACEMENT RULED (R-G2.11) ──────────────
+            ABOVE Enquire, on its own hairline, as the last fact she reads before
+            she acts. The founder ruled the placement and the weight on his walk
+            of 2026-09-05, against `G2-seal-light`.
+
+            IT CARRIES NO GOLD. The gold on this page is spent once, on the
+            section break below the fold; a second gold here would make the seal
+            the loudest thing on her page, which is the opposite of what a quiet
+            mark is for.
+
+            NO Rs AND NO RUPEE GLYPH EVER REACHES IT — it carries counts and days.
+            Numerals are lining and tabular so `12` reads as twelve (F-10.32's
+            lineage).
+
+            ⚠ `card.seal &&` IS THE WHOLE VISIBILITY LOGIC ON THIS SIDE. There is
+            deliberately no `>= 3` anywhere in this file: the rule lives once, in
+            `sealIsVisible` beside the computation, and a page that re-decided it
+            would be the second home that ships a seal at two. */}
+        {card.seal && (
+          <div className="pv-seal">
+            <span className="pv-sealmark">{SEAL_MARK}</span>
+            <span className="pv-sealfacts">
+              {card.seal.delivery_days == null
+                ? `${card.seal.weddings} weddings`
+                : `${card.seal.weddings} weddings \u00b7 delivers in ${card.seal.delivery_days} days`}
+            </span>
+          </div>
+        )}
+
         {wa && (
           <a className="pv-cta" href={wa} target="_blank" rel="noopener noreferrer">
             {COPY.enquire}
@@ -735,6 +794,21 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 .pv:not(.pv-card) .pv-line{margin:0;max-width:34ch}
 /* D-19.1 section 2: the gold moves off 4.48:1. #7A621C computes 6.03:1 on cream
    -- proven by the cell, not chosen by eye, which is the whole lesson of W2-4. */
+/* ── G2 · THE SEAL (R-G2.9, placement and weight ruled R-G2.11) ────────────
+   Its own hairline, the page's own ink, no gold. The facts line sits at 13px —
+   one step under her about paragraph — which the founder ruled AS DRAWN, after
+   this seat named the risk that it could read as another sentence rather than a
+   mark.
+   ⚠ NO BACKTICKS ANYWHERE IN THIS BLOCK. It is a template literal, so a backtick
+   in a CSS comment closes the string, and tsc then reports a cascade of brace
+   errors none of which mention a backtick. This seat hit that twice in one
+   delivery — here and in the Google reviews room — which is what makes it worth
+   a line rather than a silent fix. */
+.pv-seal{margin-top:22px;padding-top:14px;border-top:.5px solid rgba(12,10,9,.14)}
+.pv-sealmark{font:300 9px/1 "Jost",system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(12,10,9,.72);display:block}
+.pv-sealfacts{font-weight:400;font-size:13px;line-height:1.5;color:#403B36;display:block;margin-top:6px;
+  font-variant-numeric:lining-nums tabular-nums}
 .pv-cta{margin-top:22px;display:inline-flex;align-items:center;min-height:44px;
   padding:12px 22px;border:.5px solid #C9A84C;border-radius:2px;color:#7A621C;
   text-decoration:none;font-weight:500;font-size:12px;line-height:1.4;letter-spacing:.04em;

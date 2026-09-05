@@ -1,0 +1,14 @@
+# scripts/floor-manifest-g2-pwa.txt
+# BLOCK 19 · G2 SITTING 1 · pwa half. F-14.16's declared dirt.
+# Base: dreamos-pwa main 0e1afed.
+app/r/[code]/route.ts
+app/v/[code]/page.tsx
+app/vendor/(shell)/google-reviews/page.tsx
+app/vendor/(shell)/support/page.tsx
+lib/solutions/routes.ts
+lib/solutions/types.ts
+lib/worklist/googleReviews.ts
+scripts/b40_worklist_shell_bench.js
+scripts/b42_g11_wedding_pages_bench.js
+scripts/floor-manifest-g2-pwa.txt
+scripts/tdw_f3957_shot_arm.proof.mjs
