@@ -16,7 +16,7 @@
      The subject is `components/frost/blooms/settings.tsx` (SettingsRoom :25),
      mounted at app/(frost)/frost/canvas/sanctuary/page.tsx:1145. Every colour,
      type size, tracking and padding below is TRANSCRIBED from that file at
-     dreamos-pwa 34ec619, not renegotiated:
+     dreamos-pwa 74e875e, not renegotiated:
        dark  bg :28 · ink #F5E5DC :30 · inkSoft rgba(245,229,220,.72) :31
              inkMute rgba(196,133,106,.50) :32 · line rgba(196,133,106,.14) :33
              rowBg rgba(196,133,106,.05) :34 · rowBdr rgba(196,133,106,.12) :35
@@ -68,13 +68,30 @@
      ('Partner', '—', 'Not set yet') where those are null. Stated so the founder
      is not surprised on his own glass.
 
-     ── C3 IS THE RULED STATE, NOT A DECORATION (R-G11c.6) ─────────────────────
-     Visible, NOT operable, until a `weddings` row carries her `couple_id`.
-     `couple_consent` lives only on `weddings` rows (0131:58); with none of them
-     hers there is nowhere for her answer to persist, and an operable switch
-     that reverts on the next mount is the lying control this room already
-     retired once (settings.tsx:167-173). The affordance follows the ROW,
-     never component state.
+     ── THE SWITCH IS ALWAYS OPERABLE (R-G11c.8, superseding R-G11c.6) ────────
+     The first cut of this mock drew C3 DIMMED, because under R-G11c.6 her
+     answer had nowhere to live before a `weddings` row was hers. The chair
+     struck that: a dimmed switch is the greyed control this arc has refused
+     three times, and the cure is a home for the fact rather than a disabled
+     affordance. `0132` gives `couples.publish_weddings boolean NOT NULL
+     DEFAULT false` — her standing answer, hers alone — and `me.js`'s door
+     writes it and `weddings.couple_consent` in the same transaction, while
+     `createWedding` SEEDS consent from it at the moment it resolves her
+     `couple_id` through the engagements spine.
+     SO NOTHING HERE IS EVER GREYED. C3 and C4 draw a LIVE switch beside line 5,
+     and line 5's promise — "your answer here applies the moment one is" — is
+     now literally what the code does rather than a consolation for a control
+     that could not hold its own state.
+
+     ── C4 IS BEYOND THE RULING, AND IS MARKED SO ─────────────────────────────
+     The chair ordered C3 redrawn. C4 (ON, with no page yet) is the SEAT'S
+     ADDITION: once the switch is always operable, ON-with-no-page becomes a
+     reachable production state — it is the ordinary case for any couple who
+     answers before a vendor has made her a page — and its pairing of string 3
+     with string 5 had never been seen. It introduces NO new byte. STRIKE IT
+     FREELY: deleting its <div class="framewrap"> block removes it and its four
+     captures, and nothing else in this file refers to it.
+
      ═══════════════════════════════════════════════════════════════════════ -->
 
 <style>
@@ -153,7 +170,6 @@ body.solo .fr{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 .fr-knob{position:absolute;top:2.5px;width:21px;height:21px;border-radius:50%}
 .fr-track.off .fr-knob{left:2.5px;background:var(--ink-mute)}
 .fr-track.on  .fr-knob{left:22px;background:var(--knob-on)}
-.fr-row.inert{opacity:.45}
 
 /* DreamAi block — settings.tsx :222-241 */
 .fr-sect{padding:10px 0 4px;margin-top:8px}
@@ -277,7 +293,7 @@ body.solo .fr{width:100vw;height:100vh;box-shadow:none;border-radius:0}
           <div class="col"><div class="fr-lbl">Total budget</div><div class="fr-val">Rs 1,20,00,000</div></div>
           <span class="fr-arw">&rsaquo;</span>
         </div>
-        <div class="fr-row fr-sw inert">
+        <div class="fr-row fr-sw">
           <div class="col">
             <div class="fr-lbl">Publish our wedding</div>
             <div class="fr-val">Off. Nothing of your wedding is published.</div>
@@ -298,7 +314,46 @@ body.solo .fr{width:100vw;height:100vh;box-shadow:none;border-radius:0}
         <div class="fr-out"><div>Sign out</div></div>
       </div>
   </div>
-  <div class="cap"><b>C3-nopage &middot; NOT OPERABLE &middot; R-G11c.6</b>String 5 replaces the sub-line. Visible, dimmed, inert: no weddings row is hers, so there is nowhere for an answer to persist.</div>
+  <div class="cap"><b>C3-nopage &middot; OFF &middot; no page yet</b>String 5 replaces the sub-line. The switch is LIVE, not greyed (R-G11c.8): her answer lives on couples.publish_weddings.</div>
+</div>
+<div class="framewrap" data-frame="C4-onnopage">
+  <div class="fr" data-fr-mode="dark">
+      <div class="fr-scroll">
+        <div class="fr-head">
+          <div class="fr-names">Priya &amp; Arjun</div>
+          <div class="fr-city">New Delhi</div>
+        </div>
+        <div class="fr-rule"></div>
+        <div class="fr-row">
+          <div class="col"><div class="fr-lbl">Wedding date</div><div class="fr-val">19 November 2026</div></div>
+          <span class="fr-arw">&rsaquo;</span>
+        </div>
+        <div class="fr-row">
+          <div class="col"><div class="fr-lbl">Total budget</div><div class="fr-val">Rs 1,20,00,000</div></div>
+          <span class="fr-arw">&rsaquo;</span>
+        </div>
+        <div class="fr-row fr-sw">
+          <div class="col">
+            <div class="fr-lbl">Publish our wedding</div>
+            <div class="fr-val">On. Your vendors can publish your wedding page.</div>
+            <div class="fr-sub">No wedding page has been made for you yet. Your answer here applies the moment one is.</div>
+          </div>
+          <div class="fr-track on"><div class="fr-knob"></div></div>
+        </div>
+        <div class="fr-sect">
+          <div class="fr-sect-lbl">DreamAi</div>
+          <div class="fr-wa">
+            <div class="col">
+              <div class="fr-wa-t">Open on WhatsApp</div>
+              <div class="fr-wa-s">Chat with Dream Ai anywhere</div>
+            </div>
+            <div class="fr-wa-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <div class="fr-out"><div>Sign out</div></div>
+      </div>
+  </div>
+  <div class="cap"><b>C4-onnopage &middot; ON &middot; no page yet &middot; SEAT'S ADDITION</b>String 3 with string 5. Beyond the chair's order; strike this block freely, no other byte refers to it.</div>
 </div>
 </div>
 
