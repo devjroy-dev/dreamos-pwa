@@ -1303,6 +1303,46 @@ export function sendContract(contractId: string): Promise<{ ok: boolean; contrac
 export function fetchContractDownload(contractId: string): Promise<{ ok: boolean; download_url: string; expires_in: number } | ApiErr> {
   return getJson(`/api/v2/vendor/contracts/${contractId}/download`);
 }
+// ── G3.2 · THE FILL PATH ───────────────────────────────────────────────────
+// The upload path above is untouched and stays — clause 12's last line is that a
+// couple who would rather sign on paper can, and the room keeps that door.
+//
+// ⚠ `include_cancelled` IS A PARAM AND NOT A WIDENED DEFAULT — F-40.115. The
+// list door has always hidden cancelled rows and every existing caller expects
+// that; only the room asks for all four states.
+export function fetchAllContracts(): Promise<{ ok: boolean; contracts: Contract[]; total: number } | ApiErr> {
+  return getJson('/api/v2/vendor/contracts?include_cancelled=1');
+}
+export function composeContract(body: { client_id: string; event_id?: string; invoice_id?: string; deposit_pct?: number }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+  return postJson('/api/v2/vendor/contracts/compose', body);
+}
+export function fillContract(contractId: string, body: { terms?: Record<string, unknown>; annexes?: Record<string, boolean>; deposit_pct?: number | null }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+  return patchJson(`/api/v2/vendor/contracts/${contractId}/fill`, body);
+}
+/** ⚠ NOT A JSON DOOR. `GET /preview` returns PDF BYTES, so it is opened rather
+ *  than fetched — the browser's own viewer is the preview, and a fetch would buy
+ *  a blob URL to hand straight back to it. */
+export function contractPreviewUrl(contractId: string): string {
+  return `${API_BASE}/api/v2/vendor/contracts/${contractId}/preview`;
+}
+export function sendContractToCouple(contractId: string, signerPhone?: string): Promise<{ ok: boolean; contract_id: string; sign_url: string; sent: boolean; reason: string | null } | ApiErr> {
+  return postJson(`/api/v2/vendor/contracts/${contractId}/send-to-couple`, signerPhone ? { signer_phone: signerPhone } : {});
+}
+export function markContractDeposit(contractId: string, received: boolean): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+  return postJson(`/api/v2/vendor/contracts/${contractId}/deposit`, { received });
+}
+export function fetchContractProfile(): Promise<{ ok: boolean; fields: Record<string, unknown> } | ApiErr> {
+  return getJson('/api/v2/vendor/contracts/profile/fields');
+}
+/** ⚠ POST, NOT PUT, AND THE DOOR MOVED TO MATCH — not the client.
+ *  `lib/vendor/api/_base.ts` exports getJson/postJson/patchJson and NO putJson.
+ *  Adding one for a single caller would be a fourth verb in the estate's client
+ *  for one door's sake; the door is upsert-shaped either way, and POST is what
+ *  every other upsert here uses. Derived by reading `_base.ts`, not assumed. */
+export function saveContractProfile(fields: Record<string, unknown>): Promise<{ ok: boolean; fields: Record<string, unknown> } | ApiErr> {
+  return postJson('/api/v2/vendor/contracts/profile/fields', { fields });
+}
+
 export function cancelContract(contractId: string): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return deleteJson(`/api/v2/vendor/contracts/${contractId}`);
 }

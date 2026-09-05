@@ -1254,6 +1254,35 @@ export interface Contract {
   signed_at:    string | null;
   created_at:   string;
   updated_at:   string;
+
+  // ── G3.2 · 0138's five, and the contract stops being only a PDF ───────────
+  // ⚠ ALL FIVE ARE OPTIONAL ON THE TYPE, AND NOT BECAUSE THE COLUMNS ARE.
+  // `terms` and `annexes` are NOT NULL with a `{}` default in the database, so
+  // a row always has them. But the LIST door has always selected `*` and this
+  // interface is read by surfaces compiled against contracts fetched before
+  // 0138 ran — an uploaded contract from August carries no `deposit_pct` in any
+  // meaningful sense. Optional here means "the room must not assume", which is
+  // the same thing the room's own blank-renders-as-blank rule says out loud.
+  //
+  // `deposit_pct` is a NUMBER and `null` means NOT SET. It never means zero:
+  // `contracts_deposit_pct_check` forbids zero precisely so the two cannot be
+  // confused, and the room prints `Not set` rather than `0%` (veto row 27).
+  event_id?:            string | null;
+  terms?:               Record<string, unknown>;
+  annexes?:             Record<string, boolean>;
+  deposit_pct?:         number | null;
+  deposit_received_at?: string | null;
+}
+
+/** G3.2 · the signature panel's read. One row per signing; only a VERIFIED one
+ *  ever reaches a surface, because an unverified row is a code sent and not yet
+ *  entered and a seal drawn over it would say a document was signed that was not. */
+export interface ContractSignature {
+  signer_phone:    string | null;
+  channel:         'otp' | 'paper';
+  verified_at:     string | null;
+  document_sha256: string | null;
+  signed_at:       string | null;
 }
 
 export interface TdsEntry {

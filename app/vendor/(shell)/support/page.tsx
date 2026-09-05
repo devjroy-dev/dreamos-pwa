@@ -35,7 +35,7 @@ import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, CONTRACTS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -60,6 +60,10 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // the whole change: the row gains a destination and its chip flips to `Open`.
   // The key is `ROOM_ROWS`' own, not a new string.
   referrals:     REFERRALS_HREF,
+  // G3.2 · R-G32.16 — the FOURTH of the nine opens, and the map's own promise
+  // holds: one line, and the row gains a destination and its chip flips to
+  // `Open`. No ternary, no second string, no change to `ROOM_ROWS`.
+  contracts:     CONTRACTS_HREF,
 };
 
 function SolutionsIndexScreen() {

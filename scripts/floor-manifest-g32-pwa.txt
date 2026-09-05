@@ -1,0 +1,50 @@
+# scripts/floor-manifest-g32-pwa.txt
+# TDW_19 · BLOCK 19 · G3.2 — THE pwa HALF, PART 1. The couple's sign leaf, the
+# room's four states and its deposit line, the composed contract's controls, the
+# live hub row, and the mock rider carrying F-40.122's cure and the two vetoed
+# rewordings.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for. Every
+# file below was authored or amended by THIS seat. The tree was clean at 89bee50
+# before a byte moved — `git status --porcelain | wc -l` returned 0 immediately
+# after `git checkout -q origin/main`, except for the mock re-cut this seat had
+# already made against F-40.122 and which is delivered here.
+#
+# ⚠ THE TIP MOVED UNDER THIS SEAT TWICE:
+#   6d014ea -> 3d13d65  (G1.3's mock — 10 frames, 23 shots, disjoint)
+#   3d13d65 -> 89bee50  (G5.1 micro 1 — F-40.119's cap() cure, six files, disjoint)
+# Neither touched a path below. G5.1 micro 1 is READ rather than merely carried:
+# its `verbatim` flag on `Row.detail` is the estate's ruling that a person's own
+# words are not title-cased, and this room renders prose values through no
+# `cap()` at all — satisfied by construction, and stated so a later seat moving
+# this room onto `SliceRow` knows to set the flag.
+
+app/sign/[token]/page.tsx
+app/vendor/(shell)/contracts/screen.tsx
+app/vendor/(shell)/support/page.tsx
+docs/TDW_19_G32_PWA_HANDOVER.md
+docs/mocks/G32_VETO_SHEET.md
+docs/mocks/contracts-mock.html
+docs/mocks/contracts-mock__*.png
+lib/public/signCopy.ts
+lib/solutions/routes.ts
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+scripts/floor-manifest-g32-pwa.txt
+
+# ── THE FLOOR ───────────────────────────────────────────────────────────────
+#   tsc --noEmit                    CLEAN, exit 0
+#   b40_worklist_shell_bench        GREEN
+#   b42_g11_wedding_pages_bench     GREEN
+#   b05_f0589_pwa_name_wire_bench   GREEN
+#   tools/bs_audit.mjs              RED · 2 cells — IDENTICAL at the base
+#   tools/wl_audit.mjs              RED · 0 FAIL lines, non-zero exit — IDENTICAL at the base
+#   DELTA                           ZERO. `diff` over both audits' sorted FAIL
+#                                   lists, base vs working tree, is empty.
+#
+# ⚠ `next build` COULD NOT BE RUN IN THIS CONTAINER, AND THAT IS DECLARED RATHER
+# THAN CLAIMED. It fails on four `next/font` fetches — Cormorant Garamond, DM
+# Sans, Italiana, Jost — because `fonts.googleapis.com` is not on this
+# environment's network allowlist. NOT ONE APPLICATION ERROR IS REPORTED; the
+# four are the whole of the failure. **THE GATE IS OWED ON THE FOUNDER'S MACHINE
+# OR ON VERCEL'S PREVIEW**, and this seat does not claim it green.

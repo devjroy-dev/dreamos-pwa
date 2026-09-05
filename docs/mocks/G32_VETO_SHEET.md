@@ -5,6 +5,25 @@
 **The file:** `docs/mocks/contracts-mock.html` — one self-contained page, **11 frames**, 20 shots
 committed beside it. The faces are embedded, so it renders true on your phone.
 
+> ## ⚠ VETOED 2026-09-06 — AND THIS FILE WAS RE-CUT AFTER THE VETO
+>
+> The chair vetoed all 72 rows plus T1 under R-40.42, changing two (#15, #64 — marked ✅
+> below with their reasons) and the founder re-ruled #15 himself under **R-40.51**. Both
+> vetoed bytes are now in `contracts-mock.html`, so *match the mock@hash* stays true.
+>
+> **AND THE MASTHEAD IN THE FIRST CUT WAS FABRICATED — F-40.122.** The shell's CSS was
+> lifted from `books-register-mock.html` and its CONTENTS were then invented: a four-seat
+> nav reading `Today · Business · Diary · Studio`, `The Dream Wedding` replaced by the
+> room name, the room name replaced by the vendor's, and a COUNT in the medallion. The
+> tree says **two seats** (`Rooms`, `Today` — R-37.64, *there is no third*), the estate's
+> name at `wl-house`, the room's name plus the beta mark at `wl-lblrow`, and **derived
+> initials** at `wl-coin` (R-37.79). The correct answer was inside the file being copied
+> from. Founder caught it on glass inside the hour; re-derived from
+> `WorklistShell.tsx:139-196` and `copy.ts:113-114`, with `wl-lblrow`/`wl-beta` lifted
+> verbatim from `flip-beta-mock.html`. Eleven frames re-cut, twenty shots replaced.
+>
+> **THE 72 VETOES STAND WHOLE.** Every one is a string; none is chrome.
+
 **Read this as one YES/NO per numbered row.** A NO with your own words replaces the byte; a NO
 with no words sends the row back to be re-authored. Silence is not approval — W-1 and the copy
 law both say so, and this sheet exists because of them.
@@ -87,7 +106,7 @@ A base64 stand-in would be a font the renderer does not have.
 | 12 | *(absent)* | **Start a contract** | |
 | 13 | *(absent)* | **Fill the standard agreement** | |
 | 14 | *(absent)* | **Upload my own PDF** | |
-| 15 | *(absent)* | **The standard agreement is the one your lawyer passed. You fill your prices and policies once.** | |
+| 15 | *(absent)* | **The standard wedding-services agreement. You fill your prices and policies once.** — **R-40.51.** The proposed byte said *your lawyer passed*; the lawyer was TDW's, not hers, and *passed* is a claim she never made. | ✅ |
 
 **Rows 1–4 are one home, four words.** The room prints `{c.state}` raw today, which is why it says
 `draft` in lowercase while the invoice document says `Unpaid` in title case (`invoicePdf.js:57`,
@@ -221,7 +240,7 @@ sentence is a second place to keep it true.
 | 61 | *(absent)* | **Enter the code** | |
 | 62 | *(absent)* | **That code didn't match. Try again.** | |
 | 63 | *(absent)* | **Agreed.** | |
-| 64 | *(absent)* | **Your signed copy is on its way to your WhatsApp.** | |
+| 64 | *(absent)* | **Your signed copy is ready to save below.** — **the chair's rewording.** The proposed byte promised a WhatsApp send this sitting does not build (a ninth template and its own veto); she already has `Save a copy` on the same leaf. A texted copy is a filed item for sitting 2. | ✅ |
 
 **Row 59 is v3's own words and is quoted, not authored.** Clause 12 says the couple *taps "I
 agree"*. The button must therefore say exactly that, or the instrument's own sentence describes a

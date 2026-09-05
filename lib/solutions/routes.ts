@@ -160,3 +160,15 @@ export const API = {
   // that were already there. One prefix, its own owner, no second spelling.
   googleReviews:   () => `${SOLUTIONS_API_PATH}/google-reviews`,
 } as const;
+
+// ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS ─────────────────────────
+// ⚠ THE ROOM ALREADY EXISTED AT THIS ADDRESS. `app/vendor/(shell)/contracts/`
+// has shipped since Block 07 as an upload plane; G3.2 does not move it and does
+// not build a second one. What changes is that the HUB now points at it — the
+// fourth of the nine to open, by the one-line rule `ROOM_HREFS` states.
+//
+// It gets a constant here rather than a literal at the map for the reason this
+// whole file exists: `b40` C31 walks the import graph from every shell page and
+// matches any `/vendor…` literal against a declared set, and `support/page.tsx`
+// is reachable from all of them.
+export const CONTRACTS_HREF = '/vendor/contracts';
