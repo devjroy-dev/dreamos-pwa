@@ -209,10 +209,32 @@ console.log('');
 // the enforcement is the NAME: anything that smells of money must end in Paise.
 {
   const SMELLS = /price|amount|fee|cost|rupee|inr|paise/i;
+
+  // ── THE RUPEE-DENOMINATED INVOICE PLANE, EXEMPTED BY LABEL (R-G34.12, F-40.205) ──
+  // R-19.3's paise law and the invoice plane DISAGREE, and this cell could not see it
+  // until a G3.4 type carried a field across both. `invoices.amount_total` and
+  // `payment_schedules.amount_due` are RUPEE integers by construction — `schedules.js`
+  // computes the milestone as Math.round(amount_total * pct / 100) from a rupee total,
+  // and the invoice document prints them as rupees. The disagreement pre-dates G3.4 and
+  // is Block 09's money-register pass to resolve.
+  //
+  // ⚠ EXEMPTED BY LABEL, NOT BY PATTERN, AND THAT IS THE POINT. Each entry is a named
+  // shape and field this estate has DERIVED to be rupees. A regex exemption would let
+  // the next paise field named `amount_*` through silently, which is the deception this
+  // cell exists to catch. Renaming these to `amount_duePaise` was refused for the same
+  // reason: a field named paise holding rupees is exactly that deception, wearing the
+  // cell's own uniform.
+  const RUPEE_PLANE = new Set([
+    'ReminderAsked.amount_due',   // carries payment_schedules.amount_due, rupees
+    'ReminderDue.amount_due',     // the same column, the due band
+  ]);
+
   const offenders = [];
   for (const [type, fields] of Object.entries(shapes)) {
     for (const f of fields) {
-      if (SMELLS.test(f) && !/Paise$/.test(f)) offenders.push(`${type}.${f}`);
+      const id = `${type}.${f}`;
+      if (RUPEE_PLANE.has(id)) continue;
+      if (SMELLS.test(f) && !/Paise$/.test(f)) offenders.push(id);
     }
   }
   const money = Object.entries(shapes).flatMap(([t, fs]) => fs.filter((f) => /Paise$/.test(f)).map((f) => `${t}.${f}`));

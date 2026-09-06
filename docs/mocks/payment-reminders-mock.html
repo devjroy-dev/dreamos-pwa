@@ -262,7 +262,7 @@ body.solo .wl,body.solo .pv,body.solo .wa{width:100vw;height:100vh;box-shadow:no
    happens again. */
 .ms-card{padding:12px 14px;background:var(--atelier-row-hover);
          border:.5px solid var(--atelier-card-border);border-radius:2px;
-         display:flex;flex-direction:column;gap:8px;margin-bottom:10px;overflow:hidden}
+         display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .ms-top{display:flex;gap:8px;align-items:center}
 .ms-in{padding:8px 10px;box-sizing:border-box;background:var(--atelier-input-bg);
        border:.5px solid var(--atelier-card-border);border-radius:2px;
@@ -271,15 +271,21 @@ body.solo .wl,body.solo .pv,body.solo .wa{width:100vw;height:100vh;box-shadow:no
 .ms-pct{flex:1;text-align:right}
 .ms-date{width:100%;color:var(--atelier-ink-dim)}
 .ms-sym{font:var(--wl-t3);color:var(--atelier-ink-mute);flex-shrink:0}
-/* the defect: intrinsic minimum width, so the row cannot fit 374 */
-.ms-over .ms-lbl{min-width:15ch}
-.ms-over .ms-pct{min-width:9ch}
+/* THE DEFECT, REPRODUCED AND NOT ILLUSTRATED. An unstyled <input> carries
+   `size=20`, so its intrinsic min-content width is ~20 characters; with
+   `min-width:auto` (the flex default) neither input can shrink below that, and
+   two of them plus the % span and the × cannot fit 374. These are the browser's
+   own numbers, not a number chosen to look bad. The first cut of this frame set
+   15ch/9ch AND clipped the card with overflow:hidden, so it drew a tidy row and a
+   fake scrollbar underneath — a picture of the defect, which is F-40.202's exact
+   mistake one level down. */
+.ms-over .ms-lbl{min-width:20ch}
+.ms-over .ms-pct{min-width:20ch}
 .fit{min-width:0}
 .ms-foot{display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px}
 .ms-add{font:var(--wl-t5);letter-spacing:.28em;text-transform:uppercase;color:var(--atelier-accent-text)}
 .ms-tally{font:var(--wl-t5);letter-spacing:.28em;text-transform:uppercase;color:var(--role-positive)}
-.ms-scroll{height:6px;margin-top:10px;border-radius:3px;background:var(--atelier-card-border)}
-.ms-scroll::after{content:"";display:block;width:62%;height:6px;border-radius:3px;background:var(--atelier-ink-fade)}
+
 </style>
 </head><body>
 <div class="pagehead">
@@ -533,8 +539,7 @@ body.solo .wl,body.solo .pv,body.solo .wa{width:100vw;height:100vh;box-shadow:no
 
       <div class="ms-foot"><span class="ms-add">+ Add Row</span><span class="ms-tally">100% of 100%</span></div>
       <div class="wl-btn">Create schedule</div>
-      <div class="ms-scroll"></div>
-      <p class="wl-shnote" style="margin-top:10px;color:var(--role-negative)">&#9888; The bar above is a HORIZONTAL SCROLLBAR. It should not exist at 374.</p>
+      <p class="wl-shnote" style="margin-top:10px;color:var(--role-negative)">&#9888; The rows above RUN PAST THE SHEET. That is the defect, reproduced &mdash; not drawn.</p>
     </div>
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
   </div>

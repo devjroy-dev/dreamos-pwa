@@ -1482,12 +1482,23 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 display: 'flex', flexDirection: 'column', gap: 8,
               }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {/* ── F-40.201 · `minWidth: 0` IS THE WHOLE OVERFLOW ────────────
+                      A flex child defaults to `min-width: auto`, and for an <input>
+                      that is its INTRINSIC width — the browser's own `size=20`, about
+                      twenty characters. At 374 the sheet's content box is ~298px and
+                      two inputs that refuse to shrink below ~170px each cannot fit, so
+                      the row ran past the sheet and the percent value was pushed out of
+                      sight. `flex: 2` was never the problem; the floor under it was.
+                      ── F-40.137's class · the accessible name ─────────────────────
+                      `placeholder` is not a label: it disappears the moment she types,
+                      and a screen reader announces an edit box with no name. */}
                   <input
                     value={ms.label}
                     onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, label: e.target.value } : m))}
                     placeholder="Booking"
+                    aria-label={`Milestone ${idx + 1} name`}
                     style={{
-                      flex: 2, padding: '8px 10px', boxSizing: 'border-box',
+                      flex: 2, minWidth: 0, padding: '8px 10px', boxSizing: 'border-box',
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                       fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
@@ -1499,23 +1510,32 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     value={ms.pct}
                     onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, pct: e.target.value } : m))}
                     placeholder="%"
+                    aria-label={`Milestone ${idx + 1} share, percent`}
                     style={{
-                      flex: 1, padding: '8px 10px', boxSizing: 'border-box',
+                      flex: 1, minWidth: 0, padding: '8px 10px', boxSizing: 'border-box',
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
                       fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
                       outline: 'none', textAlign: 'right', caretColor: A.interactive,
                     }}
                   />
-                  <span style={{ fontFamily: F.label, fontSize: 16, lineHeight: 1.5, color: A.inkMute, flexShrink: 0 }}>%</span>
+                  {/* ── F-40.201 · THE DUPLICATED `%` IS GONE ─────────────────────
+                      The input's own placeholder already says `%`, and this span was
+                      `flexShrink: 0` — it took its width FIRST, on the tightest row in
+                      the sheet, from the two fields that actually hold her typing. */}
                   {milestones.length > 2 && (
                     <button type="button" onClick={() => setMilestones(prev => prev.filter((_, i) => i !== idx))}
                       style={{ padding: '4px 6px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, fontSize: 16, lineHeight: 1, flexShrink: 0 }}>×</button>
                   )}
                 </div>
+                {/* ⚠ THIS ONE HAD NO ACCESSIBLE NAME AT ALL, not even a weak one:
+                    `type="date"` IGNORES `placeholder` outright, so the field a screen
+                    reader met was an unlabelled date picker. Dark since it was written,
+                    live since G3.4 flipped the flag. */}
                 <input
                   type="date"
                   value={ms.due_date}
+                  aria-label={`Milestone ${idx + 1} due date`}
                   onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, due_date: e.target.value } : m))}
                   style={{
                     width: '100%', padding: '8px 10px', boxSizing: 'border-box',

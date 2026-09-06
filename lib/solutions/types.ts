@@ -454,11 +454,34 @@ export type ReminderDue = {
 // `open:false` with `approved:true` is today's real state — the template is
 // Active at Meta and `PAYMENT_REMINDER_SEND_ENABLED` is unset — and the room
 // says so in words instead of drawing a control that cannot act.
+/**
+ * WHY THE SEND GATE IS ITS OWN NAMED TYPE (F-40.197).
+ *
+ * `tools/bs_audit.mjs` parses these declarations to audit the Business Solutions
+ * shapes, and its contract is that every nested shape is its own named type. An
+ * inline object literal is not a style preference it dislikes — it is a shape the
+ * parser cannot walk, so the audit reports GATE-UNSOUND and **prints no verdicts
+ * at all**: an instrument that cannot prove it looked everywhere does not get to
+ * report on what it found. One inline literal here silenced the audit for every
+ * room, not just this one.
+ *
+ * The fields are the door's own (`GET /api/v2/vendor/reminders`): `open` is the
+ * conjunction of the flag and the registry status, and `approved` is there so the
+ * room can tell WHICH gate is shut — today `approved: true` with `open: false`
+ * means the template is Active at Meta and only the flag is off, and the room
+ * says so rather than blaming Meta.
+ */
+export type ReminderSendGate = {
+  open: boolean;
+  approved: boolean;
+  reason: string | null;
+};
+
 export type PaymentRemindersRoom = {
   asked: ReminderAsked[];
   sent_count: number;
   due: ReminderDue[];
   auto_send: boolean;
-  sending: { open: boolean; approved: boolean; reason: string | null };
+  sending: ReminderSendGate;
   window_days: number;
 };
