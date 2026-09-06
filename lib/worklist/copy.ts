@@ -475,6 +475,35 @@ export const COPY = {
   // the shape D-38.1 convicts. F-38.23's duplication note still covers all ten against the
   // tile labels, which IS a correspondence that exists.
   storefrontTitle: 'Storefront',
+  // ═══ BLOCK 19 · G3.1 — THE DATE-CHECK SWITCH. Founder-vetoed 2026-09-06. ══
+  // Source: `docs/mocks/your-website-mock.html` frames V3-room / V3-on /
+  // V3-noswitch. Vendor-facing; U+2019 throughout (R-40.57, b40 C102).
+  /** D5 · the switch. `Let`, not `Enable` or `Show` — R-40.77 made it a
+   *  permission she grants, and `Let` is the word for granting one. Not
+   *  `Date checks`, which names a feature rather than a decision. */
+  storefrontDateSwitch: 'Let couples check a date',
+  /** D4 · beside the switch, in BOTH states. A sentence that appears only once
+   *  the door is open is a sentence she reads too late to decide with. The
+   *  second clause is the one she is owed: F-40.163 examined whether the check
+   *  and the weddings section together could narrow a name onto a date, and
+   *  ruled D4 stands unamended — a persistent stranger can narrow a DATE, never
+   *  a NAME, and `crew.js`'s bucket bounds the enumeration. */
+  storefrontDateStanding:
+    'Couples can check a date on this page. It answers free, held or booked \u2014 never a client\u2019s name.',
+  /** D6a · R-40.78, `ruled_off`. A DECISION: a planner's occupancy is off by
+   *  ruling until the crew math lands. `don\u2019t apply` says the rule has been
+   *  made, which is true and is not an apology. */
+  storefrontDateRuledOff: 'Date checks don\u2019t apply to your kind of work.',
+  /** D6b · R-40.78, `unmapped`. A NOT-YET: nobody has keyed that trade. `aren\u2019t
+   *  set up \u2026 yet` says so without implying she was excluded on the merits.
+   *  ⚠ These two are NOT interchangeable, and that is why `capacity_reason`
+   *  exists (R-G31.6) — one byte serving both would be right half the time. */
+  storefrontDateUnmapped: 'Date checks aren\u2019t set up for your kind of work yet.',
+  /** D3 · the room's readout of what a stranger can see. `on your page`, not
+   *  `your weddings` — a narrower set than what she has. */
+  storefrontWeddingsLabel: 'Weddings on your page',
+  /** D2 */
+  storefrontPublicLabel: 'Your public page',
   portfolioTitle:  'Portfolio',
   coutureTitle:    'Couture',
   // §4-4: Team, Contracts and TDS join at batch ②. Same shape rule and the same bytes as

@@ -35,6 +35,7 @@ import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
+import { roomHref } from '@/lib/worklist/rooms';
 import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, CONTRACTS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
@@ -64,6 +65,20 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // holds: one line, and the row gains a destination and its chip flips to
   // `Open`. No ternary, no second string, no change to `ROOM_ROWS`.
   contracts:     CONTRACTS_HREF,
+  // ── G3.1 · R-G31.2 — THE FIFTH OF THE NINE OPENS, AND IT COSTS NO CONSTANT
+  // `website` is R-40.1's R3, 「Your website & SEO」. Its destination is the
+  // Storefront room, which is a REGISTRY room — so the address comes from
+  // `roomHref('storefront')` and NOT from a `STOREFRONT_HREF` in
+  // `lib/solutions/routes.ts`.
+  //
+  // ⚠ THAT ASYMMETRY IS DERIVED, NOT STYLISTIC. `b40` C31 builds its declared
+  // set from `rooms.ts`'s own `href:` values plus LEGACY_VENDOR_LINKS plus three
+  // nav seats; `/vendor/storefront` is already in it (`rooms.ts:123`). The four
+  // rooms above each needed a constant because they are NOT registry rooms
+  // (R-G11.12) and the constant is what gets them into that set at all. A fifth
+  // constant here would be a second home for an address the registry already
+  // owns — `routes.ts`'s own disease, arriving from the other direction.
+  website:       roomHref('storefront'),
 };
 
 function SolutionsIndexScreen() {

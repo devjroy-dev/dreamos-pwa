@@ -3969,6 +3969,78 @@ cell('C84 the expense category mirror equals the dream-os home, in order', () =>
   return bad.length ? bad.join(' | ') : null;
 });
 
+// ── C103 · G3.1 · THE DATE-CHECK SWITCH GATES ON THE REASON, NEVER ON
+//           `capacity_applicable` (R-40.78, F-40.172) ─────────────────────────
+// This is the cell F-40.172 bought. The two fields answered one question from
+// two ladders and disagreed on SEVEN categories; gating here on the wrong one
+// would show a hairstylist a switch she could flip, after which every guest
+// checking a date would read the miss sentence. They are joined on the dream-os
+// side now — and this cell is what stops the room drifting back to the field
+// that reads more naturally and means the wrong thing.
+cell('C103 the date-check switch gates on capacity_reason, never on capacity_applicable (R-40.78, F-40.172)', () => {
+  const src = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const bad = [];
+  if (!/capacity_reason/.test(src)) bad.push('the room does not consult capacity_reason at all');
+  if (/capacity_applicable/.test(src)) bad.push('the room reads capacity_applicable — F-40.172 is the reason it must not');
+  // ABSENT, NOT DISABLED. A `disabled` switch is a thing she keeps tapping, and
+  // R-40.78 ruled absence. The band's off-branch must render prose, not a
+  // greyed control.
+  if (/disabled/.test(src)) bad.push('a disabled control appears — R-40.78 ruled ABSENT, not disabled');
+  // D6's two bytes are not interchangeable and both must be reachable.
+  if (!/storefrontDateRuledOff/.test(src)) bad.push('the ruled_off byte is never rendered');
+  if (!/storefrontDateUnmapped/.test(src)) bad.push('the unmapped byte is never rendered');
+  // ⚠ b40's `cell()` INVERTS bs_audit's: a FALSY return passes and a returned
+  // STRING is the failure reason. The first cut of these three returned `true`
+  // on success and reddened all three on a clean tree, reported as "— true".
+  // Two benches, two conventions, and the estate keeps both; the cell adapts to
+  // its harness rather than the harness to the cell.
+  return bad.length === 0 ? null : bad.join('; ');
+});
+
+// ── C104 · G3.1 · THE SWITCH IS SAVED BY THE TAP AND REVERTS ON REFUSAL ──────
+// Founder-ruled: `discover_paused`'s exact posture — immediate, optimistic, the
+// row reverting if the door refuses. A permission she grants must be one she can
+// withdraw with one tap, and a confirm sheet would make the WITHDRAWAL harder
+// too. The revert is the honest half: without it an optimistic switch lies to
+// her about a write that failed.
+cell('C104 the date-check switch saves on toggle and reverts on refusal', () => {
+  const src = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const bad = [];
+  if (!/updateMe\(\s*\{\s*date_check_enabled/.test(src)) bad.push('the toggle does not write through updateMe');
+  if (!/setOn\(!next\)/.test(src)) bad.push('there is no revert path — an optimistic switch with no revert lies about a failed write');
+  // It must read the DOOR'S echo, not the value it hoped for.
+  if (!/r\.vendor\.date_check_enabled/.test(src)) bad.push('the toggle does not settle on the door\u2019s echo');
+  // And it must not route through the form hook's dirty tracking.
+  if (/isDirty|markSaved/.test(src)) bad.push('the switch routes through the Save-button flow — a consent flag must be written by the tap that granted it');
+  // ⚠ b40's `cell()` INVERTS bs_audit's: a FALSY return passes and a returned
+  // STRING is the failure reason. The first cut of these three returned `true`
+  // on success and reddened all three on a clean tree, reported as "— true".
+  // Two benches, two conventions, and the estate keeps both; the cell adapts to
+  // its harness rather than the harness to the cell.
+  return bad.length === 0 ? null : bad.join('; ');
+});
+
+// ── C105 · G3.1 · THE FIFTH ROOM OPENS WITHOUT A SECOND ADDRESS HOME ─────────
+// R-G31.2 points R3 at the Storefront room, which is a REGISTRY room — so its
+// address comes from `roomHref`, not from a fifth constant in
+// `lib/solutions/routes.ts`. C31 already declares `/vendor/storefront` from
+// `rooms.ts`, so a constant would be a second home for an address the registry
+// owns. F-40.170 files `CONTRACTS_HREF` as the specimen not to extend.
+cell('C105 the website row opens onto the registry room with no second address home (R-G31.2)', () => {
+  const hub = strip(read('app/vendor/(shell)/support/page.tsx'));
+  const routes = strip(read('lib/solutions/routes.ts'));
+  const bad = [];
+  if (!/website:\s*roomHref\('storefront'\)/.test(hub)) bad.push('the website row does not resolve through roomHref');
+  if (/'\/vendor\/storefront'/.test(hub)) bad.push('a bare /vendor/storefront literal appears in the hub');
+  if (/STOREFRONT_HREF/.test(routes)) bad.push('routes.ts declares STOREFRONT_HREF — the registry already owns that address');
+  // ⚠ b40's `cell()` INVERTS bs_audit's: a FALSY return passes and a returned
+  // STRING is the failure reason. The first cut of these three returned `true`
+  // on success and reddened all three on a clean tree, reported as "— true".
+  // Two benches, two conventions, and the estate keeps both; the cell adapts to
+  // its harness rather than the harness to the cell.
+  return bad.length === 0 ? null : bad.join('; ');
+});
+
 // ── THE VERDICT · THREE STATES, AND THE EXIT CODE CARRIES ALL THREE  [F-39.47] ─
 // 0 = GREEN · 1 = RED (any fail, refusals or not) · 3 = REFUSED (no fails, at
 // least one precondition unmet). The runner reads the CODE, never this text —

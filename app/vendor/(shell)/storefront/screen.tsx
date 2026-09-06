@@ -53,7 +53,7 @@ import { roomHref } from '@/lib/worklist/rooms';
 // this block LINKS /vendor/discover/profile, it does not absorb it.
 import { useState } from 'react';
 import { useSettings } from '@/hooks/vendor/useSettings';
-import { fetchDiscoverStatus, fetchPortfolio } from '@/lib/vendor/api/vendor';
+import { fetchDiscoverStatus, fetchPortfolio, updateMe } from '@/lib/vendor/api/vendor';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
 import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
@@ -170,6 +170,8 @@ export function StorefrontScreen({ vendorId }: { vendorId: string }) {
             On the /vendor fallback it renders exactly as before, because there the Header
             prints the vendor's name and nothing names the surface. */}
         
+        <PublicPageBand />
+
         {SECTIONS.map(item => <StoreRow key={item.label} item={{ ...item }} />)}
       </div>
     </div>
@@ -312,5 +314,125 @@ function BioBlock({ vendorId }: { vendorId: string }) {
         </span>
       </div>
     </div>
+  );
+}
+
+
+// ── §2 — G3.1 · THE PUBLIC PAGE BAND (R-40.77, R-40.78, R-G31.2) ───────────
+//
+// R-G31.2 opened the Business Solutions row 「Your website & SEO」 onto THIS
+// room rather than building a second surface. So the band is additive: the bio
+// block above and the four SECTIONS below are untouched.
+//
+// ⚠ THE BAND IS FACTS, NEVER A SCORE AND NEVER A REPORT — master §7. Her
+// address, what a stranger can see on it, and the one permission she controls.
+// No SEO grade, no traffic promise, no checklist of things she has not done.
+function PublicPageBand() {
+  const { current, loading } = useSettings();
+  // ⚠ THE SWITCH OWNS ITS OWN STATE AND DOES NOT GO THROUGH `update`/`isDirty`.
+  // `useSettings` is a FORM hook built for a Save button; this saves on toggle
+  // (founder-ruled: `discover_paused`'s exact posture). Routing it through the
+  // dirty-tracking would make an unrelated Save elsewhere carry this flag, and
+  // a consent flag must be written by the tap that granted it and nothing else.
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  // Seeded from the hook's single `/me` read — never a second fetch.
+  const live = on ?? current.date_check_enabled;
+
+  async function toggle() {
+    if (busy) return;
+    const next = !live;
+    setOn(next);                    // optimistic
+    setBusy(true);
+    try {
+      const r = await updateMe({ date_check_enabled: next });
+      // ⚠ REVERT ON REFUSAL, and read the door's own echo rather than assuming
+      // the write took. `updateMe` returns the updated vendor; if the door said
+      // no — or said yes to something else — the row goes back to the truth.
+      if (!('ok' in r) || !r.ok) setOn(!next);
+      else setOn(r.vendor.date_check_enabled === true);
+    } catch {
+      setOn(!next);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return null;
+
+  // ── R-40.78 · A TRADE WITH NO CAPACITY TO ANSWER ──────────────────────────
+  // Gated on `capacity_reason`, NEVER on `capacity_applicable` — F-40.172: the
+  // two came from different ladders and disagreed on seven categories, so a
+  // hairstylist would have been shown a switch she could flip, after which every
+  // guest checking a date would read the miss sentence.
+  //
+  // ⚠ ABSENT, NOT DISABLED. A greyed control is a thing she keeps tapping.
+  const reason = current.capacity_reason;
+  const handle = current.routing_handle;
+
+  return (
+    <>
+      <SectionLabel label={COPY.storefrontPublicLabel} />
+      <div style={{ padding: '0 var(--slice-inset, 24px)' }}>
+        {handle ? (
+          <a
+            href={`https://thedreamwedding.in/v/${handle.toLowerCase()}`}
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
+              color: A.brass, textDecoration: 'underline', textUnderlineOffset: 3,
+              wordBreak: 'break-all', display: 'block',
+            }}
+          >{`thedreamwedding.in/v/${handle.toLowerCase()}`}</a>
+        ) : null}
+
+        {reason === null ? (
+          <>
+            <div
+              role="switch"
+              aria-checked={live}
+              aria-label={COPY.storefrontDateSwitch}
+              tabIndex={0}
+              onClick={toggle}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 0 6px', cursor: 'pointer',
+                opacity: busy ? 0.6 : 1,
+              }}
+            >
+              <span style={{
+                flex: 1, minWidth: 0,
+                fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.4, color: A.ink,
+              }}>{COPY.storefrontDateSwitch}</span>
+              <span style={{
+                width: 46, minWidth: 46, height: 27, borderRadius: 14, position: 'relative',
+                background: live ? A.brass : 'var(--atelier-input-bg)',
+                border: `0.5px solid ${live ? A.brass : 'var(--atelier-card-border)'}`,
+                transition: 'background 140ms ease',
+              }}>
+                <span style={{
+                  position: 'absolute', top: 2, [live ? 'right' : 'left']: 2,
+                  width: 21, height: 21, borderRadius: '50%',
+                  background: live ? 'var(--role-ink-deep)' : 'var(--atelier-ink-fade)',
+                }} />
+              </span>
+            </div>
+            {/* D4 sits beside the switch in BOTH states — see its comment in copy.ts. */}
+            <p style={{
+              fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
+              color: A.inkMute, margin: 0, maxWidth: '34ch',
+            }}>{COPY.storefrontDateStanding}</p>
+          </>
+        ) : (
+          <p style={{
+            fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+            color: A.inkMute, margin: '12px 0 2px', maxWidth: '30ch',
+          }}>
+            {reason === 'ruled_off' ? COPY.storefrontDateRuledOff : COPY.storefrontDateUnmapped}
+          </p>
+        )}
+      </div>
+    </>
   );
 }

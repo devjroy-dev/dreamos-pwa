@@ -95,6 +95,22 @@ export interface MeResponse {
     briefing_enabled: boolean;
     rate_display: boolean;
     discover_paused: boolean;
+    // ── BLOCK 19 · G3.1 · R-40.77 — HER PERMISSION FOR THE PUBLIC DATE CHECK
+    // OFF by default: silence never means yes. Optional for F-40.169's reason —
+    // this describes a NETWORK RESPONSE across two independently-deployed
+    // services, so a door that has not shipped it yet must read as "not granted"
+    // rather than crash or, worse, read as granted.
+    date_check_enabled?: boolean;
+    // ── G3.1 · R-G31.6 — WHY capacity does not apply, when it does not ──────
+    // `null` when it applies. Computed backend-side from `occupancy.js`'s ONE
+    // ladder (`capacityVerdict`) — the PWA carries no copy of the rule, the same
+    // posture `capacity_default` has held since B6-S1.
+    //
+    // ⚠ THE ROOM GATES ON THIS AND NOT ON `capacity_applicable`. F-40.172: the
+    // two answered from different ladders and disagreed on seven categories.
+    // They are joined now, but the REASON is the field the copy needs — D6 has
+    // two bytes and `ruled_off` (a decision) is not `unmapped` (a not-yet).
+    capacity_reason?: 'ruled_off' | 'unmapped' | null;
   };
 }
 
@@ -128,6 +144,10 @@ export interface UpdateMeRequest {
   about?:            string;
   rate_display?:     boolean;
   discover_paused?:  boolean;
+  // G3.1 · R-40.77. On dream-os's ALLOWED_FIELDS and BOOLEAN_FIELDS at `fded352`,
+  // so a non-boolean is a 400 and never a silent coercion — which matters more
+  // for a consent flag than for a display preference.
+  date_check_enabled?: boolean;
 }
 
 export interface UpdateMeResponse {
@@ -150,6 +170,11 @@ export interface UpdateMeResponse {
     rate_max:         number | null;
     slot_capacity:    number | null;   // B6-S1
     discover_preview: boolean;
+    // G3.1 · R-40.77. The PATCH ECHOES the flag — dream-os `me.js` returns it on
+    // the update shape as well as the read (`fded352`), so a save can be
+    // verified rather than assumed. The room reads THIS echo to settle its
+    // optimistic toggle: the door's own answer, not the value we hoped for.
+    date_check_enabled: boolean;
   };
 }
 

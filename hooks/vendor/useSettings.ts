@@ -66,6 +66,13 @@ export interface SettingsState {
   // Read-only, computed backend-side from occupancy's one-home map (B6-S1):
   capacity_default:    number | null;
   capacity_applicable: boolean;
+  // G3.1 · R-G31.6. Read-only, from the same one-home ladder. `null` when
+  // capacity applies; the room reads THIS, never `capacity_applicable`.
+  capacity_reason:     'ruled_off' | 'unmapped' | null;
+  // G3.1 · R-40.77. Her permission for the public date check. Written through
+  // the same PATCH as every other posture flag, but saved on toggle rather than
+  // by a Save button — see the room.
+  date_check_enabled:  boolean;
 }
 
 const EMPTY: SettingsState = {
@@ -81,6 +88,12 @@ const EMPTY: SettingsState = {
   selfserve_enabled: false,
   founding_cohort: false, discover_preview: false,
   capacity_default: null, capacity_applicable: false,
+  // ⚠ THE DEFAULTS ARE BOTH FAIL-CLOSED, and each for its own reason.
+  // `capacity_reason: 'unmapped'` — a hook that could not read the field must
+  // NOT offer the switch; the softer of D6's two bytes is the safe wrong answer.
+  // `date_check_enabled: false` — a permission that could not be read is a
+  // permission not granted (R-40.77). Silence never means yes, on this side too.
+  capacity_reason: 'unmapped', date_check_enabled: false,
 };
 
 export function useSettings() {
@@ -147,6 +160,11 @@ export function useSettings() {
         discover_preview: v.discover_preview ?? false,
         capacity_default:    v.capacity_default ?? null,
         capacity_applicable: v.capacity_applicable ?? false,
+        // `?? 'unmapped'` and `?? false`: an older door that carries neither key
+        // yields a room with no switch, which is exactly right — it cannot
+        // promise a door that has not shipped.
+        capacity_reason:     v.capacity_reason ?? 'unmapped',
+        date_check_enabled:  v.date_check_enabled === true,
       };
       setSaved(s);
       setCurrent(s);
