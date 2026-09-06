@@ -54,6 +54,13 @@ import { roomHref } from '@/lib/worklist/rooms';
 import { useState } from 'react';
 import { useSettings } from '@/hooks/vendor/useSettings';
 import { fetchDiscoverStatus, fetchPortfolio, updateMe } from '@/lib/vendor/api/vendor';
+// R-G31.7 · the SAME header every shell call sends. The revalidate route reads
+// it to ask dream-os who the caller is; the handle never comes from a body.
+import { getAuthHeader } from '@/lib/vendor/api/_base';
+
+// D3's read goes to the PUBLIC card door — no session, the same address a
+// stranger uses. Declared here rather than spelled at the call site.
+const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
 import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
@@ -336,8 +343,33 @@ function PublicPageBand() {
   // a consent flag must be written by the tap that granted it and nothing else.
   const [on, setOn] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
+  // D3's figure, read from THE PUBLIC CARD — the same door and the same
+  // predicate a stranger's browser hits, so the room cannot disagree with the
+  // page. `null` until it answers, and a failure leaves it null: the readout is
+  // absent rather than reporting a zero it did not derive.
+  const [weddingCount, setWeddingCount] = useState<number | null>(null);
   // Seeded from the hook's single `/me` read — never a second fetch.
   const live = on ?? current.date_check_enabled;
+
+  // ⚠ ONE READ, AND IT IS THE PUBLIC CARD ITSELF. Not a new vendor door and not
+  // a second predicate — the room asks the same address a stranger's browser
+  // asks, so its figure and the page's list cannot drift apart. Failure leaves
+  // the count null and the readout absent.
+  useEffect(() => {
+    const handle = current.routing_handle;
+    if (!handle) return;
+    let live = true;
+    (async () => {
+      try {
+        const r = await fetch(`${PUBLIC_API_BASE}/api/v2/public/vendor-card/${encodeURIComponent(handle)}`);
+        if (!r.ok) return;
+        const j = await r.json();
+        const w = j?.card?.weddings;
+        if (live && Array.isArray(w)) setWeddingCount(w.length);
+      } catch { /* the readout stays absent */ }
+    })();
+    return () => { live = false; };
+  }, [current.routing_handle]);
 
   async function toggle() {
     if (busy) return;
@@ -349,8 +381,26 @@ function PublicPageBand() {
       // ⚠ REVERT ON REFUSAL, and read the door's own echo rather than assuming
       // the write took. `updateMe` returns the updated vendor; if the door said
       // no — or said yes to something else — the row goes back to the truth.
-      if (!('ok' in r) || !r.ok) setOn(!next);
-      else setOn(r.vendor.date_check_enabled === true);
+      if (!('ok' in r) || !r.ok) { setOn(!next); return; }
+      setOn(r.vendor.date_check_enabled === true);
+      // ── R-G31.7 · REBUILD HER PUBLIC PAGE AT ONCE (F-40.187) ────────────
+      // The storefront is served from a 300s cache, so without this the switch
+      // she just moved keeps its old value on `/v/<code>` for up to five
+      // minutes — the control still drawn, the door refusing, the guest reading
+      // a miss. A permission that takes five minutes to take effect is a
+      // permission that lies for five minutes.
+      //
+      // ⚠ AFTER the write and only on success. Rebuilding a page around a
+      // value that failed to save would publish the wrong state faster.
+      //
+      // ⚠ AND ITS FAILURE IS NOT HERS. The toggle has already succeeded and
+      // been confirmed by the door's echo; a cache that did not rebuild is a
+      // page that catches up in 300s on its own. So this is fire-and-forget and
+      // never reverts the row — showing her a failed switch because a cache
+      // call missed would be a lie in the opposite direction.
+      try {
+        await fetch('/api/revalidate/storefront', { method: 'POST', headers: getAuthHeader() });
+      } catch { /* the page catches up on its own timer */ }
     } catch {
       setOn(!next);
     } finally {
@@ -391,6 +441,28 @@ function PublicPageBand() {
             about her trade and must not be rendered as one. No switch (we
             cannot stand behind a permission we could not read) and no sentence
             (we know nothing to tell her). Still fail-closed; simply silent. */}
+        {/* ── D3 · WHAT A STRANGER CAN SEE — F-40.188 ────────────────────────
+            The byte was declared in `copy.ts` at part 2 and never rendered: a
+            string with zero readers, F-40.28's shape, and mine. It is the room
+            telling her what is ON her page, which is a narrower set than what
+            she has — only published, consented pages reach `/v/`.
+
+            ⚠ IT READS THE SAME PREDICATE AS THE PAGE, not a second one. The
+            count comes from the public card door, which selects on
+            `visibility='published' AND couple_consent`, so the room cannot
+            report a number the storefront would not show.
+
+            ⚠ AND IT RENDERS NOTHING AT ZERO. A heading over an empty list is a
+            room reporting an absence she can already see on her own page. */}
+        {weddingCount !== null && weddingCount > 0 && (
+          <p style={{
+            fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
+            color: A.inkMute, margin: '14px 0 0',
+          }}>
+            {`${COPY.storefrontWeddingsLabel}: ${weddingCount}`}
+          </p>
+        )}
+
         {reason === undefined ? null : reason === null ? (
           <>
             <div

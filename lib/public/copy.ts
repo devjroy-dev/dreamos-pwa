@@ -366,3 +366,20 @@ export function publicBackTo(businessName: string | null): string {
  * does not sort on beyond newest-first.
  */
 export const PUBLIC_WEDDINGS_LABEL = 'Weddings';
+
+/**
+ * THE REFUSED CHECK — R-G31.7's rider, founder-vetoed 2026-09-06.
+ *
+ * The answer leaf used to render `PUBLIC_MISS` here — *This page is no longer
+ * available* — which is FALSE. The page is available; the CHECK is not. She
+ * arrived by tapping a control on a storefront that is still serving.
+ *
+ * ⚠ IT STILL TELLS HER NOTHING ABOUT WHY, and that is deliberate. The door
+ * answers absent, paused, switch-off and wrong-trade with ONE indistinguishable
+ * 404, so this leaf cannot tell them apart and must not appear to. `right now`
+ * is the honest width of what it knows: something is off at this moment.
+ *
+ * ⚠ AND `PUBLIC_MISS` STAYS for the page-level miss — a storefront that really
+ * is gone. Two sentences, two facts; the wrong one was doing both jobs.
+ */
+export const PUBLIC_DATE_CHECK_OFF = 'Date checks are off for this page right now.';

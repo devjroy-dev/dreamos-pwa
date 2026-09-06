@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { PUBLIC_MISS, PUBLIC_ENQUIRE_LABEL, PUBLIC_COLOPHON_LEAD, PUBLIC_DATE_CHECK, publicBackTo } from '@/lib/public/copy';
+import { PUBLIC_MISS, PUBLIC_ENQUIRE_LABEL, PUBLIC_COLOPHON_LEAD, PUBLIC_DATE_CHECK, PUBLIC_DATE_CHECK_OFF, publicBackTo } from '@/lib/public/copy';
 
 /**
  * app/v/[code]/date/page.tsx — THE ANSWER. TDW_19 G3.1, R-G31.3.
@@ -158,10 +158,18 @@ export default async function PublicDateCheckPage(
   // 404 for absent, paused, switch-off and wrong-trade alike — five states, one
   // body — and this page must not tell them apart either. It especially must not
   // fall through to `Free`.
+  // ⚠ A REFUSED CHECK IS NOT A MISSING PAGE — R-G31.7's rider, F-40.187's other
+  // half. She tapped a control on a storefront that IS serving; telling her the
+  // page is gone is false and sends her away from a vendor who is right there.
+  // The door's 404 stays indistinguishable across its four reasons; this leaf
+  // simply stops asserting the one thing it knows to be untrue.
   if (!answer) {
     return (
       <main className="pv">
-        <p className="pv-line">{PUBLIC_MISS}</p>
+        <p className="pv-line">{PUBLIC_DATE_CHECK_OFF}</p>
+        <p className="pv-ansacts" style={{ borderTop: 'none', marginTop: 4, paddingTop: 0 }}>
+          <a className="pv-back" href={`/v/${encodeURIComponent(code)}`}>{publicBackTo(null)}</a>
+        </p>
         <DateStyles />
       </main>
     );

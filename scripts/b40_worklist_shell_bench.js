@@ -4070,6 +4070,79 @@ cell('C104 the date-check switch saves on toggle and reverts on refusal', () => 
 // `lib/solutions/routes.ts`. C31 already declares `/vendor/storefront` from
 // `rooms.ts`, so a constant would be a second home for an address the registry
 // owns. F-40.170 files `CONTRACTS_HREF` as the specimen not to extend.
+// ── C108 · G3.1 · THE REVALIDATE ROUTE TAKES ITS HANDLE FROM THE SESSION ────
+// R-G31.7, F-40.187. The estate's FIRST on-demand revalidation, so the shape is
+// asserted rather than remembered. Two properties, and the second is the one a
+// later edit would quietly lose:
+//   · it refuses without a session — 401, revealing nothing;
+//   · the handle comes from `GET /me`, NEVER from the request body. A
+//     body-supplied handle would let any authenticated vendor rebuild any other
+//     vendor's page, which is the shape of a cross-tenant write.
+cell('C108 the revalidate route refuses without a session and takes its handle from /me, never the body (R-G31.7)', () => {
+  const src = strip(read('app/api/revalidate/storefront/route.ts'));
+  const bad = [];
+  // ⚠ THE UNAUTHENTICATED GUARD SPECIFICALLY, not "a 401 appears somewhere".
+  // The route answers 401 in three places; a cell matching any of them stayed
+  // GREEN when the missing-session branch was changed to 200. The property is
+  // that the branch which tests for a MISSING header is the one that refuses.
+  // ⚠ BOUNDED BY THE RETURN STATEMENT, not by a brace and not by a byte count.
+  // `[\s\S]{0,160}?\}` stopped at the first `}` — which belongs to the JSON body
+  // `{ ok: false }` — and so never saw the status beside it. Third window this
+  // arc measured instead of matched. `[^;]*;` ends where the statement ends.
+  // ⚠ LAZY TO THE FIRST `return`, THEN TO ITS SEMICOLON. Two earlier windows
+  // failed here and each taught the same thing: `{0,160}?\}` stopped at the
+  // brace of `{ ok: false }`, and `[^)]*\)` could not span the `)` inside
+  // `test(auth)`. A window measured in characters or terminated on a delimiter
+  // that also appears INSIDE the construct is a window that will lie. This one
+  // is bounded by the statement it is actually asking about.
+  const guard = src.match(/if\s*\(\s*!auth[\s\S]{0,200}?return[^;]*;/);
+  if (!guard) bad.push('the route has no missing-session guard');
+  else if (!/status:\s*401/.test(guard[0])) bad.push('the missing-session branch does not answer 401 — an unauthenticated caller is not refused');
+  if (!/api\/v2\/vendor\/me/.test(src)) bad.push('the route does not ask the door who the caller is');
+  if (!/revalidatePath/.test(src)) bad.push('the route does not revalidate anything');
+  // THE BODY IS NEVER READ. `req.json()`/`req.text()`/searchParams would each be
+  // a way for a caller to name someone else's page.
+  if (/req\.json\(\)|req\.text\(\)|searchParams/.test(src)) {
+    bad.push('the route reads the request body or query — the handle must come from the verified session only');
+  }
+  // And it must fail closed when the door cannot be reached.
+  if (!/catch[\s\S]{0,200}401/.test(src)) bad.push('an unreachable door is not treated as a refusal');
+  return bad.length === 0 ? null : bad.join('; ');
+});
+
+// ── C109 · G3.1 · THE TOGGLE REBUILDS HER PAGE, AFTER THE WRITE ─────────────
+// The order is the whole correctness: rebuilding around a value that failed to
+// save would publish the wrong state faster. And the rebuild's own failure must
+// NOT revert her row — the write already succeeded and the page catches up on
+// its own 300s timer; showing her a failed switch would be a lie in the other
+// direction.
+cell('C109 the date-check toggle revalidates after a successful write and never reverts on a cache miss (R-G31.7)', () => {
+  const src = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const bad = [];
+  if (!/\/api\/revalidate\/storefront/.test(src)) bad.push('the toggle does not rebuild her public page — the switch stays stale for 300s (F-40.187)');
+  const write = src.indexOf('updateMe(');
+  const reval = src.indexOf('/api/revalidate/storefront');
+  if (write === -1 || reval === -1 || reval < write) bad.push('the revalidate call does not follow the write');
+  // ⚠ ASSERTED ON CODE, NOT ON A COMMENT. The first cut matched the explanatory
+  // sentence beside the catch — and `strip()` deletes comments before this cell
+  // ever sees them, so it reddened a correct tree. That is the FOURTH cell this
+  // arc to guard the wrong construct; the lesson is that a cell must name a
+  // thing the compiler would also see.
+  //
+  // The property: between the revalidate call and the end of its block there is
+  // a `catch`, and that catch does NOT touch the switch's state. A revert there
+  // would undo a write that already succeeded.
+  // ⚠ THE WINDOW IS THE FIRST CATCH'S OWN BODY, not a byte count. A fixed slice
+  // ran past the inner `catch {}` into the TOGGLE's outer catch — which does
+  // contain `setOn(!next)`, correctly — and reddened a correct tree. The second
+  // window this cell got wrong, and both from measuring instead of matching.
+  const tail = src.slice(reval, reval + 400);
+  const m = tail.match(/catch\s*\{([^}]*)\}/);
+  if (!m) bad.push('the revalidate call is not wrapped — a cache failure would reject into the toggle');
+  else if (/setOn/.test(m[1])) bad.push('the revalidate failure reverts the switch — a cache miss must not undo a saved write');
+  return bad.length === 0 ? null : bad.join('; ');
+});
+
 cell('C105 the website row opens onto the registry room with no second address home (R-G31.2)', () => {
   const hub = strip(read('app/vendor/(shell)/support/page.tsx'));
   const routes = strip(read('lib/solutions/routes.ts'));
