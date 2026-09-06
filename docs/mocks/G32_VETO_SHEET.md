@@ -403,3 +403,85 @@ R7 confirms it after. Neither is a warning; both are statements.
 
 **R1 is the only KEPT byte on this sheet that changes meaning without changing characters.**
 That is worth the row: a later seat reading `Loading…` should find the finding, not the word.
+
+---
+
+# RIDER 2 · THE PHONE FIELD AND THE PROFILE SHEET (2026-09-06)
+
+**Written after the walk, which found three things no bench had.**
+
+**F-40.152 — `Preview the PDF` has never worked.** The door is behind `authMw`
+(`requireAuth, resolveVendor()`) and the room opens it with `window.open()`. **A new tab
+carries no JWT.** The cure was in the file this seat was reading: `getDownloadUrl` returns
+a **Supabase signed URL** precisely so a browser can open it without a header, which is why
+`Download` works and `Preview` does not. Ruled to the signed-object arm — no new surface,
+**no frame owed, and no rows below**.
+
+**F-40.153 — `send-to-couple` refuses without a number, and the door is right.**
+`resolveOrCreateClient` accepts a null phone and a Cabinet binder may carry a name and no
+number. **The room had no way to give it one.** R-40.74: one field, and it is the only
+mandatory thing on the record.
+
+**F-40.154 — the record sheet cuts on iOS.** A defect against the ratified frame, not a new
+surface. Derived rather than assumed: **no viewport token exists in this estate** —
+`100dvh` / `92dvh` / `88dvh` appear as literals, and `demo/vendor/[handle]/list/[slice]`
+already pairs `maxHeight: '88dvh'` with `overflowY: 'auto'`, which is the shape this sheet
+should have taken. The cure follows the estate's own pattern; no frame, no rows.
+
+**Two new frames.**
+
+| Frame | Mode | Size | What it is for |
+|---|---|---|---|
+| `R4-record-phone` | dark + light | 374 | The one mandatory field, and the refusal that names it |
+| `R4-profile` | dark + light | 374 | Veto rows 30–31's destination — the sheet the card had none of |
+
+`R4-record-filled` is unchanged this rider; **thirty shots, four new, one HTML.**
+
+## THE ONE MANDATORY FIELD — R-40.74
+
+| # | Current | Proposed | YES/NO |
+|---|---|---|---|
+| P1 | *(absent)* | **Her number** *(field label)* | |
+| P2 | *(absent)* | **Needed to send** *(the mark)* | |
+| P3 | *(absent)* | **We send the agreement here. It goes on her record too, so you only type it once.** | |
+| P4 | *(absent)* | **Add her number to send this.** *(beneath a disabled Send)* | |
+
+**There is exactly one mark on this record and there will not be a second.** Mandatory to
+the **act**, never to the document: v3's blanks print as blanks by the register's §4 rule 3,
+so a red asterisk on a contract field would be the form arguing with the instrument. P2
+says *what it is needed for* rather than *that it is required* — which is the difference
+between a rule and a reason.
+
+**P3 carries R-40.74's other half:** the field writes `clients.phone` through the existing
+client writer, so the client's own record gains it. **One home, typed once.**
+
+**P4 is a sentence under a disabled control, not a tooltip and not a toast.** The walk's
+own failure was a 400 and a red toast reading `No number to send to.` — true, and arriving
+only after she had already tried.
+
+## THE PROFILE SHEET — rows 30–31's destination
+
+| # | Current | Proposed | YES/NO |
+|---|---|---|---|
+| Q1 | *(absent)* | **Your policies** *(sheet title)* · **Contracts** *(eyebrow)* | |
+| Q2 | *(absent)* | **Asked once. Used on every contract you fill. Leave anything blank and it prints as a blank.** | |
+| Q3 | *(absent)* | Section: **Your business** — What you do · Who signs · Credited as | |
+| Q4 | *(absent)* | Section: **What is not included** — Never included · Meals on a long day | |
+| Q5 | *(absent)* | Section: **Money** — Travel and stay · Extra hours · Charged per · Late after · Late charge | |
+| Q6 | *(absent)* | Section: **If plans change** — Postpone notice · Move within · More than 90 days before · 60–90 days before · 30–60 days before · Under 30 days before · Refund within · Is the deposit refundable? | |
+| Q7 | *(absent)* | Section: **What you deliver** — Delivered within · How · Link stays live · Rounds of changes · Each further round · Files kept for | |
+| Q8 | *(absent)* | Section: **Publication** — Take down within · Move dates within | |
+| Q9 | *(absent)* | Section: **Tax** — GST · Rate · **Add your GSTIN in Settings to print the tax block.** | |
+| Q10 | *(absent)* | **Save my policies** | |
+
+**Twenty-eight field labels across six sections, and every one is a PROFILE token of
+F-40.94's 132.** They are labels only: **TDW authors not one of the values.** The frame
+shows sample fills so the founder can see the shape; a blank profile prints blanks all the
+way down, which is correct and is what Q2 says out loud.
+
+**Q6's four slab rows are the cancellation table, and they read as ranges rather than as
+`cancel_tier_2_pct`.** The register's token names are the instrument's; a vendor should
+never meet them.
+
+**Q9 points at Settings and not at itself.** `vendors.gstin` lives on the vendor row and has
+one home already; a second entry point here would be a second home for a tax number.
