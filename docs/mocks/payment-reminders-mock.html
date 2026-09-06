@@ -253,6 +253,33 @@ body.solo .wl,body.solo .pv,body.solo .wa{width:100vw;height:100vh;box-shadow:no
 .wl-msl{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-msr{font:var(--wl-t4);color:var(--atelier-ink-dim);text-align:right;white-space:nowrap}
 .wl-msr.paid{color:var(--role-positive)}
+/* ── P8a/P8b · THE CREATE SHEET, TRANSCRIBED FROM SliceShell.tsx ───────────
+   These rules exist to reproduce the SHIPPED sheet including its defect, not to
+   propose a new one. `.ms-over` is F-40.201 drawn: flex children with no
+   `min-width:0` cannot shrink below their intrinsic ~20ch, so the row exceeds
+   its container. `.fit` is the one-property cure. If a later seat "tidies" the
+   overflow away in P8a, the frame stops depicting the tree and F-40.202
+   happens again. */
+.ms-card{padding:12px 14px;background:var(--atelier-row-hover);
+         border:.5px solid var(--atelier-card-border);border-radius:2px;
+         display:flex;flex-direction:column;gap:8px;margin-bottom:10px;overflow:hidden}
+.ms-top{display:flex;gap:8px;align-items:center}
+.ms-in{padding:8px 10px;box-sizing:border-box;background:var(--atelier-input-bg);
+       border:.5px solid var(--atelier-card-border);border-radius:2px;
+       font:var(--wl-t3);color:var(--atelier-ink)}
+.ms-lbl{flex:2}
+.ms-pct{flex:1;text-align:right}
+.ms-date{width:100%;color:var(--atelier-ink-dim)}
+.ms-sym{font:var(--wl-t3);color:var(--atelier-ink-mute);flex-shrink:0}
+/* the defect: intrinsic minimum width, so the row cannot fit 374 */
+.ms-over .ms-lbl{min-width:15ch}
+.ms-over .ms-pct{min-width:9ch}
+.fit{min-width:0}
+.ms-foot{display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px}
+.ms-add{font:var(--wl-t5);letter-spacing:.28em;text-transform:uppercase;color:var(--atelier-accent-text)}
+.ms-tally{font:var(--wl-t5);letter-spacing:.28em;text-transform:uppercase;color:var(--role-positive)}
+.ms-scroll{height:6px;margin-top:10px;border-radius:3px;background:var(--atelier-card-border)}
+.ms-scroll::after{content:"";display:block;width:62%;height:6px;border-radius:3px;background:var(--atelier-ink-fade)}
 </style>
 </head><body>
 <div class="pagehead">
@@ -477,24 +504,70 @@ body.solo .wl,body.solo .pv,body.solo .wa{width:100vw;height:100vh;box-shadow:no
   </div>
 </div>
 
-<div class="framewrap" data-frame="P8-schedule-sheet">
-  <div class="cap"><b>P8-schedule-sheet &middot; THE PANEL F-40.141 UNBLOCKS &mdash; NEVER DRAWN, NEVER VETOED</b> &middot; <code>SCHEDULE_ENABLED = false</code> at <code>SliceShell.tsx:92</code> has held this create sheet dark since it was written, guarding a 404 against a route that <b>now exists</b> (<code>src/api/vendor/schedules.js</code>, five routes) &middot; R-G34.10 conditioned the flip on a ratified frame and <b>there is none</b>, so it takes its own frame here before the byte flips &middot; the three default milestones and their percentages are the SHIPPED code's, not this seat's invention (<code>SliceShell.tsx:379</code>) &middot; <b>the sum must read 100</b> and <code>createSchedule</code> refuses otherwise &mdash; the sheet says so before she is refused &middot; strings #19, #20</div>
+<div class="framewrap" data-frame="P8a-schedule-sheet-as-shipped">
+  <div class="cap"><b>P8a &middot; THE SHEET AS IT ACTUALLY IS &mdash; F-40.202, AND THIS FRAME IS AN ADMISSION</b> &middot; the first <code>P8</code> drew a clean read-only list and the founder vetoed it at &sect;F. <b>That sheet does not exist.</b> Flipping <code>SCHEDULE_ENABLED</code> exposed PRE-EXISTING markup this seat never rewrote &mdash; three raw inputs per milestone, an add-row, a running tally &mdash; so the veto was satisfied in letter and not in substance: the founder approved bytes that were not there, and the bytes that were had never been seen by anyone. F-40.122's shape, a frame drawn from the seat's idea rather than from the tree. <b>This frame is transcribed from <code>SliceShell.tsx</code> line by line, defects included.</b> &middot; <b>F-40.201 is visible here:</b> the label and percent inputs are flex children with <code>min-width: auto</code>, so neither can shrink below its ~20-character intrinsic width; at 374 the row cannot fit and the sheet scrolls sideways</div>
   <div class="wl" data-wl-mode="dark">
     <header class="wl-hdr">
       <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Invoices</span></div>
       <div class="wl-coin">DR</div>
     </header>
-    <div class="wl-main"><div class="wl-room" style="opacity:.35">
-      <div class="wl-rsec">Ananya Sharma</div>
-    </div></div>
+    <div class="wl-main"><div class="wl-room" style="opacity:.35"><div class="wl-rsec">Priya Nair</div></div></div>
     <div class="wl-scrim"></div>
     <div class="wl-sheet">
-      <div class="wl-shhead"><span class="wl-shtitle">Payment schedule</span><span class="wl-shx">&times;</span></div>
-      <div class="wl-ms"><span class="wl-msl">Booking</span><span class="wl-msr">30% &middot; Rs 45,000</span></div>
-      <div class="wl-ms"><span class="wl-msl">Shoot day</span><span class="wl-msr">40% &middot; Rs 60,000</span></div>
-      <div class="wl-ms"><span class="wl-msl">Delivery</span><span class="wl-msr">30% &middot; Rs 45,000</span></div>
-      <p class="wl-shnote">The shares must add up to 100. Set a due date on each one and reminders can go out three days before.</p>
-      <div class="wl-btn">Save the schedule</div>
+      <div class="wl-shhead"><span class="wl-shtitle">Payment schedule</span></div>
+      <p class="wl-shnote" style="margin-bottom:10px">Add Milestones &mdash; must sum to 100%. Amounts computed from invoice total.</p>
+
+      <div class="ms-card"><div class="ms-top ms-over">
+        <input class="ms-in ms-lbl" value="Booking" readonly>
+        <input class="ms-in ms-pct" value="30" readonly>
+        <span class="ms-sym">%</span>
+      </div>
+      <input class="ms-in ms-date" value="dd/mm/yyyy" readonly></div>
+
+      <div class="ms-card"><div class="ms-top ms-over">
+        <input class="ms-in ms-lbl" value="Shoot day" readonly>
+        <input class="ms-in ms-pct" value="40" readonly>
+        <span class="ms-sym">%</span>
+      </div>
+      <input class="ms-in ms-date" value="dd/mm/yyyy" readonly></div>
+
+      <div class="ms-foot"><span class="ms-add">+ Add Row</span><span class="ms-tally">100% of 100%</span></div>
+      <div class="wl-btn">Create schedule</div>
+      <div class="ms-scroll"></div>
+      <p class="wl-shnote" style="margin-top:10px;color:var(--role-negative)">&#9888; The bar above is a HORIZONTAL SCROLLBAR. It should not exist at 374.</p>
+    </div>
+    <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
+  </div>
+</div>
+
+<div class="framewrap" data-frame="P8b-schedule-sheet-cured">
+  <div class="cap"><b>P8b &middot; THE SAME SHEET AFTER THE THREE CURES &mdash; THE ONE ACTUALLY UP FOR VETO</b> &middot; <b>(1)</b> <code>minWidth: 0</code> on the label and percent inputs, so flex children may shrink below their intrinsic width and the row fits &middot; <b>(2)</b> the standalone <code>%</code> span deleted &mdash; the input's own placeholder already says it, and the span was <code>flexShrink: 0</code>, taking its width first on the tightest row in the sheet &middot; <b>(3)</b> <code>aria-label</code> on all three inputs: the label field had only a placeholder, and <code>type="date"</code> IGNORES placeholder outright so it had no accessible name at all (F-40.137's class, named at the flip and not cured until now) &middot; <b>nothing else moves</b> &mdash; the three-input shape, the add-row, the tally and the defaults are the shipped design and are not this seat's to redraw under cover of a bug fix &middot; strings #19, #20, #20b unchanged</div>
+  <div class="wl" data-wl-mode="dark">
+    <header class="wl-hdr">
+      <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Invoices</span></div>
+      <div class="wl-coin">DR</div>
+    </header>
+    <div class="wl-main"><div class="wl-room" style="opacity:.35"><div class="wl-rsec">Priya Nair</div></div></div>
+    <div class="wl-scrim"></div>
+    <div class="wl-sheet">
+      <div class="wl-shhead"><span class="wl-shtitle">Payment schedule</span></div>
+      <p class="wl-shnote" style="margin-bottom:10px">Add Milestones &mdash; must sum to 100%. Amounts computed from invoice total.</p>
+
+      <div class="ms-card"><div class="ms-top">
+        <input class="ms-in ms-lbl fit" value="Booking" readonly>
+        <input class="ms-in ms-pct fit" value="30" readonly>
+      </div>
+      <input class="ms-in ms-date" value="8 Sep 2026" readonly></div>
+
+      <div class="ms-card"><div class="ms-top">
+        <input class="ms-in ms-lbl fit" value="Shoot day" readonly>
+        <input class="ms-in ms-pct fit" value="40" readonly>
+      </div>
+      <input class="ms-in ms-date" value="16 Sep 2026" readonly></div>
+
+      <div class="ms-foot"><span class="ms-add">+ Add Row</span><span class="ms-tally">100% of 100%</span></div>
+      <div class="wl-btn">Create schedule</div>
+      <p class="wl-shnote" style="margin-top:10px">No sideways scroll. Every field reachable by a screen reader.</p>
     </div>
     <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
   </div>

@@ -1,6 +1,6 @@
 # G3.4 · PAYMENT REMINDERS — THE VETO SHEET
 
-**Mock:** `docs/mocks/payment-reminders-mock.html` · ten frames · authored at dreamos-pwa `ee746866` / dream-os `ba368ce`, both derived at origin.
+**Mock:** `docs/mocks/payment-reminders-mock.html` · eleven frames (`P8` split into `P8a` as-shipped and `P8b` cured, 2026-09-07) · authored at dreamos-pwa `ee746866` / dream-os `ba368ce`, both derived at origin.
 **Rulings this sheet stands on:** R-G34.1–.11 · R-40.76 (the template body, already vetoed and filed) · R-40.1 (the room's name, frozen) · R-40.19 (apostrophes) · R-40.60 (no decoration).
 
 **STATUS: RETURNED AND RATIFIED, 2026-09-06** (founder, delegated to the chair, R-40.42). Every byte below is vetoed. #3, #6 and #7 were **amended** at the veto and the amendment is folded in — the table shows what ships, and the amendment note under §A records what it replaced. Nothing else moved. This sheet is now the authority the build reads, not a proposal.
@@ -63,17 +63,21 @@ Frame `P3-dark` is not a failure mode. It is what DEV440 shows on day one, and i
 
 **On #17 — the control neither vanishes nor greys.** It states what happened and when, so a vendor reopening the record an hour later is not left guessing whether she pressed it. Once-per-milestone is enforced by `UNIQUE (milestone_id, kind)`, not by this screen; the surface only reports what the database already decided.
 
-## §F · THE SCHEDULE PANEL — new to the veto, and it is the sheet's one surprise
+## §F · THE SCHEDULE PANEL — REOPENED, BECAUSE THE FIRST VETO WAS ON A FICTION
 
-**F-40.141:** `SCHEDULE_ENABLED = false` at `SliceShell.tsx:92` has held the schedule panel and its create sheet dark in production. Its comment guards a 404 against a route that **now exists** (`src/api/vendor/schedules.js`, five routes; `lib/vendor/api/vendor.ts:1273` already points at it). R-G34.10 conditioned the flip on a ratified frame — **derived: there is none.** The only mock in either repo drawing a payment schedule is `invoice-document-mock.html`, and every frame there is an **A4 PDF page**, not the in-app panel. So the panel joins this veto before the byte flips.
+**F-40.202.** The first `P8` drew a clean read-only list of milestones and you vetoed it. **That sheet does not exist.** Flipping `SCHEDULE_ENABLED` exposed pre-existing markup this seat never rewrote — three raw inputs per milestone, an add-row control, a running percentage tally. So the veto was satisfied in letter and not in substance: you approved bytes that were not there, and the bytes that were had never been looked at by anyone until the founder opened the sheet on the walk. F-40.122's shape — a frame drawn from the seat's idea of the panel rather than from the tree. R-G34.10's condition existed to stop exactly this, and the frame is what let it through.
 
-| # | Where | Proposed | Current |
-|---|---|---|---|
-| 19 | Create sheet title | **Payment schedule** | none |
-| 20 | Under the milestones | **The shares must add up to 100. Set a due date on each one and reminders can go out three days before.** | none |
-| 20b | The create control | **Add a schedule** | none |
+**`P8a` is the sheet as it actually is**, transcribed from `SliceShell.tsx` line by line with its defect intact. It is not up for veto — it is the record of what shipped.
 
-The three default milestones (**Booking 30 · Shoot day 40 · Delivery 30**) are the **shipped code's**, at `SliceShell.tsx:379` — not this seat's invention. If you want different defaults, say so and it is a one-line change in the same ZIP.
+**`P8b` is what is up for veto**: the same sheet after three cures, and nothing else moved.
+
+| # | Cure | Why |
+|---|---|---|
+| 22 | `minWidth: 0` on the label and percent inputs | **F-40.201.** Flex children default to `min-width: auto`, which for an `<input>` is its ~20-character intrinsic width. At 374 the content box is about 298px and two inputs that refuse to shrink below ~170px each cannot fit, so the row overflows and the sheet scrolls sideways. |
+| 23 | The standalone `%` span deleted | The percent input's own placeholder already says `%`, and the span is `flexShrink: 0` — it takes its width first, on the tightest row in the sheet. |
+| 24 | `aria-label` on all three inputs | The label field had only a placeholder as its accessible name; `type="date"` **ignores placeholder outright**, so the date input had none at all. F-40.137's class, named at the flip and not cured until now. |
+
+**What is NOT changed, deliberately.** The three-input shape, the add-row, the tally, the default milestones and every string. They are the shipped design and are not this seat's to redraw under cover of a bug fix. If you want the sheet reshaped, that is its own frame and its own veto.
 
 ## §G · WHAT THE CLIENT RECEIVES — for sight, not for veto
 
@@ -89,9 +93,9 @@ Rendered: *Hi Priya Nair, a payment reminder from Dev Roy Photography. The secon
 
 ## §H · THE SHOT LIST
 
-Ten frames × light and dark × 374 and 390 = **40 captures**, `tools/mock_shot.cjs`. `P10-wa` carries its own two-mode palette and takes the same four.
+Eleven frames × light and dark × 374 and 390 = **44 captures**, `tools/mock_shot.cjs`. `P10-wa` carries its own two-mode palette and takes the same four.
 
-`P1-room` · `P2-empty` · `P3-dark` · `P4-record` · `P5-confirm` · `P6-sent` · `P7-noschedule` · `P8-schedule-sheet` · `P9-hub` · `P10-wa`
+`P1-room` · `P2-empty` · `P3-dark` · `P4-record` · `P5-confirm` · `P6-sent` · `P7-noschedule` · `P8a-schedule-sheet-as-shipped` · `P8b-schedule-sheet-cured` · `P9-hub` · `P10-wa`
 
 ## §I · WHAT IS NOT IN THIS SHEET, AND WHY
 
