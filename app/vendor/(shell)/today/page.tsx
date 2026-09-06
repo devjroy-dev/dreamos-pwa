@@ -107,7 +107,7 @@ export default function TodayPage() {
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
 .wl-masthead{padding-top:20px}
 .wl-mdate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
-/* THE STATUS IS THE SURFACE'S t1. The four rules that carried todayTitle, todayEmpty,
+/* THE STATUS IS THE SURFACE’S t1. The four rules that carried todayTitle, todayEmpty,
    todayEmptyAction and todayNotLive-at-t5 retire with the bytes R-38.17 cut, because a
    class whose only consumer has been deleted is the wl-plink disease in CSS.
    NO BACKTICKS AND NO CODE MARKS IN THIS BLOCK: it is inside a JS template literal, and a
@@ -115,7 +115,7 @@ export default function TodayPage() {
    estate has paid for this five times now; the sixth was this comment, caught by tsc. */
 /* ✔ THE MASTHEAD TRIO IS RESTORED AT PHASE 4. It was parked in a JSX comment rather
    than commented inside this literal, because a CSS comment inside the template SHIPS
-   and the audit's dead-rule sweep is byte-strict with no annotation escape hatch.
+   and the audit’s dead-rule sweep is byte-strict with no annotation escape hatch.
    font-variant-numeric is declared AFTER the shorthand deliberately: the font shorthand
    RESETS it, and figures set before that line are silently thrown away.
 
@@ -128,13 +128,13 @@ export default function TodayPage() {
 
    This rung resolves to the feature family, which is Cormorant Garamond, and CORMORANT
    SHIPS OLDSTYLE FIGURES BY DEFAULT. Its oldstyle one is a bare stem with no flag and no
-   foot, so at 46px the founder's eleven leads painted as two capital I's. Tabular alone
+   foot, so at 46px the founder’s eleven leads painted as two capital I’s. Tabular alone
    fixes column drift and says nothing about figure STYLE; the numeral needs both.
 
    WHY TWO PHASES OF REVIEW COULD NOT SEE IT, kept because the next ratified mock will have
-   the same blind spot: the mock's numeral is 0, and zero is the one digit that is
+   the same blind spot: the mock’s numeral is 0, and zero is the one digit that is
    identical in oldstyle and lining. Then R-38.17 withheld the numeral, so it never
-   painted. The first time this rung rendered a digit other than zero was on the founder's
+   painted. The first time this rung rendered a digit other than zero was on the founder’s
    screen, and it was unreadable. A mock cannot prove a glyph set with a zero in it. */
 .wl-mcount{display:flex;align-items:baseline;gap:8px;margin-top:8px}
 .wl-mnum{font:var(--wl-t0);color:var(--atelier-ink)}

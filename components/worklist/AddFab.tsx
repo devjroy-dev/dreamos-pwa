@@ -147,7 +147,7 @@ const FAB_CSS = `
 .wl-addpanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:8px var(--wl-gutter) calc(8px + env(safe-area-inset-bottom))}
 /* A section eyebrow, the second of the two permitted homes for letter-spaced uppercase. */
 .wl-addhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:12px 0 8px}
-/* 52px is the shell's row height and it clears the 44 tap floor with air. t3 for the
+/* 52px is the shell’s row height and it clears the 44 tap floor with air. t3 for the
    label: a row is a control, and R-37.73 (2) put the interactive floor at 12px after 9px
    was convicted as illegible chrome. */
 .wl-addrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0;background:none;border:none;border-top:.5px solid var(--atelier-card-border);cursor:pointer;text-align:left;touch-action:manipulation}

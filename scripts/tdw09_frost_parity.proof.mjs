@@ -748,7 +748,7 @@ ok('7.10', 'the register previews ONLY on a plain figure — silence when unsure
 
 /* ── the walk finding: the question must actually reach her ─────────────────── */
 ok('7.12', "the sheet shows the SERVER'S sentence when it has one",
-   /\{saveMsg\|\|"That didn't save\. Check your connection and try again\."\}/.test(S));
+   /\{saveMsg\|\|"That didn’t save\. Check your connection and try again\."\}/.test(S));
 ok('7.13', 'a 409 is carried as a QUESTION, not as a failure',
    /setAsking\(!!r\.needsConfirmation\)/.test(S) && /setSaveMsg\(r\.message\|\|null\)/.test(S));
 /* ── THE ANSWER PATH (founder: 「 after the question, the next save is a yes 」) ── */

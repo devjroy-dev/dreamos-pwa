@@ -85,7 +85,7 @@ const FROZEN = [
   ['⑤', 'return `${n} of ${total} voted`;'],
   ['⑥', 'return `Closes ${time}`;'],
   ['⑦', 'return `${option} won`;'],
-  ['⑧', "return `It's a tie — ${list}`;"],
+  ['⑧', "return `It’s a tie — ${list}`;"],
   // ── D-3c · THE CREATE SHEET, ratified whole 2026-08-14 「 all stand 」 ──
   ['A', 'export const POLL_SHEET_HEAD = POLL_ASK;'],
   ['B', "export const POLL_QUESTION_LABEL = 'Your question';"],
@@ -129,9 +129,9 @@ if (!pollTie) {
   ok('§2.1 ⑤', pollTally(2, 3) === '2 of 3 voted');
   ok('§2.2 ⑥', pollCloses('7 pm') === 'Closes 7 pm');
   ok('§2.3 ⑦', pollWinner('Red') === 'Red won');
-  ok('§2.4 ⑧ two', pollTie(['Red', 'Gold']) === "It's a tie — Red and Gold");
-  ok('§2.5 ⑧ three, by comma', pollTie(['Red', 'Gold', 'Ivory']) === "It's a tie — Red, Gold and Ivory");
-  ok('§2.6 ⑧ four, still by comma', pollTie(['A', 'B', 'C', 'D']) === "It's a tie — A, B, C and D");
+  ok('§2.4 ⑧ two', pollTie(['Red', 'Gold']) === "It’s a tie — Red and Gold");
+  ok('§2.5 ⑧ three, by comma', pollTie(['Red', 'Gold', 'Ivory']) === "It’s a tie — Red, Gold and Ivory");
+  ok('§2.6 ⑧ four, still by comma', pollTie(['A', 'B', 'C', 'D']) === "It’s a tie — A, B, C and D");
 }
 
 // ── §2.7 EXISTS BECAUSE A RUNTIME CELL CANNOT SEE A TYPE ──────────────────
@@ -162,7 +162,7 @@ ok('§3.2 the bride bloom imports the one home',
 
 // [F-SW.2] ABSENCE. The freeze is only real if no surface can drift on its own.
 const LITERALS = ['Ask the circle', 'Tap to choose', 'Your choice', 'No polls yet.',
-                  ' voted', 'Closes ', ' won', "It's a tie"];
+                  ' voted', 'Closes ', ' won', "It’s a tie"];
 for (const [name, src] of [['strip', stripSrc], ['bloom', bloomSrc]]) {
   const found = LITERALS.filter(l => src.includes(`'${l}`) || src.includes(`"${l}`) || src.includes(`\`${l}`));
   ok(`§3.3 the ${name} carries NO poll copy literal of its own`, found.length === 0,
@@ -530,7 +530,7 @@ function mutate(rel, from, to, label) {
 
 mutate(HOME, "export const POLL_ASK = 'Ask the circle';", "export const POLL_ASK = 'Start a poll';",
        '§8.M1 [FROZEN ①] move the vetoed byte ⇒ §1 RED');
-mutate(HOME, "return `It's a tie — ${list}`;", "return `Tied: ${list}`;",
+mutate(HOME, "return `It’s a tie — ${list}`;", "return `Tied: ${list}`;",
        '§8.M2 [FROZEN ⑧] move the vetoed tie byte ⇒ §1 RED');
 mutate(HOME, 'export function pollTie(options: string[])', 'export function pollTie(options: [string, string])',
        '§8.M3 narrow ⑧ to two options ⇒ §2.7 RED (a type needs a reader that sees types)');

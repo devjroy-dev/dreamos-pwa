@@ -162,7 +162,7 @@ const ASK_CSS = `
 .wl-askhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-asktitle{font:var(--wl-t2);color:var(--atelier-accent-text)}
 /* R-38.17 the channel note. t5, ink-mute: it is metadata about where the answer lands,
-   not a sentence the vendor has to read before typing. It sits under the head's rule so
+   not a sentence the vendor has to read before typing. It sits under the head’s rule so
    the scroll body still starts at the thread. */
 .wl-asknote{flex-shrink:0;font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0}
 .wl-askclose{width:44px;height:44px;margin:-10px -10px -10px 0;background:none;border:none;color:var(--atelier-ink-mute);font-size:22px;line-height:1;cursor:pointer}

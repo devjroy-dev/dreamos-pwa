@@ -150,7 +150,7 @@ export default function VendorPinResetPage() {
         setTimeout(() => pinRefs.current[0]?.focus(), 120);
       } else {
         setShaking(true); setTimeout(() => setShaking(false), 400);
-        showToast(res.error || "That code didn't work. Try again.");
+        showToast(res.error || "That code didn’t work. Try again.");
         setOtp(['', '', '', '', '', '']);
         setTimeout(() => otpRefs.current[0]?.focus(), 80);
       }
@@ -165,7 +165,7 @@ export default function VendorPinResetPage() {
     if (pinStr.length < 4 || confirmStr.length < 4) return;
     if (pinStr !== confirmStr) {
       setShaking(true); setTimeout(() => setShaking(false), 400);
-      showToast("PINs don't match — try again");
+      showToast("PINs don’t match — try again");
       setConfirm(['', '', '', '']); setStage('pin'); setPin(['', '', '', '']);
       setTimeout(() => pinRefs.current[0]?.focus(), 80);
       return;
@@ -288,7 +288,7 @@ export default function VendorPinResetPage() {
     : 'Confirm your PIN.';
 
   const subtext =
-    step === 'phone' ? "We'll send a reset code to your WhatsApp."
+    step === 'phone' ? "We’ll send a reset code to your WhatsApp."
     : step === 'otp' ? 'Sent to your WhatsApp. Valid for 5 minutes.'
     : stage === 'pin' ? 'Four digits. Quick access every time.'
     : 'Enter the same PIN again.';

@@ -256,9 +256,9 @@ function CancelBlock({ label, show }: { label: string; show: (m: string) => void
 
 const BILL_CSS = `
 .wl-bill{padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:16px}
-/* R-38.5 · THE EDGE. The plan card's left border is one of the four x values the text-edge
+/* R-38.5 · THE EDGE. The plan card’s left border is one of the four x values the text-edge
    cell reads — with the wordmark, the first tile and the dock field. It takes NO
-   horizontal margin of its own; the column's gutter is the only inset on this axis. */
+   horizontal margin of its own; the column’s gutter is the only inset on this axis. */
 .wl-billcard{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;min-height:96px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .wl-billlead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-billname{font:var(--wl-t2);color:var(--atelier-ink)}

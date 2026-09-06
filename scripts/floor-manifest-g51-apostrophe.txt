@@ -1,0 +1,169 @@
+# scripts/floor-manifest-g51-apostrophe.txt
+# TDW_19 · R-40.57 AS AMENDED (arm 2) — THE TYPOGRAPHIC APOSTROPHE, WHOLE TREE.
+#
+# F-40.124: R-40.19 had NEVER ONCE SHIPPED — zero curly apostrophes outside
+# comments in the entire estate. F-40.131: the ruling's first radius (five copy
+# homes) was a fifth of the real one — 171 shipped bytes outside it against 8
+# inside, and a SIXTH copy home the ruling never named (`lib/public/consentCopy.ts`).
+# F-40.132 names the pattern itself, and R-40.64 is its law: derive the radius by
+# command BEFORE ruling it. This delivery is that finding's own cure.
+#
+# ── THE PASS LIFTED 164 BYTES AND LEFT ~1,300 COMMENT APOSTROPHES ALONE ─────
+# Comments are prose and excluded by rule. Separating them needs a LEXER, not a
+# regex: `it's` in a comment and `it's` in a shipped byte are identical to a
+# pattern and OPPOSITE under the ruling. In the five original homes alone, 152 of
+# 160 sites were comment prose. A `sed` would have rewritten every one of them
+# and passed any grep-shaped cell.
+#
+# ── C102 CARRIES THE PASS'S OWN LEXER ──────────────────────────────────────
+# The guard and the cure share one definition of "shipped", which is the only way
+# they can agree. It walks lib/ components/ app/, refuses to pass on a walk that
+# finds fewer than 200 files (a cell that scanned nothing would go green, which
+# is exactly how this rule went unshipped for the estate's life), and carries its
+# two exclusions WITH THEIR REASONS:
+#   · lib/mocks/**  — fixtures, never on glass.
+#   · app/admin/**  — TDW's own cockpit, not a vendor's or a couple's surface;
+#                     joins at Block 09's admin pass. 15 straight apostrophes sit
+#                     in the two excluded trees today, DELIBERATE not missed.
+# dream-os's template bodies are excluded by rule and unreachable from here: those
+# bytes must equal what Meta holds character for character.
+#
+# Four mutations red it — a byte reverting in app/, one in lib/vendor/billing
+# (six this seat found only by widening), a byte in an original home, a new
+# straight byte — and one must NOT: a comment, and an excluded file, both stay
+# GREEN.
+#
+# C86/C88 pin founder-ruled bytes character for character and reddened correctly;
+# their literals follow the ruling. The distinction from "appending to quiet a
+# bench" is recorded at the cells: there the cell was wrong about the world, here
+# the world changed by ruling and the assertion is unchanged.
+#
+# ── TWO INHERITED FLOOR DELTAS, DECLARED AND NOT CARRIED ───────────────────
+# `tdw_f3942_census_guard` is F-40.69 (G2's runner charter) — 362 -> 364, and the
+# two added files are G3.2's `app/sign/[token]/page.tsx` and `lib/public/
+# signCopy.ts`. THIS DELIVERY ADDS NO FILE. `b42_g11_wedding_pages_bench` is
+# 163/164 identically on this tree and the clean tip since G1.3's `cfe4525` — its
+# walk rider refreshes the named base or fixes the cell.
+#
+# ── THE GUARDS FOLLOW THE BYTES THEY PIN — 28 LITERALS, NOT 216 ────────────
+# Twelve bench/proof files pin a lifted byte character for character and reddened
+# correctly. Their literals follow the ruling; the distinction from "appending to
+# quiet a bench" is recorded at C86/C88.
+#
+# ⚠ THE FIRST ATTEMPT AT THIS WAS BLANKET AND WRONG: it lifted every in-string
+# apostrophe in scripts/ and tools/ — 216 across 43 files — which reached the
+# benches' OWN prose, outside this ruling entirely. Reverted and redone
+# surgically: a guard's literal is lifted only when its straight form corresponds
+# to a byte that now exists curly in the shipped tree. 28 across 12.
+#
+# ⚠ AND THE REVERT COST DELIBERATE WORK. `git checkout -- scripts/` undid the
+# blanket pass AND C102 and the C86/C88 fix, which lived in the same directory.
+# Both were re-applied and re-proven. A directory-wide revert does not distinguish
+# a mistake from the work standing beside it.
+#
+# `tdw14_d3b_polls` needed three EXPECTED-OUTPUT literals aligned that the
+# surgical pass missed — its word-run walk broke on the em dash. Found by running
+# the bench, not by reading the diff. 131/131 after.
+#
+# ── THE GUARDS FOLLOW THE BYTES THEY PIN — 32 LITERALS, NOT 216 ────────────
+# Fifteen bench/proof files pin a lifted byte character for character and
+# reddened correctly. Their literals follow; the distinction from "appending to
+# quiet a bench" is recorded at C86/C88.
+#
+# ⚠ THE FIRST ATTEMPT WAS BLANKET AND WRONG: 216 apostrophes across 43 files,
+# reaching the benches' OWN prose, outside this ruling entirely. Redone
+# surgically — a guard's literal is lifted only when its straight form matches a
+# byte that now exists curly in the shipped tree. Three sites still escaped that
+# test and were found by RUNNING the benches, not by reading the diff:
+# `tdw14_d3b_polls`'s expected outputs (the word-run walk broke on an em dash),
+# `tdw14_d4b_delegation`'s `Who\'s` (escaped inside a single-quoted string), and
+# `obp_bride_form`'s `"You\'re all set."`. All three now pass.
+#
+# ⚠ AND A DIRECTORY-WIDE REVERT TOOK DELIBERATE WORK WITH THE MISTAKE.
+# `git checkout -- scripts/` undid the blanket pass AND C102 and the C86/C88 fix,
+# which lived beside it. R-40.65's second specimen: reverse the mistake's hunks,
+# never wipe the path. The sanctuary reversal below was done that way and proven
+# byte-identical to HEAD before it was trusted.
+#
+# ── EXCLUSION 3 · THE SANCTUARY PAGE, RULED ────────────────────────────────
+# `app/(frost)/frost/canvas/sanctuary/page.tsx` is byte-frozen against the
+# founder's masthead veto at `94dd738` (`tdw15_p3_pulse` §1, a pin on the whole
+# 4,300-line file). The pass changed two apostrophes there and the freeze
+# reddened CORRECTLY. Re-pinning `APPROVED` to make a pass green would dissolve a
+# founder protection to suit an instrument. Excluded; its two apostrophes are
+# owed at F-40.133, on the day the freeze is re-pinned by the founder's own word.
+#
+# ── TWO INHERITED DELTAS, DECLARED AND NOT CARRIED ─────────────────────────
+# `tdw_f3942_census_guard` is F-40.69 (G2's runner charter): 362 -> 364, the two
+# added files are G3.2's. THIS DELIVERY ADDS NO FILE.
+# `b42_g11_wedding_pages_bench` is 163/164 identically on this tree and the clean
+# tip since G1.3's `cfe4525` — its walk rider refreshes the base or fixes the cell.
+
+app/(auth)/couple/onboarding/page.tsx
+app/(auth)/couple/pin-reset/page.tsx
+app/(auth)/couple/pin/page.tsx
+app/(frost)/frost/canvas/onboarding/page.tsx
+app/circle/join/[token]/page.tsx
+app/consent/[token]/page.tsx
+app/coplanner/layout.tsx
+app/credits/[token]/page.tsx
+app/crew/[token]/page.tsx
+app/demo/vendor/[handle]/collab/page.tsx
+app/demo/vendor/[handle]/page.tsx
+app/demo/vendor/[handle]/studio/page.tsx
+app/demodiscover/page.tsx
+app/layout.tsx
+app/sign/[token]/page.tsx
+app/v/[code]/page.tsx
+app/v/[code]/w/[slug]/page.tsx
+app/vendor/(legacy)/pin-reset/page.tsx
+app/vendor/(legacy)/pin/page.tsx
+app/vendor/(shell)/collab/screen.tsx
+app/vendor/(shell)/google-reviews/page.tsx
+app/vendor/(shell)/portfolio/screen.tsx
+app/vendor/(shell)/referrals/page.tsx
+app/vendor/(shell)/today/page.tsx
+app/vendor/(shell)/wedding-pages/page.tsx
+components/frost/EnquirySheet.tsx
+components/frost/blooms/meridian.tsx
+components/frost/blooms/settings.tsx
+components/frost/blooms/vendors.tsx
+components/solutions/SolutionsPieces.tsx
+components/vendor/AddSheet.tsx
+components/vendor/CalendarBands.tsx
+components/vendor/FilingChip.tsx
+components/vendor/slices/SliceShell.tsx
+components/worklist/AddFab.tsx
+components/worklist/AiDock.tsx
+components/worklist/AskSheet.tsx
+components/worklist/BillingRoom.tsx
+components/worklist/BooksBody.tsx
+components/worklist/FirstRun.tsx
+components/worklist/RoomsGrid.tsx
+components/worklist/StudioSheets.tsx
+components/worklist/TodayCards.tsx
+components/worklist/WlToast.tsx
+components/worklist/WorklistShell.tsx
+lib/circle/assignCopy.ts
+lib/circle/pollCopy.ts
+lib/frost/envelopeCopy.ts
+lib/vendor/assignmentWords.ts
+lib/vendor/billing/plans.ts
+lib/vendor/billing/statusLine.ts
+lib/vendor/rosterMint.ts
+lib/worklist/copy.ts
+lib/worklist/referrals.ts
+scripts/assignmentWords.proof.ts
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-g51-apostrophe.txt
+scripts/obp_bride_form.proof.mjs
+scripts/rosterMint.proof.ts
+scripts/tdw07_p3_portfolio.proof.mjs
+scripts/tdw09_frost_parity.proof.mjs
+scripts/tdw10_billing_tab.proof.mjs
+scripts/tdw10_tier.proof.mjs
+scripts/tdw14_d3b_polls.proof.mjs
+scripts/tdw14_d4b_delegation.proof.mjs
+scripts/tdw14_d5_welcome.proof.mjs
+scripts/tdw15_p2_envelopes.proof.mjs
+tools/wl_audit.mjs

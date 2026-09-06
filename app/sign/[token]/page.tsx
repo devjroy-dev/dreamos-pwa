@@ -211,7 +211,7 @@ function SignStyles() {
 .sg-fi{width:100%;min-height:48px;margin-top:10px;padding:0 14px;border:.5px solid rgba(12,10,9,.26);
        border-radius:2px;background:#FFFDFB;font-size:20px;letter-spacing:.32em;color:#0C0A09;
        font-family:inherit}
-/* Terracotta, the estate's own refusal ink. Not red. */
+/* Terracotta, the estate’s own refusal ink. Not red. */
 .sg-failed{margin-top:14px;font-size:14px;line-height:1.5;color:#B4573A}
 .sg-mark{font-size:34px;line-height:1;color:#2C7343}
     `}</style>

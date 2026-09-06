@@ -42,7 +42,7 @@ function mk(resp: MintResponse | 'throw') {
     ok(r === true, 'returns true');
     ok(calls.results[0]?.kind === 'success', 'reports success');
     ok(calls.results[0]?.msg === MINT_SUCCESS_MSG, 'with the founder\'s exact bytes');
-    ok(calls.results[0]?.msg === "They're on your crew list — assign them from any booking.", 'byte-checked against the veto ledger');
+    ok(calls.results[0]?.msg === "They’re on your crew list — assign them from any booking.", 'byte-checked against the veto ledger');
     ok(calls.refresh === 1, 'and refreshes the roster');
   }
 

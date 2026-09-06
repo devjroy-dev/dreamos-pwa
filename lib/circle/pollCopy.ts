@@ -97,7 +97,7 @@ export function pollTie(options: string[]): string {
   const list = options.length > 2
     ? `${options.slice(0, -1).join(', ')} and ${options[options.length - 1]}`
     : options.join(' and ');
-  return `It's a tie — ${list}`;
+  return `It’s a tie — ${list}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

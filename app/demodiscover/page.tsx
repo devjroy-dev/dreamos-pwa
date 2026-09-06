@@ -301,7 +301,7 @@ function EmptyDeck({ mode }: { mode:string }) {
     <div style={{ position:'fixed', inset:0, background:'#0C0A09', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12 }}>
       <span style={{ fontSize:48 }}>✦</span>
       <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:300, fontStyle:'italic', color:'rgba(248,247,245,0.7)' }}>
-        {mode==='blind' ? "You've seen them all." : "You've seen everyone."}
+        {mode==='blind' ? "You’ve seen them all." : "You’ve seen everyone."}
       </span>
       <span style={{ fontFamily:"'Jost',sans-serif", fontSize:9, fontWeight:300, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(248,247,245,0.35)' }}>Check back soon</span>
     </div>

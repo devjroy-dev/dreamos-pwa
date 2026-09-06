@@ -248,7 +248,7 @@ function DayCard({ a, token, onSaved }: { a: CrewAssignment; token: string; onSa
           <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
             <Btn onClick={() => { setDeclining(false); setNote(''); }} disabled={saving} tone="quiet">Back</Btn>
             <Btn onClick={() => respond('declined', note.trim())} disabled={saving} tone="terracotta">
-              {saving ? 'Saving…' : "Can't make it"}
+              {saving ? 'Saving…' : "Can’t make it"}
             </Btn>
           </div>
         </div>

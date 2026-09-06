@@ -94,9 +94,9 @@ const S_ACTIVE  = 'Active. Renews monthly.';
 // `pending` is the retry-window mercy (R-BILL.3): a card that bounced once,
 // while Razorpay is still trying, is not a demotion. True on every tier, which
 // is why it takes no arm below.
-const S_PENDING = "Payment didn't go through. Retrying — nothing changes yet.";
-const S_FLOOR_HALTED    = "Payment failed. You're on Basic.";
-const S_FLOOR_CANCELLED = "Cancelled. You're on Basic.";
+const S_PENDING = "Payment didn’t go through. Retrying — nothing changes yet.";
+const S_FLOOR_HALTED    = "Payment failed. You’re on Basic.";
+const S_FLOOR_CANCELLED = "Cancelled. You’re on Basic.";
 
 // UNCHANGED NOTES, carried verbatim from F-10.77's cell.
 const N_FLOOR_CANCELLED =

@@ -658,15 +658,15 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
   return (
     <style>{`
 /* ⚠ color-scheme IS A CSS PROPERTY, AND THE META ALONE DID NOT SETTLE IT.
-   F-19.42's first cut declared it through the route's viewport export. The arm
+   F-19.42's first cut declared it through the route’s viewport export. The arm
    then read "getComputedStyle(document.documentElement).colorScheme" and got
    "normal" — because that reads the CSS property, not a meta tag, and "normal"
-   is exactly the state Chrome's auto-dark inverts. The declaration has to reach
+   is exactly the state Chrome’s auto-dark inverts. The declaration has to reach
    the cascade, so it is here as well. Two homes for one intent, and the reason
    is stated so the next reader does not delete the one that does the work. */
 :root{color-scheme:light}
 /* ── THE ARRIVAL (W-4) ──────────────────────────────────────────────────────
-   The first walk's verdict was that the page "starts abruptly, ends abruptly,
+   The first walk’s verdict was that the page "starts abruptly, ends abruptly,
    has nothing... no transition." True: that cut had no @keyframes at all.
 
    The reasoning that produced it, kept so it is not repeated: this route refuses
@@ -676,16 +676,16 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
    no state and no hydration.
 
    Ported from app/demo/vendor/[handle] rather than re-invented -- same easing,
-   same 10px lift, same staggered delays -- so the estate's two vendor
+   same 10px lift, same staggered delays -- so the estate’s two vendor
    presentations cannot drift into two houses. "both" fill so nothing flashes
    before its delay elapses. */
 @keyframes pvRise { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-/* ⚠ RETUNED AGAINST THE PWA LANDING -- the founder's own stated reference, which
-   cross-fades its photograph over 3s ("app/(landing)/page.tsx:681"). S5-b's
-   400ms/150ms was the chair's restraint read as speed, and the founder reported
+/* ⚠ RETUNED AGAINST THE PWA LANDING -- the founder’s own stated reference, which
+   cross-fades its photograph over 3s ("app/(landing)/page.tsx:681"). S5-b’s
+   400ms/150ms was the chair’s restraint read as speed, and the founder reported
    "no animation for the page loading" against a page that WAS animating: an
    arrival too brief to notice is not restraint, it is absence. The cadence is
-   the landing's, compressed -- the photograph settles over 1.2s, her name rises
+   the landing’s, compressed -- the photograph settles over 1.2s, her name rises
    behind it, the card follows. */
 @keyframes pvFade { from{opacity:0} to{opacity:1} }
 
@@ -698,9 +698,9 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 /* D-19.1 section 3. A slow breath, not a strobe.
    ⚠ CAPPED AT THREE ITERATIONS -- F-19.40, and the founder walked the defect it
    cures: "the top image keeps glowing dark and light... in a loop." S5-b put
-   this animation ON THE <img>, so it pulsed the PHOTOGRAPH's own opacity, and
+   this animation ON THE <img>, so it pulsed the PHOTOGRAPH’s own opacity, and
    "infinite" meant it never stopped. The seat reasoned correctly that the
-   img's BACKGROUND gets painted over by the decoded image and then applied the
+   img’s BACKGROUND gets painted over by the decoded image and then applied the
    rule to the wrong layer.
    Now it lives on a element BENEATH the image, which the opaque photo covers on
    decode, and it runs three times rather than forever: CSS has no observer of
@@ -720,26 +720,26 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
   letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── THE HERO -- D-19.1 section 1 ───────────────────────────────────────────
-   clamp(320px, 56vh, 460px), the chair's ruled measure: her name and the top
+   clamp(320px, 56vh, 460px), the chair’s ruled measure: her name and the top
    edge of Enquire share the first fold at 374x900. Checked at both ends --
    375x667 gives 373px and the name lands at ~600 of 667; 390x844 gives 460px
    capped and the name at ~690 of 844. The name is INSIDE the hero now, so the
    fold requirement is met by construction rather than by arithmetic below it.
 
    ⚠ THE BOX IS SIZED BEFORE THE IMAGE EXISTS, and that is the CLS cure. Height
-   comes from clamp() and never from the image's intrinsic ratio, so the
+   comes from clamp() and never from the image’s intrinsic ratio, so the
    photograph paints into a box that was already the right size -- zero layout
    shift on settle, by construction, which is a property the page can actually
    keep rather than a number it hopes for. */
 .pv-hero{position:relative;width:100%;height:clamp(320px, 56vh, 460px);
   overflow:hidden;background:#EDEAE4}
-/* ⚠ THE PLACEHOLDER IS THE IMG'S OWN BACKGROUND, AND THE LIMIT IS STATED.
+/* ⚠ THE PLACEHOLDER IS THE IMG’S OWN BACKGROUND, AND THE LIMIT IS STATED.
    D-19.1 section 3 asked, where honestly implementable without client JS, that
    the arrival trigger on image settle rather than a timer. IT IS NOT: there is
    no CSS-only observer of image decode -- no selector, no media query, no
-   :has() form sees it. So the amendment's own fallback ships: the shimmer is
-   the image element's background, which the decoded photograph simply paints
-   over with no JavaScript and no shift, and the name's arrival stays
+   :has() form sees it. So the amendment’s own fallback ships: the shimmer is
+   the image element’s background, which the decoded photograph simply paints
+   over with no JavaScript and no shift, and the name’s arrival stays
    time-staged. Said here rather than discovered later. */
 .pv-shimmer{position:absolute;inset:0;background:#EDEAE4;z-index:0;
   animation:pvHold 1600ms ease-in-out 3}
@@ -765,9 +765,9 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 .pv-hero-img{position:absolute;inset:0;z-index:1;width:100%;height:100%;
   object-fit:cover;object-position:center top;display:block;
   opacity:0;pointer-events:none}
-/* The scrim. One gradient, bottom only -- the studio's :333 shape, tuned to the
+/* The scrim. One gradient, bottom only -- the studio’s :333 shape, tuned to the
    ruled stop. It exists so HER NAME is legible, which is a different job from
-   the one S4's scrim was doing (making TDW's wordmark legible over her work),
+   the one S4's scrim was doing (making TDW’s wordmark legible over her work),
    and the difference is why that element is gone. */
 .pv-scrim{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;
   background:linear-gradient(180deg, transparent 45%, rgba(12,10,9,.72) 100%)}
@@ -798,7 +798,7 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 /* D-19.1 section 2: the gold moves off 4.48:1. #7A621C computes 6.03:1 on cream
    -- proven by the cell, not chosen by eye, which is the whole lesson of W2-4. */
 /* ── G2 · THE SEAL (R-G2.9, placement and weight ruled R-G2.11) ────────────
-   Its own hairline, the page's own ink, no gold. The facts line sits at 13px —
+   Its own hairline, the page’s own ink, no gold. The facts line sits at 13px —
    one step under her about paragraph — which the founder ruled AS DRAWN, after
    this seat named the risk that it could read as another sentence rather than a
    mark.
@@ -821,7 +821,7 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 .pv-demo{font-weight:400;font-size:11px;line-height:1.4;color:#6B6560;margin:18px 0 0;max-width:36ch}
 
 /* The section break. Brightest beside the diamond, dying at the margin -- the
-   studio's own reversal, after its first cut faded to nothing at the centre and
+   studio’s own reversal, after its first cut faded to nothing at the centre and
    left the diamond reading as a stray dot. */
 .pv-rule{display:flex;align-items:center;gap:10px;margin:30px 24px 0}
 .pv-rule-line{flex:1;height:1px}
@@ -831,7 +831,7 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 
 /* ── THE STRIP IS A GLANCE -- F-19.38, and this is the four-sitting bug ─────
    The founder reported full-width thumbnails on four consecutive walks. Source
-   declared "flex:0 0 104px"; globals.css touches no img; Tailwind's preflight
+   declared "flex:0 0 104px"; globals.css touches no img; Tailwind’s preflight
    only sets max-width/height:auto; the service worker was cleared by reading it;
    and pv_render measured 104x130 rendered. Every derivation exonerated the page.
    His console settled it in one line:
@@ -840,10 +840,10 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 
    **"min-width: auto" on a flex item resolves to its AUTOMATIC MINIMUM SIZE,
    which for a replaced element is its INTRINSIC width.** The photograph is
-   1080px wide, so the item's floor was 1080px; "flex-basis" was honoured and
+   1080px wide, so the item’s floor was 1080px; "flex-basis" was honoured and
    simply outranked, and "flex-shrink:0" meant nothing pulled it back.
 
-   AND THE REASON FIVE SITTINGS MISSED IT: this container's egress denies
+   AND THE REASON FIVE SITTINGS MISSED IT: this container’s egress denies
    Cloudinary, so in every arm run "naturalWidth" was 0, the automatic minimum
    was 0, and the basis won by default. The instrument measured a page whose
    images did not exist and reported PASS -- F-19.39, cured in pv_render by
@@ -851,7 +851,7 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
 
    Proven in isolation, no framework involved: with a real 1080px image and
    "min-width:auto" the item rendered 326px; with "min-width:0" it rendered 104.
-   "width" is belt to the basis's braces. */
+   "width" is belt to the basis’s braces. */
 .pv-strip{display:flex;gap:8px;overflow-x:auto;padding:18px 24px 0;
   scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
   scrollbar-width:none}
@@ -886,7 +886,7 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
    thedreamwedding.in adress with it." One line, 11px, sentence case rather than
    tracked-out caps, which is what made 9px read larger than it measured. */
 /* ⚠ white-space:nowrap IS STRUCK — F-19.p1, CE-39 ruling 1, and it is the half
-   of this defect that actually shifted the page. At the dropped 14px the line's
+   of this defect that actually shifted the page. At the dropped 14px the line’s
    ink measured 484px inside a 326px column and the whole document scrolled
    sideways by 134px. Longhanding the size to 9px is most of the cure, but not
    all of it: measured in a real browser at 9px, the line is 326px in a 326px box
@@ -909,7 +909,7 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
   .pv-shimmer{display:none}
 }
 /* ── F-19.44 · THE INDEX RULES, GENERATED ──────────────────────────────────
-   One set per photograph, and the set is unbounded because the door's portfolio
+   One set per photograph, and the set is unbounded because the door’s portfolio
    query carries no limit. They are built by lib/public/heroSelectRules.mjs
    rather than written here, so that tools/bs_audit.mjs can import the SAME
    function and assert against the SAME bytes -- a generated string interpolated

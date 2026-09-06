@@ -250,7 +250,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
       // only place a refused ping is visible on this surface by design.
       if (result.vendor_notified === false) {
         console.warn(
-          `[enquiry] stored, but the vendor's WhatsApp ping did not leave ` +
+          `[enquiry] stored, but the vendor’s WhatsApp ping did not leave ` +
           `(refusal: ${result.notify_refusal ?? 'unknown'}). His Leads tab still has it.`,
         );
       }

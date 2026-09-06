@@ -46,7 +46,7 @@ export const RF = {
   // B3. Not `Message` — a message implies it is sent to someone as a message.
   // This lands on a record.
   fieldNote: 'Note for them',
-  notePlaceholder: "Why you're passing it on",
+  notePlaceholder: "Why you’re passing it on",
   sendVerb: 'Forward',
   // B6. Two sentences doing two jobs: the first is what the peer sees, the
   // second is R-G51.7 said out loud BEFORE she taps. She will otherwise assume
@@ -58,7 +58,7 @@ export const RF = {
   // deliberately does NOT name where to add a peer — the roster is written by
   // accepting a Collab response and by a manual add, and naming a door this
   // sheet cannot open is worse than naming none.
-  pickerFooter: "Peers you've worked with appear here.",
+  pickerFooter: "Peers you’ve worked with appear here.",
 
   // ── C · THE REFUSAL (veto sheet §C) ───────────────────────────────────────
   // C1 is the sitting's most important sentence and it is three deliberate
@@ -81,10 +81,10 @@ export const RF = {
   // D6. `Both ways` is the load-bearing phrase. A vendor can picture giving work
   // away; she cannot picture the room being where it comes back, and that is the
   // only reason she would open it twice.
-  emptyBody: "When you pass an enquiry to a peer, it's counted here — both ways.",
+  emptyBody: "When you pass an enquiry to a peer, it’s counted here — both ways.",
   // R-38.2's inheritance: a failed read leaves the room standing with one
   // sentence rather than an empty page. Billing paid for that lesson.
-  unavailable: "We couldn't load your forwards just now.",
+  unavailable: "We couldn’t load your forwards just now.",
 
   // ── ⚠ PROPOSED — NOT YET VETOED. THIS IS THE ONE BYTE IN THIS FILE THE
   //      FOUNDER HAS NOT RATIFIED, AND IT IS FLAGGED RATHER THAN SMUGGLED.
@@ -107,7 +107,7 @@ export const RF = {
   //
   // FOUNDER: veto or replace this line. If it is struck, the sheet needs another
   // behaviour for the unreachable codes and that is a ruling, not an edit.
-  refusalGeneric: "That forward didn't go through. Nothing was sent.",
+  refusalGeneric: "That forward didn’t go through. Nothing was sent.",
 } as const;
 
 /**

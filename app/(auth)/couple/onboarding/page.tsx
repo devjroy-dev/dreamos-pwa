@@ -224,7 +224,7 @@ export default function CoupleOnboardingPage() {
               type="text"
               value={partnerName}
               onChange={e => setPartnerName(e.target.value)}
-              placeholder="Partner's name (optional)"
+              placeholder="Partner’s name (optional)"
               autoComplete="off"
               style={{ width:'100%',border:'none',borderBottom:'1px solid rgba(255,255,255,0.18)',background:'transparent',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize:16,color:'#F8F7F5',padding:'8px 0',marginBottom:28 }}
             />

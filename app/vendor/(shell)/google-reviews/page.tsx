@@ -183,10 +183,10 @@ function GoogleReviewsScreen() {
 
       <style>{`
 /* THE LEADS-CARD IDIOM, SHARED WITH THE WEDDING-PAGES ROOM. Every rule below is
-   transcribed from that room's own block, property for property — the two Block
+   transcribed from that room’s own block, property for property — the two Block
    19 rooms are the same room with different rows, and a second set of metrics is
    how they start to drift. Only .gr-note is new: the idiom had no NON-CARD
-   sentence inside a room (.wp-ep is the empty state's), and this room needs four
+   sentence inside a room (.wp-ep is the empty state’s), and this room needs four
    of them. NO MONEY RULE APPEARS ANYWHERE IN THIS FILE — there is no figure on
    this room, so there is no wl-rfig to inherit.
    ⚠ NO BACKTICKS IN THIS BLOCK. It is a template literal, and a backtick in a

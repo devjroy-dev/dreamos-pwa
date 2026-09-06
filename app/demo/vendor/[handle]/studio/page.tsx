@@ -148,7 +148,7 @@ function EnquiryCard({ leads, onInject }: { leads: { name: string | null; weddin
                 <div style={{ fontFamily:F.display, fontWeight:400, fontSize:16, color:'var(--atelier-ink)', lineHeight:1.1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{l.name ?? 'Unnamed'}</div>
                 {l.wedding_date && <div style={{ fontFamily:F.script, fontStyle:'italic', fontSize:10, color:'var(--atelier-ink-mute)', marginTop:1 }}>{l.wedding_date}</div>}
               </div>
-              <button type="button" onClick={() => { onInject(`I'd like to reply to ${l.name ?? 'this enquiry'}. Draft something warm but not pushy.`); setDismissed(true); }} style={{ flexShrink:0, marginLeft:10, padding:'4px 10px', background:'none', border:`0.5px solid ${borderC}`, borderRadius:2, cursor:'pointer', fontFamily:F.label, fontWeight:400, fontSize:8, letterSpacing:'0.22em', textTransform:'uppercase' as const, color: T.isLight ? T.ink : A.brassWarm }}>Reply →</button>
+              <button type="button" onClick={() => { onInject(`I’d like to reply to ${l.name ?? 'this enquiry'}. Draft something warm but not pushy.`); setDismissed(true); }} style={{ flexShrink:0, marginLeft:10, padding:'4px 10px', background:'none', border:`0.5px solid ${borderC}`, borderRadius:2, cursor:'pointer', fontFamily:F.label, fontWeight:400, fontSize:8, letterSpacing:'0.22em', textTransform:'uppercase' as const, color: T.isLight ? T.ink : A.brassWarm }}>Reply →</button>
             </div>
           ))}
         </div>

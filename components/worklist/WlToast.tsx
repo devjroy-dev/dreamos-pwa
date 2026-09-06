@@ -101,7 +101,7 @@ const TOAST_CSS = `
   font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;
   color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-toast.err .wl-toastaction{color:#F1EFEC}
-/* A2's smoke fix, carried: the animation's end-state transform used to REPLACE the
+/* A2's smoke fix, carried: the animation’s end-state transform used to REPLACE the
    centering translate under fill-mode both, so every toast anchored its left edge at 50%
    and clipped off narrow phones. The keyframes carry the centering transform through. */
 @keyframes wlToastIn{from{opacity:0;transform:translate(-50%,-50%) translateY(-8px)}

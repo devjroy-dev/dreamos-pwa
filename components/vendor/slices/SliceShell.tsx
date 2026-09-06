@@ -640,7 +640,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (!sel || deleting) return;
     const row = sel;
     const req = deleteRequest(row);
-    if (req === 'unsupported') { setDeleteMsg("Can't delete from here yet. Use the chat."); return; }
+    if (req === 'unsupported') { setDeleteMsg("Can’t delete from here yet. Use the chat."); return; }
     setSel(null); setConfirmDel(false); setDeleteMsg(null);
     undoableMutation({
       apply:  () => hideRow(row.id),

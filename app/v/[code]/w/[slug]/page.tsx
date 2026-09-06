@@ -556,7 +556,7 @@ function WeddingStyles() {
   border:.5px solid rgba(12,10,9,.26);border-radius:2px;background:#FFFDFB;
   font-family:inherit;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
   color:#0C0A09;text-decoration:none}
-/* ── G1.3 · THE TEAM SHEET. The download's geometry, deliberately: it is the
+/* ── G1.3 · THE TEAM SHEET. The download’s geometry, deliberately: it is the
    same kind of ask one section down and a guest should recognise it. */
 .pw-teamwrap{margin:22px 20px 0}
 .pw-teambtn{display:block;width:100%;min-height:48px;padding:15px 0;background:#0C0A09;
@@ -584,7 +584,7 @@ function WeddingStyles() {
 .pw-box{flex-shrink:0;width:19px;height:19px;margin-top:1px;accent-color:#0C0A09}
 /* THE INK, NOT THE GOLD. My first cut accented this box gold and b42 reddened:
    this page spends its one gold on the section rule and nowhere else, which is
-   the leaf's own ruling and stricter than the house 3x cap. The ink also matches
+   the leaf’s own ruling and stricter than the house 3x cap. The ink also matches
    the submit button the box sits above. */
 .pw-askl{font-size:14px;line-height:1.5;color:#0C0A09}
 .pw-shcta{margin-top:22px;width:100%;min-height:48px;padding:14px 0;background:#0C0A09;color:#F8F7F5;border:none;
@@ -601,7 +601,7 @@ function WeddingStyles() {
             border-radius:2px;text-align:center;font-weight:300;font-size:11px;letter-spacing:.20em;
             text-transform:uppercase;text-decoration:none}
 /* ── R-G12.19 · THE PRESS STATE ─────────────────────────────────────────────
-   THE FOUNDER'S WORDS: "on phone dont even feel like im clicking." A tap target
+   THE FOUNDER’S WORDS: "on phone dont even feel like im clicking." A tap target
    with no pressed state gives a phone nothing between touch and result, and this
    leaf has no script to fill the gap. CSS can, for free.
    The webkit tap-highlight is set to transparent because iOS paints its own grey

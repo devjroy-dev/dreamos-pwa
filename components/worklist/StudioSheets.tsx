@@ -447,7 +447,7 @@ export const SHEET_CSS = `
 .wl-shhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .wl-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
 /* 44px is the tap floor, and the negative offsets pull the GLYPH back to the
-   sheet's optical edge without shrinking the target underneath it. */
+   sheet’s optical edge without shrinking the target underneath it. */
 .wl-shx{width:44px;height:44px;margin:-10px calc(var(--wl-gutter) * -1 + 8px) -10px 0;flex:none;
         display:flex;align-items:center;justify-content:center;background:transparent;border:none;
         border-radius:3px;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
@@ -461,9 +461,9 @@ export const SHEET_CSS = `
 .wl-fi:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-fnum{font-variant-numeric:lining-nums tabular-nums}
 .wl-brow{display:flex;gap:8px}
-/* .wl-btn / .wl-btn2 / :disabled / :focus-visible / .pri HOISTED at P7.2 Arm C into the shell's
-   own scoped CSS (WorklistShell's SHELL_CSS), where .wl-tile and .wl-fab live. They were a
-   shell-wide register scoped to one room; Storefront's bio call reads the same class now.
+/* .wl-btn / .wl-btn2 / :disabled / :focus-visible / .pri HOISTED at P7.2 Arm C into the shell’s
+   own scoped CSS (WorklistShell’s SHELL_CSS), where .wl-tile and .wl-fab live. They were a
+   shell-wide register scoped to one room; Storefront’s bio call reads the same class now.
    Nothing else moved out of this sheet. */
 .wl-btn.gho{border:.5px solid var(--atelier-card-border);color:var(--atelier-ink-soft)}
 .wl-btn.dan{border:.5px solid var(--role-critical);color:var(--role-critical)}

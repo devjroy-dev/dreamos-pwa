@@ -310,7 +310,7 @@ export function MeridianRoom({ accent, dark }: MeridianRoomProps) {
         <div style={{display:'flex',gap:10,alignItems:'flex-end',background:inputBg,border:`0.5px solid ${inputBdr}`,borderRadius:20,padding:'8px 10px 8px 16px'}}>
           <textarea ref={textRef} value={input} onChange={e=>setInput(e.target.value)}
             onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(input);}}}
-            placeholder="Tell me what's troubling you, or what you need…"
+            placeholder="Tell me what’s troubling you, or what you need…"
             disabled={loading} rows={1}
             style={{flex:1,background:'transparent',border:'none',outline:'none',color:ink,fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:16,resize:'none',maxHeight:100,lineHeight:1.5,fontFeatureSettings:'"opsz" 9',userSelect:'text',WebkitUserSelect:'text' as any}}/>
           <button onClick={()=>send(input)} disabled={loading||!input.trim()}

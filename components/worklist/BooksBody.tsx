@@ -264,7 +264,7 @@ function Movement({ m, part }: { m: BooksMovement; part: string }) {
 const BOOKS_CSS = `
 .wl-books{padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:16px}
 /* R-38.5 · THE EDGE. This surface takes NO horizontal margin of its own; the scroll
-   column's gutter is the only inset on this axis, exactly as RoomBody sets up. */
+   column’s gutter is the only inset on this axis, exactly as RoomBody sets up. */
 .wl-bkhead{display:flex;gap:24px;align-items:baseline}
 .wl-bkfig{display:flex;flex-direction:column;gap:4px}
 .wl-bkfiglabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}

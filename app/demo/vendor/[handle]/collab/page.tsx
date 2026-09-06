@@ -82,7 +82,7 @@ export default function DemoCollabPage(){
         <Label>Budget offered (optional)</Label>
         <div style={{display:'flex',gap:8,marginBottom:22}}><input type="number" placeholder="Rs" value={form.budget_inr} onChange={e=>set('budget_inr',e.target.value)} style={{...inputStyle,flex:2}}/><select value={form.payment_period} onChange={e=>set('payment_period',e.target.value)} style={{...selectStyle(inputStyle),flex:1}}>{PAYMENT_PERIODS.map(p=><option key={p} value={p}>{p.replace('_',' ')}</option>)}</select></div>
         <Label>Details (optional)</Label>
-        <textarea value={form.details} onChange={e=>set('details',e.target.value.slice(0,200))} placeholder="Describe what you're looking for…" rows={3} style={{...inputStyle,resize:'none' as const,marginBottom:22}}/>
+        <textarea value={form.details} onChange={e=>set('details',e.target.value.slice(0,200))} placeholder="Describe what you’re looking for…" rows={3} style={{...inputStyle,resize:'none' as const,marginBottom:22}}/>
         {(!form.requirement_type||!form.event_date||!form.city)&&<div style={{fontFamily:F.script,fontStyle:'italic',fontWeight:300,fontSize:13,color:A.red,marginBottom:14}}>Please fill in what you need, the date, and the city.</div>}
         <button type="button" onClick={handleSubmit} disabled={!form.requirement_type||!form.event_date||!form.city} className="atelier-fab" style={{width:'100%',padding:'14px 0',borderRadius:2,border:'0.5px solid var(--atelier-label)',cursor:(!form.requirement_type||!form.event_date||!form.city)?'default':'pointer',fontFamily:F.label,fontWeight:400,fontSize:10,color:'#1A120E',letterSpacing:'0.5em',textTransform:'uppercase',opacity:(!form.requirement_type||!form.event_date||!form.city)?0.6:1}}>Post Requirement</button>
       </div>

@@ -374,11 +374,11 @@ sec('§6 · THE VETOED COPY, BYTE-EXACT (founder 2026-07-29 「 1.ok 」)');
 {
   const m = raw(MANAGER);
   const slots = {
-    A2: "You've reached ${max} photos. Remove one to add another.",
+    A2: "You’ve reached ${max} photos. Remove one to add another.",
     B2: 'Photo added — with our team for review',
-    B3: "That upload didn't go through. Try again.",
+    B3: "That upload didn’t go through. Try again.",
     C1: 'Remove this photo?',
-    C2: "It leaves your portfolio and Discover straight away. This can't be undone.",
+    C2: "It leaves your portfolio and Discover straight away. This can’t be undone.",
     C5: 'Photo removed',
     D1: 'A line about this photo — optional.',
     E1: 'COVER',

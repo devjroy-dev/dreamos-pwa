@@ -93,7 +93,7 @@ ok(/const firstName = \(name\.trim\(\) \|\| getBrideName\(\)\)/.test(FORM)
 ok(!/setFirstName/.test(FORM) || 'firstName is still stored in state',
    '7b.2 it is DERIVED per render, never stored — stored is what let the two disagree');
 // The founder-ruled bytes must not move while the SOURCE of the name changes.
-ok(FORM.includes("`You're all set, ${firstName}.`") && FORM.includes('"You\'re all set."'),
+ok(FORM.includes("`You’re all set, ${firstName}.`") && FORM.includes('"You’re all set."'),
    '7b.3 the done-screen bytes are unchanged, both arms');
 ok(FORM.includes('`Hi ${firstName}.`') && FORM.includes("'Welcome.'"),
    '7b.4 the greeting bytes are unchanged, both arms');

@@ -3591,7 +3591,7 @@ cell('C86 mark-paid reports the expense leg, and undefined is not false', () => 
   if (!/logged === false/.test(src))
     bad.push('the surface does not distinguish false from undefined — an older backend would read as a failed expense on every settlement');
   for (const [k, v] of [['studioToastPaidLogged', 'Marked as paid.'],
-                        ['studioToastPaidNoExpense', "Marked as paid — the expense wasn't logged."]]) {
+                        ['studioToastPaidNoExpense', "Marked as paid — the expense wasn’t logged."]]) {
     if (!copy.includes(v)) bad.push('copy.ts no longer carries the ruled byte 「' + v + '」');
     if (!new RegExp('COPY\\.' + k).test(src)) bad.push('the surface does not read COPY.' + k);
   }
@@ -3656,7 +3656,7 @@ cell('C88 the PDF sentences live in the register, and neither is spelled at a ca
   const src  = strip(read('components/vendor/slices/SliceShell.tsx'));
   const copy = strip(read('lib/worklist/copy.ts'));
   const bad = [];
-  if (!copy.includes("Couldn't prepare the PDF just now. Try again in a moment."))
+  if (!copy.includes("Couldn’t prepare the PDF just now. Try again in a moment."))
     bad.push('the register lost the ruled fallback byte');
   if (!copy.includes('PDF not ready yet — record the advance first.'))
     bad.push('the register lost the unchanged precondition byte');
@@ -3717,6 +3717,141 @@ cell('C81 tools/base_guard.sh is byte-identical in both repos (R-38.20)', () => 
 //      home == CHECK    — asserted in dream-os `b48` §1.2, NOT duplicated here. This
 //                         cell trusts the sibling's own floor for that leg and says so.
 //    RED MUTATION: add a token to either list, or re-order one of them.
+// ── C102 · NO STRAIGHT APOSTROPHE SURVIVES IN A SHIPPED PROSE BYTE ─────────
+//
+// R-40.57 as amended (arm 2). R-40.19 asks for the typographic apostrophe and
+// the rule had NEVER ONCE SHIPPED — zero curly marks outside comments in the
+// whole estate (F-40.124). The ruling first named five copy homes; deriving the
+// radius by command found 171 shipped bytes OUTSIDE them against 8 inside, and a
+// SIXTH copy home nobody had named (F-40.131). R-40.64 is the law that came out
+// of it: derive a radius by command before ruling it.
+//
+// ⚠ A REGEX CANNOT GUARD THIS, AND REACHING FOR ONE IS THE TRAP. `it's` in a
+// COMMENT and `it's` in a SHIPPED BYTE are identical to a pattern and OPPOSITE
+// under the ruling — comments are prose and explicitly untouched. In the five
+// original homes alone, 152 of 160 sites were comment prose. A `sed` would have
+// rewritten all 160 and been called green by any grep-shaped cell.
+//
+// So this walks the source character by character, tracking line comments, block
+// comments and string literals, and flags an apostrophe ONLY inside a literal.
+// It is the SAME LEXER the pass used, so the guard and the cure share one
+// definition of "shipped" — the only way the two can agree.
+//
+// ⚠ TWO EXCLUSIONS, EACH WITH ITS REASON, because an unexplained exclusion is a
+// hole someone widens later:
+//   · lib/mocks/**  — fixtures. Never on glass, nothing for the rule to protect.
+//   · app/admin/**  — the cockpit is TDW'S OWN surface, not a vendor's and not a
+//                     couple's. It joins at Block 09's admin pass. FILED, not
+//                     forgotten: 15 straight apostrophes sit in the two excluded
+//                     trees today and are deliberate, not missed.
+// dream-os's TEMPLATE BODIES are excluded by rule and unreachable from here:
+// those bytes must equal what Meta holds character for character, and an
+// apostrophe changed after approval is a mismatch at send.
+cell('C102 no straight apostrophe survives in a shipped prose byte, comments untouched (R-40.57)', () => {
+  const ROOTS = ['lib', 'components', 'app'];
+  const EXCLUDED = [
+    'lib/mocks/',
+    'app/admin/',
+    // ⚠ THE SANCTUARY PAGE IS BYTE-FROZEN AGAINST A FOUNDER VETO, and that is a
+    // stronger claim than this rule. `tdw15_p3_pulse` §1 pins the whole
+    // 4,300-line file byte-identical at `94dd738` — the tree the founder's
+    // masthead veto was given against — and its severity is deliberate.
+    //
+    // The pass changed two apostrophes there and the freeze reddened, CORRECTLY.
+    // Re-pinning `APPROVED` to make this pass green would dissolve a founder
+    // protection to suit an instrument, which is the worst way to quiet a bench;
+    // comparing comment-stripped text would be an edit to another arc's
+    // instrument. So the page is EXCLUDED and its two apostrophes are owed
+    // (F-40.133) on the day that freeze is re-pinned by the founder's own word —
+    // not before, and not by this seat.
+    'app/(frost)/frost/canvas/sanctuary/page.tsx',
+  ];
+
+  const HOMES = [];
+  function walk(dir) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const full = dir + '/' + e.name;
+      if (EXCLUDED.some((x) => full.startsWith(x))) continue;
+      if (e.isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(e.name)) HOMES.push(full);
+    }
+  }
+  for (const r of ROOTS) walk(r);
+
+  // The walk must actually reach the tree. A cell that silently scanned nothing
+  // would go green, which is exactly how this rule stayed unshipped for the
+  // estate's life — no instrument ever looked.
+  if (HOMES.length < 200) {
+    return 'the apostrophe walk found only ' + HOMES.length + ' files — it is not '
+         + 'reaching the tree, and a green here would mean nothing';
+  }
+
+  function inStringApostrophes(src) {
+    const hits = [];
+    let i = 0, lineC = false, blockC = false, quote = null;
+    while (i < src.length) {
+      const c = src[i], nxt = src[i + 1] || '';
+      if (lineC) { if (c === '\n') lineC = false; }
+      else if (blockC) { if (c === '*' && nxt === '/') { blockC = false; i++; } }
+      else if (quote) {
+        if (c === '\\') { i += 2; continue; }
+        if (c === quote) quote = null;
+        else if (c === "'" && quote !== "'") {
+          const prev = src[i - 1] || '';
+          if (/[A-Za-z]/.test(prev) && /[A-Za-z]/.test(nxt)) {
+            hits.push(src.slice(0, i).split('\n').length);
+          }
+        }
+      } else {
+        if (c === '/' && nxt === '/') { lineC = true; i++; }
+        else if (c === '/' && nxt === '*') { blockC = true; i++; }
+        else if (c === '"' || c === "'" || c === '`') quote = c;
+      }
+      i++;
+    }
+    return hits;
+  }
+
+  const bad = [];
+  for (const f of HOMES) {
+    const src = read(f);   // RAW — strip() would remove the comments this cell
+                           // must prove it does NOT flag.
+    for (const line of inStringApostrophes(src)) bad.push(f + ':' + line);
+  }
+  if (bad.length) {
+    return 'straight apostrophe in a shipped byte — R-40.19 asks for the typographic '
+         + 'one and a vendor sees both spellings on one sheet: ' + bad.slice(0, 6).join(', ')
+         + (bad.length > 6 ? ' (+' + (bad.length - 6) + ' more)' : '');
+  }
+
+  // And the rule must be VISIBLE, not merely satisfiable by files with no
+  // contractions in them.
+  if (!HOMES.some((f) => /\u2019/.test(read(f)))) {
+    return 'no typographic apostrophe anywhere in the shipped tree — the cell is '
+         + 'passing vacuously, which is how R-40.19 went unshipped estate-wide';
+  }
+  return null;
+});
+
+// ⚠ C86 AND C88'S PINNED LITERALS CARRY THE TYPOGRAPHIC APOSTROPHE FROM R-40.57.
+// Both pin a founder-ruled byte CHARACTER FOR CHARACTER — their whole job — and
+// both reddened the moment the pass lifted the mark. They were RIGHT to: a ruled
+// byte changed under them.
+//
+// ⚠ THIS IS THE OPPOSITE OF "APPENDING TO QUIET A BENCH", WHICH THIS SEAT REFUSED
+// TWICE THIS ARC. There the cell was WRONG ABOUT THE WORLD — it counted files
+// that NAMED a table rather than files that CALLED it — and the cure was to fix
+// the assertion. Here the cell is RIGHT and THE WORLD CHANGED BY RULING: the
+// byte's words are untouched and only the glyph moved, so a cell still pinning
+// the old glyph would be pinning a byte that no longer exists and forbidding
+// R-40.57 in the same breath. The literal follows; the assertion is unchanged.
+//
+// The test for which case you are in: does the cell still say the same TRUE thing
+// after the edit? C86 still asserts the register carries the ruled toast. The
+// sole-writer cell, before its fix, asserted something that was never true.
+
 // ── C101 · NO VENDOR-AUTHORED SENTENCE IS TITLE-CASED ON A RECORD ───────────
 //
 // F-40.119, chair-ruled estate-wide 2026-09-06. `DetailSheet.tsx` runs `cap()`

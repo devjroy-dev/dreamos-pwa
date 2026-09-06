@@ -252,7 +252,7 @@ function ConsentStyles() {
 .cs-decline{margin-top:12px;width:100%;min-height:48px;padding:14px 0;background:transparent;border:.5px solid #E07B5C;color:#B4573A;
             border-radius:2px;font-weight:300;font-size:11px;letter-spacing:.20em;text-transform:uppercase;cursor:pointer}
 .cs-cta[disabled],.cs-decline[disabled]{opacity:.55}
-/* Terracotta, the estate's own refusal ink — the value the decline button
+/* Terracotta, the estate’s own refusal ink — the value the decline button
    carries and the one CalendarBands paints a declined ring in. Not red. */
 .cs-failed{margin-top:14px;font-size:14px;line-height:1.5;color:#B4573A}
 /* ── THE CHECK AND THE DISCLAIMER (R-40.48) ────────────────────────────────

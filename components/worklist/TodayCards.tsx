@@ -376,12 +376,12 @@ const FEED_CSS = `
 .wl-tcgate{grid-column:1/-1;border-top:.5px solid var(--atelier-card-border);margin-top:11px;padding-top:11px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .wl-tcgateline{font:var(--wl-t5);color:var(--atelier-ink-mute)}
 /* F-39.22 RETIRED HERE. This declaration shipped at .32em, carried without re-derivation
-   from SliceShell's own See-plans block — which is main-side and legitimately tracked at
+   from SliceShell’s own See-plans block — which is main-side and legitimately tracked at
    that value. In the shell it was the sole outlier against fourteen declarations at .08em.
    A main-side tracking crossing into a branch-side surface is the class of drift R-38.4
-   exists to catch, and the census is the finding's text. */
+   exists to catch, and the census is the finding’s text. */
 .wl-tcgatecta{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-accent-text);white-space:nowrap}
-/* R-39.14 · THE FOLD. Hidden rows stay in the DOM in the wire's order, so opening cannot
+/* R-39.14 · THE FOLD. Hidden rows stay in the DOM in the wire’s order, so opening cannot
    re-rank anything. */
 [data-foldscope][data-open="0"] .wl-tfolded{display:none}
 .wl-tfoldbtn{display:flex;align-items:center;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);background:none;border:none;cursor:pointer;padding:0}

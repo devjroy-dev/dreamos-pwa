@@ -128,7 +128,7 @@ export const COPY = {
   // zero reading and NO reading. Sentence recut to a contraction with the promotion to t1:
   // it is the surface's loudest line now, and 「is not」 at that stature reads as a notice
   // rather than as speech.
-  todayNotLive: "Today isn't reading your work yet.",
+  todayNotLive: "Today isn’t reading your work yet.",
   // ── ⚠ WITHHELD BY RULE · CE-38 S2/2 RELAY #3 ITEM 2 ──────────────────────
   // THE TRUE-EMPTY STATE. It is the only line in this file that makes a claim about the
   // vendor's actual work, and it must not reach her until something has read that work.
@@ -605,7 +605,7 @@ export const COPY = {
   // F-39.26's class in a type, and card ⑤ asserts the row lands — so the arm
   // that could not be seen now has a byte of its own.
   studioToastPaidLogged:    'Marked as paid.',
-  studioToastPaidNoExpense: "Marked as paid — the expense wasn't logged.",
+  studioToastPaidNoExpense: "Marked as paid — the expense wasn’t logged.",
   // ── CANCEL, NOT DELETE — THE WORDS FOLLOW THE WRITE ───────────────────────
   // `public.team_payments` has THIRTEEN columns and none of them is
   // `deleted_at` (PUBLIC_SCHEMA.md, witnessed by ordinal); `PATCH /:id/cancel`
@@ -661,7 +661,7 @@ export const COPY = {
   //
   // `studioPdfNoAdvance` is UNCHANGED wording. A real precondition is not the
   // same defect as an invented state — it moves for the one-home law alone.
-  studioPdfFailed:      "Couldn't prepare the PDF just now. Try again in a moment.",
+  studioPdfFailed:      "Couldn’t prepare the PDF just now. Try again in a moment.",
   studioPdfNoAdvance:   'PDF not ready yet — record the advance first.',
   contractsTitle:  'Contracts',
   tdsTitle:        'TDS',

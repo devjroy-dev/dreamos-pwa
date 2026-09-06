@@ -86,7 +86,7 @@ export default function VendorPinPage() {
     if (pinStr.length < 4 || confirmStr.length < 4) return;
     if (pinStr !== confirmStr) {
       setShaking(true); setTimeout(() => setShaking(false), 400);
-      showToast("PINs don't match — try again");
+      showToast("PINs don’t match — try again");
       setConfirm(['', '', '', '']); setStage('pin'); setPin(['', '', '', '']);
       setTimeout(() => pinRefs.current[0]?.focus(), 80);
       return;

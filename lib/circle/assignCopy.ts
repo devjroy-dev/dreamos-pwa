@@ -68,7 +68,7 @@ export const ASSIGN_ASK = 'Ask someone';
 
 /** Ⓑ The picker's head. A question, because she is choosing a person and the
  *  screen should sound like the thought she is already having. */
-export const ASSIGN_PICKER_HEAD = "Who's doing this?";
+export const ASSIGN_PICKER_HEAD = "Who’s doing this?";
 
 /** Ⓒ The un-assign row, and it sits in the SAME list as the names rather than
  *  as a destructive action elsewhere: taking a task back is a choice among the

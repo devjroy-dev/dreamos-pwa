@@ -91,7 +91,7 @@ const F = {
 // the next sitting's veto card is written against these, not against the screen.
 const COPY = {
   A1: (n: number, max: number) => `${n} of ${max} photos`,
-  A2: (max: number) => `You've reached ${max} photos. Remove one to add another.`,
+  A2: (max: number) => `You’ve reached ${max} photos. Remove one to add another.`,
   B1: 'Uploading…',
   // F2-1/2/3 — the batch set. Founder-vetoed byte-exact 2026-07-29 (F-2's cure).
   // Single-file uploads keep B1/B2; these render only for a batch of two or more.
@@ -99,9 +99,9 @@ const COPY = {
   F2_2: (n: number) => `${n} photos added — with our team for review.`,
   F2_3: (r: number) => `Room for ${r} more — adding the first ${r}.`,
   B2: 'Photo added — with our team for review',
-  B3: "That upload didn't go through. Try again.",
+  B3: "That upload didn’t go through. Try again.",
   C1: 'Remove this photo?',
-  C2: "It leaves your portfolio and Discover straight away. This can't be undone.",
+  C2: "It leaves your portfolio and Discover straight away. This can’t be undone.",
   C3: 'Remove',
   C4: 'Keep',
   C5: 'Photo removed',
@@ -128,7 +128,7 @@ const COPY = {
   // They are kept here so the action sitting inherits an executed veto instead of
   // re-running the founder's copy card. H4-H11 were never drafted into code.
   H1: 'Import from Instagram',
-  H2: "Instagram only allows this for professional accounts — business or creator. If yours is personal, switching is free and takes a minute in Instagram's own settings.",
+  H2: "Instagram only allows this for professional accounts — business or creator. If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
   // H3 — THE LOAD-BEARING ONE. The addendum's law is "MANUAL UPLOAD IS THE
   // PERMANENT FALLBACK, NEVER A WALL". These are the founder's own bytes,
   // chosen over the drafted alternative, and they sit ABOVE the connect action
@@ -161,7 +161,7 @@ const COPY = {
   H7:  'Add {n} to my portfolio',                               // VETOED 2026-07-30
   H8:  'Imported photos are live on Discover now.',             // VETOED 2026-07-30 (clause 「 3. visible 」)
   H9:  '{n} added. {f} could not be copied — you can upload those from your phone.', // VETOED 2026-07-30
-  H10: "We couldn't reach Instagram just now.",                 // VETOED 2026-07-30
+  H10: "We couldn’t reach Instagram just now.",                 // VETOED 2026-07-30
   H11: 'Your Instagram connection has expired. Connect again to import more photos.', // VETOED 2026-07-30
   H13: 'Disconnect Instagram',                                  // VETOED 2026-07-30
   H14: 'Instagram disconnected. Your photos stay where they are.', // VETOED 2026-07-30

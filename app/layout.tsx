@@ -95,7 +95,7 @@ export default function RootLayout({
   // F-19.41. THE PUBLIC STOREFRONT LANE, and its absence was the leak. Every
   // branch below names an app surface; /v/ and /r/ matched none, so a couple
   // arriving from a WhatsApp forward inherited the static theme-color three
-  // lines up - the app's near-black - painted above a cream page.
+  // lines up - the app’s near-black - painted above a cream page.
   //
   // This is F-19.36's shape a second time and the cure is the same in kind: the
   // root layout is TOLD which of its children are not the app, rather than
@@ -103,7 +103,7 @@ export default function RootLayout({
   // F-40.52 (Block 19 G1.1, 2026-09-05). THE THIRD PUBLIC LANE, and the comment
   // above says C38 refuses a third instance — it did not, because C38's census
   // named /v/ and /r/ and had never heard of /credits/. A claim page reached by
-  // WhatsApp is exactly the arrival this branch exists for: cream page, app's
+  // WhatsApp is exactly the arrival this branch exists for: cream page, app’s
   // near-black in the browser chrome, from a link a stranger was sent.
   // The name stays isPublicStorefront rather than growing a second flag: one
   // predicate, one question — is this path outside the app.
@@ -136,19 +136,19 @@ export default function RootLayout({
     bg=PUBLIC_BG;
   } else if(isLanding){
     // TDW_09 O-1 - R-O7 (F-09.39(b), R-T6). The public landing stands on #0C0A09 and
-    // wore Frost's Wine Night in the browser chrome, because none of the three branches
+    // wore Frost’s Wine Night in the browser chrome, because none of the three branches
     // above matches the root path. The cure is a landing BRANCH, deliberately NOT a
     // change to the static default on the theme-color meta tag: that default is what
     // four other lanes inherit (demo, circle, crew, privacy) and this sitting charters
     // one lane.
     //
     // NAMED GAP, FILED NOT CURED - F-09.41: the demo lane still inherits #1E0A0E while
-    // its pinned-dark page is #1F1612. Pre-existing, outside this charter's radius,
-    // homed to the demo lane's next touch.
+    // its pinned-dark page is #1F1612. Pre-existing, outside this charter’s radius,
+    // homed to the demo lane’s next touch.
     //
     // NOTE FOR ANYONE EDITING THIS COMMENT: it lives inside a template literal. A
     // backtick, or a dollar sign followed by a brace, breaks the build from inside a
-    // comment. tsc caught exactly that on this comment's first two drafts.
+    // comment. tsc caught exactly that on this comment’s first two drafts.
     bg=LANDING_BG;
   }
   if(bg){

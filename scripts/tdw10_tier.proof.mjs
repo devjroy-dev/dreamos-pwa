@@ -362,9 +362,9 @@ section('§4  M2 — THE DATA PATH (rendered strings HELD for the veto)');
   for (const [k, v] of [
     ['none',      'Not set up yet.'],
     ['active',    'Active. Renews monthly.'],
-    ['pending',   "Payment didn't go through. Retrying — nothing changes yet."],
-    ['halted',    "Payment failed. You're on Basic."],
-    ['cancelled', "Cancelled. You're on Basic."],
+    ['pending',   "Payment didn’t go through. Retrying — nothing changes yet."],
+    ['halted',    "Payment failed. You’re on Basic."],
+    ['cancelled', "Cancelled. You’re on Basic."],
   ]) {
     ok(`status "${k}" renders its vetoed sentence verbatim`, ss.includes(v), v);
   }

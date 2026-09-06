@@ -64,7 +64,7 @@ function fmtShort(s: string) {
 
 // COPY (founder veto ANSWERED YES, 2026-07-22 — all six as proposed):
 const UNTITLED   = 'Untitled wedding';
-const EMPTY_BOARD = "No weddings on the board. Link a booking to a client's binder and it becomes a band.";
+const EMPTY_BOARD = "No weddings on the board. Link a booking to a client’s binder and it becomes a band.";
 const LOOSE_LABEL = 'Loose engagements';
 
 /** Indian-grouped rupees: 125000 -> "₹1,25,000". */

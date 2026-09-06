@@ -78,8 +78,8 @@ sec('§1 · THE SEVEN BYTES — frozen at the CHARACTER (founder sheet, 2026-08-
 // a cell that only greps for the string would pass on a comment quoting it.
 ok('§1.Ⓐ ASSIGN_ASK is exactly `Ask someone`',
    cCOPY.includes("export const ASSIGN_ASK = 'Ask someone';"));
-ok('§1.Ⓑ ASSIGN_PICKER_HEAD is exactly `Who\'s doing this?`',
-   cCOPY.includes('export const ASSIGN_PICKER_HEAD = "Who\'s doing this?";'));
+ok('§1.Ⓑ ASSIGN_PICKER_HEAD is exactly `Who’s doing this?`',
+   cCOPY.includes('export const ASSIGN_PICKER_HEAD = "Who’s doing this?";'));
 ok('§1.Ⓒ ASSIGN_NO_ONE is exactly `No one`',
    cCOPY.includes("export const ASSIGN_NO_ONE = 'No one';"));
 ok('§1.Ⓔ ASSIGN_TRAY_HEAD is exactly `Yours`',
@@ -95,7 +95,7 @@ sec('§2 · ONE HOME — pollCopy\'s pattern, and the freeze is mechanical');
 // The whole point of a copy home: if a surface carries its own literal, the
 // veto is enforceable only by reading both files and hoping.
 for (const [rel, src] of [[BLOOM, cBLOOM], [TRAY, cTRAY]]) {
-  for (const lit of ['Ask someone', 'No one', 'Yours', "Who's doing this?"]) {
+  for (const lit of ['Ask someone', 'No one', 'Yours', "Who’s doing this?"]) {
     ok(`§2.1 ${rel.split('/').pop()} carries no literal of its own — \`${lit}\``,
        !src.includes(lit), 'a second home for a frozen byte');
   }
@@ -377,7 +377,7 @@ function mutate(rel, from, to, label) {
 // ── the frozen bytes ──────────────────────────────────────────────────────
 mutate(COPY, "export const ASSIGN_ASK = 'Ask someone';", "export const ASSIGN_ASK = 'Delegate this';",
        '§9.M1 [FROZEN Ⓐ] move the vetoed byte                    ⇒ §1 RED');
-mutate(COPY, 'export const ASSIGN_PICKER_HEAD = "Who\'s doing this?";',
+mutate(COPY, 'export const ASSIGN_PICKER_HEAD = "Who’s doing this?";',
        'export const ASSIGN_PICKER_HEAD = "Who should do this?";',
        '§9.M2 [FROZEN Ⓑ] one word of the head                    ⇒ §1 RED');
 mutate(COPY, "export const ASSIGN_TRAY_HEAD = 'Yours';", "export const ASSIGN_TRAY_HEAD = 'Your tasks';",

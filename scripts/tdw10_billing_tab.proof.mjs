@@ -296,7 +296,7 @@ sec('§7 · THE COPY, AND THE PURE MOVE');
   // each string is asserted present in its own home AND absent from both others.
   const vetoed = ['Rs 999 / month', 'Rs 1,999 / month', 'Rs 2,999 / month',
                   'Choose a plan', 'Keep my plan'];
-  const VETOED_IN_RESOLVER = ["Cancelled. You're on Basic.", "Payment failed. You're on Basic."];
+  const VETOED_IN_RESOLVER = ["Cancelled. You’re on Basic.", "Payment failed. You’re on Basic."];
   const callers = ['app/vendor/billing/page.tsx', 'app/vendor/settings/page.tsx',
                    'app/vendor/more/page.tsx', 'components/vendor/Header.tsx']
     .filter(p => /<SubscriptionCard/.test(R(p)));
@@ -439,9 +439,9 @@ sec('§9 · THE PAIR — the status line reads tier AND billing_status (F-10.110
   execCell('9.4', () => [
     call('basic', 'none').status      === 'Not set up yet.',
     call('basic', 'active').status    === 'Active. Renews monthly.',
-    call('basic', 'pending').status   === "Payment didn't go through. Retrying — nothing changes yet.",
-    call('basic', 'halted').status    === "Payment failed. You're on Basic.",
-    call('basic', 'cancelled').status === "Cancelled. You're on Basic.",
+    call('basic', 'pending').status   === "Payment didn’t go through. Retrying — nothing changes yet.",
+    call('basic', 'halted').status    === "Payment failed. You’re on Basic.",
+    call('basic', 'cancelled').status === "Cancelled. You’re on Basic.",
     call('basic', 'cancelled').note   === 'Moved to Basic — subscription cancelled. Profile and leads unchanged. AI is off on Basic.',
     call('basic', 'halted').note      === 'Moved to Basic — subscription stopped after failed payments. Profile and leads unchanged. AI is off on Basic.',
   ].every(Boolean),
@@ -461,8 +461,8 @@ sec('§9 · THE PAIR — the status line reads tier AND billing_status (F-10.110
   // land on the floor sentences; a `tier !== 'basic'` test would classify both
   // as paid and tell a vendor mid-load that her plan is still on.
   execCell('9.6', () => ['', 'trial', 'basic'].every(t =>
-       call(t, 'cancelled').status === "Cancelled. You're on Basic."
-    && call(t, 'halted').status === "Payment failed. You're on Basic."),
+       call(t, 'cancelled').status === "Cancelled. You’re on Basic."
+    && call(t, 'halted').status === "Payment failed. You’re on Basic."),
     "⚡ '' and 'trial' land on the FLOOR arm with 'basic' — the pre-fetch frame does not regress");
 
   // 9.7 — THE `??` FALLBACK IS GONE, both halves. It did not absorb neutrally;

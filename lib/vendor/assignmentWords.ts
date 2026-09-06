@@ -18,7 +18,7 @@ export type ConfirmationState = 'pending' | 'confirmed' | 'declined';
 export const CONFIRMATION_WORDS: Record<string, string> = {
   pending:   'Awaiting confirmation',
   confirmed: 'Confirmed',
-  declined:  "Can't make it",
+  declined:  "Can’t make it",
 };
 
 /** An unknown state reads as awaiting — never blank, never the raw enum. */

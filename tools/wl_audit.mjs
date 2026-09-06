@@ -700,7 +700,7 @@ async function coverage() {
     'needing you today', 'New here? Today has a short guide',
     'your 24/7 enquiry desk', 'how couples see you',
     'Every part of your business has a room',
-    "Cancelled. You're on Basic.", "Payment failed. You're on Basic.",
+    "Cancelled. You’re on Basic.", "Payment failed. You’re on Basic.",
     'Moved to Basic \u2014 subscription cancelled', 'Free \u2014 no AI',
     // ── R-38.17's SET, ADDED AT S2/2 ──────────────────────────────────────
     // Four Today bytes and two card bodies. `Your morning brief.` and

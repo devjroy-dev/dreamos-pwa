@@ -372,7 +372,7 @@ function CoplannerSignIn({ expired, onSuccess }: {
       // below rather than the expired path.
       const sd = sr.status === 401 ? { success: false } : await sr.json();
       if (!sd.success) {
-        setError("Couldn't load your Circle. Try again or use your invite link.");
+        setError("Couldn’t load your Circle. Try again or use your invite link.");
         setStep('phone');
         return;
       }

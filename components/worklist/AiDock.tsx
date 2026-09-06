@@ -81,7 +81,7 @@ export function AiDock({ mode }: { mode: 'dark' | 'light' }) {
 // ABOUT a syntax inside that syntax has cost a compile. ZIP 14 ⑧ named the family; the
 // type floor has caught every instance.)
 const DOCK_CSS = `
-/* R-38.5 · THE EDGE. The dock's horizontal padding IS the gutter, so the field's left
+/* R-38.5 · THE EDGE. The dock’s horizontal padding IS the gutter, so the field’s left
    border shares one x with the wordmark above it and the first tile between them. It was
    12px against a 22px header, which is exactly the kind of near-miss that reads as
    sloppiness without ever being nameable by eye. */

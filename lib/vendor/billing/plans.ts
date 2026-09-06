@@ -102,11 +102,11 @@ export const V2 = {
   confirm: (label: string, price: string) =>
     `This opens a Razorpay page to approve ${label} — ${price}. You approve once; it renews every month until you cancel.`,
   cancelWarn: (label: string) =>
-    `Cancel ${label}? Your plan stops and you move to Basic. This can't be undone — starting again means setting up a new monthly payment.`,
+    `Cancel ${label}? Your plan stops and you move to Basic. This can’t be undone — starting again means setting up a new monthly payment.`,
   cancelYes: 'Cancel my plan',
   cancelNo:  'Keep my plan',
   upgradeExplain: (label: string, price: string) =>
-    `Moving to ${label} stops your current plan first, then opens a new page to approve ${price}. Until you approve it, you're on Basic.`,
+    `Moving to ${label} stops your current plan first, then opens a new page to approve ${price}. Until you approve it, you’re on Basic.`,
   // The failure set. Never a false done — and never a false "nothing happened", which is
   // the harder half. `mintFailedAfterCancel` is Fork U(a)'s priced seam in her own words:
   // without it she would read a generic error, assume her old plan survived, and be wrong
@@ -116,9 +116,9 @@ export const V2 = {
   // surface without mounting a toast silently swallows all five — a failed cancel that
   // looks like nothing happened. HONEST CONTROLS (CE-209): the mount is asserted by cell
   // at every caller, not trusted.
-  mintFailed:   "Couldn't reach Razorpay just now. Nothing has changed — try again in a moment.",
-  cancelFailed: "Couldn't cancel just now. Your plan is unchanged — try again in a moment.",
+  mintFailed:   "Couldn’t reach Razorpay just now. Nothing has changed — try again in a moment.",
+  cancelFailed: "Couldn’t cancel just now. Your plan is unchanged — try again in a moment.",
   mintFailedAfterCancel: (label: string) =>
-    `Your old plan is already stopped and the new one didn't open. You're on Basic for now — tap ${label} again to finish.`,
+    `Your old plan is already stopped and the new one didn’t open. You’re on Basic for now — tap ${label} again to finish.`,
   notOpenYet: 'Plan changes are not open yet.',
 };

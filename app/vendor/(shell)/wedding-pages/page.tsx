@@ -753,7 +753,7 @@ function WeddingPagesStyles() {
 .wp-room{padding-top:20px;padding-bottom:28px}
 .wp-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
 .wp-sec+.wp-row{margin-bottom:var(--wl-step)}
-/* ── G1.3 · the two new sections, the sheet's own idiom ── */
+/* ── G1.3 · the two new sections, the sheet’s own idiom ── */
 .wp-g13{margin-top:22px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
 .wp-note{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);margin:0 0 10px}
 .wp-note.wp-err{color:var(--atelier-danger,#B4453C)}
@@ -779,7 +779,7 @@ function WeddingPagesStyles() {
 .wp-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
 .wp-shx{font:var(--wl-t2);color:var(--atelier-ink-fade);line-height:1;background:none;border:none;cursor:pointer;min-width:44px;min-height:44px}
 .wp-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block;margin-bottom:5px}
-/* AddSheet's gold asterisk, in the shell's own token rather than a hex literal. */
+/* AddSheet’s gold asterisk, in the shell’s own token rather than a hex literal. */
 .wp-req{color:var(--role-metal)}
 .wp-fi{background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
        padding:10px 12px;font:var(--wl-t3);color:var(--atelier-ink);margin-bottom:12px;width:100%;min-height:44px;display:block}
@@ -823,7 +823,7 @@ function WeddingPagesStyles() {
    cannot copy is worse than no link at all. */
 .wp-consenturl{font:var(--wl-t5);color:var(--atelier-accent-text);margin-top:6px;
                word-break:break-all;user-select:all}
-/* The picker's truncation tell (R-G12.8). Quiet: it is a fact about the list,
+/* The picker’s truncation tell (R-G12.8). Quiet: it is a fact about the list,
    not a warning about her data. */
 .wp-pickernote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:-2px 0 12px;line-height:1.45}
 .wp-clist{margin-top:14px}

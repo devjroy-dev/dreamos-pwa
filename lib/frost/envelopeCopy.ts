@@ -54,10 +54,10 @@ export const ENVELOPE_COPY = {
   // ── THE FOUR RULED STRINGS · R-34.30, chair-checked ───────────────────────
   /** S1 · The envelope list's empty state. The room opens empty by ruling, so
    *  this line is what stands where seeded names would have been. */
-  emptyEnvelopes: "Envelopes hold what you've set aside. Make your first.",
+  emptyEnvelopes: "Envelopes hold what you’ve set aside. Make your first.",
   /** S2 · The unfiled tray's empty state. It says the GOOD state quietly: an
    *  empty tray is the finished condition, not a missing feature. */
-  emptyTray: "Everything's filed.",
+  emptyTray: "Everything’s filed.",
   /** S3 · On the receipt row, once. R-34.22's untyped emptiness, reported
    *  rather than complained about: there is no OCR on any plane (R-34.7), so a
    *  photo without an amount is the NORMAL state of a freshly filed receipt.

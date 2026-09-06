@@ -103,27 +103,27 @@ export function RoomsGrid() {
 
 const GRID_CSS = `
 /* ZIP 14 · F-16.39's cure stands: LONGHAND padding only. This line once read
-   "padding:18px 0 28px", and the shorthand's horizontal 0 overrode the gutter
-   ".wl-main > *" supplies — flush to both screen edges for twelve ZIPs, in the founder's
+   "padding:18px 0 28px", and the shorthand’s horizontal 0 overrode the gutter
+   ".wl-main > *" supplies — flush to both screen edges for twelve ZIPs, in the founder’s
    own screenshots, passed every time by a gate that asserted the rule was PRESENT and
    never that it APPLIED. */
 /* ── R-G11.11 · THE GRID EARNS ITS OWN CLEARANCE  [F-40.27] ──────────────────
    The two-wide arm (R-40.22) fills YOUR BUSINESS to 3·3·3 clean, and that is
-   what put a live tile under the FAB: today's grid and the one-wide arm both
+   what put a live tile under the FAB: today’s grid and the one-wide arm both
    ended that band on a single left-hand tile, so the FAB had always floated
    over empty space. Removing the orphan is what created the collision — the
    clearance was an accident of the ragged row, never a decision.
    THE FAB DOES NOT MOVE (founder, 2026-08-29: 「the FAB sits right on Rooms and
    nowhere else」). The GRID makes room instead, and it does so for ANY tile
-   count rather than for this one: bottom padding = the FAB's own seat plus one
-   tile height, so no band's last row can sit beneath it however the registry is
+   count rather than for this one: bottom padding = the FAB’s own seat plus one
+   tile height, so no band’s last row can sit beneath it however the registry is
    reordered later.
    BOTH NUMBERS ARE READ THROUGH THE VARIABLES typeCss EMITS FROM GRID
    (lib/worklist/theme.ts). Neither 136 nor 64 is retyped here — a second copy of
-   the FAB's seat is the exact three-homes defect F-39.4 cured.
+   the FAB’s seat is the exact three-homes defect F-39.4 cured.
    (No backticks in this comment: it lives inside a JS template literal, as the
-   block's own header warns. The first cut used them and tsc caught it.)
-   LONGHAND, per F-16.39's standing cure: a shorthand's horizontal 0 would
+   block’s own header warns. The first cut used them and tsc caught it.)
+   LONGHAND, per F-16.39's standing cure: a shorthand’s horizontal 0 would
    override the gutter that .wl-main > * supplies. */
 .wl-bands{padding-top:16px;padding-bottom:calc(var(--wl-fab-bottom) + var(--wl-tile));flex:1}
 .wl-band+.wl-band{margin-top:24px}
@@ -143,7 +143,7 @@ const GRID_CSS = `
    would sit permanently below the fold, which defeats R-37.61: a room reachable only by
    scrolling past the fold is a hidden room wearing a tile. 64 clears the 44 tap floor with
    air, fits the two-line label at t5, and puts all eighteen on screen at rest. */
-/* THE FIGURE SITS IN THE TILE'S CORNER, SO THE TILE BECOMES ITS POSITIONING CONTEXT —
+/* THE FIGURE SITS IN THE TILE’S CORNER, SO THE TILE BECOMES ITS POSITIONING CONTEXT —
    AND the relative positioning GOES INSIDE THE EXISTING RULE, NOT IN A SECOND ONE.
    NO BACKTICKS IN THIS BLOCK: it is inside a JS template literal, and a backtick written
    around a declaration while explaining that declaration ends the literal. The estate has
@@ -151,10 +151,10 @@ const GRID_CSS = `
    rule for the same selector reddened C10 immediately: that cell reads the declarations
    of the FIRST such rule to prove the 44px tap floor is STATED rather than survived by
    accident, and a split hid the height from it. It reddened a SECOND time on the comment
-   explaining the first fix, because the selector was spelled inside it and the cell's
+   explaining the first fix, because the selector was spelled inside it and the cell’s
    matcher found the prose before the rule — comment-blindness in the other direction, and
    worth leaving recorded rather than tidied away. No selector is written out in this
-   block. Nothing about the tile's geometry is renegotiated by a number arriving. */
+   block. Nothing about the tile’s geometry is renegotiated by a number arriving. */
 .wl-tcount{position:absolute;top:6px;right:8px;font:var(--wl-t5);color:var(--atelier-accent-text)}
 /* F-39.15: lining figures, stated rather than inherited from a family map. s-39.7 note —
    no backticks anywhere in this literal. */
@@ -165,7 +165,7 @@ const GRID_CSS = `
    and t5 is 11 — a tile is a control, so t5 would have walked that conviction back by one
    pixel while looking like a tidy. And R-38.4 permits letter-spaced uppercase in exactly
    two places, the nav seats and section eyebrows; a tile is neither, so the engraved
-   costume comes off and the label is simply the room's name. */
+   costume comes off and the label is simply the room’s name. */
 .wl-tname{font:var(--wl-t4);color:var(--atelier-ink-soft);text-align:center}
 .wl-tile:active{background:var(--atelier-row-hover);border-color:var(--atelier-accent-text)}
 .wl-tile:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}

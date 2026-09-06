@@ -211,7 +211,7 @@ const SHELL_CSS = `
 .wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20}
 /* R-37.82 the gutter law, raised 12 to 16 (R-38.5). ONE horizontal gutter, owned by the
    scroll column. Every element inherits it; no component sets its own horizontal margin or
-   width, ever. The founder's misalignment existed because rows chose their own inset, and
+   width, ever. The founder’s misalignment existed because rows chose their own inset, and
    that freedom is removed by construction rather than by care.
    The rhythm law: vertical spacing is the 8-scale, nothing improvised. Gutter, step, tile
    and row are emitted by typeCss from the theme GRID, so the grid has one home and this
@@ -227,9 +227,9 @@ const SHELL_CSS = `
    Billing. A class used by three components and owned by one is a single-home violation
    wearing CSS; the shell emits them, because the shell is what every surface is inside. */
 .wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
-/* ── H-1(b) · F-38.40b · THE LEAD CARD'S INTERIOR REJOINS THE OTHERS ────────
+/* ── H-1(b) · F-38.40b · THE LEAD CARD’S INTERIOR REJOINS THE OTHERS ────────
    The accent border was added to the box without compensating the padding, so this
-   card's contents painted at gutter + 2 + 16 = 34 while every other card's painted at
+   card’s contents painted at gutter + 2 + 16 = 34 while every other card’s painted at
    gutter + .5 + 16 = 32.5. Three card titles, three x values, where the whole point of
    a card set is one. 1.5px is small and it is exactly the kind of thing an eye reads as
    「something is off」 without being able to name it. */
@@ -240,10 +240,10 @@ const SHELL_CSS = `
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 /* ── THE BUTTON REGISTER, ONE HOME, ANY ROOM (P7.2 Arm C, chair ruling 2026-09-04) ──────
-   These four rules were written inside StudioSheets.tsx's SHEET_CSS and mounted only by
-   TeamTabs — a SHELL-WIDE register scoped to one room. Storefront's bio call (F-P72.C, S19)
+   These four rules were written inside StudioSheets.tsx’s SHEET_CSS and mounted only by
+   TeamTabs — a SHELL-WIDE register scoped to one room. Storefront’s bio call (F-P72.C, S19)
    needed the same register and there were exactly two wrong ways to have it: import the Team
-   room's stylesheet into an unrelated room, or copy the values inline. The first build did the
+   room’s stylesheet into an unrelated room, or copy the values inline. The first build did the
    second, which is a second home for the same bytes; the ruling hoists the rules here instead,
    where .wl-tile and .wl-fab already live, and both rooms read the class. This is what the
    F-39.4 FAB ruling did for the seat: one register, one home, any room.
@@ -256,7 +256,7 @@ const SHELL_CSS = `
 .wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 .wl-btn.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
 
-/* ── THE FAB'S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
+/* ── THE FAB’S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
    ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
    The first cut computed the bottom chrome from its parts: nav min-height 52, plus a dock
    of 8+8 padding over a 44px field with a half-pixel border, call it 61. 113. Every other
@@ -265,14 +265,14 @@ const SHELL_CSS = `
    missing pixels live somewhere in a line box I would have kept re-deriving from the
    stylesheet and kept getting wrong.
 
-   THAT IS THE WHOLE LESSON AND IT IS THIS FILE'S OWN NEIGHBOURHOOD: a rule assembled out
+   THAT IS THE WHOLE LESSON AND IT IS THIS FILE’S OWN NEIGHBOURHOOD: a rule assembled out
    of other rules' declared values is arithmetic about a stylesheet, not a fact about a
    page. The gutter cell, the tile-height cell and the edge cell all exist because
    declarations and paint disagree.
 
-   MEASURED ON THE DEPLOY, 390x844, BOTH MODES: the dock's top edge sits 120px above the
+   MEASURED ON THE DEPLOY, 390x844, BOTH MODES: the dock’s top edge sits 120px above the
    viewport bottom. 120 + 16 = 136, and the safe-area inset rides on top because it is zero
-   on the measuring surface and is not zero on the founder's phone.
+   on the measuring surface and is not zero on the founder’s phone.
 
    THE NUMBER IS NOT THE PROOF EITHER. C-R18 measures the painted gap every run and reds on
    15..17; if the dock gains a row, this literal goes stale and the cell says so in the
@@ -288,24 +288,24 @@ const SHELL_CSS = `
 .wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
 /* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
    F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
-   nobody could see. That floor is a ratio between a row's pressed fill and the ground it
+   nobody could see. That floor is a ratio between a row’s pressed fill and the ground it
    sits on, and it does not transfer here: this control is a solid accent disc floating over
    arbitrary content, so a darker accent has no fixed neighbour to be read against and any
    number chosen for it would be a colour nobody measured — which is precisely what the
-   Slice Door's retired opacity was.
+   Slice Door’s retired opacity was.
    So the press is SIZE and DEPTH: 56 to 52.6 (6%) with the shadow pulled in. Both are
    changes to the control itself, both survive on any ground, and C-R18 measures the
    painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
    PRESSED STATE, and that refusal is the point of the paragraph. */
 .wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
 .wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
-/* TOUCH. Two defects in the first cut, both found on the founder's device and neither
+/* TOUCH. Two defects in the first cut, both found on the founder’s device and neither
    visible in a desktop render: no pressed state anywhere, and no touch-action, so the
    browser held every tap for the double-tap-zoom gesture before dispatching the click. */
 .wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
 .wl button,.wl a{touch-action:manipulation}
-/* R-38.5 the edge. The header's horizontal padding IS the gutter, so the wordmark's left
-   edge, the first tile's border, the dock field's border and Billing's plan card all
+/* R-38.5 the edge. The header’s horizontal padding IS the gutter, so the wordmark’s left
+   edge, the first tile’s border, the dock field’s border and Billing’s plan card all
    resolve to one x. It was 22px here and 12px everywhere else, which is the misalignment
    the founder kept seeing and no cell could name. */
 .wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
@@ -316,7 +316,7 @@ const SHELL_CSS = `
 .wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-/* R-38.5: the nav's content box shares the main column's left edge, which is the container
+/* R-38.5: the nav’s content box shares the main column’s left edge, which is the container
    half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
    wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}

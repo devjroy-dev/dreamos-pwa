@@ -142,7 +142,7 @@ function ReferralsScreen() {
    second set of metrics is how they start to drift.
 
    NEW HERE: .rf-bal and its three children. The idiom had no HEAD FIGURE — G2's
-   counts ride inside a section header, and this room's two totals are the point
+   counts ride inside a section header, and this room’s two totals are the point
    of opening it, so they sit above the rule at t2. They are counts, not takings:
    the Books register is the only surface in this estate that gets to look like
    money, and there is deliberately NO .rf-rfig rule in this file to inherit.

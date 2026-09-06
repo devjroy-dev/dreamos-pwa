@@ -310,7 +310,7 @@ export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
             </div>}
             {/* Errors say what happened and how to fix it — never a mood. */}
             {saveErr&&<div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:FT.body,color:asking?ink:'#C4534A',lineHeight:1.6,marginBottom:FS.s2}}>
-              {saveMsg||"That didn't save. Check your connection and try again."}
+              {saveMsg||"That didn’t save. Check your connection and try again."}
             </div>}
             <button onClick={commitProfile} disabled={savingP||(editOpen==='budget'?!budgetValid:!editDate)}
               style={{width:'100%',padding:'15px 0',background:ac,border:'none',borderRadius:FI.chrome,

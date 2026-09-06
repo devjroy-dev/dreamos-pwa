@@ -148,7 +148,7 @@ export function SolutionsStyles() {
    fixed here rather than by shortening the word. The label column could grow
    past its share, and the chip — being the flex item with the longest single
    token — was the one that lost. min-width:0 lets the text column actually
-   shrink (a flex item's default min-width is auto, so it refuses to), and
+   shrink (a flex item’s default min-width is auto, so it refuses to), and
    flex:0 0 auto takes the chip out of the negotiation entirely. */
 /* ── F-40.42 · last-of-type COUNTS PER TAG NAME, AND THE ROWS ARE TWO TAGS ──
    This read last-of-type and the founder walked the consequence: no divider

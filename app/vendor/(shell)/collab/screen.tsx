@@ -899,7 +899,7 @@ function PostCollabForm({ prefill, onClose, onSuccess }: {
               <Label>Details (optional · {200 - form.details.length} left)</Label>
               <textarea value={form.details}
                 onChange={e => set('details', e.target.value.slice(0, 200))}
-                placeholder="Describe what you're looking for…"
+                placeholder="Describe what you’re looking for…"
                 rows={3}
                 style={{ ...inputStyle, resize: 'none', marginBottom: 22 }} />
 

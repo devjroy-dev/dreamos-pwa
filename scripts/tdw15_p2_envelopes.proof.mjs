@@ -88,8 +88,8 @@ const BYTES = {
   namePlaceholder:   'Or name your own',
   amountLabel:       'Amount set aside',
   file:              'File',
-  emptyEnvelopes:    "Envelopes hold what you've set aside. Make your first.",
-  emptyTray:         "Everything's filed.",
+  emptyEnvelopes:    "Envelopes hold what you’ve set aside. Make your first.",
+  emptyTray:         "Everything’s filed.",
   photoUntyped:      'Photo filed. Amount not typed yet.',
   deleteConsequence: 'Its receipts go back to the tray.',
 };

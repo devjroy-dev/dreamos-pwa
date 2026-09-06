@@ -48,7 +48,7 @@ export function FilingChip({ beat, onRetry, isLight = true }: { beat: FilingBeat
   const glyph = failed ? '!' : phase === 'undone' ? '\u21BA' : '\u2713';
   const glyphColor = failed ? TERRACOTTA : phase === 'undone' ? INK_DIM : BRASS;
   const text = isError
-    ? beat.summary || "That didn't land — nothing was changed."
+    ? beat.summary || "That didn’t land — nothing was changed."
     : phase === 'undone' ? `${beat.summary} — undone.`
     : beat.summary || 'Filed';
 

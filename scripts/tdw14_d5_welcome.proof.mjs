@@ -69,8 +69,8 @@ const FROZEN_CLIENT = [
   ['\u2467 ON WHATSAPP',       'On WhatsApp, to +91'],
   ['\u246a pin sub-line',      'use this each time you open the circle'],
   ['\u246b setting up',        'Setting up your circle…'],
-  ['\u246d ten digits',        "That doesn't look like a 10-digit number."],
-  ['\u246e unreachable invite', "We couldn't reach the invite. Check your connection and try again."],
+  ['\u246d ten digits',        "That doesn’t look like a 10-digit number."],
+  ['\u246e unreachable invite', "We couldn’t reach the invite. Check your connection and try again."],
   ['\u246f generic toast',     "'Something went wrong. Try again.'"],
 ];
 FROZEN_CLIENT.forEach(([label, byte]) =>

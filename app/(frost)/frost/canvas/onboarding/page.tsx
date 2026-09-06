@@ -233,7 +233,7 @@ export default function BrideOnboardingPage() {
     return (
       <div style={{ position: 'fixed', inset: 0, background: T.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px' }}>
         <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic', fontWeight: 300, fontSize:22, color: T.ink, margin: '0 0 12px', textAlign: 'center', lineHeight: 1.15 }}>
-          {firstName ? `You're all set, ${firstName}.` : "You're all set."}
+          {firstName ? `You’re all set, ${firstName}.` : "You’re all set."}
         </p>
         <p style={{ fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 300, fontSize:16, color: T.mute, textAlign: 'center', lineHeight: 1.7, margin: '0 0 40px', maxWidth: 300 }}>
           Your wedding space is ready. Let&apos;s begin.

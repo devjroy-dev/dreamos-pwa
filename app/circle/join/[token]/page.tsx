@@ -154,7 +154,7 @@ export default function CircleJoinPage() {
           setStep('error');
         }
       })
-      .catch(() => { setErrorMsg("We couldn't reach the invite. Check your connection and try again."); setStep('error'); });   // ⑮
+      .catch(() => { setErrorMsg("We couldn’t reach the invite. Check your connection and try again."); setStep('error'); });   // ⑮
   }, [token]);
 
   const showToast = (msg: string) => {
@@ -164,7 +164,7 @@ export default function CircleJoinPage() {
 
   const sendOtp = async () => {
     const bare = phone.replace(/\D/g, '').slice(-10);
-    if (bare.length < 10) { showToast("That doesn't look like a 10-digit number."); return; }   // ⑭
+    if (bare.length < 10) { showToast("That doesn’t look like a 10-digit number."); return; }   // ⑭
     setLoading(true);
     try {
       const r = await fetch(`${API_BASE}/api/v2/circle/join/send-otp`, {

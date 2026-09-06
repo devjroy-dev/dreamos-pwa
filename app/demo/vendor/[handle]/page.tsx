@@ -303,8 +303,8 @@ export default function DemoLandingPage() {
            The toast below is centred by left:50% plus an inline
            translateX(-50%). It used to animate with the generic fadeUp
            above, whose to frame declares transform: translateY(0) — and an
-           animation's declarations outrank inline style in the cascade, with
-           both retaining the to state for the element's whole life. The
+           animation’s declarations outrank inline style in the cascade, with
+           both retaining the to state for the element’s whole life. The
            centring transform was overridden the moment the animation started
            and never came back.
            EIGHT PRECEDENTS IN THIS ESTATE DO THIS CORRECTLY and every one uses

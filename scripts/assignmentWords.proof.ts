@@ -13,7 +13,7 @@ const ok = (c: boolean, m: string) => { if (c) { pass++; console.log('  PASS  ' 
 console.log('\n── the founder\'s three words, byte-checked ──');
 ok(confirmationWord('pending')   === 'Awaiting confirmation', "pending reads 'Awaiting confirmation'");
 ok(confirmationWord('confirmed') === 'Confirmed',             "confirmed reads 'Confirmed'");
-ok(confirmationWord('declined')  === "Can't make it",         "declined reads \"Can't make it\" — the member's own words, not a verdict");
+ok(confirmationWord('declined')  === "Can’t make it",         "declined reads \"Can’t make it\" — the member's own words, not a verdict");
 ok(confirmationWord('declined')  !== 'Declined',              'and NOT "Declined" — founder-ruled');
 
 console.log('\n── never blank, never the raw enum ──');

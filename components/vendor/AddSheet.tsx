@@ -123,9 +123,9 @@ const SCHEMAS: Record<ListSlice, { title: string; editTitle: string; fields: Fie
 
 const ADD_PRIMERS: Record<ListSlice, string> = {
   clients:  'What are the details of the new client? Give me their name and phone number to start.',
-  leads:    "Tell me about the new enquiry — paste it or describe it and I'll log it.",
+  leads:    "Tell me about the new enquiry — paste it or describe it and I’ll log it.",
   invoices: 'Give me the details for the invoice — client name, total amount, and any advance?',
-  events:   "What's the event? Give me a title, date, and time if you have it.",
+  events:   "What’s the event? Give me a title, date, and time if you have it.",
   expenses: 'What did you spend on? Give me the amount and what it was for.',
 };
 
