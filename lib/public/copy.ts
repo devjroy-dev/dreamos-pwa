@@ -71,7 +71,7 @@ export const PUBLIC_ENQUIRE_LABEL = 'Enquire on WhatsApp';
  * under R-40.42 and drawn in `wedding-team-mock.html` before it was written.
  * A string in this object that is not a vetoed row is a defect.
  *
- * ⚠ REUSES ARE NOT RE-TYPED. `phoneLabel`, `monthLabel`, `monthPlaceholder`,
+ * ⚠ REUSES ARE NOT RE-TYPED. `phoneLabel`, `monthLabel`,
  * `fine` and the failure line are PUBLIC_DOWNLOAD's own and are read from there
  * — the sheet approved them as reuses, and a second copy of an approved byte is
  * how two surfaces start saying almost the same thing.
@@ -188,9 +188,23 @@ export const PUBLIC_DOWNLOAD = {
    * placeholder says it may be skipped, because a required-looking field she
    * cannot fill is a reason to abandon the form and lose the download too.
    */
-  monthLabel: 'Getting married? Which month',
+  /**
+   * ⚠ 「(optional)」 IS IN THE LABEL BECAUSE IT HAD NOWHERE ELSE TO BE — F-40.137.
+   * This pair used to be a label plus a `monthPlaceholder` reading
+   * 「Month and year — optional」, and that byte NEVER RENDERED on either sheet.
+   * `placeholder` is ignored on `<input type="month">`: the HTML spec allows it
+   * only on text, search, url, tel, email, password and number, so Chrome paints
+   * its own `--------- ----` and the vetoed string went to no surface at all.
+   * It shipped in G1.2 and nobody caught it until the founder said the dashes
+   * looked odd on the walk.
+   *
+   * It carried the one word the field most needs — a guest who does not know her
+   * date must be able to see she can leave it alone. R-40.67 folds it into the
+   * visible label and retires the placeholder WITH ITS READERS; a constant with
+   * no reader is the next seat's puzzle.
+   */
+  monthLabel: 'Getting married? Which month (optional)',
   /** String 12. */
-  monthPlaceholder: 'Month and year \u2014 optional',
 
   /**
    * String 13 · THE ONE QUESTION (R-G12.3). Her vendor's REGISTERED business

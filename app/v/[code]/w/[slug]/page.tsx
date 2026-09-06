@@ -88,7 +88,7 @@ type Roll = {
 type TeamMember = { name: string; is_owner: boolean };
 type WeddingPayload = {
   wedding: { slug: string; title: string; venue: string | null; city: string | null; season: string | null };
-  owner:   { business_name: string | null; handle: string };
+  owner:   { business_name: string | null; handle: string; enquire_link: string | null };
   roll:    Roll[];
   team:    TeamMember[];
   photos:  { url: string; position: number }[];
@@ -200,13 +200,22 @@ export default async function PublicWeddingPage(
   // listed above the checkbox, from the same payload, so the page cannot confirm
   // a set different from the one it asked about.
   //
-  // ⚠ AND THE OWNER'S DOOR IS THE ROLL'S OWN, NOT A COMPOSED ONE. If the owner
-  // holds no credit she is not on the roll, so there may be no `enquire_link`
-  // for her — in which case the control is ABSENT and the head stands alone.
-  // Never a dead `wa.me` built on this leaf. R-G13.1's hand-off degrades to the
-  // leads already written, which is the whole point of writing them first.
+  // ⚠ THE OWNER’S DOOR COMES FROM THE OWNER — F-40.136, and this was the defect.
+  // It used to be found by searching the ROLL for a row whose name matched hers.
+  // The owner is almost never on the roll: `createWedding` does not self-credit,
+  // so unless a photographer credits HERSELF and claims it there is no row to
+  // find. The “degrade rather than emit a dead wa.me” branch below was written
+  // as a rare safety net and was in fact THE DEFAULT PATH — the hand-off half of
+  // R-G13.1 shipped and never rendered once, on any page. The walk is what found
+  // it; no cell asserted the confirmation renders a CONTROL, and a mock cannot
+  // fail.
+  //
+  // The door now rides `owner.enquire_link`, built at the page door off the same
+  // imported ENQUIRE_BASE and the same uppercase rule as every other door in the
+  // estate. The fallback stays — a vendor with no `routing_handle` is possible
+  // and a dead `wa.me` is still worse than no control — but it is a safety net
+  // again rather than the road.
   if (q.team === '1' || q.team === '0') {
-    const ownerDoor = data.roll.find((r) => r.enquire_link && r.name === data.owner.business_name);
     return (
       <main className="pw">
         <header className="pw-top"><span className="pw-top-name">{data.owner.business_name}</span></header>
@@ -217,9 +226,9 @@ export default async function PublicWeddingPage(
               <p className="pw-donelist">
                 {data.team.map((t) => <span key={t.name}>{t.name}</span>)}
               </p>
-              {ownerDoor?.enquire_link ? (
+              {data.owner.enquire_link ? (
                 <>
-                  <a className="pw-donecta" href={ownerDoor.enquire_link}
+                  <a className="pw-donecta" href={data.owner.enquire_link}
                      target="_blank" rel="noopener noreferrer">
                     {PUBLIC_TEAM.doneCta(data.owner.business_name)}
                   </a>
@@ -372,9 +381,10 @@ export default async function PublicWeddingPage(
             <label className="pw-fl" htmlFor="pw-month">{PUBLIC_DOWNLOAD.monthLabel}</label>
             {/* `type="month"` gives a native picker on a phone and degrades to a
                 text box everywhere else; the door parses `YYYY-MM` either way and
-                refuses anything that is not. */}
-            <input className="pw-fi" id="pw-month" name="wedding_month" type="month"
-                   placeholder={PUBLIC_DOWNLOAD.monthPlaceholder} />
+                refuses anything that is not.
+                ⚠ NO `placeholder` — it is IGNORED on this input type (F-40.137).
+                「(optional)」 lives in the label, the only place a guest can read it. */}
+            <input className="pw-fi" id="pw-month" name="wedding_month" type="month" />
 
             <label className="pw-ask">
               <input className="pw-box" type="checkbox" name="may_contact" value="true" />
@@ -407,7 +417,8 @@ export default async function PublicWeddingPage(
           person, which is the feature not existing. Fewer than two, no control.
 
           THE FIELDS ARE THE DOWNLOAD'S, REUSED (veto rows 7-9, 12): same labels,
-          same placeholder, same fine line, read from one home. */}
+          same fine line, read from one home. F-40.137: no month placeholder — it is
+          ignored on that input type and 「(optional)」 lives in the label. */}
       {team.length > 1 ? (
         <details className="pw-teamwrap">
           <summary className="pw-teambtn">{PUBLIC_TEAM.control}</summary>
@@ -428,8 +439,7 @@ export default async function PublicWeddingPage(
                    inputMode="tel" autoComplete="tel" required placeholder="+91" />
 
             <label className="pw-fl" htmlFor="pw-tmonth">{PUBLIC_DOWNLOAD.monthLabel}</label>
-            <input className="pw-fi" id="pw-tmonth" name="wedding_month" type="month"
-                   placeholder={PUBLIC_DOWNLOAD.monthPlaceholder} />
+            <input className="pw-fi" id="pw-tmonth" name="wedding_month" type="month" />
 
             {/* UNTICKED. Here the box gates the WHOLE WRITE, unlike the download
                 where it gates only whether her number is stored — an unticked
