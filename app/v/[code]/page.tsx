@@ -214,7 +214,15 @@ type Card = {
    *  The control renders only on `true`. This is CHROME: `public/availability.js`
    *  re-answers the same question and is the actual enforcement, because a
    *  consent gate that lives only in a renderer is a gate a curl walks past. */
-  date_check_enabled: boolean;
+  /** ⚠ OPTIONAL, AND F-40.169 IS WHY (R-G11.5's spirit). This type describes a
+   *  NETWORK RESPONSE, not a guarantee. dream-os and this app deploy
+   *  independently — Railway and Vercel — so there is always a window in which
+   *  this leaf is newer than the door and a key it names has not shipped yet.
+   *  That window is exactly what took every storefront down: the door advertised
+   *  the key, `card()` never emitted it, and `card.weddings.length` threw inside
+   *  a Server Component render. A non-optional type here is a claim this side
+   *  cannot make about the other side's deploy. */
+  date_check_enabled?: boolean;
   /** ── G3.1 · F-40.164 — HER PUBLISHED, CONSENTED WEDDING PAGES ───────────
    *  Newest first, shaped by `publicWedding` at the door. An ARRAY, possibly
    *  empty, never null — and empty renders NO SECTION, because a heading over
@@ -224,7 +232,7 @@ type Card = {
    *  (F-40.164): one of his two live pages has neither, so its meta line is a
    *  bare season. The line drops absent parts rather than printing a dangling
    *  separator — G1.2's `metaLine` rule, carried. */
-  weddings: { slug: string; title: string; venue: string | null; city: string | null; season: string | null }[];
+  weddings?: { slug: string; title: string; venue: string | null; city: string | null; season: string | null }[];
   /** ── G2 · R-G2.9 — THE SEAL, AN OBJECT OR NULL, NEVER A PARTIAL ─────────
    *  Under three delivered weddings there is no seal at all, and the ABSENCE IS
    *  THE ANSWER: a couple must not be able to tell an unverified studio from one
@@ -368,6 +376,10 @@ export default async function PublicVendorPage(
   // ONE array feeds three things — the radios, the hero stack and the strip —
   // so `i` means the same photograph in all three and the generated CSS can
   // address it. Two arrays would be two orderings the first time one is edited.
+  // ⚠ DEFENDED WHERE IT IS READ, in `heroOf`'s own idiom (:271). The door now
+  // guarantees an array (b58 §3.1c asserts it), but this leaf must not depend on
+  // the other repo's deploy having landed — F-40.169's whole lesson.
+  const weddings = Array.isArray(card.weddings) ? card.weddings : [];
   const gallery = hero
     ? [hero, ...(card.photos || []).filter((p) => p !== hero)]
     : [];
@@ -637,7 +649,10 @@ export default async function PublicVendorPage(
             F-40.137's shape refused. `type="date"` ignores `placeholder`
             outright, so that substitution would leave this input with no
             accessible name at all. */}
-        {card.date_check_enabled && (
+        {/* `=== true` and never truthiness: `undefined` from an older door must
+            read as "she has not permitted this", which is the safe answer for a
+            consent flag (R-40.77). */}
+        {card.date_check_enabled === true && (
           <form className="pv-chk" method="GET" action={`/v/${encodeURIComponent(card.handle)}/date`}>
             <span className="pv-chklbl">{PUBLIC_DATE_CHECK.label}</span>
             <div className="pv-chkrow">
@@ -722,10 +737,19 @@ export default async function PublicVendorPage(
 
           ⚠ NO DATE EVER CROSSES THIS LANE. `publicWedding` emits a derived
           SEASON and never `event_date` — F-40.163's bound, held at the door. */}
-      {card.weddings.length > 0 && (
+      {/* ⚠ `Array.isArray`, NOT `card.weddings.length` — F-40.169, and the idiom
+          is not new: `heroOf` guards `card.photos` exactly this way at :263 and
+          the seal band guards itself with `card.seal &&` at :610. EVERY OTHER
+          dereferenced wire key on this leaf was already defended; this section
+          shipped without it and was the only unguarded read on the page.
+
+          A PUBLIC LEAF DEGRADES, IT DOES NOT 500. A missing key must cost a
+          section, never a storefront — and it cost every storefront, because a
+          throw in a Server Component takes the whole render with it. */}
+      {weddings.length > 0 && (
         <section className="pv-wsec">
           <span className="pv-wlbl">{PUBLIC_WEDDINGS_LABEL}</span>
-          {card.weddings.map((w) => (
+          {weddings.map((w) => (
             <a className="pv-wrow" key={w.slug} href={`/v/${encodeURIComponent(card.handle)}/w/${encodeURIComponent(w.slug)}`}>
               <span className="pv-wtitle">{w.title}</span>
               {weddingMeta(w) && <span className="pv-wmeta">{weddingMeta(w)}</span>}
