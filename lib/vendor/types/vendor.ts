@@ -1258,6 +1258,15 @@ export interface ScheduleMilestone {
   state:           'pending' | 'paid' | 'waived';
   paid_at:         string | null;
   paid_amount:     number | null;
+  /**
+   * F-40.209 — WHEN THIS MILESTONE WAS FIRST REMINDED, OR NULL.
+   * Joined from `payment_reminders` by the schedule door; NOT a column on
+   * `payment_schedules`, and this plane never writes it. The record renders the
+   * Remind control's absence from THIS, never from component state: a control's
+   * state is a fact about the database, and the only honest place to read it is
+   * the database (R-G11c's law, the same one the couple's switch obeys).
+   */
+  reminded_at?:    string | null;
   ordinal:         number;
   created_at:      string;
   updated_at:      string;

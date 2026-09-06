@@ -413,7 +413,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // message and needs the label and the amount to compose it.
   const [remindMs,        setRemindMs]        = useState<ScheduleMilestone | null>(null);
   const [remindBusy,      setRemindBusy]      = useState(false);
-  const [remindedIds,     setRemindedIds]     = useState<string[]>([]);
+  // ⚠ NO `remindedIds` STATE. F-40.209: the control used to be drawn from a local
+  // array, so a reload offered a Remind for a milestone already chased — the UNIQUE
+  // key held and no client was messaged twice, but the surface was offering
+  // something it knew would be refused, because it never asked. The reminder state
+  // lives on `payment_reminders`; the door now joins it and hands back
+  // `reminded_at`, and the record reads THAT. After a send the schedule is
+  // re-fetched rather than a local flag being set, so what she sees is what the
+  // database says — before the reload and after it.
   // ⚠ `vendors.business_name`, WHICH IS WHAT THE DOOR SENDS AS {{3}} — never the
   // session's `name`. They are different columns and can hold different words; a
   // preview showing one while the client receives the other would be a confirm
@@ -1124,7 +1131,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   It DISAPPEARS once sent rather than greying: once-per-milestone
                   is the database's UNIQUE key, and a disabled button would be a
                   control lying about a state it does not own. */}
-              {ms.state === 'pending' && !remindedIds.includes(ms.id) && (
+              {ms.state === 'pending' && !ms.reminded_at && (
                 <button type="button" onClick={() => setRemindMs(ms)} style={{
                   padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid rgba(201,168,76,0.5)',
@@ -1132,7 +1139,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
                 }}>Remind</button>
               )}
-              {remindedIds.includes(ms.id) && (
+              {ms.reminded_at && (
                 <span style={{
                   fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.inkMute,
                   letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
@@ -1426,7 +1433,13 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     // send leaves the control standing, because the reminder did
                     // not go and a surface that hid it would be reporting a
                     // delivery that never happened (F-39.70/.71).
-                    setRemindedIds(prev => [...prev, remindMs.id]);
+                    // RE-READ, NEVER A LOCAL FLAG. The door is the only thing that
+                    // knows a reminder landed; asking it again is one request and it
+                    // keeps this surface incapable of disagreeing with the row.
+                    const again = await fetchSchedule(sel.id);
+                    if ((again as { ok: boolean }).ok) {
+                      setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                    }
                     showToast(COPY.studioReminderDone, 'success');
                   } else if (res.ok && res.skipped) {
                     showToast(res.reason ?? COPY.studioReminderDark, 'error');

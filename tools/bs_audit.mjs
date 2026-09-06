@@ -165,13 +165,44 @@ function canonical(s) {
     .map((name) => name + '{' + s[name].slice().sort().join(',') + '}')
     .join('\n');
 }
-const digest = createHash('sha256').update(canonical(shapes), 'utf8').digest('hex');
+// ── F-40.206 / F-40.213 · THE DIGEST IS OVER A DECLARED LIST, NOT THE PARSE ──
+// The mirror was never symmetric: `contract.js` ENUMERATES its shapes in a frozen
+// SHAPES object, while this side digested EVERY `export type` it found in
+// types.ts. So every room that added a shape moved the pin on one side only —
+// G5.1 added four, G3.4 three — and the pin has been red and unseen since. The
+// defect was the asymmetry; the cure is that this side enumerates too.
+//
+// ⚠ IT IS AN ENUMERATION, NOT A BLOCKLIST, AND THE DIFFERENCE IS THE POINT.
+// The digest is over the INTERSECTION of this list with the parse:
+//   · a room adding its own type moves nothing — it is not on the list;
+//   · a listed name that stops existing REDS, because the intersection shrinks
+//     and the digest moves. A blocklist would go quiet on exactly that drift.
+// A room-local type that genuinely rides the /solutions wire has to be added to
+// BOTH lists deliberately, which is what a mirror is for.
+//
+// THE LIST IS `contract.js`'s SHAPES, transcribed. G2's three (ReviewAsk,
+// ReviewSeal, GoogleReviewsRoom) stay: they were mirrored deliberately at the G2
+// pin and it has held; retiring them would move the digest for a reason unrelated
+// to this defect. A later seat may, with a reason.
+const MIRRORED = [
+  'SolutionsRow', 'SolutionsIndex', 'GoogleStatus', 'DomainStatus',
+  'DomainSearchResult', 'SeoChecklist', 'SeoTopQuery', 'SeoReport',
+  'MarketingDraft', 'ProofDoc', 'Benchmark', 'BenchmarksReport',
+  'ReviewAsk', 'ReviewSeal', 'GoogleReviewsRoom',
+];
+const mirrored = {};
+for (const n of MIRRORED) if (n in shapes) mirrored[n] = shapes[n];
+// A named constant so C43 asserts the WIRING, not a regex over this file's own text
+// (a cell reading its own source is the prose-as-code trap wearing a new hat).
+const DIGEST_OVER_MIRRORED = true;
+const digest = createHash('sha256').update(canonical(mirrored), 'utf8').digest('hex');
 
 if (PRINT_DIGEST) {
   console.log(digest);
   process.exit(0);
 }
 
+console.log(`MIRRORED  ${Object.keys(mirrored).length}/${MIRRORED.length} declared shapes present in the parse`);
 console.log(`COVERAGE  ${parsedCount} shapes, ` +
             `${Object.values(shapes).reduce((a, f) => a + f.length, 0)} fields parsed from lib/solutions/types.ts; ` +
             `${declLines}/${seenDecls} declarations matched the parse contract`);
@@ -1643,6 +1674,28 @@ ${radios}
       }
     }
   }
+}
+
+// ── C43 · the mirror is an ENUMERATION, and it tightens (F-40.206, F-40.213) ─
+// The digest must be over `MIRRORED ∩ parse`, never the parse alone. Two
+// properties, and the second is the one a blocklist would fail:
+//   · a room adding its own type moves nothing — it is not on the list;
+//   · a LISTED name that stops existing MOVES the digest, because the
+//     intersection shrinks. Drift in the mirrored set is exactly what a pin is
+//     for, and a blocklist would go quiet on it.
+// F-40.213: the two sides were never symmetric — contract.js enumerated while
+// this side discovered — so every room that added a shape moved the pin on one
+// side only. Restricting to the list restored a4ccb0a7 byte-for-byte: the
+// fifteen never drifted, and no repin was needed on either side.
+{
+  const bad = [];
+  if (!DIGEST_OVER_MIRRORED) bad.push('the digest is not computed over the mirrored intersection');
+  const missing = MIRRORED.filter((n) => !(n in shapes));
+  if (missing.length) bad.push('declared but absent from types.ts: ' + missing.join(', '));
+  if (MIRRORED.length !== 15) bad.push(`the list holds ${MIRRORED.length} names, not the 15 contract.js enumerates`);
+  bad.length === 0
+    ? P('C43 the digest is over the declared mirror, not the parse', `${Object.keys(mirrored).length}/15 present`)
+    : F('C43 the digest is over the declared mirror, not the parse', bad.join('; '));
 }
 
 console.log('');
