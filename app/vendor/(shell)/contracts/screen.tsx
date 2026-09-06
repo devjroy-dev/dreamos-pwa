@@ -40,7 +40,7 @@ import { Toast } from '@/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAllContracts, requestContractUpload, finalizeContract,
          updateContract, sendContract, fetchContractDownload, cancelContract,
-         contractPreviewUrl, sendContractToCouple, markContractDeposit,
+         requestContractPreview, sendContractToCouple, markContractDeposit, updateClientPhone,
          fetchTypedClients, composeContract, fillContract, fetchCabinet } from '@/lib/vendor/api/vendor';
 // TDW_09 R-U25: the ONE money home. A second formatter here would be a second
 // way to write Rs 18,000, and the estate has spent a finding on that already.
@@ -181,13 +181,23 @@ const QUIET: React.CSSProperties = { ...BTN, background: 'transparent', border: 
  *  interpret. `readOnly` is for a value the ROW already holds: it is shown
  *  because the agreement prints it, and not editable because editing it here
  *  would be a second home for a fact the client record owns. */
-function Field({ label, value, placeholder, onChange, readOnly }: {
+function Field({ label, value, placeholder, onChange, readOnly, required }: {
   label: string; value: string; placeholder?: string;
-  onChange?: (v: string) => void; readOnly?: boolean;
+  onChange?: (v: string) => void; readOnly?: boolean; required?: string;
 }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 14, padding: '7px 0' }}>
-      <div style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-mute)', flexShrink: 0 }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-mute)', flexShrink: 0 }}>
+        {label}
+        {/* The mark is a SENTENCE FRAGMENT, not a glyph. `*` says "required" and
+            nothing else; `Needed to send` says which act needs it, which is the
+            only true statement available about a document whose blanks are legal. */}
+        {required ? (
+          <span style={{ marginLeft: 8, fontFamily: 'var(--font-jost), system-ui, sans-serif',
+                         fontWeight: 300, fontSize: 8, letterSpacing: '0.32em',
+                         textTransform: 'uppercase', color: 'var(--role-caution)' }}>{required}</span>
+        ) : null}
+      </div>
       {readOnly ? (
         <div style={{ fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)', textAlign: 'right' }}>{value}</div>
       ) : (
@@ -236,6 +246,9 @@ export function ContractsScreen() {
   const [annexes, setAnnexes]     = useState<Record<string, boolean>>({});
   const [depositPct, setDepositPct] = useState<string>('');
   const [promoted, setPromoted]     = useState(false);
+  // R-40.74 — the one mandatory field. Held here while she types; written to
+  // `clients.phone` through the existing client writer on save, never to `terms`.
+  const [phone, setPhone]           = useState('');
 
   useEffect(() => {
     // ── ALL FOUR STATES — F-40.115, R-G32.15 ──────────────────────────────
@@ -303,6 +316,9 @@ export function ContractsScreen() {
     setTerms((c.terms as Record<string, string>) ?? {});
     setAnnexes(c.annexes ?? {});
     setDepositPct(c.deposit_pct === null || c.deposit_pct === undefined ? '' : String(c.deposit_pct));
+    // The number comes from the CLIENT, which is its home. The picker row carried
+    // it, so the record opens with what she already has rather than asking twice.
+    setPhone(clients.find(r => r.id === c.client_id)?.phone ?? '');
     setSelected(null);
   }
 
@@ -374,12 +390,39 @@ export function ContractsScreen() {
     setSaving(true);
     const pct = depositPct.trim() === '' ? null : Number(depositPct);
     const res = await fillContract(record.id, { terms, annexes, deposit_pct: pct });
+    // ⚠ THE NUMBER IS WRITTEN TO THE CLIENT, NOT INTO THIS CONTRACT. R-40.74's
+    // one home. Only when it actually changed — a PATCH on every save would be a
+    // write she did not make.
+    const known = clients.find(r => r.id === record.client_id)?.phone ?? '';
+    if (record.client_id && phone.trim() && phone.trim() !== known.trim()) {
+      const pr = await updateClientPhone(record.client_id, phone.trim());
+      if (!pr.ok) {
+        setSaving(false);
+        // The door returns 409 PHONE_COLLISION when the number already belongs to
+        // another of her clients — a real mistake, and it gets the door's own
+        // sentence rather than a generic failure.
+        show((pr as { error?: string }).error ?? 'That number could not be saved.', 'error');
+        return;
+      }
+      setClients(prev => prev.map(r => (r.id === record.client_id ? { ...r, phone: phone.trim() } : r)));
+    }
     setSaving(false);
     if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); return; }
     const c = (res as { contract: Contract }).contract;
     setContracts(prev => prev.map(x => (x.id === c.id ? c : x)));
     setRecord(close ? null : c);
     if (close) show('Saved', 'success');
+  }
+
+  /** ⚠ ASK, THEN OPEN. The door renders, stores and signs; the room opens the url
+   *  it gets back. `window.open` on the DOOR was F-40.152 — a new tab carries no
+   *  JWT and every press returned `no_token`. */
+  async function doPreview(contract: Contract) {
+    setSaving(true);
+    const res = await requestContractPreview(contract.id);
+    setSaving(false);
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); return; }
+    window.open((res as { pdf_url: string }).pdf_url, '_blank');
   }
 
   async function doSendToCouple(contract: Contract) {
@@ -561,7 +604,10 @@ export function ContractsScreen() {
           one word. Derived by reading `binderToClient`, not by trusting a name. */}
       {pickOpen && (
         <div style={SCRIM} onClick={() => setPickOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ ...SHEET, maxHeight: '70vh', overflowY: 'auto' }}>
+          {/* `70vh` is the same trap one size down — F-40.154. The picker is a
+              list and can be long; on iOS its foot would sit under the address
+              bar exactly as the record's did. */}
+          <div onClick={e => e.stopPropagation()} style={{ ...SHEET, maxHeight: '80dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <div style={GRAB}><div style={GRABBAR} /></div>
             <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>New</div>
             <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Your client</div>
@@ -604,14 +650,31 @@ export function ContractsScreen() {
           ⚠ EVERY BLANK PRINTS AS A BLANK AND NEVER AS `N/A` OR A ZERO. The field
           register's §4 rule 3, said to the vendor at row 23 and obeyed by the
           renderer at `contractPdf.js`'s `BLANK`. A greyed `0%` in the deposit
-          field would be a figure nobody entered. */}
+          field would be a figure nobody entered.
+
+          ── F-40.154 · THE SHEET CUT ON iOS, AND `100vh` IS WHY ────────────────
+          `SCRIM` is `position: fixed; inset: 0`, which on iOS Safari resolves
+          against the LARGE viewport — the one that exists only while the address
+          bar is hidden. A full-cover child then runs under the bar and its last
+          rows are unreachable: the record cutting, and the DRAFT line riding up
+          under the masthead. `alignItems: 'stretch'` made it worse by forcing the
+          child to that wrong height instead of letting it size to content.
+
+          ⚠ NO VIEWPORT TOKEN EXISTS IN THIS ESTATE — derived, not assumed.
+          `100dvh`, `92dvh` and `88dvh` appear as literals across `app/crew`,
+          `app/terms`, `app/admin` and the demo tree, and
+          `demo/vendor/[handle]/list/[slice]` already pairs `maxHeight: 88dvh`
+          with `overflowY: auto`. That IS the estate's pattern, and this sheet
+          should have taken it at the first cut. `dvh` is the DYNAMIC viewport: it
+          shrinks when the bar appears, so the foot is always reachable. */}
       {record && (
-        <div style={{ ...SCRIM, alignItems: 'stretch' }} onClick={() => setRecord(null)}>
+        <div style={SCRIM} onClick={() => setRecord(null)}>
           <div onClick={e => e.stopPropagation()} style={{
-            width: '100%', background: 'var(--atelier-sheet-bg)',
+            width: '100%', maxHeight: '88dvh', background: 'var(--atelier-sheet-bg)',
             borderTop: '0.5px solid var(--atelier-sheet-border)',
             padding: '20px 24px calc(24px + env(safe-area-inset-bottom))',
-            display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto',
+            display: 'flex', flexDirection: 'column', gap: 10,
+            overflowY: 'auto', WebkitOverflowScrolling: 'touch',
           }}>
             <div style={GRAB}><div style={GRABBAR} /></div>
             <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>{stateWord(record.state)}</div>
@@ -619,9 +682,17 @@ export function ContractsScreen() {
 
             <div style={GROUP}>Who this is between</div>
             <Field label="Your client" value={record.title.split(' \u2014 ')[0]} readOnly />
+            {/* P1 / P2 — the ONE mark on this record, and it names the ACT the field
+                serves rather than asserting a rule. Mandatory to the send, never to
+                the document: v3's blanks print as blanks by the register's §4 rule 3,
+                and a red asterisk on a contract field would be the form arguing with
+                the instrument. There is no second mark and there will not be one. */}
+            <Field label="Her number" required="Needed to send" value={phone} placeholder="Not filled"
+                   onChange={v => setPhone(v)} />
             <Field label="Second partner&#8217;s name" value={terms.partner_2_name ?? ''} placeholder="Not filled"
                    onChange={v => setTerms({ ...terms, partner_2_name: v })} />
             <div style={NOTE}>Filled from your client&#8217;s record. Nothing here was typed twice.</div>
+            <div style={NOTE}>We send the agreement here. It goes on her record too, so you only type it once.</div>
             {/* R7 — shown ONLY when the server says a row was created. The
                 resolver dedups on phone, so a binder pick for someone already a
                 client adds nothing and this line stays away. */}
@@ -656,8 +727,18 @@ export function ContractsScreen() {
             ))}
             <div style={NOTE}>From your profile &#8212; change it here for this couple only.</div>
 
-            <button type="button" onClick={() => window.open(contractPreviewUrl(record.id), '_blank')} style={GHOST}>Preview the PDF</button>
-            <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>
+            <button type="button" disabled={saving} onClick={() => void doPreview(record)} style={GHOST}>Preview the PDF</button>
+            {/* ⚠ R-40.74 / the chair's P4 — **SEND IS ABSENT UNTIL A NUMBER EXISTS**,
+                never disabled-and-greyed. This arc has refused the greyed control
+                six times (the publish switch, the reel, the eight hub rows); a
+                refusal drawn as something tappable is worse than no control. The
+                line stands where the button would be, and the button appears the
+                moment she has somewhere to send it. */}
+            {phone.trim() ? (
+              <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>
+            ) : (
+              <div style={{ ...NOTE, paddingTop: 12 }}>Add her number to send this.</div>
+            )}
             <button type="button" disabled={saving} onClick={() => void doSaveFill(true)} style={QUIET}>Save and finish later</button>
           </div>
         </div>
@@ -722,7 +803,7 @@ export function ContractsScreen() {
                     The date is held.
                   </div>
                 )}
-                <button type="button" onClick={() => window.open(contractPreviewUrl(selected.id), '_blank')} style={{
+                <button type="button" onClick={() => void doPreview(selected)} style={{
                   padding: '12px 0', background: 'transparent',
                   border: '0.5px solid var(--atelier-accent-text)', borderRadius: 2, cursor: 'pointer',
                   fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactive,

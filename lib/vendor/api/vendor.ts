@@ -1360,11 +1360,43 @@ export function composeContract(body: { client_id?: string; name?: string; phone
 export function fillContract(contractId: string, body: { terms?: Record<string, unknown>; annexes?: Record<string, boolean>; deposit_pct?: number | null }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return patchJson(`/api/v2/vendor/contracts/${contractId}/fill`, body);
 }
-/** ⚠ NOT A JSON DOOR. `GET /preview` returns PDF BYTES, so it is opened rather
- *  than fetched — the browser's own viewer is the preview, and a fetch would buy
- *  a blob URL to hand straight back to it. */
-export function contractPreviewUrl(contractId: string): string {
-  return `${API_BASE}/api/v2/vendor/contracts/${contractId}/preview`;
+/**
+ * ⚠ F-40.152 — THE FIRST CUT WAS A URL BUILDER AND IT COULD NEVER HAVE WORKED.
+ * It handed the room an address behind `authMw`, which the room opened with
+ * `window.open()` — and **a new tab carries no Authorization header**. Every
+ * press returned `no_token`; the button had never once rendered a document. Its
+ * own comment said "opened rather than fetched", which is precisely the thing
+ * that made it fail, written down as though it were the design.
+ *
+ * The door now renders to the `contracts` bucket and returns a **Supabase signed
+ * url** — `getDownloadUrl`'s shape, sixty lines from where this seat was reading,
+ * and the reason `Download` has always worked on this room.
+ *
+ * A POST, because it writes an object: a GET that mutates storage is one a retry
+ * or a prefetch will fire.
+ */
+export function requestContractPreview(contractId: string): Promise<{ ok: boolean; pdf_url: string; expires_in: number } | ApiErr> {
+  return postJson(`/api/v2/vendor/contracts/${contractId}/preview`, {});
+}
+
+/**
+ * ⚠ R-40.74 — THE PHONE GOES TO `clients.phone`, NEVER TO `contracts.terms`.
+ * The record asks because `send-to-couple` cannot proceed without it (F-40.153),
+ * but the fact belongs to the CLIENT and she has a home for it already. In
+ * `terms` it would be a second home for a number the Clients room also shows, and
+ * the two would drift the first time she corrected one.
+ *
+ * ⚠ THE PATH IS `/clients/:clientId`, NOT `/clients/:vendorId/:clientId`.
+ * DERIVED, not assumed — the list door on that same router takes `:vendorId`
+ * (mode B) and the patch takes `:clientId` (mode C, `via: 'clients'`). Two shapes
+ * on one router, and the wrong one 404s.
+ *
+ * ⚠ AND IT CAN RETURN **409 PHONE_COLLISION** — the door refuses a number that
+ * already belongs to another of her clients. The record must say so rather than
+ * report a generic failure, because that is a real thing a vendor does by mistake.
+ */
+export function updateClientPhone(clientId: string, phone: string): Promise<{ ok: boolean; client: Client } | ApiErr> {
+  return patchJson(`/api/v2/vendor/clients/${clientId}`, { phone });
 }
 export function sendContractToCouple(contractId: string, signerPhone?: string): Promise<{ ok: boolean; contract_id: string; sign_url: string; sent: boolean; reason: string | null } | ApiErr> {
   return postJson(`/api/v2/vendor/contracts/${contractId}/send-to-couple`, signerPhone ? { signer_phone: signerPhone } : {});

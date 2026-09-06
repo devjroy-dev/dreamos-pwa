@@ -225,6 +225,55 @@ section('6. the fourth capability leaf');
   ok("the affirmative is clause 12's `I agree`", /agree: 'I agree'/.test(copy));
 }
 
+// ══ §6b — F-40.152/.153/.154 · WHAT THE WALK FOUND ═════════════════════════
+section('6b. preview, the one mandatory field, and the dynamic viewport');
+{
+  const src = code(SCREEN);
+  const api = code(API);
+
+  // ── F-40.152 · A NEW TAB CARRIES NO JWT ─────────────────────────────────
+  // The first cut opened the door's own address with `window.open()`. Every press
+  // returned `no_token` and the button had never rendered a document. No cell saw
+  // it because every cell asserted this estate's behaviour and not the browser's.
+  ok('the room asks the door for a url', /requestContractPreview\s*\(/.test(src));
+  ok('and there is no url BUILDER left', !/contractPreviewUrl/.test(src + api));
+  ok('the door address is never opened directly',
+     !/window\.open\([^)]*\/preview/.test(src));
+  ok('what is opened is the SIGNED url the door returned',
+     /window\.open\(\(res as \{ pdf_url: string \}\)\.pdf_url/.test(src));
+
+  // ── F-40.153 / R-40.74 · ONE MANDATORY FIELD, AND SEND BY PRESENCE ───────
+  ok('the record asks for her number', /label="Her number"/.test(src));
+  ok('the mark names the ACT, not a rule', /required="Needed to send"/.test(src));
+  // ⚠ EXACTLY ONE MARK ON THE WHOLE RECORD. v3's blanks print as blanks by the
+  // register's §4 rule 3; a second `required` would be the form arguing with the
+  // instrument. This cell reds the day someone adds one.
+  ok('there is exactly ONE required mark', (src.match(/required="/g) || []).length === 1);
+  ok('no asterisk anywhere near it', !/Her number[\s\S]{0,120}\*/.test(src));
+
+  // ⚠ THE CHAIR'S P4 — **ABSENT, NEVER GREYED.** This arc has refused the greyed
+  // control six times. A refusal drawn as something tappable is worse than no
+  // control; the line stands where the button would be.
+  ok('Send appears only when a number exists', /phone\.trim\(\) \?[\s\S]{0,300}Send to the couple/.test(src));
+  ok('and the line stands where the button would be',
+     /Add her number to send this\./.test(src));
+  ok('Send is never rendered disabled-and-greyed on the record',
+     !/disabled=\{!phone|opacity: *\.5[\s\S]{0,80}Send to the couple/.test(src));
+
+  // ⚠ THE NUMBER'S HOME IS THE CLIENT, NOT THE CONTRACT.
+  ok('the phone writes through the client door', /updateClientPhone\s*\(/.test(src));
+  ok('and never into terms', !/terms[\s\S]{0,40}phone/.test(src));
+  ok('only when it actually changed', /phone\.trim\(\) !== known\.trim\(\)/.test(src));
+  // The door returns 409 PHONE_COLLISION for a number already on another client.
+  ok('the client door path is /clients/:clientId, not /:vendorId/:clientId',
+     /\/api\/v2\/vendor\/clients\/\$\{clientId\}/.test(api));
+
+  // ── F-40.154 · THE DYNAMIC VIEWPORT ─────────────────────────────────────
+  ok('both sheets are bounded in dvh', (src.match(/maxHeight: '\d+dvh'/g) || []).length === 2);
+  ok('no vh literal survives in this room', !/maxHeight: '\d+vh'/.test(src));
+  ok('the record sheet no longer stretches to a wrong height', !/alignItems: 'stretch'/.test(src));
+}
+
 // ══ §7 — THE HUB ROW, AND THE FRAMES THAT ARE NOT RE-SHOT ══════════════════
 section('7. the fourth of nine opens');
 {

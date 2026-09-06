@@ -84,3 +84,35 @@ docs/TDW_19_G32_PWA_HANDOVER.md
 #   DELTA                           ZERO
 #
 # ⚠ `next build` OWED on the founder's machine, same shape as parts 1 and 2.
+
+# ── MICRO 2 (2026-09-06) · derived at dreamos-pwa b3e7083 ──────────────────
+# P1-P4 and Q1-Q10 vetoed; the walk's three findings cured.
+#
+#   app/vendor/(shell)/contracts/screen.tsx
+#   lib/vendor/api/vendor.ts
+#   scripts/b57_contracts_wiring_bench.js
+#
+#   tsc --noEmit    CLEAN
+#   b57             57/57  (39 -> 57), five mutations both ways:
+#       open the door address directly (F-40.152's shape) -> 2 red
+#       Send greyed instead of absent                     -> 1 red
+#       a second required mark                            -> 1 red
+#       phone written into terms                          -> 2 red
+#       back to a vh literal                              -> 2 red
+#   b40 · b05_f0589                 GREEN
+#   bs_audit · wl_audit             RED, IDENTICAL at base
+#   DELTA                           ZERO
+#
+# ⚠ A SECOND WRONG-PATH GUESS WAS CAUGHT BEFORE IT SHIPPED. The first cut of
+# `updateClientPhone` addressed `/clients/:vendorId/:clientId` by symmetry with
+# the LIST door on that same router. The patch door is `/clients/:clientId` —
+# resolveVendor mode C `via: 'clients'`, where the list is mode B `:vendorId`.
+# Two shapes on one router, and the wrong one 404s. Derived by reading
+# `src/api/vendor/clients.js:174`, not by pattern-matching the neighbour. It also
+# returns **409 PHONE_COLLISION**, which the record now surfaces with the door's
+# own sentence rather than a generic failure.
+#
+# ⚠ A JSX COMMENT CANNOT SIT INSIDE `{cond && (`. The F-40.154 note was first
+# written as `{/* … */}` in an EXPRESSION position and broke the parse. Folded
+# into the block comment above the guard. Recorded because it is the third time
+# this sitting a comment has had to move to a legal or non-punishing position.
