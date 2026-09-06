@@ -344,17 +344,29 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 uppercase) — so the census is unchanged and an un-cited site
                 below the floor still reds.
 
-                A THIRD INK, and that is the point: brass is TDW's, the accent
-                is the referral's, and two chips in one colour would be one chip
-                wearing two meanings. Ink-mute reads as a quiet fact rather than
-                a claim, which is what a provenance is. */}
+                ⚠ THE REFERRAL'S INK, NOT A THIRD ONE — founder veto, 2026-09-07.
+                The first cut used `A.inkMute` on the argument that two chips in
+                one colour would be one chip wearing two meanings. ON GLASS THAT
+                WAS WRONG: muted grey reads as DISABLED or SECONDARY beside two
+                live chips, and a provenance the vendor most needs — a page she
+                has never seen — was the one drawn faintest. The WORD carries the
+                distinction; the ink carries the fact that this is provenance at
+                all. Byte-identical to the referral chip's, deliberately.
+
+                ⚠ AND IT IS THE LITERAL TOKEN, NOT `A.brass`. The local palette
+                at :235 SHADOWS the module-level `A` and re-points `brass` to
+                `var(--role-metal)` — which is why TDW renders gold here while
+                module-level `A.brass` is the accent. That shadow is the file's
+                own documented hazard ("a shadowed const is exactly where a token
+                split goes quietly wrong"), so this chip reads the CSS variable
+                directly, as the referral chip does, and cannot be moved by it. */}
             {row.weddingLead && (
               <span style={{
                 marginLeft: 8, verticalAlign: 'middle',
                 fontFamily: F.label, fontWeight: 500, fontSize: 9,
                 letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: A.inkMute,
-                border: '0.5px solid var(--atelier-card-border)', borderRadius: 3,
+                color: 'var(--atelier-accent-text)',
+                border: '0.5px solid var(--atelier-accent-text)', borderRadius: 3,
                 padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
               }}>{WP.chipWedding}</span>
             )}
