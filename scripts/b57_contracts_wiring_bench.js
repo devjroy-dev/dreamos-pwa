@@ -112,6 +112,44 @@ section('2. two planes, two id spaces, one word');
   ok('and the API client says why, at the function', /BINDER id/.test(read(API)));
 }
 
+// ══ §2b — THE PICKER'S THREE STATES AND THE UNION (F-40.138/.140) ══════════
+section('2b. in flight, failed and empty are three different sentences');
+{
+  const src = code(SCREEN);
+  // ⚠ THE KEY, NOT THE WORD. `Loading…` is unchanged; what it is keyed on is the
+  // whole finding. The first cut rendered it whenever `clients.length === 0`, so
+  // the walk saw a spinner while the truth was an empty plane.
+  ok('a named state exists', /pickState/.test(src));
+  ok('loading is keyed on state, never on length',
+     /pickState === 'loading'[\s\S]{0,140}Loading/.test(src));
+  ok('failed has its OWN sentence', /pickState === 'failed'[\s\S]{0,220}couldn[\s\S]{0,30}load your clients/.test(src));
+  ok('empty has its own, and it is reached only after ready',
+     /clients\.length === 0[\s\S]{0,240}No one to choose from yet/.test(src));
+  // The three must be distinguishable BY CONSTRUCTION: no two may share a branch.
+  ok('the three sentences are three branches',
+     (src.match(/Loading&#8230;|couldn&#8217;t load your clients|No one to choose from yet/g) || []).length === 3);
+
+  // ── THE UNION — R-G32.17 ────────────────────────────────────────────────
+  ok('the picker reads the Cabinet too', /fetchCabinet\s*\(/.test(src));
+  ok('and both reads must succeed or it is FAILED',
+     /!typed\.ok \|\| !cab\.ok[\s\S]{0,80}'failed'/.test(src));
+  // ⚠ DEDUP ON PHONE, matching resolveOrCreateClient's own key. A person in both
+  // homes appears once, marked Client, because picking her adds nothing.
+  ok('deduped on phone', /seen\.has\(phone\)/.test(src));
+  ok('a nameless binder names nobody', /if \(!name\) return;/.test(src));
+  // R5/R6 — the origin mark, which is where the ruling's visibility lives.
+  ok('every row is marked Client or Cabinet', /'Client' : 'Cabinet'/.test(src));
+
+  // ── R7 IS THE SERVER'S FACT, NOT THE ROW'S ORIGIN ───────────────────────
+  // The resolver dedups, so a binder pick for someone already a client creates
+  // nothing — and the confirmation must not appear. Keying R7 on
+  // `row.from === 'cabinet'` would be a true-LOOKING sentence about a thing that
+  // did not happen.
+  ok('the promotion line is keyed on the response', /setPromoted\(r\.promoted === true\)/.test(src));
+  ok("and NOT on the row's origin", !/promoted[\s\S]{0,40}from === 'cabinet'/.test(src));
+  ok('R7 renders only when promoted', /\{promoted &&[\s\S]{0,200}Added to your clients\./.test(src));
+}
+
 // ══ §3 — A VENDOR'S OWN WORDS ARE NOT TITLE-CASED (F-40.119's estate rule) ═
 section("3. the record renders prose as prose");
 {

@@ -41,7 +41,7 @@ import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAllContracts, requestContractUpload, finalizeContract,
          updateContract, sendContract, fetchContractDownload, cancelContract,
          contractPreviewUrl, sendContractToCouple, markContractDeposit,
-         fetchTypedClients, composeContract, fillContract } from '@/lib/vendor/api/vendor';
+         fetchTypedClients, composeContract, fillContract, fetchCabinet } from '@/lib/vendor/api/vendor';
 // TDW_09 R-U25: the ONE money home. A second formatter here would be a second
 // way to write Rs 18,000, and the estate has spent a finding on that already.
 import { formatRs } from '@/lib/vendor/format';
@@ -134,6 +134,11 @@ const labelStyle: React.CSSProperties = {
 };
 
 
+/** One row of the picker's union. `id` is a `public.clients` id, or NULL for a
+ *  binder — and the null is the whole difference: a null id means the tap will
+ *  promote. Frames `R4-pick`, `R4-pick-empty`, `R4-pick-failed`. */
+type PickRow = { key: string; id: string | null; name: string; phone: string | null; from: 'client' | 'cabinet' };
+
 const SCRIM: React.CSSProperties = {
   position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20,
   display: 'flex', alignItems: 'flex-end',
@@ -218,11 +223,19 @@ export function ContractsScreen() {
   // ── G3.2 part 2 · the fork and the record ─────────────────────────────────
   const [startOpen, setStartOpen] = useState(false);
   const [pickOpen, setPickOpen]   = useState(false);
-  const [clients, setClients]     = useState<Client[]>([]);
+  // ── THE UNION, AND ITS STATE — R-G32.17, F-40.138 ─────────────────────────
+  // ⚠ THREE STATES, THREE BYTES, ONE KEY. The first cut rendered `Loading…`
+  // whenever `clients.length === 0`, so IN FLIGHT, FAILED and GENUINELY EMPTY all
+  // read one word forever — and the walk hit the third while the room said the
+  // first. A control that says something untrue about its own condition is
+  // s-G11.2's class, and this was its fifth instance in this arc.
+  const [pickState, setPickState] = useState<'loading' | 'failed' | 'ready'>('loading');
+  const [clients, setClients]     = useState<PickRow[]>([]);
   const [record, setRecord]       = useState<Contract | null>(null);
   const [terms, setTerms]         = useState<Record<string, string>>({});
   const [annexes, setAnnexes]     = useState<Record<string, boolean>>({});
   const [depositPct, setDepositPct] = useState<string>('');
+  const [promoted, setPromoted]     = useState(false);
 
   useEffect(() => {
     // ── ALL FOUR STATES — F-40.115, R-G32.15 ──────────────────────────────
@@ -293,23 +306,64 @@ export function ContractsScreen() {
     setSelected(null);
   }
 
+  /** ⚠ TWO READS, ONE LIST, AND THE SECOND IS NOT OPTIONAL.
+   *  `fetchTypedClients` returns `public.clients` — which was EMPTY on the walk.
+   *  `fetchCabinet().clients` returns the binders the ESTATE ALREADY CALLS
+   *  CLIENTS: `cabinet.js:75` filters on `CLIENT_STAGE_WORDS`
+   *  (`client · booked · confirmed · signed · advance · paid`) server-side, so
+   *  this room does not re-decide who counts and could not drift from the
+   *  Cabinet's own answer.
+   *
+   *  ⚠ DEDUPED ON PHONE, matching `resolveOrCreateClient`'s own dedup key. A
+   *  person who is both a client row and a binder appears ONCE, marked `Client`,
+   *  because picking her adds nothing. If the two homes ever disagree, the client
+   *  row wins — it is the one the FK points at.
+   */
   async function openPicker() {
     setStartOpen(false);
     setPickOpen(true);
-    if (!session?.id || clients.length) return;
-    const r = await fetchTypedClients(session.id);
-    if (r.ok) setClients((r as { clients: Client[] }).clients);
+    if (!session?.id) { setPickState('failed'); return; }
+    if (clients.length) { setPickState('ready'); return; }
+    setPickState('loading');
+    const [typed, cab] = await Promise.all([fetchTypedClients(session.id), fetchCabinet(session.id)]);
+    // EITHER read failing is a FAILURE, never an empty list. Half a union
+    // presented as the whole one is the lie this cure exists to end.
+    if (!typed.ok || !cab.ok) { setPickState('failed'); return; }
+    const rows: PickRow[] = (typed as { clients: Client[] }).clients.map(c => ({
+      key: `c:${c.id}`, id: c.id, name: c.name, phone: c.phone, from: 'client' as const,
+    }));
+    const seen = new Set(rows.map(r => (r.phone || '').trim()).filter(Boolean));
+    (cab.clients ?? []).forEach(b => {
+      const name = (b.client || '').trim();
+      const phone = (b.phone || '').trim();
+      if (!name) return;                       // a binder with no name names nobody
+      if (phone && seen.has(phone)) return;    // already a client row
+      if (phone) seen.add(phone);
+      rows.push({ key: `b:${b.id}`, id: null, name, phone: phone || null, from: 'cabinet' });
+    });
+    setClients(rows);
+    setPickState('ready');
   }
 
-  async function doCompose(client: Client) {
+  async function doCompose(row: PickRow) {
     setSaving(true);
-    const res = await composeContract({ client_id: client.id });
+    // A client row travels as an id; a binder travels as a name and a phone and
+    // is PROMOTED at the door, through `resolveOrCreateClient` — the estate's
+    // only allowed door to creating a client, and the one that carries the phone
+    // dedup (R-G32.17).
+    const res = await composeContract(
+      row.id ? { client_id: row.id } : { name: row.name, phone: row.phone });
     setSaving(false);
     if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); return; }
-    const c = (res as { contract: Contract }).contract;
-    setContracts(prev => [c, ...prev]);
+    const r = res as { contract: Contract; promoted?: boolean };
+    setContracts(prev => [r.contract, ...prev]);
     setPickOpen(false);
-    openRecord(c);
+    // ⚠ THE CONFIRMATION IS THE SERVER'S FACT, NEVER `row.from === 'cabinet'`.
+    // The resolver dedups on phone, so picking a binder for someone who already
+    // has a client row adds nothing — and saying `Added to your clients.` then
+    // would be a true-looking sentence about a thing that did not happen.
+    setPromoted(r.promoted === true);
+    openRecord(r.contract);
   }
 
   /** THE ONLY WRITER of the blanks from this surface. `PATCH /fill` refuses on a
@@ -511,11 +565,37 @@ export function ContractsScreen() {
             <div style={GRAB}><div style={GRABBAR} /></div>
             <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>New</div>
             <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Your client</div>
-            {clients.length === 0 ? (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading&#8230;</div>
-            ) : clients.map(c => (
-              <button key={c.id} type="button" disabled={saving} onClick={() => void doCompose(c)} style={OPT}>{c.name}</button>
-            ))}
+            {pickState === 'loading' ? (
+              /* R1 — the byte is KEPT and its KEY changed. A later seat reading
+                 this word should find F-40.138, not just the string. */
+              <div style={NOTE}>Loading&#8230;</div>
+            ) : pickState === 'failed' ? (
+              /* R2 — us failing. Never the empty sentence: the walk was shown a
+                 spinner while the truth was an empty plane, and the opposite
+                 mistake would tell a vendor with a full Cabinet she has nobody. */
+              <div style={{ ...NOTE, color: A.red }}>We couldn&#8217;t load your clients.</div>
+            ) : clients.length === 0 ? (
+              /* R3 — reachable ONLY when there are no client rows AND no
+                 client-stage binders, which is the one condition under which it
+                 is true. */
+              <div style={NOTE}>No one to choose from yet. Add a client, or book someone in your Cabinet.</div>
+            ) : (
+              <>
+                {clients.map(c => (
+                  <button key={c.key} type="button" disabled={saving} onClick={() => void doCompose(c)}
+                          style={{ ...OPT, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                    <span>{c.name}</span>
+                    {/* R5 / R6 — one word, and it carries the ruling's visibility.
+                        She can see WHICH TAPS WILL GROW HER CLIENTS ROOM before she
+                        makes one; R7 only confirms it afterwards. */}
+                    <span style={{ ...labelStyle, marginBottom: 0, flexShrink: 0 }}>
+                      {c.from === 'client' ? 'Client' : 'Cabinet'}
+                    </span>
+                  </button>
+                ))}
+                <div style={NOTE}>People you&#8217;ve booked or confirmed in your Cabinet are here too. Picking one adds her to your clients.</div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -542,6 +622,12 @@ export function ContractsScreen() {
             <Field label="Second partner&#8217;s name" value={terms.partner_2_name ?? ''} placeholder="Not filled"
                    onChange={v => setTerms({ ...terms, partner_2_name: v })} />
             <div style={NOTE}>Filled from your client&#8217;s record. Nothing here was typed twice.</div>
+            {/* R7 — shown ONLY when the server says a row was created. The
+                resolver dedups on phone, so a binder pick for someone already a
+                client adds nothing and this line stays away. */}
+            {promoted && (
+              <div style={{ ...NOTE, color: A.green }}>Added to your clients.</div>
+            )}
 
             <div style={GROUP}>The dates</div>
             <Field label="Venue" value={terms.venue ?? ''} placeholder="Venue not filled"

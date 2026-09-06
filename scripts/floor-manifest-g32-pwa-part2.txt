@@ -57,3 +57,30 @@ docs/TDW_19_G32_PWA_HANDOVER.md
 #   saveContractProfile   — NOT SHIPPED. See below.
 # The cell the chair asked for closed F-40.109's class by finding three instances
 # of it inside this seat's own delivery, on its first run.
+
+# ── MICRO 1 (2026-09-06) · derived at dreamos-pwa 35b9ec4 ───────────────────
+# R-G32.17/.18 built, R1-R8 vetoed. The picker's three states, the union with
+# the Cabinet, the origin marks, and the promotion line.
+#
+#   app/vendor/(shell)/contracts/screen.tsx
+#   lib/vendor/api/vendor.ts
+#   scripts/b57_contracts_wiring_bench.js
+#
+#   tsc --noEmit                    CLEAN
+#   b57                             39/39   (26 -> 39), five mutations both ways:
+#       pickState back to a length key            -> 1 red
+#       R7 keyed on the row's origin              -> 1 red
+#       drop the Cabinet read                     -> 1 red
+#       drop the phone dedup                      -> 1 red
+#       drop the origin mark                      -> 1 red
+#   b40 · b05_f0589                 GREEN
+#   b42_g11_wedding_pages           RED · ONE cell, IDENTICAL at base — the same
+#                                   inherited red the chair recorded at G1.3's
+#                                   cfe4525 (`The cards couldn't be made.` /
+#                                   `Make the reel`). It was GREEN when this seat
+#                                   ran it at 364bd0a because G1.3 had not landed.
+#                                   NOT this delivery's, proven by stash.
+#   bs_audit · wl_audit             RED, IDENTICAL at base
+#   DELTA                           ZERO
+#
+# ⚠ `next build` OWED on the founder's machine, same shape as parts 1 and 2.

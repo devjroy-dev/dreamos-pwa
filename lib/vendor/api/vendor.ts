@@ -1342,7 +1342,19 @@ export function fetchTypedClients(vendorId: string, limit = 100): Promise<{ ok: 
   return getJson(`/api/v2/vendor/clients/${vendorId}?limit=${limit}`);
 }
 
-export function composeContract(body: { client_id: string; event_id?: string; invoice_id?: string; deposit_pct?: number }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
+/**
+ * ⚠ `client_id` OR `{ name, phone }` — R-G32.17, and the second arm is the whole
+ * of F-40.140's cure. `public.clients` was EMPTY for the walk vendor because its
+ * three writers all need money or a manual entry; her people live on the binder
+ * plane. `contracts_client_id_fkey` points at `public.clients`, so a binder id
+ * cannot satisfy it and **promotion is the only mechanism**, whatever the picker
+ * chooses to display.
+ *
+ * `promoted` comes back TRUE only when a row was actually created — the resolver
+ * dedups on phone, and the record must not claim to have added someone who was
+ * already there.
+ */
+export function composeContract(body: { client_id?: string; name?: string; phone?: string | null; event_id?: string; invoice_id?: string; deposit_pct?: number }): Promise<{ ok: boolean; contract: Contract; promoted?: boolean } | ApiErr> {
   return postJson('/api/v2/vendor/contracts/compose', body);
 }
 export function fillContract(contractId: string, body: { terms?: Record<string, unknown>; annexes?: Record<string, boolean>; deposit_pct?: number | null }): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
