@@ -412,3 +412,53 @@ export type ReferralStamp = {
 // `dream-os/src/api/vendor/solutions/contract.js`. The two must be identical
 // strings; that identity is the whole mechanism.
 export const CONTRACT_DIGEST = 'a4ccb0a742fbbd87a4a9a63674922ac6d60f7576e7e9fd66696cf061267a607a';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// G3.4 · PAYMENT REMINDERS
+// ═══════════════════════════════════════════════════════════════════════════
+// Shapes derived from the door itself at dream-os `8762ffc`
+// (`src/api/vendor/reminders.js`, `GET /api/v2/vendor/reminders`), never
+// predicted from the mock. Field names are the door's field names.
+//
+// ⚠ `sent` IS `wamid IS NOT NULL` AND NOTHING SOFTER. The door computes it
+// (`sent: !!r.wamid`) so this side cannot drift into counting something looser.
+// The WORD on the glass is **Sent**, never Landed: a wamid means WhatsApp
+// ACCEPTED the message and never that it reached her client's phone — the
+// founder's amendment at the veto, G34_VETO_SHEET §A.
+//
+// `client` is nullable because the door sends null where a name is genuinely
+// absent, and because a reminder OUTLIVES its invoice: 0139's FK is
+// ON DELETE SET NULL so a row whose invoice is gone has no name to resolve.
+// The room renders an em dash there rather than inventing one.
+export type ReminderAsked = {
+  id: string;
+  client: string | null;
+  milestone: string;
+  amount_due: number;
+  due_date: string | null;
+  sent: boolean;
+  source: 'vendor_tap' | 'nightly';
+  asked_at: string;
+};
+
+export type ReminderDue = {
+  milestone_id: string;
+  invoice_id: string;
+  client: string | null;
+  milestone: string;
+  amount_due: number;
+  due_date: string | null;
+};
+
+// `sending` is the BACKEND's gate, reported rather than re-derived here.
+// `open:false` with `approved:true` is today's real state — the template is
+// Active at Meta and `PAYMENT_REMINDER_SEND_ENABLED` is unset — and the room
+// says so in words instead of drawing a control that cannot act.
+export type PaymentRemindersRoom = {
+  asked: ReminderAsked[];
+  sent_count: number;
+  due: ReminderDue[];
+  auto_send: boolean;
+  sending: { open: boolean; approved: boolean; reason: string | null };
+  window_days: number;
+};

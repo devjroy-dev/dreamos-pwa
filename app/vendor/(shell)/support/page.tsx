@@ -36,7 +36,7 @@ import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
 import { roomHref } from '@/lib/worklist/rooms';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, CONTRACTS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, CONTRACTS_HREF, PAYMENT_REMINDERS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -79,6 +79,18 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // constant here would be a second home for an address the registry already
   // owns — `routes.ts`'s own disease, arriving from the other direction.
   website:       roomHref('storefront'),
+  // ── G3.4 · R-G34 — THE SIXTH OF THE NINE OPENS ───────────────────────────
+  // `reminders` is `ROOM_ROWS`' own key for 「Payment reminders」 (R-40.1's R5).
+  // One line, as the map has promised five times: the row gains a destination
+  // and `RoomRow`'s chip flips from `Coming` to `Open`. No ternary, no second
+  // string, and `ROOM_ROWS`' label is untouched — it is R-40.1's byte.
+  //
+  // It takes a CONSTANT rather than `roomHref()` because payment reminders is
+  // not a registry room: `rooms.ts` has no entry for it, so `b40` C31's declared
+  // set would not contain `/vendor/payment-reminders` and the literal would be
+  // unreachable-by-declaration. Same asymmetry the four above document, and the
+  // same reason `website` goes the other way.
+  reminders:     PAYMENT_REMINDERS_HREF,
 };
 
 function SolutionsIndexScreen() {

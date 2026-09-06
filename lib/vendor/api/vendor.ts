@@ -2,6 +2,7 @@
 // One exported async function per vendor contract endpoint.
 // Screen components import from here — never raw fetch.
 
+import { API } from '@/lib/solutions/routes';
 import { getJson, postJson, patchJson, API_BASE, getAuthHeader, handleResponse } from './_base';
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
 import type {
@@ -1270,6 +1271,22 @@ export function cancelPayment(paymentId: string): Promise<{ ok: boolean; payment
 import type { ScheduleMilestone, Contract, TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
 
 // Schedules
+// ── BLOCK 19 · G3.4 — THE REMINDER'S OWN DOOR (dream-os 8762ffc) ───────────
+// ⚠ NOT ON THE SCHEDULE PREFIX, THOUGH IT SITS BESIDE IT ON GLASS. The send
+// lives on its own segment router because `/solutions` declares itself GET-only
+// and this feature writes; the address's ONE HOME is `API.reminderSend()` in
+// `lib/solutions/routes.ts`, and this wrapper reads it rather than spelling a
+// path — the wedding-pages seat's e-8 records what a hand-written path costs.
+//
+// It takes the MILESTONE id. The unit of the send is one milestone, and the
+// once-per-milestone UNIQUE key is keyed to it; handing this an invoice would
+// ask the door to choose which milestone to chase.
+export function sendReminder(milestoneId: string): Promise<
+  { ok: boolean; sent: boolean; skipped: boolean; reason: string | null; id: string | null } | ApiErr
+> {
+  return postJson(API.reminderSend(milestoneId), {});
+}
+
 export function fetchSchedule(invoiceId: string): Promise<{ ok: boolean; schedule: ScheduleMilestone[] } | ApiErr> {
   return getJson(`/api/v2/vendor/invoices/${invoiceId}/schedule`);
 }

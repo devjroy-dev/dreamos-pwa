@@ -1174,6 +1174,20 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const rm = solRoutes.match(/export const REFERRALS_HREF\s*=\s*'([^']+)'/);
   if (!rm) return 'REFERRALS_HREF is not declared: the referrals room has no address home (R-G51.10)';
   declared.add(rm[1]);
+  // ── AMENDED BY LABEL — G3.4. THE FIFTH CONSTANT, AND THE CELL STILL DOES NOT
+  // LOOSEN. Payment reminders is NOT a registry room — `rooms.ts` has no entry
+  // for it — so its address lives in `lib/solutions/routes.ts` on the same
+  // not-a-room precedent the four above use, and this cell READS THAT
+  // DECLARATION rather than retyping the literal. Two homes for one set is how
+  // this cell's own audit went stale once already.
+  //
+  // IT TIGHTENS WITH THE ROOM: delete `PAYMENT_REMINDERS_HREF` and this reddens
+  // on the missing declaration rather than passing quietly. The set grows by
+  // exactly one DECLARED member and an undeclared `/vendor/…` literal anywhere
+  // in the graph is still a stray.
+  const pm = solRoutes.match(/export const PAYMENT_REMINDERS_HREF\s*=\s*'([^']+)'/);
+  if (!pm) return 'PAYMENT_REMINDERS_HREF is not declared: the payment-reminders room has no address home (R-G34)';
+  declared.add(pm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

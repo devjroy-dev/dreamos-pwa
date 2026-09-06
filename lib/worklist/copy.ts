@@ -692,6 +692,26 @@ export const COPY = {
   // same defect as an invented state — it moves for the one-home law alone.
   studioPdfFailed:      "Couldn’t prepare the PDF just now. Try again in a moment.",
   studioPdfNoAdvance:   'PDF not ready yet — record the advance first.',
+
+  // ── BLOCK 19 · G3.4 — THE INVOICE RECORD'S ONE NEW CONTROL ────────────────
+  // Vetoed on `docs/mocks/G34_VETO_SHEET.md` §E, ratified 2026-09-06 (R-40.42).
+  // The sheet's row numbers are carried so a byte on glass walks back to the row
+  // that approved it.
+  //
+  // ⚠ `studioReminderRails` (#16b) IS WHERE THE RAILS RULING BECOMES VISIBLE.
+  // Arm (ii): the template promises nothing it cannot keep, so it carries no UPI
+  // id and no bank line — Meta templates are fixed bytes and the filed one has
+  // four holes, none of them for a rail. She already HAS them: 0130's four
+  // columns print on the invoice PDF, and Send on WhatsApp is one control up.
+  // This sentence is how she learns that at the moment she would wonder.
+  studioReminderSend:    'Send the reminder',                                    // #14
+  studioReminderTitle:   'Send this reminder?',                                  // #15
+  studioReminderRails:   'Your UPI and bank details are on the invoice PDF. Send that with the reminder if she needs them.', // #16b
+  studioReminderSent:    'Reminder sent',                                        // #17
+  studioReminderNone:    'No schedule on this invoice. Add one and you can send reminders for each milestone.', // #18
+  studioReminderDark:    'Reminders are not sending yet.',
+  studioReminderDone:    'Reminder sent.',
+  studioReminderFailed:  'Could not send the reminder. Nothing was sent.',
   contractsTitle:  'Contracts',
   tdsTitle:        'TDS',
   // §4-4 batch ③. The tile has read 「Collab」 since the registry was written and the masthead

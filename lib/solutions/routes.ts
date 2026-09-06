@@ -116,6 +116,16 @@ export const WEDDINGS_API_PATH = '/api/v2/vendor/studio/weddings';
 // prefix, which already exists in this codebase's api layer but had no constant
 // here because nothing in `lib/solutions` addressed a lead before. One home each,
 // and neither is spelled at a call site.
+// ── THE G3.4 DOORS (Block 19 G3.4, dream-os 8762ffc) ───────────────────────
+// ⚠ ITS OWN PREFIX, NOT `SOLUTIONS_API_PATH`, AND THE REASON IS THE BACKEND'S.
+// `src/api/vendor/solutions/index.js` declares itself GET-only with POSTs
+// conditional-withheld, and this feature has TWO writes — her tap and her
+// switch. The seat mounted a segment router at `/api/v2/vendor/reminders`
+// rather than make that file lie about itself, and the chair pre-approved the
+// divergence on exactly that reasoning. This constant is that address's one
+// home; nothing below spells it at a call site.
+export const REMINDERS_API_PATH = '/api/v2/vendor/reminders';
+
 export const REFERRALS_API_PATH = '/api/v2/vendor/referrals';
 export const LEADS_API_PATH     = '/api/v2/vendor/leads';
 
@@ -171,6 +181,16 @@ export const API = {
   // this is a Business Solutions door mounted in that router beside the eight
   // that were already there. One prefix, its own owner, no second spelling.
   googleReviews:   () => `${SOLUTIONS_API_PATH}/google-reviews`,
+
+  // ── G3.4 · the room, her tap, her switch ─────────────────────────────────
+  // `reminderSend` takes the MILESTONE id, not the invoice id: the unit of the
+  // send is one milestone, and the once-per-milestone UNIQUE key is keyed to it.
+  // Passing an invoice here would ask the door to choose which milestone to
+  // chase, which is a decision no address should be making.
+  paymentReminders:    () => REMINDERS_API_PATH,
+  reminderSend:        (milestoneId: string) =>
+    `${REMINDERS_API_PATH}/${encodeURIComponent(milestoneId)}/send`,
+  reminderSettings:    () => `${REMINDERS_API_PATH}/settings`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS ─────────────────────────
@@ -184,3 +204,9 @@ export const API = {
 // matches any `/vendor…` literal against a declared set, and `support/page.tsx`
 // is reachable from all of them.
 export const CONTRACTS_HREF = '/vendor/contracts';
+
+// ── G3.4 · PAYMENT REMINDERS (R-40.1's R5) ─────────────────────────────────
+// The fifth of the nine to open. Same one-line rule: `support/page.tsx`'s
+// ROOM_HREFS gains `reminders: PAYMENT_REMINDERS_HREF` and the row's chip flips
+// from Coming to Open. `ROOM_ROWS`' label is R-40.1's byte and is not touched.
+export const PAYMENT_REMINDERS_HREF = '/vendor/payment-reminders';

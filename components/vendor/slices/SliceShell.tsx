@@ -48,7 +48,7 @@ import { roomHref } from '@/lib/worklist/rooms';
 import { COPY } from '@/lib/worklist/copy';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
-import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
+import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, sendReminder, fetchMe, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
 import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gesture engine
 import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
 import { FilterRail, type FilterChip } from './FilterRail'; // TDW_04 A4: P4's rail
@@ -85,11 +85,30 @@ const LANE_LINE: Record<ListSlice, string> = {
   events:   'Your calendar',
 };
 import { DetailSheet } from './DetailSheet';
+import { reminderPreview } from '@/lib/worklist/paymentReminders';
 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
-// Payment schedule endpoint lands with Step 10 (artifact hands). Off until then,
-// so opening an invoice doesn't fire a 404 against a route that isn't built yet.
-const SCHEDULE_ENABLED: boolean = false;
+// ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
+// It read `false` from the day it was written, and its comment said why: the
+// schedule endpoint had not been built, so opening an invoice would fire a 404
+// at a route that did not exist. That was true then. **It has not been true for
+// some time** — `src/api/vendor/schedules.js` carries five routes and
+// `lib/vendor/api/vendor.ts:fetchSchedule` already addresses them. The flag was
+// guarding a 404 that cannot happen, and the whole payment-schedule panel plus
+// its create sheet have been dark in production behind it.
+//
+// ⚠ THE FLIP WAITED ON A FRAME, NOT ON COURAGE. R-G34.10 conditioned it on
+// whether a ratified mock frame existed for this panel. Derived: none did. The
+// only mock in either repo drawing a payment schedule is
+// `invoice-document-mock.html`, and every frame there is an A4 PDF PAGE — the
+// printed invoice a client receives, not this panel. So the panel took its own
+// frame (`payment-reminders-mock.html` @ `d96d9bc`, `P8-schedule-sheet`), was
+// vetoed at §F of `G34_VETO_SHEET.md`, and the byte moves now.
+//
+// It stays a named constant rather than being deleted: G3.4's reminder control
+// hangs off this panel, and one place to switch both off is worth more than the
+// two lines saved by inlining `true`.
+const SCHEDULE_ENABLED: boolean = true;
 
 // ── The Slice Door · CE addendum 2026-07-14 (F1 successor) ──────
 // The five slices as chips, canonical order, directly under the brass label.
@@ -376,6 +395,26 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [schedule,       setSchedule]       = useState<ScheduleMilestone[] | null>(null);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [scheduleOpen,    setScheduleOpen]    = useState(false);
+  // ── G3.4 · the reminder her tap sends, held until she has SEEN the words ──
+  // `remindMs` is the milestone the confirm sheet is about. Null means no sheet.
+  // The milestone is held rather than an id, because the sheet renders the exact
+  // message and needs the label and the amount to compose it.
+  const [remindMs,        setRemindMs]        = useState<ScheduleMilestone | null>(null);
+  const [remindBusy,      setRemindBusy]      = useState(false);
+  const [remindedIds,     setRemindedIds]     = useState<string[]>([]);
+  // ⚠ `vendors.business_name`, WHICH IS WHAT THE DOOR SENDS AS {{3}} — never the
+  // session's `name`. They are different columns and can hold different words; a
+  // preview showing one while the client receives the other would be a confirm
+  // sheet failing at the only job it has (F-39.70/.71). Fetched once from the
+  // door that already owns this field rather than added to a second one.
+  const [vendorBusinessName, setVendorBusinessName] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetchMe()
+      .then(r => { if (live && r && r.ok && r.vendor) setVendorBusinessName(r.vendor.business_name ?? null); })
+      .catch(() => { /* the sheet renders an em dash; it never guesses a name */ });
+    return () => { live = false; };
+  }, []);
   const [milestones,      setMilestones]      = useState([{ label: 'Booking', pct: '30', due_date: '' }, { label: 'Shoot day', pct: '40', due_date: '' }, { label: 'Delivery', pct: '30', due_date: '' }]);
   const [scheduleSaving,  setScheduleSaving]  = useState(false);
   const [addOpen,     setAddOpen]     = useState(false);
@@ -1030,6 +1069,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             )}
           </div>
           {scheduleLoading && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
+          {/* #18 · NO SCHEDULE ⇒ NO CONTROL, AND A SENTENCE INSTEAD. The reminder
+              has nothing to be about, so nothing is drawn greyed. The Add control
+              is already in the header one line up. */}
+          {schedule && schedule.length === 0 && !scheduleLoading && (
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, maxWidth: '40ch' }}>
+              {COPY.studioReminderNone}
+            </div>
+          )}
           {schedule && schedule.map(ms => (
             <div key={ms.id} style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
@@ -1048,6 +1095,29 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'rgba(224,188,110,0.5)'}`,
                 borderRadius: 2, padding: '3px 8px', flexShrink: 0,
               }}>{ms.state}</span>
+              {/* ── G3.4 · SEND THE REMINDER ─────────────────────────────
+                  ⚠ ON THE MILESTONE ROW, NOT AT THE FOOT OF THE PANEL. An
+                  invoice has three milestones; a single button below them all
+                  would have to ask her WHICH — a question the row she is looking
+                  at has already answered. It names no milestone in its own label
+                  because the row it sits on is the label.
+                  It DISAPPEARS once sent rather than greying: once-per-milestone
+                  is the database's UNIQUE key, and a disabled button would be a
+                  control lying about a state it does not own. */}
+              {ms.state === 'pending' && !remindedIds.includes(ms.id) && (
+                <button type="button" onClick={() => setRemindMs(ms)} style={{
+                  padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                  border: '0.5px solid rgba(201,168,76,0.5)',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
+                  letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                }}>Remind</button>
+              )}
+              {remindedIds.includes(ms.id) && (
+                <span style={{
+                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.inkMute,
+                  letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                }}>{COPY.studioReminderSent}</span>
+              )}
               {ms.state === 'pending' && (
                 <button type="button" onClick={async () => {
                   setScheduleSaving(true);
@@ -1276,6 +1346,93 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       />
 
       {/* Schedule builder sheet */}
+      {/* ══════════════════════════════════════════════════════════════════
+          G3.4 · THE CONFIRM SHEET — THE TAP IS NOT THE SEND
+          ══════════════════════════════════════════════════════════════════
+          ⚠ SHE SEES THE EXACT WORDS BEFORE THEY LEAVE. F-39.70/.71's law: no
+          message goes to a client until the vendor has read it and said yes to
+          THOSE words. This is why the control opens a sheet instead of firing.
+
+          The body below is `tdw_payment_reminder`'s FILED bytes (R-40.76, Meta
+          ID 1781270206634381) with the four variables substituted — the same
+          composition the backend performs, transcribed because that home is in
+          the other repo. If the two ever disagree, this preview is the lie and
+          the backend is the truth; the bench asserts them identical.
+
+          DISMISSING SENDS NOTHING. Silence never means yes.  */}
+      {remindMs && sel && (
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+          onClick={() => { if (!remindBusy) setRemindMs(null); }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%',
+            background: 'var(--atelier-sheet-bg)',
+            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+            borderTop: '0.5px solid var(--atelier-card-border)',
+            borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brass, letterSpacing: '0.42em', textTransform: 'uppercase' }}>
+                {COPY.studioReminderTitle}
+              </span>
+              <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
+            </div>
+
+            {/* WHO IT GOES TO, BEFORE WHAT IT SAYS. A vendor checks the number
+                first; the message is only worth reading once she knows where it
+                is bound. */}
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 10 }}>
+              This goes to {sel.primary} on {sel.client_phone ?? '\u2014'}.
+            </div>
+
+            <div style={{
+              padding: '12px 14px', background: 'var(--atelier-input-bg)',
+              border: '0.5px solid var(--atelier-card-border)', borderRadius: 3,
+              fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
+            }}>
+              {reminderPreview(sel.primary, remindMs, vendorBusinessName)}
+            </div>
+
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, margin: '10px 0 16px', maxWidth: '40ch' }}>
+              {COPY.studioReminderRails}
+            </div>
+
+            <button type="button" disabled={remindBusy} className="atelier-fab"
+              onClick={async () => {
+                setRemindBusy(true);
+                try {
+                  const res = await sendReminder(remindMs.id) as { ok: boolean; sent?: boolean; skipped?: boolean; reason?: string | null; error?: string };
+                  if (res.ok && res.sent) {
+                    // ⚠ THE ROW IS MARKED ONLY WHEN THE DOOR SAYS SENT. A skipped
+                    // send leaves the control standing, because the reminder did
+                    // not go and a surface that hid it would be reporting a
+                    // delivery that never happened (F-39.70/.71).
+                    setRemindedIds(prev => [...prev, remindMs.id]);
+                    showToast(COPY.studioReminderDone, 'success');
+                  } else if (res.ok && res.skipped) {
+                    showToast(res.reason ?? COPY.studioReminderDark, 'error');
+                  } else {
+                    showToast(res.error ?? res.reason ?? COPY.studioReminderFailed, 'error');
+                  }
+                } catch {
+                  showToast(COPY.studioReminderFailed, 'error');
+                } finally {
+                  setRemindBusy(false);
+                  setRemindMs(null);
+                }
+              }}
+              style={{
+                width: '100%', padding: '11px 14px', borderRadius: 3,
+                border: '0.5px solid var(--atelier-label)', cursor: remindBusy ? 'default' : 'pointer',
+                opacity: remindBusy ? 0.6 : 1,
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
+                letterSpacing: '0.28em', textTransform: 'uppercase',
+              }}>
+              {remindBusy ? 'Sending\u2026' : COPY.studioReminderSend}
+            </button>
+          </div>
+        </div>
+      )}
+
       {scheduleOpen && sel && (
         <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
           onClick={() => setScheduleOpen(false)}>
