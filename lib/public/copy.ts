@@ -258,3 +258,111 @@ export const PUBLIC_DOWNLOAD = {
    */
   fine: 'Your number is never shown on this page.',
 } as const;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// G3.1 — THE DATE CHECK. Founder-vetoed 2026-09-06 under R-40.42, with two
+// bytes amended on the glass rather than on the sheet (B4, C2, C6).
+// ═══════════════════════════════════════════════════════════════════════════
+// Source: `docs/mocks/your-website-mock.html` @ `9a9c151`, frames V1-check and
+// V2-booked/held/free/unknown. A string not in that file is a BOUNCE.
+//
+// ⚠ EVERY BYTE HERE IS READ BY A STRANGER — a couple on mobile data who has
+// never heard of this estate. No persona name, no house slang, no money.
+//
+// ⚠ AND EVERY ONE CARRIES U+2019, NOT AN ASCII APOSTROPHE (R-40.57). `b40`
+// C102 walks `lib/`, `components/` and `app/` and reds on a straight mark in a
+// shipped prose byte, and this file is in that walk.
+
+/**
+ * THE FOUR ANSWERS — R-G31.1, and the ONE home for them.
+ *
+ * The door returns a shape; this file owns the words. That split is the reason
+ * `verdictOf` exists in dream-os and computes nothing the leaf re-decides: two
+ * authors for one sentence is two sentences by the second edit.
+ *
+ * ⚠ THE FIRST ARM HAS TWO LIMBS AND THE SECOND IS THE ONE THAT BITES.
+ * `Booked` is `blocked === true` OR **every slot at capacity**. Driven over the
+ * founder's own fixture — a full-day ceremony on 2026-12-04 — `describeDate`
+ * returns `blocked:FALSE` with all three slots at `held 1 / capacity 1`, because
+ * `blocked` is true only for rows of `kind='blocked'` and a ceremony is not one.
+ * A leaf reading `blocked` alone would answer `held` for a fully sold day. The
+ * door ships `sold` precomputed so this file never has to know that.
+ *
+ * ⚠ AND `null` IS NOT `false`. A calendar nobody could read is not a free one.
+ */
+export const PUBLIC_DATE_CHECK = {
+  /** B1 · the section label, on the storefront and again on the answer. */
+  label: 'Check a date',
+  /**
+   * B2 · the field's name. **RULED (c) — it is an `aria-label`, never rendered
+   * text and NEVER a `placeholder`.** On glass the section label already carried
+   * the meaning and the two read as one thing said twice; the byte was not
+   * dropped, it stopped being visible. `placeholder` would be F-40.137's exact
+   * shape — and `type="date"` ignores it outright, so the substitution would
+   * leave a date input with no accessible name at all.
+   */
+  fieldLabel: 'Your wedding date',
+  /** B3 · the verb. */
+  submit: 'Check',
+
+  /** A1 · `blocked === true` OR every slot at capacity. */
+  booked: 'Booked',
+  /** A2 · not blocked, not sold, and some slot spoken for. */
+  held: 'Some of the day is held',
+  /** A3 · not blocked and nothing held. */
+  free: 'Free',
+  /**
+   * A4 · `blocked === null` — the checker could not see.
+   *
+   * ⚠ C6: this renders at BODY SIZE while the three above take the 28px
+   * display slot. A failure is not an answer and should not wear its type; a
+   * guest should never have to work out which kind of thing she is reading.
+   */
+  unknown: 'Couldn\u2019t check just now. Try again in a moment.',
+
+  /**
+   * C1 · under `Booked`. The vendor's interest and the guest's coincide here:
+   * without it the word is a door closing, and the enquire control beneath it
+   * then reads as TDW ignoring its own answer.
+   */
+  bookedNote: 'Send an enquiry anyway \u2014 dates do change.',
+  /**
+   * C2 · under the held word. **AMENDED at the veto**: the proposed line ended
+   * `and she\u2019ll say`, which promised a reply on the vendor's behalf. This asks
+   * the guest to act and promises nothing.
+   *
+   * ⚠ IT DOES NOT NAME THE SLOT. `morning` would be the outline of somebody
+   * else's booking, which is the same leak the door refuses by never sending
+   * `slots`.
+   */
+  heldNote: 'Send an enquiry with the hours you need.',
+  /**
+   * C3 · under `Free`. The one state that can oversell, and this is said in the
+   * VENDOR's favour rather than TDW's: a guest who reads `Free` and assumes a
+   * hold is a guest who is angry at the vendor later.
+   */
+  freeNote: 'Nothing is held until she confirms it.',
+  /**
+   * C4 is deliberately absent. There is no line and no enquire control under a
+   * failure — she asked and got nothing back, and a next step there would be
+   * TDW converting a technical fault into a lead.
+   */
+} as const;
+
+/**
+ * C5 · the way back, on every state. Her NAME, not `Back to the page`: the
+ * guest came from a person, and the answer leaf's whole job is to not feel like
+ * somewhere else.
+ */
+export function publicBackTo(businessName: string | null): string {
+  return `Back to ${businessName ?? 'the page'}`;
+}
+
+/**
+ * D1 · the storefront's weddings section.
+ *
+ * Not `Real weddings` — the word *real* only makes sense if you suspected the
+ * others were not. Not `Recent`, which claims something about dates the section
+ * does not sort on beyond newest-first.
+ */
+export const PUBLIC_WEDDINGS_LABEL = 'Weddings';

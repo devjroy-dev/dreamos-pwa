@@ -53,7 +53,7 @@ import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/component
 import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
 // R-G11.15 · the two bytes this leaf shares with the wedding page now live in
 // one home. Nothing is re-voiced; these read exactly as they read before.
-import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD, PUBLIC_ENQUIRE_LABEL } from '@/lib/public/copy';
+import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD, PUBLIC_ENQUIRE_LABEL, PUBLIC_DATE_CHECK, PUBLIC_WEDDINGS_LABEL } from '@/lib/public/copy';
 
 /** Five minutes. See the header. */
 export const revalidate = 300;
@@ -145,6 +145,17 @@ const COPY = {
  */
 const SEAL_MARK = 'TDW-verified';
 
+/**
+ * ⚠ ABSENT PARTS DROP OUT — the wedding leaf's own `metaLine` rule
+ * (`app/v/[code]/w/[slug]/page.tsx`), carried rather than re-derived, because
+ * the two surfaces describe the SAME wedding and a second rule here would let
+ * them disagree. The founder's `verma-event` row has neither venue nor city, so
+ * this returns a bare season rather than `\u00b7 \u00b7 Summer 2026`.
+ */
+function weddingMeta(w: { venue: string | null; city: string | null; season: string | null }): string {
+  return [w.venue, w.city, w.season].filter(Boolean).join(' \u00b7 ');
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
 
@@ -199,6 +210,21 @@ type Card = {
    *  that declares a field nobody may read is an invitation; this one does not
    *  offer it. One contact field, one home, and `bs_audit` C32 keeps it so. */
   enquire_link: string | null;
+  /** ── G3.1 · R-40.77 — HER PERMISSION, NOT A PREFERENCE ──────────────────
+   *  The control renders only on `true`. This is CHROME: `public/availability.js`
+   *  re-answers the same question and is the actual enforcement, because a
+   *  consent gate that lives only in a renderer is a gate a curl walks past. */
+  date_check_enabled: boolean;
+  /** ── G3.1 · F-40.164 — HER PUBLISHED, CONSENTED WEDDING PAGES ───────────
+   *  Newest first, shaped by `publicWedding` at the door. An ARRAY, possibly
+   *  empty, never null — and empty renders NO SECTION, because a heading over
+   *  nothing is a page that looks broken.
+   *
+   *  ⚠ `venue` AND `city` ARE BOTH NULLABLE AND THE FOUNDER'S OWN ROWS PROVE IT
+   *  (F-40.164): one of his two live pages has neither, so its meta line is a
+   *  bare season. The line drops absent parts rather than printing a dangling
+   *  separator — G1.2's `metaLine` rule, carried. */
+  weddings: { slug: string; title: string; venue: string | null; city: string | null; season: string | null }[];
   /** ── G2 · R-G2.9 — THE SEAL, AN OBJECT OR NULL, NEVER A PARTIAL ─────────
    *  Under three delivered weddings there is no seal at all, and the ABSENCE IS
    *  THE ANSWER: a couple must not be able to tell an unverified studio from one
@@ -363,6 +389,44 @@ export default async function PublicVendorPage(
           Her name is here at 11px and again at t1 over the hero, and the
           repetition is deliberate: this is a masthead, that is the page's
           subject. A reader scrolled past the hero still knows whose page it is. */}
+      {/* ── G3.1 · STRUCTURED DATA — R-G31.5, and the estate's FIRST ────────
+          `LocalBusiness`, built from keys the wire ALREADY carries. No field is
+          invented and no second source is consulted.
+
+          ⚠ WHAT IS REFUSED, each for a stated reason:
+            · `telephone` — R-G11.6. `public.vendors` has no phone column, and
+              structured data is the most machine-readable place a personal
+              number could possibly land.
+            · `aggregateRating` — R-G2.2 withheld the rating because NO SOURCE
+              EXISTS. The seal counts delivered weddings; schema.org has no word
+              for that which is not a review count, and mapping one onto the
+              other would invent the exact score master §7 refuses.
+            · `additionalType` — `category` is this estate's taxonomy word, not a
+              schema.org URI. Mapping it would be a guess wearing a standard's
+              name.
+            · `priceRange` — `starting_price` is a FLOOR and priceRange reads as
+              a band. A floor rendered as a band is a claim she did not make.
+
+          ⚠ IT IS ABSENT ON A MISS — this branch renders only for a served card.
+          `generateMetadata` already answers a miss with `noindex` and no
+          descriptive tags (C28); a business object for a page that does not
+          serve would leak the same fact back through the one channel built to
+          be read by machines. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          name: card.business_name || undefined,
+          url: `${SITE_BASE}/v/${card.handle}`,
+          description: card.about || undefined,
+          image: gallery.length > 0 ? gallery[0].url : undefined,
+          address: card.city
+            ? { '@type': 'PostalAddress', addressLocality: card.city, addressCountry: 'IN' }
+            : undefined,
+        }) }}
+      />
+
       <header className="pv-top">
         <span className="pv-top-name">{card.business_name}</span>
       </header>
@@ -554,6 +618,41 @@ export default async function PublicVendorPage(
           </div>
         )}
 
+        {/* ── G3.1 · THE DATE CHECK — R-40.77, R-G31.3, R-G12.10 ────────────
+            SEAL (who she is) → CHECK (can she have me) → ENQUIRE (the act).
+            That order is the funnel and the reason this sits here rather than
+            below the button: a couple asks about the date BEFORE she writes.
+
+            ⚠ IT SPENDS NO GOLD. The page's budget of three is already the
+            Enquire border, the section break's two gradient lines and the
+            diamond. A gold field would be a fourth AND would make the check
+            look like the page's act, which it is not.
+
+            ⚠ `method="GET"`, NO SCRIPT, AND A SEPARATE ADDRESS. The form
+            navigates to `/v/<code>/date` so the card's `revalidate = 300` is
+            never spent (R-G31.3). No client component, no hydration bundle on a
+            route whose whole virtue is arriving instantly for a stranger.
+
+            ⚠ `aria-label` AND NOT `placeholder` — R-40.70 as amended, and
+            F-40.137's shape refused. `type="date"` ignores `placeholder`
+            outright, so that substitution would leave this input with no
+            accessible name at all. */}
+        {card.date_check_enabled && (
+          <form className="pv-chk" method="GET" action={`/v/${encodeURIComponent(card.handle)}/date`}>
+            <span className="pv-chklbl">{PUBLIC_DATE_CHECK.label}</span>
+            <div className="pv-chkrow">
+              <input
+                className="pv-chkin"
+                type="date"
+                name="d"
+                required
+                aria-label={PUBLIC_DATE_CHECK.fieldLabel}
+              />
+              <button className="pv-chkgo" type="submit">{PUBLIC_DATE_CHECK.submit}</button>
+            </div>
+          </form>
+        )}
+
         {wa && (
           <a className="pv-cta" href={wa} target="_blank" rel="noopener noreferrer">
             {COPY.enquire}
@@ -613,6 +712,28 @@ export default async function PublicVendorPage(
           brand block: the page opens on her name and closes on it, and TDW
           appears exactly once, as a credit line, at a ratio that computes clear.
           No logo, no gold, no second rule. `bs_audit` C35 holds both inks. */}
+      {/* ── G3.1 · HER REAL WEDDINGS ───────────────────────────────────────
+          Last before the close, and deliberately: she has seen the work, and
+          these are the whole weddings that work came out of.
+
+          ⚠ EMPTY RENDERS NOTHING — not a heading, not an empty state. The
+          section is absent for a studio with no published, consented page, and
+          a shorter page is the correct page.
+
+          ⚠ NO DATE EVER CROSSES THIS LANE. `publicWedding` emits a derived
+          SEASON and never `event_date` — F-40.163's bound, held at the door. */}
+      {card.weddings.length > 0 && (
+        <section className="pv-wsec">
+          <span className="pv-wlbl">{PUBLIC_WEDDINGS_LABEL}</span>
+          {card.weddings.map((w) => (
+            <a className="pv-wrow" key={w.slug} href={`/v/${encodeURIComponent(card.handle)}/w/${encodeURIComponent(w.slug)}`}>
+              <span className="pv-wtitle">{w.title}</span>
+              {weddingMeta(w) && <span className="pv-wmeta">{weddingMeta(w)}</span>}
+            </a>
+          ))}
+        </section>
+      )}
+
       <footer className="pv-close">
         <span className="pv-close-mark">{card.business_name}</span>
         {/* W4-2, second report on the size. S5-c moved it 9px tracked-caps → 11px
@@ -879,6 +1000,28 @@ function PublicStyles({ heroCount = 0 }: { heroCount?: number }) {
   object-fit:cover;display:block;background:#EDEAE4;scroll-snap-align:start}
 
 /* The close is HERS; the colophon is the one place TDW appears. */
+.pv-chk{margin-top:22px;padding-top:14px;border-top:.5px solid rgba(12,10,9,.14)}
+.pv-chklbl{font:300 9px/1 "Jost",system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(12,10,9,.72);display:block}
+.pv-chkrow{display:flex;gap:8px;align-items:stretch;margin-top:10px}
+.pv-chkin{flex:1;min-width:0;min-height:44px;padding:0 12px;
+  border:.5px solid rgba(12,10,9,.22);border-radius:2px;background:#FFFDFA;
+  font:400 14px/1 ui-sans-serif,system-ui,sans-serif;color:#0C0A09;
+  font-variant-numeric:lining-nums tabular-nums}
+.pv-chkin:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
+.pv-chkgo{min-height:44px;padding:0 20px;border:.5px solid rgba(12,10,9,.30);border-radius:2px;
+  background:transparent;color:#0C0A09;white-space:nowrap;
+  font:300 10px/1 "Jost",system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase}
+.pv-chkgo:active{background:#F2EFE9}
+.pv-chkgo:focus-visible{outline:2px solid #C9A84C;outline-offset:2px}
+.pv-wsec{padding:26px 24px 0}
+.pv-wlbl{font:300 9px/1 "Jost",system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(12,10,9,.55);display:block}
+.pv-wrow{display:block;padding:14px 0;border-bottom:.5px solid rgba(12,10,9,.09);text-decoration:none}
+.pv-wrow:first-of-type{border-top:.5px solid rgba(12,10,9,.09);margin-top:12px}
+.pv-wtitle{font:300 19px/1.2 "Cormorant Garamond",Georgia,serif;color:#0C0A09;display:block}
+.pv-wmeta{font-weight:400;font-size:12px;line-height:1.4;color:#6B6560;display:block;margin-top:4px;
+  font-variant-numeric:lining-nums tabular-nums}
 .pv-close{margin-top:40px;padding:0 24px 32px;text-align:center;
   display:flex;flex-direction:column;gap:8px}
 .pv-close-mark{font:300 15px/1.2 "Cormorant Garamond",Georgia,serif;color:#403B36;letter-spacing:.01em}

@@ -66,6 +66,19 @@ import { PUBLIC_MISS, PUBLIC_COLOPHON_LEAD, PUBLIC_COLOPHON_HREF,
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
+  // ── F-40.167 · CURED IN PASSING (G1.1's byte, G3.1's hand) ───────────────
+  // This export declared `colorScheme` and NOT `themeColor`, so the SERVED HTML
+  // carried the root layout's static `#1E0A0E` — the app's near-black — and only
+  // the layout's inline script rewrote it per lane, which runs after first
+  // paint. The result was a flash of app chrome on a public wedding page opened
+  // from a WhatsApp forward, which is precisely the arrival C38's cure was
+  // bought for. The card leaf has declared it since P2-A; this leaf never did.
+  //
+  // It went unseen because C38 named two files BY HAND while its lane census was
+  // already a loop — F-40.166, F-40.52's disease one level down. R-40.83 makes
+  // the file census a derived walk, so this line is now asserted rather than
+  // remembered.
+  themeColor: '#F8F7F5',
   colorScheme: 'light' as const,
 };
 

@@ -38,7 +38,7 @@
 
 'use strict';
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -1231,15 +1231,65 @@ try {
     }
   }
 
+  // ── AMENDED BY LABEL — F-40.166 / R-40.83 (Block 19 G3.1, 2026-09-06) ────
+  // THE LANE CENSUS WAS MADE A LOOP AND THE FILE CENSUS NEVER WAS. F-40.52
+  // cured the first because a named list cannot see a lane nobody added to it;
+  // this cell then went on naming TWO FILES BY HAND, and the same disease
+  // reappeared one level down. `app/v/[code]/w/[slug]/page.tsx` shipped in G1.1
+  // and this cell has never read a byte of it — it declared no `themeColor` and
+  // served the app's near-black until the layout's script ran (F-40.167, cured
+  // in the same delivery). G3.1 then added a third leaf to the same lane.
+  //
+  // A LEAF JOINS BY EXISTING NOW. The walk finds every `page.tsx` under `app/v`
+  // and asserts on each what the two hand-named files were asserted for, so the
+  // cell TIGHTENS as the lane grows rather than going quietly stale.
+  function leavesUnder(dir) {
+    const out = [];
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return out; }
+    for (const e of entries) {
+      const full = dir + '/' + e.name;
+      if (e.isDirectory()) out.push(...leavesUnder(full));
+      else if (e.name === 'page.tsx') out.push(full);
+    }
+    return out;
+  }
+  const leaves = leavesUnder(join(ROOT, 'app/v'));
+  // A walk that reaches nothing would go GREEN, which is exactly how this rule
+  // stayed unenforced for two leaves' lifetime. No leaf found is a RED.
+  if (leaves.length < 2) {
+    bad.push(`the /v/ leaf walk found ${leaves.length} page.tsx — it is not reaching the lane, and a green here would mean nothing`);
+  }
+  for (const leaf of leaves) {
+    const rel = leaf.slice(ROOT.length + 1);
+    let src = null;
+    try { src = readFileSync(leaf, 'utf8'); } catch { bad.push(`${rel} not readable`); continue; }
+    const code = strip(src);
+    if (!/export const viewport/.test(code))   bad.push(`${rel} declares no viewport — it inherits the shell\u2019s chrome`);
+    if (!/themeColor:/.test(code))             bad.push(`${rel} declares no themeColor — the served HTML carries the app lane's ink until the layout script runs`);
+    if (!/colorScheme:\s*'light'/.test(code))  bad.push(`${rel} does not declare color-scheme: light`);
+    // The cascade half, per leaf: the viewport export alone reads well and does
+    // not reach the cascade — a meta tag is not a CSS property, and
+    // getComputedStyle returns "normal", which is the state auto-dark inverts.
+    // ⚠ ANCHORED TO LINE START, AND A MUTATION IS WHY. The first cut of this
+    // matched the rule ANYWHERE in the raw source, and the G3.1 date leaf
+    // mentions `:root{color-scheme:light}` in a PROSE COMMENT explaining why the
+    // rule is there. Deleting the real rule left the sentence about it, and the
+    // cell went green on its own explanation — the same disease `strip` exists
+    // for, met inside a template literal where `strip` cannot safely go (CSS
+    // block comments and `https://` would both be mangled). The stylesheet
+    // writes its rules at column 0; prose never does. That is the distinction,
+    // and it is cheaper and safer than parsing.
+    if (!/^:root\{color-scheme:\s*light\}/m.test(src)) bad.push(`${rel} declares color-scheme in metadata only — it never reaches the cascade`);
+    if (code.includes(APP_INK))                bad.push(`${rel} carries the app lane's ink ${APP_INK}`);
+  }
+
   let pv = null, rr = null;
   try { pv = readFileSync(join(ROOT, 'app/v/[code]/page.tsx'), 'utf8'); } catch { bad.push('the public page not found'); }
   try { rr = readFileSync(join(ROOT, 'app/r/[code]/route.ts'), 'utf8'); } catch { bad.push('the review route not found'); }
 
   if (pv) {
     const code = strip(pv);
-    if (!/export const viewport/.test(code))        bad.push('/v/ declares no viewport — it inherits the shell\u2019s chrome');
-    if (!/themeColor:/.test(code))                  bad.push('/v/ declares no themeColor');
-    if (!/colorScheme:\s*'light'/.test(code))       bad.push('/v/ does not declare color-scheme: light');
     // ⚠ AND IT MUST REACH THE CASCADE. The viewport export alone did not settle
     // it: the arm read `getComputedStyle(html).colorScheme` and got "normal",
     // because that reads the CSS property and a meta tag is not one — and
