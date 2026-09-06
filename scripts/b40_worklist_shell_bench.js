@@ -4085,6 +4085,46 @@ cell('C105 the website row opens onto the registry room with no second address h
   return bad.length === 0 ? null : bad.join('; ');
 });
 
+cell('C106 a room never renders on a bad read, and no door envelope is invented (R-38.2, F-40.180)', () => {
+  // ── WHY THIS CELL EXISTS ────────────────────────────────────────────────
+  // The payment-reminders room shipped reading `r.data` from a door that
+  // returns `res.json({ ok: true, ...payload })` — there is no `data` key
+  // anywhere in this estate. `setRoom(undefined)` ran, and the guard was
+  // `room !== null`, which is TRUE for undefined. The room rendered and threw
+  // on the first field. A white screen on production, from a shape half-derived:
+  // the field NAMES came from the door, the WRAPPER came from habit.
+  //
+  // TWO PROPERTIES, AND THE SECOND IS THE GENERAL ONE. Any room may invent an
+  // envelope; only a truthiness guard stops the invention becoming a crash.
+  const bad = [];
+  const ROOMS = [
+    'app/vendor/(shell)/payment-reminders/page.tsx',
+    'app/vendor/(shell)/google-reviews/page.tsx',
+  ];
+  for (const rel of ROOMS) {
+    if (!fs.existsSync(path.join(ROOT, rel))) continue;
+    const src = strip(read(rel));
+
+    // (1) NO INVENTED ENVELOPE. `ok(res, payload)` spreads; a `.data` read off a
+    // getJson result is a wrapper this estate does not have.
+    for (const m of src.matchAll(/getJson<[^>]*\bdata\b[^>]*>/g)) {
+      bad.push(rel + ': a door response typed with a `data` wrapper — src/lib/response.js spreads the payload');
+    }
+    if (/\bsetRoom\(\s*\w+\.data\s*\)/.test(src)) {
+      bad.push(rel + ': reads `.data` off a door response');
+    }
+
+    // (2) THE GUARD IS TRUTHINESS, NEVER `!== null`. undefined must not render.
+    if (/\{\s*room\s*!==\s*null\s*\?/.test(src)) {
+      bad.push(rel + ': guards its markup with `room !== null`, which is true for undefined');
+    }
+    if (/\{\s*room\s*===\s*null\s*&&/.test(src)) {
+      bad.push(rel + ': gates its busy state on `room === null`, which is false for undefined');
+    }
+  }
+  return bad.length === 0 ? null : bad.join('; ');
+});
+
 // ── THE VERDICT · THREE STATES, AND THE EXIT CODE CARRIES ALL THREE  [F-39.47] ─
 // 0 = GREEN · 1 = RED (any fail, refusals or not) · 3 = REFUSED (no fails, at
 // least one precondition unmet). The runner reads the CODE, never this text —

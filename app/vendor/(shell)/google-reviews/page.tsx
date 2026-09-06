@@ -93,13 +93,20 @@ function GoogleReviewsScreen() {
 
   return (
     <WorklistShell title={GR.roomTitle}>
-      {room === null && !failed ? <div style={{ flex: 1 }} aria-busy="true" /> : null}
+      {/* ── F-40.180 · TRUTHINESS, NOT `!== null` ──────────────────────────
+          `undefined !== null` is TRUE. A read that produced nothing fell through
+          this test and rendered, which is how the payment-reminders room threw on
+          its first field in production. This room's envelope is correct today —
+          the guard is still the wrong shape, and the specimen is never the extent
+          (R-40.64). R-38.2 as `b40` C106 now states it: on a bad read a room shows
+          its ONE standing sentence and nothing else. */}
+      {!room && !failed ? <div style={{ flex: 1 }} aria-busy="true" /> : null}
 
       {failed ? (
         <div className="gr-room"><p className="gr-note">{GR.unavailable}</p></div>
       ) : null}
 
-      {room !== null ? (
+      {room ? (
         <div className="gr-room">
 
           {/* ── ASKED ─────────────────────────────────────────────────────

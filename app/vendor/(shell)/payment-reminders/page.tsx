@@ -55,8 +55,23 @@ function PaymentRemindersScreen() {
 
   const load = useCallback(async () => {
     try {
-      const r = await getJson<{ ok: boolean; data: PaymentRemindersRoom }>(API.paymentReminders());
-      setRoom(r.data);
+      // ── F-40.180 · THE ENVELOPE IS FLAT, AND THE FIRST CUT INVENTED A WRAPPER ──
+      // `src/lib/response.js:2` is `res.json({ ok: true, ...payload })` — it SPREADS
+      // the payload at the top level. There is no `data` key anywhere in this estate;
+      // the G2 room reads `r.googleReviews`, and this door's fields arrive beside `ok`.
+      // The first cut typed `{ ok, data }` from habit, so `setRoom(undefined)` ran and
+      // the guard below let it render. That was a white screen on production.
+      // The field NAMES were derived from the door. The WRAPPER was not, and a shape
+      // half-derived is a shape guessed.
+      const r = await getJson<{ ok: boolean } & PaymentRemindersRoom>(API.paymentReminders());
+      // ⚠ AND THE READ IS VALIDATED BEFORE IT IS TRUSTED. A door that answers 200 with
+      // a body this room cannot use is a FAILED read, not a successful one — the
+      // distinction the first cut collapsed.
+      if (!r || !Array.isArray(r.asked) || !r.sending) { setFailed(true); return; }
+      setRoom({
+        asked: r.asked, sent_count: r.sent_count, due: r.due ?? [],
+        auto_send: !!r.auto_send, sending: r.sending, window_days: r.window_days,
+      });
     } catch {
       setFailed(true);
     }
@@ -101,13 +116,19 @@ function PaymentRemindersScreen() {
 
   return (
     <WorklistShell title={PR.roomTitle}>
-      {room === null && !failed ? <div style={{ flex: 1 }} aria-busy="true" /> : null}
+      {/* ── F-40.180 · `!== null` IS NOT A GUARD ────────────────────────────
+          `undefined !== null` is TRUE, so a read that produced nothing fell
+          straight through the old test and rendered. R-38.2 as the cell now
+          states it: on a bad read a room shows its ONE standing sentence and
+          nothing else. Both tests below are truthiness, so neither null nor
+          undefined can reach the markup. */}
+      {!room && !failed ? <div style={{ flex: 1 }} aria-busy="true" /> : null}
 
       {failed ? (
         <div className="pr-room"><p className="pr-note">{PR.unavailable}</p></div>
       ) : null}
 
-      {room !== null ? (
+      {room ? (
         <div className="pr-room">
 
           {/* ── ASKED ─────────────────────────────────────────────────────

@@ -85,7 +85,7 @@ const LANE_LINE: Record<ListSlice, string> = {
   events:   'Your calendar',
 };
 import { DetailSheet } from './DetailSheet';
-import { reminderPreview } from '@/lib/worklist/paymentReminders';
+import { reminderPreview, reminderDate } from '@/lib/worklist/paymentReminders';
 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
@@ -1085,7 +1085,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{ms.milestone_label}</div>
                 <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
-                  Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${ms.due_date}` : ''}
+                  {/* ── F-40.182 · THE HOUSE DATE, NOT THE COLUMN ──────────────
+                      This printed `2026-09-08` — the raw DATE column — because the
+                      panel was written dark and never read by an eye. `8 Sep 2026`
+                      is the house format the invoice document and the WhatsApp
+                      message about it already use, and it comes from the room's
+                      one date home rather than a second `toLocaleString` here.
+                      The money keeps `toLocaleString('en-IN')`: it is the shipped
+                      byte on this row and matches `reminderRs`'s grouping exactly. */}
+                  Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${reminderDate(ms.due_date)}` : ''}
                 </div>
               </div>
               <span style={{
