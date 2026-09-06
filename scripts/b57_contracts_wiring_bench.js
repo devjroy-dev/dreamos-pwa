@@ -254,7 +254,21 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // ⚠ THE CHAIR'S P4 — **ABSENT, NEVER GREYED.** This arc has refused the greyed
   // control six times. A refusal drawn as something tappable is worse than no
   // control; the line stands where the button would be.
-  ok('Send appears only when a number exists', /phone\.trim\(\) \?[\s\S]{0,300}Send to the couple/.test(src));
+  // ⚠ **F-40.161's SECOND HALF — THE GATE AND THE DOOR MUST CONSULT ONE SOURCE.**
+  // The first cut gated Send on `phone`, the INPUT. Typing a number summoned the
+  // button; the door reads the ROW and answered `No number to send to.` A control
+  // whose condition and whose door look at different things lies about itself.
+  ok('Send appears only when the ROW has a number',
+     /savedPhone\.trim\(\) \?[\s\S]{0,320}Send to the couple/.test(src));
+  ok('and NOT on what she is typing', !/\{phone\.trim\(\) \?/.test(src));
+  // ⚠ AND THE SEED READS THE CLIENT, NOT THE PICKER'S ARRAY. `clients` is filled
+  // only by `openPicker`; a record opened from the LIST found it empty, so the
+  // field read `Not filled` whatever the row held.
+  ok('the record seeds the number from the client', /loadClientPhone\s*\(/.test(src));
+  ok('and no longer from the picker rows',
+     !/setPhone\(clients\.find/.test(src));
+  ok('savedPhone advances only after the door says yes',
+     /setSavedPhone\(phone\.trim\(\)\);/.test(src) && !/onChange[\s\S]{0,60}setSavedPhone/.test(src));
   ok('and the line stands where the button would be',
      /Add her number to send this\./.test(src));
   ok('Send is never rendered disabled-and-greyed on the record',
@@ -263,7 +277,9 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // ⚠ THE NUMBER'S HOME IS THE CLIENT, NOT THE CONTRACT.
   ok('the phone writes through the client door', /updateClientPhone\s*\(/.test(src));
   ok('and never into terms', !/terms[\s\S]{0,40}phone/.test(src));
-  ok('only when it actually changed', /phone\.trim\(\) !== known\.trim\(\)/.test(src));
+  // The comparison moved from `known` (the picker array, often empty) to
+  // `savedPhone` (what the row holds) with F-40.161. The cell follows the fact.
+  ok('only when it actually changed', /phone\.trim\(\) !== savedPhone\.trim\(\)/.test(src));
   // The door returns 409 PHONE_COLLISION for a number already on another client.
   ok('the client door path is /clients/:clientId, not /:vendorId/:clientId',
      /\/api\/v2\/vendor\/clients\/\$\{clientId\}/.test(api));

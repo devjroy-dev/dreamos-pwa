@@ -116,3 +116,55 @@ docs/TDW_19_G32_PWA_HANDOVER.md
 # written as `{/* … */}` in an EXPRESSION position and broke the parse. Folded
 # into the block comment above the guard. Recorded because it is the third time
 # this sitting a comment has had to move to a legal or non-punishing position.
+
+# ── MICRO 3 (2026-09-06) · derived at dreamos-pwa 491c327 ──────────────────
+# F-40.161 — the phone field's Save path, which the door proved was not its fault
+# (`HTTP 200 {"ok":true,...,"phone":"9327715877"}` on a hand-made PATCH).
+#
+#   app/vendor/(shell)/contracts/screen.tsx
+#   scripts/b57_contracts_wiring_bench.js     57 -> 61
+#
+# TWO DEFECTS, ONE OF WHICH THIS SEAT HAD NOT NAMED BEFORE DERIVING IT:
+#
+#   (a) THE SEED read `clients`, the PICKER's rows, which are filled only by
+#       `openPicker`. A record opened FROM THE LIST — every record after the first
+#       — found an empty array, so the field showed `Not filled` whatever the row
+#       held, and `known` was '' so every save re-PATCHed.
+#
+#   (b) **THE GATE AND THE DOOR CONSULTED DIFFERENT SOURCES.** Send was gated on
+#       `phone`, the INPUT BOX. Typing a number summoned the button instantly; the
+#       door reads the ROW and answered `No number to send to.` That is what the
+#       founder hit, and it is a control that lies about its own condition. The
+#       gate is now `savedPhone`, which advances ONLY after the door says yes.
+#
+#   Mutations (harness now reads EXIT CODES, not just FAIL lines):
+#       gate Send on the input again              -> exit 1, 3 red
+#       seed from the picker rows again           -> exit 1, 2 red
+#       advance savedPhone before the door answers-> exit 1, 2 red
+#
+#   tsc CLEAN · b57 61/61 · b40 · b05_f0589 GREEN
+#   bs_audit · wl_audit RED, IDENTICAL at base · DELTA ZERO
+#   `next build` OWED on the founder's machine (fonts.googleapis.com unreachable here)
+#
+# ⚠ THE GUARD REFUSED THIS PACKET ONCE, AND IT WAS RIGHT TO.
+# `base_guard.sh` answered `REFUSED — HEAD is 491c327, base is 3258407 — the local
+# checkout is not on the base. Do not apply. Nothing has been copied.` G3.1 pwa
+# part 1 had landed between the cut and the apply. **NOTHING WAS COPIED**, which is
+# the whole value of the guard: a packet derived against a stale tip never touched
+# the tree.
+#
+# Re-derived at 491c327 by command. G3.1 part 1 moved `app/v/[code]/**`,
+# `lib/public/copy.ts` and `tools/bs_audit.mjs` — the public lane and its audit,
+# NOTHING in G3.2's radius. The three files were reapplied on the new tip and every
+# floor re-run there:
+#
+#   tsc --noEmit                 CLEAN
+#   b57                          61/61
+#   b40 · b05_f0589              GREEN
+#   b42_g11_wedding_pages        RED — IDENTICAL at 491c327, proven by stash;
+#                                inherited since G1.3's cfe4525, not this delivery's
+#   bs_audit · wl_audit          RED 2 / 0 FAIL lines, IDENTICAL at base
+#   DELTA                        ZERO
+#
+# R-40.69: a base line means derived-at, so a moved queue is answered by deriving
+# again rather than editing the line. Second time this sitting.

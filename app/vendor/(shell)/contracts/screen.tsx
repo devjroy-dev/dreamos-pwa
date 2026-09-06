@@ -249,6 +249,13 @@ export function ContractsScreen() {
   // R-40.74 — the one mandatory field. Held here while she types; written to
   // `clients.phone` through the existing client writer on save, never to `terms`.
   const [phone, setPhone]           = useState('');
+  // ⚠ TWO PIECES OF STATE FOR ONE FACT, AND THE SPLIT IS THE POINT.
+  // `phone` is what she is TYPING. `savedPhone` is what the row HOLDS. The walk's
+  // second defect was gating Send on the first: typing a number made Send appear
+  // instantly, she tapped it, and the door — which reads the ROW — answered `No
+  // number to send to.` A control whose condition and whose door consult different
+  // sources is a control that lies about itself.
+  const [savedPhone, setSavedPhone] = useState('');
 
   useEffect(() => {
     // ── ALL FOUR STATES — F-40.115, R-G32.15 ──────────────────────────────
@@ -316,9 +323,18 @@ export function ContractsScreen() {
     setTerms((c.terms as Record<string, string>) ?? {});
     setAnnexes(c.annexes ?? {});
     setDepositPct(c.deposit_pct === null || c.deposit_pct === undefined ? '' : String(c.deposit_pct));
-    // The number comes from the CLIENT, which is its home. The picker row carried
-    // it, so the record opens with what she already has rather than asking twice.
-    setPhone(clients.find(r => r.id === c.client_id)?.phone ?? '');
+    // ⚠ **F-40.161 — THIS SEEDED FROM THE PICKER'S ROWS, WHICH ARE EMPTY.**
+    // `clients` is populated only by `openPicker`. A record opened FROM THE LIST —
+    // which is every record after the first — found an empty array, so the field
+    // read `Not filled` whatever the client actually held, and `known` was `''`, so
+    // every save re-PATCHed a number that was already there.
+    //
+    // The number's home is the CLIENT, so the record reads it from the client. One
+    // read, on open, and `savedPhone` is what the Send gate consults — never the
+    // input box.
+    setPhone('');
+    setSavedPhone('');
+    if (c.client_id) void loadClientPhone(c.client_id);
     setSelected(null);
   }
 
@@ -335,6 +351,17 @@ export function ContractsScreen() {
    *  because picking her adds nothing. If the two homes ever disagree, the client
    *  row wins — it is the one the FK points at.
    */
+  /** The client's own number, from its one home. */
+  async function loadClientPhone(clientId: string) {
+    if (!session?.id) return;
+    const r = await fetchTypedClients(session.id);
+    if (!r.ok) return;
+    const hit = (r as { clients: Client[] }).clients.find(c => c.id === clientId);
+    const p = (hit && hit.phone) || '';
+    setPhone(p);
+    setSavedPhone(p);
+  }
+
   async function openPicker() {
     setStartOpen(false);
     setPickOpen(true);
@@ -393,8 +420,8 @@ export function ContractsScreen() {
     // ⚠ THE NUMBER IS WRITTEN TO THE CLIENT, NOT INTO THIS CONTRACT. R-40.74's
     // one home. Only when it actually changed — a PATCH on every save would be a
     // write she did not make.
-    const known = clients.find(r => r.id === record.client_id)?.phone ?? '';
-    if (record.client_id && phone.trim() && phone.trim() !== known.trim()) {
+    // Against what the ROW holds, not against an array that may never have loaded.
+    if (record.client_id && phone.trim() && phone.trim() !== savedPhone.trim()) {
       const pr = await updateClientPhone(record.client_id, phone.trim());
       if (!pr.ok) {
         setSaving(false);
@@ -404,6 +431,9 @@ export function ContractsScreen() {
         show((pr as { error?: string }).error ?? 'That number could not be saved.', 'error');
         return;
       }
+      // ⚠ `savedPhone` ADVANCES ONLY HERE — after the door said yes. Advancing it
+      // on the keystroke would put the two-sources bug straight back, one layer in.
+      setSavedPhone(phone.trim());
       setClients(prev => prev.map(r => (r.id === record.client_id ? { ...r, phone: phone.trim() } : r)));
     }
     setSaving(false);
@@ -734,7 +764,12 @@ export function ContractsScreen() {
                 refusal drawn as something tappable is worse than no control. The
                 line stands where the button would be, and the button appears the
                 moment she has somewhere to send it. */}
-            {phone.trim() ? (
+            {/* ⚠ THE GATE IS `savedPhone`, NEVER `phone`. The door reads the ROW;
+                if this read the input box, typing a number would summon a Send that
+                the door then refuses — which is exactly what the walk hit. Send
+                appears when there IS somewhere to send to, not when she has typed
+                one. Still absent rather than greyed (the chair's P4). */}
+            {savedPhone.trim() ? (
               <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>
             ) : (
               <div style={{ ...NOTE, paddingTop: 12 }}>Add her number to send this.</div>
