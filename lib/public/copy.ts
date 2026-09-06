@@ -48,6 +48,63 @@ export const PUBLIC_MISS = 'This page is no longer available.';
  * be an anchor. THE WHOLE LINE IS THE RULING and the split is a rendering
  * detail — if the two ever disagree, the whole line wins.
  */
+/**
+ * ── THE ENQUIRE LABEL, ONE HOME, TWO READERS (G1.3, veto sheet row 1) ───────
+ * It was a module-local const inside `app/v/[code]/page.tsx` and it was the only
+ * copy while the storefront was the only surface with a WhatsApp door. G1.3 puts
+ * a door on every linkable credit of a wedding roll, and the sheet approved the
+ * byte as a REUSE — "byte-identical" being the operative word.
+ *
+ * ⚠ SO IT IS HOISTED, NOT COPIED. Copying it would have satisfied the row's
+ * letter and broken its point: two literals that are identical today and only
+ * until someone edits one. This is the colophon's own precedent (R-G11.15) —
+ * the public lane's shared bytes live here and are never re-typed.
+ *
+ * NO VISUAL CHANGE ANYWHERE. The storefront reads this and renders the same
+ * seventeen characters it always did.
+ */
+export const PUBLIC_ENQUIRE_LABEL = 'Enquire on WhatsApp';
+
+/**
+ * ── BOOK THE SAME TEAM · G1.3 ──────────────────────────────────────────────
+ * Every byte here is an ANSWERED row on `docs/mocks/G13_VETO_SHEET.md`, ruled
+ * under R-40.42 and drawn in `wedding-team-mock.html` before it was written.
+ * A string in this object that is not a vetoed row is a defect.
+ *
+ * ⚠ REUSES ARE NOT RE-TYPED. `phoneLabel`, `monthLabel`, `monthPlaceholder`,
+ * `fine` and the failure line are PUBLIC_DOWNLOAD's own and are read from there
+ * — the sheet approved them as reuses, and a second copy of an approved byte is
+ * how two surfaces start saying almost the same thing.
+ */
+export const PUBLIC_TEAM = {
+  /** row 2 · the control at the foot of the roll — the master's own phrase */
+  control:  'Book the same team',
+  /** row 3 · the sheet's head. Same words as the control, deliberately: the
+   *  sheet IS the control opened, not a new place. */
+  head:     'Book the same team',
+  /** row 4 · honest about the limit. NOT "everyone on this page" — a credit with
+   *  no TDW account cannot receive a lead and the sheet must not imply it can. */
+  sub:      'One enquiry reaches everyone on this page who is on The Dream Wedding.',
+  /** row 5 · AMENDED by the chair from `Who that is` */
+  whoLabel: 'The team',
+  /** row 10 · A NEW CONSENT, NOT THE DOWNLOAD'S. That question names ONE party;
+   *  this names the SET, which is listed above it. Unticked by default — silence
+   *  is not a yes and neither is a pre-ticked box. */
+  mayContact: 'Everyone listed above may contact me.',
+  /** row 11 */
+  send:     'Send my enquiry',
+  /** row 13 */
+  doneHead: 'Your enquiry is with the team.',
+  /** row 15 · the owner's registered name, interpolated. */
+  doneCta:  (owner: string | null) => `Message ${owner ?? 'the photographer'}`,
+  /** row 16 · R-40.50 — the expectation set BEFORE the tap, because this leaf
+   *  ships no script and cannot acknowledge one afterwards. */
+  doneFine: 'Opens WhatsApp with your enquiry ready to send.',
+  /** `?team=0` — the box was not ticked, so nothing was written, and it says so
+   *  rather than thanking her for an enquiry that does not exist. */
+  notSent:  'Nothing was sent \u2014 the box above needs ticking first.',
+} as const;
+
 export const PUBLIC_COLOPHON = 'Created and managed by The Dream Wedding \u00b7 thedreamwedding.in';
 export const PUBLIC_COLOPHON_LEAD = 'Created and managed by The Dream Wedding \u00b7';
 export const PUBLIC_COLOPHON_HREF = 'https://thedreamwedding.in';

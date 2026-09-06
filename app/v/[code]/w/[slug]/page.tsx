@@ -39,7 +39,8 @@
 
 import type { Metadata } from 'next';
 import { PUBLIC_MISS, PUBLIC_COLOPHON_LEAD, PUBLIC_COLOPHON_HREF,
-         PUBLIC_GALLERY_LABEL, PUBLIC_DOWNLOAD } from '@/lib/public/copy';
+         PUBLIC_GALLERY_LABEL, PUBLIC_DOWNLOAD, PUBLIC_TEAM,
+         PUBLIC_ENQUIRE_LABEL } from '@/lib/public/copy';
 
 /* ── NO `revalidate` ON THIS ROUTE, AND THE ABSENCE IS THE RULING (R-40.33) ──
  * It carried `export const revalidate = 300` and the comment above it claimed
@@ -70,11 +71,26 @@ export const viewport = {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 
-type Roll = { role: string; label: string | null; name: string | null; handle: string | null };
+// `enquire_link` is BUILT AT THE DOOR (R-G13.3) off the imported ENQUIRE_BASE
+// with the UPPERCASE routing_handle. It is `string | null` and this leaf NEVER
+// composes one: `handle` beside it is lowercased for the `/v/` address, and a
+// leaf that reused it would emit `TDW-makeupbyswatiroy` — which routes today
+// only because the intake upper-cases the first word, a property of the intake
+// and not a promise to this file.
+type Roll = {
+  role: string; label: string | null; name: string | null;
+  handle: string | null; enquire_link: string | null;
+};
+// The team rides the page's own payload (G1.3 rider): it is the roll filtered by
+// R-G13.5, so the door that serves the roll serves it, from rows already in
+// hand. The roster the guest CONSENTS to and the set her consent reaches are one
+// computation — not two calls that agree until one changes.
+type TeamMember = { name: string; is_owner: boolean };
 type WeddingPayload = {
   wedding: { slug: string; title: string; venue: string | null; city: string | null; season: string | null };
   owner:   { business_name: string | null; handle: string };
   roll:    Roll[];
+  team:    TeamMember[];
   photos:  { url: string; position: number }[];
 };
 
@@ -159,7 +175,7 @@ async function resolveArchive(code: string, slug: string, token: string): Promis
 export default async function PublicWeddingPage(
   { params, searchParams }: {
     params: Promise<{ code: string; slug: string }>;
-    searchParams: Promise<{ sent?: string; dl?: string }>;
+    searchParams: Promise<{ sent?: string; dl?: string; team?: string }>;
   },
 ) {
   const { code, slug } = await params;
@@ -170,6 +186,56 @@ export default async function PublicWeddingPage(
     return (
       <main className="pw">
         <p className="pw-miss">{PUBLIC_MISS}</p>
+        <WeddingStyles />
+      </main>
+    );
+  }
+
+  // ── THE TEAM CONFIRMATION — R-G13.6 ───────────────────────────────────────
+  // `?team=1` on THIS leaf, the download's own mechanism. Not a new address: the
+  // guest stays where she was and the page she already trusts answers her.
+  //
+  // ⚠ THE NAMES ARE REPEATED BACK. She is told who now holds her enquiry, which
+  // is the only way a fan-out is honest — and they are the same `team` the sheet
+  // listed above the checkbox, from the same payload, so the page cannot confirm
+  // a set different from the one it asked about.
+  //
+  // ⚠ AND THE OWNER'S DOOR IS THE ROLL'S OWN, NOT A COMPOSED ONE. If the owner
+  // holds no credit she is not on the roll, so there may be no `enquire_link`
+  // for her — in which case the control is ABSENT and the head stands alone.
+  // Never a dead `wa.me` built on this leaf. R-G13.1's hand-off degrades to the
+  // leads already written, which is the whole point of writing them first.
+  if (q.team === '1' || q.team === '0') {
+    const ownerDoor = data.roll.find((r) => r.enquire_link && r.name === data.owner.business_name);
+    return (
+      <main className="pw">
+        <header className="pw-top"><span className="pw-top-name">{data.owner.business_name}</span></header>
+        <div className="pw-done">
+          {q.team === '1' ? (
+            <>
+              <p className="pw-doneh">{PUBLIC_TEAM.doneHead}</p>
+              <p className="pw-donelist">
+                {data.team.map((t) => <span key={t.name}>{t.name}</span>)}
+              </p>
+              {ownerDoor?.enquire_link ? (
+                <>
+                  <a className="pw-donecta" href={ownerDoor.enquire_link}
+                     target="_blank" rel="noopener noreferrer">
+                    {PUBLIC_TEAM.doneCta(data.owner.business_name)}
+                  </a>
+                  {/* R-40.50 · the expectation set BEFORE the tap. This leaf
+                      ships no script and cannot acknowledge one afterwards. */}
+                  <p className="pw-donefine">{PUBLIC_TEAM.doneFine}</p>
+                </>
+              ) : null}
+            </>
+          ) : (
+            // `?team=0` — the box was not ticked, so NOTHING was written. It says
+            // so plainly rather than thanking her for an enquiry that does not
+            // exist. Never-a-false-done.
+            <p className="pw-doneh">{PUBLIC_TEAM.notSent}</p>
+          )}
+        </div>
         <WeddingStyles />
       </main>
     );
@@ -219,7 +285,7 @@ export default async function PublicWeddingPage(
     );
   }
 
-  const { wedding, owner, roll, photos } = data;
+  const { wedding, owner, roll, team, photos } = data;
   const hero = photos[0] ?? null;
   // EVERY photograph after the hero. The four-item strip was G1.1's, when this
   // page had no gallery to be; G1.2 is the gallery, so the slice goes.
@@ -321,6 +387,65 @@ export default async function PublicWeddingPage(
         </details>
       ) : null}
 
+      {/* ── BOOK THE SAME TEAM — R-G13.1 ─────────────────────────────────────
+          THE DOWNLOAD'S OWN SHAPE, one section down: `<details>`/`<summary>`
+          with a plain `<form method="POST">`. This leaf still ships NO
+          JAVASCRIPT — the open/close is the browser's and the submit is a form
+          post, so a stranger's number never touches a client bundle.
+
+          ⚠ IT ASKS ITS OWN QUESTION ABOUT ITS OWN SET. The download sheet's
+          question names ONE party, so a yes there writes one lead and cannot
+          lawfully become N. This one names the TEAM — and LISTS THEM ABOVE THE
+          CHECKBOX, because consent to "the team" is not consent if the team is
+          unnamed. The roster is `team` from this page's own payload, which is
+          the same computation the POST writes to; the set she reads and the set
+          her consent reaches cannot differ.
+
+          ⚠ AND IT IS ABSENT WHEN THERE IS NOBODY TO REACH. `team` is empty, or
+          holds only the owner, when no credit is claimed-and-live — on such a
+          page "book the same team" would be a control that fans out to one
+          person, which is the feature not existing. Fewer than two, no control.
+
+          THE FIELDS ARE THE DOWNLOAD'S, REUSED (veto rows 7-9, 12): same labels,
+          same placeholder, same fine line, read from one home. */}
+      {team.length > 1 ? (
+        <details className="pw-teamwrap">
+          <summary className="pw-teambtn">{PUBLIC_TEAM.control}</summary>
+          <form className="pw-team" method="POST"
+                action={`${API_BASE}/api/v2/public/wedding-team/${encodeURIComponent(code)}/${encodeURIComponent(slug)}`}>
+            <p className="pw-teamh">{PUBLIC_TEAM.head}</p>
+            <p className="pw-teamsub">{PUBLIC_TEAM.sub}</p>
+
+            <div className="pw-who">
+              <span className="pw-wholbl">{PUBLIC_TEAM.whoLabel}</span>
+              <p className="pw-wholist">
+                {team.map((t) => <span key={t.name}>{t.name}</span>)}
+              </p>
+            </div>
+
+            <label className="pw-fl" htmlFor="pw-tphone">{PUBLIC_DOWNLOAD.phoneLabel}</label>
+            <input className="pw-fi" id="pw-tphone" name="phone" type="tel"
+                   inputMode="tel" autoComplete="tel" required placeholder="+91" />
+
+            <label className="pw-fl" htmlFor="pw-tmonth">{PUBLIC_DOWNLOAD.monthLabel}</label>
+            <input className="pw-fi" id="pw-tmonth" name="wedding_month" type="month"
+                   placeholder={PUBLIC_DOWNLOAD.monthPlaceholder} />
+
+            {/* UNTICKED. Here the box gates the WHOLE WRITE, unlike the download
+                where it gates only whether her number is stored — an unticked
+                enquiry is N businesses asked to contact her with no way to do
+                it, which is not a lead but a row that wastes attention. */}
+            <label className="pw-ask">
+              <input className="pw-box" type="checkbox" name="may_contact" value="true" />
+              <span className="pw-askl">{PUBLIC_TEAM.mayContact}</span>
+            </label>
+
+            <button className="pw-shcta" type="submit">{PUBLIC_TEAM.send}</button>
+            <p className="pw-shfine">{PUBLIC_DOWNLOAD.fine}</p>
+          </form>
+        </details>
+      ) : null}
+
       {/* THE ONE GOLD ON THIS PAGE. */}
       <div className="pw-rule"><span className="pw-rule-line" /><span className="pw-diamond">&#9670;</span><span className="pw-rule-line" /></div>
 
@@ -341,6 +466,26 @@ export default async function PublicWeddingPage(
               {c.handle
                 ? <a className="pw-cname pw-link" href={`/v/${c.handle}`}>{c.name}</a>
                 : <span className="pw-cname">{c.name}</span>}
+              {/* ── THE DOOR ON THE ROLL — R-G13.3 ────────────────────────────
+                  BESIDE the name link, never instead of it: the storefront is how
+                  she DECIDES, the door is how she ACTS. Two stacked targets, each
+                  with its own reach.
+
+                  ⚠ THE href IS THE DOOR'S OWN BYTE, COMPOSED NOWHERE HERE. It is
+                  built server-side off the imported ENQUIRE_BASE with the
+                  UPPERCASE routing_handle; `c.handle` on the line above is
+                  lowercased for `/v/` and reusing it would have shipped
+                  `TDW-makeupbyswatiroy`.
+
+                  AN UNLINKABLE CREDIT GETS NOTHING — `enquire_link` is null and
+                  this renders nothing at all. The roll is not a directory
+                  (R-G11.6): an unclaimed credit has no storefront to send anyone
+                  to, and a TDW line carrying a code nobody owns routes an enquiry
+                  into nothing. */}
+              {c.enquire_link ? (
+                <a className="pw-door" href={c.enquire_link}
+                   target="_blank" rel="noopener noreferrer">{PUBLIC_ENQUIRE_LABEL}</a>
+              ) : null}
             </span>
           ))}
         </div>
@@ -402,6 +547,31 @@ function WeddingStyles() {
           text-transform:uppercase;cursor:pointer}
 .pw-dlbtn::-webkit-details-marker{display:none}
 .pw-dl{margin-top:10px;padding:20px;background:#FFFDFB;border:.5px solid rgba(12,10,9,.13);border-radius:4px}
+/* ── G1.3 · THE DOOR ON THE ROLL. Its OWN LINE, not beside the name: at 374 a
+   long studio name and a door on one row pushes the door off the edge, and
+   .pw-link is inline-block so a following inline-block would sit next to it.
+   width:fit-content keeps the target the size of its words.
+   NB: no backticks in this block — the whole sheet is a template literal. */
+.pw-door{display:block;width:fit-content;margin-top:9px;padding:9px 14px;
+  border:.5px solid rgba(12,10,9,.26);border-radius:2px;background:#FFFDFB;
+  font-family:inherit;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:#0C0A09;text-decoration:none}
+/* ── G1.3 · THE TEAM SHEET. The download's geometry, deliberately: it is the
+   same kind of ask one section down and a guest should recognise it. */
+.pw-teamwrap{margin:22px 20px 0}
+.pw-teambtn{display:block;width:100%;min-height:48px;padding:15px 0;background:#0C0A09;
+  color:#F8F7F5;border-radius:2px;text-align:center;font-size:11px;letter-spacing:.20em;
+  text-transform:uppercase;cursor:pointer;list-style:none}
+.pw-teambtn::-webkit-details-marker{display:none}
+.pw-team{margin-top:10px;padding:20px;background:#FFFDFB;border:.5px solid rgba(12,10,9,.13);border-radius:4px}
+.pw-teamh{font-size:24px;line-height:1.14;color:#0C0A09;font-style:italic}
+.pw-teamsub{font-size:13px;line-height:1.55;color:rgba(12,10,9,.66);margin-top:8px}
+.pw-who{margin-top:16px;padding-top:14px;border-top:.5px solid rgba(12,10,9,.12)}
+.pw-wholbl{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(12,10,9,.55)}
+.pw-wholist{font-size:14px;line-height:1.6;color:#0C0A09;margin-top:6px}
+.pw-wholist span{display:block}
+.pw-donelist{font-size:14px;line-height:1.7;color:rgba(12,10,9,.72);margin-top:18px}
+.pw-donelist span{display:block}
 .pw-dlh{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-style:italic;font-size:24px;line-height:1.14;color:#0C0A09}
 .pw-dlsub{font-size:13px;line-height:1.55;color:rgba(12,10,9,.66);margin-top:8px}
 .pw-fl{display:block;font-weight:300;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(12,10,9,.55);margin-top:18px}

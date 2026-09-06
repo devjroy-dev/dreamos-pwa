@@ -53,7 +53,7 @@ import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/component
 import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
 // R-G11.15 · the two bytes this leaf shares with the wedding page now live in
 // one home. Nothing is re-voiced; these read exactly as they read before.
-import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD } from '@/lib/public/copy';
+import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD, PUBLIC_ENQUIRE_LABEL } from '@/lib/public/copy';
 
 /** Five minutes. See the header. */
 export const revalidate = 300;
@@ -113,7 +113,10 @@ export const viewport = {
  */
 const COPY = {
   line:     'Takes enquiries through The Dream Wedding.',
-  enquire:  'Enquire on WhatsApp',
+  // ⚠ HOISTED TO `lib/public/copy.ts` (G1.3). The wedding roll's door carries
+  // the same byte, and two identical literals are identical only until someone
+  // edits one. Read, never re-typed — the colophon's precedent, R-G11.15.
+  enquire:  PUBLIC_ENQUIRE_LABEL,
   /** R-G11.15: hoisted to `lib/public/copy.ts`; both public leaves read it. */
   unknown:  PUBLIC_MISS,
   demoNote: 'This is a demonstration page, built from work published publicly.',

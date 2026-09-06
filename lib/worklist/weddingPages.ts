@@ -28,6 +28,33 @@
 export const WP = {
   // ── W2-room / W2-empty ───────────────────────────────────────────────────
   roomTitle:         'Wedding pages',
+  // ── G1.3 · THE RECORD'S TWO NEW CONTROLS ──────────────────────────────────
+  // Answered rows on `docs/mocks/G13_VETO_SHEET.md` (25-34), drawn in
+  // `wedding-team-mock.html` frames T5, T6-reel-off and T7-reel-ready.
+  /** row 25 */ cardsLabel:  'Printed cards',
+  /** row 26 */ cardsNote:   'A tent card for the tables and a thank-you insert, both carrying this page\u2019s code.',
+  /** row 27 */ cardsMake:   'Make the cards',
+  /** row 28 */ cardsTent:   'Tent card',
+  /** row 28 */ cardsInsert: 'Insert',
+  /** row 29 · AMENDED by the chair from `The cards didn't make. Try again.` */
+  cardsFailed: 'The cards couldn\u2019t be made. Try again.',
+  /** row 30 */ reelLabel:   'Reel',
+  /** row 31 */ reelNote:    'A fifteen-second cut of this gallery, ready to post.',
+  /**
+   * row 32 · ⚠ THE REFUSED BYTE. `Not available yet` on a DISABLED control was
+   * proposed and REFUSED by the chair: a disabled control is the greyed-control
+   * class this arc refuses, the same refusal the publish control already carries
+   * two fields down. When the probe reads not-detected the reel control is
+   * ABSENT and `reelProbeOff` stands alone; when it reads ready the control
+   * ARRIVES as `reelMake`. PRESENCE IS THE STATE, so a vendor never reads a
+   * control and a refusal in one glance. There is deliberately no string here.
+   */
+  /** row 33 */ reelProbeOff: 'Video tools on this server: not detected.',
+  /** row 33 */ reelProbeOn:  'Video tools on this server: ready.',
+  /** row 34 */ reelCheck:    'Check again',
+  /** row 32 · shown only when the probe says ready (R-40.53) */
+  reelMake:     'Make the reel',
+
   sectionPublished:  'Published',
   sectionDraft:      'Draft',
   stateNotPublished: 'Not published',

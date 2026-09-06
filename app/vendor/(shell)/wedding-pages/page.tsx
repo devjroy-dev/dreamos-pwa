@@ -328,6 +328,15 @@ function CreditsSheet(
   // a failed credit.
   const [upBusy, setUpBusy] = useState<{ done: number; total: number } | null>(null);
   const [upErr, setUpErr] = useState(false);
+  // ── G1.3 · THE CARDS AND THE PROBE ────────────────────────────────────────
+  // `cards` holds the door's answer, so the two links CANNOT render before the
+  // render has happened. `probe` is null until asked — rendered as an em dash
+  // rather than as "not detected", because "we have not looked" and "we looked
+  // and it is not there" are different facts and the vendor is owed the
+  // difference.
+  const [cards, setCards] = useState<{ card_url: string; insert_url: string } | null>(null);
+  const [cardsErr, setCardsErr] = useState(false);
+  const [probe, setProbe] = useState<{ reel_enabled: boolean } | null>(null);
   // The consent ask's own state. Separate from `busy`'s subjects because the link
   // must survive on screen after the request settles — it is the thing she pastes.
   const [consentPhone, setConsentPhone] = useState('');
@@ -483,6 +492,43 @@ function CreditsSheet(
     setBusy(false);
   }
 
+  /**
+   * ⚠ THE ANSWER IS SIGNED URLS, NOT BYTES (R-G13.7). Every studio door carries
+   * `requireAuth` and a browser sends no Authorization header on a navigation,
+   * so a `.pdf` route could never be reached by an anchor. The door renders,
+   * uploads to `wedding-cards`, signs for a year, and hands back two URLs — the
+   * invoice door's own shape. This posts and stores them; the links appear only
+   * after.
+   */
+  async function makeCards() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      setCardsErr(false);
+      const r = await postJson<{ ok: boolean; card_url?: string; insert_url?: string }>(API.weddingCards(wedding.id), {});
+      // NEVER-A-FALSE-DONE: a shape missing either URL is a failure, not a
+      // half-success to render one link from. F-40.53's class.
+      if (r?.card_url && r?.insert_url) setCards({ card_url: r.card_url, insert_url: r.insert_url });
+      else setCardsErr(true);
+    } catch { setCardsErr(true); }
+    finally { setBusy(false); }
+  }
+
+  /**
+   * The probe reads the RUNNING SERVICE. A failure is reported as not-ready
+   * rather than thrown: the question is "can this server cut video", and a door
+   * that will not answer is an answer.
+   */
+  async function checkProbe() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = await getJson<{ ok: boolean; reel_enabled?: boolean }>(API.weddingReelProbe());
+      setProbe({ reel_enabled: r?.reel_enabled === true });
+    } catch { setProbe({ reel_enabled: false }); }
+    finally { setBusy(false); }
+  }
+
   async function publish() {
     if (busy) return;
     setBusy(true);
@@ -598,6 +644,55 @@ function CreditsSheet(
       {/* F-40.77's byte, under the controls it belongs to. */}
       {err ? <p className="wp-err" role="status">{err}</p> : null}
 
+      {/* ── G1.3 · THE PRINTED UNIT (R-G13.7) ────────────────────────────────
+          ONE control until the door answers. The two links appear only once
+          `{card_url, insert_url}` is in hand — before that there is a button and
+          no promise. Never-a-false-done: a link rendered ahead of the render is
+          a link to nothing.
+
+          ⚠ ONLY ON A LIVE PAGE. The door refuses 409 otherwise, and it should:
+          a QR is PERMANENT, and a card printed for a page that 404s is worse
+          than no card. The control is ABSENT rather than disabled — the same
+          refusal the publish control makes two blocks down. */}
+      {live ? (
+        <div className="wp-g13">
+          <div className="wp-sec">{WP.cardsLabel}</div>
+          <p className="wp-note">{WP.cardsNote}</p>
+          {cards ? (
+            <div className="wp-two">
+              <a className="wp-btn ghost" href={cards.card_url} target="_blank" rel="noopener noreferrer">{WP.cardsTent}</a>
+              <a className="wp-btn ghost" href={cards.insert_url} target="_blank" rel="noopener noreferrer">{WP.cardsInsert}</a>
+            </div>
+          ) : (
+            <button type="button" className="wp-btn" disabled={busy} onClick={makeCards}>{WP.cardsMake}</button>
+          )}
+          {cardsErr ? <p className="wp-note wp-err">{WP.cardsFailed}</p> : null}
+        </div>
+      ) : null}
+
+      {/* ── G1.3 · THE REEL, BUILT DARK (R-G13.10) ───────────────────────────
+          ⚠ #32 REFUSED: there is NO disabled control here. When the probe reads
+          not-detected the reel control is ABSENT and the probe line stands
+          alone; when it reads ready the control ARRIVES. PRESENCE IS THE STATE,
+          so a vendor never reads a control and a refusal in one glance.
+
+          The probe asks the RUNNING SERVICE, which is the only thing that can
+          answer it: ffmpeg is on every build container this estate has used and
+          the dream-os image is uncommitted, so what Railway installs is not a
+          fact any repo file states. F-40.16 closes when the founder reads this
+          line on his walk — not from a shell, and not from a seat's word. */}
+      {live ? (
+        <div className="wp-g13">
+          <div className="wp-sec">{WP.reelLabel}</div>
+          <p className="wp-note">{WP.reelNote}</p>
+          <p className="wp-probe">{probe === null ? '\u2014' : (probe.reel_enabled ? WP.reelProbeOn : WP.reelProbeOff)}</p>
+          {probe?.reel_enabled ? (
+            <button type="button" className="wp-btn" disabled>{WP.reelMake}</button>
+          ) : null}
+          <button type="button" className="wp-btn ghost" disabled={busy} onClick={checkProbe}>{WP.reelCheck}</button>
+        </div>
+      ) : null}
+
       <div className="wp-pubrow">
         {live ? <div className="wp-live">{WP.pageIsLive}</div> : null}
         {/* THE THREE FOOT STATES, AND THE ABSENCES ARE THE RULING.
@@ -658,6 +753,14 @@ function WeddingPagesStyles() {
 .wp-room{padding-top:20px;padding-bottom:28px}
 .wp-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
 .wp-sec+.wp-row{margin-bottom:var(--wl-step)}
+/* ── G1.3 · the two new sections, the sheet's own idiom ── */
+.wp-g13{margin-top:22px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.wp-note{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);margin:0 0 10px}
+.wp-note.wp-err{color:var(--atelier-danger,#B4453C)}
+.wp-probe{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);
+  margin:0 0 10px;padding:11px 12px;border:.5px dashed var(--atelier-card-border);border-radius:2px}
+.wp-two{display:flex;gap:8px}
+.wp-two>*{flex:1;text-align:center;text-decoration:none}
 .wp-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;width:100%;text-align:left;
         background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
         padding:13px 14px;margin-bottom:var(--wl-step);cursor:pointer;min-height:44px}

@@ -132,6 +132,18 @@ export const API = {
   weddingPublish:  (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/publish`,
   weddingUploadUrl:(id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/upload-url`,
   weddingPhotos:   (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/photos`,
+  // ── G1.3 · THE PRINTED UNIT AND THE PROBE ─────────────────────────────────
+  // `cards` is a POST that RENDERS and answers `{ card_url, insert_url }` —
+  // signed Supabase URLs, the invoice door's own shape. It is NOT a `.pdf`
+  // address: every door on this router carries `requireAuth`, and a browser
+  // sends no Authorization header on a navigation, so an anchor could never
+  // reach one.
+  weddingCards:    (id: string) => `${WEDDINGS_API_PATH}/${encodeURIComponent(id)}/cards`,
+  // ⚠ NO `:id`. The probe is a property of the SERVER, not of a wedding, and it
+  // is declared ABOVE `/:id` in dream-os because Express matches in declaration
+  // order — below it, `/:id` would swallow `reel-probe` and this address would
+  // 404 forever while looking entirely correct.
+  weddingReelProbe: () => `${WEDDINGS_API_PATH}/reel-probe`,
   // ── G5.1 · THE OVERFLOW EXCHANGE ────────────────────────────────────────────
   // Three addresses, and the FORWARD is not under the referrals prefix — it is a
   // thing done TO A LEAD, so dream-os mounts it on the leads router where
