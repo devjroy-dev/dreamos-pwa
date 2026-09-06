@@ -336,3 +336,70 @@ the fill/send/sign doors, F-40.112's cure with one cell both ways, the template 
 (the room, the record, `/sign/`, `next build`), then floors by SET, then the founder card.
 
 **Nothing is built from this sheet until it comes back with your numbers on it.**
+
+---
+
+# RIDER 1 · THE PICKER GETS ITS FRAME (2026-09-06)
+
+**Why there is a rider at all — F-40.139, the seat's.** Part 2 shipped a **client picker
+with no ratified frame**. It was built where a fork should have been raised at the mock,
+inside a delivery whose own first law is mock-first (c-39.26). Its `Loading…` byte was
+therefore an unratified string, and it turned out to be a lie: keyed on `clients.length`,
+so **in flight, failed and genuinely empty all rendered one word forever** (F-40.138,
+s-G11.2's class, the fifth instance in this arc).
+
+**What the walk then found — F-40.140.** `HTTP 200 · ok true · total 0`. The door and the
+auth are fine and `public.clients` is EMPTY for DEV440. That table has exactly three
+writers, all through `resolveOrCreateClient` — its own header says it is *the ONLY allowed
+door to creating a client* — and all three need money or a manual entry:
+`add_client` (`engine.js:1317`), `record_payment` (`engine.js:1557`), the Clients room's
+form (`clients.js:158`). Her people live where the Cabinet reads them: `engine.records`,
+carrying `client` and `phone` in `RECORD_SELECT`.
+
+**The fork collapsed, and the chair ruled the narrower one.** `contracts_client_id_fkey`
+points at `public.clients`, so a binder id cannot satisfy it: **the union is a display
+question and promotion is the only mechanism, either way.** R-G32.17 — composing a
+contract promotes the counterparty, on the tap that names her, through
+`resolveOrCreateClient`, offering `public.clients` rows ∪ binders whose `stage` is in
+`CLIENT_STAGE_WORDS` (`cabinet.js:75`, the estate's own definition of who counts).
+R-G32.18 — `source = 'contract_compose'`, a new value on a column with no CHECK, ruled
+rather than chosen. **The caution about a silent write is answered by visibility, not by
+refusing it:** the record says so, once, at row R7.
+
+**Three new frames, one changed.**
+
+| Frame | Mode | Size | What it is for |
+|---|---|---|---|
+| `R4-pick` | dark + light | 374 | The union — Client and Cabinet in one list, with the promotion said out loud |
+| `R4-pick-empty` | dark + light | 374 | The ONLY state that may say she has nobody |
+| `R4-pick-failed` | dark + light | 374 | Us failing, which is not her having nobody |
+| `R4-record-filled` | dark + light | 374 | **CHANGED** — gains the promotion line |
+
+**Eighteen of the twenty existing captures are byte-identical after the rebuild**, and that
+is stated rather than assumed: `git status` shows exactly two modified PNGs, both
+`R4-record-filled`. The builder was re-derived to reproduce the banked bytes including
+R-40.51's #15 and the chair's #64, so a rebuild is not a re-authoring.
+
+## THE ROWS — R-40.68, veto delegated to the chair
+
+| # | Current | Proposed | YES/NO |
+|---|---|---|---|
+| R1 | `Loading…` *(keyed on length — F-40.138)* | **Loading…** — KEPT, **keyed on STATE**. The byte does not change; what it means does. | |
+| R2 | *(absent)* | **We couldn't load your clients.** *(pre-ruled)* | |
+| R3 | *(absent)* | **No one to choose from yet. Add a client, or book someone in your Cabinet.** | |
+| R4 | *(absent)* | **Your client** *(the picker's own title)* | |
+| R5 | *(absent)* | **Client** *(origin mark — she is already in your Clients room)* | |
+| R6 | *(absent)* | **Cabinet** *(origin mark — picking will add her)* | |
+| R7 | *(absent)* | **Added to your clients.** *(on the record, after the pick)* | |
+| R8 | *(absent)* | **Booked and confirmed people from your Cabinet are here too. Picking one adds them to your clients.** | |
+
+**R3 is the sentence F-40.138 already shipped the shape of, to a vendor with a full
+Cabinet.** It is now reachable only when there are no clients AND no client-stage binders —
+which is the only condition under which it is true. R2 and R3 never share a sentence again.
+
+**R5 and R6 are one word each and they carry the whole of the ruling's visibility.** A
+vendor scanning the list can see, before she taps, which taps will grow her Clients room.
+R7 confirms it after. Neither is a warning; both are statements.
+
+**R1 is the only KEPT byte on this sheet that changes meaning without changing characters.**
+That is worth the row: a later seat reading `Loading…` should find the finding, not the word.
