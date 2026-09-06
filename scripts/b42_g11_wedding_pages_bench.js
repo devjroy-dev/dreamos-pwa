@@ -61,8 +61,14 @@ sec('C1 \u00b7 the registry (R-40.20/.22)');
 {
   const src = strip(read(ROOMS));
   const num = (n) => { const m = src.match(new RegExp(n + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
-  ok('19 / 9 / 10', num('ROOM_COUNT_EXPECTED') === 19 && num('TOP_BAND_EXPECTED') === 9 && num('BOTTOM_BAND_EXPECTED') === 10,
-    [num('ROOM_COUNT_EXPECTED'), num('TOP_BAND_EXPECTED'), num('BOTTOM_BAND_EXPECTED')].join('/'));
+  // AMENDED BY LABEL — R-40.98/.99 (founder-ruled 2026-09-07). The directory and
+  // the grid stopped being one number when Contracts was hosted by the hub:
+  // nineteen rooms, eighteen tiles, the business band 10 in the registry and 9 on
+  // the glass. b40 C2 owns the full assertion; this cell reads the same four
+  // constants so the two benches cannot drift apart on the numbers they share.
+  ok('19 / 18 / 9 / 9', num('ROOM_COUNT_EXPECTED') === 19 && num('GRID_TILE_COUNT_EXPECTED') === 18
+    && num('TOP_BAND_EXPECTED') === 9 && num('BOTTOM_BAND_EXPECTED') === 9,
+    [num('ROOM_COUNT_EXPECTED'), num('GRID_TILE_COUNT_EXPECTED'), num('TOP_BAND_EXPECTED'), num('BOTTOM_BAND_EXPECTED')].join('/'));
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   ok('nineteen rooms', ids.length === 19, String(ids.length));
   ok('Business Solutions is index 0 of the work band (R-40.20)', ids[0] === 'support', ids[0]);
@@ -71,13 +77,35 @@ sec('C1 \u00b7 the registry (R-40.20/.22)');
   ok('FROZEN_ORDER equals the registry order', frozen.join(',') === ids.join(','));
   ok('the bands count to the declared constants',
     (src.match(/band: 'work'/g) || []).length === 9 && (src.match(/band: 'business'/g) || []).length === 10);
-  // The wide set is read from its DECLARATION and compared to the actual flags.
-  // "Two tiles are wide" would pass on the wrong two.
-  const wm = src.match(/WIDE_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
-  const declared = wm ? (wm[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1)) : [];
-  const actual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*wide:\s*true/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
-  ok('WIDE_TILES_EXPECTED is [support, storefront]', declared.join(',') === 'support,storefront', declared.join(','));
+  // AMENDED BY LABEL — R-40.98. The headline set is read from its DECLARATION and
+  // compared to the actual flags. "Two tiles are headlines" would pass on the
+  // wrong two. The two names did not move; `wide` became `headline` when the
+  // founder replaced the full-width shape with the accent hairline.
+  const hm = src.match(/HEADLINE_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
+  const declared = hm ? (hm[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1)) : [];
+  const actual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*headline:\s*true/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  ok('HEADLINE_TILES_EXPECTED is [support, storefront]', declared.join(',') === 'support,storefront', declared.join(','));
   ok('the flags match the declaration', actual.join(',') === declared.join(','), actual.join(','));
+  // R-40.99 · the hosted room leaves the grid and STAYS in the address book.
+  ok('contracts is hosted by the hub and still in ROOMS',
+    ids.includes('contracts') && /\{\s*id:\s*'contracts'[^}]*hostedBy:\s*'support'/.test(src));
+  // ⚠ AND THE FILTER LIVES HERE, NOT IN THE COMPONENT. `roomsInBand` is the one
+  // door every band render goes through; a grid that filtered on its way past
+  // would put the rule about what a tile IS inside the thing that draws tiles,
+  // and the next surface to list rooms would repeat it or forget it.
+  ok('roomsInBand filters hosted rooms out of the grid',
+    /roomsInBand\([\s\S]*?ROOMS\.filter\(\(r\) => r\.band === band && !r\.hostedBy\)/.test(src));
+  // ⚠ AND THE ADDRESS BOOK IS NOT FILTERED. roomHref and ROOM_FOR_KIND must still
+  // see all nineteen, or TodayCards' unsigned-contract card opens /vendor/rooms.
+  ok('roomHref still resolves against the unfiltered registry',
+    /function roomHref[\s\S]*?ROOMS\.find\(\(r\) => r\.id === id\)/.test(src));
+  ok('the host relation has one home', /export function roomsHostedBy/.test(src));
+  // ⚠ AND NO SURFACE RE-FILTERS. A component adding its own `!r.hostedBy` on the
+  // way past produces the same eighteen tiles today and is still a second copy of
+  // the rule — the copy that gets forgotten when a second room is hosted. Caught
+  // by a mutation that stayed GREEN through every other cell in this section.
+  ok('the grid reads hosted-ness through the registry alone, never its own filter',
+    !/\.hostedBy/.test(strip(read(GRIDF))));
 }
 
 // ── C2 · THE GRID EARNS ITS CLEARANCE FROM `GRID`, NOT FROM A TILE COUNT ────
@@ -94,9 +122,35 @@ sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
     ok('neither 136 nor 64 is retyped into the rule', !/\b136\b|\b64\b/.test(m[0]), m[0]);
     ok('longhand padding only (F-16.39\'s standing cure)', !/[^-]padding:/.test(m[0]), m[0]);
   }
-  ok('the wide class spans the whole row', /\.wl-tilewide\{grid-column:1\/-1\}/.test(src));
-  ok('the tile renders wide from the REGISTRY, never from an index',
-    /room\.wide \? 'wl-tile wl-tilewide' : 'wl-tile'/.test(src));
+  // AMENDED BY LABEL — R-40.98. The full-width span retired with the shape; what
+  // the cell guards is unchanged in kind — the treatment is a REGISTRY fact, never
+  // an index — and the rule it now reads is the accent hairline.
+  ok('the headline class swaps the tile\u2019s own border to the accent, and nothing else',
+    /\.wl-tilehead\{border-color:var\(--atelier-accent-text\)\}/.test(src));
+  ok('the tile renders its headline from the REGISTRY, never from an index',
+    /room\.headline \? 'wl-tile wl-tilehead' : 'wl-tile'/.test(src));
+  // ⚠ THIS ONE READS THE STRIPPED SOURCE, AND THE FIRST CUT DID NOT. Against the
+  // raw file it went RED on the comment that RECORDS the retirement — the same
+  // comment-blindness b40 C10 has already been bitten by twice, in both
+  // directions. A cell asking whether a NAME still exists must read code; the
+  // paragraph explaining that the name is gone is evidence FOR it, not against.
+  ok('the retired wide shape survives nowhere in the grid\u2019s code',
+    !/wl-tilewide|room\.wide/.test(strip(src)));
+  // c-40.42 · THE BADGE RIDES THE HOST, and this is the arm that proves it. The
+  // first cut of this section had none: deleting the summation loop left every
+  // cell in both benches GREEN, so the whole badge ruling shipped unbenched and
+  // the seat would have called that a pass. Found by mutating it, not by reading.
+  {
+    const code = strip(src);
+    ok('the host tile sums the counts of the rooms it hosts',
+      /for \(const hosted of roomsHostedBy\(room\.id\)\)/.test(code)
+      && /count = \(count \?\? 0\) \+ h\.count/.test(code));
+    // ⚠ A HOST WITH NO READING STILL RENDERS NOTHING. `(count ?? 0)` inside the
+    // loop is reached only after a hosted count came back non-null, so a silent
+    // feed cannot turn into a tile wearing 0 (F-38.31).
+    ok('a null hosted count is skipped rather than summed as zero',
+      /if \(h\.count === null\) continue;/.test(code));
+  }
 }
 
 // ── C3 · THE NINE REPLACE THE SIX, AND THE SIX ARE GONE ─────────────────────

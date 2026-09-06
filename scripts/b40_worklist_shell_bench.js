@@ -179,12 +179,13 @@ cell('C1 token completeness, both modes', () => {
 // AND THE PLACEMENT IS ASSERTED SEPARATELY FROM THE ORDER, exactly as R-38.10's
 // `books` clause is. Two files agreeing proves they match EACH OTHER; it does not
 // prove they match the founder's word, which was index 0 of the work band.
-cell('C2 nineteen rooms in frozen order, 9 + 10 (R-37.75; R-37.87; R-38.9; R-38.10; R-40.20/.22)', () => {
+cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87; R-38.9; R-38.10; R-40.20/.98/.99)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
-  const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
-  if (EXP_ALL !== 19 || EXP_TOP !== 9 || EXP_BOT !== 10)
-    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 19/9/10';
+  const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_GRID = num('GRID_TILE_COUNT_EXPECTED');
+  const EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
+  if (EXP_ALL !== 19 || EXP_GRID !== 18 || EXP_TOP !== 9 || EXP_BOT !== 9)
+    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_GRID + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 19/18/9/9';
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
@@ -199,21 +200,53 @@ cell('C2 nineteen rooms in frozen order, 9 + 10 (R-37.75; R-37.87; R-38.9; R-38.
   // insertion at index 0, which is what an insertion does and what the founder
   // worded when he placed it BESIDE Invoices and Expenses rather than at an index.
   if (ids[5] !== 'books') return 'Books is at index ' + ids.indexOf('books') + ', ruled beside Invoices/Expenses';
-  // R-40.22 · THE WIDE TILES, READ FROM THE REGISTRY'S OWN DECLARATION rather than
-  // counted. A cell asserting "two tiles are wide" passes on the wrong two.
-  const wm = src.match(/WIDE_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
-  if (!wm) return 'WIDE_TILES_EXPECTED is not declared: the wide ruling has no home in the registry';
-  const wideDeclared = (wm[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
-  if (wideDeclared.join(',') !== 'support,storefront')
-    return 'WIDE_TILES_EXPECTED drifted from R-40.22: [' + wideDeclared.join(',') + '], ruled [support,storefront]';
-  const wideActual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*wide:\s*true/g) || [])
+  // R-40.98 · THE HEADLINE TILES, READ FROM THE REGISTRY'S OWN DECLARATION rather
+  // than counted. A cell asserting "two tiles are headlines" passes on the wrong two.
+  // AMENDED BY LABEL from the R-40.22 wide arm this replaces: same two names, same
+  // declaration-versus-flags shape, a treatment the founder moved on 2026-09-07.
+  const hm = src.match(/HEADLINE_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
+  if (!hm) return 'HEADLINE_TILES_EXPECTED is not declared: the headline ruling has no home in the registry';
+  const headDeclared = (hm[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
+  if (headDeclared.join(',') !== 'support,storefront')
+    return 'HEADLINE_TILES_EXPECTED drifted from R-40.98: [' + headDeclared.join(',') + '], ruled [support,storefront]';
+  const headActual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*headline:\s*true/g) || [])
     .map((x) => x.match(/'([a-z]+)'/)[1]);
-  if (wideActual.join(',') !== wideDeclared.join(','))
-    return 'the wide flags [' + wideActual.join(',') + '] do not match WIDE_TILES_EXPECTED [' + wideDeclared.join(',') + ']';
-  const work = (src.match(/band:\s*'work'/g) || []).length;
-  const biz  = (src.match(/band:\s*'business'/g) || []).length;
-  if (work !== EXP_TOP) return 'top band has ' + work + ', expected ' + EXP_TOP;
-  if (biz !== EXP_BOT) return 'bottom band has ' + biz + ', expected ' + EXP_BOT;
+  if (headActual.join(',') !== headDeclared.join(','))
+    return 'the headline flags [' + headActual.join(',') + '] do not match HEADLINE_TILES_EXPECTED [' + headDeclared.join(',') + ']';
+  // AND THE WIDE SHAPE IS GONE RATHER THAN DARK. R-40.24 retired with the founder's
+  // own word; a `wide` flag surviving anywhere in the registry means a reader
+  // somewhere can still act on a ruling that no longer exists.
+  if (/\bwide\s*[:?]/.test(src) || /WIDE_TILES_EXPECTED/.test(src))
+    return 'the retired wide field or its declaration survives in the registry (R-40.98 superseded R-40.22/.24)';
+  // R-40.99 · THE HOSTED ROOMS. Declared, then matched against the flags, for the
+  // reason the two above are: a count would pass on the wrong room.
+  const om = src.match(/HOSTED_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
+  if (!om) return 'HOSTED_TILES_EXPECTED is not declared: the hosting ruling has no home in the registry';
+  const hostDeclared = (om[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
+  if (hostDeclared.join(',') !== 'contracts')
+    return 'HOSTED_TILES_EXPECTED drifted from R-40.99: [' + hostDeclared.join(',') + '], ruled [contracts]';
+  const hostActual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*hostedBy:\s*'([a-z]+)'/g) || [])
+    .map((x) => x.match(/'([a-z]+)'/)[1]);
+  if (hostActual.join(',') !== hostDeclared.join(','))
+    return 'the hostedBy flags [' + hostActual.join(',') + '] do not match HOSTED_TILES_EXPECTED [' + hostDeclared.join(',') + ']';
+  // ⚠ THE HOST MUST BE A ROOM. `hostedBy: 'suport'` would take a tile off the grid
+  // and hand its badge to nobody, silently — the count would simply never render.
+  const hostIds = (src.match(/hostedBy:\s*'([a-z]+)'/g) || []).map((x) => x.match(/'([a-z]+)'/)[1]);
+  for (const h of hostIds) if (!ids.includes(h)) return 'hostedBy names ' + h + ', which is not a room in the registry';
+  // ⚠ AND A HOSTED ROOM STAYS IN THE DIRECTORY. R-40.99 took Contracts off the GRID;
+  // deleting the entry would make `roomHref` miss and send TodayCards' unsigned-
+  // contract card to /vendor/rooms with nothing red (c-40.42's own reasoning).
+  if (!ids.includes('contracts')) return 'contracts left ROOMS entirely — the address book must still answer for a hosted room';
+  if (!/contract_unsigned:\s*'contracts'/.test(src)) return 'ROOM_FOR_KIND no longer points contract_unsigned at contracts';
+  // THE BAND CONSTANTS ARE GRID COUNTS, so the census subtracts the hosted rooms
+  // from the band they sit in rather than counting `band:` occurrences raw.
+  const entries = src.match(/\{\s*id:\s*'[a-z]+'[^}]*\}/g) || [];
+  const gridIn = (b) => entries.filter((e) => e.includes("band: '" + b + "'") && !/hostedBy:/.test(e)).length;
+  const work = gridIn('work');
+  const biz  = gridIn('business');
+  if (work !== EXP_TOP) return 'the work band draws ' + work + ' tiles, expected ' + EXP_TOP;
+  if (biz !== EXP_BOT) return 'the business band draws ' + biz + ' tiles, expected ' + EXP_BOT;
+  if (work + biz !== EXP_GRID) return 'the grid draws ' + (work + biz) + ' tiles, expected ' + EXP_GRID;
   return null;
 });
 

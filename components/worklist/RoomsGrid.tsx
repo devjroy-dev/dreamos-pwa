@@ -1,6 +1,11 @@
 "use client";
 // components/worklist/RoomsGrid.tsx — the two bands, EIGHTEEN tiles, frozen.
 //
+// EIGHTEEN IS NOW LITERAL AGAIN, AND FOR A NEW REASON. The header said eighteen
+// through the nineteen-room era (a stale byte carried since R-38.9); R-40.99 makes
+// it true a second time by hosting Contracts on the hub. Nineteen rooms, eighteen
+// tiles, both bands 3·3·3.
+//
 // THE GRID IS THE DIRECTORY (R-37.61). A room reachable only through the coin is a hidden
 // room, and hidden capability one layer above where the eye looks is the whole complaint
 // the worklist exists to answer. So Settings and Billing take tiles even though the coin
@@ -36,7 +41,7 @@
 // It was `<button onClick={router.push}>`, so eighteen destinations were unannounced to
 // Next and every chunk was fetched on tap. `<Link>` prefetches by default.
 import Link from 'next/link';
-import { ROOMS, ROOM_FOR_KIND, roomsInBand, type Room } from '@/lib/worklist/rooms';
+import { ROOM_FOR_KIND, roomsInBand, roomsHostedBy, GRID_TILE_COUNT_EXPECTED, type Room } from '@/lib/worklist/rooms';
 import { useTodayFeed } from '@/lib/worklist/feed';
 import { COPY } from '@/lib/worklist/copy';
 import type { AttentionKind } from '@/lib/vendor/types/vendor';
@@ -55,13 +60,16 @@ function Tile({ room, count, truncated }: { room: Room; count: number | null; tr
   return (
     <Link
       href={room.href}
-      /* R-40.22 · the wide shape comes from the REGISTRY, never from an index.
-         `wl-tilewide` spans `.wl-tiles`' three columns; the tile's height is
-         unchanged at 64 and the label rises one rung to t2. A tile is wide
-         because the founder named it, so the class is read off `room.wide`. */
-      className={room.wide ? 'wl-tile wl-tilewide' : 'wl-tile'}
+      /* R-40.98 · the headline treatment comes from the REGISTRY, never from an
+         index. `wl-tilehead` swaps the tile's own .5px border to the accent; the
+         shape, the height and the label's rung are every other tile's. A tile is
+         a headline because the founder named it, so the class is read off
+         `room.headline`.
+         AMENDED BY LABEL from `room.wide` / `wl-tilewide` (R-40.22), retired with
+         the full-width shape at the founder's word of 2026-09-07. */
+      className={room.headline ? 'wl-tile wl-tilehead' : 'wl-tile'}
       data-room={room.id}
-      data-wide={room.wide ? 'true' : undefined}
+      data-headline={room.headline ? 'true' : undefined}
     >
       <span className="wl-tname">{room.label}</span>
       {/* GATED ON A READING, LIKE THE MASTHEAD. No reading and no figure — never a `0`
@@ -79,10 +87,37 @@ function Tile({ room, count, truncated }: { room: Room; count: number | null; tr
 
 export function RoomsGrid() {
   const feed = useTodayFeed();
+  // c-40.42 · THE BADGE RIDES THE HOST. A tile's figure is its own kind's count
+  // PLUS the counts of every room it hosts, so Contracts' unsigned figure appears
+  // on Business Solutions rather than disappearing with the tile.
+  //
+  // ⚠ THE HOST'S OWN COUNT IS STILL READ FIRST AND CAN BE null. Business Solutions
+  // carries no kind today, so its figure is the hosted sum alone — but a host that
+  // later takes a kind of its own must add, not replace, and writing it that way
+  // now costs one line and removes the question.
+  //
+  // ⚠ AND `null` IS NOT `0`. The gate below renders nothing on a null (F-38.31: no
+  // figure standing in for a count nothing took), so a host with no reading and a
+  // host with a genuine zero must stay distinguishable: the sum starts as null and
+  // only becomes a number when some real reading contributed to it.
   function figure(room: Room): { count: number | null; truncated: boolean } {
-    const kind = KIND_FOR_ROOM[room.id];
-    if (!kind || !feed.responded || !feed.today) return { count: null, truncated: false };
-    return { count: feed.today.counts[kind] ?? null, truncated: feed.today.truncated[kind] === true };
+    if (!feed.responded || !feed.today) return { count: null, truncated: false };
+    const today = feed.today;
+    const readOne = (id: string): { count: number | null; truncated: boolean } => {
+      const kind = KIND_FOR_ROOM[id];
+      if (!kind) return { count: null, truncated: false };
+      return { count: today.counts[kind] ?? null, truncated: today.truncated[kind] === true };
+    };
+    const own = readOne(room.id);
+    let count = own.count;
+    let truncated = own.truncated;
+    for (const hosted of roomsHostedBy(room.id)) {
+      const h = readOne(hosted.id);
+      if (h.count === null) continue;
+      count = (count ?? 0) + h.count;
+      truncated = truncated || h.truncated;
+    }
+    return { count, truncated };
   }
   const tile = (r: Room) => { const f = figure(r); return <Tile key={r.id} room={r} count={f.count} truncated={f.truncated} />; };
   return (
@@ -95,7 +130,13 @@ export function RoomsGrid() {
         <div className="wl-bandlabel">your business</div>
         <div className="wl-tiles">{roomsInBand('business').map(tile)}</div>
       </section>
-      <div hidden data-room-count={ROOMS.length} />
+      {/* THE MARKER COUNTS TILES, NOT ROOMS, SINCE R-40.99 SPLIT THE TWO.
+          It read `ROOMS.length` and would now say nineteen over a grid holding
+          eighteen — a marker that lies is worse than no marker, and this one has
+          no reader in the tree (derived by census across app, lib, components,
+          scripts and tools) so nothing was owed a migration. It states the grid's
+          own constant, which is the number a reader of this DOM is asking for. */}
+      <div hidden data-room-count={GRID_TILE_COUNT_EXPECTED} />
       <style>{GRID_CSS}</style>
     </div>
   );
@@ -132,10 +173,16 @@ const GRID_CSS = `
    that needs decoration to read as a label is not a label. */
 .wl-bandlabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
 .wl-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--wl-step)}
-/* R-40.22 · one line, no sub-line, height unchanged. The label takes t2 because
-   a full-width tile at t4 reads as a stretched small tile rather than a head. */
-.wl-tilewide{grid-column:1/-1}
-.wl-tilewide .wl-tname{font:var(--wl-t2);color:var(--atelier-ink)}
+/* R-40.98 · THE HEADLINE TILE IS A COLOUR, NOT A SHAPE. The two full-width rules
+   that stood here retired with R-40.22 at the founder’s word of 2026-09-07: the
+   heads keep every other tile’s shape, size and rung and are told apart by their
+   own border taking the accent. The rule sits AFTER the tile’s own rule below
+   rather than before it, because both are single-class selectors and the border
+   shorthand there would otherwise win on order alone.
+   ONE FILL IS NOT SPENT HERE, WHICH IS WHY THIS TREATMENT AND NOT A FILLED TILE:
+   the 3x-per-screen accent law budgets FILLS, the FAB and the dock’s send disc
+   already hold two, and a filled tile would also read at 2.71:1 in Chalk
+   (F-40.212, outside this radius). A hairline spends no fill and no new token. */
 /* ── F-38.4 · FIXED HEIGHT, NOT ASPECT (CE-38 relay #2) ───────────────────────
    R-38.5 first ruled 1:1. At three-up on a 390px viewport with a 16px gutter and 8px gaps
    a tile is 114px wide, so 1:1 makes it 114 tall — and eighteen rooms then measure ~946px
@@ -160,6 +207,7 @@ const GRID_CSS = `
    no backticks anywhere in this literal. */
 .wl-tcount{font-variant-numeric:lining-nums tabular-nums}
 .wl-tile{position:relative;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;height:var(--wl-tile);display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer;text-decoration:none}
+.wl-tilehead{border-color:var(--atelier-accent-text)}
 /* t4, NOT t5, and NOT uppercase-tracked. Two rulings meet on this one line and both bind:
    R-37.73 ② put the interactive floor at 12px after 9px was convicted as illegible chrome,
    and t5 is 11 — a tile is a control, so t5 would have walked that conviction back by one

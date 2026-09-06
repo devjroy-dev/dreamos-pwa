@@ -35,20 +35,54 @@ export interface Room {
   /** R-37.62: pinnable rooms may be pinned by the vendor; none but the defaults start pinned. */
   pinnable: boolean;
   /**
-   * R-40.21/.22 \u00b7 THE FULL-WIDTH TILE. One line, no sub-line, tile height
-   * unchanged at 64 \u2014 the shape spans `.wl-tiles`' three columns via
-   * `grid-column:1/-1`.
+   * R-40.98 \u00b7 THE HEADLINE TILE. The head of each band, drawn in the accent
+   * hairline: same shape, same size, same 64px height as every other tile, its
+   * own .5px border in `--atelier-accent-text` instead of `--atelier-card-border`.
+   * Founder's pick of 2026-09-07 from three treatments (a: teal label ink, b:
+   * hairline, c: leading edge) \u2014 (b), because the whole outline reads as a
+   * different KIND of tile while the label stays in the page ink, so it does not
+   * fight the accent-ink badge sitting in the same tile's corner.
    *
-   * ⚠ IT IS A REGISTRY FIELD, NOT A DERIVED RULE, AND THAT WAS THE FORK. A rule
-   * like 「index 0 of a band is wide」 would be one fewer byte and would silently
-   * re-decide itself the next time the founder reorders a band. The founder
-   * ruled TWO tiles wide by name; a name is what the registry stores.
+   * ⚠ THIS FIELD REPLACES `wide`, WHICH RETIRED WITH ITS READER. R-40.22/.24
+   * ruled the two heads FULL-WIDTH; the founder's own word of 2026-09-07
+   * superseded that \u2014 the tiles keep every other tile's shape and are
+   * distinguished by colour alone. The full-width CSS, the `wide` flag, the
+   * `WIDE_TILES_EXPECTED` declaration and both benches' cells for them are gone
+   * rather than left dark. RETIRE-WITH-THE-READER; the reason stands where the
+   * name stood.
    *
-   * Optional so the seventeen tiles that are not wide say nothing at all rather
-   * than each carrying `wide: false` \u2014 seventeen falses is a column of noise
-   * that hides the two that matter.
+   * ⚠ AND IT IS STILL A REGISTRY FIELD, NOT A DERIVED RULE. R-40.22's fork was
+   * argued once and its answer did not change with the treatment: a rule like
+   * 「index 0 of a band is the headline」 would be one fewer byte and would
+   * silently re-decide itself the next time the founder reorders a band. He
+   * ruled TWO tiles by name; a name is what the registry stores.
+   *
+   * Optional, for the same reason `wide` was: sixteen `headline: false` entries
+   * are a column of noise that hides the two that matter.
    */
-  wide?: boolean;
+  headline?: boolean;
+
+  /**
+   * c-40.42 \u00b7 THE HOSTED ROOM. R-40.99 took Contracts off the grid and left
+   * the route standing: the hub's own row opens it. This field is how a room
+   * leaves the GRID without leaving the DIRECTORY, and the distinction is the
+   * whole reason the field exists rather than a deletion.
+   *
+   * ⚠ `ROOMS` IS TWO THINGS AND ONLY ONE OF THEM WAS RULED AWAY. It is the grid's
+   * directory AND the address book: `ROOM_FOR_KIND.contract_unsigned` points at
+   * `contracts`, and `TodayCards` routes the unsigned-contract card through
+   * `roomHref(ROOM_FOR_KIND[kind])`. Deleting the entry would have made
+   * `roomHref` MISS, and a miss returns `/vendor/rooms` \u2014 quietly, by design
+   * (see the fallback below). A live Today card would have opened the directory
+   * instead of the room, correctly, with no bench able to see it.
+   *
+   * The value is the HOST'S id, not a boolean, because the host is a fact the
+   * grid needs: the hosted room's attention count is summed onto the host's tile
+   * (`roomsHostedBy` below), so Business Solutions wears the unsigned-contract
+   * figure that Contracts' own tile used to carry. A boolean would say a room is
+   * hidden and leave the count with nowhere to go.
+   */
+  hostedBy?: string;
 }
 
 /** \u00a78.2: Calendar and Storefront are the two default pins. Nothing else pre-pins. */
@@ -79,7 +113,7 @@ export const ROOMS: readonly Room[] = [
   // interface), the label is the byte, and `/vendor/support` is an address five
   // other files and two benches already spell. Renaming it would buy a tidier
   // symbol and cost a route, a redirect and every reader of both.
-  { id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, wide: true },
+  { id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, headline: true },
   { id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true  },
   { id: 'clients',   label: 'Clients',   band: 'work', href: '/vendor/clients',   pinnable: true  },
   { id: 'invoices',  label: 'Invoices',  band: 'work', href: '/vendor/invoices',  pinnable: true  },
@@ -120,7 +154,7 @@ export const ROOMS: readonly Room[] = [
   // of this band since \u00a74-3 and is already FROZEN_ORDER's first business id. The
   // charter's phrase 「storefront to the head of business」 describes a motion that
   // does not exist; only the flag is new (c-40.10, third limb).
-  { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',       pinnable: true, wide: true },
+  { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',       pinnable: true, headline: true },
   { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/vendor/portfolio',        pinnable: true  },
   { id: 'couture',   label: 'Couture',   band: 'business', href: '/vendor/couture',          pinnable: true  },
   // \u00a74-4 \u00b7 BATCH \u2461. Three bodies with nothing shared \u2014 a hub of Studio rows, a document
@@ -131,7 +165,7 @@ export const ROOMS: readonly Room[] = [
   // changes name as well as tree. The fallback keeps its own spelling; only the tile's
   // destination is renamed, and no other file spells either one (derived, not assumed).
   { id: 'team',      label: 'Team',      band: 'business', href: '/vendor/team',             pinnable: true  },
-  { id: 'contracts', label: 'Contracts', band: 'business', href: '/vendor/contracts',        pinnable: true  },
+  { id: 'contracts', label: 'Contracts', band: 'business', href: '/vendor/contracts',        pinnable: true, hostedBy: 'support' },
   { id: 'tds',       label: 'TDS',       band: 'business', href: '/vendor/tds',              pinnable: true  },
   // R-38.1 \u00b7 CROSSED AT M-FINISH S1. These two now render as children of WorklistShell
   // under app/w/, so tapping them mounts no second layout, no second header and no second
@@ -195,18 +229,45 @@ export const ROOM_FOR_KIND: Readonly<Record<AttentionKind, string>> = {
   team_tasks:        'team',
 } as const;
 
+// ── R-40.99 / c-40.42 · TWO COUNTS NOW, BECAUSE THERE ARE TWO ANSWERS ────────
+// The directory and the grid stopped being the same number the moment a room was
+// hosted. Both are declared, because a single constant would have to be one of
+// them and the other would then be derived, unstated, in whichever file happened
+// to need it — which is how a count drifts from a ruling with nothing red.
+//
+// ROOM_COUNT_EXPECTED is the DIRECTORY: every room the address book answers for,
+// hosted or not. It does NOT move at R-40.99 — nothing joined or left the estate;
+// a room left the GRID. GRID_TILE_COUNT_EXPECTED is what the vendor's thumb can
+// reach on Rooms: nineteen less the hosted one. Count history, every step worded
+// or derived: 11 → 15 → 16 → 17 → 18 → 19 directory, and 19 → 18 on the glass.
 export const ROOM_COUNT_EXPECTED = 19;
-// R-40.20: Business Solutions crosses from business to work. 8\u21929 and 11\u219210;
-// the total is unmoved because nothing joined or left the estate.
+export const GRID_TILE_COUNT_EXPECTED = 18;
+// R-40.20: Business Solutions crosses from business to work. 8\u21929 and 11\u219210.
+// R-40.99: Contracts is hosted by the hub, so the BOTTOM BAND'S GRID count falls
+// 10 → 9 while its DIRECTORY count holds at 10. Both bands now fall 3·3·3 and the
+// orphan row that has followed this grid since R-37.87 is gone from both.
+// ⚠ THESE TWO ARE GRID COUNTS, not directory counts — they are what `roomsInBand`
+// returns, because that is the function the constants exist to check.
 export const TOP_BAND_EXPECTED = 9;
-export const BOTTOM_BAND_EXPECTED = 10;
+export const BOTTOM_BAND_EXPECTED = 9;
 
 /**
- * R-40.22 \u00b7 THE WIDE TILES, DECLARED SO A BENCH READS THE RULING AND NOT A COUNT.
+ * R-40.98 \u00b7 THE HEADLINE TILES, DECLARED SO A BENCH READS THE RULING AND NOT A COUNT.
  * Two, by founder word: the head of each band. A cell asserting 「two tiles are
- * wide」 would pass on the wrong two.
+ * headlines」 would pass on the wrong two.
+ *
+ * AMENDED BY LABEL from `WIDE_TILES_EXPECTED` (R-40.22), which retired with the
+ * shape it declared. The names did not move; the treatment did.
  */
-export const WIDE_TILES_EXPECTED: readonly string[] = ['support', 'storefront'] as const;
+export const HEADLINE_TILES_EXPECTED: readonly string[] = ['support', 'storefront'] as const;
+
+/**
+ * R-40.99 \u00b7 THE HOSTED ROOMS, DECLARED FOR THE SAME REASON. One, by founder
+ * word: Contracts, housed by the hub. A cell that counted hosted rooms would pass
+ * on the wrong one, and a cell that read only `roomsInBand`'s length would pass on
+ * a room that vanished from the grid AND the directory together.
+ */
+export const HOSTED_TILES_EXPECTED: readonly string[] = ['contracts'] as const;
 
 /** The frozen order, by id. The cell compares against this and nothing else. */
 export const FROZEN_ORDER: readonly string[] = [
@@ -251,6 +312,34 @@ export function roomHref(id: string): string {
   return room ? room.href : '/vendor/rooms';
 }
 
+/**
+ * THE GRID'S OWN VIEW OF THE REGISTRY \u2014 hosted rooms filtered OUT here, once.
+ *
+ * ⚠ THE FILTER LIVES IN THE REGISTRY, NOT IN THE GRID. `RoomsGrid` calling
+ * `.filter((r) => !r.hostedBy)` on the way past would put the rule about what a
+ * tile IS inside the component that draws tiles, and the next surface to list
+ * rooms would either repeat it or forget it. This function is already the one
+ * door every band render goes through; the rule belongs behind it.
+ *
+ * ⚠ AND `ROOMS` IS UNTOUCHED, WHICH IS THE POINT. `roomHref`, `ROOM_FOR_KIND` and
+ * every address the shell resolves still see all nineteen. Only the glass sees
+ * eighteen.
+ */
 export function roomsInBand(band: Band): Room[] {
-  return ROOMS.filter((r) => r.band === band);
+  return ROOMS.filter((r) => r.band === band && !r.hostedBy);
+}
+
+/**
+ * THE ROOMS A HOST CARRIES. The host's tile wears their attention counts on top
+ * of its own (c-40.42: 「the badge rides the host」), so Business Solutions shows
+ * the unsigned-contract figure that Contracts' own tile used to show.
+ *
+ * ⚠ A DERIVED RULE WITH ONE FIELD BEHIND IT, and that asymmetry with `headline`
+ * is deliberate rather than sloppy. `headline` is a DECISION about two named
+ * tiles and could have gone either way, so it is stored. This is a CONSEQUENCE of
+ * `hostedBy`: once the founder says the hub houses Contracts, where the count goes
+ * is not a second question. A second field would be a second thing to forget.
+ */
+export function roomsHostedBy(id: string): Room[] {
+  return ROOMS.filter((r) => r.hostedBy === id);
 }
