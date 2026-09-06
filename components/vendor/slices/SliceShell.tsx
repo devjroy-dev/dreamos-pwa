@@ -89,13 +89,25 @@ import { reminderPreview, reminderDate } from '@/lib/worklist/paymentReminders';
 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
-// It read `false` from the day it was written, and its comment said why: the
-// schedule endpoint had not been built, so opening an invoice would fire a 404
-// at a route that did not exist. That was true then. **It has not been true for
-// some time** — `src/api/vendor/schedules.js` carries five routes and
-// `lib/vendor/api/vendor.ts:fetchSchedule` already addresses them. The flag was
-// guarding a 404 that cannot happen, and the whole payment-schedule panel plus
-// its create sheet have been dark in production behind it.
+// It read `false` from the day it was written, and its comment said why: opening
+// an invoice would fire a 404 at a route that was not built. The route WAS
+// built — `src/api/vendor/schedules.js` carries five and `fetchSchedule`
+// addresses them — so this seat flipped the flag saying it guarded "a 404 that
+// cannot happen".
+//
+// ⚠ THAT WAS WRONG, AND THE FOUNDER'S WALK PROVED IT WITHIN THE HOUR (F-40.181).
+// The GET 404'd anyway, by a mechanism nobody had looked for: `core.js` mounted
+// `/invoices` BEFORE the root-mounted schedules router, and `invoices.js:75`
+// owns `GET /:vendorId` — so `GET /invoices/{uuid}/schedule` entered that router,
+// matched nothing, and 404'd before schedules was consulted. The POST never
+// collided because `/:vendorId` is a GET, which is why create worked and re-read
+// did not, and why the panel looked correct in the session that made it and
+// empty on every reopen.
+//
+// The flag was hiding a REAL 404. It was cured in the dream-os rider by moving
+// the schedules mount ahead of `/invoices`; the flip stands, the reasoning that
+// justified it did not, and a comment that was true when written and false when
+// shipped is worse than none — it is load-bearing for whoever reads it next.
 //
 // ⚠ THE FLIP WAITED ON A FRAME, NOT ON COURAGE. R-G34.10 conditioned it on
 // whether a ratified mock frame existed for this panel. Derived: none did. The
