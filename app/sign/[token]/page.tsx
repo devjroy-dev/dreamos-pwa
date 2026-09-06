@@ -64,6 +64,11 @@ export default function SignPage() {
   const [stage, setStage] = useState<'read' | 'code' | 'done'>('read');
   const [code, setCode] = useState('');
   const [codeFailed, setCodeFailed] = useState(false);
+  // ⚠ F-40.194 — THE COPY'S OWN URL, RETURNED BY THE SIGN THAT MADE IT.
+  // `/document` dies the instant she signs, because `verifySignCode` nulls the
+  // token and spending it IS the security model. The done screen's `Save a copy`
+  // pointed there and 404d under a sentence promising the copy was ready below.
+  const [copyUrl, setCopyUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) { setDead(true); return; }
@@ -119,6 +124,17 @@ export default function SignPage() {
     // failure there reads as "the button is broken". The one thing that cannot
     // happen is her being told the link is dead when it is not.
     if (r.kind === 'failed') { setCodeFailed(true); return; }
+    // The sealed copy's short-lived link. Absent is survivable — the leaf falls
+    // back to `/document`, which will 404, and that is still better than a button
+    // that silently does nothing.
+    // ⚠ `json`, NOT `data`. `readToken` returns `{ kind:'ok', data }` and
+    // `actToken` returns `{ kind:'ok', json }` — two shapes on one constitution,
+    // and this seat typed the read's shape into the act's path from habit. Derived
+    // by reading `token.ts:114`, which is the fifth time in this arc that reading
+    // the neighbour instead of the function would have shipped a defect.
+    const j = (r as { json?: Record<string, unknown> }).json;
+    const url = j && typeof j.pdf_url === 'string' ? j.pdf_url : null;
+    if (url) setCopyUrl(url);
     setStage('done');
   }
 
@@ -145,7 +161,9 @@ export default function SignPage() {
             <p className="sg-mark" aria-hidden="true">&#10003;</p>
             <h1 className="sg-h">{SIGN_COPY.done}</h1>
             <p className="sg-l">{SIGN_COPY.doneLead}</p>
-            <a className="sg-alt" href={docUrl} rel="noopener noreferrer">{SIGN_COPY.save}</a>
+            {/* ⚠ THE SEALED COPY, NOT `/document`. That address is dead by the time
+                this screen renders — see `copyUrl` above. */}
+            <a className="sg-alt" href={copyUrl ?? docUrl} rel="noopener noreferrer">{SIGN_COPY.save}</a>
           </>
         ) : stage === 'code' ? (
           <>

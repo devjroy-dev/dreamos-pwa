@@ -168,3 +168,18 @@ docs/TDW_19_G32_PWA_HANDOVER.md
 #
 # R-40.69: a base line means derived-at, so a moved queue is answered by deriving
 # again rather than editing the line. Second time this sitting.
+
+# ── MICRO 4 (2026-09-06) · derived at dreamos-pwa b987267 ──────────────────
+# F-40.194 — the done screen's `Save a copy` opens the SEALED COPY's own signed
+# url, returned by the sign response that made it, not `/document` (which 404s
+# the instant `verifySignCode` nulls the token — spending it IS the model).
+#
+#   app/sign/[token]/page.tsx
+#
+# ⚠ `actToken` RETURNS `json`, NOT `data`. `readToken` returns `{kind:'ok',data}`
+# and `actToken` returns `{kind:'ok',json}` — two shapes on one constitution, and
+# this seat typed the read's shape into the act's path from habit. Caught by
+# reading `lib/public/token.ts:114`. FIFTH time in this arc that reading the
+# neighbour instead of the function would have shipped a defect.
+#
+#   tsc CLEAN · b57 61/61 · `next build` OWED on the founder's machine
