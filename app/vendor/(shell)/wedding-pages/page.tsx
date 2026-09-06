@@ -79,10 +79,23 @@ function WeddingPagesScreen({ session }: { session: { id: string } }) {
   const [sheet, setSheet] = useState<'none' | 'create' | 'credits'>('none');
   const [active, setActive] = useState<Wedding | null>(null);
 
+  const [reel, setReel] = useState<{ reel_enabled: boolean } | null>(null);
   const load = useCallback(async () => {
     try {
-      const r = await getJson<{ ok: boolean; weddings: Wedding[] }>(API.weddings());
+      // ── THE REEL RIDES THE LIST (G1.3 reel micro) ────────────────────────
+      // The list door already answers `reel` beside `weddings` — it is a
+      // property of the SERVER, not of a wedding, so it is read once here
+      // rather than asked for per sheet. Before this, the record drew 「—」 until
+      // a vendor tapped `Check again`, and forgot again on the next open because
+      // it was component state. An honest placeholder that is ALWAYS showing is
+      // a worse answer than the answer.
+      const r = await getJson<{ ok: boolean; weddings: Wedding[]; reel?: { reel_enabled?: boolean } }>(API.weddings());
       setRows(r.weddings || []);
+      // ⚠ ONLY SET WHEN THE DOOR ACTUALLY SENT IT. A backend that predates this
+      // field must leave the line at 「—」 and the tap, not be reported as
+      // not-detected — 「we have not looked」 and 「we looked and it is not there」
+      // are different facts and the vendor is owed the difference (F-40.53's class).
+      setReel(r.reel ? { reel_enabled: r.reel.reel_enabled === true } : null);
     } catch { setRows([]); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -128,7 +141,7 @@ function WeddingPagesScreen({ session }: { session: { id: string } }) {
         <CreateSheet vendorId={session.id} onClose={() => setSheet('none')} onSaved={() => { setSheet('none'); void load(); }} />
       ) : null}
       {sheet === 'credits' && active ? (
-        <CreditsSheet wedding={active} onClose={() => setSheet('none')} onChanged={() => { void load(); }} />
+        <CreditsSheet wedding={active} reelSeed={reel} onClose={() => setSheet('none')} onChanged={() => { void load(); }} />
       ) : null}
 
       <WeddingPagesStyles />
@@ -311,7 +324,8 @@ function CreateSheet({ vendorId, onClose, onSaved }: { vendorId: string; onClose
 }
 
 function CreditsSheet(
-  { wedding, onClose, onChanged }: { wedding: Wedding; onClose: () => void; onChanged: () => void },
+  { wedding, reelSeed, onClose, onChanged }:
+  { wedding: Wedding; reelSeed: { reel_enabled: boolean } | null; onClose: () => void; onChanged: () => void },
 ) {
   const [credits, setCredits] = useState<Credit[] | null>(null);
   const [photos, setPhotos] = useState<Photo[] | null>(null);
@@ -336,7 +350,11 @@ function CreditsSheet(
   // difference.
   const [cards, setCards] = useState<{ card_url: string; insert_url: string } | null>(null);
   const [cardsErr, setCardsErr] = useState(false);
-  const [probe, setProbe] = useState<{ reel_enabled: boolean } | null>(null);
+  // ⚠ SEEDED FROM THE LIST, NOT NULL. `Check again` stays and still overwrites
+  // this — it re-reads after an image change, which is the only moment the value
+  // moves (F-40.149's cure is exactly that). What it no longer has to do is
+  // supply the FIRST answer.
+  const [probe, setProbe] = useState<{ reel_enabled: boolean } | null>(reelSeed);
   // The consent ask's own state. Separate from `busy`'s subjects because the link
   // must survive on screen after the request settles — it is the thing she pastes.
   const [consentPhone, setConsentPhone] = useState('');
