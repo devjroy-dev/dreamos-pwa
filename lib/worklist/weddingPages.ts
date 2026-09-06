@@ -28,6 +28,25 @@
 export const WP = {
   // ── W2-room / W2-empty ───────────────────────────────────────────────────
   roomTitle:         'Wedding pages',
+  /**
+   * ── THE PROVENANCE CHIP · F-40.211, R-40.103 ──────────────────────────────
+   * 「WEDDING」 on BOTH wedding sources — `wedding_guest` and `wedding_team`.
+   *
+   * WHY IT MATTERS MORE HERE THAN ANYWHERE ELSE. `TDW` and `Referral` mark
+   * leads whose origin a vendor already half-knows. A wedding lead is the only
+   * one where the vendor MAY NEVER HAVE MET THE PAGE IT CAME FROM: Swati's
+   * arrived from Dev Roy's wedding page, and nothing in her list said so. The
+   * fact was on the wire the whole time — the detail row reads
+   * 「Source · Wedding Team」 — and the list simply did not render it.
+   *
+   * ONE WORD FOR BOTH SOURCES, deliberately. The guest download and the team
+   * ask are two consents and two shapes, but from the list's five-foot view
+   * they are one provenance: this came from a wedding page. The detail row
+   * already says WHICH, and a chip that split them would be answering a
+   * question nobody asks at a glance.
+   */
+  chipWedding: 'Wedding',
+
   // ── G1.3 · THE RECORD'S TWO NEW CONTROLS ──────────────────────────────────
   // Answered rows on `docs/mocks/G13_VETO_SHEET.md` (25-34), drawn in
   // `wedding-team-mock.html` frames T5, T6-reel-off and T7-reel-ready.

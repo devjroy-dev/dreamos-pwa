@@ -62,6 +62,41 @@ function leadMeta(l: Lead): string | undefined {
   return parts.length ? parts.join(' · ') : undefined;
 }
 
+/**
+ * ── WHO THIS LEAD IS, WHEN NOBODY ASKED HER NAME · F-40.178, R-40.102 ───────
+ * A wedding-page lead carries `name: null` BY DESIGN, and that is a decision on
+ * the record rather than an omission. The team sheet asks ONE question and takes
+ * ONE field: she is enquiring, not registering, and every field added is a guest
+ * who leaves. So the vendor identifies her BY THE THING SHE GAVE — her number.
+ *
+ * 「Unknown」 was the wrong word for it. It reads as a failure of ours, or as a
+ * person who withheld something; she withheld nothing, she was never asked. A
+ * number is not a placeholder here, it is the whole identity of the enquiry, and
+ * it is also the thing the vendor is about to tap.
+ *
+ * The order is deliberate: a real name first (leads from every other door have
+ * one), then the number, and 「Unknown」 only for a lead with NEITHER — which is
+ * a row that should not exist and is worth still looking wrong.
+ */
+function leadTitle(l: { name?: string | null; phone?: string | null }): string {
+  const name = (l.name || '').trim();
+  if (name) return name;
+  const phone = (l.phone || '').trim();
+  if (phone) return phone;
+  return 'Unknown';
+}
+
+/**
+ * ── THE WEDDING PROVENANCE · F-40.211, R-40.103 ────────────────────────────
+ * True for BOTH wedding sources. The tokens are the estate's own, spelled here
+ * because this room reads the wire and not `leadSources.js` — which is a
+ * dream-os module and does not cross the repo boundary. If a third wedding
+ * source is ever born, THIS LINE IS ITS SECOND READER.
+ */
+function isWeddingLead(l: { source?: string | null }): boolean {
+  return l.source === 'wedding_guest' || l.source === 'wedding_team';
+}
+
 // ── R2 · THE `ENQUIRED VIA TDW` ROW (founder copy, 2026-08-22, frozen) ──────
 // LINKAGE-GATED: it is spread into the detail array only when `l.tdw` is true,
 // so an unbadged lead grows no row at all rather than an em-dash. The gate is
@@ -118,7 +153,7 @@ function referralRows(l: Lead): { label: string; value: string; verbatim?: boole
 }
 
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: l.name??'Unknown', secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: `, deletePrimer: `Delete the lead for ${l.name??'unknown'} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, forwarded: !!(l.forwarded_to || l.forwarded_by), referralIn: !!l.forwarded_by, detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},...referralRows(l),{label:'Notes',value:l.notes??'—',verbatim:true}] })); // Notes: F-04.7 read-row (display-only, CE fence)
+  return leads.map(l => ({ id: l.id, primary: leadTitle(l), secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: ` /* F-40.178: leadTitle is NOT used here on purpose. 'About this enquiry:' is a lawful natural phrase a vendor is about to type into; 'About +918595363978:' is a worse opening line than the one it replaces. The DELETE primer above is the opposite case — it names the row for a DESTRUCTIVE act, where 'unknown' was actively wrong. */, deletePrimer: `Delete the lead for ${leadTitle(l)} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, forwarded: !!(l.forwarded_to || l.forwarded_by), referralIn: !!l.forwarded_by, weddingLead: isWeddingLead(l), detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},...referralRows(l),{label:'Notes',value:l.notes??'—',verbatim:true}] })); // Notes: F-04.7 read-row (display-only, CE fence)
 }
 
 // TDW_04 A2 (L-2, F-04.2's ratified cure): DELETE means the REAL soft-delete

@@ -12,6 +12,7 @@
 import type { ListSlice, DoorSlice } from '@/hooks/vendor/useLastSlice';
 // R-G51.16 — the chip's byte comes from the copy home, never spelled here.
 import { RF } from '@/lib/worklist/referrals';
+import { WP } from '@/lib/worklist/weddingPages';
 import { istDayKey } from '@/lib/frost/tokens'; // R-35.23's IST home — one semantic, one home
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
@@ -121,6 +122,11 @@ export interface Row {
       wears it. Two facts, two fields: collapsing them would put a chip on the
       sender's row that read as though the work had come TO her. */
   referralIn?: boolean;
+  /** BLOCK 19 G1.3 (F-40.211, R-40.103): this lead was born on a WEDDING PAGE —
+      `wedding_guest` (the gallery download) or `wedding_team` (Book the same
+      team). ONE FLAG FOR BOTH: from the list's five-foot view they are one
+      provenance, and the detail row already says which. */
+  weddingLead?: boolean;
   /** M-LEADGATE-RECUT (R-37.23): the wire's POSITIVE statement that this row's
       mode-to-connect was withheld for tier. Read from the payload, never
       inferred from an absent phone — page-trusts-the-wire, and an inference
@@ -324,6 +330,33 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 border: '0.5px solid var(--atelier-accent-text)', borderRadius: 3,
                 padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
               }}>{RF.chipReferral}</span>
+            )}
+            {/* ── F-40.211 / R-40.103 · THE WEDDING CHIP ────────────────────
+                THE ONE PROVENANCE A VENDOR MAY NOT ALREADY KNOW. `TDW` and
+                `Referral` mark leads whose origin she half-knows; a wedding
+                lead can arrive from a page she has never seen. Swati's came
+                from Dev Roy's wedding page and her list said nothing — the fact
+                was on the wire (the detail row reads `Source · Wedding Team`)
+                and only the list withheld it.
+
+                Rides the SAME 9px grant cited on the TDW badge above — same
+                style object, same three-leg engraved test (letterSpacing +
+                uppercase) — so the census is unchanged and an un-cited site
+                below the floor still reds.
+
+                A THIRD INK, and that is the point: brass is TDW's, the accent
+                is the referral's, and two chips in one colour would be one chip
+                wearing two meanings. Ink-mute reads as a quiet fact rather than
+                a claim, which is what a provenance is. */}
+            {row.weddingLead && (
+              <span style={{
+                marginLeft: 8, verticalAlign: 'middle',
+                fontFamily: F.label, fontWeight: 500, fontSize: 9,
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: A.inkMute,
+                border: '0.5px solid var(--atelier-card-border)', borderRadius: 3,
+                padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
+              }}>{WP.chipWedding}</span>
             )}
           </div>
           <div style={{
