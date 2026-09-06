@@ -386,7 +386,12 @@ function PublicPageBand() {
           >{`thedreamwedding.in/v/${handle.toLowerCase()}`}</a>
         ) : null}
 
-        {reason === null ? (
+        {/* ── THREE STATES, AND THE THIRD SAYS NOTHING — F-40.175 ───────────
+            `undefined` is the door not having answered, which is not a fact
+            about her trade and must not be rendered as one. No switch (we
+            cannot stand behind a permission we could not read) and no sentence
+            (we know nothing to tell her). Still fail-closed; simply silent. */}
+        {reason === undefined ? null : reason === null ? (
           <>
             <div
               role="switch"

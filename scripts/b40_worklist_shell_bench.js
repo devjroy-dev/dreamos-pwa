@@ -4003,6 +4003,36 @@ cell('C103 the date-check switch gates on capacity_reason, never on capacity_app
   // D6's two bytes are not interchangeable and both must be reachable.
   if (!/storefrontDateRuledOff/.test(src)) bad.push('the ruled_off byte is never rendered');
   if (!/storefrontDateUnmapped/.test(src)) bad.push('the unmapped byte is never rendered');
+  // ── F-40.175 · `null` IS THE SUCCESS VALUE AND MUST REACH THE SWITCH ──────
+  // The room got a correct `capacity_reason: null` from production and printed
+  // the unmapped byte anyway, because the hook defaulted with `??` — which
+  // coalesces `null` as readily as `undefined`. Two assertions, because the
+  // defect needed both halves to be wrong:
+  //   · the hook must test `=== undefined`, never `??`, on this field;
+  //   · the room must branch on `undefined` SEPARATELY from `null`.
+  const hook = strip(read('hooks/vendor/useSettings.ts'));
+  if (/capacity_reason:\s*v\.capacity_reason\s*\?\?/.test(hook)) {
+    bad.push('the hook defaults capacity_reason with ?? — null is the SUCCESS value and ?? cannot tell it from absence (F-40.175)');
+  }
+  if (!/capacity_reason:\s*v\.capacity_reason === undefined/.test(hook)) {
+    bad.push('the hook does not distinguish an unanswered door from an applying capacity');
+  }
+  // The THIRD site of the same class, and it stayed unguarded until a mutation
+  // said so: the hook's EMPTY seed. It is masked today by the band's `loading`
+  // return, so a wrong value there is latent rather than live — which is exactly
+  // the kind that survives a rewrite of the guard above it.
+  // ⚠ THE TRAILING COMMA IS THE WHOLE DISCRIMINATOR, and the first cut lacked it:
+  // the regex matched the TYPE UNION (`capacity_reason: 'ruled_off' | 'unmapped'
+  // | null | undefined;`) and reddened a correct tree. A seed is an ASSIGNMENT
+  // and ends in a comma; a union continues with ` |`. Same class as the two
+  // other cells this sitting that read prose or a declaration instead of the
+  // thing they were guarding.
+  if (/capacity_reason:\s*'(ruled_off|unmapped)'\s*,/.test(hook)) {
+    bad.push('the hook seeds capacity_reason with a REASON BYTE — an unread door must seed absence, not a claim about her trade');
+  }
+  if (!/reason === undefined \? null/.test(src)) {
+    bad.push('the room does not render NOTHING for an unanswered door — absence is being translated into a sentence about her trade');
+  }
   // ⚠ b40's `cell()` INVERTS bs_audit's: a FALSY return passes and a returned
   // STRING is the failure reason. The first cut of these three returned `true`
   // on success and reddened all three on a clean tree, reported as "— true".

@@ -68,7 +68,12 @@ export interface SettingsState {
   capacity_applicable: boolean;
   // G3.1 · R-G31.6. Read-only, from the same one-home ladder. `null` when
   // capacity applies; the room reads THIS, never `capacity_applicable`.
-  capacity_reason:     'ruled_off' | 'unmapped' | null;
+  // ⚠ FOUR STATES, AND `undefined` IS ONE — F-40.175.
+  //   null                    capacity APPLIES → the switch and D4
+  //   'ruled_off'/'unmapped'  → D6's matching byte
+  //   undefined               THE DOOR DID NOT ANSWER → say NOTHING
+  // The last is not a fourth reason; it is the ABSENCE of one.
+  capacity_reason:     'ruled_off' | 'unmapped' | null | undefined;
   // G3.1 · R-40.77. Her permission for the public date check. Written through
   // the same PATCH as every other posture flag, but saved on toggle rather than
   // by a Save button — see the room.
@@ -93,7 +98,9 @@ const EMPTY: SettingsState = {
   // NOT offer the switch; the softer of D6's two bytes is the safe wrong answer.
   // `date_check_enabled: false` — a permission that could not be read is a
   // permission not granted (R-40.77). Silence never means yes, on this side too.
-  capacity_reason: 'unmapped', date_check_enabled: false,
+  // ⚠ `undefined`, NOT `'unmapped'` — F-40.175. Defaulting to the unmapped BYTE
+  // made an unanswered door print a false sentence about her trade.
+  capacity_reason: undefined, date_check_enabled: false,
 };
 
 export function useSettings() {
@@ -163,7 +170,18 @@ export function useSettings() {
         // `?? 'unmapped'` and `?? false`: an older door that carries neither key
         // yields a room with no switch, which is exactly right — it cannot
         // promise a door that has not shipped.
-        capacity_reason:     v.capacity_reason ?? 'unmapped',
+        // ⚠ NEVER `??` HERE — THIS IS THE WHOLE OF F-40.175. `null` is the
+        // SUCCESS value (capacity applies, show the switch) and `??` coalesces
+        // `null` exactly as readily as `undefined`. So this line turned every
+        // CORRECTLY answering door into "your kind of work": production sent
+        // `capacity_reason: null` for DEV440 — photography — and the room
+        // printed the unmapped byte at her.
+        //
+        // It is `occupancy.js`'s own warning met one repo over. There: «`??` not
+        // `||`: 0 is a POSTURE». Here: «`=== undefined`, not `??`: null is a
+        // POSTURE». A value that MEANS something cannot be defaulted by an
+        // operator that cannot distinguish it from absence.
+        capacity_reason:     v.capacity_reason === undefined ? undefined : v.capacity_reason,
         date_check_enabled:  v.date_check_enabled === true,
       };
       setSaved(s);
