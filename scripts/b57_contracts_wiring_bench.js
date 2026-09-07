@@ -141,7 +141,7 @@ section('2b. in flight, failed and empty are three different sentences');
   const picker = src.slice(src.indexOf('function Pick()'), src.indexOf('function Record()'));
   ok('the picker block is found', picker.length > 200);
   ok('the three sentences are three branches, inside the picker',
-     (picker.match(/Loading\\u2026|couldn\\u2019t load your clients|No one to choose from yet/g) || []).length === 3);
+     (picker.match(/Loading…|couldn’t load your clients|No one to choose from yet/g) || []).length === 3);
 
 
   // ── THE UNION — R-G32.17 ────────────────────────────────────────────────
@@ -451,7 +451,7 @@ section('8. her policies are asked once, and the annexes have one home');
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('the unmapped surface is its own branch on the door\u2019s flag', /annexMap\.mapped \? \(/.test(src));
   ok('and it says what we do not know, not what she failed to do',
-     /We don\\u2019t have your trade on file yet/.test(src));
+     /We don’t have your trade on file yet/.test(src));
 
   // ── §8d · THREE STATES, TWICE, AND `{}` IS NOT ONE OF THEM ─────────────
   // ⚠ AN EMPTY PROFILE IS THE COMMONEST LEGAL ANSWER THIS DOOR GIVES. A vendor
@@ -517,7 +517,7 @@ section('9. what she sends, and what refuses');
   // `CLAUSE_SWITCHES` by the same law and `b56` reds on the twin mutation.
   ok('publication is not a switch here either', !/'publication'/.test(src));
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
-  ok('and the row that says so is drawn', /The wedding page isn\\u2019t a switch here/.test(src));
+  ok('and the row that says so is drawn', /The wedding page isn’t a switch here/.test(src));
   // Row 18 AND row 22 — the repetition is ruling F6 and is deliberate.
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('the law is said at the top as well', /Everything else always prints\./.test(src));
@@ -633,7 +633,7 @@ section('10. what the sheet opens with, and what it never assumes');
   ok('omitted rows are filtered out of the sheet',
      /const omitted = annexMap\?\.omitted \?\? \[\];[\s\S]{0,1600}\.filter\(r => !omitted\.includes\(r\.key\)\)/.test(src));
   ok('and the hint line stands where they were — in the plain register',
-     /You deliver on the day, so there\\u2019s nothing to set here\./.test(src));
+     /You deliver on the day, so there’s nothing to set here\./.test(src));
   ok('the line is gated on the basis, not on the omission list',
      /const basis = annexMap\?\.delivery_basis \?\? 'days'/.test(src) && /sec\.onTheDay && basis === 'on_the_day'/.test(src));
 
@@ -655,7 +655,7 @@ section('10. what the sheet opens with, and what it never assumes');
   ok('the superseded sentence is gone', !/prints as a blank/.test(src));
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('and the ruled one is there',
-     /Anything you leave empty is left out of the agreement \\u2014 nothing prints blank\./.test(src));
+     /Anything you leave empty is left out of the agreement — nothing prints blank\./.test(src));
 
   // ── §10h · UNITS ON THE LABEL, NEVER IN THE VALUE — F-40.237 ─────────
   const units = (src.match(/unit: '/g) || []).length;
@@ -719,6 +719,12 @@ section('11. sitting 3 — the room as a vendor uses it');
   const blank = (sheet.match(/why: ''/g) || []).length;
   ok('every policy row carries a meaning line but the three slab continuations (' + whys + ' + ' + blank + ' of ' + rows + ')', rows === 28 && whys + blank === rows && blank === 3);
   ok('the on-the-day hint is in the plain register', /onTheDay: 'You deliver on the day/.test(src));
+  // ── F-40.199's class, at scale (the founder's walk, 2026-09-07) — no escape survives in this file
+  ok('no backslash-u escape survives anywhere in the room (JSX text and attributes do not interpret one)', !/\\u[0-9a-fA-F]{4}/.test(read(SCREEN)));
+  ok('the apostrophe is the character itself where she reads it', /It’s saved on their client record/.test(src));
+  // ── the missing rows take her to the fix
+  ok('each missing row is a tap that opens the place', /missing\.map\(r => \([\s\S]{0,120}<button[\s\S]{0,200}r\.where === 'policies' \? void openProfile\(false\) : go\('record'\)/.test(src));
+  ok('and requiredRows says where each blank lives', /where: 'record' \| 'policies'/.test(src));
   // 9i · the mock is filed and the screens are called, not mounted
   ok('the ratified prototype is filed under docs/mocks (R-40.101)', fs.existsSync(path.join(ROOT, 'docs/mocks/G32_S3_PROTOTYPE.html')));
   ok('inner screens are called as functions, never mounted', /\{view === 'room' && Room\(\)\}/.test(src) && !/<Room \/>|<Record \/>|<Send \/>/.test(src));

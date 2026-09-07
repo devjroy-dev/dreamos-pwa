@@ -22,6 +22,14 @@
 // them. What changed is the register on the surface, every label's meaning line,
 // and where the sheet sits.
 //
+// ── F-40.199's CLASS, AT SCALE, AND ITS STANDING CURE FOR THIS FILE ──────────
+// The first cut wrote backslash-u escapes (for ’ — é …) inside JSX TEXT and JSX
+// ATTRIBUTE strings, where nothing interprets an escape — a vendor read the nine
+// raw characters of an apostrophe on her own screen (the founder's walk,
+// 2026-09-07; 35 sites). Every such escape in this file is now THE CHARACTER
+// ITSELF, in string literals too, so there is one convention and no context to
+// get wrong. b57 §11 reds on any backslash-u escape returning.
+//
 // THREE THINGS THIS ROOM NO LONGER DOES:
 //   · draw a Venue/City pair on the record — they wrote `terms.venue`/`terms.city`
 //     and nothing read them (F-40.242). Functions carry their own venue and city.
@@ -79,12 +87,12 @@ type ProfileSection = { head: string; rows: ProfileRow[]; onTheDay?: string; foo
 
 const PROFILE_SECTIONS: ProfileSection[] = [
   { head: 'Your business', rows: [
-    { key: 'vendor_category_words', label: 'What you do', why: 'How your business is described in the agreement \u2014 \u201ca makeup and hair business\u201d.' },
+    { key: 'vendor_category_words', label: 'What you do', why: 'How your business is described in the agreement — “a makeup and hair business”.' },
     { key: 'vendor_signatory_name', label: 'Who signs for you', why: 'The name on your signature line. Usually you.' },
-    { key: 'vendor_credit_role',    label: 'Credited as', why: 'How your name appears on the couple\u2019s wedding page and in the agreement, e.g. Makeup by Swati Roy.' },
+    { key: 'vendor_credit_role',    label: 'Credited as', why: 'How your name appears on the couple’s wedding page and in the agreement, e.g. Makeup by Swati Roy.' },
   ] },
   { head: 'What is not included', rows: [
-    { key: 'exclusions',      label: 'Never included', why: 'Things couples sometimes expect that you don\u2019t provide unless agreed separately. Printed as not included.' },
+    { key: 'exclusions',      label: 'Never included', why: 'Things couples sometimes expect that you don’t provide unless agreed separately. Printed as not included.' },
     { key: 'meals_provision', label: 'Meals on a long day', why: 'What the couple provides for you and your team when a function runs long.' },
   ] },
   { head: 'Money', rows: [
@@ -97,11 +105,11 @@ const PROFILE_SECTIONS: ProfileSection[] = [
   ] },
   { head: 'If plans change', rows: [
     { key: 'postpone_notice_days',   label: 'Postpone notice', unit: 'days', why: 'How many days before the first function the couple must tell you to move the dates.', numeric: true },
-    { key: 'postpone_window_months', label: 'Move within', unit: 'months', why: 'If the couple postpones, how many months later you\u2019ll still honour the booking.', numeric: true },
+    { key: 'postpone_window_months', label: 'Move within', unit: 'months', why: 'If the couple postpones, how many months later you’ll still honour the booking.', numeric: true },
     // The four slab labels are generated from her thresholds — see `slabLabels`.
     { key: 'cancel_tier_1_pct', label: 'More than 90 days before', unit: '% you keep', why: 'If they cancel this early, the share of the fee you keep.', numeric: true },
-    { key: 'cancel_tier_2_pct', label: '60\u201390 days before', unit: '% you keep', why: '', numeric: true },
-    { key: 'cancel_tier_3_pct', label: '30\u201360 days before', unit: '% you keep', why: '', numeric: true },
+    { key: 'cancel_tier_2_pct', label: '60–90 days before', unit: '% you keep', why: '', numeric: true },
+    { key: 'cancel_tier_3_pct', label: '30–60 days before', unit: '% you keep', why: '', numeric: true },
     { key: 'cancel_tier_4_pct', label: 'Under 30 days before', unit: '% you keep', why: '', numeric: true },
     { key: 'refund_days',       label: 'Refund within', unit: 'days', why: 'If you owe them money back, how many days you take to pay it.', numeric: true },
     { key: 'deposit_refundable', label: 'Is the deposit refundable?', why: 'Whether the deposit comes back if they cancel. Most vendors say no.' },
@@ -113,14 +121,14 @@ const PROFILE_SECTIONS: ProfileSection[] = [
     { key: 'revision_rounds',  label: 'Rounds of changes', why: 'How many rounds of edits are included in the fee.', numeric: true },
     { key: 'revision_rate',    label: 'Each further round', unit: 'Rs', why: 'What you charge for a round beyond those.', numeric: true },
     { key: 'archive_months',   label: 'Files kept for', unit: 'months', why: 'How long you keep the originals before you may delete them.', numeric: true },
-  ], onTheDay: 'You deliver on the day, so there\u2019s nothing to set here.' },
+  ], onTheDay: 'You deliver on the day, so there’s nothing to set here.' },
   { head: 'Publication', rows: [
     { key: 'takedown_days',    label: 'Take down within', unit: 'days', why: 'If a guest asks to be removed from a published photo, how many days you take.', numeric: true },
     { key: 'fm_window_months', label: 'Move dates within', unit: 'months', why: 'After a flood, curfew or illness, how long both sides look for new dates before either can walk away.', numeric: true },
   ] },
   { head: 'Tax', rows: [
     { key: 'gst_treatment', label: 'GST', why: 'Whether your fee already includes GST, or GST is added on top.' },
-    { key: 'gst_pct',       label: 'Rate', unit: '%', why: 'Your GST rate. Leave it empty if you\u2019re not registered \u2014 the tax clause is then left out.', numeric: true },
+    { key: 'gst_pct',       label: 'Rate', unit: '%', why: 'Your GST rate. Leave it empty if you’re not registered — the tax clause is then left out.', numeric: true },
   ], foot: 'Your GSTIN lives in Settings. Add it there and the tax clause prints.' },
 ];
 
@@ -128,7 +136,7 @@ const PROFILE_SECTIONS: ProfileSection[] = [
 function slabLabels(f: ContractProfileFields): [string, string, string, string] {
   const d = (k: string, fallback: string) => { const v = (f[k] || '').trim(); return v === '' ? fallback : v; };
   const t1 = d('cancel_tier_1_days', '90'), t2 = d('cancel_tier_2_days', '60'), t3 = d('cancel_tier_3_days', '30');
-  return [`More than ${t1} days before`, `${t2}\u2013${t1} days before`, `${t3}\u2013${t2} days before`, `Under ${t3} days before`];
+  return [`More than ${t1} days before`, `${t2}–${t1} days before`, `${t3}–${t2} days before`, `Under ${t3} days before`];
 }
 
 // ══ THE CLAUSE SWITCHES — keys are the renderer's `CLAUSE_SWITCHES`, read at
@@ -174,7 +182,7 @@ function outstationGate(terms: Record<string, unknown>, vendorCity: string | nul
 
 // ══ WHAT IS NEEDED BEFORE SHE CAN SEND. Derived from the same places the renderer
 // reads; the door refuses on none of them yet, so the room is the one home for now.
-type RequiredRow = { label: string; value: string | null };
+type RequiredRow = { label: string; value: string | null; where: 'record' | 'policies' };
 function requiredRows(
   c: Contract, terms: Record<string, unknown>, depositPct: string,
   savedPhone: string, profile: ContractProfileFields,
@@ -182,13 +190,15 @@ function requiredRows(
 ): RequiredRow[] {
   const t = (v: unknown) => { const s = v === null || v === undefined ? '' : String(v).trim(); return s === '' ? null : s; };
   const n = fnPlaces(terms).length;
+  // `where` is the screen a tap on the missing row opens — the founder's ruling on
+  // the walk: a list that names a blank must also take her to it.
   return [
-    { label: 'Their WhatsApp number',            value: t(savedPhone) },
-    { label: 'At least one function and its date', value: n > 0 ? String(n) : null },
-    { label: 'Your fee',                          value: t(terms.fee_total) ?? (c.invoice_id ? 'From your invoice' : null) },
-    { label: 'The deposit',                       value: t(depositPct) },
-    ...(deliveryBasis === 'on_the_day' ? [] : [{ label: 'Delivered within (in your policies)', value: t(profile.delivery_days) }]),
-    { label: 'Who signs for you (in your policies)', value: t(profile.vendor_signatory_name) },
+    { label: 'Their WhatsApp number',            value: t(savedPhone), where: 'record' },
+    { label: 'At least one function and its date', value: n > 0 ? String(n) : null, where: 'record' },
+    { label: 'Your fee',                          value: t(terms.fee_total) ?? (c.invoice_id ? 'From your invoice' : null), where: 'record' },
+    { label: 'The deposit',                       value: t(depositPct), where: 'record' },
+    ...(deliveryBasis === 'on_the_day' ? [] : [{ label: 'Delivered within (in your policies)', value: t(profile.delivery_days), where: 'policies' as const }]),
+    { label: 'Who signs for you (in your policies)', value: t(profile.vendor_signatory_name), where: 'policies' },
   ];
 }
 
@@ -234,7 +244,7 @@ function Head({ title, sub, onBack }: { title: string; sub?: string; onBack?: ()
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 12px', borderBottom: `0.5px solid ${A.hair}`, flexShrink: 0 }}>
       {onBack && (
         <button type="button" onClick={onBack} aria-label="Back"
-                style={{ background: 'none', border: 0, color: A.ink, fontFamily: F.body, fontSize: 22, lineHeight: 1, padding: '0 4px 0 0', cursor: 'pointer', width: 28 }}>{'\u2039'}</button>
+                style={{ background: 'none', border: 0, color: A.ink, fontFamily: F.body, fontSize: 22, lineHeight: 1, padding: '0 4px 0 0', cursor: 'pointer', width: 28 }}>{'‹'}</button>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.1, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
@@ -299,10 +309,10 @@ function ChoiceRow({ label, why, options, value, mark, onPick }: {
 
 /** The client's first name, from the composed title's first half — the room's one way to it. */
 function clientFirstName(c: Contract): string {
-  const whole = String(c.title || '').split(' \u2014 ')[0].trim();
+  const whole = String(c.title || '').split(' — ')[0].trim();
   return whole.split(/\s+/)[0] || whole;
 }
-function clientName(c: Contract): string { return String(c.title || '').split(' \u2014 ')[0].trim(); }
+function clientName(c: Contract): string { return String(c.title || '').split(' — ')[0].trim(); }
 
 /** A composed contract carries a deposit percentage; an uploaded one cannot — a fact, not a heuristic. */
 function isComposed(c: Contract) { return c.deposit_pct !== null && c.deposit_pct !== undefined; }
@@ -316,7 +326,7 @@ function stage(c: Contract): number {
   return 1;
 }
 const THREAD_STEPS: [string, string][] = [
-  ['Policies', 'set once'], ['This agreement', 'couple, dates, fee, what\u2019s included'], ['Preview', 'read it as they will'],
+  ['Policies', 'set once'], ['This agreement', 'couple, dates, fee, what’s included'], ['Preview', 'read it as they will'],
   ['Sent', 'to their WhatsApp'], ['Signed', 'they read and agree'], ['Deposit received', 'you mark it'], ['The date is held', ''],
 ];
 function Thread({ c, policiesSet }: { c: Contract; policiesSet: boolean }) {
@@ -339,7 +349,7 @@ function Thread({ c, policiesSet }: { c: Contract; policiesSet: boolean }) {
             </div>
             <div style={{ fontFamily: F.body, fontSize: 13, lineHeight: 1.4, color: here ? A.ink : done ? A.inkSoft : A.inkMute, fontWeight: here ? 500 : 400 }}>
               {w}
-              {i === 0 && !policiesSet ? <span style={{ display: 'block', fontSize: 12, color: A.inkMute, fontWeight: 400 }}>not set up yet \u2014 suggested values are used until you do</span> : null}
+              {i === 0 && !policiesSet ? <span style={{ display: 'block', fontSize: 12, color: A.inkMute, fontWeight: 400 }}>not set up yet — suggested values are used until you do</span> : null}
               {here && s ? <span style={{ display: 'block', fontSize: 12, color: A.inkMute, fontWeight: 400 }}>{s}</span> : null}
             </div>
           </div>
@@ -603,7 +613,7 @@ export function ContractsScreen() {
     const r = res as { sign_url: string; sent: boolean };
     // Never a false done: while the template is dark nothing was sent, and the link goes to the clipboard.
     if (r.sent) show(`Sent to ${clientFirstName(c)}`, 'success');
-    else { try { await navigator.clipboard.writeText(r.sign_url); show('Link copied \u2014 sending is not open yet', 'success'); } catch { show(r.sign_url, 'success'); } }
+    else { try { await navigator.clipboard.writeText(r.sign_url); show('Link copied — sending is not open yet', 'success'); } catch { show(r.sign_url, 'success'); } }
     const list = await fetchAllContracts();
     if (list.ok) {
       const all = (list as { contracts: Contract[] }).contracts; setContracts(all);
@@ -636,15 +646,15 @@ export function ContractsScreen() {
   }
   async function doUpload() {
     if (!title.trim() || !file || uploading) return;
-    setUploading(true); setUploadProgress('Getting upload URL\u2026');
+    setUploading(true); setUploadProgress('Getting upload URL…');
     try {
       const urlRes = await requestContractUpload(title.trim(), file.name);
       if (!urlRes.ok) { show((urlRes as { error?: string }).error ?? 'Failed', 'error'); setUploading(false); return; }
       const { contract_id, upload_url } = urlRes as { contract_id: string; upload_url: string };
-      setUploadProgress('Uploading file\u2026');
+      setUploadProgress('Uploading file…');
       const up = await fetch(upload_url, { method: 'PUT', body: file, headers: { 'Content-Type': 'application/pdf' } });
-      if (!up.ok) { show('Upload failed \u2014 check the file is a PDF', 'error'); setUploading(false); return; }
-      setUploadProgress('Finishing\u2026');
+      if (!up.ok) { show('Upload failed — check the file is a PDF', 'error'); setUploading(false); return; }
+      setUploadProgress('Finishing…');
       const fin = await finalizeContract(contract_id);
       if (!fin.ok) { show((fin as { error?: string }).error ?? 'Failed', 'error'); setUploading(false); return; }
       show('Contract saved', 'success');
@@ -702,7 +712,7 @@ export function ContractsScreen() {
             </div>
             <div style={{ ...HINT, margin: '3px 0 0' }}>
               {policiesSet
-                ? 'Your prices, notice periods and what\u2019s never included. They go onto every agreement you send.'
+                ? 'Your prices, notice periods and what’s never included. They go onto every agreement you send.'
                 : 'Once. Then every agreement starts filled in, and you only add the couple, the dates and the fee.'}
             </div>
             <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
@@ -711,7 +721,7 @@ export function ContractsScreen() {
             </div>
           </div>
           {loading ? (
-            <div style={{ ...HINT, padding: '40px 16px', textAlign: 'center' }}>Loading\u2026</div>
+            <div style={{ ...HINT, padding: '40px 16px', textAlign: 'center' }}>Loading…</div>
           ) : contracts.length === 0 ? (
             <div style={{ padding: '80px 32px 0', textAlign: 'center' }}>
               <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 24, lineHeight: 1.2, color: A.ink }}>No agreements yet.</div>
@@ -731,8 +741,8 @@ export function ContractsScreen() {
                       <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 15, lineHeight: 1.25, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isComposed(c) ? clientName(c) : c.title}</div>
                       <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.3, color: A.inkMute }}>
                         {isComposed(c)
-                          ? `${fns[0] ? `${fns[0].title} \u00b7 ${fns[0].date}` : 'No dates yet'}${fee ? ` \u00b7 Rs ${formatRs(Number(fee))}` : ''}`
-                          : `Uploaded \u00b7 ${new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                          ? `${fns[0] ? `${fns[0].title} · ${fns[0].date}` : 'No dates yet'}${fee ? ` · Rs ${formatRs(Number(fee))}` : ''}`
+                          : `Uploaded · ${new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                       </div>
                     </div>
                     <span style={{ fontFamily: F.body, fontWeight: 500, fontSize: 11, lineHeight: 1, padding: '5px 8px', borderRadius: 2, border: `0.5px solid ${pillColour}`, color: pillColour, whiteSpace: 'nowrap' }}>
@@ -763,9 +773,9 @@ export function ContractsScreen() {
           <Blk>
             {over
               ? <div style={{ margin: '12px 0 4px', padding: '10px 12px', borderLeft: `2px solid ${A.metal}`, fontFamily: F.body, fontSize: 13, lineHeight: 1.45, color: A.inkSoft, background: 'var(--atelier-row-hover)' }}>These are your policies. Changes here apply to this agreement only.</div>
-              : <div style={{ ...HINT, marginTop: 12 }}>Asked once, used on every agreement. Anything you leave empty is left out of the agreement \u2014 nothing prints blank.{annexMap?.seeded ? ` Suggested values are starting points for a ${seeds.vendor_category_words || 'business like yours'}; keep them or change them.` : ''}</div>}
-            {profileState === 'loading' && <div style={HINT}>Loading\u2026</div>}
-            {profileState === 'failed' && <div style={{ ...HINT, color: A.red }}>We couldn\u2019t load your policies.</div>}
+              : <div style={{ ...HINT, marginTop: 12 }}>Asked once, used on every agreement. Anything you leave empty is left out of the agreement — nothing prints blank.{annexMap?.seeded ? ` Suggested values are starting points for a ${seeds.vendor_category_words || 'business like yours'}; keep them or change them.` : ''}</div>}
+            {profileState === 'loading' && <div style={HINT}>Loading…</div>}
+            {profileState === 'failed' && <div style={{ ...HINT, color: A.red }}>We couldn’t load your policies.</div>}
             {profileState === 'ready' && PROFILE_SECTIONS.map(sec => {
               const rows = sec.rows.filter(r => !omitted.includes(r.key));
               if (rows.length === 0 && sec.onTheDay && basis === 'on_the_day') {
@@ -812,10 +822,10 @@ export function ContractsScreen() {
         <Head title="Someone new" sub="A name and a number is enough" onBack={() => go('room')} />
         <Scroll>
           <Blk>
-            <Field label="Their name" why="The bride or groom you\u2019re speaking to. Their partner\u2019s name comes later." value={newName} placeholder="e.g. Priya Sharma" onChange={setNewName} />
-            <Field label="WhatsApp number" why="Where the agreement is sent. It goes on their client record too \u2014 you type it once." value={newPhone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setNewPhone} />
+            <Field label="Their name" why="The bride or groom you’re speaking to. Their partner’s name comes later." value={newName} placeholder="e.g. Priya Sharma" onChange={setNewName} />
+            <Field label="WhatsApp number" why="Where the agreement is sent. It goes on their client record too — you type it once." value={newPhone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setNewPhone} />
             <button type="button" disabled={saving} onClick={() => void doNewPerson()} style={CTA}>Start the agreement</button>
-            <div style={HINT}>She\u2019s added to your Clients the moment you tap this.</div>
+            <div style={HINT}>She’s added to your Clients the moment you tap this.</div>
           </Blk>
         </Scroll>
       </>
@@ -827,8 +837,8 @@ export function ContractsScreen() {
         <Head title="From a client" onBack={() => go('room')} />
         <Scroll>
           <Blk>
-            {pickState === 'loading' ? <div style={{ ...HINT, marginTop: 12 }}>Loading\u2026</div>
-              : pickState === 'failed' ? <div style={{ ...HINT, marginTop: 12, color: A.red }}>We couldn\u2019t load your clients.</div>
+            {pickState === 'loading' ? <div style={{ ...HINT, marginTop: 12 }}>Loading…</div>
+              : pickState === 'failed' ? <div style={{ ...HINT, marginTop: 12, color: A.red }}>We couldn’t load your clients.</div>
               : clients.length === 0 ? <div style={{ ...HINT, marginTop: 12 }}>No one to choose from yet.</div>
               : clients.map(c => (
                 <button key={c.key} type="button" disabled={saving} onClick={() => void doCompose(c)} style={TAP}>
@@ -836,7 +846,7 @@ export function ContractsScreen() {
                   <span style={RIGHT}>{c.from === 'client' ? 'Client' : 'Cabinet'}</span>
                 </button>
               ))}
-            <div style={{ ...HINT, marginTop: 12 }}>People you\u2019ve booked or confirmed in your Cabinet show here too. Picking one adds her to your clients.</div>
+            <div style={{ ...HINT, marginTop: 12 }}>People you’ve booked or confirmed in your Cabinet show here too. Picking one adds her to your clients.</div>
             <button type="button" onClick={() => go('newPerson')} style={GHOST}>Someone not on this list</button>
           </Blk>
         </Scroll>
@@ -861,9 +871,9 @@ export function ContractsScreen() {
             <div style={H3}>The couple</div>
             <Field label="Name" value={clientName(c)} readOnly />
             <Field label="WhatsApp number" required={savedPhone ? undefined : 'Needed to send'}
-                   why="The agreement is sent here. It\u2019s saved on their client record." value={phone} placeholder="98xxx xxxxx" inputMode="tel"
+                   why="The agreement is sent here. It’s saved on their client record." value={phone} placeholder="98xxx xxxxx" inputMode="tel"
                    onChange={setPhone} onBlur={() => void savePhone()} />
-            <Field label="Partner\u2019s name" why="Both names go on the agreement; either can sign." value={String(terms.partner_2_name ?? '')} placeholder="Not filled"
+            <Field label="Partner’s name" why="Both names go on the agreement; either can sign." value={String(terms.partner_2_name ?? '')} placeholder="Not filled"
                    onChange={v => setTerms({ ...terms, partner_2_name: v })} onBlur={() => void saveText()} />
             {promoted && <div style={{ ...HINT, color: A.green }}>Added to your clients.</div>}
 
@@ -873,43 +883,43 @@ export function ContractsScreen() {
               <div key={`${f.title}-${i}`} style={{ padding: '10px 0', borderBottom: `0.5px solid ${A.hair}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                 <div>
                   <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>{f.title}</div>
-                  <div style={{ fontFamily: F.body, fontSize: 12.5, color: A.inkMute }}>{f.date}{f.time ? ` \u00b7 ${f.time}` : ''}{f.venue ? ` \u00b7 ${f.venue}` : ''}{f.city ? `, ${f.city}` : ''}</div>
+                  <div style={{ fontFamily: F.body, fontSize: 12.5, color: A.inkMute }}>{f.date}{f.time ? ` · ${f.time}` : ''}{f.venue ? ` · ${f.venue}` : ''}{f.city ? `, ${f.city}` : ''}</div>
                 </div>
-                <button type="button" onClick={() => void removeFn(i)} aria-label="Remove" style={{ background: 'none', border: 0, color: A.inkFade, fontSize: 18, cursor: 'pointer' }}>{'\u00d7'}</button>
+                <button type="button" onClick={() => void removeFn(i)} aria-label="Remove" style={{ background: 'none', border: 0, color: A.inkFade, fontSize: 18, cursor: 'pointer' }}>{'×'}</button>
               </div>
             ))}
-            {fns.length === 0 && fnPlaces(terms).length === 0 && <div style={{ ...HINT, color: A.caution }}>No functions yet \u2014 at least one is needed to send.</div>}
+            {fns.length === 0 && fnPlaces(terms).length === 0 && <div style={{ ...HINT, color: A.caution }}>No functions yet — at least one is needed to send.</div>}
             <button type="button" onClick={() => setFnOpen(true)} style={GHOST}>Add a function</button>
 
             <div style={H3}>Fee and deposit</div>
             <Field label="Your fee" unit="Rs" required={String(terms.fee_total ?? '').trim() ? undefined : 'Needed to send'} why="For everything in the agreement, before GST."
                    value={String(terms.fee_total ?? '')} placeholder="e.g. 45000" inputMode="numeric"
                    onChange={v => setTerms({ ...terms, fee_total: v.replace(/[^0-9]/g, '') })} onBlur={() => void saveText()} />
-            <Field label="Deposit" unit="% of the fee" why={`Paid on signing. It\u2019s what holds the dates${depositRs() ? ` \u2014 ${depositRs()} here` : ''}.`}
+            <Field label="Deposit" unit="% of the fee" why={`Paid on signing. It’s what holds the dates${depositRs() ? ` — ${depositRs()} here` : ''}.`}
                    value={depositPct} placeholder="30" inputMode="numeric"
                    onChange={v => setDepositPct(v.replace(/[^0-9.]/g, ''))} onBlur={() => void saveText()} />
 
-            <div style={H3}>What\u2019s included</div>
+            <div style={H3}>What’s included</div>
             <div style={HINT}>Each service you attach gets its own page, with hours, team and what you hand over. Anything not attached is not included.</div>
-            {annexState === 'loading' && <div style={HINT}>Loading\u2026</div>}
-            {annexState === 'failed' && <div style={{ ...HINT, color: A.red }}>We couldn\u2019t load your services.</div>}
+            {annexState === 'loading' && <div style={HINT}>Loading…</div>}
+            {annexState === 'failed' && <div style={{ ...HINT, color: A.red }}>We couldn’t load your services.</div>}
             {annexState === 'ready' && annexMap && (annexMap.mapped ? (
               <>
                 {offered.map((a: AnnexOption) => (
                   <button key={a.key} type="button" disabled={saving} onClick={() => void toggleAnnex(a.key)} style={TAP}>
-                    <span>{a.label}<span style={SUB}>Your trade \u2014 attached unless you say otherwise</span></span>
+                    <span>{a.label}<span style={SUB}>Your trade — attached unless you say otherwise</span></span>
                     <span style={{ ...RIGHT, color: annexes[a.key] ? A.green : A.inkMute }}>{annexes[a.key] ? 'Attached' : 'Not attached'}</span>
                   </button>
                 ))}
                 <button type="button" onClick={() => setMoreOpen(true)} style={TAP}>
-                  <span>Add another service<span style={SUB}>Photography, d\u00e9cor, planning, mehendi, venue, or something else</span></span>
-                  <span style={{ color: A.inkFade, fontSize: 18 }}>{'\u203a'}</span>
+                  <span>Add another service<span style={SUB}>Photography, décor, planning, mehendi, venue, or something else</span></span>
+                  <span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span>
                 </button>
               </>
             ) : (
               /* ⚠ VETO — a byte not on the prototype: the unmapped trade (2 of 29 vendors). */
               <>
-                <div style={HINT}>We don\u2019t have your trade on file yet, so nothing is attached. Pick what you provide.</div>
+                <div style={HINT}>We don’t have your trade on file yet, so nothing is attached. Pick what you provide.</div>
                 {annexMap.offered.map((a: AnnexOption) => (
                   <button key={a.key} type="button" disabled={saving} onClick={() => void toggleAnnex(a.key)} style={TAP}>
                     <span>{a.label}</span>
@@ -924,11 +934,11 @@ export function ContractsScreen() {
               {hasOv ? 'Some policies are changed for this agreement only. Your saved policies are untouched.' : 'These are your policies. Change any of them here and it applies to this agreement only.'}
             </div>
             <button type="button" onClick={() => void openProfile(true)} style={TAP}>
-              <span>{policiesSet ? 'See or change them for this couple' : 'Suggested values are being used \u2014 set yours'}<span style={SUB}>{p.travel_and_stay_terms || ''}</span></span>
-              <span style={{ color: A.inkFade, fontSize: 18 }}>{'\u203a'}</span>
+              <span>{policiesSet ? 'See or change them for this couple' : 'Suggested values are being used — set yours'}<span style={SUB}>{p.travel_and_stay_terms || ''}</span></span>
+              <span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span>
             </button>
 
-            <div style={H3}>What\u2019s printed</div>
+            <div style={H3}>What’s printed</div>
             <div style={HINT}>These clauses are yours to leave out for this couple. Everything else always prints.</div>
             {CLAUSE_SWITCHES.map(sw => {
               if (sw.key === 'accommodation' && !outstationGate(terms, vendorCity)) return null;
@@ -936,10 +946,10 @@ export function ContractsScreen() {
               const meta =
                 sw.key === 'extra_hours' ? (p.overtime_rate && p.overtime_unit ? `Rs ${p.overtime_rate} an ${p.overtime_unit}` : 'Set your rate in policies')
                 : sw.key === 'late_payment' ? (p.late_interest_pct && p.late_grace_days ? `${p.late_interest_pct}% a month after ${p.late_grace_days} days` : 'Set it in policies')
-                : sw.key === 'tax_block' ? `${p.gst_pct}% \u00b7 ${p.gst_treatment === 'inclusive' ? 'included' : 'added on top'}`
-                : sw.key === 'named_professional' ? 'Named on the agreement; a substitute only if you\u2019re ill'
+                : sw.key === 'tax_block' ? `${p.gst_pct}% · ${p.gst_treatment === 'inclusive' ? 'included' : 'added on top'}`
+                : sw.key === 'named_professional' ? 'Named on the agreement; a substitute only if you’re ill'
                 : sw.key === 'portfolio_use' ? 'They can say no now or later'
-                : `On \u2014 a function is outside ${vendorCity}. ${p.travel_and_stay_terms || ''}`;
+                : `On — a function is outside ${vendorCity}. ${p.travel_and_stay_terms || ''}`;
               const on = switchOn(terms, sw.key);
               return (
                 <button key={sw.key} type="button" disabled={saving} onClick={() => void toggleClause(sw.key)} style={TAP}>
@@ -948,9 +958,9 @@ export function ContractsScreen() {
                 </button>
               );
             })}
-            {!(p.gst_pct && p.gst_treatment) && <div style={HINT}>Tax clause: left out \u2014 add your GST rate in your policies and your GSTIN in Settings.</div>}
+            {!(p.gst_pct && p.gst_treatment) && <div style={HINT}>Tax clause: left out — add your GST rate in your policies and your GSTIN in Settings.</div>}
             {/* ⚠ VETO — a byte not on the prototype. Clause 10 has no switch anywhere in the estate; the line stands where one would be looked for. */}
-            <div style={HINT}>The wedding page isn\u2019t a switch here \u2014 that one is {first}\u2019s, in her own account.</div>
+            <div style={HINT}>The wedding page isn’t a switch here — that one is {first}’s, in her own account.</div>
 
             <button type="button" style={{ ...GHOST, marginTop: 22 }} onClick={() => go('send')}>Preview and send</button>
             <div style={{ ...HINT, textAlign: 'center' }}>Everything here saves as you type.</div>
@@ -975,25 +985,27 @@ export function ContractsScreen() {
           <Blk>
             <div style={H3}>What {first} will receive</div>
             <Field label="Between" value={`${session?.name || 'You'} and ${clientName(c)}${terms.partner_2_name ? ` and ${String(terms.partner_2_name)}` : ''}`} readOnly />
-            <Field label="Functions" value={fns.length ? fns.map(f => `${f.title} \u00b7 ${f.date}`).join(', ') : (fnPlaces(terms).length ? `${fnPlaces(terms).length} from the calendar` : '')} placeholder="None yet" readOnly />
+            <Field label="Functions" value={fns.length ? fns.map(f => `${f.title} · ${f.date}`).join(', ') : (fnPlaces(terms).length ? `${fnPlaces(terms).length} from the calendar` : '')} placeholder="None yet" readOnly />
             <Field label="Fee" value={feeS ? `Rs ${formatRs(Number(feeS))}${depositRs() ? `, deposit ${depositRs()} on signing` : ''}` : ''} placeholder="Not filled" readOnly />
             <Field label="Included" value={(annexMap?.offered ?? []).concat(annexMap?.others ?? []).filter(a => annexes[a.key]).map(a => a.label).join(', ')} placeholder="Nothing attached" readOnly />
-            <Field label="Signed for you by" value={p.vendor_signatory_name || ''} placeholder="Not set \u2014 in your policies" readOnly />
+            <Field label="Signed for you by" value={p.vendor_signatory_name || ''} placeholder="Not set — in your policies" readOnly />
             <button type="button" disabled={saving} onClick={() => void doPreview(c)} style={GHOST}>Read the PDF</button>
             {missing.length ? (
               <>
                 <div style={H3}>Before you can send</div>
                 {missing.map(r => (
-                  <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '11px 0', borderBottom: `0.5px solid ${A.hair}`, fontFamily: F.body, fontSize: 14, color: A.ink }}>
-                    <span>{r.label}</span><span style={TAG}>Needed</span>
-                  </div>
+                  <button key={r.label} type="button" style={TAP}
+                          onClick={() => (r.where === 'policies' ? void openProfile(false) : go('record'))}>
+                    <span>{r.label}<span style={SUB}>{r.where === 'policies' ? 'Tap to set it in your policies' : 'Tap to fill it'}</span></span>
+                    <span style={TAG}>Needed</span>
+                  </button>
                 ))}
                 <div style={{ ...HINT, marginTop: 10 }}>Fill these and the send button appears here.</div>
               </>
             ) : (
               <>
                 <div style={H3}>Send</div>
-                <div style={HINT}>{first} gets a WhatsApp message with a link. She reads the whole agreement, taps <i>I agree</i>, and confirms with a code sent to the same number. You\u2019ll see it here the moment she does.</div>
+                <div style={HINT}>{first} gets a WhatsApp message with a link. She reads the whole agreement, taps <i>I agree</i>, and confirms with a code sent to the same number. You’ll see it here the moment she does.</div>
                 <button type="button" disabled={saving} onClick={() => void doSendToCouple(c)} style={CTA}>Send to {first} on WhatsApp</button>
                 <div style={{ ...HINT, textAlign: 'center' }}>Until sending opens at Meta, this copies the link for you to paste.</div>
               </>
@@ -1017,14 +1029,14 @@ export function ContractsScreen() {
         <Scroll>
           <Thread c={c} policiesSet={policiesSet} />
           <Blk>
-            {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>She has the link on WhatsApp. When she agrees, this changes on its own. You can still read the PDF; you can\u2019t change it now \u2014 cancel and start again if something\u2019s wrong.</div></>}
+            {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>She has the link on WhatsApp. When she agrees, this changes on its own. You can still read the PDF; you can’t change it now — cancel and start again if something’s wrong.</div></>}
             {st === 5 && <>
               <div style={H3}>{first} signed</div>
-              <div style={HINT}>The agreement is sealed with her code. {dep} is now due to you \u2014 she pays you directly, by UPI or bank, as printed on the agreement. Nothing comes through TDW.</div>
+              <div style={HINT}>The agreement is sealed with her code. {dep} is now due to you — she pays you directly, by UPI or bank, as printed on the agreement. Nothing comes through TDW.</div>
               <button type="button" disabled={saving} onClick={() => void doDeposit(c)} style={CTA}>Mark the deposit received</button>
             </>}
             {st === 6 && <><div style={H3}>The date is held</div><div style={HINT}>Deposit received{c.deposit_received_at ? ` on ${new Date(c.deposit_received_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}. Her dates are yours on the calendar. Both of you can download the signed copy any time.</div></>}
-            {st === 7 && <><div style={H3}>Cancelled</div><div style={HINT}>Nothing was taken. Start a new one whenever you\u2019re ready.</div></>}
+            {st === 7 && <><div style={H3}>Cancelled</div><div style={HINT}>Nothing was taken. Start a new one whenever you’re ready.</div></>}
             <button type="button" disabled={saving} onClick={() => void doPreview(c)} style={GHOST}>Read the PDF</button>
             {st < 7 && <button type="button" disabled={saving} onClick={() => void doCancel(c)} style={QUIET}>Cancel this agreement</button>}
           </Blk>
@@ -1053,9 +1065,9 @@ export function ContractsScreen() {
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
             <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Start an agreement</div>
-            <button type="button" onClick={() => void openPicker()} style={TAP}><span>From a client<span style={SUB}>Someone already in your Clients or booked in your Cabinet</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'\u203a'}</span></button>
-            <button type="button" onClick={() => go('newPerson')} style={TAP}><span>Someone new<span style={SUB}>A name and a WhatsApp number. She becomes a client as you go.</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'\u203a'}</span></button>
-            <button type="button" onClick={() => { setStartOpen(false); setUploadOpen(true); setTitle(''); setFile(null); }} style={TAP}><span>Upload my own PDF<span style={SUB}>If you already have a signed or preferred contract</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'\u203a'}</span></button>
+            <button type="button" onClick={() => void openPicker()} style={TAP}><span>From a client<span style={SUB}>Someone already in your Clients or booked in your Cabinet</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span></button>
+            <button type="button" onClick={() => go('newPerson')} style={TAP}><span>Someone new<span style={SUB}>A name and a WhatsApp number. She becomes a client as you go.</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span></button>
+            <button type="button" onClick={() => { setStartOpen(false); setUploadOpen(true); setTitle(''); setFile(null); }} style={TAP}><span>Upload my own PDF<span style={SUB}>If you already have a signed or preferred contract</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span></button>
             <div style={{ ...HINT, marginTop: 12 }}>The standard agreement is the wedding-services contract every TDW vendor sends. <button type="button" onClick={() => { setStartOpen(false); void doStandard(); }} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: A.accent, cursor: 'pointer' }}>Read it</button> before you fill anything.</div>
           </div>
         </div>
@@ -1078,7 +1090,7 @@ export function ContractsScreen() {
               <input type="time" value={fnDraft.time || ''} onChange={e => setFnDraft({ ...fnDraft, time: e.target.value })} style={INPUT} />
             </div>
             <Field label="Venue" value={fnDraft.venue || ''} placeholder="e.g. The Leela, Gurugram" onChange={v => setFnDraft({ ...fnDraft, venue: v })} />
-            <Field label="City" why={`If it isn\u2019t ${vendorCity || 'your city'}, your travel and stay terms print.`} value={fnDraft.city || ''} placeholder={vendorCity || ''} onChange={v => setFnDraft({ ...fnDraft, city: v })} />
+            <Field label="City" why={`If it isn’t ${vendorCity || 'your city'}, your travel and stay terms print.`} value={fnDraft.city || ''} placeholder={vendorCity || ''} onChange={v => setFnDraft({ ...fnDraft, city: v })} />
             <button type="button" disabled={saving} onClick={() => void addFn()} style={CTA}>Add</button>
           </div>
         </div>
@@ -1090,7 +1102,7 @@ export function ContractsScreen() {
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
             <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Add another service</div>
-            <div style={HINT}>Only if you\u2019re providing it. Each one adds a page to the agreement.</div>
+            <div style={HINT}>Only if you’re providing it. Each one adds a page to the agreement.</div>
             {annexMap.others.map((a: AnnexOption) => (
               <button key={a.key} type="button" disabled={saving} onClick={() => void toggleAnnex(a.key)} style={TAP}>
                 <span>{a.label}</span>
@@ -1108,14 +1120,14 @@ export function ContractsScreen() {
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
             <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Upload my own PDF</div>
-            <Field label="Title" value={title} placeholder="e.g. Booking contract \u2014 Priya Sharma" onChange={setTitle} />
+            <Field label="Title" value={title} placeholder="e.g. Booking contract — Priya Sharma" onChange={setTitle} />
             <div style={{ padding: '11px 0' }}>
               <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>The PDF</div>
               <input ref={fileRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={e => setFile(e.target.files?.[0] || null)} />
-              <button type="button" onClick={() => fileRef.current?.click()} style={{ ...INPUT, textAlign: 'left', cursor: 'pointer', color: file ? A.ink : A.inkMute }}>{file ? file.name : 'Choose a PDF\u2026'}</button>
+              <button type="button" onClick={() => fileRef.current?.click()} style={{ ...INPUT, textAlign: 'left', cursor: 'pointer', color: file ? A.ink : A.inkMute }}>{file ? file.name : 'Choose a PDF…'}</button>
             </div>
             {uploading && <div style={HINT}>{uploadProgress}</div>}
-            <button type="button" onClick={() => void doUpload()} disabled={!canUpload || uploading} style={CTA}>{uploading ? uploadProgress || 'Uploading\u2026' : 'Upload'}</button>
+            <button type="button" onClick={() => void doUpload()} disabled={!canUpload || uploading} style={CTA}>{uploading ? uploadProgress || 'Uploading…' : 'Upload'}</button>
           </div>
         </div>
       )}
@@ -1126,7 +1138,7 @@ export function ContractsScreen() {
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
             <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>{selected.title}</div>
-            <div style={HINT}>{stateWord(selected.state)}{selected.file_size ? ` \u00b7 ${Math.round(selected.file_size / 1024)} KB` : ''}{selected.sent_at ? ` \u00b7 sent ${new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}{selected.signed_at ? ` \u00b7 signed ${new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}</div>
+            <div style={HINT}>{stateWord(selected.state)}{selected.file_size ? ` · ${Math.round(selected.file_size / 1024)} KB` : ''}{selected.sent_at ? ` · sent ${new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}{selected.signed_at ? ` · signed ${new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}</div>
             <button type="button" onClick={() => void doDownload(selected)} className="atelier-fab" style={{ ...CTA, color: INK_DEEP }}>Download</button>
             {selected.state === 'draft' && <button type="button" disabled={saving} onClick={() => void doMarkSent(selected)} style={GHOST}>Mark as sent</button>}
             {selected.state === 'sent' && !isComposed(selected) && <button type="button" disabled={saving} onClick={() => void doMarkSigned(selected)} style={GHOST}>Mark as signed</button>}
