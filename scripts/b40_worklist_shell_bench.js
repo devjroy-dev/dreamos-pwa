@@ -3296,25 +3296,31 @@ cell('C96 the masthead wears the beta mark: one rung, one token, on the label ro
   return bad.length ? bad.join(' | ') : null;
 });
 
-cell('C97 the Storefront bio row is a CALL, and it is the only one on that screen (F-P72.C, S19)', () => {
-  // P7.2 Arm C. The founder walked it: title-hint-chevron read as a row, but this row is the ASK
-  // that gets a profile finished. It becomes the shell's primary button; Portfolio and Discover
-  // KEEP the row grammar, because one call per screen is what makes a call read as one.
+// ── C97 · AMENDED BY LABEL AT G3.1 s2 (R-40.122/R-40.123) ────────────────────
+// The bio row and its call (`See your profile`) were the Storefront room's ONE
+// primary control under F-P72.C. R-40.123 replaced the room with the ratified
+// prototype (docs/mocks/your-website-s2-proto.html): the page itself sits where
+// the bio row sat, and each fix opens the place to fix it. The standing law is
+// kept and asked of the new room: the primary REGISTER is written ONCE in the
+// file (a `Primary()` home), never copied inline, and every door the fixes open
+// is a room address from its one home — Portfolio via roomHref, Wedding pages
+// via WEDDING_PAGES_HREF. The two bytes the old cell read (storefrontBioCta,
+// storefrontPublicLabel) are retired with their surface (F-40.28's shape).
+cell('C97 the Storefront room writes the primary register once (Primary) and opens rooms by their homes (R-40.123)', () => {
   const sf = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
   const bad = [];
-  if (!/\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the bio call does not render its byte from the copy home');
-  // P7.2 AMENDMENT (labeled): the register was HOISTED into the shell's one home, so the call
-  // READS the class rather than copying its values. The cell follows the register.
-  if (!/className="wl-btn pri"/.test(sf)) bad.push('the call does not wear the shell primary register (wl-btn pri)');
+  const fills = (sf.match(/className="wl-btn pri"/g) || []).length;
+  if (fills !== 1) bad.push('the screen writes the primary register ' + fills + ' times; the ruling is ONE home (Primary)');
+  if (!/function Primary\(/.test(sf)) bad.push('no Primary() home');
   if (/background: 'var\(--atelier-accent-text\)'/.test(sf)) bad.push('the call copies the register inline: the class is the one home');
-  if (!/href="\/vendor\/discover\/profile"[\s\S]{0,600}\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the call does not open the profile');
-  // The contrast the ruling rests on: exactly ONE primary control on this screen.
-  const fills = (sf.match(/wl-btn pri/g) || []).length;
-  if (fills !== 1) return 'the screen carries ' + fills + ' primary controls; the ruling is ONE call per screen (Discover becomes a call when Block 09 ports it)';
+  if (!/roomHref\('portfolio'\)/.test(sf)) bad.push('the cover fix does not open Portfolio by its home');
+  if (!/WEDDING_PAGES_HREF/.test(sf)) bad.push('the wedding fixes do not open Wedding pages by its home');
+  if (/\/vendor\/portfolio'|\/vendor\/wedding-pages'/.test(sf)) bad.push('a room address is a literal in the room');
   const copy = strip(read('lib/worklist/copy.ts'));
-  if (!/storefrontBioCta: 'See your profile',/.test(copy)) bad.push("COPY.storefrontBioCta is not the vetoed byte 'See your profile'");
+  if (/storefrontBioCta|storefrontPublicLabel/.test(copy)) bad.push('the retired bytes still stand in copy.ts with no reader');
   return bad.length ? bad.join(' | ') : null;
 });
+
 
 cell('C98 the button register has ONE home, in the shell scope, any room (P7.2 Arm C)', () => {
   // The register was written inside StudioSheets' SHEET_CSS and mounted only by TeamTabs: a

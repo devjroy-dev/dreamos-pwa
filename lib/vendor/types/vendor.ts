@@ -23,6 +23,9 @@ export interface MeResponse {
     id: string;
     name: string;
     business_name: string;
+    /** G3.1 s2 · what Google shows (0147 §4). NULL = derived at the card door. */
+    seo_title?: string | null;
+    seo_description?: string | null;
     category: string;
     city: string;
     handle: string;
@@ -168,6 +171,9 @@ export interface UpdateMeRequest {
   // it is the only flag in that list whose default is TRUE, so a value the driver
   // had to guess at would fail OPEN — a vendor listed who asked not to be.
   peer_discoverable?: boolean;
+  /** G3.1 s2 · what Google shows (0147 §4); null = derive at the card door. */
+  seo_title?:        string | null;
+  seo_description?:  string | null;
 }
 
 export interface UpdateMeResponse {
@@ -195,6 +201,8 @@ export interface UpdateMeResponse {
     // verified rather than assumed. The room reads THIS echo to settle its
     // optimistic toggle: the door's own answer, not the value we hoped for.
     date_check_enabled: boolean;
+    seo_title?:       string | null;   // G3.1 s2 · echoed by PATCH /me
+    seo_description?: string | null;
     // G5.1 s2 · R-40.107. The PATCH echoes it too (`me.js` at `9b6321f`), and the
     // switch settles its optimistic state on THIS value — the door's own answer,
     // never the one we hoped for.

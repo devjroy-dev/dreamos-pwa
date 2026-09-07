@@ -223,6 +223,11 @@ type Card = {
    *  a Server Component render. A non-optional type here is a claim this side
    *  cannot make about the other side's deploy. */
   date_check_enabled?: boolean;
+  /** G3.1 s2 · what Google shows — derived at the card door (`metaFor`), her own
+      bytes when set (0147 §4). Optional only until the door at a4fdc92 serves
+      every deploy; the fallbacks below are the SAME derivation, written once more
+      so a stale door cannot blank the title. */
+  meta?: { title: string | null; description: string | null };
   /** ── G3.1 · F-40.164 — HER PUBLISHED, CONSENTED WEDDING PAGES ───────────
    *  Newest first, shaped by `publicWedding` at the door. An ARRAY, possibly
    *  empty, never null — and empty renders NO SECTION, because a heading over
@@ -300,11 +305,15 @@ export async function generateMetadata(
 
   const name = card.business_name || 'The Dream Wedding';
   const place = [card.category, card.city].filter(Boolean).join(' · ');
-  const title = place ? `${name} · ${place}` : name;
+  // G3.1 s2 · WHAT GOOGLE SHOWS. `card.meta` is the door's derivation or her own
+  // bytes (the room's title/description editor writes vendors.seo_*, 0147 §4).
+  // The `||` arms are the pre-a4fdc92 lines, kept only for a door that does not
+  // yet send `meta`; they produce the same title the door would.
+  const title = (card.meta && card.meta.title) || (place ? `${name} · ${place}` : name);
   // Her own words when she has written any; the standing line otherwise. Never
   // a fabricated summary, and never the money — a price in a link preview is a
   // number out of its register and out of her control.
-  const description = (card.about || COPY.line).replace(/\s+/g, ' ').trim().slice(0, 200);
+  const description = ((card.meta && card.meta.description) || card.about || COPY.line).replace(/\s+/g, ' ').trim().slice(0, 200);
   const hero = heroOf(card);
 
   return {
@@ -431,7 +440,7 @@ export default async function PublicVendorPage(
           '@type': 'LocalBusiness',
           name: card.business_name || undefined,
           url: `${SITE_BASE}/v/${card.handle}`,
-          description: card.about || undefined,
+          description: (card.meta && card.meta.description) || card.about || undefined,   // G3.1 s2 · the same byte Google's snippet shows
           image: gallery.length > 0 ? gallery[0].url : undefined,
           address: card.city
             ? { '@type': 'PostalAddress', addressLocality: card.city, addressCountry: 'IN' }

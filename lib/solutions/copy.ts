@@ -144,9 +144,9 @@ export const COPY = {
   /** A thing that exists but has not happened yet. Never "N/A", never "empty". */
   noneYet: 'None yet',
 
-  /** The SEO checklist's two states. Words, not ticks — see the surface. */
-  checkLive:    'Live',
-  checkPending: 'Not yet',
+  /* `checkLive` / `checkPending` stood here — an SEO checklist the surface never
+     rendered (F-40.253; master §7: SEO is a property of the pages, never a
+     score). Retired with no reader. */
 
   /** Proof document states. `stale` means a Couture change outran the document. */
   docReady: 'Ready',
@@ -168,16 +168,9 @@ export const COPY = {
    */
   withheldNote: 'This opens once we finish connecting the service.',
 
-  /**
-   * F-19.21 · THE WEBSITE ROW NO LONGER IMPLIES AN ADDRESS THAT RESOLVES.
-   * The surface printed `<handle>.thedreamwedding.in` as though it were live;
-   * the founder opened it and got DEPLOYMENT_NOT_FOUND. No wildcard DNS exists
-   * — that is P2 infrastructure, and a founder-side Vercel/DNS action filed in
-   * the ledger. Until the wildcard is live the row states when the address
-   * arrives and shows nothing that looks clickable.
-   */
-  websiteAddressPending: 'Arrives with your own domain',
-  websiteAddressNote:    'Your address is reserved. It goes live when your domain is set up.',
+  /* F-19.21's `websiteAddressPending` / `websiteAddressNote` stood here. The
+     address is live (/v/<handle>, G3.1 s1) and the room shows it; the two bytes
+     had no reader (F-40.253). Retired. */
 
   /**
    * The room footer, shrunk to the ruled one line. The tail of the sentence IS
