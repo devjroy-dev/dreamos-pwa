@@ -46,3 +46,22 @@ The founder ruled sitting 2's room OFF the registry. This packet:
 b42: 175/176 — the `*_HREF` cell went green with the move; the one remaining fail is the tip's (G1.x mock string). `tsc --noEmit` clean. `next build` at apply (R-40.66). F-40.143 stays closed by the hub row + the page's masthead; the tile is Storefront again by ruling.
 
 **Walk delta**: step 1 reads `Storefront` on the tile (sitting 1's room, unchanged); the sitting-2 walk starts from Rooms → Support/Business Solutions → row `Your website & SEO` → masthead `Your website`. Steps 3–12 unchanged.
+
+
+---
+
+## Addendum · packet 3 (base `4333b35`) — the founder's walk of `f050160` (F-40.274–.277)
+
+Founder walked 2026-09-08 02:26–02:36 IST; R-40.132 held on the glass; `Connect Google` showed (the four Railway keys landed ahead of the walk). This packet cures the two that are this lane's:
+
+| file | what |
+|---|---|
+| `your-website/screen.tsx` | **F-40.274** (a promise the estate cannot keep): the venue row now reads `A wedding page has no venue · “<title>” was made without one`; its sheet says the true thing — *The venue is set when a page is made. This page was made without one; the next one can carry it.* — and still opens Wedding pages; the computed thing reads `“<title>” has no venue`; the new-page sheet says *Make a new page there — with its venue and city.* The editor door that lets a made page take a venue is the Wedding-pages pass's (R-40.134); when it lands these bytes revert to the fix register. **F-40.276**: the room lowercases the handle where it prints and where it opens — the door's, the canonical's and the QR's derivation, one address. |
+| this file | the walk text corrected: step 9 reads the OPEN door (Connect Google present, keys on Railway); step 6 reads F-40.274's bytes; step 3/7 read `/v/dev440` lowercase |
+
+Not this lane's, filed at the walk: **F-40.275** the reel probe byte on a vendor surface (`WP.reelProbeOff`, G1.x); **F-40.277** the derived title carries the category key (`photography`) — dream-os p2 with the sitemap door. b40 106 GREEN (C50/C102 the tip's); `tsc --noEmit` clean; `next build` at apply.
+
+### The walk, corrected (steps that changed)
+- **3 / 7**: the address reads `thedreamwedding.in/v/dev440` (lowercase) and `Open` lands on `/v/dev440`.
+- **6**: tap `A wedding page has no venue` → sheet title the same, the sentence *The venue is set when a page is made…*, `Stay here` · `Open Wedding pages` (the list). Red: any sentence promising a venue field.
+- **9**: `Connect Google` IS present (keys on Railway). Do not tap it as DEV440 for a vendor grant yet; the house connection is the founder's tap: `GET https://dream-os-production.up.railway.app/api/v2/vendor/solutions/google/connect?house=1` signed in as DEV440 → open `authorize_url` → sign in as **dev@thedreamwedding.in** → lands back on `/vendor/your-website?google=house_connected`. Any other account → `not_house`, nothing stored.

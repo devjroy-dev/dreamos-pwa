@@ -59,8 +59,9 @@ const C = {
   fixCity:     'Add your city',                  fixCityD:    'Couples search by place',
   fixRate:     'Add your starting price',        fixRateD:    'Shown as \u201cStarting at\u201d',
   fixWedding:  'Publish a wedding page',         fixWeddingD: 'A whole wedding, not just photos',
-  fixVenue:    'Name the venue on a wedding page',
-  fixVenueD:   (t: string) => `\u201c${t}\u201d has no venue or city yet`,
+  fixVenue:    'A wedding page has no venue',
+  fixVenueD:   (t: string) => `\u201c${t}\u201d was made without one`,
+  venueSheet:  'The venue is set when a page is made. This page was made without one; the next one can carry it.',   // F-40.274 — until R-40.134's editor door, the true sentence
   done:        'Done',
   doneN:       (n: number) => `${n} done`,
   addrHead:    'Your address',
@@ -221,7 +222,7 @@ export function threeThings(card: Card | null, fixes: Fix[], queries: GReport['q
   const out: Thing[] = [];
   const weds = card ? card.weddings : [];
   const noVenue = weds.find((w) => !w.venue);
-  if (noVenue) out.push({ k: 'venue', t: `Name the venue on \u201c${noVenue.title}\u201d`, d: 'People type the venue. Google finds pages that name it.' });
+  if (noVenue) out.push({ k: 'venue', t: `\u201c${noVenue.title}\u201d has no venue`, d: 'People type the venue. Google finds pages that name it.' });
   if (weds.length === 0) out.push({ k: 'wedding', t: 'Publish your first wedding page', d: 'Searches with a place in them find pages, not profiles.' });
   if (!city.trim()) out.push({ k: 'city', t: 'Add your city', d: queries.length ? 'Every search above has a place in it.' : 'Couples search by place.' });
   if (card && card.photos.length < 12) out.push({ k: 'photos', t: 'Add photos with a line under each', d: 'Google reads the line, not the picture.' });
@@ -235,7 +236,10 @@ export function threeThings(card: Card | null, fixes: Fix[], queries: GReport['q
 export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
   void vendorId; // every door below resolves her from the session token
   const { current, loading } = useSettings();
-  const handle = current.routing_handle;
+  // F-40.276: the stored handle is whatever case it was typed in (DEV440); the
+  // card door, the canonical and the QR all lowercase it. The room prints and
+  // opens the same address they do.
+  const handle = (current.routing_handle || '').toLowerCase();
   const address = handle ? `${SITE_BASE.replace(/^https?:\/\//, '')}/v/${handle}` : '';
   const pageUrl = handle ? `${SITE_BASE}/v/${handle}` : '';
 
@@ -680,15 +684,14 @@ function FixSheet({ kind, close, say, card, values, onSaved }: {
     } finally { setBusy(false); }
   }
 
-  const noVenue = card ? card.weddings.find((w) => !w.venue) : undefined;
   const toPortfolio = kind === 'cover' || kind === 'photos';
   const doorHref = toPortfolio ? roomHref('portfolio') : WEDDING_PAGES_HREF;
   const doorLabel = toPortfolio ? C.openPortfolio : C.openWeddings;
   const head: [string, string] = kind === 'about' ? [C.aboutH, C.aboutP] : kind === 'city' ? [C.cityH, C.cityP] : kind === 'rate' ? [C.rateH, C.rateP]
     : kind === 'cover' ? [C.coverH, C.coverP]
-    : kind === 'venue' ? [C.fixVenue, noVenue ? `The page opens on \u201c${noVenue.title}\u201d with the venue field ready.` : '']
+    : kind === 'venue' ? [C.fixVenue, C.venueSheet]
     : kind === 'photos' ? ['Portfolio', 'Opens your Portfolio room.']
-    : [C.fixWedding, 'Opens the Wedding pages room on a new page.'];
+    : [C.fixWedding, 'Opens the Wedding pages room. Make a new page there \u2014 with its venue and city.'];
   const editable = kind === 'about' || kind === 'city' || kind === 'rate';
 
   return (
