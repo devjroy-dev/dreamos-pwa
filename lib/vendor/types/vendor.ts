@@ -1386,6 +1386,39 @@ export interface AnnexMapResponse {
   mapped:  boolean;
   offered: AnnexOption[];
   others:  AnnexOption[];
+
+  // ── R-40.114 / R-G32.21 · THE TRADE DEFAULTS RIDE THE SAME READ ──────────
+  // ⚠ ONE DOOR, BECAUSE THEY ANSWER ONE QUESTION. The annex map and the policy
+  // seeds are both 「what does this vendor's TRADE usually do」, both keyed on
+  // `vendors.category`. A second endpoint would be a second round trip and a
+  // second place for the category to be read.
+
+  /** ⚠ NOT `mapped`, AND NEVER INFERRED FROM IT. The two agree today because
+   *  both tables carry the same fourteen keys; a room deriving one from the
+   *  other breaks silently the first time a category joins one and not both. */
+  seeded: boolean;
+
+  /** `on_the_day` means three things at once: the sheet omits 「Delivered
+   *  within」, clause 7.2 prints its on-the-day arm, and `delivery_days` is NOT
+   *  required at Send. R-G32.21 exists because omitting the row without the
+   *  arm left clauses 4.7 and 11 pointing at a clause 7.2 that `f` had dropped. */
+  delivery_basis: 'days' | 'on_the_day';
+
+  /** ⚠ STORABLE VALUES, BARE OF UNITS — F-40.237's cure. `4000`, not
+   *  `Rs 4,000`; `7`, not `7 days`. The instrument supplies the currency, the
+   *  percent sign and the literal ` days` itself. The unit is carried on the
+   *  LABEL, where a vendor reads it and the renderer never does. */
+  defaults: Record<string, string>;
+
+  /** The clause-7 rows this trade never asks. Sent rather than derived from
+   *  `delivery_basis`, because the basis is not what decides it — jewellery is
+   *  a `days` trade that hands over in person and omits four of them too. */
+  omitted: string[];
+
+  /** ⚠ PLACEHOLDERS ARE VENDOR-FACING BYTES (R-40.116) and travel with the
+   *  copy they belong to. `{name}` is substituted by the room from the session:
+   *  the literal must never carry one vendor's name to another's screen. */
+  placeholders: Record<string, string>;
 }
 
 export interface TdsEntry {

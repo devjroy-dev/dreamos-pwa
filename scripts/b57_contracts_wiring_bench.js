@@ -282,8 +282,11 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // two Sends with two conditions is one act with two opinions. So the cell now
   // asserts the ROW-not-input property directly — which is what it always meant
   // — and the six-field gate is asserted at §9d.
+  // Amended at R-G32.21: the call gained the delivery basis, so the checklist
+  // asks for five rows on an on-the-day trade and six on a days trade. The
+  // property is unchanged — `savedPhone`, never the input box.
   ok('Send still consults the ROW and never the input box',
-     /requiredRows\(record, terms, depositPct, savedPhone, profile\)/.test(src));
+     /requiredRows\(record, terms, depositPct, savedPhone, profile, /.test(src));
   ok('and `phone` is nowhere in a Send condition', !/\{phone\.trim\(\) \?/.test(src));
   ok('and NOT on what she is typing', !/\{phone\.trim\(\) \?/.test(src));
   // ⚠ AND THE SEED READS THE CLIENT, NOT THE PICKER'S ARRAY. `clients` is filled
@@ -556,6 +559,97 @@ section('9. what she sends, and what refuses');
   // required fields that have no ratified byte.
   const refusals = new Set((src.match(/Add [^<]*to send this\.[^<]*/g) || []));
   ok(`only the two ratified refusals are authored (found ${refusals.size})`, refusals.size === 2);
+}
+
+// ══ §10 — THE SHEET AS A FORM (R-40.114/.116/.117, R-G32.21) ══════════════
+//
+// BOTH-WAYS, by PRODUCTION mutation:
+//   10a  seeds layered OVER her answers instead of under  → §10a flips RED
+//   10b  gst_treatment reverts to a text field            → §10b flips RED
+//   10c  requiredRows stops reading the basis             → §10c flips RED
+//   10d  the omitted rows are drawn anyway                → §10d flips RED
+section('10. what the sheet opens with, and what it never assumes');
+{
+  const src = code(SCREEN);
+
+  // ── §10a · A SEED IS UNDER HER ANSWER, NEVER OVER IT ───────────────────
+  // ⚠ THE SPREAD ORDER IS THE WHOLE PROPERTY. A vendor who set `delivery_days`
+  // to 20 must not reopen the sheet and find 45. Reversing these two braces is
+  // a one-character edit that silently overwrites every policy she ever chose,
+  // and nothing else in the estate would notice.
+  ok('her stored answers win every collision', /\{ \.\.\.seeds, \.\.\.stored \}/.test(src));
+  ok('and the seeds come from the door, not from this file',
+     /annexMap\?\.defaults/.test(src) && !/delivery_days: '45'/.test(src));
+  // ⚠ NOTHING IS WRITTEN UNTIL SHE PRESSES SAVE. The seeds live in local state.
+  ok('no seed is posted on open', !/saveContractProfile\([\s\S]{0,80}seeds/.test(src));
+
+  // ── §10b · THE MARKS, AND WHY PROVENANCE IS NOT DIFFED ────────────────
+  // ⚠ `savedKeys` IS HELD, NOT DERIVED. A vendor whose answer HAPPENS to equal
+  // the default would read `Default` if the mark were computed by comparing
+  // values — and she chose it. Provenance is a fact about where a value came
+  // from and cannot be recovered from the value.
+  ok('the sheet tracks which keys the door returned', /savedKeys/.test(src));
+  ok('and the mark is not a value comparison',
+     !/=== *\(annexMap\?\.defaults[\s\S]{0,40}\) *\? *'Default'/.test(src));
+  for (const m of ['Yours', 'Default', 'Needed']) {
+    ok(`the mark \`${m}\` exists`, new RegExp(`'${m}'`).test(src));
+  }
+
+  // ── §10c · CLOSED VOCABULARIES ARE CONTROLS, NOT TEXT FIELDS ──────────
+  // ⚠ CLAUSE 4.2 READS 「The fee is {gst_treatment} of goods and services tax」.
+  // Only `inclusive` / `exclusive` complete that sentence; a typo omits the tax
+  // block from a signed agreement and reports nothing.
+  ok('gst_treatment is a closed vocabulary', /gst_treatment:\s*\[\['inclusive'/.test(src));
+  ok('deposit_refundable is too',            /deposit_refundable:\s*\[\['yes'/.test(src));
+  ok('and both render as a control',         /ChoiceRow/.test(src));
+  // ⚠ THE KEY IS STORED AND THE LABEL IS READ. A control that stored 「Inclusive」
+  // would put a capital I into clause 4.2.
+  ok('the control stores the key, not the label', /onPick\(key\)/.test(src));
+  // ⚠ AND THE GSTIN IS NEVER ASKED HERE. `vendor_gstin` is DERIVED from
+  // `vendors.gstin` (register :134) — one home, in Settings.
+  ok('the sheet does not ask for a GSTIN a second time',
+     !/key: 'vendor_gstin'/.test(src) && !/key: 'gstin'/.test(src));
+  ok('and the note points at Settings instead',
+     /Add your GSTIN in Settings to print the tax block\./.test(src));
+
+  // ── §10d · PLACEHOLDERS ARE BYTES AND CARRY NOBODY'S NAME ─────────────
+  ok('placeholders come from the door', /annexMap\?\.placeholders/.test(src));
+  ok('and {name} is substituted from the session', /replace\('\{name\}', session\?\.name/.test(src));
+  // The literal must never carry one vendor's name to another's screen.
+  ok('no vendor name is hardcoded as a placeholder', !/e\.g\. Swati|e\.g\. Dev Roy/.test(src));
+
+  // ── §10e · THE PER-TRADE OMISSION, AND THE LINE THAT EXPLAINS IT ──────
+  ok('omitted rows are filtered out of the sheet',
+     /\.filter\(r => !\(annexMap\?\.omitted \?\? \[\]\)\.includes\(r\.key\)\)/.test(src));
+  // ⚠ A SECTION THAT SILENTLY LOSES FIVE ROWS READS AS A BUG. R-40.117: the
+  // hint line stands alone where the rows are gone.
+  ok('and the hint line stands where they were',
+     /Your trade hands over on the day/.test(src));
+  ok('the line is gated on the basis, not on the omission list',
+     /annexMap\?\.delivery_basis === 'on_the_day'/.test(src));
+
+  // ── §10f · THE CHECKLIST FOLLOWS THE SHEET ───────────────────────────
+  // ⚠ THE SHEET DOES NOT ASK, SO THE CHECKLIST MUST NOT DEMAND. A required row
+  // that cannot be filled hides Send from every on-the-day vendor forever —
+  // which is the failure that made R-40.117 unbuildable as first written.
+  ok('requiredRows takes the basis', /deliveryBasis: 'days' \| 'on_the_day'/.test(src));
+  ok('and drops Delivered within for an on-the-day trade',
+     /deliveryBasis === 'on_the_day'[\s\S]{0,60}\? \[\]/.test(src));
+  ok('every caller passes it',
+     (src.match(/requiredRows\(record, terms, depositPct, savedPhone, profile, /g) || []).length === 3);
+
+  // ── §10g · F-40.236 · THE HEADER DESCRIBES v4, NOT v3 ────────────────
+  // ⚠ 「prints as a blank」 WAS TRUE OF v3, which printed `__________`. v4
+  // retired BLANK to a tagged template that cannot render a missing field.
+  ok('the superseded sentence is gone', !/prints as a blank/.test(src));
+  ok('and the ruled one is there',
+     /Anything you leave empty is left out of the agreement, not printed blank\./.test(src));
+
+  // ── §10h · UNITS ON THE LABEL, NEVER IN THE VALUE — F-40.237 ─────────
+  const units = (src.match(/unit: '/g) || []).length;
+  ok(`seventeen rows carry a unit on the label (found ${units})`, units === 17);
+  ok('and the unit is rendered beside the label',
+     /label \+ \(row\.unit \? ` \(\$\{row\.unit\}\)` : ''\)/.test(src));
 }
 
 console.log(`\n${pass}/${pass + fail} cells green.`);

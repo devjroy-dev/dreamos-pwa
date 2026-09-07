@@ -1,0 +1,14 @@
+# scripts/floor-manifest-g32-s2-rider.txt
+# TDW_19 · G3.2 s2 · THE RIDER — the profile sheet as a FORM.
+# R-40.114 (seeded by trade), R-40.116 (placeholders are bytes),
+# R-40.117 as amended by R-G32.21 (`delivery_basis`, clause 7.2's on-the-day arm),
+# F-40.235 · F-40.236 · F-40.237.
+#
+# BASE dreamos-pwa 1d04dd2d, SIBLING dream-os 09b7f2e — both re-derived at the cut
+# from a FRESH CLONE (F-40.130: a workspace is never on the tip from a push it
+# did not perform, and the prior seat's tree was two commits stale and dirty).
+app/vendor/(shell)/contracts/screen.tsx
+lib/vendor/types/vendor.ts
+scripts/b57_contracts_wiring_bench.js
+scripts/floor-manifest-g32-s2-rider.txt
+docs/TDW_19_G32_S2_RIDER_HANDOVER.md

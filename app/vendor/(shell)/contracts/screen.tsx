@@ -150,7 +150,32 @@ const labelStyle: React.CSSProperties = {
 // §8 `meals_provision`/`takedown_days`/`fm_window_months`. `contractSource.js`
 // already reads `gst_pct` and `gst_treatment` off this exact object, which is
 // the proof that the shape is the estate's and not this file's.
-type ProfileRow = { key: string; label: string };
+// ⚠ FOUR ROWS CARRY NO DEFAULT IN ANY TRADE AND NEVER WILL. A signatory cannot
+// be guessed (ruling F7 — a seal naming only the Client is half a witness), and
+// the other three are hers to declare. They get PLACEHOLDERS (R-40.116): a
+// greyed suggestion that vanishes on focus and is never stored.
+const NEEDED_ROWS = ['vendor_signatory_name', 'deposit_refundable', 'gst_treatment', 'gst_pct'];
+
+// ⚠ TWO ROWS ARE CLOSED VOCABULARIES AND MUST NOT BE TEXT FIELDS.
+// `gst_treatment` is one-of `inclusive` · `exclusive` (register :130) and
+// clause 4.2 reads 「The fee is {gst_treatment} of goods and services tax」 —
+// the value has to complete that sentence, so a typo omits clause 4.2 whole
+// and silently drops the tax block off a signed agreement. `deposit_refundable`
+// prints as clause 6.6's own sentence either way.
+//
+// ⚠ AND THE GSTIN IS NOT ASKED HERE AT ALL. `vendor_gstin` is DERIVED from
+// `vendors.gstin` (register :134) and has one home already, in Settings. The
+// note under this section points at it rather than asking twice.
+const CLOSED_ROWS: Record<string, [string, string][]> = {
+  deposit_refundable: [['yes', 'Yes'], ['no', 'No']],
+  gst_treatment:      [['inclusive', 'Inclusive'], ['exclusive', 'Exclusive']],
+};
+
+// The six rows of clause 7 — the only clause whose rows vary by trade.
+const DELIVERY_ROWS = ['delivery_days', 'delivery_method', 'link_live_days',
+                       'revision_rounds', 'revision_rate', 'archive_months'];
+
+type ProfileRow = { key: string; label: string; unit?: string };
 type ProfileSection = { head: string; rows: ProfileRow[] };
 
 const PROFILE_SECTIONS: ProfileSection[] = [
@@ -165,39 +190,39 @@ const PROFILE_SECTIONS: ProfileSection[] = [
   ] },
   { head: 'Money', rows: [
     { key: 'travel_terms',      label: 'Travel and stay' },
-    { key: 'overtime_rate',     label: 'Extra hours' },
+    { key: 'overtime_rate',     label: 'Extra hours', unit: 'Rs' },
     { key: 'overtime_unit',     label: 'Charged per' },
-    { key: 'late_grace_days',   label: 'Late after' },
-    { key: 'late_interest_pct', label: 'Late charge' },
+    { key: 'late_grace_days',   label: 'Late after', unit: 'days' },
+    { key: 'late_interest_pct', label: 'Late charge', unit: '% per month' },
   ] },
   // ⚠ THE FOUR SLAB LABELS ARE GENERATED, NOT TYPED — see `slabLabels` below.
   // They are listed here with the ratified wording so the section reads in order
   // and so a reader can see the shape; the render replaces the four.
   { head: 'If plans change', rows: [
-    { key: 'postpone_notice_days',   label: 'Postpone notice' },
-    { key: 'postpone_window_months', label: 'Move within' },
-    { key: 'cancel_tier_1_pct',      label: 'More than 90 days before' },
-    { key: 'cancel_tier_2_pct',      label: '60\u201390 days before' },
-    { key: 'cancel_tier_3_pct',      label: '30\u201360 days before' },
-    { key: 'cancel_tier_4_pct',      label: 'Under 30 days before' },
-    { key: 'refund_days',            label: 'Refund within' },
+    { key: 'postpone_notice_days',   label: 'Postpone notice', unit: 'days' },
+    { key: 'postpone_window_months', label: 'Move within', unit: 'months' },
+    { key: 'cancel_tier_1_pct',      label: 'More than 90 days before', unit: '% you keep' },
+    { key: 'cancel_tier_2_pct',      label: '60\u201390 days before', unit: '% you keep' },
+    { key: 'cancel_tier_3_pct',      label: '30\u201360 days before', unit: '% you keep' },
+    { key: 'cancel_tier_4_pct',      label: 'Under 30 days before', unit: '% you keep' },
+    { key: 'refund_days',            label: 'Refund within', unit: 'days' },
     { key: 'deposit_refundable',     label: 'Is the deposit refundable?' },
   ] },
   { head: 'What you deliver', rows: [
-    { key: 'delivery_days',    label: 'Delivered within' },
+    { key: 'delivery_days',    label: 'Delivered within', unit: 'days' },
     { key: 'delivery_method',  label: 'How' },
-    { key: 'link_live_days',   label: 'Link stays live' },
+    { key: 'link_live_days',   label: 'Link stays live', unit: 'days' },
     { key: 'revision_rounds',  label: 'Rounds of changes' },
-    { key: 'revision_rate',    label: 'Each further round' },
-    { key: 'archive_months',   label: 'Files kept for' },
+    { key: 'revision_rate',    label: 'Each further round', unit: 'Rs' },
+    { key: 'archive_months',   label: 'Files kept for', unit: 'months' },
   ] },
   { head: 'Publication', rows: [
-    { key: 'takedown_days',    label: 'Take down within' },
-    { key: 'fm_window_months', label: 'Move dates within' },
+    { key: 'takedown_days',    label: 'Take down within', unit: 'days' },
+    { key: 'fm_window_months', label: 'Move dates within', unit: 'months' },
   ] },
   { head: 'Tax', rows: [
     { key: 'gst_treatment', label: 'GST' },
-    { key: 'gst_pct',       label: 'Rate' },
+    { key: 'gst_pct',       label: 'Rate', unit: '%' },
   ] },
 ];
 
@@ -327,6 +352,7 @@ type RequiredRow = { label: string; value: string | null };
 function requiredRows(
   c: Contract, terms: Record<string, unknown>, depositPct: string,
   savedPhone: string, profile: ContractProfileFields,
+  deliveryBasis: 'days' | 'on_the_day' = 'days',
 ): RequiredRow[] {
   const t = (v: unknown) => {
     const s = v === null || v === undefined ? '' : String(v).trim();
@@ -338,7 +364,15 @@ function requiredRows(
     { label: 'Functions and dates', value: Object.keys(fns).length > 0 ? String(Object.keys(fns).length) : null },
     { label: 'Fee',               value: t(terms.fee_total) ?? (c.invoice_id ? 'From your invoice' : null) },
     { label: 'Deposit',           value: t(depositPct) },
-    { label: 'Delivered within',  value: t(profile.delivery_days) },
+    // ⚠ REQUIRED ONLY FOR A `days` TRADE — R-G32.21. Register :189 made
+    // `delivery_days` required because 4.7 and 11 add to 7.2's period; 7.2 now
+    // has an on-the-day arm that interpolates nothing, so for those trades the
+    // referent exists without a number and there is nothing to require. The
+    // sheet does not ask, so the checklist must not demand — a row that cannot
+    // be filled would hide Send from every makeup vendor forever.
+    ...(deliveryBasis === 'on_the_day'
+      ? []
+      : [{ label: 'Delivered within', value: t(profile.delivery_days) }]),
     { label: 'Who signs for you', value: t(profile.vendor_signatory_name) },
   ];
 }
@@ -390,9 +424,22 @@ const QUIET: React.CSSProperties = { ...BTN, background: 'transparent', border: 
  *  interpret. `readOnly` is for a value the ROW already holds: it is shown
  *  because the agreement prints it, and not editable because editing it here
  *  would be a second home for a fact the client record owns. */
-function Field({ label, value, placeholder, onChange, readOnly, required }: {
+// ⚠ `mark` AND `required` ARE TWO DIFFERENT STATEMENTS AND BOTH SURVIVE.
+// `required` (「Needed to send」) is about an ACT — it names the thing the blank
+// blocks, and it lives on the record's own fields. `mark` is about a VALUE's
+// PROVENANCE: whether this row holds her answer, our suggestion, or nothing.
+// Collapsing them would lose the distinction the whole seeded sheet rests on.
+const MARK_COLOUR: Record<string, string> = {
+  Yours:   'var(--role-positive)',
+  Default: 'var(--atelier-ink-fade)',
+  Needed:  'var(--role-caution)',
+};
+
+function Field({ label, value, placeholder, onChange, readOnly, required, mark, inputMode }: {
   label: string; value: string; placeholder?: string;
   onChange?: (v: string) => void; readOnly?: boolean; required?: string;
+  mark?: 'Yours' | 'Default' | 'Needed' | null;
+  inputMode?: 'numeric';
 }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 14, padding: '7px 0' }}>
@@ -407,10 +454,16 @@ function Field({ label, value, placeholder, onChange, readOnly, required }: {
                          textTransform: 'uppercase', color: 'var(--role-caution)' }}>{required}</span>
         ) : null}
       </div>
+      {mark ? (
+        <span style={{ order: 3, fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300,
+                       fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase',
+                       flexShrink: 0, color: MARK_COLOUR[mark] }}>{mark}</span>
+      ) : null}
       {readOnly ? (
         <div style={{ fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)', textAlign: 'right' }}>{value}</div>
       ) : (
-        <input value={value} placeholder={placeholder} onChange={e => onChange?.(e.target.value)}
+        <input value={value} placeholder={placeholder} inputMode={inputMode}
+               onChange={e => onChange?.(e.target.value)}
                style={{
                  flex: 1, minWidth: 0, textAlign: 'right', background: 'transparent', border: 'none', outline: 'none',
                  fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16,
@@ -446,6 +499,35 @@ function clientFirstName(c: Contract): string {
  * title; a tap anywhere on the row toggles it, because a 16-pixel checkbox on a
  * phone is a control that refuses half the taps aimed at it.
  */
+/** A closed vocabulary, drawn as a control. The KEY is what is stored — clause
+ *  4.2 reads 「The fee is {gst_treatment} of…」 and only `inclusive` /
+ *  `exclusive` complete that sentence — while the LABEL is what she reads. */
+function ChoiceRow({ label, options, value, mark, onPick }: {
+  label: string; options: [string, string][]; value: string;
+  mark?: 'Yours' | 'Default' | 'Needed' | null; onPick: (v: string) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, padding: '7px 0' }}>
+      <div style={{ ...labelStyle, marginBottom: 0, flex: 1, minWidth: 0 }}>{label}</div>
+      <div style={{ display: 'flex', border: '.5px solid var(--atelier-card-border)', borderRadius: 2, overflow: 'hidden', flexShrink: 0 }}>
+        {options.map(([key, text]) => (
+          <button key={key} type="button" onClick={() => onPick(key)}
+                  style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 9,
+                           letterSpacing: '0.18em', textTransform: 'uppercase', padding: '6px 10px',
+                           border: 'none', cursor: 'pointer',
+                           background: value === key ? 'var(--atelier-row-hover)' : 'transparent',
+                           color: value === key ? 'var(--atelier-ink)' : 'var(--atelier-ink-fade)' }}>{text}</button>
+        ))}
+      </div>
+      {mark ? (
+        <span style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 8,
+                       letterSpacing: '0.32em', textTransform: 'uppercase', flexShrink: 0,
+                       color: MARK_COLOUR[mark] }}>{mark}</span>
+      ) : null}
+    </div>
+  );
+}
+
 function AnnexRow({ annex, on, disabled, onToggle }: {
   annex: AnnexOption; on: boolean; disabled?: boolean; onToggle: () => void;
 }) {
@@ -592,6 +674,11 @@ export function ContractsScreen() {
   const [profileOpen, setProfileOpen]   = useState(false);
   const [profileState, setProfileState] = useState<'loading' | 'failed' | 'ready'>('loading');
   const [profile, setProfile]           = useState<ContractProfileFields>({});
+  // ⚠ WHICH KEYS CAME BACK FROM THE DOOR, as opposed to which were seeded here.
+  // Held separately rather than diffed against the seeds, because a vendor whose
+  // answer HAPPENS to equal the default would otherwise read `Default` — and
+  // she chose it.
+  const [savedKeys, setSavedKeys]       = useState<Set<string>>(new Set());
 
   // ── THE ANNEX CHOOSER (T2 / T2-unmapped) ──────────────────────────────────
   // ⚠ `mapped` IS THE DOOR'S, AND THE SURFACE CHANGES SHAPE ON IT. It is held
@@ -744,9 +831,37 @@ export function ContractsScreen() {
     setProfileState('loading');
     const r = await fetchContractProfile();
     if (!('ok' in r) || !r.ok) { setProfileState('failed'); return; }
+    const stored = (r as { fields: ContractProfileFields }).fields || {};
+    // ⚠ THE SEEDS GO UNDER HER ANSWERS, NEVER OVER THEM — R-40.114. A vendor who
+    // set `delivery_days` to 20 must not reopen the sheet and find 45. Her row
+    // wins every collision, and `savedKeys` is what lets the marks tell the two
+    // apart afterwards.
+    const seeds = annexMap?.defaults ?? {};
+    setSavedKeys(new Set(Object.keys(stored)));
+    setProfile({ ...seeds, ...stored });
     // `{}` is a real answer and it is READY, never empty-as-failure.
-    setProfile((r as { fields: ContractProfileFields }).fields || {});
     setProfileState('ready');
+  }
+
+  /** ⚠ THE MARK IS THE WHOLE REASON A PRE-FILLED SHEET IS HONEST. Without it a
+   *  seed is indistinguishable from an answer, and a vendor would sign under
+   *  fourteen numbers she never chose. `Yours` is what the door gave back;
+   *  `Default` is ours and she may overwrite it; `Needed` is a blank the
+   *  agreement cannot do without. */
+  function markFor(key: string): 'Yours' | 'Default' | 'Needed' | null {
+    if (savedKeys.has(key)) return 'Yours';
+    if ((annexMap?.defaults ?? {})[key] !== undefined) return 'Default';
+    if (NEEDED_ROWS.includes(key)) return 'Needed';
+    return null;
+  }
+
+  /** `{name}` is substituted here and never in the byte — the literal must not
+   *  carry one vendor's name to another's screen (the mistake `clientFirstName`
+   *  cures for 「Priya」). */
+  function placeholderFor(key: string): string {
+    const raw = (annexMap?.placeholders ?? {})[key];
+    if (!raw) return 'Not filled';
+    return raw.replace('{name}', session?.name || 'your name');
   }
 
   /** ⚠ ONE POST, AND IT IS NOT OPTIMISTIC. The clause switches save on the tap
@@ -1324,7 +1439,7 @@ export function ContractsScreen() {
                 by name. Absence is the refusal (R-40.88's own shape), and four
                 invented sentences would be four bytes nobody passed. */}
             {(() => {
-              const missing = requiredRows(record, terms, depositPct, savedPhone, profile)
+              const missing = requiredRows(record, terms, depositPct, savedPhone, profile, annexMap?.delivery_basis ?? 'days')
                 .filter(r => r.value === null);
               if (missing.length === 0) {
                 return <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>;
@@ -1360,7 +1475,14 @@ export function ContractsScreen() {
             {/* Q2 — and it is the sheet's own honesty about itself. R-40.88 omits
                 a clause whose fields are unset, so a blank row here is not an
                 unfinished form; it is a clause the agreement will not carry. */}
-            <div style={NOTE}>Asked once. Used on every contract you fill. Leave anything blank and it prints as a blank.</div>
+            {/* ⚠ F-40.236 — THE OLD BYTE DESCRIBED BEHAVIOUR THE INSTRUMENT NO
+                LONGER HAS. 「Leave anything blank and it prints as a blank」 was
+                true of v3, which printed `__________`. v4 retired BLANK to a
+                tagged template that cannot render a missing field: R-40.88 omits
+                the CLAUSE. So the sentence promised a blank line on the paper
+                that no longer exists, which is R-40.104's class — a byte that
+                outlived the mechanism it described. */}
+            <div style={NOTE}>Asked once. Used on every agreement you fill. Anything you leave empty is left out of the agreement, not printed blank.</div>
 
             {/* ⚠ THREE STATES, THREE SENTENCES, ONE KEY — and `ready` with an
                 empty object is the COMMONEST of them, not a fourth. */}
@@ -1374,7 +1496,7 @@ export function ContractsScreen() {
                 {PROFILE_SECTIONS.map(sec => (
                   <div key={sec.head}>
                     <div style={GROUP}>{sec.head}</div>
-                    {sec.rows.map((row, i) => {
+                    {sec.rows.filter(r => !(annexMap?.omitted ?? []).includes(r.key)).map((row, i) => {
                       // ⚠ THE FOUR SLAB LABELS ARE HERS WHEN SHE HAS THRESHOLDS.
                       // The register's `cancel_tier_N_pct` tokens are what the
                       // instrument prints; a vendor meets a range of days and
@@ -1382,12 +1504,38 @@ export function ContractsScreen() {
                       const label = sec.head === 'If plans change' && i >= 2 && i <= 5
                         ? slabLabels(profile)[i - 2]
                         : row.label;
+                      const mark = markFor(row.key);
+                      const opts = CLOSED_ROWS[row.key];
+                      // ⚠ A CLOSED VOCABULARY IS A CONTROL, NEVER A TEXT FIELD.
+                      // `gst_treatment` must read `inclusive` or `exclusive` to
+                      // complete clause 4.2's sentence; a typo omits the whole
+                      // tax block from a signed agreement and says nothing.
+                      if (opts) {
+                        return (
+                          <ChoiceRow key={row.key} label={label} mark={mark} options={opts}
+                                     value={profile[row.key] ?? ''}
+                                     onPick={v => setProfile({ ...profile, [row.key]: v })} />
+                        );
+                      }
                       return (
-                        <Field key={row.key} label={label} value={profile[row.key] ?? ''}
-                               placeholder="Not filled"
+                        <Field key={row.key} label={label + (row.unit ? ` (${row.unit})` : '')}
+                               value={profile[row.key] ?? ''}
+                               placeholder={placeholderFor(row.key)}
+                               mark={mark}
+                               inputMode={row.unit && row.unit !== 'Rs' ? 'numeric' : undefined}
                                onChange={v => setProfile({ ...profile, [row.key]: v })} />
                       );
                     })}
+                    {/* ⚠ THE HINT LINE STANDS ALONE WHERE THE ROW IS GONE —
+                        R-40.117 as the founder ruled it. A section that simply
+                        lost five rows would read as a bug; this says why, and
+                        it is the only reason the omission is legible. */}
+                    {sec.head === 'What you deliver' && annexMap?.delivery_basis === 'on_the_day' && (
+                      <div style={NOTE}>
+                        Your trade hands over on the day, so the gallery, revision and archive rows are not asked
+                        &#8212; and clause 7 prints without them.
+                      </div>
+                    )}
                     {/* Q9 POINTS AT SETTINGS AND NOT AT ITSELF. `vendors.gstin`
                         lives on the vendor row and has one home already; a second
                         entry point here would be a second home for a tax number.
@@ -1398,6 +1546,16 @@ export function ContractsScreen() {
                   </div>
                 ))}
                 <button type="button" disabled={saving} onClick={() => void doSaveProfile()} style={CTA}>Save my policies</button>
+                {/* ⚠ THE SHEET MUST SAY WHAT AN UNTOUCHED ROW MEANS. R-40.114
+                    changed it: a row she never opened now carries OUR
+                    suggestion, and without this line the marks are the only
+                    thing distinguishing a seed from an answer. */}
+                {annexMap?.seeded && (
+                  <div style={NOTE}>
+                    Seeded for {annexMap.defaults.vendor_category_words || 'your trade'}. Change anything
+                    &#8212; what you keep becomes yours.
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -1478,7 +1636,7 @@ export function ContractsScreen() {
             </div>
 
             <div style={GROUP}>Needed before you can send</div>
-            {requiredRows(record, terms, depositPct, savedPhone, profile).map(r => (
+            {requiredRows(record, terms, depositPct, savedPhone, profile, annexMap?.delivery_basis ?? 'days').map(r => (
               <Field key={r.label} label={r.label} value={r.value ?? 'Not filled'} readOnly />
             ))}
 
@@ -1491,7 +1649,7 @@ export function ContractsScreen() {
                 Authoring four more sentences here would be four bytes the
                 founder's pass never saw. */}
             {(() => {
-              const missing = requiredRows(record, terms, depositPct, savedPhone, profile)
+              const missing = requiredRows(record, terms, depositPct, savedPhone, profile, annexMap?.delivery_basis ?? 'days')
                 .filter(r => r.value === null);
               if (missing.length === 0) {
                 return (
