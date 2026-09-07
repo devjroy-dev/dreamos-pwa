@@ -337,6 +337,9 @@ function CreditsSheet(
   // F-40.77: `add()` and `publish()` caught and rendered NOTHING — F-40.53's
   // class one layer in. Silence is not the same as honesty.
   const [err, setErr] = useState<string | null>(null);
+  // F-40.239 · the DOOR's own reason, never a byte of ours. Cleared with `err`
+  // at every entry point, so a stale cause can never sit under a fresh failure.
+  const [errDetail, setErrDetail] = useState<string | null>(null);
   // The upload's own state, separate from `busy`: a photograph uploading must
   // not disable the credit form beside it, and a failed upload must not read as
   // a failed credit.
@@ -471,16 +474,38 @@ function CreditsSheet(
    */
   async function askConsent() {
     if (busy || !consentPhone.trim()) return;
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setErrDetail(null);
     try {
-      const r = await postJson<{ ok: boolean; sent_to_last4: string; invite: { sent: boolean } }>(
+      const r = await postJson<{ ok: boolean; sent_to_last4: string; invite: { sent: boolean; reason?: string } }>(
         API.weddingConsent(wedding.id), { phone: consentPhone.trim() },
       );
       // NEVER A FALSE DONE. A send that did not go is a failure and says so —
       // the dark fallback retired with its reason (R-G12.18.3), because both
       // templates are Approved Utility and there is nothing left to work around.
       if (r.invite && r.invite.sent) { setConsentLast4(r.sent_to_last4 || null); setConsentPhone(''); }
-      else setErr(WP.consentFailed);
+      else {
+        // ── F-40.239 · SHOW WHAT THE DOOR SAID ─────────────────────────────
+        // The door has ALWAYS returned `invite.reason` inside its 200, and this
+        // line threw it away for one generic sentence. The founder pressed this
+        // button four times against four different numbers before anyone learned
+        // the number was never the problem — the diagnosis was on the wire the
+        // whole time, under a blanket.
+        //
+        // ⚠ NO NEW COPY BYTE IS AUTHORED, and that is the chair's constraint
+        // honoured rather than worked around. `WP.consentFailed` stays the
+        // sentence a vendor reads; the reason renders BENEATH it as THE DOOR'S
+        // OWN STRING. Every failure sentence this room owns ends in `Try again.`
+        // and none of them can say *why* — inventing one would put an unvetoed
+        // byte on a vendor's screen, and guessing which canned line fits a Meta
+        // error code is how a room starts lying about causes.
+        //
+        // A vendor cannot ACT on `meta_send_failed: Meta send failed (status
+        // 400)`. She can SCREENSHOT it, and that is the whole point: the line
+        // exists so the next four presses become one message to us.
+        setErr(WP.consentFailed);
+        setErrDetail(typeof (r as { invite?: { reason?: string } }).invite?.reason === 'string'
+          ? (r as { invite?: { reason?: string } }).invite!.reason! : null);
+      }
     } catch (e) {
       setErr(e instanceof Error && e.message ? e.message : WP.consentFailed);
     }
@@ -497,7 +522,7 @@ function CreditsSheet(
    */
   async function resendConsent() {
     if (busy) return;
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setErrDetail(null);
     try {
       const r = await postJson<{ ok: boolean; sent_to_last4: string; invite: { sent: boolean } }>(
         API.weddingConsentResend(wedding.id), {},
@@ -661,6 +686,10 @@ function CreditsSheet(
 
       {/* F-40.77's byte, under the controls it belongs to. */}
       {err ? <p className="wp-err" role="status">{err}</p> : null}
+      {/* F-40.239 · the door's reason, quiet and secondary. Rendered only when
+          the door supplied one, so a caught network error still shows the
+          sentence alone rather than an empty line pretending to be a cause. */}
+      {errDetail ? <p className="wp-errdetail">{errDetail}</p> : null}
 
       {/* ── G1.3 · THE PRINTED UNIT (R-G13.7) ────────────────────────────────
           ONE control until the door answers. The two links appear only once
@@ -808,6 +837,11 @@ function WeddingPagesStyles() {
         font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .wp-btn[disabled]{opacity:.55}
 .wp-err{font:var(--wl-t5);color:var(--role-critical);margin-bottom:10px}
+/* F-40.239 · the door's own words, one step quieter than the sentence above and
+   in the room's muted ink, not the critical one: it is EVIDENCE, not a second
+   alarm. It wraps and breaks, because a Meta error is long and unbroken. */
+.wp-errdetail{font:var(--wl-t5);color:var(--atelier-ink-fade);margin:-6px 0 10px;
+  line-height:1.45;word-break:break-word}
 /* ── G1.2 · THE PHOTOGRAPH STRIP ────────────────────────────────────────────
    Four across, square, inside the sheet the vendor already has open. The remove
    affordance is ON THE CELL and always present rather than a "manage" mode the

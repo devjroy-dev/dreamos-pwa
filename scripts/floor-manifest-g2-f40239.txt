@@ -1,0 +1,6 @@
+# scripts/floor-manifest-g2-f40239.txt
+# F-40.239 — the room renders the door's reason; the G2 b42 cell amended by label.
+# Base: dreamos-pwa main 6967978e.
+app/vendor/(shell)/wedding-pages/page.tsx
+scripts/b42_g11_wedding_pages_bench.js
+scripts/floor-manifest-g2-f40239.txt

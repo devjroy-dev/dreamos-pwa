@@ -251,8 +251,46 @@ sec('C4 \u00b7 the eight are not links');
     const entries = hrefMap[1].split(',').map((l) => l.trim()).filter(Boolean);
     ok('wedding_pages still receives its declared address',
       entries.some((e) => /^wedding_pages:\s*WEDDING_PAGES_HREF$/.test(e)));
-    ok('every open room addresses a *_HREF constant, never a literal',
-      entries.every((e) => /^[a-z_]+:\s*[A-Z_]+_HREF$/.test(e)),
+    // ── AMENDED BY LABEL — F-40.239 CUT · RATIFY-OR-REVERT ──────────────────
+    // THIS CELL IS THE G2 SEAT'S OWN, AND IT REDDENED A SIBLING'S CORRECT WORK.
+    // It required `[A-Z_]+_HREF`, so when later rooms began addressing through
+    // `roomHref('contracts')` — a DECLARED address reached by a helper — a right
+    // build went red. Sixth instance this arc of a cell pinned to a SHAPE rather
+    // than a property, and the first that is mine breaking someone else's.
+    //
+    // THE PROPERTY IS: the address is DECLARED, NEVER A LITERAL. A `*_HREF`
+    // constant satisfies it; so does a helper call that resolves one. A raw
+    // `'/vendor/anything'` does not, and still reds — which is the only thing
+    // this cell was ever for, since `b40` C31 matches literals against a declared
+    // set and a stray one there is what breaks the shell.
+  // ── F-40.239 · THE ROOM RENDERS THE DOOR'S REASON ─────────────────────────
+  // The door has always returned `invite.reason` inside its 200 and the room
+  // discarded it for one generic sentence, so the founder pressed Ask the couple
+  // four times against four numbers before anyone learned the number was never
+  // the problem. Benched because removing the render left this file's count
+  // UNCHANGED on the first mutation — an unbenched cure is a cure that leaves
+  // the moment someone tidies it.
+  {
+    const room = strip(read(ROOM));
+    ok('F-40.239 the consent failure keeps its sentence AND shows the door\u2019s reason',
+      /setErr\(WP\.consentFailed\)/.test(room) && /setErrDetail\(/.test(room),
+      'both the sentence and the detail must be set');
+    ok('F-40.239 the reason renders only when the door supplied one',
+      /\{errDetail \? <p className="wp-errdetail">\{errDetail\}<\/p> : null\}/.test(room),
+      'a bare line pretending to be a cause is worse than none');
+    ok('F-40.239 the detail is cleared with the sentence, never left stale',
+      /setErr\(null\); setErrDetail\(null\)/.test(room),
+      'a stale cause under a fresh failure is a lie with a timestamp');
+    // ⚠ NO NEW COPY BYTE. The reason is the DOOR's string; every failure sentence
+    // this room owns ends in `Try again.` and none can say why, so inventing one
+    // would put an unvetoed byte on a vendor's screen.
+    ok('F-40.239 authors no new copy byte for the cause',
+      !/wp-errdetail">[A-Za-z]/.test(room),
+      'the detail element must render a variable, never a literal');
+  }
+
+    ok('every open room addresses a DECLARED address, never a literal',
+      entries.every((e) => /^[a-z_]+:\s*([A-Z_]+_HREF|[a-zA-Z]+\([^)]*\))$/.test(e)),
       entries.join(' | '));
   }
 }
