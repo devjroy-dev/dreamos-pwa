@@ -267,7 +267,8 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // instrument. This cell reds the day someone adds one.
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   // Two rows carry the mark on the prototype — the number and the fee — and each names the ACT and nothing else.
-  ok('every required mark names the act', (src.match(/required=\{/g) || []).length === 2 && !/required=\{[^}]*\*/.test(src));
+  // ── RE-CUT AT G3.2 s3 packet 4 (R-40.124 / R-40.125): the Needed list is filled inline; a policy blank is one field.
+  ok('every required mark names the act', (src.match(/required=\{[^}]*\}/g) || []).every(m => /'Needed to send'|need\b/.test(m)));
   ok('no asterisk anywhere near it', !/Her number[\s\S]{0,120}\*/.test(src));
 
   // ⚠ THE CHAIR'S P4 — **ABSENT, NEVER GREYED.** This arc has refused the greyed
@@ -551,9 +552,9 @@ section('9. what she sends, and what refuses');
 
   // ── §9d · SEND IS ABSENT, NEVER GREYED (row 41, the chair's change) ────
   // ⚠ THE REGISTER NAMES SIX REQUIRED FIELDS AND THE CHECKLIST DRAWS SIX.
-  const req = src.slice(src.indexOf('function requiredRows'), src.indexOf('/** One row of the picker'));
+  const req = src.slice(src.indexOf('function requiredRows'), src.indexOf('type PickRow'));   // s3: the block ends where the picker's type begins
   ok('the checklist is found', req.length > 300);
-  ok(`six required rows, no more and no fewer`, (req.match(/\{ label: '/g) || []).length === 6);
+  ok(`six required rows, no more and no fewer`, (req.match(/\{ key: '/g) || []).length === 6);
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('Send exists only when nothing is missing',
      /missing\.length \? \([\s\S]{0,1000}\) : \([\s\S]{0,700}Send to \{first\} on WhatsApp/.test(src));
@@ -564,7 +565,8 @@ section('9. what she sends, and what refuses');
   // has already said which row reads `Not filled`. Four invented sentences would
   // be four bytes nobody passed.
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
-  ok('the missing rows are NAMED from requiredRows, never authored per field', /missing\.map\(r => \([\s\S]{0,400}\{r\.label\}/.test(src));
+  // ── RE-CUT AT G3.2 s3 packet 4 (R-40.124 / R-40.125): the Needed list is filled inline; a policy blank is one field.
+  ok('the missing rows are NAMED from requiredRows and drawn by ONE writer per key', /missing\.map\(r => neededField\(r\)\)/.test(src) && /function neededField\(r: RequiredRow\)[\s\S]{0,200}switch \(r\.key\)/.test(src));
   const refusals = new Set((src.match(/Add [^<]*to send this\.[^<]*/g) || []));
   ok(`no per-field refusal sentence survives (found ${refusals.size})`, refusals.size === 0);
 }
@@ -646,8 +648,9 @@ section('10. what the sheet opens with, and what it never assumes');
   ok('and drops Delivered within for an on-the-day trade',
      /deliveryBasis === 'on_the_day'[\s\S]{0,60}\? \[\]/.test(src));
   // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
-  ok('every caller passes it — one Send surface at s3',
-     (src.match(/requiredRows\(c, terms, depositPct, savedPhone, p, basis\)/g) || []).length === 1);
+  // ── RE-CUT AT G3.2 s3 packet 4 (R-40.124 / R-40.125): the Needed list is filled inline; a policy blank is one field.
+  ok('every caller passes it — the Send surface and the record\u2019s policy card',
+     (src.match(/requiredRows\(c, terms, depositPct, savedPhone, p, basis\)/g) || []).length === 2);
 
   // ── §10g · F-40.236 · THE HEADER DESCRIBES v4, NOT v3 ────────────────
   // ⚠ 「prints as a blank」 WAS TRUE OF v3, which printed `__________`. v4
@@ -723,7 +726,11 @@ section('11. sitting 3 — the room as a vendor uses it');
   ok('no backslash-u escape survives anywhere in the room (JSX text and attributes do not interpret one)', !/\\u[0-9a-fA-F]{4}/.test(read(SCREEN)));
   ok('the apostrophe is the character itself where she reads it', /It’s saved on their client record/.test(src));
   // ── the missing rows take her to the fix
-  ok('each missing row is a tap that opens the place', /missing\.map\(r => \([\s\S]{0,120}<button[\s\S]{0,200}r\.where === 'policies' \? void openProfile\(false\) : go\('record'\)/.test(src));
+  // ── RE-CUT AT G3.2 s3 packet 4 (R-40.124 / R-40.125): the Needed list is filled inline; a policy blank is one field.
+  ok('each missing row is filled where it is named (R-40.124)', /case 'fee':[\s\S]{0,300}onBlur=\{\(\) => void saveText\(\)\}/.test(src) && /case 'phone':[\s\S]{0,300}onBlur=\{\(\) => void savePhone\(\)\}/.test(src));
+  ok('a policy blank is ONE field, saved as the merge on blur (R-40.125)', /async function savePolicyRow\(key: string, v: string\)[\s\S]{0,120}\{ \.\.\.seeds, \.\.\.profile, \[key\]: v \}/.test(src) && !/default: \{[\s\S]{0,600}openProfile\(/.test(src));
+  ok('the per-couple policies are a card with one strong tap (R-40.126)', /Your policies for \{first\}<\/div>[\s\S]{0,900}style=\{\{ \.\.\.CTA, marginTop: 10 \}\}/.test(src) && /Still needed to send: /.test(src));
+  ok('no Rs is prefixed beside formatRs (F-40.256)', !/Rs \$\{formatRs\(/.test(src));
   ok('and requiredRows says where each blank lives', /where: 'record' \| 'policies'/.test(src));
   // 9i · the mock is filed and the screens are called, not mounted
   ok('the ratified prototype is filed under docs/mocks (R-40.101)', fs.existsSync(path.join(ROOT, 'docs/mocks/G32_S3_PROTOTYPE.html')));

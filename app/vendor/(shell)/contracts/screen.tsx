@@ -182,7 +182,7 @@ function outstationGate(terms: Record<string, unknown>, vendorCity: string | nul
 
 // ══ WHAT IS NEEDED BEFORE SHE CAN SEND. Derived from the same places the renderer
 // reads; the door refuses on none of them yet, so the room is the one home for now.
-type RequiredRow = { label: string; value: string | null; where: 'record' | 'policies' };
+type RequiredRow = { key: string; label: string; value: string | null; where: 'record' | 'policies' };
 function requiredRows(
   c: Contract, terms: Record<string, unknown>, depositPct: string,
   savedPhone: string, profile: ContractProfileFields,
@@ -193,12 +193,12 @@ function requiredRows(
   // `where` is the screen a tap on the missing row opens — the founder's ruling on
   // the walk: a list that names a blank must also take her to it.
   return [
-    { label: 'Their WhatsApp number',            value: t(savedPhone), where: 'record' },
-    { label: 'At least one function and its date', value: n > 0 ? String(n) : null, where: 'record' },
-    { label: 'Your fee',                          value: t(terms.fee_total) ?? (c.invoice_id ? 'From your invoice' : null), where: 'record' },
-    { label: 'The deposit',                       value: t(depositPct), where: 'record' },
-    ...(deliveryBasis === 'on_the_day' ? [] : [{ label: 'Delivered within (in your policies)', value: t(profile.delivery_days), where: 'policies' as const }]),
-    { label: 'Who signs for you (in your policies)', value: t(profile.vendor_signatory_name), where: 'policies' },
+    { key: 'phone',     label: 'Their WhatsApp number',            value: t(savedPhone), where: 'record' },
+    { key: 'functions', label: 'At least one function and its date', value: n > 0 ? String(n) : null, where: 'record' },
+    { key: 'fee',       label: 'Your fee',                          value: t(terms.fee_total) ?? (c.invoice_id ? 'From your invoice' : null), where: 'record' },
+    { key: 'deposit',   label: 'The deposit',                       value: t(depositPct), where: 'record' },
+    ...(deliveryBasis === 'on_the_day' ? [] : [{ key: 'delivery_days', label: 'Delivered within (in your policies)', value: t(profile.delivery_days), where: 'policies' as const }]),
+    { key: 'vendor_signatory_name', label: 'Who signs for you (in your policies)', value: t(profile.vendor_signatory_name), where: 'policies' },
   ];
 }
 
@@ -693,7 +693,52 @@ export function ContractsScreen() {
     return raw.replace('{name}', session?.name || 'your name');
   }
   const feeOf = () => { const s = String(terms.fee_total ?? '').trim(); return s === '' ? null : Number(s); };
-  const depositRs = () => { const f = feeOf(); const p = Number(depositPct); return f && p ? `Rs ${formatRs(Math.round(f * p / 100))}` : ''; };
+  // F-40.256: `formatRs` already carries `Rs` — the one money home — so nothing here prefixes it again.
+  const depositRs = () => { const f = feeOf(); const p = Number(depositPct); return f && p ? formatRs(Math.round(f * p / 100)) : ''; };
+
+  // ── THE NEEDED LIST, FILLED WHERE IT IS NAMED (R-40.124 / R-40.125) ─────────
+  // One field per blank, with the same meaning line and the same writer as the
+  // record: the number to the client, fee/deposit through /fill on blur, a
+  // function through the sheet, a policy row through the profile door — ONE row,
+  // saved on blur as `{ ...seeds, ...profile, [key]: v }` so her other answers
+  // and the seeds ride with it (R-40.114), never the whole sheet on screen.
+  async function savePolicyRow(key: string, v: string) {
+    const next = { ...seeds, ...profile, [key]: v };
+    setProfile(next);
+    const r = await saveContractProfile(next);
+    if (!('ok' in r) || !r.ok) { show((r as { error?: string }).error ?? 'That could not be saved.', 'error'); return; }
+    const f = (r as { fields: ContractProfileFields }).fields || {};
+    setProfile(f); setSavedKeys(new Set(Object.keys(f))); setPoliciesSet(Object.keys(f).length > 0);
+  }
+  function neededField(r: RequiredRow) {
+    const need = 'Needed';
+    switch (r.key) {
+      case 'phone':
+        return <Field key={r.key} label="Their WhatsApp number" required={need} why="The agreement is sent here. It’s saved on their client record." value={phone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setPhone} onBlur={() => void savePhone()} />;
+      case 'functions':
+        return (
+          <div key={r.key} style={{ padding: '11px 0', borderBottom: `0.5px solid ${A.hair}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}><span>{r.label}</span><span style={TAG}>{need}</span></div>
+            <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.4, color: A.inkMute }}>Each function is a row on the agreement.</div>
+            <button type="button" onClick={() => setFnOpen(true)} style={{ ...GHOST, marginTop: 8 }}>Add a function</button>
+          </div>
+        );
+      case 'fee':
+        return <Field key={r.key} label="Your fee" unit="Rs" required={need} why="For everything in the agreement, before GST." value={String(terms.fee_total ?? '')} placeholder="e.g. 45000" inputMode="numeric" onChange={v => setTerms({ ...terms, fee_total: v.replace(/[^0-9]/g, '') })} onBlur={() => void saveText()} />;
+      case 'deposit':
+        return <Field key={r.key} label="Deposit" unit="% of the fee" required={need} why="Paid on signing. It’s what holds the dates." value={depositPct} placeholder="30" inputMode="numeric" onChange={v => setDepositPct(v.replace(/[^0-9.]/g, ''))} onBlur={() => void saveText()} />;
+      default: {
+        // a policy row: ONE field from the sheet's own register, written to her policies
+        const row = PROFILE_SECTIONS.flatMap(sec => sec.rows).find(x => x.key === r.key);
+        if (!row) return null;
+        const v = profile[r.key] ?? '';
+        const opts = CLOSED_ROWS[r.key];
+        if (opts) return <ChoiceRow key={r.key} label={row.label} why={row.why} options={opts} value={v} mark="Needed" onPick={val => void savePolicyRow(r.key, val)} />;
+        return <Field key={r.key} label={row.label} unit={row.unit} required={need} why={row.why} value={v} placeholder={placeholderFor(r.key)} inputMode={row.numeric ? 'decimal' : undefined} multiline={row.text}
+                      onChange={val => setProfile({ ...profile, [r.key]: val })} onBlur={() => void savePolicyRow(r.key, profile[r.key] ?? '')} />;
+      }
+    }
+  }
 
   // ═══════════════════════ SCREENS ═══════════════════════════════════════════
   // ⚠ THE SCREENS BELOW ARE CALLED AS FUNCTIONS, NEVER MOUNTED AS `<Room />`. A
@@ -741,7 +786,7 @@ export function ContractsScreen() {
                       <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 15, lineHeight: 1.25, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isComposed(c) ? clientName(c) : c.title}</div>
                       <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.3, color: A.inkMute }}>
                         {isComposed(c)
-                          ? `${fns[0] ? `${fns[0].title} · ${fns[0].date}` : 'No dates yet'}${fee ? ` · Rs ${formatRs(Number(fee))}` : ''}`
+                          ? `${fns[0] ? `${fns[0].title} · ${fns[0].date}` : 'No dates yet'}${fee ? ` · ${formatRs(Number(fee))}` : ''}`
                           : `Uploaded · ${new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                       </div>
                     </div>
@@ -860,6 +905,8 @@ export function ContractsScreen() {
     const p = effective();
     const fns = manualFns(terms);
     const hasOv = Object.keys(overrides).some(k => (overrides[k] ?? '') !== '');
+    const policyBlanks = requiredRows(c, terms, depositPct, savedPhone, p, basis).filter(r => r.value === null && r.where === 'policies');
+    const policyGap = policyBlanks.length ? `Still needed to send: ${policyBlanks.map(r => r.label.replace(' (in your policies)', '')).join(', ')}.` : '';
     const offered = annexMap?.offered ?? [];
     const first = clientFirstName(c);
     return (
@@ -929,14 +976,18 @@ export function ContractsScreen() {
               </>
             ))}
 
-            <div style={H3}>Your policies for {first}</div>
-            <div style={{ margin: '8px 0 4px', padding: '10px 12px', borderLeft: `2px solid ${A.metal}`, fontFamily: F.body, fontSize: 13, lineHeight: 1.45, color: A.inkSoft, background: 'var(--atelier-row-hover)' }}>
-              {hasOv ? 'Some policies are changed for this agreement only. Your saved policies are untouched.' : 'These are your policies. Change any of them here and it applies to this agreement only.'}
+            {/* R-40.126: one prominent tap, no guessing the path. A card, not a row — and when a
+                policy is still Needed it says so here, on the record, before Preview finds it. */}
+            <div style={{ margin: '22px 0 0', padding: '14px 14px 12px', border: `0.5px solid ${policyGap ? A.caution : A.metal}`, borderRadius: 2, background: 'var(--atelier-card-bg)' }}>
+              <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 17, lineHeight: 1.25, color: A.ink }}>Your policies for {first}</div>
+              <div style={{ ...HINT, margin: '3px 0 0' }}>
+                {hasOv ? 'Some policies are changed for this agreement only. Your saved policies are untouched.' : 'These are your policies. Change any of them here and it applies to this agreement only.'}
+              </div>
+              {policyGap ? <div style={{ ...HINT, color: A.caution, margin: '6px 0 0' }}>{policyGap}</div> : null}
+              <button type="button" onClick={() => void openProfile(true)} style={{ ...CTA, marginTop: 10 }}>
+                {policiesSet ? `See or change them for ${first}` : 'Suggested values are being used — set yours'}
+              </button>
             </div>
-            <button type="button" onClick={() => void openProfile(true)} style={TAP}>
-              <span>{policiesSet ? 'See or change them for this couple' : 'Suggested values are being used — set yours'}<span style={SUB}>{p.travel_and_stay_terms || ''}</span></span>
-              <span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span>
-            </button>
 
             <div style={H3}>What’s printed</div>
             <div style={HINT}>These clauses are yours to leave out for this couple. Everything else always prints.</div>
@@ -986,20 +1037,16 @@ export function ContractsScreen() {
             <div style={H3}>What {first} will receive</div>
             <Field label="Between" value={`${session?.name || 'You'} and ${clientName(c)}${terms.partner_2_name ? ` and ${String(terms.partner_2_name)}` : ''}`} readOnly />
             <Field label="Functions" value={fns.length ? fns.map(f => `${f.title} · ${f.date}`).join(', ') : (fnPlaces(terms).length ? `${fnPlaces(terms).length} from the calendar` : '')} placeholder="None yet" readOnly />
-            <Field label="Fee" value={feeS ? `Rs ${formatRs(Number(feeS))}${depositRs() ? `, deposit ${depositRs()} on signing` : ''}` : ''} placeholder="Not filled" readOnly />
+            <Field label="Fee" value={feeS ? `${formatRs(Number(feeS))}${depositRs() ? `, deposit ${depositRs()} on signing` : ''}` : ''} placeholder="Not filled" readOnly />
             <Field label="Included" value={(annexMap?.offered ?? []).concat(annexMap?.others ?? []).filter(a => annexes[a.key]).map(a => a.label).join(', ')} placeholder="Nothing attached" readOnly />
             <Field label="Signed for you by" value={p.vendor_signatory_name || ''} placeholder="Not set — in your policies" readOnly />
             <button type="button" disabled={saving} onClick={() => void doPreview(c)} style={GHOST}>Read the PDF</button>
             {missing.length ? (
               <>
                 <div style={H3}>Before you can send</div>
-                {missing.map(r => (
-                  <button key={r.label} type="button" style={TAP}
-                          onClick={() => (r.where === 'policies' ? void openProfile(false) : go('record'))}>
-                    <span>{r.label}<span style={SUB}>{r.where === 'policies' ? 'Tap to set it in your policies' : 'Tap to fill it'}</span></span>
-                    <span style={TAG}>Needed</span>
-                  </button>
-                ))}
+                {/* R-40.124: each blank is filled HERE, where it is named — never a tap that leaves the screen.
+                    R-40.125: a policy blank is one field, never the 28-row sheet. The same writers as the record. */}
+                {missing.map(r => neededField(r))}
                 <div style={{ ...HINT, marginTop: 10 }}>Fill these and the send button appears here.</div>
               </>
             ) : (
@@ -1022,7 +1069,7 @@ export function ContractsScreen() {
     const st = stage(c);
     const first = clientFirstName(c);
     const dep = c.deposit_pct && (c.terms as Record<string, unknown> | undefined)?.fee_total
-      ? `Rs ${formatRs(Math.round(Number((c.terms as Record<string, unknown>).fee_total) * c.deposit_pct / 100))}` : 'The deposit';
+      ? formatRs(Math.round(Number((c.terms as Record<string, unknown>).fee_total) * c.deposit_pct / 100)) : 'The deposit';
     return (
       <>
         <Head title={clientName(c)} sub={st === 6 ? 'Date held' : stateWord(c.state)} onBack={() => go('room')} />
