@@ -126,8 +126,24 @@ section('2b. in flight, failed and empty are three different sentences');
   ok('empty has its own, and it is reached only after ready',
      /clients\.length === 0[\s\S]{0,240}No one to choose from yet/.test(src));
   // The three must be distinguishable BY CONSTRUCTION: no two may share a branch.
-  ok('the three sentences are three branches',
-     (src.match(/Loading&#8230;|couldn&#8217;t load your clients|No one to choose from yet/g) || []).length === 3);
+  //
+  // ── AMENDED WITH THE CURE — R-38.19, SECOND SPECIMEN THIS PACKET ─────────
+  // ⚠ THIS CELL COUNTED ACROSS THE WHOLE FILE AND MEANT A PROPERTY OF ONE
+  // SHEET. It read `=== 3` over the room entire, so it was green only while the
+  // picker was the only surface in the room with three states. Sitting 2 gave
+  // the profile sheet and the annex chooser their own three, each with its own
+  // `Loading&#8230;`, and the count went to five — a RED that says nothing about
+  // the picker, which is unchanged.
+  //
+  // This is the file's own recorded lesson arriving a third time: *a window is a
+  // guess about formatting; this is a statement about the branch.* A global
+  // count is the same guess with a different shape. The cell now reads the
+  // PICKER'S OWN BLOCK, so it tightens if the picker collapses two states and
+  // does not move when a sibling surface gains its own.
+  const picker = src.slice(src.indexOf('pickOpen &&'), src.indexOf('{record &&'));
+  ok('the picker block is found', picker.length > 200);
+  ok('the three sentences are three branches, inside the picker',
+     (picker.match(/Loading&#8230;|couldn&#8217;t load your clients|No one to choose from yet/g) || []).length === 3);
 
   // ── THE UNION — R-G32.17 ────────────────────────────────────────────────
   ok('the picker reads the Cabinet too', /fetchCabinet\s*\(/.test(src));
@@ -258,8 +274,17 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // The first cut gated Send on `phone`, the INPUT. Typing a number summoned the
   // button; the door reads the ROW and answered `No number to send to.` A control
   // whose condition and whose door look at different things lies about itself.
-  ok('Send appears only when the ROW has a number',
-     /savedPhone\.trim\(\) \?[\s\S]{0,320}Send to the couple/.test(src));
+  // ── AMENDED WITH THE CURE — R-38.19, THIRD SPECIMEN THIS PACKET ─────────
+  // ⚠ THE PROPERTY IS UNCHANGED AND THE GATE IS WIDER. F-40.161's finding was
+  // that Send consulted the INPUT BOX while the door consulted the ROW. The
+  // cure was `savedPhone`; sitting 2 keeps `savedPhone` and adds the other five
+  // required fields, through the same `requiredRows` the preview reads, because
+  // two Sends with two conditions is one act with two opinions. So the cell now
+  // asserts the ROW-not-input property directly — which is what it always meant
+  // — and the six-field gate is asserted at §9d.
+  ok('Send still consults the ROW and never the input box',
+     /requiredRows\(record, terms, depositPct, savedPhone, profile\)/.test(src));
+  ok('and `phone` is nowhere in a Send condition', !/\{phone\.trim\(\) \?/.test(src));
   ok('and NOT on what she is typing', !/\{phone\.trim\(\) \?/.test(src));
   // ⚠ AND THE SEED READS THE CLIENT, NOT THE PICKER'S ARRAY. `clients` is filled
   // only by `openPicker`; a record opened from the LIST found it empty, so the
@@ -285,7 +310,14 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
      /\/api\/v2\/vendor\/clients\/\$\{clientId\}/.test(api));
 
   // ── F-40.154 · THE DYNAMIC VIEWPORT ─────────────────────────────────────
-  ok('both sheets are bounded in dvh', (src.match(/maxHeight: '\d+dvh'/g) || []).length === 2);
+  // ── AMENDED WITH THE CURE — the count is THREE now, and it is a count on
+  // purpose. F-40.154 is not a property of two named sheets; it is that EVERY
+  // full-cover sheet in this room is bounded in the DYNAMIC viewport, so the
+  // foot stays reachable when the browser bar appears. The profile sheet is the
+  // longest of the three — twenty-eight rows over a Save — so it is the one this
+  // rule protects most and the one a `vh` literal would hurt worst. The number
+  // rises with the sheets by design; the cell beneath it is what forbids `vh`.
+  ok('every sheet is bounded in dvh', (src.match(/maxHeight: '\d+dvh'/g) || []).length === 5);
   ok('no vh literal survives in this room', !/maxHeight: '\d+vh'/.test(src));
   ok('the record sheet no longer stretches to a wrong height', !/alignItems: 'stretch'/.test(src));
 }
@@ -294,9 +326,28 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
 section('7. the fourth of nine opens');
 {
   const hub = code('app/vendor/(shell)/support/page.tsx');
-  ok('the map gains one entry', /contracts:\s*CONTRACTS_HREF/.test(hub));
+  // ── AMENDED WITH THE CURE, IN THE SAME PACKET — F-40.170 / R-38.19 ───────
+  // ⚠ THESE TWO CELLS ASSERTED THE SPELLING THE CURE RETIRES, and that is the
+  // exact shape R-38.19 was written about: an R-38.1 cure replaced a literal
+  // with `roomHref`, a floor bench asserted the retired spelling, and the bench
+  // went red WITH the cure and shipped, because the handover's floor line had
+  // been derived before the cure existed. Named here rather than quietly
+  // rewritten, so a reader can see the cell moved because the fact moved.
+  //
+  // The property is unchanged and is if anything stronger: the hub still holds
+  // no literal address, and the address still has exactly one home — it is now
+  // the REGISTRY, which is where a registry room's address belongs.
+  ok('the map gains one entry', /contracts:\s*roomHref\('contracts'\)/.test(hub));
   ok('and no literal address', !/'\/vendor\/contracts'/.test(hub));
-  ok('the address lives in routes.ts', /CONTRACTS_HREF = '\/vendor\/contracts'/.test(code('lib/solutions/routes.ts')));
+  ok('and no second home for it in routes.ts either',
+     !/CONTRACTS_HREF/.test(code('lib/solutions/routes.ts')));
+  // ⚠ THE ADDRESS MUST STILL RESOLVE, AND A DELETED CONSTANT IS NOT A DELETED
+  // ROOM. Without this the two cells above would both pass on a tree where the
+  // registry entry had been removed too — the hub would read `roomHref` of
+  // nothing, which returns `/vendor/rooms` QUIETLY BY DESIGN, and the fourth of
+  // the nine would silently point at the directory.
+  ok('the registry still owns /vendor/contracts',
+     /id: 'contracts'[\s\S]{0,120}href: '\/vendor\/contracts'/.test(code('lib/worklist/rooms.ts')));
   // ⚠ R-40.61 / F-40.126 — HUB FRAMES ARE FROZEN AS DRAWN AT THEIR DATE.
   // `G5-hub`, `R5-hub`, `W5-hub` and `W5-hub-today` all draw a hub where
   // Contracts reads `Coming`. They are NOT re-shot, now or on any future room
@@ -307,6 +358,204 @@ section('7. the fourth of nine opens');
   const frames = ['google-reviews-mock', 'referrals-mock', 'wedding-pages-mock'];
   ok('no other seat\u2019s hub frame is touched by this delivery',
      frames.every((f) => fs.existsSync(path.join(ROOT, 'docs/mocks', `${f}.html`))));
+}
+
+// ══ §8 — THE PROFILE SHEET AND THE ANNEX CHOOSER (sitting 2) ═══════════════
+//
+// BOTH-WAYS, by PRODUCTION mutation:
+//   §8a  delete the `fetchContractProfile(` call from screen.tsx  → §1 AND §8a red
+//   §8b  restore the seven-name ANNEXES literal to screen.tsx     → §8b flips RED
+//   §8c  key the annex surface on `offered.length` not `mapped`   → §8c flips RED
+//   §8d  make the profile sheet render on `Object.keys().length`  → §8d flips RED
+section('8. her policies are asked once, and the annexes have one home');
+{
+  const src = code(SCREEN);
+  const api = code(API);
+
+  // ── §8a · THE ORPHAN CLOSES ─────────────────────────────────────────────
+  // ⚠ THIS IS THE ONE ADDRESS IN THE ARC §1 COULD NOT POLICE. Both profile
+  // doors shipped in dream-os at sitting 1 with NO pwa caller — a declared
+  // server-side orphan, named in the client so it would not be discovered as a
+  // defect. §1 walks the app tree for callers of every exported contract
+  // address, so from this cut the two are inside its census by construction and
+  // this cell is the statement that they arrived deliberately.
+  ok('the client ships a profile reader', /export function fetchContractProfile/.test(api));
+  ok('and a profile writer',              /export function saveContractProfile/.test(api));
+  ok('the room reads her policies',       /fetchContractProfile\s*\(/.test(src));
+  ok('and writes them',                   /saveContractProfile\s*\(/.test(src));
+  ok('the not-shipped declaration is gone', !/NOT SHIPPED/.test(api));
+  // ⚠ THE WHOLE OBJECT, EVERY TIME. The door upserts `fields` wholesale and does
+  // not merge, so a partial write would silently drop every key it omitted.
+  ok('there is no partial profile writer', !/patchContractProfile/.test(api));
+
+  // ── §8a2 · TWENTY-EIGHT LABELS, SIX SECTIONS, AND NOT ONE VALUE ─────────
+  const secs = (src.match(/head: '/g) || []).length;
+  ok(`the sheet declares its sections (found ${secs})`, secs === 7);
+  // ⚠ SCOPED TO THE TABLE, NOT COUNTED ACROSS THE FILE — the third time this
+  // packet that a global count meant a local property. `CLAUSE_SWITCHES` has the
+  // same `{ key, label }` shape, so a file-wide match reads 34 and says nothing
+  // about the profile sheet. The slice is the declaration's own body.
+  const profTable = src.slice(src.indexOf('const PROFILE_SECTIONS'), src.indexOf('function slabLabels'));
+  ok('the profile table is found', profTable.length > 400);
+  const rows = (profTable.match(/\{ key: '[a-z0-9_]+',\s*label: '/g) || []).length;
+  ok(`twenty-eight labels stand over twenty-eight tokens (found ${rows})`, rows === 28);
+  // ⚠ THE TOKEN NAMES ARE THE INSTRUMENT'S AND A VENDOR NEVER MEETS ONE. The
+  // register says so at Q6; this cell is what keeps a later seat from using a
+  // token as a label because it was to hand.
+  ok('no register token leaks into a label',
+     !/label: '(cancel_tier|late_interest|fm_window|overtime_|postpone_)/.test(src));
+  // The two the renderer already reads off this exact object — the proof the
+  // shape belongs to the estate and not to this file.
+  ok("the tax pair carries the renderer's own key names",
+     /key: 'gst_treatment'/.test(src) && /key: 'gst_pct'/.test(src));
+  ok('the sheet has its own title and its Save', /Your policies/.test(src) && /Save my policies/.test(src));
+  // ⚠ Q9 POINTS AT SETTINGS. `vendors.gstin` has one home already.
+  ok('the tax note points at Settings, not at itself',
+     /Add your GSTIN in Settings to print the tax block\./.test(src));
+
+  // ── §8b · THE ANNEX HEADINGS HAVE ONE HOME, AND IT IS NOT HERE ──────────
+  // ⚠ THE LITERAL THIS CELL FORBIDS CARRIED A COMMENT SAYING IT SHOULD NOT
+  // EXIST. Seven names, typed here and again at `contractPdf.js:535`, in a file
+  // whose own note read *a name typed twice would be two homes for one heading*.
+  // Ruling F8 collapsed both into `src/lib/contractAnnex.js`.
+  ok('the room types no annex heading', !/Photography and film/.test(src));
+  ok('and holds no annex key list',     !/key: 'a', label:/.test(src));
+  ok('it asks the door instead',        /fetchAnnexMap\s*\(/.test(src));
+  ok('the client addresses the map door', /\/api\/v2\/vendor\/contracts\/annex-map/.test(api));
+  // ⚠ AND THE DOOR TAKES NO CONTRACT ID. The map is a fact about the estate, not
+  // about a contract; one that arrived per-contract would read as a property OF
+  // that contract.
+  ok('the map read is not keyed on a contract',
+     /export function fetchAnnexMap\(\)/.test(api));
+
+  // ── §8c · `mapped` IS READ, NEVER INFERRED FROM A LENGTH ────────────────
+  // ⚠ THE DOOR RETURNS ALL SEVEN IN `offered` FOR AN UNMAPPED VENDOR TOO, so a
+  // length here reads 7 for the vendor whose trade we know and 7 for the vendor
+  // whose trade we do not — and draws the wrong surface for one of them. This is
+  // F-40.138's whole class, one plane over, and the door returns `mapped`
+  // precisely so this room never has to guess.
+  ok('the surface branches on the door\u2019s own flag', /annexMap\.mapped/.test(src));
+  ok('and never on the length of what it sent',
+     !/offered\.length\s*[><=]/.test(src) && !/others\.length === 0/.test(src));
+  // The two heads, and the unmapped surface has ONE — not a mapped surface with
+  // an empty first section, which is a section head standing over nothing.
+  ok('the unmapped surface is one list under one head', /'Offered for your trade' : 'All annexes'/.test(src));
+  ok('and it says what we do not know, not what she failed to do',
+     /We do not have your trade on file/.test(src));
+
+  // ── §8d · THREE STATES, TWICE, AND `{}` IS NOT ONE OF THEM ─────────────
+  // ⚠ AN EMPTY PROFILE IS THE COMMONEST LEGAL ANSWER THIS DOOR GIVES. A vendor
+  // who has never opened the sheet has `{}`, and that is READY. Keying the sheet
+  // on `Object.keys(profile).length` would put F-40.138 back with a new object.
+  ok('the profile sheet has a named state',  /profileState/.test(src));
+  ok('and the annex surface has its own',    /annexState/.test(src));
+  for (const [name, st] of [['profile', 'profileState'], ['annex', 'annexState']]) {
+    ok(`${name}: loading is keyed on state`, new RegExp(st + " === 'loading'").test(src));
+    ok(`${name}: failed has its own sentence`, new RegExp(st + " === 'failed'").test(src));
+    ok(`${name}: ready is a third branch`,     new RegExp(st + " === 'ready'").test(src));
+  }
+  ok('an empty profile is never treated as a failure',
+     !/Object\.keys\(profile\)\.length/.test(src));
+  // ⚠ NO FALLBACK LIST ON A FAILED MAP READ. The room can no longer answer from
+  // memory, and that is the property: a guessed list and a failed read would be
+  // the same picture on her screen.
+  ok('a failed map read draws no annexes', !/annexState === 'failed'[\s\S]{0,200}AnnexRow/.test(src));
+
+  // ── §8e · THE SWITCH SAVES ON THE TAP, AND CHECKS THE ANSWER ───────────
+  // The storefront switch's posture verbatim: optimistic, revert on refusal,
+  // and the DOOR'S ECHO in state rather than the value we sent (F-40.180).
+  ok('an annex tap writes through /fill', /toggleAnnex[\s\S]{0,400}fillContract\s*\(/.test(src));
+  ok('and reverts on a refusal',          /setAnnexes\(annexes\);/.test(src));
+  ok('and lands the door\u2019s echo, not our own object',
+     /setAnnexes\(c\.annexes \?\? \{\}\)/.test(src));
+
+  // ── §8f · THE MOCK'S COUPLE IS NOT EVERY COUPLE ────────────────────────
+  // ⚠ THE RATIFIED SENTENCES NAME 「Priya」 BECAUSE A MOCK HAS ONE COUPLE. A room
+  // has all of them, and a hardcoded name on a vendor's screen is the costume
+  // class wearing a first name.
+  ok('no ratified mock name is shipped as a byte', !/what Priya signs/.test(src));
+  ok('the name comes from the row', /clientFirstName/.test(src));
+}
+
+// ══ §9 — THE TAILORING SURFACES (T1, T3) ══════════════════════════════════
+//
+// BOTH-WAYS, by PRODUCTION mutation:
+//   §9a  add `publication` to CLAUSE_SWITCHES                    → §9a flips RED
+//   §9b  default the switches OFF (`=== true`)                   → §9b flips RED
+//   §9c  draw clause 5's row unconditionally                     → §9c flips RED
+//   §9d  render a disabled Send instead of the line              → §9d flips RED
+section('9. what she sends, and what refuses');
+{
+  const src = code(SCREEN);
+
+  // ── §9a · THE KEYS ARE THE RENDERER'S, READ NOT AGREED ──────────────────
+  // ⚠ SIX, IN THE RENDERER'S OWN ORDER, AT `contract.terms.clauses.<key>`. A key
+  // spelled differently on this plane would be a switch a vendor moves and a
+  // document that never notices — and nothing would go red, because each side
+  // would be internally consistent. That is the whole reason this cell names the
+  // strings instead of counting them.
+  for (const k of ['accommodation', 'late_payment', 'extra_hours', 'tax_block',
+                   'named_professional', 'portfolio_use']) {
+    ok(`the switch \`${k}\` carries the renderer's key`, new RegExp(`key: '${k}'`).test(src));
+  }
+  ok('and they are written under terms.clauses', /terms\.clauses|clauses\[key\]/.test(src));
+
+  // ── CLAUSE 10 HAS NO SWITCH AND MUST NEVER GAIN ONE ────────────────────
+  // ⚠ A VENDOR'S TOGGLE GOVERNS WHETHER A CLAUSE IS PRINTED, NEVER WHETHER THE
+  // CLIENT'S CONSENT IS ON. `publication` is absent from the renderer's
+  // `CLAUSE_SWITCHES` by the same law and `b56` reds on the twin mutation.
+  ok('publication is not a switch here either', !/'publication'/.test(src));
+  ok('and the row that says so is drawn', /There is no switch here for the wedding page\./.test(src));
+  // Row 18 AND row 22 — the repetition is ruling F6 and is deliberate.
+  ok('the law is said at the top as well', /never whether her consent is on\./.test(src));
+
+  // ── §9b · ABSENT MEANS ON ──────────────────────────────────────────────
+  // ⚠ THE RENDERER READS `!== false`. A default of off on this plane would make
+  // her contract quietly thinner than the surface she reviewed, and neither side
+  // would report anything.
+  ok('an untouched switch reads ON', /s\[key\] !== false/.test(src));
+  ok('and the toggle stores a boolean, never a delete',
+     /clauses\[key\] = !switchOn\(terms, key\)/.test(src));
+  ok('the clause write goes through /fill', /toggleClause[\s\S]{0,600}fillContract\s*\(/.test(src));
+  ok('and reverts on a refusal',           /toggleClause[\s\S]{0,700}setTerms\(prev\)/.test(src));
+
+  // ── §9c · A SWITCH MAY CLOSE AN OPEN GATE AND NEVER OPEN A SHUT ONE ────
+  // ⚠ AN IN-CITY WEDDING PRINTS NO CLAUSE 5 WHATEVER THE SWITCH SAYS, so a row
+  // drawn there is a control with no effect — the thing this arc has refused
+  // seven times. The gate is a FACT about the functions; the switch is a waiver.
+  ok('clause 5 has a gate', /function outstationGate/.test(src));
+  ok('the row is absent when the gate is shut',
+     /accommodation' && !outstationGate\(terms, vendorCity\)\) return null/.test(src));
+  // ⚠ THE GATE READS THE SAME TWO FACTS THE RENDERER READS — `terms.functions`
+  // keyed by event id with `city`, against `vendors.city`. A gate built on the
+  // record's own `terms.city` would answer a different question.
+  ok('and it compares the functions against her city',
+     /terms\.functions[\s\S]{0,400}vendorCity/.test(src));
+  // A blank base city means the room does not KNOW where she is, and an unknown
+  // gate draws nothing rather than guessing open.
+  ok('an unknown city leaves the gate shut', /if \(!base\) return false;/.test(src));
+
+  // ── §9d · SEND IS ABSENT, NEVER GREYED (row 41, the chair's change) ────
+  // ⚠ THE REGISTER NAMES SIX REQUIRED FIELDS AND THE CHECKLIST DRAWS SIX.
+  const req = src.slice(src.indexOf('function requiredRows'), src.indexOf('/** One row of the picker'));
+  ok('the checklist is found', req.length > 300);
+  ok(`six required rows, no more and no fewer`, (req.match(/\{ label: '/g) || []).length === 6);
+  ok('Send exists only when nothing is missing',
+     /missing\.length === 0[\s\S]{0,320}Send to the couple/.test(src));
+  ok('and there is no disabled Send on the preview',
+     !/disabled=\{missing|opacity: *\.5[\s\S]{0,120}Send to the couple/.test(src));
+  // ⚠ A REFUSAL SENTENCE ONLY WHERE A RATIFIED BYTE EXISTS. The number has P4's
+  // and the signatory has row 41's; the other four have none, and the checklist
+  // has already said which row reads `Not filled`. Four invented sentences would
+  // be four bytes nobody passed.
+  ok('the number keeps P4\u2019s line',     /Add her number to send this\./.test(src));
+  ok('the signatory keeps row 41\u2019s',   /Add who signs for you to send this\./.test(src));
+  // ⚠ TWO DISTINCT SENTENCES, NOT TWO SITES. P4's line stands on the record AND
+  // on the preview — one byte, two surfaces, which is one home for the sentence.
+  // What this forbids is a THIRD sentence: four more refusals for the four
+  // required fields that have no ratified byte.
+  const refusals = new Set((src.match(/Add [^<]*to send this\.[^<]*/g) || []));
+  ok(`only the two ratified refusals are authored (found ${refusals.size})`, refusals.size === 2);
 }
 
 console.log(`\n${pass}/${pass + fail} cells green.`);

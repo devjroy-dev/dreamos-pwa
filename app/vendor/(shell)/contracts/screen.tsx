@@ -41,31 +41,28 @@ import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAllContracts, requestContractUpload, finalizeContract,
          updateContract, sendContract, fetchContractDownload, cancelContract,
          requestContractPreview, sendContractToCouple, markContractDeposit, updateClientPhone,
-         fetchTypedClients, composeContract, fillContract, fetchCabinet } from '@/lib/vendor/api/vendor';
+         fetchTypedClients, composeContract, fillContract, fetchCabinet,
+         fetchContractProfile, saveContractProfile, fetchAnnexMap, fetchMe } from '@/lib/vendor/api/vendor';
 // TDW_09 R-U25: the ONE money home. A second formatter here would be a second
 // way to write Rs 18,000, and the estate has spent a finding on that already.
 import { formatRs } from '@/lib/vendor/format';
-import type { Contract, Client } from '@/lib/vendor/types/vendor';
+import type { Contract, Client, ContractProfileFields, AnnexOption,
+              AnnexMapResponse } from '@/lib/vendor/types/vendor';
 
-// ── THE ANNEXES, KEYED BY LETTER — v3's own set ────────────────────────────
-// ⚠ THE NAMES ARE THE INSTRUMENT'S, NOT THIS FILE'S. Each is the annex heading
-// out of `docs/specs/TDW_19_CONTRACT_GENERIC_v3.md`, which is lawyer-passed and
-// frozen (R-40.46). The renderer keys on the same letters, so a name typed twice
-// would be two homes for one heading.
+// ── THE ANNEXES ARE NO LONGER TYPED HERE — RULING F8, ONE HOME ─────────────
+// ⚠ A SEVEN-NAME LITERAL STOOD AT THIS SPOT AND ITS OWN COMMENT SAID WHY IT
+// SHOULD NOT: *a name typed twice would be two homes for one heading.* It was
+// typed twice anyway — here and at `contractPdf.js` — and the comment describing
+// a category map that did not exist had governed nothing for two sittings.
 //
-// ⚠ AND THE MAP FROM CATEGORY TO ANNEX IS NOT DATABASE-ENFORCED — R-G32.13.
-// `vendors.category` carries NO CHECK, so this is a suggestion the room offers
-// and never a rule it applies. She may attach any of them, and Annex G exists
-// for a trade A–F does not name.
-const ANNEXES: { key: string; label: string }[] = [
-  { key: 'a', label: 'Photography and film' },
-  { key: 'b', label: 'Makeup and hair' },
-  { key: 'c', label: 'D\u00e9cor and production' },
-  { key: 'd', label: 'Planning and coordination' },
-  { key: 'e', label: 'Mehendi' },
-  { key: 'f', label: 'Venue' },
-  { key: 'g', label: 'Other services' },
-];
+// The headings and the map now live in `src/lib/contractAnnex.js`, below both
+// readers and importing neither, and reach this room through
+// `GET /api/v2/vendor/contracts/annex-map`. The room asks; it does not know.
+//
+// ⚠ WHICH MEANS THE ROOM CANNOT ANSWER FROM MEMORY WHEN THE READ FAILS, and
+// that is a property rather than a cost: a hardcoded fallback list would be the
+// third home, and it would draw seven annexes for a vendor whose real offer the
+// room had just failed to learn.
 
 const A = {
   // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
@@ -133,6 +130,218 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6,
 };
 
+
+// ══ THE PROFILE SHEET — Q1–Q10, ratified frame `R4-profile` ════════════════
+//
+// ⚠ EVERY LABEL BELOW IS A VETOED BYTE AND EVERY KEY BESIDE IT IS THE REGISTER'S
+// OWN TOKEN NAME. The two are deliberately different vocabularies and the split
+// is the whole design: the token names are the INSTRUMENT'S — `cancel_tier_2_pct`,
+// `late_interest_pct`, `fm_window_months` — and a vendor should never meet one.
+// She meets 「60–90 days before」. The register says so in as many words at Q6.
+//
+// ⚠ AND TDW AUTHORS NOT ONE OF THE VALUES. Not a price, not a percentage, not a
+// day-count. This table is labels and keys; every value on the sheet came from
+// her, and a blank one prints as a blank (R-40.88, and Q2 says it to her face).
+//
+// ⚠ THE KEYS WERE READ OUT OF `TDW_19_CONTRACT_FIELD_REGISTER_v2.md`, NOT
+// INVENTED HERE — §1 `vendor_signatory_name`, §4 `overtime_rate`/`overtime_unit`/
+// `late_grace_days`/`late_interest_pct`/`gst_treatment`/`gst_pct`, §5
+// `travel_terms`, §6 the postpone and cancel families, §7 the delivery family,
+// §8 `meals_provision`/`takedown_days`/`fm_window_months`. `contractSource.js`
+// already reads `gst_pct` and `gst_treatment` off this exact object, which is
+// the proof that the shape is the estate's and not this file's.
+type ProfileRow = { key: string; label: string };
+type ProfileSection = { head: string; rows: ProfileRow[] };
+
+const PROFILE_SECTIONS: ProfileSection[] = [
+  { head: 'Your business', rows: [
+    { key: 'vendor_category_words', label: 'What you do' },
+    { key: 'vendor_signatory_name', label: 'Who signs' },
+    { key: 'vendor_credit_role',    label: 'Credited as' },
+  ] },
+  { head: 'What is not included', rows: [
+    { key: 'exclusions',      label: 'Never included' },
+    { key: 'meals_provision', label: 'Meals on a long day' },
+  ] },
+  { head: 'Money', rows: [
+    { key: 'travel_terms',      label: 'Travel and stay' },
+    { key: 'overtime_rate',     label: 'Extra hours' },
+    { key: 'overtime_unit',     label: 'Charged per' },
+    { key: 'late_grace_days',   label: 'Late after' },
+    { key: 'late_interest_pct', label: 'Late charge' },
+  ] },
+  // ⚠ THE FOUR SLAB LABELS ARE GENERATED, NOT TYPED — see `slabLabels` below.
+  // They are listed here with the ratified wording so the section reads in order
+  // and so a reader can see the shape; the render replaces the four.
+  { head: 'If plans change', rows: [
+    { key: 'postpone_notice_days',   label: 'Postpone notice' },
+    { key: 'postpone_window_months', label: 'Move within' },
+    { key: 'cancel_tier_1_pct',      label: 'More than 90 days before' },
+    { key: 'cancel_tier_2_pct',      label: '60\u201390 days before' },
+    { key: 'cancel_tier_3_pct',      label: '30\u201360 days before' },
+    { key: 'cancel_tier_4_pct',      label: 'Under 30 days before' },
+    { key: 'refund_days',            label: 'Refund within' },
+    { key: 'deposit_refundable',     label: 'Is the deposit refundable?' },
+  ] },
+  { head: 'What you deliver', rows: [
+    { key: 'delivery_days',    label: 'Delivered within' },
+    { key: 'delivery_method',  label: 'How' },
+    { key: 'link_live_days',   label: 'Link stays live' },
+    { key: 'revision_rounds',  label: 'Rounds of changes' },
+    { key: 'revision_rate',    label: 'Each further round' },
+    { key: 'archive_months',   label: 'Files kept for' },
+  ] },
+  { head: 'Publication', rows: [
+    { key: 'takedown_days',    label: 'Take down within' },
+    { key: 'fm_window_months', label: 'Move dates within' },
+  ] },
+  { head: 'Tax', rows: [
+    { key: 'gst_treatment', label: 'GST' },
+    { key: 'gst_pct',       label: 'Rate' },
+  ] },
+];
+
+/**
+ * THE FOUR CANCELLATION LABELS, BUILT FROM HER OWN THRESHOLDS.
+ *
+ * ⚠ THE REGISTER CARRIES THREE `cancel_tier_N_days` TOKENS AND THE SHEET ASKS
+ * FOR NONE OF THEM — the frame has eight rows in this section and not eleven.
+ * So the thresholds are read where they exist and the ratified wording stands
+ * where they do not. That is not TDW authoring a policy: 90 / 60 / 30 are the
+ * bytes the founder vetoed on `R4-profile`, and the moment she has her own
+ * numbers the labels are hers.
+ *
+ * ⚠ AND THE FOURTH LABEL HAS NO THRESHOLD OF ITS OWN, because it is the
+ * remainder — everything under tier 3. It reads the same number tier 3 opens on,
+ * which is why there are four slabs and three thresholds and not four of each.
+ */
+function slabLabels(f: ContractProfileFields): [string, string, string, string] {
+  const d = (k: string, fallback: string) => {
+    const v = (f[k] || '').trim();
+    return v === '' ? fallback : v;
+  };
+  const t1 = d('cancel_tier_1_days', '90');
+  const t2 = d('cancel_tier_2_days', '60');
+  const t3 = d('cancel_tier_3_days', '30');
+  return [
+    `More than ${t1} days before`,
+    `${t2}\u2013${t1} days before`,
+    `${t3}\u2013${t2} days before`,
+    `Under ${t3} days before`,
+  ];
+}
+
+// ══ THE CLAUSE SWITCHES — T1-clauses, veto rows 16–29 ══════════════════════
+//
+// ⚠ EVERY KEY BELOW WAS READ OUT OF `src/lib/contractPdf.js` AT `6e590ec`, NOT
+// AGREED IN A KICKOFF AND NOT INVENTED HERE. The renderer's `CLAUSE_SWITCHES`
+// is the six, in this order, and it reads them at `contract.terms.clauses.<key>`
+// through its own `switchOn`. A key spelled differently on this plane would be a
+// switch a vendor moves and a document that never notices.
+//
+// ⚠ AND THE DEFAULT IS ON. `switchOn` returns true unless the value is EXPLICITLY
+// `false` — an absent switch is a vendor who has not touched it, not one who
+// turned it off. A default of off here would make her contract quietly thinner
+// than the surface she reviewed, and the two planes would disagree about a
+// document nobody had edited.
+//
+// ⚠ `publication` IS NOT IN THIS LIST AND MUST NEVER BE ADDED. Clause 10 has no
+// switch: a Vendor's toggle governs whether a clause is PRINTED, never whether
+// the Client's consent is ON. The renderer's header says it, `b56` reds on a
+// mutation that adds it, and row 22 says it to the vendor in her own words at
+// the one place the absence is conspicuous.
+const CLAUSE_SWITCHES: { key: string; label: string }[] = [
+  { key: 'accommodation',      label: 'Accommodation and travel' },
+  { key: 'late_payment',       label: 'Late payment charge' },
+  { key: 'extra_hours',        label: 'Extra hours' },
+  { key: 'tax_block',          label: 'Tax block' },
+  { key: 'named_professional', label: 'A named professional' },
+  { key: 'portfolio_use',      label: 'Portfolio use' },
+];
+
+/** The renderer's `switchOn`, and it is the same sentence in two languages
+ *  because there is no third place to put it: `contractPdf.js` cannot be
+ *  imported here and this room cannot ask a door for six booleans it already
+ *  holds on the row. The twin is named so a later seat changing one goes
+ *  looking for the other. */
+function switchOn(terms: Record<string, unknown>, key: string): boolean {
+  const s = (terms.clauses as Record<string, unknown> | undefined) || {};
+  return s[key] !== false;
+}
+
+/**
+ * CLAUSE 5'S GATE — A FACT, NOT A CONTROL.
+ *
+ * ⚠ THE SWITCH CAN CLOSE THIS GATE AND CAN NEVER OPEN IT. v4 omits clause 5
+ * whole where no function is outside the Vendor's city, so an in-city wedding
+ * prints no accommodation clause whatever the switch says. The row therefore
+ * renders only when the gate is open, and the switch beside it is a WAIVER — a
+ * vendor who lives near the venue, or has family there.
+ *
+ * ⚠ IT READS THE RECORD THE ROOM ALREADY HOLDS. `terms.functions` is keyed by
+ * event id with `venue` and `city` on each — the same object the renderer's
+ * clause 3 table reads — and `vendors.city` arrives on `GET /me`. No door
+ * returns the fact and none is asked for one: the chair's second arm.
+ *
+ * ⚠ THE TWIN IS `contractPdf.js:393` AND IT IS NAMED RATHER THAN FORGOTTEN.
+ * That copy iterates the EVENTS and looks each up by id; this one iterates the
+ * TERMS, because the room has no event list. The difference is real and bounded:
+ * a `terms.functions` entry whose event was deleted counts here and not there,
+ * which can only ever draw a row the document then omits — the safe direction,
+ * and the opposite mistake would hide a clause she is entitled to.
+ */
+function outstationGate(terms: Record<string, unknown>, vendorCity: string | null): boolean {
+  const fns = (terms.functions as Record<string, { city?: string }> | undefined) || {};
+  const base = String(vendorCity || '').trim().toLowerCase();
+  if (!base) return false;
+  return Object.values(fns).some((k) => {
+    const c = String((k && k.city) || '').trim().toLowerCase();
+    return c !== '' && c !== base;
+  });
+}
+
+// ══ WHAT IS NEEDED BEFORE SHE CAN SEND — T3-preview, rows 40–41 ════════════
+//
+// ⚠ THE REGISTER NAMES SIX AND THE DOOR REFUSES ON NONE OF THEM YET. Packet 2
+// rebuilt the renderer and did not touch `src/api/vendor/contracts.js`; the
+// `{ code: 'required_missing', fields }` refusal the kickoff's ladder named does
+// not exist at `6e590ec` — census run, zero hits in `src/`. So this list is the
+// ROOM'S, derived from the row and the profile it already holds, and it is a
+// SECOND home for a rule the door does not yet carry rather than a duplicate of
+// one it does. When the refusal ships, this reads it and the derivation goes.
+//
+// ⚠ EACH ROW IS DERIVED FROM THE SAME PLACE THE RENDERER WOULD READ IT, so the
+// two cannot disagree about a document nobody has edited:
+//   · the number    — `clients.phone`, through the row, never the input box
+//   · the functions — `terms.functions`, the renderer's clause 3 source
+//   · the fee       — `terms.fee_total`, OR an invoice, which `deriveMoney`
+//                     prefers when one exists (`invoice.amount_total ?? T.fee_total`)
+//   · the deposit   — `contracts.deposit_pct`; `null` is NOT SET and never zero
+//   · delivery      — `delivery_days`, PROFILE, REQUIRED at v4 because clause 4.7
+//                     and clause 11 both add days to a period that must exist
+//   · who signs     — `vendor_signatory_name`, PROFILE, REQUIRED at v4 by ruling
+//                     F7: a seal that names the Client and not the Vendor is half
+//                     a witness
+type RequiredRow = { label: string; value: string | null };
+
+function requiredRows(
+  c: Contract, terms: Record<string, unknown>, depositPct: string,
+  savedPhone: string, profile: ContractProfileFields,
+): RequiredRow[] {
+  const t = (v: unknown) => {
+    const s = v === null || v === undefined ? '' : String(v).trim();
+    return s === '' ? null : s;
+  };
+  const fns = (terms.functions as Record<string, { city?: string }> | undefined) || {};
+  return [
+    { label: 'Her number',        value: t(savedPhone) },
+    { label: 'Functions and dates', value: Object.keys(fns).length > 0 ? String(Object.keys(fns).length) : null },
+    { label: 'Fee',               value: t(terms.fee_total) ?? (c.invoice_id ? 'From your invoice' : null) },
+    { label: 'Deposit',           value: t(depositPct) },
+    { label: 'Delivered within',  value: t(profile.delivery_days) },
+    { label: 'Who signs for you', value: t(profile.vendor_signatory_name) },
+  ];
+}
 
 /** One row of the picker's union. `id` is a `public.clients` id, or NULL for a
  *  binder — and the null is the whole difference: a null id means the tap will
@@ -212,6 +421,115 @@ function Field({ label, value, placeholder, onChange, readOnly, required }: {
   );
 }
 
+/**
+ * ⚠ THE FRAMES SAY 「Priya」 AND THE ROOM MUST NOT. Every ratified sentence on
+ * the tailoring surfaces names the worked example — *what Priya signs*, *what
+ * Priya will receive* — because a mock has one couple and a room has all of
+ * them. The byte is the sentence; the name is the row's.
+ *
+ * ⚠ AND IT IS THE COMPOSED TITLE'S FIRST HALF, WHICH IS ALREADY THIS ROOM'S ONE
+ * WAY TO A CLIENT'S NAME. `record.title` is generated as `<client> — wedding
+ * services` (veto row 10) and the record's own 「Your client」 field reads it the
+ * same way, with the same dash. A second source here — a `clients` fetch, a
+ * `terms` key — would be a second home for a name the row already carries.
+ */
+function clientFirstName(c: Contract): string {
+  const whole = String(c.title || '').split(' \u2014 ')[0].trim();
+  return whole.split(/\s+/)[0] || whole;
+}
+
+/**
+ * ONE ANNEX, WITH ITS MARK. Veto row 34's two bytes.
+ *
+ * ⚠ THE MARK IS A STATEMENT, NOT A CONTROL, AND THE WHOLE ROW IS THE CONTROL.
+ * The ratified frame draws a check to the left and the state word beneath the
+ * title; a tap anywhere on the row toggles it, because a 16-pixel checkbox on a
+ * phone is a control that refuses half the taps aimed at it.
+ */
+function AnnexRow({ annex, on, disabled, onToggle }: {
+  annex: AnnexOption; on: boolean; disabled?: boolean; onToggle: () => void;
+}) {
+  return (
+    <button type="button" disabled={disabled} onClick={onToggle}
+            style={{ ...OPT, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <span>{annex.label}</span>
+      <span style={{ ...labelStyle, marginBottom: 0, color: on ? 'var(--role-positive)' : 'var(--atelier-ink-mute)' }}>
+        {on ? 'Attached' : 'Not attached'}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * THE LINE UNDER A CLAUSE SWITCH, AND EVERY ONE OF IT IS HERS.
+ *
+ * ⚠ THE FRAME SHOWS 「1.5% a month after 7 days」 AND 「Rs 4,000 an hour」 AND TDW
+ * AUTHORS NEITHER NUMBER. They are `late_interest_pct` / `late_grace_days` and
+ * `overtime_rate` / `overtime_unit` out of her profile — the same four tokens the
+ * renderer interpolates into clauses 4.6 and 4.7 — so the line she reads beside
+ * the switch is the sentence the document will print, in short.
+ *
+ * ⚠ A LINE WITH A MISSING NUMBER IS ABSENT, NOT HALF-WRITTEN. `f`'s rule on the
+ * paper, applied to the room: the renderer omits clause 4.7 whole when either
+ * value is unset, so a caption reading 「% a month after days」 would describe a
+ * clause that is not going to print.
+ *
+ * ⚠ AND TWO OF THE SIX HAVE NO CAPTION AT ALL. `A named professional` and
+ * `Portfolio use` are the two rows cut from the ratified frame for the fold and
+ * rejoined by the founder's ruling; neither has a vetoed sub-line, so neither
+ * gets one. A caption invented to fill a column would be a byte nobody passed.
+ */
+function clauseMeta(key: string, p: ContractProfileFields, vendorCity: string | null): string | null {
+  const v = (k: string) => {
+    const s = (p[k] || '').trim();
+    return s === '' ? null : s;
+  };
+  if (key === 'accommodation') {
+    // Row 25 — a STATE, not a control, and it says why the row arrived on.
+    return vendorCity ? `On \u2014 a function is outside ${vendorCity}` : null;
+  }
+  if (key === 'late_payment') {
+    const pct = v('late_interest_pct'), days = v('late_grace_days');
+    return pct && days ? `${pct}% a month after ${days} days` : null;
+  }
+  if (key === 'extra_hours') {
+    const rate = v('overtime_rate'), unit = v('overtime_unit');
+    return rate && unit ? `Rs ${rate} an ${unit}` : null;
+  }
+  if (key === 'tax_block') {
+    // Row 28 POINTS AT SETTINGS AND NOT AT ITSELF. `vendors.gstin` has one home
+    // already and a second entry point here would be a second home for a tax
+    // number — the same reasoning as the ratified Q9.
+    const treatment = v('gst_treatment'), pct = v('gst_pct');
+    return treatment && pct ? `${pct}% \u00b7 ${treatment}` : 'Absent \u2014 add your GSTIN in Settings';
+  }
+  return null;
+}
+
+/** One clause, its caption and its switch. The whole row is the control, for the
+ *  reason `AnnexRow` gives: a small target on a phone refuses half the taps. */
+function ClauseRow({ label, meta, on, disabled, onToggle }: {
+  label: string; meta: string | null; on: boolean; disabled?: boolean; onToggle: () => void;
+}) {
+  return (
+    <button type="button" disabled={disabled} onClick={onToggle}
+            style={{ ...OPT, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 14 }}>
+      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, textAlign: 'left' }}>
+        <span>{label}</span>
+        {meta ? (
+          <span style={{ fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300,
+                         fontSize: 13, lineHeight: 1.4, color: 'var(--atelier-ink-mute)' }}>{meta}</span>
+        ) : null}
+      </span>
+      <span style={{ fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 8,
+                     letterSpacing: '0.32em', textTransform: 'uppercase', flexShrink: 0,
+                     color: on ? 'var(--role-positive)' : 'var(--atelier-ink-mute)' }}>
+        {on ? 'Printed' : 'Not printed'}
+      </span>
+    </button>
+  );
+}
+
 export function ContractsScreen() {
   const { toast, show } = useToast();
   // ⚠ THE SESSION IS READ HERE AND NOT PASSED IN. This body's own header records
@@ -242,7 +560,14 @@ export function ContractsScreen() {
   const [pickState, setPickState] = useState<'loading' | 'failed' | 'ready'>('loading');
   const [clients, setClients]     = useState<PickRow[]>([]);
   const [record, setRecord]       = useState<Contract | null>(null);
-  const [terms, setTerms]         = useState<Record<string, string>>({});
+  // ⚠ THE VALUE TYPE WIDENS TO `unknown` AT SITTING 2, AND THAT IS A FACT ABOUT
+  // THE ROW RATHER THAN A LOOSENING. `contracts.terms` is jsonb and the renderer
+  // reads two NESTED objects out of it — `terms.clauses` (six booleans) and
+  // `terms.functions` (keyed by event id, carrying `venue` and `city`). A
+  // `Record<string, string>` could not hold either, and the record's text fields
+  // still read and write strings through `Field`. The narrowing happens where a
+  // value is used, not where the row is typed.
+  const [terms, setTerms]         = useState<Record<string, unknown>>({});
   const [annexes, setAnnexes]     = useState<Record<string, boolean>>({});
   const [depositPct, setDepositPct] = useState<string>('');
   const [promoted, setPromoted]     = useState(false);
@@ -257,6 +582,37 @@ export function ContractsScreen() {
   // sources is a control that lies about itself.
   const [savedPhone, setSavedPhone] = useState('');
 
+  // ── G3.2 sitting 2 · THE PROFILE SHEET (Q1–Q10) ───────────────────────────
+  // ⚠ THREE STATES, NOT A LENGTH — F-40.138's law, applied at its second door.
+  // `{}` is a LEGAL answer here and the commonest one: a vendor who has never
+  // opened this sheet has an empty profile, and that is not a failure and not a
+  // spinner. Keying the sheet on `Object.keys(profile).length` would collapse in
+  // flight, failed and never-filled into one screen, which is exactly what the
+  // picker did before its cure.
+  const [profileOpen, setProfileOpen]   = useState(false);
+  const [profileState, setProfileState] = useState<'loading' | 'failed' | 'ready'>('loading');
+  const [profile, setProfile]           = useState<ContractProfileFields>({});
+
+  // ── THE ANNEX CHOOSER (T2 / T2-unmapped) ──────────────────────────────────
+  // ⚠ `mapped` IS THE DOOR'S, AND THE SURFACE CHANGES SHAPE ON IT. It is held
+  // as its own field rather than derived from `offered.length`, because the door
+  // returns all seven in `offered` for an unmapped vendor too — a length here
+  // would read `7` for both the vendor whose trade we know and the vendor whose
+  // trade we do not, and draw the wrong surface for one of them.
+  const [annexState, setAnnexState] = useState<'loading' | 'failed' | 'ready'>('loading');
+  const [annexMap, setAnnexMap]     = useState<AnnexMapResponse | null>(null);
+
+  // ── THE TAILORING SURFACES — T1-clauses and T3-preview ────────────────────
+  const [clausesOpen, setClausesOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  // ⚠ HER CITY IS CLAUSE 5'S GATE AND IT IS NOT ON THE SESSION. `VendorSession`
+  // carries id, name, phone and tier and no city; `GET /me` is its one home and
+  // the room reads it once, on mount. `null` until it lands, and `outstationGate`
+  // returns false on a blank base — so the accommodation row is ABSENT while the
+  // fact is unknown rather than drawn on a guess. Absent, never greyed, and the
+  // same rule applied to a fact instead of a control.
+  const [vendorCity, setVendorCity] = useState<string | null>(null);
+
   useEffect(() => {
     // ── ALL FOUR STATES — F-40.115, R-G32.15 ──────────────────────────────
     // `fetchAllContracts` is `fetchContracts` with `include_cancelled=1`. The
@@ -265,6 +621,9 @@ export function ContractsScreen() {
     // cancelled section at the foot.
     fetchAllContracts().then(r => { if (r.ok) setContracts((r as { contracts: Contract[] }).contracts); })
       .finally(() => setLoading(false));
+    // The gate's base city. A failed read leaves it null and clause 5's row stays
+    // away — the honest picture when the room does not know where she is.
+    fetchMe().then(r => { if (r.ok) setVendorCity(r.vendor.city || null); }).catch(() => {});
   }, []);
 
   async function doUpload() {
@@ -320,7 +679,7 @@ export function ContractsScreen() {
    *  composer, and the sentence at veto row 33 says so to the vendor. */
   function openRecord(c: Contract) {
     setRecord(c);
-    setTerms((c.terms as Record<string, string>) ?? {});
+    setTerms((c.terms as Record<string, unknown>) ?? {});
     setAnnexes(c.annexes ?? {});
     setDepositPct(c.deposit_pct === null || c.deposit_pct === undefined ? '' : String(c.deposit_pct));
     // ⚠ **F-40.161 — THIS SEEDED FROM THE PICKER'S ROWS, WHICH ARE EMPTY.**
@@ -335,6 +694,19 @@ export function ContractsScreen() {
     setPhone('');
     setSavedPhone('');
     if (c.client_id) void loadClientPhone(c.client_id);
+    // ── THE MAP IS FETCHED PER OPEN, NOT PER ROOM MOUNT ─────────────────────
+    // ⚠ IT IS A FACT ABOUT HER TRADE, WHICH CAN CHANGE, AND IT IS CHEAP: one
+    // read of a frozen constant behind an already-resolved vendor row. Fetching
+    // it once at mount would mean a vendor who set her category in Settings and
+    // came straight here would meet the map she had before she answered.
+    void loadAnnexMap();
+    // ⚠ AND THE PROFILE IS READ HERE TOO, because the record's own card is drawn
+    // from it — 「Set your policies once」 is not a permanent fixture, it is a
+    // statement about whether she has. Read before it is drawn, never after.
+    void (async () => {
+      const r = await fetchContractProfile();
+      if ('ok' in r && r.ok) setProfile((r as { fields: ContractProfileFields }).fields || {});
+    })();
     setSelected(null);
   }
 
@@ -360,6 +732,108 @@ export function ContractsScreen() {
     const p = (hit && hit.phone) || '';
     setPhone(p);
     setSavedPhone(p);
+  }
+
+  // ── THE PROFILE SHEET ─────────────────────────────────────────────────────
+  /** ⚠ THE READ IS ITS OWN CALL AND IT RUNS EVERY OPEN. A profile cached from
+   *  the first open would go stale the moment she saved from another device, and
+   *  this sheet posts the WHOLE object — so a stale read would silently write
+   *  back a value she had already changed. Cheap read, correct write. */
+  async function openProfile() {
+    setProfileOpen(true);
+    setProfileState('loading');
+    const r = await fetchContractProfile();
+    if (!('ok' in r) || !r.ok) { setProfileState('failed'); return; }
+    // `{}` is a real answer and it is READY, never empty-as-failure.
+    setProfile((r as { fields: ContractProfileFields }).fields || {});
+    setProfileState('ready');
+  }
+
+  /** ⚠ ONE POST, AND IT IS NOT OPTIMISTIC. The clause switches save on the tap
+   *  because a switch that waits reads as broken; a twenty-eight-field sheet
+   *  with an explicit `Save my policies` is the opposite case — she has pressed
+   *  a button and is entitled to know whether it took. The sheet stays open on a
+   *  refusal with her typing intact, and closes only on the door's yes.
+   *
+   *  ⚠ AND THE DOOR'S ECHO IS WHAT LANDS IN STATE, never the object we sent.
+   *  `contract_profiles.fields` is upserted wholesale and the row is what the
+   *  renderer will read; trusting the local copy would be this plane asserting a
+   *  write it did not witness. */
+  async function doSaveProfile() {
+    setSaving(true);
+    const r = await saveContractProfile(profile);
+    setSaving(false);
+    if (!('ok' in r) || !r.ok) {
+      show((r as { error?: string }).error ?? 'That could not be saved.', 'error');
+      return;
+    }
+    setProfile((r as { fields: ContractProfileFields }).fields || {});
+    setProfileOpen(false);
+    show('Saved', 'success');
+  }
+
+  // ── THE ANNEX CHOOSER ─────────────────────────────────────────────────────
+  /** ⚠ NO FALLBACK LIST ON FAILURE, AND THAT IS THE POINT. The room used to
+   *  carry its own seven names, so it could always draw something; it can no
+   *  longer, and a failed read now says so instead of drawing a plausible list
+   *  the door never sent. F-40.138's law is that failed and empty are different
+   *  sentences — here failed and *guessed* would have been the same picture. */
+  async function loadAnnexMap() {
+    setAnnexState('loading');
+    const r = await fetchAnnexMap();
+    if (!('ok' in r) || !r.ok) { setAnnexState('failed'); return; }
+    setAnnexMap(r as AnnexMapResponse);
+    setAnnexState('ready');
+  }
+
+  /** THE ONLY WRITER of `annexes` from this surface, and it saves on the tap.
+   *  ⚠ OPTIMISTIC, WITH A REVERT ON REFUSAL AND THE DOOR'S ECHO ON SUCCESS —
+   *  the storefront switch's posture verbatim (`screen.tsx` toggle, R-G31.7).
+   *  A checkbox that waits for a round trip reads as a checkbox that did not
+   *  take; a checkbox that never checks the answer is the class F-40.180 filed. */
+  async function toggleAnnex(key: string) {
+    if (!record || saving) return;
+    const next = { ...annexes, [key]: !annexes[key] };
+    setAnnexes(next);
+    setSaving(true);
+    const res = await fillContract(record.id, { annexes: next });
+    setSaving(false);
+    if (!res.ok) {
+      setAnnexes(annexes);
+      show((res as { error?: string }).error ?? 'That could not be saved.', 'error');
+      return;
+    }
+    const c = (res as { contract: Contract }).contract;
+    setAnnexes(c.annexes ?? {});
+    setContracts(prev => prev.map(x => (x.id === c.id ? c : x)));
+  }
+
+  /** THE ONLY WRITER of `terms.clauses` from this surface, and it saves on the
+   *  tap — the storefront switch's posture, for the same reason: a switch that
+   *  waits for a Save reads as a switch that did not take.
+   *
+   *  ⚠ IT WRITES AN EXPLICIT `false` AND AN EXPLICIT `true`, never a delete. The
+   *  renderer's `switchOn` treats ABSENT as ON, so removing the key to turn a
+   *  clause off would turn it back on. The two planes agree only because both
+   *  say `!== false` and this one only ever stores a boolean. */
+  async function toggleClause(key: string) {
+    if (!record || saving) return;
+    const prev = terms;
+    const clauses = { ...((terms.clauses as Record<string, boolean> | undefined) || {}) };
+    clauses[key] = !switchOn(terms, key);
+    const next = { ...terms, clauses };
+    setTerms(next);
+    setSaving(true);
+    const res = await fillContract(record.id, { terms: next });
+    setSaving(false);
+    if (!res.ok) {
+      setTerms(prev);
+      show((res as { error?: string }).error ?? 'That could not be saved.', 'error');
+      return;
+    }
+    const c = (res as { contract: Contract }).contract;
+    setTerms((c.terms as Record<string, unknown>) ?? {});
+    setContracts(list => list.map(x => (x.id === c.id ? c : x)));
   }
 
   async function openPicker() {
@@ -719,7 +1193,7 @@ export function ContractsScreen() {
                 the instrument. There is no second mark and there will not be one. */}
             <Field label="Her number" required="Needed to send" value={phone} placeholder="Not filled"
                    onChange={v => setPhone(v)} />
-            <Field label="Second partner&#8217;s name" value={terms.partner_2_name ?? ''} placeholder="Not filled"
+            <Field label="Second partner&#8217;s name" value={String(terms.partner_2_name ?? '')} placeholder="Not filled"
                    onChange={v => setTerms({ ...terms, partner_2_name: v })} />
             <div style={NOTE}>Filled from your client&#8217;s record. Nothing here was typed twice.</div>
             <div style={NOTE}>We send the agreement here. It goes on her record too, so you only type it once.</div>
@@ -731,31 +1205,95 @@ export function ContractsScreen() {
             )}
 
             <div style={GROUP}>The dates</div>
-            <Field label="Venue" value={terms.venue ?? ''} placeholder="Venue not filled"
+            <Field label="Venue" value={String(terms.venue ?? '')} placeholder="Venue not filled"
                    onChange={v => setTerms({ ...terms, venue: v })} />
-            <Field label="City" value={terms.city ?? ''} placeholder="Not filled"
+            <Field label="City" value={String(terms.city ?? '')} placeholder="Not filled"
                    onChange={v => setTerms({ ...terms, city: v })} />
             <div style={NOTE}>Blank fields print as blanks. Fill what applies.</div>
 
             <div style={GROUP}>Money</div>
-            <Field label="Fee" value={terms.fee_total ?? ''} placeholder="Not filled"
+            <Field label="Fee" value={String(terms.fee_total ?? '')} placeholder="Not filled"
                    onChange={v => setTerms({ ...terms, fee_total: v.replace(/[^0-9]/g, '') })} />
             <Field label="Deposit" value={depositPct} placeholder="Not set"
                    onChange={v => setDepositPct(v.replace(/[^0-9.]/g, ''))} />
             <div style={NOTE}>30% holds the dates. Change it if you want.</div>
             <div style={NOTE}>Add your GSTIN to print the tax block.</div>
 
+            {/* ══ THE ANNEX CHOOSER — T2-annexes / T2-unmapped, rows 30-35, 42-43 ══
+                ⚠ IT RENDERS UNDER THE RECORD'S OWN RATIFIED GROUP HEAD rather
+                than behind a new row, and that is a decision about bytes: every
+                navigation label this room could have grown here would have been
+                a string the founder's pass never saw. 「Annexes」 is veto row 35
+                and it is already the head of this group.
+
+                ⚠ ROW 39 RETIRES, AND ITS RETIREMENT IS THE MAP LANDING.
+                *From your profile — change it here for this couple only.* was
+                true while nothing decided which annexes a vendor was offered.
+                The offer now comes from her CATEGORY through `annex-map`, so
+                that sentence had become a statement about a mechanism that does
+                not exist — R-40.104's class, and the cure is the same one: the
+                byte goes with the fact it described. Rows 35 and 43 are the
+                ratified sentences that replace it, and each is true of the
+                surface it stands under. */}
             <div style={GROUP}>Annexes</div>
-            {ANNEXES.map(a => (
-              <button key={a.key} type="button" onClick={() => setAnnexes({ ...annexes, [a.key]: !annexes[a.key] })}
-                      style={{ ...OPT, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span>{a.label}</span>
-                <span style={{ ...labelStyle, marginBottom: 0, color: annexes[a.key] ? A.green : A.inkMute }}>
-                  {annexes[a.key] ? 'Attached' : 'Not attached'}
-                </span>
-              </button>
-            ))}
-            <div style={NOTE}>From your profile &#8212; change it here for this couple only.</div>
+            <div style={NOTE}>
+              An annex is a page of its own on the agreement. Attach one and its terms are part of what {clientFirstName(record)} signs;
+              leave it off and clause 2.2 says that service is not included.
+            </div>
+            {annexState === 'loading' && <div style={NOTE}>Loading&#8230;</div>}
+            {/* R-40.113 — R2's shape, one noun over. F-40.138's law is that
+                failed has its OWN sentence and never shares one with empty. */}
+            {annexState === 'failed' && <div style={NOTE}>We couldn&#8217;t load your annexes.</div>}
+            {annexState === 'ready' && annexMap && (
+              <>
+                {/* ⚠ ONE HEAD OR TWO, AND THE DOOR DECIDES WHICH. For a vendor
+                    whose trade is not on file the mapped surface would stand
+                    「Offered for your trade」 over nothing — an empty section
+                    under a section head, F-40.138's shape in different chrome.
+                    So the SURFACE changes, not merely its contents. */}
+                <div style={GROUP}>{annexMap.mapped ? 'Offered for your trade' : 'All annexes'}</div>
+                {annexMap.offered.map((a: AnnexOption) => (
+                  <AnnexRow key={a.key} annex={a} on={annexes[a.key] === true}
+                            disabled={saving} onToggle={() => void toggleAnnex(a.key)} />
+                ))}
+                {annexMap.mapped && annexMap.others.length > 0 && (
+                  <>
+                    <div style={GROUP}>Add another</div>
+                    {annexMap.others.map((a: AnnexOption) => (
+                      <AnnexRow key={a.key} annex={a} on={annexes[a.key] === true}
+                                disabled={saving} onToggle={() => void toggleAnnex(a.key)} />
+                    ))}
+                  </>
+                )}
+                <div style={NOTE}>
+                  {annexMap.mapped
+                    ? 'The first list is what your trade usually attaches. It is a suggestion and never a rule \u2014 attach any of them, and Annex G is there for work the others do not name.'
+                    : 'We do not have your trade on file, so all seven are here. Attach whatever fits \u2014 Annex G covers work the others do not name.'}
+                </div>
+              </>
+            )}
+
+            {/* ══ VETO ROWS 30-31 · THE CARD FINALLY HAS SOMEWHERE TO GO ══════
+                ⚠ IT IS DRAWN ON EVERY RECORD, NOT ONLY A BLANK ONE, AND THAT IS
+                RULED — R-G32.20. `R4-record-filled` was drawn at sitting 1,
+                BEFORE `R4-profile` existed; rider 2 added the sheet afterwards,
+                so that frame's silence about this card is the silence of a frame
+                with no sheet to point at, not a ruling that the card disappears.
+                A policy settable once and never correctable is the failure. */}
+            <div style={GROUP}>Set your policies once</div>
+            <div style={NOTE}>Your prices, your cancellation slab, your delivery times. Asked once, used on every contract.</div>
+            <button type="button" onClick={() => void openProfile()} style={GHOST}>Set your policies once</button>
+
+            {/* ── THE TAILORING SURFACES JOIN THE ROOM (v4 §0) ──────────────
+                ⚠ EACH IS ENTERED BY ITS OWN RATIFIED TITLE AND NOTHING ELSE.
+                「What she receives」 is veto row 17 and 「What Priya will receive」
+                is row 36; a row invented to point at a surface would be a byte
+                the founder's pass never saw, on a delivery whose §4 said to
+                expect none. T1 carries row 29 through to T3, which is where the
+                Send lives under the v4 arc. */}
+            <div style={GROUP}>The agreement</div>
+            <button type="button" onClick={() => setClausesOpen(true)} style={OPT}>What she receives</button>
+            <button type="button" onClick={() => setPreviewOpen(true)} style={OPT}>What {clientFirstName(record)} will receive</button>
 
             <button type="button" disabled={saving} onClick={() => void doPreview(record)} style={GHOST}>Preview the PDF</button>
             {/* ⚠ R-40.74 / the chair's P4 — **SEND IS ABSENT UNTIL A NUMBER EXISTS**,
@@ -768,13 +1306,208 @@ export function ContractsScreen() {
                 if this read the input box, typing a number would summon a Send that
                 the door then refuses — which is exactly what the walk hit. Send
                 appears when there IS somewhere to send to, not when she has typed
-                one. Still absent rather than greyed (the chair's P4). */}
-            {savedPhone.trim() ? (
-              <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>
-            ) : (
-              <div style={{ ...NOTE, paddingTop: 12 }}>Add her number to send this.</div>
-            )}
+                one. Still absent rather than greyed (the chair's P4).
+
+                ⚠ AND AT SITTING 2 THE GATE WIDENS TO ALL SIX, THROUGH THE SAME
+                `requiredRows` T3 READS. Two Sends with two different conditions
+                would be one act with two opinions: this one would appear the
+                moment she had a number, `T3-preview` would say four fields were
+                missing, and whichever she pressed first would decide which was
+                telling the truth. F-40.161's lesson is exactly that — a control
+                whose condition and whose door consult different sources lies
+                about itself — and a second control on the same plane is the same
+                disease between two surfaces.
+
+                ⚠ THE LINE STAYS ONLY FOR THE CASE THAT HAS A RATIFIED BYTE. When
+                something OTHER than the number is missing there is nothing here
+                at all: the row above opens the checklist, which names the field
+                by name. Absence is the refusal (R-40.88's own shape), and four
+                invented sentences would be four bytes nobody passed. */}
+            {(() => {
+              const missing = requiredRows(record, terms, depositPct, savedPhone, profile)
+                .filter(r => r.value === null);
+              if (missing.length === 0) {
+                return <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>Send to the couple</button>;
+              }
+              if (missing.some(r => r.label === 'Her number')) {
+                return <div style={{ ...NOTE, paddingTop: 12 }}>Add her number to send this.</div>;
+              }
+              return null;
+            })()}
             <button type="button" disabled={saving} onClick={() => void doSaveFill(true)} style={QUIET}>Save and finish later</button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ THE PROFILE SHEET — `R4-profile`, Q1–Q10 ═════════════════════════
+          The PROFILE tokens' first surface. Every `__________` a couple has ever
+          seen on one of these agreements is one of the twenty-eight fields below,
+          and the instrument has been correct in substance and blank in policy
+          since the day it shipped because this sheet did not exist.
+
+          ⚠ IT IS BOUNDED IN `dvh` LIKE ITS TWO SIBLINGS — F-40.154. Twenty-eight
+          rows is the longest sheet in this room by some way, and `vh` does not
+          shrink when the browser bar appears, so the foot of a long sheet becomes
+          unreachable on iOS at exactly the point where it carries the Save. */}
+      {profileOpen && (
+        <div style={SCRIM} onClick={() => !saving && setProfileOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            ...SHEET, maxHeight: '88dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', gap: 10,
+          }}>
+            <div style={GRAB}><div style={GRABBAR} /></div>
+            <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>Contracts</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Your policies</div>
+            {/* Q2 — and it is the sheet's own honesty about itself. R-40.88 omits
+                a clause whose fields are unset, so a blank row here is not an
+                unfinished form; it is a clause the agreement will not carry. */}
+            <div style={NOTE}>Asked once. Used on every contract you fill. Leave anything blank and it prints as a blank.</div>
+
+            {/* ⚠ THREE STATES, THREE SENTENCES, ONE KEY — and `ready` with an
+                empty object is the COMMONEST of them, not a fourth. */}
+            {profileState === 'loading' && <div style={NOTE}>Loading&#8230;</div>}
+            {/* R-40.113, with the annex surface's. Q1–Q10 mint the sheet's
+                twenty-eight labels, its title, its note and its Save. */}
+            {profileState === 'failed' && <div style={NOTE}>We couldn&#8217;t load your policies.</div>}
+
+            {profileState === 'ready' && (
+              <>
+                {PROFILE_SECTIONS.map(sec => (
+                  <div key={sec.head}>
+                    <div style={GROUP}>{sec.head}</div>
+                    {sec.rows.map((row, i) => {
+                      // ⚠ THE FOUR SLAB LABELS ARE HERS WHEN SHE HAS THRESHOLDS.
+                      // The register's `cancel_tier_N_pct` tokens are what the
+                      // instrument prints; a vendor meets a range of days and
+                      // never a token name. Q6 says so in as many words.
+                      const label = sec.head === 'If plans change' && i >= 2 && i <= 5
+                        ? slabLabels(profile)[i - 2]
+                        : row.label;
+                      return (
+                        <Field key={row.key} label={label} value={profile[row.key] ?? ''}
+                               placeholder="Not filled"
+                               onChange={v => setProfile({ ...profile, [row.key]: v })} />
+                      );
+                    })}
+                    {/* Q9 POINTS AT SETTINGS AND NOT AT ITSELF. `vendors.gstin`
+                        lives on the vendor row and has one home already; a second
+                        entry point here would be a second home for a tax number.
+                        The same reasoning the tailoring surface gives at row 28. */}
+                    {sec.head === 'Tax' && (
+                      <div style={NOTE}>Add your GSTIN in Settings to print the tax block.</div>
+                    )}
+                  </div>
+                ))}
+                <button type="button" disabled={saving} onClick={() => void doSaveProfile()} style={CTA}>Save my policies</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══ THE CLAUSE LIST — `T1-clauses`, veto rows 16–29 ══════════════════
+          Today the composer fills blanks and nothing else: no clause toggle, no
+          choice about what leaves. Every switch here decides whether a clause is
+          PRINTED, and rows 18 and 22 say so twice on purpose — one sentence at
+          the top would be read once and forgotten by the row where the
+          misreading would actually cost something. */}
+      {clausesOpen && record && (
+        <div style={SCRIM} onClick={() => !saving && setClausesOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            ...SHEET, maxHeight: '88dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', gap: 10,
+          }}>
+            <div style={GRAB}><div style={GRABBAR} /></div>
+            <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>The agreement</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>What she receives</div>
+            <div style={NOTE}>
+              This decides which clauses are printed on {clientFirstName(record)}&#8217;s agreement &#8212; never whether her consent is on.
+            </div>
+
+            <div style={GROUP}>Always printed</div>
+            <Field label="Parties, dates, fee, deposit" value="Required" readOnly />
+            <Field label="Photographs and the wedding page" value="Printed" readOnly />
+            {/* ⚠ ROW 22 STANDS WHERE A SWITCH IS CONSPICUOUSLY ABSENT, and clause
+                10 has none anywhere in the estate. The renderer's own header
+                forbids `publication` from `CLAUSE_SWITCHES` and `b56` reds on a
+                mutation that adds it. The row is drawn with no control at all —
+                not a disabled one — because a greyed switch beside a consent
+                clause is precisely the misreading row 18 exists to prevent. */}
+            <div style={NOTE}>There is no switch here for the wedding page. That one is {clientFirstName(record)}&#8217;s, in her own account.</div>
+
+            <div style={GROUP}>Yours to choose</div>
+            {CLAUSE_SWITCHES.map(sw => {
+              // ⚠ CLAUSE 5'S ROW RENDERS ONLY WHEN THE GATE IS OPEN. An in-city
+              // wedding prints no accommodation clause whatever the switch says,
+              // so a switch drawn there would be a control with no effect — and
+              // this arc has refused that seven times now.
+              if (sw.key === 'accommodation' && !outstationGate(terms, vendorCity)) return null;
+              return (
+                <ClauseRow key={sw.key} label={sw.label}
+                           meta={clauseMeta(sw.key, profile, vendorCity)}
+                           on={switchOn(terms, sw.key)} disabled={saving}
+                           onToggle={() => void toggleClause(sw.key)} />
+              );
+            })}
+
+            <button type="button" onClick={() => { setClausesOpen(false); setPreviewOpen(true); }} style={GHOST}>
+              See what {clientFirstName(record)} will receive
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ WHAT THE CLIENT WILL RECEIVE — `T3-preview`, rows 36–41 ══════════
+          ⚠ THE ONE SURFACE IN THE ESTATE THAT SAYS *WHY* SOMETHING IS ABSENT,
+          and it is a Vendor surface and never a Client one. R-40.88 forbids the
+          document from explaining its own omissions, so a clause missing from
+          her agreement is never a surprise to the Client — she never knew it
+          could be there. It must never be a surprise to the Vendor.
+
+          ⚠ AND THERE IS NO SEND WHILE A REQUIRED FIELD IS UNFILLED. Not a
+          disabled one: the control is ABSENT and the line stands where it would
+          have been (row 41, the chair's change). A greyed control is a thing she
+          keeps tapping. */}
+      {previewOpen && record && (
+        <div style={SCRIM} onClick={() => !saving && setPreviewOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            ...SHEET, maxHeight: '88dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', gap: 10,
+          }}>
+            <div style={GRAB}><div style={GRABBAR} /></div>
+            <div style={{ ...labelStyle, letterSpacing: '0.42em', fontSize: 9, color: A.brass }}>The agreement</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
+              What {clientFirstName(record)} will receive
+            </div>
+
+            <div style={GROUP}>Needed before you can send</div>
+            {requiredRows(record, terms, depositPct, savedPhone, profile).map(r => (
+              <Field key={r.label} label={r.label} value={r.value ?? 'Not filled'} readOnly />
+            ))}
+
+            <button type="button" disabled={saving} onClick={() => void doPreview(record)} style={GHOST}>Preview the PDF</button>
+
+            {/* ⚠ THE REFUSAL NAMES THE MISSING FIELD ONLY WHERE A RATIFIED BYTE
+                EXISTS FOR IT — the number (P4) and the signatory (row 41). For
+                the other four the checklist above has already said which row
+                reads `Not filled`, and the ABSENCE of Send is the refusal.
+                Authoring four more sentences here would be four bytes the
+                founder's pass never saw. */}
+            {(() => {
+              const missing = requiredRows(record, terms, depositPct, savedPhone, profile)
+                .filter(r => r.value === null);
+              if (missing.length === 0) {
+                return (
+                  <button type="button" disabled={saving} onClick={() => void doSendToCouple(record)} style={CTA}>
+                    Send to the couple
+                  </button>
+                );
+              }
+              if (missing.some(r => r.label === 'Her number')) {
+                return <div style={{ ...NOTE, paddingTop: 12 }}>Add her number to send this.</div>;
+              }
+              if (missing.some(r => r.label === 'Who signs for you')) {
+                return <div style={{ ...NOTE, paddingTop: 12 }}>Add who signs for you to send this. It goes on the agreement and on the seal.</div>;
+              }
+              return null;
+            })()}
           </div>
         </div>
       )}
@@ -822,7 +1555,16 @@ export function ContractsScreen() {
                     than left to be inferred from the absence of a pay button. */}
                 {selected.state === 'signed' && !selected.deposit_received_at && (
                   <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
-                    She pays you directly \u2014 UPI or bank, as printed on the agreement. Nothing comes through this platform.
+                    {/* ⚠ F-40.199 · `\u2014` IN JSX TEXT IS NINE CHARACTERS, NOT A DASH.
+                        A vendor has been reading `She pays you directly \u2014 UPI or bank`
+                        on her own screen. Nothing interprets a unicode escape here —
+                        it is only a string-literal notation, and this position is not a
+                        string literal. The census found eight escape sites in this file
+                        and this is the ONLY one outside a literal, template or regex;
+                        the other seven are correct and are untouched, including
+                        `:714`'s `.split(' \u2014 ')`, whose dash must stay byte-identical
+                        to the one the title writer emits. */}
+                    She pays you directly &#8212; UPI or bank, as printed on the agreement. Nothing comes through this platform.
                   </div>
                 )}
                 {selected.state === 'signed' && !selected.deposit_received_at && (

@@ -36,7 +36,7 @@ import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
 import { roomHref } from '@/lib/worklist/rooms';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, CONTRACTS_HREF, PAYMENT_REMINDERS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -61,10 +61,14 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // the whole change: the row gains a destination and its chip flips to `Open`.
   // The key is `ROOM_ROWS`' own, not a new string.
   referrals:     REFERRALS_HREF,
-  // G3.2 · R-G32.16 — the FOURTH of the nine opens, and the map's own promise
-  // holds: one line, and the row gains a destination and its chip flips to
-  // `Open`. No ternary, no second string, no change to `ROOM_ROWS`.
-  contracts:     CONTRACTS_HREF,
+  // ── G3.2 · R-G32.16, AMENDED BY F-40.170 — THE FOURTH OF THE NINE, AND IT
+  // COSTS NO CONSTANT EITHER. Contracts is a REGISTRY room (`rooms.ts:168`), so
+  // its address comes from `roomHref` for exactly the reason `website` below
+  // does: `lib/solutions/routes.ts` is the home for rooms the registry does NOT
+  // own, and a constant for one it does is a second home. This row shipped with
+  // `CONTRACTS_HREF` and the constant is retired in the same edit that changes
+  // this line, so the two never disagree.
+  contracts:     roomHref('contracts'),
   // ── G3.1 · R-G31.2 — THE FIFTH OF THE NINE OPENS, AND IT COSTS NO CONSTANT
   // `website` is R-40.1's R3, 「Your website & SEO」. Its destination is the
   // Storefront room, which is a REGISTRY room — so the address comes from

@@ -1,0 +1,49 @@
+# scripts/floor-manifest-g32-s2-pwa.txt
+docs/TDW_19_G32_S2_PWA_HANDOVER.md
+# TDW_19 · BLOCK 19 · G3.2 SITTING 2 — THE dreamos-pwa HALF.
+# The profile sheet, the clause list, the annex chooser and what the Client will
+# receive. Q1–Q10, veto rows 16–43, F-40.199, F-40.170, R-40.113, R-G32.20.
+#
+# BASE a2e7fe32, RE-DERIVED AT THE CUT (R-38.16). The chair named `a2e7fe3` "at
+# writing"; the tip had not moved by the time this seat reached the cut, and that
+# is stated as a derivation rather than assumed from the kickoff.
+#
+# SIBLING dream-os 6e590ec — packet 2, LANDED UNDER THIS SEAT MID-SITTING. The
+# read-first was filed at `a0d127c` and every claim about a `terms` key, clause
+# 5's gate and clause 10's absent switch was RE-DERIVED at `6e590ec` before a
+# byte of the tailoring surfaces was written. Nothing in this delivery rests on
+# the earlier tip.
+#
+# ⚠ WHY THIS MANIFEST EXISTS AT ALL — F-19.16. `tdw_f0774_vacuity_probe` writes
+# to production source and restores it, so it REFUSES on a dirty tree rather than
+# prove a restore it cannot verify. Without this file the floor reads
+# 28 = 27 + 1 and the extra line is a REFUSAL, not a RED — a set difference
+# caused entirely by the delivery being uncommitted. The manifest declares the
+# dirt so the probe runs and the SET comparison means something.
+#
+# THE SIX PATHS. Every one is inside the radius the chair named, as corrected by
+# c-40.47 (contract shapes live in `lib/vendor/types/vendor.ts`, not in
+# `lib/solutions/types.ts` — the digest's declared list is untouched, F-40.213).
+app/vendor/(shell)/contracts/screen.tsx
+app/vendor/(shell)/support/page.tsx
+lib/solutions/routes.ts
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+scripts/b57_contracts_wiring_bench.js
+# ⚠ AND THIS FILE DECLARES ITSELF, which is not a curiosity. The first run of
+# `--delivery` STOPped with `dirt OUTSIDE the declared manifest` naming this very
+# manifest — an untracked file is dirt like any other, and the mode is right to
+# refuse it. It printed ZERO reds while doing so, and a zero where the base holds
+# twenty-seven is a run that did not happen, never a floor that came clean. The
+# exit code and the text were read rather than the count.
+scripts/floor-manifest-g32-s2-pwa.txt
+#
+# NOT HERE, AND CHECKED RATHER THAN ASSUMED:
+#   · `lib/solutions/types.ts` — untouched. `CONTRACT_DIGEST` unchanged, so the
+#     dream-os mirror at `src/api/vendor/solutions/contract.js` does not move.
+#   · `components/vendor/slices/SliceShell.tsx` — not this seat's (kickoff §1).
+#   · `lib/public/signCopy.ts` — closed at nine bytes.
+#   · `docs/mocks/**` — no frame is re-shot. Every surface in this delivery is
+#     built to a ratified capture and R-40.61 freezes the hub frames that draw
+#     Contracts as `Coming`.
+#   · `package.json` / `package-lock.json` — `npm ci` only; neither moved.

@@ -1343,6 +1343,51 @@ export interface ContractSignature {
   signed_at:       string | null;
 }
 
+// ── G3.2 sitting 2 · HER POLICIES, ASKED ONCE ─────────────────────────────
+//
+// ⚠ THE VALUE TYPE IS `string`, AND THAT IS A STATEMENT ABOUT THE INSTRUMENT.
+// Every one of these is a PROFILE token of F-40.94's 132 and TDW authors not one
+// of the values — not a price, not a percentage, not a day-count. The sheet asks
+// and keeps; it never computes. A `number` here would be this plane deciding
+// that `25` and `25%` are the same fact, which is exactly the sort of quiet
+// authorship the register's law one forbids.
+//
+// ⚠ AND EVERY KEY IS OPTIONAL, BECAUSE A BLANK PROFILE IS A LEGAL ONE.
+// `GET /profile/fields` answers `{}` for a vendor who has never opened the
+// sheet, and the instrument prints a blank for every token she has not set
+// (R-40.88 omits the clause; the ratified Q2 says so to her face). A required
+// key here would make the type disagree with the door on its own commonest row.
+export type ContractProfileFields = Partial<Record<string, string>>;
+
+/** One annex the room may offer. The `label` is what a VENDOR reads on the
+ *  tailoring surface; `Annex A — …` — the annex page's own heading — is built in
+ *  dream-os from the same `key` and is never re-spelled on this plane. */
+export interface AnnexOption {
+  key:   string;
+  label: string;
+}
+
+/**
+ * `GET /api/v2/vendor/contracts/annex-map` — R-G32.13, ruling F4.
+ *
+ * ⚠ `mapped` IS READ, NEVER INFERRED FROM `offered.length`. The door returns it
+ * precisely so the room can branch `T2-annexes` against `T2-unmapped` without a
+ * surface deriving a state from a length — F-40.138's whole class. A vendor
+ * whose `vendors.category` is NULL gets `mapped: false`, all seven in `offered`
+ * with G first, and an EMPTY `others`; the surface then changes SHAPE (one list,
+ * one head) rather than standing a section head over nothing.
+ *
+ * ⚠ AND IT IS A SUGGESTION, NEVER A PERMISSION. `vendors.category` carries no
+ * CHECK, so nothing here is database-enforced: `others` exists so she can attach
+ * any annex whatever her trade.
+ */
+export interface AnnexMapResponse {
+  ok:      boolean;
+  mapped:  boolean;
+  offered: AnnexOption[];
+  others:  AnnexOption[];
+}
+
 export interface TdsEntry {
   id:             string;
   vendor_id:      string;

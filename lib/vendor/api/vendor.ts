@@ -1268,7 +1268,8 @@ export function cancelPayment(paymentId: string): Promise<{ ok: boolean; payment
 }
 
 // ── Block 7: Schedules / Contracts / TDS ─────────────────────────────────
-import type { ScheduleMilestone, Contract, TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
+import type { ScheduleMilestone, Contract, ContractProfileFields, AnnexMapResponse,
+              TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
 
 // Schedules
 // ── BLOCK 19 · G3.4 — THE REMINDER'S OWN DOOR (dream-os 8762ffc) ───────────
@@ -1421,25 +1422,45 @@ export function sendContractToCouple(contractId: string, signerPhone?: string): 
 export function markContractDeposit(contractId: string, received: boolean): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return postJson(`/api/v2/vendor/contracts/${contractId}/deposit`, { received });
 }
-// ── THE PROFILE DOORS HAVE NO SURFACE, AND NO CLIENT FUNCTION EITHER ───────
-// ⚠ THIS IS A HELD FORK, NOT AN OVERSIGHT, AND IT IS THE ONE THING PART 2 DOES
-// NOT BUILD. Veto rows 30-31 mint the CARD — `Set your policies once` and its
-// sentence — and the ratified frame `R4-record-blank` draws it. But the sheet
-// BEHIND that button has no frame and no minted bytes: every PROFILE label would
-// be a string the founder's pass never saw, and mock-first (c-39.26) says a byte
-// this build discovers it needs is a raised fork, not an authored string.
+// ── THE PROFILE DOORS GET THEIR CALLER — THE ORPHAN OF PART 2 CLOSES ───────
+// ⚠ THIS BLOCK PREVIOUSLY DECLARED THESE TWO FUNCTIONS *NOT SHIPPED*, and the
+// reason it gave was right at the time and is now discharged: the sheet behind
+// `Set your policies once` had no frame, so every PROFILE label would have been
+// a string the founder's pass never saw. `R4-profile` was drawn in rider 2 and
+// vetoed as Q1–Q10 — twenty-eight labels across six sections — so the bytes now
+// exist and the card is no longer a button that goes nowhere.
 //
-// So the card is NOT drawn either. A card whose button went nowhere would be a
-// dead control, which s-G11.2 has ruled against four times in this arc, and one
-// drawn with an invented sheet behind it would be worse.
+// The named server-side orphan (F-40.109's class, the one address b57 §1 could
+// not police because there was deliberately nothing in the client to read) ends
+// here. §1 polices it from this cut on, and the mutation that proves it is
+// deleting the `fetchContractProfile(` call out of the room.
 //
-// `GET`/`POST /api/v2/vendor/contracts/profile/fields` therefore ship in dream-os
-// with no pwa caller. That is a SERVER-side orphan, named here rather than
-// papered: it is the one address in this arc that b57 §1 cannot police, because
-// §1 reads the client and there is deliberately nothing in the client to read.
-// The fork rides the handover for the founder's frame.
-//
-// `fetchContractProfile` and `saveContractProfile` are NOT SHIPPED.
+// ⚠ TDW AUTHORS NOT ONE OF THE VALUES THAT TRAVEL THROUGH THESE TWO. Every
+// field is hers — a price, a slab, a day-count — and this client neither
+// defaults one nor computes one. `fields` goes up and comes down as she typed
+// it.
+export function fetchContractProfile(): Promise<{ ok: boolean; fields: ContractProfileFields } | ApiErr> {
+  return getJson('/api/v2/vendor/contracts/profile/fields');
+}
+
+// ⚠ THE WHOLE OBJECT, EVERY TIME. The door `upsert`s `contract_profiles.fields`
+// wholesale — it does not merge — so a partial body would silently drop every
+// key it omitted. The sheet holds the complete set in state and posts all of it,
+// which is why there is no `patchContractProfile` and must not be one.
+export function saveContractProfile(fields: ContractProfileFields): Promise<{ ok: boolean; fields: ContractProfileFields } | ApiErr> {
+  return postJson('/api/v2/vendor/contracts/profile/fields', { fields });
+}
+
+// ── THE ANNEX MAP — ITS OWN READ, NOT A FIELD ON A CONTRACT ────────────────
+// ⚠ IT TAKES NO CONTRACT ID AND MUST NEVER TAKE ONE. The map is a fact about the
+// ESTATE — which annexes exist, which trade usually attaches which — and not a
+// fact about a contract. A map that arrived attached to a contract would read as
+// a property OF that contract, and the next seat would reasonably wonder why two
+// contracts for one vendor could disagree. The door says the same thing in its
+// own header; this is the client half of one decision.
+export function fetchAnnexMap(): Promise<AnnexMapResponse | ApiErr> {
+  return getJson('/api/v2/vendor/contracts/annex-map');
+}
 
 export function cancelContract(contractId: string): Promise<{ ok: boolean; contract: Contract } | ApiErr> {
   return deleteJson(`/api/v2/vendor/contracts/${contractId}`);

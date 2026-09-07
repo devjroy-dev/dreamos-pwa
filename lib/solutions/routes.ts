@@ -198,17 +198,25 @@ export const API = {
   reminderSettings:    () => `${REMINDERS_API_PATH}/settings`,
 } as const;
 
-// ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS ─────────────────────────
-// ⚠ THE ROOM ALREADY EXISTED AT THIS ADDRESS. `app/vendor/(shell)/contracts/`
-// has shipped since Block 07 as an upload plane; G3.2 does not move it and does
-// not build a second one. What changes is that the HUB now points at it — the
-// fourth of the nine to open, by the one-line rule `ROOM_HREFS` states.
+// ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────
+// ⚠ `CONTRACTS_HREF` STOOD HERE AND IT WAS A SECOND HOME FOR AN ADDRESS THE
+// REGISTRY ALREADY OWNS. Contracts IS a registry room — `lib/worklist/rooms.ts`
+// carries `{ id: 'contracts', href: '/vendor/contracts' }` and has since Block
+// 07 — so `roomHref('contracts')` was always the answer and a constant here was
+// the sole-writer law broken in the direction this very file exists to prevent.
 //
-// It gets a constant here rather than a literal at the map for the reason this
-// whole file exists: `b40` C31 walks the import graph from every shell page and
-// matches any `/vendor…` literal against a declared set, and `support/page.tsx`
-// is reachable from all of them.
-export const CONTRACTS_HREF = '/vendor/contracts';
+// ⚠ THE REASON THE CONSTANT GAVE FOR ITSELF WAS THE PART THAT WAS WRONG. It
+// claimed it was needed to get `/vendor/contracts` into `b40` C31's declared
+// set. C31 builds that set from `rooms.ts`'s own `href:` values FIRST, so the
+// address was already declared before this line was written; the constant added
+// nothing to the cell and a home to the estate. Derived by reading C31, not by
+// assuming — the four constants that remain (`WEDDING_PAGES_HREF`,
+// `GOOGLE_REVIEWS_HREF`, `REFERRALS_HREF`, `PAYMENT_REMINDERS_HREF`) are each
+// for a room `rooms.ts` has NO entry for, which is the real test and the one
+// `website` passes from the other direction (C105, R-G31.2).
+//
+// The hub row now reads `roomHref('contracts')`, exactly as `website` reads
+// `roomHref('storefront')`, and this file declares one address fewer.
 
 // ── G3.4 · PAYMENT REMINDERS (R-40.1's R5) ─────────────────────────────────
 // The fifth of the nine to open. Same one-line rule: `support/page.tsx`'s
