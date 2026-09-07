@@ -1458,6 +1458,15 @@ export function saveContractProfile(fields: ContractProfileFields): Promise<{ ok
 // a property OF that contract, and the next seat would reasonably wonder why two
 // contracts for one vendor could disagree. The door says the same thing in its
 // own header; this is the client half of one decision.
+// ── THE STANDARD AGREEMENT, BEFORE ANYTHING EXISTS — R-40.120 (C5) ──────────
+// A GET with no contract id: v4 rendered from her row and her policies with a
+// `[labelled placeholder]` wherever a couple, a fee or a date would go. The door
+// writes no row; the room opens the url it gets back (never the door in a tab —
+// F-40.152). Takes no id and must never take one, for the annex map's reason.
+export function fetchStandardAgreement(): Promise<{ ok: boolean; pdf_url: string; expires_in: number } | ApiErr> {
+  return getJson('/api/v2/vendor/contracts/standard');
+}
+
 export function fetchAnnexMap(): Promise<AnnexMapResponse | ApiErr> {
   return getJson('/api/v2/vendor/contracts/annex-map');
 }

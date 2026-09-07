@@ -137,13 +137,12 @@ section('2b. in flight, failed and empty are three different sentences');
   //
   // This is the file's own recorded lesson arriving a third time: *a window is a
   // guess about formatting; this is a statement about the branch.* A global
-  // count is the same guess with a different shape. The cell now reads the
-  // PICKER'S OWN BLOCK, so it tightens if the picker collapses two states and
-  // does not move when a sibling surface gains its own.
-  const picker = src.slice(src.indexOf('pickOpen &&'), src.indexOf('{record &&'));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  const picker = src.slice(src.indexOf('function Pick()'), src.indexOf('function Record()'));
   ok('the picker block is found', picker.length > 200);
   ok('the three sentences are three branches, inside the picker',
-     (picker.match(/Loading&#8230;|couldn&#8217;t load your clients|No one to choose from yet/g) || []).length === 3);
+     (picker.match(/Loading\\u2026|couldn\\u2019t load your clients|No one to choose from yet/g) || []).length === 3);
+
 
   // ── THE UNION — R-G32.17 ────────────────────────────────────────────────
   ok('the picker reads the Cabinet too', /fetchCabinet\s*\(/.test(src));
@@ -211,7 +210,8 @@ section('5. Mark Signed is for an uploaded contract');
   // would have been tuning a cell to a tree. It is rewritten to assert the FACT
   // instead: the button's JSX block opens on the negated gate. A window is a
   // guess about formatting; this is a statement about the branch.
-  const markSigned = src.slice(0, src.indexOf('Mark Signed'));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  const markSigned = src.slice(0, src.indexOf('Mark as signed'));
   const lastGate = markSigned.lastIndexOf('isComposed(selected)');
   ok('Mark Signed is gated on !isComposed',
      lastGate > 0 && markSigned.slice(lastGate - 1, lastGate) === '!');
@@ -259,12 +259,15 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
      /window\.open\(\(res as \{ pdf_url: string \}\)\.pdf_url/.test(src));
 
   // ── F-40.153 / R-40.74 · ONE MANDATORY FIELD, AND SEND BY PRESENCE ───────
-  ok('the record asks for her number', /label="Her number"/.test(src));
-  ok('the mark names the ACT, not a rule', /required="Needed to send"/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('the record asks for her number', /label="WhatsApp number"/.test(src));
+  ok('the mark names the ACT, not a rule', /'Needed to send'/.test(src));
   // ⚠ EXACTLY ONE MARK ON THE WHOLE RECORD. v3's blanks print as blanks by the
   // register's §4 rule 3; a second `required` would be the form arguing with the
   // instrument. This cell reds the day someone adds one.
-  ok('there is exactly ONE required mark', (src.match(/required="/g) || []).length === 1);
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  // Two rows carry the mark on the prototype — the number and the fee — and each names the ACT and nothing else.
+  ok('every required mark names the act', (src.match(/required=\{/g) || []).length === 2 && !/required=\{[^}]*\*/.test(src));
   ok('no asterisk anywhere near it', !/Her number[\s\S]{0,120}\*/.test(src));
 
   // ⚠ THE CHAIR'S P4 — **ABSENT, NEVER GREYED.** This arc has refused the greyed
@@ -286,7 +289,7 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // asks for five rows on an on-the-day trade and six on a days trade. The
   // property is unchanged — `savedPhone`, never the input box.
   ok('Send still consults the ROW and never the input box',
-     /requiredRows\(record, terms, depositPct, savedPhone, profile, /.test(src));
+     /requiredRows\(c, terms, depositPct, savedPhone, p, basis\)/.test(src));   // s3: one Send surface
   ok('and `phone` is nowhere in a Send condition', !/\{phone\.trim\(\) \?/.test(src));
   ok('and NOT on what she is typing', !/\{phone\.trim\(\) \?/.test(src));
   // ⚠ AND THE SEED READS THE CLIENT, NOT THE PICKER'S ARRAY. `clients` is filled
@@ -297,8 +300,9 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
      !/setPhone\(clients\.find/.test(src));
   ok('savedPhone advances only after the door says yes',
      /setSavedPhone\(phone\.trim\(\)\);/.test(src) && !/onChange[\s\S]{0,60}setSavedPhone/.test(src));
-  ok('and the line stands where the button would be',
-     /Add her number to send this\./.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('and the list stands where the button would be',
+     /Before you can send[\s\S]{0,700}Fill these and the send button appears here\./.test(src));
   ok('Send is never rendered disabled-and-greyed on the record',
      !/disabled=\{!phone|opacity: *\.5[\s\S]{0,80}Send to the couple/.test(src));
 
@@ -320,7 +324,8 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
   // longest of the three — twenty-eight rows over a Save — so it is the one this
   // rule protects most and the one a `vh` literal would hurt worst. The number
   // rises with the sheets by design; the cell beneath it is what forbids `vh`.
-  ok('every sheet is bounded in dvh', (src.match(/maxHeight: '\d+dvh'/g) || []).length === 5);
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('every sheet is bounded in dvh — one SHEET home', (src.match(/maxHeight: '\d+dvh'/g) || []).length === 1 && /const SHEET[\s\S]{0,160}maxHeight: '82dvh'/.test(src));
   ok('no vh literal survives in this room', !/maxHeight: '\d+vh'/.test(src));
   ok('the record sheet no longer stretches to a wrong height', !/alignItems: 'stretch'/.test(src));
 }
@@ -413,8 +418,9 @@ section('8. her policies are asked once, and the annexes have one home');
      /key: 'gst_treatment'/.test(src) && /key: 'gst_pct'/.test(src));
   ok('the sheet has its own title and its Save', /Your policies/.test(src) && /Save my policies/.test(src));
   // ⚠ Q9 POINTS AT SETTINGS. `vendors.gstin` has one home already.
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('the tax note points at Settings, not at itself',
-     /Add your GSTIN in Settings to print the tax block\./.test(src));
+     /Your GSTIN lives in Settings\. Add it there and the tax clause prints\./.test(src));
 
   // ── §8b · THE ANNEX HEADINGS HAVE ONE HOME, AND IT IS NOT HERE ──────────
   // ⚠ THE LITERAL THIS CELL FORBIDS CARRIED A COMMENT SAYING IT SHOULD NOT
@@ -442,9 +448,10 @@ section('8. her policies are asked once, and the annexes have one home');
      !/offered\.length\s*[><=]/.test(src) && !/others\.length === 0/.test(src));
   // The two heads, and the unmapped surface has ONE — not a mapped surface with
   // an empty first section, which is a section head standing over nothing.
-  ok('the unmapped surface is one list under one head', /'Offered for your trade' : 'All annexes'/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('the unmapped surface is its own branch on the door\u2019s flag', /annexMap\.mapped \? \(/.test(src));
   ok('and it says what we do not know, not what she failed to do',
-     /We do not have your trade on file/.test(src));
+     /We don\\u2019t have your trade on file yet/.test(src));
 
   // ── §8d · THREE STATES, TWICE, AND `{}` IS NOT ONE OF THEM ─────────────
   // ⚠ AN EMPTY PROFILE IS THE COMMONEST LEGAL ANSWER THIS DOOR GIVES. A vendor
@@ -467,8 +474,9 @@ section('8. her policies are asked once, and the annexes have one home');
   // ── §8e · THE SWITCH SAVES ON THE TAP, AND CHECKS THE ANSWER ───────────
   // The storefront switch's posture verbatim: optimistic, revert on refusal,
   // and the DOOR'S ECHO in state rather than the value we sent (F-40.180).
-  ok('an annex tap writes through /fill', /toggleAnnex[\s\S]{0,400}fillContract\s*\(/.test(src));
-  ok('and reverts on a refusal',          /setAnnexes\(annexes\);/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('an annex tap writes through /fill', /toggleAnnex[\s\S]{0,400}await fill\(/.test(src) && /async function fill\([\s\S]{0,400}fillContract\s*\(/.test(src));
+  ok('and reverts on a refusal',          /toggleAnnex[\s\S]{0,400}\(\) => setAnnexes\(prev\)/.test(src));
   ok('and lands the door\u2019s echo, not our own object',
      /setAnnexes\(c\.annexes \?\? \{\}\)/.test(src));
 
@@ -508,9 +516,11 @@ section('9. what she sends, and what refuses');
   // CLIENT'S CONSENT IS ON. `publication` is absent from the renderer's
   // `CLAUSE_SWITCHES` by the same law and `b56` reds on the twin mutation.
   ok('publication is not a switch here either', !/'publication'/.test(src));
-  ok('and the row that says so is drawn', /There is no switch here for the wedding page\./.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('and the row that says so is drawn', /The wedding page isn\\u2019t a switch here/.test(src));
   // Row 18 AND row 22 — the repetition is ruling F6 and is deliberate.
-  ok('the law is said at the top as well', /never whether her consent is on\./.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('the law is said at the top as well', /Everything else always prints\./.test(src));
 
   // ── §9b · ABSENT MEANS ON ──────────────────────────────────────────────
   // ⚠ THE RENDERER READS `!== false`. A default of off on this plane would make
@@ -519,8 +529,9 @@ section('9. what she sends, and what refuses');
   ok('an untouched switch reads ON', /s\[key\] !== false/.test(src));
   ok('and the toggle stores a boolean, never a delete',
      /clauses\[key\] = !switchOn\(terms, key\)/.test(src));
-  ok('the clause write goes through /fill', /toggleClause[\s\S]{0,600}fillContract\s*\(/.test(src));
-  ok('and reverts on a refusal',           /toggleClause[\s\S]{0,700}setTerms\(prev\)/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('the clause write goes through /fill', /toggleClause[\s\S]{0,600}await fill\(/.test(src));
+  ok('and reverts on a refusal',           /toggleClause[\s\S]{0,600}\(\) => setTerms\(prev\)/.test(src));
 
   // ── §9c · A SWITCH MAY CLOSE AN OPEN GATE AND NEVER OPEN A SHUT ONE ────
   // ⚠ AN IN-CITY WEDDING PRINTS NO CLAUSE 5 WHATEVER THE SWITCH SAYS, so a row
@@ -543,22 +554,19 @@ section('9. what she sends, and what refuses');
   const req = src.slice(src.indexOf('function requiredRows'), src.indexOf('/** One row of the picker'));
   ok('the checklist is found', req.length > 300);
   ok(`six required rows, no more and no fewer`, (req.match(/\{ label: '/g) || []).length === 6);
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('Send exists only when nothing is missing',
-     /missing\.length === 0[\s\S]{0,320}Send to the couple/.test(src));
+     /missing\.length \? \([\s\S]{0,1000}\) : \([\s\S]{0,700}Send to \{first\} on WhatsApp/.test(src));
   ok('and there is no disabled Send on the preview',
      !/disabled=\{missing|opacity: *\.5[\s\S]{0,120}Send to the couple/.test(src));
   // ⚠ A REFUSAL SENTENCE ONLY WHERE A RATIFIED BYTE EXISTS. The number has P4's
   // and the signatory has row 41's; the other four have none, and the checklist
   // has already said which row reads `Not filled`. Four invented sentences would
   // be four bytes nobody passed.
-  ok('the number keeps P4\u2019s line',     /Add her number to send this\./.test(src));
-  ok('the signatory keeps row 41\u2019s',   /Add who signs for you to send this\./.test(src));
-  // ⚠ TWO DISTINCT SENTENCES, NOT TWO SITES. P4's line stands on the record AND
-  // on the preview — one byte, two surfaces, which is one home for the sentence.
-  // What this forbids is a THIRD sentence: four more refusals for the four
-  // required fields that have no ratified byte.
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('the missing rows are NAMED from requiredRows, never authored per field', /missing\.map\(r => \([\s\S]{0,400}\{r\.label\}/.test(src));
   const refusals = new Set((src.match(/Add [^<]*to send this\.[^<]*/g) || []));
-  ok(`only the two ratified refusals are authored (found ${refusals.size})`, refusals.size === 2);
+  ok(`no per-field refusal sentence survives (found ${refusals.size})`, refusals.size === 0);
 }
 
 // ══ §10 — THE SHEET AS A FORM (R-40.114/.116/.117, R-G32.21) ══════════════
@@ -577,7 +585,7 @@ section('10. what the sheet opens with, and what it never assumes');
   // to 20 must not reopen the sheet and find 45. Reversing these two braces is
   // a one-character edit that silently overwrites every policy she ever chose,
   // and nothing else in the estate would notice.
-  ok('her stored answers win every collision', /\{ \.\.\.seeds, \.\.\.stored \}/.test(src));
+  ok('her stored answers win every collision', /\{ \.\.\.seedsNow, \.\.\.stored \}/.test(src));   // s3: the seeds are read at the sheet's open
   ok('and the seeds come from the door, not from this file',
      /annexMap\?\.defaults/.test(src) && !/delivery_days: '45'/.test(src));
   // ⚠ NOTHING IS WRITTEN UNTIL SHE PRESSES SAVE. The seeds live in local state.
@@ -600,7 +608,8 @@ section('10. what the sheet opens with, and what it never assumes');
   // Only `inclusive` / `exclusive` complete that sentence; a typo omits the tax
   // block from a signed agreement and reports nothing.
   ok('gst_treatment is a closed vocabulary', /gst_treatment:\s*\[\['inclusive'/.test(src));
-  ok('deposit_refundable is too',            /deposit_refundable:\s*\[\['yes'/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('deposit_refundable is too',            /deposit_refundable:\s*\[\['no', 'No'\], \['yes'/.test(src));
   ok('and both render as a control',         /ChoiceRow/.test(src));
   // ⚠ THE KEY IS STORED AND THE LABEL IS READ. A control that stored 「Inclusive」
   // would put a capital I into clause 4.2.
@@ -609,8 +618,9 @@ section('10. what the sheet opens with, and what it never assumes');
   // `vendors.gstin` (register :134) — one home, in Settings.
   ok('the sheet does not ask for a GSTIN a second time',
      !/key: 'vendor_gstin'/.test(src) && !/key: 'gstin'/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('and the note points at Settings instead',
-     /Add your GSTIN in Settings to print the tax block\./.test(src));
+     /Your GSTIN lives in Settings\./.test(src));
 
   // ── §10d · PLACEHOLDERS ARE BYTES AND CARRY NOBODY'S NAME ─────────────
   ok('placeholders come from the door', /annexMap\?\.placeholders/.test(src));
@@ -619,14 +629,14 @@ section('10. what the sheet opens with, and what it never assumes');
   ok('no vendor name is hardcoded as a placeholder', !/e\.g\. Swati|e\.g\. Dev Roy/.test(src));
 
   // ── §10e · THE PER-TRADE OMISSION, AND THE LINE THAT EXPLAINS IT ──────
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('omitted rows are filtered out of the sheet',
-     /\.filter\(r => !\(annexMap\?\.omitted \?\? \[\]\)\.includes\(r\.key\)\)/.test(src));
-  // ⚠ A SECTION THAT SILENTLY LOSES FIVE ROWS READS AS A BUG. R-40.117: the
-  // hint line stands alone where the rows are gone.
-  ok('and the hint line stands where they were',
-     /Your trade hands over on the day/.test(src));
+     /const omitted = annexMap\?\.omitted \?\? \[\];[\s\S]{0,1600}\.filter\(r => !omitted\.includes\(r\.key\)\)/.test(src));
+  ok('and the hint line stands where they were — in the plain register',
+     /You deliver on the day, so there\\u2019s nothing to set here\./.test(src));
   ok('the line is gated on the basis, not on the omission list',
-     /annexMap\?\.delivery_basis === 'on_the_day'/.test(src));
+     /const basis = annexMap\?\.delivery_basis \?\? 'days'/.test(src) && /sec\.onTheDay && basis === 'on_the_day'/.test(src));
+
 
   // ── §10f · THE CHECKLIST FOLLOWS THE SHEET ───────────────────────────
   // ⚠ THE SHEET DOES NOT ASK, SO THE CHECKLIST MUST NOT DEMAND. A required row
@@ -635,21 +645,83 @@ section('10. what the sheet opens with, and what it never assumes');
   ok('requiredRows takes the basis', /deliveryBasis: 'days' \| 'on_the_day'/.test(src));
   ok('and drops Delivered within for an on-the-day trade',
      /deliveryBasis === 'on_the_day'[\s\S]{0,60}\? \[\]/.test(src));
-  ok('every caller passes it',
-     (src.match(/requiredRows\(record, terms, depositPct, savedPhone, profile, /g) || []).length === 3);
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
+  ok('every caller passes it — one Send surface at s3',
+     (src.match(/requiredRows\(c, terms, depositPct, savedPhone, p, basis\)/g) || []).length === 1);
 
   // ── §10g · F-40.236 · THE HEADER DESCRIBES v4, NOT v3 ────────────────
   // ⚠ 「prints as a blank」 WAS TRUE OF v3, which printed `__________`. v4
   // retired BLANK to a tagged template that cannot render a missing field.
   ok('the superseded sentence is gone', !/prints as a blank/.test(src));
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('and the ruled one is there',
-     /Anything you leave empty is left out of the agreement, not printed blank\./.test(src));
+     /Anything you leave empty is left out of the agreement \\u2014 nothing prints blank\./.test(src));
 
   // ── §10h · UNITS ON THE LABEL, NEVER IN THE VALUE — F-40.237 ─────────
   const units = (src.match(/unit: '/g) || []).length;
   ok(`seventeen rows carry a unit on the label (found ${units})`, units === 17);
+  // ── RE-CUT AT G3.2 s3 (R-40.120): the founder's veto on the prototype supersedes the byte pinned here; the mechanism is asserted in the replaced room's shape.
   ok('and the unit is rendered beside the label',
-     /label \+ \(row\.unit \? ` \(\$\{row\.unit\}\)` : ''\)/.test(src));
+     /unit=\{row\.unit\}/.test(src) && /\{unit \? <span/.test(src));
+}
+
+// ══ §11 — G3.2 SITTING 3: THE ROOM REPLACED TO THE PROTOTYPE (R-40.120 / R-40.101) ═══
+//
+// MUTATION PROOFS (run by hand at the seat, RED then GREEN):
+//   11a open a URL literal instead of the door's pdf_url in doStandard   → 11a flips RED
+//   11c drop manualFns from fnPlaces                                      → 11c flips RED
+//   11d write overrides with saveContractProfile instead of fill         → 11d flips RED
+//   11e remove the onBlur from the fee Field                              → 11e flips RED
+//   11f route every composed contract to 'record' in openRecord          → 11f flips RED
+//   11g rename the sheet's key back to travel_terms                       → 11g flips RED
+section('11. sitting 3 — the room as a vendor uses it');
+{
+  const src = code(SCREEN);
+  const api = code('lib/vendor/api/vendor.ts');
+  // 9a · the policies card is first, and the standard agreement has a door
+  ok('the room draws the policies card before the list', src.indexOf('Set up your contract policies') < src.indexOf('No agreements yet.'));
+  ok('the card says set up or edit on a FACT', /policiesSet \? 'Edit' : 'Set up'/.test(src));
+  ok('the api client has the standard door, with no id', /export function fetchStandardAgreement\(\): /.test(api) && /contracts\/standard'/.test(api));
+  ok('the room asks the door and opens what it gets back', /fetchStandardAgreement\(\)[\s\S]{0,300}window\.open\(\(res as \{ pdf_url: string \}\)\.pdf_url/.test(src));
+  ok('and never opens the door itself in a tab', !/window\.open\([^)]*contracts\/standard/.test(src));
+  // 9b · someone new — a first-class door through the ONE promotion mechanism
+  ok('a name and a number start an agreement', /async function doNewPerson\(\)[\s\S]{0,400}doCompose\(\{ key: 'n', id: null, name: n, phone: p/.test(src));
+  ok('both are required', /if \(!n \|\| !p\) \{ show\('A name and a number are both needed\.'/.test(src));
+  ok('the promotion is still the compose door\u2019s', /composeContract\(row\.id \? \{ client_id: row\.id \} : \{ name: row\.name, phone: row\.phone \}\)/.test(src));
+  // 9c · functions on the record, counted at Send, read by the gate (F-40.243)
+  ok('functions are written as terms.functions_manual through /fill', /functions_manual: \[\.\.\.manualFns\(terms\), \{[\s\S]{0,400}await fill\(\{ terms: next \}\)/.test(src));
+  ok('a function needs a name and a date', /A function needs a name and a date\./.test(src));
+  ok('the checklist counts manual rows too', /const n = fnPlaces\(terms\)\.length;/.test(src) && /function fnPlaces[\s\S]{0,300}\.\.\.manualFns\(terms\)/.test(src));
+  ok('clause 5\u2019s gate reads the same list', /function outstationGate[\s\S]{0,200}fnPlaces\(terms\)\.some/.test(src));
+  ok('the dead Venue/City pair is gone (F-40.242)', !/terms, venue:/.test(src) && !/terms, city:/.test(src));
+  // 9d · this couple only — overrides live on the CONTRACT, the profile is untouched
+  ok('overrides are written to terms.policy_overrides through /fill', /async function doSaveOverrides[\s\S]{0,300}policy_overrides: ov[\s\S]{0,200}await fill\(\{ terms: next \}\)/.test(src));
+  ok('and never through the profile door', !/doSaveOverrides[\s\S]{0,500}saveContractProfile/.test(src));
+  ok('the banner is the founder\u2019s byte', /These are your policies\. Change any of them here and it applies to this agreement only\./.test(src));
+  ok('one sheet, two homes', /function PolicySheet\(\{ over \}/.test(src) && /PolicySheet\(\{ over: true \}\)/.test(src) && /PolicySheet\(\{ over: false \}\)/.test(src));
+  // 9e · autosave on blur; nothing to lose on a scrim (F-40.246)
+  ok('the fee saves on blur', /fee_total: v\.replace[\s\S]{0,80}onBlur=\{\(\) => void saveText\(\)\}/.test(src));
+  ok('the number saves on blur, to the client', /onBlur=\{\(\) => void savePhone\(\)\}/.test(src));
+  ok('Save and finish later has retired', !/Save and finish later/.test(src));
+  ok('the record is a screen, not a sheet a scrim can close', !/onClick=\{\(\) => setRecord\(null\)\}/.test(src));
+  // 9f · post-send states are reachable from the list (F-40.245)
+  ok('a composed, non-draft contract opens on its status', /go\(isComposed\(c\) && c\.state !== 'draft' \? 'after' : 'record'\)/.test(src));
+  ok('the list routes every composed row through openRecord', /isComposed\(c\) \? openRecord\(c\) : setSelected\(c\)/.test(src));
+  ok('signed \u2192 deposit \u2192 the date is held are drawn there', /Mark the deposit received/.test(src) && /The date is held/.test(src));
+  // 9g · register v3 on the surface
+  ok('the sheet asks travel_and_stay_terms', /key: 'travel_and_stay_terms'/.test(src));
+  ok('and none of the retired tokens', !/'travel_terms'|'same_venue'|key: 'rooms'/.test(src));
+  ok('the progress thread is derived, no schema', /function stage\(c: Contract\)/.test(src) && /deposit_received_at/.test(src));
+  // 9h · every row carries a meaning line
+  const sheet = src.slice(src.indexOf('const PROFILE_SECTIONS'), src.indexOf('function slabLabels'));
+  const rows = (sheet.match(/\{ key: '[a-z_0-9]+',\s+label: '[^']+'/g) || []).length;
+  const whys = (sheet.match(/why: '[^']+'/g) || []).length;
+  const blank = (sheet.match(/why: ''/g) || []).length;
+  ok('every policy row carries a meaning line but the three slab continuations (' + whys + ' + ' + blank + ' of ' + rows + ')', rows === 28 && whys + blank === rows && blank === 3);
+  ok('the on-the-day hint is in the plain register', /onTheDay: 'You deliver on the day/.test(src));
+  // 9i · the mock is filed and the screens are called, not mounted
+  ok('the ratified prototype is filed under docs/mocks (R-40.101)', fs.existsSync(path.join(ROOT, 'docs/mocks/G32_S3_PROTOTYPE.html')));
+  ok('inner screens are called as functions, never mounted', /\{view === 'room' && Room\(\)\}/.test(src) && !/<Room \/>|<Record \/>|<Send \/>/.test(src));
 }
 
 console.log(`\n${pass}/${pass + fail} cells green.`);
