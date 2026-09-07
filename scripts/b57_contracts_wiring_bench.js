@@ -407,7 +407,8 @@ section('8. her policies are asked once, and the annexes have one home');
   const profTable = src.slice(src.indexOf('const PROFILE_SECTIONS'), src.indexOf('function slabLabels'));
   ok('the profile table is found', profTable.length > 400);
   const rows = (profTable.match(/\{ key: '[a-z0-9_]+',\s*label: '/g) || []).length;
-  ok(`twenty-eight labels stand over twenty-eight tokens (found ${rows})`, rows === 28);
+  // F-40.266 (register v3 §0-ter): `named_professional` joined the sheet — twenty-nine.
+  ok(`twenty-nine labels stand over twenty-nine tokens (found ${rows})`, rows === 29);
   // ⚠ THE TOKEN NAMES ARE THE INSTRUMENT'S AND A VENDOR NEVER MEETS ONE. The
   // register says so at Q6; this cell is what keeps a later seat from using a
   // token as a label because it was to hand.
@@ -720,7 +721,7 @@ section('11. sitting 3 — the room as a vendor uses it');
   const rows = (sheet.match(/\{ key: '[a-z_0-9]+',\s+label: '[^']+'/g) || []).length;
   const whys = (sheet.match(/why: '[^']+'/g) || []).length;
   const blank = (sheet.match(/why: ''/g) || []).length;
-  ok('every policy row carries a meaning line but the three slab continuations (' + whys + ' + ' + blank + ' of ' + rows + ')', rows === 28 && whys + blank === rows && blank === 3);
+  ok('every policy row carries a meaning line but the three slab continuations (' + whys + ' + ' + blank + ' of ' + rows + ')', rows === 29 && whys + blank === rows && blank === 3);
   ok('the on-the-day hint is in the plain register', /onTheDay: 'You deliver on the day/.test(src));
   // ── F-40.199's class, at scale (the founder's walk, 2026-09-07) — no escape survives in this file
   ok('no backslash-u escape survives anywhere in the room (JSX text and attributes do not interpret one)', !/\\u[0-9a-fA-F]{4}/.test(read(SCREEN)));
@@ -731,6 +732,9 @@ section('11. sitting 3 — the room as a vendor uses it');
   ok('a policy blank is ONE field, saved as the merge on blur (R-40.125)', /async function savePolicyRow\(key: string, v: string\)[\s\S]{0,120}\{ \.\.\.seeds, \.\.\.profile, \[key\]: v \}/.test(src) && !/default: \{[\s\S]{0,600}openProfile\(/.test(src));
   ok('the per-couple policies are a card with one strong tap (R-40.126)', /Your policies for \{first\}<\/div>[\s\S]{0,900}style=\{\{ \.\.\.CTA, marginTop: 10 \}\}/.test(src) && /Still needed to send: /.test(src));
   ok('no Rs is prefixed beside formatRs (F-40.256)', !/Rs \$\{formatRs\(/.test(src));
+  // F-40.266 — the sheet asks the name 12.2 promises, and the switch says so when it is empty
+  ok('the sheet asks Who attends beside the signatory', /key: 'vendor_signatory_name'[\s\S]{0,300}key: 'named_professional',\s+label: 'Who attends'/.test(src));
+  ok('the switch names the gap instead of promising a clause with no name', /Set Who attends in your policies/.test(src));
   ok('and requiredRows says where each blank lives', /where: 'record' \| 'policies'/.test(src));
   // 9i · the mock is filed and the screens are called, not mounted
   ok('the ratified prototype is filed under docs/mocks (R-40.101)', fs.existsSync(path.join(ROOT, 'docs/mocks/G32_S3_PROTOTYPE.html')));

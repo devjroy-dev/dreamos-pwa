@@ -89,6 +89,8 @@ const PROFILE_SECTIONS: ProfileSection[] = [
   { head: 'Your business', rows: [
     { key: 'vendor_category_words', label: 'What you do', why: 'How your business is described in the agreement — “a makeup and hair business”.' },
     { key: 'vendor_signatory_name', label: 'Who signs for you', why: 'The name on your signature line. Usually you.' },
+    // F-40.266: the name clause 12.2 promises — a PROFILE token beside the signatory (register v3 §0-ter).
+    { key: 'named_professional',    label: 'Who attends', why: 'The person the couple is booking to be there in person. Leave it empty and the agreement makes no such promise.' },
     { key: 'vendor_credit_role',    label: 'Credited as', why: 'How your name appears on the couple’s wedding page and in the agreement, e.g. Makeup by Swati Roy.' },
   ] },
   { head: 'What is not included', rows: [
@@ -998,7 +1000,7 @@ export function ContractsScreen() {
                 sw.key === 'extra_hours' ? (p.overtime_rate && p.overtime_unit ? `Rs ${p.overtime_rate} an ${p.overtime_unit}` : 'Set your rate in policies')
                 : sw.key === 'late_payment' ? (p.late_interest_pct && p.late_grace_days ? `${p.late_interest_pct}% a month after ${p.late_grace_days} days` : 'Set it in policies')
                 : sw.key === 'tax_block' ? `${p.gst_pct}% · ${p.gst_treatment === 'inclusive' ? 'included' : 'added on top'}`
-                : sw.key === 'named_professional' ? 'Named on the agreement; a substitute only if you’re ill'
+                : sw.key === 'named_professional' ? (p.named_professional ? `${p.named_professional} attends; a substitute only if ill` : 'Set Who attends in your policies — nothing prints until you do')
                 : sw.key === 'portfolio_use' ? 'They can say no now or later'
                 : `On — a function is outside ${vendorCity}. ${p.travel_and_stay_terms || ''}`;
               const on = switchOn(terms, sw.key);
