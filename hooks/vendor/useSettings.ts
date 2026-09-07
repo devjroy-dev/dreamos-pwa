@@ -78,6 +78,7 @@ export interface SettingsState {
   // the same PATCH as every other posture flag, but saved on toggle rather than
   // by a Save button — see the room.
   date_check_enabled:  boolean;
+  peer_discoverable:   boolean;
 }
 
 const EMPTY: SettingsState = {
@@ -101,6 +102,15 @@ const EMPTY: SettingsState = {
   // ⚠ `undefined`, NOT `'unmapped'` — F-40.175. Defaulting to the unmapped BYTE
   // made an unanswered door print a false sentence about her trade.
   capacity_reason: undefined, date_check_enabled: false,
+  // ⚠ THIS ONE DEFAULTS TRUE AND ITS NEIGHBOUR DEFAULTS FALSE, DELIBERATELY.
+  // The rule above is fail-CLOSED, and closed means something different for each
+  // flag. For `date_check_enabled`, a permission that could not be read is a
+  // permission not granted. For `peer_discoverable`, the DATABASE default is
+  // true, so the safe wrong answer is the one that matches what the search will
+  // actually do: reading a vendor as hidden while the door still lists her would
+  // draw her switch OFF and tell her a lie about her own exposure. Fail-closed
+  // means "never overstate her privacy", and here that is `true`.
+  peer_discoverable: true,
 };
 
 export function useSettings() {
@@ -183,6 +193,10 @@ export function useSettings() {
         // operator that cannot distinguish it from absence.
         capacity_reason:     v.capacity_reason === undefined ? undefined : v.capacity_reason,
         date_check_enabled:  v.date_check_enabled === true,
+        // `!== false` and NOT `=== true` — the opposite coercion to the line
+        // above, for the reason its default paragraph gives. dream-os `me.js`
+        // reads it the same way on both the GET shape and the PATCH echo.
+        peer_discoverable:   v.peer_discoverable !== false,
       };
       setSaved(s);
       setCurrent(s);

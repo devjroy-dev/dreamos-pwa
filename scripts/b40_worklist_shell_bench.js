@@ -4240,6 +4240,185 @@ cell('C106 a room never renders on a bad read, and no door envelope is invented 
 // a refusal that ought to have been a run must be visible by name in the
 // output; a bare count would let a cell quietly start refusing forever and read
 // as steady state.
+// ══════════════════════════════════════════════════════════════════════════
+// C110–C114 · TDW_19 G5.1 SITTING 2 — the peer is found, the peer is told.
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── C110 · THE PICKER BECAME A SEARCH, AND B8 IS GONE WITH ITS READER.
+// MUTATION: restore `pickerFooter` to RF → RED (it is a byte R-40.104 falsified).
+cell('C110 the search replaced the roster picker (R-40.104)', () => {
+  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const sheet = strip(read('components/vendor/slices/ForwardSheet.tsx'));
+
+  // ⚠ B8 WAS RATIFIED AND IS NOW FALSE. "Peers you've worked with appear here."
+  // was true while a roster edge was the boundary of the exchange. It is not.
+  if (/pickerFooter/.test(copy))  return 'pickerFooter survives in the copy home — R-40.104 makes it false';
+  if (/pickerFooter/.test(sheet)) return 'the sheet still reads pickerFooter';
+
+  // The five bytes the founder vetoed in its place.
+  for (const k of ['searchPlaceholder', 'groupWorkedWith', 'groupSameTrade', 'groupEveryone', 'searchNoMatch']) {
+    if (!new RegExp(k + '\\s*:').test(copy)) return 'the copy home is missing ' + k;
+  }
+  // ⚠ THE WORDS COME FROM THE COPY HOME, NEVER FROM THE DOOR. dream-os sends a
+  // group KEY; a door that shipped "Same trade" would be putting an unvetoed
+  // byte on a vendor's screen from a Node process.
+  for (const w of ['Worked with', 'Same trade', 'Everyone']) {
+    if (sheet.includes("'" + w + "'") || sheet.includes('"' + w + '"')) return 'the sheet hard-codes the head "' + w + '"';
+  }
+  if (!/RF\.groupWorkedWith/.test(sheet) || !/RF\.groupSameTrade/.test(sheet) || !/RF\.groupEveryone/.test(sheet)) {
+    return 'the sheet does not read all three heads from the copy home';
+  }
+  // ⚠ THE SURFACE MUST NOT RE-DECIDE THE EMPTY-HEAD RULE. The door omits an
+  // empty group; a length test here would be a second home for a founder's
+  // ruling and would drift the first time one side changed.
+  if (/g\.peers\.length\s*(===|>|!==)\s*0/.test(sheet)) return 'the sheet tests a group length — the door already pruned empty groups';
+  if (!/result\?\.groups|result\.groups/.test(sheet))    return 'the sheet does not render the door\u2019s groups';
+  return null;
+});
+
+// ── C111 · NO PHONE KEY ANYWHERE ON THIS PATH (c-40.45).
+// The MATCH is the disclosure: type a number, get a confirmed business name —
+// a reverse lookup on a column nothing publishes, in either direction.
+// MUTATION: add `phone` to PEER_COLS or to the search input's aria → RED.
+cell('C111 the peer search never touches a phone (c-40.45)', () => {
+  const sheet = strip(read('components/vendor/slices/ForwardSheet.tsx'));
+  const types = strip(read('lib/solutions/types.ts'));
+  const copy  = strip(read('lib/worklist/referrals.ts'));
+
+  const peer = types.match(/export type ReferralPeer = \{([\s\S]*?)\};/);
+  if (!peer) return 'ReferralPeer not found';
+  if (/phone|email|whatsapp/i.test(peer[1])) return 'ReferralPeer carries a contact detail — a search is for choosing, not for reaching';
+
+  // The peer rows the sheet draws must show trade and city and nothing else.
+  const rowBlock = sheet.match(/g\.peers\.map\(\(p\)[\s\S]*?\)\)\}/);
+  if (!rowBlock) return 'the peer row block was not found';
+  if (/p\.phone|p\.email/.test(rowBlock[0])) return 'the sheet renders a contact detail on a peer row';
+
+  // ⚠ AND THE PLACEHOLDER MUST NOT PROMISE A KEY THE DOOR DOES NOT HAVE. It
+  // named phone in the kickoff; saying so now would send her typing numbers into
+  // a box that cannot match one, and she would read the silence as a bug.
+  const ph = copy.match(/searchPlaceholder:\s*"([^"]*)"/);
+  if (!ph) return 'searchPlaceholder not found';
+  if (/phone|number/i.test(ph[1])) return 'the placeholder promises a phone key that c-40.45 struck';
+  return null;
+});
+
+// ── C112 · 「Told」 IS A WAMID, IT IS SENDER-SIDE, AND IT IS NOT A WIRE KEY.
+// MUTATION: pass `true` as withTold on the `forwarded_by` stamp → RED.
+cell('C112 the told state (R-G51.15)', () => {
+  const body  = strip(read('app/vendor/(shell)/leads/body.tsx'));
+  const types = strip(read('lib/solutions/types.ts'));
+  const copy  = strip(read('lib/worklist/referrals.ts'));
+
+  if (!/told:\s*"Told"/.test(copy))  return 'the told byte is not in the copy home';
+  if (!/told\?:\s*boolean/.test(types)) return 'ReferralStamp carries no told field';
+
+  // ⚠ SENDER-SIDE ONLY. `forwarded_to` gets the told argument; `forwarded_by`
+  // must not — she is the one who was told, and telling her so is noise.
+  const to = body.match(/const to = referralStamp\(l\.forwarded_to([^)]*)\)/);
+  const by = body.match(/const by = referralStamp\(l\.forwarded_by([^)]*)\)/);
+  if (!to || !by) return 'the two referralStamp calls were not found';
+  if (!/true/.test(to[1])) return 'the sender\u2019s row does not ask for the told state';
+  if (/true/.test(by[1]))  return 'the PEER\u2019s row carries a told state — she is the one who was told';
+
+  // ⚠ IT READS `told` AND NOT A STATUS. A row with `status: 'sent'` and a null
+  // wamid is the F-40.210 case: the message may have arrived and the estate
+  // cannot prove it. A surface claiming proof it lacks is worse than a quiet one.
+  if (/s\.status|=== *'sent'/.test(body)) return 'the surface reads a send STATUS rather than the told flag';
+  return null;
+});
+
+// ── C113 · THE SWITCH — R-40.107.
+// MUTATION: read `current.peer_discoverable === true` in the hook, or draw the
+// switch while `loading` → RED.
+cell('C113 the peer-discovery switch (R-40.107)', () => {
+  const page  = strip(read('app/vendor/(shell)/settings/page.tsx'));
+  const hook  = strip(read('hooks/vendor/useSettings.ts'));
+  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const types = strip(read('lib/vendor/types/vendor.ts'));
+
+  for (const k of ['peerSwitchLabel', 'peerSwitchLine']) {
+    if (!new RegExp(k + '\\s*:').test(copy)) return 'the copy home is missing ' + k;
+  }
+  // ⚠ POSITIVE SPELLING. A switch whose ON means OFF is the mistake 0140 was
+  // written to avoid, one column over on the same table.
+  const label = copy.match(/peerSwitchLabel:\s*"([^"]*)"/);
+  if (!label) return 'peerSwitchLabel not found';
+  if (/^hide|^don.t|^stop/i.test(label[1])) return 'the label is negative — the control and the column must agree';
+
+  // ⚠ THE LINE STATES THE DOOR'S THIRD PREDICATE. A vendor whose storefront is
+  // paused is in no peer search whatever this switch says; the line says so.
+  const line = copy.match(/peerSwitchLine:\s*"([^"]*)"/);
+  if (!line) return 'peerSwitchLine not found';
+  if (!/storefront/i.test(line[1])) return 'the line does not state the storefront clause of the predicate';
+
+  if (!/role="switch"/.test(page))        return 'the settings page draws no switch';
+  if (!/updateMe\(\{\s*peer_discoverable/.test(page)) return 'the switch does not save on toggle through updateMe';
+  // ⚠ SETTLE ON THE DOOR'S ECHO, never on the value we hoped for.
+  if (!/r\.vendor\.peer_discoverable/.test(page))     return 'the switch does not settle on the door\u2019s own echo';
+  // ⚠ NOTHING UNTIL THE DOOR HAS ANSWERED (F-40.209). A switch drawn from a
+  // default asserts a fact it has not read, and the wrong guess here tells a
+  // listed vendor she is hidden.
+  if (!/if \(loading\) return null/.test(page)) return 'the switch renders before the door has answered';
+
+  // ⚠ `!== false` AND NOT `=== true`, THE OPPOSITE OF ITS NEIGHBOUR, because
+  // this column's DEFAULT IS TRUE. Reading it the neighbour's way would draw the
+  // switch OFF for a vendor the search already lists.
+  if (!/peer_discoverable:\s*v\.peer_discoverable !== false/.test(hook)) {
+    return 'the hook reads the flag with the wrong coercion for a default-true column';
+  }
+  if (!/peer_discoverable: true/.test(hook)) return 'the hook\u2019s EMPTY state does not default the flag true';
+  if (!/peer_discoverable\?*:\s*boolean/.test(types)) return 'the wire type carries no peer_discoverable';
+  return null;
+});
+
+// ── C114 · THE REFUSAL SWITCH STAYS EXHAUSTIVE, AND not_a_peer KEPT ITS NAME.
+// A new code would grow ForwardRefusalCode and stop the build until the founder
+// vetoed a sentence for a state the search already prevents — and the door
+// answers four different worlds identically on purpose, so that it cannot become
+// an oracle for whether a vendor exists or has hidden herself.
+cell('C114 refusalSentence is exhaustive and mints no new code', () => {
+  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const types = strip(read('lib/solutions/types.ts'));
+
+  const union = types.match(/export type ForwardRefusalCode =([\s\S]*?);/);
+  if (!union) return 'ForwardRefusalCode not found';
+  const codes = (union[1].match(/'[a-z_]+'/g) || []).map(x => x.replace(/'/g, ''));
+  if (codes.length !== 4) return 'ForwardRefusalCode has ' + codes.length + ' arms, expected 4';
+  if (!codes.includes('referral_not_a_peer')) return 'referral_not_a_peer was renamed — its sentence and its reasoning were not';
+
+  const fn = copy.match(/export function refusalSentence[\s\S]*?\n\}/);
+  if (!fn) return 'refusalSentence not found';
+  if (/default\s*:/.test(fn[0])) return 'the switch grew a default arm — a future code would be swallowed silently';
+  for (const c of codes) if (!fn[0].includes("'" + c + "'")) return 'no arm for ' + c;
+
+  // ── ⚠ F-40.219's CURE, HELD — AND THIS CELL'S FIRST CUT COULD NOT TELL A
+  //    QUOTATION FROM AN ASSERTION.
+  // Both comment blocks claimed `refusalGeneric` was unvetoed for a sitting
+  // after R-40.56 ratified it, and one of them misled a seat inside an hour.
+  // The cure RECORDS what they said — you cannot explain a finding without
+  // quoting it — so a bare substring test reds on the fix. That is the same
+  // instrument defect this file's own history is full of: a regex reading prose
+  // and calling it code.
+  //
+  // THE RULE, STATED PROPERLY: the phrase may survive only INSIDE QUOTATION
+  // MARKS, as a record of what was removed. A live claim is unquoted, which is
+  // how it read when it was wrong. Any unquoted occurrence reds.
+  const rf = read('lib/worklist/referrals.ts');
+  const stale = /PROPOSED[\s\S]{0,3}(?:[—-]\s*NOT YET VETOED|AND UNVETOED)/;
+  for (const ln of rf.split('\n')) {
+    if (!/PROPOSED/.test(ln)) continue;
+    const quoted = /"[^"]*PROPOSED|PROPOSED[^"]*"/.test(ln);
+    if (!quoted && stale.test(ln)) {
+      return 'a LIVE "unvetoed" claim about refusalGeneric survives, unquoted (F-40.219)';
+    }
+  }
+  // And the ruling that settled it must be cited where the byte lives, or the
+  // next reader has the same question and no answer.
+  if (!/R-40\.56/.test(rf)) return 'the copy home does not cite the ruling that vetoed refusalGeneric';
+  return null;
+});
+
 if (fails > 0) {
   console.log('\nFLOOR RED — ' + fails + ' cell(s)'
     + (refusals ? ' · ' + refusals + ' also REFUSED: ' + refusedNames.join(', ') : ''));

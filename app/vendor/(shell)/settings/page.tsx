@@ -23,13 +23,99 @@
 // concern — are byte-unchanged. `SettingsScreen` derives the variant from `chrome`, which
 // is the same prop that already means 「the shell owns the frame」. One truth, one prop.
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSettings } from '@/hooks/vendor/useSettings';
+import { updateMe } from '@/lib/vendor/api/vendor';
+import { RF } from '@/lib/worklist/referrals';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
 import { SettingsScreen } from '@/components/vendor/SettingsScreen';
 import { COPY } from '@/lib/worklist/copy';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+
+/**
+ * ── THE PEER-DISCOVERY SWITCH · R-40.107 ─────────────────────────────────────
+ *
+ * ⚠ IT SAVES ON TOGGLE AND DOES NOT GO THROUGH `useSettings`' `update`/`isDirty`.
+ * That hook is a FORM hook built for a Save button; routing a consent flag
+ * through its dirty tracking would let an unrelated Save elsewhere carry this
+ * one. A consent flag is written by the tap that granted it and by nothing else.
+ * Transcribed property for property from the storefront's date-check switch
+ * (`storefront/screen.tsx:337`), which is the estate's only other consent
+ * toggle and is where that reasoning was first paid for.
+ *
+ * ⚠ WITHOUT ITS PUBLIC-CACHE REBUILD, and that is a derivation rather than an
+ * omission. The date switch rebuilds `/v/<code>` because a 300s cache would keep
+ * serving the old value for five minutes. NOTHING is cached behind this one: the
+ * peer search is a vendor-auth door read live on every keystroke, so a rebuild
+ * would be a call with no page to rebuild.
+ *
+ * ⚠ AND IT LIVES IN THIS FILE RATHER THAN IN `SettingsScreen`. This page already
+ * renders a settings row of its own — the `Profile layout` link above — so a row
+ * here is the established shape and not a second home. `SettingsScreen` is
+ * shared with the legacy surface through its `chrome` prop, and a consent switch
+ * that appeared on two surfaces would be one control with two homes.
+ */
+function PeerDiscoverySwitch() {
+  const { current, loading } = useSettings();
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  // Seeded from the hook's single `/me` read — never a second fetch. The hook
+  // defaults this field TRUE where absent (the opposite of its neighbour),
+  // because the column's own default is true and reading a listed vendor as
+  // hidden would draw her switch OFF while the search still finds her.
+  const live = on ?? current.peer_discoverable;
+
+  async function toggle() {
+    if (busy) return;
+    const next = !live;
+    setOn(next);                    // optimistic
+    setBusy(true);
+    try {
+      const r = await updateMe({ peer_discoverable: next });
+      // ⚠ REVERT ON REFUSAL, and settle on the DOOR'S OWN ECHO rather than on
+      // the value we hoped for. If the door said no — or said yes to something
+      // else — the row goes back to the truth.
+      if (!('ok' in r) || !r.ok) { setOn(!next); return; }
+      setOn(r.vendor.peer_discoverable !== false);
+    } catch {
+      setOn(!next);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // ⚠ NOTHING UNTIL THE DOOR HAS ANSWERED. A switch drawn from a default is a
+  // control asserting a fact it has not read (F-40.209), and here the wrong
+  // guess is a vendor told she is hidden while the search still lists her.
+  if (loading) return null;
+
+  return (
+    <div className="wl-set">
+      <div
+        role="switch"
+        aria-checked={live}
+        aria-label={RF.peerSwitchLabel}
+        tabIndex={0}
+        onClick={toggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+        className="wl-swrow"
+        style={{ opacity: busy ? 0.6 : 1 }}
+      >
+        <span className="wl-swtext">
+          <span className="wl-swlabel">{RF.peerSwitchLabel}</span>
+          {/* The line does TWO jobs: it tells her she is already listed (the
+              switch is on by default), and its middle clause states the door's
+              third predicate plainly — paused storefront, no peer search,
+              whatever this switch says. */}
+          <span className="wl-swline">{RF.peerSwitchLine}</span>
+        </span>
+        <span className={`wl-sw${live ? ' on' : ''}`} aria-hidden><span /></span>
+      </div>
+    </div>
+  );
+}
 
 export default function ShellSettingsPage() {
   const router = useRouter();
@@ -54,6 +140,7 @@ export default function ShellSettingsPage() {
           <span className="wl-setrowchev" aria-hidden>&rsaquo;</span>
         </Link>
       </div>
+      <PeerDiscoverySwitch />
       <SettingsScreen chrome={false} ToastView={WlToast} />
       <style>{`
 .wl-set{padding-top:16px}
@@ -62,6 +149,15 @@ export default function ShellSettingsPage() {
 .wl-setrowchev{color:var(--atelier-ink-dim);font-size:14px;line-height:1;flex-shrink:0}
 .wl-setrow:active{background:var(--atelier-row-hover)}
 .wl-setrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.wl-swrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 16px;cursor:pointer;touch-action:manipulation}
+.wl-swrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px;border-radius:3px}
+.wl-swtext{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wl-swlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.wl-swline{font:var(--wl-t5);color:var(--atelier-ink-mute);line-height:1.5;max-width:38ch}
+.wl-sw{flex:0 0 auto;width:46px;height:27px;border-radius:14px;position:relative;margin-top:2px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);transition:background 140ms ease}
+.wl-sw.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.wl-sw>span{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--atelier-ink-fade)}
+.wl-sw.on>span{left:auto;right:2px;background:var(--role-ink-deep)}
       `}</style>
     </WorklistShell>
   );

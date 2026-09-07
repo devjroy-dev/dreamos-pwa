@@ -101,6 +101,21 @@ export interface MeResponse {
     // services, so a door that has not shipped it yet must read as "not granted"
     // rather than crash or, worse, read as granted.
     date_check_enabled?: boolean;
+    // ── BLOCK 19 · G5.1 s2 · R-40.107 — MAY OTHER VENDORS FIND HER BY NAME
+    // ⚠ ON by default, which is the OPPOSITE of the flag directly above, and
+    // the difference is the act rather than an inconsistency. `date_check_enabled`
+    // opened a NEW fact about her calendar to anyone; this governs a directory
+    // built from `business_name`, `routing_handle`, `category` and `city` — every
+    // one already on her PUBLIC storefront card. So it is a WITHDRAWAL from
+    // something she has already published, not consent to a new exposure. 0142's
+    // §CONSTRAINTS carries the full derivation beside a citation of 0140.
+    //
+    // Optional for F-40.169's reason — a network response across two
+    // independently-deployed services. But it must default to TRUE where absent,
+    // never false: the database's default is true, so a door that has not shipped
+    // the field yet has a vendor who IS listed, and reading her as hidden would
+    // draw her switch OFF while the search still finds her.
+    peer_discoverable?: boolean;
     // ── G3.1 · R-G31.6 — WHY capacity does not apply, when it does not ──────
     // `null` when it applies. Computed backend-side from `occupancy.js`'s ONE
     // ladder (`capacityVerdict`) — the PWA carries no copy of the rule, the same
@@ -148,6 +163,11 @@ export interface UpdateMeRequest {
   // so a non-boolean is a 400 and never a silent coercion — which matters more
   // for a consent flag than for a display preference.
   date_check_enabled?: boolean;
+  // G5.1 s2 · R-40.107. On dream-os's ALLOWED_FIELDS and BOOLEAN_FIELDS at
+  // `9b6321f`. It is in BOOLEAN_FIELDS for a sharper reason than its neighbour:
+  // it is the only flag in that list whose default is TRUE, so a value the driver
+  // had to guess at would fail OPEN — a vendor listed who asked not to be.
+  peer_discoverable?: boolean;
 }
 
 export interface UpdateMeResponse {
@@ -175,6 +195,10 @@ export interface UpdateMeResponse {
     // verified rather than assumed. The room reads THIS echo to settle its
     // optimistic toggle: the door's own answer, not the value we hoped for.
     date_check_enabled: boolean;
+    // G5.1 s2 · R-40.107. The PATCH echoes it too (`me.js` at `9b6321f`), and the
+    // switch settles its optimistic state on THIS value — the door's own answer,
+    // never the one we hoped for.
+    peer_discoverable: boolean;
   };
 }
 

@@ -1,0 +1,115 @@
+# scripts/floor-manifest-g51-s2-pwa.txt
+# TDW_19 · BLOCK 19 · G5.1 SITTING 2 — THE dreamos-pwa HALF.
+# The picker becomes a search (R-40.104), the sender's row learns 「Told」
+# (R-G51.15), and Settings gains her withdrawal switch (R-40.107).
+#
+# BASE 5a99eab7, RE-DERIVED AT THE CUT. The chair named `faa9acf` "at writing";
+# the tip had already moved twice by the time this seat reached the pwa half.
+#
+# THE CARRY, in the estate's three steps:
+#   1. `git diff --name-only 940f58ef origin/main` FIRST — 43 paths (G3.2-pre v4
+#      pwa, the G1.3 chip ink, the rooms grid refresh). `comm -12` against my
+#      dirt returned ZERO lines: disjoint, proven before a byte moved.
+#   2. stash -u -> ff-merge -> stash pop.
+#   3. sha256 over every dirty path on BOTH sides. IDENTICAL.
+# ⚠ `SliceRow.tsx` moved in the carry and is NOT in this list — the founder's
+# WEDDING-chip ink veto. Checked for collision rather than assumed disjoint by
+# filename: 「Told」 lands on `leads/body.tsx`'s A2 row, not on a chip.
+#
+# ⚠ package.json / package-lock.json ARE NOT HERE, and they were dirty.
+# `npm install` for the shot arm re-sorted the dependency block AND LOOSENED TWO
+# EXACT PINS TO CARETS — `@sparticuz/chromium` and `puppeteer-core`, which are
+# pinned exactly because the browser binary and its driver must match. Restored
+# to the tree's own bytes before the carry. Not `git checkout --` (R-40.65):
+# `git show HEAD:<path> >` writes back the committed bytes without discarding
+# anything else.
+#
+# F-14.16: a dirty file outside this list is a STOP until accounted for.
+
+app/vendor/(shell)/leads/body.tsx
+app/vendor/(shell)/settings/page.tsx
+components/vendor/slices/ForwardSheet.tsx
+docs/mocks/G51_S2_VETO_SHEET.html
+docs/mocks/referrals-mock.html
+hooks/vendor/useSettings.ts
+lib/solutions/routes.ts
+lib/solutions/types.ts
+lib/vendor/types/vendor.ts
+lib/worklist/referrals.ts
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-g51-s2-pwa.txt
+
+# ── ⚠ AND THE CAPTURES ARE LISTED, BECAUSE THE FLOOR REFUSED THEM ──────────
+# The first cut of this manifest said the captures 「ride the packet as binaries
+# and are not listed individually」. `run-floor.sh` STOPPED on it: 「dirt OUTSIDE
+# the declared manifest — this is contamination, not a delivery」. It was right
+# and the sentence was a hand-wave. F-14.16 declares PATHS, not intentions, and a
+# binary is exactly the kind of dirt a reader cannot eyeball. Twelve new frames,
+# named. The other twenty-eight captures are byte-identical regenerations of
+# tracked files and show as no dirt at all.
+docs/mocks/referrals-mock__R1-told__dark__374.png
+docs/mocks/referrals-mock__R1-told__light__374.png
+docs/mocks/referrals-mock__R2-search-empty__dark__374.png
+docs/mocks/referrals-mock__R2-search-empty__light__374.png
+docs/mocks/referrals-mock__R2-search-none__dark__374.png
+docs/mocks/referrals-mock__R2-search-none__light__374.png
+docs/mocks/referrals-mock__R2-search-typing__dark__374.png
+docs/mocks/referrals-mock__R2-search-typing__light__374.png
+docs/mocks/referrals-mock__R6-settings__dark__374.png
+docs/mocks/referrals-mock__R6-settings__dark__390.png
+docs/mocks/referrals-mock__R6-settings__light__374.png
+docs/mocks/referrals-mock__R6-settings__light__390.png
+#
+# ── WHAT MOVED, PER FILE ───────────────────────────────────────────────────
+# referrals.ts     B8 (`pickerFooter`) RETIRED — ratified at R-40.42 and made
+#                  false by R-40.104; replaced by the three heads, recorded
+#                  rather than deleted. Five vetoed bytes in: the placeholder,
+#                  three group heads, the no-match line. Two more for the switch,
+#                  one for 「Told」. F-40.219's two stale blocks cured — both had
+#                  claimed `refusalGeneric` was unvetoed for a sitting after
+#                  R-40.56 ratified it, and one misled a seat inside an hour.
+#                  `referral_not_a_peer`'s reasoning REWRITTEN, not deleted.
+# ForwardSheet     The roster list becomes a debounced grouped search. It renders
+#                  the door's groups as given — no local sort, no length test.
+# body.tsx         `referralStamp` gains `withTold`, applied to `forwarded_to`
+#                  and never to `forwarded_by`.
+# settings/page    The switch, transcribed from the storefront's date-check
+#                  toggle property for property, WITHOUT its cache rebuild —
+#                  nothing is cached behind a vendor-auth search.
+# types/hooks      `told` inside `ReferralStamp` (NOT a top-level wire key, so
+#                  b36 leg C is untouched); `PeerGroup`/`PeerSearchResult`;
+#                  `peer_discoverable` through the wire types and the hook,
+#                  defaulting TRUE where absent — the opposite of its neighbour,
+#                  because the column's own default is true and reading a listed
+#                  vendor as hidden would draw her switch OFF while the search
+#                  still finds her.
+# b40              C110–C114. Thirteen mutations, thirteen RED, zero vacuous.
+#
+# ⚠ C114's FIRST CUT RED ON ITS OWN CURE. It substring-matched "PROPOSED — NOT
+# YET VETOED", which the cure QUOTES in order to record what was removed — you
+# cannot explain a finding without quoting it. The cell now requires the phrase
+# to be INSIDE QUOTATION MARKS; a live claim is unquoted, which is how it read
+# when it was wrong. A regex reading prose and calling it code is this arc's most
+# repeated defect and it caught this seat twice in one sitting.
+#
+# ⚠ `next build` IS THE FOUNDER'S GATE AT APPLY (R-40.66) — seat containers
+# cannot fetch Google Fonts. `npx tsc --noEmit` is what this seat can run, and it
+# is CLEAN across the whole repo.
+
+# ── THE FLOOR DELTA IS INHERITED, AND IT WAS PROVEN, NOT ASSUMED ───────────
+# `--check` reported FOUR names added against the stored base:
+#     b42_g11_wedding_pages_bench · tdw09_hotfix · tdw37_leadgate_b_slot
+#     tdw_f3942_census_guard
+# None is mine, and 「none is mine」 is not a claim a seat gets to make by
+# reading filenames. THE TEST: `git stash -u` -> tree dirt 0 at the clean tip
+# 5a99eab7 -> full floor -> `git stash pop`. ALL FOUR ARE RED AT THE CLEAN TIP
+# WITH THIS DELIVERY REMOVED. The stored base predates the carry, which moved
+# `b42_g11_wedding_pages_bench.js`, `b40`, `SliceRow.tsx`, `RoomsGrid.tsx` and
+# `lib/worklist/rooms.ts`.
+#
+# THIS DELIVERY ADDS ZERO REDS. `b40` itself — the bench this delivery extends
+# by five cells — reads FLOOR GREEN.
+#
+# The stored base file is now stale by four names. Re-baselining it is NOT this
+# seat's to do: it would silently absorb four inherited reds into a new normal,
+# which is how a floor stops being a floor. Named for the chair instead.

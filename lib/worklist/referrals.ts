@@ -58,7 +58,54 @@ export const RF = {
   // deliberately does NOT name where to add a peer — the roster is written by
   // accepting a Collab response and by a manual add, and naming a door this
   // sheet cannot open is worse than naming none.
-  pickerFooter: "Peers you’ve worked with appear here.",
+  // ── ⚠ B8 IS RETIRED. IT WAS RATIFIED AT R-40.42 AND R-40.104 MADE IT FALSE.
+  // It read: "Peers you’ve worked with appear here." That was true while
+  // R-G51.1 made a linked roster edge the boundary of the exchange. The founder
+  // repealed that boundary: peers she has NEVER worked with appear here now, and
+  // that is the whole point of the sitting. The sentence is REPLACED BY THE
+  // THREE GROUP HEADS rather than reworded, because the heads say what it was
+  // trying to say and say it beside the rows they describe.
+  //
+  // Recorded rather than deleted so a reader can see which ruling moved. A
+  // ratified byte that quietly vanishes teaches nobody that it ever existed.
+
+  // ── S1 · THE SEARCH PLACEHOLDER ─────────────────────────────────────────
+  // It names BOTH keys and no third. Phone was struck at c-40.45: a phone match
+  // answers "whose number is this", which is the reverse of what a storefront
+  // answers and a direction nothing on this estate publishes — and the RESULTS
+  // carrying no number would not have closed it, because the MATCH is the
+  // disclosure. Saying "name or handle" also stops her typing a number and
+  // reading the silence as a bug.
+  searchPlaceholder: "Search by name or handle",
+
+  // ── S2–S4 · THE THREE GROUP HEADS, in the ruled order ────────────────────
+  // ⚠ A HEAD IS SUPPRESSED WHEN ITS GROUP IS EMPTY, and the DOOR decides that,
+  // not this surface — `searchPeers` omits an empty group entirely, so the rule
+  // is decided once. A head standing over nothing is the surface reporting on
+  // itself.
+  //
+  // `Everyone` is deliberately not `All vendors` (sounds like a directory to
+  // browse) and not `Others` (sounds like a leftovers bin). Alphabetical inside
+  // each group, because master §7 refuses a ranked surface and every other order
+  // is a ranking wearing a sort.
+  groupWorkedWith: "Worked with",
+  groupSameTrade:  "Same trade",
+  groupEveryone:   "Everyone",
+
+  // ── S5 · NO MATCH ───────────────────────────────────────────────────────
+  // Two sentences doing two jobs. The first is the fact. The second is WHY, said
+  // before she tries three more spellings — without it she assumes the search is
+  // broken rather than that her peer has not joined.
+  //
+  // ⚠ AND IT DOES NOT SAY THE PEER IS ABSENT FROM TDW. A vendor who has switched
+  // off peer visibility (R-40.107) must read IDENTICALLY from here, or the switch
+  // is defeated on the first search — one vendor could confirm another's
+  // existence and read her posture by elimination. The door takes the same
+  // posture: four different worlds, one indistinguishable refusal.
+  //
+  // Nothing to press beneath it. The invite is its own arc, and a control
+  // pointing at a door this sheet cannot open is worse than no control.
+  searchNoMatch: "No one here matches that. You can only forward to a vendor who is on The Dream Wedding.",
 
   // ── C · THE REFUSAL (veto sheet §C) ───────────────────────────────────────
   // C1 is the sitting's most important sentence and it is three deliberate
@@ -86,28 +133,66 @@ export const RF = {
   // sentence rather than an empty page. Billing paid for that lesson.
   unavailable: "We couldn’t load your forwards just now.",
 
-  // ── ⚠ PROPOSED — NOT YET VETOED. THIS IS THE ONE BYTE IN THIS FILE THE
-  //      FOUNDER HAS NOT RATIFIED, AND IT IS FLAGGED RATHER THAN SMUGGLED.
+  // ── VETOED AS WRITTEN AT R-40.56. [F-40.219 · this paragraph was the finding]
   //
-  // The veto sheet ratified ONE refusal sentence (§C1, the already-has case)
-  // because that is the refusal a vendor meets in the ordinary course. Writing
-  // the join revealed that the other three codes had no sentence at all and the
-  // first draft of `refusalSentence` below referred to a "generic line" that did
-  // not exist — a dangling reference that would have rendered an empty sheet.
+  // It stood here for a sitting reading "PROPOSED — NOT YET VETOED … FOUNDER:
+  // veto or replace this line", after the founder had already ratified it. The
+  // apostrophe cure at `24d6ed7` moved the STRING and left the PARAGRAPH — and a
+  // later seat read this block, believed the byte was still straight and
+  // unvetoed, and reported both to the chair. A comment true when written and
+  // false when shipped is worse than none, because it is load-bearing for
+  // whoever reads it next; here it was load-bearing within the hour.
   //
-  // The three are states the SHEET PREVENTS rather than states she reaches: the
-  // picker lists only linked peers, it cannot list her, and the control is not
-  // offered on a lead with no phone. So this line should never appear. But
-  // "should never appear" is exactly the class of byte that appears, and an
-  // empty refusal is a false-done wearing silence.
+  // WHAT IT IS. The veto sheet ratified ONE refusal sentence (§C1, the
+  // already-has case) because that is the refusal a vendor meets in the ordinary
+  // course. Writing the join revealed the other three codes had no sentence at
+  // all, and the first draft of `refusalSentence` referred to a "generic line"
+  // that did not exist — a dangling reference that would have rendered an empty
+  // sheet.
+  //
+  // Those three are states the SHEET PREVENTS rather than states she reaches, so
+  // this line should never appear. But "should never appear" is exactly the class
+  // of byte that appears, and an empty refusal is a false-done wearing silence.
   //
   // It says nothing it cannot back: no reason, because we do not have one worth
   // stating for a case that should not exist; no apology; and it does not claim
   // anything was sent.
-  //
-  // FOUNDER: veto or replace this line. If it is struck, the sheet needs another
-  // behaviour for the unreachable codes and that is a ruling, not an edit.
   refusalGeneric: "That forward didn’t go through. Nothing was sent.",
+
+  // ── T1 · THE TOLD STATE — R-G51.15 ──────────────────────────────────────
+  // One word, on the SENDER's `Forwarded to` row and nowhere else. Not on the
+  // peer's `Forwarded by` copy — she is the one who was told, and telling her
+  // she was told is noise about a message she is holding. Not in the Referrals
+  // room — those rows are per-peer totals and cannot carry a fact about one
+  // forward.
+  //
+  // ⚠ IT APPEARS ONLY ONCE META RETURNS A WAMID, AND IS ABSENT OTHERWISE —
+  // never a greyed "Pending". A state meaning "we do not know" must not look
+  // like a state meaning "not yet"; the row with `status: sent` and a null wamid
+  // is exactly the case where the message may well have arrived and the estate
+  // cannot prove it, and a surface claiming proof it does not have is worse than
+  // one that stays quiet.
+  told: "Told",
+
+  // ── P1/P2 · THE WITHDRAWAL SWITCH — R-40.107 ────────────────────────────
+  // ⚠ POSITIVE, so the control and the column agree: `peer_discoverable`, safe
+  // state `false`, and no reader anywhere inverts it. Not "Hide from peers" —
+  // a switch whose ON means OFF is the mistake 0140 was written to avoid, one
+  // column over on the same table.
+  peerSwitchLabel: "Appear in peer searches",
+
+  // TWO JOBS IN ONE LINE.
+  // One: the switch is ON by default, so she is ALREADY listed, and she is owed
+  // that fact before she has to ask for it. The default is not carelessness —
+  // the search returns only `business_name`, `routing_handle`, `category` and
+  // `city`, every one already on her PUBLIC storefront card, so this lets her
+  // WITHDRAW from a directory built out of facts she already publishes rather
+  // than consenting to a new exposure.
+  // Two: "while your storefront is public" is the door's third predicate said
+  // plainly. If she has paused her storefront she is in no peer search whatever
+  // this switch says — she un-published with the one control she was given, so
+  // she has published nothing.
+  peerSwitchLine: "Peers can find you by name while your storefront is public and this is on.",
 } as const;
 
 /**
@@ -136,10 +221,26 @@ export function peerFigure(sent: number, received: number): string {
  * fits, and that peer is the most likely to already know the couple.
  *
  * The other three are states the SHEET PREVENTS rather than states she reaches:
- * the picker lists only linked peers (so `not_a_peer` needs a stale list), it
- * cannot list herself (`self`), and the control is not offered on a lead with no
- * phone (`lead_has_no_phone`). They fall to `refusalGeneric`, which is PROPOSED
- * AND UNVETOED — see its own block above.
+ * the search cannot list herself (`self`), the control is not offered on a lead
+ * with no phone (`lead_has_no_phone`), and `not_a_peer` now needs a result that
+ * went stale between the search and the tap. They fall to `refusalGeneric`,
+ * which the founder VETOED AS WRITTEN at R-40.56. [F-40.219 · this sentence
+ * read "PROPOSED AND UNVETOED" for a sitting after the ruling had landed.]
+ *
+ * ⚠ `referral_not_a_peer` KEPT ITS NAME AND CHANGED ITS MEANING — R-40.104.
+ * It used to mean "not on your roster", because R-G51.1 made a linked roster
+ * edge the boundary of the exchange. That boundary is repealed: the door now
+ * refuses only a vendor who is not `status='active'`, or who has un-published
+ * her storefront, or who has switched off peer discovery (R-40.107) — or who
+ * does not exist at all.
+ *
+ * THE CODE WAS NOT RENAMED AND NO NEW CODE WAS MINTED, for two reasons. A new
+ * code would grow `ForwardRefusalCode`, and this switch is exhaustive by type,
+ * so the pwa would stop compiling until the founder had vetoed a sentence for a
+ * state the search already prevents. And the door answers all four of those
+ * worlds IDENTICALLY on purpose — distinguishing them would turn the forward
+ * into an oracle for whether a given vendor exists and whether she has hidden
+ * herself. One code, one sentence, no oracle.
  *
  * ⚠ THE SWITCH IS EXHAUSTIVE BY TYPE AND HAS NO `default`. Add a code to
  * `ForwardRefusalCode` and this function stops compiling until someone decides

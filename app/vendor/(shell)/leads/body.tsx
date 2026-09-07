@@ -135,17 +135,40 @@ function isWeddingLead(l: { source?: string | null }): boolean {
 // forwarded lead (F-40.86 — the bare token, filed to Block 09 and NOT cured
 // here), and the row directly beneath it is what makes that token legible
 // without this sitting touching the Leads room's source rendering.
-function referralStamp(s: ReferralStamp | null | undefined): string | null {
+//
+// ── AND THE 「Told」 STATE RIDES THE SAME VALUE — R-G51.15 ────────────────────
+// ⚠ ON THE SENDER'S ROW ONLY. `withTold` is applied to `forwarded_to` and never
+// to `forwarded_by`: the peer is the one who was told, and a badge on HER record
+// announcing that she was told is noise about a message she is already holding.
+//
+// ⚠ IT MEANS META RETURNED A WAMID. Not "the flag was on", not "we called
+// sendWa". dream-os sets `told` from `referral_alerts` rows that carry a wamid
+// and from nothing else, so a row reading `status: 'sent'` with a null wamid
+// arrives here FALSE — the case where the message may well have landed and the
+// estate cannot prove it.
+//
+// ⚠ ABSENT UNTIL THEN, AND NEVER A GREYED 「Pending」. A state meaning "we do not
+// know" must not look like a state meaning "not yet". This is the same law
+// F-40.209 banked one surface over: a control's state is a fact about the
+// database, and a surface that has not read one draws nothing.
+//
+// It joins the VALUE rather than becoming a row of its own, for the reason the
+// note above it does: it is not a second fact about the lead, it is a fact about
+// this one forward. A `Told` row beneath `Forwarded to` would read as a separate
+// event.
+function referralStamp(s: ReferralStamp | null | undefined, withTold = false): string | null {
   if (!s) return null;
   const who = s.peer_name || '\u2014';
-  return s.note ? `${who}\n${s.note}` : who;
+  const head = withTold && s.told === true ? `${who} \u00b7 ${RF.told}` : who;
+  return s.note ? `${head}\n${s.note}` : head;
 }
 
 function referralRows(l: Lead): { label: string; value: string; verbatim?: boolean }[] {
   const out: { label: string; value: string; verbatim?: boolean }[] = [];
-  const to = referralStamp(l.forwarded_to);
+  const to = referralStamp(l.forwarded_to, true);
   // `verbatim` — the note inside this value is the vendor's own sentence, and
-  // `cap()` would title-case it (R-G51.13 / F-40.119).
+  // `cap()` would title-case it (R-G51.13 / F-40.119). It now also protects the
+  // 「Told」 word from being re-cased on its way to glass.
   if (to) out.push({ label: RF.rowForwardedTo, value: to, verbatim: true });
   const by = referralStamp(l.forwarded_by);
   if (by) out.push({ label: RF.rowForwardedBy, value: by, verbatim: true });

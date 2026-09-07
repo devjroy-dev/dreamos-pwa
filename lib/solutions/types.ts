@@ -359,6 +359,43 @@ export type ReferralPeer = {
 };
 
 /**
+ * A group of peers under one head — R-40.104.
+ *
+ * ⚠ THE GROUPS ARRIVE ALREADY GROUPED, ALREADY SORTED, AND ALREADY PRUNED. The
+ * door omits an empty group entirely, so the surface renders whatever it is
+ * given and never inspects a length to decide whether to draw a head. The rule
+ * that an empty head is suppressed is decided ONCE, at `searchPeers`, and a
+ * surface that re-decided it would be a second home for a founder's ruling.
+ *
+ * `key` and not a label: the words are the founder's and live in
+ * `lib/worklist/referrals.ts`. A door that shipped "Same trade" would be putting
+ * an unvetoed byte on a vendor's screen from a Node process.
+ */
+export type PeerGroupKey = 'worked_with' | 'same_trade' | 'everyone';
+
+export type PeerGroup = {
+  key: PeerGroupKey;
+  peers: ReferralPeer[];
+};
+
+/**
+ * What the peer search answers.
+ *
+ * `searching` is false when the box holds fewer than `min_query` characters —
+ * the door then answers with her roster alone rather than opening the table, and
+ * the sheet needs to know which of the two it is holding so its empty state can
+ * be honest.
+ *
+ * `min_query` travels so the sheet's debounce cannot disagree with the server's
+ * minimum. One home for the number, read rather than re-typed.
+ */
+export type PeerSearchResult = {
+  groups: PeerGroup[];
+  searching: boolean;
+  min_query: number;
+};
+
+/**
  * One peer's two directions, as the room renders them.
  *
  * ⚠ THE UNIT IS FORWARDS. Not weddings — the plane holds a lead, and a field
@@ -401,6 +438,26 @@ export type ReferralStamp = {
   peer_name: string | null;
   note: string | null;
   at: string | null;
+  /**
+   * R-G51.15 · WAS THE PEER ACTUALLY TOLD.
+   *
+   * ⚠ SENDER-SIDE ONLY, which is why it is optional on a type both directions
+   * share. The peer's own `Forwarded by` stamp never carries it: she is the one
+   * who was told, and a badge telling her so is noise about a message she holds.
+   *
+   * ⚠ IT MEANS "META RETURNED A WAMID", not "we called sendWa" and not "the flag
+   * was on". A `referral_alerts` row with `status: 'sent'` and a null wamid
+   * reads FALSE here on purpose — that is the case where the message may well
+   * have arrived and the estate cannot prove it, and a surface claiming proof it
+   * does not have is worse than one that stays quiet.
+   *
+   * ⚠ AND IT RIDES INSIDE THIS OBJECT RATHER THAN AS A TOP-LEVEL WIRE KEY.
+   * `LIST_WIRE_CENSUS` in dream-os `leadSerializer.js` classifies TOP-LEVEL keys
+   * and `b36` leg C diffs them, so a new one there would redden that bench — as
+   * `forwarded_to`/`forwarded_by` did when they joined. Inside the stamp, it
+   * passes through the serializer untouched and no census moves.
+   */
+  told?: boolean;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -186,6 +186,75 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 .wl-btn.gho{background:transparent;border:.5px solid var(--atelier-card-border);
             color:var(--atelier-ink-soft)}
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SITTING 2 · THE PEER IS FOUND, THE PEER IS TOLD (R-40.104, R-G51.15,
+   R-40.107). Everything above this comment is sitting 1's, ratified at R-40.42,
+   and NOT ONE BYTE OF IT MOVES — the rules below are additive so the founder
+   reads this cut as a DIFFERENCE against a frame he has already approved.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── THE SEARCH ────────────────────────────────────────────────────────────
+   R-40.104 repeals R-G51.1's roster boundary: the roster is now the SUGGESTION
+   above the box, not the edge of the world. The input reuses `.wl-fi` — it is
+   the same field the note uses and there is no reason for a second input idiom
+   on one sheet. */
+/* NO GLYPH. The first cut put `&#9906;` in the field and the capture showed what
+   that codepoint actually is — U+26B2 NEUTER, a gender sign, not a magnifier.
+   Caught by looking at the shot rather than at the source. The placeholder IS
+   the label, and a symbol the vendor cannot name is worse than none. */
+.wl-srch{display:flex;align-items:center}
+
+/* THE GROUP HEADS. Three, in ruled order: Worked with · Same trade · Everyone.
+   ⚠ A HEAD IS SUPPRESSED WHEN ITS GROUP IS EMPTY (chair-ruled). A head standing
+   over nothing is the surface reporting on itself, which is the same refusal
+   the room's balance already makes when nothing has happened. */
+.wl-ghead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);
+          margin:14px 0 2px;padding-top:10px;border-top:.5px solid var(--atelier-card-border)}
+.wl-ghead:first-of-type{margin-top:10px}
+/* The city joins the peer row this sitting. Two facts decide whether a peer is
+   the RIGHT peer for an enquiry — her trade and where she works — and both are
+   already on her public storefront. Nothing else: no rating, no distance, no
+   count of forwards, no ordering by volume. Master §7 reaches this list, and
+   ALPHABETICAL WITHIN A GROUP is the chair's ruling for the same reason — any
+   other order is a ranking wearing a sort. */
+.wl-pmeta{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
+          color:var(--atelier-ink-mute);display:block;margin-top:2px}
+/* THE HONEST LINE. A search that matches no vendor says so and offers nothing:
+   the invite is its own arc (chair-ruled), and a control pointing at a door
+   this sheet cannot open is worse than no control — B8's own reasoning, one
+   sitting on. */
+.wl-pnone{font:var(--wl-t3);color:var(--atelier-ink-mute);line-height:1.5;margin-top:14px}
+
+/* ── THE TOLD STATE · R-G51.15 ─────────────────────────────────────────────
+   It rides the `Forwarded to` row on the SENDER's record and nowhere else. Not
+   the room — the room's rows are per-peer aggregates and cannot carry a fact
+   about one forward. Not the peer's `Forwarded by` row — she is the one who was
+   told, and a message telling her she was told is noise.
+   ⚠ IT READS A `wamid` AND NOTHING ELSE. Not "we called sendWa", not "the flag
+   was on" — the one field Meta's own receipt can be correlated against. Absent
+   until then, never a greyed 「pending」: a state that means "we do not know"
+   should not look like a state that means "not yet". */
+.wl-told{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
+         color:var(--role-positive);margin-left:8px;white-space:nowrap}
+
+/* ── THE SETTINGS SWITCH · R-40.107 ────────────────────────────────────────
+   Transcribed from the storefront's date-check switch (`screen.tsx:337`), which
+   saves ON TOGGLE and outside the form's dirty tracking, because a consent flag
+   must be written by the tap that granted it and nothing else. Same geometry
+   here; no public-cache rebuild, since no cached page stands behind a
+   vendor-auth search. */
+.wl-swrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+          padding:14px 0;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-swtext{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wl-swlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.wl-swline{font:var(--wl-t5);color:var(--atelier-ink-mute);line-height:1.5;max-width:38ch}
+.wl-sw{flex:0 0 auto;width:44px;height:26px;border-radius:13px;position:relative;margin-top:2px;
+       background:var(--atelier-card-border);border:.5px solid var(--atelier-card-border)}
+.wl-sw.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.wl-sw span{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+            background:var(--atelier-ink-fade)}
+.wl-sw.on span{left:auto;right:2px;background:var(--role-ink-deep)}
+
 .wl-toast{position:absolute;left:var(--wl-gutter);right:var(--wl-gutter);bottom:76px;z-index:30;
           background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-card-border);
           border-radius:3px;padding:12px 14px;font:var(--wl-t5);color:var(--atelier-ink);
@@ -288,6 +357,42 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 </div>
 
 <!-- ═══ R2 · THE FORWARD SHEET ════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="R1-told">
+    <div class="cap"><b>R1-told &middot; THE SAME ROW, ONCE META HAS A wamid &mdash; R-G51.15</b> &middot; the ONLY byte this sitting adds to the lead record is the word after the peer name &middot; <b>it reads a <code>wamid</code> and nothing else</b> &mdash; not <i>we called <code>sendWa</code></i>, not <i>the flag was on</i>: the one field Meta's own receipt can be correlated against, and the reason <code>0142</code> indexes it &middot; <b>absent until then, and never a greyed 「pending」</b> &mdash; a state meaning <i>we do not know</i> must not look like a state meaning <i>not yet</i> (F-40.209's law: a control's state is a fact about the database) &middot; it rides the <b>sender's</b> row only: the peer was the one told, and telling her she was told is noise &middot; F-40.210: the id lives at <code>out.result.wamid</code>, traced through <code>sendWa.js:252</code>, never at <code>out.wamid</code>
+</div>
+  <div class="wl" data-wl-mode="dark">
+    <header class="wl-hdr">
+      <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Leads</span></div>
+      <div class="wl-coin">DR</div>
+    </header>
+    <div class="wl-main"><div class="wl-room">
+      <div class="wl-rsec"><span>Active</span><span>3</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Priya Nair</span><span class="wl-rdetail">28 Aug &middot; 14 Feb 2027 &middot; Jaipur</span></span><span class="wl-rstate">New</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Ananya Menon</span><span class="wl-rdetail">21 Aug &middot; Mar 2027 &middot; Delhi</span></span><span class="wl-rstate">Contacted</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Kavya Iyer</span><span class="wl-rdetail">14 Aug &middot; 8 Dec 2026 &middot; Goa</span></span><span class="wl-rstate">Quoted</span></div>
+    </div></div>
+    <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
+    <div class="wl-scrim"></div>
+    <div class="wl-lead">
+      <div class="wl-ldhead"><span class="wl-ldname">Priya Nair</span><span class="wl-ldx">&times;</span></div>
+      <div class="wl-ldrows">
+        <div class="wl-ldrow"><span class="wl-ldl">State</span><span class="wl-ldv">new</span></div>
+        <div class="wl-ldrow"><span class="wl-ldl">Arrived</span><span class="wl-ldv">28 Aug</span></div>
+        <div class="wl-ldrow"><span class="wl-ldl">Forwarded to</span><span class="wl-ldv">DROY550 &middot; 5 Sep<span class="wl-told">Told</span><span class="note">Booked that weekend &mdash; she's in Jaipur, dates are open on your side I think.</span></span></div>
+        <div class="wl-ldrow"><span class="wl-ldl">Wedding date</span><span class="wl-ldv">14 Feb 2027</span></div>
+        <div class="wl-ldrow"><span class="wl-ldl">City</span><span class="wl-ldv">Jaipur</span></div>
+        <div class="wl-ldrow"><span class="wl-ldl">Budget</span><span class="wl-ldv">Rs 3,50,000</span></div>
+        <div class="wl-ldrow"><span class="wl-ldl">Source</span><span class="wl-ldv">whatsapp</span></div>
+      </div>
+      <div class="wl-ldacts">
+        <div class="wl-ldact">Mark lost</div>
+      </div>
+      <div class="wl-ldfoot"><span class="wl-ldfb wa">WhatsApp</span><span class="wl-ldfb call">Call</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ R2 · THE FORWARD SHEET ════════════════════════════════════════════ -->
 <div class="framewrap" data-frame="R2-sheet">
   <div class="cap"><b>R2-sheet &middot; THE FORWARD SHEET</b> &middot; peer &middot; note &middot; send, and nothing else &mdash; no category filter, no search, no ranking (master &sect;7 reaches this list) &middot; the peer field is a PICKER, not a text box: R-G51.1 ruled the roster is the source, so a handle typed by hand has no door here &middot; the standing line under the verb is the sitting's honesty about the couple &mdash; R-G51.7, she hears nothing from TDW and the vendor is told so before she taps, not after</div>
   <div class="wl" data-wl-mode="dark">
@@ -335,6 +440,79 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
       <div class="wl-prow"><span><span class="wl-pname">DROY550</span><span class="wl-pcat">Photography</span></span><span class="wl-ptick">&#10003;</span></div>
       <div class="wl-prow"><span><span class="wl-pname">MAKEUPBYSWATIROY</span><span class="wl-pcat">Makeup</span></span><span></span></div>
       <p class="wl-shnote">Peers you've worked with appear here.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SITTING 2 · THE PEER IS FOUND — R-40.104 ═════════════════════════ -->
+
+<div class="framewrap" data-frame="R2-search-empty">
+  <div class="cap"><b>R2-search-empty &middot; THE PICKER BECOMES A SEARCH &mdash; R-40.104 REPEALS THE ROSTER BOUNDARY</b> &middot; <b>R2-picker above is now HISTORY, not a live frame</b>: R-G51.1 made <code>vendor_roster</code> the edge of the world and the founder has repealed it &mdash; the roster is the <i>suggestion above the box</i>, never the boundary &middot; at rest the box is empty and <i>Worked with</i> carries the roster, so the vendor who only ever forwards to the same peer loses nothing and gains a way past her &middot; <b>the three heads are the ruled order</b> Worked with &middot; Same trade &middot; Everyone, <b>alphabetical inside each</b> and a head is SUPPRESSED when its group is empty &mdash; a head over nothing is the surface reporting on itself &middot; <b>no phone key</b> (c-40.45): name and handle only, because a phone match answers <i>whose number is this</i> and nothing publishes that in either direction &middot; both rows are the real fixture read at origin, not invented</div>
+  <div class="wl" data-wl-mode="dark">
+    <header class="wl-hdr">
+      <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Leads</span></div>
+      <div class="wl-coin">DR</div>
+    </header>
+    <div class="wl-main"><div class="wl-room">
+      <div class="wl-rsec"><span>Active</span><span>3</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Priya Nair</span><span class="wl-rdetail">28 Aug &middot; 14 Feb 2027 &middot; Jaipur</span></span><span class="wl-rstate">New</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Ananya Menon</span><span class="wl-rdetail">21 Aug &middot; Mar 2027 &middot; Delhi</span></span><span class="wl-rstate">Contacted</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Kavya Iyer</span><span class="wl-rdetail">14 Aug &middot; 8 Dec 2026 &middot; Goa</span></span><span class="wl-rstate">Quoted</span></div>
+    </div></div>
+    <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
+    <div class="wl-scrim"></div>
+    <div class="wl-sheet">
+      <div class="wl-shhead"><span class="wl-shtitle">Choose a peer</span><span class="wl-shx">&times;</span></div>
+      <div class="wl-fi ph wl-srch"><span>Search by name or handle</span></div>
+      <div class="wl-ghead">Worked with</div>
+      <div class="wl-prow"><span><span class="wl-pname">Make Up by Swati Roy</span><span class="wl-pmeta">Makeup &middot; Delhi</span></span><span></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="framewrap" data-frame="R2-search-typing">
+  <div class="cap"><b>R2-search-typing &middot; <code>swati</code> &mdash; AND THE FOUNDER CARD'S LINE 2 WAS WRONG</b> &middot; the kickoff's card said <i>DROY550 appears under Same trade</i>. <b>It cannot.</b> Derived at origin: DEV440 is <code>photography</code>, MAKEUPBYSWATIROY is <code>makeup</code>, and <code>normaliseCategory</code> bridges nothing between them (<code>categoryFraming.js:112&ndash;119</code> / <code>:147&ndash;153</code>) &middot; she appears under <b>Worked with</b> &mdash; she is on his roster from sitting 1's own forward &mdash; and the other two heads are <b>SUPPRESSED, drawn by their absence</b> &middot; <b>⚠ THIS FRAME IS ALSO A DECLARED GAP</b>: no query available to this fixture spans all three groups, so the three-head layout is <b>not fully witnessed by any walk this estate can currently run</b>. Stated rather than papered &mdash; and this seat will not invent twenty-four vendor names to draw a prettier frame (F-40.202's disease is drawing the picture you wanted instead of the one that exists)</div>
+  <div class="wl" data-wl-mode="dark">
+    <header class="wl-hdr">
+      <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Leads</span></div>
+      <div class="wl-coin">DR</div>
+    </header>
+    <div class="wl-main"><div class="wl-room">
+      <div class="wl-rsec"><span>Active</span><span>3</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Priya Nair</span><span class="wl-rdetail">28 Aug &middot; 14 Feb 2027 &middot; Jaipur</span></span><span class="wl-rstate">New</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Ananya Menon</span><span class="wl-rdetail">21 Aug &middot; Mar 2027 &middot; Delhi</span></span><span class="wl-rstate">Contacted</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Kavya Iyer</span><span class="wl-rdetail">14 Aug &middot; 8 Dec 2026 &middot; Goa</span></span><span class="wl-rstate">Quoted</span></div>
+    </div></div>
+    <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
+    <div class="wl-scrim"></div>
+    <div class="wl-sheet">
+      <div class="wl-shhead"><span class="wl-shtitle">Choose a peer</span><span class="wl-shx">&times;</span></div>
+      <div class="wl-fi on wl-srch"><span>swati</span></div>
+      <div class="wl-ghead">Worked with</div>
+      <div class="wl-prow"><span><span class="wl-pname">Make Up by Swati Roy</span><span class="wl-pmeta">Makeup &middot; Delhi</span></span><span class="wl-ptick">&#10003;</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="framewrap" data-frame="R2-search-none">
+  <div class="cap"><b>R2-search-none &middot; THE HONEST LINE, AND NO CONTROL UNDER IT</b> &middot; the query drawn here is a PHONE NUMBER, deliberately — c-40.45 struck phone as a search key, so a number typed in this box is just a string that matches no name and no handle, and that is the path a founder is most likely to try first &middot; it gets <b>one sentence and nothing to press</b> &middot; <b>the invite is NOT here, by ruling</b> &mdash; it is its own arc, and B8's reasoning carries forward one sitting: a control pointing at a door this sheet cannot open is worse than no control &middot; the line does not say <i>not yet</i> or <i>invite them</i>, because both promise a thing that does not exist &middot; it also does not say she is not on TDW &mdash; <b>a vendor who has switched off peer visibility (R-40.107) reads identically from here</b>, and telling one vendor that another has hidden herself would defeat the switch on the first search</div>
+  <div class="wl" data-wl-mode="dark">
+    <header class="wl-hdr">
+      <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Leads</span></div>
+      <div class="wl-coin">DR</div>
+    </header>
+    <div class="wl-main"><div class="wl-room">
+      <div class="wl-rsec"><span>Active</span><span>3</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Priya Nair</span><span class="wl-rdetail">28 Aug &middot; 14 Feb 2027 &middot; Jaipur</span></span><span class="wl-rstate">New</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Ananya Menon</span><span class="wl-rdetail">21 Aug &middot; Mar 2027 &middot; Delhi</span></span><span class="wl-rstate">Contacted</span></div>
+      <div class="wl-row"><span><span class="wl-rprimary">Kavya Iyer</span><span class="wl-rdetail">14 Aug &middot; 8 Dec 2026 &middot; Goa</span></span><span class="wl-rstate">Quoted</span></div>
+    </div></div>
+    <nav class="wl-nav"><span class="wl-seat on">Rooms</span><span class="wl-seat">Today</span></nav>
+    <div class="wl-scrim"></div>
+    <div class="wl-sheet">
+      <div class="wl-shhead"><span class="wl-shtitle">Choose a peer</span><span class="wl-shx">&times;</span></div>
+      <div class="wl-fi on wl-srch"><span>9812233445</span></div>
+      <p class="wl-pnone">No one here matches that. You can only forward to a vendor who is on The Dream Wedding.</p>
     </div>
   </div>
 </div>
@@ -472,6 +650,35 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
   </div>
 </div>
 
+</div>
+
+<!-- ═══ R6 · SETTINGS — R-40.107 ═════════════════════════════════════════ -->
+<div class="framewrap" data-frame="R6-settings">
+  <div class="cap"><b>R6-settings &middot; THE WITHDRAWAL SWITCH &mdash; R-40.107, DEFAULT ON</b> &middot; <b>and the default is the founder's, with a reason that survives <code>0140</code></b>: the search shows a peer only what her public storefront already shows a stranger &mdash; <code>business_name</code>, <code>routing_handle</code>, <code>category</code>, <code>city</code>, every one of them on <code>vendorCard.js:213</code>'s own select &mdash; so this lets her <i>withdraw</i> from a directory built from facts she already publishes; it grants no new exposure. <code>0140</code> defaulted <code>date_check_enabled</code> OFF because that one opened a NEW fact about her calendar to anyone. <b>Same table, opposite default, one law</b> &mdash; and <code>0142</code> says so out loud so the two columns never contradict in silence &middot; spelled <code>_discoverable</code> and not <code>_paused</code>: the safe state is <code>false</code>, so no code ever inverts and no stray <code>coalesce</code> can open a door nobody opened (<code>0140</code>'s own warning, honoured) &middot; the door reads <code>.eq(peer_discoverable, true)</code>, never <code>not.eq(false)</code> &mdash; a NULL passes the second and not the first, and a cell holds it &middot; <b>the line does the second job</b>: at default-on she is ALREADY listed and is owed that fact before she has to ask for it &middot; saves on toggle, outside the form's dirty tracking, transcribed from the storefront switch (<code>screen.tsx:337</code>) &mdash; a consent flag is written by the tap that granted it and by nothing else &middot; <b>two veto bytes here</b>: the label and its line</div>
+  <div class="wl" data-wl-mode="dark">
+    <header class="wl-hdr">
+      <div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lbl">Settings</span></div>
+      <div class="wl-coin">DR</div>
+    </header>
+    <div class="wl-main"><div class="wl-room">
+      <p class="sol-eyebrow">Your practice</p>
+      <div class="wl-swrow">
+        <span class="wl-swtext">
+          <span class="wl-swlabel">Appear in peer searches</span>
+          <span class="wl-swline">Peers can find you by name while your storefront is public and this is on.</span>
+        </span>
+        <span class="wl-sw on"><span></span></span>
+      </div>
+      <div class="wl-swrow">
+        <span class="wl-swtext">
+          <span class="wl-swlabel">Answer date checks</span>
+          <span class="wl-swline">KEPT &mdash; <code>date_check_enabled</code>, G3.1's switch, drawn only so the new row is read as a sibling and not as a new idiom.</span>
+        </span>
+        <span class="wl-sw"><span></span></span>
+      </div>
+    </div></div>
+    <nav class="wl-nav"><span class="wl-seat">Rooms</span><span class="wl-seat on">Today</span></nav>
+  </div>
 </div>
 
 <script>

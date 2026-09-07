@@ -163,7 +163,12 @@ export const API = {
   // records. Derived from `src/api/vendor/core.js` and `src/api/vendor/leads.js`
   // at dream-os `ccdc70e`, not from the charter's prose.
   referrals:      () => `${REFERRALS_API_PATH}`,
-  referralPeers:  () => `${REFERRALS_API_PATH}/peers`,
+  // ── R-40.104 · THE PICKER BECAME A SEARCH AND THE ADDRESS DID NOT CHANGE.
+  // It still answers one question — who may I forward to — so a rename would
+  // have cost a byte for nothing. `q` is optional: absent or under the door's
+  // minimum, it answers her roster alone rather than the whole table.
+  referralPeers:  (q?: string) =>
+    q ? `${REFERRALS_API_PATH}/peers?q=${encodeURIComponent(q)}` : `${REFERRALS_API_PATH}/peers`,
   leadForward:    (leadId: string) => `${LEADS_API_PATH}/${encodeURIComponent(leadId)}/forward`,
   // ── G1.2 · two doors, one address home ─────────────────────────────────────
   // No reorder member: R-G12.12 was narrowed after the seat flagged that
