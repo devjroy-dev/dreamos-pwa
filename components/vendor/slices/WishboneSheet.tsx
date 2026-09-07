@@ -159,7 +159,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
               />
             )}
             {error && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-alert, #B4552D)', marginTop: 6 }}>{error}</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--role-critical)', marginTop: 6 }}>{error}</div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               {!victorOnly && (

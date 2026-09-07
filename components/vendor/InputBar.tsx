@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { INK_DEEP } from '@/lib/vendor/theme';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const LINE_HEIGHT = 20;
@@ -51,7 +50,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
 
   // Brass accents for the toggle + note-mode tint.
   const brassGrad = 'linear-gradient(180deg, var(--atelier-accent-text) 0%, var(--atelier-accent-text) 100%)';
-  const toggleOffBg = T.isLight ? 'rgba(139,75,55,0.08)' : 'rgba(201,168,76,0.10)';
+  const toggleOffBg = 'var(--atelier-input-bg)';
   const noteBorder = inNote ? 'var(--atelier-label)' : T.inputBorder;
 
   return (
@@ -80,12 +79,12 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
             background: inNote ? brassGrad : toggleOffBg,
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: inNote ? '0 4px 14px -4px rgba(201,168,76,0.5), inset 0 1px 1px rgba(255,235,200,0.6)' : 'none',
+            boxShadow: 'none',
             transition: 'all 220ms cubic-bezier(0.22,1,0.36,1)',
           }}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-            stroke={inNote ? (T.isLight ? '#F5F2EE' : INK_DEEP) : T.inkDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            stroke={inNote ? 'var(--role-ink-on-metal)' : T.inkDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9" />
             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
           </svg>
@@ -126,17 +125,13 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
         border: '0.5px solid var(--atelier-label)',
         background: canSend
           ? brassGrad
-          : T.isLight ? 'rgba(139,75,55,0.12)' : 'rgba(201,168,76,0.15)',
+          : 'var(--atelier-input-bg)',
         cursor: canSend ? 'pointer' : 'default',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        color: canSend ? (T.isLight ? '#F5F2EE' : INK_DEEP) : T.inkDim,  // F-09.102: brassGrad ground themes
+        color: canSend ? 'var(--role-ink-on-metal)' : T.inkDim,  // F-09.102: brassGrad ground themes
         fontFamily: 'var(--font-italiana), Georgia, serif',
         fontSize: 16, lineHeight: 1, fontWeight: 400,
-        boxShadow: canSend
-          ? T.isLight
-            ? '0 4px 12px -4px rgba(42,26,16,0.2), inset 0 1px 1px rgba(255,235,200,0.6)'
-            : '0 6px 16px -4px rgba(201,168,76,0.5), inset 0 1px 1px rgba(255,235,200,0.6)'
-          : 'none',
+        boxShadow: 'none',
         transition: 'all 200ms cubic-bezier(0.22,1,0.36,1)',
       }}>{inNote ? '✎' : '↑'}</button>
     </div>

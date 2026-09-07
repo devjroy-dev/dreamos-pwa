@@ -35,7 +35,7 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
             background: on ? 'rgba(201,168,76,0.12)' : 'transparent',
             fontFamily: F.label, fontWeight: on ? 400 : 300, fontSize: 9,
             letterSpacing: '0.18em', textTransform: 'uppercase',
-            color: on ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute, #8a8578)',
+            color: on ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)',
           }}>
             {c.label}{c.count != null ? ` · ${c.count}` : ''}
           </button>

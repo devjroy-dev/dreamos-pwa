@@ -178,7 +178,7 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
                     border: on ? `1px solid ${D.gold}` : '1px solid var(--atelier-label)',
                     background: on ? D.gold : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, lineHeight: 1.5, color: '#111', fontWeight: 700,
+                    fontSize: 16, lineHeight: 1.5, color: 'var(--role-ink-on-metal)', fontWeight: 700,
                   }}>{on ? '✓' : ''}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{m.name}</span>
@@ -200,7 +200,7 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
             padding: '13px 0', width: '100%', border: 'none', borderRadius: 999,
             background: working || !event ? 'var(--atelier-input-border)' : D.gold,
             cursor: working || !event ? 'default' : 'pointer',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#111',
+            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
             letterSpacing: '0.26em', textTransform: 'uppercase',
           }}>{working ? 'Saving…' : 'Save crew'}</button>
         </div>

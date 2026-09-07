@@ -5,7 +5,7 @@
 
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
 
-const D = { card: '#1C1C1C', border: 'rgba(226,222,216,0.1)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--role-metal)' };
+const D = { card: 'var(--atelier-sheet-bg)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--role-metal)' };
 const F = { label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
 function fmtTime(iso: string) {
@@ -56,7 +56,7 @@ export function ConversationThread({ messages, vendorSummary }: Props) {
                 <div style={{
                   maxWidth: '82%',
                   backgroundColor: isIn ? 'var(--atelier-input-bg)' : 'rgba(201,168,76,0.12)',
-                  border: `0.5px solid ${isIn ? 'rgba(226,222,216,0.1)' : 'rgba(201,168,76,0.2)'}`,
+                  border: `0.5px solid ${isIn ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
                   borderRadius: isIn ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
                   padding: '8px 12px',
                 }}>

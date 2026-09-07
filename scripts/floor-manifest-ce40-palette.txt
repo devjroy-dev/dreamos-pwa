@@ -1,0 +1,71 @@
+# scripts/floor-manifest-ce40-palette.txt
+#
+# CE-40 · THE PALETTE PACKET — R-40.129, THE SEVEN-INK LAW ON /vendor/**.
+#
+# BASE: 5fcdf5d3b51b87be476f1fc39848e79f8f1e781c  (dreamos-pwa, origin/main)
+#
+# [F-19.16] A delivery tree is dirty by definition and R-33.7 forbids the executor
+# the commit that would clean it. Every dirty path is named here; one byte outside
+# and the runner refuses.
+#
+# ── THE FLOOR BASE IS STALE AND IS NOT RE-BASED BY THIS SEAT ────────────────
+# `run-floor.sh --check` reports a delta above its named base. FOUR of those
+# entries are PRISTINE-PRESENT at 5fcdf5d — each was derived by running the same
+# floor on a `git worktree` at an untouched HEAD, and each is somebody else's:
+#
+#   b40_worklist_shell_bench     C50  — a real person named in a vendor-facing
+#                                       byte at contracts/screen.tsx (G3.2 s3's)
+#                                 C102 — straight apostrophes at
+#                                       wedding-pages/page.tsx:840,:841 (F-40.239's)
+#   b42_g11_wedding_pages_bench        — one red, the room-string cell; reads
+#                                       171/172 in a pwa-only seat and 175/176
+#                                       beside a dream-os sibling (four mirror
+#                                       cells REFUSE without it)
+#   tdw09_hotfix                       — inherited
+#   tdw37_leadgate_b_slot              — derived to the cell at 2baa86cd
+#                                       (F-40.270) and deliberately left
+#
+# The chair re-bases at the cut. A seat that re-bases its own floor is a seat
+# that can absorb its own regression, which is the shape run-floor.sh:469 exists
+# to refuse.
+#
+# ── THIRTY-SEVEN PATHS ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+# Thirty-one cured surfaces, two new cells, the §4.18 amendment, the regenerated census
+# (authorised as the chair's act, F-40.269's shape), the handover, and this
+# manifest — a delivered file, which dirties the tree like any other.
+app/vendor/(shell)/calendar/screen.tsx
+app/vendor/(shell)/collab/[post_id]/responses/screen.tsx
+app/vendor/(shell)/couture/screen.tsx
+app/vendor/(shell)/portfolio/screen.tsx
+app/vendor/(shell)/tds/screen.tsx
+app/vendor/(shell)/wedding-pages/page.tsx
+components/vendor/AddSheet.tsx
+components/vendor/CalendarBlockSheet.tsx
+components/vendor/CalendarCrewSheet.tsx
+components/vendor/CalendarDaySheet.tsx
+components/vendor/ChatThread.tsx
+components/vendor/ConversationThread.tsx
+components/vendor/FilingChip.tsx
+components/vendor/Header.tsx
+components/vendor/InputBar.tsx
+components/vendor/ListRow.tsx
+components/vendor/MessageBubble.tsx
+components/vendor/NotesBody.tsx
+components/vendor/SettingsScreen.tsx
+components/vendor/SubscriptionCard.tsx
+components/vendor/TierMeter.tsx
+components/vendor/TipsCarousel.tsx
+components/vendor/slices/BinderCard.tsx
+components/vendor/slices/BulkBar.tsx
+components/vendor/slices/DetailSheet.tsx
+components/vendor/slices/FilterRail.tsx
+components/vendor/slices/SliceRow.tsx
+components/vendor/slices/SliceShell.tsx
+components/vendor/slices/WishboneSheet.tsx
+components/worklist/WlToast.tsx
+docs/TDW_19_CE40_PALETTE_HANDOVER.md
+scripts/b59_seven_ink_census.js
+scripts/b60_toast_contrast.js
+scripts/floor-manifest-ce40-palette.txt
+scripts/tdw07_p4a_ig.proof.mjs
+scripts/tdw_stripper_census.out.txt

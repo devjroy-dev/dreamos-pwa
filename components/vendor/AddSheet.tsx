@@ -24,7 +24,7 @@ import type {
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
 import { istTodayISO } from '@/lib/vendor/istDay';
-const D = { bg: '#111111', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)' };
+const D = { bg: 'var(--atelier-bg)', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)' };
 const F = { display: 'var(--font-cormorant), Georgia, serif', label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
 type FieldType = 'text' | 'textarea' | 'phone' | 'date' | 'time' | 'currency' | 'select';
@@ -540,7 +540,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
                 <button type="button" disabled={chipSaving} onClick={() => { void saveChip(chipField); }} style={{
                   marginTop: 8, padding: '9px 16px', borderRadius: 999, cursor: chipSaving ? 'default' : 'pointer',
                   border: 'none', background: D.gold, opacity: chipSaving ? 0.6 : 1,
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#111',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
                   letterSpacing: '0.22em', textTransform: 'uppercase',
                 }}>{chipSaving ? 'Saving…' : 'Save detail'}</button>
               )}
@@ -559,7 +559,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               backgroundColor: phase === 'chips' ? D.gold : submitting || !requiredMet ? 'var(--atelier-input-border)' : D.gold,
               border: 'none', borderRadius: 999, cursor: phase === 'chips' ? 'pointer' : submitting || !requiredMet ? 'default' : 'pointer',
               fontFamily: F.label, fontWeight: 400, fontSize: 10,
-              color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',
+              color: 'var(--role-ink-on-metal)', letterSpacing: '0.3em', textTransform: 'uppercase',
               transition: 'background-color 200ms',
             }}
           >
@@ -575,7 +575,7 @@ function inputStyle(hasError: boolean): React.CSSProperties {
   return {
     width: '100%', padding: '11px 14px', boxSizing: 'border-box',
     backgroundColor: 'var(--atelier-input-bg)',
-    border: `0.5px solid ${hasError ? 'rgba(224,112,112,0.6)' : 'rgba(226,222,216,0.15)'}`,
+    border: `0.5px solid ${hasError ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
     borderRadius: 10,
     fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
     fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink)',

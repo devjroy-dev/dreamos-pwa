@@ -36,7 +36,7 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
         {actions.map(a => (
           <button key={a.key} type="button" disabled={busy} onClick={() => onAction(a.key)} style={{
             padding: '9px 12px', borderRadius: 2, cursor: busy ? 'default' : 'pointer',
-            border: `0.5px solid ${a.destructive ? 'rgba(224,112,112,0.5)' : 'var(--atelier-sheet-border)'}`,
+            border: `0.5px solid ${a.destructive ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
             background: 'transparent', opacity: busy ? 0.5 : 1,
             fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
             color: a.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
@@ -45,7 +45,7 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
         <button type="button" onClick={onCancel} style={{
           padding: '9px 12px', borderRadius: 2, cursor: 'pointer', border: 'none', background: 'transparent',
           fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
-          color: 'var(--atelier-ink-mute, #8a8578)',
+          color: 'var(--atelier-ink-mute)',
         }}>Cancel</button>
       </div>
     </div>

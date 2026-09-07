@@ -1066,9 +1066,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               style={{
                 width: '100%', marginBottom: 16, padding: '11px 14px',
                 background: 'transparent',
-                border: '0.5px solid rgba(37,211,102,0.5)', borderRadius: 3,
+                border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 3,
                 cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#25D366',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--atelier-accent-text)',
                 letterSpacing: '0.28em', textTransform: 'uppercase',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}>
@@ -1119,7 +1119,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 fontFamily: F.label, fontWeight: 400, fontSize: 8,
                 color: ms.state === 'paid' ? A.green : ms.state === 'waived' ? A.inkMute : A.brassWarm,
                 letterSpacing: '0.28em', textTransform: 'uppercase',
-                border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'rgba(224,188,110,0.5)'}`,
+                border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'var(--role-metal)'}`,
                 borderRadius: 2, padding: '3px 8px', flexShrink: 0,
               }}>{ms.state}</span>
               {/* ── G3.4 · SEND THE REMINDER ─────────────────────────────
@@ -1183,7 +1183,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         <button type="button" onClick={() => setMarkLostConfirm(true)} style={{
           width: '100%', padding: '11px 14px', background: 'transparent',
           border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute, #8a8578)',
+          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute)',
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Mark lost</button>
       ) : (
@@ -1210,14 +1210,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={() => sel && markLost(sel)} style={{
             flex: 1, padding: '11px 14px', background: 'transparent',
-            border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
+            border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
             fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Yes — mark {sel?.primary} lost</button>
           <button type="button" onClick={() => setMarkLostConfirm(false)} style={{
             padding: '11px 14px', background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)',
             borderRadius: 2, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: 'var(--atelier-ink-mute, #8a8578)', letterSpacing: '0.32em', textTransform: 'uppercase',
+            color: 'var(--atelier-ink-mute)', letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Keep</button>
           </div>
         </div>
@@ -1316,8 +1316,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               padding: '11px 0',
-              background: 'rgba(127,190,133,0.08)',
-              border: '0.5px solid rgba(127,190,133,0.42)',
+              background: 'transparent',
+              border: '0.5px solid var(--role-positive)',
               borderRadius: 2, textDecoration: 'none',
             }}>
             <WaIcon />

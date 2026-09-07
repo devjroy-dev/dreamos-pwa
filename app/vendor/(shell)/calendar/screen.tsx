@@ -438,8 +438,8 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           }}>
           <span style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: hotOn ? A.terracotta : 'rgba(240,230,210,0.2)',
-            boxShadow: hotOn ? '0 0 6px rgba(224,123,92,0.6)' : 'none',
+            background: hotOn ? A.terracotta : 'var(--atelier-card-border)',
+            boxShadow: 'none',
           }} />
           <span style={{
             fontFamily: F.label, fontWeight: 300, fontSize: 8,
@@ -459,7 +459,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
             background: A.terracotta,
-            boxShadow: '0 0 8px rgba(224,123,92,0.6)',
+            boxShadow: 'none',
             flexShrink: 0,
           }} />
           <div style={{
@@ -554,7 +554,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
               {isSel && !isToday && (
                 <span style={{
                   position: 'absolute', inset: '18%', borderRadius: '50%',
-                  background: 'rgba(245,235,212,0.92)', zIndex: 0,
+                  background: 'var(--atelier-sheet-bg)', zIndex: 0,
                 }} />
               )}
               {/* Blocked indicator */}
@@ -583,7 +583,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                   position: 'absolute', top: '14%', right: '22%',
                   width: 4, height: 4, borderRadius: '50%',
                   background: A.terracotta,
-                  boxShadow: '0 0 4px rgba(224,123,92,0.5)',
+                  boxShadow: 'none',
                   zIndex: 1,
                 }} />
               )}

@@ -370,7 +370,7 @@ export function CalendarDaySheet({
           </div>
           {hotNote && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8 }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: D.terracotta, boxShadow: '0 0 6px rgba(224,123,92,0.6)' }} />
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: D.terracotta, boxShadow: 'none' }} />
               <span style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.terracotta }}>{hotNote}</span>
             </div>
           )}
@@ -383,7 +383,7 @@ export function CalendarDaySheet({
           {verdict && (
             <div style={{
               padding: '10px 14px', borderRadius: 10,
-              border: '0.5px solid rgba(224,112,112,0.4)', background: 'rgba(180,40,40,0.10)',
+              border: '0.5px solid var(--role-critical)', background: 'transparent',
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
             }}>
               {/* ── EACH KIND LABELLED AT ITS RENDER SITE, chair-ruled ────────────────
@@ -487,7 +487,7 @@ export function CalendarDaySheet({
                     <button type="button" onClick={() => { onClose(); onAssignCrew(ev); }} style={pillBtn('var(--atelier-label)')}>Crew</button>
                     <button type="button" onClick={() => postToCollab(ev)} style={pillBtn('var(--atelier-label)')}>{POST_TO_COLLAB}</button>
                     <button type="button" onClick={() => { onClose(); onEdit(ev); }} style={pillBtn('var(--atelier-label)')}>Edit</button>
-                    <button type="button" onClick={() => void doCancel(ev)} style={pillBtn(D.terracotta, 'rgba(224,123,92,0.4)')}>Cancel</button>
+                    <button type="button" onClick={() => void doCancel(ev)} style={pillBtn('var(--role-critical)', 'var(--role-critical)')}>Cancel</button>
                   </div>
 
                   {/* The Move picker + inline verdict (item 4's centrepiece) */}
@@ -516,7 +516,7 @@ export function CalendarDaySheet({
                         padding: '11px 0', width: '100%', border: 'none', borderRadius: 999,
                         background: working || !moveDate ? 'var(--atelier-input-border)' : D.gold,
                         cursor: working || !moveDate ? 'default' : 'pointer',
-                        fontFamily: F.label, fontWeight: 400, fontSize: 9, color: '#111',
+                        fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
                         letterSpacing: '0.26em', textTransform: 'uppercase',
                       }}>{working ? 'Working…' : 'Move it'}</button>
                     </div>

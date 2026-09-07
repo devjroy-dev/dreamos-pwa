@@ -92,7 +92,7 @@ export function DetailSheet({
 
               <button type="button" onClick={() => { setConfirmDel(true); setDeleteMsg(null); }} style={{
                 flex: 1, padding: '12px 16px', background: 'transparent',
-                border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.red,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Delete</button>
@@ -138,10 +138,10 @@ export function DetailSheet({
                 }}>Back</button>
                 <button type="button" onClick={confirmDelete} disabled={deleting} style={{
                   flex: 1, padding: '12px 16px',
-                  background: deleting ? 'rgba(224,123,92,0.4)' : A.red,
-                  border: 'none', borderRadius: 2,
+                  background: 'transparent', opacity: deleting ? 0.5 : 1,
+                  border: '0.5px solid var(--role-critical)', borderRadius: 2,
                   cursor: deleting ? 'default' : 'pointer',
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
                   letterSpacing: '0.32em', textTransform: 'uppercase',
                 }}>{deleting ? 'Working…' : 'Confirm'}</button>
               </div>

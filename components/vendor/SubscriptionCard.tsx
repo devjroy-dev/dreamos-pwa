@@ -393,7 +393,7 @@ function CancelBlock({ label, onDone, show }: {
     return (
       <button type="button" onClick={() => setAsking(true)} style={{
         width: '100%', padding: '13px 0', marginTop: 14, background: 'transparent',
-        border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',
+        border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
         fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
         letterSpacing: '0.42em', textTransform: 'uppercase',
       }}>{V2.cancelYes}</button>
@@ -409,7 +409,7 @@ function CancelBlock({ label, onDone, show }: {
       <div style={{ display: 'flex', gap: 10 }}>
         <button type="button" disabled={busy} onClick={doCancel} style={{
           flex: 1, padding: '13px 0', background: 'transparent',
-          border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2,
+          border: '0.5px solid var(--role-critical)', borderRadius: 2,
           cursor: busy ? 'default' : 'pointer',
           fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.red,
           letterSpacing: '0.42em', textTransform: 'uppercase',

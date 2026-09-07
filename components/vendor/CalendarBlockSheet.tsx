@@ -191,7 +191,7 @@ export function CalendarBlockSheet({
           {verdict && (
             <div style={{
               padding: '10px 14px', borderRadius: 10,
-              border: '0.5px solid rgba(224,112,112,0.4)', background: 'rgba(180,40,40,0.10)',
+              border: '0.5px solid var(--role-critical)', background: 'transparent',
               fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
             }}>{verdict}</div>
           )}
@@ -223,8 +223,8 @@ export function CalendarBlockSheet({
               )}
               <button type="button" onClick={doUnblock} disabled={working} style={{
                 width: '100%', padding: '13px 0',
-                background: working ? 'rgba(122,26,26,0.4)' : 'rgba(180,40,40,0.18)',
-                border: '0.5px solid rgba(224,112,112,0.4)',
+                background: 'transparent', opacity: working ? 0.5 : 1,
+                border: '0.5px solid var(--role-critical)',
                 borderRadius: 999, cursor: working ? 'default' : 'pointer',
                 fontFamily: F.label, fontWeight: 400, fontSize: 10,
                 color: D.red, letterSpacing: '0.3em', textTransform: 'uppercase',
@@ -260,7 +260,7 @@ export function CalendarBlockSheet({
                 width: '100%', padding: '13px 0',
                 background: working ? 'var(--atelier-input-border)' : 'var(--atelier-accent-text)',
                 border: 'none', borderRadius: 999, cursor: working ? 'default' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111111',
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: 'var(--role-ink-on-metal)',
                 letterSpacing: '0.3em', textTransform: 'uppercase',
               }}>
                 {working ? 'Working…' : 'Block date'}

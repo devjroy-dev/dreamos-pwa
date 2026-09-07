@@ -30,7 +30,7 @@ import {
 import { A, F, cap } from './SliceRow';
 
 const TONE_COLOR: Record<StageTone, string> = {
-  go:   '#3E8B4A',
+  go:   'var(--role-positive)',
   warm: 'var(--atelier-label)',
   cool: 'var(--atelier-ink-dim)',
 };
@@ -338,13 +338,13 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               <button type="button" onClick={() => setHideConfirm(true)} style={{
                 padding: '11px 14px', background: 'transparent',
                 border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute, #8a8578)',
+                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute)',
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Hide</button>
             ) : (
               <button type="button" onClick={() => { void hide(); }} style={{
                 padding: '11px 14px', background: 'transparent',
-                border: '0.5px solid rgba(224,112,112,0.5)', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Sure?</button>

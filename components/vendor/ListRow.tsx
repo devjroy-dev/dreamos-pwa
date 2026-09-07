@@ -30,7 +30,7 @@ export function ListRow({ row, onTap, onEdit, onRemove }: ListRowProps) {
         {row.secondary && <div style={{ fontFamily: 'var(--font-body)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: COLORS.muted, marginTop: 2 }}>{row.secondary}</div>}
       </button>
       {row.editable && <button type="button" onClick={() => onEdit(row)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: COLORS.muted, padding: 4 }}>Edit</button>}
-      {row.removable && <button type="button" onClick={() => onRemove(row)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A12B2B', padding: 4 }}>Remove</button>}
+      {row.removable && <button type="button" onClick={() => onRemove(row)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--role-critical)', padding: 4 }}>Remove</button>}
     </div>
   );
 }

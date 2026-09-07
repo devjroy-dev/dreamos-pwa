@@ -421,8 +421,8 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             aria-label={`WhatsApp ${row.primary}`}
             style={{
               width: 34, height: 34, borderRadius: '50%',
-              background: 'rgba(127,190,133,0.10)',
-              border: '0.5px solid rgba(127,190,133,0.42)',
+              background: 'transparent',
+              border: '0.5px solid var(--role-positive)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
               fontFamily: F.display, fontSize: 16, color: A.green, lineHeight: 1,
             }}><WaIcon /></a>

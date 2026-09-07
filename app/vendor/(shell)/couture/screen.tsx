@@ -199,7 +199,7 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
               </div>
               {slot.state === 'open' && (
                 <button type="button" onClick={() => doRemoveSlot(slot.id)} style={{
-                  background: 'none', border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2,
+                  background: 'none', border: '0.5px solid var(--role-critical)', borderRadius: 2,
                   padding: '5px 10px', cursor: 'pointer',
                   fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.red,
                   letterSpacing: '0.28em', textTransform: 'uppercase',

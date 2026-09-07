@@ -107,14 +107,14 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px 22px 10px',
             }}>
-              <span style={{ flex: 1, height: '0.5px', background: T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(201,168,76,0.22)' }} />
+              <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
               <span style={{
                 fontFamily: F.label, fontWeight: 300, fontSize: 8,
                 letterSpacing: '0.34em', textTransform: 'uppercase' as const,
-                color: T.isLight ? 'rgba(26,15,8,0.45)' : 'rgba(201,168,76,0.6)',
+                color: 'var(--atelier-ink-mute)',
                 whiteSpace: 'nowrap',
               }}>Fresh thread</span>
-              <span style={{ flex: 1, height: '0.5px', background: T.isLight ? 'rgba(26,15,8,0.16)' : 'rgba(201,168,76,0.22)' }} />
+              <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
             </div>
           ) : (
           <>
@@ -169,7 +169,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                     ...pressedStyle(pressedKey === `clarify:${m.id}:${i}`, reducedMotion),
                     WebkitTapHighlightColor: 'transparent',
                     background: 'var(--atelier-input-bg)',
-                    border: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.40)' : 'rgba(201,168,76,0.45)'}`,
+                    border: '0.5px solid var(--atelier-card-border)',
                     borderRadius: 2,
                     cursor: 'pointer',
                     fontFamily: F.label, fontWeight: 300, fontSize: 9,
@@ -206,13 +206,13 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                   ...pressedStyle(pressedKey === `report:${m.id}` && !reported[m.id], reducedMotion),
                   WebkitTapHighlightColor: 'transparent',
                   background: 'transparent',
-                  border: `0.5px dashed ${T.isLight ? 'rgba(122,56,40,0.35)' : 'rgba(201,168,76,0.38)'}`,
+                  border: '0.5px dashed var(--atelier-card-border)',
                   borderRadius: 2,
                   cursor: reported[m.id] ? 'default' : 'pointer',
                   opacity: reported[m.id] ? 0.4 : 1,
                   fontFamily: F.label, fontWeight: 300, fontSize: 9,
                   letterSpacing: '0.2em', textTransform: 'uppercase' as const,
-                  color: T.isLight ? 'rgba(122,56,40,0.85)' : 'rgba(201,168,76,0.8)',
+                  color: 'var(--atelier-accent-text)',
                   whiteSpace: 'nowrap',
                 }}
               >REPORT THIS GLITCH</button>
@@ -227,7 +227,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
               {m.suggestions.intro && (
                 <div style={{
                   fontFamily: F.label, fontSize: 16, fontWeight: 300,
-                  color: T.isLight ? 'rgba(26,15,8,0.62)' : 'rgba(240,230,210,0.6)',
+                  color: 'var(--atelier-ink-dim)',
                   margin: '2px 0 7px', lineHeight: 1.45, fontStyle: 'italic',
                 }}>{m.suggestions.intro}</div>
               )}
@@ -249,12 +249,12 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                       ...pressedStyle(pressedKey === `suggest:${m.id}:${i}`, reducedMotion),
                       WebkitTapHighlightColor: 'transparent',
                       background: 'transparent',
-                      border: `0.5px dashed ${T.isLight ? 'rgba(122,56,40,0.35)' : 'rgba(201,168,76,0.38)'}`,
+                      border: '0.5px dashed var(--atelier-card-border)',
                       borderRadius: 2,
                       cursor: 'pointer',
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
                       letterSpacing: '0.2em', textTransform: 'uppercase' as const,
-                      color: T.isLight ? 'rgba(122,56,40,0.85)' : 'rgba(201,168,76,0.8)',
+                      color: 'var(--atelier-accent-text)',
                       whiteSpace: 'nowrap',
                     }}
                   >{opt.label}</button>

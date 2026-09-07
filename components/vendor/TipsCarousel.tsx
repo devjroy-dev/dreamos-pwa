@@ -4,7 +4,6 @@
 // Dismissible per session but always accessible via profile.
 
 import { useState } from 'react';
-import { INK_DEEP } from '@/lib/vendor/theme';
 import { useT } from '@/lib/vendor/ThemeContext';
 
 const F = {
@@ -238,23 +237,23 @@ export function TipsCarousel({ onClose }: Props) {
   }
 
   const isLight    = T.isLight;
-  const overlayBg  = isLight ? 'rgba(26,15,8,0.55)' : 'rgba(8,6,4,0.62)';
-  const cardBg     = isLight ? T.sheetTop : 'rgba(24,19,15,0.98)';
+  const overlayBg  = 'var(--atelier-overlay)';
+  const cardBg     = 'var(--atelier-sheet-bg)';
   const cardBorder = isLight ? T.sheetBorder : 'rgba(201,168,76,0.22)';
   const labelColor = isLight ? T.accent : 'var(--role-metal)';
   const headColor  = isLight ? T.ink : 'var(--atelier-ink)';
-  const bodyColor  = isLight ? T.inkSoft : 'rgba(240,230,210,0.65)';
-  const mutedColor = isLight ? T.inkMute : 'rgba(240,230,210,0.38)';
+  const bodyColor  = 'var(--atelier-ink-soft)';
+  const mutedColor = 'var(--atelier-ink-mute)';
   const ctaBg      = isLight
-    ? 'linear-gradient(180deg, #9B4E38 0%, #7A3828 100%)'
+    ? 'var(--atelier-accent-text)'
     : 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)';
-  const ctaColor   = isLight ? '#F5F2EE' : INK_DEEP;
+  const ctaColor   = 'var(--role-ink-on-metal)';
   const pillActive = isLight
-    ? { bg: 'rgba(122,56,40,0.12)', border: 'rgba(122,56,40,0.40)', color: T.accent }
+    ? { bg: 'var(--atelier-input-bg)', border: 'var(--atelier-accent-text)', color: 'var(--atelier-accent-text)' }
     : { bg: 'rgba(201,168,76,0.14)', border: 'rgba(201,168,76,0.45)', color: 'var(--role-metal)' };
   const pillInactive = isLight
-    ? { bg: 'transparent', border: 'rgba(122,56,40,0.18)', color: T.inkMute }
-    : { bg: 'transparent', border: 'rgba(201,168,76,0.16)', color: 'rgba(240,230,210,0.38)' };
+    ? { bg: 'transparent', border: 'var(--atelier-card-border)', color: 'var(--atelier-ink-mute)' }
+    : { bg: 'transparent', border: 'var(--atelier-card-border)', color: 'var(--atelier-ink-mute)' };
 
   return (
     <div
@@ -312,9 +311,7 @@ export function TipsCarousel({ onClose }: Props) {
           border: `0.5px solid ${cardBorder}`,
           borderRadius: 12,
           overflow: 'hidden',
-          boxShadow: isLight
-            ? '0 -8px 40px rgba(26,15,8,0.20), inset 0 1px 0 rgba(255,255,255,0.7)'
-            : '0 -8px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(245,235,212,0.05)',
+          boxShadow: '0 -8px 40px -8px var(--atelier-card-shadow)',
           animation: 'tipsCardUp 320ms cubic-bezier(0.22,1,0.36,1) both',
           opacity: fading ? 0 : 1,
           transition: 'opacity 140ms',
@@ -377,12 +374,12 @@ export function TipsCarousel({ onClose }: Props) {
               style={{
                 width: '100%', height: 44, marginBottom: 18,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                background: 'rgba(37,211,102,0.10)',
-                border: '0.5px solid rgba(37,211,102,0.40)',
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-sheet-border)',
                 borderRadius: 999, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 400, fontSize: 9,
                 letterSpacing: '0.22em', textTransform: 'uppercase' as const,
-                color: '#25D366',
+                color: 'var(--atelier-accent-text)',
               }}>
               <span style={{ fontSize: 16, lineHeight: 1.5 }}>◎</span>
               Set up on WhatsApp →
@@ -391,14 +388,14 @@ export function TipsCarousel({ onClose }: Props) {
 
           {/* Progress bar */}
           <div style={{
-            height: 2, background: isLight ? 'rgba(122,56,40,0.10)' : 'rgba(201,168,76,0.10)',
+            height: 2, background: 'var(--atelier-card-border)',
             borderRadius: 999, marginBottom: 20, overflow: 'hidden',
           }}>
             <div style={{
               height: '100%',
               width: `${((safeIdx + 1) / filtered.length) * 100}%`,
               background: isLight
-                ? 'linear-gradient(90deg, #9B4E38, #7A3828)'
+                ? 'var(--atelier-accent-text)'
                 : 'linear-gradient(90deg, var(--role-metal), var(--role-metal))',
               borderRadius: 999,
               transition: 'width 300ms cubic-bezier(0.22,1,0.36,1)',
@@ -410,7 +407,7 @@ export function TipsCarousel({ onClose }: Props) {
             <button type="button" onClick={onClose} style={{
               flex: 1, height: 44,
               background: 'transparent',
-              border: `0.5px solid ${isLight ? 'rgba(122,56,40,0.18)' : 'rgba(255,255,255,0.08)'}`,
+              border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 999, cursor: 'pointer',
               fontFamily: F.label, fontWeight: 300, fontSize: 9,
               letterSpacing: '0.22em', textTransform: 'uppercase' as const,
@@ -425,9 +422,7 @@ export function TipsCarousel({ onClose }: Props) {
                 fontFamily: F.label, fontWeight: 500, fontSize: 10,
                 letterSpacing: '0.22em', textTransform: 'uppercase' as const,
                 color: ctaColor,
-                boxShadow: isLight
-                  ? '0 4px 16px rgba(122,56,40,0.30)'
-                  : '0 4px 16px rgba(201,168,76,0.25)',
+                boxShadow: '0 4px 16px -4px var(--atelier-card-shadow)',
               }}>Next →</button>
             ) : (
               <button type="button" onClick={onClose} style={{
@@ -437,9 +432,7 @@ export function TipsCarousel({ onClose }: Props) {
                 fontFamily: F.label, fontWeight: 500, fontSize: 10,
                 letterSpacing: '0.22em', textTransform: 'uppercase' as const,
                 color: ctaColor,
-                boxShadow: isLight
-                  ? '0 4px 16px rgba(122,56,40,0.30)'
-                  : '0 4px 16px rgba(201,168,76,0.25)',
+                boxShadow: '0 4px 16px -4px var(--atelier-card-shadow)',
               }}>Done ✓</button>
             )}
           </div>

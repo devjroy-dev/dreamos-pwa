@@ -234,12 +234,12 @@ export function NotesBody() {
               <button type="button" onClick={() => { setSelected(null); openAsk(selected.body); }} style={{
                 width: '100%', padding: '13px 0', background: 'var(--atelier-accent-text)', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',
+                color: 'var(--role-ink-on-metal)', letterSpacing: '0.3em', textTransform: 'uppercase',
               }}>Send to Chat</button>
               <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
                 width: '100%', padding: '13px 0',
-                background: saving ? 'rgba(122,26,26,0.4)' : 'rgba(180,40,40,0.18)',
-                border: '0.5px solid rgba(224,112,112,0.4)', borderRadius: 999,
+                background: 'transparent', opacity: saving ? 0.5 : 1,
+                border: '0.5px solid var(--role-critical)', borderRadius: 999,
                 cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
                 color: D.red, letterSpacing: '0.3em', textTransform: 'uppercase',
               }}>{saving ? 'Working…' : 'Delete'}</button>
@@ -271,7 +271,7 @@ export function NotesBody() {
                 width: '100%', padding: '13px 0',
                 background: canSave && !saving ? 'var(--atelier-accent-text)' : 'var(--atelier-input-border)',
                 border: 'none', borderRadius: 999, cursor: canSave && !saving ? 'pointer' : 'not-allowed',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: '#111111', letterSpacing: '0.3em', textTransform: 'uppercase',
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: 'var(--role-ink-on-metal)', letterSpacing: '0.3em', textTransform: 'uppercase',
               }}>{saving ? 'Saving…' : 'Save Note'}</button>
             </div>
           </div>

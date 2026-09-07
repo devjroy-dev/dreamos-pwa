@@ -83,7 +83,7 @@ function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
       // the WHOLE register is italic — em, Rs accent, and headings joined (this ZIP).
       out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'italic', fontWeight: 600 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
     } else {
-      out.push(<code key={`${salt}c${k++}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontStyle: 'normal', fontSize: '0.86em', background: T.isLight ? 'rgba(26,15,8,0.06)' : 'rgba(233,228,217,0.08)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
+      out.push(<code key={`${salt}c${k++}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontStyle: 'normal', fontSize: '0.86em', background: 'var(--atelier-input-bg)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
     }
     last = re.lastIndex;
   }
@@ -175,7 +175,7 @@ function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: bo
           background: "transparent", border: "none", cursor: "pointer",
           color: copied
             ? (T.isLight ? T.accent : "var(--role-metal)")
-            : (T.isLight ? T.inkMute : "rgba(240,230,210,0.45)"),
+            : 'var(--atelier-ink-mute)',
           transition: "color 200ms",
         }}
       >
@@ -208,11 +208,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         <div style={{
           maxWidth: '80%', padding: '10px 14px',
           borderRadius: '14px 14px 4px 14px',
-          background: T.isLight
-            ? 'rgba(122,56,40,0.08)'
-            : 'linear-gradient(180deg, rgba(201,168,76,0.18) 0%, rgba(201,168,76,0.12) 100%)',
-          border: `0.5px solid ${T.isLight ? 'rgba(122,56,40,0.25)' : 'rgba(201,168,76,0.32)'}`,
-          boxShadow: T.isLight ? 'none' : 'inset 0 1px 0 rgba(255,235,200,0.08)',
+          background: 'var(--atelier-input-bg)',
+          border: '0.5px solid var(--atelier-card-border)',
+          boxShadow: 'none',
         }}>
           <p style={{
             fontFamily: F.body, fontWeight: 300, fontSize: 16,
@@ -225,7 +223,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   }
 
   const hairline = T.isLight
-    ? 'linear-gradient(180deg, transparent 0%, rgba(122,56,40,0.4) 25%, rgba(122,56,40,0.65) 50%, rgba(122,56,40,0.4) 75%, transparent 100%)'
+    ? 'var(--atelier-accent-text)'
     : 'linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.5) 25%, rgba(201,168,76,0.75) 50%, rgba(201,168,76,0.5) 75%, transparent 100%)';
 
   return (
@@ -248,7 +246,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <a href={`https://wa.me/${toE164(contact.phone)}${contact.draft ? `?text=${encodeURIComponent(contact.draft)}` : ''}`}
               target="_blank" rel="noopener noreferrer" style={{
                 display: 'flex', alignItems: 'center', gap: 7, padding: '7px 14px',
-                background: 'rgba(37,211,102,0.10)', border: '0.5px solid rgba(37,211,102,0.4)',
+                background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)',
                 borderRadius: 2, textDecoration: 'none',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9,
                 letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--role-positive)',

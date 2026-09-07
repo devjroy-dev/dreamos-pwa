@@ -21,15 +21,15 @@ export function TierMeter({ meta }: { meta: TierMeta | null }) {
   return (
     <div className="px-4 pb-1 select-none" aria-label={`Tier usage ${meta.turns_used} of ${meta.turns_cap}`}>
       <div className="flex items-center gap-2">
-        <div className="relative h-px flex-1 bg-[#0C0A09]/10 overflow-visible">
+        <div className="relative h-px flex-1 overflow-visible" style={{ background: 'var(--atelier-card-border)' }}>
           <div
             className="absolute left-0 -top-px h-[3px] rounded-full transition-all duration-500"
-            style={{ width: `${pct}%`, backgroundColor: capped ? '#B85C38' : 'var(--role-metal)' }}
+            style={{ width: `${pct}%`, backgroundColor: capped ? 'var(--role-critical)' : 'var(--role-metal)' }}
           />
         </div>
         <span
           className="font-[Jost] text-[11px] tracking-wide tabular-nums"
-          style={{ color: capped ? '#B85C38' : 'rgba(12,10,9,0.45)' }}
+          style={{ color: capped ? 'var(--role-critical)' : 'var(--atelier-ink-mute)' }}
         >
           {meta.turns_used}/{meta.turns_cap}
         </span>
@@ -37,7 +37,7 @@ export function TierMeter({ meta }: { meta: TierMeta | null }) {
           <a
             href={meta.upgrade.href}
             className="font-[Jost] text-[11px] tracking-wide underline underline-offset-2"
-            style={{ color: 'rgba(12,10,9,0.6)' }}
+            style={{ color: 'var(--atelier-ink-dim)' }}
           >
             {meta.upgrade.label}
           </a>

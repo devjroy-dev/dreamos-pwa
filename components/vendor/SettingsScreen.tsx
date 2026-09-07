@@ -546,7 +546,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             engraved register that carried it. */}
         <button type="button" onClick={askSignOut} style={{
           width: '100%', minHeight: 44, padding: '14px 0', marginTop: 24,
-          background: 'transparent', border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2,
+          background: 'transparent', border: '0.5px solid var(--role-critical)', borderRadius: 2,
           cursor: 'pointer', color: A.red,
           ...(register === 'rungs'
             ? { font: 'var(--wl-t4)' }

@@ -803,7 +803,7 @@ function WeddingPagesStyles() {
 /* ── G1.3 · the two new sections, the sheet’s own idiom ── */
 .wp-g13{margin-top:22px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
 .wp-note{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);margin:0 0 10px}
-.wp-note.wp-err{color:var(--atelier-danger,#B4453C)}
+.wp-note.wp-err{color:var(--role-critical)}
 .wp-probe{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);
   margin:0 0 10px;padding:11px 12px;border:.5px dashed var(--atelier-card-border);border-radius:2px}
 .wp-two{display:flex;gap:8px}

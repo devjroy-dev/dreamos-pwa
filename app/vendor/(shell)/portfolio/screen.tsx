@@ -287,7 +287,7 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
       {(isVideo || isAlbum) && (
         <span style={{
           position: 'absolute', top: 5, right: 5, padding: '2px 5px', borderRadius: 2,
-          background: 'rgba(12,10,9,0.72)', color: '#F8F7F5',
+          background: 'var(--atelier-overlay)', color: 'var(--atelier-ink)',
           fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.18em',
           textTransform: 'uppercase', pointerEvents: 'none',
         }}>{isVideo ? COPY.H15 : COPY.H16}</span>
@@ -300,7 +300,7 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
       {on && (
         <>
           <span style={{
-            position: 'absolute', inset: 0, background: 'rgba(12,10,9,0.42)',
+            position: 'absolute', inset: 0, background: 'var(--role-scrim)',
             pointerEvents: 'none',
           }} />
           <span style={{
@@ -311,7 +311,7 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
             width: 26, height: 26, borderRadius: '50%',
-            background: 'var(--atelier-accent-text)', color: '#F8F7F5',
+            background: 'var(--atelier-accent-text)', color: 'var(--role-ink-on-metal)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, lineHeight: 1, pointerEvents: 'none',
           }}>✓</span>
@@ -1036,7 +1036,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 {stateLabel(img.approval_state) && (
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
-                    background: 'rgba(12,10,9,0.55)',
+                    background: 'var(--atelier-overlay)',
                     fontFamily: F.label, fontWeight: 300, fontSize: 8,
                     letterSpacing: '0.24em', textTransform: 'uppercase',
                     color: stateColor(img.approval_state),
@@ -1275,7 +1275,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
         <div
           onClick={() => { if (!igBusy) setIgPicker(false); }}
           style={{
-            position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(12,10,9,0.55)',
+            position: 'fixed', inset: 0, zIndex: 60, background: 'var(--atelier-overlay)',
             display: 'flex', alignItems: 'flex-end',
           }}>
           <div
@@ -1289,7 +1289,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             style={{
               width: '100%', maxHeight: '86vh',
               display: 'flex', flexDirection: 'column',
-              background: 'var(--atelier-paper, #F8F7F5)', borderRadius: '14px 14px 0 0',
+              background: 'var(--atelier-sheet-bg)', borderRadius: '14px 14px 0 0',
             }}>
             <div style={{ padding: '22px 18px 12px', flexShrink: 0 }}>
             <div style={{
@@ -1337,7 +1337,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             <div style={{
               flexShrink: 0, padding: '12px 18px calc(env(safe-area-inset-bottom,0px) + 16px)',
               borderTop: '0.5px solid rgba(201,168,76,0.18)',
-              background: 'var(--atelier-paper, #F8F7F5)',
+              background: 'var(--atelier-sheet-bg)',
             }}>
               <button type="button" disabled={igPicked.length === 0 || igBusy !== null}
                 onClick={igImport}
@@ -1348,7 +1348,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                   cursor: igPicked.length ? 'pointer' : 'default',
                   opacity: (igPicked.length === 0 || igBusy) ? 0.4 : 1,
                   fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  color: igPicked.length ? '#F8F7F5' : A.interactiveWarm,
+                  color: igPicked.length ? 'var(--role-ink-on-metal)' : A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                 }}>{COPY.H7.replace('{n}', String(igPicked.length))}</button>
             </div>
@@ -1445,7 +1445,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 <button type="button" onClick={() => setConfirming(true)}
                   style={{
                     flex: 1, padding: '13px 0', background: 'transparent',
-                    border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',
+                    border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
                     fontFamily: F.label, fontWeight: 300, fontSize: 9,
                     color: A.red, letterSpacing: '0.32em', textTransform: 'uppercase',
                   }}>{COPY.C3}</button>
@@ -1472,7 +1472,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                   <button type="button" onClick={() => doDelete(sel.id)}
                     style={{
                       flex: 1, padding: '13px 0', background: 'transparent',
-                      border: '0.5px solid rgba(224,123,92,0.55)', borderRadius: 2, cursor: 'pointer',
+                      border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
                       fontFamily: F.label, fontWeight: 300, fontSize: 9,
                       color: A.red, letterSpacing: '0.32em', textTransform: 'uppercase',
                     }}>{COPY.C3}</button>

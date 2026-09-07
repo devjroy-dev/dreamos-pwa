@@ -91,16 +91,16 @@ const TOAST_CSS = `
   transition:padding 220ms cubic-bezier(0.22,1,0.36,1);
   animation:wlToastIn 220ms cubic-bezier(0.22,1,0.36,1) both}
 .wl-toast.pill{padding:8px 14px}
-.wl-toast.err{background:rgba(74,22,22,0.96);border-color:rgba(224,112,112,0.4)}
+.wl-toast.err{border-color:var(--role-critical)}
 .wl-toastdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--role-metal)}
 .wl-toast.err .wl-toastdot{background:var(--role-critical)}
 .wl-toastmsg{font:var(--wl-t3);color:var(--atelier-ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wl-toast.err .wl-toastmsg{color:#F1EFEC}
+.wl-toast.err .wl-toastmsg{color:var(--atelier-ink)}
 .wl-toastaction{background:transparent;border:none;cursor:pointer;padding:2px 4px;
   font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;
   color:var(--atelier-accent-text);touch-action:manipulation}
-.wl-toast.err .wl-toastaction{color:#F1EFEC}
+.wl-toast.err .wl-toastaction{color:var(--atelier-accent-text)}
 /* A2's smoke fix, carried: the animation’s end-state transform used to REPLACE the
    centering translate under fill-mode both, so every toast anchored its left edge at 50%
    and clipped off narrow phones. The keyframes carry the centering transform through. */

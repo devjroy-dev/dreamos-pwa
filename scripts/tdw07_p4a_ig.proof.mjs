@@ -244,10 +244,38 @@ ok('§4.15 the sheet is a flex COLUMN — header, scroller, pinned action',
      + 'must hunt for is a control that does not exist',
      scroller > 0 && footer > scroller && button > footer, `${scroller}/${footer}/${button}`);
 }
-ok('§4.18 the selected state carries THREE redundant signals — scrim, frame and '
-   + 'tick — because any one alone can vanish on a busy photograph',
-   /rgba\(12,10,9,0.42\)/.test(M) && /3px solid var\(--atelier-accent-text\)/.test(M)
-     && /✓/.test(M));
+// ── §4.18 · AMENDED BY LABEL, CE-40 (R-40.129's own gap, the chair ruling) ──
+// THE LAW HAS NOT MOVED and is still the founder's: three redundant signals,
+// because any one alone can vanish on a busy photograph. What moved is the
+// scrim's SPELLING — `rgba(12,10,9,0.42)` became `var(--role-scrim)` under the
+// seven-ink pass — and this cell asserted the spelling.
+//
+// THAT WAS R-40.94's CLASS, EXACTLY: an assertion that reads is not an assertion
+// that runs. `/rgba\(12,10,9,0.42\)/` is satisfied by the string appearing
+// anywhere and broken by writing the same colour correctly. It could never have
+// caught the defect it was written for — a scrim REMOVED — because a removed
+// scrim and a re-tokenised scrim look identical to a spelling probe.
+//
+// A SCRIM IS NOT A STATE ROLE, so R-40.129 ① never forbade it: it is the ink
+// family at an alpha, a neutral overlay, and the token is its proper home.
+//
+// SO THE AMENDMENT ASSERTS THE THREE SIGNALS AS SIGNALS. Each is matched by what
+// it does — a full-bleed overlay ground, a thick accent frame, a tick — inside
+// the selected arm only, and the count is pinned at three. Remove any one and
+// this cell reds, which is what the founder's sentence asks for and what the old
+// spelling probe could not do.
+{
+  const selStart = M.indexOf('{on && (');
+  const selEnd   = M.indexOf('</button>', selStart);
+  const SEL = selStart >= 0 && selEnd > selStart ? M.slice(selStart, selEnd) : '';
+  const scrim = /position: 'absolute', inset: 0, background:/.test(SEL);
+  const frame = /3px solid var\(--atelier-accent-text\)/.test(SEL);
+  const tick  = /✓/.test(SEL);
+  ok('§4.18 the selected state carries THREE redundant signals — scrim, frame and '
+     + 'tick — because any one alone can vanish on a busy photograph',
+     Boolean(SEL) && scrim && frame && tick,
+     `scrim=${scrim} frame=${frame} tick=${tick} (${SEL.length} chars)`);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');

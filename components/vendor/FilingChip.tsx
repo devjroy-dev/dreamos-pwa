@@ -14,19 +14,23 @@ import { undoCall, type FilingBeat } from '@/lib/vendor/api/vendor';
 // v2.1 (2026-07-14): theme-aware. v2 shipped ink-on-dark — illegible on the dark
 // hub (founder-reported). Palette now derives from isLight, matching PairWork's
 // convention; light values = v2's originals, dark values mirror the .dd-cab family.
-const PALETTE = (isLight: boolean) => ({
-  INK:       isLight ? 'rgba(12,10,9,0.78)'  : 'rgba(240,230,210,0.88)',
-  INK_DIM:   isLight ? 'rgba(12,10,9,0.50)'  : 'rgba(240,230,210,0.55)',
-  HAIRLINE:  isLight ? 'rgba(12,10,9,0.10)'  : 'rgba(240,230,210,0.14)',
-  SURFACE:   isLight ? 'rgba(12,10,9,0.030)' : 'rgba(245,235,212,0.055)',
-  PILL_EDGE: isLight ? 'rgba(12,10,9,0.25)'  : 'rgba(240,230,210,0.30)',
-  PILL_INK:  isLight ? 'rgba(12,10,9,0.70)'  : 'rgba(240,230,210,0.75)',
-  TERRACOTTA:isLight ? '#B85C38' : 'var(--role-critical)',
+// R-40.129: the two-arm isLight ladder retires into the token ladder. Each rung
+// below already themes on its own; a ternary that picks between two literals is a
+// third theme system pretending to be a palette. The `isLight` prop stays on the
+// component because callers pass it and it drives no colour any more.
+const PALETTE = () => ({
+  INK:       'var(--atelier-ink)',
+  INK_DIM:   'var(--atelier-ink-dim)',
+  HAIRLINE:  'var(--atelier-card-border)',
+  SURFACE:   'var(--atelier-input-bg)',
+  PILL_EDGE: 'var(--atelier-sheet-border)',
+  PILL_INK:  'var(--atelier-ink-soft)',
+  TERRACOTTA:'var(--role-critical)',
 });
 const BRASS = 'var(--atelier-accent-text)';
 
-export function FilingChip({ beat, onRetry, isLight = true }: { beat: FilingBeat; onRetry?: () => void; isLight?: boolean }) {
-  const { INK, INK_DIM, HAIRLINE, SURFACE, PILL_EDGE, PILL_INK, TERRACOTTA } = PALETTE(isLight);
+export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () => void; isLight?: boolean }) {
+  const { INK, INK_DIM, HAIRLINE, SURFACE, PILL_EDGE, PILL_INK, TERRACOTTA } = PALETTE();
   const [phase, setPhase] = useState<'live' | 'expired' | 'undoing' | 'undone' | 'undo_failed'>('live');
   const isError = beat.kind === 'error';
 

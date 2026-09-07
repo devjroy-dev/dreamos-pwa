@@ -64,7 +64,7 @@ import {
 const D = {
   // NOT A GROUND. The ink that sits on the metal button; see the header block. Renamed from
   // `bg` at §4-4 batch ③ when the root paint retired, so the name states the job.
-  onMetal: '#0E0D0B',
+  onMetal: 'var(--role-ink-on-metal)',
   card:   'var(--role-sheet)',
   // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
   // It used to hold the whole shorthand ('0.5px solid var(...)') while most
@@ -75,8 +75,8 @@ const D = {
   // reader I failed to migrate is now a tsc error, not a silent missing border.
   borderCol: 'var(--atelier-card-border)',
   gold:   'var(--role-metal)',
-  cream:  'rgba(245,240,232,0.85)',
-  muted:  'rgba(245,240,232,0.40)',
+  cream:  'var(--atelier-ink)',
+  muted:  'var(--atelier-ink-mute)',
 };
 const CARD: React.CSSProperties = {
   background:           D.card,

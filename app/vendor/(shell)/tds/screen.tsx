@@ -242,7 +242,7 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
               </div>
               <button type="button" onClick={() => doDelete(e)} style={{
                 padding: '6px 10px', background: 'transparent',
-                border: '0.5px solid rgba(224,123,92,0.4)', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.red,
                 letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
               }}>Delete</button>

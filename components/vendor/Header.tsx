@@ -273,7 +273,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             backdropFilter: 'blur(32px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
             boxShadow: isLight
-              ? `0 8px 24px -4px rgba(26,15,8,0.15), 0 0 0 0.5px ${T.sheetBorder}`
+              ? `0 8px 24px -4px var(--atelier-card-shadow), 0 0 0 0.5px ${T.sheetBorder}`
               : '0 16px 40px -8px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(201,168,76,0.32), inset 0 1px 0 var(--atelier-ink-dim)',
             // `overflow: 'hidden'` stood here. It is retired INTO the overflowX/overflowY
             // pair above, which clips the horizontal axis identically and lets the
@@ -292,7 +292,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
               }}>The Maker</div>
               <div style={{
                 fontFamily: F.display, fontWeight: 400, fontSize: 25,
-                color: isLight ? '#2C1F14' : 'var(--atelier-ink)',
+                color: 'var(--atelier-ink)',
                 lineHeight: 1.1, letterSpacing: '0.005em',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>{displayName}</div>
@@ -356,7 +356,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
   );
 }
 
-function SectionLabel({ children, isLight }: { children: React.ReactNode; isLight: boolean }) {
+function SectionLabel({ children }: { children: React.ReactNode; isLight?: boolean }) {
   return (
     <div style={{
       padding: '14px 20px 6px',
@@ -367,21 +367,21 @@ function SectionLabel({ children, isLight }: { children: React.ReactNode; isLigh
         letterSpacing: '0.5em', textTransform: 'uppercase',
         color: 'var(--atelier-label)',
       }}>{children}</span>
-      <span style={{ flex: 1, height: '0.5px', background: isLight ? 'rgba(44,31,20,0.15)' : 'rgba(201,168,76,0.18)' }} />
+      <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
     </div>
   );
 }
 
-function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight }: {
+function DItem({ glyph, label, subtitle, onClick, danger, accent, last }: {
   glyph: string; label: string; subtitle?: string; onClick: () => void;
   danger?: boolean; accent?: boolean; last?: boolean; isLight: boolean;
 }) {
   const [hov, setHov] = useState(false);
-  const baseInk = isLight ? '#2C1F14' : 'var(--atelier-ink)';
-  const color = danger ? 'var(--role-critical)' : accent ? (isLight ? '#7A3828' : 'var(--atelier-label)') : baseInk;
-  const glyphColor = danger ? 'var(--role-critical)' : isLight ? '#7A3828' : 'var(--atelier-label)';
-  const hoverBg = isLight ? 'rgba(44,31,20,0.04)' : 'var(--atelier-row-hover)';
-  const subtitleColor = isLight ? 'rgba(44,31,20,0.4)' : 'rgba(240,230,210,0.4)';
+  const baseInk = 'var(--atelier-ink)';
+  const color = danger ? 'var(--role-critical)' : accent ? 'var(--atelier-accent-text)' : baseInk;
+  const glyphColor = danger ? 'var(--role-critical)' : 'var(--atelier-label)';
+  const hoverBg = 'var(--atelier-row-hover)';
+  const subtitleColor = 'var(--atelier-ink-mute)';
 
   return (
     <button type="button" onClick={onClick}
@@ -400,7 +400,7 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last, isLight 
         flexShrink: 0, width: 22, textAlign: 'center',
         fontFamily: F.display, fontWeight: 400, fontSize: 16,
         color: glyphColor, lineHeight: 1,
-        textShadow: hov ? '0 0 8px rgba(224,188,110,0.3)' : 'none',
+        textShadow: 'none',
         transition: `text-shadow 150ms ${EASE}`,
       }}>{glyph}</span>
       <span style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
