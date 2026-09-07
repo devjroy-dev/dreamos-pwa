@@ -1221,6 +1221,9 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const pm = solRoutes.match(/export const PAYMENT_REMINDERS_HREF\s*=\s*'([^']+)'/);
   if (!pm) return 'PAYMENT_REMINDERS_HREF is not declared: the payment-reminders room has no address home (R-G34)';
   declared.add(pm[1]);
+  const wsm = solRoutes.match(/export const WEBSITE_HREF\s*=\s*'([^']+)'/);
+  if (!wsm) return 'WEBSITE_HREF is not declared: the Your website & SEO page has no address home (R-40.132)';
+  declared.add(wsm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT
@@ -3296,28 +3299,25 @@ cell('C96 the masthead wears the beta mark: one rung, one token, on the label ro
   return bad.length ? bad.join(' | ') : null;
 });
 
-// ── C97 · AMENDED BY LABEL AT G3.1 s2 (R-40.122/R-40.123) ────────────────────
-// The bio row and its call (`See your profile`) were the Storefront room's ONE
-// primary control under F-P72.C. R-40.123 replaced the room with the ratified
-// prototype (docs/mocks/your-website-s2-proto.html): the page itself sits where
-// the bio row sat, and each fix opens the place to fix it. The standing law is
-// kept and asked of the new room: the primary REGISTER is written ONCE in the
-// file (a `Primary()` home), never copied inline, and every door the fixes open
-// is a room address from its one home — Portfolio via roomHref, Wedding pages
-// via WEDDING_PAGES_HREF. The two bytes the old cell read (storefrontBioCta,
-// storefrontPublicLabel) are retired with their surface (F-40.28's shape).
-cell('C97 the Storefront room writes the primary register once (Primary) and opens rooms by their homes (R-40.123)', () => {
+// C97 · AMENDED AT G3.1 s2 THEN RESTORED AT R-40.132 — the bio row is back at
+// 82612b3's bytes; sitting 2's page has its own cell (C115).
+cell('C97 the Storefront bio row is a CALL, and it is the only one on that screen (F-P72.C, S19)', () => {
+  // P7.2 Arm C. The founder walked it: title-hint-chevron read as a row, but this row is the ASK
+  // that gets a profile finished. It becomes the shell's primary button; Portfolio and Discover
+  // KEEP the row grammar, because one call per screen is what makes a call read as one.
   const sf = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
   const bad = [];
-  const fills = (sf.match(/className="wl-btn pri"/g) || []).length;
-  if (fills !== 1) bad.push('the screen writes the primary register ' + fills + ' times; the ruling is ONE home (Primary)');
-  if (!/function Primary\(/.test(sf)) bad.push('no Primary() home');
+  if (!/\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the bio call does not render its byte from the copy home');
+  // P7.2 AMENDMENT (labeled): the register was HOISTED into the shell's one home, so the call
+  // READS the class rather than copying its values. The cell follows the register.
+  if (!/className="wl-btn pri"/.test(sf)) bad.push('the call does not wear the shell primary register (wl-btn pri)');
   if (/background: 'var\(--atelier-accent-text\)'/.test(sf)) bad.push('the call copies the register inline: the class is the one home');
-  if (!/roomHref\('portfolio'\)/.test(sf)) bad.push('the cover fix does not open Portfolio by its home');
-  if (!/WEDDING_PAGES_HREF/.test(sf)) bad.push('the wedding fixes do not open Wedding pages by its home');
-  if (/\/vendor\/portfolio'|\/vendor\/wedding-pages'/.test(sf)) bad.push('a room address is a literal in the room');
+  if (!/href="\/vendor\/discover\/profile"[\s\S]{0,600}\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the call does not open the profile');
+  // The contrast the ruling rests on: exactly ONE primary control on this screen.
+  const fills = (sf.match(/wl-btn pri/g) || []).length;
+  if (fills !== 1) return 'the screen carries ' + fills + ' primary controls; the ruling is ONE call per screen (Discover becomes a call when Block 09 ports it)';
   const copy = strip(read('lib/worklist/copy.ts'));
-  if (/storefrontBioCta|storefrontPublicLabel/.test(copy)) bad.push('the retired bytes still stand in copy.ts with no reader');
+  if (!/storefrontBioCta: 'See your profile',/.test(copy)) bad.push("COPY.storefrontBioCta is not the vetoed byte 'See your profile'");
   return bad.length ? bad.join(' | ') : null;
 });
 
@@ -4182,18 +4182,23 @@ cell('C109 the date-check toggle revalidates after a successful write and never 
   return bad.length === 0 ? null : bad.join('; ');
 });
 
-cell('C105 the website row opens onto the registry room with no second address home (R-G31.2)', () => {
+// ── C105 · AMENDED BY LABEL AT R-40.132 ─────────────────────────────────────
+// R-G31.2 pointed the website row at the Storefront room. R-40.132 moves sitting
+// 2's room OFF the registry to /vendor/your-website (the wedding-pages shape):
+// the row opens WEBSITE_HREF, declared once in routes.ts; Storefront keeps its
+// tile and its address; no STOREFRONT_HREF may appear (the registry owns it).
+cell('C105 the website row opens WEBSITE_HREF, declared once, and Storefront stays the registry\u2019s (R-40.132)', () => {
   const hub = strip(read('app/vendor/(shell)/support/page.tsx'));
   const routes = strip(read('lib/solutions/routes.ts'));
   const bad = [];
-  if (!/website:\s*roomHref\('storefront'\)/.test(hub)) bad.push('the website row does not resolve through roomHref');
-  if (/'\/vendor\/storefront'/.test(hub)) bad.push('a bare /vendor/storefront literal appears in the hub');
+  if (!/website:\s*WEBSITE_HREF/.test(hub)) bad.push('the website row does not read WEBSITE_HREF');
+  if (/website:\s*roomHref\('storefront'\)/.test(hub)) bad.push('the website row still opens the Storefront room');
+  if (/'\/vendor\/your-website'|'\/vendor\/storefront'/.test(hub)) bad.push('a bare address literal appears in the hub');
+  if (!/export const WEBSITE_HREF = '\/vendor\/your-website'/.test(routes)) bad.push('WEBSITE_HREF is not /vendor/your-website in routes.ts');
   if (/STOREFRONT_HREF/.test(routes)) bad.push('routes.ts declares STOREFRONT_HREF — the registry already owns that address');
-  // ⚠ b40's `cell()` INVERTS bs_audit's: a FALSY return passes and a returned
-  // STRING is the failure reason. The first cut of these three returned `true`
-  // on success and reddened all three on a clean tree, reported as "— true".
-  // Two benches, two conventions, and the estate keeps both; the cell adapts to
-  // its harness rather than the harness to the cell.
+  const rooms = strip(read('lib/worklist/rooms.ts'));
+  if (!/id: 'storefront',\s*label: 'Storefront'/.test(rooms)) bad.push('the Storefront tile byte is not Storefront');
+  if (/your-website/.test(rooms)) bad.push('your-website is in the registry — it is a page, not a room');
   return bad.length === 0 ? null : bad.join('; ');
 });
 
@@ -4423,6 +4428,27 @@ cell('C114 refusalSentence is exhaustive and mints no new code', () => {
   // next reader has the same question and no answer.
   if (!/R-40\.56/.test(rf)) return 'the copy home does not cite the ruling that vetoed refusalGeneric';
   return null;
+});
+
+// ── C115 · YOUR WEBSITE & SEO — THE PAGE (R-40.122 / R-40.123 / R-40.132) ───
+cell('C115 the Your website page writes the primary register once (Primary), opens rooms by their homes, and wears its own masthead byte', () => {
+  const sf = strip(read('app/vendor/(shell)/your-website/screen.tsx'));
+  const pg = strip(read('app/vendor/(shell)/your-website/page.tsx'));
+  const copy = strip(read('lib/worklist/copy.ts'));
+  const bad = [];
+  const fills = (sf.match(/className="wl-btn pri"/g) || []).length;
+  if (fills !== 1) bad.push('the screen writes the primary register ' + fills + ' times; the ruling is ONE home (Primary)');
+  if (!/function Primary\(/.test(sf)) bad.push('no Primary() home');
+  if (/background: 'var\(--atelier-accent-text\)'/.test(sf)) bad.push('the call copies the register inline');
+  if (!/roomHref\('portfolio'\)/.test(sf)) bad.push('the cover fix does not open Portfolio by its home');
+  if (!/WEDDING_PAGES_HREF/.test(sf)) bad.push('the wedding fixes do not open Wedding pages by its home');
+  if (/'\/vendor\/portfolio'|'\/vendor\/wedding-pages'/.test(sf)) bad.push('a room address is a literal in the page');
+  if (/\bdisabled\b/.test(sf)) bad.push('a disabled control appears (R-40.78: absent, never greyed)');
+  if (!/title=\{COPY\.websiteTitle\}/.test(pg)) bad.push('the page does not wear COPY.websiteTitle');
+  if (!/websiteTitle: 'Your website',/.test(copy)) bad.push("COPY.websiteTitle is not the vetoed byte 'Your website'");
+  if (!/'SEO \\u2014 found on Google'/.test(sf)) bad.push('the Google section is not headed SEO \u2014 found on Google (R-40.122)');
+  if (!/\/api\/revalidate\/storefront/.test(sf)) bad.push('the page never rebuilds her public page after a write');
+  return bad.length === 0 ? null : bad.join('; ');
 });
 
 if (fails > 0) {

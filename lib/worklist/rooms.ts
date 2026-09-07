@@ -154,7 +154,7 @@ export const ROOMS: readonly Room[] = [
   // of this band since \u00a74-3 and is already FROZEN_ORDER's first business id. The
   // charter's phrase 「storefront to the head of business」 describes a motion that
   // does not exist; only the flag is new (c-40.10, third limb).
-  { id: 'storefront',label: 'Your website & SEO',band: 'business', href: '/vendor/storefront', pinnable: true, headline: true },   // R-40.122 — matches the hub row (solutions/copy.ts) and F-40.143 closes
+  { id: 'storefront',label: 'Storefront',band: 'business', href: '/vendor/storefront',       pinnable: true, headline: true },
   { id: 'portfolio', label: 'Portfolio', band: 'business', href: '/vendor/portfolio',        pinnable: true  },
   { id: 'couture',   label: 'Couture',   band: 'business', href: '/vendor/couture',          pinnable: true  },
   // \u00a74-4 \u00b7 BATCH \u2461. Three bodies with nothing shared \u2014 a hub of Studio rows, a document

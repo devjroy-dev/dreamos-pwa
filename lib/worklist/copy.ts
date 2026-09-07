@@ -90,9 +90,9 @@ export const COPY = {
    *  role's, not the string's — the byte is written as a word so a reader of this file
    *  sees what a vendor sees. */
   beta: 'Beta',
-  /* P7.2's `storefrontBioCta` and `storefrontPublicLabel` stood here. Retired at
-     G3.1 s2 with their surface (R-40.123 replaced the room); b40 C97 asserts they
-     do not return without a reader. */
+  /** P7.2 (S19, founder-vetoed 2026-09-04, F-P72.C): the Storefront bio row became a CALL.
+   *  It says what the tap does — it opens the profile the couples see. */
+  storefrontBioCta: 'See your profile',
   /* P7.2 · THE REPORT DOOR (S10–S16, S18; founder-vetoed 2026-09-04, mock frame `P7-report`).
      The estate ships as beta and this is the door beta implies. S17 — a note under the send
      explaining that WhatsApp does the sending — was STRUCK: the verb already says it. */
@@ -474,7 +474,9 @@ export const COPY = {
   // Widening C30 to cover them would assert a correspondence that does not exist, which is
   // the shape D-38.1 convicts. F-38.23's duplication note still covers all ten against the
   // tile labels, which IS a correspondence that exists.
-  storefrontTitle: 'Your website',   // R-40.122: the masthead is the plain name; the tile and the hub row carry the sold word
+  storefrontTitle: 'Storefront',
+  /** R-40.132: sitting 2's room lives at /vendor/your-website; its masthead is the plain name (R-40.122). */
+  websiteTitle: 'Your website',
   // ═══ BLOCK 19 · G3.1 — THE DATE-CHECK SWITCH. Founder-vetoed 2026-09-06. ══
   // Source: `docs/mocks/your-website-mock.html` frames V3-room / V3-on /
   // V3-noswitch. Vendor-facing; U+2019 throughout (R-40.57, b40 C102).
@@ -502,6 +504,8 @@ export const COPY = {
   /** D3 · the room's readout of what a stranger can see. `on your page`, not
    *  `your weddings` — a narrower set than what she has. */
   storefrontWeddingsLabel: 'Weddings on your page',
+  /** D2 */
+  storefrontPublicLabel: 'Your public page',
   /** D2 */
   portfolioTitle:  'Portfolio',
   coutureTitle:    'Couture',

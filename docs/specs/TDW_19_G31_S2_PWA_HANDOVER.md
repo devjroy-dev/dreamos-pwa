@@ -26,3 +26,23 @@ Rooms → `Your website & SEO` → masthead `Your website`; her page in the wind
 - dream-os packet 2: `GET /api/v2/public/sitemap` (handles + published slugs + updated_at, no phone), the nightly `pull()` runner, `PUBLIC_SCHEMA.md` for 0147 (chair).
 - P2: the search/price/Get/status screens as drawn, when `RESELLERCLUB_*` exist (behind `website.live`).
 - The iframe preview relies on the leaf being frameable by its own origin (no frame-ancestors header in the tree today); if a CSP lands later, add `frame-ancestors 'self'`.
+
+---
+
+## Addendum · R-40.132 (packet 2, base `aad0f0f`) — a page, not a room
+
+The founder ruled sitting 2's room OFF the registry. This packet:
+
+| file | what |
+|---|---|
+| `app/vendor/(shell)/storefront/screen.tsx` | **restored byte for byte to `82612b3`** (`cmp` clean): bio block, Portfolio, Discover, the switch with D4–D6, the weddings readout — sitting 1's room |
+| `app/vendor/(shell)/your-website/page.tsx` + `screen.tsx` | sitting 2's room, moved (`git mv`), screen renamed `YourWebsiteScreen`, masthead `COPY.websiteTitle` = `Your website` (R-40.122 inside the page) |
+| `lib/solutions/routes.ts` | `WEBSITE_HREF = '/vendor/your-website'` beside its three siblings |
+| `app/vendor/(shell)/support/page.tsx` | `ROOM_HREFS.website` reads `WEBSITE_HREF` (the hub row `Your website & SEO` opens the page) |
+| `lib/worklist/rooms.ts` | tile byte back to `Storefront`; **at its `2baa86c` bytes** — `ROOM_COUNT_EXPECTED` untouched |
+| `lib/worklist/copy.ts` | `storefrontTitle` back to `Storefront`; `storefrontBioCta` / `storefrontPublicLabel` back (their reader is back); one new byte `websiteTitle` — the file is `82612b3` + that one line |
+| `scripts/b40_worklist_shell_bench.js` | C97 restored verbatim (its subject is back); C31 demands `WEBSITE_HREF`; C105 amended by label to R-40.132; **C115** new (the page: one `Primary()`, rooms by their homes, no `disabled`, `websiteTitle`, `SEO — found on Google`, revalidate after write) — 106 GREEN, C50/C102 the tip's |
+
+b42: 175/176 — the `*_HREF` cell went green with the move; the one remaining fail is the tip's (G1.x mock string). `tsc --noEmit` clean. `next build` at apply (R-40.66). F-40.143 stays closed by the hub row + the page's masthead; the tile is Storefront again by ruling.
+
+**Walk delta**: step 1 reads `Storefront` on the tile (sitting 1's room, unchanged); the sitting-2 walk starts from Rooms → Support/Business Solutions → row `Your website & SEO` → masthead `Your website`. Steps 3–12 unchanged.

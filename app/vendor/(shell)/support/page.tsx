@@ -36,7 +36,7 @@ import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
 import { roomHref } from '@/lib/worklist/rooms';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -82,7 +82,7 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // (R-G11.12) and the constant is what gets them into that set at all. A fifth
   // constant here would be a second home for an address the registry already
   // owns — `routes.ts`'s own disease, arriving from the other direction.
-  website:       roomHref('storefront'),
+  website:       WEBSITE_HREF,   // R-40.132: sitting 2's room, off the registry
   // ── G3.4 · R-G34 — THE SIXTH OF THE NINE OPENS ───────────────────────────
   // `reminders` is `ROOM_ROWS`' own key for 「Payment reminders」 (R-40.1's R5).
   // One line, as the map has promised five times: the row gains a destination

@@ -52,6 +52,14 @@ export const SOLUTIONS_INDEX_HREF = '/vendor/support';
 // amended by label to read this constant into its declared set — one home, and
 // the cell tightens with it rather than being loosened.
 export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';
+/**
+ * R-40.132 · YOUR WEBSITE & SEO IS A PAGE, NOT A ROOM. Sitting 2's room
+ * (R-40.123) lives here, off the registry, so Storefront (sitting 1's, restored
+ * byte for byte at 82612b3) keeps its tile, its pin and its count. The hub row
+ * `Your website & SEO` opens this address; ROOM_HREFS.website reads this constant
+ * and nothing else; b40 C31 demands it, as it demands its three siblings.
+ */
+export const WEBSITE_HREF = '/vendor/your-website';
 
 // ── G2 · THE GOOGLE REVIEWS ROOM'S ADDRESS ──────────────────────────────────
 // The second of R-40.1's nine to open, and it takes the same home for the same
