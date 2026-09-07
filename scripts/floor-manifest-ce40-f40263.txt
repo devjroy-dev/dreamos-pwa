@@ -1,0 +1,18 @@
+# scripts/floor-manifest-ce40-f40263.txt
+#
+# CE-40 · F-40.263 MICRO — THE REFUSAL SENTENCE IS LEGIBLE.
+#
+# BASE: f05016079ded9b571959ac28b063364d5af68517  (dreamos-pwa, origin/main)
+# The pre-cure components/vendor/Toast.tsx blob at this base is
+# 9ca948f642f1834f2cc849eafd4cc75c1a27e1ff — byte-identical to the blob at
+# bfa3197e and 2baa86cd, which is why this packet re-cut without a byte moving.
+#
+# [F-19.16] A delivery tree is dirty by definition and R-33.7 forbids the
+# executor the commit that would clean it. Every dirty path is named here; one
+# byte outside and the runner refuses.
+#
+# THREE PATHS. The cured toast, its bench, and this manifest — a delivered file,
+# which dirties the tree like any other.
+components/vendor/Toast.tsx
+scripts/b58_f40263_toast_surface_bench.js
+scripts/floor-manifest-ce40-f40263.txt
