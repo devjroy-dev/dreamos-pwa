@@ -1,6 +1,6 @@
 ═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══
-repo tip: 6d014eafea6f8b79875e4a94abcb6d792de22de3
-files scanned: 362
+repo tip: 2f420c61d196780f9c55d38978c3762703709da9
+files scanned: 368
 
 app/(frost)/frost/canvas/muse/page.tsx
    FALSE OPEN  :527   …e="file"\n        accept="image/*"\n  
@@ -54,114 +54,130 @@ app/demo/vendor/[handle]/page.tsx
    FALSE CLOSE :316   … inline transform to clobber. */\n   
    BITE 1: chars 17086-18138  lines 302-316  span 1052  LIVE 1052
 
+app/sign/[token]/page.tsx
+   FALSE OPEN  :232   …;\n       font-family:inherit}\n/* Ter
+   FALSE CLOSE :232   …e’s own refusal ink. Not red. */\n.sg
+   BITE 1: chars 12922-12978  lines 232-232  span 56  LIVE 56
+
 app/v/[code]/page.tsx
-   FALSE OPEN  :657   …}) {\n  return (\n    <style>{`\n/* ⚠ c
-   FALSE OPEN  :665   … */\n:root{color-scheme:light}\n/* ── 
-   FALSE OPEN  :680   …:1;transform:translateY(0)} }\n/* ⚠ R
-   FALSE OPEN  :689   …m{opacity:0} to{opacity:1} }\n\n/* ⚠ T
-   FALSE OPEN  :695   …reader waiting for itself. */\n/* D-1
-   FALSE OPEN  :713   …argin:0 auto;padding:0 0 8px}\n/* W3-
-   FALSE OPEN  :719   …dden;text-overflow:ellipsis}\n\n/* ── 
-   FALSE OPEN  :733   …ow:hidden;background:#EDEAE4}\n/* ⚠ T
-   FALSE OPEN  :743   …:pvHold 1600ms ease-in-out 3}\n/* ⚠ T
-   FALSE OPEN  :747   …- opacity, not a listener. */\n/* ⚠ T
-   FALSE OPEN  :755   …ow:hidden;white-space:nowrap}\n/* ⚠ T
-   FALSE OPEN  :765   …pacity:0;pointer-events:none}\n/* The
-   FALSE OPEN  :775   …er(0.22,1,0.36,1) 750ms both}\n/* ⚠ L
-   FALSE OPEN  :795   …line{margin:0;max-width:34ch}\n/* D-1
-   FALSE OPEN  :797   … the whole lesson of W2-4. */\n/* ── 
-   FALSE OPEN  :820   …gin:18px 0 0;max-width:36ch}\n\n/* The
-   FALSE OPEN  :829   …;color:rgba(201,168,76,.85)}\n\n/* ── 
-   FALSE OPEN  :856   …ebkit-scrollbar{display:none}\n/* ⚠ T
-   FALSE OPEN  :878   …AE4;scroll-snap-align:start}\n\n/* The
-   FALSE OPEN  :882   …#403B36;letter-spacing:.01em}\n/* W3-
-   FALSE OPEN  :885   …d larger than it measured. */\n/* ⚠ w
-   FALSE OPEN  :897   …e;text-underline-offset:2px}\n\n/* ⚠ M
-   FALSE OPEN  :904   ….pv-shimmer{animation:none}\n  /* The
-   FALSE OPEN  :908   …  .pv-shimmer{display:none}\n}\n/* ── 
-   FALSE CLOSE :663   …e the one that does the work. */\n:ro
-   FALSE CLOSE :678   …\n   before its delay elapses. */\n@ke
-   FALSE CLOSE :686   … behind it, the card follows. */\n@ke
-   FALSE CLOSE :694   …he reader waiting for itself. */\n/* 
-   FALSE CLOSE :705   …have and shorter than a loop. */\n@ke
-   FALSE CLOSE :713   … 40px, before the photograph. */\n.pv
-   FALSE CLOSE :730   …r than a number it hopes for. */\n.pv
-   FALSE CLOSE :740   …rather than discovered later. */\n.pv
-   FALSE CLOSE :746   …s -- opacity, not a listener. */\n/* 
-   FALSE CLOSE :752   …   the strip paints the ring. */\n.pv
-   FALSE CLOSE :761   … a later seat adds a wrapper. */\n.pv
-   FALSE CLOSE :768   … is why that element is gone. */\n.pv
-   FALSE CLOSE :792   …ad of shipping a fourth time. */\n.pv
-   FALSE CLOSE :796   … is the whole lesson of W2-4. */\n/* 
-   FALSE CLOSE :806   …ine rather than a silent fix. */\n.pv
-   FALSE CLOSE :822   …amond reading as a stray dot. */\n.pv
-   FALSE CLOSE :851   …s belt to the basis's braces. */\n.pv
-   FALSE CLOSE :872   …t the thumbnail is a control. */\n.pv
-   FALSE CLOSE :878   …is the one place TDW appears. */\n.pv
-   FALSE CLOSE :884   …read larger than it measured. */\n/* 
-   FALSE CLOSE :893   … the page again.\n   It wraps. */\n.pv
-   FALSE CLOSE :901   …defect wearing a slower coat. */\n@me
-   FALSE CLOSE :905   … panel over nothing. It goes. */\n  .
-   FALSE CLOSE :920   … simply lose. See the module.\n*/\n${h
-   BITE 1: chars 33439-33991  lines 657-663  span 552  LIVE 552
-   BITE 2: chars 34018-34868  lines 665-678  span 850  LIVE 850
-   BITE 3: chars 34972-35483  lines 680-686  span 511  LIVE 511
-   BITE 4: chars 35537-35974  lines 689-694  span 437  LIVE 437
-   BITE 5: chars 35975-36767  lines 695-705  span 792  LIVE 792
-   BITE 6: chars 37175-37228  lines 713-713  span 53  LIVE 53
-   BITE 7: chars 37547-38373  lines 719-730  span 826  LIVE 826
-   BITE 8: chars 38484-39078  lines 733-740  span 594  LIVE 594
-   BITE 9: chars 39188-39461  lines 743-746  span 273  LIVE 273
-   BITE 10: chars 39462-39887  lines 747-752  span 425  LIVE 425
-   BITE 11: chars 40047-40476  lines 755-761  span 429  LIVE 429
-   BITE 12: chars 40644-40936  lines 765-768  span 292  LIVE 292
-   BITE 13: chars 41337-42496  lines 775-792  span 1159  LIVE 1159
-   BITE 14: chars 42651-42814  lines 795-796  span 163  LIVE 163
-   BITE 15: chars 42815-43499  lines 797-806  span 684  LIVE 684
-   BITE 16: chars 44367-44573  lines 820-822  span 206  LIVE 206
-   BITE 17: chars 44968-46350  lines 829-851  span 1382  LIVE 1382
-   BITE 18: chars 46551-47709  lines 856-872  span 1158  LIVE 1158
-   BITE 19: chars 47946-48013  lines 878-878  span 67  LIVE 67
-   BITE 20: chars 48229-48458  lines 882-884  span 229  LIVE 229
-   BITE 21: chars 48459-49107  lines 885-893  span 648  LIVE 648
-   BITE 22: chars 49285-49671  lines 897-901  span 386  LIVE 386
-   BITE 23: chars 49767-49893  lines 904-905  span 126  LIVE 126
-   BITE 24: chars 49924-50771  lines 908-920  span 847  LIVE 847
+   FALSE OPEN  :805   …}) {\n  return (\n    <style>{`\n/* ⚠ c
+   FALSE OPEN  :813   … */\n:root{color-scheme:light}\n/* ── 
+   FALSE OPEN  :828   …:1;transform:translateY(0)} }\n/* ⚠ R
+   FALSE OPEN  :837   …m{opacity:0} to{opacity:1} }\n\n/* ⚠ T
+   FALSE OPEN  :843   …reader waiting for itself. */\n/* D-1
+   FALSE OPEN  :861   …argin:0 auto;padding:0 0 8px}\n/* W3-
+   FALSE OPEN  :867   …dden;text-overflow:ellipsis}\n\n/* ── 
+   FALSE OPEN  :881   …ow:hidden;background:#EDEAE4}\n/* ⚠ T
+   FALSE OPEN  :891   …:pvHold 1600ms ease-in-out 3}\n/* ⚠ T
+   FALSE OPEN  :895   …- opacity, not a listener. */\n/* ⚠ T
+   FALSE OPEN  :903   …ow:hidden;white-space:nowrap}\n/* ⚠ T
+   FALSE OPEN  :913   …pacity:0;pointer-events:none}\n/* The
+   FALSE OPEN  :923   …er(0.22,1,0.36,1) 750ms both}\n/* ⚠ L
+   FALSE OPEN  :943   …line{margin:0;max-width:34ch}\n/* D-1
+   FALSE OPEN  :945   … the whole lesson of W2-4. */\n/* ── 
+   FALSE OPEN  :968   …gin:18px 0 0;max-width:36ch}\n\n/* The
+   FALSE OPEN  :977   …;color:rgba(201,168,76,.85)}\n\n/* ── 
+   FALSE OPEN  :1004   …ebkit-scrollbar{display:none}\n/* ⚠ T
+   FALSE OPEN  :1026   …AE4;scroll-snap-align:start}\n\n/* The
+   FALSE OPEN  :1052   …#403B36;letter-spacing:.01em}\n/* W3-
+   FALSE OPEN  :1055   …d larger than it measured. */\n/* ⚠ w
+   FALSE OPEN  :1067   …e;text-underline-offset:2px}\n\n/* ⚠ M
+   FALSE OPEN  :1074   ….pv-shimmer{animation:none}\n  /* The
+   FALSE OPEN  :1078   …  .pv-shimmer{display:none}\n}\n/* ── 
+   FALSE CLOSE :811   …e the one that does the work. */\n:ro
+   FALSE CLOSE :826   …\n   before its delay elapses. */\n@ke
+   FALSE CLOSE :834   … behind it, the card follows. */\n@ke
+   FALSE CLOSE :842   …he reader waiting for itself. */\n/* 
+   FALSE CLOSE :853   …have and shorter than a loop. */\n@ke
+   FALSE CLOSE :861   … 40px, before the photograph. */\n.pv
+   FALSE CLOSE :878   …r than a number it hopes for. */\n.pv
+   FALSE CLOSE :888   …rather than discovered later. */\n.pv
+   FALSE CLOSE :894   …s -- opacity, not a listener. */\n/* 
+   FALSE CLOSE :900   …   the strip paints the ring. */\n.pv
+   FALSE CLOSE :909   … a later seat adds a wrapper. */\n.pv
+   FALSE CLOSE :916   … is why that element is gone. */\n.pv
+   FALSE CLOSE :940   …ad of shipping a fourth time. */\n.pv
+   FALSE CLOSE :944   … is the whole lesson of W2-4. */\n/* 
+   FALSE CLOSE :954   …ine rather than a silent fix. */\n.pv
+   FALSE CLOSE :970   …amond reading as a stray dot. */\n.pv
+   FALSE CLOSE :999   …s belt to the basis’s braces. */\n.pv
+   FALSE CLOSE :1020   …t the thumbnail is a control. */\n.pv
+   FALSE CLOSE :1026   …is the one place TDW appears. */\n.pv
+   FALSE CLOSE :1054   …read larger than it measured. */\n/* 
+   FALSE CLOSE :1063   … the page again.\n   It wraps. */\n.pv
+   FALSE CLOSE :1071   …defect wearing a slower coat. */\n@me
+   FALSE CLOSE :1075   … panel over nothing. It goes. */\n  .
+   FALSE CLOSE :1090   … simply lose. See the module.\n*/\n${h
+   BITE 1: chars 41971-42523  lines 805-811  span 552  LIVE 552
+   BITE 2: chars 42550-43400  lines 813-826  span 850  LIVE 850
+   BITE 3: chars 43504-44015  lines 828-834  span 511  LIVE 511
+   BITE 4: chars 44069-44506  lines 837-842  span 437  LIVE 437
+   BITE 5: chars 44507-45299  lines 843-853  span 792  LIVE 792
+   BITE 6: chars 45707-45760  lines 861-861  span 53  LIVE 53
+   BITE 7: chars 46079-46905  lines 867-878  span 826  LIVE 826
+   BITE 8: chars 47016-47610  lines 881-888  span 594  LIVE 594
+   BITE 9: chars 47720-47993  lines 891-894  span 273  LIVE 273
+   BITE 10: chars 47994-48419  lines 895-900  span 425  LIVE 425
+   BITE 11: chars 48579-49008  lines 903-909  span 429  LIVE 429
+   BITE 12: chars 49176-49468  lines 913-916  span 292  LIVE 292
+   BITE 13: chars 49869-51028  lines 923-940  span 1159  LIVE 1159
+   BITE 14: chars 51183-51346  lines 943-944  span 163  LIVE 163
+   BITE 15: chars 51347-52031  lines 945-954  span 684  LIVE 684
+   BITE 16: chars 52899-53105  lines 968-970  span 206  LIVE 206
+   BITE 17: chars 53500-54882  lines 977-999  span 1382  LIVE 1382
+   BITE 18: chars 55083-56241  lines 1004-1020  span 1158  LIVE 1158
+   BITE 19: chars 56478-56545  lines 1026-1026  span 67  LIVE 67
+   BITE 20: chars 58329-58558  lines 1052-1054  span 229  LIVE 229
+   BITE 21: chars 58559-59207  lines 1055-1063  span 648  LIVE 648
+   BITE 22: chars 59385-59771  lines 1067-1071  span 386  LIVE 386
+   BITE 23: chars 59867-59993  lines 1074-1075  span 126  LIVE 126
+   BITE 24: chars 60024-60871  lines 1078-1090  span 847  LIVE 847
 
 app/v/[code]/w/[slug]/page.tsx
-   FALSE OPEN  :380   …,247,245,.82);margin-top:8px}\n/* ── 
-   FALSE OPEN  :389   …ect-fit:cover;display:block}\n\n/* ── 
-   FALSE OPEN  :410   …:#0C0A09;font-family:inherit}\n/* 16p
-   FALSE OPEN  :415   …top:1px;accent-color:#0C0A09}\n/* THE
-   FALSE OPEN  :424   …n-top:12px;text-align:center}\n/* ── 
-   FALSE OPEN  :433   …percase;text-decoration:none}\n/* ── 
-   FALSE CLOSE :383   …commented corpse if it stays. */\n.pw
-   FALSE CLOSE :398   …rs\n   nowhere near the cause. */\n.pw
-   FALSE CLOSE :411   …hould not have the page jump. */\n.pw
-   FALSE CLOSE :418   …it button the box sits above. */\n.pw
-   FALSE CLOSE :426   …ICKS IN THIS BLOCK (e-7/e-8). */\n.pw
-   FALSE CLOSE :443   …a template literal (e-7/e-8). */\n.pw
-   BITE 1: chars 19128-19430  lines 380-383  span 302  LIVE 302
-   BITE 2: chars 19702-20344  lines 389-398  span 642  LIVE 642
-   BITE 3: chars 21348-21507  lines 410-411  span 159  LIVE 159
-   BITE 4: chars 21741-22026  lines 415-418  span 285  LIVE 285
-   BITE 5: chars 22449-22659  lines 424-426  span 210  LIVE 210
-   BITE 6: chars 23161-23994  lines 433-443  span 833  LIVE 833
+   FALSE OPEN  :548   …,247,245,.82);margin-top:8px}\n/* ── 
+   FALSE OPEN  :557   …ect-fit:cover;display:block}\n\n/* ── 
+   FALSE OPEN  :573   …,10,9,.13);border-radius:4px}\n/* ── 
+   FALSE OPEN  :582   …#0C0A09;text-decoration:none}\n/* ── 
+   FALSE OPEN  :603   …:#0C0A09;font-family:inherit}\n/* 16p
+   FALSE OPEN  :608   …top:1px;accent-color:#0C0A09}\n/* THE
+   FALSE OPEN  :617   …n-top:12px;text-align:center}\n/* ── 
+   FALSE OPEN  :626   …percase;text-decoration:none}\n/* ── 
+   FALSE CLOSE :551   …commented corpse if it stays. */\n.pw
+   FALSE CLOSE :566   …rs\n   nowhere near the cause. */\n.pw
+   FALSE CLOSE :577   … sheet is a template literal. */\n.pw
+   FALSE CLOSE :583   … a guest should recognise it. */\n.pw
+   FALSE CLOSE :604   …hould not have the page jump. */\n.pw
+   FALSE CLOSE :611   …it button the box sits above. */\n.pw
+   FALSE CLOSE :619   …ICKS IN THIS BLOCK (e-7/e-8). */\n.pw
+   FALSE CLOSE :636   …a template literal (e-7/e-8). */\n.pw
+   BITE 1: chars 28533-28835  lines 548-551  span 302  LIVE 302
+   BITE 2: chars 29107-29749  lines 557-566  span 642  LIVE 642
+   BITE 3: chars 30205-30576  lines 573-577  span 371  LIVE 371
+   BITE 4: chars 30849-30999  lines 582-583  span 150  LIVE 150
+   BITE 5: chars 32539-32698  lines 603-604  span 159  LIVE 159
+   BITE 6: chars 32932-33217  lines 608-611  span 285  LIVE 285
+   BITE 7: chars 33640-33850  lines 617-619  span 210  LIVE 210
+   BITE 8: chars 34352-35185  lines 626-636  span 833  LIVE 833
 
 app/vendor/(shell)/google-reviews/page.tsx
-   FALSE OPEN  :185   …   ) : null}\n\n      <style>{`\n/* THE
-   FALSE CLOSE :194   …f which mentioned a backtick. */\n.gr
-   BITE 1: chars 8995-9759  lines 185-194  span 764  LIVE 764
+   FALSE OPEN  :192   …   ) : null}\n\n      <style>{`\n/* THE
+   FALSE CLOSE :201   …f which mentioned a backtick. */\n.gr
+   BITE 1: chars 9527-10291  lines 192-201  span 764  LIVE 764
+
+app/vendor/(shell)/payment-reminders/page.tsx
+   FALSE OPEN  :232   …   ) : null}\n\n      <style>{`\n/* THE
+   FALSE CLOSE :239   …f which mentioned a backtick. */\n.pr
+   BITE 1: chars 11300-11913  lines 232-239  span 613  LIVE 613
 
 app/vendor/(shell)/referrals/page.tsx
-   FALSE OPEN  :139   …   ) : null}\n\n      <style>{`\n/* THE
-   FALSE CLOSE :152   …f which mentioned a backtick. */\n.rf
-   BITE 1: chars 6450-7344  lines 139-152  span 894  LIVE 894
+   FALSE OPEN  :146   …   ) : null}\n\n      <style>{`\n/* THE
+   FALSE CLOSE :159   …f which mentioned a backtick. */\n.rf
+   BITE 1: chars 6982-7876  lines 146-159  span 894  LIVE 894
 
 app/vendor/(shell)/support/page.tsx
-   FALSE OPEN  :152   …ionsStyles />\n      <style>{`\n/* Car
-   FALSE CLOSE :153   …al only, no horizontal inset. */\n.wl
-   BITE 1: chars 8378-8537  lines 152-153  span 159  LIVE 159
+   FALSE OPEN  :187   …ionsStyles />\n      <style>{`\n/* Car
+   FALSE CLOSE :188   …al only, no horizontal inset. */\n.wl
+   BITE 1: chars 10742-10901  lines 187-188  span 159  LIVE 159
 
 app/vendor/(shell)/today/page.tsx
    FALSE OPEN  :107   …y={today} />}\n      <style>{`\n/* R-3
@@ -178,23 +194,29 @@ app/vendor/(shell)/today/page.tsx
    BITE 4: chars 9760-9932  lines 142-143  span 172  LIVE 172
 
 app/vendor/(shell)/wedding-pages/page.tsx
-   FALSE OPEN  :535   …nput type="file" accept="image/*" mu
-   FALSE OPEN  :679   …play:block;margin-bottom:5px}\n/* Add
-   FALSE OPEN  :690   …critical);margin-bottom:10px}\n/* ── 
-   FALSE OPEN  :713   …critical);margin-bottom:10px}\n/* ── 
-   FALSE OPEN  :719   …ier-ink-dim);margin-top:10px}\n/* The
-   FALSE OPEN  :723   …ak:break-all;user-select:all}\n/* The
-   FALSE CLOSE :679   …en rather than a hex literal. */\n.wp
-   FALSE CLOSE :696   …7/e-8, twice in one sitting). */\n.wp
-   FALSE CLOSE :716   …a template literal (e-7/e-8). */\n.wp
-   FALSE CLOSE :720   …is worse than no link at all. */\n.wp
-   FALSE CLOSE :724   …not a warning about her data. */\n.wp
-   BITE 1: chars 27577-29069  lines 535-561  span 1492  LIVE 1353
-   BITE 2: chars 35890-35973  lines 679-679  span 83  LIVE 83
-   BITE 3: chars 36723-37227  lines 690-696  span 504  LIVE 504
-   BITE 4: chars 38487-38794  lines 713-716  span 307  LIVE 307
-   BITE 5: chars 38970-39097  lines 719-720  span 127  LIVE 127
-   BITE 6: chars 39233-39347  lines 723-724  span 114  LIVE 114
+   FALSE OPEN  :624   …nput type="file" accept="image/*" mu
+   FALSE OPEN  :803   …margin-bottom:var(--wl-step)}\n/* ── 
+   FALSE OPEN  :829   …play:block;margin-bottom:5px}\n/* Add
+   FALSE OPEN  :840   …critical);margin-bottom:10px}\n/* F-4
+   FALSE OPEN  :845   …t:1.45;word-break:break-word}\n/* ── 
+   FALSE OPEN  :868   …critical);margin-bottom:10px}\n/* ── 
+   FALSE OPEN  :874   …ier-ink-dim);margin-top:10px}\n/* The
+   FALSE OPEN  :878   …ak:break-all;user-select:all}\n/* The
+   FALSE CLOSE :803   …ons, the sheet’s own idiom ── */\n.wp
+   FALSE CLOSE :829   …en rather than a hex literal. */\n.wp
+   FALSE CLOSE :842   …a error is long and unbroken. */\n.wp
+   FALSE CLOSE :851   …7/e-8, twice in one sitting). */\n.wp
+   FALSE CLOSE :871   …a template literal (e-7/e-8). */\n.wp
+   FALSE CLOSE :875   …is worse than no link at all. */\n.wp
+   FALSE CLOSE :879   …not a warning about her data. */\n.wp
+   BITE 1: chars 32822-34314  lines 624-650  span 1492  LIVE 1353
+   BITE 2: chars 42411-42473  lines 803-803  span 62  LIVE 62
+   BITE 3: chars 44755-44838  lines 829-829  span 83  LIVE 83
+   BITE 4: chars 45588-45824  lines 840-842  span 236  LIVE 236
+   BITE 5: chars 45949-46453  lines 845-851  span 504  LIVE 504
+   BITE 6: chars 47713-48020  lines 868-871  span 307  LIVE 307
+   BITE 7: chars 48196-48323  lines 874-875  span 127  LIVE 127
+   BITE 8: chars 48459-48573  lines 878-879  span 114  LIVE 114
 
 components/frost/blooms/moments.tsx
    FALSE OPEN  :313   …Ref} type="file" accept="image/*" mu
@@ -285,30 +307,30 @@ components/worklist/FirstRun.tsx
    BITE 4: chars 13631-13839  lines 231-233  span 208  LIVE 208
 
 components/worklist/RoomsGrid.tsx
-   FALSE OPEN  :105   …v>\n  );\n}\n\nconst GRID_CSS = `\n/* ZIP
-   FALSE OPEN  :110   …\n   never that it APPLIED. */\n/* ── 
-   FALSE OPEN  :130   …and+.wl-band{margin-top:24px}\n/* R-3
-   FALSE OPEN  :135   …at(3,1fr);gap:var(--wl-step)}\n/* R-4
-   FALSE OPEN  :139   …t2);color:var(--atelier-ink)}\n/* ── 
-   FALSE OPEN  :146   …ighteen on screen at rest. */\n/* THE
-   FALSE OPEN  :159   …r:var(--atelier-accent-text)}\n/* F-3
-   FALSE OPEN  :163   …pointer;text-decoration:none}\n/* t4,
-   FALSE CLOSE :109   …and\n   never that it APPLIED. */\n/* 
-   FALSE CLOSE :127   …r that .wl-main > * supplies. */\n.wl
-   FALSE CLOSE :132   …ad as a label is not a label. */\n.wl
-   FALSE CLOSE :136   …mall tile rather than a head. */\n.wl
-   FALSE CLOSE :145   …l eighteen on screen at rest. */\n/* 
-   FALSE CLOSE :157   …otiated by a number arriving. */\n.wl
-   FALSE CLOSE :160   …cks anywhere in this literal. */\n.wl
-   FALSE CLOSE :168   …el is simply the room's name. */\n.wl
-   BITE 1: chars 5570-5932  lines 105-109  span 362  LIVE 362
-   BITE 2: chars 5933-7224  lines 110-127  span 1291  LIVE 1291
-   BITE 3: chars 7354-7594  lines 130-132  span 240  LIVE 240
-   BITE 4: chars 7798-7960  lines 135-136  span 162  LIVE 162
-   BITE 5: chars 8059-8674  lines 139-145  span 615  LIVE 615
-   BITE 6: chars 8675-9716  lines 146-157  span 1041  LIVE 1041
-   BITE 7: chars 9816-9950  lines 159-160  span 134  LIVE 134
-   BITE 8: chars 10259-10773  lines 163-168  span 514  LIVE 514
+   FALSE OPEN  :146   …v>\n  );\n}\n\nconst GRID_CSS = `\n/* ZIP
+   FALSE OPEN  :151   …\n   never that it APPLIED. */\n/* ── 
+   FALSE OPEN  :171   …and+.wl-band{margin-top:24px}\n/* R-3
+   FALSE OPEN  :176   …at(3,1fr);gap:var(--wl-step)}\n/* R-4
+   FALSE OPEN  :186   … no fill and no new token. */\n/* ── 
+   FALSE OPEN  :193   …ighteen on screen at rest. */\n/* THE
+   FALSE OPEN  :206   …r:var(--atelier-accent-text)}\n/* F-3
+   FALSE OPEN  :211   …r:var(--atelier-accent-text)}\n/* t4,
+   FALSE CLOSE :150   …and\n   never that it APPLIED. */\n/* 
+   FALSE CLOSE :168   …r that .wl-main > * supplies. */\n.wl
+   FALSE CLOSE :173   …ad as a label is not a label. */\n.wl
+   FALSE CLOSE :185   …nds no fill and no new token. */\n/* 
+   FALSE CLOSE :192   …l eighteen on screen at rest. */\n/* 
+   FALSE CLOSE :204   …otiated by a number arriving. */\n.wl
+   FALSE CLOSE :207   …cks anywhere in this literal. */\n.wl
+   FALSE CLOSE :216   …el is simply the room’s name. */\n.wl
+   BITE 1: chars 7939-8301  lines 146-150  span 362  LIVE 362
+   BITE 2: chars 8302-9593  lines 151-168  span 1291  LIVE 1291
+   BITE 3: chars 9723-9963  lines 171-173  span 240  LIVE 240
+   BITE 4: chars 10167-10945  lines 176-185  span 778  LIVE 778
+   BITE 5: chars 10946-11561  lines 186-192  span 615  LIVE 615
+   BITE 6: chars 11562-12603  lines 193-204  span 1041  LIVE 1041
+   BITE 7: chars 12703-12837  lines 206-207  span 134  LIVE 134
+   BITE 8: chars 13200-13714  lines 211-216  span 514  LIVE 514
 
 components/worklist/StudioSheets.tsx
    FALSE OPEN  :449   …t1);color:var(--atelier-ink)}\n/* 44p
@@ -323,7 +345,7 @@ components/worklist/TodayCards.tsx
    FALSE OPEN  :378   …olor:var(--atelier-ink-mute)}\n/* F-3
    FALSE OPEN  :384   …ent-text);white-space:nowrap}\n/* R-3
    FALSE CLOSE :367   …ceipt\n   stapled to each row. */\n.wl
-   FALSE CLOSE :382   …census is the finding's text. */\n.wl
+   FALSE CLOSE :382   …census is the finding’s text. */\n.wl
    FALSE CLOSE :385   …g cannot\n   re-rank anything. */\n[da
    BITE 1: chars 16711-17007  lines 364-367  span 296  LIVE 296
    BITE 2: chars 18000-18421  lines 378-382  span 421  LIVE 421
@@ -381,8 +403,8 @@ tools/tdw09_vendor_census.mjs
    FALSE CLOSE :53   …replace(/(^|[^:'"\\])\/\/[^\n]*/g, '
 
 ─── TOTALS ───
-false opens: 106 · false closes: 98
-false bites the RETIRED rule would take: 100 · span 46941 · LIVE CODE 46708
+false opens: 112 · false closes: 104
+false bites the RETIRED rule would take: 106 · span 49045 · LIVE CODE 48812
 
 ─── THE STANDING STRIPPER, JUDGED AGAINST THE SAME TREE ───
    DIVERGES from the lexer: app/(auth)/couple/onboarding/page.tsx
@@ -394,8 +416,8 @@ false bites the RETIRED rule would take: 100 · span 46941 · LIVE CODE 46708
    DIVERGES from the lexer: app/vendor/(legacy)/discover/submit/page.tsx
    DIVERGES from the lexer: app/vendor/(shell)/calendar/screen.tsx
    DIVERGES from the lexer: app/vendor/(shell)/collab/screen.tsx
-   DIVERGES from the lexer: app/vendor/(shell)/contracts/screen.tsx
    DIVERGES from the lexer: app/vendor/(shell)/couture/screen.tsx
+   DIVERGES from the lexer: app/vendor/(shell)/leads/body.tsx
    DIVERGES from the lexer: app/vendor/(shell)/portfolio/screen.tsx
    DIVERGES from the lexer: app/vendor/(shell)/storefront/screen.tsx
    DIVERGES from the lexer: app/vendor/(shell)/tds/screen.tsx
@@ -417,4 +439,4 @@ false bites the RETIRED rule would take: 100 · span 46941 · LIVE CODE 46708
    29 file(s) where the standing scanner and the compiler disagree — investigate before trusting any absence-cell over them.
 
 ─── THE RETIRED RULE, FOR CONTRAST ───
-   the retired naive rule disagrees with the compiler on 222 file(s).
+   the retired naive rule disagrees with the compiler on 227 file(s).
