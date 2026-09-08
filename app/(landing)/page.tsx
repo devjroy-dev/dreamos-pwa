@@ -340,11 +340,17 @@ export default function Home() {
   // the shell's own home (F-41.18, R-41.53b: the first cut read _base's wider
   // `vendor_session || vendor_web_session`, and after sign-out the two homes
   // disagreed — a loop). §6.6: no trap — Back is the browser's; this covers re-entry.
+  // F-41.38 / R-41.67: the hero must not paint for a signed-in member. Until this
+  // effect has read the session, the page renders a blank frame (the same ground
+  // as the hero); a redirect keeps it blank, no session lets the hero paint. The
+  // server-side cookie redirect (no blank at all) waits for F-41.13.
+  const [entryChecked, setEntryChecked] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.location.pathname !== '/') return;
+    if (window.location.pathname !== '/') { setEntryChecked(true); return; }
     const to = entryRedirectFor(!!getVendorSession(), !!getCoupleSession());
-    if (to) router.replace(to);
+    if (to) { router.replace(to); return; }
+    setEntryChecked(true);
   }, [router]);
 
   const startCarousel = useCallback(() => {
@@ -676,6 +682,10 @@ export default function Home() {
     { label: 'Venue & Décor', value: 'venue & decor' },
     { label: 'Jewellery',     value: 'jewellery' },
   ];
+
+  // F-41.38: the blank first frame — same ground as the hero, nothing else, until the
+  // session read has settled. A signed-in member never sees the marketing page flash.
+  if (!entryChecked) return <div aria-hidden style={{ position: 'fixed', inset: 0, background: '#0C0A09' }} />;
 
   return (
     <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#0C0A09' }}>

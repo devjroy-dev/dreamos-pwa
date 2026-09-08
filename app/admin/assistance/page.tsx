@@ -123,7 +123,7 @@ function Detail({ detail, fanout, onChanged, onToast, onClose }: {
         <ItemRow key={item.id} item={item} request={r} fanout={fanout} onChanged={onChanged} onToast={onToast} />
       ))}
       {r.status !== 'closed' && (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 6 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 6, paddingBottom: ABOVE_ADMIN_BAR }}>
           <GhostBtn label="Close request" small onClick={async () => {
             try { await closeAssistance(r.id); onToast({ msg: 'Closed.' }); await onChanged(); onClose(); }
             catch (e: any) { onToast({ msg: e?.message || 'Could not close', error: true }); }
@@ -227,6 +227,26 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
   );
 }
 
+// F-41.39 · `2026-12-22`, `22/12/2026`, `22-12-2026`, `22.12.2026` → `2026-12-22`; anything else → null.
+export function normaliseDate(raw: string): string | null {
+  const s = (raw || '').trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return s;
+  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if (!m) return null;
+  const d = m[1].padStart(2, '0'), mo = m[2].padStart(2, '0'), y = m[3];
+  const t = new Date(`${y}-${mo}-${d}T00:00:00`);
+  if (isNaN(t.getTime()) || t.getDate() !== Number(d)) return null;
+  return `${y}-${mo}-${d}`;
+}
+
+// F-41.40 · the sheet is `position:fixed` inside the admin content wrapper, which
+// animates with a transform (`fade-up`), so its stacking context sits UNDER the
+// bottom bar (zIndex 195) regardless of the sheet's own zIndex. The estate-wide
+// fix is a portal in BottomSheet (named for the chair); here the form keeps its
+// last control above the bar by its own bottom padding.
+const ABOVE_ADMIN_BAR = 'calc(96px + env(safe-area-inset-bottom, 0px))';
+
 function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast: (t: { msg: string; error?: boolean }) => void }) {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -239,12 +259,14 @@ function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast
   const items = Object.entries(budgets).filter(([, v]) => v.trim() !== '').map(([category, v]) => ({ category, budget_rs: parseInt(v.replace(/\D/g, ''), 10) || null }));
 
   return (
-    <div>
+    <div style={{ paddingBottom: ABOVE_ADMIN_BAR }}>
       <FieldInput label="WhatsApp number" value={phone} onChange={setPhone} placeholder="10 digits" />
       <FieldInput label="Name" value={name} onChange={setName} placeholder="As she gave it" />
       <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" />
       <FieldInput label="Area" value={area} onChange={setArea} placeholder="optional" />
-      <FieldInput label="Wedding date" value={date} onChange={setDate} type="date" />
+      {/* F-41.39: the date the request will carry is shown beside the label, and a hand-typed
+          DD/MM/YYYY is accepted — the picker's typed digits do not always commit at 374. */}
+      <FieldInput label="Wedding date" value={date} onChange={setDate} placeholder="YYYY-MM-DD or DD/MM/YYYY" hint={normaliseDate(date) ? `files as ${dateWord(normaliseDate(date))}` : (date ? 'not a date yet' : 'no date')} />
       <FieldInput label="The look" value={brief} onChange={setBrief} placeholder="Her words" />
       <SectionDivider label="Budget per category (whole rupees; blank = not asked)" />
       {ASSIST_ROWS.map(r => (
@@ -253,7 +275,7 @@ function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast
       <GoldBtn label={busy ? '…' : 'File the request'} disabled={busy || items.length === 0 || phone.replace(/\D/g, '').length < 10} onClick={async () => {
         setBusy(true);
         try {
-          await createAssistanceTyped({ phone, name: name || undefined, city: city || undefined, area: area || undefined, wedding_date: date || undefined, brief: brief || undefined, items });
+          await createAssistanceTyped({ phone, name: name || undefined, city: city || undefined, area: area || undefined, wedding_date: normaliseDate(date) || undefined, brief: brief || undefined, items });
           onToast({ msg: 'Filed.' }); await onDone();
         } catch (e: any) { onToast({ msg: e?.message || 'Could not file', error: true }); }
         setBusy(false);

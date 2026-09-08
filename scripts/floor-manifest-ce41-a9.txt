@@ -1,0 +1,14 @@
+# scripts/floor-manifest-ce41-a9.txt
+# CE-41 · A9 — Concierge s1 seal riders on the pwa (seat A): F-41.38 blank first frame (R-41.67) ·
+# F-41.39 typed intake keeps wedding_date (shown + DD/MM/YYYY accepted) · F-41.40 last control above
+# the admin bar at 374 (cause: the fade-up transform's stacking context; portal named) · F-41.41 a
+# quiet frame before S1/S2.
+# BASE bc76e24f… (dreamos-pwa), re-derived at the cut; sibling dream-os 66b4dc6 (A8).
+# F-14.16 / F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/(frost)/frost/canvas/assistance/page.tsx
+app/(landing)/page.tsx
+app/admin/assistance/page.tsx
+docs/TDW_CE41_A9_HANDOVER.md
+scripts/b20_a3_assistance_pwa.proof.mjs
+scripts/floor-manifest-ce41-a9.txt

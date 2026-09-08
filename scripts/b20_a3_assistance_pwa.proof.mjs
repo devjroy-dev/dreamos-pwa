@@ -249,6 +249,27 @@ section('§A7 · THE WALK\'S PWA RIDER — F-41.25 / .27 / .28 / .29 · Open: N'
   ok('Open: N — the Assistance nav entry carries counts.open from the queue door, rendered only when > 0', /useOpenAssistanceCount/.test(lay) && /\/api\/v2\/admin\/assistance\?limit=200/.test(lay) && /count=\{s\.path === '\/admin\/assistance' \? openAssist : null\}/.test(lay) && /typeof count === 'number' && count > 0/.test(lay));
 }
 
+section('§A9 · F-41.38 / .39 / .40 / .41');
+{
+  const land9 = strip(read(LAND));
+  ok('F-41.38: the landing holds a blank first frame until the session read settles (R-41.67)', /const \[entryChecked, setEntryChecked\] = useState\(false\)/.test(land9) && /if \(!entryChecked\) return <div aria-hidden style=\{\{ position: 'fixed', inset: 0, background: '#0C0A09' \}\} \/>;/.test(land9));
+  ok('F-41.38: a redirect keeps it blank (replace, no setEntryChecked); no session lets the hero paint; off-root paths paint at once', /if \(to\) \{ router\.replace\(to\); return; \}\s*setEntryChecked\(true\);/.test(land9) && /pathname !== '\/'\) \{ setEntryChecked\(true\); return; \}/.test(land9));
+  // F-41.39 — the normaliser, behavioural
+  const admTs = read(ADMIN);
+  const fnSrc = (admTs.match(/export function normaliseDate\([\s\S]*?\n\}/) || [''])[0];
+  let normaliseDate = null;
+  try { const ts = (await import('typescript')).default; const js = ts.transpileModule(fnSrc, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText; const tmp = P('.tmp_nd.mjs'); fs.writeFileSync(tmp, js); normaliseDate = (await import(pathToFileURL(tmp).href + '?t=' + Date.now())).normaliseDate; fs.unlinkSync(tmp); } catch { normaliseDate = null; }
+  ok('F-41.39: normaliseDate exists in the typed intake', typeof normaliseDate === 'function');
+  if (normaliseDate) {
+    ok('F-41.39: ISO passes through; DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY → ISO; junk → null; 31/02 → null', normaliseDate('2026-12-22') === '2026-12-22' && normaliseDate('22/12/2026') === '2026-12-22' && normaliseDate('22-12-2026') === '2026-12-22' && normaliseDate('22.12.2026') === '2026-12-22' && normaliseDate('lots') === null && normaliseDate('') === null && normaliseDate('31/02/2026') === null);
+  }
+  const adm9 = strip(read(ADMIN));
+  ok('F-41.39: the wire carries normaliseDate(date), and the field shows what it will file', /wedding_date: normaliseDate\(date\) \|\| undefined/.test(adm9) && /hint=\{normaliseDate\(date\) \? `files as/.test(adm9));
+  ok('F-41.40: the typed form and the detail\'s last row keep above the admin bar (padding, cause named)', /const ABOVE_ADMIN_BAR = 'calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)'/.test(adm9) && (adm9.match(/paddingBottom: ABOVE_ADMIN_BAR/g) || []).length === 2 && /fade-up/.test(read(ADMIN)));
+  const sheet9 = strip(read(SHEET));
+  ok('F-41.41: the sheet draws a quiet frame until the read settles, then S1 or S2 once', /const \[settled, setSettled\] = useState\(false\)/.test(sheet9) && /\.finally\(\(\) => \{ if \(live\) setSettled\(true\); \}\)/.test(sheet9) && /\{!settled \? \(/.test(sheet9) && /\{!settled \? '' : state === 'sent' \? S\.sentLede : S\.lede\}/.test(sheet9));
+}
+
 section('§8 · COPY LAW · WALLET LAW');
 const chrome = [POPUP, SHEET, ADMIN, MERID, SETT, CAPI, AAPI].map(f => strip(read(f))).join('\n');
 ok('no persona name in any new chrome string (Meridian only as the existing room title)', !/Victor|Donna|Harvey|Mira\b|Eliza/.test(chrome) && (mer.match(/>Meridian</g) || []).length === 1);

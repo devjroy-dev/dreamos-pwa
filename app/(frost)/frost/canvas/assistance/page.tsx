@@ -80,6 +80,7 @@ export default function AssistanceSheet() {
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error' | 'invalid'>('idle');
   const [sent, setSent] = useState<{ categories: string[] } | null>(null);
   const [mine, setMine] = useState<AssistMineItem[] | null>(null);   // F-41.29: what TDW has found so far
+  const [settled, setSettled] = useState(false);                        // F-41.41: draw S1 or S2 once, after the read
 
   // F-41.29 · on mount, her latest request: when one exists the sheet opens on S2
   // with what she sent and what has been found, not on an empty form. Her words
@@ -96,7 +97,8 @@ export default function AssistanceSheet() {
         setSent({ categories: labels });
         setState('sent');
       })
-      .catch(() => { /* no read door yet, or offline: the empty sheet is honest */ });
+      .catch(() => { /* no read door yet, or offline: the empty sheet is honest */ })
+      .finally(() => { if (live) setSettled(true); });
     return () => { live = false; };
   }, []);
 
@@ -143,10 +145,13 @@ export default function AssistanceSheet() {
       <div style={{ minHeight: '100%', background: bg, padding: '0 0 40px' }}>
         <div style={{ padding: '18px 20px 14px', borderBottom: `.5px solid ${line}` }}>
           <div style={{ fontFamily: "'Italianno',cursive", fontSize: 46, color: ink, lineHeight: 1, marginBottom: 4 }}>{S.title}</div>
-          <div style={{ ...serif, fontSize: 16, color: inkSoft, lineHeight: 1.6 }}>{state === 'sent' ? S.sentLede : S.lede}</div>
+          <div style={{ ...serif, fontSize: 16, color: inkSoft, lineHeight: 1.6 }}>{!settled ? '' : state === 'sent' ? S.sentLede : S.lede}</div>
         </div>
 
-        {state === 'sent' && sent ? (
+        {!settled ? (
+          // F-41.41 · the quiet frame: header only, no form, no card, until the read settles.
+          <div aria-busy style={{ minHeight: 240 }} />
+        ) : state === 'sent' && sent ? (
           // ── S2 · after Send (§6.3 as drawn; #30–#31 struck) ────────────────
           <div style={{ padding: '16px 20px' }}>
             <div style={{ background: rowBg, border: `1px solid ${rowBdr}`, borderRadius: 10, padding: '16px 16px 14px' }}>
