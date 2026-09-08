@@ -201,6 +201,25 @@ function vendorLaneToken(): string | null {
   }
 }
 
+// ── F-41.25 · THE ONE CLEAR FOR THE ONE GET ─────────────────────────────────
+// getCoupleSession() above reads two localStorage keys and falls through to the
+// `tdw_couple_session` COOKIE (set by the landing at sign-in, refreshed by the
+// sanctuary). The Settings sign-out cleared six localStorage keys and never the
+// cookie, so the front door read her back in (the founder's glass, W2). This is
+// the one place a couple session is cleared; every sign-out calls it. The
+// cookie is expired by the vendor precedent (lib/vendor/session.ts:117-122).
+export const COUPLE_SESSION_KEYS = [
+  'access_token', 'refresh_token', 'couple_session', 'couple_web_session',
+  'couple_last_path', 'couple_app_mode',
+] as const;
+export const COUPLE_SESSION_COOKIE = 'tdw_couple_session';
+
+export function clearCoupleSession(): void {
+  if (typeof window === 'undefined') return;
+  try { for (const k of COUPLE_SESSION_KEYS) window.localStorage.removeItem(k); } catch { /* ignore */ }
+  try { document.cookie = `${COUPLE_SESSION_COOKIE}=; max-age=0; path=/; SameSite=Lax; Secure`; } catch { /* ignore */ }
+}
+
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {

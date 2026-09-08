@@ -19,7 +19,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import CanvasShell from '../../../../../components/frost/CanvasShell';
 import { formatRs } from '@/lib/vendor/format';
 import { apiGet } from '@/lib/frost-api/_base';
-import { ASSIST_ROWS, submitAssistanceRequest, type AssistCategory } from '@/lib/frost-api/assistance';
+import { ASSIST_ROWS, submitAssistanceRequest, fetchMyAssistance, type AssistCategory, type AssistMineItem } from '@/lib/frost-api/assistance';
 import { markAssistRequested } from '@/lib/frost/assistPopup';
 import { waNumberFor } from '@/lib/waNumbers';
 
@@ -41,6 +41,10 @@ const S = {
   failure:    'That didn\u2019t send. Try once more, or message us on WhatsApp.', // #21
   sentLede:   'Sent. We\u2019re on it.',                                  // #22
   sentTitle:  'We\u2019ll message you on WhatsApp as we find each vendor.', // #23
+  foundSoFar: 'Found so far',                                             // #25 (KEPT)
+  onTdw:      'On TDW \u2192',                                            // #27 (KEPT)
+  notOnTdw:   'Not on TDW yet',                                           // #29 (KEPT)
+  outsiderRow: (cat: string) => `A ${cat.toLowerCase()} vendor we\u2019re bringing on`, // #28 (KEPT), the trade in her words
   changeIt:   'Need to change something? Message us on WhatsApp.',       // #32
   messageTdw: 'Message The Dream Wedding',                                // #33
 };
@@ -75,6 +79,26 @@ export default function AssistanceSheet() {
   const [fromProfile, setFromProfile] = useState(false);
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error' | 'invalid'>('idle');
   const [sent, setSent] = useState<{ categories: string[] } | null>(null);
+  const [mine, setMine] = useState<AssistMineItem[] | null>(null);   // F-41.29: what TDW has found so far
+
+  // F-41.29 · on mount, her latest request: when one exists the sheet opens on S2
+  // with what she sent and what has been found, not on an empty form. Her words
+  // (the look, date, city) come back from the request, never from this browser.
+  useEffect(() => {
+    let live = true;
+    fetchMyAssistance()
+      .then(d => {
+        if (!live || !d?.request) return;
+        const labels = d.items.map(i => ASSIST_ROWS.find(r => r.category === i.category)?.label || i.category);
+        if (d.request.wedding_date) setDate(String(d.request.wedding_date).slice(0, 10));
+        if (d.request.city) setCity(d.request.city);
+        setMine(d.items);
+        setSent({ categories: labels });
+        setState('sent');
+      })
+      .catch(() => { /* no read door yet, or offline: the empty sheet is honest */ });
+    return () => { live = false; };
+  }, []);
 
   // Display pre-fill from her profile; the request holds its own copy (R-41.25).
   useEffect(() => {
@@ -131,6 +155,34 @@ export default function AssistanceSheet() {
                 {sent.categories.join(' · ')}{whenWhere ? ` — ${whenWhere}.` : ''}
               </div>
             </div>
+            {mine && mine.some(i => i.found.length > 0 || i.outsiders_asked > 0) && (
+              <div style={{ marginTop: 22 }}>
+                <div style={mono}>{S.foundSoFar}</div>
+                {mine.map(i => (
+                  <React.Fragment key={i.id}>
+                    {i.found.map((f, k) => (
+                      <a key={`${i.id}-${k}`} href={f.routing_handle ? `/v/${f.routing_handle}` : undefined}
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: `.5px solid ${line}`, textDecoration: 'none' }}>
+                        <span>
+                          <span style={{ display: 'block', fontFamily: "'DM Sans',sans-serif", fontSize: 16, color: ink }}>{f.business_name || 'A vendor on The Dream Wedding'}</span>
+                          <span style={{ display: 'block', fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: inkSoft }}>{ASSIST_ROWS.find(r => r.category === i.category)?.label || i.category}</span>
+                        </span>
+                        <span style={{ ...mono, color: '#6B9E8F' }}>{S.onTdw}</span>
+                      </a>
+                    ))}
+                    {i.outsiders_asked > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: `.5px solid ${line}` }}>
+                        <span>
+                          <span style={{ display: 'block', fontFamily: "'DM Sans',sans-serif", fontSize: 16, color: ink }}>{S.outsiderRow(ASSIST_ROWS.find(r => r.category === i.category)?.label || i.category)}</span>
+                          <span style={{ display: 'block', fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: inkSoft }}>{ASSIST_ROWS.find(r => r.category === i.category)?.label || i.category}</span>
+                        </span>
+                        <span style={mono}>{S.notOnTdw}</span>
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
             <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: inkMute, textAlign: 'center', marginTop: 22, lineHeight: 1.5 }}>{S.changeIt}</div>
             {(
               <a href={TDW_WA_LINK} target="_blank" rel="noreferrer" style={{ display: 'block', marginTop: 10, border: `1px solid ${rowBdr}`, borderRadius: 999, padding: 14, textAlign: 'center', fontFamily: "'DM Sans',sans-serif", fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: inkSoft, textDecoration: 'none' }}>{S.messageTdw}</a>

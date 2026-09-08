@@ -106,9 +106,40 @@ export function adminHeaders(extra: Record<string, string> = {}): Record<string,
   };
 }
 
+// F-41.27 · A refused admin call carries the SERVER'S reason. Before this, every
+// non-2xx became `Admin POST <path> failed: 409` and the founder read a URL where
+// the door had said `peer_already_has`. The error keeps `status`, the body's
+// `code` and `error`, and its `message` IS the server's sentence when there is one.
+export class AdminApiError extends Error {
+  status: number;
+  code: string | null;
+  path: string;
+  constructor(message: string, opts: { status: number; code?: string | null; path: string }) {
+    super(message);
+    this.name = 'AdminApiError';
+    this.status = opts.status;
+    this.code = opts.code ?? null;
+    this.path = opts.path;
+  }
+}
+
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers: adminHeaders() });
-  if (!res.ok) throw new Error(`Admin ${init.method || 'GET'} ${path} failed: ${res.status}`);
+  if (!res.ok) {
+    let code: string | null = null;
+    let serverError: string | null = null;
+    try {
+      const body = await res.json();
+      if (body && typeof body === 'object') {
+        if (typeof body.code === 'string') code = body.code;
+        if (typeof body.error === 'string') serverError = body.error;
+      }
+    } catch { /* not JSON; keep the status line */ }
+    throw new AdminApiError(
+      serverError || `Admin ${init.method || 'GET'} ${path} failed: ${res.status}`,
+      { status: res.status, code, path },
+    );
+  }
   return res.json();
 }
 

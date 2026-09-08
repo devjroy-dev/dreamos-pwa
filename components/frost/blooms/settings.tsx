@@ -19,6 +19,7 @@ import {
 } from '@/lib/frost/coupleSwitch';
 import { formatRs } from '@/lib/vendor/format';
 import { waNumberFor } from '@/lib/waNumbers';
+import { clearCoupleSession } from '@/lib/frost-api/_base';
 import { usePress } from '@/components/frost/_shared/usePress';
 
 const DREAMAI_WA_LINK   = `https://wa.me/${waNumberFor('bride')}?text=Hi`;
@@ -354,11 +355,8 @@ export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
         {/* Sign out */}
         <div style={{padding:'24px 16px 0'}}>
           <div onClick={()=>{
-            try{
-              ['access_token','refresh_token','couple_session','couple_web_session',
-               'couple_last_path','couple_app_mode']
-               .forEach(k=>localStorage.removeItem(k));
-            }catch{}
+            // F-41.25: the one clear home — keys AND the tdw_couple_session cookie.
+            clearCoupleSession();
             window.location.replace('/');
           }} {...press('settings:signout')} style={{padding:'14px',borderRadius:8,border:`0.5px solid rgba(184,69,62,.25)`,background:'rgba(184,69,62,.06)',textAlign:'center' as any,cursor:'pointer',
             fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:'rgba(184,69,62,.8)',

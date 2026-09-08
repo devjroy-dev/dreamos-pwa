@@ -36,6 +36,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { hasAdminSession, clearAdminSession } from '@/lib/admin-api/_base';
 import './_components/tokens.css';
 import { BRIDGE, DOMAINS, type Domain, type Section } from './_components/adminNav';
+import { adminGet } from '@/lib/admin-api/_base';
 import CommandPalette from './_components/CommandPalette';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
@@ -170,8 +171,8 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
   );
 }
 
-function NavItem({ label, icon, active, retiring, onClick }: {
-  label: string; icon: string; active: boolean; retiring?: boolean; onClick: () => void;
+function NavItem({ label, icon, active, retiring, onClick, count }: {
+  label: string; icon: string; active: boolean; retiring?: boolean; onClick: () => void; count?: number | null;
 }) {
   const [hov, setHov] = useState(false);
   return (
@@ -199,6 +200,13 @@ function NavItem({ label, icon, active, retiring, onClick }: {
         <Icon name={icon} size={18} />
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>{label}</span>
+      {typeof count === 'number' && count > 0 && (
+        <span aria-label={`${count} open`} style={{
+          marginLeft: 'auto', fontFamily: '"DM Sans", sans-serif', fontWeight: 600, fontSize: 10.5,
+          letterSpacing: '0.04em', color: 'var(--admin-metal)', border: '1px solid var(--admin-metal)',
+          borderRadius: 999, padding: '1px 7px', lineHeight: 1.5, flexShrink: 0,
+        }}>{count}</span>
+      )}
       {/* R-A4: the death warrant is VISIBLE. A surface chartered to retire says
           so on the nav, so nobody builds a habit on it between now and then. */}
       {retiring && (
@@ -210,7 +218,26 @@ function NavItem({ label, icon, active, retiring, onClick }: {
   );
 }
 
+// Open: N on the Assistance entry (CE-41 A7, the chair's yes): the queue's own
+// `counts.open`, read once per mount of the sidebar and again when the route
+// changes — the same number the page shows in its Open card, from the same door.
+function useOpenAssistanceCount(): number | null {
+  const [n, setN] = useState<number | null>(null);
+  const pathname = usePathname();
+  useEffect(() => {
+    let live = true;
+    // Unfiltered on purpose: the A2 door counts what it returns, so a status filter
+    // would count only itself (named for the chair; the server-side count is dream-os's).
+    adminGet<{ counts?: { open?: number } }>('/api/v2/admin/assistance?limit=200')
+      .then(d => { if (live) setN(typeof d?.counts?.open === 'number' ? d.counts.open : null); })
+      .catch(() => { if (live) setN(null); });
+    return () => { live = false; };
+  }, [pathname]);
+  return n;
+}
+
 function DomainSections({ domain, onNavigate }: { domain: Domain; onNavigate: () => void }) {
+  const openAssist = useOpenAssistanceCount();
   const router = useRouter();
   const pathname = usePathname();
   const isActive = (p: string) => (p === '/admin' ? pathname === '/admin' : pathname.startsWith(p));
@@ -234,6 +261,7 @@ function DomainSections({ domain, onNavigate }: { domain: Domain; onNavigate: ()
           icon={s.icon}
           active={!!isActive(s.path)}
           retiring={!!s.retiresAt}
+          count={s.path === '/admin/assistance' ? openAssist : null}
           onClick={() => { router.push(s.path); onNavigate(); }}
         />
       ))}

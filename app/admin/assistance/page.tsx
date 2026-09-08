@@ -23,9 +23,21 @@ import { ASSIST_ROWS } from '@/lib/frost-api/assistance';
 
 const CATEGORY_WORD: Record<string, string> = Object.fromEntries(ASSIST_ROWS.map(r => [r.category, r.label]));
 const word = (c: string) => CATEGORY_WORD[c] || c;
-const rs = (n: number | null | undefined) => (n === null || n === undefined ? '—' : formatRs(n));
+// formatRs already carries the `Rs ` prefix (lib/vendor/format.ts CURRENCY_PREFIX) — F-41.28.
+const rs = (n: number | null | undefined) => (n === null || n === undefined ? 'Rs —' : formatRs(n));
 const when = (iso: string) => { const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }); };
 const dateWord = (iso: string | null) => { if (!iso) return 'date TBD'; const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); };
+
+// F-41.27: the door's named refusals in the founder's words; anything else is the server's sentence.
+const REFUSAL_WORDS: Record<string, string> = {
+  peer_already_has:   'She already has this vendor\u2019s enquiry \u2014 pick another.',
+  vendor_unavailable: 'That vendor cannot receive forwards right now (paused, hidden, or not active).',
+  closed:             'This request is closed.',
+  no_phone:           'A ten-digit WhatsApp number is needed.',
+  ambiguous_prospect: 'Two prospects share those ten digits \u2014 resolve in Prospects first.',
+  not_found:          'That item no longer exists.',
+};
+const refusalText = (e: any): string => (e && e.code && REFUSAL_WORDS[e.code]) || (e && e.message) || 'Forward refused';
 
 const STATUS_PILLS = [{ value: 'open', label: 'Open' }, { value: 'forwarded', label: 'Forwarded' }, { value: 'closed', label: 'Closed' }];
 const statusInk: Record<AssistStatus, string> = { open: T.warning, forwarded: T.gold, closed: T.success };
@@ -74,7 +86,7 @@ export default function AssistancePage() {
             <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: statusInk[r.status], alignSelf: 'center' }}>{r.status}</div>
           </div>
           <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 3 }}>{dateWord(r.wedding_date)} · {r.city || 'city not given'}{r.area ? ` · ${r.area}` : ''} · asked {when(r.created_at)}</div>
-          <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 3 }}>{r.items.map(i => `${word(i.category)} Rs ${rs(i.budget_rs)}`).join(' · ')}</div>
+          <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 3 }}>{r.items.map(i => `${word(i.category)} ${rs(i.budget_rs)}`).join(' · ')}</div>
         </div>
       ))}
 
@@ -150,7 +162,7 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
       const out = await forwardToVendor(item.id, v.id);
       onToast({ msg: `Lead created for ${v.routing_handle || v.business_name} · source ${out.lead?.source || 'tdw_assist'}` });
       await onChanged();
-    } catch (e: any) { onToast({ msg: e?.message || 'Forward refused', error: true }); }
+    } catch (e: any) { onToast({ msg: refusalText(e), error: true }); }
     setBusy(null);
   };
   const fwdOutsider = async () => {
@@ -161,7 +173,7 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
       onToast({ msg: out.dark ? `Recorded, not sent — ${out.dark.reason}` : `Recorded · ${out.forward.status}` });
       setHandle(''); setPhone(''); setOname('');
       await onChanged();
-    } catch (e: any) { onToast({ msg: e?.message || 'Forward refused', error: true }); }
+    } catch (e: any) { onToast({ msg: refusalText(e), error: true }); }
     setBusy(null);
   };
 
@@ -170,7 +182,7 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
     <div style={{ border: `0.5px solid ${T.border}`, borderRadius: 8, marginBottom: 12, background: T.card }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', borderBottom: `0.5px solid ${T.border}` }}>
         <span style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 500, color: T.ink }}>{word(item.category)}</span>
-        <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.soft }}>Rs {rs(item.budget_rs)}</span>
+        <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.soft }}>{rs(item.budget_rs)}</span>
         <span style={{ marginLeft: 'auto', fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: fwdWord }}>Forwarded {item.forwarded_count} of {fanout}</span>
       </div>
 

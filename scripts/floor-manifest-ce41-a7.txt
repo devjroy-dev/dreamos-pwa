@@ -1,0 +1,17 @@
+# scripts/floor-manifest-ce41-a7.txt
+# CE-41 · A7 — the Concierge walk's pwa rider (seat A): F-41.25 clearCoupleSession one home ·
+# F-41.27 the admin client keeps code/error (AdminApiError) · F-41.28 `Rs Rs` ·
+# F-41.29 the sheet mounts into S2 from GET /couple/assistance · Open: N on the Assistance nav.
+# BASE 3d65c4e8787042225e4f57818564f153e36d40bd, re-derived at the cut; sibling dream-os 534059f (A6).
+# F-14.16 / F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/(frost)/frost/canvas/assistance/page.tsx
+app/admin/assistance/page.tsx
+app/admin/layout.tsx
+components/frost/blooms/settings.tsx
+docs/TDW_CE41_A7_HANDOVER.md
+lib/admin-api/_base.ts
+lib/frost-api/_base.ts
+lib/frost-api/assistance.ts
+scripts/b20_a3_assistance_pwa.proof.mjs
+scripts/floor-manifest-ce41-a7.txt

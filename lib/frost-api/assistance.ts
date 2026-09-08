@@ -5,7 +5,7 @@
 // and the door reads her phone from the session, never from the body.
 // Framework-agnostic (native-implications clause): fetch + JSON, no window.
 
-import { apiPost, USE_MOCKS, isBrideDemoMode, mockDelay } from './_base';
+import { apiGet, apiPost, USE_MOCKS, isBrideDemoMode, mockDelay } from './_base';
 
 export type AssistCategory =
   | 'planning' | 'designer' | 'photography' | 'makeup' | 'hairstylist' | 'jewellery'
@@ -55,4 +55,20 @@ export async function submitAssistanceRequest(body: AssistRequestBody): Promise<
     }, 600);
   }
   return apiPost<AssistRequestResponse>('/api/v2/couple/assistance', body);
+}
+
+// F-41.29 · her own read: GET /api/v2/couple/assistance (dream-os 534059f,
+// getLatestAssistanceForCouple). `request: null` when she has none. TDW vendors
+// found are named; outsiders are a count, unnamed until they join (§6.3).
+export interface AssistFound { business_name: string | null; routing_handle: string | null }
+export interface AssistMineItem { id: string; category: AssistCategory; budget_rs: number | null; found: AssistFound[]; outsiders_asked: number }
+export interface AssistMine {
+  ok: true;
+  request: { id: string; status: 'open' | 'forwarded' | 'closed'; city: string | null; area: string | null; wedding_date: string | null; brief: string | null; created_at: string } | null;
+  items: AssistMineItem[];
+}
+
+export async function fetchMyAssistance(): Promise<AssistMine> {
+  if (USE_MOCKS || isBrideDemoMode()) return mockDelay({ ok: true as const, request: null, items: [] }, 200);
+  return apiGet<AssistMine>('/api/v2/couple/assistance');
 }

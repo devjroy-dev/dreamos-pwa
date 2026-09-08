@@ -106,7 +106,8 @@ ok('the sheet exists under /frost/canvas/assistance', exists(SHEET));
 for (const [n, str] of [['#7', "'Your wedding assistant'"], ['#8', "'One sheet. We do the rest.'"], ['#13', "'What you need, and roughly how much for each'"], ['#17', "'Colours, style, anything you\\u2019ve saved in your Muse'"], ['#19', "'We share your request only with the vendors we choose for you.'"], ['#20', "'Pick at least one and tell us roughly how much.'"], ['#22', "'Sent. We\\u2019re on it.'"], ['#23', "'We\\u2019ll message you on WhatsApp as we find each vendor.'"], ['#33', "'Message The Dream Wedding'"]]) {
   ok(`${n} byte-exact`, sheet.includes(str));
 }
-ok('#30/#31 STRUCK — no `Found so far`, `Asked`, or count of who was asked', !/Found so far|'Asked'|Two more/.test(sheet));
+// (A7 re-aim: #25 `Found so far` is KEPT at the veto and now built — F-41.29; only #30/#31 are struck.)
+ok('#30/#31 STRUCK — no `Asked` chip, no count of who was asked', !/'Asked'|Two more|photographers'/.test(sheet));
 ok('money renders through formatRs, never a glyph or a local formatter', /import \{ formatRs \} from '@\/lib\/vendor\/format'/.test(sheet) && /formatRs\(parseInt\(r\.rs/.test(sheet) && !/\u20b9/.test(read(SHEET)) && !/toLocaleString\('en-IN'\)/.test(sheet));
 ok('the eleven canonical rows, in the veto order, mehendi under `other` (R-41.27)', (() => { const api = strip(read(CAPI)); const cats = [...api.matchAll(/category: '([a-z_]+)',\s+label: '([^']+)'/g)].map(m => m[1]); return cats.length === 11 && cats[0] === 'photography' && cats[7] === 'other' && /label: 'Mehendi & anything else'/.test(api); })());
 ok('the sheet POSTs through the one client, never a raw fetch, and never writes to couples (R-41.25)', /submitAssistanceRequest\(/.test(sheet) && !/fetch\(/.test(sheet) && !/couple\/me['"][\s\S]*?method:\s*'P/.test(sheet) && /apiPost<AssistRequestResponse>\('\/api\/v2\/couple\/assistance'/.test(strip(read(CAPI))));
@@ -196,6 +197,57 @@ ok('no client-side ranking of vendors (roadmap §7): the list is rendered in the
 const nav = read(NAV);
 ok('the nav registers /admin/assistance under People and ROUTE_MAP marks it LIVE', /path: '\/admin\/assistance',\s+icon:/.test(nav) && /\{ path: '\/admin\/assistance',\s+domain: 'people',\s+disposition: 'LIVE' \}/.test(nav));
 ok('the admin api client names the six doors A2 built', ['/api/v2/admin/assistance', '/items/${itemId}/forward', '/vendors?', '/close'].every(s => read(AAPI).includes(s)));
+
+section('§A7 · THE WALK\'S PWA RIDER — F-41.25 / .27 / .28 / .29 · Open: N');
+{
+  // F-41.25 — behavioural: plant the cookie only; get reads a couple; clear; get reads null.
+  const store = new Map();
+  let cookieJar = 'tdw_couple_session=' + encodeURIComponent(JSON.stringify({ id: 'couple-sarah', pin_set: true }));
+  globalThis.window = { localStorage: {
+    getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k), clear: () => store.clear(), key: () => null, get length() { return store.size; } },
+    location: { hostname: 'thedreamwedding.in', pathname: '/' } };
+  globalThis.localStorage = globalThis.window.localStorage;
+  globalThis.document = { get cookie() { return cookieJar; }, set cookie(v) { if (/max-age=0/.test(v)) cookieJar = ''; else cookieJar = v.split(';')[0]; } };
+  const base = await loadTs('lib/frost-api/_base.ts').catch(() => null);
+  ok('F-41.25: _base exports clearCoupleSession beside getCoupleSession', !!base && typeof base.clearCoupleSession === 'function' && typeof base.getCoupleSession === 'function');
+  if (base && entry) {
+    store.set('couple_session', JSON.stringify({ id: 'couple-sarah', pin_set: true }));
+    ok('F-41.25: with keys + cookie the couple home reads a couple and the door would send her to /frost', !!base.getCoupleSession() && entry.entryRedirectFor(false, !!base.getCoupleSession()) === '/frost');
+    for (const k of ['access_token','refresh_token','couple_session','couple_web_session','couple_last_path','couple_app_mode']) store.delete(k);
+    ok('F-41.25: THE DISEASE — with only the cookie left (the old sign-out), the home still reads a couple', !!base.getCoupleSession());
+    store.set('couple_session', JSON.stringify({ id: 'couple-sarah', pin_set: true }));
+    if (typeof base.clearCoupleSession === 'function') base.clearCoupleSession();
+    ok('F-41.25: THE CURE — clearCoupleSession removes the six keys AND expires the cookie; the home reads null; the door stays', store.size === 0 && cookieJar === '' && base.getCoupleSession() === null && entry.entryRedirectFor(false, !!base.getCoupleSession()) === null);
+  }
+  delete globalThis.window; delete globalThis.localStorage; delete globalThis.document;
+  const set2 = strip(read(SETT));
+  ok('F-41.25: Settings sign-out calls the one home and no longer carries its own key list', /clearCoupleSession\(\)/.test(set2) && !/\['access_token','refresh_token','couple_session'/.test(set2) && /import \{ clearCoupleSession \} from '@\/lib\/frost-api\/_base'/.test(read(SETT)));
+  // F-41.27 — behavioural: a 409 with a JSON body throws an AdminApiError carrying code + the server's sentence
+  const savedFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 409, json: async () => ({ ok: false, code: 'peer_already_has', error: 'This vendor already has a lead with this phone number.' }) });
+  globalThis.window = { localStorage: { getItem: () => null } };
+  const abase = await loadTs('lib/admin-api/_base.ts').catch(() => null);
+  let thrown = null;
+  if (abase) { try { await abase.adminPost('/api/v2/admin/assistance/items/x/forward', { kind: 'vendor' }); } catch (e) { thrown = e; } }
+  ok('F-41.27: a refused admin call throws AdminApiError with status 409, code peer_already_has, and the server\'s sentence as message', !!thrown && thrown.name === 'AdminApiError' && thrown.status === 409 && thrown.code === 'peer_already_has' && /already has a lead/.test(thrown.message));
+  globalThis.fetch = async () => ({ ok: false, status: 500, json: async () => { throw new Error('not json'); } });
+  thrown = null;
+  if (abase) { try { await abase.adminGet('/x'); } catch (e) { thrown = e; } }
+  ok('F-41.27: a non-JSON failure still throws with the status line and code null', !!thrown && thrown.status === 500 && thrown.code === null && /failed: 500/.test(thrown.message));
+  globalThis.fetch = savedFetch; delete globalThis.window;
+  const adm2 = strip(read(ADMIN));
+  ok('F-41.27: the queue maps the door\'s codes to the founder\'s words (peer_already_has → pick another) and shows them in the toast', /peer_already_has:\s*'She already has this vendor/.test(adm2) && (adm2.match(/refusalText\(e\)/g) || []).length === 2);
+  // F-41.28
+  ok('F-41.28: no `Rs ${rs(` or `Rs {rs(` remains — formatRs carries the prefix', !/Rs \$\{rs\(|Rs \{rs\(/.test(adm2) && /formatRs already carries/.test(read(ADMIN)));
+  // F-41.29 — the sheet reads her latest on mount and opens on S2
+  const sheet2 = strip(read(SHEET));
+  ok('F-41.29: the sheet fetches her latest request on mount and enters the sent state when one exists', /fetchMyAssistance\(\)/.test(sheet2) && /setState\('sent'\)/.test(sheet2) && /apiGet<AssistMine>\('\/api\/v2\/couple\/assistance'\)/.test(strip(read(CAPI))));
+  ok('F-41.29: S2 names TDW vendors found (#25/#27) with a /v/ link and shows outsiders as an unnamed row (#28/#29); no count of who was asked (#30/#31 struck)', /\/v\/\$\{f\.routing_handle\}/.test(sheet2) && sheet2.includes("foundSoFar: 'Found so far'") && sheet2.includes("notOnTdw:   'Not on TDW yet'") && !/Two more|'Asked'/.test(sheet2));
+  // Open: N
+  const lay = strip(read('app/admin/layout.tsx'));
+  ok('Open: N — the Assistance nav entry carries counts.open from the queue door, rendered only when > 0', /useOpenAssistanceCount/.test(lay) && /\/api\/v2\/admin\/assistance\?limit=200/.test(lay) && /count=\{s\.path === '\/admin\/assistance' \? openAssist : null\}/.test(lay) && /typeof count === 'number' && count > 0/.test(lay));
+}
 
 section('§8 · COPY LAW · WALLET LAW');
 const chrome = [POPUP, SHEET, ADMIN, MERID, SETT, CAPI, AAPI].map(f => strip(read(f))).join('\n');
