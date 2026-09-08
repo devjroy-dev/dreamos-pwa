@@ -1,0 +1,73 @@
+TDW_20 · CONCIERGE s1 · THE THREE TEMPLATE BODIES · PROPOSED FOR THE FOUNDER'S VETO
+Cut at dream-os 57d12d493e1719feb95b3186c9d9ec0a6ce84f29 (A1, CE-41 seat A). Seat B files; seat A does not.
+
+Every body honours docs/TEMPLATES.md §1 as read at the tip: variables numbered
+from 1 with no gaps; no body begins or ends with a variable; real words between
+every variable pair; one line, no line breaks; values supplied at send carry no
+newline, tab, or run of 4+ spaces. Category is the Manager's to decide (R-40.58);
+none is argued here. The outsider body carries NO phone number (R-41.4a, roadmap §7).
+
+No persona name appears in any body. The sender is "The Dream Wedding".
+
+Language: en. Header: none. Footer: none.
+
+──────────────────────────────────────────────────────────────────────────────
+1 · tdw_assist_lead_outside   — the outside vendor's lead alert (marketing line, R-41.13)
+
+BODY
+Hello {{1}}, this is The Dream Wedding. A couple in {{2}} is looking for {{3}} for a wedding in {{4}}, with a budget around Rs {{5}}. Join The Dream Wedding to see the request and reply to them from your own account.
+
+BUTTON · URL · "Join The Dream Wedding" → https://thedreamwedding.in/  (static; no suffix)
+
+VARIABLES
+{{1}} the outsider's name as typed in admin, or "there" when none was typed
+{{2}} the couple's city, e.g. Delhi
+{{3}} the category in plain words, e.g. a photographer · a makeup artist · a decorator · a planner
+{{4}} the month and year, e.g. February 2027
+{{5}} the budget band in Indian grouping with no glyph, e.g. 2,50,000  ("Rs" is in the body)
+
+SAMPLE
+Hello Rahul, this is The Dream Wedding. A couple in Delhi is looking for a photographer for a wedding in February 2027, with a budget around Rs 2,50,000. Join The Dream Wedding to see the request and reply to them from your own account.
+
+──────────────────────────────────────────────────────────────────────────────
+2 · tdw_assist_found_vendor   — the bride's "we found you a vendor", a TDW vendor (bride line)
+
+BODY
+Hello {{1}}, we found you a {{2}} for your wedding. {{3}} is on The Dream Wedding and already has your request. Tap below to see their work and reach them.
+
+BUTTON · URL · "See their storefront" → https://thedreamwedding.in/v/{{1}}  (dynamic suffix = the vendor's routing code)
+
+VARIABLES
+{{1}} the couple's first name
+{{2}} the category in plain words, e.g. makeup artist · photographer · decorator · planner
+{{3}} the vendor's business name, e.g. Makeup by Swati Roy
+button {{1}} the vendor's `/v/` code, e.g. MAKEUPBYSWATIROY
+
+SAMPLE
+Hello Priya, we found you a makeup artist for your wedding. Makeup by Swati Roy is on The Dream Wedding and already has your request. Tap below to see their work and reach them.
+
+──────────────────────────────────────────────────────────────────────────────
+3 · tdw_assist_found_outside  — the bride's "we found you a vendor", not on TDW yet (bride line)
+
+BODY
+Hello {{1}}, we found you a {{2}} for your wedding. {{3}} is not on The Dream Wedding yet, so you can find their work on Instagram at {{4}} for now, or message us on WhatsApp at {{5}} and we will connect you.
+
+BUTTON · none  (the IG handle and the TDW WhatsApp link ride as body text, R-41.4c)
+
+VARIABLES
+{{1}} the couple's first name
+{{2}} the category in plain words
+{{3}} the outsider's name as typed in admin, or "The vendor" when none was typed
+{{4}} the Instagram handle with the @, e.g. @rahulshootsweddings
+{{5}} the TDW WhatsApp link as text, e.g. wa.me/91XXXXXXXXXX  (the estate's own number, from env at send, never a literal in code)
+
+SAMPLE
+Hello Priya, we found you a photographer for your wedding. Rahul is not on The Dream Wedding yet, so you can find their work on Instagram at @rahulshootsweddings for now, or message us on WhatsApp at wa.me/919999999999 and we will connect you.
+
+──────────────────────────────────────────────────────────────────────────────
+§1 CHECK, PER BODY (read the body, not this table — c-40's "citation from memory" class)
+  1 · starts "Hello", ends "account." · pairs separated: ", this is … A couple in" / "is looking for" / "for a wedding in" / ", with a budget around Rs" · one line ✓
+  2 · starts "Hello", ends "them." · pairs: ", we found you a" / "for your wedding." / (button suffix is not a body variable) · one line ✓
+  3 · starts "Hello", ends "you." · pairs: ", we found you a" / "for your wedding." / "… on Instagram at" / "for now, or message us on WhatsApp at" · one line ✓
+
+NOT IN ANY BODY: the couple's phone (§7), a rupee glyph (wallet law), a persona name (copy law), a vendor's phone.

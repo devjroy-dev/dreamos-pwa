@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TDW_20 &middot; Concierge s1 &middot; the journey</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TDW · BLOCK 20 · CONCIERGE s1 — THE JOURNEY · MOCK (A1, CE-41 seat A)
+     Cut at dreamos-pwa 966eb1c1e084d2890f00ecfda64c261ce0b61446 / dream-os 57d12d493e1719feb95b3186c9d9ec0a6ce84f29.
+
+     NO PRODUCT BYTE IS IN THIS FILE. Every couple-facing string below is a
+     PROPOSAL for the founder's veto (kickoff §4 A1; R-41.2 "every byte his veto
+     at the mock"). The numbered strings are inventoried in TDW_20_VETO_SHEET.md
+     in this folder; the sheet is the veto instrument, this file is the picture.
+
+     ── WHAT THIS DRAWS, AND WHERE THE TOKENS COME FROM ──────────────────────
+     Bride frames (P1, S1, S2, E1, E2): the couple lane is PINNED to Wine Night
+     (lib/frost/tokens.ts:194) — so these frames declare data-shot-modes="dark"
+     and no light arm is drawn. Colours transcribed from lib/frost/tokens.ts:26-34
+     and components/frost/blooms/settings.tsx:33-40 at the tip named above:
+       bg #1E0A0E · accent #C4856A · signal #6B9E8F · ink #F5E5DC
+       inkSoft rgba(245,229,220,.72) · inkMute rgba(196,133,106,.50)
+       line rgba(196,133,106,.14) · rowBg rgba(196,133,106,.05) · rowBdr rgba(196,133,106,.12)
+     Type: Italianno room titles (meridian.tsx:245), Fraunces italic 300 for
+     slice labels and body (sanctuary/page.tsx:956), JetBrains Mono 9/.22em
+     uppercase for hints (sanctuary/page.tsx:958).
+
+     Admin frame (A1): the admin cockpit, Graphite, SEVEN INKS ONLY (R-40.129):
+     Graphite #0F1011 / card #17181A / line #2A2C2E / ink #EDEEEF / soft #C8CACC /
+     dim #A3A6A9 / mute #888B8E · teal #68C9B4 · gold #C9A84C ·
+     positive #6FC98C · caution #DFAE6C · critical #E8836B — as inks, never grounds.
+     Transcribed from docs/TDW_PWA_COLOUR_CENSUS.md:48-61 (dream-os). Shot at
+     1180 wide via data-shot-width; a queue is a desk surface, not a phone.
+
+     ── WHAT IS NOT DRAWN, BY REFUSAL ─────────────────────────────────────────
+     No vendor list the couple can browse (roadmap §7). No queue she can see.
+     No spend ranking anywhere on the admin row (alphabetical, trade-first).
+     No persona name in any chrome — "Meridian" appears ONLY as the existing
+     room's Italianno title, which is the surface the persona already speaks on.
+
+     Frames:  P1-popup · S1-sheet · S2-sent · E1-settings · E2-meridian · A1-queue
+     Shot arm: node tools/mock_shot.cjs docs/mocks/TDW_20_CONCIERGE/concierge-journey-mock.html
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=Italianno&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1E0A0E;--bg2:#120608;--accent:#C4856A;--signal:#6B9E8F;--ink:#F5E5DC;
+  --soft:rgba(245,229,220,.72);--mute:rgba(196,133,106,.50);--line:rgba(196,133,106,.14);
+  --rowbg:rgba(196,133,106,.05);--rowbdr:rgba(196,133,106,.12);
+  --g-bg:#0F1011;--g-card:#17181A;--g-line:#2A2C2E;--g-ink:#EDEEEF;--g-soft:#C8CACC;--g-dim:#A3A6A9;--g-mute:#888B8E;
+  --teal:#68C9B4;--gold:#C9A84C;--pos:#6FC98C;--cau:#DFAE6C;--crit:#E8836B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A0405;color:var(--ink);font:400 14px/1.5 "DM Sans",system-ui,sans-serif;padding:26px 18px 80px}
+.pagehead{max-width:1180px;margin:0 auto 22px}
+.pagehead h1{font:300 22px/1.3 "Fraunces",serif;font-style:italic;color:var(--ink)}
+.pagehead p{color:var(--soft);font-size:13px;margin-top:6px;max-width:760px}
+.pagehead code{color:var(--accent);font-size:12px}
+.gallery{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start}
+.framewrap{display:block}
+.cap{font:400 10px/1.3 "JetBrains Mono",monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin:0 0 8px 2px}
+.fr{width:374px;height:844px;overflow:hidden;position:relative;border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.6);
+  background:radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)}
+.fr.wide{width:1180px;height:760px;border-radius:8px;background:var(--g-bg)}
+.fr-scroll{position:absolute;inset:0;overflow:hidden;display:flex;flex-direction:column}
+.fr-head{padding:22px 20px 14px;border-bottom:.5px solid var(--line);flex-shrink:0}
+.title{font:400 46px/1 "Italianno",cursive;color:var(--ink);margin-bottom:4px}
+.lede{font:300 16px/1.6 "Fraunces",serif;font-style:italic;color:var(--soft);font-feature-settings:"opsz" 9}
+.hint{font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
+.hint.acc{color:var(--accent)}
+.body{padding:16px 20px;flex:1;overflow:hidden}
+.lbl{font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin:14px 0 7px}
+.field{background:var(--rowbg);border:1px solid var(--rowbdr);border-radius:6px;padding:11px 13px;font:400 15px/1.3 "DM Sans",sans-serif;color:var(--ink);display:flex;justify-content:space-between;align-items:center}
+.field .ph{color:var(--mute)}
+.field.two{gap:10px}
+.crow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--line)}
+.crow .tick{width:16px;height:16px;border-radius:4px;border:1px solid var(--mute);flex-shrink:0}
+.crow .tick.on{background:var(--accent);border-color:var(--accent)}
+.crow .nm{font:300 16px/1 "Fraunces",serif;font-style:italic;color:var(--ink);flex:1;font-feature-settings:"opsz" 9}
+.crow .nm.off{color:var(--mute)}
+.crow .rs{font:400 13px/1 "DM Sans",sans-serif;color:var(--ink);background:var(--rowbg);border:1px solid var(--rowbdr);border-radius:5px;padding:7px 9px;min-width:110px;text-align:right}
+.crow .rs.ph{color:var(--mute);text-align:left}
+.area{background:var(--rowbg);border:1px solid var(--rowbdr);border-radius:6px;padding:11px 13px;font:400 14px/1.55 "DM Sans",sans-serif;color:var(--ink);min-height:74px}
+.area .ph{color:var(--mute)}
+.send{margin:18px 0 0;background:var(--accent);color:#1E0A0E;border-radius:999px;padding:14px;text-align:center;font:500 13px/1 "DM Sans",sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.send.ghost{background:transparent;color:var(--soft);border:1px solid var(--rowbdr)}
+.fine{font:400 12px/1.5 "DM Sans",sans-serif;color:var(--mute);margin-top:10px;text-align:center}
+.scrim{position:absolute;inset:0;background:rgba(10,4,5,.66);display:flex;align-items:flex-end}
+.popup{width:100%;background:#1A0A0E;border-top:1px solid var(--rowbdr);border-radius:22px 22px 0 0;padding:26px 22px 30px}
+.popup .title{font-size:44px}
+.rail{display:flex;flex-direction:column;flex:1}
+.slice{flex:1;display:flex;align-items:center;padding:0 20px;gap:8px;border-bottom:.5px solid var(--line)}
+.slice .nm{font:300 21px/1 "Fraunces",serif;font-style:italic;color:var(--ink);font-feature-settings:"opsz" 9;flex-shrink:0}
+.slice .nm.dim{color:var(--soft)}
+.slice .h{margin-left:auto;font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.slice .candle{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 7px var(--signal)}
+.slice.mark{background:var(--rowbg)}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:.5px solid var(--line)}
+.srow .l{font:300 17px/1.2 "Fraunces",serif;font-style:italic;color:var(--ink);font-feature-settings:"opsz" 9}
+.srow .s{font:400 12px/1.4 "DM Sans",sans-serif;color:var(--soft);margin-top:3px}
+.srow .chev{color:var(--mute);font-size:18px}
+.card{background:var(--rowbg);border:1px solid var(--rowbdr);border-radius:10px;padding:16px 16px 14px;margin-top:14px}
+.card .t{font:300 19px/1.25 "Fraunces",serif;font-style:italic;color:var(--ink);font-feature-settings:"opsz" 9}
+.card .b{font:400 13px/1.5 "DM Sans",sans-serif;color:var(--soft);margin-top:6px}
+.card .go{margin-top:12px;display:inline-block;font:500 11px/1 "DM Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.struck{text-decoration:line-through;text-decoration-color:var(--cau);color:var(--mute)!important}
+.found{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:.5px solid var(--line)}
+.found .n{font:400 15px/1.3 "DM Sans",sans-serif;color:var(--ink)}
+.found .k{font:400 12px/1.3 "DM Sans",sans-serif;color:var(--soft)}
+.found .st{font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--signal)}
+.found .st.wait{color:var(--mute)}
+/* ── admin (Graphite) ── */
+.adm{font-family:"DM Sans",system-ui,sans-serif;color:var(--g-ink);height:100%;display:flex;flex-direction:column}
+.adm .top{display:flex;align-items:baseline;gap:18px;padding:22px 28px 16px;border-bottom:1px solid var(--g-line)}
+.adm .top h2{font:500 18px/1.2 "DM Sans";letter-spacing:.02em}
+.adm .top .cnt{color:var(--g-dim);font-size:13px}
+.adm .top .chips{margin-left:auto;display:flex;gap:8px}
+.chip{font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;padding:7px 10px;border-radius:3px;border:1px solid var(--g-line);color:var(--g-dim)}
+.chip.on{color:var(--teal);border-color:var(--teal)}
+.adm .grid{display:grid;grid-template-columns:400px 1fr;flex:1;min-height:0}
+.adm .list{border-right:1px solid var(--g-line);overflow:hidden}
+.req{padding:14px 20px;border-bottom:1px solid var(--g-line);display:grid;gap:4px}
+.req.sel{background:var(--g-card);box-shadow:inset 3px 0 0 var(--teal)}
+.req .who{font:500 14px/1.3 "DM Sans";color:var(--g-ink);display:flex;justify-content:space-between}
+.req .who .st{font:500 9px/1 "DM Sans";letter-spacing:.16em;text-transform:uppercase;color:var(--cau);align-self:center}
+.req .who .st.done{color:var(--pos)}
+.req .who .st.fwd{color:var(--teal)}
+.req .meta{font-size:12px;color:var(--g-dim)}
+.req .cats{font-size:12px;color:var(--g-soft)}
+.det{padding:20px 28px;overflow:hidden}
+.det h3{font:500 15px/1.3 "DM Sans";margin-bottom:2px}
+.det .m{font-size:12.5px;color:var(--g-dim);margin-bottom:12px}
+.brief{background:var(--g-card);border:1px solid var(--g-line);border-radius:4px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:var(--g-soft);margin-bottom:16px}
+.brief b{color:var(--g-mute);font-weight:500;font-size:10px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:5px}
+.item{border:1px solid var(--g-line);border-radius:4px;margin-bottom:12px;background:var(--g-card)}
+.item .ih{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid var(--g-line)}
+.item .ih .c{font:500 14px/1 "DM Sans";color:var(--g-ink)}
+.item .ih .rs{font-size:13px;color:var(--g-soft)}
+.item .ih .fw{margin-left:auto;font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--g-mute)}
+.item .ih .fw.some{color:var(--teal)}
+.fwrow{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.fwrow>div{padding:12px 14px}
+.fwrow>div+div{border-left:1px solid var(--g-line)}
+.fwrow .k{font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--g-mute);margin-bottom:8px}
+.inp{border:1px solid rgba(104,201,180,.58);border-radius:3px;padding:8px 10px;font-size:13px;color:var(--g-ink);background:transparent;margin-bottom:8px;display:flex;justify-content:space-between}
+.inp .ph{color:var(--g-mute)}
+.res{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid var(--g-line);font-size:13px}
+.res .nm{color:var(--g-ink)}
+.res .nm small{color:var(--g-dim);font-size:11.5px;margin-left:6px}
+.res .btn{font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--teal);border:1px solid var(--teal);border-radius:3px;padding:6px 9px}
+.res .btn.done{color:var(--g-mute);border-color:var(--g-line)}
+.sentline{font-size:12px;color:var(--g-dim);padding:6px 2px 0}
+.sentline i{color:var(--cau);font-style:normal}
+.btn2{display:inline-block;font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--teal);border:1px solid var(--teal);border-radius:3px;padding:8px 11px;margin-top:2px}
+.btn2.mute{color:var(--g-mute);border-color:var(--g-line)}
+.foot{display:flex;gap:10px;align-items:center;margin-top:6px}
+.foot .note{font-size:12px;color:var(--g-dim)}
+/* ── solo (mock_shot) ── */
+body.solo{background:transparent;padding:0}
+body.solo .pagehead,body.solo .cap{display:none}
+body.solo .gallery{display:block;padding:0;gap:0;max-width:none}
+body.solo .framewrap{display:none}
+body.solo .framewrap.on{display:block}
+body.solo .fr{width:100vw;height:100vh;box-shadow:none;border-radius:0}
+</style></head><body>
+
+<div class="pagehead">
+  <h1>TDW_20 &middot; Concierge sitting 1 &middot; the journey</h1>
+  <p>Six frames, no product bytes. The bride lane is pinned to Wine Night, so one mode. Every numbered string is in <code>TDW_20_VETO_SHEET.md</code>; the three template bodies are in <code>TEMPLATE_BODIES.txt</code>. The §6 questions are on the sheet's last page, each marked open.</p>
+</div>
+
+<div class="gallery">
+
+<!-- ══ P1 · the popup on /frost ══════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="P1-popup" data-shot-modes="dark">
+<div class="cap">P1-popup &middot; /frost on login &middot; proposed: once per login, dismissable, never after her first request (§6.1 open)</div>
+<div class="fr" data-fr-mode="dark">
+  <div class="fr-scroll">
+    <div class="fr-head">
+      <div class="hint">XXIV &middot; IX &middot; MMXXVI</div>
+      <div style="font:700 96px/.78 'Fraunces',serif;letter-spacing:-.055em;color:var(--accent);margin:14px 0 0 -4px">118</div>
+      <div class="hint" style="margin-top:8px">mornings to I do</div>
+      <div class="title" style="margin-top:10px">Good morning, Priya.</div>
+    </div>
+    <div class="rail">
+      <div class="slice"><span class="nm">Discover-Storefront</span><span class="h">12 saved</span></div>
+      <div class="slice"><span class="nm">Circle</span><span class="candle"></span><span class="h">2 new</span></div>
+      <div class="slice"><span class="nm">Muse</span><span class="h"></span></div>
+      <div class="slice"><span class="nm">My People</span><span class="h"></span></div>
+      <div class="slice"><span class="nm">Pages</span><span class="h"></span></div>
+      <div class="slice"><span class="nm">Moments</span><span class="h"></span></div>
+    </div>
+  </div>
+  <div class="scrim">
+    <div class="popup">
+      <div class="hint acc">The Dream Wedding</div>
+      <div class="title" style="margin-top:8px">Let us find your vendors.</div>
+      <div class="lede" style="margin-top:6px">Tell us your date, your city and what you need. We find and book the vendors for you — planners included.</div>
+      <div class="send" style="margin-top:20px">Ask for help</div>
+      <div class="send ghost" style="margin-top:10px">Not now</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ S1 · the sheet ════════════════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="S1-sheet" data-shot-modes="dark">
+<div class="cap">S1-sheet &middot; /frost/canvas/assistance &middot; date · city · area · categories with Rs each · the look · Send</div>
+<div class="fr" data-fr-mode="dark">
+  <div class="fr-scroll">
+    <div class="fr-head">
+      <div class="hint">&larr; Sanctuary</div>
+      <div class="title" style="margin-top:10px">Your wedding assistant</div>
+      <div class="lede">One sheet. We do the rest.</div>
+    </div>
+    <div class="body">
+      <div class="lbl">Wedding date</div>
+      <div class="field"><span>14 February 2027</span><span class="hint">from your profile</span></div>
+      <div class="lbl">City &middot; area</div>
+      <div class="field two"><span>Delhi</span><span class="ph">Area, if you know it</span></div>
+      <div class="lbl">What you need, and roughly what for each</div>
+      <div class="crow"><span class="tick on"></span><span class="nm">Photography</span><span class="rs">Rs 2,50,000</span></div>
+      <div class="crow"><span class="tick on"></span><span class="nm">Makeup</span><span class="rs">Rs 40,000</span></div>
+      <div class="crow"><span class="tick"></span><span class="nm off">Décor</span><span class="rs ph">Rs</span></div>
+      <div class="crow"><span class="tick"></span><span class="nm off">Planning</span><span class="rs ph">Rs</span></div>
+      <div class="crow"><span class="tick"></span><span class="nm off">Venue &amp; catering</span><span class="rs ph">Rs</span></div>
+      <div class="crow"><span class="tick"></span><span class="nm off">Hair</span><span class="rs ph">Rs</span></div>
+      <div class="crow"><span class="tick"></span><span class="nm off">Outfits</span><span class="rs ph">Rs</span></div>
+      <div class="crow" style="border-bottom:none"><span class="tick"></span><span class="nm off">Mehendi &amp; anything else</span><span class="rs ph">Rs</span></div>
+      <div class="hint" style="margin-top:8px">&darr; jewellery · music &amp; anchors · content</div>
+      <div class="lbl">The look</div>
+      <div class="area">Pastel florals, a lot of candlelight, nothing too loud. Two functions plus the wedding day.</div>
+      <div class="send">Send</div>
+      <div class="fine">We share your request only with the vendors we choose for you.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ S2 · after Send ═══════════════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="S2-sent" data-shot-modes="dark">
+<div class="cap">S2-sent &middot; the same sheet, after Send, and again later as forwards land (§6.3 open — the couple never sees a queue)</div>
+<div class="fr" data-fr-mode="dark">
+  <div class="fr-scroll">
+    <div class="fr-head">
+      <div class="hint">&larr; Sanctuary</div>
+      <div class="title" style="margin-top:10px">Your wedding assistant</div>
+      <div class="lede">Sent. We&rsquo;re on it.</div>
+    </div>
+    <div class="body">
+      <div class="card" style="margin-top:0">
+        <div class="t">We&rsquo;ll message you on WhatsApp as we find each vendor.</div>
+        <div class="b">Photography · Makeup — 14 February 2027, Delhi.</div>
+      </div>
+      <div class="lbl" style="margin-top:22px">Found so far</div>
+      <div class="found"><div><div class="n">Makeup by Swati Roy</div><div class="k">Makeup</div></div><span class="st">On TDW &rarr;</span></div>
+      <div class="found"><div><div class="n">A photographer we&rsquo;re bringing on</div><div class="k">Photography</div></div><span class="st wait">Not on TDW yet</span></div>
+      <div class="found"><div><div class="n">Two more photographers</div><div class="k">Photography</div></div><span class="st wait">Asked</span></div>
+      <div class="fine" style="margin-top:22px">Need to change something? Message us on WhatsApp.</div>
+      <div class="send ghost" style="margin-top:10px">Message The Dream Wedding</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ E1 · the Settings entry + the rail with Discover-Storefront ═══════════ -->
+<div class="framewrap" data-frame="E1-settings" data-shot-modes="dark">
+<div class="cap">E1-settings &middot; Settings gains one row; the rail's `discover` label (three bytes, R-41.17) shown both ways (§6.4 open)</div>
+<div class="fr" data-fr-mode="dark">
+  <div class="fr-scroll">
+    <div class="fr-head">
+      <div class="hint">&larr; Sanctuary</div>
+      <div class="title" style="margin-top:10px">Settings</div>
+    </div>
+    <div class="body">
+      <div class="srow"><div><div class="l">Priya Sharma</div><div class="s">+91 96257 59924</div></div><span class="chev">&rsaquo;</span></div>
+      <div class="srow" style="background:var(--rowbg);margin:0 -20px;padding:14px 20px"><div><div class="l">Wedding assistant</div><div class="s">Ask us to find and book your vendors.</div></div><span class="chev">&rsaquo;</span></div>
+      <div class="srow"><div><div class="l">Publish our wedding</div><div class="s">Off</div></div><span class="chev">&rsaquo;</span></div>
+      <div class="srow"><div><div class="l">The Dream Wedding on WhatsApp</div><div class="s">Say hi</div></div><span class="chev">&rsaquo;</span></div>
+
+      <div class="lbl" style="margin-top:30px">The rail's first row &middot; option (a) hyphen</div>
+      <div class="slice" style="height:52px;padding:0"><span class="nm">Discover-Storefront</span><span class="h">12 saved</span></div>
+      <div class="lbl" style="margin-top:18px">option (b) middle dot</div>
+      <div class="slice" style="height:52px;padding:0"><span class="nm">Discover &middot; Storefront</span><span class="h">12 saved</span></div>
+      <div class="lbl" style="margin-top:18px">the bloom's own title, discover.tsx:130, at 46px Italianno</div>
+      <div class="title">Discover-Storefront</div>
+      <div class="lbl" style="margin-top:14px">MuseRow.tsx:69, empty state</div>
+      <div style="font:400 13px/1.6 'DM Sans',sans-serif;color:var(--soft);text-align:center;padding:6px 10px">Start saving vendors in Discover-Storefront to build your Muse.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ E2 · Meridian, folded ═════════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="E2-meridian" data-shot-modes="dark">
+<div class="cap">E2-meridian &middot; the room's header carries the card; the old empty-POST button (meridian.tsx:23) is struck</div>
+<div class="fr" data-fr-mode="dark">
+  <div class="fr-scroll">
+    <div class="fr-head">
+      <div class="hint">&larr; Sanctuary</div>
+      <div class="title" style="margin-top:10px">Meridian</div>
+      <div class="lede">Your personal concierge. Skin, mind, body, decisions.</div>
+      <div class="hint acc" style="margin-top:6px">118 days to go</div>
+    </div>
+    <div class="body">
+      <div class="card" style="margin-top:0">
+        <div class="t">Need vendors found and booked?</div>
+        <div class="b">The Dream Wedding does that for you — photography, makeup, décor, planning, all of it. One sheet.</div>
+        <span class="go">Ask us &rarr;</span>
+      </div>
+      <div class="lbl" style="margin-top:26px">struck &middot; the current button, kept here only so the fold is visible</div>
+      <div class="card" style="border-style:dashed;text-align:center">
+        <div class="t struck">Ask a Personal Concierge</div>
+        <div class="b struck">Our concierge will reach you at the earliest.</div>
+      </div>
+      <div class="lbl" style="margin-top:26px">the chat, unchanged</div>
+      <div class="area"><span class="ph">Ask Meridian anything&hellip;</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ A1 · the admin queue ══════════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="A1-queue" data-shot-width="1180" data-shot-height="760" data-shot-modes="dark">
+<div class="cap">A1-queue &middot; /admin/assistance &middot; Graphite, seven inks, no persona names &middot; per-category forward row: TDW vendor by trade+city (alphabetical, no ranking) · outsider by handle+phone</div>
+<div class="fr wide" data-fr-mode="dark">
+  <div class="adm">
+    <div class="top">
+      <h2>Assistance requests</h2><span class="cnt">3 open &middot; 1 forwarded &middot; 4 closed</span>
+      <div class="chips"><span class="chip on">Open</span><span class="chip">Forwarded</span><span class="chip">Closed</span><span class="chip">+ Type a request</span></div>
+    </div>
+    <div class="grid">
+      <div class="list">
+        <div class="req sel"><div class="who"><span>Priya Sharma &middot; 9625759924</span><span class="st">Open</span></div><div class="meta">14 Feb 2027 &middot; Delhi &middot; asked today 10:42</div><div class="cats">Photography Rs 2,50,000 &middot; Makeup Rs 40,000</div></div>
+        <div class="req"><div class="who"><span>Ananya Iyer &middot; 98XXXXXX12</span><span class="st fwd">Forwarded</span></div><div class="meta">Nov 2026 &middot; Gurugram &middot; yesterday</div><div class="cats">Décor Rs 6,00,000 &middot; Planning Rs 3,00,000 &middot; Mehendi Rs 25,000</div></div>
+        <div class="req"><div class="who"><span>Typed by admin &middot; 97XXXXXX40</span><span class="st">Open</span></div><div class="meta">Dec 2026 &middot; Jaipur &middot; 2 days ago</div><div class="cats">Venue &amp; catering Rs 12,00,000</div></div>
+        <div class="req"><div class="who"><span>Meera Kapoor &middot; 99XXXXXX08</span><span class="st done">Closed</span></div><div class="meta">Oct 2026 &middot; Delhi &middot; last week</div><div class="cats">Photography Rs 1,80,000</div></div>
+      </div>
+      <div class="det">
+        <h3>Priya Sharma &middot; 9625759924</h3>
+        <div class="m">Wedding 14 Feb 2027 &middot; Delhi &middot; Hauz Khas &middot; asked today 10:42 &middot; request <span style="color:var(--g-mute)">7c1e…</span></div>
+        <div class="brief"><b>The look</b>Pastel florals, a lot of candlelight, nothing too loud. Two functions plus the wedding day.</div>
+
+        <div class="item">
+          <div class="ih"><span class="c">Makeup</span><span class="rs">Rs 40,000</span><span class="fw some">Forwarded 1 of 3</span></div>
+          <div class="fwrow">
+            <div>
+              <div class="k">Forward to a TDW vendor &middot; makeup &middot; Delhi</div>
+              <div class="inp"><span>swati</span><span class="ph">name or handle</span></div>
+              <div class="res"><span class="nm">Makeup by Swati Roy<small>@MAKEUPBYSWATIROY · Delhi</small></span><span class="btn done">Sent</span></div>
+              <div class="res"><span class="nm">Swati Malhotra Studio<small>@swatimalhotra · Noida</small></span><span class="btn">Forward</span></div>
+              <div class="sentline">Lead created for MAKEUPBYSWATIROY &middot; source tdw_assist &middot; 10:58</div>
+            </div>
+            <div>
+              <div class="k">Forward to someone not on TDW</div>
+              <div class="inp"><span class="ph">Instagram handle</span></div>
+              <div class="inp"><span class="ph">WhatsApp number</span></div>
+              <span class="btn2 mute">Forward</span>
+              <div class="sentline">They get one message to join; her number stays with TDW until they do.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="ih"><span class="c">Photography</span><span class="rs">Rs 2,50,000</span><span class="fw">Forwarded 0 of 3</span></div>
+          <div class="fwrow">
+            <div>
+              <div class="k">Forward to a TDW vendor &middot; photography &middot; Delhi</div>
+              <div class="inp"><span class="ph">name or handle</span></div>
+              <div class="res"><span class="nm">Aperture Stories<small>@aperturestories · Delhi</small></span><span class="btn">Forward</span></div>
+              <div class="res"><span class="nm">Dhruv Sethi Photography<small>@dhruvsethi · Delhi</small></span><span class="btn">Forward</span></div>
+              <div class="res"><span class="nm">Kiran &amp; Co<small>@kiranandco · Gurugram</small></span><span class="btn">Forward</span></div>
+            </div>
+            <div>
+              <div class="k">Forward to someone not on TDW</div>
+              <div class="inp"><span>@rahulshootsweddings</span></div>
+              <div class="inp"><span>98XXXXXX77</span></div>
+              <span class="btn2">Forward</span>
+              <div class="sentline"><i>Dark:</i> the join message is filed, not yet approved. The forward is recorded; nothing is sent, and the log says so.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot"><span class="btn2 mute">Close request</span><span class="note">Closing tells her nothing. She hears from us only when a vendor is found.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var q={};(location.hash||'').replace(/^#/,'').split('&').forEach(function(p){
+    var kv=p.split('=');if(kv[0])q[kv[0]]=decodeURIComponent(kv[1]||'');});
+  var frames=[].slice.call(document.querySelectorAll('.framewrap'));
+  // The couple lane is PINNED to Wine Night (tokens.ts:194) and the admin cockpit is
+  // Graphite; every frame declares data-shot-modes="dark", so mode is read and ignored.
+  if(q.solo){
+    document.body.classList.add('solo');
+    frames.forEach(function(f){f.classList.toggle('on',f.getAttribute('data-frame')===q.solo);});
+  }
+})();
+</script>
+</body></html>
