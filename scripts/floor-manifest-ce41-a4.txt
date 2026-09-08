@@ -1,0 +1,16 @@
+# scripts/floor-manifest-ce41-a4.txt
+# TDW_20 · CE-41 · PACKET A4 — THE PRIVACY TRIO (dreamos-pwa). Seat A, one rider.
+# Byte 1 the §5 heading · Byte 2 the §5 paragraph (seat B's §5a NEW at dream-os
+# 2a0d838, plus the chair's one sentence on the fourth verb) · Byte 3 the homepage
+# `Privacy · Terms` line on the entry screen with the absolute, no-trailing-slash
+# hrefs Google compares to the consent screen (R-41.50). Two rider cells on b20_a3.
+#
+# BASE da722fd97063233bbab17117a61e61c024dc5f0d, re-derived at the cut (C2's
+# Switchboard card; nothing under app/(landing) or app/privacy moved between A3 and here).
+#
+# F-14.16 / F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/(landing)/page.tsx
+app/privacy/page.tsx
+scripts/b20_a3_assistance_pwa.proof.mjs
+scripts/floor-manifest-ce41-a4.txt

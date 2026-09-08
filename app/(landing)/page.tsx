@@ -831,6 +831,21 @@ export default function Home() {
                     }}
                   >Sign up</button>
                 </p>
+
+                {/* A4 · R-41.50 (chair-ruled placement, founder-delegated): the privacy link
+                    Google requires on the homepage, byte-identical to the consent screen's
+                    Privacy policy URI — absolute, no trailing slash. Terms beside it is
+                    Google's optional line. Visible without signing in: this is the entry
+                    screen, the homepage Google reads; the panel screens need not carry it. */}
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 11,
+                  color: 'rgba(248,247,245,0.4)', textAlign: 'center',
+                  margin: '12px 0 0', lineHeight: 1.5, letterSpacing: '0.04em',
+                }}>
+                  <a href="https://thedreamwedding.in/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</a>
+                  {' \u00b7 '}
+                  <a href="https://thedreamwedding.in/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</a>
+                </p>
               </div>
               </div>
             </div>

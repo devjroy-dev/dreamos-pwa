@@ -298,19 +298,20 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">5</span> Google Business Profile
+            <span className="num">5</span> Your Google account
           </h2>
           <p>
-            If you connect your Google Business Profile to your vendor account, we
-            access it only with your consent, through Google&rsquo;s official APIs. We
-            read your profile details, reviews and performance metrics to show them in
-            your dashboard, and we update the fields you edit in our app &mdash; your
-            description, hours, services and photos &mdash; on your profile. We never
-            create profiles without your authorisation, never act on a profile you have
-            not connected, and never sync in the other direction. Your Google access
-            tokens are encrypted at rest and used only for these purposes. You can
-            disconnect at any time from your account settings, or revoke our access
-            directly from your Google account.
+            If you connect your Google account to your vendor account, we access it
+            only with your consent, through Google&rsquo;s official APIs. We read the
+            search performance of websites you own &mdash; the searches people used to
+            find your pages, and how those pages ranked in Google Search &mdash; and we
+            confirm that you own a site before we read anything about it. We show that
+            information to you in your own account and use it for nothing else. Your
+            Google access tokens are encrypted at rest. We never act on an account you
+            have not connected. We do not sell Google account data, we do not use it for
+            advertising, and we do not use it to train any AI or machine-learning model.
+            We do not share it with anyone. You can disconnect at any time from your
+            account settings, or revoke our access directly from your Google account.
           </p>
         </section>
 

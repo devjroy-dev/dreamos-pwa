@@ -143,6 +143,10 @@ const land = strip(read(LAND));
 ok('the landing page calls the rule on mount at `/` with the one-home session reads and router.replace', /entryRedirectFor\(!!getVendorSession\(\), !!getCoupleSession\(\)\)/.test(land) && /router\.replace\(to\)/.test(land) && /window\.location\.pathname !== '\/'/.test(land) && /from '@\/lib\/frost-api\/_base'/.test(read(LAND)));
 ok('F-41.2: the stale "dream-os byte never built" comment is gone', !/dream-os is zero-byte this sitting/.test(read(LAND)) && !/Chartered separately, not faked client-side/.test(read(LAND)));
 ok('nothing else on the landing page moved: sign-in handler, role toggle, both entry doors still present', /handleSignIn/.test(land) && /setRole\('Maker'\)/.test(land) && /router\.push\(isVendor \? '\/vendor\/pin-login' : '\/couple\/pin-login'\)/.test(land));
+// A4 rider (R-41.50): the homepage privacy link is the literal Google compares to the consent
+// screen's Privacy policy URI — absolute, no trailing slash — and Terms sits beside it.
+ok('A4: the entry screen links https://thedreamwedding.in/privacy byte-exact (no trailing slash) and /terms beside it', /href="https:\/\/thedreamwedding\.in\/privacy"/.test(land) && !/thedreamwedding\.in\/privacy\//.test(land) && /href="https:\/\/thedreamwedding\.in\/terms"/.test(land) && /Privacy<\/a>[\s\S]{0,200}Terms<\/a>/.test(land));
+ok('A4: the privacy page\'s §5 names Search Console access and discloses share (the fourth verb), with no Business Profile write claim', (() => { const pv = read('app/privacy/page.tsx'); return /<span className="num">5<\/span> Your Google account/.test(pv) && /We do not share it with anyone\./.test(pv) && /how those pages ranked in Google Search/.test(pv) && !/update the fields you edit in our app/.test(pv) && !/Google Business Profile to your vendor account/.test(pv); })());
 
 section('§7 · THE ADMIN QUEUE');
 const adm = strip(read(ADMIN));
